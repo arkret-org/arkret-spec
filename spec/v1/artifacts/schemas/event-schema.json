@@ -48,6 +48,8 @@
     "prev_refs": {
       "type": "array",
       "description": "Actor-chain causal predecessors (envelope-level). For semantic refs (authorized_by, after, state_witness, inclusion_proof, ...), use refs[].",
+      "maxItems": 128,
+      "uniqueItems": true,
       "items": {
         "$ref": "#/$defs/eventRef"
       }
@@ -55,6 +57,7 @@
     "refs": {
       "type": "array",
       "description": "Semantic refs with role. Roles include: authorized_by (replaces v1's auth_refs[]), attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its cx.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1.",
+      "maxItems": 128,
       "items": {
         "$ref": "#/$defs/semantic_ref"
       },

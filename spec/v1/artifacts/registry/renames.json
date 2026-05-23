@@ -144,22 +144,32 @@
       "notes": "Mechanical rename: container-shape event 'cx.place.tombstone' -> 'cx.space.tombstone'."
     },
     {
-      "id": "cx.space.create",
+      "id": "cx.space.create#pre_inversion_security_boundary",
+      "wire_id": "cx.space.create",
       "kind_class": "event_kind",
       "since_revision": "59ac1d4",
       "rejection_level": "migration_only",
       "replacement": "cx.realm.create",
+      "disambiguation": "payload_shape",
+      "disambiguation_payload_shape": {
+        "realm_level_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"]
+      },
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Disambiguation: the pre-inversion 'cx.space.create' (security-boundary semantic) maps to current 'cx.realm.create'. The current 'cx.space.create' is a DIFFERENT event with container-shape semantic. Migration tooling MUST inspect payload shape (presence of Realm-level fields like join_rule / history_visibility / policy_server) to disambiguate."
+      "notes": "Disambiguation: the pre-inversion 'cx.space.create' (security-boundary semantic) maps to current 'cx.realm.create'. The current 'cx.space.create' is a DIFFERENT active event with container-shape semantic. Migration tooling MUST inspect wire_id plus payload shape (presence of Realm-level fields like security_class / join_rule / history_visibility / policy_server) to disambiguate."
     },
     {
-      "id": "cx.space.update",
+      "id": "cx.space.update#pre_inversion_security_boundary",
+      "wire_id": "cx.space.update",
       "kind_class": "event_kind",
       "since_revision": "59ac1d4",
       "rejection_level": "migration_only",
       "replacement": "cx.realm.update",
+      "disambiguation": "payload_shape",
+      "disambiguation_payload_shape": {
+        "realm_level_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"]
+      },
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Disambiguation: pre-inversion 'cx.space.update' (security-boundary semantic) -> 'cx.realm.update'. See note on cx.space.create rename."
+      "notes": "Disambiguation: pre-inversion 'cx.space.update' (security-boundary semantic) -> 'cx.realm.update'. The current 'cx.space.update' remains an active container-shape event. See note on cx.space.create rename."
     },
     {
       "id": "cx.space.organization",

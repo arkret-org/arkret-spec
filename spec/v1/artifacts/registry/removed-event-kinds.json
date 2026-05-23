@@ -82,20 +82,32 @@
       "notes": "Policy snapshot event was decomposed into per-component policy cells (join-policy, history-visibility, delivery-binding-policy, etc.); do not re-introduce a single 'set' kind."
     },
     {
-      "id": "cx.space.create",
+      "id": "cx.space.create#pre_inversion_security_boundary",
+      "wire_id": "cx.space.create",
+      "kind_class": "event_kind_payload_shape",
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.create",
+      "disambiguation_payload_shape": {
+        "forbidden_top_level_or_payload_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"],
+        "current_wire_event_kind": "cx.space.create"
+      },
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Pre-inversion 'cx.space.create' carried security-boundary semantics; in v1 the security boundary is Realm and 'cx.space.create' is reused for the container shape (board / list). The legacy security-boundary form MUST NOT appear. NOTE: 'cx.space.create' as the current container-shape event remains valid; this entry forbids the pre-inversion semantic where space.create acted as a security-boundary lifecycle event (i.e., the payload shape that now belongs to cx.realm.create)."
+      "notes": "Registry-only disambiguated id. The literal wire Event.kind cx.space.create remains active for the current container-shape event. This removed entry targets only the pre-inversion security-boundary payload shape where space.create acted like current cx.realm.create. Scanners MUST inspect wire_id plus payload shape; they MUST NOT reject the current cx.space.create solely by kind string."
     },
     {
-      "id": "cx.space.update",
+      "id": "cx.space.update#pre_inversion_security_boundary",
+      "wire_id": "cx.space.update",
+      "kind_class": "event_kind_payload_shape",
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.update",
+      "disambiguation_payload_shape": {
+        "forbidden_top_level_or_payload_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"],
+        "current_wire_event_kind": "cx.space.update"
+      },
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Pre-inversion 'cx.space.update' carried security-boundary semantics; in v1 the security boundary is Realm. The legacy security-boundary form MUST NOT appear. See note on cx.space.create."
+      "notes": "Registry-only disambiguated id. The literal wire Event.kind cx.space.update remains active for the current container-shape event. This removed entry targets only the pre-inversion security-boundary payload shape where space.update acted like current cx.realm.update. Scanners MUST inspect wire_id plus payload shape; they MUST NOT reject the current cx.space.update solely by kind string."
     },
     {
       "id": "cx.space.organization",

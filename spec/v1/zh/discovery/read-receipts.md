@@ -11,6 +11,15 @@ title: "Read Receipts & Markers"
 
 本规范定义了这两种机制的触发与同步方式。
 
+### 1.1 状态对象对照
+
+| 对象 / Event | Wire scope | 持久性 | 谁可见 | 推送 / 审计关系 |
+| --- | --- | --- | --- | --- |
+| `cx.receipt.read` / `cx.schema.read_receipt.v1` | `ephemeral_event` | 短 TTL，不进入 durable Event history | 按 visibility 规则广播给发送者或可见成员 | Push Gateway MUST NOT 因 receipt 本身发通知；只能用于 unread / suppression 派生 |
+| `cx.read.marker` / `cx.schema.read_marker.v1` | actor-private account / durable sync object | 持久保存最新阅读位置，多端同步 | 仅该 actor 的设备和授权 account aggregate 服务 | 作为 unread count、badge 与 push suppression 输入 |
+| `cx.notification` / `cx.schema.notification.v1` | derived projection / account aggregate | 派生状态，可重建 | 目标 actor 及其设备 | 不是协议真相源；必须绑定 read marker frontier、notification rule frontier 与 source event frontier |
+| `cx.audit.accessed` | durable Event（审计 profile 下） | 按 audit retention 保留 | 由 Realm audit policy / capability 控制 | 记录受控读取、watch manage_others、late recovery 等访问证明；不得替代 read receipt |
+
 ## 2. Read Receipt (已读回执)
 
 已读回执是向同一个 Flow `discussion` track 的可见成员广播“我已经看到这条消息了”。

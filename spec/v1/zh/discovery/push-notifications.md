@@ -33,6 +33,12 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 
 推送规则是 Actor-private 的配置，存储在用户自己的加密 account data 中。用户有权关闭任何 Realm 的推送、设置静默时段、自定义关键词触发等。
 
+### 2.4 多订阅信道去重与 presence timing
+
+同一事件可能同时命中显式 watch、隐式参与订阅、mention rule、read-marker badge recompute、presence-triggered foreground wakeup 或 notification projection。Sync Service / notification service 在调用 Push Gateway 前 MUST 在出口做去重：同一 `(recipient_service_did, device_id, push_route_id, source_event_digest)` 在一个 delivery window 内最多产生一条 push wakeup。默认 `blind_wakeup` profile 下，去重 key 是服务端内部状态，MUST NOT 出现在 push payload、日志导出、provider custom data 或客户端可见的 stable correlation key 中。
+
+Presence 不得作为精确 push timing oracle。服务端把 presence update、watch recompute 与 push activation 组合使用时，MUST 至少按 Realm policy 声明的 bucket 粒度（默认不小于 60s；高隐私部署 SHOULD 使用 5min 或更粗）批处理或延迟；不得在用户刚上线 / 刚离线的瞬间立即发出可被 provider 观察到的 per-event push burst。该规则不阻止本地客户端在已在线连接上立即显示通知；它只约束第三方 push provider 可见的出向时序。
+
 ## 3. 推送设备注册
 
 ### 3.1 注册接口

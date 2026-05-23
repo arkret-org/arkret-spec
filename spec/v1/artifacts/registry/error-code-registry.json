@@ -1717,6 +1717,45 @@
       "description": "A MIMI facade attempted to project room state, groupInfo, key material, or message data into a Contrix Realm without a verifiable Contrix MLS governance binding. Receiver MUST quarantine or reject fail-closed instead of accepting unauthenticated MIMI state as Realm authority. See zh/extensions/mimi-interop.md §4."
     },
     {
+      "code": "mimi_governance_binding_mismatch",
+      "applies_to": [
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "A MIMI facade found a governance binding, but its realm_id, flow_id, mls_group_id, provider DID, or endpoint digest does not match the incoming MIMI room state. Receiver MUST quarantine or reject fail-closed. See zh/extensions/mimi-interop.md §4.1."
+    },
+    {
+      "code": "mimi_policy_root_mismatch",
+      "applies_to": [
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "A MIMI room policy component does not match the Contrix Realm policy_root or cx.realm.policy_components state. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md §4.1."
+    },
+    {
+      "code": "mimi_room_state_incompatible",
+      "applies_to": [
+        "service_call",
+        "schema_validation"
+      ],
+      "description": "Incoming MIMI room state uses lifecycle, membership, policy, or extension shape not supported by the declared Contrix MIMI interop profile. Facade MUST reject or require a newer profile. See zh/extensions/mimi-interop.md §4.1."
+    },
+    {
+      "code": "mimi_provider_unreachable",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Required MIMI provider directory, key material, or groupInfo dependency is temporarily unreachable. Facade MAY retry with bounded backoff but MUST NOT accept fallback state without governance binding. See zh/extensions/mimi-interop.md §4.1."
+    },
+    {
+      "code": "mimi_draft_unsupported",
+      "applies_to": [
+        "service_call",
+        "schema_validation"
+      ],
+      "description": "Counterparty declared a MIMI Internet-Draft version not supported by this interop profile. Facade MUST reject instead of guessing a nearby draft shape. See zh/extensions/mimi-interop.md §4.1."
+    },
+    {
       "code": "applet_registration_unauthorized",
       "applies_to": [
         "service_call",
@@ -1737,6 +1776,86 @@
         "audit_decision"
       ],
       "description": "A late-arriving key tried to upgrade a decryption_failed event to late_recovered, but the receiver was not a member of the Realm at the original causal time T₀ (or has since been banned/removed). Client MUST NOT admit the recovered plaintext to verified timeline; audit log records this code. See zh/crypto-media/encryption-and-audit.md §2.3.5."
+    },
+    {
+      "code": "prev_refs_too_large",
+      "applies_to": [
+        "schema_validation",
+        "event_envelope"
+      ],
+      "description": "Event Envelope prev_refs exceeds the v1 maximum of 128 entries, or duplicates entries where uniqueness is required. Receiver MUST reject with schema_violation. See zh/conformance/scalability-constraints.md."
+    },
+    {
+      "code": "refs_too_large",
+      "applies_to": [
+        "schema_validation",
+        "event_envelope"
+      ],
+      "description": "Event Envelope refs[] exceeds the v1 maximum of 128 semantic refs. Receiver MUST reject with schema_violation. See zh/conformance/scalability-constraints.md."
+    },
+    {
+      "code": "device_authorized_principal_control_realm_mismatch",
+      "applies_to": [
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "A non-bootstrap cx.device.authorized event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by_principal does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §5.0.3."
+    },
+    {
+      "code": "cell_in_bottom_state",
+      "applies_to": [
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "A Move attempted to read or write a bottom=reject cell while the effective value is ⊥. Ordinary CAS writes MUST fail; recovery requires the conflict-recovery witness path. See zh/authz/event-auth-state-resolution.md §5.1 and §8."
+    },
+    {
+      "code": "inception_upgrade_evidence_stale",
+      "applies_to": [
+        "auth_decision",
+        "identity_resolution"
+      ],
+      "description": "Cross-method principal upgrade transfer_evidence.old_did_document_fetched_at is older than the maximum 168h evidence window. Receiver MUST reject instead of accepting stale did:web evidence. See zh/identity/key-management.md §5.0.5."
+    },
+    {
+      "code": "session_pinned_did_epoch_mismatch",
+      "applies_to": [
+        "auth_decision",
+        "agent_protocol"
+      ],
+      "description": "An agent protocol session status/result no longer matches the DID Document hash, service entry, endpoint digest, or verification method pinned at session start. Session MUST be blocked or cancelled. See zh/extensions/agent-protocol-interop.md §5.2."
+    },
+    {
+      "code": "agent_endpoint_retired",
+      "applies_to": [
+        "auth_decision",
+        "agent_protocol"
+      ],
+      "description": "A pinned agent endpoint digest was marked retired or revoked by the owner/admin endpoint state. Existing sessions MUST be blocked/cancelled and new sessions MUST re-start with a fresh pin. See zh/extensions/agent-protocol-interop.md §5.2."
+    },
+    {
+      "code": "agent_protocol_malformed_response",
+      "applies_to": [
+        "agent_protocol",
+        "schema_validation"
+      ],
+      "description": "An external agent protocol response failed declared schema, transcript hash, or artifact binding validation. The failure MUST be recorded via cx.agent.protocol_session.status/result. See zh/extensions/agent-protocol-interop.md §12."
+    },
+    {
+      "code": "gate_check_failed",
+      "applies_to": [
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "External applicant-facing generic join gate failure. Wire response MUST NOT reveal whether a claim was absent, revoked, issuer-unreachable, parent-membership-missing, or challenge-invalid; detailed diagnostics are audit/reviewer-only. See zh/governance/join-policy.md §5."
+    },
+    {
+      "code": "realm_unavailable",
+      "applies_to": [
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "The effective target Realm is tombstoned, destroyed, unreachable, or not writable by the actor; default Realm resolution MUST fail closed instead of following Realm links or falling back implicitly. See zh/models/space-hierarchy.md §4."
     },
     {
       "code": "join_policy_duplicate_gate_id",

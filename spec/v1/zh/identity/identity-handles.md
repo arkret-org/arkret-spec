@@ -356,6 +356,7 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 #### 6.1.1 缓存规则
 
 - verified handle cache MUST 绑定 `handle_uri`（canonical `contrix://` 形态）、`subject`、issuer、DID Document version / digest、alsoKnownAs proof、issuer proof、verified_at、expires_at 和 resolver policy。claim 同时携带 `handle_uri` 与 `handle_aliases[]` 时，缓存键 MUST 取 `handle_uri`；`acct:` alias 只作为附加索引，但仍指向同一 cache entry。
+- alias lookup 命中缓存时，verifier MUST 跳转到 canonical `handle_uri` 的 freshness re-check 路径：重新检查 TTL、issuer revocation、DID Document digest / version、alsoKnownAs proof 与 resolver policy。实现不得把 `handle_aliases[]` 中的 `acct:` 或其它互通别名当作独立 cache key 直接返回 verified claim，也不得为 alias 单独延长 freshness window。
 - handle cache 若含 `recipient_service_did`，还 MUST 绑定 `recipient_service_did`、claim digest、audience / scope、`service_acceptance_ref` / `policy_ref`（如有）；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
 - DNS / HTTPS 解析结果的 TTL MUST 不超过底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL 和本地 resolver policy 上限中的最小值。未提供 TTL 时，verified cache SHOULD 不超过 24 小时；高风险授权或组织背书 SHOULD 使用更短 TTL 或实时 status check。
 - 当 DID Document 移除对应 `alsoKnownAs`、issuer claim 被 revoke / expired、well-known 绑定变更、DNSSEC validation 失败、handle 被解析到不同 DID、或 resolver policy 更新时，缓存 MUST 失效或降级为 unverified。

@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Review closure pass for `_claude_report.md`（2026-05-24）
+
+对 `_claude_report.md` 中经核验成立的 schema / registry / normative prose 缺口做最小闭环修订。
+
+- **变更类型**: edit + add（schema capacity constraints、reason codes、drift registry disambiguation、normative prose hardening）
+- **影响 artifact**: `event-schema.json`; `error-code-registry.json`; `removed-event-kinds.json`; `renames.json`; `forbidden-wire-fields.json`; `zh/{authz,conformance,crypto-media,discovery,extensions,governance,identity,models,overview,sync}` 多个 normative 文档。
+- **canonical 变更**: `prev_refs` / `refs[]` 增加 schema-level `maxItems`（128）与 `prev_refs.uniqueItems=true`; `cx.space.create/update` 的 removed/rename registry 改为 payload-shape disambiguation，避免与 active container-shape event kind 同名冲突；新增 Space payload 上 Realm-level 字段的 forbidden-wire-field guard；新增 reason codes 覆盖容量、principal-control Realm 归属、bottom-state、DID upgrade stale evidence、MIMI fail-closed taxonomy、agent endpoint retire/malformed response、join gate 不可枚举失败、Realm default 解析不可用等。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (152 event kinds, 53 schemas, 39 typed ID kinds, 87 operations, 57 claimable profiles, 78 profile id references)` 与 `registry diff: clean`; `node site/scripts/crossref-check.mjs` 输出 `crossref ok (152 event kinds, 245 errors, 87 operations, 53 schemas, 57 profiles)`。
+- **conformance impact**:
+  - 受影响 profile: core Event Envelope validation、principal_control_realm、MIMI interop、agent runtime、push gateway、join policy、MLS/E2EE hardening。
+  - profile tier 变化: 无。
+  - wire 兼容性: breaking for invalid inputs only（超长 refs、pre-inversion Space-as-boundary payload、stale DID transfer evidence、未绑定 control Realm 的 device authorization 等均必须 fail closed）。
+  - reader / writer 行为要求: writer MUST respect refs capacity and current Space payload shape; reducers MUST enforce newly clarified fail-closed reason paths; readers MUST not use HLC as final timeline order before causal closure is known.
+- **fixture / vector 变化**: 本轮不新增 vector fixture；已有 lint 与 registry closure 覆盖 reason-code / artifact 引用。
+- **prose 同步**: 已更新 scalability、event auth/state resolution、key management、federation、encoding、MIMI interop、push notifications、read receipts、join policy、space hierarchy、agent interop、glossary 等章节。
+- **迁移指南**: 下游 cotest / SDK generator 需要把 `removed-event-kinds.json` 的 `wire_id + disambiguation_payload_shape` 作为判定旧 `cx.space.*` 的输入；不能再只用 Event.kind 字符串 hard reject 当前 active `cx.space.create/update`。
+
 ### Register canonical ephemeral send operation（2026-05-22）
 
 把 `cx.schema.ephemeral_envelope.v1` 的广播发送入口从 prose-only "ephemeral channel" 落到规范 HTTP / gRPC / MQ operation。

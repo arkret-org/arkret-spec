@@ -121,6 +121,8 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 Session start MUST pin counterparty DID epoch：payload 或 `refs[]` evidence MUST 记录 counterparty DID Document canonical hash、method-specific version / log entry id（若 DID method 支持）、matched service entry id、service endpoint digest 和 verification method。`cx.agent.protocol_session.status` / `result` 回流时 reducer MUST 校验这些 pin 与 session start 一致；若外部 DID 在会话期间轮换到不同 endpoint 或 verification method，现有 session MUST 进入 `blocked` 或 `cancelled`，并以 `session_pinned_did_epoch_mismatch` 作为 reason，不能静默迁移到新 endpoint。
 
+Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `cx.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest` 标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `cx.agent.protocol_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch。
+
 ### 5.3 Status 回流
 
 外部协议执行过程中的状态 MUST 回流为 Contrix event：
@@ -332,6 +334,8 @@ Adapter MUST 声明：
 | `timeout` | 超过最大执行时间。 |
 | `cancelled` | 主体或管理员取消。 |
 | `artifact_rejected` | 返回 artifact 未通过安全或 schema 检查。 |
+| `agent_endpoint_retired` | pinned endpoint 已被 owner/admin 标记退役或撤销；现有 session 必须 blocked/cancelled，新 session 必须重新 pin。 |
+| `agent_protocol_malformed_response` | 外部协议返回无法按声明 schema / transcript hash / artifact binding 验证的响应；必须写回 status/result，而不是静默丢弃。 |
 
 失败不得删除 `start` event；审计链必须保留。
 

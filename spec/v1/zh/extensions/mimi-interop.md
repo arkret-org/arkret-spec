@@ -107,6 +107,19 @@ GET /api/v1/mimi/provider-directory
 - MIMI facade 在无法解析或验证 Contrix MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Contrix Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。
 
+### 4.1 Fail-Closed Reason Taxonomy
+
+MIMI facade 对 Contrix Realm 的入站投影失败时，MUST 使用稳定 reason code，避免不同 provider 把 fail-closed 结果折叠成不可测试的通用错误：
+
+| reason_code | 触发条件 | 外部行为 |
+| --- | --- | --- |
+| `mimi_governance_binding_missing` | 找不到可验证的 Contrix MLS Governance Binding。 | quarantine 或 reject，不投影到 Realm。 |
+| `mimi_governance_binding_mismatch` | binding 存在但 `realm_id` / `flow_id` / `mls_group_id` / provider DID 与当前 MIMI room state 不一致。 | quarantine；需要人工或 backfill 复核。 |
+| `mimi_policy_root_mismatch` | MIMI policy component 与 Contrix `policy_root` / `cx.realm.policy_components` 不一致。 | reject 当前 update，等待 fresh policy projection。 |
+| `mimi_room_state_incompatible` | MIMI room state 使用当前 profile 不支持的 lifecycle、membership 或 policy 形态。 | reject 或要求使用新 interop profile。 |
+| `mimi_provider_unreachable` | provider directory、key material 或 groupInfo 依赖暂时不可达。 | `temporarily_unavailable` + bounded retry；不得接受无 binding 的 fallback。 |
+| `mimi_draft_unsupported` | 对端声明的 MIMI draft version 不在本 profile 支持集合。 | reject；不得按相近草案猜测解析。 |
+
 ## 5. Endpoint Surface
 
 MIMI facade 至少定义以下 canonical operation：

@@ -193,6 +193,8 @@ reducer MUST：
 
 reducer MUST NOT 在自动解析路径上隐式生成 application / review Move——此路径绕过申请-审核状态机。
 
+**外部 applicant 失败不可枚举（normative）**：对尚未 join 的外部 applicant，wire 响应 MUST 统一为 `failed_precondition` + `reason_code=gate_check_failed`（或 invite / directory surface 已定义的统一不可枚举错误），不得区分“claim 从未签发”、“claim 已撤销”、“issuer 暂时不可达”、“parent membership 不满足”或“challenge proof 失效”。Reducer / audit log MAY 记录内部 diagnostic reason、gate_id 与 issuer 状态，但这些字段不得出现在 applicant 可见响应、directory hint 或 push/notification payload 中。Reviewer-only application workflow 可以在加密 reviewer envelope 内展示更细原因。
+
 **Gate predicate 评估时点（normative）**：所有 gate predicate（包括 claim issuer revocation、challenge provider signature、`cooldown`、parent membership、capability presence 检查）MUST 仅对该 join Move 的 `anchor_ref` 指向的 **Anchor pre-state** 求值，与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 `apply_anchor(A)` 的 `pre_state` 模型完全一致。同一 Anchor batch 内并发的 `cx.capability.revoke` / policy 变更 / `cx.realm.join_rule` 更新对**本批次**的 join Move **不**生效；它们仅从下一 Anchor 起影响 gate 评估。这意味着：
 
 - 同批中"先撤销 review capability，后 join"的攻击模式不会让 join 通过 review-gated 路径——gate 仍按 pre-state 看到完整 capability。

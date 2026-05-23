@@ -81,6 +81,51 @@
       "notes": "Space MUST carry rank at the top level. Mirrors the relation_payload constraint; closes the dual-source ambiguity uniformly. See zh/models/realm-and-space.md §3.2."
     },
     {
+      "id": "security_class",
+      "context": "space_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.create / cx.realm.update payload",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Space is a container, not a security boundary. A cx.space.create / cx.space.update payload carrying Realm-level security_class is the pre-inversion Space-as-boundary shape and MUST be rejected; migrate it to Realm payload fields."
+    },
+    {
+      "id": "join_rule",
+      "context": "space_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.join_rule or cx.realm.policy_components join policy facet",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Join policy is Realm-scoped. Space payloads MUST NOT carry join_rule; this closes the active cx.space.* versus removed pre-inversion payload-shape ambiguity."
+    },
+    {
+      "id": "history_visibility",
+      "context": "space_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.history_visibility",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "History visibility is Realm-scoped. Space payloads MUST NOT carry history_visibility."
+    },
+    {
+      "id": "policy_server",
+      "context": "space_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.policy_server",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Policy server attachment is Realm-scoped. Space payloads MUST NOT carry policy_server."
+    },
+    {
+      "id": "delivery_binding_policy",
+      "context": "space_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.delivery_binding_policy",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Delivery binding policy is Realm-scoped. Space payloads MUST NOT carry delivery_binding_policy."
+    },
+    {
       "id": "revision_root",
       "context": "message_create_payload",
       "since_revision": "2026-05-23",
