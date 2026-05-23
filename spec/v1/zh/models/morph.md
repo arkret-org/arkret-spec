@@ -29,7 +29,7 @@ Schema id: `cx.schema.morph.v1`
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。 | Morph 暴露哪些已声明能力 hint。 |
 | `title` | no | `string` | SHOULD <= 512 chars。 | 标题。 |
 | `summary` | no | `string` |  | 摘要。 |
-| `content` | no | `object` | 富文本/blocks 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
+| `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_payload` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
 | `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`cx.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`cx.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）。same-state self-transition MUST fail。 | 物化状态。 |
@@ -173,6 +173,17 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 | `renderable` | 提示对象声明允许的默认展示面。 | `renderers`, `title_field`, `summary_field`, `media_field`。 |
 
 `query.facets`、`collection.item_facets` 和 `graph.node_facets` 的数组语义为 AND：候选对象 MUST 同时具备列出的全部 facet。`container.child_facets` 与 `replyable.reply_facets` 使用 `{all?, any?, none?}` 选择器。
+
+### 5.1 Facet 与 RelationProfile / Schema 约束冲突时的仲裁（normative）
+
+当一个 facet hint 在 cardinality / required-ness / state machine 等维度上与同名概念在 [`relation.md` §5](./relation.md) 的 **RelationProfile** 或 [`common-fields.md` §5`](./common-fields.md) 的标准状态机发生**冲突**时（典型例：`assignable` facet 提示单值分配，但 Realm 注册的 `assigned_to` RelationProfile 声明 `cardinality=many_to_one`），适用以下仲裁规则：
+
+1. **RelationProfile / Schema / Event kind registry / Capability action 在所有 reducer 与 wire 层面胜出**（与 §4.0 决策矩阵一致）：reducer MUST 按这些权威声明评估 cardinality、required-ness、transition、precondition 与 wire 拒绝。
+2. **Facet 在冲突时降级为 UI 提示**：UI / View / Inbox / 客户端搜索 SHOULD 继续根据 facet 调整渲染或筛选，但 facet 中暗示的约束 MUST NOT 被反向用于授权、Move precondition、reducer 接受/拒绝或 wire 校验。
+3. **schema_refs[] 与 morph_type_profiles 的 facet 声明视为 schema-bound hint**：reducer 不在 facet 层强制相同 facet 在跨 schema / profile 间一致，但 conformance lint SHOULD 标记"facet 与 RelationProfile / Schema 冲突"，提示规范文档维护者澄清意图。
+4. 实现 MUST NOT 把 facet 当作"沉默约束"——即 facet 不出现于 wire 上不代表约束被满足/不满足，约束只由 RelationProfile / Schema 决定。
+
+如此 facet 在 UI / hints 域与 RelationProfile 在 normative 域分工明确，避免两套来源静默互相覆盖。
 
 ## 6. Schema Evolution
 

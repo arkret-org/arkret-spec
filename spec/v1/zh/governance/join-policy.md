@@ -68,7 +68,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 字段语义：
 
-- `gate_id`：稳定 id，用于审计与 application 中的 proof 关联
+- `gate_id`：稳定 id，用于审计与 application 中的 proof 关联。**`gate_id` MUST 在 `gates[]` 中唯一**——重复值 MUST 触发 `schema_violation`（`reason_code=join_policy_duplicate_gate_id`，见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）。enforcement 由三层组成：(a) [`event-payload.schema.json#/$defs/join_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 在 `gates` 数组上声明 `uniqueItems: true`，捕获**整对象重复**的 gate；(b) JSON Schema 2020-12 无法以纯 schema 表达"按字段属性去重"，因此 [`tools/lint_artifacts.py` `check_join_policy_gate_id_uniqueness`](../../../../tools/lint_artifacts.py) 在 fixture 与 Markdown JSON 示例中机械拒绝**按 `gate_id` 去重**的违例；(c) reducer 在 wire 上再做一次 `gate_id` 唯一性校验并以上述 reason_code 拒绝。三层共同构成机器可执行的闭环。
 - `kind`：取 `claim_required` / `application_form` / `challenge_response` / `manual_review` / `parent_membership` / `cooldown` 之一
 - `auto_resolve`：该 gate 能否仅靠 applicant 提交的材料解析；`manual_review` / `application_form` 必为 `false`
 - 其余字段按 `kind` 决定（见下表）
@@ -186,6 +186,12 @@ reducer MUST：
 5. 全部通过则接受 `membership=join`；任一失败 `failed_precondition`，附带 `reason_code` 指明哪个 gate fail 与原因。
 
 reducer MUST NOT 在自动解析路径上隐式生成 application / review Move——此路径绕过申请-审核状态机。
+
+**Gate predicate 评估时点（normative）**：所有 gate predicate（包括 claim issuer revocation、challenge provider signature、`cooldown`、parent membership、capability presence 检查）MUST 仅对该 join Move 的 `anchor_ref` 指向的 **Anchor pre-state** 求值，与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 `apply_anchor(A)` 的 `pre_state` 模型完全一致。同一 Anchor batch 内并发的 `cx.cap.revoke` / policy 变更 / `cx.realm.join_rule` 更新对**本批次**的 join Move **不**生效；它们仅从下一 Anchor 起影响 gate 评估。这意味着：
+
+- 同批中"先撤销 review capability，后 join"的攻击模式不会让 join 通过 review-gated 路径——gate 仍按 pre-state 看到完整 capability。
+- 反之，同批中"先发 grant，后用 grant 满足 gate" 也不会被 reducer 当作满足——授权与 Move 的可见性以 Anchor 边界为单位。
+- 与本规范 §3.1 中 `combinator` 的"deny gate（如 cooldown）独立评估"规则共存：cooldown 等 pre-evaluation deny gate 同样基于 pre-state 触发，且不参与 combinator。
 
 ### 5.1 成员投递绑定
 

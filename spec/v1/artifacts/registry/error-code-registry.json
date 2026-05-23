@@ -146,6 +146,12 @@
       "description": "A realm-level policy refuses the requested write or fanout (read-receipts §2.5: cx.receipt.read drops when disclosure='disabled'; retry_after_ms is null because retry will not change the outcome)."
     },
     {
+      "code": "read_receipt_compliance_floor_violated",
+      "http_status": 422,
+      "scope": "both",
+      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' → child 'optional' or 'disabled') without the parent explicitly setting allow_child_privacy_tightening_against_required=true. Reducer MUST reject the offending cx.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md §2.5."
+    },
+    {
       "code": "ephemeral_kind_not_permitted",
       "http_status": 403,
       "scope": "service_call",
@@ -1503,7 +1509,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Realm has accepted cx.realm.destroy (or equivalent terminal decommission marker) and cannot accept new ordinary writes. Only audit-class events (cx.audit.*, cx.audit.erasure_receipt) are still acceptable. Receivers MUST reject cx.events.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.5."
+      "description": "Realm has accepted cx.realm.destroy (or equivalent terminal decommission marker) and cannot accept new ordinary writes. Only audit-class events (cx.audit.*, cx.audit.erasure_receipt) are still acceptable. Receivers MUST reject cx.events.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.6."
     },
     {
       "code": "audit_agent_attestation_mismatch",
@@ -1577,7 +1583,15 @@
       "applies_to": [
         "audit_decision"
       ],
-      "description": "A late-arriving key tried to upgrade a decryption_failed event to late_recovered, but the receiver was not a member of the Realm at the original causal time T₀ (or has since been banned/removed). Client MUST NOT admit the recovered plaintext to verified timeline; audit log records this code. See zh/crypto-media/encryption-and-audit.md §2.6.1."
+      "description": "A late-arriving key tried to upgrade a decryption_failed event to late_recovered, but the receiver was not a member of the Realm at the original causal time T₀ (or has since been banned/removed). Client MUST NOT admit the recovered plaintext to verified timeline; audit log records this code. See zh/crypto-media/encryption-and-audit.md §2.3.5."
+    },
+    {
+      "code": "join_policy_duplicate_gate_id",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for a schema_violation on cx.realm.join_policy where gates[] contains duplicate gate_id values. gate_id MUST be stable and unique within the policy so that audit refs in cx.member.state{gate_proofs[gate_id=…]} are unambiguous. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_gate_id. See zh/governance/join-policy.md §3.1."
     }
   ]
 }

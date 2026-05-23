@@ -217,7 +217,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 `decryption_pending` 是有界恢复状态，不是永久展示状态。默认 timeout 为 7 天；超时后客户端 MUST 降级为 metadata-only `decryption_failed` 占位。连续 epoch 缺口过大时，客户端 SHOULD 使用 range-based recovery，从授权 peer、key backup、Archive Node 或 policy 声明的 Key Recovery Service 获取最小必要 epoch material。
 
-#### 2.6.1 Late Key Recovery 状态机（normative）
+#### 2.3.5 Late Key Recovery 状态机（normative）
 
 客户端 MAY 在 `decryption_failed` 之后接收到迟到的 key material（来自 key backup 同步、device 重新加入、Archive Node 回灌、history key share 等）。该 late material 重新解码受限历史的流程是受控状态机，**不是**静默解锁：
 
@@ -238,7 +238,7 @@ d. **Audit profile 强制**：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.
 
 **Revoked / removed actor 负向**：若 receiver 在 T₀ 已不是成员，或 late key share 的签发时刻该 receiver 已被 ban / removed 且 key source 未重新执行 T₀ 校验，则 late key MUST NOT 进入 verified timeline。T₀ 之后发生的 ban / remove 不自动追溯撤销其在 T₀ 合法可见的历史，但 key backup / archive node / peer share 在发送 late material 前 MUST 重新执行 T₀ membership + policy 校验，并确认当前 share policy 仍允许向该 device 交付；否则必须拒绝并写 `late_recovery_rejected_membership` 或 `late_recovery_share_not_authorized`。`cx.vector.late_key_recovery.removed_actor.v1` 覆盖：(a) receiver 在 T₀ 不可见时不解密；(b) key source 在 ban 后未重新校验时拒绝 share；(c) 客户端 UI 不显示未授权明文。
 
-#### 2.6.2 与 redaction / erasure 的关系
+#### 2.3.6 与 redaction / erasure 的关系
 
 late_recovered 状态的明文 MUST 受后续 redaction / erasure 影响：若在 recovery 之后该 event 被 `cx.redaction` 或硬擦除，receiver MUST 立即移除已显示的明文并转入 `redacted_after_recovery` 状态。已 emit 的 `cx.audit.accessed` late_recovery marker 保留作为审计轨迹（即使内容已 redact，访问事实仍然可审计）。
 

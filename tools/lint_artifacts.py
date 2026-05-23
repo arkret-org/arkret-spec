@@ -351,6 +351,158 @@ def check_legacy_wire_fields(lint: Lint) -> None:
                 )
 
 
+def check_join_policy_gate_id_uniqueness(lint: Lint) -> None:
+    """Enforce property-level gate_id uniqueness within join_policy gates[].
+
+    JSON Schema 2020-12 has no native "unique by property" keyword: ``uniqueItems``
+    only catches whole-object duplicates. The wire contract for
+    ``cx.realm.join_policy`` (see zh/governance/join-policy.md §3.1) requires that
+    ``gate_id`` be unique across siblings in ``gates[]`` so that audit refs in
+    ``cx.member.state{gate_proofs[gate_id=…]}`` remain unambiguous; the canonical
+    reject reason is ``schema_violation reason_code=join_policy_duplicate_gate_id``.
+
+    This lint walks every JSON artifact and every Markdown ``json`` example,
+    finds objects that look like a join_policy value (have a ``gates`` array
+    whose items have ``gate_id``), and rejects any with duplicate ``gate_id``
+    across siblings. Markdown blocks demonstrating the negative case MUST be
+    annotated with ``expect=invalid first_error="join_policy_duplicate_gate_id"``
+    in their fence header to be exempted (matching the existing negative-case
+    convention used elsewhere in this linter).
+    """
+
+    def walk(value: Any, on_object: Any) -> None:
+        if isinstance(value, dict):
+            on_object(value)
+            for child in value.values():
+                walk(child, on_object)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child, on_object)
+
+    def check_value(path: Path, value: Any, where: str) -> None:
+        def on_object(obj: dict) -> None:
+            gates = obj.get("gates")
+            if not isinstance(gates, list) or not gates:
+                return
+            # heuristic: items must look like join_policy gates (have gate_id+kind)
+            looks_like_join_policy = all(
+                isinstance(g, dict) and "gate_id" in g and "kind" in g
+                for g in gates
+            )
+            if not looks_like_join_policy:
+                return
+            seen: set[str] = set()
+            for g in gates:
+                gid = g.get("gate_id")
+                if not isinstance(gid, str):
+                    continue
+                if gid in seen:
+                    lint.fail(
+                        path,
+                        f"{where}: join_policy gates[] contains duplicate gate_id "
+                        f"'{gid}' — see error-code-registry reason "
+                        f"`join_policy_duplicate_gate_id` and join-policy.md §3.1.",
+                    )
+                    return
+                seen.add(gid)
+
+        walk(value, on_object)
+
+    # JSON files under artifacts/
+    for path in all_json_files():
+        if ARTIFACTS not in path.parents:
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        check_value(path, data, "value")
+
+    # Markdown json fences
+    fence_re = re.compile(r"```json([^\n]*)\n(.*?)```", re.DOTALL)
+    for path in markdown_files():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for match in fence_re.finditer(text):
+            header = match.group(1) or ""
+            body = match.group(2)
+            # Skip explicit negative cases tagged in the fence header
+            if "join_policy_duplicate_gate_id" in header and "expect=invalid" in header:
+                continue
+            try:
+                data = json.loads(body)
+            except Exception:
+                continue
+            line_no = text.count("\n", 0, match.start()) + 1
+            check_value(path, data, f"json block at line {line_no}")
+
+
+def check_content_composite_uses_parts(lint: Lint) -> None:
+    """Reject legacy ``blocks`` spelling on cx.content.composite examples.
+
+    The canonical composite child field is required as ``parts``. ``blocks`` is
+    too tied to document layout semantics and is now listed in
+    forbidden-wire-fields.json for the content_block_composite context. JSON
+    Schema rejects it on real wire payloads; this lint keeps artifacts and prose
+    JSON examples aligned.
+    """
+
+    def walk(value: Any, on_object: Any) -> None:
+        if isinstance(value, dict):
+            on_object(value)
+            for child in value.values():
+                walk(child, on_object)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child, on_object)
+
+    def check_value(path: Path, value: Any, where: str) -> None:
+        def on_object(obj: dict) -> None:
+            if obj.get("kind") != "cx.content.composite":
+                return
+            if "blocks" in obj:
+                lint.fail(
+                    path,
+                    f"{where}: cx.content.composite uses legacy `blocks`; "
+                    "canonical wire field is `parts`.",
+                )
+            if "parts" not in obj:
+                lint.fail(
+                    path,
+                    f"{where}: cx.content.composite is missing required `parts`.",
+                )
+
+        walk(value, on_object)
+
+    for path in all_json_files():
+        if ARTIFACTS not in path.parents:
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        check_value(path, data, "value")
+
+    fence_re = re.compile(r"```json([^\n]*)\n(.*?)```", re.DOTALL)
+    for path in markdown_files():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for match in fence_re.finditer(text):
+            header = match.group(1) or ""
+            if "content_block_legacy_blocks" in header and "expect=invalid" in header:
+                continue
+            try:
+                data = json.loads(match.group(2))
+            except Exception:
+                continue
+            line_no = text.count("\n", 0, match.start()) + 1
+            check_value(path, data, f"json block at line {line_no}")
+
+
 def check_registry_manifest(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "registry-manifest.json"
     data = load_json(lint, path)
@@ -2321,6 +2473,8 @@ def main() -> int:
     check_markdown_links(lint)
     check_markdown_examples(lint, known)
     check_legacy_wire_fields(lint)
+    check_join_policy_gate_id_uniqueness(lint)
+    check_content_composite_uses_parts(lint)
     check_release_readiness_counts(lint, known)
     check_error_code_closure(lint)
     check_cross_doc_anchors(lint)

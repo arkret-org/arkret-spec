@@ -252,7 +252,7 @@
             }
           ]
         },
-        "blocks": {
+        "parts": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/content_block"
@@ -277,9 +277,21 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Reject legacy discriminator field name `type`. This payload uses `kind` as discriminator; `type` is a banned alias from earlier drafts to avoid divergence between schema accept and reducer reject.",
-        "required": ["type"]
-      }
+        "$comment": "Reject legacy discriminator field name `type` and legacy composite child array name `blocks`. The discriminator is `kind`, the composite child array is `parts` (see schemas/message.schema.json and forbidden-wire-fields.json `blocks/content_block_composite`).",
+        "anyOf": [
+          { "required": ["type"] },
+          { "required": ["blocks"] }
+        ]
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "cx.content.composite" } },
+            "required": ["kind"]
+          },
+          "then": { "required": ["parts"] }
+        }
+      ]
     },
     "encrypted_payload": {
       "$ref": "./encrypted-envelope.schema.json"
@@ -1195,30 +1207,183 @@
         "profile_private_field"
       ]
     },
+    "join_policy_payload": {
+      "$comment": "Value-shape schema for the realm.join_policy.v1 cell (written as a sub-component of cx.realm.policy_components). Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/lint_artifacts.py check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
+      "type": "object",
+      "required": [
+        "gates"
+      ],
+      "properties": {
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "gate_id",
+              "kind"
+            ],
+            "properties": {
+              "gate_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "claim_required",
+                  "application_form",
+                  "challenge_response",
+                  "manual_review",
+                  "parent_membership",
+                  "cooldown"
+                ]
+              },
+              "auto_resolve": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "combinator": {
+          "type": "string",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "review_capability": {
+          "type": "string"
+        },
+        "reviewer_quorum": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "any",
+                "majority",
+                "all"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "threshold",
+                "of"
+              ],
+              "properties": {
+                "threshold": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "of": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/did"
+                  },
+                  "minItems": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "application_ttl": {
+          "type": "string"
+        },
+        "cooldown_after_reject": {
+          "type": "string"
+        },
+        "max_open_applications_per_actor": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "applicant_visibility": {
+          "type": "string",
+          "enum": [
+            "reviewer_only",
+            "members_after_join",
+            "public"
+          ]
+        },
+        "directory_hint": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "read_receipt_policy_payload": {
+      "$comment": "Payload for cx.realm.read_receipt_policy. Closed object (additionalProperties=false) so that typos in the privacy-floor escape switch `allow_child_privacy_tightening_against_required` cause schema_violation rather than silent acceptance. The enclosing Event envelope already carries `realm_id`; the payload does NOT duplicate it. `minProperties: 1` aligns with the generic state_payload branch in event-schema.json (cx.realm.* policy events): an empty `{}` payload is semantically identical to never writing the event (cell stays null with the same effective defaults), so it MUST be schema_violation rather than a silent no-op. See zh/discovery/read-receipts.md §2.5.",
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "disclosure": {
+          "type": "string",
+          "enum": [
+            "required",
+            "optional",
+            "disabled"
+          ]
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "public",
+            "members",
+            "private"
+          ]
+        },
+        "scope_overrides_allowed": {
+          "type": "boolean"
+        },
+        "allow_child_privacy_tightening_against_required": {
+          "type": "boolean",
+          "description": "Privacy-floor escape switch. Defaults to false. When the parent policy sets disclosure='required' and this field is true, a child Realm MAY tighten disclosure to 'optional' or 'disabled'. Misspellings (e.g., a missing underscore) cause schema_violation because additionalProperties=false; runtime mismatches yield read_receipt_compliance_floor_violated."
+        }
+      },
+      "additionalProperties": false
+    },
     "message_create_payload": {
       "type": "object",
       "required": [
         "flow_id",
         "track"
       ],
-      "oneOf": [
+      "allOf": [
         {
-          "required": [
-            "content"
-          ],
-          "not": {
-            "required": [
-              "encrypted_payload"
-            ]
-          }
+          "oneOf": [
+            {
+              "required": [
+                "content"
+              ],
+              "not": {
+                "required": [
+                  "encrypted_payload"
+                ]
+              }
+            },
+            {
+              "required": [
+                "encrypted_payload"
+              ],
+              "not": {
+                "required": [
+                  "content"
+                ]
+              }
+            }
+          ]
         },
         {
-          "required": [
-            "encrypted_payload"
-          ],
+          "$comment": "cx.message.create payload MUST NOT carry revision_root. Reducer initializes revision_root := id on create; only cx.message.revise events may set it. See zh/models/flow-and-message.md §9 and forbidden-wire-fields.json `revision_root/message_create_payload`.",
           "not": {
             "required": [
-              "content"
+              "revision_root"
             ]
           }
         }

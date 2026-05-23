@@ -117,18 +117,7 @@ Schema id: `cx.schema.realm.v1`
 }
 ```
 
-### 2.5 Realm 终态 (`cx.realm.tombstone` / `cx.realm.destroy`)
-
-Realm 有两个终态 event，语义不同：
-
-| Event | 语义 | 是否可恢复 | successor |
-| --- | --- | --- | --- |
-| `cx.realm.tombstone` | "本 Realm 不再活跃" — 转移到 successor Realm（产品改版、组织重组等）。 | ❌ 但 successor 接续历史可达 | 必填 `successor_realm_id` |
-| `cx.realm.destroy` | "本 Realm 永久退役" — 终极去活。无 successor，等同于"该 Realm 在该 deployment 内永久关闭"。 | ❌ | MUST NOT 设 successor |
-
-`cx.realm.tombstone` 写入 `cx.component.realm.tombstone.v1`，`cx.realm.destroy` 写入 `cx.component.realm.destroy.v1`；二者均为 cas-register（bottom=reject），各自不可重复写入。capability：`cx.realm.lifecycle.tombstone` / `cx.realm.lifecycle.destroy`（high risk，capabilities.md §10）。
-
-### 2.6 `cx.realm.create` Reducer Bootstrap（normative）
+### 2.5 `cx.realm.create` Reducer Bootstrap（normative）
 
 `cx.realm.create` 是 Realm 生命周期的 genesis event，它同时承担"建 Realm metadata"和"为 `created_by_principal` 引导首份成员资格"两项职责。reducer MUST 在 commit 该 event 时原子完成下述写入，且 MUST 在评估同一 submit 批次中由同一 actor 发起的任何后续 event 之前完成：
 
@@ -148,7 +137,18 @@ Server 端实现合规要点：
 - 若 server 内部维护"显式成员索引"（如 in-memory `members` set）用于快速 authz 判断，MUST 在 `cx.realm.create` 的 commit 路径同步更新此索引，且必须在向 actor 返回 `cx.events.submit` 200 之前完成 — 否则后续 facet event 在同批次内会以 `capability_denied` 错误失败，把 spec-合规客户端逼到旁路。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /api/v1/spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
-#### 2.5.1 `cx.realm.destroy` 终态规则（normative）
+### 2.6 Realm 终态 (`cx.realm.tombstone` / `cx.realm.destroy`)
+
+Realm 有两个终态 event，语义不同：
+
+| Event | 语义 | 是否可恢复 | successor |
+| --- | --- | --- | --- |
+| `cx.realm.tombstone` | "本 Realm 不再活跃" — 转移到 successor Realm（产品改版、组织重组等）。 | ❌ 但 successor 接续历史可达 | 必填 `successor_realm_id` |
+| `cx.realm.destroy` | "本 Realm 永久退役" — 终极去活。无 successor，等同于"该 Realm 在该 deployment 内永久关闭"。 | ❌ | MUST NOT 设 successor |
+
+`cx.realm.tombstone` 写入 `cx.component.realm.tombstone.v1`，`cx.realm.destroy` 写入 `cx.component.realm.destroy.v1`；二者均为 cas-register（bottom=reject），各自不可重复写入。capability：`cx.realm.lifecycle.tombstone` / `cx.realm.lifecycle.destroy`（high risk，capabilities.md §10）。
+
+#### 2.6.1 `cx.realm.destroy` 终态规则（normative）
 
 `cx.realm.destroy` accepted 进入 frontier 之后：
 
@@ -163,7 +163,7 @@ Server 端实现合规要点：
 6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST 不再作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `cx.flow.move`、`cx.space.parent`、`cx.space.update` 等普通写入复活它们。跨 Realm `parent_ref` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
 7. **Discussion Realm edge cascade**：`Flow.discussion_realm_ref` 是跨 Realm 可见性边，destroy 必须双向 fail closed。若 `discussion_realm_ref` 指向的 linked Realm 被 destroy，源 Flow 的 discussion track projection MUST 标记为 `realm_destroyed_orphan` / locked，不得继续接受 `cx.message.*` 写入该 discussion，也不得把 source Realm membership 映射成 linked Realm 访问。若 source Realm 被 destroy 而 linked discussion Realm 仍 live，linked Realm 中既有 discussion history MAY 按其自身 policy 被授权 reader 回放，但 MUST 与已 destroyed source Flow 解耦为 locked historical context；新的 discussion 写入、watch 派发和 reverse navigation MUST 停止，除非后续显式 reparent/migration event 在 linked Realm 内被授权接受。
 
-#### 2.5.2 跨 Principal Server Erasure Receipt Fanout（normative）
+#### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
 
 当部署对一个 Realm（或一个 principal）执行 hard erasure 时，**issuing** Principal Server MUST：
 
@@ -212,7 +212,7 @@ Schema id: `cx.schema.space.v1`
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`；profile 可注册新 kind。 | Space 类型。 |
 | `title` | yes | `string` | 1..256 chars。 | 显示名。 |
 | `summary` | no | `string` | <= 2048 chars。 | 简短说明。 |
-| `rank` | no | `string` | 见 `encoding.md` §9。 | 在 parent 内的位置。 |
+| `rank` | no | `string` | 见 `encoding.md` §9。 | 在 parent 内的位置。MUST 出现在 Space 顶层，**不**得作为 `fields.rank` 嵌套字段（与 [`relation.md` §2](./relation.md) 对 Relation 的相同约束对齐；wire 上 `fields.rank` MUST 被拒绝为 `schema_violation`，详见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
 | `schema_refs` | no | `array<string>` | 可选 schema/profile 引用。 | 约束本 Space 容纳的资源类型 / fields。 |
 | `fields` | no | `object` | kind-specific 字段。 | 扩展字段。 |
 | `labels` | no | `array<string>` |  | 用户/系统标签。 |

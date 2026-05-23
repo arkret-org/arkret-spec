@@ -132,14 +132,30 @@
             }
           ]
         },
-        "blocks": {
+        "parts": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/content_block"
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "not": {
+        "$comment": "Reject legacy discriminator `type` and legacy composite child array name `blocks`; canonical content blocks use `kind` and composite children use `parts`.",
+        "anyOf": [
+          { "required": ["type"] },
+          { "required": ["blocks"] }
+        ]
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "cx.content.composite" } },
+            "required": ["kind"]
+          },
+          "then": { "required": ["parts"] }
+        }
+      ]
     },
     "did": {
       "type": "string",

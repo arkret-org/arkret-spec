@@ -213,7 +213,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed)",
+      "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / allow_child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5 for the compliance-floor escape switch",
       "cell_family": "cx.component.realm.read_receipt_policy.v1",
       "cell_subject": null,
       "lattice": "cas-register",

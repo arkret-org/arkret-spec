@@ -761,6 +761,15 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.realm.read_receipt_policy" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": {
           "kind": {
             "enum": [

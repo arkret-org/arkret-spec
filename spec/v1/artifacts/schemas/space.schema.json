@@ -65,7 +65,12 @@
     },
     "fields": {
       "type": "object",
-      "description": "Space kind-specific fields, e.g., { 'wip_limit': 5 } for kind=list, { 'view_id': 'cx:view:...' } for kind=board's default view."
+      "description": "Space kind-specific fields, e.g., { 'wip_limit': 5 } for kind=list, { 'view_id': 'cx:view:...' } for kind=board's default view. MUST NOT contain a 'rank' key (rank is a top-level Space field; see relation.md §2 for the symmetric Relation constraint and forbidden-wire-fields.json `fields.rank/space_payload`).",
+      "not": {
+        "required": [
+          "rank"
+        ]
+      }
     },
     "labels": {
       "type": "array",

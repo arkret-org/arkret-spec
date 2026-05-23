@@ -267,7 +267,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组 |
+| `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组。`parts` 是 `cx.content.composite` 的 canonical wire 字段名；旧拼写 `blocks` MUST 被 schema 以 `schema_violation` 拒绝（见 [`spec/v1/artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
 
 ## 5. Mixin 机制 (附加属性)
 

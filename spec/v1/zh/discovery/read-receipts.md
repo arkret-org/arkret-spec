@@ -72,6 +72,8 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 Realm MAY 通过 `cx.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 `cx.receipt.read` 的披露要求。需要让 discussion 时间线与源 Realm 在 read receipt policy 上分离时，必须把 discussion 升级为独立 linked Realm（参见 `Flow.discussion_realm_ref`，[`../models/flow-and-message.md` §5](../models/flow-and-message.md)），由 linked Realm 自己声明 `cx.realm.read_receipt_policy`；track 级别 override 不在 v1 范围内。该 policy SHOULD 由 `cx.realm.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
 
+> **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或字段名拼写错误（包括 §2.5 中的合规旁路 `allow_child_privacy_tightening_against_required`）在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价（cell 保持 null，effective defaults 由 §2.5 字段表给出），因此 wire 上 `payload: {}` MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。该约束与 `event-schema.json` 通用 `cx.realm.*` policy 分支的 `state_payload` `minProperties: 1` 保持一致，避免同一 Event 在两个 schema 分支上得出不同结果。
+
 ```json
 {
   "kind": "cx.realm.read_receipt_policy",
@@ -90,6 +92,7 @@ Realm MAY 通过 `cx.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
 | `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Realm 可见性允许的全部观察者；`members` = 目标 Realm / linked Realm 可见成员（discussion 时间线归属的 Realm：未设置 `discussion_realm_ref` 时为源 Realm，设置时为该 linked Realm）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
 | `scope_overrides_allowed` | `bool` | `true` | 是否允许 linked Realm（如 `Flow.discussion_realm_ref` 指向的独立 Realm）声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 必须同时满足两条规则：隐私上限允许 `optional -> disabled`，但合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。源 Realm `scope_overrides_allowed=true` 仅允许 linked Realm 在满足上述两条规则时进一步收紧；`scope_overrides_allowed=false` 要求 linked Realm 完全继承父策略。任何放宽方向或违反合规下限的 child policy 声明 MUST reducer 拒绝。 |
+| `allow_child_privacy_tightening_against_required` | `bool` | `false` | 父 Realm 显式同意 child Realm 把 `disclosure=required` 进一步收紧为 `optional` 或 `disabled` 的合规例外开关。**仅当父 policy 把该字段显式声明为 `true` 时** child policy 才允许 `optional → disabled` 方向跨越合规下限；否则（字段缺省、为 `false` 或字段名拼写错误）reducer MUST 以 `read_receipt_compliance_floor_violated` 拒绝相应 child policy Move。该字段为 prose-defined 合规旁路，schema 必须 `additionalProperties=false` 防止"未识别字段被静默忽略"，writer 必须在该 cell 的 wire JSON 中按字面拼写出现该字段。 |
 
 规则：
 

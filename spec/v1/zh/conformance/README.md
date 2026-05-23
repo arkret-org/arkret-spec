@@ -24,6 +24,8 @@ title: Contrix v1 一致性工件索引
 | --- | --- |
 | Registry（contract-catalog 等） | [`spec/v1/artifacts/registry/`](../../artifacts/registry/) |
 | Conformance vector registry | [`spec/v1/artifacts/registry/vector-registry.json`](../../artifacts/registry/vector-registry.json) |
+| Account Data type registry | [`spec/v1/artifacts/registry/account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json) |
+| Error code registry | [`spec/v1/artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json) |
 | JSON Schema | [`spec/v1/artifacts/schemas/`](../../artifacts/schemas/) |
 | Conformance fixture | [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/) |
 | OpenAPI HTTP binding | [`spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml`](../../artifacts/openapi/contrix-service-api.openapi.yaml) |

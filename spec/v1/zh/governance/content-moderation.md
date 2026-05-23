@@ -34,7 +34,7 @@ Contrix 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过
 - 有 capability 时，Realm / Organization / Service policy MAY deny、quarantine 或 require review。
 - 个人 block 只影响个人客户端体验，不能替 Realm 删除其他成员可见的事实。
 
-### 2.5.0 Capability / Moderation / Personal Blocklist 三层判定
+### 2.5 Capability / Moderation / Personal Blocklist 三层判定
 
 下图把动作从提交到呈现要穿过的三层 gate 画在一起。**Capability 是唯一的"能不能做"判定**，Moderation 只能在 capability 之上叠加 deny / quarantine / require_review，Personal Blocklist 完全是接收方本地行为。
 
@@ -59,11 +59,11 @@ flowchart TB
 读图要点：
 
 - **Capability 是唯一 allow 来源**：黑名单 / moderation policy / personal blocklist 都不能凭空创造权限。
-- **Moderation 决策 MUST anchored**（见 §2.5）：`hard_deny` / `quarantine` / `require_review` 必须通过 anchored Move 写入 `cx.component.moderation_state.v1` cell，避免不同 Principal Server 给出不一致判定导致跨 peer 视图分叉。
+- **Moderation 决策 MUST anchored**（见 §2.6）：`hard_deny` / `quarantine` / `require_review` 必须通过 anchored Move 写入 `cx.component.moderation_state.v1` cell，避免不同 Principal Server 给出不一致判定导致跨 peer 视图分叉。
 - **Personal Blocklist 不进 cell**：它只是接收方本地客户端 view 过滤，不广播、不共享、不替 Realm 删除其他人可见的事实。
 - **Blocklist 不可枚举**：个人 block 命中不得向被屏蔽方或 federation peer 暴露为独立错误码、receipt 差异、presence / typing 差异或 directory 结果差异；对外表现必须与普通不可见、不可达或不存在一致。
 
-### 2.5 Moderation 决策 MUST Anchored
+### 2.6 Moderation 决策 MUST Anchored
 
 任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入 `cx.component.moderation_state.v1` cell，详细规则见 [`authz/policy-server.md` §7.1](../authz/policy-server.md)。Policy server signed decision 与个人 blocklist 仍是 out-of-band，不进入该 cell。这避免不同 Principal Server 对同一事件做出不一致 quarantine / allow 决策导致跨 peer 视图分叉。
 

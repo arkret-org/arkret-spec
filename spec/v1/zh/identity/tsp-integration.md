@@ -90,13 +90,16 @@ Contrix operation 可作为 TSP application payload：
 
 ```json
 {
-  "operation": "federation.push_operations",
+  "operation": "cx.events.submit",
   "content_type": "application/contrix+json",
   "realm_id": "cx:realm:...",
   "payload_hash": "sha256:...",
   "payload": {}
 }
 ```
+
+示例中的 `operation` 字段 MUST 取自 [`artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json)；
+TSP transport 不引入平行 operation namespace。若 TSP adapter 需要 transport-private 控制消息（例如握手 / heartbeat），SHOULD 用 `tsp.adapter.*` 命名空间并显式声明为 TSP-private，不得进入 Contrix operation registry 或 conformance claim。
 
 规则：
 

@@ -61,6 +61,42 @@
       "replacement": "realm_frontier",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Range-completeness scope, audit RYW receipt, and POST /events response previously named the per-Realm frontier slot 'space_frontier'. After the Realm/Space inversion the replication and security boundary that this frontier covers is the Realm (not an in-Realm Space container); the canonical field name is now 'realm_frontier' (see schemas/range-completeness-attestation.schema.json, schemas/audit-ryw-receipt.schema.json, OpenAPI EventSubmitResponse). 'space_frontier' MUST NOT appear on the current wire as a frontier object property."
+    },
+    {
+      "id": "fields.rank",
+      "context": "relation_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "rank (top-level Relation field)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Relation MUST carry rank at the top level, not nested under fields. The dual-source (top-level rank vs fields.rank) ambiguity is closed: writers MUST emit top-level rank only, and readers MUST reject fields.rank with schema_violation. See zh/models/relation.md §2."
+    },
+    {
+      "id": "fields.rank",
+      "context": "space_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "rank (top-level Space field)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Space MUST carry rank at the top level. Mirrors the relation_payload constraint; closes the dual-source ambiguity uniformly. See zh/models/realm-and-space.md §3.2."
+    },
+    {
+      "id": "revision_root",
+      "context": "message_create_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "cx.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only cx.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/flow-and-message.md §9."
+    },
+    {
+      "id": "blocks",
+      "context": "content_block_composite",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "parts",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "cx.content.composite Content Block MUST use the field name `parts` (matching schemas/message.schema.json, schemas/event-payload.schema.json, schemas/flow.schema.json, and schemas/morph.schema.json). The temporary `blocks` spelling was rejected because it over-constrained the concept to document layout blocks; the canonical wire name is `parts`, and `blocks` MUST NOT appear in current content_block_composite wire. See zh/models/content-types.md §4.10."
     }
   ]
 }
