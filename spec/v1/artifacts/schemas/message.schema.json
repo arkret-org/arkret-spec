@@ -50,7 +50,8 @@
         }
       },
       "required": [
-        "redaction_ref"
+        "redaction_ref",
+        "state_changed_at"
       ],
       "not": {
         "anyOf": [

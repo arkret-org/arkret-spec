@@ -40,10 +40,12 @@
       "type": "object"
     },
     "device_proof": {
-      "type": "object"
+      "type": "object",
+      "description": "Optional per-device transport proof block. Schema-open extension point keyed by device-lifecycle.md §5.2 cross-signing binding (typical sub-fields: cross_signing_binding, sender_device_key_fingerprint, signature_over_content_hash). MUST NOT replace MLS authentication of the enclosing envelope; included only when an additional out-of-band per-device transport binding is required (e.g. SAS verification, dehydrated-device proofs). Receivers MUST treat unknown sub-fields as opaque and MUST NOT trust device_proof in isolation."
     },
     "unsigned": {
-      "type": "object"
+      "type": "object",
+      "description": "Optional non-authenticated metadata block (transport-layer hints only). Receivers MUST NOT trust any field here for authorization, ordering, or cryptographic verification. Typical sub-fields: progress (delivery progress hint), error_context (transport-layer error diagnostics), retry_after_ms. By convention this block is excluded from the signed transcript of the enclosing transport envelope and is dropped on persist."
     }
   },
   "additionalProperties": false,

@@ -880,6 +880,33 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.agent.key.authorized" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_authorized_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.agent.key.revoked" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_revoked_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.agent.key.rotated" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_rotated_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": {
           "kind": {
             "enum": [
@@ -1206,9 +1233,6 @@
               "cx.applet.registration",
               "cx.applet.protocol_session.start",
               "cx.applet.protocol_session.status",
-              "cx.agent.key.authorized",
-              "cx.agent.key.revoked",
-              "cx.agent.key.rotated",
               "cx.mimi.room_binding"
             ]
           }
@@ -1275,9 +1299,25 @@
           ]
         },
         "schema_ref": { "$ref": "#/$defs/profileRef" },
+        "profile_ref": {
+          "$ref": "#/$defs/profileRef",
+          "description": "Profile that defines this extension's semantics when schema_ref is not the exact governing profile."
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Closed extension-specific parameter bag. Unknown top-level fields are forbidden; extension-defined data belongs here and is interpreted only after id/schema_ref support is confirmed.",
+          "additionalProperties": true
+        },
+        "payload_hash": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional digest of out-of-band extension material when parameters would be too large for the event envelope."
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/eventRef"
+        },
         "fail_closed": { "const": true }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "rank": {
       "type": "string",
@@ -1497,7 +1537,7 @@
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "flow_move_payload": {
       "type": "object",

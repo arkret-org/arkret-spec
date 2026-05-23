@@ -85,10 +85,14 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
   "kind": "delta",
   "cursor": "cx:cursor:<opaque-valid-stream-cursor>",
   "realms": {
-    "join": {},
-    "invite": {},
-    "knock": {},
-    "leave": {}
+    "cx:realm:0196419b-0000-7000-8000-000000000000": {
+      "timeline": {
+        "events": [],
+        "limited": false
+      },
+      "state": {"events": []},
+      "account_data": {"events": []}
+    }
   },
   "to_device": {"events": []},
   "device_lists": {"changed": [], "left": []},
@@ -109,7 +113,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms.join`、`realms.invite`、`realms.knock` 和 `realms.leave` MUST 是对象;每个对象的 key 是 `cx:realm:*`,value 是该 Realm 的聚合同步结果。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状:
+`realms` MUST 是以 `cx:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。`join`、`invite`、`knock`、`leave` 是事件 payload / membership state，不再作为 `realms` 外层 bucket。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状:
 
 ```json
 {
@@ -380,13 +384,13 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 实现 MUST 选择以下两种 cursor 形态之一（互斥，由 schema `oneOf` 强制）；两种形态都满足"服务端可验证"的安全契约：
 
-**(A) Stateless self-describing cursor**：canonical body 内含 `s` / `d` / `target` 等结构化状态字段，**MUST** 携带 `_mac` 或 `_sig` 中的至少一个：
+**(A) Stateless self-describing cursor**：canonical body 内含 `s` / `d` / `target` 等结构化状态字段，**MUST** 携带 `issuer_kid`，并携带 `_mac` 或 `_sig` 中的至少一个：
 
 - `_mac`：HMAC over canonical bytes (除 `_mac` 自身外的所有字段)，密钥由 issuing service 持有，算法 MUST 是 HMAC-SHA-256 或更强。
 - `_sig`：detached signature over same canonical bytes，密钥使用 issuing service 的 cursor-signing key。
 - transcript MUST 绑定：`purpose`、principal id、device id、service DID / service id、filter hash、stream positions（`s` / `d`）、`target`（barrier 时）、`x`、issuer key id。
 
-**(B) Stateful opaque handle cursor**：canonical body 缩为 `{v, purpose, t, x, h}`，无 `s` / `d` / `target`；`h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal, device, service, filter_hash, purpose, positions, target?, expiry)` 映射。Handle 校验本身就是完整性校验 — 不可加 `_mac` / `_sig`。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式，适合不想引入 MAC/签名密钥管理的实现。
+**(B) Stateful opaque handle cursor**：canonical body 缩为 `{v, purpose, t, x, h}`，无 `s` / `d` / `target` / `issuer_kid`；`h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal, device, service, filter_hash, purpose, positions, target?, expiry)` 映射。Handle 校验本身就是完整性校验 — 不可加 `_mac` / `_sig`。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式，适合不想引入 MAC/签名密钥管理的实现。
 
 ### 12.2 校验流程 (normative)
 
@@ -395,7 +399,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 1. 解析 `cx:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL (`x` 未过期)。语法/参数失败映射顶层 `invalid_param`（reason `invalid_cursor`）；TTL 失败映射 `cursor_expired`。
 2. **完整性校验**:
    - 若 body 含 `h`：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal, device, service, filter_hash, purpose)` 与当前 authenticated request 匹配。
-   - 若 body 含 `_mac` / `_sig`：以 issuing service 的当前 cursor key (按 `issuer_kid` 选取) 校验 MAC/signature；transcript 必须重算一致，且绑定字段与当前 authenticated request 匹配。
+   - 若 body 含 `_mac` / `_sig`：body MUST 含 `issuer_kid`，并以 issuing service 的当前或仍在验证窗口内的 cursor key (按 `issuer_kid` 选取) 校验 MAC/signature；transcript 必须重算一致，且绑定字段与当前 authenticated request 匹配。
 3. 任一校验失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
 4. 校验通过后才可读 cursor 内部 `s` / `d` / `target`（stateless 形态）或 handle 解析出的 positions（stateful 形态），并用于推进同步状态。
 

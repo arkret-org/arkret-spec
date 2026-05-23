@@ -4,15 +4,21 @@
   "title": "Contrix Identity Receipt",
   "type": "object",
   "required": [
+    "schema",
     "receipt_id",
     "did",
     "seq",
     "head_event_hash",
     "registry_service_did",
+    "witness_role",
     "created_at",
     "signature"
   ],
   "properties": {
+    "schema": {
+      "const": "cx.schema.identity_receipt.v1",
+      "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators distinguish identity registry receipts from other receipt envelopes (e.g. audit-ryw-receipt, event-batch-receipt)."
+    },
     "receipt_id": {
       "type": "string",
       "pattern": "^cx:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -39,10 +45,12 @@
         "writer",
         "witness",
         "replica"
-      ]
+      ],
+      "description": "Issuer's role in the DID registry consensus group. Required so verifiers can apply role-specific freshness / quorum rules; an absent role would force the verifier to guess writer vs replica semantics."
     },
     "audience": {
-      "type": "string"
+      "type": "string",
+      "description": "Optional audience binding (verifier DID, service DID, or domain). When present, verifiers MUST reject the receipt outside that audience context to prevent cross-protocol reuse."
     },
     "created_at": {
       "type": "string",

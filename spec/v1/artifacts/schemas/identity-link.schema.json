@@ -51,15 +51,18 @@
     },
     "flow_id": {
       "type": "string",
-      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional Flow scope marker. Present when the pairwise mapping is materialised within a Flow-scoped MLS subgroup (per flow-and-message.md §4 + crypto-media/encryption-and-audit.md §2.4). When present, the receiver MUST verify the Flow lives in realm_id."
     },
     "track": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+      "description": "Optional Flow track name. Required (via allOf conditional) when flow_id is present, because pairwise mapping is materialised per-track inside a Flow when tracks have independent membership. Aligned with Flow.tracks propertyNames (schemas/flow.schema.json #/$defs/track_name)."
     },
     "mls_group_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Optional MLS group identifier (base64url RFC 9420 GroupID) for diagnostic / cross-implementation correlation. NOT used by the reducer for authorization — authoritative MLS group state lives in cx.mls.genesis / cx.mls.commit events. Provided here so audit projections can quickly correlate an identity-link with its MLS group without replaying the full epoch chain."
     },
     "mls_leaf_index": {
       "type": "integer",

@@ -70,8 +70,8 @@
         },
         "report_data": {
           "type": "string",
-          "pattern": "^[0-9a-f]+$",
-          "description": "Optional REPORTDATA-equivalent that binds the attestation to the Audit Agent's MLS leaf public key (e.g. hash of LeafNode signature key). Receivers MUST validate this binding when present."
+          "pattern": "^(?:[0-9a-f]{2}){32,64}$",
+          "description": "Optional REPORTDATA-equivalent that binds the attestation to the Audit Agent's MLS leaf public key. Lowercase hex encoding of a 32–64 byte byte-string (pattern enforces an even hex length: each byte is exactly two hex characters; total 64–128 hex characters). Typical sizes: 32 bytes (SHA-256 of LeafNode signature key, used by SGX/TDX-class envelopes) or 64 bytes for platforms that expose a wider REPORTDATA slot. Receivers MUST validate this binding when present."
         }
       },
       "additionalProperties": false

@@ -886,7 +886,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key authorization. Binds an agent key to an accountable actor, scope, audience, expiry, and optional approval evidence.",
+        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorized_payload and bind agent_did, key_id, verification_method, accountable_actor, scope, audience, issued_at, expires_at, and approval_evidence.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
@@ -904,7 +904,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key revocation.",
+        "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoked_payload and bind agent_did, key_id, revoked_at, revoked_by, and revocation_frontier.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
@@ -922,7 +922,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key rotation linking a retiring key to a replacement key under the same accountable actor and narrowed or equivalent scope.",
+        "payload": "Agent signing key rotation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_rotated_payload; key_id names the retiring key and replacement_key_id names the new key under the same accountable_actor with equivalent or narrower scope.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
@@ -1840,13 +1840,13 @@
         "schema_id": "cx.schema.applet.v1",
         "file": "schemas/applet.schema.json",
         "status": "active",
-        "description": "Wire envelope schema for the cx.applet.* protocol family (registration / discovery / protocol_session.start|status / bridge_error). See spec/v1/zh/extensions/applet-integration.md."
+        "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for cx.applet.* use typed payload definitions in event-payload.schema.json."
       },
       {
         "schema_id": "cx.schema.agent.v1",
         "file": "schemas/agent.schema.json",
         "status": "active",
-        "description": "Wire envelope schema for the cx.agent.* protocol family (endpoint / protocol_session.start|status|result). See spec/v1/zh/extensions/agent-protocol-interop.md."
+        "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for cx.agent.* use typed payload definitions in event-payload.schema.json."
       },
       {
         "schema_id": "cx.schema.audit_ryw_receipt.v1",

@@ -1,13 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/applet.schema.json",
-  "title": "Contrix Applet Protocol Envelope",
-  "description": "Wire shape for the cx.applet.* event family (registration, discovery, protocol_session.start/status, bridge_error). Distinct from cx.schema.event.v1 so reducers and audit can fan out by family without sniffing the kind string. See spec/v1/zh/extensions/applet-integration.md.",
+  "title": "Contrix Applet Protocol Object",
+  "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for cx.applet.* MUST use the typed payload definitions in event-payload.schema.json; this object is not a loose transport envelope and is closed at the top level except for x_* extensions.",
   "type": "object",
   "required": [
+    "schema",
     "applet_id"
   ],
   "properties": {
+    "schema": {
+      "const": "cx.schema.applet.v1"
+    },
     "applet_id": {
       "description": "Stable applet identifier. MUST be either a DID or the registered typed-id form cx:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
       "oneOf": [
@@ -69,5 +73,8 @@
       "additionalProperties": true
     }
   },
-  "additionalProperties": true
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false
 }

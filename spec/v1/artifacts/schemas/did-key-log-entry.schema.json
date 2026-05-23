@@ -8,6 +8,7 @@
     "seq",
     "operation",
     "head_event_hash",
+    "operation_body",
     "created_at",
     "proofs"
   ],
@@ -18,10 +19,12 @@
     },
     "seq": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Monotonic DID method log sequence for this DID. seq=0 is the inception entry and MUST NOT carry prev_event_hash; every seq>0 entry MUST carry prev_event_hash equal to the previous accepted entry's head_event_hash."
     },
     "operation": {
       "type": "string",
+      "description": "Normalized operation kind. The DID method-specific raw operation object is carried in operation_body; this field is the reducer/verifier discriminator.",
       "enum": [
         "inception",
         "rotate",
@@ -32,14 +35,17 @@
     },
     "prev_event_hash": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+      "description": "Hash of the previous accepted key-log entry. Required for seq>0 and forbidden for seq=0."
     },
     "head_event_hash": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
-    "patch": {
-      "type": "object"
+    "operation_body": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "DID method-specific raw operation object. This is not a generic JSON Patch; validation dispatches by DID method and operation kind."
     },
     "created_at": {
       "type": "string",
@@ -54,5 +60,43 @@
       "minItems": 1
     }
   },
-  "additionalProperties": true
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "seq": {
+            "const": 0
+          }
+        },
+        "required": [
+          "seq"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "prev_event_hash"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "seq": {
+            "minimum": 1
+          }
+        },
+        "required": [
+          "seq"
+        ]
+      },
+      "then": {
+        "required": [
+          "prev_event_hash"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": false
 }

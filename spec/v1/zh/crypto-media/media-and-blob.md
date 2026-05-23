@@ -11,6 +11,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 ```json
 {
   "blob_ref": "cx:blob:sha256:...",
+  "schema": "cx.schema.blob.v1",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "sha256": "hex...",
   "size": 1234,
@@ -26,6 +27,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `blob_ref` | `string` | required | 内容地址，通常包含强 hash。 |
+| `schema` | `cx.schema.blob.v1` | required | Blob metadata schema discriminator。 |
 | `realm_id` | `id:realm` | conditional | Owning Realm。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Realm 服务 blob（例如 avatar 公共预览）才可省略。 |
 | `sha256` | `string` | required | 服务端计算的内容 hash。 |
 | `size` | `int` | required | 字节大小。 |

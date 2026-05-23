@@ -92,6 +92,28 @@
       "$ref": "#/$defs/timestamp"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "enum": [
+              "archived",
+              "redacted"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "required": [
+          "state_changed_at"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "facet_config": {
       "type": "object",

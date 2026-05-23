@@ -67,6 +67,25 @@
       "$ref": "#/$defs/timestamp"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "tombstone"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "required": [
+          "state_changed_at"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "ref": {
       "type": "string",

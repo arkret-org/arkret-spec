@@ -173,6 +173,8 @@ Content-Type: application/json
 | `ttl_seconds` | `int` | required | ICE 配置有效期（秒）。建议 ≤ 1 小时。 |
 | `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`，下限 60s 上限 1800s。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
 | `issued_at` | `timestamp` | required | 服务端签发时间，进入签名 canonical bytes。 |
+| `issued_at_bucket` | `timestamp` | required | TURN pseudonym 派生的粗粒度 bucket 起点；MUST 等于 `floor(issued_at / bucket_seconds) * bucket_seconds`，进入签名 canonical bytes。 |
+| `bucket_seconds` | `int` | required | v1 固定为 `300` 秒；客户端 SHOULD 在跨越下一 bucket 前 refresh。 |
 | `expires_at` | `timestamp` | optional | 等于 `issued_at + ttl_seconds`；冗余字段，便于客户端判定。 |
 | `ice_servers` | `object[]` | required | STUN/TURN server 配置数组。 |
 | `ice_servers[].urls` | `string[]` | required | STUN/TURN URL。 |
@@ -188,7 +190,15 @@ Content-Type: application/json
 
 ```json
 {
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "call_id": "cx:call:0196419c-0000-7000-8000-000000000000",
+  "actor_id": "did:web:alice.example",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "ttl_seconds": 600,
+  "refresh_lead_seconds": 60,
+  "issued_at": "2026-04-26T00:00:00Z",
+  "issued_at_bucket": "2026-04-26T00:00:00Z",
+  "bucket_seconds": 300,
   "ice_servers": [
     {
       "urls": ["stun:stun.example.com:3478"]
@@ -227,7 +237,7 @@ Content-Type: application/json
   ```
 
   `nonce` MUST 对每个 `(call_id, actor_id, device_id)` fresh，且不得写入 TURN username 之外的可跨 Realm 关联字段。Refresh 时同一 active call leg MAY 复用 pseudonym 以避免 TURN 误判为不同会话，但新 call、new device leg、超过 `ttl_seconds + refresh grace` 的恢复、或 policy 要求匿名重置时 MUST 生成新 pseudonym。Pseudonym 不得仅由稳定 ID 确定性派生。
-- ICE config response MUST 由 media service 签名，签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
+- ICE config response MUST 由 media service 签名，签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`issued_at_bucket`、`bucket_seconds`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Realm MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 

@@ -383,6 +383,7 @@ Barrier 形态：
 | `target.realm_id` | id:realm | 否 | 目标事件所在 Realm（可选 hint） |
 | `x` | integer | 是 | 过期时间戳（Unix ms） |
 | `h` | string | stateful 形态必填 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1 |
+| `issuer_kid` | string | stateless 形态必填 | `_mac` / `_sig` 的 issuing service cursor key id；用于 key rotation / revocation 选择。stateful 形态禁止出现。 |
 | `_mac` / `_sig` | string | stateless 形态必填 | 完整性保护字段，见 §8.3.1 |
 
 服务端 MAY 添加其它 `_` 开头的私有字段（如 `_compression`）用于本地优化；这些字段不参与 §8.4 cursor 翻译，必须先于 base64url 编码进入 canonical bytes，并 MUST 进入 `_mac` / `_sig` transcript。
@@ -404,8 +405,8 @@ Barrier 形态：
 11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `/account/subscribe after=`、`before`、`after`、`prev_cursor` / `next_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Contrix-Wait-For` 上下文 MUST `invalid_param`）。
 12. **TTL 硬上限**：以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 13. **形态互斥**（schema `oneOf` 强制）：cursor body MUST 满足下列二选一：
-    - **stateless** — 含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。
-    - **stateful** — 含 `h`（opaque handle），不含 `_mac` / `_sig` / `s` / `d` / `target`。
+    - **stateless** — 含 `issuer_kid` 且含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。
+    - **stateful** — 含 `h`（opaque handle），不含 `_mac` / `_sig` / `s` / `d` / `target` / `issuer_kid`。
     
     两种形态同时出现或都不出现 MUST reject `invalid_param`。
 

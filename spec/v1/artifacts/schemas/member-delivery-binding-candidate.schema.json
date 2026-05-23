@@ -11,6 +11,7 @@
     "delivery_binding_hint",
     "issuer_service_did",
     "audience",
+    "issued_at",
     "expires_at",
     "source_refs",
     "proofs",
@@ -110,7 +111,8 @@
     "issued_at": {
       "type": "string",
       "format": "date-time",
-      "pattern": "Z$"
+      "pattern": "Z$",
+      "description": "RFC 3339 UTC timestamp marking when the issuer signed the candidate. Required: paired with expires_at to give verifiers a replay-protection window and to detect retro-dated candidates. issued_at MUST be <= expires_at."
     },
     "source_refs": {
       "type": "array",
@@ -128,7 +130,7 @@
         "$ref": "./event-schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "At least one proof binding handle_uri, subject_did, recipient_service_did, audience, issuer_service_did, expires_at and (when present) claim_digest."
+      "description": "At least one proof binding handle_uri, subject_did, recipient_service_did, audience, issuer_service_did, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
     },
     "claim_digest": {
       "type": "string",

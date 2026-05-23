@@ -74,7 +74,8 @@
       "additionalProperties": true
     },
     "frank": {
-      "type": "object"
+      "$ref": "#/$defs/frank",
+      "description": "Optional Franking metadata block. Mirrors the frank object spec'd in zh/governance/content-moderation.md §3.4. Frank proves service receipt of ciphertext metadata; it does not prove plaintext authorship unless a separate sender-commitment profile is enabled."
     },
     "created_at": {
       "type": "string",
@@ -91,7 +92,8 @@
         "dismissed",
         "appealed",
         "closed"
-      ]
+      ],
+      "description": "Non-authoritative status mirror for client / UI convenience. The authoritative moderation lifecycle lives on the moderation-queue-item produced by the reducer (see schemas/moderation-queue-item.schema.json + governance/content-moderation.md §3.3). Reducers MUST NOT read this field for routing or state-machine decisions; if present on submit it MUST be either absent or 'submitted'."
     },
     "routed_to": {
       "type": "array",
@@ -120,5 +122,104 @@
       }
     }
   ],
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "frank": {
+      "type": "object",
+      "required": [
+        "kind",
+        "frank_id",
+        "realm_id",
+        "event_id",
+        "ciphertext_digest",
+        "aad_digest",
+        "sender_claim",
+        "received_by",
+        "received_at",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "const": "cx.moderation.frank"
+        },
+        "frank_id": {
+          "type": "string",
+          "pattern": "^cx:frank:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "realm_id": {
+          "type": "string",
+          "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "event_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "routing_metadata_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of canonical event routing metadata covered by the receiving service."
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "aad_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "sender_claim": {
+          "type": "object",
+          "required": [
+            "actor_id",
+            "device_id",
+            "mls_group_id",
+            "epoch"
+          ],
+          "properties": {
+            "actor_id": {
+              "$ref": "#/$defs/did"
+            },
+            "device_id": {
+              "type": "string",
+              "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "mls_group_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "epoch": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "received_by": {
+          "$ref": "#/$defs/did"
+        },
+        "received_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "signature": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Receiving service signature over the canonical frank transcript."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
   "additionalProperties": false
 }

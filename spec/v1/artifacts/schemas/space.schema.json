@@ -117,5 +117,27 @@
       "pattern": "Z$"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "enum": [
+              "archived",
+              "tombstoned"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "required": [
+          "state_changed_at"
+        ]
+      }
+    }
+  ],
   "additionalProperties": true
 }

@@ -16,6 +16,9 @@
     "aad_digest",
     "payload_digest"
   ],
+  "not": {
+    "required": ["cleartext_commitment"]
+  },
   "properties": {
     "scheme": {
       "const": "mls-rfc9420"
@@ -140,7 +143,7 @@
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
       "deprecated": true,
-      "description": "Reserved for future non-default profiles. v1 E2EE producers MUST NOT emit this bare cleartext hash because low-entropy plaintext can be dictionary-tested offline. Receivers MAY ignore it for forward compatibility and MUST NOT use it for moderation attribution. Future profiles that need plaintext commitment MUST define a keyed/salted object form (for example the sender_commitment HMAC profile in content-moderation.md) rather than this bare hash."
+      "description": "FORBIDDEN in v1: top-level `not: { required: ['cleartext_commitment'] }` rejects this field at schema level. Property kept here only so validators report a precise error rather than 'unknown field'. Rationale: low-entropy plaintext can be dictionary-tested offline. Receivers MUST reject envelopes carrying it (forbidden_wire_field). Future profiles that need plaintext commitment MUST define a keyed/salted object form (for example the sender_commitment HMAC profile in content-moderation.md) rather than this bare hash."
     }
   },
   "allOf": [

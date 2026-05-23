@@ -5,6 +5,7 @@
   "type": "object",
   "required": [
     "id",
+    "schema",
     "policy_type",
     "rules",
     "default_effect",
@@ -43,22 +44,7 @@
     "rules": {
       "type": "array",
       "items": {
-        "type": "object",
-        "required": [
-          "effect"
-        ],
-        "properties": {
-          "effect": {
-            "type": "string",
-            "enum": [
-              "allow",
-              "deny",
-              "quarantine",
-              "require_review"
-            ]
-          }
-        },
-        "additionalProperties": true
+        "$ref": "#/$defs/policy_rule"
       }
     },
     "default_effect": {
@@ -95,7 +81,142 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "policy_effect": {
+      "type": "string",
+      "enum": [
+        "allow",
+        "deny",
+        "quarantine",
+        "require_review"
+      ]
+    },
+    "policy_rule": {
+      "type": "object",
+      "description": "Closed policy rule. Extension rules must carry an explicit schema_ref/profile_ref instead of adding undeclared fields to the signed policy body.",
+      "required": [
+        "rule_id",
+        "kind",
+        "effect"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "action",
+            "resource",
+            "actor",
+            "temporal",
+            "rate_limit",
+            "crypto",
+            "moderation",
+            "extension"
+          ]
+        },
+        "effect": {
+          "$ref": "#/$defs/policy_effect"
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^cx\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+          },
+          "uniqueItems": true
+        },
+        "resources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "realm",
+                  "flow",
+                  "space",
+                  "object",
+                  "service"
+                ]
+              },
+              "realm_id": {
+                "type": "string",
+                "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "ref": {
+                "type": "string",
+                "pattern": "^(cx:[a-z0-9_]+:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*|did:[^\\s]+)$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "conditions": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true
+        },
+        "schema_ref": {
+          "type": "string",
+          "pattern": "^cx\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+        },
+        "profile_ref": {
+          "type": "string",
+          "pattern": "^cx\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "action" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["actions"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "resource" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["resources"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "extension" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "anyOf": [
+              { "required": ["schema_ref"] },
+              { "required": ["profile_ref"] }
+            ],
+            "required": ["params"]
+          }
+        }
+      ]
     }
   },
-  "additionalProperties": true
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false
 }

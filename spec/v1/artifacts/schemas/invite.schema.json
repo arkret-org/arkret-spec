@@ -5,6 +5,7 @@
   "type": "object",
   "required": [
     "id",
+    "schema",
     "realm_id",
     "inviter",
     "join_rule_snapshot",

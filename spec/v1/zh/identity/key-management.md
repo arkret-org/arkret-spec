@@ -131,9 +131,9 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 
 | 事件 | 用途 | 必要授权 |
 | --- | --- | --- |
-| `cx.agent.key.authorized` | 绑定 agent DID / key id / scope / audience / `expires_at` / accountable actor 与 approval evidence。 | `cx.agent.key.manage` |
-| `cx.agent.key.rotated` | 将旧 key 与新 key 绑定在同一 accountable actor 下，scope 不得扩大，TTL 不得长于被替换 key。 | `cx.agent.key.manage` |
-| `cx.agent.key.revoked` | 撤销 agent key，并使后续 session / protocol action proof fail closed。 | `cx.agent.key.manage` |
+| `cx.agent.key.authorized` | Payload MUST validate as `event-payload.schema.json#/$defs/agent_key_authorized_payload`，绑定 `agent_did` / `key_id` / `verification_method` / `accountable_actor` / `scope` / `audience` / `issued_at` / `expires_at` / `approval_evidence`。 | `cx.agent.key.manage` |
+| `cx.agent.key.rotated` | Payload MUST validate as `agent_key_rotated_payload`；`key_id` 是被替换 key，`replacement_key_id` 是新 key，二者必须在同一 accountable actor 下，scope 不得扩大，TTL 不得长于被替换 key。 | `cx.agent.key.manage` |
+| `cx.agent.key.revoked` | Payload MUST validate as `agent_key_revoked_payload`，绑定 `agent_did` / `key_id` / `revoked_at` / `revoked_by` / `revocation_frontier`，并使后续 session / protocol action proof fail closed。 | `cx.agent.key.manage` |
 
 高风险 agent key（能写入、调用外部工具、管理 capability、读取审计材料或代表用户发起 service-call）的 grant MUST 同时有 `expires_at`、resource selector、accountable actor、approval/proposal evidence 和 revocation freshness check。只声明 API token 或本地环境变量而没有上述事件链的 agent key 不得用于 v1 standard operation。
 

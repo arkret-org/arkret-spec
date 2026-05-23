@@ -171,8 +171,61 @@
         "$ref": "./event-schema.json#/$defs/proof"
       },
       "minItems": 1
+    },
+    "recovery_reason": {
+      "type": "string",
+      "enum": [
+        "late_key_arrival"
+      ],
+      "description": "Optional, set only when this RYW receipt covers a cx.audit.accessed Event emitted via the Late Key Recovery path (see zh/crypto-media/encryption-and-audit.md §2.3.5 / §3.3.1 footnote). Payload value, NOT an error-code-registry reason_code. Used by audit projections to distinguish late-key-triggered accesses from first-access reads. When absent, the receipt covers a normal (first-access) cx.audit.accessed Event."
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "witness_attestation": {
+            "properties": {
+              "kind": { "const": "federation_witness_attested" }
+            },
+            "required": ["kind"]
+          }
+        },
+        "required": ["witness_attestation"]
+      },
+      "then": {
+        "properties": {
+          "witness_attestation": {
+            "properties": {
+              "witnesses": { "minItems": 2 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "witness_attestation": {
+            "properties": {
+              "kind": { "const": "single_source" }
+            },
+            "required": ["kind"]
+          }
+        },
+        "required": ["witness_attestation"]
+      },
+      "then": {
+        "properties": {
+          "witness_attestation": {
+            "properties": {
+              "witnesses": { "minItems": 1, "maxItems": 1 }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "did": {
       "type": "string",

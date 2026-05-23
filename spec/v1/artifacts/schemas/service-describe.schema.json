@@ -163,6 +163,57 @@
         }
       }
     },
+    "privacy_derivation": {
+      "type": "object",
+      "description": "Machine-readable privacy-preserving identifier derivation claims. Secret material is never published here; only profile and epoch metadata needed for audit and rotation checks.",
+      "properties": {
+        "push_target_id": {
+          "type": "object",
+          "required": [
+            "derivation_profile",
+            "secret_scope",
+            "salt_epoch_id",
+            "salt_rotation_seconds"
+          ],
+          "properties": {
+            "derivation_profile": {
+              "const": "cx.push_target_id.hmac_sha256.v1"
+            },
+            "secret_scope": {
+              "const": "per_service",
+              "description": "The HMAC salt/pepper is unique to this service context and MUST NOT be shared across Principal Servers, organizations, or push routes."
+            },
+            "salt_epoch_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "Opaque public epoch label for the active secret. This is not the secret salt value."
+            },
+            "salt_rotation_seconds": {
+              "type": "integer",
+              "minimum": 3600,
+              "maximum": 2592000
+            },
+            "input_binding": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "recipient_service_did",
+                  "principal_did",
+                  "device_id",
+                  "push_route_id",
+                  "salt_epoch_id"
+                ]
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "rate_limit_policy_ref": {
       "type": "string",
       "minLength": 1
@@ -325,6 +376,30 @@
         "properties": {
           "verified_profiles": {
             "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "service_type": {
+            "const": "push_gateway"
+          }
+        },
+        "required": [
+          "service_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "privacy_derivation"
+        ],
+        "properties": {
+          "privacy_derivation": {
+            "required": [
+              "push_target_id"
+            ]
           }
         }
       }

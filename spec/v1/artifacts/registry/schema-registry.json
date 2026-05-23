@@ -187,13 +187,13 @@
       "schema_id": "cx.schema.applet.v1",
       "file": "schemas/applet.schema.json",
       "status": "active",
-      "description": "Wire envelope schema for the cx.applet.* protocol family (registration / discovery / protocol_session.start|status / bridge_error). See spec/v1/zh/extensions/applet-integration.md."
+      "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for cx.applet.* use typed payload definitions in event-payload.schema.json."
     },
     {
       "schema_id": "cx.schema.agent.v1",
       "file": "schemas/agent.schema.json",
       "status": "active",
-      "description": "Wire envelope schema for the cx.agent.* protocol family (endpoint / protocol_session.start|status|result). See spec/v1/zh/extensions/agent-protocol-interop.md."
+      "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for cx.agent.* use typed payload definitions in event-payload.schema.json."
     },
     {
       "schema_id": "cx.schema.audit_ryw_receipt.v1",

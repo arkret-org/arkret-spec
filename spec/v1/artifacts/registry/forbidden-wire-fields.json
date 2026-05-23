@@ -97,6 +97,15 @@
       "replacement": "parts",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "cx.content.composite Content Block MUST use the field name `parts` (matching schemas/message.schema.json, schemas/event-payload.schema.json, schemas/flow.schema.json, and schemas/morph.schema.json). The temporary `blocks` spelling was rejected because it over-constrained the concept to document layout blocks; the canonical wire name is `parts`, and `blocks` MUST NOT appear in current content_block_composite wire. See zh/models/content-types.md §4.10."
+    },
+    {
+      "id": "cleartext_commitment",
+      "context": "encrypted_envelope",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare cleartext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form (e.g. the sender_commitment HMAC profile in content-moderation.md §3.4.2)."
     }
   ]
 }

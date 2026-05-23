@@ -292,6 +292,7 @@
       "first_expected_error": "$.actions[0]: 'cx.flow.*' does not match '^cx\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*$'",
       "instance": {
         "id": "cx:grant:0196410c-1000-7000-8000-000000000000",
+        "schema": "cx.schema.capability.v1",
         "issuer": "did:web:owner.example",
         "subject": "did:web:alice.example",
         "actions": [
@@ -348,6 +349,106 @@
         "t": "2026-05-20T00:00:00Z",
         "x": 1798761599000,
         "h": "abcdefghijklmnopqrstuv"
+      }
+    },
+    {
+      "name": "cursor_valid_stateless_stream_with_issuer_kid",
+      "schema_ref": "schemas/cursor.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "v": "1",
+        "purpose": "stream",
+        "t": "2026-05-20T00:00:00Z",
+        "x": 1798761599000,
+        "issuer_kid": "did:web:sync.example#cursor-2026-05",
+        "s": {
+          "cx:realm:019a7360-0000-7000-8000-000000000000": {
+            "p": [
+              "cx:event:019a6aa0-0000-7000-8000-000000000000"
+            ],
+            "o": "01970e589d21-0000-a13f9c2e",
+            "h": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "_mac": "hmac-sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "account_subscribe_frame_flat_realm_map_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "delta",
+        "cursor": "cx:cursor:opaque",
+        "realms": {
+          "cx:realm:019a7360-0000-7000-8000-000000000000": {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "state": {
+              "events": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "did_key_log_entry_seq_requires_previous_hash_valid",
+      "schema_ref": "schemas/did-key-log-entry.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "did": "did:web:alice.example",
+        "seq": 1,
+        "operation": "rotate",
+        "prev_event_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "head_event_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "operation_body": {
+          "method": "webvh",
+          "rotate_to": "did:web:alice.example#key-2"
+        },
+        "created_at": "2026-05-20T00:00:00Z",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "alg": "EdDSA",
+            "verification_method": "did:web:alice.example#key-1",
+            "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "created_at": "2026-05-20T00:00:00Z",
+            "jws": "a..b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "agent_key_authorized_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorized_payload",
+      "expect_valid": true,
+      "instance": {
+        "agent_did": "did:web:agent.example",
+        "key_id": "did:web:agent.example#key-1",
+        "verification_method": "did:web:agent.example#key-1",
+        "accountable_actor": "did:web:alice.example",
+        "scope": {
+          "actions": [
+            "cx.flow.update"
+          ],
+          "resources": [
+            {
+              "kind": "realm",
+              "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000"
+            }
+          ]
+        },
+        "audience": [
+          "cx.agent.protocol_session.start"
+        ],
+        "issued_at": "2026-05-20T00:00:00Z",
+        "expires_at": "2026-05-21T00:00:00Z",
+        "approval_evidence": {
+          "kind": "capability_grant",
+          "ref": "cx:grant:019a6aa0-0000-7000-8000-000000000000"
+        }
       }
     },
     {

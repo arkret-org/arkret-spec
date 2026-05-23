@@ -316,6 +316,16 @@
       "type": "string",
       "pattern": "^cx:agent_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "verification_method": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$",
+      "description": "DID URL of a concrete verification method. Bare DIDs are not valid where a key binding is required."
+    },
+    "agent_key_id": {
+      "type": "string",
+      "pattern": "^(did:[a-z0-9]+:[^\\s#]+#[^\\s#]+|[a-zA-Z0-9._:-]{1,256})$",
+      "description": "Stable key identifier within the agent DID. Prefer the DID URL verification method id when available."
+    },
     "object_ref": {
       "type": "string",
       "pattern": "^(cx:(realm|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
@@ -1886,6 +1896,236 @@
         }
       },
       "additionalProperties": true
+    },
+    "agent_key_scope": {
+      "type": "object",
+      "description": "Closed authorization scope for an agent signing key. Resource selectors and actions are both explicit so the key cannot silently widen its authority through omitted dimensions.",
+      "required": [
+        "actions",
+        "resources"
+      ],
+      "properties": {
+        "actions": {
+          "$ref": "#/$defs/string_list"
+        },
+        "resources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "realm",
+                  "flow",
+                  "space",
+                  "object",
+                  "operation",
+                  "service"
+                ]
+              },
+              "realm_id": {
+                "$ref": "#/$defs/realm_id"
+              },
+              "ref": {
+                "$ref": "#/$defs/object_ref"
+              },
+              "operation": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "service_did": {
+                "$ref": "#/$defs/did"
+              }
+            },
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "./grant-constraint.schema.json"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_approval_evidence": {
+      "type": "object",
+      "description": "Evidence that authorized this agent key. High-risk keys MUST carry an approval/proposal/capability reference that can be replayed at the event frontier.",
+      "required": [
+        "kind",
+        "ref"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "capability_grant",
+            "approval_event",
+            "proposal_event",
+            "policy_event"
+          ]
+        },
+        "ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "request_canonical_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "approved_by": {
+          "$ref": "#/$defs/did"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_authorized_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.key.authorized. Binds one concrete agent signing key to an accountable actor, explicit scope, audience, validity window, and approval evidence.",
+      "required": [
+        "agent_did",
+        "key_id",
+        "verification_method",
+        "accountable_actor",
+        "scope",
+        "audience",
+        "issued_at",
+        "expires_at",
+        "approval_evidence"
+      ],
+      "properties": {
+        "agent_did": {
+          "$ref": "#/$defs/did"
+        },
+        "key_id": {
+          "$ref": "#/$defs/agent_key_id"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/verification_method"
+        },
+        "public_key_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the public key material behind verification_method. Required by high-assurance profiles when DID resolution is not pinned in the same anchor batch."
+        },
+        "accountable_actor": {
+          "$ref": "#/$defs/did"
+        },
+        "scope": {
+          "$ref": "#/$defs/agent_key_scope"
+        },
+        "audience": {
+          "$ref": "#/$defs/string_list"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "approval_evidence": {
+          "$ref": "#/$defs/agent_key_approval_evidence"
+        },
+        "revocation_check_ref": {
+          "$ref": "#/$defs/object_ref",
+          "description": "Optional freshness source for revocation checking. Absence does not waive expires_at."
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_revoked_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.key.revoked. The OR-set cell subject is (agent_did, key_id); future protocol proofs from this key fail closed once this event is accepted.",
+      "required": [
+        "agent_did",
+        "key_id",
+        "revoked_at",
+        "revoked_by",
+        "revocation_frontier"
+      ],
+      "properties": {
+        "agent_did": {
+          "$ref": "#/$defs/did"
+        },
+        "key_id": {
+          "$ref": "#/$defs/agent_key_id"
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "revoked_by": {
+          "$ref": "#/$defs/did"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "revocation_frontier": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Principal / Realm auth-state frontier under which this revocation was accepted."
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_rotated_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.key.rotated. key_id names the retiring key used as the cell subject; replacement_key_id names the new key. Reducers MUST verify the accountable_actor is unchanged, scope is equivalent or narrower, and expires_at does not extend the retiring key's effective TTL.",
+      "required": [
+        "agent_did",
+        "key_id",
+        "replacement_key_id",
+        "replacement_verification_method",
+        "accountable_actor",
+        "scope",
+        "audience",
+        "issued_at",
+        "expires_at",
+        "approval_evidence"
+      ],
+      "properties": {
+        "agent_did": {
+          "$ref": "#/$defs/did"
+        },
+        "key_id": {
+          "$ref": "#/$defs/agent_key_id"
+        },
+        "replacement_key_id": {
+          "$ref": "#/$defs/agent_key_id"
+        },
+        "replacement_verification_method": {
+          "$ref": "#/$defs/verification_method"
+        },
+        "replacement_public_key_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "accountable_actor": {
+          "$ref": "#/$defs/did"
+        },
+        "scope": {
+          "$ref": "#/$defs/agent_key_scope"
+        },
+        "audience": {
+          "$ref": "#/$defs/string_list"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "approval_evidence": {
+          "$ref": "#/$defs/agent_key_approval_evidence"
+        },
+        "previous_authorization_ref": {
+          "$ref": "#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
     },
     "capability_grant_payload": {
       "type": "object",

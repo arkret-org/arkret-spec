@@ -13,6 +13,8 @@
     "ttl_seconds",
     "refresh_lead_seconds",
     "issued_at",
+    "issued_at_bucket",
+    "bucket_seconds",
     "signature"
   ],
   "properties": {
@@ -62,6 +64,17 @@
       "pattern": "Z$",
       "description": "Server-issued timestamp (RFC 3339 UTC). Bound into the ICE config signature."
     },
+    "issued_at_bucket": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Coarse UTC bucket start used for TURN pseudonym derivation. MUST equal floor(issued_at / bucket_seconds) * bucket_seconds. Bound into the signature so TURN usernames cannot be correlated across buckets by rewriting metadata."
+    },
+    "bucket_seconds": {
+      "type": "integer",
+      "const": 300,
+      "description": "TURN pseudonym bucket size in seconds. v1 fixes the default and interoperable value at 300s; clients SHOULD refresh before crossing the next bucket."
+    },
     "expires_at": {
       "type": "string",
       "format": "date-time",
@@ -103,7 +116,10 @@
       "description": "Detached signature by the media service DID over the canonical bytes of this response (excluding `signature`)."
     }
   },
-  "additionalProperties": true,
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false,
   "$defs": {
     "ice_server": {
       "type": "object",

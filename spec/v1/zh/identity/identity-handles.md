@@ -169,9 +169,10 @@ Handle 按 holder 披露意图分两类：
 | `delivery_binding_hint` | object | MUST | 与 [`handle-claim.schema.json#/properties/delivery_binding_hint`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`；MUST NOT 为 `did_document_default`。 |
 | `issuer_service_did` | DID | MUST | 实际签发该 candidate 的服务 DID（Directory / Principal Server / Organization service DID）。 |
 | `audience` | string | MUST | 目标 Space DID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。 |
+| `issued_at` | timestamp | MUST | RFC 3339 `Z` 形式；issuer 签发该 candidate 的时刻。MUST ≤ `expires_at`；与 `expires_at` 一起界定 candidate 的有效窗口并阻止 MITM 把 `issued_at` 改写以扩大重放窗口。 |
 | `expires_at` | timestamp | MUST | RFC 3339 `Z` 形式；过期 candidate MUST 被视为不可用。 |
 | `source_refs[]` | event id 数组 | MUST | 至少一条 `cx:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |
-| `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle_uri`、`subject_did`、`recipient_service_did`、`audience`、`issuer_service_did` 与 `expires_at`。 |
+| `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle_uri`、`subject_did`、`recipient_service_did`、`audience`、`issuer_service_did`、`issued_at` 与 `expires_at`。`issued_at` MUST 进入 canonical transcript；缺失即视为重放窗口可篡改并拒绝。 |
 | `claim_digest` | `sha256:<hex>` | SHOULD | candidate 上游 handle claim 的 canonical JSON digest，用于缓存键与 audit chain。 |
 | `intent` | enum | MUST | `member_add` / `invite`，区分 candidate 的 builder 入口；reducer 不依赖该字段，仅用于审计与遥测。 |
 
@@ -210,7 +211,7 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 2. **`handle_uri` canonical**：必须匹配 `contrix://<domain>(:<port>)?/users/<localpart>` 主形态，且 `<localpart>` 已 lowercase。verifier 不得在签名 transcript 中接受任何非 canonical 形态；`acct:` 出现在 `handle_uri` 即拒绝。
 3. **audience match**：`audience` MUST 等于当前 invocation 上下文（目标 `space_id` 对应的 DID 或邀请方 service DID）；不一致 MUST 返回与 "无可披露 claim" 不可区分的统一拒绝。
 4. **expiry**：`expires_at` 严格大于当前时间；过期 candidate MUST NOT 进入 builder。
-5. **proof 验证**：`proofs[]` 中至少一条由 `issuer_service_did`（或受 issuer 委派的 verification method）签名，且 binding transcript 覆盖 `handle_uri`、`subject_did`、`recipient_service_did`、`audience`、`issuer_service_did`、`expires_at` 与 `claim_digest`（如有）。
+5. **proof 验证**：`proofs[]` 中至少一条由 `issuer_service_did`（或受 issuer 委派的 verification method）签名，且 binding transcript 覆盖 `handle_uri`、`subject_did`、`recipient_service_did`、`audience`、`issuer_service_did`、`issued_at`、`expires_at` 与 `claim_digest`（如有）。任何 transcript 漏掉 `issued_at` 或 `issued_at > expires_at` MUST fail closed，避免 MITM 通过重写时间窗口实施重放。
 6. **subject / handle 关联**：candidate 内 `subject_did` MUST 等于上游 handle claim 中的 subject（不允许 verifier 在 builder 入口 "替换" subject）。
 7. **`delivery_binding_hint.binding_source` 合法值**：MUST 是 §3.3 列出的五种之一；`did_document_default` 即拒绝。
 8. **`recipient_service_did` 一致性**：candidate 顶层 `recipient_service_did` MUST 与 `delivery_binding_hint.recipient_service_did` byte-for-byte 相同。
@@ -260,6 +261,7 @@ Handle 解析示例：
 
 ```json
 {
+  "schema": "cx.schema.handle_claim.v1",
   "handle": "@alice:alice.dev",
   "handle_uri": "contrix://alice.dev/users/alice",
   "subject": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
@@ -282,6 +284,7 @@ Handle 解析示例：
 
 ```json
 {
+  "schema": "cx.schema.handle_claim.v1",
   "handle": "@alice:acme.example",
   "handle_uri": "contrix://acme.example/users/alice",
   "handle_aliases": ["acct:alice@acme.example"],

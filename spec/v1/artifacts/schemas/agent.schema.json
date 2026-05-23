@@ -1,13 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/agent.schema.json",
-  "title": "Contrix Agent Protocol Envelope",
-  "description": "Wire shape for the cx.agent.* protocol family (endpoint, protocol_session.start/status/result). Mirrors cx.schema.applet.v1 but terminates in a *.result event carrying the signed audit binding. See spec/v1/zh/extensions/agent-protocol-interop.md.",
+  "title": "Contrix Agent Protocol Object",
+  "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for cx.agent.* MUST use the typed payload definitions in event-payload.schema.json; this object is not a loose transport envelope and is closed at the top level except for x_* extensions.",
   "type": "object",
   "required": [
+    "schema",
     "agent_id"
   ],
   "properties": {
+    "schema": {
+      "const": "cx.schema.agent.v1"
+    },
     "agent_id": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s]+$",
@@ -82,5 +86,8 @@
       "additionalProperties": true
     }
   },
-  "additionalProperties": true
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false
 }

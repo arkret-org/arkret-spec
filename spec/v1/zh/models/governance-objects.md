@@ -77,9 +77,10 @@ Schema id: `cx.schema.policy.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:policy` |  | Policy ID。 |
+| `schema` | yes | `cx.schema.policy.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 组织级 policy 可省略。 | 适用 Realm。 |
 | `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
-| `rules` | yes | `array<object>` | 每条规则必须有 `effect`。 | 策略规则。 |
+| `rules` | yes | `array<PolicyRule>` | 每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
 | `priority` | no | `integer` | 数值大者优先。 | 策略优先级。 |
 | `valid_from` | no | `timestamp` |  | 生效时间。 |
@@ -106,6 +107,7 @@ Schema id: `cx.schema.capability.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:grant` |  | Grant ID。 |
+| `schema` | yes | `cx.schema.capability.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
@@ -136,6 +138,7 @@ Schema id: `cx.schema.invite.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:invite` |  | Invite ID。 |
+| `schema` | yes | `cx.schema.invite.v1` |  | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 目标 Realm。 |
 | `inviter` | yes | `did` | 必须持有 invite capability。 | 邀请者。 |
 | `invitee` | no | `did` | 3PID 邀请可为空。 | 被邀请 DID。 |

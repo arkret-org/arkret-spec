@@ -26,19 +26,10 @@
     },
     "realms": {
       "type": "object",
-      "description": "Per-Realm bucket map on `delta` frames. Keys are realm IDs. `join` / `invite` / `knock` / `leave` mirror the legacy long-poll grouping.",
-      "properties": {
-        "join": {
-          "$ref": "#/$defs/space_bucket"
-        },
-        "invite": {
-          "$ref": "#/$defs/space_bucket"
-        },
-        "knock": {
-          "$ref": "#/$defs/space_bucket"
-        },
-        "leave": {
-          "$ref": "#/$defs/space_bucket"
+      "description": "Per-Realm map on `delta` frames. Keys are `cx:realm:*`; values are that Realm's aggregate timeline/state/account-data entry. Membership lifecycle (`join` / `invite` / `knock` / `leave`) is carried by the events inside the Realm entry, not by legacy outer buckets.",
+      "patternProperties": {
+        "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
+          "$ref": "#/$defs/space_entry"
         }
       },
       "additionalProperties": false
@@ -226,15 +217,6 @@
       },
       "additionalProperties": true
     },
-    "space_bucket": {
-      "type": "object",
-      "patternProperties": {
-        "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
-          "$ref": "#/$defs/space_entry"
-        }
-      },
-      "additionalProperties": false
-    },
     "data_or_control_payload_present": {
       "anyOf": [
         { "required": ["realms"] },
@@ -355,5 +337,5 @@
       }
     }
   ],
-  "additionalProperties": true
+  "additionalProperties": false
 }

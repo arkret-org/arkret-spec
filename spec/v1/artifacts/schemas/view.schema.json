@@ -88,6 +88,101 @@
       "$ref": "#/$defs/timestamp"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "collection" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["collection"],
+        "not": {
+          "anyOf": [
+            { "required": ["timeline"] },
+            { "required": ["graph"] },
+            { "required": ["document"] },
+            { "required": ["dashboard"] }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "timeline" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["timeline"],
+        "not": {
+          "anyOf": [
+            { "required": ["collection"] },
+            { "required": ["graph"] },
+            { "required": ["document"] },
+            { "required": ["dashboard"] }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "graph" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["graph"],
+        "not": {
+          "anyOf": [
+            { "required": ["collection"] },
+            { "required": ["timeline"] },
+            { "required": ["document"] },
+            { "required": ["dashboard"] }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "document" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["document"],
+        "not": {
+          "anyOf": [
+            { "required": ["collection"] },
+            { "required": ["timeline"] },
+            { "required": ["graph"] },
+            { "required": ["dashboard"] }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "composite" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["dashboard"],
+        "properties": {
+          "renderer": {
+            "enum": [
+              "dashboard",
+              "custom"
+            ]
+          }
+        },
+        "not": {
+          "anyOf": [
+            { "required": ["collection"] },
+            { "required": ["timeline"] },
+            { "required": ["graph"] },
+            { "required": ["document"] }
+          ]
+        }
+      }
+    }
+  ],
   "$defs": {
     "did": {
       "type": "string",
@@ -263,12 +358,68 @@
     },
     "dashboard_config": {
       "type": "object",
-      "additionalProperties": true
+      "required": [
+        "widgets"
+      ],
+      "properties": {
+        "widgets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "widget_id",
+              "kind"
+            ],
+            "properties": {
+              "widget_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "collection",
+                  "timeline",
+                  "graph",
+                  "document",
+                  "metric",
+                  "text",
+                  "custom"
+                ]
+              },
+              "source_view_ref": {
+                "$ref": "#/$defs/ref"
+              },
+              "query": {
+                "$ref": "#/$defs/query"
+              },
+              "title": {
+                "type": "string"
+              },
+              "layout": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": false,
+            "anyOf": [
+              { "required": ["source_view_ref"] },
+              { "required": ["query"] },
+              { "properties": { "kind": { "enum": ["text", "custom"] } }, "required": ["kind"] }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "ref": {
       "type": "string",
       "pattern": "^(cx:(realm|flow|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
     }
   },
-  "additionalProperties": true
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false
 }

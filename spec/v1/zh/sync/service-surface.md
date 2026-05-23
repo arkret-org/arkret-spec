@@ -290,6 +290,8 @@ GET /api/v1/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 - 重建 DID Document
 - 验证 `key_log` 与 registry head 一致
 
+返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_hash`；`seq>0` 必须携带 `prev_event_hash`，并且该值必须等于前一条 accepted entry 的 `head_event_hash`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
+
 #### 3.1.4 提交 DID 更新
 
 ```text
@@ -710,7 +712,7 @@ Contrix v1 的首次加入流程：
 3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / account / snapshot / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `snapshot_issuer_did`、`signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `snapshot_issuer_did`，且该 DID 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，manifest 还 MUST 携带可验证的 `witness_attestations[]` 或等价 quorum proof；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态

@@ -12,6 +12,9 @@
     "frontier",
     "event_set_commitment",
     "chunks",
+    "created_by",
+    "created_at",
+    "authority_binding",
     "signature"
   ],
   "properties": {
@@ -200,9 +203,74 @@
       },
       "minItems": 1
     },
+    "created_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "description": "DID of the snapshot issuer (server / Realm anchorer / federation witness). Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Issuer-local timestamp when the snapshot manifest was sealed. RFC 3339 UTC, MUST end with 'Z'. Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
+    },
+    "authority_binding": {
+      "type": "object",
+      "description": "Evidence that created_by was authorized to seal this snapshot at created_at. Verifiers MUST reject the snapshot when this binding cannot be checked against Realm policy / witness quorum at or before created_at.",
+      "required": [
+        "signer_did",
+        "authority_kind",
+        "auth_state_hash",
+        "auth_frontier",
+        "checked_at"
+      ],
+      "properties": {
+        "signer_did": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+          "description": "MUST equal top-level created_by."
+        },
+        "authority_kind": {
+          "type": "string",
+          "enum": [
+            "realm_owner",
+            "realm_policy_snapshot_issuer",
+            "witness_quorum"
+          ]
+        },
+        "auth_state_hash": {
+          "type": "string",
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+          "description": "Hash of the authorization state used to verify snapshot issuer authority."
+        },
+        "auth_frontier": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Realm auth/policy frontier proving the signer authority at created_at."
+        },
+        "checked_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "witness_attestations": {
+          "type": "array",
+          "items": {
+            "$ref": "./event-schema.json#/$defs/proof"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
     "signature": {
       "$ref": "./event-schema.json#/$defs/proof",
-      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds snapshot_ref, realm_id, reducer_profile, schema_profile_refs, state_hash, frontier, event_set_commitment, chunks (chunk_ref / sha256 / size_bytes), verification_hints, created_by, and created_at.",
+      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds snapshot_ref, realm_id, reducer_profile, schema_profile_refs, state_hash, frontier, event_set_commitment, chunks (chunk_ref / sha256 / size_bytes), verification_hints, created_by, created_at, and authority_binding.",
       "x-canonical-bytes-include": [
         "snapshot_ref",
         "realm_id",
@@ -214,7 +282,8 @@
         "chunks",
         "verification_hints",
         "created_by",
-        "created_at"
+        "created_at",
+        "authority_binding"
       ],
       "x-canonical-bytes-exclude": [
         "signature"
@@ -248,5 +317,8 @@
       }
     }
   ],
-  "additionalProperties": true
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false
 }
