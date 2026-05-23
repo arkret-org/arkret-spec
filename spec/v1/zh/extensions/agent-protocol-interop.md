@@ -119,6 +119,8 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 `cx.agent.protocol_session.start` MUST 通过常规的 Realm 授权与 policy 校验。
 
+Session start MUST pin counterparty DID epoch：payload 或 `refs[]` evidence MUST 记录 counterparty DID Document canonical hash、method-specific version / log entry id（若 DID method 支持）、matched service entry id、service endpoint digest 和 verification method。`cx.agent.protocol_session.status` / `result` 回流时 reducer MUST 校验这些 pin 与 session start 一致；若外部 DID 在会话期间轮换到不同 endpoint 或 verification method，现有 session MUST 进入 `blocked` 或 `cancelled`，并以 `session_pinned_did_epoch_mismatch` 作为 reason，不能静默迁移到新 endpoint。
+
 ### 5.3 Status 回流
 
 外部协议执行过程中的状态 MUST 回流为 Contrix event：
@@ -149,6 +151,8 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 - `failed`
 - `cancelled`
 - `expired`
+
+Cancellation 是协议状态，不是只关本地 socket。持有 `cx.agent.protocol_session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `cx.agent.protocol_session.status{status="cancelled"}` 或终态 `cx.agent.protocol_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。
 
 ### 5.4 Result 回流
 
@@ -183,6 +187,8 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 ```
 
 `cx.agent.protocol_session.result` 的 `content` MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
+
+外部 artifact 清理职责：若 start / status / result 暴露了外部 transcript、临时文件、tool output 或 remote task handle，result 终态 MUST 明确 `artifact_retention`（`retain_by_policy` / `delete_requested` / `deleted` / `unknown`）以及 hash / deletion receipt。`cancelled`、`failed`、`expired` 终态若未能删除外部 artifact，必须保留最小 `external_artifact_stub`（hash、remote id digest、retention reason、cleanup retry policy），不得把未验证的外部删除当成已完成。
 
 Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm schema/profile、`fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
 

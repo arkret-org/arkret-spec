@@ -476,6 +476,13 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Move MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或 Anchor frontier 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
+`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `cx:grant:<uuid>` 或 profile 注册的不可变 grant record id；不得指向一次 `/policy/check` decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
+
+1. 该 grant 直接授权的 pending Event MUST fail closed；
+2. 该 grant 派生出的 child grant MUST 标记 `revoked_upstream`，除非 child grant 自身有另一条仍有效的 parent path；
+3. 依赖该 grant 的 allow cache、policy decision cache、projection shortcut 和 server-side cursor authority MUST 在同一 reducer transaction 内失效；
+4. 已 anchored 的历史 Event 保留审计事实，但后续 snapshot / range completeness / export 不能再把它作为“当前仍授权”的证据。
+
 ## 11. 有效权限集合
 
 Contrix v1 采用 allow-grant + explicit revoke 模型。

@@ -202,9 +202,12 @@ flow_part            ::= flow_id | "*"
 | Selector 字符串总长度（shorthand） | 4096 字节 | 超长 shorthand MUST 直接拒绝，不进入 tokenizer。|
 | `resources[]` 数组长度（JSON） | 256 项 | 单个 grant 的 resource 集合上限。|
 | Disjunction(`,`) / conjunction(`+`) 总 token 数（shorthand） | 256 token | 包括 selector_term + 运算符。|
+| Disjunction 分支数 | 16 项 | 逗号分隔的 top-level alternative 数量；超过即 `selector_too_complex`。|
+| Conjunction 展开后总项数 | 64 项 | JSON selector 或 shorthand 归一化后的 AND 项总数；防止嵌套组合指数展开。|
 | 嵌套深度（任意 selector 树） | 8 层 | 包括逗号 / 加号 / 引用 / 子 selector 嵌套。|
 | 单个 `selector_term` 字段值长度 | 1024 字节 | DID、URL、UUIDv7、复合 id 都包含在内。|
 | `requires_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限。|
+| `requires_claims[].subjects[]` / DID 列表长度 | 16 项 | 任一 claim object 内按 DID / subject 列表约束展开的对象数量。|
 | Constraint object 内嵌套层级 | 4 层 | approval / claim object 内部最多 4 层嵌套。|
 
 实现 MUST 在解析入口先验证 byte-size 与 token-count 上限，再做语法解析；不得让恶意输入进入 EBNF 递归下降。`selector_too_complex` error 必须独立于 `invalid_param`，以便审计层将疑似 DoS 攻击与普通格式错误区分。

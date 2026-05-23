@@ -94,6 +94,7 @@ Audit Agent profile MUST 满足：
 1. 在对应 enclave / HSM 内部对**其在群成员期间持有的所有历史 epoch secret 与 exporter secret**(从其 join epoch 到 remove epoch 之间所有 epoch)执行密码学销毁(zeroize + secure erase 或等价硬件操作)。
 2. 由 enclave / HSM 签发一条 **`cx.audit.epoch_key_destruction`** attestation event,内容覆盖被销毁的 epoch 范围、销毁完成 timestamp、enclave measurement、Audit Agent DID、remove commit ref。该 event 作为 reducer-input Event 提交给该 Realm,actor 是 Audit Agent service DID,proof 由 enclave / HSM 的 attestation key 签发(不接受普通 service signing key — 必须是被远程 attestation 绑定的 enclave-internal key)。
 3. attestation event 与 Audit Agent 被 Remove 的 `cx.mls.commit` **MUST 同一 anchor batch** 提交;reducer 拒绝单独 anchor 的 remove(reason `audit_agent_remove_requires_paired_destruction_attestation`)。
+4. attestation effect MUST 写入 `cx.component.audit.epoch_key_destruction.v1` audit state cell，cell subject 为 `(mls_group_id, audit_agent_did, epoch_range)`；后续 `cx.mls.commit` 的 `governance_binding.policy_root` / `capability_root` MUST 覆盖该 audit state，证明新 epoch 已见到销毁事实。
 
 ##### 3.1.1.2 `cx.audit.epoch_key_destruction` 必填字段
 
@@ -116,6 +117,7 @@ Audit Agent profile MUST 满足：
 | `epoch_range` 不完整(缺少该 Agent 已知持有的某些 epoch) | `audit_agent_epoch_range_incomplete` |
 | destruction attestation proof 不是 enclave attestation chain 签发的(普通 service signing key 签发) | `audit_agent_destruction_proof_not_enclave_signed` |
 | destruction attestation 的 `remove_commit_ref` 指向的 commit 不在同一 anchor batch | `audit_agent_destruction_not_paired_with_remove` |
+| 后续 commit 未覆盖已 accepted destruction audit state | `audit_agent_destruction_not_covered_by_commit` |
 
 ##### 3.1.1.4 文案与降级义务
 
@@ -123,6 +125,7 @@ Audit Agent profile MUST 满足：
 - 若部署在 6 个 anchor cadence(默认 ≈ 1 小时) 内仍未发布配套 destruction attestation,group 中任一 member MAY 发起 `cx.realm.audit_policy_downgrade` Move,把 `audit_assurance` 强制降级为 `disclosed_policy`;reducer 在收到该 Move 后立即重写 Realm policy,UI MUST 显式横幅"该群已不再满足 attested_hardware 担保"。
 - destruction attestation 落盘后,UI MAY 显示"已由 enclave 完成受控边界内 epoch 密钥销毁 — 该 Agent 不应再通过该 enclave 继续访问对应历史"; UI MUST 同时避免暗示已经泄漏或导出的历史 key / 明文可被 retroactively 撤销。
 - `audit_assurance = "disclosed_policy"` 部署**不要求**本节(disclosed 文案本就声明不提供密码学强制);只有 `attested_hardware` profile 必须实现。
+- Fraud detection：attestation 落盘后，若同一 Audit Agent / enclave measurement 后续又签发对已销毁 epoch 的 `cx.audit.accessed`、RYW receipt 或外部 export proof，verifier MUST 标记 `audit_agent_destroyed_epoch_accessed`，quarantine 该访问链，并触发 Realm `audit_assurance` 降级或 operator incident。该检测使用 `cx.component.audit.epoch_key_destruction.v1` state，不依赖 UI 记忆。
 
 ##### 3.1.1.5 安全代价登记
 

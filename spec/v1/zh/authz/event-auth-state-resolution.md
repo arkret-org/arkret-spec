@@ -98,7 +98,7 @@ Move (reducer view of signed Event) {
 1. canonical bytes MUST 覆盖 `event_id`、`actor_id`、`realm_id`、`preconditions`、`effects`、`anchor_ref`、`refs`、`hlc` 与所有其它 signed 顶层字段。`proofs` 与 `unsigned` MUST NOT 进入 canonical bytes（它们是对 canonical bytes 的签名或后置 advisory）。`realm_id` 必须进入以防止跨 Realm 重放。
 2. `preconditions[]` 与 `effects[]` 是 set；同一 Event 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Event FAIL，不能部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 reducer-input event 不存在）。
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Realm 声明的 `max_anchor_staleness_ms`。
-4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`audit_pair`（隐私敏感业务 Event 与 `cx.audit.accessed` 的同 batch 配对）、`recovery_capability`、`state_witness`（§8.1，conflict recovery Event 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Event 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。
+4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`audit_pair`（隐私敏感业务 Event 与 `cx.audit.accessed` 的同 batch 配对）、`recovery_capability`、`state_witness`（§8.1，conflict recovery Event 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Event 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。`role="authorized_by"` 的 `id` MUST 是 `cx:grant:<uuid>` 或 profile 明确注册的不可变 grant record id；不得引用裸 Event id、policy name、human-readable role 或可变 membership cell。reducer 必须能从该 id 反查 grant canonical digest、issuer、subject、actions、scope、parent grant 链和 revoke/supersede 状态。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
 6. Event 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Event issuer 层表达。
 
@@ -702,7 +702,9 @@ verify_move(M, pre_state):
   6. PASS
 ```
 
-授权来源必须是 `refs(role="authorized_by")` 或等价 schema role 中的凭证链。Capability cache 的 key MUST 包含 Anchor view / state root；当相关 grant/revoke/claim/policy cell 变化时 cache 立即失效。
+授权来源必须是 `refs(role="authorized_by")` 或等价 schema role 中的凭证链。`authorized_by` 引用的是不可变 grant record，而不是“某次 allow 判定”。reducer MUST 维护 `(grant_id -> dependent_event_id[])` 的本地索引或等价审计索引：当 `cx.capability.revoke` / supersede / parent grant revoke / claim revocation 进入 accepted state 时，节点必须能列出受影响的 pending、cached allow 和后续 delegated grant，并触发 recheck / quarantine / audit note。已经 anchored 的历史 Event 不被物理删除，但任何依赖已失效 grant 的后继写入、snapshot claim 或 policy decision cache MUST fail closed，reason=`authorized_grant_revoked` 或更具体的上游原因。
+
+Capability cache 的 key MUST 包含 Anchor view / state root；当相关 grant/revoke/claim/policy cell 变化时 cache 立即失效。
 
 ## 7. Anchor 应用
 

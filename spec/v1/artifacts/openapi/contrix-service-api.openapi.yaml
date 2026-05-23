@@ -3739,6 +3739,56 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
+  /account/cursor/revoke:
+    post:
+      operationId: cx.account.cursor_revoke
+      security:
+      - bearerAuth: []
+      summary: Revoke a previously issued cursor authority.
+      description: |
+        High-assurance optional endpoint. The issuing service records the cursor
+        digest or stateful handle in a revocation set until the cursor's maximum
+        TTL would have expired. A revoked cursor returns `cursor_revoked` and
+        MUST NOT advance to-device acknowledgement, account subscribe position,
+        wait-for barrier state, or dropped recovery state.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - cursor
+              - reason_code
+              properties:
+                cursor:
+                  type: string
+                  pattern: '^cx:cursor:.+$'
+                reason_code:
+                  type: string
+                revoke_scope:
+                  type: string
+                  enum:
+                  - this_cursor
+                  - same_device
+                  - same_session
+                  default: this_cursor
+              additionalProperties: false
+      responses:
+        '200':
+          description: Cursor revocation accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - revoked
+                properties:
+                  revoked:
+                    type: boolean
+                  expires_at:
+                    type: string
+                    format: date-time
   /snapshot/head:
     get:
       operationId: cx.snapshot.head

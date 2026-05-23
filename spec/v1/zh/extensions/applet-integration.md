@@ -24,6 +24,17 @@ Applet 是一个受注册、受授权、可审计的集成服务。它可以：
 - 把外部事件转换为 Contrix event
 - 在获得明确授权时以受托 agent / device 方式执行操作
 
+Applet / Agent / Morph / Ghost actor 的选择边界如下，实现 MUST 按最窄概念建模：
+
+| 场景 | 首选模型 | 不应使用 |
+| --- | --- | --- |
+| 高频外部事件桥接、多用户镜像、需要 namespace / capability 撤销 / portal Realm | Applet + ghost actor | Morph 直接表示外部用户；Agent session 长期常驻 |
+| 单次或低频外部对象导入、内容不可信、只需保留原文与映射证据 | Morph / Relation | Ghost actor 写入协作历史 |
+| AI / 自动化长任务、需要状态回流、产物归档、可取消会话 | Agent protocol session | Applet masquerading 成人类 actor |
+| 外部人类用户在 Contrix 内可被 mention / 授权 / 审计 | Ghost actor（标记 managed_by_applet） | 伪装为 native principal DID |
+
+同一外部实体可以在不同上下文下产生 Morph 记录和 Ghost actor，但二者 MUST 通过显式 Relation / provenance 字段连接，不能让 projection 自由猜测它们是同一主体。
+
 ## 2. 与 Matrix Appservice 的对应关系
 
 | Matrix Appservice | Contrix Applet |
@@ -537,10 +548,13 @@ Alice via Calendar Applet
 - 当 Event 的 envelope signature 由 applet / delegated agent key 签发但 `actor_id` 指向 native principal DID 时（即 actor_id ≠ signing key 所属 DID），reducer MUST 校验：
   1. `executed_by` 必填,指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致;
   2. `authorization_ref` 必填,指向已 accepted 的 `cx.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
-  3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet。
+  3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet;
+  4. grant constraint MUST 绑定 `applet_id`、`executed_by` DID、`executed_by` DID Document canonical hash / method-specific version（若 DID method 提供）和 registration epoch hash。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。
 - 缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时,reducer MUST `schema_violation` 拒绝。该规则适用于所有 `cx.profile.applet_*` profile,客户端 / SDK 不得退回到 SHOULD 形态。
 
 Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示 `via applet`：UI 在渲染 mention、notification、audit log、moderation queue 等任何"who did this"上下文时,MUST 同时显示 native actor 与 `executed_by` 双重署名,不得仅显示 native actor 而隐藏 applet 身份。
+
+`requested_scopes` 只服务 consent / audit UI：registration 接受时，reviewer 可据此决定是否签发 capability grant；一旦 grant 写入，后续 reducer 只看 grant `actions[]` / selector / constraint，不再从 `requested_scopes` 推断权限。实现 MUST 在 audit log 中把最终 grant 与 registration `requested_scopes` 的差异显示给 reviewer，避免 Applet 请求 A、实际被授予 B 时无人可见。
 
 ## 12. E2EE
 

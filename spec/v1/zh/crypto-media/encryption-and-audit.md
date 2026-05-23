@@ -78,6 +78,16 @@ v1 基线 E2EE profile 是 **body-only E2EE**，不得在 UI、营销材料或 s
 
 **minimal-metadata E2EE profile** 是 v1 的可声明 profile；启用时标题 / 摘要 / 部分字段按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。未声明该 profile 的 Realm 不得对 `title` / `summary` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
 
+Realm policy MUST 通过 `cx.realm.policy_components.metadata_encryption_profile` 显式声明 metadata 加密级别，取值为：
+
+| profile | wire 明文 | encrypted_metadata | 说明 |
+| --- | --- | --- | --- |
+| `body_only` | routing / reducer / projection 所需 metadata；Space / Flow title、summary、state、rank、tracks 默认明文 | 无或仅 profile 特定字段 | v1 默认。不得宣传为完整 metadata E2EE。 |
+| `minimal_encrypted` | `realm_id`、kind、epoch、routing hash、必要 cell subject、必要 causal refs | title、summary、部分 fields、mention/reply 摘要、client search tokens | 对应 minimal-metadata profile；服务端 projection 能力受限。 |
+| `full_encrypted` | 仅 envelope routing、policy-required subject、hash、opaque refs | 绝大多数用户可读 metadata 与可逆索引材料 | extension profile；需要客户端本地 projection 或受信 plaintext-visible service。 |
+
+`metadata_encryption_profile` 必须纳入 MLS governance binding `policy_root`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省即 `body_only`。
+
 #### 2.3.1 Envelope Wire 结构
 
 加密信封的 wire 形态是 [`artifacts/schemas/encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json) 的 canonical 表达。最小示例：

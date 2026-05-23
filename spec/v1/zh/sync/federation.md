@@ -431,6 +431,7 @@ Probe 响应 payload：
 - 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 - 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
 - `actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异），但 SHOULD 触发 `cx.events.query` per-actor backfill，并在 backfill 后仍存在差异时升级为 fork suspect。
+- 若两个 peer / witness 对同一 `(realm_id, actor_id, actor_seq)` 返回不同 `event_id` / hash，或对同一 `(from_frontier, to_frontier]` range 返回无法调和的 `frontier_root` / range-completeness root，接收方 MUST 记录 `witness_disagreement` 并 quarantine 该 peer 在该 Realm 的增量。该状态不是普通网络分歧，不能通过“最后写入者”或本地接收顺序解决；必须走 raw replay、quorum witness 或 operator-approved fork resolution。
 
 #### 4.5.2 Baseline 主动交换 (SHOULD)
 
@@ -441,6 +442,7 @@ Probe 响应 payload：
 启用 `cx.profile.federation.high_assurance.v1`（high-assurance / sovereign / regulated / multi-writer federation 部署，详见 [`sovereign-deployment.md`](./sovereign-deployment.md)）的服务 **MUST**：
 
 - 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ **1 小时**；
+- 对每个 accepted push / backfill range，要求 `cx.attestation.range_completeness` 使用 `federation_witness_attested` quorum；只有单源证明时 MAY 暂存为 pending，但不得推进 high-assurance completeness frontier；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
 - 连续 3 次 probe 失败（peer 不可达、签名失败、`frontier_root` 不一致超过 fork-resolution 阈值）**MUST** 把该 peer 在该 Realm 的状态标记为 `stale_peer`；
 - `stale_peer` 状态期间：

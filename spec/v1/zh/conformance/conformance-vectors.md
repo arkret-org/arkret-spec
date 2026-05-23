@@ -2195,3 +2195,82 @@ Expected：
 - 第 2 步 MUST 拒绝，reason_code 为 `invalid_proof_binding` 或等价稳定码。
 - 第 3 步 MUST 拒绝或收紧到服务器硬上限，并在响应中暴露实际 `expires_at`；不得签发跨多日 session grant。
 - 第 4 步 MUST 被 conformance / describe 校验拒绝；development mode 下 `verified_profiles[]` 必须为空。
+
+### 10.6 Vector: Witness Disagreement Quarantine
+
+`vector_id`: `cx.vector.range_completeness.witness_disagreement.v1`
+
+Steps：
+
+1. 两个 witness 对同一 `(realm_id, actor_id, actor_seq)` 给出不同 `event_id` / `payload_hash`。
+2. 两个 range-completeness attestation 声称同一 `(from_frontier, to_frontier]` scope，但 `root` 不同且无法由不同上界解释。
+3. High-assurance peer 只提供 `single_source` attestation 试图解除 backfill completeness gate。
+
+Expected：
+
+- 第 1 / 2 步 MUST 标记 `witness_disagreement` 并 quarantine 对应 range / peer。
+- 不得用本地接收顺序、HLC 或最后写入者选择 winner。
+- 第 3 步 MUST 保持 pending / stale，不得推进 high-assurance completeness frontier。
+
+### 10.7 Vector: Capability Revoke Downstream Recheck
+
+`vector_id`: `cx.vector.capability.revoke_downstream_recheck.v1`
+
+Steps：
+
+1. Grant G 授权 actor 写入，Event E 的 `refs[role="authorized_by"]` 指向 G。
+2. G 派生 child grant C，C 又授权 pending Event P。
+3. `cx.capability.revoke{grant_id=G}` accepted。
+
+Expected：
+
+- P MUST fail closed 或 quarantine，reason `grant_revoked_upstream` / `authorized_grant_revoked`。
+- Allow cache / policy decision cache 中依赖 G 或 C 的 entry MUST 在同一 reducer transaction 内失效。
+- 历史 E 保留审计事实，但后续 snapshot/export 不得把 G 当作当前有效授权。
+
+### 10.8 Vector: Cursor Revoke
+
+`vector_id`: `cx.vector.cursor.revoke_high_assurance.v1`
+
+Steps：
+
+1. 服务签发 stream cursor 并随后接受 `/account/cursor/revoke`。
+2. 攻击者重放已撤销 cursor 到 `/account/subscribe?after=`。
+3. 攻击者提交篡改过但未撤销的 cursor。
+
+Expected：
+
+- 第 2 步 MUST 返回 `cursor_revoked`，且不推进 to-device ack / subscription position。
+- 第 3 步 MUST 返回 `cursor_integrity_invalid`，不得泄露 revocation set 是否命中。
+
+### 10.9 Vector: Device Recovery Lifecycle
+
+`vector_id`: `cx.vector.device_recovery.lifecycle.v1`
+
+Steps：
+
+1. 新设备用过期 `ssk_generation` 提交恢复 proof。
+2. 新设备 proof 通过，但未完成 secret storage unlock / MLS Welcome replay。
+3. KeyPackage claim 后失败并使可用数量低于 low-watermark。
+
+Expected：
+
+- 第 1 步 MUST 返回 `device_recovery_ssk_generation_mismatch`。
+- 第 2 步设备只能处于 `recovery_pending`，不得显示 fully verified。
+- 第 3 步 response SHOULD 返回 `available_count` / `low_watermark` / `suggested_publish_count`，claimed package 不得自动放回。
+
+### 10.10 Vector: Push Wakeup Policy
+
+`vector_id`: `cx.vector.push.wakeup_policy.v1`
+
+Steps：
+
+1. E2EE Realm 声明 `wakeup_default=no_notification`，server 无法评估 client-side mention rule。
+2. 设备注册 `client_rule_digest` 与服务端保存 digest 不一致。
+3. Realm 使用 `batch_wakeup`，一分钟内大量 client-side unresolved events 到达。
+
+Expected：
+
+- 第 1 步 MUST NOT 发送单事件 blind wakeup。
+- 第 2 步 MUST 按更保守策略处理，不得猜测规则内容。
+- 第 3 步 MUST 合并为 batch wakeup，仍携带 `evaluation_locus_unresolved=true`。

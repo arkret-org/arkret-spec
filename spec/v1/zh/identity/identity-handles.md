@@ -186,7 +186,23 @@ candidate 只能来自以下两类签发路径：
 
 candidate **不得**直接构造自客户端字符串拼接、UI text、未签名 directory 响应或 cache 残留。任何缺少 `proofs[]` 的对象 MUST NOT 被命名为 candidate。
 
-### 3.7.3 Validator MUST 规则
+### 3.7.3 物化公式（normative）
+
+`MemberDeliveryBindingCandidate -> cx.member.state.payload.delivery_binding` 的映射必须是确定性的：
+
+```text
+payload.actor_id = candidate.subject_did
+payload.delivery_binding.recipient_service_did = candidate.recipient_service_did
+payload.delivery_binding.resolved_at = candidate.proofs[].created_at 或 candidate.expires_at 之前的 issuer as_of
+payload.delivery_binding.service_acceptance_ref = candidate.delivery_binding_hint.service_acceptance_ref
+payload.delivery_binding.policy_ref = candidate.delivery_binding_hint.policy_ref
+payload.delivery_binding.delivery_modes = candidate.delivery_binding_hint.delivery_modes
+payload.delivery_binding.binding_source = join-policy §5.1.2.1 决策树输出
+```
+
+`claim_digest`、`source_refs[]` 与 candidate proof digest SHOULD 进入 member Move 的 `refs[]`（`role="attestation"` 或 profile 声明的 role），用于审计和 replay 诊断；它们不得替代 `delivery_binding` 中的规范字段。映射过程中任何缺失字段、过期 candidate、audience 不匹配、issuer 未授权或 Realm `delivery_binding_policy` 不接受该 source，均 MUST fail closed。
+
+### 3.7.4 Validator MUST 规则
 
 verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
@@ -201,7 +217,7 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 通过上述检查的 candidate 是 builder 的合法输入；reducer 仍 MUST 按 Join Policy 再验签 / 再过审。
 
-### 3.7.4 与 display resolve / mention resolve 的差异
+### 3.7.5 与 display resolve / mention resolve 的差异
 
 `cx.directory.resolve_handle` 三种 intent 返回的字段不同，candidate 只在 `member_add` / `invite` intent 下产生：
 

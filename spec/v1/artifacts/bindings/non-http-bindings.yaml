@@ -142,6 +142,7 @@ grpc:
     Account:
       Describe: cx.account.describe
       Subscribe: cx.account.subscribe
+      CursorRevoke: cx.account.cursor_revoke
       IssueSessionGrant: cx.account.issue_session_grant
       DevicePair: cx.account.device_pair
       OidcCallback: cx.account.oidc_callback
@@ -178,6 +179,7 @@ mq:
     events.subscribe: cx.events.subscribe
     ephemeral.send: cx.ephemeral.send
     account.subscribe: cx.account.subscribe
+    account.cursor_revoke: cx.account.cursor_revoke
     directory.private_contact_discovery: cx.directory.private_contact_discovery
     directory.announce: cx.directory.announce
     directory.withdraw: cx.directory.withdraw

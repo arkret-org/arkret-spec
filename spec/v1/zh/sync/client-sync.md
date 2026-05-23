@@ -396,6 +396,18 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 `cursor_integrity_invalid` 与 `cursor_expired` 语义不同：前者是 tamper / 未知 handle / cross-binding，后者是 TTL 超时。客户端对 `cursor_integrity_invalid` 的恢复路径与 `cursor_expired` 一致（重做 initial sync），但客户端 SHOULD 把它视为本端 cursor 状态被污染的信号，清理本地 cursor 缓存。
 
+### 12.2.1 Cursor Revoke（high-assurance optional）
+
+声明 high-assurance cursor revoke capability（ServiceDescribe `supported_features[]` 含 `cursor_revoke_high_assurance`）的服务 MUST 支持主动撤销 cursor：
+
+```text
+POST /api/v1/account/cursor/revoke
+```
+
+请求体至少包含 `{cursor, reason_code, revoke_scope}`；`revoke_scope` 取值为 `this_cursor` / `same_device` / `same_session`。服务端接受后 MUST 将对应 stateless cursor 的 `_mac` / `_sig` digest 或 stateful handle 写入 cursor revocation set，保留时间不少于该服务声明的最长 cursor TTL（stream cursor 默认 7 天，barrier cursor 1 小时）。撤销命中时，任何 endpoint MUST 返回 `cursor_revoked`，并且不得推进 to-device ack、subscription position、barrier wait 或 dropped recovery state。
+
+Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 完整性校验；完整性失败返回 `cursor_integrity_invalid`，不泄露该 cursor 是否曾被 revoke。
+
 ### 12.3 过期或缺口恢复流程
 
 1. 客户端保留本地 `cursor`、filter hash、未确认写入和最后可验证 frontier。

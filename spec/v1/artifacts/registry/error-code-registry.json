@@ -314,6 +314,18 @@
       "description": "A federation high-assurance peer has missed proactive frontier probes or produced invalid/divergent frontier evidence and is quarantined for the affected Realm until fork resolution succeeds. See zh/sync/federation.md §4.5.3."
     },
     {
+      "code": "authorized_grant_revoked",
+      "http_status": 409,
+      "scope": "both",
+      "description": "A pending write, cache entry, snapshot claim, or downstream grant depends on a grant that has been revoked, superseded, expired, or revoked through an ancestor grant. The dependent action MUST fail closed or be quarantined until re-authorized."
+    },
+    {
+      "code": "device_recovery_ssk_generation_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "Device recovery proof or authorization references an SSK generation that does not equal the current accepted cross-signing publish generation for the principal."
+    },
+    {
       "code": "cursor_expired",
       "http_status": 410,
       "scope": "endpoint",
@@ -324,6 +336,12 @@
       "http_status": 400,
       "scope": "endpoint",
       "description": "Cursor integrity check failed: MAC / signature did not verify, the bound transcript (principal, device, service, filter_hash, purpose, positions, target, x, issuer_kid) did not match the authenticated request, or the stateful handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+    },
+    {
+      "code": "cursor_revoked",
+      "http_status": 410,
+      "scope": "endpoint",
+      "description": "Cursor integrity is valid but the issuing service has explicitly revoked this cursor authority before TTL expiry. Endpoint MUST NOT advance to-device ack, subscription position, barrier wait, or dropped recovery state; caller MUST restart from a fresh cursor."
     },
     {
       "code": "unsupported_feature",
@@ -606,6 +624,30 @@
         "encoding"
       ],
       "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_hash / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /account/subscribe after= resume, X-Contrix-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+    },
+    {
+      "code": "cursor_revoked",
+      "applies_to": [
+        "client_sync",
+        "encoding"
+      ],
+      "description": "Cursor passed syntax and integrity validation but is present in the issuing service's revocation set. Treated as an authority revocation, not tamper; endpoint MUST NOT advance server-side state."
+    },
+    {
+      "code": "authorized_grant_revoked",
+      "applies_to": [
+        "authz",
+        "event_auth_state"
+      ],
+      "description": "The grant referenced by refs[role=authorized_by] or an ancestor grant in its delegation chain has been revoked, superseded, expired, or tombstoned."
+    },
+    {
+      "code": "device_recovery_ssk_generation_mismatch",
+      "applies_to": [
+        "device_recovery",
+        "cross_signing"
+      ],
+      "description": "Recovery request or device authorization references a stale or future cross-signing generation."
     },
     {
       "code": "spam",

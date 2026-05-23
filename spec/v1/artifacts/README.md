@@ -58,8 +58,9 @@ python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图
 - 选定完整对象示例的 schema required-field drift（见 `lint_artifacts.py::FULL_MARKDOWN_EXAMPLE_SCHEMAS`）
 - Markdown fenced JSON 可以用 ````json schema=schemas/<name>.schema.json` 声明 schema；lint 会对该 JSON 块运行 JSON Schema validation
 - `artifacts/fixtures/*.json` 可声明 `schema_validation_cases[]`，对 EventEnvelope、Anchor、Cursor、Invite、ServiceDescribe 等核心对象执行正/负 schema validation
+- fixture 中若包含规范正文硬编码 digest（canonical bytes hash、event_digest、range completeness root、governance binding hash 等），CI SHOULD 通过参考实现脚本重算并比对；新增 vector 不得只在 prose 中声明 digest 而无可复算来源。
 
 ## 3. CI 要求
 
 `.github/workflows/artifact-lint.yml` 在 PR 上以同一入口执行 `generate --check` 与 lint，
-保证仓库内协议契约与机器视图一致。
+保证仓库内协议契约与机器视图一致。任何 PR 修改 `contract-catalog.json`、schemas、fixtures、OpenAPI、profile 或 conformance vector 时，`python tools/artifact_pipeline.py check` 与 `node site/scripts/crossref-check.mjs` 都是发布门禁；不得以手工更新 generated registry 替代 pipeline。

@@ -51,6 +51,13 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 
 非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.device.push_route`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
 
+Actor-private state 是独立层，不是“弱 durable Event”。标准规则：
+
+- `actor_private_event` 可以写入 principal control stream、account data 或 device/private cell，cell subject MUST 可由 payload / actor / authenticated account 唯一派生，并在 registry 中声明。
+- actor-private cell 不参与 shared Realm `state_root`、Anchor frontier、membership visibility 或 federation delivery binding；需要跨设备同步时，只在同一 principal / account 授权边界内复制。
+- 任何实现想让 actor-private state 影响其它成员的共享视图，必须 emit 一条独立 durable reducer-input Event（例如 moderation decision、watch manage audit pair），不得让投影层直接读取他人的 actor-private cell。
+- `cx.device.list_update`、`cx.device.push_route`、`cx.account.blocklist`、contacts remarks / preferences 是该模型的标准例子；typing / presence / call.signal 仍是 ephemeral，不得写 actor-private cell。
+
 ### 2.1.1 Wire-Scope 边界（normative）
 
 为避免 ephemeral 信号意外进入持久 Event 流，event-schema.json 与 cx.events.submit MUST 按下表 fail-closed：
@@ -266,8 +273,12 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 - `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Realm `audit.range_completeness_witnesses[]` 中已声明。
 - `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。
+- 每个 witness 签名 transcript MUST 覆盖完整 attestation scope（`from_frontier`、`to_frontier`、`actor_seq_ranges[]`）、`root`、`count`、`realm_id`、`hash_profile`、`observed_at` 和 issuer 身份；不得只签 `root`。否则 verifier 无法区分同 root 不同 scope 或同 scope 不同事件集。
+- 对同一 Realm 中存在重叠 scope 的两个 witness attestation，若二者对同一 `(actor_id, actor_seq)` 断言的 `event_id` / `payload_hash` 不同，或同一 scope 下 `root` 不一致且无法通过 backfill 证明为不同上界，verifier MUST 将其标记为 `witness_disagreement`，quarantine 相关 range，并停止用该 range 推进 snapshot / backfill / frontier completeness。
 
 **重要**：`single_source` attestation 不构成 sovereign-grade completeness 证明——它只是 issuer 的自报。需要"对方未藏分支"语义保证的部署 MUST 要求 `federation_witness_attested`。这是 silent fork 抗性的最后一道防线：base batch receipt（integrity）+ frontier exchange（probe）+ range-completeness attestation（completeness with witness quorum）才能完整覆盖。
+
+启用 `security_class=high_assurance`、`cx.profile.federation.high_assurance.v1` 或 sovereign / regulated federation profile 的 Realm，range completeness MUST 使用 `federation_witness_attested`；`single_source` 只能作为诊断 hint，不能解除 `dependency_missing`、`stale_peer`、snapshot bootstrap 或 progressive backfill 的 completeness gate。
 
 #### 4.2.4 Verifier 协议
 
@@ -279,6 +290,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 4. 若 verifier 自身持有 scope 内事件，MUST 重算 `root` 并 constant-time 比较；不一致 `range_completeness_root_mismatch`；
 5. 若 verifier 只持有 scope 子集，可以验证 inclusion proof（按 standard Merkle inclusion）；不持有任何 scope 事件时只能记录 attestation 不能确认 completeness。
 6. 校验 `actor_seq_ranges[]` 中每个 actor 的 seq interval 与 verifier 本地视图（partial replication 后）一致；本地视图若发现缺口而 attestation 声称完整，MUST `range_completeness_actor_seq_gap`。
+7. 检测到 `witness_disagreement` 时 MUST fail closed：相关 peer / issuer 的数据进入 quarantine，客户端不得把该 attestation 用于显示“历史完整”、解除 E2EE state mismatch、接受 snapshot 或提交 recovery Move；恢复只能通过更高 quorum、原始 Event replay 或 operator-approved fork resolution 完成。
 
 #### 4.2.5 与其它原语的关系
 

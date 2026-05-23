@@ -345,7 +345,7 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 
 ## 6. Device List Sync
 
-任何设备新增、撤销、签名更新或算法更新，MUST 产生 `cx.device.list_update` event。该 event 是 principal control stream 中的 durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`：
+任何设备新增、撤销、签名更新或算法更新，MUST 产生 `cx.device.list_update` event。该 event 是 principal control stream 中的 actor-private durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`。它不进入任一共享 Realm Anchor frontier / state_root；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / key package event 感知其结果：
 
 ```json
 {
@@ -967,7 +967,21 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 - 同一 `(principal_id, previous_generation)` 已被某条 reset 消费后，新到达的 reset MUST 以 `cross_signing_reset_replayed` 拒绝；replay-rejection 缓存保留时间不得少于 profile `parameters.reset_replay_cache_min_retention_seconds`（默认 90000s，对应 24h + 1h slack），且必须覆盖 `parameters.publish_recovery_window_seconds`（默认 86400s）所定义的"reset → publish"窗口。
 - Receiver MUST 在接受 reset 后 `parameters.publish_recovery_window_seconds` 之内观察到对应的 `cx.cross_signing.publish`；超时未观察到 MUST 进入 §14.2 第 5 项的 "无可用 SSK / USK" 状态，并拒绝任何引用 `new_generation` 的设备授权事件。
 
-## 15. Applet Device Delegation
+## 15. Device Recovery Lifecycle
+
+设备恢复是一个端到端状态机，不能只靠单个 reset proof 或 key backup 下载完成。合规实现 MUST 按以下顺序闭环：
+
+1. **Recovery policy 触发**：新设备声明恢复意图，引用 principal DID 当前 `recovery_policy`、目标 `principal_id`、新 `device_id`、当前 `ssk_generation` 和 trust domain。恢复请求必须带 challenge，防止把旧恢复 proof 复制到新设备。
+2. **新设备认证**：按 recovery policy 选择 `principal_signing`、`recovery_unlock`、`device_quorum` 或 `trusted_recovery_service` proof。proof transcript MUST 绑定 `(principal_id, device_id, trust_domain, recovery_session_id, ssk_generation, created_at)`。
+3. **设备授权与列表更新**：成功后发布 `cx.device.authorized`，并在 principal control stream 发布 `cx.device.list_update`。若当前 accepted `cx.cross_signing.publish.generation` 与请求中的 `ssk_generation` 不一致，reducer MUST 拒绝，reason=`device_recovery_ssk_generation_mismatch`。
+4. **Key backup / Secret storage unlock**：新设备只能拉取 policy 允许的 backup class（`did_recovery` / `secret_storage` / `mls_history`），每个 backup decrypt proof MUST 绑定 `recovery_session_id` 和新设备 key。服务端不得把恢复 proof 当作长期 bearer token。
+5. **MLS Welcome replay**：对每个可恢复 Realm，授权 peer / key service 重新发 Welcome 或 history key share；Welcome 的 `claim_ref.ssk_generation` MUST 等于当前 accepted cross-signing generation。旧 generation 的 Welcome MUST `claim_generation_mismatch`。
+6. **Secret storage ready**：客户端在本地 secret storage 解锁、device list 同步、关键 Realm Welcome 完成前，只能进入 `recovery_pending`；不得把设备显示为 fully verified。
+7. **Finalize / audit**：恢复完成后写入恢复 receipt（可为 actor-private 或 audit Event，取决于 profile），至少绑定 `recovery_session_id`、`device_id`、proof digest、backup classes、Welcome count 和 completed_at。
+
+KeyPackage low-water refresh：claim 失败后 KeyPackage 不得自动放回；服务端响应 SHOULD 返回 `available_count`、`low_watermark` 和 `suggested_publish_count`。当 `available_count < low_watermark` 时，设备 SHOULD 发布新的 KeyPackage；若低水位持续低于 Realm policy 的最小值，发送方 MAY 延迟新设备 Welcome 并返回 `keypackage_refresh_required`。同一 device 多个 KeyPackage 的选择 MUST 使用服务端返回的最早 unclaimed package 或 deterministic order，不得按本地随机重试导致重复 claim。
+
+## 16. Applet Device Delegation
 
 Applet 如需代表 ghost actor 或桥接用户参与 E2EE，MUST 使用受限 delegated device：
 

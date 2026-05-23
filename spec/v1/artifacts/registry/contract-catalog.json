@@ -2298,6 +2298,7 @@
           "cx.events.frontier",
           "cx.account.describe",
           "cx.account.subscribe",
+          "cx.account.cursor_revoke",
           "cx.ephemeral.send",
           "cx.snapshot.head"
         ]
@@ -2963,6 +2964,13 @@
         "grpc": "Account/Subscribe",
         "mq": "account.subscribe",
         "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync."
+      },
+      {
+        "operation_id": "cx.account.cursor_revoke",
+        "http": "POST /account/cursor/revoke",
+        "grpc": "Account/CursorRevoke",
+        "mq": "account.cursor_revoke",
+        "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance to-device ack, account subscribe position, barrier wait, or dropped recovery state."
       },
       {
         "operation_id": "cx.snapshot.head",

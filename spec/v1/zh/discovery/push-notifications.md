@@ -61,6 +61,7 @@ POST /api/v1/push/register-device
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
 | `app_id` | string | SHOULD | 应用的包名 / Bundle ID |
 | `display_name` | string | MAY | 用户可读设备名 |
+| `client_rule_digest` | `sha256:<hex>` | optional | 客户端本地通知规则 canonical digest。Sync Service 不读取规则明文，只可把该 digest 与 Realm policy 允许的 server-side hint 组合，用于减少无差别 wakeup。 |
 
 Push registration 的作用域是接收该请求的 Sync Service / Principal Server service DID。客户端在个人 Principal Server 与组织 Principal Server 上同时登录同一 DID 时，MUST 分别注册互不相关的 push route / `push_target_id`；服务端不得把一个上下文中的 push token 或伪名复制到另一个上下文。实现若在请求中扩展携带 `recipient_service_did`，其值 MUST 与目标服务的 `cx.server.describe.service_did` 一致。
 
@@ -209,7 +210,7 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 ]
 ```
 
-第二条规则把 `mentions_actor` 与 `flow_track` 复合：在 cleartext Realm 中 server 直接评估；在 E2EE Realm 中 server 看到 `flow_track=discussion` 但无法解密 mention，按 §4.5 走 client-side 降级——即先按 Realm 级 `wakeup_default` 唤醒，client 解密后再决定是否进入用户感知通知 surface。规则书写者无需手动区分两种 Realm，`evaluation_locus: client` 已经声明了降级路径。
+第二条规则把 `mentions_actor` 与 `flow_track` 复合：在 cleartext Realm 中 server 直接评估；在 E2EE Realm 中 server 看到 `flow_track=discussion` 但无法解密 mention，按 §4.5 走 client-side 降级——即按 Realm 级 `wakeup_default` 与设备 `client_rule_digest` 选择是否 blind wakeup，client 解密后再决定是否进入用户感知通知 surface。规则书写者无需手动区分两种 Realm，`evaluation_locus: client` 已经声明了降级路径。
 
 #### 4.3.2 `watch_state` 与订阅偏好
 
@@ -277,10 +278,10 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估 `contains_keyword` 或基于 mention 文本 / mention relation 嵌入密文时的 `mentions_actor`。**实现 MUST NOT** 在 E2EE Realm 静默把这类规则视为不匹配（这会让被 mention 的人收不到推送，造成 UX 退化），也 MUST NOT 把它视为匹配（这会变成无差别推送，泄露元数据）。降级路径如下：
 
 1. **明确分类**：每条 push rule 在创建时 MUST 通过 `evaluation_locus ∈ {server, client}` 声明评估位置。client-side rule 在 E2EE Realm 中由本机已解密 Event 的 client 评估，并在本地决定是否触发本机通知通道（系统 banner、桌面提示、声音）。Sync Service 不参与 client-side rule 的匹配。
-2. **Server fallback notify**：E2EE Realm 中，针对 client-side rule，Sync Service MUST 走"保守 wakeup"策略——按 Realm 级 `wakeup_default`（默认 `wakeup_for_all_messages`）触发 blind wakeup，不附带任何识别字段。客户端被唤醒后本地解密、本地评估 client-side rule，再决定显示哪个通知 surface（普通 banner / 高亮 banner / 静默处理）。
+2. **Server fallback notify**：E2EE Realm 中，针对 client-side rule，Sync Service MUST 走 Realm policy 声明的保守 wakeup 策略。`wakeup_default` 取值为 `wakeup_for_all_messages` / `batch_wakeup` / `no_notification`，缺省为 `batch_wakeup`；高隐私、minimal-metadata 与 audited Realm SHOULD 使用 `no_notification` 或 `batch_wakeup`。客户端被唤醒后本地解密、本地评估 client-side rule，再决定显示哪个通知 surface（普通 banner / 高亮 banner / 静默处理）。若 `wakeup_default=no_notification`，server 不得因为无法解密 client-side rule 而单独唤醒，只能等待客户端下次 sync 或命中 server-side opaque routing token。
 3. **降级标记**：Sync Service 在 push payload 中携带 `evaluation_locus_unresolved=true`，让客户端知道"我已经被 wakeup 但匹配尚未在 server 端确定"。客户端 MUST 完成本地评估后才决定是否进入用户感知的通知 surface；不得仅凭 wakeup 就在 system tray 弹出。
 4. **明文 hint 限制**：E2EE Realm 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。默认 `blind_wakeup` 下，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`）或 `l10n_key`，不能携带匹配到的具体内容。即使 Realm policy 把 push gateway 列入 `plaintext_visible_services`，也只允许进入 §5.1 的 `visible_notification` profile；不得把该授权解释为放宽 `blind_wakeup` 的 metadata 限制。
-5. **限速降级**：E2EE Realm + client-side rule 多的 client 在高消息量场景会被持续 wakeup，电池负担显著。客户端 MUST 暴露 `aggressive_wakeup_threshold`（默认每 60 秒 ≤ 30 次）；超过阈值后切换到批量 wakeup 模式，Sync Service 把多个 wakeup 合并为单个 batch wakeup（仍携带 `evaluation_locus_unresolved=true`），客户端醒来一次评估全部待处理 Event。
+5. **限速降级**：E2EE Realm + client-side rule 多的 client 在高消息量场景会被持续 wakeup，电池负担显著。客户端 MUST 暴露 `aggressive_wakeup_threshold`（默认每 60 秒 ≤ 30 次）；超过阈值后切换到批量 wakeup 模式，Sync Service 把多个 wakeup 合并为单个 batch wakeup（仍携带 `evaluation_locus_unresolved=true`），客户端醒来一次评估全部待处理 Event。Realm policy MAY 要求所有设备注册 `client_rule_digest`；digest 不匹配或缺失时，server 只能按 `wakeup_default` 的更保守结果处理，不得猜测规则内容。
 6. **`mentions_actor` 通过 mention sidecar 提示**（可选,使用 keyed HMAC 形态）：严格 E2EE 默认走第 1-5 步 blind / batch wakeup。若 Realm policy 允许 `mention_routing_hint="recipient_registered_token"`，且被提及接收方已经为当前 `(realm_id, mls_group_id, epoch, pairwise_or_principal_did)` 向 Sync Service 注册 opaque routing token，发送者的客户端 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上,定义为:
 
     ```text

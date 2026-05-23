@@ -215,6 +215,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 - 任何接受 cursor 的接口 MUST 把无效 cursor 返回 `invalid_param`，把已过期 cursor 返回 `cursor_expired`。
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
 - TTL 硬上限：barrier cursor `expires_at - issued_at` MUST ≤ 1 小时；stream cursor MUST ≤ 7 天。详见 [`encoding.md` §8.3 规则 12](../conformance/encoding.md)。
+- 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
 
 ### 7.1 列表分页
 
@@ -360,4 +361,3 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - 记录可审计但不泄露明文的安全日志
 - 对管理操作要求更强认证
 - 对联邦写入执行 reputation / quarantine 策略
-

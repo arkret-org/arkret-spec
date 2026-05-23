@@ -244,8 +244,8 @@ v1 core `cx.private_contact_discovery.v1` profile 明确限定为 **set-membersh
 
 实现 MUST 使用基于 OPRF（Oblivious Pseudorandom Function）的两轮协议（推荐 RFC 9497 VOPRF 或 Signal CDSI 风格）：
 
-1. **Round 1 — Blind**：客户端按 RFC 9497 OPRF 流程对每个本地 connection identifier 计算 `blind = OPRF.Blind(identifier_canonical_bytes)`；提交 `{batch_id, blinded[]}` 给 provider。Provider 对每个 `blinded[i]` 用其 OPRF secret key 计算 `evaluation[i] = OPRF.BlindEvaluate(sk, blinded[i])` 并返回。Provider 看不到 raw identifier；客户端 unblind 后得到 `derived[i]`。
-2. **Round 2 — Match**：客户端在第二个独立请求中提交 `{batch_id, derived_hash_prefix[]}`（每条发送 derived 的固定前缀，长度由 provider 在第一轮响应中声明）。Provider 仅在自己的 OPRF-evaluated 可联系集合中按前缀比较，返回固定基数（dummy padding 到 batch size）的命中位图。
+1. **Round 1 — Blind**：客户端按 RFC 9497 OPRF 流程对每个本地 connection identifier 计算 `blind = OPRF.Blind(identifier_canonical_bytes)`；提交 `{batch_id, blinded[]}` 给 provider。Provider 对每个 `blinded[i]` 用其 OPRF secret key 计算 `evaluation[i] = OPRF.BlindEvaluate(sk, blinded[i])` 并返回。Provider 看不到 raw identifier；客户端 unblind 后得到 `derived[i]`。`batch_size`、dummy padding 与失败延迟由 Provider policy 强制，不由客户端自报决定。
+2. **Round 2 — Match**：客户端在第二个独立请求中提交 `{batch_id, derived_hash_prefix[]}`（每条发送 derived 的固定前缀，长度由 provider 在第一轮响应中声明）。Provider 仅在自己的 OPRF-evaluated 可联系集合中按前缀比较，返回固定基数（dummy padding 到 batch size）的命中位图；无论命中数为 0、部分命中还是全部命中，response frame 数量、字段集合、排序和 padding 形态 MUST 相同。
 3. **披露**：客户端只在 user 在 UI 中显式确认联系或发起邀请时，才向目标 principal 的 provider 披露自己的 DID、pairwise DID、presentation 或 connection identifier 原文。该披露走 §6 / consent-model 的 invite + consent 流程，不在 PSI 协议范围内。
 
 OPRF 选择：
@@ -265,8 +265,7 @@ OPRF 选择：
   "batch_id": "cx:batch:0196429a-0000-7000-8000-000000000000",
   "ciphersuite": "OPRF-ristretto255-SHA512",
   "key_epoch": 14,
-  "blinded_elements": ["base64url...", "base64url..."],
-  "padding_count": 128
+  "blinded_elements": ["base64url...", "base64url..."]
 }
 ```
 
@@ -285,11 +284,11 @@ OPRF 选择：
 ### 6.4 规则
 
 - Raw email、phone number、address-book label、local contact name 和未加盐低熵 hash MUST NOT 被发送给公共 Directory，包括第一轮的 OPRF input（OPRF Blind 已经做了 unlinkable 化，但实现仍 MUST 在客户端先做 normalization + canonical encoding，杜绝把明文写入 audit log）。
-- Provider MUST 对 batch 大小、padding count、失败响应、计时和 result cardinality 做反枚举处理；不存在、不可发现、policy-denied 和 OPRF mismatch 在 wire 上 SHOULD 保持相同响应形态与延迟分布。
+- Provider MUST 对 batch 大小、dummy padding、失败响应、计时和 result cardinality 做反枚举处理；不存在、不可发现、policy-denied 和 OPRF mismatch 在 wire 上 MUST 保持相同响应形态与延迟分布。客户端提交的 padding hint（若 profile 扩展保留该字段）只能作为上限内的偏好，Provider MUST 按自身 policy 重写为固定 `batch_size`。
 - Provider MUST NOT 在第二轮返回 reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。这些声明只能通过后续 invite + consent 流程获得。
 - Private discovery 结果**仅** 证明"在 provider 当前可联系集合中存在 OPRF derived 与某项匹配的条目"——不证明该条目对应的真实身份、handle、活跃度或意愿。客户端 UI MUST 把它表述为"可能可联系"而不是"已确认存在"。
 - 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
-- 实现 MUST NOT 在同一 OPRF key epoch 内允许同一 client 提交超过 `max_psi_queries_per_epoch`（默认 1）次 batch；超过后 provider 返回 `psi_quota_exhausted`。这避免攻击者用同一 OPRF key 对大量 identifier 做枚举；新 key epoch 自动重置。
+- 实现 MUST NOT 在同一 OPRF key epoch 内允许同一 authenticable principal / device credential 提交超过 `max_psi_queries_per_epoch`（默认 1）次 batch；超过后 provider 返回与其它 policy-denied 情况等形态的 `psi_quota_exhausted`。IP 只能作为辅助限速维度，不能作为唯一 quota key。新 key epoch 自动重置。
 
 ## 7. Directory Service Role
 
@@ -511,6 +510,13 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
    - 在内部 audit log 记录 `takedown_id`、operator、reason、生效时间；
    - 通过 `cx.directory.describe.takedown_contact` 暴露的入口或 DID document `service` entry 中声明的 governance contact 通知资源端；
    - 不得伪装为"资源主动撤销"——audit log 与资源端通知 MUST 标记为 `operator_takedown`。
+
+Operator takedown 的申诉 / 恢复 MUST 形成可验证闭环：
+
+1. takedown notice MUST 向资源 governance contact 提供 `takedown_id`、resource id、policy reason code、evidence digest、effective_at、appeal endpoint / contact 和 Directory service DID signature；
+2. 资源端提交 appeal 时，appeal packet MUST 绑定 `takedown_id`、resource id、appellant DID、argument / evidence digest、requested_outcome 和 created_at，并由资源 governance key 或授权 advocate 签名；
+3. Directory 审核结果 MUST 写入内部 audit log，并返回 signed decision receipt；若 overturned，Directory MUST 在下一次 ingest 或 ≤1h 内解除 `takedown_in_force`，并接受资源端最新 signed discovery state；
+4. 若该资源同时处于 Realm moderation / organization policy 管辖范围，Directory SHOULD 引用 `cx.moderation.appeal.*` 的 appeal id / decision receipt，避免发现层与协作层出现两个互相矛盾的申诉结果。
 
 撤销后，Directory MUST 对该 `resource_id` 的精确 resolve 返回与 `unlisted` / `not_found` 不可区分的响应（参见 §3 防枚举）；对正在分页的 search 响应，MUST 在下一次 cursor 推进时停止披露。
 
