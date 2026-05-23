@@ -228,7 +228,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-### 6.3 容器移动范围（scope_limitation 含 container 字段）
+### 6.3 结构容器移动范围（from/to container refs）
 
 ```json
 {
@@ -236,13 +236,15 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["cx:realm:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["cx:realm:019640c1-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```
 
-`scope_limitation` 约束中的容器移动字段 MUST 在授权判定中早于 operation 生效。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
+`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
+
+`allowed_space_refs` / `denied_space_refs` MUST 使用 `cx:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `cx:space:`（或 profile 明确声明的 `cx:flow:` / `cx:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `cx:realm:` 塞进 Space 或 container 字段。
 
 ### 6.4 服务出口与 presign 范围
 
@@ -860,8 +862,8 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["cx:realm:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["cx:realm:019640c1-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```

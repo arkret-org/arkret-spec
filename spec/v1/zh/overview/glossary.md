@@ -56,7 +56,7 @@ title: 术语表
 | Capability Grant | 能力授权对象 | `capability` 标准对象；记录谁在什么条件下可执行何动作。 |
 | Policy | 策略 | 运行期约束对象，用于授权、密钥、留存、治理与安全边界。 |
 | Invite | 邀请 | 邀请主体加入 Realm 或授予特定能力的标准对象/事件 payload。 |
-| Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / account aggregate / snapshot / discovery 等核心 API。Realm 内实际投递目标由成员 `delivery_binding.recipient_service_did` 决定；DID Document 默认 Principal Server 只是允许 fallback 时的来源。 |
+| Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / account aggregate / snapshot / discovery 等核心 API。Realm 内实际投递目标由成员 `delivery_binding.recipient_service_did` 决定；DID Document 默认 Principal Server 只可作为 join / rebind 时被 policy 允许的 binding 来源，不是 Realm delivery fallback。 |
 | Sync Service | 同步服务 | 公开/订阅事件与 frontier 的受控同步能力，通常由 Principal Server 提供。 |
 | Event Store Service | 事件存储服务 | 与 Sync Service 关联的持久化与检索服务角色。 |
 | Blob Store | 二进制对象存储 | 附件、媒体、文件对象的存储与引用服务。 |

@@ -86,8 +86,8 @@
     },
     "track": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Active track name on the target Flow. v1 reducers only recognise 'discussion' for Message timeline; profiles MAY declare additional track names carrying Message timelines but v1 interop SHOULD use 'discussion'."
+      "const": "discussion",
+      "description": "Message timeline track. v1 Message objects are restricted to the Flow discussion track. Profiles that need another timeline kind MUST register a separate object/event profile instead of overloading Message.track."
     },
     "content": {
       "$ref": "#/$defs/content_block"

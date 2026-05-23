@@ -227,6 +227,7 @@ sequenceDiagram
 4. **Endpoint validation（normative MUST）**：Policy server MUST 验证目标 endpoint 与目标 agent DID 的 service binding 一致性，至少完成以下检查（任一失败 MUST 拒绝 session start）：
    - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
    - 验证目标 endpoint 的 TLS 证书 / mutual TLS / HTTP Message Signature 与 DID Document 中声明的 verificationMethod 绑定（与 `federation.md` §3.1-§3.2 destination host pinning 同等强度）。
+   - 将 DID Document 的 method-specific version / log entry id（若 method 支持）、canonical document hash、matched service entry id 和 service entry digest 写入 session start 的 audit binding 或 policy decision evidence。外部协议握手时必须携带并签名同一组 digest；`status` / `result` 回流时 reducer MUST 校验它们仍匹配 session start。若 DID Document 在会话期间轮换到不同 service endpoint，现有 session 不得静默迁移，必须 cancel 或重新 start。
    - 校验目标数据分类、跨域路由、E2EE 边界与外发风险，并依 `allowed_endpoints` constraint 收敛。
    宽松的 MAY 路径会留下漏洞窗口——恶意中间人可在不被任何节点验证的情况下劫持 A2A handoff，因此本规范统一为 MUST。
 5. Requesting agent 提交 `cx.agent.protocol_session.start`。

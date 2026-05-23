@@ -155,6 +155,8 @@ GET /api/v1/server/describe
     "snapshot_retention_heads": 2
   },
   "plaintext_visibility": {
+    "data_classes": [],
+    "max_visibility": "none",
     "event_kinds": [],
     "payload_paths": [],
     "blob_purposes": [],
@@ -237,9 +239,11 @@ GET /api/v1/server/describe
 
 1. 在 describe 响应中同时输出上述六个字段（向后兼容地追加在原有字段之后）。
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
-3. cotest 与 sodmin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`cotest_verified`、
+3. cotest 与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`cotest_verified`、
    `experimental`、`compat`、`not_claimed`。
 4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 cotest artifact，校验 `artifact_hash`、`cotest_issuer_did`、`signature`、时间戳和可选 `valid_until`。
+
+`plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
 
 ### 3.1 Identity Resolution Surface
 
@@ -564,7 +568,7 @@ Search / projection 派生结果可能比 account aggregate surface 更容易查
 
 服务端强制边界：
 
-- Events / Sync / Federation / Push / Blob preview，以及任何受托 search / projection 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Realm policy 的 `plaintext_visible_services` 中，且 visibility 等级覆盖该内容类型。
+- Events / Sync / Federation / Push / Blob preview，以及任何受托 search / projection 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Realm policy 的 `plaintext_visible_services` 中，且 `visibility` 等级与 `data_classes[]` 均覆盖该内容类型。
 - 未授权服务 MUST 拒绝明文请求并返回 `capability_denied` 或 `schema_violation`，不得静默索引、转发、缓存或降级保存。
 - 恶意客户端把明文发送到协议外服务不属于协议可强制阻止的范围；但任何声称支持 Contrix profile 的服务若接收或处理未授权明文，均视为 profile violation。
 

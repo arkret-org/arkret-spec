@@ -311,6 +311,17 @@ Contrix v1 支持：
 
 上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准。
 
+### 6.1 Effective Validity Window
+
+Grant 的 wire schema 同时允许顶层 `valid_from` / `valid_until` 和 `constraints[]` 中的 temporal `not_before` / `expires_at`。它们不是两套独立有效期；授权解析 MUST 先归一化为单一 effective window：
+
+```text
+effective_not_before = max(grant.valid_from?, temporal.not_before[]?)
+effective_expires_at = min(grant.valid_until?, temporal.expires_at[]?)
+```
+
+缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但高风险、agent、service、delegated grant 仍按本文风险规则要求必须有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、delegation narrowing 和 revoke freshness 判断都 MUST 使用 effective window，不得分别按顶层字段和 temporal constraint 做两次不一致判断。
+
 `discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `object_type_allow=["flow"]` 和 `allowed_tracks=["discussion"]`；不得引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，不能单独授予读取、发送或成员权限。
 
 Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍必须命中 `cx.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `cx.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身不得成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
@@ -438,8 +449,8 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 | 子 grant 字段 | 与 parent grant 关系 |
 | --- | --- |
-| `not_before` | MUST ≥ `parent.not_before` |
-| `expires_at` | MUST 存在且 ≤ `parent.expires_at`(无限期 parent 在 v1 中不允许;若 parent 未声明 `expires_at`,delegate 时 child MUST 自带 `expires_at` ≤ `now + max_delegation_lifetime_ms`,默认 24 小时) |
+| `effective_not_before` | MUST ≥ `parent.effective_not_before` |
+| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent 在 v1 中不允许;若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `valid_until` 或 temporal `expires_at`，且 `effective_expires_at` ≤ `now + max_delegation_lifetime_ms`,默认 24 小时) |
 | `max_delegation_depth` | MUST ≤ `parent.max_delegation_depth - 1` |
 | `actions[]` | MUST ⊆ `parent.actions[]` |
 | `resources[]` | MUST 是 `parent.resources[]` 的 selector-narrowing 子集(见 `resource-selector-grammar.md`) |

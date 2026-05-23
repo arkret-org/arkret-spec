@@ -365,15 +365,40 @@ components:
         plaintext_visibility:
           type: object
           description: |
-            Declaration of which event kinds, payload paths, blob purposes, or
-            projection outputs the service consumes in plaintext (vs encrypted
-            envelope). Privacy-boundary fields per
+            Declaration of which closed data classes, event kinds, payload paths,
+            blob purposes, or projection outputs the service consumes in
+            plaintext (vs encrypted envelope). Privacy-boundary fields per
             `zh/overview/architecture.md` §2.3 and `zh/sync/service-surface.md`
             §17. Omission is NOT equivalent to "no plaintext access" — callers
             MUST treat a missing declaration as untrusted and refuse to register
             this service as a `plaintext_visible_services` member.
           additionalProperties: true
           properties:
+            data_classes:
+              type: array
+              items:
+                type: string
+                enum:
+                  - message_body
+                  - flow_body
+                  - attachment_plaintext
+                  - attachment_preview
+                  - thumbnail
+                  - full_text_index
+                  - search_snippet
+                  - embedding
+                  - notification_summary
+                  - inbox_preview
+                  - media_plaintext
+                  - derived_plaintext
+                  - account_private_state
+                  - profile_private_field
+            max_visibility:
+              type: string
+              enum:
+                - none
+                - derived_plaintext
+                - private_plaintext
             event_kinds:
               type: array
               items:

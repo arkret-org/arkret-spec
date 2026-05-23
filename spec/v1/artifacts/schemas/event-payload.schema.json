@@ -205,8 +205,8 @@
     },
     "track": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Active track name on the target Flow. Mirrors message.schema.json#/properties/track. v1 reducers only recognise 'discussion' for Message timeline; profiles MAY declare additional track names but v1 interop SHOULD use 'discussion'."
+      "const": "discussion",
+      "description": "Message timeline track. Mirrors message.schema.json#/properties/track: v1 Message payloads are restricted to 'discussion'."
     },
     "content_kind": {
       "type": "string",
@@ -1061,6 +1061,7 @@
             "required": [
               "service_did",
               "service_type",
+              "data_classes",
               "purposes",
               "visibility"
             ],
@@ -1080,6 +1081,15 @@
                 },
                 "minItems": 1
               },
+              "data_classes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/plaintext_data_class"
+                },
+                "minItems": 1,
+                "uniqueItems": true,
+                "description": "Closed machine-checkable classes of plaintext or reversible derived content this service may receive. Human-readable purposes do not replace this field."
+              },
               "visibility": {
                 "type": "string",
                 "enum": [
@@ -1096,6 +1106,25 @@
         }
       },
       "additionalProperties": true
+    },
+    "plaintext_data_class": {
+      "type": "string",
+      "enum": [
+        "message_body",
+        "flow_body",
+        "attachment_plaintext",
+        "attachment_preview",
+        "thumbnail",
+        "full_text_index",
+        "search_snippet",
+        "embedding",
+        "notification_summary",
+        "inbox_preview",
+        "media_plaintext",
+        "derived_plaintext",
+        "account_private_state",
+        "profile_private_field"
+      ]
     },
     "message_create_payload": {
       "type": "object",

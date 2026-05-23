@@ -38,6 +38,66 @@
       "type": "string",
       "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
+    "thumbnails": {
+      "type": "array",
+      "description": "Bound thumbnail / preview descriptors. Producers SHOULD prefer this over legacy preview_blob_ref for private or E2EE media.",
+      "items": {
+        "type": "object",
+        "required": [
+          "source_blob_ref",
+          "thumbnail_blob_ref",
+          "width",
+          "height",
+          "media_type",
+          "visibility",
+          "derivation_profile"
+        ],
+        "properties": {
+          "source_blob_ref": {
+            "$ref": "#/properties/blob_ref"
+          },
+          "source_ciphertext_digest": {
+            "$ref": "#/$defs/hash"
+          },
+          "thumbnail_blob_ref": {
+            "$ref": "#/properties/blob_ref"
+          },
+          "thumbnail_ciphertext_digest": {
+            "$ref": "#/$defs/hash"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "media_type": {
+            "type": "string",
+            "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+          },
+          "generated_by_service_did": {
+            "$ref": "#/$defs/did"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "space_bound",
+              "device_bound",
+              "presigned"
+            ]
+          },
+          "derivation_profile": {
+            "type": "string",
+            "pattern": "^cx\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+          }
+        },
+        "additionalProperties": true
+      },
+      "uniqueItems": true
+    },
     "access": {
       "type": "object",
       "required": [
@@ -63,5 +123,15 @@
       "additionalProperties": true
     }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    }
+  }
 }

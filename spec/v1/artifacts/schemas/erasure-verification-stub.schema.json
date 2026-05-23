@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/erasure-verification-stub.schema.json",
+  "title": "Contrix Erasure Verification Stub",
+  "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_hash. It preserves event graph, proof, anchor, redaction, legal-hold and receipt linkage evidence without retaining erased plaintext.",
+  "type": "object",
+  "required": [
+    "stub_schema",
+    "subject",
+    "scope",
+    "receipt_id",
+    "completed_at"
+  ],
+  "properties": {
+    "stub_schema": {
+      "const": "cx.schema.erasure_verification_stub.v1"
+    },
+    "subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "ref"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "principal",
+            "realm",
+            "event",
+            "blob",
+            "device",
+            "account_private_state"
+          ]
+        },
+        "ref": {
+          "$ref": "#/$defs/subject_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "storage_boundary"
+      ],
+      "properties": {
+        "storage_boundary": {
+          "type": "string",
+          "enum": [
+            "canonical_log_minimization",
+            "blob_store",
+            "projection_store",
+            "account_private_store",
+            "search_index",
+            "push_routes",
+            "device_secret_store",
+            "media_derivatives",
+            "service_defined"
+          ]
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "target_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subject_ref"
+          },
+          "uniqueItems": true
+        },
+        "retention_policy_ref": {
+          "$ref": "#/$defs/policy_ref"
+        },
+        "service_scope": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "event_digest": {
+      "$ref": "#/$defs/hash"
+    },
+    "payload_hashes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hash"
+      },
+      "uniqueItems": true
+    },
+    "anchor_inclusion": {
+      "type": "object",
+      "properties": {
+        "anchor_ref": {
+          "$ref": "#/$defs/subject_ref"
+        },
+        "frontier_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "state_root": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "redaction_authorization_ref": {
+      "$ref": "#/$defs/subject_ref"
+    },
+    "legal_hold_ref": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/policy_ref"
+        },
+        {
+          "$ref": "#/$defs/hash"
+        }
+      ]
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^cx:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "completed_at": {
+      "$ref": "#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "policy_ref": {
+      "type": "string",
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "subject_ref": {
+      "type": "string",
+      "pattern": "^(did:[^\\s]+|cx:(realm|event|anchor|blob|device|policy|message|flow|morph|relation|view|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+    }
+  }
+}

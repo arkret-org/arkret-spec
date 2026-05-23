@@ -103,8 +103,65 @@
     },
     "plaintext_visibility": {
       "type": "object",
-      "description": "Plaintext boundary declaration. Omission is not allowed: callers use this object to decide whether the service may be registered as plaintext-visible.",
-      "additionalProperties": true
+      "description": "Plaintext boundary declaration. Omission is not allowed: callers use this object to decide whether the service may be registered as plaintext-visible. An empty object means the service claims no plaintext classes; Realm plaintext_visible_services entries MUST match non-empty data_classes here.",
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false,
+      "properties": {
+        "data_classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/plaintext_data_class"
+          },
+          "uniqueItems": true,
+          "description": "Closed machine-checkable classes of plaintext or reversible derived content this service is implemented to receive."
+        },
+        "max_visibility": {
+          "type": "string",
+          "enum": [
+            "none",
+            "derived_plaintext",
+            "private_plaintext"
+          ],
+          "description": "Maximum plaintext visibility class the service claims it can receive. Omitted is treated as none unless data_classes is non-empty."
+        },
+        "event_kinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "payload_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "blob_purposes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "projection_outputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
     },
     "rate_limit_policy_ref": {
       "type": "string",
@@ -289,6 +346,25 @@
     "trust_domain": {
       "type": "string",
       "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+    },
+    "plaintext_data_class": {
+      "type": "string",
+      "enum": [
+        "message_body",
+        "flow_body",
+        "attachment_plaintext",
+        "attachment_preview",
+        "thumbnail",
+        "full_text_index",
+        "search_snippet",
+        "embedding",
+        "notification_summary",
+        "inbox_preview",
+        "media_plaintext",
+        "derived_plaintext",
+        "account_private_state",
+        "profile_private_field"
+      ]
     }
   }
 }

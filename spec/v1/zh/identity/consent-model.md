@@ -169,7 +169,7 @@ Payload `observed_dots[]` MUST 与 Move effect 中的 `observed_dots` 完全一�
 
 **Regrant**：撤销后 holder 可以再次发出 `cx.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 
-**完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, scope) intent 需要 client 在构造 revoke Move 前先查询当前 cell 的 or-set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——sodmin / UI MUST 把这种状态明确提示为 "partial revoke"。
+**完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, scope) intent 需要 client 在构造 revoke Move 前先查询当前 cell 的 or-set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——admin / UI MUST 把这种状态明确提示为 "partial revoke"。
 
 撤销在该 revoke Move 进入 Anchor frontier 后立即生效——consent cell 的 or-set join 值不再含被 observed 的 grant dot。frontier 之前 peer 凭借 consent 发出的 invite / contact 不会被追溯失效（已经发出的 invite 由 invite revoke 单独处理）。
 
@@ -195,14 +195,14 @@ Payload `observed_dots[]` MUST 与 Move effect 中的 `observed_dots` 完全一�
 - **按 `consent_id` 全量撤销**（推荐路径）：revoke Move 的 `observed_dots` 列出 cell 当前 `(consent_id, peer, *)` 下所有 active dot，无论原 grant 的 scope 是 `any` 还是具体 scope。这是显式"完全 revoke 该 consent_id"操作。
 - **按 scope 部分撤销**：revoke Move 仅列出某具体 scope 对应的 active dot。剩余 scope 的 dot 保持 active。
 - **`scope="any"` 与具体 scope 互斥语义**：
-  - 撤销一条 `scope=any` 的 grant dot MUST 显式枚举该 `(consent_id, peer)` 下当前 active 的 **所有** scope dot（含具体 scope 的 grant dot）。即 `any` revoke 的 cascade 由 payload / Move effect 中完整的 `observed_dots[]` 表达；reducer MUST NOT 基于一个 `scope=any` dot 隐式推断并移除未枚举的其他 dot。若 active dot 未被枚举，effective consent 只构成部分撤销，sodmin / UI MUST 标 `partial_revoke`。
+  - 撤销一条 `scope=any` 的 grant dot MUST 显式枚举该 `(consent_id, peer)` 下当前 active 的 **所有** scope dot（含具体 scope 的 grant dot）。即 `any` revoke 的 cascade 由 payload / Move effect 中完整的 `observed_dots[]` 表达；reducer MUST NOT 基于一个 `scope=any` dot 隐式推断并移除未枚举的其他 dot。若 active dot 未被枚举，effective consent 只构成部分撤销，admin / UI MUST 标 `partial_revoke`。
   - 反向不成立：撤销一条 `scope=invite` 的具体 scope dot 仅清空 `invite`，不影响同 `(consent_id, peer)` 下 `scope=any` 的 dot——因为 `any` 是 holder 显式更宽授权，需要 holder 再单独撤销 `any` 才算 cascade。
-  - 这条非对称规则 MUST 在 sodmin / UI 中明示，避免用户误以为"撤销 invite 就等于全撤销"。
+  - 这条非对称规则 MUST 在 admin / UI 中明示，避免用户误以为"撤销 invite 就等于全撤销"。
 - **conformance vector** `cx.vector.consent.scope_cascade.v1` 覆盖 (a) `any` revoke cascade 到具体 scope；(b) 具体 scope revoke 不影响 `any`；(c) 部分 scope revoke 留下其他 scope active；(d) 完整 revoke 必须列出当前 cell 全部 active dot 否则只构成部分 revoke。
 
-#### 4.1.1.1 UI / sodmin 展示要求
+#### 4.1.1.1 UI / admin 展示要求
 
-发起 revoke 前，客户端 / sodmin MUST 展示将被写入 `observed_dots[]` 的实际 dot 清单及其 scope 分组，并明确标注本次操作是 full revoke 还是 partial revoke。若用户选择“撤销 invite”但同一 `(consent_id, peer)` 下仍存在 `scope=any` 或其它具体 scope 的 active dot，UI MUST 在确认前提示这些 dot 将继续授权对应能力；不得用一个泛化按钮文案暗示未枚举的 scope 会被隐式撤销。
+发起 revoke 前，客户端 / admin MUST 展示将被写入 `observed_dots[]` 的实际 dot 清单及其 scope 分组，并明确标注本次操作是 full revoke 还是 partial revoke。若用户选择“撤销 invite”但同一 `(consent_id, peer)` 下仍存在 `scope=any` 或其它具体 scope 的 active dot，UI MUST 在确认前提示这些 dot 将继续授权对应能力；不得用一个泛化按钮文案暗示未枚举的 scope 会被隐式撤销。
 
 #### 4.1.2 缓存失效（normative MUST）
 
@@ -230,9 +230,9 @@ Consent cell 是 or-set lattice（dot-based observed-remove，详见 [`event-aut
   - `active_dots(cell)` 中存在 ≥1 条 `value.intent == (consent_id, peer, scope)` 的 dot；
   - 当前时间 ∈ `[not_before, valid_until]`（窗口字段缺省视为 `(-∞, +∞)`）。
 - 不同 consent_id 是独立 cell；查询 `(holder, peer, scope)` 时 invite / contact service 遍历该 holder 全部 consent cell 匹配。
-- 同 Anchor 批内并发 grant 与 revoke 在 or-set join 后唯一确定（add dot 集合与 observed_dots 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / sodmin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
+- 同 Anchor 批内并发 grant 与 revoke 在 or-set join 后唯一确定（add dot 集合与 observed_dots 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / admin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
 
-物化 `Consent` 对象由 holder client / sodmin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent cell 的 schema 由本文与 [`identity-handles.md`](./identity-handles.md) 定义，未在 `models/` 提供 canonical-object schema。
+物化 `Consent` 对象由 holder client / admin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent cell 的 schema 由本文与 [`identity-handles.md`](./identity-handles.md) 定义，未在 `models/` 提供 canonical-object schema。
 
 ## 6. 与 Invite / Contact 流程的整合
 

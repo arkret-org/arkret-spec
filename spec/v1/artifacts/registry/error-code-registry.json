@@ -1084,6 +1084,14 @@
       "description": "A `cx.patch.v1` patch path violates the ABNF grammar in zh/models/event-and-patch.md §4.2.1 (malformed identifier, non-canonical selector-value, ambiguous quoting, path > 1024 bytes, or nesting > 16 segments). Parser MUST NOT attempt fallback recovery; reducer rejects with this reason."
     },
     {
+      "code": "patch_atomic_conflict",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A single payload.patch contains parent/child writes, duplicate target paths, selector-affecting writes, or another multi-path combination that cannot be applied as one deterministic atomic Move. Reducer MUST reject the whole patch rather than partially applying paths. See zh/models/event-and-patch.md §4.4."
+    },
+    {
       "code": "patch_path_reducer_managed",
       "applies_to": [
         "event_envelope"
@@ -1206,6 +1214,24 @@
         "state_resolution"
       ],
       "description": "A child grant or Move depends on a parent grant that is locally known to be revoked, superseded, expired, or tombstoned. Reducers MUST fail closed without waiting for the child causal frontier to include the revoke. See zh/authz/capabilities.md §10.3."
+    },
+    {
+      "code": "grant_validity_window_empty",
+      "applies_to": [
+        "auth_decision",
+        "event_envelope"
+      ],
+      "description": "A capability grant's normalized effective validity window is empty: effective_not_before >= effective_expires_at after combining top-level valid_from/valid_until with temporal not_before/expires_at constraints. Reducer MUST reject the grant. See zh/authz/capabilities.md §6.1."
+    },
+    {
+      "code": "principal_deactivated",
+      "applies_to": [
+        "auth_decision",
+        "event_envelope",
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "The account status frontier contains a deactivation for the principal acting as actor, subject, issuer, recipient, or device owner. New device/session grants, KeyPackage operations, capability delegation, delivery binding writes, push routes, and to-device enqueue MUST fail closed. See zh/identity/account-lifecycle.md §7.1 and zh/sync/federation.md §4.4.1."
     },
     {
       "code": "moderation_state_conflict",

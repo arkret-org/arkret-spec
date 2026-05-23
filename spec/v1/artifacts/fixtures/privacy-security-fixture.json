@@ -85,6 +85,9 @@
             {
               "service_did": "did:web:principal.example",
               "service_type": "principal_server",
+              "data_classes": [
+                "message_body"
+              ],
               "purposes": [
                 "events",
                 "sync"

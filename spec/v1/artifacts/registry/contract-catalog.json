@@ -1859,6 +1859,12 @@
         "description": "Signed hard-erasure receipt payload for cx.audit.erasure_receipt"
       },
       {
+        "schema_id": "cx.schema.erasure_verification_stub.v1",
+        "file": "schemas/erasure-verification-stub.schema.json",
+        "status": "active",
+        "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_hash"
+      },
+      {
         "schema_id": "cx.schema.cross_signing_publish.v1",
         "file": "schemas/cross-signing-publish.schema.json",
         "status": "active",

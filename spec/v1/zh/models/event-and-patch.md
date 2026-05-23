@@ -234,6 +234,12 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 
 Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
 
+### 4.4 原子性与 precondition
+
+同一个 `payload.patch` map 中的所有 path 变更属于同一个 Move 的单次原子写入。Reducer MUST 在读取旧对象状态后先验证全部 path grammar、schema transition、capability field constraint、redactable / reducer-managed 字段限制和 Move `preconditions[]`；任一失败时整个 patch MUST fail closed，不得部分应用已经通过的 path。
+
+Patch path 之间若同时写入父子路径、同一路径重复写入、或一条操作会改变另一条操作的 selector 结果，producer MUST 拆分为多个有明确 precondition 的 Move；receiver 在无法按 canonical path order 得到唯一结果时 MUST `schema_violation`，`reason="patch_atomic_conflict"`。Patch 的 canonical order 只用于签名和诊断，不得被实现用作“先应用 A 再应用 B”的业务语义逃逸路径。
+
 ## 5. Event Batch Receipt
 
 ### 5.1 概念

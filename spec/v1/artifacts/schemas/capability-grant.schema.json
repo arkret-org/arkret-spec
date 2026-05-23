@@ -81,12 +81,14 @@
     "valid_from": {
       "type": "string",
       "format": "date-time",
-      "pattern": "Z$"
+      "pattern": "Z$",
+      "description": "Top-level grant validity start. Authorization evaluates this together with temporal constraints: effective_not_before = max(valid_from, every temporal.not_before present)."
     },
     "valid_until": {
       "type": "string",
       "format": "date-time",
-      "pattern": "Z$"
+      "pattern": "Z$",
+      "description": "Top-level grant validity end. Authorization evaluates this together with temporal constraints: effective_expires_at = min(valid_until, every temporal.expires_at present). Delegated grants MUST not extend beyond the parent's effective_expires_at."
     },
     "revoked_by": {
       "type": "string",

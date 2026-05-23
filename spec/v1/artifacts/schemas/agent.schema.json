@@ -18,6 +18,24 @@
       "format": "uri",
       "description": "HTTPS endpoint advertised by cx.agent.endpoint events."
     },
+    "did_document_version": {
+      "type": "string",
+      "description": "Method-specific DID Document version / log entry id observed during endpoint validation, when available."
+    },
+    "did_document_hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+      "description": "Canonical hash of the DID Document used for agent endpoint validation."
+    },
+    "service_entry_id": {
+      "type": "string",
+      "description": "DID service entry id matched during endpoint validation."
+    },
+    "service_entry_digest": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+      "description": "Canonical digest of the matched DID service entry, bound into protocol_session.start / status / result audit evidence."
+    },
     "session_id": {
       "type": "string",
       "description": "Per-invocation correlation id used by protocol_session.start / .status / .result to pair request/response.",

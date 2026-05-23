@@ -256,9 +256,11 @@ Cache-Control: public, immutable, max-age=31536000
 缩略图、OCR 文本、转码副本、媒体探测 metadata 都是派生内容：
 
 - E2EE 附件的缩略图 SHOULD 由客户端生成并加密上传，或只在本地生成。
-- 服务端生成私有明文缩略图前，该服务 MUST 列入 `plaintext_visible_services`。
+- 服务端生成私有明文缩略图前，该服务 MUST 列入 `plaintext_visible_services`，且 `data_classes[]` 覆盖 `thumbnail` / `attachment_preview`。
 - 预览 URL、尺寸、MIME、文件名和 unsafe 标记都必须服从 Realm policy 与 capability，不能绕过正文授权。
 - 缩略图必须重新绑定源 blob、生成参数、生成服务 DID 和可见性；删除、撤回、保留策略或 legal hold 改变时，派生内容必须随源内容重新判定。
+- 缩略图 descriptor MUST 至少绑定 `source_blob_ref`、`source_ciphertext_digest?`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by_service_did?`、`visibility` 和 `derivation_profile`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，推荐 `purpose="thumbnail"` 并把 `source_blob_ref`、`thumbnail_blob_ref`、尺寸和生成参数纳入 key derivation / AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
+- `media-metadata.schema.json` 的 `preview_blob_ref` 只是 legacy shorthand；新 producer SHOULD 使用 `thumbnails[]` 数组表达上述绑定。Consumer 收到只有 `preview_blob_ref` 的旧 metadata 时，必须按源 blob 的最严格可见性处理，不得因缺少 descriptor 而放宽访问或缓存。
 
 ### 5.4 Pre-Signed URL（浏览器原生标签兼容性例外）
 

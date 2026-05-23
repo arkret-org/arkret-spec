@@ -385,9 +385,9 @@ Contrix v1 要求：
 三者的职责边界固定如下：
 
 - `prev_refs` / `refs[role=authorized_by]` 是因果事实。HLC 更大不得覆盖缺失或相反的因果依赖。
-- `actor_seq` 在同一 actor 的任一因果路径上 MUST 严格递增；它不是 device-local sequence，也不是全局 total order。生产者 SHOULD 令新事件的 `actor_seq` 大于其同 actor 直接 `prev_refs` 的最大 `actor_seq`。
+- `actor_seq` 在同一 actor 的任一因果路径上 MUST 严格递增；它不是 device-local sequence，也不是全局 total order。生产者 MUST 令新事件的 `actor_seq = max(prev_actor_seq) + 1`，其中 `prev_actor_seq` 来自同 actor 的直接 `prev_refs`；恢复 / 导入 profile 可声明例外，但必须把例外写入 `requirements.features[]` 并接受 actor-chain repair 校验。
 - 同一 actor 的多个设备或离线写入 MAY 产生同一高度的 sibling fork。接收方若已接受同 actor 更高 `actor_seq`，不得仅因新事件的 `actor_seq` 较低或相同而拒绝；只有当该事件不能从任何已知 frontier 回填为有效历史分支、违反直接前序递增规则、或与同一 `event_id` 的 canonical hash 冲突时，才 MUST reject 或 quarantine。
-- 同一高度的 sibling fork 只允许出现在互不因果依赖的分支上。若事件 B 的 `prev_refs` 包含同 actor 事件 A，B 的 `actor_seq` MUST 大于 A；两个同 actor、同 `actor_seq` 的事件 MUST NOT 把对方作为直接或间接前序。
+- 同一高度的 sibling fork 只允许出现在互不因果依赖的分支上。若事件 B 的 `prev_refs` 包含同 actor 事件 A，B 的 `actor_seq` MUST 等于 B 的同 actor 直接前序最大高度加一；两个同 actor、同 `actor_seq` 的事件 MUST NOT 把对方作为直接或间接前序。
 - 同一 actor 发布的新 durable Event SHOULD 以其上一个 accepted durable Event 为唯一直接 `prev_refs`。多设备或离线分叉导致多个 actor frontier head 时，生产者 MAY 使用多个同 actor `prev_refs` 合并分支，并 SHOULD 设置 `actor_seq = max(prev_actor_seq) + 1`；接收方 MUST 把 actor frontier 表达为 head set，而不是单个最大序号，并保留 fork / merge 证据按 reducer 规则收敛。
 - `prev_refs` 或 `refs[]` MUST NOT 包含当前 `event_id`。任何自引用事件 MUST 以 `causal_conflict` reject。
 - 当 `prev_refs` 表示 A 因果先于 B，但 `hlc(A) > hlc(B)` 时，因果顺序仍为 A -> B；实现 MAY 记录 clock skew warning，但不得用 HLC 反转因果。
@@ -417,8 +417,8 @@ function validate_actor_seq(event, known_frontiers):
     // 规则 1: 直接前序递增
     prev_seqs = [e.actor_seq for e in event.prev_refs if e.actor_id == actor]
     if prev_seqs:
-        if seq <= max(prev_seqs):
-            reject("actor_seq must exceed direct prev_refs max")
+        if seq != max(prev_seqs) + 1:
+            reject("actor_seq must equal direct prev_refs max + 1")
 
     // 规则 2: 防回退 — 低于所有已知 frontier heads 时先回补上下文
     if actor in known_frontiers:
