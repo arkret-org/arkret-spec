@@ -116,7 +116,7 @@ OPERATIONS: dict[str, str] = {
     "cx.applet.describe": "public_no_auth",            # public service metadata
     "cx.applet.transaction": "service_only",
     "cx.applet.query_actor": "service_only",
-    "cx.applet.query_space": "service_only",
+    "cx.applet.query_realm": "service_only",
     "cx.applet.protocol_metadata": "public_no_auth",
     "cx.applet.third_party_users": "service_only",
     "cx.applet.third_party_locations": "service_only",

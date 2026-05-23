@@ -256,7 +256,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.receipt.broadcast`
 - `cx.call.signal.send`
 
-v1 不再注册独立的 `cx.mls.epoch` event；每个 group 的当前 epoch 由 winner `cx.mls.commit.next_epoch` 直接表达，没有"推进 epoch"这个独立可授权动作。
+v1 不再注册独立的 `cx.mls.epoch` event；每个 group 的当前 epoch 由 accepted `cx.mls.commit` payload 中的 `next_epoch` 和对应 `cx.component.mls_epoch.v1` cell reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
 
 Audit action 只授权受控审计代理执行“先记录后解密”、读取审计视图或导出审计材料。若 Audit Agent 已经是 MLS group 成员，持有 epoch key 本身不受 capability 系统密码学约束；Realm policy 必须同时声明 auditable E2EE profile、审计代理身份、plaintext-visible service disclosure、成员可见提示和 `cx.audit.accessed` 写入要求。
 
@@ -614,7 +614,7 @@ Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Serve
 Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定 subject/action/resource 三元组。每个 cache entry 至少包含：
 
 - `realm_id`、scope / track / object selector、subject DID、action 和 constraint profile。
-- `auth_state_hash`：由当前 accepted capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest 计算出的确定性 hash。
+- `auth_state_hash`：由当前 accepted capability grant/revoke、membership、policy、必要 claim status（包括 condition-selector grant 依赖的 `claim_status_root`）、device/session control checkpoint 和相关 state event canonical digest 计算出的确定性 hash。
 - `auth_frontier`：参与该 hash 的 state event head set 或 snapshot frontier。
 - 命中的 grant event id、revoke tombstone / superseding event id（如有）、claim status evidence 和过期时间。
 
@@ -629,6 +629,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；不接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
   - 不在上述条件内的普通 grant（典型如 `cx.flow.update`、`cx.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。
 - Cache entry 的 `auth_state_hash` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；不得继续用旧 grant 允许新写入。
+- 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现不得只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
 - 已被 GC 的 grant 仍必须保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现不得因为 grant payload 已压缩或归档而让旧 cache 重新生效。
 - `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态不得生成 allow cache；只能生成 deny / unknown / pending 诊断。
 - 多 Principal Server 部署中，cache TTL 只是额外保险，不得替代 revoke fanout、frontier 对账和 `auth_state_hash` 失效。

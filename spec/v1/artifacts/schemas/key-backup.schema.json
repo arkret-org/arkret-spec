@@ -234,7 +234,12 @@
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url AEAD nonce. For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='contrix-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?}))[0:N_AEAD]; receivers recompute and reject mismatches."
+              "description": "base64url AEAD nonce. For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='contrix-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches."
+            },
+            "nonce_salt": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$",
+              "description": "Producer-generated base64url random salt (at least 128 bits before encoding) included in the passphrase_kdf nonce derivation transcript. Required when recipient_method=passphrase_kdf; not secret, signed as envelope metadata, and prevents nonce reuse from duplicate business metadata tuples."
             }
           },
           "additionalProperties": true
@@ -256,7 +261,14 @@
           "then": {
             "required": [
               "kdf"
-            ]
+            ],
+            "properties": {
+              "aead": {
+                "required": [
+                  "nonce_salt"
+                ]
+              }
+            }
           }
         }
       ],

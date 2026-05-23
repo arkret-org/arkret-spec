@@ -1926,7 +1926,7 @@ Negative cases：
 - 返回 `recipient_service_did` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_invalid`。
 - 返回无 `recipient_service_did` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
 
-## 9 Security Closure Vectors
+## 9. Security Closure Vectors
 
 本节收拢跨章节引用的安全闭环向量。每个 `vector_id` 均为规范性引用目标；结构化覆盖位于 [`../../artifacts/fixtures/security-closure-vectors.json`](../../artifacts/fixtures/security-closure-vectors.json)，`tools/lint_artifacts.py` 会校验该 fixture 覆盖本节要求的 security closure vector set，并校验每个 step 暴露可由实现测试消费的 `runner.given_state` / `operation` / `transcript` / `expected_state_transition` / `expected_external_response` / `expected_audit_reason` 字段。实现不得把这些 ID 当成仅供说明的标签。
 

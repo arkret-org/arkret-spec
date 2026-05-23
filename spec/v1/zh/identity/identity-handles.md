@@ -152,7 +152,7 @@ Handle 按 holder 披露意图分两类：
 
 需要不可关联的部署 MUST 为每个上下文使用 pairwise / private DID（见 §10、§11、§16），并在每个 pairwise DID 下独立签发 handle claim。pairwise DID 与 handle 是正交机制：handle 解决"易懂寻址 + 可选默认投递"，pairwise DID 解决"跨关系不可关联"。
 
-## 3.7 MemberDeliveryBindingCandidate
+### 3.7 MemberDeliveryBindingCandidate
 
 `MemberDeliveryBindingCandidate` 是 Handle resolution（`cx.directory.resolve_handle(intent="member_add")`）或受信 issuer 直接签发的 **规范级候选对象**：它把 "用 handle 加成员" 这个端到端链路上需要传递的最小字段集合凝固为一个 schema-defined shape，让 Principal Server、SDK builder、Space reducer、Auth Server 与 directory 之间停止各自拼字符串。Wire schema 见 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json)。
 

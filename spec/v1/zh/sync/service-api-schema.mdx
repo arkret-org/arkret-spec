@@ -303,7 +303,7 @@ paths:
       operationId: cx.applet.query_actor
   /applet/realms/{realm_id_or_alias}:
     get:
-      operationId: cx.applet.query_space
+      operationId: cx.applet.query_realm
   /applet/protocols/{protocol}:
     get:
       operationId: cx.applet.protocol_metadata
@@ -341,7 +341,7 @@ paths:
 | `cx.policy.check` | `POST /policy/check` | policy 本地调用 |
 | `cx.media.ice_config` | `POST /contrix/v1/ice-config` | Media service / TURN credential adapter |
 | `cx.moderation.report` | `POST /moderation/report` | Moderation queue / local compliance workflow |
-| `cx.applet.transaction` / `cx.applet.query_actor` / `cx.applet.query_space` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
+| `cx.applet.transaction` / `cx.applet.query_actor` / `cx.applet.query_realm` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 
 ### 4.1 Generated Full Inventory
 

@@ -24,7 +24,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Deleted: track does not carry independent membership. Migrate access to Realm-level cx.member.state or create a child Realm."
+      "notes": "Deleted: track does not carry independent membership. Migrate access to Realm-level cx.member.state or, when a separate discussion boundary is required, use a linked Realm via Flow.discussion_realm_ref."
     },
     {
       "id": "cx.flow.track.history_visibility",
@@ -51,7 +51,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Deleted: policy attaches to Realm / child Realm, not to a track."
+      "notes": "Deleted: policy attaches to the Realm boundary or to a linked discussion Realm via Flow.discussion_realm_ref, not to a track."
     },
     {
       "id": "Realm(kind=list)",
@@ -304,6 +304,33 @@
       "replacement": "cx.account.subscribe",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Historical account long-poll name; use streaming account subscribe."
+    },
+    {
+      "id": "cx.events.list",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.events.query",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical event listing operation; use cx.events.query."
+    },
+    {
+      "id": "cx.sync.backfill",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.events.query",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical backfill operation; use cx.events.query with the appropriate cursor/range direction."
+    },
+    {
+      "id": "cx.sync.subscribe",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.events.subscribe",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical Realm stream operation; use cx.events.subscribe."
     }
   ]
 }

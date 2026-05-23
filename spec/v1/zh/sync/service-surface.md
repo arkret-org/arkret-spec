@@ -17,7 +17,7 @@ title: Service Surface And Bootstrap
 - invite / grant 如何参与首次加入工作区
 
 本文给出 **最小可互操作服务面**。
-默认调用风格采用 HTTP/JSON binding，但协议核心不强绑定 REST API。实现也可以支持 gRPC、GraphQL、WebSocket、SSE、message queue、libp2p 或本地 IPC，只要提供语义等价的操作、认证、授权、幂等、分页、错误和流控语义即可。详细规则见 `transport-bindings.md`。
+默认调用风格采用 HTTP/JSON binding。Operation 语义可以映射到 gRPC、GraphQL、WebSocket、SSE、message queue、libp2p 或本地 IPC，但 **v1 core wire conformance 必须提供 HTTP/JSON binding**；非 HTTP binding 只能作为 extension profile 声明，并且必须提供语义等价的操作、认证、授权、幂等、分页、错误和流控语义。详细规则见 `transport-bindings.md`。
 
 本文件按服务角色说明接口语义。所有 REST endpoint 的字段级请求 / 响应 schema、认证模式、访问限制和幂等规则以 [service-http-binding.md](service-http-binding.md#24-字段级-schema-索引) 为准；本文件中的 JSON 或字段列表仅用于解释服务面，不构成完整 schema。
 
@@ -90,6 +90,7 @@ DID Document SHOULD 只负责：
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
 | Moderation / Compliance Server | 公共或组织部署建议独立 | `/moderation`, `/server` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 |
+| Archive / Recovery Service | history sharing、late key recovery 或组织恢复场景可选；高安全部署必须显式声明 | `/server` + `supported_operations` 中的 keys / blob / events 子集 | Archive Node、Key Recovery Service 或 Recovery Service。只能按 Realm policy、history visibility、T0 membership 和 capability 返回最小必要 epoch material / backup envelope / recovery proof；不得因持有归档副本自动获得明文读取权。 |
 
 推荐 deployment profile：
 
@@ -207,7 +208,7 @@ GET /api/v1/server/describe
 服务类型命名规则：
 
 - DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixDirectory`。
-- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`。
+- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`、`archive_node`、`key_recovery_service`、`recovery_service`。
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 

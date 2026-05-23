@@ -105,6 +105,14 @@ Schema id: `cx.schema.realm.v1`
   "default_join_rule": "invite",
   "history_visibility": "joined",
   "encryption_profile": "mls_rfc9420",
+  "anchor_profile": "single_did",
+  "anchorer": {
+    "type": "single_did",
+    "did": "did:web:anchorer.acme.example",
+    "recovery_members": ["did:web:recovery-anchorer.example"],
+    "controller_organization": "did:web:acme.example",
+    "recovery_controller_organizations": ["did:web:recovery-org.example"]
+  },
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -131,6 +139,7 @@ Realm 有两个终态 event，语义不同：
 Authz 含义：
 
 - 任何 `cx.realm.create` 之后到达的 facet event（`cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / `cx.realm.plaintext_visible_services` / ...）由 `created_by_principal` 提交时，reducer MUST 把 actor 视为已建成员，不得以"actor 不是 Realm 成员"为由 fail closed。
+- `cx.realm.policy_components` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST `failed_precondition`，reason=`policy_revision_rollback` 或 `policy_revision_gap`。任何用于缓存、Policy Server decision、MLS governance binding 或 identity_link 的 `policy_frontier_hash` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合。
 - 同一 submit 批次内的事件 reducer MUST 按 wire 顺序处理；create event 必须排在前面（client 不得把 facet event 排在 create 前面，否则 reducer MUST 返回 `out_of_order_bootstrap`）。
 - 重新提交同一 Realm id 的 `cx.realm.create`（无论 `created_by_principal` 是否相同）MUST `realm_already_exists` 拒绝；该规则与 create-locked 字段保护一致。
 

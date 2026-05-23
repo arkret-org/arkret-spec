@@ -211,7 +211,7 @@
     "cx.profile.attested_audit.e2ee.v1": "admin",
     "cx.profile.disclosed_audit.e2ee.v1": "admin",
     "cx.profile.cross_signing.reset.v1": "admin",
-    "cx.profile.mls.minimal_metadata_space.v1": "admin",
+    "cx.profile.mls.minimal_metadata_realm.v1": "admin",
     "cx.profile.key_backup.memory_hard.v1": "admin",
     "cx.profile.anchor.single_did.v1": "admin",
     "cx.profile.anchor.threshold.v1": "admin",
@@ -243,7 +243,7 @@
   "e2ee_hardening": [
     "cx.profile.mls_governance_binding.full.v1",
     "keypackage_claim_lifecycle",
-    "cx.profile.mls.minimal_metadata_space.v1",
+    "cx.profile.mls.minimal_metadata_realm.v1",
     "aad_visibility_policy",
     "cx.profile.attested_audit.e2ee.v1",
     "cx.profile.disclosed_audit.e2ee.v1",
@@ -272,7 +272,7 @@
     "cx.profile.attested_audit.e2ee.v1",
     "cx.profile.disclosed_audit.e2ee.v1",
     "cx.profile.cross_signing.reset.v1",
-    "cx.profile.mls.minimal_metadata_space.v1",
+    "cx.profile.mls.minimal_metadata_realm.v1",
     "cx.profile.key_backup.memory_hard.v1"
   ],
   "vector_profiles": [
@@ -294,6 +294,112 @@
     "cx.profile.mimi_interop_vectors.v1"
   ],
   "profile_requirements": {
+    "cx.profile.principal_control_realm.v1": {
+      "role": "admin",
+      "description": "Realm profile for a principal-scoped durable control stream. It is an ordinary collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.events.query",
+        "cx.events.get",
+        "cx.keys.keypackages.upload",
+        "cx.keys.keypackages.claim",
+        "cx.keys.keypackages.consume",
+        "cx.keys.keypackages.revoke"
+      ],
+      "required_event_kinds": [
+        "cx.realm.create",
+        "cx.device.authorized",
+        "cx.device.revoked",
+        "cx.device.list_update",
+        "cx.session.grant",
+        "cx.cross_signing.publish",
+        "cx.cross_signing.reset",
+        "cx.mls.keypackage",
+        "cx.account.status",
+        "cx.consent.grant",
+        "cx.consent.revoke"
+      ],
+      "rejected_event_kinds": [
+        "cx.flow.create",
+        "cx.flow.update",
+        "cx.flow.move",
+        "cx.flow.reorder",
+        "cx.message.create",
+        "cx.message.revise",
+        "cx.reaction.add",
+        "cx.reaction.remove",
+        "cx.space.create",
+        "cx.relation.create",
+        "cx.view.create",
+        "cx.morph.create",
+        "cx.call.state"
+      ],
+      "required_schemas": [
+        "cx.schema.realm.v1",
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1",
+        "cx.schema.capability.v1",
+        "cx.schema.key_backup.v1",
+        "cx.schema.cross_signing_publish.v1",
+        "cx.schema.cross_signing_reset.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json",
+        "crypto-signature-fixture.json",
+        "schema-validation-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.profile.org_high_assurance_identity.v1",
+        "cx.profile.public_network_identity.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "principal_control_realm",
+          "control_event_kind_allowlist",
+          "principal_control_binding_check"
+        ],
+        "unsupported_optional": "Receivers that do not understand cx.profile.principal_control_realm.v1 MUST treat the Realm as an ordinary collaboration Realm and MUST NOT accept device/session/cross-signing state from it as principal control state."
+      },
+      "realm_event_kind_policy": {
+        "allowlist_only": true,
+        "allowed_event_kinds": [
+          "cx.realm.create",
+          "cx.device.authorized",
+          "cx.device.revoked",
+          "cx.device.list_update",
+          "cx.session.grant",
+          "cx.cross_signing.publish",
+          "cx.cross_signing.reset",
+          "cx.mls.keypackage",
+          "cx.account.status",
+          "cx.consent.grant",
+          "cx.consent.revoke"
+        ],
+        "reject_categories": [
+          "flow",
+          "message",
+          "space",
+          "relation",
+          "view",
+          "morph",
+          "call",
+          "media"
+        ],
+        "reject_reason": "principal_control_event_kind_forbidden"
+      },
+      "realm_defaults": {
+        "federation_policy": "closed",
+        "default_discoverability": "secret",
+        "default_join_rule": "closed",
+        "history_visibility": "restricted",
+        "encryption_profile": "mls_rfc9420"
+      },
+      "binding_invariants": [
+        "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
+        "fields.purpose MUST be principal_control and schema_refs MUST contain cx.profile.principal_control_realm.v1.",
+        "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer."
+      ]
+    },
     "cx.profile.core_event_store.v1": {
       "required_endpoints": [
         "cx.server.describe",
@@ -579,7 +685,7 @@
         "sync-fixture.json"
       ],
       "optional_extensions": [
-        "cx.profile.mls.minimal_metadata_space.v1",
+        "cx.profile.mls.minimal_metadata_realm.v1",
         "aad_visibility_policy"
       ],
       "feature_discovery": {
@@ -634,6 +740,18 @@
         "rationale": "Receiving client refuses to admit a message into verified timeline if the gap between receive_at and the most recent membership_change_at exceeds this window with old-epoch decryption.",
         "receiver_enforcement": "Receiver MUST enforce the hard ceiling independently of any declared deployment value: if a Realm policy event sets relaxed_window_max_ms > absolute_hard_ceiling_ms (300000 ms / 5 min), the reducer MUST reject the policy update with reason_code `relaxed_window_exceeds_ceiling` (mapped from `schema_violation`), and the receiver MUST treat the policy event as failed_precondition. Receivers MUST NOT silently clamp the value to the ceiling, because a silent clamp would let a deployment publish a longer window than receivers honor and split visible policy state across implementations. Negative vector: `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1` covers (a) reducer reject on policy write > 300000 ms, (b) receiver reject on old-epoch decrypt admission when the gap exceeds the per-policy declared window, and (c) reject when any deployment tries to redefine the ceiling via an unrelated profile.",
         "compliance_profile_disabled": "Profiles in the compliance / audited tier (cx.profile.attested_audit.e2ee.v1, cx.profile.disclosed_audit.e2ee.v1, and any deployment declaring `audit_assurance >= disclosed_policy`) MUST NOT enable cx.profile.e2ee_relaxed.v1. Reducer MUST reject the combination with reason_code `e2ee_relaxed_disallowed_in_compliance_profile`. Rationale: compliance assurance presumes the kick-out semantic is cryptographically immediate; the relaxed window contradicts that presumption."
+      },
+      "federation_guard": {
+        "forbidden_federation_policy": [
+          "open",
+          "quarantine"
+        ],
+        "restricted_requires": [
+          "relaxed_fanout_deadline_ms <= relaxed_window_max_ms",
+          "max_federation_delivery_delay_ms <= relaxed_window_max_ms",
+          "each federation peer describes a fanout SLA not exceeding the relaxed window"
+        ],
+        "reducer_reject_reason": "e2ee_relaxed_federation_policy_unsupported"
       },
       "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
     },
@@ -1229,7 +1347,7 @@
         "cx.applet.ping",
         "cx.applet.transaction",
         "cx.applet.query_actor",
-        "cx.applet.query_space",
+        "cx.applet.query_realm",
         "cx.applet.protocol_metadata"
       ],
       "required_event_kinds": [
@@ -1813,7 +1931,7 @@
       ],
       "optional_extensions": [
         "aad_visibility_policy",
-        "cx.profile.mls.minimal_metadata_space.v1"
+        "cx.profile.mls.minimal_metadata_realm.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -1829,7 +1947,7 @@
         "cx:cell:cx.component.key_schedule.v1:<mls_group_id>"
       ]
     },
-    "cx.profile.mls.minimal_metadata_space.v1": {
+    "cx.profile.mls.minimal_metadata_realm.v1": {
       "inherits": [
         "cx.profile.e2ee_client.v1"
       ],

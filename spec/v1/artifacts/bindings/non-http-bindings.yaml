@@ -115,7 +115,7 @@ grpc:
       Describe: cx.applet.describe
       Transaction: cx.applet.transaction
       QueryActor: cx.applet.query_actor
-      QuerySpace: cx.applet.query_space
+      QueryRealm: cx.applet.query_realm
       ProtocolMetadata: cx.applet.protocol_metadata
       ThirdPartyUsers: cx.applet.third_party_users
       ThirdPartyLocations: cx.applet.third_party_locations

@@ -214,6 +214,8 @@ flow_part            ::= flow_id | "*"
 
 `additionalProperties` / 未注册字段不计入嵌套深度，但实现 MUST 对未知字段总数同样设上限（建议同 selector_term 上限 256）以防止 schema 旁路放大攻击面。
 
+## 4. Selector Terms
+
 ### 4.1 Realm 选择器
 
 `realm:cx:realm:0196419b-0000-7000-8000-000000000000`

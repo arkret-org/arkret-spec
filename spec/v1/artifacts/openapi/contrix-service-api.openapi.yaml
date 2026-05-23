@@ -5083,7 +5083,7 @@ paths:
                 $ref: '#/components/schemas/OperationResult'
   /applet/realms/{realm_id_or_alias}:
     get:
-      operationId: cx.applet.query_space
+      operationId: cx.applet.query_realm
       security:
       - httpMessageSignature: []
         sourceServiceDid: []

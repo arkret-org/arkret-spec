@@ -512,7 +512,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 - 需要 `call.record`。
 - 客户端 MUST 对所有参会者显示录制中。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
-- 录制结果 MUST 通过 `cx.call.recording.result` 引用 blob hash、duration、media type、retention policy。
+- 录制结果 MUST 通过已注册的 `cx.call.state` 写入 call lifecycle state（例如 `state="recording_ready"` / `state="recording_failed"`），并在 payload 中引用 blob hash、duration、media type、retention policy 和 `recording_start_event_id`。v1 不注册独立的 `cx.call.recording.result` event kind；实现不得把该裸名写入 Event Envelope。
 - 转写需要 `call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。
 
 ## 14. 推送集成

@@ -6,7 +6,7 @@ title: Service HTTP/JSON Binding
 
 本文定义 Contrix 默认 HTTP/JSON binding 的路径、请求形状和错误响应。
 
-协议核心不强绑定 REST。其他 transport binding MAY 使用 gRPC、WebSocket、SSE、message queue、libp2p 或 IPC，但必须映射到 `service-surface.md` 中定义的等价语义。
+Operation 语义本身可映射到不同 transport；但 **v1 core wire conformance 必须提供本文定义的 HTTP/JSON binding**。其他 transport binding（gRPC、WebSocket、SSE、message queue、libp2p 或 IPC）只能作为 extension profile 出现，并且必须映射到 `service-surface.md` 中定义的等价语义。
 
 ## 2. 通用要求
 
@@ -159,7 +159,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/mimi/report-abuse` | body MIMI abuse report body | `user_session` 或 `service_signature`;同 `cx.moderation.report` 互补。 | `{report_id, routed_to?}` |
 | `POST /api/v1/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用;不接受 user_session。 | `{relayed: true, expires_at?}` |
 
-> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 87 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中;之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 仍是规范的最终来源(机器消费),本表是人类阅读视图。
+> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 87 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中;之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
 
 跨域 actor 验证响应（通过 `/api/v1/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy；不得把对端"验证通过"当成最终授权依据。
 
@@ -235,7 +235,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.applet.describe` | 无 | 无 | `ServiceDescribe` | public mode 只返回公开 capabilities；applet-specific 字段作为扩展字段返回。 |
 | `cx.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet 必须验证 event signature、namespace、capability；按 `(source_service_did, Idempotency-Key)` 幂等。 |
 | `cx.applet.query_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 namespace。 |
-| `cx.applet.query_space` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
+| `cx.applet.query_realm` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob: string?`; `field_types: object`; `instances: object[]?` | instance list 可要求授权。 |
 | `cx.applet.third_party_users` | `query.protocol: string`; external ids | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
 | `cx.applet.third_party_locations` | `query.protocol: string`; external ids | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |

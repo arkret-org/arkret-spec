@@ -202,6 +202,7 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
 3. **Principal control realm genesis**：客户端构造 `cx.realm.create` Event 创建 principal control realm（`realm_id` 即 `principal_control_realm_id`，绑定到 principal DID）。该 Realm 是 v1 标准 `kind=collaboration` Realm（不引入新的 Realm kind），并通过以下 Realm 字段把它标记为 control stream：
    - `fields.purpose = "principal_control"`（产品语义；reducer/authz 通过此字段识别 control stream）。
    - `schema_refs` 包含 `cx.profile.principal_control_realm.v1`（profile id；该 profile 收紧 control realm 的允许 event kinds、capability action、E2EE/federation 默认值）。
+   - `cx.profile.principal_control_realm.v1` 的机器化要求见 `artifacts/profiles/conformance-profiles.json#profile_requirements`：control Realm MUST 使用 allowlist-only event kind policy；普通 Flow / Message / Space / Relation / View / Morph / Call 协作事件在该 Realm 内 MUST `principal_control_event_kind_forbidden`。
    - `encryption_profile = "none"`，`history_visibility = "joined"`，`anchor_profile = "single_did"`，`anchorer = <principal DID>`。
    - `created_by_principal = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
 
@@ -463,6 +464,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
     "aead": {
       "name": "xchacha20_poly1305",
       "aead_profile": "cx.aead.xchacha20_poly1305.v1",
+      "nonce_salt": "b64uRandom128Bits",
       "nonce": "base64url..."
     },
     "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
@@ -493,7 +495,7 @@ commitment_key = HKDF(derived_key, info="contrix-key-backup-commitment-v1")
 key_commitment = SHA256(commitment_key)
 ```
 
-`recipient_method="passphrase_kdf"` 的 AEAD nonce MUST deterministic derive，不得由服务端随机生成或由用户输入提供：
+`recipient_method="passphrase_kdf"` 的 AEAD nonce MUST deterministic derive，但 derivation transcript MUST 包含 producer-generated `aead.nonce_salt`。`nonce_salt` 是随 envelope 新生成的至少 128-bit 随机值，不是 secret，必须进入 signed metadata / AAD；服务端不得生成、覆盖或由用户输入提供该值。
 
 ```text
 nonce_key = HKDF(derived_key, info="contrix-key-backup-aead-nonce-v1")
@@ -507,14 +509,15 @@ nonce = HMAC-SHA256(
     "backup_version": backup_version,
     "created_at": created_at,
     "aead": aead.name,
-    "aead_profile": aead.aead_profile
+    "aead_profile": aead.aead_profile,
+    "nonce_salt": aead.nonce_salt
   })
 )[0:N_AEAD]
 ```
 
 `aead_profile` 是可选但推荐的协商标识，绑定 AEAD 算法版本、nonce 长度、tag 长度、key 长度和 AAD 构造。接收方看到不支持的 `aead_profile` MUST fail closed；不得只凭 `aead.name` 推断可接受的参数组合。未携带 `aead_profile` 的历史 envelope 按 `aead.name` 的 v1 默认 profile 解释，但新写入 envelope SHOULD 显式携带 profile id。
 
-Producer MUST reject attempts to write two backup envelopes with the same nonce derivation tuple. Receiver MUST recompute the nonce for `passphrase_kdf` envelopes before decryption and reject mismatches as `schema_violation`.
+Producer MUST reject attempts to write two backup envelopes with the same nonce derivation tuple, including `nonce_salt`。`backup_id` 仍应按单写不可变处理；若需要更新备份内容，producer MUST 生成新的 `backup_id` 或至少新的 `nonce_salt` 并重新签名 envelope。Receiver MUST recompute the nonce for `passphrase_kdf` envelopes before decryption and reject mismatches or missing `nonce_salt` as `schema_violation`.
 
 客户端 MAY 在尝试解密 `ciphertext` 前用用户输入的 passphrase 派生 key，计算 commitment 并与 envelope 中的 `key_commitment` 比对。不匹配时 MUST 拒绝解密并提示用户 passphrase 错误。`key_commitment` 只是本地快速拒绝错误口令和防止密文替换的辅助值，不是服务端认证材料；服务端不得要求用户上传 passphrase、derived key、commitment key 或使用 `key_commitment` 做在线口令检查。离线攻击者仍可对备份执行 KDF 级别的口令猜测，因此实现必须执行强口令策略、Argon2id 参数下限和速率受控的恢复 UI。
 

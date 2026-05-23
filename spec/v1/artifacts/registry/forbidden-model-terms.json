@@ -24,7 +24,7 @@
       "rejection_level": "hard_reject",
       "replacement": "Realm",
       "allowed_contexts": ["changelog", "interop_module", "negative_test"],
-      "notes": "Room is not the v1 core model. Use Realm (replication / authorization / E2EE boundary) and, where applicable, Flow, Space, or child Realm. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
+      "notes": "Room is not the v1 core model. Use Realm (replication / authorization / E2EE boundary) and, where applicable, Flow, Space, or a linked discussion Realm via Flow.discussion_realm_ref. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
     },
     {
       "id": "Realm(kind=list)",
@@ -49,9 +49,9 @@
       "context": "prose_or_ui_copy",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Realm members (or child Realm members)",
+      "replacement": "Realm members (or linked discussion Realm members)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track does not carry independent membership; access inherits from the Flow's Realm. UI copy and docs MUST refer to Realm / child Realm members. A discussion needing its own membership boundary MUST be upgraded to a child Realm."
+      "notes": "Track does not carry independent membership; access inherits from the Flow's Realm. UI copy and docs MUST refer to Realm or linked discussion Realm members. A discussion needing its own membership boundary MUST use Flow.discussion_realm_ref."
     },
     {
       "id": "Room visibility",

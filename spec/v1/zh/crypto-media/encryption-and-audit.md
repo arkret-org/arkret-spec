@@ -271,6 +271,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗,超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
   - **`relaxed_window_max_ms` 硬上限 = 300,000 ms（5 分钟）**：部署不得通过 `cx.realm.policy_components` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。Negative vector `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
   - **合规 profile 互斥**：声明 `cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 或 `audit_assurance >= disclosed_policy` 的部署 MUST NOT 同时启用 `cx.profile.e2ee_relaxed.v1`；reducer MUST 用 `e2ee_relaxed_disallowed_in_compliance_profile` 拒绝。合规 / 监管 profile 的核心承诺是"踢出即时密码学生效"，relaxed 窗口与之矛盾。
+  - **Federation guard**：`cx.profile.e2ee_relaxed.v1` MUST NOT 与 `federation_policy="open"` 或 `"quarantine"` 同时启用；reducer MUST 用 `e2ee_relaxed_federation_policy_unsupported` 拒绝。`federation_policy="restricted"` 只允许在 Realm policy 同时声明 `relaxed_fanout_deadline_ms <= relaxed_window_max_ms`、`max_federation_delivery_delay_ms <= relaxed_window_max_ms` 且 federation peers 在 `cx.server.describe.limits` 中公开不超过该 deadline 的 fanout SLA 时启用；否则 MUST fail closed。`federation_policy="closed"` 不需要额外 federation guard。
   
   声明 advisory 但未声明 `cx.profile.e2ee_relaxed.v1` profile 的 Realm create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
 - Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
@@ -303,6 +304,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 - Realm 在 create event 或 `cx.realm.policy_components` 中声明 `mls_send_pause="advisory"` 时,**MUST** 同时声明 `cx.profile.e2ee_relaxed.v1` profile 适配。reducer 检测到 advisory 但 Realm `supported_profiles` 不含 `e2ee_relaxed.v1` → MUST reject(`profile_unsupported`,详细 reason `mls_send_pause_advisory_requires_e2ee_relaxed_profile`)
 - 声明本 profile 的 Realm **MUST NOT** 同时声明 `cx.profile.mls_governance_binding.full.v1`(互斥)。reducer 检测同时声明 → MUST reject(`conflicting_e2ee_profiles`)
+- 声明本 profile 的 Realm 若同时声明 federation，MUST 满足 §2.4.1 的 Federation guard。open / quarantine federation 直接拒绝；restricted federation 必须证明 fanout deadline 不超过 relaxed window。
 - 客户端实现 **MUST**:
   - 在该 Realm 的对话 UI 上展示 banner-level 警示(不可被用户永久 dismiss,可临时折叠)
   - 在用户邀请新成员时弹窗提示"该 Realm 使用降级 E2EE",让用户知情决策
@@ -556,7 +558,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 
 ### 2.7 Minimal-Metadata E2EE Realm
 
-高隐私 Realm MAY 启用 `cx.profile.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
+高隐私 Realm MAY 启用 `cx.profile.mls.minimal_metadata_realm.v1`。该 profile 的作用域是 Realm，不表示 in-Realm Space 边界；目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
 
 Profile 规则：
 
@@ -600,13 +602,13 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 - MLS epoch 变更（任何 commit）时，MUST 检查并失效任何 epoch 匹配旧 epoch 的 stale 条目。
 - `cx.identity_link` 被更新或撤销时，MUST 替换旧条目。
 - **Eager invalidation on policy tightening（normative MUST）**：处理下列 Realm policy / disclosure policy event 时，客户端 MUST **立即**失效缓存中所有 `(realm_id == this_space, *)` 条目——因为这些事件只可能**收紧**真实 principal 的可见性，旧缓存条目仍按更宽松的 policy 暴露 principal DID 会导致 UI / projection 把已收紧的真实身份继续展示给非授权成员：
-  - `cx.realm.disclosure_policy.update`（或等价 facet event）让 `disclosure_policy.strictness` 升级（例：`open` → `minimal` / `pairwise_only` / `audit_only`）。
-  - `cx.realm.minimal_metadata.update` 把 Realm 切到更严格的 minimal-metadata mode；同步影响 sync / federation 路由 disclosure。
+  - 已注册的 `cx.identity.disclosure_policy` 让 `disclosure_policy.strictness` 升级（例：`open` → `minimal` / `pairwise_only` / `audit_only`）。
+  - 已注册的 `cx.realm.policy_components` 更新中任何 `metadata_encryption_profile`、`minimal_metadata_mode` 或 routing disclosure 相关字段变化，把 Realm 切到更严格的 minimal-metadata mode；同步影响 sync / federation 路由 disclosure。
   - `cx.realm.history_visibility` 收紧（例：`shared` → `invited` / `joined` / `restricted`）。
   - `cx.realm.policy_components` 更新中任何 `identity_disclosure_profile` 字段变化。
   - 任何 linked Realm（`Flow.discussion_realm_ref` 指向的 Realm 或 `Realm.linked_realms[]`）的 membership / history visibility 收紧——cross-Realm 解析依赖 linked Realm policy；linked 一端收紧后 source 一端的缓存也 MUST 失效。
   - 对应的失效粒度规则：失效全部 `(realm_id == this_space, *)`，而不仅是当时已 disclosed 的 principal——因为收紧后的 policy 可能撤销之前被 disclose 的部分映射。
-- 缓存比较时，客户端 MUST 把当前 Realm policy 的 `policy_frontier_hash` 与缓存条目内的值做 constant-time 比较；**任一**不一致即视为缓存失效，回退到完整 identity_link 重新验证。`policy_frontier_hash` 在签发缓存条目时由客户端从最近 anchored 的 Realm policy 状态计算（推荐 `sha256(canonical_json({disclosure_policy, history_visibility, identity_disclosure_profile, minimal_metadata_mode}))`），并随后续 policy event 推进而变化；不允许仅靠 TTL 或 MLS epoch 等内部计数替代该 hash 比较。
+- 缓存比较时，客户端 MUST 把当前 Realm policy 的 `policy_frontier_hash` 与缓存条目内的值做 constant-time 比较；**任一**不一致即视为缓存失效，回退到完整 identity_link 重新验证。`policy_frontier_hash` 在签发缓存条目时由客户端从最近 anchored 的 Realm policy 状态计算（推荐 `sha256(canonical_json({policy_revision, disclosure_policy, history_visibility, identity_disclosure_profile, metadata_encryption_profile, minimal_metadata_mode}))`），并随后续 policy event 推进而变化；不允许仅靠 TTL 或 MLS epoch 等内部计数替代该 hash 比较。
 - 缓存 TTL SHOULD 不超过 7 天；过期后 MUST 重新验证。该 TTL 仅是**最坏兜底**，不能替代 eager invalidation。
 - 设备丢失或恢复后，MUST 清除所有 identity_link 缓存。
 - conformance vector `cx.vector.identity_link.eager_invalidation.v1`（参见 `conformance-vectors.md`）覆盖 ban / leave / remove 三种触发条件下的 eager invalidation 行为；`cx.vector.identity_link.policy_tightening_invalidation.v1` 覆盖 disclosure policy、history visibility、minimal metadata mode、linked Realm visibility 收紧后的 eager invalidation 行为。
@@ -659,7 +661,7 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
   - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定,即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
   - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Realm SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露,使频次只能 per-target_ref 而非 per-message 关联。
-- Minimal-metadata Realm (`cx.profile.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
+- Minimal-metadata Realm (`cx.profile.mls.minimal_metadata_realm.v1`): 同上,且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
 - `cx.reaction.remove` 走相同规则；`encrypted_payload` 内 MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛,但不得将该 id 暴露在明文。
 
 服务端 / sync service 处理 reaction 时:

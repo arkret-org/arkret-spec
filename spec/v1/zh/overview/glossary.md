@@ -22,6 +22,7 @@ title: 术语表
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
 | Realm | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Realm 为根。`cx:realm:` 永远是边界，不承担产品导航树职责。 |
+| Trust Domain | 信任域 | deployment / sovereign replay boundary，wire 形态为 `cx:trust_domain:<scope>`。它在 service describe、Realm create 和跨域 proof transcript 中绑定接收上下文；定义见 [`../identity/identity-did.md` §3.6](../identity/identity-did.md#36-trust-domain)。 |
 | Official Realm | 官方边界 | 由组织或 policy 明确确认的 Realm；它是治理 / 安全声明，不等同于用户可见的 Space。 |
 | Realm Link | Realm 关系边 | Realm 之间通过 `cx.realm.link` 表达的显式治理、发现、mirror、confidential extension、迁移等关系；不是 hierarchy，不默认级联权限或历史。 |
 | Space | 结构性分组对象 | 用户可理解的结构容器与导航节点（project、folder、board、list、泳道、calendar bucket、page group 等），ID 形如 `cx:space:`。永远没有自己的 membership / policy / E2EE group / federation policy；metadata 由 `realm_id` 指向的 home Realm 授权，子资源默认 Realm 由 `default_realm_ref` 解析。 |

@@ -1211,7 +1211,7 @@
       }
     },
     {
-      "$comment": "Reject historical top-level legacy field names. additionalProperties=true at root permits profile/extension top-level fields (forward extensibility), but these specific names from earlier drafts MUST NOT appear — type/auth_refs/target_ref/operation_id are migrated to kind / refs[role=authorized_by] / payload.* fields / SDK-internal id (see operations-sync.md §5).",
+      "$comment": "Reject historical top-level legacy field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. These specific names from earlier drafts are called out for clearer diagnostics — type/auth_refs/target_ref/operation_id are migrated to kind / refs[role=authorized_by] / payload.* fields / SDK-internal id (see operations-sync.md §5).",
       "not": {
         "anyOf": [
           { "required": ["type"] },
@@ -1611,5 +1611,5 @@
       ]
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

@@ -914,7 +914,13 @@ Reducer 输出：
 
 ### 17.3 Board position
 
-同一个 Flow 在同一 Board 内的唯一主位置 key 是 `(board_id, flow_id)`。同一 key 下出现多个 active position edge 时，Reducer MUST 按 deterministic event order 选择唯一 winner，并在 `conflict_records` 中记录 losers。
+同一个 Flow 在同一 Board 内的唯一主位置 key 是 `(board_id, flow_id)`，但 canonical truth 不是多条 `contains` / position edge 的 winner，而是 §9.1 定义的 cas-register cell：
+
+```text
+cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
+```
+
+同一 key 下出现多个并发且互不兼容的 position write 时，Reducer MUST 按该 cell 的 lattice 规则返回 `⊥`（`bottom=reject`），依赖该 cell 的后续 `cx.flow.move` / `cx.flow.reorder` MUST `failed_bottom`，直到通过 §8 conflict-recovery 或专门的高权限恢复 event 修复。实现 MAY 在诊断投影中列出 competing writes / `conflict_records`，并 MAY 为 legacy UI 计算一个非规范的临时展示顺序；该展示顺序 MUST NOT 写回 canonical state、不得作为授权或后续 move 的 `expected_position` 真相，也不得替代 cell bottom。
 
 ### 17.4 Graph cycle
 

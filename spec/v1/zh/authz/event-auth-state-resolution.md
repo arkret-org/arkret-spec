@@ -782,7 +782,7 @@ Hub、threshold、open federation、sovereign federation 和 E2EE 只是 anchore
 | `open_set` | 管理员 / federation peer DID 集合。 | 允许多 leaf；query 使用 deterministic effective anchor view。 |
 | `mixed` | 主 anchorer + fallback recovery anchorer。 | 正常单链；anchorer fault / bottom 时 fallback 可签 recovery Anchor。 |
 
-Realm create MUST 固定 genesis anchorer 与 recovery anchorer。后续变更走 anchorer cell 的普通 Move。
+Realm create MUST 固定 genesis anchorer 与 recovery anchorer。`cx.schema.realm.v1` 要求 create payload 携带 `anchor_profile` 与 `anchorer`；`single_did` profile 还必须携带非空 `recovery_members`、主 anchorer 的 `controller_organization` 以及 recovery side 的 `recovery_controller_organizations`。后续变更走 anchorer cell 的普通 Move。
 
 ### 9.1 Anchor Profile 威胁与可用性矩阵
 
@@ -812,7 +812,7 @@ Realm create MUST 固定 genesis anchorer 与 recovery anchorer。后续变更�
 
 以下威胁 MUST 在 Realm create 时由 deployment 与 governance 层声明缓解措施，**协议层无法替代**：
 
-- **`single_did` anchorer 审查与 DOS**：anchorer 拒签 = Realm 写阻塞。`single_did` profile MUST 在 Realm create 时同时声明非空 `recovery_anchorer`，且 recovery_anchorer 的 controller MUST 与主 anchorer 在不同的 controlling organization；不满足者 reducer MUST 在 `cx.realm.create` 步骤返回 `anchorer_recovery_missing` 并拒绝创建。声称对抗审查能力的部署 MUST NOT 选择 `single_did`，应使用 `threshold` 或 `open_set`。
+- **`single_did` anchorer 审查与 DOS**：anchorer 拒签 = Realm 写阻塞。`single_did` profile MUST 在 Realm create 时同时声明非空 recovery anchorer 路径（wire 字段为 `anchorer.recovery_members[]`，语义等价于 recovery anchorer 集合），且至少一个 recovery controller MUST 与主 anchorer 在不同的 controlling organization；不满足者 reducer MUST 在 `cx.realm.create` 步骤返回 `anchorer_recovery_missing` 并拒绝创建。Receiver 不能只信任字符串不相等：它 MUST 用 DID resolver、deployment policy 或 `controller_organization` / `recovery_controller_organizations` evidence 验证组织多样性；无法验证时 MUST fail closed。声称对抗审查能力的部署 MUST NOT 选择 `single_did`，应使用 `threshold` 或 `open_set`。
 - **`threshold` 委员会合谋**：k 个签名者可以联合审查特定 actor。Realm MUST 在 governance policy 中声明委员会成员选拔、轮换与 quorum recovery 流程。
 - **`open_set` peer 集合污染**：若 anchorer cell 中加入了恶意 peer，它可签发恶意 leaf。anchorer cell 是 cas-register + bottom=reject，所以新增 peer 必须由当前合法 anchorer 签发的 Move 加入；但**初始 genesis anchorer 设置错误是不可恢复的**——MUST 在 genesis 时审慎选择并多方签名 verify。
 - **签名 key 失窃与 anchorer key rotation**：anchorer 签名 key 失窃 → 攻击者可签发任意 Anchor。Recovery 路径必须是 genesis 时声明的 recovery_anchorer 通过 ⊥ + recovery Move 替换被泄露的 anchorer cell；deployment SHOULD 强制 anchorer key 用 HSM / threshold key 而非软件 key。

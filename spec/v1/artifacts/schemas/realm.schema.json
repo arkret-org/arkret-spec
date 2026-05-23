@@ -14,6 +14,8 @@
     "default_join_rule",
     "history_visibility",
     "encryption_profile",
+    "anchor_profile",
+    "anchorer",
     "created_at"
   ],
   "properties": {
@@ -232,7 +234,7 @@
     },
     "anchorer": {
       "type": "object",
-      "description": "Genesis value for the Realm anchorer cell. Subsequent changes are ordinary Moves finalized by the previous anchorer.",
+      "description": "Genesis value for the Realm anchorer cell. Subsequent changes are ordinary Moves finalized by the previous anchorer. For single_did profiles, recovery_members and controller organization evidence are required so reducer/authz can reject single-organization recovery setups.",
       "required": [
         "type"
       ],
@@ -266,7 +268,21 @@
           "items": {
             "$ref": "#/$defs/did"
           },
+          "minItems": 1,
           "uniqueItems": true
+        },
+        "controller_organization": {
+          "$ref": "#/$defs/did",
+          "description": "DID of the organization controlling the primary anchorer, when the resolver or deployment policy can derive it. Required for single_did profile so recovery diversity can be verified."
+        },
+        "recovery_controller_organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Organization DIDs controlling recovery_members. Reducer MUST verify at least one differs from controller_organization for single_did profile."
         }
       },
       "additionalProperties": false
@@ -338,6 +354,43 @@
               "restricted",
               "quarantine"
             ]
+          }
+        }
+      }
+    },
+    {
+      "$comment": "single_did anchor profiles must declare an explicit recovery anchorer path at Realm create time. Distinct controlling organization is semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
+      "if": {
+        "properties": {
+          "anchor_profile": {
+            "const": "single_did"
+          }
+        },
+        "required": [
+          "anchor_profile"
+        ]
+      },
+      "then": {
+        "properties": {
+          "anchorer": {
+            "required": [
+              "type",
+              "did",
+              "recovery_members",
+              "controller_organization",
+              "recovery_controller_organizations"
+            ],
+            "properties": {
+              "type": {
+                "const": "single_did"
+              },
+              "recovery_members": {
+                "minItems": 1
+              },
+              "recovery_controller_organizations": {
+                "minItems": 1
+              }
+            }
           }
         }
       }
@@ -452,7 +505,10 @@
             "principal_server",
             "sync_node",
             "anchorer",
-            "search_service"
+            "search_service",
+            "archive_node",
+            "key_recovery_service",
+            "recovery_service"
           ]
         },
         "plaintext_visible": {

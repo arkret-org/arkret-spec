@@ -39,7 +39,7 @@
     "service_type": {
       "type": "string",
       "minLength": 1,
-      "description": "Registered lowercase service_type such as principal_server, sync_node, directory_service, push_gateway or applet_service."
+      "description": "Registered lowercase service_type such as principal_server, sync_node, directory_service, push_gateway, applet_service, archive_node, key_recovery_service or recovery_service."
     },
     "protocol_version": {
       "type": "string",

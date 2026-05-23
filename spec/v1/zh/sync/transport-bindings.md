@@ -100,7 +100,7 @@ HTTP/JSON 是默认 profile：
 - 流式结果 MAY 使用 SSE、WebSocket 或 newline-delimited JSON。
 - 错误使用统一 JSON error object，并映射到 HTTP status。
 
-HTTP binding 的路径 SHOULD 遵循 `service-api-schema.mdx`，但实现 MAY 使用 XRPC、RPC style 或版本化路径，只要 feature discovery 暴露实际 binding。
+HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-api-schema.mdx` 与 OpenAPI。实现 MAY 额外暴露 XRPC、RPC style 或版本化路径别名，只要 feature discovery 暴露实际 binding；但 v1 core conformance 测试仍以 canonical HTTP/JSON path 与字段为基准，路径别名不得替代 canonical binding。
 
 ## 6. Non-HTTP Binding Extensions
 

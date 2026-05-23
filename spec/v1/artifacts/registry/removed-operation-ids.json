@@ -130,6 +130,30 @@
       "notes": "Historical Matrix-derived account long-poll name; v1 uses streaming account subscribe."
     },
     {
+      "id": "cx.events.list",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.events.query",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical unary event listing operation; v1 uses cx.events.query for actor/Realm selector reads."
+    },
+    {
+      "id": "cx.sync.backfill",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.events.query",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical backfill operation; v1 folds backward/window reads into cx.events.query."
+    },
+    {
+      "id": "cx.sync.subscribe",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.events.subscribe",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical Realm stream operation; v1 uses cx.events.subscribe for Realm/actor event streams."
+    },
+    {
       "id": "cx.agent_workspace.resolve_mirror_flow",
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
