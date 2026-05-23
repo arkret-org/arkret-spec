@@ -231,6 +231,7 @@
               "cx.flow.move",
               "cx.flow.reorder",
               "cx.flow.restore",
+              "cx.flow.stage.set",
               "cx.flow.tracks.update",
               "cx.flow.update",
               "cx.flow.watch.set",
@@ -269,6 +270,7 @@
               "cx.morph.create",
               "cx.morph.restore",
               "cx.morph.schema_migrate",
+              "cx.morph.stage.set",
               "cx.morph.update",
               "cx.organization.discovery",
               "cx.organization.moderation_policy",
@@ -536,6 +538,24 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/morph_schema_migrate_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.flow.stage.set" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_stage_set_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.morph.stage.set" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/morph_stage_set_payload" } }
       }
     },
     {

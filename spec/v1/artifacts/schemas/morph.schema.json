@@ -9,6 +9,7 @@
     "realm_id",
     "schema_refs",
     "morph_type",
+    "stage",
     "created_by",
     "created_at"
   ],
@@ -81,6 +82,24 @@
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
       "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.morph.archive / cx.morph.restore / redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "proposed",
+        "planned",
+        "in_progress",
+        "blocked",
+        "done",
+        "cancelled",
+        "superseded"
+      ],
+      "description": "Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). Required on cx.morph.create (no protocol-level default). The only wire path that mutates stage is the dedicated cx.morph.stage.set event; cx.morph.update / cx.morph.schema_migrate patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the cx.morph.stage.set event log is the audit source; human-readable explanations belong in a Message on an associated discussion track that references the event. See models/common-fields.md §5.3 for full semantics."
+    },
+    "stage_changed_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Reducer-derived timestamp of the most recent stage transition. MUST be ignored when present on wire; reducer overwrites with the triggering cx.morph.stage.set event's created_at. Same-value self-transitions MUST NOT update this field."
     },
     "created_by": {
       "$ref": "#/$defs/did"

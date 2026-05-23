@@ -566,6 +566,157 @@
       },
       "additionalProperties": true
     },
+    "object_stage_set_payload": {
+      "type": "object",
+      "description": "Shared base shape for cx.<kind>.stage.set events. Each concrete stage_set payload class (flow_stage_set_payload / morph_stage_set_payload) extends this base by pinning the object-id field (flow_id / morph_id) and is referenced from event-schema.json conditional routing. The stage enum is the protocol-level 8-value set defined in zh/models/common-fields.md §5.3.2; profile MUST NOT extend or override the enum. Reducer hard invariants are listed in zh/models/common-fields.md §5.3.3 (terminal state freeze, non-active reject, reducer-derived stage_changed_at, same-value no-op, single-source via this event). The payload intentionally does NOT carry a reason / note / explanation field: this event log is the audit source (actor_id + created_at), and human-readable explanation belongs in a Message on an associated discussion track that 'references' this event. expected_stage compiles to a cell head_eq precondition and provides optimistic concurrency; omission is equivalent to no CAS.",
+      "required": [
+        "stage"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "proposed",
+            "planned",
+            "in_progress",
+            "blocked",
+            "done",
+            "cancelled",
+            "superseded"
+          ]
+        },
+        "expected_stage": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "proposed",
+            "planned",
+            "in_progress",
+            "blocked",
+            "done",
+            "cancelled",
+            "superseded"
+          ],
+          "description": "Optional CAS precondition: when present, reducer compiles it to a cell head_eq comparison against the cell's current value. Mismatch yields failed_precondition reason=stage_cas_mismatch. Same semantics as cx.flow.watch.set's expected_value."
+        }
+      },
+      "not": {
+        "$comment": "Reason / note / explanation fields are intentionally rejected. Stage transitions audit through the event log; human-readable rationale belongs in a Message on the discussion track that references this event.",
+        "anyOf": [
+          { "required": ["stage_reason"] },
+          { "required": ["stage_note"] },
+          { "required": ["stage_explanation"] },
+          { "required": ["stage_comment"] },
+          { "required": ["reason"] },
+          { "required": ["note"] }
+        ]
+      },
+      "additionalProperties": true
+    },
+    "flow_stage_set_payload": {
+      "type": "object",
+      "description": "Payload class for cx.flow.stage.set. Mutates Flow.stage / Flow.stage_changed_at. Intentionally carries no reason field — see object_stage_set_payload description and zh/models/flow-and-message.md §3.2.",
+      "required": [
+        "flow_id",
+        "stage"
+      ],
+      "properties": {
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "proposed",
+            "planned",
+            "in_progress",
+            "blocked",
+            "done",
+            "cancelled",
+            "superseded"
+          ]
+        },
+        "expected_stage": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "proposed",
+            "planned",
+            "in_progress",
+            "blocked",
+            "done",
+            "cancelled",
+            "superseded"
+          ]
+        }
+      },
+      "not": {
+        "$comment": "Mirror of object_stage_set_payload guard. Reason-style fields are forbidden; rationale belongs in a discussion-track Message.",
+        "anyOf": [
+          { "required": ["stage_reason"] },
+          { "required": ["stage_note"] },
+          { "required": ["stage_explanation"] },
+          { "required": ["stage_comment"] },
+          { "required": ["reason"] },
+          { "required": ["note"] }
+        ]
+      },
+      "additionalProperties": true
+    },
+    "morph_stage_set_payload": {
+      "type": "object",
+      "description": "Payload class for cx.morph.stage.set. Mutates Morph.stage / Morph.stage_changed_at. Intentionally carries no reason field — see object_stage_set_payload description and zh/models/morph.md §2.",
+      "required": [
+        "morph_id",
+        "stage"
+      ],
+      "properties": {
+        "morph_id": {
+          "type": "string",
+          "pattern": "^cx:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "proposed",
+            "planned",
+            "in_progress",
+            "blocked",
+            "done",
+            "cancelled",
+            "superseded"
+          ]
+        },
+        "expected_stage": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "proposed",
+            "planned",
+            "in_progress",
+            "blocked",
+            "done",
+            "cancelled",
+            "superseded"
+          ]
+        }
+      },
+      "not": {
+        "$comment": "Mirror of object_stage_set_payload guard.",
+        "anyOf": [
+          { "required": ["stage_reason"] },
+          { "required": ["stage_note"] },
+          { "required": ["stage_explanation"] },
+          { "required": ["stage_comment"] },
+          { "required": ["reason"] },
+          { "required": ["note"] }
+        ]
+      },
+      "additionalProperties": true
+    },
     "morph_schema_migrate_payload": {
       "type": "object",
       "description": "Migration of a Morph's schema_refs[] under the schema-evolution policy (zh/models/morph.md §4.1 S3). Distinct from cx.morph.update — schema_refs[] changes MUST go through this event so the migration is auditable, capability-gated, and carries an explicit compatibility class. Reducer MUST verify the actor holds the cx.morph.schema.migrate capability (or the Realm-declared equivalent) at the event's frontier; missing capability yields capability_denied. Reducer MUST reject compatibility_class ∈ {breaking, transformation} unless the Realm declares cx.profile.morph.schema_migration_transformations.v1 (yielding morph_schema_refs_transformation_unsupported otherwise). Reducer MUST verify from_schema_refs[] matches the Morph's current schema_refs[] at apply time (yielding failed_precondition otherwise). The event's own requirements.schema[] MUST include the union of from_schema_refs[] and to_schema_refs[] so readers can resolve both versions during overlap. Each transformation_rules[] entry SHOULD describe a deterministic, replay-safe per-field mapping (rename, type widening, default backfill, etc.); the rule object shape is governed by the Realm-declared cx.profile.morph.schema_migration_transformations.v1 profile.",

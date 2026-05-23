@@ -44,8 +44,10 @@ Schema id: `cx.schema.flow.v1`
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `discussion_realm_ref` | no | `id:realm` | 必须是同 organization / federation 范围内的 Realm。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该 linked Realm 承载。详见 §5。 |
 | `fields` | no | `object` |  | 扩展字段。 |
-| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`cx.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`cx.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。 | 物化状态。 |
+| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`cx.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`cx.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
+| `stage` | **yes** | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `cx.flow.create` 时 actor 必填（无默认值）。语义与转换规则见 [common-fields.md §5.3](./common-fields.md)。变更只能通过 `cx.flow.stage.set`（详见 §3.2）；`cx.flow.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `cx.flow.stage.set` event。 | 业务进度阶段（与 `state` 正交）。 |
+| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
@@ -77,10 +79,66 @@ Schema id: `cx.schema.flow.v1`
   },
   "discussion_realm_ref": "cx:realm:019640dc-8000-7000-8000-000000000000",
   "state": "active",
+  "stage": "in_progress",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
+
+### 3.2 Stage（业务进度）
+
+`stage` 是 Flow 必填字段，表达"这件事走到哪了"。它与 `state`（物理生命周期）正交：archive 一个 `stage=in_progress` 的 Flow 不会自动改 stage；`stage=done` 也不会自动 archive。
+
+**枚举值**（与 [common-fields.md §5.3.2](./common-fields.md) 共用，固定 8 值）：
+
+| 值 | bucket | 典型来源 |
+| --- | --- | --- |
+| `draft` | `todo` | 默认起点，正在 scoping。 |
+| `proposed` | `todo` | 待评审 / 决策。 |
+| `planned` | `todo` | 已接受，排期中。 |
+| `in_progress` | `doing` | 当前推进中。 |
+| `blocked` | `doing` | 依赖未解。 |
+| `done` | `closed` | 成功完成。 |
+| `cancelled` | `closed` | 主动放弃。 |
+| `superseded` | `closed` | 被另一个 Flow 取代，SHOULD 写 Relation `superseded_by --> flow:<successor>`。 |
+
+**Wire 写入路径**：唯一 event 是 `cx.flow.stage.set`，payload 形态：
+
+```json
+{
+  "kind": "cx.flow.stage.set",
+  "payload": {
+    "flow_id": "cx:flow:...",
+    "stage": "blocked",
+    "expected_stage": "in_progress"
+  }
+}
+```
+
+- `flow_id`：必填。
+- `stage`：必填，必须是上面 8 值之一。
+- `expected_stage`：可选，编译为 cell `head_eq` precondition，避免并发覆盖（与 `cx.flow.watch.set` 的 `expected_value` 同模式）。省略时等价无 CAS。
+
+**Payload 不携带 reason / note / explanation 字段**。stage 变更的"为什么"由人类讨论承担：
+
+- actor SHOULD 在该 Flow 的 `discussion` track 发一条 `cx.message.create`，并通过 Relation `references` 指向本次 `cx.flow.stage.set` event。
+- 该 Message 受 `discussion` track 的权限、E2EE、redaction、editing 规则约束（与所有其他讨论同级），可以被引用、回应、撤回。
+- 审计归属由 `cx.flow.stage.set` event 自身的 `actor_id` / `created_at` 提供——事件日志就是真源，不需要在对象上再开一个 256-char 黑盒字段。
+
+**Capability**：`cx.flow.stage.set`（low risk_tier）—— 允许把推进 Flow 进度的权限授予 reporter / assignee / participant，而不必给完整 `cx.flow.update`（后者可改 title / body / fields）。
+
+**Reducer 硬约束**（来自 [common-fields.md §5.3.3](./common-fields.md)）：
+
+1. `state ∈ {redacted}` → `failed_precondition` `reason=flow_already_terminal`
+2. `state = archived` → `failed_precondition` `reason=flow_not_active`
+3. `stage_changed_at` reducer-derived，忽略 wire 上 actor-supplied 值
+4. same-value self-transition → reducer 接受但不更新 `stage_changed_at`、不产生审计变更
+5. `cx.flow.update` patch path 出现 `stage` / `stage_changed_at` → `schema_violation`
+6. `flow.fields.stage` / `flow.fields.stage_reason` / `flow.fields.lifecycle` / `flow.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
+
+**与 `cx:workflow:` 的关系**：未启用自定义 workflow 时，actor 直接调用 `cx.flow.stage.set`。启用 workflow 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— stage 始终是 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
+
+**与 `fields.status` 的关系**：`fields.status` 是自由扩展字段（profile 自管），可与 `stage` 共存表达 fine-grained 业务子状态；但 stage 本身**不允许**藏在 `fields` 下。
 
 ## 4. Tracks 模型
 
@@ -523,6 +581,7 @@ Schema id: `cx.schema.message.v1`
         "tracks": {
           "discussion": { "is_primary": true }
         },
+        "stage": "in_progress",
         "created_by": "did:web:alice.example",
         "created_at": "2026-04-26T00:00:00Z"
       }
@@ -610,10 +669,13 @@ receipt / read marker 的具体规则见 [`../discovery/read-receipts.md`](../di
 
 ## 10. 规范性引用
 
-- 公共字段：[common-fields.md](./common-fields.md)。
+- 公共字段、stage 轴（§5.3）：[common-fields.md](./common-fields.md)。
 - Space / Flow 位置语义：[realm-and-space.md](./realm-and-space.md) §3.6。
 - Relation 基数与跨 Realm：[relation.md](./relation.md)。
 - Content Block：[content-types.md](./content-types.md)。
 - Read receipts / read markers：[`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
 - 历史可见性 / E2EE：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Flow / Message schema：`artifacts/schemas/flow.schema.json`、`artifacts/schemas/message.schema.json`。
+- Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/flow_stage_set_payload`。
+- Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。
+- Stage 字段 forbidden-wire 规则：`artifacts/registry/forbidden-wire-fields.json`。

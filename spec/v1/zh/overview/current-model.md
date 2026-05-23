@@ -12,6 +12,7 @@ title: 当前模型说明
 
 - `tracks` 的 key：定义 Flow 当前启用的能力轨道（key 是 track 稳定名）
 - `tracks.<name>.is_primary=true`：可显式定义默认主入口；若未显式设置且存在 key `synthesis`，默认主入口派生为 `synthesis`
+- `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，必填）= 业务进度。两者正交，分别由 `cx.flow.archive` 家族与 `cx.flow.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
 - 业务语义通过 Realm schema/profile、`fields`、Relation、labels、Morph type 或 facet 表达
 
 ## 3. Flow 的标准 Track

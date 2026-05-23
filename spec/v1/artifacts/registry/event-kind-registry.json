@@ -520,6 +520,21 @@
       "payload": "Flow restore"
     },
     {
+      "event_kind": "cx.flow.stage.set",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow business-progression stage transition. Single source of truth for mutating Flow.stage / Flow.stage_changed_at; cx.flow.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Flow's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=flow_already_terminal; state=archived yields flow_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. Per-Realm cx:workflow: profile MAY narrow which transitions are legal beyond these hard invariants.",
+      "cell_family": "cx.component.flow.stage.v1",
+      "cell_subject": {
+        "type": "id:flow",
+        "field": "payload.flow_id"
+      },
+      "lattice": "cas-register",
+      "bottom": "reject"
+    },
+    {
       "event_kind": "cx.flow.tracks.update",
       "category": "flow",
       "status": "active",
@@ -754,6 +769,21 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+    },
+    {
+      "event_kind": "cx.morph.stage.set",
+      "category": "morph",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; cx.morph.update / cx.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
+      "cell_family": "cx.component.morph.stage.v1",
+      "cell_subject": {
+        "type": "id:morph",
+        "field": "payload.morph_id"
+      },
+      "lattice": "cas-register",
+      "bottom": "reject"
     },
     {
       "event_kind": "cx.relation.create",

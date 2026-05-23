@@ -32,8 +32,10 @@ Schema id: `cx.schema.morph.v1`
 | `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_payload` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
-| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`cx.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`cx.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）。same-state self-transition MUST fail。 | 物化状态。 |
+| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`cx.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`cx.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）。same-state self-transition MUST fail。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
+| `stage` | **yes** | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `cx.morph.create` 时 actor 必填（无默认值）。语义与转换规则见 [common-fields.md §5.3](./common-fields.md)；Morph 上 `draft → proposed → done → superseded` 是常见文档/草案路径，但枚举值仍按 8 值统一。变更只能通过 `cx.morph.stage.set`；`cx.morph.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时由附加在 Morph 上的讨论性对象（profile-declared discussion Morph、关联 Flow 的 discussion track、或 `references` 指向本次 stage event 的 Message）承担。 | 业务进度阶段（与 `state` 正交）。 |
+| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
@@ -61,6 +63,7 @@ Schema id: `cx.schema.morph.v1`
     "status": "open",
     "severity": "high"
   },
+  "stage": "in_progress",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -199,9 +202,12 @@ Morph `schema_refs[]` 的 per-event 版本绑定与受控迁移规则见 [§4.1]
 
 ## 7. 规范性引用
 
-- 公共字段：[common-fields.md](./common-fields.md)。
+- 公共字段、stage 轴（§5.3）：[common-fields.md](./common-fields.md)。
 - Relation：[relation.md](./relation.md)。
 - View facets / projection：[views.md](./views.md)。
 - Morph schema：`artifacts/schemas/morph.schema.json`。
 - Morph type 合并决策表（canonical）：[`artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json)。
 - Schema registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
+- Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/morph_stage_set_payload`。
+- Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。
+- Stage 字段 forbidden-wire 规则：`artifacts/registry/forbidden-wire-fields.json`。

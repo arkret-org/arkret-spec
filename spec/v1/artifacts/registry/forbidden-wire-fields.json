@@ -106,6 +106,132 @@
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare cleartext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form (e.g. the sender_commitment HMAC profile in content-moderation.md §3.4.2)."
+    },
+    {
+      "id": "fields.stage",
+      "context": "flow_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "stage (top-level Flow field)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Flow MUST carry stage at the top level (required field). The dual-source (top-level stage vs fields.stage) ambiguity is closed: writers MUST emit top-level stage only, and readers MUST reject fields.stage with schema_violation. Same constraint as fields.rank in relation_payload / space_payload. See zh/models/flow-and-message.md §3.2 and zh/models/common-fields.md §5.3."
+    },
+    {
+      "id": "fields.stage_changed_at",
+      "context": "flow_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "stage_changed_at (top-level Flow field, reducer-derived)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Flow stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering cx.flow.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
+    },
+    {
+      "id": "fields.stage_reason",
+      "context": "flow_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "Message on the Flow's discussion track that references the cx.flow.stage.set event",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Reserved-name guard. Flow stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the cx.flow.stage.set payload, nor under fields.*. Human-readable rationale belongs in a Message on the Flow's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
+    },
+    {
+      "id": "fields.stage_note",
+      "context": "flow_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "Message on the Flow's discussion track that references the cx.flow.stage.set event",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Reserved-name sister-guard for fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via fields.*. Same canonical channel: a Message on the discussion track that references the cx.flow.stage.set event."
+    },
+    {
+      "id": "fields.lifecycle",
+      "context": "flow_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "stage (top-level Flow field) or state (physical lifecycle)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (cx.<kind>.archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a fields.* key on Flow. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5."
+    },
+    {
+      "id": "fields.progress_state",
+      "context": "flow_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "stage (top-level Flow field)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Reserved-name guard: 'progress_state' is a sister name for the stage concept and MUST NOT appear under fields.*. Implementations expressing business progression MUST use the canonical top-level 'stage' field."
+    },
+    {
+      "id": "fields.stage",
+      "context": "morph_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "stage (top-level Morph field)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Morph MUST carry stage at the top level (required field). Mirror of the flow_payload fields.stage constraint."
+    },
+    {
+      "id": "fields.stage_changed_at",
+      "context": "morph_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "stage_changed_at (top-level Morph field, reducer-derived)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Morph stage_changed_at is reducer-derived and lives at the top level."
+    },
+    {
+      "id": "fields.stage_reason",
+      "context": "morph_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "Message on an associated discussion track that references the cx.morph.stage.set event",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Reserved-name guard mirror for Morph. Stage transitions carry no reason field; rationale belongs in a discussion-track Message that references the cx.morph.stage.set event."
+    },
+    {
+      "id": "fields.stage_note",
+      "context": "morph_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "Message on an associated discussion track that references the cx.morph.stage.set event",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Reserved-name sister-guard for Morph fields.stage_reason. Same forbidden surface as Flow."
+    },
+    {
+      "id": "fields.lifecycle",
+      "context": "morph_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "stage (top-level Morph field) or state",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Reserved-name guard mirror for Morph: 'lifecycle' is reserved for the state axis."
+    },
+    {
+      "id": "fields.progress_state",
+      "context": "morph_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "stage (top-level Morph field)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Reserved-name guard mirror for Morph."
+    },
+    {
+      "id": "patch:stage",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.flow.stage.set event",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "cx.flow.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only cx.flow.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding cx.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/flow-and-message.md §3.2 reducer hard constraint 5."
+    },
+    {
+      "id": "patch:stage",
+      "context": "morph_patch_payload",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.morph.stage.set event",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "cx.morph.update / cx.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only cx.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
     }
   ]
 }

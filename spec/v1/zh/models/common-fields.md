@@ -51,6 +51,8 @@ title: Common Fields
 | `updated_at` | no | `timestamp` | MUST 不早于 `created_at`。 | 最近更新时间。 |
 | `deleted_at` | no | `timestamp` | durable tombstone 可用。 | 逻辑删除时间。 |
 | `state_changed_at` | conditional | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Flow / Space / Message / Morph / Relation）当 `state != active` 时 MUST 写入;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值,以触发该 state transition 的 Event 的 `created_at`(或对应 anchor 的 `anchored_at`,以两者中较晚者为准)覆盖写入。MUST 不早于 `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
+| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时必填（v1 适用对象 = Flow / Morph，详见 §5.3）；取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
+| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `cx.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST 不早于 `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
@@ -148,12 +150,67 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 - **不是命名 mandate**,但 **MUST 与 registry 对齐**:模板槽列出的"已有实例"必须存在于 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中;`cx.message.create`(非历史草案中的 `cx.message.send`)是 v1 标准 wire kind。新对象在注册时按模板选择需要的槽,但**不得**列出 registry 中不存在的 wire kind 当作示例。
 - **不创造新槽**:新增 lifecycle 行为(例如"软隔离 / 待审 / 撤回审核")MUST 先在本节扩展模板;否则不得作为标准 lifecycle event 入 registry。
-- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `cx.patch.v1` 承载(参见 [`flow-and-message.md` §4.8](./flow-and-message.md) 的 `cx.flow.tracks.update` 实例);避免出现 `cx.<kind>.set_<field>` / `cx.<kind>.toggle_<field>` 这类单点 event 膨胀。
+- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `cx.patch.v1` 承载(参见 [`flow-and-message.md` §4.8](./flow-and-message.md) 的 `cx.flow.tracks.update` 实例);避免出现 `cx.<kind>.set_<field>` / `cx.<kind>.toggle_<field>` 这类单点 event 膨胀。**stage 是该原则的明确例外**:`cx.<kind>.stage.set` 走专用 event 是为了 capability 切分与审计过滤(见 §5.3),而非字段膨胀。
+- **stage 模板槽**:适配 §5.3 的对象 MUST 注册一条 `cx.<kind>.stage.set` event,走 `object_stage_set_payload` 形态(详见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json));`cx.<kind>.update` patch 路径 MUST NOT 修改 `stage` / `stage_changed_at`(违者 `schema_violation`,单源约束)。**stage 变更不携带 reason 字段**:事件本身已经 durable 且 `created_by` / `created_at` 即审计归属;需要解释"为什么 cancel / block / supersede"时,actor SHOULD 在该对象的 discussion track 发一条 Message(`cx.message.create`),通过 `references` Relation 指向本次 `cx.<kind>.stage.set` event,而不是把 reason 藏在对象字段里。
 - **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表,不在各对象文档重复说明转换矩阵。
 - "Space 没有 redacted"：Space 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `cx.space.tombstone` 或 `cx.redaction` 一并完成。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
 - "Relation 用 `tombstone` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故合并为单一 `tombstone`；具体 reason 在对应 `cx.relation.delete` / `cx.redaction` event 中保留。
 - Reducer 与 projection MUST 把 `tombstoned` / `tombstone` / `deleted` 视为语义等价的"不可逆删除"状态；Flow / Morph 不使用 `deleted`，其不可逆内容清除状态是 `redacted`。UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。
+
+### 5.3 Stage 轴（业务进度，与 state 正交）
+
+`state` 表达**物理生命周期**（对象是否存在 / 是否可写 / 是否已被 redact）；`stage` 表达**业务进度**（一件事从想法走到完成的过程）。两个字段在不同 reducer 路径上独立维护，**MUST NOT 互相 implicate**：archive 不会把 `stage` 推到 cancelled，`stage=done` 不会自动 archive 对象。
+
+#### 5.3.1 适用对象（v1）
+
+| 对象 | 是否声明 `stage` | 必填语义 | 触发 event |
+| --- | --- | --- | --- |
+| `Flow` | yes | `cx.flow.create` 时 actor 必填 | `cx.flow.stage.set` |
+| `Morph` | yes | `cx.morph.create` 时 actor 必填 | `cx.morph.stage.set` |
+| Realm / Space / Message / Relation / View / Policy / ... | no | — | — |
+
+适用对象自己的 schema(`flow.schema.json` / `morph.schema.json`)MUST 把 `stage` 列入 `required[]` 并显式枚举允许值;不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
+
+#### 5.3.2 协议级枚举（8 值，固定）
+
+| 值 | bucket | 含义 |
+| --- | --- | --- |
+| `draft` | `todo` | 起草 / scoping,未对外承诺。 |
+| `proposed` | `todo` | 待评审 / 决策(accept or reject)。 |
+| `planned` | `todo` | 已接受,排期中,未启动。 |
+| `in_progress` | `doing` | 当前正在被推进。 |
+| `blocked` | `doing` | 在做但被外部依赖卡住。 |
+| `done` | `closed` | 成功完成。 |
+| `cancelled` | `closed` | 主动放弃,未完成,无替代品。 |
+| `superseded` | `closed` | 被另一个对象取代;SHOULD 配套写 Relation `superseded_by` 指向继任。 |
+
+`bucket`(`todo / doing / closed`)是**派生**分类,不入 wire / canonical bytes / 签名输入;projection 自行映射用于 dashboard / filter。bucket 命名刻意避开 `active`,防止与 `state=active` 撞名。
+
+枚举值在 v1 内**固定**,profile MUST NOT 新增 stage value;细粒度业务状态(`needs_review` / `qa` / `signed_off` 等)走 per-Realm `cx:workflow:`(若已注册该 profile)或 `fields.<custom_status>`,**不**在协议级 stage 表达。
+
+#### 5.3.3 转换规则（reducer-enforced 硬约束)
+
+`stage` 的细粒度 transition matrix 由 per-Realm `cx:workflow:`(profile-level)声明;**核心 reducer 不强制 stage 之间的方向**(`done → in_progress` 回炉、`cancelled → planned` 复活均合法)。但以下硬约束 MUST 由 core reducer 强制:
+
+1. **物理终态优先**:对象 `state ∈ {redacted, tombstoned, deleted}` 时,`cx.<kind>.stage.set` MUST 返回 `failed_precondition`,`reason="<kind>_already_terminal"`。
+2. **non-active 拒写**:对象 `state=archived` 时,`cx.<kind>.stage.set` MUST 返回 `failed_precondition`,`reason="<kind>_not_active"`(与 §5.1 update on non-active 同语义);想推进 stage 必须先 `cx.<kind>.restore`。
+3. **`stage_changed_at` reducer-derived**:reducer **MUST** 忽略 wire payload 中 actor-supplied 的 `stage_changed_at`,以触发 event 的 `created_at` 覆盖。
+4. **same-value self-transition no-op**:`cx.<kind>.stage.set` 把 `stage` 设为与当前相同值时,reducer **不更新** `stage_changed_at`,且不计入审计变更(与 §5.1 `cx.<kind>.archive` 在 same-state 时 fail 的规则**不同** —— stage 是软进度字段,允许 idempotent no-op)。
+5. **stage 变更不携带 reason 字段**:`cx.<kind>.stage.set` payload **不**定义 reason / note / explanation 字段。需要解释时 SHOULD 在该对象的 discussion track 发 Message 并通过 Relation `references` 指向本次 stage event;事件日志本身的 `created_by` / `created_at` 已经是审计归属真源。reserved-name guard:对象顶层与 `fields.*` 上 `stage_reason` / `stage_note` / `stage_explanation` / `stage_comment` MUST 被 forbidden-wire-fields 拒绝。
+6. **`cx.<kind>.update` 禁写 stage**:patch path `stage` / `stage_changed_at` MUST 被 forbidden-wire-fields 拒绝(单源:stage 变更只能走 `cx.<kind>.stage.set`)。
+
+#### 5.3.4 与 `cx:workflow:` 的关系
+
+未启用 `cx:workflow:` 的 Realm:actor 通过 `cx.<kind>.stage.set` 直接推进 stage,reducer 只走 §5.3.3 硬约束。
+
+启用 `cx:workflow:` 的 Realm(profile-level,non-core):
+
+- 每个 workflow state SHOULD 声明 `stage_category`(取上面 8 值之一);
+- workflow 推进 event 在变更 `workflow_state_ref` 时,reducer SHOULD 派生写入对应 `stage`;
+- 客户端直接发 `cx.<kind>.stage.set` 仍合法,但 profile MAY 收紧为只允许 workflow event 路径(profile-defined,非 core)。
+
+如此 stage 成为 workflow 的协议级粗投影,跨 Realm dashboard 可聚合(同一个 `stage=in_progress` bucket 涵盖各 Realm 自定义的"In Dev / Reviewing / QA"等 fine-grained state)。
 
 ## 6. 通用对象 ID 约定
 

@@ -257,6 +257,37 @@
       "profile": null
     },
     {
+      "action": "cx.flow.stage.set",
+      "category": "flow",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.flow.stage.set"
+      ],
+      "profile": null
+    },
+    {
+      "action": "cx.morph.stage.set",
+      "category": "morph",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.morph.stage.set"
+      ],
+      "profile": null
+    },
+    {
+      "action": "cx.object.stage.set",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.flow.stage.set",
+        "cx.morph.stage.set"
+      ],
+      "profile": null
+    },
+    {
       "action": "cx.relation.create",
       "category": "flow",
       "risk_tier": "medium",

@@ -9,6 +9,7 @@
     "realm_id",
     "title",
     "tracks",
+    "stage",
     "created_by",
     "created_at"
   ],
@@ -60,6 +61,24 @@
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
       "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.flow.archive / cx.flow.restore / cx.redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "proposed",
+        "planned",
+        "in_progress",
+        "blocked",
+        "done",
+        "cancelled",
+        "superseded"
+      ],
+      "description": "Flow business-progression stage. Orthogonal to top-level 'state' (physical lifecycle): archive does NOT change stage; stage=done does NOT auto-archive. Required on cx.flow.create (no protocol-level default). The only wire path that mutates stage is the dedicated cx.flow.stage.set event; cx.flow.update patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the cx.flow.stage.set event log is the audit source, and human-readable explanations belong in a Message on the discussion track that references the event. The per-Realm cx:workflow: profile MAY narrow which transitions are legal beyond the core reducer hard invariants (terminal state freeze, non-active reject) defined in models/common-fields.md §5.3.3. See models/flow-and-message.md §3.2 for full semantics and models/common-fields.md §5.3 for the protocol-level enum / bucket mapping."
+    },
+    "stage_changed_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Reducer-derived timestamp of the most recent stage transition. MUST be ignored when present on wire; reducer overwrites with the triggering cx.flow.stage.set event's created_at. Same-value self-transitions (stage value unchanged) MUST NOT update this field."
     },
     "tracks": {
       "type": "object",
