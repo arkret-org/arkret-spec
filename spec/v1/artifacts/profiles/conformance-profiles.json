@@ -703,7 +703,7 @@
       "depends_on": ["cx.profile.e2ee_client.v1"],
       "mutually_exclusive_with": ["cx.profile.mls_governance_binding.full.v1"],
       "spec_ref": "spec/v1/zh/crypto-media/encryption-and-audit.md#242-cxprofilee2ee_relaxedv1降级-profile",
-      "summary": "Degraded E2EE profile. Allows `mls_send_pause=\"advisory\"` (cf. §2.4.1) so that low-latency interactive scenarios (real-time AV, collaborative editing, in-game chat) do not block message send on MLS commit completion. Cost: removed members can continue decrypting a small window of subsequent messages. NOT for general chat / collaboration / compliance use. MUTUALLY EXCLUSIVE with cx.profile.mls_governance_binding.full.v1.",
+      "description": "Degraded E2EE profile. Allows `mls_send_pause=\"advisory\"` (cf. §2.4.1) so that low-latency interactive scenarios (real-time AV, collaborative editing, in-game chat) do not block message send on MLS commit completion. Cost: removed members can continue decrypting a small window of subsequent messages. NOT for general chat / collaboration / compliance use. MUTUALLY EXCLUSIVE with cx.profile.mls_governance_binding.full.v1.",
       "applies_to_roles": ["e2ee_space"],
       "required_endpoints": [],
       "required_event_kinds": [],

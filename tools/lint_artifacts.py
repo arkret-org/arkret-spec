@@ -938,6 +938,8 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         if not isinstance(requirement, dict):
             lint.fail(path, f"{profile_id} requirement must be an object")
             continue
+        if "summary" in requirement:
+            lint.fail(path, f"{profile_id} uses summary for profile metadata; use description")
         for missing_key in sorted(required_keys - set(requirement.keys())):
             lint.fail(path, f"{profile_id} missing {missing_key}")
 

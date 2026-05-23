@@ -231,7 +231,7 @@ reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、
 `cx.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
 
 - Message: `content`、`encrypted_payload`、`body`
-- Flow: `summary`、`description`、`encrypted_payload`、用户可写的长文本 fields
+- Flow: `summary`、`encrypted_payload`、用户可写的长文本 fields
 - Morph: `content`、`encrypted_payload`、`fields.<text-content-shape>` (由 morph profile 声明)
 - 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
