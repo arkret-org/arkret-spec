@@ -61,6 +61,10 @@ Contrix v1 把三件事分开处理：
 ### 2.2 设备吊销
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `cx.device.revoked`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
+`cx.device.revoked.payload` MUST 携带 `revocation_frontier`：该撤销在 principal control stream 中被接受时的 Anchor frontier（以 event_digest hash 数组表达）。撤销证明签名和任何后续 device trust proof MUST 覆盖该 frontier；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 frontier 或其后继 view 作为判定依据。
+
+共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `cx.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `revocation_frontier`，或覆盖一个已经把该 principal control frontier 导入 Realm governance state 的显式 Move；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_frontier_cell` 不得声称已覆盖该设备撤销。
+
 
 ## 3. 企业单点登录 (SSO / OIDC Gateway)
 
@@ -556,7 +560,7 @@ POST /api/v1/keys/keypackages/revoke
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、device binding、expiry、capabilities 和 `capabilities_digest = sha256(JCS(capabilities))`。 |
+| `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、`keypackage_hash`、device binding、expiry、capabilities 和 `capabilities_digest = sha256(JCS(capabilities))`。 |
 | `failures` | `object[]` | optional | 不可领取设备与原因；不得泄露不可见用户或设备。 |
 
 `consume` MUST 由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `claim_id`、`welcome_ref`、`realm_id` 和 device proof。`revoke` 可由设备、principal controller 或 policy 授权服务发起。
@@ -567,7 +571,7 @@ POST /api/v1/keys/keypackages/revoke
 - 同一 `keypackage_ref` 不得被多个 active claim 使用。
 - 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST 不再返回该 KeyPackage。
 - **`required_capabilities` ⊆ KeyPackage `capabilities`（normative subset rule）**：claim request 中的 `required_capabilities` 集合 MUST 是被领取 KeyPackage 上声明的 `capabilities`（见 [`encryption-and-audit.md` §2.6 KeyPackage payload](./encryption-and-audit.md)）的**子集**。任何 `required_capabilities ∖ capabilities ≠ ∅` 的 claim MUST 被服务端拒绝（与其它 claim 失败一致使用统一不透明错误码 `claim_failed`，但服务端 SHOULD 在内部审计日志中记录 `keypackage_capability_overreach` 以便滥用检测）。该规则避免了"客户端在 claim 时声明超过 KeyPackage 实际声明的能力，使后续 Welcome / Commit 在错误能力假设下进行"的隐性越权。
-- Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `capabilities_digest = sha256(JCS(capabilities))` 与当前 accepted cross-signing `ssk_generation`。`cx.mls.welcome` MUST 回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并回填同一 generation 到 `payload.claim_ref.ssk_generation`；Welcome 接收端在解密前必须比对该 digest 与本地 claim 记录，并确认 `ssk_generation` 仍等于当前 accepted `cx.cross_signing.publish.generation`，防止 group manager 或中间服务在 Welcome 阶段扩大 KeyPackage 能力集合或复用旧 SSK generation 的 claim。
+- Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `keypackage_hash = canonical_hash(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(capabilities))` 与当前 accepted cross-signing `ssk_generation`。`cx.mls.welcome` MUST 回填同一 KeyPackage hash 到顶层 `payload.keypackage_hash` 和 `payload.claim_ref.keypackage_hash`，回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并回填同一 generation 到 `payload.claim_ref.ssk_generation`；Welcome 接收端在解密前必须比对这些值与本地 claim 记录，并确认 `ssk_generation` 仍等于当前 accepted `cx.cross_signing.publish.generation`，防止 group manager 或中间服务在 Welcome 阶段替换 KeyPackage、扩大 KeyPackage 能力集合或复用旧 SSK generation 的 claim。
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码 SHOULD 合并为单一不透明错误码 `claim_failed`，不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
 - 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 claim / query 响应 SHOULD 返回调用方可见的 `available_count`；客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。

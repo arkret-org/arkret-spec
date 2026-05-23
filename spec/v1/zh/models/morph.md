@@ -41,7 +41,7 @@ Schema id: `cx.schema.morph.v1`
 
 ## 3. 最小示例
 
-```json
+```json schema=schemas/morph.schema.json
 {
   "id": "cx:morph:0196414b-0000-7000-8000-000000000000",
   "schema": "cx.schema.morph.v1",

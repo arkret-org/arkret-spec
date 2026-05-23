@@ -12,6 +12,7 @@ title: Conformance Vectors
 
 可执行向量数据集位于 [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/)；
 本文档把对应规范条款与文件入口集中呈现，便于一致性测试 runner 引用。
+所有 `cx.vector.*` 标识符的机器索引位于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；新增、删除或重命名向量时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 的闭包校验。
 
 ## 1. Encoding & Crypto Vectors
 
@@ -564,6 +565,36 @@ cx.vector.move_anchor_lattice.mls_covered_frontier.v1
 
 - MLS Commit Move `fail_precondition`。
 - 普通 governance / recovery Move 不依赖 `covered_frontier_cell`，仍可被 Anchor 推进。
+
+### 2.5.1 Vector: MLS Governance Epoch Binding
+
+`vector_id`: `cx.vector.mls.governance_epoch_binding.v1`
+
+Steps：
+
+1. 构造 `cx.mls.commit`，`payload.base_epoch = 41`、`payload.next_epoch = 42`。
+2. `payload.governance_binding.previous_epoch = 40` 或 `payload.governance_binding.next_epoch = 43`。
+3. 其它 signature、proposal refs、policy root 和 membership frontier 均有效。
+
+Expected：
+
+- Receiver / reducer MUST reject 该 commit，且不得推进 `mls_epoch_cell` 或 `covered_frontier_cell`。
+- `governance_binding.previous_epoch` / `next_epoch` MUST 与 payload 顶层 epoch 字段一致；不得只相信其中一侧。
+
+### 2.5.2 Vector: MLS Welcome KeyPackage Hash Binding
+
+`vector_id`: `cx.vector.mls.welcome_keypackage_hash.v1`
+
+Steps：
+
+1. KeyPackage claim response 返回 `keypackage_ref=K`、`keypackage_hash=H1`、`capabilities_digest=C`、`ssk_generation=G`。
+2. 攻击者提交 `cx.mls.welcome`，顶层 `keypackage_ref=K`，但 `payload.keypackage_hash=H2` 或 `payload.claim_ref.keypackage_hash=H2`。
+3. Welcome ciphertext、claim_id、capabilities_digest 和 signature envelope 其它字段均有效。
+
+Expected：
+
+- Receiver MUST reject before decrypting or accepting the Welcome。
+- `payload.keypackage_hash`、`payload.claim_ref.keypackage_hash`、claim record `keypackage_hash` 和已发布 `cx.mls.keypackage.payload.keypackage_hash` MUST 全部一致。
 
 ### 2.6 Vector: Anchorer Cell ⊥ → Recovery Anchorer 上位
 
@@ -2275,6 +2306,21 @@ Expected：
 - 第 1 步 MUST 返回 `device_recovery_ssk_generation_mismatch`。
 - 第 2 步设备只能处于 `recovery_pending`，不得显示 fully verified。
 - 第 3 步 response SHOULD 返回 `available_count` / `low_watermark` / `suggested_publish_count`，claimed package 不得自动放回。
+
+### 10.9.1 Vector: Device Revocation Frontier Binding
+
+`vector_id`: `cx.vector.device.revocation_frontier.v1`
+
+Steps：
+
+1. `cx.device.revoked` 被 principal control stream 接受，payload 携带 `revocation_frontier=[R]`。
+2. 攻击者重放该设备在 R 之后签发的 session grant、KeyPackage publish 或 to-device write。
+3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖 R，也未覆盖导入 R 的 Realm governance Move。
+
+Expected：
+
+- 第 2 步 MUST fail closed；实现不得用本地布尔缓存替代 `revocation_frontier` 或其后继 view。
+- 第 3 步 Remove 不得使 `covered_frontier_cell` 声称已覆盖该设备撤销；后续 E2EE message Move 仍必须被 `covered_frontier_cell` gate 阻塞。
 
 ### 10.10 Vector: Push Wakeup Policy
 

@@ -402,6 +402,7 @@ MLS group 的 scope 永远绑定到一个 `realm_id`：源 Realm 自身使用 `e
 
 - `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员、invite/leave/ban 和设备信任 cell。
 - `binding_version` MUST 为 `1`；`encoding_profile` MUST 为 `cbor-deterministic-rfc8949-v1`。两者进入 GroupContext extension bytes、Event payload 和 `covered_frontier_cell` canonical value，接收方不得从 codepoint 或 profile id 隐式推断。
+- `previous_epoch` / `next_epoch` MUST 同时出现在 `governance_binding` 与 `cx.mls.commit` payload 中；接收端 MUST 校验 `payload.base_epoch == governance_binding.previous_epoch` 且 `payload.next_epoch == governance_binding.next_epoch`。任一不一致时该 commit 不得推进 `mls_epoch_cell`。
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
 - `capability_root` MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell。
 - `discussion_metadata_hash` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
@@ -503,6 +504,7 @@ published -> claimed -> consumed
   "principal_id": "did:web:alice.example.com",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "keypackage_ref": "sha256:...",
+  "keypackage_hash": "sha256:canonical_keypackage_bytes",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
   "capabilities": ["mimi.content.v1", "cx.content.v1"],
   "state": "published",
@@ -522,9 +524,9 @@ Claim 请求 MUST 绑定：
 
 Claim 成功后：
 
-- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set、`capabilities_digest = sha256(JCS(claimed_capabilities))`、当前 accepted cross-signing `ssk_generation` 和 expiry。
+- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set、`keypackage_hash = canonical_hash(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(claimed_capabilities))`、当前 accepted cross-signing `ssk_generation` 和 expiry。
 - 同一 KeyPackage 不得被第二个 Realm / MLS group、第二个 requester 或第二次 Welcome 重复使用。
-- Welcome 发送方 MUST 引用 `keypackage_ref` / `claim_id`，并在 `cx.mls.welcome.payload.claim_ref` 中携带 `{claim_id, keypackage_ref, capabilities_digest, ssk_generation}`；该 `claim_ref` MUST 进入 `governance_binding` transcript 或等价 Welcome AAD。接收端在解密 Welcome 前 MUST 校验：`claim_ref.claim_id` / `claim_ref.keypackage_ref` 与顶层字段一致，`capabilities_digest == sha256(JCS(claimed_capabilities))`，`claim_ref.ssk_generation` 等于接收端当前 accepted `cx.cross_signing.publish.generation`，且本次 Welcome 要求的 capability / content profile 集合是 `claimed_capabilities` 的子集；否则 fail closed，capability 不匹配返回 `welcome_capability_mismatch`，generation 不匹配返回 `claim_generation_mismatch`。
+- Welcome 发送方 MUST 引用 `keypackage_ref` / `keypackage_hash` / `claim_id`，并在 `cx.mls.welcome.payload.claim_ref` 中携带 `{claim_id, keypackage_ref, keypackage_hash, capabilities_digest, ssk_generation}`；该 `claim_ref` MUST 进入 `governance_binding` transcript 或等价 Welcome AAD。接收端在解密 Welcome 前 MUST 校验：`claim_ref.claim_id` / `claim_ref.keypackage_ref` / `claim_ref.keypackage_hash` 与顶层字段一致，`claim_ref.keypackage_hash` 等于已发布 `cx.mls.keypackage.payload.keypackage_hash` 或重新获取 KeyPackage canonical bytes 后得到的 hash，`capabilities_digest == sha256(JCS(claimed_capabilities))`，`claim_ref.ssk_generation` 等于接收端当前 accepted `cx.cross_signing.publish.generation`，且本次 Welcome 要求的 capability / content profile 集合是 `claimed_capabilities` 的子集；否则 fail closed，KeyPackage hash 或 capability 不匹配返回 `welcome_capability_mismatch`，generation 不匹配返回 `claim_generation_mismatch`。
 - 成功处理 Welcome 后，接收端或服务端状态 SHOULD 标记该 KeyPackage 为 `consumed`。若 Welcome 失败或过期，KeyPackage 不得自动回到 `published`；设备 SHOULD 发布新的 KeyPackage。
 - 服务端返回 KeyPackage 时 MUST 附带 device signature、principal binding 和 revocation status。客户端 MUST 通过 DID control chain 与 device trust chain 验证后才能加密。
 
@@ -537,6 +539,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `keypackage_ref` | hash | 被消费的 KeyPackage 的 `keypackage_ref`。 |
+| `keypackage_hash` | hash | 被消费 KeyPackage canonical bytes 的 hash；MUST 等于 Welcome 顶层 `keypackage_hash` 与 `claim_ref.keypackage_hash`。 |
 | `intended_realm_id` | id | Welcome 真正加入的 Realm ID (与 Realm governance state 同源)。 |
 | `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_space, nonce, expiry)。 |
 | `requester_did` | did | Welcome 发送方 principal DID。 |
@@ -549,7 +552,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 
 1. 通过 DID control chain 验证 `claim_envelope.signature` → `requester_did`;
 2. 校验 `intended_realm_id` 等于 MLS Welcome 内 group_id 反向 resolve 出的 Realm(防止 server-side rewrite);
-3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见，`claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致，且 `claim_envelope.ssk_generation == payload.claim_ref.ssk_generation == current accepted cross-signing generation`;
+3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见，`claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致，`claim_envelope.keypackage_hash == payload.keypackage_hash == payload.claim_ref.keypackage_hash`，且 `claim_envelope.ssk_generation == payload.claim_ref.ssk_generation == current accepted cross-signing generation`;
 4. 校验 `welcome_digest` 等于 `canonical_hash(welcome_bytes)`,防止 envelope 被剥离后重新封装。
 
 任一项失败 → 拒绝 Welcome,reason=`keypackage_welcome_envelope_mismatch`,并 SHOULD 触发 client UI 警示 "received an invalid Welcome envelope; the inviting party's identity could not be verified for this Realm"。

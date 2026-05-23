@@ -1,0 +1,479 @@
+{
+  "version": "2026-05-23",
+  "source_of_truth": true,
+  "description": "Canonical registry of conformance vector identifiers. Every cx.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
+  "vectors": [
+    {
+      "vector_id": "cx.vector.auth.session_grant_audience_binding.v1",
+      "status": "active",
+      "domain": "auth",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.auth.soft_logout_did_proof.v1",
+      "status": "active",
+      "domain": "auth",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.capability.approval_constraint.v1",
+      "status": "active",
+      "domain": "capability",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.capability.delegate_chain.v1",
+      "status": "active",
+      "domain": "capability",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.capability.revoke_downstream_recheck.v1",
+      "status": "active",
+      "domain": "capability",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.capability.revoke_rollback.v1",
+      "status": "active",
+      "domain": "capability",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.consent.cache_invalidation.v1",
+      "status": "active",
+      "domain": "consent",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.consent.scope_cascade.v1",
+      "status": "active",
+      "domain": "consent",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.cursor.revoke_high_assurance.v1",
+      "status": "active",
+      "domain": "cursor",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.device.revocation_frontier.v1",
+      "status": "active",
+      "domain": "device",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.device_recovery.lifecycle.v1",
+      "status": "active",
+      "domain": "device_recovery",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
+      "status": "active",
+      "domain": "e2ee",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
+      "status": "active",
+      "domain": "e2ee_relaxed",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.canonical_json.basic.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.canonical_json.nested.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.crypto.ed25519_detached_jws.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.cursor_opaque.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.encrypted_envelope_digest.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.event_batch_receipt_digest.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.event_digest.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.hlc_logical_overflow.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.hlc_order.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.reject_malformed_json.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.reject_noncanonical_numbers.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.signature_binding_payload.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.ephemeral.capability_ttl.v1",
+      "status": "active",
+      "domain": "ephemeral",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.federation.idempotency_after_key_revoke.v1",
+      "status": "active",
+      "domain": "federation",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.flow_tracks_update.atomic.v1",
+      "status": "active",
+      "domain": "flow_tracks_update",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.identity_link.eager_invalidation.v1",
+      "status": "active",
+      "domain": "identity_link",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.identity_link.policy_tightening_invalidation.v1",
+      "status": "active",
+      "domain": "identity_link",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.invite.failure_indistinguishable.v1",
+      "status": "active",
+      "domain": "invite",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.invite.oob_code_entropy.v1",
+      "status": "active",
+      "domain": "invite",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.keypackage.exhaustion_claim_limits.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.late_key_recovery.removed_actor.v1",
+      "status": "active",
+      "domain": "late_key_recovery",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.lattice.lww_open_set.v1",
+      "status": "active",
+      "domain": "lattice",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.mls.governance_epoch_binding.v1",
+      "status": "active",
+      "domain": "mls",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.mls.welcome_keypackage_hash.v1",
+      "status": "active",
+      "domain": "mls",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.move_anchor_lattice.anchor_batch_pre_state.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.move_anchor_lattice.cas_bottom.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.move_anchor_lattice.mls_covered_frontier.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.move_anchor_lattice.multi_cell_ban_revoke.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.move_anchor_lattice.signed_compaction_equivalent.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.projection.pagination_shape.v1",
+      "status": "active",
+      "domain": "projection",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.push.wakeup_policy.v1",
+      "status": "active",
+      "domain": "push",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.range_completeness.witness_disagreement.v1",
+      "status": "active",
+      "domain": "range_completeness",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.redaction.hard_erasure_receipt.v1",
+      "status": "active",
+      "domain": "redaction",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.redaction.policy_scope.v1",
+      "status": "active",
+      "domain": "redaction",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.redaction.preserve_fields.v1",
+      "status": "active",
+      "domain": "redaction",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.redaction.snapshot_pruning_stub.v1",
+      "status": "active",
+      "domain": "redaction",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.redaction.space_target_ref_schema.v1",
+      "status": "active",
+      "domain": "redaction",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.state_root.incremental.v1",
+      "status": "active",
+      "domain": "state_root",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.sync.soft_fail_reconcile.v1",
+      "status": "active",
+      "domain": "sync",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.webrtc.media_plaintext_downgrade.v1",
+      "status": "active",
+      "domain": "webrtc",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    }
+  ]
+}

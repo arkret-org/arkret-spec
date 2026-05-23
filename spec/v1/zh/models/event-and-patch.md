@@ -53,7 +53,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
 
 ### 2.3 最小 reducer-input event 示例
 
-```json
+```json schema=schemas/event-schema.json
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
@@ -94,7 +94,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
       "verification_method": "did:web:alice.example#device-1",
       "payload_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00Z",
-      "jws": "..."
+      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
   ]
 }

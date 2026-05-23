@@ -32,7 +32,7 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 
 最小示例：
 
-```json
+```json schema=schemas/relation.schema.json
 {
   "id": "cx:relation:01964180-0000-7000-8000-000000000000",
   "schema": "cx.schema.relation.v1",

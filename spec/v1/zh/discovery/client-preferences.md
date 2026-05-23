@@ -34,6 +34,7 @@ title: "Client Preferences & Account Data"
 ## 3. 标准账户数据类型
 
 为了保证不同客户端间的互操作性，本规范定义了以下标准 Key 命名空间：
+这些 key/pattern 的机器索引位于 [`account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json)；新增标准 Account Data key 时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 校验 source refs 与写入 Event.kind。
 
 ### 3.1 空间标签与分类 (Realm Tags)
 

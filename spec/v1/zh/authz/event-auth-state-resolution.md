@@ -230,6 +230,8 @@ Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定
 `escalated_at`）保留进 leaf——它们是该 cell 在该 view 下状态的一部分，跨 view
 可能不同，是 state_root 必须捕获的差异。
 
+`state_root` leaf MUST NOT 包含 `batch_index`、Anchor 内接收顺序、本地数据库序号或其它历史排序字段。`state_root` 只承诺该 Anchor view 下的 **当前 cell state**；历史顺序与完整性由 Anchor `frontier[]`、actor chain `(actor_id, actor_seq)`、range completeness attestation 或 event-set commitment 承诺。两个 Anchor view 若归约出完全相同的 cell map，必须得到相同 `state_root`，即使其 Move 被不同批次或不同接收顺序合入。
+
 #### 4.2.2 树形
 
 1. 收集该 Anchor view 下所有有过至少一次 effect 的 cell。
@@ -567,7 +569,7 @@ join(moves) -> List<entry_record>:
     items = dedupe_by_entry_id(items)
     items = sort_by(seq)
     items MUST form a contiguous chain：item[i].seq == item[i-1].seq + 1
-  // 跨 issuer 不强制全局序；projection 可按 (anchor_index, hlc, issuer, seq) 展示
+  // 跨 issuer 不强制全局序；projection 可按 (effective_anchor_depth, hlc, issuer, seq) 展示
   return concat(per_issuer.values())
 
 validate_op(op):
@@ -580,14 +582,14 @@ validate_op(op):
 
 #### 5.3.7 `lww-register`（扩展：`cx.profile.collaborative_text.v1`）
 
-Last-write-wins register。本节是该 lattice type 的 normative 行为，但**仅在实现声明 `cx.profile.collaborative_text.v1` 时启用**——未声明的实现遇到使用 `lww-register` 的 cell schema MUST 按 §5.4 fail closed。"时间"由 Anchor 批次索引提供，**不**读 actor HLC：
+Last-write-wins register。本节是该 lattice type 的 normative 行为，但**仅在实现声明 `cx.profile.collaborative_text.v1` 时启用**——未声明的实现遇到使用 `lww-register` 的 cell schema MUST 按 §5.4 fail closed。"时间"由 Anchor DAG 中可推导的 effective depth 提供，**不**读 actor HLC，也不把批次序号写入 `state_root` leaf：
 
 - 跨 Anchor batch：后批次 effect 覆盖前批次。
 - 同 Anchor batch（sibling Move）并发不同 set：用 deterministic tiebreaker `(issuer DID lex order, event_digest lex order)` 选 winner；记录 lost siblings 进 bottom diagnostics 但不影响最终 value。
 
 **Open_set anchor profile 下的全序保证**：当 anchor profile 是 `open_set`、effective anchor view 由多个 leaf 的 `union` 构成时，sibling Move 集合 MUST 按 deterministic effective anchor view（§4.1）的 canonical join 计算，**而不是**基于任意单 leaf 的局部观察：
 
-- 输入 sibling 集合 = `union(all leaves' frontier) ∩ {moves with effect on this cell within the same logical batch_index}`。这里的 `batch_index` 等于 anchor view 中所有 leaf 共同的 predecessor depth；不同 leaf 给出不同 sibling 集合的情况由 join 强制统一。
+- 输入 sibling 集合 = `union(all leaves' frontier) ∩ {moves with effect on this cell within the same effective_anchor_depth}`。这里的 `effective_anchor_depth` 是从 Anchor DAG predecessor relation 推导出的 view-local depth，不是 Event、Move、leaf 或 `state_root` 中的 wire 字段；不同 leaf 给出不同 sibling 集合的情况由 join 强制统一。
 - Tiebreaker key `(issuer DID lex order, event_digest lex order)` 的比较 MUST 按 NFC + ASCII byte order；两个 Event 的 `(issuer, event_digest)` 不可能完全相等（event_digest 是 canonical-bytes hash），所以 winner 永远唯一。
 - 不同 conformant 节点对同一 anchor view 计算 sibling 集合 + tiebreaker MUST 产出相同 winner；任何偏差视为 reducer 实现 bug，conformance vector `cx.vector.lattice.lww_open_set.v1` 验证此性质。
 
@@ -595,9 +597,9 @@ Last-write-wins register。本节是该 lattice type 的 normative 行为，但*
 join(moves) -> value:
   current = parameters.initial_value   // schema 声明的初值，可为 null
   // 关键：moves 已经是 effective anchor view 全 union 的结果，不是单 leaf
-  for batch_index in sorted(unique batch indices via anchor view union):
+  for effective_anchor_depth in sorted(unique depths derived from anchor view union):
     siblings = [M for M in moves
-                if anchor_index_of(M, view) == batch_index
+                if effective_anchor_depth_of(M, view) == effective_anchor_depth
                 and M has set effect on this cell]
     if siblings is empty: continue
     if len(siblings) == 1:
@@ -631,27 +633,27 @@ op shape:
 element_id 形态：`<issuer-did>:<seq>`，issuer 即 Move issuer，seq 由 issuer 在该 cell 上单调递增（每次 insert 递增）。
 
 join(moves) -> List<{element_id, value, deleted}>:
-  inserts = {}    // element_id → {predecessor, value, anchor_index, issuer_lex}
+  inserts = {}    // element_id → {predecessor, value, effective_anchor_depth, issuer_lex}
   tombs   = set() // element_ids deleted
-  for batch_index, batch in enumerate(moves grouped by anchor_ref):
+  for effective_anchor_depth, batch in moves grouped by effective anchor depth:
     for M in batch with effect on this cell:
       for eff in M.effects:
         if eff.op.type == "insert":
           inserts[eff.op.element_id] = {
             predecessor: eff.op.predecessor,
             value:       eff.op.value,
-            anchor_index: batch_index,
+            effective_anchor_depth: effective_anchor_depth,
             issuer:      M.issuer,
           }
         elif eff.op.type == "delete":
           tombs.add(eff.op.element_id)
 
   // 构建 forest：每个 element 挂在它的 predecessor 下
-  // 同一 predecessor 下多个 child 按 (anchor_index, issuer, seq) 升序排列
+  // 同一 predecessor 下多个 child 按 (effective_anchor_depth, issuer, seq) 升序排列
   result = []
   walk(predecessor="head"):
     children = [eid for eid, meta in inserts if meta.predecessor == predecessor]
-    children.sort by (inserts[eid].anchor_index, inserts[eid].issuer, eid_seq(eid))
+    children.sort by (inserts[eid].effective_anchor_depth, inserts[eid].issuer, eid_seq(eid))
     for c in children:
       if c not in tombs:
         result.append({element_id: c, value: inserts[c].value, deleted: false})

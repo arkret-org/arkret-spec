@@ -43,8 +43,8 @@
 
 ## 后续评估 / 未在本轮闭环
 
-- [ ] 为所有 Markdown wire JSON 示例建立自动抽取 + JSON Schema local resolver 校验。当前仅修复了报告点名的高风险示例/fixture；完整 CI 需要新增示例标注约定和负向 fixture `first_expected_error` 元数据。
-- [ ] 为 `cx.account.*` Account Data 标准类型建立机器 registry，或引入 `cx.schema.account_data_type.v1`。这需要设计新的 registry 形态，且当前 registry 文件已有未归属脏改动，本轮不混入。
-- [ ] 建立 `vector-registry.json` 机器索引，机械列举 `cx.vector.*`。这属于 conformance runner 结构增强，本轮未展开。
-- [ ] 评估 `state_root` leaf 是否确实需要加入 `batch_index`。当前 state_root 定义是状态快照 root，不直接承诺历史顺序；报告建议可能会改变 root 兼容性，需要独立设计和向量迁移。
-- [ ] 对 MLS / device lifecycle 的更深 schema 级建议（例如新增 `expected_previous_epoch` 字段、device revoke Anchor frontier schema、Welcome `keypackage_canonical_hash` 双绑）做独立 schema/vector 迁移评审；当前 prose 已覆盖主要安全意图，但机器 schema 是否完全表达仍需单独工作。
+- [x] 为 Markdown wire JSON 示例建立 `schema=` 标注约定 + JSON Schema local resolver 校验；已把当前完整 wire 示例补充标注，并为负向 schema fixture 增加 `first_expected_error` 防漂移元数据。
+- [x] 为 Account Data 标准 key/pattern 建立 `account-data-type-registry.json` 机器 registry，并修正 `client-sync.md` 中与 `client-preferences.md` 漂移的 `cx.account.*` 摘要列表。
+- [x] 建立 `vector-registry.json` 机器索引，机械列举 `cx.vector.*`，并接入 `tools/lint_artifacts.py` 闭包校验。
+- [x] 评估 `state_root` leaf 是否需要加入 `batch_index`：结论是不加入。已在 `event-auth-state-resolution.md` 明确 `state_root` 只承诺当前 cell state，历史顺序由 Anchor frontier / actor chain / range completeness 或 event-set commitment 承诺。
+- [x] 对 MLS / device lifecycle 的更深 schema 级建议做独立 schema/vector 迁移评审并补齐最小机器约束：`governance_binding.previous_epoch` / `next_epoch` 进入 schema 必填并与 `cx.mls.commit` 顶层 epoch 字段绑定；Welcome 使用既有 `keypackage_hash` 概念做顶层 + `claim_ref` 双绑；`cx.device.revoked.payload.revocation_frontier` 增加 Anchor frontier schema；新增对应 conformance vectors。

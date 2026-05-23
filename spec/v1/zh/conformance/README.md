@@ -23,6 +23,7 @@ title: Contrix v1 一致性工件索引
 | 类型 | 位置 |
 | --- | --- |
 | Registry（contract-catalog 等） | [`spec/v1/artifacts/registry/`](../../artifacts/registry/) |
+| Conformance vector registry | [`spec/v1/artifacts/registry/vector-registry.json`](../../artifacts/registry/vector-registry.json) |
 | JSON Schema | [`spec/v1/artifacts/schemas/`](../../artifacts/schemas/) |
 | Conformance fixture | [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/) |
 | OpenAPI HTTP binding | [`spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml`](../../artifacts/openapi/contrix-service-api.openapi.yaml) |
@@ -32,3 +33,10 @@ title: Contrix v1 一致性工件索引
 修改 canonical machine artifact 时，先改 [`spec/v1/artifacts/`](../../artifacts/) 下的 canonical 源，
 再执行 `python tools/artifact_pipeline.py generate` 同步派生注册表视图，最后用
 `python tools/artifact_pipeline.py check` 验证未发生 drift。
+
+## Markdown JSON 示例校验
+
+完整 wire JSON 示例的 fence MUST 使用 `schema=` 标注本地 artifact schema，例如把 fence header 写为
+```` `json schema=schemas/event-schema.json` ````。
+
+`tools/lint_artifacts.py` 会抽取这些 fence，用本地 JSON Schema resolver 校验相对 `$ref` 与 `https://contrix.io/artifacts/...` `$id`。片段式示例或非 wire JSON MAY 不标注 `schema=`，但仍会执行 canonical JSON、typed ID、event kind、operation id 与 profile/schema id 的基础扫描。负向 Markdown schema 示例 MUST 写 `expect=invalid first_error="..."`；负向 fixture case MUST 写 `first_expected_error`，用于固定预期失败原因。

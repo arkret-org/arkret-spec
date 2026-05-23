@@ -19,6 +19,14 @@
       "description": "Standard service-level and per-item error code registry."
     },
     {
+      "name": "account_data_types",
+      "file": "registry/account-data-type-registry.json",
+      "kind": "account_data_type_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical Account Data key-pattern registry for actor/private account state."
+    },
+    {
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
       "kind": "event_kind_registry",
@@ -61,6 +69,14 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Index of every machine-readable registry file under artifacts/registry."
+    },
+    {
+      "name": "vectors",
+      "file": "registry/vector-registry.json",
+      "kind": "conformance_vector_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical machine index of cx.vector.* conformance vector identifiers and their defining prose/fixture sources."
     },
     {
       "name": "schemas",

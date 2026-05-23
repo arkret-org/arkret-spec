@@ -319,12 +319,17 @@ event_id ASC
 
 `account_data` 是 principal 或 device 私有状态，不进入 Realm canonical state。标准类型：
 
-- `cx.account.tag`
-- `cx.account.push_rules`
-- `cx.account.recent_emoji`
-- `cx.account.view_state`
-- `cx.account.ignored_actor`
-- `cx.account.direct_space`
+标准 Account Data key/pattern 的机器索引是 [`account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json)。当前标准集包括：
+
+- `cx.tags.realm.<realm_id>`
+- `cx.push_rules`
+- `cx.dnd_schedule`
+- `cx.collections.stickers`
+- `cx.client.ui_state`
+- `cx.account.blocklist`
+- `cx.contacts.actor.<did>`
+- `cx.contacts.realm.<realm_id>`
+- `cx.read_receipt.preferences`
 
 Account data MUST 按 principal/device 授权隔离。联邦节点不得向其他 principal 泄露 account data。
 

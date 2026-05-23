@@ -53,6 +53,8 @@ OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$"
 YAML_REF_RE = re.compile(r"\$ref:\s*['\"]?([^'\"\s#]+(?:#[^'\"\s]+)?)")
 JSON_FENCE_RE = re.compile(r"```json(?P<meta>[^\n`]*)\n(?P<body>.*?)```", re.IGNORECASE | re.DOTALL)
 JSON_FENCE_SCHEMA_ATTR_RE = re.compile(r"\bschema=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
+JSON_FENCE_EXPECT_ATTR_RE = re.compile(r"\bexpect=(valid|invalid)\b")
+JSON_FENCE_FIRST_ERROR_ATTR_RE = re.compile(r"\bfirst_error=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
 TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 TEXT_ARTIFACT_REF_RE = re.compile(
@@ -1251,6 +1253,165 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
                     lint.fail(path, f"line {line_no}: active Event.kind {event_kind} must not be written with a .vN suffix")
 
 
+def check_vector_registry(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "vector-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    if data.get("source_of_truth") is not True:
+        lint.fail(path, "source_of_truth must be true")
+
+    rows = data.get("vectors")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "vectors must be a non-empty list")
+        return
+
+    registered: dict[str, dict[str, Any]] = {}
+    for index, row in enumerate(rows):
+        label = f"vectors[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+
+        vector_id = row.get("vector_id")
+        if not isinstance(vector_id, str) or not VECTOR_ID_TOKEN_RE.fullmatch(vector_id):
+            lint.fail(path, f"{label}.vector_id must be a cx.vector.*.vN identifier")
+            continue
+        if vector_id in registered:
+            lint.fail(path, f"{label}.vector_id duplicates {vector_id}")
+        registered[vector_id] = row
+
+        if row.get("status") not in {"active", "reserved", "deprecated"}:
+            lint.fail(path, f"{label}.status must be active, reserved, or deprecated")
+
+        expected_domain = vector_id.removeprefix("cx.vector.").rsplit(".v", 1)[0].split(".", 1)[0]
+        if row.get("domain") != expected_domain:
+            lint.fail(path, f"{label}.domain must match vector id domain {expected_domain!r}")
+
+        source_refs = row.get("source_refs")
+        if not isinstance(source_refs, list) or not source_refs:
+            lint.fail(path, f"{label}.source_refs must be a non-empty array")
+            continue
+        for source_index, source_ref in enumerate(source_refs):
+            source_label = f"{label}.source_refs[{source_index}]"
+            if not isinstance(source_ref, str) or not source_ref:
+                lint.fail(path, f"{source_label} must be a non-empty string")
+                continue
+            source_path = Path(source_ref)
+            if source_path.is_absolute() or ".." in source_path.parts:
+                lint.fail(path, f"{source_label} escapes repository: {source_ref}")
+                continue
+            resolved = (ROOT / source_path).resolve()
+            try:
+                resolved.relative_to(ROOT.resolve())
+            except ValueError:
+                lint.fail(path, f"{source_label} escapes repository: {source_ref}")
+                continue
+            if not resolved.is_file():
+                lint.fail(path, f"{source_label} target does not exist: {source_ref}")
+                continue
+            try:
+                source_text = resolved.read_text(encoding="utf-8")
+            except Exception as exc:
+                lint.fail(path, f"{source_label} target cannot be read: {source_ref}: {exc}")
+                continue
+            if vector_id not in VECTOR_ID_TOKEN_RE.findall(source_text):
+                lint.fail(path, f"{source_label} does not contain vector_id {vector_id}")
+
+    for scan_path in markdown_files() + raw_artifact_files():
+        try:
+            text = scan_path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for vector_id in sorted(set(VECTOR_ID_TOKEN_RE.findall(text))):
+            if vector_id not in registered:
+                lint.fail(scan_path, f"references unregistered conformance vector id: {vector_id}")
+
+
+def check_account_data_type_registry(lint: Lint, known: dict[str, set[str]]) -> None:
+    path = ARTIFACTS / "registry" / "account-data-type-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    if data.get("source_of_truth") is not True:
+        lint.fail(path, "source_of_truth must be true")
+
+    rows = data.get("account_data_types")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "account_data_types must be a non-empty list")
+        return
+
+    seen: set[str] = set()
+    allowed_status = {"active", "reserved", "deprecated"}
+    allowed_storage = {"encrypted_account_data", "local_only", "encrypted_account_data_or_local"}
+    for index, row in enumerate(rows):
+        label = f"account_data_types[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+
+        key_pattern = row.get("key_pattern")
+        if not isinstance(key_pattern, str) or not key_pattern.startswith("cx."):
+            lint.fail(path, f"{label}.key_pattern must be a cx.* key pattern")
+            continue
+        if key_pattern in seen:
+            lint.fail(path, f"{label}.key_pattern duplicates {key_pattern}")
+        seen.add(key_pattern)
+
+        if row.get("status") not in allowed_status:
+            lint.fail(path, f"{label}.status must be one of {sorted(allowed_status)}")
+        if row.get("storage") not in allowed_storage:
+            lint.fail(path, f"{label}.storage must be one of {sorted(allowed_storage)}")
+        if not isinstance(row.get("scope"), str) or not row["scope"]:
+            lint.fail(path, f"{label}.scope must be a non-empty string")
+        if not isinstance(row.get("description"), str) or not row["description"].strip():
+            lint.fail(path, f"{label}.description must be a non-empty string")
+
+        write_event_kinds = row.get("write_event_kinds")
+        if not isinstance(write_event_kinds, list) or not write_event_kinds:
+            lint.fail(path, f"{label}.write_event_kinds must be a non-empty array")
+        else:
+            for event_kind in write_event_kinds:
+                if not isinstance(event_kind, str) or event_kind not in known["event_kinds"]:
+                    lint.fail(path, f"{label}.write_event_kinds contains unknown Event.kind: {event_kind!r}")
+
+        source_refs = row.get("source_refs")
+        if not isinstance(source_refs, list) or not source_refs:
+            lint.fail(path, f"{label}.source_refs must be a non-empty array")
+            continue
+
+        mentions_key = False
+        for source_index, source_ref in enumerate(source_refs):
+            source_label = f"{label}.source_refs[{source_index}]"
+            if not isinstance(source_ref, str) or not source_ref:
+                lint.fail(path, f"{source_label} must be a non-empty string")
+                continue
+            source_path = Path(source_ref)
+            if source_path.is_absolute() or ".." in source_path.parts:
+                lint.fail(path, f"{source_label} escapes repository: {source_ref}")
+                continue
+            resolved = (ROOT / source_path).resolve()
+            try:
+                resolved.relative_to(ROOT.resolve())
+            except ValueError:
+                lint.fail(path, f"{source_label} escapes repository: {source_ref}")
+                continue
+            if not resolved.is_file():
+                lint.fail(path, f"{source_label} target does not exist: {source_ref}")
+                continue
+            try:
+                source_text = resolved.read_text(encoding="utf-8")
+            except Exception as exc:
+                lint.fail(path, f"{source_label} target cannot be read: {source_ref}: {exc}")
+                continue
+            if key_pattern in source_text:
+                mentions_key = True
+        if not mentions_key:
+            lint.fail(path, f"{label}.source_refs must include at least one source that mentions {key_pattern}")
+
+
 def check_vector_reference_closure(lint: Lint) -> None:
     definition_paths = [
         SPEC_ROOT / "zh" / "conformance" / "conformance-vectors.md",
@@ -1477,10 +1638,26 @@ def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> 
         if not isinstance(expect_valid, bool):
             lint.fail(path, f"{label}.expect_valid must be boolean when present")
             continue
+        first_expected_error = case.get("first_expected_error")
+        if expect_valid:
+            if first_expected_error is not None:
+                lint.fail(path, f"{label}.first_expected_error is only valid when expect_valid=false")
+                continue
+        elif not isinstance(first_expected_error, str) or not first_expected_error:
+            lint.fail(path, f"{label}.first_expected_error must be a non-empty string when expect_valid=false")
+            continue
         case_name = case.get("name")
         if not isinstance(case_name, str) or not case_name:
             case_name = label
-        check_json_instance_against_schema(lint, path, case_name, schema_ref, instance, expect_valid)
+        check_json_instance_against_schema(
+            lint,
+            path,
+            case_name,
+            schema_ref,
+            instance,
+            expect_valid,
+            first_expected_error,
+        )
 
 
 def check_crypto_signature_fixture(lint: Lint) -> None:
@@ -1605,6 +1782,18 @@ def schema_ref_from_fence_meta(meta: str) -> str | None:
     return next(group for group in match.groups() if group)
 
 
+def expect_valid_from_fence_meta(meta: str) -> bool:
+    match = JSON_FENCE_EXPECT_ATTR_RE.search(meta)
+    return False if match and match.group(1) == "invalid" else True
+
+
+def first_expected_error_from_fence_meta(meta: str) -> str | None:
+    match = JSON_FENCE_FIRST_ERROR_ATTR_RE.search(meta)
+    if not match:
+        return None
+    return next(group for group in match.groups() if group)
+
+
 def resolve_artifact_schema_ref(lint: Lint, owner: Path, schema_ref: str) -> Path | None:
     schema_path_ref = split_ref(schema_ref)
     if Path(schema_path_ref).is_absolute() or ".." in Path(schema_path_ref).parts:
@@ -1702,12 +1891,19 @@ def check_json_instance_against_schema(
     schema_ref: str,
     instance: Any,
     expect_valid: bool = True,
+    first_expected_error: str | None = None,
 ) -> None:
     errors = jsonschema_errors(lint, owner, schema_ref, instance)
     if expect_valid and errors:
         lint.fail(owner, f"{label} fails {schema_ref}: " + "; ".join(errors[:3]))
     if not expect_valid and not errors:
         lint.fail(owner, f"{label} expected to fail {schema_ref} but validated successfully")
+    if not expect_valid and first_expected_error and errors and errors[0] != first_expected_error:
+        lint.fail(
+            owner,
+            f"{label} first schema error drift for {schema_ref}: got {errors[0]!r}, "
+            f"expected {first_expected_error!r}",
+        )
 
 
 def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int, data: Any) -> None:
@@ -1781,19 +1977,28 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
 
         for block_index, match in enumerate(JSON_FENCE_RE.finditer(text), start=1):
             block = match.group("body")
-            schema_ref = schema_ref_from_fence_meta(match.group("meta"))
+            meta = match.group("meta")
+            schema_ref = schema_ref_from_fence_meta(meta)
             try:
                 data = parse_json_text(block)
             except Exception as exc:
                 lint.fail(path, f"json_block[{block_index}] invalid canonical JSON: {exc}")
                 continue
             if schema_ref:
+                expect_valid = expect_valid_from_fence_meta(meta)
+                first_expected_error = first_expected_error_from_fence_meta(meta)
+                if expect_valid and first_expected_error is not None:
+                    lint.fail(path, f"json_block[{block_index}] first_error is only valid with expect=invalid")
+                if not expect_valid and not first_expected_error:
+                    lint.fail(path, f"json_block[{block_index}] expect=invalid requires first_error metadata")
                 check_json_instance_against_schema(
                     lint,
                     path,
                     f"json_block[{block_index}] declared schema example",
                     schema_ref,
                     data,
+                    expect_valid,
+                    first_expected_error,
                 )
             check_markdown_full_object_example(lint, path, block_index, data)
             check_event_ref_invariants_in_value(lint, path, f"json_block[{block_index}]", data)
@@ -2107,6 +2312,8 @@ def main() -> int:
     check_openapi_dedicated_operation_schemas(lint)
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
+    check_account_data_type_registry(lint, known)
+    check_vector_registry(lint)
     check_vector_reference_closure(lint)
     check_security_closure_vectors(lint)
     check_fixtures(lint, known)

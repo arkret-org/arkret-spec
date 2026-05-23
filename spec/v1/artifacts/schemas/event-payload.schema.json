@@ -177,6 +177,15 @@
       "type": "string",
       "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "anchor_frontier": {
+      "type": "array",
+      "description": "Accepted Anchor frontier expressed as event_digest hash values, not cx:event typed ids. The hash algorithm is the enclosing Realm or control stream hash profile.",
+      "items": {
+        "$ref": "#/$defs/hash"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
     "realm_id": {
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -2112,7 +2121,8 @@
         "device_id",
         "revoked_by",
         "revoked_at",
-        "reason"
+        "reason",
+        "revocation_frontier"
       ],
       "properties": {
         "principal_id": {
@@ -2130,6 +2140,10 @@
         "reason": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "revocation_frontier": {
+          "$ref": "#/$defs/anchor_frontier",
+          "description": "Principal control stream frontier under which this device revocation was accepted. Shared Realm MLS Remove commits that rely on the revocation must cover this frontier directly or through an imported governance Move."
         },
         "proof": {
           "$ref": "#/$defs/signature_material"
@@ -2377,6 +2391,7 @@
         "recipient_principal_id",
         "recipient_device_id",
         "keypackage_ref",
+        "keypackage_hash",
         "claim_id",
         "claim_ref",
         "expires_at"
@@ -2418,15 +2433,20 @@
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
         },
+        "keypackage_hash": {
+          "$ref": "#/$defs/hash",
+          "description": "Canonical hash of the claimed MLS KeyPackage bytes. MUST equal the referenced cx.mls.keypackage.payload.keypackage_hash and claim_ref.keypackage_hash."
+        },
         "claim_id": {
           "$ref": "#/$defs/non_empty_string"
         },
         "claim_ref": {
           "type": "object",
-          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id and keypackage_ref must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response; ssk_generation is the accepted cross-signing generation used when the claim was issued.",
+          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id, keypackage_ref, and keypackage_hash must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response; ssk_generation is the accepted cross-signing generation used when the claim was issued.",
           "required": [
             "claim_id",
             "keypackage_ref",
+            "keypackage_hash",
             "capabilities_digest",
             "ssk_generation"
           ],
@@ -2436,6 +2456,9 @@
             },
             "keypackage_ref": {
               "$ref": "#/$defs/object_ref"
+            },
+            "keypackage_hash": {
+              "$ref": "#/$defs/hash"
             },
             "capabilities_digest": {
               "$ref": "#/$defs/hash"
@@ -2474,6 +2497,7 @@
         "principal_id",
         "device_id",
         "keypackage_ref",
+        "keypackage_hash",
         "cipher_suites",
         "state",
         "created_at",
@@ -2494,7 +2518,8 @@
           "$ref": "#/$defs/object_ref"
         },
         "keypackage_hash": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "Canonical hash of the MLS KeyPackage bytes identified by keypackage_ref."
         },
         "cipher_suites": {
           "$ref": "#/$defs/string_list"
@@ -2704,6 +2729,10 @@
       "required": [
         "binding_version",
         "encoding_profile",
+        "realm_id",
+        "mls_group_id",
+        "previous_epoch",
+        "next_epoch",
         "membership_frontier",
         "policy_root"
       ],
@@ -2869,7 +2898,8 @@
         },
         "base_epoch": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Expected previous MLS epoch. MUST equal governance_binding.previous_epoch."
         },
         "base_epoch_ref": {
           "$ref": "#/$defs/object_ref"
@@ -2883,7 +2913,8 @@
         },
         "next_epoch": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Committed next MLS epoch. MUST equal governance_binding.next_epoch."
         },
         "commit_message_ref": {
           "$ref": "#/$defs/object_ref"

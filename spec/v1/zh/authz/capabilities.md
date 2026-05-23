@@ -52,7 +52,7 @@ ID 语义：
 
 示例：
 
-```json
+```json schema=schemas/capability-grant.schema.json
 {
   "id": "cx:grant:0196410c-0000-7000-8000-000000000000",
   "schema": "cx.schema.capability.v1",
@@ -99,7 +99,7 @@ ID 语义：
       "verification_method": "did:web:acme.example.com#device-1",
       "payload_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00Z",
-      "jws": "..."
+      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
   ]
 }

@@ -1,0 +1,128 @@
+{
+  "version": "2026-05-23",
+  "source_of_truth": true,
+  "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through cx.account_data.set unless a row explicitly lists another actor-private event kind.",
+  "account_data_types": [
+    {
+      "key_pattern": "cx.tags.realm.<realm_id>",
+      "status": "active",
+      "scope": "realm_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set"
+      ],
+      "description": "Private per-Realm tags and ordering hints.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md"
+      ]
+    },
+    {
+      "key_pattern": "cx.push_rules",
+      "status": "active",
+      "scope": "principal_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set"
+      ],
+      "description": "Principal-private notification and push rule configuration.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md",
+        "spec/v1/zh/discovery/push-notifications.md"
+      ]
+    },
+    {
+      "key_pattern": "cx.dnd_schedule",
+      "status": "active",
+      "scope": "principal_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set"
+      ],
+      "description": "Principal-private do-not-disturb schedule used by notification routing.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md"
+      ]
+    },
+    {
+      "key_pattern": "cx.collections.stickers",
+      "status": "active",
+      "scope": "principal_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set"
+      ],
+      "description": "Principal-private custom emoji and sticker collection metadata.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md"
+      ]
+    },
+    {
+      "key_pattern": "cx.client.ui_state",
+      "status": "active",
+      "scope": "device_or_principal_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set"
+      ],
+      "description": "Private client UI state such as sidebar, recent spaces, language, and layout preferences.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md"
+      ]
+    },
+    {
+      "key_pattern": "cx.account.blocklist",
+      "status": "active",
+      "scope": "principal_private_policy",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set",
+        "cx.account.blocklist"
+      ],
+      "description": "Holder-private personal blocklist. It affects only the holder's local projection, notifications, contact handling, and trusted holder-side filtering.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md",
+        "spec/v1/zh/governance/content-moderation.md"
+      ]
+    },
+    {
+      "key_pattern": "cx.contacts.actor.<did>",
+      "status": "active",
+      "scope": "principal_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set"
+      ],
+      "description": "Private local remark, note, tag, and pin metadata for an actor, organization, device, or service DID.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md"
+      ]
+    },
+    {
+      "key_pattern": "cx.contacts.realm.<realm_id>",
+      "status": "active",
+      "scope": "realm_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set"
+      ],
+      "description": "Private local remark, note, tag, and pin metadata for a Realm.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md"
+      ]
+    },
+    {
+      "key_pattern": "cx.read_receipt.preferences",
+      "status": "active",
+      "scope": "principal_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "cx.account_data.set"
+      ],
+      "description": "Private read-receipt send/display defaults and per-Realm or per-Flow overrides.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md",
+        "spec/v1/zh/discovery/read-receipts.md"
+      ]
+    }
+  ]
+}
