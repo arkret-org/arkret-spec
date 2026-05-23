@@ -492,6 +492,72 @@
       "description": "Concurrent grant/revoke ordering cannot be deterministically resolved with currently available history; recipient SHOULD backfill or escalate to manual review rather than picking a winner."
     },
     {
+      "code": "revocation_freshness_unknown",
+      "applies_to": [
+        "auth_decision",
+        "federation_transaction",
+        "state_resolution"
+      ],
+      "description": "Revocation / grant freshness cannot be established for a high-risk, cross-domain, or delegated action. Receiver MUST fail closed and return freshness diagnostics instead of treating missing revoke evidence as allow."
+    },
+    {
+      "code": "realm_already_exists",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A cx.realm.create event attempted to create a Realm id whose genesis cell is already set. Reducer MUST reject the duplicate create without rewriting create-locked fields."
+    },
+    {
+      "code": "out_of_order_bootstrap",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A Realm bootstrap batch placed a facet event before the cx.realm.create event that establishes the creator membership and Realm create cell."
+    },
+    {
+      "code": "policy_revision_gap",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A cx.realm.policy_components update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous policy frontier."
+    },
+    {
+      "code": "moderation_anchor_lifted",
+      "applies_to": [
+        "client_sync",
+        "policy_decision"
+      ],
+      "description": "An anchored moderation quarantine or fast-path quarantine was lifted, and clients viewing the Realm should surface that affected content became visible again."
+    },
+    {
+      "code": "e2ee_relaxed_federation_policy_unsupported",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "A Realm attempted to combine cx.profile.e2ee_relaxed.v1 with an open or quarantine federation policy, or with restricted federation that lacks a bounded fanout SLA within the relaxed E2EE window."
+    },
+    {
+      "code": "deactivation_federation_incomplete",
+      "applies_to": [
+        "account_status",
+        "federation_transaction",
+        "state_resolution"
+      ],
+      "description": "Account deactivation could not be acknowledged by every peer Principal Server inside deactivation_propagation_window_ms. Source services MUST keep deactivation fanout retrying and pause new Realm onboard, session/device grant, and KeyPackage publication for the principal."
+    },
+    {
+      "code": "selector_actor_wildcard_forbidden",
+      "applies_to": [
+        "auth_decision",
+        "schema_validation"
+      ],
+      "description": "The resource selector attempted to use actor:*. v1 actor selectors MUST name a concrete DID; universal subject grants are not accepted."
+    },
+    {
       "code": "service_not_plaintext_visible",
       "applies_to": [
         "service_call",
@@ -820,14 +886,6 @@
         "auth_decision"
       ],
       "description": "An attested_hardware Audit Agent was removed via cx.mls.commit but the same anchor batch lacks the required cx.audit.epoch_key_destruction attestation. Reducer MUST reject the batch (audited-e2ee.md §3.1.1.3)."
-    },
-    {
-      "code": "audit_agent_attestation_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "cx.audit.epoch_key_destruction carries an `enclave_measurement` that does not match the Audit Agent's join-time attestation. Indicates the enclave image was swapped before destruction."
     },
     {
       "code": "audit_agent_epoch_range_incomplete",
@@ -1668,6 +1726,7 @@
       "code": "audit_agent_attestation_mismatch",
       "applies_to": [
         "schema_violation",
+        "event_envelope",
         "auth_decision"
       ],
       "description": "Audit Agent's join-time attestation evidence (cx.schema.attestation_evidence.v1) measurement does not match the enclave_measurement recorded in cx.audit.epoch_key_destruction. The two share root of trust; mismatch indicates code / policy_version drift between join and destruction. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md §3.1.1.2."

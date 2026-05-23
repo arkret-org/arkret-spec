@@ -142,7 +142,7 @@ Schema id: `cx.schema.flow_type.v1`
 ## 8. References
 
 - Jira work item type(用户提供截图,2026-05-23):Sub-task / Task tab,parent / subtask 层级
-- Linear Issue Type: <https://linear.app/docs/issue-properties>
+- Linear issue creation / type context: <https://linear.app/docs/creating-issues>
 - Asana Custom Item Types
 - CXP-0003 Field Catalog(本提案的 field-level 依赖)
 - CXP-0005 Workflow(本提案的 workflow-level 依赖)

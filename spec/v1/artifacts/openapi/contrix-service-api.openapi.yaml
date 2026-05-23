@@ -884,11 +884,11 @@ components:
         cache_until:
           type: string
           format: date-time
-          description: Earliest time until which clients SHOULD reuse this anonymous health response.
+          description: Earliest time until which clients SHOULD reuse this anonymous health response. Anonymous health responses MUST impose at least a 60 second cache/backoff window; clients MUST treat shorter values as 60 seconds.
         retry_after_ms:
           type: integer
-          minimum: 0
-          description: Minimum retry delay for anonymous health probes when the service wants explicit polling backoff.
+          minimum: 60000
+          description: Minimum retry delay for anonymous health probes when the service wants explicit polling backoff. Anonymous health responses MUST impose at least a 60 second cache/backoff window.
       additionalProperties: false
 
     SnapshotBootstrap:
@@ -1212,12 +1212,25 @@ components:
           - stale
           - unknown
           description: Frontier freshness classification for revocation-sensitive decisions; see zh/authz/capabilities.md §18.2.
+        last_known_frontier_age_ms:
+          type: integer
+          minimum: 0
+          description: Age of the newest revocation/auth frontier evidence used for this decision. Present when freshness_state is stale or unknown.
+        anchorer_status:
+          type: string
+          enum:
+          - fresh
+          - lagging
+          - unreachable
+          - unknown
+          description: Coarse status of the anchorer/frontier source used to diagnose stale or unknown revocation freshness.
         cache_valid_until:
           type: string
           format: date-time
           pattern: Z$
         reason_code:
           type: string
+          description: Registered reason code. High-risk stale or unknown revocation freshness returns revocation_freshness_unknown.
         retry_after_ms:
           type: integer
           minimum: 0

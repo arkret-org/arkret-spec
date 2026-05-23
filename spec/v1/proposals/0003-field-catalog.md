@@ -157,6 +157,6 @@ reducer 必须能 type-aware 校验;允许任意 data_type 字符串就退化成
 ## 8. References
 
 - Jira "Fields" sidebar(用户提供截图,2026-05-23):Date and time fields / Other fields 分组,"Reuse 40 fields from other work types and spaces" 提示。
-- Linear Properties: <https://linear.app/docs/issue-properties>
+- Linear display options / issue properties context: <https://linear.app/docs/display-options>
 - Asana Custom Fields: <https://asana.com/guide/help/premium/custom-fields>
 - Notion Database properties

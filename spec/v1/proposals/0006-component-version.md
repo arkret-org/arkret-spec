@@ -151,7 +151,7 @@ Schema id: `cx.schema.version.v1`
 
 ## 8. References
 
-- Jira Components: <https://support.atlassian.com/jira-cloud-administration/docs/manage-project-components/>
+- Jira Components: <https://support.atlassian.com/jira-software-cloud/docs/configure-jira-components/>
 - Jira Versions: <https://support.atlassian.com/jira-cloud-administration/docs/manage-versions/>
 - 用户提供 Jira "Components" / "Versions" 左栏截图,2026-05-23
 - CXP-0001 Label(对照:component / version vs label 的差异)

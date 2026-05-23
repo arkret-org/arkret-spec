@@ -2009,6 +2009,13 @@
         "description": "Agent protocol session ID"
       },
       {
+        "kind": "announce",
+        "category": "discovery",
+        "status": "active",
+        "wire_form": "cx:announce:<uuid>",
+        "description": "Directory-local announce ingest record ID. It is typed and UUIDv7-shaped for validator consistency, but it is scoped to the issuing Directory and is not a global federated object authority."
+      },
+      {
         "kind": "applet",
         "category": "extension",
         "status": "active",

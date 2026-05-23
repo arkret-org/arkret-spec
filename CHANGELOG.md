@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Report consolidation closure pass（2026-05-24）
+
+合并 `_codex_report.md` 与 `_claude_report.md` 中经复核成立、且不需要重塑现有概念的闭环修订。
+
+- **变更类型**: add + edit（reason code closure、typed ID registry、authz freshness diagnostics、normative prose hardening）
+- **影响 artifact**: `error-code-registry.json`; `contract-catalog.json` id_kind_registry + 派生 `id-kind-registry.json`; `event-payload.schema.json`; `resource-selector.schema.json`; `openapi/contrix-service-api.openapi.yaml`; `tools/lint_artifacts.py`; `zh/{authz,crypto-media,discovery,extensions,guides,identity,overview,sync}`；`proposals/0002..0006` 外部参考链接。
+- **canonical 变更**: 新增 `cx:announce:<uuid>` typed ID kind；新增 `revocation_freshness_unknown`、`realm_already_exists`、`out_of_order_bootstrap`、`policy_revision_gap`、`moderation_anchor_lifted`、`e2ee_relaxed_federation_policy_unsupported`、`deactivation_federation_incomplete`、`selector_actor_wildcard_forbidden` reason codes；清理 `reason_codes` 内部重复的 `audit_agent_attestation_mismatch`；`AuthzCheckResponse` 增补 freshness 诊断字段；`actor:*` selector 明确禁止。
+- **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`；`python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (152 event kinds, 53 schemas, 40 typed ID kinds, 87 operations, 57 claimable profiles, 78 profile id references)` 与 `registry diff: clean`; `node site/scripts/crossref-check.mjs` 输出 `crossref ok (152 event kinds, 253 errors, 87 operations, 53 schemas, 57 profiles)`。
+- **conformance impact**:
+  - 受影响 profile: core authz/federation freshness、account deactivation federation、Directory ingest、E2EE relaxed profile guard、resource selector validation。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible add + breaking for invalid inputs only（`actor:*`、未登记的 announce id 形态、缺 freshness fail-closed reason 的响应）。
+  - reader / writer 行为要求: writers MUST use `cx:announce:<uuidv7>` for Directory announce records; authz/federation receivers MUST use `revocation_freshness_unknown` for high-risk unknown/stale revocation freshness; resource selector parsers MUST reject `actor:*`.
+- **fixture / vector 变化**: 本轮不新增 vector fixture；新增 lint 覆盖 `_unknown` / `_incomplete` reason-code closure、error registry section 内重复 code，以及旧 `ann_*` Directory announce id 形态回归。
+- **prose 同步**: 已更新 authz selector grammar、capability freshness diagnostics、federation probe/deactivation fanout、service HTTP binding、release readiness/schema consumption、operations sync、Directory announce、MIMI candidate join-policy guard 与 cross-signing reset audit pairing。
+- **迁移指南**: 下游 SDK / validator 需要重新生成 typed ID 常量并接受 `cx:announce:<uuidv7>`；若旧实现返回 `revoke_freshness_unknown` 或 `ann_*`，应迁移到本条 canonical 名称和 typed ID 形态。若旧 grant 或 fixture 中存在 `actor:*`，writer MUST 改为具体 DID 集合或 claim-based subject condition；reducer / importer 在加载既有 `actor:*` grant 时 MUST fail closed（`schema_violation` + `selector_actor_wildcard_forbidden`）并使相关授权缓存失效。
+
 ### Review closure pass for `_claude_report.md`（2026-05-24）
 
 对 `_claude_report.md` 中经核验成立的 schema / registry / normative prose 缺口做最小闭环修订。

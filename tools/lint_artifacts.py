@@ -351,6 +351,33 @@ def check_legacy_wire_fields(lint: Lint) -> None:
                 )
 
 
+LEGACY_ANNOUNCE_ID_RE = re.compile(r"\bann_(?:[0-9a-f]{16,64}|<hex>|\*)\b")
+
+
+def check_legacy_announce_id_form(lint: Lint) -> None:
+    """Reject the pre-registry Directory announce id spelling.
+
+    ``ann_<hex>`` appeared in prose before Directory announce records were
+    registered as typed IDs. The canonical v1 wire form is now
+    ``cx:announce:<uuidv7>``; keeping this guard prevents examples or fixtures
+    from reintroducing the unregistered local prefix.
+    """
+    scan_paths = sorted(SPEC_ROOT.rglob("*.md"))
+    scan_paths.extend(raw_artifact_files())
+    for path in scan_paths:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            if LEGACY_ANNOUNCE_ID_RE.search(line):
+                lint.fail(
+                    path,
+                    f"line {line_no}: legacy Directory announce id form `ann_*` is forbidden; "
+                    "use `cx:announce:<uuidv7>`.",
+                )
+
+
 def check_join_policy_gate_id_uniqueness(lint: Lint) -> None:
     """Enforce property-level gate_id uniqueness within join_policy gates[].
 
@@ -2268,7 +2295,8 @@ def check_error_code_closure(lint: Lint) -> None:
     code_like_re = re.compile(
         r"(_invalid|_mismatch|_required|_forbidden|_denied|_expired|_stale|"
         r"_conflict|_unavailable|_missing|_not_allowed|_too_stale|"
-        r"_rate_limited|_failed|_violation|_rejected|_redacted)$"
+        r"_rate_limited|_failed|_violation|_rejected|_redacted|"
+        r"_unknown|_incomplete)$"
     )
     non_error_code_tokens = {
         "allow_child_privacy_tightening_against_required",
@@ -2322,6 +2350,41 @@ def check_error_code_closure(lint: Lint) -> None:
                     unresolved.add(value)
         for code in sorted(unresolved):
             lint.fail(path, f"reason_code referenced but not in error-code-registry.json: {code!r}")
+
+
+def check_error_code_registry_uniqueness(lint: Lint) -> None:
+    """Reject duplicate code strings within each error registry section.
+
+    Top-level ``codes`` and item-level ``reason_codes`` may intentionally reuse
+    a string during a migration window, but a duplicate inside the same section
+    has no stable first/last-wins semantics for SDK generation or catalog UI.
+    """
+    path = ARTIFACTS / "registry" / "error-code-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    for section in ("codes", "reason_codes"):
+        rows = data.get(section, [])
+        if not isinstance(rows, list):
+            lint.fail(path, f"{section} must be a list")
+            continue
+        seen: dict[str, int] = {}
+        for index, row in enumerate(rows):
+            if not isinstance(row, dict):
+                lint.fail(path, f"{section}[{index}] must be an object")
+                continue
+            code = row.get("code")
+            if not isinstance(code, str) or not code:
+                lint.fail(path, f"{section}[{index}] missing non-empty code")
+                continue
+            previous = seen.get(code)
+            if previous is not None:
+                lint.fail(
+                    path,
+                    f"duplicate error code {code!r} inside {section} at rows {previous} and {index}",
+                )
+            seen[code] = index
 
 
 def check_cross_doc_anchors(lint: Lint) -> None:
@@ -2527,9 +2590,11 @@ def main() -> int:
     check_markdown_links(lint)
     check_markdown_examples(lint, known)
     check_legacy_wire_fields(lint)
+    check_legacy_announce_id_form(lint)
     check_join_policy_gate_id_uniqueness(lint)
     check_content_composite_uses_parts(lint)
     check_release_readiness_counts(lint, known)
+    check_error_code_registry_uniqueness(lint)
     check_error_code_closure(lint)
     check_cross_doc_anchors(lint)
     check_openapi_no_floating_number(lint)

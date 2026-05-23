@@ -841,7 +841,7 @@ Contrix 使用 `cx.realm_key.share` 共享历史解密材料。共享前发送�
 
 ### 14.1 Reset Envelope
 
-Reset 操作 MUST 写入一条 `cx.cross_signing.reset` 事件到 principal control stream，并在其后**立即**发布新的 `cx.cross_signing.publish`（§5.1）以使协议状态可恢复。实现还 MUST 生成可审计记录：在同一 Anchor batch 或在 reset accepted 后的 bounded audit window 内写入 `cx.audit.accessed`，`access_kind="cross_signing_reset"`，`target_ref` 指向 reset event 或 principal control Realm，`purpose` 说明 reset reason；高安全部署 SHOULD 通过 `refs[role="audit_pair"]` 把 reset 与 audit event 配对。
+Reset 操作 MUST 写入一条 `cx.cross_signing.reset` 事件到 principal control stream，并在其后**立即**发布新的 `cx.cross_signing.publish`（§5.1）以使协议状态可恢复。实现还 MUST 生成可审计记录：在同一 Anchor batch 或在 reset accepted 后的 bounded audit window 内写入 `cx.audit.accessed`，`access_kind="cross_signing_reset"`，`target_ref` 指向 reset event 或 principal control Realm，`purpose` 说明 reset reason；声明 `audit_assurance != null` 或 `cx.profile.attested_audit.e2ee.v1` 的部署 MUST 通过 `refs[role="audit_pair"]` 把 reset 与 audit event 配对，其它高安全部署 SHOULD 配对。
 
 Schema id：`cx.schema.cross_signing_reset.v1`
 

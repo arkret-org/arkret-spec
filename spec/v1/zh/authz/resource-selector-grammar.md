@@ -303,7 +303,7 @@ flow_part            ::= flow_id | "*"
 这些 selector 主要用于管理、审计、schema / policy 更新、邀请和 actor-private 状态：
 
 - `event:<realm>:<event_id>` 匹配特定 Event；`event:<realm>:*` 匹配 Realm 内 Event metadata。读取 Event payload 仍受对象、track、history、redaction 和 E2EE 约束。
-- `actor:<did>` 匹配 principal / service / agent DID；不得匹配 handle、邮箱或 OAuth subject。
+- `actor:<did>` 匹配 principal / service / agent DID；不得匹配 handle、邮箱或 OAuth subject。`actor:*` 不是 v1 合法 selector：`resource-selector.schema.json` 要求 `actor_id` 是具体 DID，parser / reducer 若遇到 actor wildcard MUST 以 `schema_violation` + `selector_actor_wildcard_forbidden` 拒绝。
 - `policy:<realm>:<policy_id>` 与 `schema:<schema_id>` 用于 policy / schema 管理授权。
 - `invite:<realm>:<invite_id>` 用于邀请创建、查看、撤销或接受。
 
@@ -394,7 +394,7 @@ function matches(target, selector):
 
     if selector.kind == "actor":
         return target.type == "actor" and (
-            selector.actor_id == "*" or selector.actor_id == target.did
+            selector.actor_id == target.did
         )
 
     if selector.kind == "policy":
@@ -432,7 +432,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 ### 8.1 通配符扩展
 
-`*`、`realm:*` 和 `object:*:*` 可能匹配非预期资源。缓解措施：
+`*`、`realm:*` 和 `object:*:*` 可能匹配非预期资源。`actor:*` 因会把 subject 侧授权扩大到任意 principal / service / agent，v1 明确禁止；若需要跨 actor 群组授权，必须用 subject condition + claim / organization policy 表达，而不是 actor selector 通配。通配缓解措施：
 
 - 始终配合 `expires_at` 使用。
 - 与 `object_type_allow`、`space_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_tracks` 等约束组合（`realm_kind_allow` 在 v1 已无规范用途，组合时按 always-allow 处理）。

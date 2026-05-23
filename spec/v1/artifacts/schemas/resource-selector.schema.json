@@ -77,7 +77,8 @@
     },
     "actor_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "description": "Concrete principal / service / agent DID. v1 forbids actor:*; actor selectors MUST NOT use a wildcard subject."
     },
     "schema_ref": {
       "type": "string"

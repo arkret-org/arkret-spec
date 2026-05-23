@@ -194,7 +194,7 @@ Schema id: `cx.schema.workflow.v1`
 ## 8. References
 
 - Jira Workflows: <https://support.atlassian.com/jira-cloud-administration/docs/work-with-issue-workflows/>
-- Linear Workflows: <https://linear.app/docs/workflows>
+- Linear Workflows: <https://linear.app/docs/configuring-workflows>
 - GitHub Projects status field
 - CXP-0002 Flow Type(workflow 的 type 锚点)
 - common-fields.md §5.3 stage 轴(workflow 的协议级 stage 派生目标)

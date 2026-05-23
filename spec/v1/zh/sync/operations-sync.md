@@ -476,7 +476,7 @@ function validate_actor_seq(event, known_frontiers):
 
 registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 且 `wire_scope=durable_event` 的 kind 可以进入共享 Event Envelope 历史、参与 actor chain、推进 reducer frontier 或 state hash；`wire_scope=actor_private_event` 只能用于加密 account data 或 actor-private stream；`wire_scope=ephemeral_event` 只能走 ephemeral channel，MUST NOT 增加 `actor_seq`、`prev_refs`、state hash 或 reducer frontier。生产者不得发出未声明的 wire_scope。
 
-本节列出 Event-first 写路径中的核心 durable Event kind，不替代 registry。
+本节只列出 Event-first 写路径中的代表性 durable Event kind，帮助读者理解类别边界；它不是穷举清单，也不替代 registry。完整、可实现的 active durable Event kind 集合 MUST 以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `status=active` 且 `wire_scope=durable_event` 的条目为准。若本节示例与 registry 不一致，registry 是机器可读 source of truth，实现不得因为本节没有列出某个 active kind 就静默拒绝或丢弃它。
 
 ### 7.1 Realm / Schema / Policy / Discovery
 
@@ -844,7 +844,7 @@ Flow Sync MUST NOT 因为 actor 可读 Flow synthesis 就自动展开不可读 d
 
 - `event_id` MUST 全局稳定。
 - 同一个 `event_id` 的完全相同内容 MAY 被重复接收。
-- 若同一个 ID 对应不同内容，节点 MUST 拒绝并记为冲突。
+- 若同一个 ID 对应不同内容，节点 MUST 拒绝并返回 `duplicate_conflict`（HTTP 409 / conflict-class reason），同时保留最小冲突证据用于 operator 或 fork-resolution 诊断。
 - sync service SHOULD 以 `event_id` 去重，而不是按到达次数计数。
 
 ## 16. 冲突与收敛

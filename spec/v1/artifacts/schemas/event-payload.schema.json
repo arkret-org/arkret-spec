@@ -920,7 +920,8 @@
         },
         "reason_code": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Machine-readable account status diagnostic. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes (for example deactivation_federation_incomplete)."
         },
         "reason": {
           "type": "string"

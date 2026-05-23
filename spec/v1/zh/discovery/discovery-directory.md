@@ -408,13 +408,13 @@ Directory MUST 支持 **push (announce)** 与 **pull (subscribe)** 两种 ingest
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
 | `principal_server_did` | `did` | required | 当前资源真相源所在的 Principal Server service DID（用于 Directory 在需要时 pull 验证）。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
-| `supersedes_announce_id` | `id` | optional | 上一次 announce id；用于幂等替换与 audit 链接。 |
+| `supersedes_announce_id` | `cx:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
 
 **响应**：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `announce_id` | `string` | 本次 ingest 记录 id，形如 `ann_0196419b000070008000000000000000`。这是 Directory 本地 ingest 记录，不是全局 typed object id。 |
+| `announce_id` | `cx:announce:<uuidv7>` | 本次 ingest 记录 id，例如 `cx:announce:0196419b-0000-7000-8000-000000000000`。这是 Directory 本地 ingest 记录；typed 形态只用于统一 validator / SDK 处理，不赋予跨 Directory 的全局对象权威。 |
 | `indexed_at` | `timestamp` | Directory 完成索引的服务器时间。 |
 | `effective_ttl_seconds` | `int` | Directory 实际授予的 TTL。 |
 | `next_revalidation_after` | `timestamp` | 下一次 re-announce 或 pull-refresh 的最早时间。 |

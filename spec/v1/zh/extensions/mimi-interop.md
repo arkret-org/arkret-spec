@@ -215,7 +215,7 @@ Contrix v1 把 Realm-level policy 映射为 Move effects on cell families。Faca
 | --- | --- | --- |
 | `cx.component.realm.policy.v1` | `cx.realm.policy` | （Contrix 专属；映射时合并入 `operational`） |
 | `cx.component.realm.join_rule.v1` | `cx.realm.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
-| `cx.component.realm.join_policy.v1` | `realm.join_policy`（candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)） | `participation.join_policy` 子字段（结构化 gates / reviewer / TTL）；MIMI 侧未覆盖部分以 `application/vnd.contrix.component+json` 私有扩展承载 |
+| `cx.component.realm.join_policy.v1` | `realm.join_policy`（candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；仅声明 `cx.profile.candidate.join_policy.v1` 的 facade 可见；base profile 下 MIMI facade MUST reject / omit，而不得写入 shared Realm history；见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)） | `participation.join_policy` 子字段（结构化 gates / reviewer / TTL）；MIMI 侧未覆盖部分以 `application/vnd.contrix.component+json` 私有扩展承载 |
 | `cx.component.realm.history_visibility.v1` | `cx.realm.history_visibility` | `history_sharing` 的 visibility 子字段 |
 | `cx.component.realm.discovery.v1` | `cx.realm.discovery` | `participation` 中 `discoverability` 子字段 |
 | `cx.component.realm.policy_server.v1` | `cx.realm.policy_server` | （Contrix 专属，与 MIMI hub provider 概念解耦） |
