@@ -331,6 +331,15 @@
       "replacement": "cx.events.subscribe",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Historical Realm stream operation; use cx.events.subscribe."
+    },
+    {
+      "id": "cx.applet.query_space",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.applet.query_realm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Realm/Space inversion cleanup: operation semantics, path parameter and response are Realm-scoped; migrate operation id, gRPC method and MQ topic mechanically."
     }
   ]
 }

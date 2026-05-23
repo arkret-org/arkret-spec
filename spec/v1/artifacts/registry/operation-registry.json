@@ -168,7 +168,7 @@
         "cx.applet.describe",
         "cx.applet.transaction",
         "cx.applet.query_actor",
-        "cx.applet.query_space",
+        "cx.applet.query_realm",
         "cx.applet.protocol_metadata",
         "cx.applet.third_party_users",
         "cx.applet.third_party_locations"
@@ -279,10 +279,10 @@
       "mq": "applet.query_actor"
     },
     {
-      "operation_id": "cx.applet.query_space",
+      "operation_id": "cx.applet.query_realm",
       "http": "GET /applet/realms/{realm_id_or_alias}",
-      "grpc": "Applet/QuerySpace",
-      "mq": "applet.query_space"
+      "grpc": "Applet/QueryRealm",
+      "mq": "applet.query_realm"
     },
     {
       "operation_id": "cx.applet.third_party_locations",

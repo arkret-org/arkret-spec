@@ -154,6 +154,14 @@
       "notes": "Historical Realm stream operation; v1 uses cx.events.subscribe for Realm/actor event streams."
     },
     {
+      "id": "cx.applet.query_space",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.applet.query_realm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Realm/Space inversion cleanup: the operation queries Applet portal Realms by realm_id_or_alias, not in-Realm Space containers. HTTP path remains /applet/realms/{realm_id_or_alias}; gRPC becomes Applet/QueryRealm and MQ becomes applet.query_realm."
+    },
+    {
       "id": "cx.agent_workspace.resolve_mirror_flow",
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",

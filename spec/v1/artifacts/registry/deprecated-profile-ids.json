@@ -64,6 +64,14 @@
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
       "notes": "Reserved placeholder id removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.profile.mls.minimal_metadata_space.v1",
+      "since_revision": "2026-05-23",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.profile.mls.minimal_metadata_realm.v1",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Realm/Space inversion cleanup. Current v1 uses cx.profile.mls.minimal_metadata_realm.v1 because the profile scope is the Realm E2EE / routing boundary."
     }
   ]
 }
