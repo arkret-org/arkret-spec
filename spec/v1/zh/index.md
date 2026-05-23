@@ -71,7 +71,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - `principal_id = DID URI`，Handle 只作为可迁移的人类可读入口。
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
 - **v1 core 默认 principal DID method 为 `did:webvh`**：在 `did:web` 之上叠加 `did.jsonl` 历史链 + SCID + witness evidence，提供可审计的 DID 控制历史，抵御 DNS / TLS 单点失陷。
-- `did:web` 仅作为 **service DID 默认 method**、**`personal_node` deployment profile 的可选 principal method**、以及 `did:webvh` hosting 暂时不可达时的策略允许 fallback；不得作为 `small_team` / `organization` / 更高 profile 的默认 principal method。
+- `did:web` 仅作为 **service DID 默认 method** 与 **`personal_node` deployment profile 的可选 principal method**；`did:webvh` hosting 暂时不可达时只允许 §3.4 定义的 cache-only degraded mode，不得 live fallback 到 `did:web`。
 - 临时、测试、设备、邀请、bootstrap 使用 `did:key`；不得作为默认长期主身份。
 - 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 interop extension profile，不属于 v1 core 互操作必需。
 - DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。
@@ -138,4 +138,3 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 ## 7. 一句话总结
 
 Contrix 的目标是统一协作对象语义，建立“可验证审计 + 长期可恢复”的协作基础设施，而不是绑定聊天协议外壳。
-

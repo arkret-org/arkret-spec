@@ -181,7 +181,7 @@ Handle 按 holder 披露意图分两类：
 
 candidate 只能来自以下两类签发路径：
 
-1. **Directory 解析**：`cx.directory.resolve_handle(intent="member_add" \| "invite")` 响应 MUST 把 §9.0 normative 字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
+1. **Directory 解析**：`cx.directory.resolve_handle(intent="member_add" \| "invite")` 响应 MUST 把 [`discovery-directory.md` §9.0/§9.1](../discovery/discovery-directory.md) 的 handle 解析与通用结果字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
 2. **受信 issuer 直接签发**：Organization / Principal Server / 受信 service DID 可以离开 Directory 直接对某 `(handle_uri, subject_did, recipient_service_did, audience)` 组合发签名 candidate，例如随 invite token 内嵌、随 organization-issued member roster 下发。
 
 candidate **不得**直接构造自客户端字符串拼接、UI text、未签名 directory 响应或 cache 残留。任何缺少 `proofs[]` 的对象 MUST NOT 被命名为 candidate。

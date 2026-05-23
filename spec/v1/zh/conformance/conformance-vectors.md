@@ -1732,7 +1732,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 - rebind 通过 causal frontier handover；
 - 撤销后投递立即停止。
 
-下列向量假设 Realm `cx:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位，conformance fixture 在 `artifacts/fixtures/membership/delivery_binding/` 下分文件落地。
+下列向量假设 Realm `cx:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位。本节是 normative vector description；当前 machine fixture 尚未按 `membership/delivery_binding/` 子目录分文件落地，runner MUST 以本节描述或后续落地 fixture 为准，不得假设该目录已经存在。
 
 ### 7.2 Vector: `explicit` Binding 接受
 

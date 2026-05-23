@@ -126,7 +126,7 @@ Schema id：`cx.schema.cross_signing_publish.v1`
   "kind": "cx.cross_signing.publish",
   "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
-  "content": {
+  "payload": {
     "principal_id": "did:webvh:...",
     "trust_domain": "cx:trust_domain:did.webvh.example",
     "principal_signing_key": {
@@ -164,7 +164,7 @@ Schema id：`cx.schema.cross_signing_publish.v1`
 }
 ```
 
-Payload-only schema 示例（即 Event `payload` / 上例 `content` 的规范形态）：
+Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形态）：
 
 ```json schema=schemas/cross-signing-publish.schema.json
 {
@@ -245,12 +245,12 @@ DID-method history → principal_signing_key (PSK)
                        └── user_signing_key (USK)   ── signs ──► other principal's verify_key
 ```
 
-每条 `cx.device.authorized` 事件 MUST 在 `content.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key` 的签名：
+每条 `cx.device.authorized` 事件 MUST 在 `payload.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key` 的签名：
 
 ```json
 {
   "kind": "cx.device.authorized",
-  "content": {
+  "payload": {
     "principal_id": "did:webvh:...",
     "device_id": "cx:device:...",
     "device_public_key": "z6Mk...",
@@ -295,7 +295,7 @@ DID-method history → principal_signing_key (PSK)
 
 ### 5.3 Bootstrap 例外
 
-§5.0.1 中首台设备由 inception key 自授权时，`cx.device.authorized.content.cross_signing_binding` MUST 省略 `signed_by` 引用，并改用 `bootstrap_binding`：
+§5.0.1 中首台设备由 inception key 自授权时，`cx.device.authorized.payload.cross_signing_binding` MUST 省略 `signed_by` 引用，并改用 `bootstrap_binding`：
 
 ```json
 {
@@ -321,8 +321,8 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 
 ### 5a.2 注册与撤销
 
-- 设备 MUST 通过 `cx.device.push_route` actor-private Move 把 `(recipient_service_did, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；目标 cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_did, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas-register, bottom=reject）。`recipient_service_did` MUST 与 §5.1.1 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_did` 一致；推送注册按 `(recipient_service_did, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
-- 撤销：设备 MUST 在同一 cell 上写后继 Move 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 Anchor frontier 收敛后停止接受旧伪名。
+- 设备 MUST 通过 `cx.device.push_route` actor-private state Event 把 `(recipient_service_did, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 `preconditions` / `effects` / `anchor_ref`，不进入 shared Realm Anchor frontier。目标 actor-private cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_did, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas-register, bottom=reject）。`recipient_service_did` MUST 与 §5.1.1 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_did` 一致；推送注册按 `(recipient_service_did, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
+- 撤销：设备 MUST 在同一 actor-private cell 上写后继 `cx.device.push_route` event 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 actor-private state 收敛后停止接受旧伪名。
 - 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(recipient_service_did, principal, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。
 
@@ -567,7 +567,7 @@ POST /api/v1/keys/keypackages/revoke
 - 同一 `keypackage_ref` 不得被多个 active claim 使用。
 - 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST 不再返回该 KeyPackage。
 - **`required_capabilities` ⊆ KeyPackage `capabilities`（normative subset rule）**：claim request 中的 `required_capabilities` 集合 MUST 是被领取 KeyPackage 上声明的 `capabilities`（见 [`encryption-and-audit.md` §2.6 KeyPackage payload](./encryption-and-audit.md)）的**子集**。任何 `required_capabilities ∖ capabilities ≠ ∅` 的 claim MUST 被服务端拒绝（与其它 claim 失败一致使用统一不透明错误码 `claim_failed`，但服务端 SHOULD 在内部审计日志中记录 `keypackage_capability_overreach` 以便滥用检测）。该规则避免了"客户端在 claim 时声明超过 KeyPackage 实际声明的能力，使后续 Welcome / Commit 在错误能力假设下进行"的隐性越权。
-- Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `capabilities_digest = sha256(JCS(capabilities))`。`cx.mls.welcome` MUST 回填同一 digest 到 `payload.claim_ref.capabilities_digest`；Welcome 接收端在解密前必须比对该 digest 与本地 claim 记录，防止 group manager 或中间服务在 Welcome 阶段扩大 KeyPackage 能力集合。
+- Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `capabilities_digest = sha256(JCS(capabilities))` 与当前 accepted cross-signing `ssk_generation`。`cx.mls.welcome` MUST 回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并回填同一 generation 到 `payload.claim_ref.ssk_generation`；Welcome 接收端在解密前必须比对该 digest 与本地 claim 记录，并确认 `ssk_generation` 仍等于当前 accepted `cx.cross_signing.publish.generation`，防止 group manager 或中间服务在 Welcome 阶段扩大 KeyPackage 能力集合或复用旧 SSK generation 的 claim。
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码 SHOULD 合并为单一不透明错误码 `claim_failed`，不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
 - 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 claim / query 响应 SHOULD 返回调用方可见的 `available_count`；客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
@@ -848,7 +848,7 @@ Schema id：`cx.schema.cross_signing_reset.v1`
   "kind": "cx.cross_signing.reset",
   "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
-  "content": {
+  "payload": {
     "trust_domain": "cx:trust_domain:did.webvh.example",
     "reset_event_id": "cx:event:0196414c-5000-7000-8000-000000000000",
     "principal_id": "did:webvh:...",
@@ -866,7 +866,7 @@ Schema id：`cx.schema.cross_signing_reset.v1`
 }
 ```
 
-Payload-only schema 示例（即 Event `payload` / 上例 `content` 的规范形态）：
+Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形态）：
 
 ```json schema=schemas/cross-signing-reset.schema.json
 {

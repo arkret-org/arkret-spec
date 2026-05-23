@@ -368,6 +368,8 @@ MLS group 的 scope 永远绑定到一个 `realm_id`：源 Realm 自身使用 `e
 ```json
 {
   "governance_binding": {
+    "binding_version": 1,
+    "encoding_profile": "cbor-deterministic-rfc8949-v1",
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "mls_group_id": "base64url...",
     "previous_epoch": 41,
@@ -387,6 +389,7 @@ MLS group 的 scope 永远绑定到一个 `realm_id`：源 Realm 自身使用 `e
 **E2EE Realm MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Realm 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
 - `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员、invite/leave/ban 和设备信任 cell。
+- `binding_version` MUST 为 `1`；`encoding_profile` MUST 为 `cbor-deterministic-rfc8949-v1`。两者进入 GroupContext extension bytes、Event payload 和 `covered_frontier_cell` canonical value，接收方不得从 codepoint 或 profile id 隐式推断。
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
 - `capability_root` MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell。
 - `discussion_metadata_hash` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
@@ -425,15 +428,17 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 ```text
 {
   "binding_profile":     tstr,
+  "binding_version":     uint,    ; v1 = 1
   "capability_root":     bstr,    ; optional, full profile only
   "discussion_metadata_hash": bstr, ; optional, full profile only
-  "mls_group_id":        bstr,
+  "encoding_profile":    tstr,    ; "cbor-deterministic-rfc8949-v1"
   "membership_frontier": [+ bstr],
+  "mls_group_id":        bstr,
   "next_epoch":          uint,
   "policy_root":         bstr,
   "previous_epoch":      uint,
-  "reducer_profile":     tstr,
-  "realm_id":            tstr
+  "realm_id":            tstr,
+  "reducer_profile":     tstr
 }
 ```
 
@@ -441,6 +446,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 | 字段 | 是否在 MLS GroupContext 已被绑定 | 保留理由 |
 |------|------------------------------|---------|
+| `binding_version` / `encoding_profile` | 否 | **必须**：把 codepoint 之外的 wire version 与 canonical encoding 锁入 signed bytes，避免未来 codepoint 或 CBOR profile 变化时不同实现对同一 governance binding 得出不同 canonical 形态。 |
 | `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
 | `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_frontier_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
 | `realm_id` | **否**（Contrix-specific，MLS 不知道 Realm 概念） | **必须**：realm_id 是把 MLS group 锚定到 Contrix governance state 的核心绑定；缺失则 governance_binding 可能被错误重绑定到不同 Realm 的 commit。 |
@@ -504,9 +510,9 @@ Claim 请求 MUST 绑定：
 
 Claim 成功后：
 
-- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set、`capabilities_digest = sha256(JCS(claimed_capabilities))` 和 expiry。
+- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set、`capabilities_digest = sha256(JCS(claimed_capabilities))`、当前 accepted cross-signing `ssk_generation` 和 expiry。
 - 同一 KeyPackage 不得被第二个 Realm / MLS group、第二个 requester 或第二次 Welcome 重复使用。
-- Welcome 发送方 MUST 引用 `keypackage_ref` / `claim_id`，并在 `cx.mls.welcome.payload.claim_ref` 中携带 `{claim_id, keypackage_ref, capabilities_digest}`；该 `claim_ref` MUST 进入 `governance_binding` transcript 或等价 Welcome AAD。接收端在解密 Welcome 前 MUST 校验：`claim_ref.claim_id` / `claim_ref.keypackage_ref` 与顶层字段一致，`capabilities_digest == sha256(JCS(claimed_capabilities))`，且本次 Welcome 要求的 capability / content profile 集合是 `claimed_capabilities` 的子集；否则 fail closed，`reason=welcome_capability_mismatch`。
+- Welcome 发送方 MUST 引用 `keypackage_ref` / `claim_id`，并在 `cx.mls.welcome.payload.claim_ref` 中携带 `{claim_id, keypackage_ref, capabilities_digest, ssk_generation}`；该 `claim_ref` MUST 进入 `governance_binding` transcript 或等价 Welcome AAD。接收端在解密 Welcome 前 MUST 校验：`claim_ref.claim_id` / `claim_ref.keypackage_ref` 与顶层字段一致，`capabilities_digest == sha256(JCS(claimed_capabilities))`，`claim_ref.ssk_generation` 等于接收端当前 accepted `cx.cross_signing.publish.generation`，且本次 Welcome 要求的 capability / content profile 集合是 `claimed_capabilities` 的子集；否则 fail closed，capability 不匹配返回 `welcome_capability_mismatch`，generation 不匹配返回 `claim_generation_mismatch`。
 - 成功处理 Welcome 后，接收端或服务端状态 SHOULD 标记该 KeyPackage 为 `consumed`。若 Welcome 失败或过期，KeyPackage 不得自动回到 `published`；设备 SHOULD 发布新的 KeyPackage。
 - 服务端返回 KeyPackage 时 MUST 附带 device signature、principal binding 和 revocation status。客户端 MUST 通过 DID control chain 与 device trust chain 验证后才能加密。
 
@@ -522,6 +528,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 | `intended_realm_id` | id | Welcome 真正加入的 Realm ID (与 Realm governance state 同源)。 |
 | `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_space, nonce, expiry)。 |
 | `requester_did` | did | Welcome 发送方 principal DID。 |
+| `ssk_generation` | integer | claim 签发时接收端 principal 当前 accepted cross-signing generation；MUST 与 `claim_ref.ssk_generation` 相同。 |
 | `nonce` | string | per-Welcome 唯一的 ≥ 128 bit 随机串。 |
 | `welcome_digest` | hash | MLS Welcome 消息本身的 canonical-bytes digest。 |
 | `created_at` | timestamp | 签名时间;接收方校验在 KeyPackage `expires_at` 与 claim `expires_at` 之内。 |
@@ -530,7 +537,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 
 1. 通过 DID control chain 验证 `claim_envelope.signature` → `requester_did`;
 2. 校验 `intended_realm_id` 等于 MLS Welcome 内 group_id 反向 resolve 出的 Realm(防止 server-side rewrite);
-3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见,且 `claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致;
+3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见，`claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致，且 `claim_envelope.ssk_generation == payload.claim_ref.ssk_generation == current accepted cross-signing generation`;
 4. 校验 `welcome_digest` 等于 `canonical_hash(welcome_bytes)`,防止 envelope 被剥离后重新封装。
 
 任一项失败 → 拒绝 Welcome,reason=`keypackage_welcome_envelope_mismatch`,并 SHOULD 触发 client UI 警示 "received an invalid Welcome envelope; the inviting party's identity could not be verified for this Realm"。
@@ -723,7 +730,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 
 `cx.mls.genesis` 创建 Contrix 绑定的 MLS group 初始状态。它不是普通 Commit，也不消费 Proposal；它声明 epoch 0 的 group identity、初始 ratchet tree / GroupInfo proof 和被 MLS GroupContext extension 覆盖的 Contrix application state。
 
-`cx.mls.genesis.content` MUST 至少包含：
+`cx.mls.genesis.payload` MUST 至少包含：
 
 - `mls_group_id`
 - `scope`：`realm_id`。MLS group 的 scope 永远绑定到一个 `realm_id`；独立 discussion 通过 `Flow.discussion_realm_ref` linked Realm 表达，该 linked Realm 拥有自己的 `realm_id`。
@@ -780,7 +787,7 @@ v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epo
 
 客户端本地处理 winning `cx.mls.commit`、`cx.mls.welcome` 或其 `governance_binding` 失败时，MAY 发布 `cx.mls.commit_failed` 诊断事件。该事件用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不回滚 accepted commit，也不推进 epoch。
 
-`cx.mls.commit_failed.content` MUST 至少包含：
+`cx.mls.commit_failed.payload` MUST 至少包含：
 
 - `mls_group_id`
 - `commit_ref`

@@ -496,11 +496,13 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 {
   "kind": "cx.capability.revoke",
   "payload": {
-    "grant_ref": "cx:grant:0196410c-0000-7000-8000-000000000000",
+    "grant_id": "cx:grant:0196410c-0000-7000-8000-000000000000",
     "reason": "contract ended"
   }
 }
 ```
+
+`grant_ref` MAY 作为 legacy payload 的兼容别名出现，但 v1 canonical `cx.capability.revoke` payload MUST 携带顶层 `grant_id`；registry cell_subject 从 `payload.grant_id` 派生。
 
 ## 13. Invite、通知与已读状态
 

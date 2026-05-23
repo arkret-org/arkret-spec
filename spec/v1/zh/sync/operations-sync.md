@@ -49,16 +49,16 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | `proofs[]` | 至少一条 detached JWS，覆盖 canonical event bytes（不含 `proofs` 与 `unsigned`）。 |
 | `hlc` | advisory tie-breaker。**进入 canonical event bytes 与 proof `payload_hash`**（与 [encoding.md](../conformance/encoding.md) §7、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3 rule 1 一致），因此被生产者签名锁定、relay 不得改写；但语义上仅用于 timeline 展示与 freshness 诊断，MUST NOT 进授权决策、Lattice 收敛、Move precondition 比较或 Anchor finality 判断。 |
 
-非 reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.notification.read`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。它们只是 actor 私有或 ephemeral 信号，不进 anchor frontier、不写 cell、不参与 state_root。schema 已用 allOf if/then 静态强制此约束。
+非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.device.push_route`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
 
-### 3.6 Wire-Scope 边界（normative）
+### 2.1.1 Wire-Scope 边界（normative）
 
 为避免 ephemeral 信号意外进入持久 Event 流，event-schema.json 与 cx.events.submit MUST 按下表 fail-closed：
 
 | `wire_scope`（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)） | 允许使用的 envelope schema | 允许的提交路径 |
 | --- | --- | --- |
 | `durable_event` | `cx.schema.event.v1`（[`event-schema.json`](../../artifacts/schemas/event-schema.json)） | `cx.events.submit` |
-| `actor_private_event` | `cx.schema.event.v1`（同上；不携带 `preconditions/effects/anchor_ref`） | `cx.events.submit`（actor 私有，写入 actor 私有 store；不进 Realm frontier） |
+| `actor_private_event` | `cx.schema.event.v1`（同上；不携带 `preconditions/effects/anchor_ref`，payload 仍按 kind-specific schema 校验） | `cx.events.submit`（actor 私有，写入 actor 私有 store 或 registry 声明的 actor-private state cell；不进 Realm frontier） |
 | `ephemeral_event`（`cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`） | `cx.schema.ephemeral_envelope.v1`（[`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)） | `cx.ephemeral.send`（HTTP `POST /api/v1/ephemeral`）或等价已声明 binding；fanout 通过 sync subscribe 实时流、presence/typing fanout、call signaling channel；**MUST NOT** 出现在 `cx.events.submit` |
 | `ephemeral_event`（`cx.key.verification.*` — 点对点 to-device） | `cx.schema.device_message.v1`（[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)） | to-device 队列（不广播）；**MUST NOT** 出现在 `cx.events.submit` |
 
@@ -66,7 +66,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 
 1. `cx.events.submit` MUST 对 `kind` 的 `wire_scope=ephemeral_event` 立即 `schema_violation`，不进 reducer / anchor pipeline。event-schema.json 已用 `not` 分支静态强制 cx.call.signal / cx.presence / cx.typing / cx.receipt.read / cx.key.verification.* MUST NOT 出现在 durable Event Envelope。
 2. ephemeral 广播信号 MUST 通过 `cx.ephemeral.send` 或等价已声明 binding 发送，MUST 携带 `expires_at` 并由接收方按 schema 中 5 分钟硬上限丢弃；不得作为 backfill / sync replay 入口。
-3. 接收方 MUST NOT 把 ephemeral envelope 解释为 reducer 输入：它们不写 cell、不推 anchor frontier、不消耗 actor_seq。
+3. 接收方 MUST NOT 把 ephemeral envelope 解释为 reducer 输入：它们不写 cell、不推 anchor frontier、不消耗 actor_seq。`actor_private_event` 可消耗 actor-private stream seq，但不得推进 shared Realm `actor_seq` / Anchor frontier。
 4. 部署若希望"高频信号但仍可审计"，MUST 选择 sample / digest 后单独 emit 一条 durable event（例如 `cx.call.state` / `cx.notification.read`），而不是把 ephemeral envelope 当 durable Event 提交。
 5. 负向测试：conformance suite MUST 包含 reject case，把 `cx.presence` / `cx.typing` / `cx.call.signal` / `cx.key.verification.start` 这些 kind 当 durable Event 通过 `cx.events.submit` 提交时立即被拒（`schema_violation`，不进 anchor pipeline）。
 
@@ -79,7 +79,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 
 任一步骤失败，整个 event 被 reject 并回退原因（`schema_violation` / `invalid_signature` / `failed_precondition` / `failed_bottom` / etc.）。非 reducer 事件只走步骤 1+2。
 
-### 2.1.1 Event Store
+### 2.1.2 Event Store
 
 Event Store 是 Principal Server、客户端、本地节点或授权副本保存 Event 的服务/存储能力。它不是独立权威对象，也不要求实现 atprotocol/Git 式数据仓库。实现可以用数据库、append-only file、Merkle log、object store、content-addressed block store 或其他存储引擎保存 Event；协议只要求下列语义可验证：
 

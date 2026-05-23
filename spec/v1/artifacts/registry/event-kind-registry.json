@@ -1172,7 +1172,7 @@
       "category": "device",
       "status": "active",
       "wire_scope": "actor_private_event",
-      "reducer_input": true,
+      "reducer_input": false,
       "payload": "Push route binding for a (recipient_service_did, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_did context.",
       "cell_family": "cx.component.device.push_route.v1",
       "cell_subject": {

@@ -63,7 +63,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 - 除明确标记为 `public_metadata` 的 describe / discovery 外，所有 endpoint MUST 认证。
 - 认证只证明调用方身份；服务仍 MUST 执行 capability、Realm policy、history visibility、service delegation 和 revocation 检查。
-- 服务间调用 MUST 使用 HTTP Message Signature 或等价 service DID proof，并绑定 method、target URI、content digest、origin service DID 和 destination service DID。
+- 服务间调用 MUST 使用 HTTP Message Signature 或等价 service DID proof，并绑定 method、target URI、content digest、origin service DID 和 destination service DID；shared ingress / 多租户 / allowlist endpoint 场景还 MUST 绑定 destination service endpoint digest。
 - 服务间调用的 `origin` / `destination` 必须是 service DID，且必须与 DID Document service endpoint、目标 URL、Realm policy / service delegation 和签名 transcript 一致。
 - 受保护 endpoint 不得接受 query string 中的 token、API key 或签名材料；临时下载 URL 只能使用短时效、单用途、可撤销的派生 token。
 - 返回 `not_found` 的 endpoint MUST 对“不存在”和“存在但不可见”保持一致失败语义，除非调用方已有管理权限。
@@ -143,7 +143,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /auth/account/device-pair` | body `{pairing_code, new_device_pubkey, challenge_signature}` | `user_session` + existing device proof + freshly minted pairing code(短 TTL, one-time, audience-bound to this Auth Server origin); endpoint 与 session-grants 同一部署本地 namespace；服务端 MUST 对 `(principal_id, source_device_id, target_origin)` 限速并防重放。 | `{device_id, authorized_event_ref}` |
 | `POST /auth/account/oidc/callback` | body `AccountOidcCallbackRequest {state, code, nonce?, redirect_uri?}` | `public_metadata` 的回调入口(OIDC IdP 重定向);服务端 MUST 校验 `state` / `nonce` / `redirect_uri` 并把外部主体映射到 Contrix principal。 | `AccountOidcCallbackResponse {principal_id, session?}` 或 `{redirect_url}` |
 | `GET /admin/server/status` | query none | `admin_bearer`(MUST 是 admin role 的 user_session)。该 endpoint **不**挂在 `/api/v1` 下。 | `{service_did, build, uptime_seconds, registry_versions, queues?}` |
-| `POST /admin/accounts/{account_id}/status` | path `{account_id}` body `{action: enum(suspend, restore, ...), reason?}` | `admin_bearer`;reducer 同时写 `cx.account.status_changed`(必须由 admin 签发)。 | `{ok: true, status, applied_at}` |
+| `POST /admin/accounts/{account_id}/status` | path `{account_id}` body `{action: enum(suspend, restore, ...), reason?}` | `admin_bearer`;reducer 同时写 `cx.account.status`(必须由 admin 签发)。 | `{ok: true, status, applied_at}` |
 | `POST /admin/devices/{device_id}/revoke` | path `{device_id}` body `{reason?}` | `admin_bearer`;触发 `cx.device.revoked` + capability fanout。 | `{ok: true, revoked_at}` |
 | `GET /admin/moderation/queue` | query `{realm_id?, status?, cursor?, limit?}` | `admin_bearer` 与 moderator capability;只返回调用方有 moderation scope 的 Realm。 | `{reports[], next_cursor?}` |
 | `GET /api/v1/mimi/provider-directory` | query `{provider_did?, capabilities?: string[]}` | `public_metadata`;provider 列表本身公开。 | `{providers[]}` |

@@ -642,6 +642,25 @@
       },
       "additionalProperties": true
     },
+    "flow_patch_payload": {
+      "type": "object",
+      "required": [
+        "flow_id",
+        "patch"
+      ],
+      "properties": {
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "patch": {
+          "$ref": "#/$defs/patch"
+        },
+        "expected_state_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": true
+    },
     "object_lifecycle_payload": {
       "type": "object",
       "anyOf": [
@@ -691,6 +710,47 @@
         },
         "reason": {
           "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "account_status_payload": {
+      "type": "object",
+      "required": [
+        "principal_id",
+        "status",
+        "effective_at"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "soft_logged_out",
+            "locked",
+            "suspended",
+            "deactivated",
+            "erasure_pending"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "admin_proof": {
+          "$ref": "#/$defs/signature_material"
         }
       },
       "additionalProperties": true
@@ -1655,6 +1715,9 @@
     },
     "capability_grant_payload": {
       "type": "object",
+      "required": [
+        "grant_id"
+      ],
       "anyOf": [
         {
           "required": [
@@ -1782,6 +1845,7 @@
     "session_grant_payload": {
       "type": "object",
       "required": [
+        "grant_id",
         "issuer",
         "subject",
         "session_public_key",
@@ -1842,6 +1906,9 @@
     },
     "capability_revoke_payload": {
       "type": "object",
+      "required": [
+        "grant_id"
+      ],
       "anyOf": [
         {
           "required": [
@@ -2041,6 +2108,7 @@
     "device_revoked_payload": {
       "type": "object",
       "required": [
+        "principal_id",
         "device_id",
         "revoked_by",
         "revoked_at",
@@ -2065,6 +2133,53 @@
         },
         "proof": {
           "$ref": "#/$defs/signature_material"
+        }
+      },
+      "additionalProperties": true
+    },
+    "device_push_route_payload": {
+      "type": "object",
+      "required": [
+        "recipient_service_did",
+        "principal_id",
+        "device_id",
+        "push_route",
+        "push_target_id",
+        "push_gateway_did",
+        "encryption_key",
+        "capabilities"
+      ],
+      "properties": {
+        "recipient_service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "push_route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "push_target_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "push_gateway_did": {
+          "$ref": "#/$defs/did"
+        },
+        "encryption_key": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/string_list"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": true
@@ -2308,11 +2423,12 @@
         },
         "claim_ref": {
           "type": "object",
-          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id and keypackage_ref must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response.",
+          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id and keypackage_ref must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response; ssk_generation is the accepted cross-signing generation used when the claim was issued.",
           "required": [
             "claim_id",
             "keypackage_ref",
-            "capabilities_digest"
+            "capabilities_digest",
+            "ssk_generation"
           ],
           "properties": {
             "claim_id": {
@@ -2323,6 +2439,10 @@
             },
             "capabilities_digest": {
               "$ref": "#/$defs/hash"
+            },
+            "ssk_generation": {
+              "type": "integer",
+              "minimum": 1
             }
           },
           "additionalProperties": false
@@ -2582,10 +2702,18 @@
     "mls_governance_binding": {
       "type": "object",
       "required": [
+        "binding_version",
+        "encoding_profile",
         "membership_frontier",
         "policy_root"
       ],
       "properties": {
+        "binding_version": {
+          "const": 1
+        },
+        "encoding_profile": {
+          "const": "cbor-deterministic-rfc8949-v1"
+        },
         "realm_id": {
           "$ref": "#/$defs/realm_id"
         },

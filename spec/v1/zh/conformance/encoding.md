@@ -96,7 +96,7 @@ v1 conformance 锁定的 hash 算法集合：
 
 ### 3.3 State Root 与 Anchor Hash 编码
 
-`state_root`、Anchor `id`、Move `id`、receipt hash 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `hash_profile` 字段固定（默认 `sha256`）。Realm 内所有后续 Anchor / Move / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
+`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt hash 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `hash_profile` 字段固定（默认 `sha256`）。v1 不存在独立 wire `Move id`；Move 是 reducer-input Event 的协议视图，所有 Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。Realm 内所有后续 Anchor / Event digest / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
 
 ### 3.4 Multihash 兼容（profile-gated）
 
@@ -279,7 +279,7 @@ function compare_hlc(hlc1, hlc2):
 实现 MUST：
 
 - 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。
-- 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的两层 drift 模型验证物理时间：超 `hard_future_skew_ms`（默认 300_000）MUST reject / quarantine；超 `expected_future_skew_ms`（默认 30_000）SHOULD soft-fail / quarantine。
+- 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms`（默认 300_000）MUST reject / quarantine；超 `expected_future_skew_ms`（默认 30_000）SHOULD soft-fail / quarantine。该校验是 envelope freshness / DoS guard，不是授权、Lattice winner、Move precondition 或 Anchor finality 输入；通过 drift 校验的 HLC 仍只可用于 timeline tie-breaker。
 - profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
 - 拒绝 `physical_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需未来扩展 HLC profile 才可使用）。
 - 维护本地单调性；本地时钟落后远端时推进到远端时间，超前时限制推进速率。

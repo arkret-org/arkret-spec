@@ -77,6 +77,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - `content-digest`（针对有 body 的请求；编码遵循 RFC 9530）
 - `source-service-did`（自定义 header `Source-Service-DID`）
 - `destination-service-did`（自定义 header `Destination-Service-DID`）
+- `destination-service-endpoint-digest`（自定义 header `Destination-Service-Endpoint-Digest`；shared ingress / 多租户 / allowlist endpoint 场景必填）
 - `source-trust-domain`（自定义 header `Source-Trust-Domain`）
 - `destination-trust-domain`（自定义 header `Destination-Trust-Domain`）
 - `request-canonical-hash`（自定义 header `Request-Canonical-Hash`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /api/v1/events` MUST 携带）
@@ -89,7 +90,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - `destination` MUST 是接收方 service DID；反向代理、多租户 host 或 shared ingress 不能只凭 `Host` 判断目的地。
 - `Destination-Trust-Domain` MUST 等于接收方当前 deployment 的 `ServiceDescribe.trust_domain`，并与被接收 Realm 的 `trust_domain` 一致；不一致 MUST 返回 `cross_domain_replay_rejected`。
 - 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 返回 `unauthorized`，`reason_code="federation_authority_mismatch"`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
-- shared ingress / 多租户反向代理场景下，TLS Server Name (SNI) 与 `Destination-Service-DID` DID Document 中声明的 service endpoint origin MUST 直接匹配，或该 exact origin MUST 出现在 Realm policy / service delegation 明确登记的 shared ingress allowlist 中。Wildcard host 不能隐式覆盖 service DID 列表；若 deployment 需要用同一 host 承载多个 service DID，接收方 SHOULD 要求 `Destination-Service-Endpoint-Digest` header（endpoint canonical URL 的 `sha256:` digest）进入 HTTP Message Signature transcript，并与 DID Document / allowlist 中的 endpoint digest 比对。
+- shared ingress / 多租户反向代理场景下，TLS Server Name (SNI) 与 `Destination-Service-DID` DID Document 中声明的 service endpoint origin MUST 直接匹配，或该 exact origin MUST 出现在 Realm policy / service delegation 明确登记的 shared ingress allowlist 中。Wildcard host 不能隐式覆盖 service DID 列表；若 deployment 用同一 host 承载多个 service DID，发送方 MUST 携带 `Destination-Service-Endpoint-Digest` header（endpoint canonical URL 的 `sha256:` digest），该 header MUST 进入 HTTP Message Signature transcript，接收方 MUST 与 DID Document / allowlist 中的 endpoint digest 比对。
 - 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。
 - 请求携带 `Request-Canonical-Hash` 时，该值 MUST 等于 canonical request body 的 SHA-256 digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 body 一致。无 body 的 `GET` pull MAY 省略该 header，因为 `@method` / `@target-uri` 已绑定查询语义。
 - 受保护联邦 endpoint MUST NOT 接受 query string 认证。
@@ -122,11 +123,12 @@ POST /api/v1/events
 Host: server-beta.com
 Source-Service-DID: did:web:server-alpha.com
 Destination-Service-DID: did:web:server-beta.com
+Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: cx:trust_domain:did.webvh.alpha.example
 Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
 Content-Digest: sha256=:<base64>:
 Request-Canonical-Hash: sha256:<hex>
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
 Signature: sig1=:base64...:
 ```
 
@@ -136,10 +138,11 @@ Signature: sig1=:base64...:
 | --- | --- | --- | --- | --- |
 | `Source-Service-DID` | header | `did` | required | 来源 service DID；与签名 transcript 绑定。 |
 | `Destination-Service-DID` | header | `did` | required | 目标 service DID；MUST 与目标 URL、DID service endpoint 和 Realm policy 委托一致。 |
+| `Destination-Service-Endpoint-Digest` | header | `sha256:<hash>` | conditional | shared ingress / 多租户 / allowlist endpoint 场景 required；endpoint canonical URL 的 digest，MUST 进入签名 transcript 并与 DID Document service endpoint 或 Realm policy allowlist 匹配。 |
 | `Source-Trust-Domain` | header | `id:trust_domain` | required | 来源 deployment trust domain；与签名 transcript 绑定，用于 receiver trust policy、审计与跨域 replay 隔离。 |
 | `Destination-Trust-Domain` | header | `id:trust_domain` | required | 目标 deployment trust domain；MUST 等于接收方 `ServiceDescribe.trust_domain` 与目标 Realm `trust_domain`。 |
 | `Request-Canonical-Hash` | header | `sha256:<hash>` | required | canonical request body 的 SHA-256 digest；MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。 |
-| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`、`request-canonical-hash`，以及 `created` / `expires` 参数。 |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`、`request-canonical-hash`，以及 `created` / `expires` 参数；出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `string` | required | 请求体摘要，MUST 覆盖 canonical request body；接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
@@ -250,7 +253,7 @@ for each member m of Realm S that needs to receive event E:
 
 Rebind handover：
 
-- 接收方观察到自己已 accept rebind handover frontier `F`，而 sender 仍按 frontier 之前的旧 binding 投递时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` + `handover_frontier`；sender MUST 重新解析、向新目标重试（不得回退到 DID Document）。
+- 接收方观察到自己已 accept rebind handover frontier `F`，而 sender 仍按 frontier 之前的旧 binding 投递时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did`、`handover_frontier` 与 `handover_proof`。`handover_proof` MUST 绑定产生新 `delivery_binding.recipient_service_did` 的 accepted `cx.member.state{membership="join"}` event digest / state witness / inclusion proof，且该证明的 `frontier == handover_frontier`、`recipient_service_did == new_recipient_service_did`、`actor_id == target_principal_id`。sender MUST 先验证该证明在 Realm Event graph 与 policy 下可达，再向新目标重试；验证失败 MUST 返回 `delivery_binding_handover_proof_invalid` 并停止重定向（不得回退到 DID Document）。
 - `delivery_binding_stale` 重试是有界重定向，不是无限 fanout：sender 对同一 `(event_id, target_principal_id, handover_frontier)` 最多重试一次到 `new_recipient_service_did`；再次收到 stale / handed_over 时 MUST 停止投递并进入 backoff / operator diagnostic，避免跨服务循环。
 - 旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`。
 
@@ -565,10 +568,11 @@ POST /api/v1/events
 Authorization: <service_signature>
 Source-Service-DID: did:web:server.acme.example
 Destination-Service-DID: did:web:server.beta.example
+Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: cx:trust_domain:did.webvh.acme.example
 Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
 Request-Canonical-Hash: sha256:...
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
 ```
 
 字段、签名 transcript、绑定与重放保护按 §3.2、§4.1 与 [`api-conventions.md` §3](./api-conventions.md) 与 [`service-http-binding.md` §3](./service-http-binding.md) 执行。事件以普通 reducer-input event 提交（preconditions / effects / anchor_ref 在顶层），与单域 client write 共享同一 schema（`cx.schema.event.v1`）。

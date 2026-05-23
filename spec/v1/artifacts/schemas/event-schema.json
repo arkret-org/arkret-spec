@@ -560,6 +560,22 @@
     },
     {
       "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.flow.update",
+              "cx.flow.tracks.update"
+            ]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_patch_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": { "kind": { "const": "cx.profile.create" } },
         "required": ["kind"]
       },
@@ -681,7 +697,6 @@
               "cx.policy.set",
               "cx.policy.rule",
               "cx.policy.action",
-              "cx.account.status",
               "cx.sovereign.did_policy"
             ]
           }
@@ -942,6 +957,15 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.account.status" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/account_status_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": { "kind": { "const": "cx.session.grant" } },
         "required": ["kind"]
       },
@@ -974,6 +998,15 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_revoked_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.device.push_route" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_push_route_payload" } }
       }
     },
     {

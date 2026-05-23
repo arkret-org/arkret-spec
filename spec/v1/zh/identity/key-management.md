@@ -179,7 +179,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 - `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意协作 Realm 的 `realm_id`。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
-- `content.principal_id` / `content.subject` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
+- `payload.principal_id` / `payload.subject` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
 - control Realm 的 `cx.realm.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Realm MUST 使用 v1 标准 `kind=collaboration`，并通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `cx.profile.principal_control_realm.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走 collaboration kind 的标准路径。
 - 普通协作 Realm 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、policy server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该协作 Realm history 来改变身份状态。
 
@@ -237,7 +237,7 @@ Receiver 接受 principal 的首批 control stream Event 时，MUST：
 Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 证据：
 
 - `did:webvh` 提供 SCID + entry hash + controller proof，并可叠加 witness——攻击者需要同时控制 hosting domain 和 ≥1 trusted witness 才能伪造 inception。
-- `did:web` 仅提供"hosting domain 当前内容"——攻击者控制 DNS/TLS 即可静默替换 inception。这正是 `personal_node` profile 之外不允许 `did:web` 作为 principal method 的根本原因（H1 / §3）。
+- `did:web` 仅提供"hosting domain 当前内容"——攻击者控制 DNS/TLS 即可静默替换 inception。这正是 `personal_node` profile 之外不允许 `did:web` 作为 principal method 的根本原因（见 [`identity-did.md` §3](./identity-did.md) 与 [`server-threat-model.md` §3.3](../security/server-threat-model.md)）。
 - `did:key` inception **MUST NOT** 直接作为长期 principal——它必须在 §5.0.1 / §5.0.2 中升级为 `did:webvh` 或 `did:web`。
 
 实现 MUST 在 UI 中向用户清楚展示 inception 路径的密钥学强度（"已 witness 的 did:webvh 链" vs "仅 hosting domain"），不得在 onboarding 中把两者展示为等强度。
@@ -326,7 +326,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 5. Events API / identity registry 接受并传播该 event。
 6. 新设备开始同步 Event history、Realm membership 和必要的 MLS Welcome。
 
-`cx.device.authorized.content` 示例：
+`cx.device.authorized.payload` 示例：
 
 ```json
 {
@@ -366,7 +366,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。  
 Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标准 durable control event 类型。
 
-`cx.session.grant.content` 示例：
+`cx.session.grant.payload` 示例：
 
 ```json
 {
