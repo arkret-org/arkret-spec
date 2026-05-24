@@ -77,6 +77,45 @@ title: Common Fields
 
 对象种类由 `id` 的 typed prefix（`cx:flow:` / `cx:realm:` / ...）唯一决定；扩展字段统一走 `fields`，由对象 `schema_refs` 约束。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
 
+### 3.1 字段 × 对象适用性矩阵（normative reference）
+
+下表把 §3 列出的公共字段按对象 kind 标注必填 / 可选 / 不适用。SDK / projection / fixture 生成器 MUST 严格按此表验证，不得给"不适用"格写值；新增对象 kind 时 MUST 先在本表落表再发布 schema。术语：`Y` = 必填；`O` = 可选；`R` = reducer-derived（actor MUST NOT 写）；`—` = 不适用（schema MUST 拒绝该字段）。
+
+字段按用途分四组：
+
+- **Universal**：所有 durable canonical object 都用。
+- **Authorship**：协作图对象记录创建 / 更新主体；与 reducer 派生关系紧密。
+- **Lifecycle**：物理生命周期（active / archived / tombstoned / ...），与 `cx.<kind>.archive` / `restore` / `tombstone` 系列 event 配对。
+- **Progress**：业务进度（v1 仅 Flow / Morph），与 `cx.<kind>.stage.set` event 配对。
+
+| 字段 | 组 | Realm | Space | Flow | Message | Morph | Relation | View | Policy | Blob meta | Capability Grant | Invite | Read Cursor | Notification | Actor Profile |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `realm_id` | Universal | — (self) | Y | Y | Y | Y | Y | Y | Y | O | Y | Y | O | O | O |
+| `created_at` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `created_by` | Authorship | — (see `created_by_principal`) | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
+| `created_by_principal` | Authorship | Y | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
+| `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
+| `deleted_at` | Lifecycle | O | O | O | O | O | O | O | O | O | — | — | — | — | — |
+| `state` | Lifecycle | Y | Y | Y | Y | Y | Y | O | O | — | — | — | — | — | O (mirrors account status) |
+| `state_changed_at` | Lifecycle | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
+| `stage` | Progress | — | — | Y | — | Y | — | — | — | — | — | — | — | — | — |
+| `stage_changed_at` | Progress | — | — | R per `cx.flow.stage.set` | — | R per `cx.morph.stage.set` | — | — | — | — | — | — | — | — | — |
+| `labels` | Universal | O | O | O | O | O | O | O | — | O | — | — | — | — | O |
+| `fields` | Universal | O | O | O | — (see Message content blocks) | Y (主要载荷) | O | O | O | O | — | O | — | — | O (see `profile_fields`) |
+
+附注：
+
+- Realm 的 authorship 字段是 `created_by_principal`（强调创建者同时是 authorizing principal），不是 `created_by`；这是有意区分，不是离群点（见 §4.1 / §4.2）。
+- Capability Grant / Invite / Read Cursor / Notification / Actor Profile 用领域特有的 authorship 字段（`issuer` / `inviter` / `actor_id` / `principal_id`），各对象 schema 内部独立约束；本表对应格写"—"是因为它们不使用通用 `created_by`，并不表示没有创建主体记录。
+- Read Cursor / Notification 是 actor-private 状态，`realm_id` 通常存在但允许 actor-scoped 视图省略（按 schema 决定）；`updated_by` 不适用——这些对象由系统派生或 actor 本人推进。
+- 任何 `state != active` 的对象 MUST 写入 `state_changed_at`；该字段被 reducer 强制覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。
+- `stage_changed_at` 仅 Flow / Morph 适用，且仅当真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
+- `labels` 对 Policy / Capability Grant / Invite / Read Cursor / Notification 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
+- `fields` 是协作对象的扩展容器；Message 的扩展走 content blocks，不走 `fields`；Capability Grant / Read Cursor / Notification 不暴露开放扩展容器。
+
 ## 4. 主体引用字段交叉对照
 
 ### 4.1 DID 适用边界
@@ -256,6 +295,16 @@ cx:receipt:<uuid>
 ```
 
 UUID 部分 SHOULD 使用 UUIDv7（time-ordered），便于审计与排序。完整 ID kind 注册表见 `artifacts/registry/id-kind-registry.json`。
+
+### 6.1 引用 vs 内联配置的字段命名约定（normative）
+
+实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `encryption_profile`、`federation_policy`、`anchor_profile`、`hash_profile`），又有 `<axis>_policy_ref` 这样指向独立 Policy 对象的字段（如 `policy_ref`、`retention_policy_ref`、`disclosure_policy_ref`、`rate_limit_policy_ref`）。这是有意区分，规则如下：
+
+- **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"single_did"` / `"sha256"` / ...）。schema 内联约束，无需引用独立对象。变更需要新 event kind（如 hash-transition Anchor）或新 Realm。
+- **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 cell state 有交互。同样内联，不通过引用对象。
+- **`<axis>_policy_ref`**：指向独立 Policy 对象（`cx:policy:<uuid>`）的引用，pattern `^cx:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。引用而非内联用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
+
+判定流程：写新字段时若是**封闭 enum**（值集已知、协议级固定）用 `_profile` 或 `_policy`；若是**指向 Policy 对象**用 `_policy_ref`；不得在同一对象上同时定义 `xxx_policy` 与 `xxx_policy_ref` 表示同一个轴。命名 MUST 使用 `_ref` 后缀以区别于内联策略字符串。
 
 公共字段示例：
 

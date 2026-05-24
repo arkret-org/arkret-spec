@@ -1579,6 +1579,7 @@
     },
     "proof": {
       "type": "object",
+      "description": "Generic detached-JWS proof shape reused by non-Event schemas (snapshot signature, snapshot witness attestations, identity receipts, handle claims, etc.). MUST NOT be used as the shape of Event Envelope `proofs[]` — Event proofs reference $defs/event_proof and bind canonical Event bytes via `event_digest`. drift detection: `payload_hash#event_proof` in forbidden-wire-fields.json is the hard-reject mirror of this rule. New non-Event signed objects MAY $ref this shape; new signed Event-shaped objects MUST instead $ref event_proof.",
       "required": [
         "kind",
         "alg",
