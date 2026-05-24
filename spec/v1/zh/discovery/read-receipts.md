@@ -123,11 +123,11 @@ Read Cursor 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 ### 3.2 格式
 
-Read cursor schema：`cx.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中，因此其 `id` 字段是 actor 控制下的标识符（例如 account-data key），不属于 typed-id-registry 的 wire object kind：按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
+Read cursor schema：`cx.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中；wire 对象的 `id` MUST 使用 `cx:read_cursor:<uuid7>` typed ID。实现 MAY 为 account data 使用本地存储 key，但该 key 不得替代 wire 对象 `id`。Read Cursor 按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
 
 ```json
 {
-  "id": "read_cursor_alice_flow_discussion_01",
+  "id": "cx:read_cursor:01964137-0000-7000-8000-000000000001",
   "schema": "cx.schema.read_cursor.v1",
   "actor_id": "did:web:alice.example",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
@@ -279,7 +279,7 @@ state=unread, cursor=<cursor>, limit=<int>
 
 ### 6.6 跨设备同步语义
 
-`cx.read.cursor` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer frontier。它仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id。
+`cx.read.cursor` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer frontier。其 payload MUST 使用 `cx.schema.read_cursor.v1` 的 Read Cursor 对象形态；该对象仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id。
 
 跨设备已读同步流程：
 

@@ -148,10 +148,10 @@ Signature: sig1=:base64...:
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
 | `service_binding_ref.realm_id` | body | `id` | required | 受影响的 Realm。在多 Realm 批量推送中，发送方 SHOULD 把不同 Realm 的 events 拆成独立请求；单请求 MUST 至少携带一个 `realm_id`。 |
-| `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
+| `service_binding_ref.realm_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_did = Destination-Service-DID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` 与 `handover_frontier`，sender 切到新目标后重试。 |
-| `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"space_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
+| `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
 | `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
 
@@ -162,7 +162,7 @@ Signature: sig1=:base64...:
 {
   "service_binding_ref": {
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-    "space_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "realm_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "membership_frontier": [
       "cx:event:0196419b-1000-7000-8000-000000000001"
     ],
@@ -186,8 +186,20 @@ Signature: sig1=:base64...:
       "prev_refs": [],
       "refs": [],
       "payload": {
-        "thread_id": "cx:flow:0196419b-3000-7000-8000-000000000001",
-        "read_through_event_id": "cx:event:0196419b-1000-7000-8000-000000000001"
+        "id": "cx:read_cursor:0196419b-3000-7000-8000-000000000001",
+        "schema": "cx.schema.read_cursor.v1",
+        "actor_id": "did:web:alice.example",
+        "device_id": "cx:device:0196419b-3000-7000-8000-000000000002",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "read_scope": {
+          "kind": "thread",
+          "ref": "cx:message:0196419b-3000-7000-8000-000000000001"
+        },
+        "position": {
+          "event_id": "cx:event:0196419b-1000-7000-8000-000000000001",
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        },
+        "updated_at": "2026-04-26T00:00:00Z"
       },
       "proofs": [
         {
@@ -282,7 +294,7 @@ sequenceDiagram
 
     Cli->>Alpha: 提交 signed Event 到 Realm S
     Alpha->>Pol: 解析应接收的 Principal Server
-    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(space_policy_hash / membership_frontier / delivery_binding_frontier / reducer_profile_hash)
+    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_hash / membership_frontier / delivery_binding_frontier / reducer_profile_hash)
     Alpha->>Beta: POST /api/v1/events (cx.events.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest / Request-Canonical-Hash<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. anchor_ref / Lattice precondition
     Beta-->>Alpha: 200 + accepted / rejected / quarantine

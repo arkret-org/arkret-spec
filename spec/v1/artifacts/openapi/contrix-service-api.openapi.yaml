@@ -585,7 +585,7 @@ components:
         receiver to verify the sender's delivery decision; client writes omit it.
       required:
       - realm_id
-      - space_policy_hash
+      - realm_policy_hash
       - membership_frontier
       - delivery_binding_frontier
       - destination_service_type
@@ -594,7 +594,7 @@ components:
         realm_id:
           type: string
           pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        space_policy_hash:
+        realm_policy_hash:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
         membership_frontier:

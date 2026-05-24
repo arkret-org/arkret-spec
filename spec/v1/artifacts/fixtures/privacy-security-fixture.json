@@ -80,7 +80,7 @@
         "service_did": "did:web:search.example",
         "event_kind": "cx.message.create",
         "content_class": "private_plaintext",
-        "space_policy": {
+        "realm_policy": {
           "plaintext_visible_services": [
             {
               "service_did": "did:web:principal.example",

@@ -170,6 +170,15 @@
       }
     },
     {
+      "if": {
+        "properties": { "kind": { "const": "cx.read.cursor" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./read-cursor.schema.json" } }
+      }
+    },
+    {
       "$comment": "Wire-scope boundary (normative, T02). Kinds with wire_scope=ephemeral_event in event-kind-registry.json MUST NOT appear in the durable Event Envelope. They use ephemeral-envelope.schema.json (broadcast: presence/typing/receipt/call.signal) or device-message.schema.json (point-to-point to-device: cx.key.verification.*). cx.events.submit MUST schema_violation on any wire bytes matching this enum; reducer/state path MUST NOT advance Anchor frontier or actor_seq for these kinds.",
       "not": {
         "properties": {
@@ -621,7 +630,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_archive_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_archive_payload" } }
       }
     },
     {
@@ -630,7 +639,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_freeze_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_freeze_payload" } }
       }
     },
     {
@@ -639,7 +648,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_tombstone_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_tombstone_payload" } }
       }
     },
     {
@@ -648,7 +657,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_destroy_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_destroy_payload" } }
       }
     },
     {

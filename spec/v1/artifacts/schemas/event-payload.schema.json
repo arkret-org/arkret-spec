@@ -70,7 +70,7 @@
             "invite",
             "join_policy",
             "organization_policy",
-            "space_policy"
+            "realm_policy"
           ],
           "description": "How the binding was determined at join time. 'explicit' = user / admin chose; 'did_document_default' = resolved from invitee DID Document (only allowed when Realm policy enables fallback); other values are policy-driven."
         },
@@ -113,7 +113,7 @@
         },
         "policy_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the Realm / Join / Organization policy revision that authorised this binding. Required when binding_source ∈ {join_policy, organization_policy, space_policy}."
+          "description": "Reference to the Realm / Join / Organization policy revision that authorised this binding. Required when binding_source ∈ {join_policy, organization_policy, realm_policy}."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
@@ -151,7 +151,7 @@
         },
         {
           "if": {
-            "properties": { "binding_source": { "enum": ["join_policy", "space_policy"] } },
+            "properties": { "binding_source": { "enum": ["join_policy", "realm_policy"] } },
             "required": ["binding_source"]
           },
           "then": {
@@ -1088,7 +1088,7 @@
       },
       "additionalProperties": false
     },
-    "space_archive_payload": {
+    "realm_archive_payload": {
       "type": "object",
       "required": [
         "archived"
@@ -1150,7 +1150,7 @@
       },
       "additionalProperties": false
     },
-    "space_freeze_payload": {
+    "realm_freeze_payload": {
       "type": "object",
       "required": [
         "frozen"
@@ -1171,16 +1171,17 @@
       },
       "additionalProperties": false
     },
-    "space_tombstone_payload": {
+    "realm_tombstone_payload": {
       "type": "object",
       "required": [
-        "reason"
+        "reason",
+        "successor_realm_id"
       ],
       "properties": {
         "reason": {
           "type": "string"
         },
-        "replacement_space": {
+        "successor_realm_id": {
           "$ref": "#/$defs/realm_id"
         },
         "replacement_event": {
@@ -1192,7 +1193,7 @@
       },
       "additionalProperties": false
     },
-    "space_destroy_payload": {
+    "realm_destroy_payload": {
       "type": "object",
       "required": [
         "reason"

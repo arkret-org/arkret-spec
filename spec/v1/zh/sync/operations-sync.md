@@ -374,9 +374,20 @@ Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例�
   "hlc": "01970e589d21-0008-a13f9c2e",
   "prev_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
   "payload": {
-    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
-    "track": "discussion",
-    "marker_event_id": "cx:event:01964147-0000-7000-8000-000000000000"
+    "id": "cx:read_cursor:0196418a-1000-7000-8000-000000000000",
+    "schema": "cx.schema.read_cursor.v1",
+    "actor_id": "did:web:alice.example.com",
+    "device_id": "cx:device:0196418a-2000-7000-8000-000000000000",
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "read_scope": {
+      "kind": "flow_discussion",
+      "ref": "cx:flow:019640c6-8000-7000-8000-000000000000"
+    },
+    "position": {
+      "event_id": "cx:event:01964147-0000-7000-8000-000000000000",
+      "hlc": "01970e589d21-0008-a13f9c2e"
+    },
+    "updated_at": "2026-04-22T08:30:00Z"
   },
   "proofs": [{"_comment": "<actor / device proofs over canonical bytes; see encoding.md §6>"}]
 }

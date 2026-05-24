@@ -25,7 +25,7 @@
     ],
     "service_binding_ref": {
       "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-      "space_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "realm_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "membership_frontier": [
         "cx:event:01964145-8000-7000-8000-000000000000"
       ],

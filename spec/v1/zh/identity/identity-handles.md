@@ -113,14 +113,14 @@ Handle 解析结果（无论来自 Directory、Principal Server、Organization c
 Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时，**额外** MUST 包含：
 
 - `member_delivery_binding`：该 handle 在投递层提供给 membership builder 的完整投递绑定；其中 `member_delivery_binding.recipient_service_did` 是 Principal Server service DID 的唯一来源。
-- `audience`：claim 绑定的目标 Realm DID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。
+- `audience`：claim 绑定的目标 Realm ID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。
 - `issuer_service_did`（条件必填）：claim 由 Organization 或 Directory 签发时给出实际签名的服务 DID。
 
 ### 3.3 `member_delivery_binding`
 
 解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_service_did`、`binding_source`、`service_acceptance_ref`、`policy_ref` 和 `delivery_modes` 可直接用于构造 `cx.member.state{membership="join"}.delivery_binding`。Handle claim schema 不再允许顶层 `recipient_service_did` 快捷字段；投递服务 DID 必须只从 `member_delivery_binding.recipient_service_did` 读取。
 
-`member_delivery_binding.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
+`member_delivery_binding.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
 
 该 hint 是 builder 输入；reducer 仍 MUST 按 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 独立验证 Realm policy、claim issuer、服务背书和条件必填字段。
 
@@ -165,9 +165,9 @@ Handle 按 holder 披露意图分两类：
 | `subject_id` | DID | MUST | 被寻址主体的 principal DID；最终物化为 `payload.actor_id` / cell subject。 |
 | `handle_uri` | canonical URI | MUST | `contrix://<domain>(:<port>)?/users/<localpart>`，`<localpart>` 已 lowercase。`acct:` / 显示形态 / 裸 host 一律拒绝。 |
 | `handle_aliases[]` | `acct:` URI 数组 | MAY | 仅互通别名；不参与权威比对、缓存键或 `delivery_binding` 物化。 |
-| `member_delivery_binding` | object | MUST | 与 [`handle-claim.schema.json#/properties/member_delivery_binding`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`；MUST NOT 为 `did_document_default`。 |
+| `member_delivery_binding` | object | MUST | 与 [`handle-claim.schema.json#/properties/member_delivery_binding`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`；MUST NOT 为 `did_document_default`。 |
 | `issuer_service_did` | DID | MUST | 实际签发该 candidate 的服务 DID（Directory / Principal Server / Organization service DID）。 |
-| `audience` | string | MUST | 目标 Space DID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。 |
+| `audience` | string | MUST | 目标 Realm ID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。 |
 | `issued_at` | timestamp | MUST | RFC 3339 `Z` 形式；issuer 签发该 candidate 的时刻。MUST ≤ `expires_at`；与 `expires_at` 一起界定 candidate 的有效窗口并阻止 MITM 把 `issued_at` 改写以扩大重放窗口。 |
 | `expires_at` | timestamp | MUST | RFC 3339 `Z` 形式；过期 candidate MUST 被视为不可用。 |
 | `source_refs[]` | event id 数组 | MUST | 至少一条 `cx:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |

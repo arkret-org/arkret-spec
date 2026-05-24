@@ -257,7 +257,7 @@ Policy decision 签名输入 MUST 包含：
 
 - `request_id`
 - `bound_to.request_canonical_hash`
-- `bound_to.realm_id`（被评估对象所属的 Realm DID / Realm ID;**v1 normative**）
+- `bound_to.realm_id`（被评估对象所属的 Realm ID;**v1 normative**）
 - `bound_to.actor`（被评估 actor DID;**v1 normative**）
 - `bound_to.action`（被评估的 capability action token）
 - `bound_to.policy_server_id`

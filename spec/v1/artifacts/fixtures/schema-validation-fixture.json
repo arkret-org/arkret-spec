@@ -254,7 +254,22 @@
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "refs": [],
-        "payload": {},
+        "payload": {
+          "id": "cx:read_cursor:019a6aa0-1000-7000-8000-000000000000",
+          "schema": "cx.schema.read_cursor.v1",
+          "actor_id": "did:web:alice.example",
+          "device_id": "cx:device:019a6aa0-2000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+          "read_scope": {
+            "kind": "flow_discussion",
+            "ref": "cx:flow:019a6aa0-3000-7000-8000-000000000000"
+          },
+          "position": {
+            "event_id": "cx:event:019a6aa0-4000-7000-8000-000000000000",
+            "hlc": "01970e589d21-0001-a13f9c2e"
+          },
+          "updated_at": "2026-05-20T00:00:00Z"
+        },
         "proofs": [
           {
             "kind": "detached_jws",
