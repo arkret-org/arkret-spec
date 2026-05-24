@@ -106,7 +106,7 @@
       "file": "schemas/media-metadata.schema.json"
     },
     {
-      "schema_id": "cx.schema.encrypted_payload.v1",
+      "schema_id": "cx.schema.encrypted_envelope.v1",
       "file": "schemas/encrypted-envelope.schema.json"
     },
     {

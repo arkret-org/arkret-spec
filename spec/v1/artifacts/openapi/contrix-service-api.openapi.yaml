@@ -1122,14 +1122,18 @@ components:
     DeviceMessagesGetResponse:
       type: object
       required:
-      - events
+      - messages
+      - has_more
       properties:
-        events:
+        messages:
           type: array
+          description: DeviceMessageEnvelope items; not Event Envelope objects. Renamed from `events` to remove the misleading appearance that this endpoint serves the durable Event timeline.
           items:
             $ref: '#/components/schemas/DeviceMessageEnvelope'
         next_cursor:
           type: string
+        has_more:
+          type: boolean
         limited:
           type: boolean
       additionalProperties: false
@@ -4601,7 +4605,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/rooms/{flow_id}/update:
+  /mimi/flows/{flow_id}/update:
     put:
       operationId: cx.mimi.room_update
       security:
@@ -4628,7 +4632,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/rooms/{flow_id}/notify:
+  /mimi/flows/{flow_id}/notify:
     post:
       operationId: cx.mimi.notify
       security:
@@ -4655,7 +4659,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/rooms/{flow_id}/messages:
+  /mimi/flows/{flow_id}/messages:
     post:
       operationId: cx.mimi.submit_message
       security:
@@ -4682,7 +4686,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/rooms/{flow_id}/group-info:
+  /mimi/flows/{flow_id}/group-info:
     get:
       operationId: cx.mimi.group_info
       security:

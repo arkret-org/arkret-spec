@@ -130,7 +130,7 @@
         "issuer": "did:web:owner.example",
         "subject": "did:web:agent.example",
         "actions": [
-          "cx.agent.protocol_session.start"
+          "cx.agent.session.start"
         ],
         "resources": [
           {

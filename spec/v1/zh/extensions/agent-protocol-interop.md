@@ -117,7 +117,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 }
 ```
 
-`cx.agent.protocol_session.start` MUST 通过常规的 Realm 授权与 policy 校验。
+`cx.agent.protocol_session.start` 事件的提交 MUST 通过常规的 Realm 授权（capability action `cx.agent.session.start`）与 policy 校验。
 
 Session start MUST pin counterparty DID epoch：payload 或 `refs[]` evidence MUST 记录 counterparty DID Document canonical hash、method-specific version / log entry id（若 DID method 支持）、matched service entry id、service endpoint digest 和 verification method。`cx.agent.protocol_session.status` / `result` 回流时 reducer MUST 校验这些 pin 与 session start 一致；若外部 DID 在会话期间轮换到不同 endpoint 或 verification method，现有 session MUST 进入 `blocked` 或 `cancelled`，并以 `session_pinned_did_epoch_mismatch` 作为 reason，不能静默迁移到新 endpoint。
 
@@ -154,7 +154,7 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 - `cancelled`
 - `expired`
 
-Cancellation 是协议状态，不是只关本地 socket。持有 `cx.agent.protocol_session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `cx.agent.protocol_session.status{status="cancelled"}` 或终态 `cx.agent.protocol_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。
+Cancellation 是协议状态，不是只关本地 socket。持有 `cx.agent.session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `cx.agent.protocol_session.status{status="cancelled"}` 或终态 `cx.agent.protocol_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。
 
 ### 5.4 Result 回流
 
@@ -207,7 +207,7 @@ sequenceDiagram
     participant Remote as Remote Agent<br>(A2A / ACP endpoint)
 
     LocalAg->>Cx: 创建或选择任务 Flow
-    LocalAg->>Cx: 检查 cx.agent.protocol_session.start capability
+    LocalAg->>Cx: 检查 cx.agent.session.start capability
     Cx->>Pol: endpoint validation<br>(目标 DID Document service binding<br> + TLS / HTTP Sig pinning)
     Pol-->>Cx: 通过 / 拒绝 (拒绝则中止)
     LocalAg->>Cx: cx.agent.protocol_session.start<br>(session_id / counterparty / protocol /<br> capability_grant / allowed_artifact_types /<br> max_duration_seconds / audit_mode)
@@ -231,7 +231,7 @@ sequenceDiagram
 
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
 2. Requesting agent 在 Contrix 中创建或选择任务 Flow，或选择可承载任务语义的 Morph。
-3. Requesting agent 检查自己是否拥有 `cx.agent.protocol_session.start` capability。
+3. Requesting agent 检查自己是否拥有 `cx.agent.session.start` capability。
 4. **Endpoint validation（normative MUST）**：Policy server MUST 验证目标 endpoint 与目标 agent DID 的 service binding 一致性，至少完成以下检查（任一失败 MUST 拒绝 session start）：
    - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
    - 验证目标 endpoint 的 TLS 证书 / mutual TLS / HTTP Message Signature 与 DID Document 中声明的 verificationMethod 绑定（与 `federation.md` §3.1-§3.2 destination host pinning 同等强度）。
@@ -246,14 +246,14 @@ sequenceDiagram
 
 ## 7. Capability
 
-新增标准动作：
+新增标准动作（capability actions; 对应 event kind 保留 `cx.agent.protocol_session.*` 前缀以兼容已存在的 wire bytes）：
 
 - `cx.agent.protocol.discover`
-- `cx.agent.protocol_session.start`
-- `cx.agent.protocol_session.cancel`
-- `cx.agent.protocol_session.stream_status`
-- `cx.agent.protocol_session.attach_artifact`
-- `cx.agent.protocol_session.read_transcript`
+- `cx.agent.session.start`（authorize submitting `cx.agent.protocol_session.start`）
+- `cx.agent.session.cancel`（authorize cancellation flow that writes `cx.agent.protocol_session.status{status="cancelled"}` / `result`）
+- `cx.agent.session.stream_status`（authorize streaming `cx.agent.protocol_session.status`）
+- `cx.agent.session.attach_artifact`（authorize artifact attachment that flows through `cx.agent.protocol_session.status` / `result`）
+- `cx.agent.session.read_transcript`（authorize transcript read; no event kind side-effect）
 
 Capability constraint SHOULD 支持：
 

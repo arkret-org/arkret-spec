@@ -112,18 +112,22 @@ API 调用 SHOULD 使用以下方式之一：
 
 ## 4. 标准响应 envelope
 
-成功响应 SHOULD 使用具体 endpoint 定义的 JSON 对象。  
-如果 endpoint 需要通用 envelope，建议格式如下：
+**v1 现状（normative）**：成功响应 MUST 直接返回 endpoint-specific JSON 对象（字段集由对应 endpoint 在 `service-http-binding.md` §2.3 / §2.4 与 `contract-catalog.json` 定义）；**不存在跨 endpoint 强制的统一 success envelope**。错误响应 MUST 使用 §5 的统一错误 envelope (`{"ok": false, "error": {...}}`)，但成功响应没有等价的"包裹后再返回"模式。
 
-```json
-{
-  "ok": true,
-  "request_id": "cx:request:01964137-0000-7000-8000-000000000000",
-  "result": {}
-}
-```
+各 endpoint 当前实际使用的成功标记形态可分为三类，调用方应直接按 endpoint 文档判定：
 
-流式 endpoint MAY 使用 newline-delimited JSON、SSE 或 WebSocket frame，但每个 frame 仍 SHOULD 是独立 JSON 对象。
+- **`{ok: true, ...payload}`** — 简单 mutation (push / device_messages.put / applet.transactions / 等)；
+- **`{status: enum, ...payload}`** — 批量提交语义复杂时 (events.submit `status ∈ {accepted, duplicate, partial}`、keys.backups.put `status ∈ {accepted, duplicate}`)；
+- **裸字段直接返回** — 创建 / 解析类 (blob.upload `{blob_ref, size, ...}`、directory.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
+
+新增 endpoint 设计时建议:
+- 简单 idempotent mutation 默认走 `{ok: true, ...payload}`；
+- 批量 / 多结果路径走 `{status, accepted[], rejected[], ...}`；
+- 创建 / 解析类直接返回构造好的对象，不另加包裹。
+
+`{ok: true}` 与 `{deleted: true}` / `{accepted: true}` 等单 boolean 标记**等价**（历史命名差异），新设计统一使用 `ok`。
+
+流式 endpoint MAY 使用 newline-delimited JSON、SSE 或 WebSocket frame，但每个 frame 仍 SHOULD 是独立 JSON 对象。`request_id` 字段（若返回）SHOULD 与请求侧的 idempotency / tracing id 对齐，但不作为 success/failure discriminator。
 
 ## 5. 标准错误响应
 
@@ -218,17 +222,30 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 - TTL 硬上限：barrier cursor `expires_at - issued_at` MUST ≤ 1 小时；stream cursor MUST ≤ 7 天。详见 [`encoding.md` §8.3 规则 12](../conformance/encoding.md)。
 - 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
 
-### 7.1 列表分页
+### 7.1 列表分页（normative）
 
-列表接口 SHOULD 使用 stream cursor 分页：
+所有列表接口 MUST 返回三个字段：
 
 ```json
 {
-  "items": [],
+  "<items_field>": [],
   "next_cursor": "cx:cursor:...",
   "has_more": false
 }
 ```
+
+**`<items_field>` 命名约定** (normative)：
+- 优先使用资源复数名（`realms[]` / `flows[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
+- 没有自然资源复数名时（mixed entity 搜索、private contact discovery 等），使用 `results[]`；
+- **不得**使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 的 `messages[]` 例外见 `cx.device_messages.get`）。
+
+**`next_cursor` / `has_more`** (normative)：
+- `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
+- `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
+
+**`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
+
+**Cursor 方向参数** (`before` / `after`)：见 §3.3 与 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `cx.device_messages.get` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
 
 服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `invalid_param`。
 

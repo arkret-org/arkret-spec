@@ -218,17 +218,17 @@
       "type": "object",
       "description": "Evidence that created_by was authorized to seal this snapshot at created_at. Verifiers MUST reject the snapshot when this binding cannot be checked against Realm policy / witness quorum at or before created_at.",
       "required": [
-        "signer_did",
+        "issuer",
         "authority_kind",
         "auth_state_hash",
         "auth_frontier",
         "checked_at"
       ],
       "properties": {
-        "signer_did": {
+        "issuer": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s]+$",
-          "description": "MUST equal top-level created_by."
+          "description": "MUST equal top-level created_by. Aligns with the canonical 'issuer' DID field used by audit-ryw-receipt, range-completeness-attestation, capability-grant, etc. (see common-fields.md §4.2)."
         },
         "authority_kind": {
           "type": "string",

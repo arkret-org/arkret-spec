@@ -675,7 +675,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.encrypted_payload.v1",
+        "cx.schema.encrypted_envelope.v1",
         "cx.schema.media_metadata.v1",
         "cx.schema.key_backup.v1"
       ],
@@ -1430,7 +1430,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.mimi_interop.v1",
-        "cx.schema.encrypted_payload.v1"
+        "cx.schema.encrypted_envelope.v1"
       ],
       "required_fixtures": [
         "mimi-interop-fixture.json",
@@ -1837,7 +1837,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.snapshot.v1",
-        "cx.schema.encrypted_payload.v1",
+        "cx.schema.encrypted_envelope.v1",
         "cx.schema.moderation_queue_item.v1"
       ],
       "required_fixtures": [
@@ -1922,7 +1922,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.encrypted_payload.v1",
+        "cx.schema.encrypted_envelope.v1",
         "cx.schema.snapshot.v1"
       ],
       "required_fixtures": [
@@ -1963,7 +1963,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.encrypted_payload.v1",
+        "cx.schema.encrypted_envelope.v1",
         "cx.schema.identity_link.v1"
       ],
       "required_fixtures": [
@@ -1997,7 +1997,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.encrypted_payload.v1",
+        "cx.schema.encrypted_envelope.v1",
         "cx.schema.audit_ryw_receipt.v1",
         "cx.schema.anchor.v1"
       ],
@@ -2032,7 +2032,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.encrypted_payload.v1",
+        "cx.schema.encrypted_envelope.v1",
         "cx.schema.audit_ryw_receipt.v1",
         "cx.schema.anchor.v1"
       ],

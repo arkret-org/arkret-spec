@@ -54,7 +54,7 @@ sidebar:
 | `cx.schema.media_metadata.v1` | Media Metadata |
 | `cx.schema.read_receipt.v1` | Read Receipt |
 | `cx.schema.blob.v1` | Blob Metadata |
-| `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
+| `cx.schema.encrypted_envelope.v1` | MLS Encrypted Payload Envelope |
 | `cx.schema.key_backup.v1` | Encrypted Key Backup |
 | `cx.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
 | `cx.schema.device_message.v1` | To-device Message Envelope |

@@ -780,6 +780,159 @@
       "replacement": "realm_metadata",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "state_at_window_start anchor field carrying Realm-level Lattice cell value at window start (Realm name / topic / join_rule). The cell value is Realm-scoped; the legacy name 'space_metadata' would suggest in-Realm Space container metadata, which is incorrect. See spec/v1/zh/sync/client-sync.md §5.2."
+    },
+    {
+      "id": "cx.schema.encrypted_payload.v1",
+      "kind_class": "schema_id",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.schema.encrypted_envelope.v1",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Contrix Encrypted Payload Envelope'. The wire field name 'encrypted_payload' remains unchanged on Message / Flow / Morph / event payloads."
+    },
+    {
+      "id": "authority_binding.signer_did",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "authority_binding.issuer",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "snapshot.schema.json authority_binding.signer_did renamed to authority_binding.issuer to match the canonical 'issuer' DID field used by audit-ryw-receipt / range-completeness-attestation / capability-grant / handle-claim / identity-receipt (see common-fields.md §4.2). MUST still equal the snapshot's top-level created_by."
+    },
+    {
+      "id": "DeviceMessagesGetResponse.events",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "DeviceMessagesGetResponse.messages",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Response field of cx.device_messages.get renamed from events[] to messages[] because the items are DeviceMessageEnvelope[], not Event Envelope[]. Removes the misleading appearance that this endpoint serves the durable Event timeline (which lives on cx.events.query / cx.events.subscribe)."
+    },
+    {
+      "id": "cx.realm.lifecycle.archive",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.archive",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.archive) to 3 segments (cx.realm.archive) to match the corresponding event kind. All other entities (flow / space / morph) already used the 3-segment form; the 4-segment Realm form was an outlier that forced IAM tooling to special-case Realm. target_event_kinds for the action is still cx.realm.archive."
+    },
+    {
+      "id": "cx.realm.lifecycle.freeze",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.freeze",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "See cx.realm.lifecycle.archive entry."
+    },
+    {
+      "id": "cx.realm.lifecycle.tombstone",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.tombstone",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "See cx.realm.lifecycle.archive entry."
+    },
+    {
+      "id": "cx.realm.lifecycle.destroy",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.destroy",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "See cx.realm.lifecycle.archive entry."
+    },
+    {
+      "id": "cx.invite.third_party",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.invite.create_third_party",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action renamed from noun form 'third_party' to verb form 'create_third_party'. Sibling actions cx.invite.create / cancel / claim / revoke / accept are all verbs; third_party was an outlier. The event kind cx.invite.third_party is preserved unchanged; action ↔ event kind bridging lives in target_event_kinds."
+    },
+    {
+      "id": "cx.policy.rule",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.policy.rule.manage",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action renamed from noun form 'rule' to '<noun>.manage' verb form. Sibling actions cx.policy.manage / set are verb forms. Event kind cx.policy.rule is preserved."
+    },
+    {
+      "id": "cx.policy.action",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.policy.action.manage",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "See cx.policy.rule entry. Event kind cx.policy.action is preserved."
+    },
+    {
+      "id": "cx.read.cursor",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.cursor.advance",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action renamed: noun phrase 'cx.read.cursor' (entity=read, sub=cursor) restructured to 'cx.cursor.advance' (entity=cursor, action=advance). The event kind cx.read.cursor is preserved; the action ↔ event kind bridge is via target_event_kinds. Note: ID kind cx:read_cursor is also unchanged."
+    },
+    {
+      "id": "cx.agent.protocol_session.start",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.agent.session.start",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action namespace flattened from cx.agent.protocol_session.* to cx.agent.session.* (the cx.agent.* context already implies protocol session). Event kinds cx.agent.protocol_session.{start,status,result} are preserved for wire-format stability; the action ↔ event kind bridge is via target_event_kinds. Same applies to .cancel / .stream_status / .attach_artifact / .read_transcript."
+    },
+    {
+      "id": "cx.agent.protocol_session.cancel",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.agent.session.cancel",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "See cx.agent.protocol_session.start entry."
+    },
+    {
+      "id": "cx.agent.protocol_session.stream_status",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.agent.session.stream_status",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "See cx.agent.protocol_session.start entry."
+    },
+    {
+      "id": "cx.agent.protocol_session.attach_artifact",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.agent.session.attach_artifact",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "See cx.agent.protocol_session.start entry."
+    },
+    {
+      "id": "cx.agent.protocol_session.read_transcript",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.agent.session.read_transcript",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "See cx.agent.protocol_session.start entry."
+    },
+    {
+      "id": "/mimi/rooms/{flow_id}/...",
+      "kind_class": "http_path",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "/mimi/flows/{flow_id}/...",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MIMI interop HTTP paths /mimi/rooms/{flow_id}/{update,notify,messages,group-info} renamed to /mimi/flows/{flow_id}/.... The path parameter was always {flow_id} (a Contrix Flow), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
     }
   ]
 }

@@ -1789,7 +1789,7 @@
         "file": "schemas/media-metadata.schema.json"
       },
       {
-        "schema_id": "cx.schema.encrypted_payload.v1",
+        "schema_id": "cx.schema.encrypted_envelope.v1",
         "file": "schemas/encrypted-envelope.schema.json"
       },
       {
@@ -2865,7 +2865,7 @@
       },
       {
         "operation_id": "cx.mimi.group_info",
-        "http": "GET /mimi/rooms/{flow_id}/group-info",
+        "http": "GET /mimi/flows/{flow_id}/group-info",
         "grpc": "Mimi/GroupInfo",
         "mq": "mimi.group_info"
       },
@@ -2883,7 +2883,7 @@
       },
       {
         "operation_id": "cx.mimi.notify",
-        "http": "POST /mimi/rooms/{flow_id}/notify",
+        "http": "POST /mimi/flows/{flow_id}/notify",
         "grpc": "Mimi/Notify",
         "mq": "mimi.notify"
       },
@@ -2915,13 +2915,13 @@
       },
       {
         "operation_id": "cx.mimi.room_update",
-        "http": "PUT /mimi/rooms/{flow_id}/update",
+        "http": "PUT /mimi/flows/{flow_id}/update",
         "grpc": "Mimi/RoomUpdate",
         "mq": "mimi.room_update"
       },
       {
         "operation_id": "cx.mimi.submit_message",
-        "http": "POST /mimi/rooms/{flow_id}/messages",
+        "http": "POST /mimi/flows/{flow_id}/messages",
         "grpc": "Mimi/SubmitMessage",
         "mq": "mimi.submit_message"
       },
@@ -3063,7 +3063,7 @@
         "profile": null
       },
       {
-        "action": "cx.realm.lifecycle.archive",
+        "action": "cx.realm.archive",
         "category": "general",
         "risk_tier": "medium",
         "required_constraints": [],
@@ -3073,7 +3073,7 @@
         "profile": null
       },
       {
-        "action": "cx.realm.lifecycle.freeze",
+        "action": "cx.realm.freeze",
         "category": "general",
         "risk_tier": "high",
         "required_constraints": [],
@@ -3083,7 +3083,7 @@
         "profile": null
       },
       {
-        "action": "cx.realm.lifecycle.tombstone",
+        "action": "cx.realm.tombstone",
         "category": "general",
         "risk_tier": "high",
         "required_constraints": [],
@@ -3093,7 +3093,7 @@
         "profile": null
       },
       {
-        "action": "cx.realm.lifecycle.destroy",
+        "action": "cx.realm.destroy",
         "category": "general",
         "risk_tier": "high",
         "required_constraints": [],
@@ -3697,7 +3697,7 @@
         "profile": "cx.profile.agent_runtime.v1"
       },
       {
-        "action": "cx.agent.protocol_session.start",
+        "action": "cx.agent.session.start",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [
@@ -3710,7 +3710,7 @@
         "profile": "cx.profile.agent_runtime.v1"
       },
       {
-        "action": "cx.agent.protocol_session.cancel",
+        "action": "cx.agent.session.cancel",
         "category": "management",
         "risk_tier": "medium",
         "required_constraints": [],
@@ -3721,7 +3721,7 @@
         "profile": "cx.profile.agent_runtime.v1"
       },
       {
-        "action": "cx.agent.protocol_session.stream_status",
+        "action": "cx.agent.session.stream_status",
         "category": "general",
         "risk_tier": "low",
         "required_constraints": [],
@@ -3731,7 +3731,7 @@
         "profile": "cx.profile.agent_runtime.v1"
       },
       {
-        "action": "cx.agent.protocol_session.attach_artifact",
+        "action": "cx.agent.session.attach_artifact",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [
@@ -3745,7 +3745,7 @@
         "profile": "cx.profile.agent_runtime.v1"
       },
       {
-        "action": "cx.agent.protocol_session.read_transcript",
+        "action": "cx.agent.session.read_transcript",
         "category": "general",
         "risk_tier": "high",
         "required_constraints": [
@@ -3773,7 +3773,7 @@
         "profile": null
       },
       {
-        "action": "cx.policy.rule",
+        "action": "cx.policy.rule.manage",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [],
@@ -3783,7 +3783,7 @@
         "profile": null
       },
       {
-        "action": "cx.policy.action",
+        "action": "cx.policy.action.manage",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [],
@@ -3821,7 +3821,7 @@
         "profile": null
       },
       {
-        "action": "cx.invite.third_party",
+        "action": "cx.invite.create_third_party",
         "category": "management",
         "risk_tier": "medium",
         "required_constraints": [],
@@ -4097,7 +4097,7 @@
         "profile": null
       },
       {
-        "action": "cx.read.cursor",
+        "action": "cx.cursor.advance",
         "category": "personal",
         "risk_tier": "low",
         "required_constraints": [],

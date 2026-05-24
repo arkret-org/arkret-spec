@@ -48,7 +48,7 @@
       "profile": null
     },
     {
-      "action": "cx.realm.lifecycle.archive",
+      "action": "cx.realm.archive",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -58,7 +58,7 @@
       "profile": null
     },
     {
-      "action": "cx.realm.lifecycle.freeze",
+      "action": "cx.realm.freeze",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
@@ -68,7 +68,7 @@
       "profile": null
     },
     {
-      "action": "cx.realm.lifecycle.tombstone",
+      "action": "cx.realm.tombstone",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
@@ -78,7 +78,7 @@
       "profile": null
     },
     {
-      "action": "cx.realm.lifecycle.destroy",
+      "action": "cx.realm.destroy",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
@@ -682,7 +682,7 @@
       "profile": "cx.profile.agent_runtime.v1"
     },
     {
-      "action": "cx.agent.protocol_session.start",
+      "action": "cx.agent.session.start",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -695,7 +695,7 @@
       "profile": "cx.profile.agent_runtime.v1"
     },
     {
-      "action": "cx.agent.protocol_session.cancel",
+      "action": "cx.agent.session.cancel",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -706,7 +706,7 @@
       "profile": "cx.profile.agent_runtime.v1"
     },
     {
-      "action": "cx.agent.protocol_session.stream_status",
+      "action": "cx.agent.session.stream_status",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -716,7 +716,7 @@
       "profile": "cx.profile.agent_runtime.v1"
     },
     {
-      "action": "cx.agent.protocol_session.attach_artifact",
+      "action": "cx.agent.session.attach_artifact",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -730,7 +730,7 @@
       "profile": "cx.profile.agent_runtime.v1"
     },
     {
-      "action": "cx.agent.protocol_session.read_transcript",
+      "action": "cx.agent.session.read_transcript",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [
@@ -758,7 +758,7 @@
       "profile": null
     },
     {
-      "action": "cx.policy.rule",
+      "action": "cx.policy.rule.manage",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -768,7 +768,7 @@
       "profile": null
     },
     {
-      "action": "cx.policy.action",
+      "action": "cx.policy.action.manage",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -806,7 +806,7 @@
       "profile": null
     },
     {
-      "action": "cx.invite.third_party",
+      "action": "cx.invite.create_third_party",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1082,7 +1082,7 @@
       "profile": null
     },
     {
-      "action": "cx.read.cursor",
+      "action": "cx.cursor.advance",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],

@@ -596,7 +596,7 @@
     },
     {
       "operation_id": "cx.mimi.group_info",
-      "http": "GET /mimi/rooms/{flow_id}/group-info",
+      "http": "GET /mimi/flows/{flow_id}/group-info",
       "grpc": "Mimi/GroupInfo",
       "mq": "mimi.group_info"
     },
@@ -614,7 +614,7 @@
     },
     {
       "operation_id": "cx.mimi.notify",
-      "http": "POST /mimi/rooms/{flow_id}/notify",
+      "http": "POST /mimi/flows/{flow_id}/notify",
       "grpc": "Mimi/Notify",
       "mq": "mimi.notify"
     },
@@ -646,13 +646,13 @@
     },
     {
       "operation_id": "cx.mimi.room_update",
-      "http": "PUT /mimi/rooms/{flow_id}/update",
+      "http": "PUT /mimi/flows/{flow_id}/update",
       "grpc": "Mimi/RoomUpdate",
       "mq": "mimi.room_update"
     },
     {
       "operation_id": "cx.mimi.submit_message",
-      "http": "POST /mimi/rooms/{flow_id}/messages",
+      "http": "POST /mimi/flows/{flow_id}/messages",
       "grpc": "Mimi/SubmitMessage",
       "mq": "mimi.submit_message"
     },
