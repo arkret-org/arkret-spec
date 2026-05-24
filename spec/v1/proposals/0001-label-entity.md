@@ -1,7 +1,7 @@
 ---
 cxp: CXP-0001
 title: Label as first-class entity
-status: draft
+status: deferred-to-v1.1
 created: 2026-05-23
 authors:
   - did:web:contrix.example

@@ -1,0 +1,22 @@
+name: Link check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  schedule:
+    - cron: "17 5 * * 1"
+
+jobs:
+  lychee:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --config lychee.toml
+            README.md CHANGELOG.md _contrix-spec_todos.md "spec/v1/**/*.md"
+          fail: true

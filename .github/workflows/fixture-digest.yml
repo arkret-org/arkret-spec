@@ -1,0 +1,29 @@
+name: Fixture digest
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  fixture-digest:
+    runs-on: ubuntu-latest
+    env:
+      COTEST_FIXTURE_DIGEST_URL: ${{ vars.COTEST_FIXTURE_DIGEST_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Download cotest reference digest when configured
+        run: |
+          if [ -n "$COTEST_FIXTURE_DIGEST_URL" ]; then
+            curl --fail --location "$COTEST_FIXTURE_DIGEST_URL" --output cotest-fixture-digests.json
+            echo "REFERENCE=cotest-fixture-digests.json" >> "$GITHUB_ENV"
+          else
+            echo "REFERENCE=spec/v1/artifacts/reports/fixture-digests.json" >> "$GITHUB_ENV"
+          fi
+      - name: Check fixture digests
+        run: python tools/check_fixture_digests.py --reference "$REFERENCE"

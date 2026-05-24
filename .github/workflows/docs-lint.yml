@@ -1,0 +1,30 @@
+name: Docs lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Markdown lint
+        run: npx markdownlint-cli2@0.18.1
+      - name: Markdown style advisory
+        continue-on-error: true
+        run: npx markdownlint-cli2@0.18.1 --config .markdownlint-style.jsonc "README.md" "CHANGELOG.md" "_contrix-spec_todos.md" "spec/v1/**/*.md"
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@master
+        with:
+          files: spec/v1/**/*.md README.md CHANGELOG.md _contrix-spec_todos.md

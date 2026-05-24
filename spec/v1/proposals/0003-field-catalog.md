@@ -1,7 +1,7 @@
 ---
 cxp: CXP-0003
 title: Field Catalog (typed custom fields)
-status: draft
+status: deferred-to-v1.1
 created: 2026-05-23
 authors:
   - did:web:contrix.example

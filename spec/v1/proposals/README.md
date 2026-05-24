@@ -19,6 +19,7 @@ title: Contrix Proposals (CXP)
 ```
 draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec,本文件保留为历史)
    │           │            │
+   ├──►  deferred-to-v1.1
    └──►  withdrawn   └──►  rejected
                             │
                             └──►  superseded(被另一份 CXP 取代)
@@ -27,6 +28,7 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 | status | 含义 |
 | --- | --- |
 | `draft` | 正在写,作者还在改自己的初稿,**不要**基于它讨论细节。 |
+| `deferred-to-v1.1` | 不进入 v1.0 freeze;保留讨论材料,v1.1+ 再决定是否 review / accepted。实现 MUST NOT 当作 v1.0 wire contract。 |
 | `review` | 作者认为可以讨论了;PR / issue / 会议 review 阶段。 |
 | `accepted` | 已被采纳,等待 / 正在迁入 normative。迁入完成后本文件保持原状,frontmatter 加 `merged_into: <spec path>` 留作历史。 |
 | `rejected` | 经讨论后决定不做。frontmatter `rejected_reason: ...` 说明原因。**不要删除文件**,以免后人重复提出。 |
@@ -39,7 +41,7 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 ---
 cxp: CXP-NNNN
 title: <短句,大写起>
-status: draft | review | accepted | rejected | withdrawn | superseded
+status: draft | review | accepted | rejected | withdrawn | superseded | deferred-to-v1.1
 created: YYYY-MM-DD
 authors:
   - did:web:alice.example  # 或者 GitHub handle / 邮箱
@@ -69,12 +71,12 @@ discussion: <PR / issue 链接>
 
 | CXP | 标题 | Status | 备注 |
 | --- | --- | --- | --- |
-| [CXP-0001](./0001-label-entity.md) | Label as first-class entity | draft | 把 `labels: array<string>` 升级为 `cx:label:` 对象 + `labeled_with` Relation |
-| [CXP-0002](./0002-flow-type.md) | Flow Type (Work Item Type) | draft | 引入 `cx:flow_type:`(Task / Sub-task / Bug / Story / ...) |
-| [CXP-0003](./0003-field-catalog.md) | Field Catalog | draft | 引入 `cx:field_def:` 可复用 typed 字段目录 |
-| [CXP-0004](./0004-form-layout.md) | Form Layout | draft | 单 Flow 详情面板字段排列(类似 Jira "Work item layout") |
-| [CXP-0005](./0005-workflow-state-machine.md) | Workflow State Machine | draft | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
-| [CXP-0006](./0006-component-version.md) | Component & Version classifiers | draft | `cx:component:` / `cx:version:` 结构性分类对象 |
+| [CXP-0001](./0001-label-entity.md) | Label as first-class entity | deferred-to-v1.1 | 把 `labels: array<string>` 升级为 `cx:label:` 对象 + `labeled_with` Relation |
+| [CXP-0002](./0002-flow-type.md) | Flow Type (Work Item Type) | deferred-to-v1.1 | 引入 `cx:flow_type:`(Task / Sub-task / Bug / Story / ...) |
+| [CXP-0003](./0003-field-catalog.md) | Field Catalog | deferred-to-v1.1 | 引入 `cx:field_def:` 可复用 typed 字段目录 |
+| [CXP-0004](./0004-form-layout.md) | Form Layout | deferred-to-v1.1 | 单 Flow 详情面板字段排列(类似 Jira "Work item layout") |
+| [CXP-0005](./0005-workflow-state-machine.md) | Workflow State Machine | deferred-to-v1.1 | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
+| [CXP-0006](./0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `cx:component:` / `cx:version:` 结构性分类对象 |
 
 ## 6. 写作风格
 

@@ -1,0 +1,11 @@
+exclude = [
+  "^https?://localhost(:[0-9]+)?(/|$)",
+  "^https?://127\\.0\\.0\\.1(:[0-9]+)?(/|$)",
+  "^did:example",
+  "^https://example\\.org(/|$)",
+  "^mailto:"
+]
+
+accept = [200, 204, 206, 429]
+max_retries = 2
+timeout = 20

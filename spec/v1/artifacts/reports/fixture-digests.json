@@ -1,0 +1,63 @@
+{
+  "files": [
+    {
+      "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
+      "sha256": "5091e1ab2e97adb205874cf1798137eb94ff0936ec88f05c5176124c6f42459d"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+      "sha256": "b8f2136cd06e339d40cf4c84bfe80c81cab938745d1062ac908d6cd3b08a113e"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
+      "sha256": "c265c3aa63fd13942f7809b8e28f1fc35a1b1fc5ce0ba72e897472369f21d34a"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
+      "sha256": "05e054563db7f395bfb992fa33fd1b102999c8deac68804b3fa0b652984f8283"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
+      "sha256": "d28164cbad7736212a26901f5d2ecd0131a0632cfca4419c06060a422e8bfc1a"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
+      "sha256": "bb41ebdbda05714a279bce37b8b802e0f0a626b43b28a5fe14e9939caaea4e9b"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+      "sha256": "7f45e0931b22a708cf5b24e14a71de8ababb4de3d10fac93ce23ff830a76481e"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/move-anchor-lattice-fixture.json",
+      "sha256": "339e2a323d33ff6b609856bf1ea6c8c509db2079cf75d7a349a4e17ec6927d9c"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
+      "sha256": "fcc5ecdf3a7e486e1c56d39fb7f912060bb8b08c43904245dbe7d6c7a53e4320"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
+      "sha256": "9e36649aaa6cb33b2057eb26c25ec8d4c4ef73585101e81cfcf467bc5b2c63d1"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
+      "sha256": "a62ce10d3bd4b69651962cc5a763e0540d12ab300eb1abf1c417821dcbc01d66"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
+      "sha256": "3dbc212dc78d6ec77ea07b5bd386ba6f478d10e9b588eae9bf148d1d91059b74"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+      "sha256": "de9307ee08f6dc69d69fbcbe83b0beb5936f1ca7b2ba96c26b335c9b19ea7b8f"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
+      "sha256": "8d36d1c7368557c80c2c5fbe5664c67d29c0b63c378fa72532c3499b103d9131"
+    }
+  ],
+  "fixtures_root": "spec/v1/artifacts/fixtures",
+  "hash": "sha256",
+  "schema": "contrix.fixture-digests.v1"
+}

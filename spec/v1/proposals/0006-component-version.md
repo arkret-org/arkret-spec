@@ -1,7 +1,7 @@
 ---
 cxp: CXP-0006
 title: Component & Version classifiers
-status: draft
+status: deferred-to-v1.1
 created: 2026-05-23
 authors:
   - did:web:contrix.example

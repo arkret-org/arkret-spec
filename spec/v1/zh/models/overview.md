@@ -58,7 +58,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | --- | --- | --- | --- |
 | `cx:blob:` | Blob | 由 Blob Store 管理的内容寻址数据，不参与协作图归约 | [extension-objects.md](./extension-objects.md) |
 | `cx:applet:` | Applet | bot / bridge / portal / 集成服务（extension profile） | [extension-objects.md](./extension-objects.md) |
-| Agent | A2A / ACP 互通运行时 | [extension-objects.md](./extension-objects.md) |
+| Agent runtime | Agent | A2A / ACP 互通运行时 | [extension-objects.md](./extension-objects.md) |
 
 ### 2.5 辅助标识符
 

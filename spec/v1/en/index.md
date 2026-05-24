@@ -1,6 +1,11 @@
 ---
 title: Contrix Protocol (English)
+normative: false
+translation_tracking: CXP-EN-MIRROR
 ---
+
+> Non-normative placeholder. Authority is `zh/`. Translation tracked in
+> CXP-EN-MIRROR.
 
 The English normative text for Contrix v1 is **not yet published**. The
 authoritative human-readable normative text for v1 is the Chinese version
