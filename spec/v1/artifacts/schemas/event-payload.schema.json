@@ -3175,7 +3175,7 @@
         "recipient_principal_id",
         "recipient_device_id",
         "sender_device_id",
-        "reason"
+        "withheld_reason_code"
       ],
       "properties": {
         "recipient_principal_id": {
@@ -3190,7 +3190,7 @@
         "key_scope": {
           "$ref": "#/$defs/realm_key_scope"
         },
-        "reason": {
+        "withheld_reason_code": {
           "enum": [
             "unverified_device",
             "blacklisted_device",
@@ -3548,7 +3548,7 @@
       "required": [
         "realm_id",
         "target_ref",
-        "reason",
+        "report_reason_code",
         "reporter"
       ],
       "properties": {
@@ -3558,7 +3558,7 @@
         "target_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "reason": {
+        "report_reason_code": {
           "type": "string",
           "enum": [
             "spam",
@@ -3627,7 +3627,7 @@
         "access_kind": {
           "type": "string",
           "enum": [
-            "watch_manage_others",
+            "watch_set_others",
             "watch_audit_read",
             "e2ee_plaintext_release",
             "e2ee_late_recovery",
@@ -3689,7 +3689,7 @@
         {
           "if": {
             "properties": {
-              "access_kind": { "const": "watch_manage_others" }
+              "access_kind": { "const": "watch_set_others" }
             },
             "required": ["access_kind"]
           },

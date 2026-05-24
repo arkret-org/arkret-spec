@@ -138,7 +138,7 @@ Contrix v1 支持以下 `kind`：
 
 动作名称与标准 event kind / operation id 的语义对齐，使用 `cx.<domain>.<action>` 点分记法。Wire 层 `actions[]` 字段 MUST 是具体动作字符串；**不接受任何 wildcard / segment 通配**（含 `*`、`cx.<domain>.*`、`cx.<domain>.<sub>.*`）。`capability-grant.schema.json` 已用 pattern 静态拒绝 wildcard。
 
-机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`target_event_kinds`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
+机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`required_evaluator_checks`、`target_event_kinds`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
 
 裸名动作（例如 `realm.upgrade` 或 `realm.link.manage`）一律不接受。`cx.realm.admin` 覆盖普通 Realm 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者必须在 grant `actions[]` 中显式列出对应 high-risk 动作。
 
@@ -201,7 +201,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.reaction.remove`
 - `cx.flow.tracks.manage`（启用 / 关闭 track、切换 primary、修改 track profile，target=`cx.flow.tracks.update`）
 - `cx.flow.watch.set`（写入自己的 watch 订阅，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）
-- `cx.flow.watch.manage_others`（high risk；为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
+- `cx.flow.watch.set.others`（high risk；为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
 
 ### 5.4 管理动作
 

@@ -819,7 +819,7 @@ Contrix 使用 `cx.realm_key.share` 共享历史解密材料。共享前发送�
 - `key_scope.policy_hash` 绑定本次判定使用的 Realm policy / MLS governance policy root；如判定依赖 membership frontier，`key_scope.membership_frontier_hash` SHOULD 同时写入。
 - `sender_device_signature` MUST 覆盖发送设备、接收 principal/device、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。接收方 MUST 验证该签名链接到当前有效 sender device key，且不得只依赖传输层认证。
 
-拒绝共享时发送 `cx.realm_key.withheld`，原因码：
+拒绝共享时发送 `cx.realm_key.withheld`，其 payload 使用 `withheld_reason_code` 承载原因码：
 
 - `unverified_device`
 - `blacklisted_device`

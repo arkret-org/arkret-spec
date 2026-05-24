@@ -177,7 +177,7 @@
                   "anchorer_paused"
                 ]
               },
-              "reason": {
+              "event_state_reason_code": {
                 "type": "string",
                 "description": "Optional short reason code (e.g., 'recovery_witness_missing'). For failure detail beyond the enum."
               }

@@ -223,8 +223,8 @@ Account subscribe `delta` frame 包含以下 stream：
     "prev_cursor": "cx:cursor:..."
   },
   "state_at_window_start": {
-    "actor_profiles": {"did:webvh:...": {"display_name": "...", "avatar_ref": "..."}},
-    "realm_metadata": {"name": "...", "topic": "...", "join_rule": "..."},
+    "actor_profiles": {"did:webvh:...": {"display_name": "...", "avatar_blob_ref": "..."}},
+    "realm_metadata": {"title": "...", "summary": "...", "join_rule": "..."},
     "e2ee_epoch": {"epoch": 17, "key_ref": "cx:mls:..."}
   }
 }

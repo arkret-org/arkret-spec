@@ -51,9 +51,9 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 
 当 service account 恢复结果与 DID 当前控制状态不一致时，服务端 SHOULD 进入 `locked` 或 `soft_logged_out`，要求用户用已授权设备、recovery key、门限恢复、企业管理员多方审批或 DID proof 完成重新绑定。
 
-## 3. Account States
+## 3. Account Status Values
 
-服务账户状态（封闭枚举，v1 wire MUST 仅使用以下值）：
+服务账户 `status` 值（封闭枚举，v1 wire MUST 仅使用以下值）：
 
 - `active`
 - `soft_logged_out`

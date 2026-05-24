@@ -86,7 +86,7 @@
         "cx.directory.private_contact_discovery",
         "cx.directory.announce",
         "cx.directory.withdraw",
-        "cx.directory.subscribe"
+        "cx.directory.push.register"
       ]
     },
     {
@@ -167,8 +167,8 @@
         "cx.applet.ping",
         "cx.applet.describe",
         "cx.applet.transaction",
-        "cx.applet.query_actor",
-        "cx.applet.query_realm",
+        "cx.applet.resolve_actor",
+        "cx.applet.resolve_realm",
         "cx.applet.protocol_metadata",
         "cx.applet.third_party_users",
         "cx.applet.third_party_locations"
@@ -273,16 +273,16 @@
       "mq": "applet.protocol_metadata"
     },
     {
-      "operation_id": "cx.applet.query_actor",
+      "operation_id": "cx.applet.resolve_actor",
       "http": "GET /applet/actors/{actor_id}",
-      "grpc": "Applet/QueryActor",
-      "mq": "applet.query_actor"
+      "grpc": "Applet/ResolveActor",
+      "mq": "applet.resolve_actor"
     },
     {
-      "operation_id": "cx.applet.query_realm",
+      "operation_id": "cx.applet.resolve_realm",
       "http": "GET /applet/realms/{realm_id_or_alias}",
-      "grpc": "Applet/QueryRealm",
-      "mq": "applet.query_realm"
+      "grpc": "Applet/ResolveRealm",
+      "mq": "applet.resolve_realm"
     },
     {
       "operation_id": "cx.applet.third_party_locations",
@@ -418,10 +418,10 @@
       "mq": "directory.search_users"
     },
     {
-      "operation_id": "cx.directory.subscribe",
-      "http": "POST /directory/subscribe",
-      "grpc": "Directory/Subscribe",
-      "mq": "directory.subscribe"
+      "operation_id": "cx.directory.push.register",
+      "http": "POST /directory/push/register",
+      "grpc": "Directory/PushRegister",
+      "mq": "directory.push.register"
     },
     {
       "operation_id": "cx.directory.withdraw",

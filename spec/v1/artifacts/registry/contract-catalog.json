@@ -321,6 +321,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm archive lifecycle facet (reversible boolean)",
+        "lifecycle_modality": "reversible",
         "cell_family": "cx.component.realm.archive.v1",
         "cell_subject": null,
         "lattice": "cas_register",
@@ -333,6 +334,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm freeze lifecycle facet (reversible boolean)",
+        "lifecycle_modality": "reversible",
         "cell_family": "cx.component.realm.freeze.v1",
         "cell_subject": null,
         "lattice": "cas_register",
@@ -345,6 +347,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
+        "lifecycle_modality": "terminal",
         "cell_family": "cx.component.realm.tombstone.v1",
         "cell_subject": null,
         "lattice": "cas_register",
@@ -357,6 +360,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
+        "lifecycle_modality": "terminal",
         "cell_family": "cx.component.realm.destroy.v1",
         "cell_subject": null,
         "lattice": "cas_register",
@@ -639,7 +643,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas_register cell keyed by (flow_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds cx.flow.watch.manage_others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event with access_kind=watch_manage_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct cx.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
+        "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas_register cell keyed by (flow_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds cx.flow.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct cx.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
         "cell_family": "cx.component.flow.watch.v1",
         "cell_subject": {
           "type": "tuple",
@@ -2355,7 +2359,7 @@
           "cx.directory.private_contact_discovery",
           "cx.directory.announce",
           "cx.directory.withdraw",
-          "cx.directory.subscribe"
+          "cx.directory.push.register"
         ]
       },
       {
@@ -2436,8 +2440,8 @@
           "cx.applet.ping",
           "cx.applet.describe",
           "cx.applet.transaction",
-          "cx.applet.query_actor",
-          "cx.applet.query_realm",
+          "cx.applet.resolve_actor",
+          "cx.applet.resolve_realm",
           "cx.applet.protocol_metadata",
           "cx.applet.third_party_users",
           "cx.applet.third_party_locations"
@@ -2542,16 +2546,16 @@
         "mq": "applet.protocol_metadata"
       },
       {
-        "operation_id": "cx.applet.query_actor",
+        "operation_id": "cx.applet.resolve_actor",
         "http": "GET /applet/actors/{actor_id}",
-        "grpc": "Applet/QueryActor",
-        "mq": "applet.query_actor"
+        "grpc": "Applet/ResolveActor",
+        "mq": "applet.resolve_actor"
       },
       {
-        "operation_id": "cx.applet.query_realm",
+        "operation_id": "cx.applet.resolve_realm",
         "http": "GET /applet/realms/{realm_id_or_alias}",
-        "grpc": "Applet/QueryRealm",
-        "mq": "applet.query_realm"
+        "grpc": "Applet/ResolveRealm",
+        "mq": "applet.resolve_realm"
       },
       {
         "operation_id": "cx.applet.third_party_locations",
@@ -2687,10 +2691,10 @@
         "mq": "directory.search_users"
       },
       {
-        "operation_id": "cx.directory.subscribe",
-        "http": "POST /directory/subscribe",
-        "grpc": "Directory/Subscribe",
-        "mq": "directory.subscribe"
+        "operation_id": "cx.directory.push.register",
+        "http": "POST /directory/push/register",
+        "grpc": "Directory/PushRegister",
+        "mq": "directory.push.register"
       },
       {
         "operation_id": "cx.directory.withdraw",
@@ -3028,6 +3032,7 @@
       "Wire capability grant.actions[] entries MUST be drawn from this registry; wildcards / segment globs are statically rejected by capability-grant.schema.json.",
       "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
       "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
+      "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
       "target_event_kinds links the action to one or more cx.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
       "profile is null for v1 core actions, or a cx.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)."
     ],
@@ -3343,10 +3348,14 @@
         "profile": null
       },
       {
-        "action": "cx.flow.watch.manage_others",
+        "action": "cx.flow.watch.set.others",
         "category": "discussion",
         "risk_tier": "high",
         "required_constraints": [],
+        "required_evaluator_checks": [
+          "actor_ne_watcher_actor",
+          "audit_pair_required"
+        ],
         "target_event_kinds": [
           "cx.flow.watch.set"
         ],
@@ -3511,6 +3520,9 @@
         "required_constraints": [
           "message_edit_window"
         ],
+        "required_evaluator_checks": [
+          "actor_eq_target_author"
+        ],
         "target_event_kinds": [
           "cx.message.revise"
         ],
@@ -3532,6 +3544,9 @@
         "category": "discussion",
         "risk_tier": "low",
         "required_constraints": [],
+        "required_evaluator_checks": [
+          "actor_eq_target_author"
+        ],
         "target_event_kinds": [
           "cx.message.redact",
           "cx.redaction"
@@ -3563,7 +3578,26 @@
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [],
-        "target_event_kinds": [],
+        "target_event_kinds": [
+          "cx.realm.organization",
+          "cx.realm.link",
+          "cx.realm.policy",
+          "cx.realm.join_rule",
+          "cx.realm.history_visibility",
+          "cx.realm.discovery",
+          "cx.realm.policy_server",
+          "cx.realm.policy_components",
+          "cx.realm.history_sharing_policy",
+          "cx.realm.delivery_binding_policy",
+          "cx.realm.asset_privacy_policy",
+          "cx.realm.read_receipt_policy",
+          "cx.realm.moderation_policy",
+          "cx.realm.plaintext_visible_services",
+          "cx.realm.media_service",
+          "cx.realm.schema",
+          "cx.realm.inheritance_policy",
+          "cx.realm.audit_policy_downgrade"
+        ],
         "profile": null
       },
       {

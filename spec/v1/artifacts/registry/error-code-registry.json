@@ -1367,28 +1367,28 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "`cx.flow.watch.set` may only set the watch state of the submitting actor; cross-actor writes require `cx.flow.watch.manage_others` (audit / accessibility scope). See zh/models/flow-and-message.md §8.4."
+      "description": "`cx.flow.watch.set` may only set the watch state of the submitting actor; cross-actor writes require `cx.flow.watch.set.others` (audit / accessibility scope). See zh/models/flow-and-message.md §8.4."
     },
     {
       "code": "watch_muted_must_be_self",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "`cx.flow.watch.set` writing `level=\"muted\"` for another actor is rejected — `muted` suppresses mention / moderation / workflow notifications and MUST be opt-in by the target actor themself. `cx.flow.watch.manage_others` only authorizes writing `level ∈ {mentions_only, participating, all}` for other actors. See zh/models/flow-and-message.md §8.4."
+      "description": "`cx.flow.watch.set` writing `level=\"muted\"` for another actor is rejected — `muted` suppresses mention / moderation / workflow notifications and MUST be opt-in by the target actor themself. `cx.flow.watch.set.others` only authorizes writing `level ∈ {mentions_only, participating, all}` for other actors. See zh/models/flow-and-message.md §8.4."
     },
     {
       "code": "watch_level_public_must_be_self",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "`cx.flow.watch.set` writing `level_public=true` for another actor is rejected — publishing one's own subscription level is an opt-in personal disclosure and MUST be written by the target actor themself. `cx.flow.watch.manage_others` writes MUST omit `level_public` or set it to `false`. See zh/models/flow-and-message.md §8.4."
+      "description": "`cx.flow.watch.set` writing `level_public=true` for another actor is rejected — publishing one's own subscription level is an opt-in personal disclosure and MUST be written by the target actor themself. `cx.flow.watch.set.others` writes MUST omit `level_public` or set it to `false`. See zh/models/flow-and-message.md §8.4."
     },
     {
-      "code": "manage_others_audit_missing",
+      "code": "watch_set_others_audit_missing",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "A `cx.flow.watch.set` write that uses `cx.flow.watch.manage_others` to set another actor's watch state was rejected because it lacked refs[role=audit_pair] to a same-batch `cx.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, cell id, paired event id/digest, and before/after heads. See zh/models/flow-and-message.md §8.4."
+      "description": "A `cx.flow.watch.set` write that uses `cx.flow.watch.set.others` to set another actor's watch state was rejected because it lacked refs[role=audit_pair] to a same-batch `cx.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, cell id, paired event id/digest, and before/after heads. See zh/models/flow-and-message.md §8.4."
     },
     {
       "code": "cross_space_structural_relation",

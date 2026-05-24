@@ -347,9 +347,103 @@
       "kind_class": "operation_id",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "cx.applet.query_realm",
+      "replacement": "cx.applet.resolve_realm",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Realm/Space inversion cleanup: operation semantics, path parameter and response are Realm-scoped; migrate operation id, gRPC method and MQ topic mechanically."
+    },
+    {
+      "id": "cx.applet.query_actor",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.applet.resolve_actor",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Applet actor lookup is a single-object resolver, not a cursor/range query."
+    },
+    {
+      "id": "cx.applet.query_realm",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.applet.resolve_realm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Applet Realm lookup is a single-object resolver, aligned with cx.directory.resolve_* naming."
+    },
+    {
+      "id": "cx.directory.subscribe",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.directory.push.register",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Directory webhook registration is control-plane push registration, not a streaming subscribe surface."
+    },
+    {
+      "id": "cx.flow.watch.manage_others",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.flow.watch.set.others",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action now uses the canonical .others suffix on the base cx.flow.watch.set action."
+    },
+    {
+      "id": "watch_manage_others",
+      "kind_class": "enum_value",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "watch_set_others",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Audit access_kind aligned with the renamed cx.flow.watch.set.others capability action."
+    },
+    {
+      "id": "manage_others_audit_missing",
+      "kind_class": "error_code",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "watch_set_others_audit_missing",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Error code aligned with the renamed watch .others capability action."
+    },
+    {
+      "id": "reason#realm_key_withheld_payload",
+      "wire_id": "reason",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "withheld_reason_code",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Realm key withheld uses a controlled machine-readable enum, so the field follows *_reason_code naming."
+    },
+    {
+      "id": "reason#moderation_report_payload",
+      "wire_id": "reason",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "report_reason_code",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation report reason is a controlled enum; human-readable explanation remains description."
+    },
+    {
+      "id": "reason#account_subscribe_event_state",
+      "wire_id": "reason",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "event_state_reason_code",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Account subscribe event-state diagnostics use a short machine reason code."
+    },
+    {
+      "id": "reason#mimi_report_abuse",
+      "wire_id": "reason",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "abuse_reason_code",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MIMI abuse report reason is a controlled enum and now follows *_reason_code naming."
     },
     {
       "id": "cx:notif:",

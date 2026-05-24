@@ -31,7 +31,7 @@ Schema id: `cx.schema.read_cursor.v1`
 | `schema` | yes | `cx.schema.read_cursor.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `realm_id` | yes | `id:realm` |  | Realm。 |
-| `scope` | yes | `object` | `{kind, ref?, track?}`；`kind=realm` 时 `ref` 省略，其余 kind 必填对应对象 ref。 | 已读范围。 |
+| `read_scope` | yes | `object` | `{kind, ref?, track?}`；`kind=realm` 时 `ref` 省略，其余 kind 必填对应对象 ref。 | 已读范围。 |
 | `position` | yes | `object` | `{event_id, hlc}`。 | 已读位置。 |
 | `updated_at` | yes | `timestamp` |  | 更新时间。 |
 
@@ -61,7 +61,7 @@ Schema id: `cx.schema.notification.v1`
 | `source_event_id` | yes | `id:event` |  | 来源事件。 |
 | `notification_type` | yes | `enum(mention, reply, assignment, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
 | `priority` | yes | `enum(low, normal, high, urgent)` |  | 优先级。 |
-| `state` | yes | `enum(unread, read, dismissed, archived)` |  | 通知状态。 |
+| `state` | yes | `enum(unread, read, dismissed, archived)` | Notification projection-state 例外；表示 inbox/read 状态，不表示 canonical object 物理 lifecycle。 | 通知状态。 |
 | `preview` | no | `object` | E2EE 场景必须脱敏。 | 展示摘要。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |

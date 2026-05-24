@@ -49,8 +49,8 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
-| Read Cursor | actor-private 已读位置（id 由 actor + 范围派生，非 typed-id） | [private-objects.md](./private-objects.md) |
-| Notification | inbox projection（id content-addressed 或派生，非 typed-id） | [private-objects.md](./private-objects.md) |
+| `cx:read_cursor:` | Read Cursor | actor-private 已读位置 | [private-objects.md](./private-objects.md) |
+| `cx:notification:` | Notification | inbox projection | [private-objects.md](./private-objects.md) |
 
 ### 2.4 内容 / 媒体 / 扩展对象
 

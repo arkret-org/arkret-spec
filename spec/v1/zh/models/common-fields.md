@@ -53,7 +53,7 @@ title: Common Fields
 - Capability action 命名约定：
   - **`cx.<entity>.<verb>` 是默认形态**，对应 `target_event_kinds` 中的一个或多个 reducer-input event kind。Action name 与 event kind 可以重合 (例如 `cx.flow.archive` action 授权同名 event)，也可以不同 (例如 `cx.invite.create_third_party` action 授权 `cx.invite.third_party` event), 由 capability-action-registry `target_event_kinds` 字段桥接, 无需在命名上一致。
   - **通用 `cx.object.<verb>`**（如 `cx.object.read` / `cx.object.archive` / `cx.object.restore` / `cx.object.stage.set`) 只允许在 Realm-wide admin 或跨实体审计 grant 中使用 (`match_scope` 不限定单一实体 ID); 对单一实体的常规授权 MUST 使用专属 `cx.<entity>.<verb>` (例如 `cx.flow.archive`)。这是为了让 grant author 在最小作用域内表达意图, 同时保留 admin 路径使用通用 action 的能力。
-  - **后缀 `.own` / `.others`**: 不带后缀的 action 默认作用域不限定 "creator = grantee"; 加 `.own` 表示 "仅 actor 自己创建的对象" (例如 `cx.message.revise.own`, `cx.message.redact.own`); 加 `.others` 表示 "允许操作他人创建的对象", 通常 risk_tier=high。三种形态 MUST 在 capability-action-registry 中分别登记, 不得当作通配等价。历史命名 `manage_others` (例如 `cx.flow.watch.manage_others`) 等同于 `.others` 后缀, 后续规范化批次会收敛。
+  - **后缀 `.own` / `.others`**: 不带后缀的 action 默认作用域不限定 "creator = grantee"; 加 `.own` 表示 "仅 actor 自己创建的对象" (例如 `cx.message.revise.own`, `cx.message.redact.own`); 加 `.others` 表示 "允许操作他人创建的对象", 通常 risk_tier=high。三种形态 MUST 在 capability-action-registry 中分别登记, 不得当作通配等价。历史命名 `manage_others` 已收敛为 `.others` 后缀（例如 `cx.flow.watch.set.others`）。
 
 ## 3. Common Object Fields
 

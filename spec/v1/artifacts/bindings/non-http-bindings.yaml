@@ -79,7 +79,7 @@ grpc:
       PrivateContactDiscovery: cx.directory.private_contact_discovery
       Announce: cx.directory.announce
       Withdraw: cx.directory.withdraw
-      Subscribe: cx.directory.subscribe
+      PushRegister: cx.directory.push.register
     Keys:
       Upload: cx.keys.upload
       Query: cx.keys.query
@@ -114,8 +114,8 @@ grpc:
       Ping: cx.applet.ping
       Describe: cx.applet.describe
       Transaction: cx.applet.transaction
-      QueryActor: cx.applet.query_actor
-      QueryRealm: cx.applet.query_realm
+      ResolveActor: cx.applet.resolve_actor
+      ResolveRealm: cx.applet.resolve_realm
       ProtocolMetadata: cx.applet.protocol_metadata
       ThirdPartyUsers: cx.applet.third_party_users
       ThirdPartyLocations: cx.applet.third_party_locations
@@ -183,7 +183,7 @@ mq:
     directory.private_contact_discovery: cx.directory.private_contact_discovery
     directory.announce: cx.directory.announce
     directory.withdraw: cx.directory.withdraw
-    directory.subscribe: cx.directory.subscribe
+    directory.push.register: cx.directory.push.register
     keys.keypackages.upload: cx.keys.keypackages.upload
     keys.keypackages.claim: cx.keys.keypackages.claim
     keys.keypackages.consume: cx.keys.keypackages.consume

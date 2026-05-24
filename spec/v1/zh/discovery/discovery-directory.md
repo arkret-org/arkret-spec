@@ -379,12 +379,12 @@ Directory 接受 ingest 的前置条件：
 
 ### 8.2 两种 ingest 模式
 
-Directory MUST 支持 **push (announce)** 与 **pull (subscribe)** 两种 ingest 模式之一，且 MUST 在 `cx.directory.describe.ingest_modes` 中显式声明本实例支持的模式。
+Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest 模式之一，且 MUST 在 `cx.directory.describe.ingest_modes` 中显式声明本实例支持的模式。
 
 | 模式 | 触发方 | 适用场景 |
 | --- | --- | --- |
 | push（announce） | 资源 Principal Server 主动提交签名 discovery state | 公开 / 社区 directory；资源希望尽快上线或撤销 |
-| pull（subscribe） | Directory 按已知资源 DID 周期性拉取最新签名 discovery state | 高安全部署、白名单 directory、与 federation 复用 |
+| pull（refresh） | Directory 按已知资源 DID 周期性拉取最新签名 discovery state | 高安全部署、白名单 directory、与 federation 复用 |
 
 资源端 MAY 任选支持的一种使用；Directory MAY 同时支持两种以提高可用性。两模式产生的索引条目 normative 等价。
 
@@ -452,7 +452,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (subscribe)** 两种 ingest
 }
 ```
 
-### 8.4 Pull 模式：`cx.directory.subscribe`
+### 8.4 Pull 模式与 push webhook 注册：`cx.directory.push.register`
 
 Pull 模式复用资源 Principal Server 既有的 `cx.events.query`：
 
@@ -470,7 +470,7 @@ Directory 拉取流程：
 2. Principal Server 返回最新 effective discovery state（含 `proof`）。
 3. Directory 按 §8.5 验签后写入或更新本地索引。
 
-可选的订阅辅助：Directory MAY 调用 `cx.directory.subscribe`（§9）让资源 Principal Server 在 discovery state 变更时主动 webhook 通知（fan-out 优化），但**协议级 freshness 仍以 §8.6 为准**——通知缺失或迟到不得使 stale 条目复活。
+可选的 webhook 辅助：Directory MAY 调用 `cx.directory.push.register`（§9）让资源 Principal Server 在 discovery state 变更时主动 webhook 通知（fan-out 优化），但**协议级 freshness 仍以 §8.6 为准**——通知缺失或迟到不得使 stale 条目复活。
 
 ### 8.5 验签与接受规则
 
@@ -572,7 +572,7 @@ POST /api/v1/directory/resolve-handle
 POST /api/v1/directory/private-contact-discovery
 POST /api/v1/directory/announce
 POST /api/v1/directory/withdraw
-POST /api/v1/directory/subscribe
+POST /api/v1/directory/push/register
 ```
 
 字段级定义：
@@ -580,17 +580,17 @@ POST /api/v1/directory/subscribe
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
 | `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
-| `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
+| `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
 | `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | `via_services` 在 v1 normative，MUST 给出 host Principal Server service DID 让客户端能发起 join；invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
-| `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 仅返回公开或授权可发现组织。 |
+| `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回公开或授权可发现组织。 |
 | `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
-| `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
+| `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
 | `cx.directory.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)` | `results: object[]` | mention autocomplete；受共同 Realm / directory policy 限制。结果 MAY 含 handle preview，但不得在未授权时披露 `subject` DID 或 `member_delivery_binding`。`query` 不得进入 URL、Referer 或未脱敏 access log。 |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `handle_uri: uri`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回。 |
 | `cx.directory.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `cx.directory.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
 | `cx.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdraw_id: id`; `acked_at: timestamp` | 见 §8.7。 |
-| `cx.directory.subscribe` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
+| `cx.directory.push.register` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
 
 ### 9.0 Handle 解析（normative）
 

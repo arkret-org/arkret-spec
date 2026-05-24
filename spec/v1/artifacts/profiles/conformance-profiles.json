@@ -1346,8 +1346,8 @@
         "cx.applet.describe",
         "cx.applet.ping",
         "cx.applet.transaction",
-        "cx.applet.query_actor",
-        "cx.applet.query_realm",
+        "cx.applet.resolve_actor",
+        "cx.applet.resolve_realm",
         "cx.applet.protocol_metadata"
       ],
       "required_event_kinds": [

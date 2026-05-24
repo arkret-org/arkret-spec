@@ -83,8 +83,8 @@ POST /api/v1/moderation/report
 |------|------|------|------|
 | `realm_id` | id | required | 被举报对象所在 Realm。 |
 | `target_ref` | id | required | 被举报 Object / Event 引用；若提交 Operation 引用，服务必须先映射到对应 `event_id`。 |
-| `reason` | enum | required | 举报原因，取值见 3.2。 |
-| `description` | string | optional；`reason=other` 时 required | 举报说明；服务端 MAY 限制长度。 |
+| `report_reason_code` | enum | required | 举报原因码，取值见 3.2。 |
+| `description` | string | optional；`report_reason_code=other` 时 required | 举报说明；服务端 MAY 限制长度。 |
 | `reporter` | did | required | 举报人 DID，MUST 与认证 session / device proof 一致。 |
 | `evidence_refs` | id[] | optional | 可见证据引用。 |
 
@@ -102,7 +102,7 @@ POST /api/v1/moderation/report
 {
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "target_ref": "cx:message:01964200-0000-7000-8000-000000000002",
-  "reason": "harassment",
+  "report_reason_code": "harassment",
   "description": "This message contains targeted personal attacks.",
   "reporter": "did:web:alice.example.com"
 }
@@ -110,7 +110,7 @@ POST /api/v1/moderation/report
 
 ### 3.2 举报原因枚举
 
-| Reason | 说明 |
+| Report reason code | 说明 |
 |--------|------|
 | `spam` | 垃圾信息 / 广告 |
 | `harassment` | 骚扰 / 人身攻击 |

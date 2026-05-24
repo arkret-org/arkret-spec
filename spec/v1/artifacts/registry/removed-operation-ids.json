@@ -157,9 +157,33 @@
       "id": "cx.applet.query_space",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "cx.applet.query_realm",
+      "replacement": "cx.applet.resolve_realm",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Realm/Space inversion cleanup: the operation queries Applet portal Realms by realm_id_or_alias, not in-Realm Space containers. HTTP path remains /applet/realms/{realm_id_or_alias}; gRPC becomes Applet/QueryRealm and MQ becomes applet.query_realm."
+      "notes": "Realm/Space inversion cleanup plus resolver naming: the operation resolves Applet portal Realms by realm_id_or_alias, not in-Realm Space containers. HTTP path remains /applet/realms/{realm_id_or_alias}; gRPC becomes Applet/ResolveRealm and MQ becomes applet.resolve_realm."
+    },
+    {
+      "id": "cx.applet.query_actor",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.applet.resolve_actor",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Single-object Applet actor lookup now uses resolve_* naming."
+    },
+    {
+      "id": "cx.applet.query_realm",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.applet.resolve_realm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Single-object Applet Realm lookup now uses resolve_* naming."
+    },
+    {
+      "id": "cx.directory.subscribe",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.directory.push.register",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Directory webhook registration now uses push.register to avoid collision with streaming subscribe operations."
     },
     {
       "id": "cx.agent_workspace.resolve_mirror_flow",

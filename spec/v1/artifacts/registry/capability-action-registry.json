@@ -13,6 +13,7 @@
     "Wire capability grant.actions[] entries MUST be drawn from this registry; wildcards / segment globs are statically rejected by capability-grant.schema.json.",
     "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
     "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
+    "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
     "target_event_kinds links the action to one or more cx.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
     "profile is null for v1 core actions, or a cx.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)."
   ],
@@ -328,10 +329,14 @@
       "profile": null
     },
     {
-      "action": "cx.flow.watch.manage_others",
+      "action": "cx.flow.watch.set.others",
       "category": "discussion",
       "risk_tier": "high",
       "required_constraints": [],
+      "required_evaluator_checks": [
+        "actor_ne_watcher_actor",
+        "audit_pair_required"
+      ],
       "target_event_kinds": [
         "cx.flow.watch.set"
       ],
@@ -496,6 +501,9 @@
       "required_constraints": [
         "message_edit_window"
       ],
+      "required_evaluator_checks": [
+        "actor_eq_target_author"
+      ],
       "target_event_kinds": [
         "cx.message.revise"
       ],
@@ -517,6 +525,9 @@
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
+      "required_evaluator_checks": [
+        "actor_eq_target_author"
+      ],
       "target_event_kinds": [
         "cx.message.redact",
         "cx.redaction"
@@ -548,7 +559,26 @@
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
-      "target_event_kinds": [],
+      "target_event_kinds": [
+        "cx.realm.organization",
+        "cx.realm.link",
+        "cx.realm.policy",
+        "cx.realm.join_rule",
+        "cx.realm.history_visibility",
+        "cx.realm.discovery",
+        "cx.realm.policy_server",
+        "cx.realm.policy_components",
+        "cx.realm.history_sharing_policy",
+        "cx.realm.delivery_binding_policy",
+        "cx.realm.asset_privacy_policy",
+        "cx.realm.read_receipt_policy",
+        "cx.realm.moderation_policy",
+        "cx.realm.plaintext_visible_services",
+        "cx.realm.media_service",
+        "cx.realm.schema",
+        "cx.realm.inheritance_policy",
+        "cx.realm.audit_policy_downgrade"
+      ],
       "profile": null
     },
     {

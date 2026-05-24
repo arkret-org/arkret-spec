@@ -1249,6 +1249,7 @@ components:
       type: object
       required:
       - items
+      - has_more
       properties:
         items:
           type: array
@@ -1256,6 +1257,8 @@ components:
             $ref: ../schemas/moderation-queue-item.schema.json
         next_cursor:
           type: string
+        has_more:
+          type: boolean
         counts:
           type: object
       additionalProperties: false
@@ -5020,9 +5023,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/subscribe:
+  /directory/push/register:
     post:
-      operationId: cx.directory.subscribe
+      operationId: cx.directory.push.register
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5031,7 +5034,7 @@ paths:
         contentDigest: []
       responses:
         '200':
-          description: Directory pull-mode webhook subscription created
+          description: Directory push webhook registration created
           content:
             application/json:
               schema:
@@ -5108,7 +5111,7 @@ paths:
               $ref: '#/components/schemas/AppletTransactionRequest'
   /applet/actors/{actor_id}:
     get:
-      operationId: cx.applet.query_actor
+      operationId: cx.applet.resolve_actor
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5121,14 +5124,14 @@ paths:
           type: string
       responses:
         '200':
-          description: Applet actor namespace query
+          description: Applet actor namespace resolve
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
   /applet/realms/{realm_id_or_alias}:
     get:
-      operationId: cx.applet.query_realm
+      operationId: cx.applet.resolve_realm
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5141,7 +5144,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Applet Realm namespace query
+          description: Applet Realm namespace resolve
           content:
             application/json:
               schema:

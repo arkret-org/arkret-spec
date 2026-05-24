@@ -6,7 +6,7 @@
   "required": [
     "realm_id",
     "target_ref",
-    "reason",
+    "report_reason_code",
     "reporter"
   ],
   "properties": {
@@ -22,7 +22,7 @@
       "type": "string",
       "pattern": "^(cx:(event|flow|realm|message|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64})$"
     },
-    "reason": {
+    "report_reason_code": {
       "type": "string",
       "enum": [
         "spam",
@@ -107,12 +107,12 @@
     {
       "if": {
         "properties": {
-          "reason": {
+          "report_reason_code": {
             "const": "other"
           }
         },
         "required": [
-          "reason"
+          "report_reason_code"
         ]
       },
       "then": {

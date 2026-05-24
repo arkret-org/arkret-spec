@@ -186,9 +186,9 @@ paths:
   /directory/withdraw:
     post:
       operationId: cx.directory.withdraw
-  /directory/subscribe:
+  /directory/push/register:
     post:
-      operationId: cx.directory.subscribe
+      operationId: cx.directory.push.register
 
   /blob/upload:
     post:
@@ -300,10 +300,10 @@ paths:
       operationId: cx.applet.transaction
   /applet/actors/{actor_id}:
     get:
-      operationId: cx.applet.query_actor
+      operationId: cx.applet.resolve_actor
   /applet/realms/{realm_id_or_alias}:
     get:
-      operationId: cx.applet.query_realm
+      operationId: cx.applet.resolve_realm
   /applet/protocols/{protocol}:
     get:
       operationId: cx.applet.protocol_metadata
@@ -331,7 +331,7 @@ paths:
 | `cx.projection.spaces` / `cx.projection.flows` / `cx.projection.morphs` | `GET /projection/spaces`, `GET /projection/flows`, `GET /projection/morphs` | gRPC `Projection/Spaces` / `Projection/Flows` / `Projection/Morphs`; MQ `projection.*` |
 | 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/contrix/sync/1.0.0` + service signature。 |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*` | gRPC Discovery Service |
-| `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | `POST /directory/announce`, `POST /directory/withdraw`, `POST /directory/subscribe` | gRPC Discovery Ingest Service |
+| `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.push.register` | `POST /directory/announce`, `POST /directory/withdraw`, `POST /directory/push/register` | gRPC Discovery Ingest Service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
 | `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |
 | `cx.device_messages.put` / `cx.device_messages.get` | `POST /device_messages`, `GET /device_messages` | MQ device topic / 本地 IPC |
@@ -341,7 +341,7 @@ paths:
 | `cx.policy.check` | `POST /policy/check` | policy 本地调用 |
 | `cx.media.ice_config` | `POST /contrix/v1/ice-config` | Media service / TURN credential adapter |
 | `cx.moderation.report` | `POST /moderation/report` | Moderation queue / local compliance workflow |
-| `cx.applet.transaction` / `cx.applet.query_actor` / `cx.applet.query_realm` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
+| `cx.applet.transaction` / `cx.applet.resolve_actor` / `cx.applet.resolve_realm` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 
 ### 4.1 Generated Full Inventory
 
