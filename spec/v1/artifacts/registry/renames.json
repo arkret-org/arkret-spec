@@ -1055,6 +1055,42 @@
       "replacement": "/mimi/flows/{flow_id}/...",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "MIMI interop HTTP paths /mimi/rooms/{flow_id}/{update,notify,messages,group-info} renamed to /mimi/flows/{flow_id}/.... The path parameter was always {flow_id} (a Contrix Flow), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
+    },
+    {
+      "id": "notification.space_name",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "notification.realm_title or notification.flow_title",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Push-notification payload field 'space_name' was a pre-inversion alias whose value source could be either a Realm or a Flow title. After the inversion the two are distinct objects: notification.realm_title comes from Realm.title and notification.flow_title from Flow.title. Both remain forbidden under the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3."
+    },
+    {
+      "id": "space_scoped_tightening",
+      "kind_class": "enum_value",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_scoped_tightening",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Morph type decision table role for Realm-scoped morph_type_profiles tightening (order 2 in the merge precedence). After the Realm/Space inversion the schema source is realm.schema.morph_type_profiles[<morph_type>], not space.schema; the role enum is renamed to match. See artifacts/registry/morph-type-decision-table.json and zh/models/morph.md §4."
+    },
+    {
+      "id": "morph_type_unknown_in_space_schema",
+      "kind_class": "enum_value",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "morph_type_unknown_in_realm_schema",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Morph type decision table case label for 'morph_type not declared by Realm schema'. After the inversion the schema is Realm-scoped (realm.schema.morph_type_profiles); the case label is renamed to match. See artifacts/registry/morph-type-decision-table.json."
+    },
+    {
+      "id": "this_space",
+      "kind_class": "normative_prose_identifier",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "current_realm_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Variable name used in minimal-metadata Realm identity_link cache invalidation MUST rules (zh/crypto-media/encryption-and-audit.md §). The cache key first component is a realm_id, not an in-Realm Space container id; the name 'this_space' was a pre-inversion leftover that could mislead implementations into scoping invalidation to a Space container instead of the Realm boundary. Use current_realm_id (or this_realm) in normative prose; do not reintroduce this_space."
     }
   ]
 }

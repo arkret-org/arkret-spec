@@ -142,6 +142,22 @@ Contrix v1 支持以下 `kind`：
 
 裸名动作（例如 `realm.upgrade` 或 `realm.link.manage`）一律不接受。`cx.realm.admin` 覆盖普通 Realm 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者必须在 grant `actions[]` 中显式列出对应 high-risk 动作。
 
+### 5.0 Action ↔ Event kind 偏离类别（normative reference）
+
+绝大多数 action 与其 `target_event_kinds` 单一同名映射（`cx.flow.create` action ↔ `cx.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。偏离限定为以下五类，**禁止任何其它类型的偏离**：
+
+| 类别 | 形态 | 标准示例 |
+| --- | --- | --- |
+| **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `cx.realm.admin` → 17 条 `cx.realm.*` policy event；`cx.policy.manage` → `cx.policy.*` 与 `cx.realm.policy_*` 系列 |
+| **polymorphic 对象动作** | 一个 action 同时覆盖 Flow / Morph / Space 等同语义 event | `cx.object.archive` → `{cx.flow.archive, cx.morph.archive}`；`cx.object.restore` → `{cx.flow.restore, cx.morph.restore, cx.space.restore}`；`cx.object.stage.set` → `{cx.flow.stage.set, cx.morph.stage.set}` |
+| **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `cx.message.revise.own` → `cx.message.revise`；`cx.message.redact.own` → `cx.message.redact`；`cx.flow.watch.set.others` → `cx.flow.watch.set` |
+| **verb-noun 桥** | action 用动词形态、event kind 因 wire 兼容保留名词形态 | `cx.invite.create_third_party` → `cx.invite.third_party`；`cx.policy.rule.manage` → `cx.policy.rule`；`cx.policy.action.manage` → `cx.policy.action`；`cx.realm.link.manage` → `cx.realm.link`；`cx.realm.plaintext_visible_services.modify` → `cx.realm.plaintext_visible_services`；`cx.realm.moderate` → `cx.realm.moderation_policy` |
+| **保留旧 wire 命名** | action 用收敛后命名，event kind 因 wire 兼容保留旧前缀 / 旧 punctuation | `cx.agent.session.*` → `cx.agent.protocol_session.*`；`cx.morph.schema.migrate` → `cx.morph.schema_migrate`；`cx.flow.tracks.manage` → `cx.flow.tracks.update`；`cx.call.configure_media_service` → `cx.realm.media_service` |
+
+`cx.mls.commit` action → `{cx.mls.commit, cx.mls.commit_failed}`、`cx.message.redact` → `{cx.message.redact, cx.redaction}`、`cx.moderation.appeal.review` → `{cx.moderation.appeal.review, cx.moderation.appeal.decision, cx.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
+
+新增动作 MUST 默认与 event kind 同名；只有上述五类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds`。新增偏离类别 MUST 先在本节增表项再写入 registry。
+
 ### 5.1 通用动作
 
 - `cx.realm.discover`

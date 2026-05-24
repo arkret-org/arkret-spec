@@ -664,6 +664,33 @@
       "replacement": "lww_register",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "CRDT lattice enum values use snake_case."
+    },
+    {
+      "id": "notification.space_name",
+      "context": "notification_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "notification.realm_title / notification.flow_title",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or the Flow (flow_title); both remain forbidden in the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
+    },
+    {
+      "id": "object_ref",
+      "context": "object_patch_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "target_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Generic object_patch_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' and even target-less patches; both shapes are removed. See schemas/event-payload.schema.json $defs/object_patch_payload."
+    },
+    {
+      "id": "object_ref",
+      "context": "object_lifecycle_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "target_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Generic object_lifecycle_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' or even a target-less {target_state} form; both shapes are removed. See schemas/event-payload.schema.json $defs/object_lifecycle_payload."
     }
   ]
 }

@@ -23,6 +23,18 @@ sidebar:
 
 其中 `error-code-registry.json` 是标准 service error code 与批处理逐项 `reason_code` 的 canonical registry；本文后续 event/schema 表只提供文档视图，不重复维护错误码全集。
 
+### 1.1 schema id ↔ 文件名映射例外（normative）
+
+下游 SDK / IDE 插件不得用 "schema id 去掉前缀 + 换分隔符" 这种机械推导拿文件名；MUST 从 `schema-registry.json` 读取每条 `{schema_id, file}` 对。当前 v1 已知的不能机械推导的对应关系：
+
+| schema id | canonical 文件 | 说明 |
+| --- | --- | --- |
+| `cx.schema.event.v1` | `schemas/event-schema.json` | 历史命名；同目录提供 `event-envelope.schema.json` 作为单字段 `$ref` alias，便于人工搜索，但**registry 真源**只登记 `event-schema.json`。 |
+| `cx.schema.capability.v1` | `schemas/capability-grant.schema.json` | id 简化为 `capability`，文件保留 `capability-grant` 以区别于其他 capability 相关 schema（grant-constraint、resource-selector 等）。 |
+| `cx.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
+
+新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-catalog.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
+
 ## 2. Standard Object Schema
 
 | schema id | kind |
