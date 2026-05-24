@@ -380,8 +380,9 @@ Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例�
     "device_id": "cx:device:0196418a-2000-7000-8000-000000000000",
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "read_scope": {
-      "kind": "flow_discussion",
-      "ref": "cx:flow:019640c6-8000-7000-8000-000000000000"
+      "kind": "flow",
+      "ref": "cx:flow:019640c6-8000-7000-8000-000000000000",
+      "track": "discussion"
     },
     "position": {
       "event_id": "cx:event:01964147-0000-7000-8000-000000000000",

@@ -43,13 +43,12 @@
           "enum": [
             "realm",
             "flow",
-            "flow_discussion",
-            "flow_synthesis",
             "thread",
             "view",
             "message",
             "morph"
-          ]
+          ],
+          "description": "Read-scope object kind. Track-scoped read cursors (e.g. discussion vs synthesis) use kind='flow' plus an explicit 'track' field, not a kind variant — the standard track set is profile-extensible and MUST NOT be hardcoded into this enum."
         },
         "ref": {
           "type": "string",
@@ -59,7 +58,7 @@
         "track": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Optional active track when kind references a Flow. 'flow_discussion' / 'flow_synthesis' implicitly fix the track; explicit track overrides default."
+          "description": "Required when kind='flow' AND the cursor scopes a single track (e.g. 'discussion', 'synthesis', or any profile-registered track name). Omit when the cursor tracks the entire Flow regardless of track. Track names MUST match the Flow's registered tracks; unknown tracks MUST be rejected with schema_violation."
         }
       },
       "additionalProperties": false

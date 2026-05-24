@@ -133,8 +133,9 @@ Read cursor schema：`cx.schema.read_cursor.v1`。Read Cursor 是 actor-private 
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
-    "kind": "flow_discussion",
-    "ref": "cx:flow:01964200-0000-7000-8000-000000000001"
+    "kind": "flow",
+    "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
+    "track": "discussion"
   },
   "position": {
     "event_id": "cx:event:01964386-8000-7000-8000-000000000000",
@@ -180,8 +181,9 @@ Read Cursor 是 actor-private 状态。最小结构示例：
   "actor_id": "did:web:alice.example",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
-    "kind": "flow_discussion",
-    "ref": "cx:flow:01964180-0280-7000-8000-000000000000"
+    "kind": "flow",
+    "ref": "cx:flow:01964180-0280-7000-8000-000000000000",
+    "track": "discussion"
   },
   "position": {
     "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",

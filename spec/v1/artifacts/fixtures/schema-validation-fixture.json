@@ -261,8 +261,9 @@
           "device_id": "cx:device:019a6aa0-2000-7000-8000-000000000000",
           "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "read_scope": {
-            "kind": "flow_discussion",
-            "ref": "cx:flow:019a6aa0-3000-7000-8000-000000000000"
+            "kind": "flow",
+            "ref": "cx:flow:019a6aa0-3000-7000-8000-000000000000",
+            "track": "discussion"
           },
           "position": {
             "event_id": "cx:event:019a6aa0-4000-7000-8000-000000000000",

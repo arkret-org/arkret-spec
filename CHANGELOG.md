@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Collapse `read_scope.kind` track variants（2026-05-24）
+
+`read-cursor.schema.json` 的 `read_scope.kind` enum 内联了 `flow_discussion` / `flow_synthesis` 两个 track 专用变体，把 v1 标准 track 名硬编码进了 schema enum，与 "track set is profile-extensible" 的设计相互矛盾。本次折叠到 `kind: "flow"` + 已有的 `track` 字段表达。
+
+- **变更类型**: remove（enum 值移除，breaking for any stored data that used the two collapsed values）
+- **影响 artifact**: `schemas/read-cursor.schema.json`; `fixtures/schema-validation-fixture.json`; `zh/discovery/read-receipts.md`; `zh/sync/operations-sync.md`
+- **canonical 变更**: `read_scope.kind` enum 从 8 项减为 6 项（移除 `flow_discussion` / `flow_synthesis`）；track-scoped read cursor 必须改用 `{kind: "flow", ref: cx:flow:…, track: "discussion" | "synthesis" | <profile-registered>}`。`kind` / `track` 字段 description 同步更新，阐明 track 名集合可由 profile 扩展。
+- **派生 artifact 同步**: 无 catalog 派生影响；`python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (152 event kinds, 53 schemas, 40 typed ID kinds, 87 operations, 58 claimable profiles, 79 profile id references)` 与 `registry diff: clean`.
+- **conformance impact**:
+  - 受影响 profile: read receipt / read cursor 实现。
+  - profile tier 变化: 无。
+  - wire 兼容性: **breaking** for stored read cursors that used `flow_discussion` / `flow_synthesis`；reader / writer MUST 用 `kind: "flow"` + explicit `track`.
+  - reader / writer 行为要求: writers MUST emit only the new shape; readers MUST reject the two removed enum values with `schema_violation`.
+- **fixture / vector 变化**: `schema-validation-fixture.json` 已迁移到新 shape；无需新增 vector.
+- **prose 同步**: `read-receipts.md` §3.2 / §6.1 与 `operations-sync.md` `cx.read_cursor.advance` 示例已同步。
+- **迁移指南**: 旧 actor-private read cursor 存储在加密 account data 中，迁移由 client 端在首次升级时一次性重写：`flow_discussion` → `{kind: "flow", track: "discussion"}`；`flow_synthesis` → `{kind: "flow", track: "synthesis"}`. Reducer 对旧 enum 值 fail closed.
+
 ### Naming normalization closure pass（2026-05-24）
 
 补齐 `_name_report.md` / `_name_report_codex.md` 中命名归一化项的 wire、schema、registry 与 prose 闭环。
