@@ -13,7 +13,7 @@
 - CI: artifact-lint.yml + site.yml. Missing markdown-lint, external-link check, fixture-digest CI validator.
 - Teabay §7-§9 baseline passed 2026-05-10 (6/7 checks).
 
-## Phase 1 tasks (must close before SDK can tag rc1)
+## Phase 1 tasks (must close before SDK local rc1 freeze)
 
 ### Spec body & artifacts
 - [x] §1 Re-run `python tools/artifact_pipeline.py check` and confirm `registry diff: clean` on `main` HEAD.
@@ -28,8 +28,8 @@
 - [x] §8 Add `typos` workflow (crate-ci/typos) gated on `spec/v1/**/*.md`. Reuse `typos.toml` allowlist from sibling projects.
 
 ### Release
-- [x] §9 Add `release-readiness-2026-Q3.md` next to existing teabay baseline in `spec/v1/artifacts/reports/` summarizing all artifact counts on tag day.
-- [x] §10 Cut `v1.0.0-rc1` tag once §1-§9 are green. Push a GitHub release with the artifact bundle (tarball of `spec/v1/artifacts/`).
+- [x] §9 Add `release-readiness-2026-Q3.md` next to existing teabay baseline in `spec/v1/artifacts/reports/` summarizing all artifact counts for the local rc1 freeze.
+- [x] §10 Produce local `v1.0.0-rc1` artifact evidence once §1-§9 are green. Do not create GitHub releases or push release tags.
 
 ### Stretch (phase 5 nice-to-have)
 - [x] §11 Publish `spec/v1/artifacts/contract-catalog.json` to a versioned URL (e.g. `https://spec.contrix.dev/v1/contract-catalog-1.0.0.json`) so SDK consumers can pin without checking out the repo.
@@ -40,7 +40,7 @@ All of:
 1. `python tools/artifact_pipeline.py check` returns clean.
 2. `lint_artifacts.py` succeeds on CI.
 3. New CI jobs (markdown-lint, link-check, typos, fixture-digest) green.
-4. `v1.0.0-rc1` tag pushed; release notes link to `_todos_all.md`.
+4. Local `v1.0.0-rc1` artifact evidence exists; release notes link to `_todos_all.md`.
 
 ## Notes
 
