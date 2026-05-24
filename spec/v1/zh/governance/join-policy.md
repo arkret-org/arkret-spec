@@ -239,7 +239,7 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 
 1. 按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle_uri`（主形态为 `contrix://<domain>/users/<localpart>`）。
 2. 调用 `cx.directory.resolve_handle` 或等价 Principal Server / Organization Directory 解析，带上 `intent="member_add"`、目标 `realm_id`、`requester` 和 challenge。
-3. 验证响应中的 handle claim / presentation 绑定 `handle_uri`、`subject` DID、`recipient_service_did`、issuer、`expires_at`、撤销状态，以及 `audience`：claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
+3. 验证响应中的 handle claim / presentation 绑定 `handle_uri`、`subject` DID、`member_delivery_binding.recipient_service_did`、issuer、`expires_at`、撤销状态，以及 `audience`：claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
 4. 生成 member Move 时使用 `payload.actor_id = subject`；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
 5. 若解析结果携带 `member_delivery_binding`，将其物化为 `payload.delivery_binding`，并按 Realm `cx.realm.delivery_binding_policy` 选择 `binding_source`：
    - 若 invite token / signed candidate 内嵌 binding，优先使用 `invite`，并携带 `service_acceptance_ref`；
@@ -249,7 +249,7 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
    - 用户 / 管理员显式选择服务时使用 `explicit`，并携带 `service_acceptance_ref`；
    - 最后才考虑 `did_document_default`，且仅当 Realm `delivery_binding_policy.allow_did_document_default=true` 并已在 join 时物化 DID document hash。
    - `member_delivery_binding.binding_source` 不得是 `did_document_default`；handle resolution 与 DID Document fallback 是两条独立的物化路径。
-6. 若解析结果没有 `recipient_service_did`，该 handle 只能证明 actor DID；除非 Realm policy 允许 `did_document_default` fallback 并在 join 时完成物化，否则 reducer MUST 拒绝 handle-based join。
+6. 若解析结果没有 `member_delivery_binding.recipient_service_did`，该 handle 只能证明 actor DID；除非 Realm policy 允许 `did_document_default` fallback 并在 join 时完成物化，否则 reducer MUST 拒绝 handle-based join。
 
 Reducer MUST 在 gate proof 通过前先校验 applicant 是否具备提交 `cx.member.state{join}` 的 capability 或等价 invite / join-authorized grant；gate 只能增加限制，不能创造权限。最终 `binding_source` 不在 `allow_binding_sources` 中、或优先级决策得到的 binding 与 policy allowlist 冲突时，reducer MUST 返回 `delivery_binding_policy_mismatch`，不得降级到下一个来源。
 

@@ -56,6 +56,20 @@ Content-Type: application/json
 
 Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，但 metadata response 仍应使用 JSON。
 
+### 2.4 Operation ID 动词 taxonomy
+
+标准 `operation_id` 的最后一个动词段 MUST 与以下 taxonomy 对齐；新增 operation 若不匹配，必须在 `contract-catalog.json` 的 operation notes 中说明理由。
+
+| 动词 | 语义边界 |
+| --- | --- |
+| `get` | 单个已知资源的直接读取，通常由 path / query 中的单一 id 定位。 |
+| `resolve` | 将 event id / hash、handle、invite token、alias、DID 或外部标识解析为 canonical object、proof 或可验证 projection。 |
+| `query` | selector、filter、cursor 或 range scan；结果通常按时间、因果或索引顺序分页。 |
+| `search` | 目录型关键词 / discovery 查询；结果受 discoverability、隐私和排名策略控制。 |
+| `subscribe` | streaming delta、live tail 或长连接增量流。 |
+
+HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET query string 与 POST/body 两种 binding；这种情况必须标记为 binding variant，而不是发明新的抽象语义。
+
 ## 3. 认证
 
 API 调用 SHOULD 使用以下方式之一：
@@ -237,7 +251,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 **`<items_field>` 命名约定** (normative)：
 - 优先使用资源复数名（`realms[]` / `flows[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时（mixed entity 搜索、private contact discovery 等），使用 `results[]`；
-- **不得**使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 的 `messages[]` 例外见 `cx.device_messages.get`）。
+- **不得**使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `cx.device_messages.get` 与 `cx.account.subscribe`）。
 
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。

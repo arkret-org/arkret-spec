@@ -1091,6 +1091,104 @@
       "replacement": "current_realm_id",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Variable name used in minimal-metadata Realm identity_link cache invalidation MUST rules (zh/crypto-media/encryption-and-audit.md §). The cache key first component is a realm_id, not an in-Realm Space container id; the name 'this_space' was a pre-inversion leftover that could mislead implementations into scoping invalidation to a Space container instead of the Realm boundary. Use current_realm_id (or this_realm) in normative prose; do not reintroduce this_space."
+    },
+    {
+      "id": "frank_only",
+      "kind_class": "enum_value",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "franking_proof_only",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation queue visibility enum uses the full franking_proof noun."
+    },
+    {
+      "id": "requires_frank_verification",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "requires_franking_proof_verification",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation queue evidence policy uses the full franking_proof noun."
+    },
+    {
+      "id": "retention_until#moderation_queue_item",
+      "wire_id": "retention_until",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "retention_expires_at",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Retention time upper bounds use the canonical expires_at suffix."
+    },
+    {
+      "id": "queue_item_id#moderation_queue_item",
+      "wire_id": "queue_item_id",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation queue item is a typed canonical object; its own identifier uses the common id field."
+    },
+    {
+      "id": "events#device_message_container",
+      "wire_id": "events",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "messages",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Account subscribe to_device container carries DeviceMessageEnvelope objects, not Event envelopes."
+    },
+    {
+      "id": "until#realm_freeze_payload",
+      "wire_id": "until",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "freeze_expires_at",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Realm freeze time upper bounds use the canonical expires_at suffix with a domain prefix."
+    },
+    {
+      "id": "actor#agent_audit_binding",
+      "wire_id": "actor",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent audit_binding subject is a protocol actor DID-as-id and uses the _id suffix."
+    },
+    {
+      "id": "sha256#snapshot_chunk_descriptor",
+      "wire_id": "sha256",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Snapshot chunk descriptors use digest with an algorithm prefix instead of a raw SHA-256 hex field."
+    },
+    {
+      "id": "service_acceptance_ref#handle_claim_top_level",
+      "wire_id": "service_acceptance_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "member_delivery_binding.service_acceptance_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Handle claim delivery binding evidence is single-sourced inside member_delivery_binding."
+    },
+    {
+      "id": "policy_ref#handle_claim_top_level",
+      "wire_id": "policy_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "member_delivery_binding.policy_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Handle claim delivery binding policy references are single-sourced inside member_delivery_binding."
     }
   ]
 }

@@ -2728,6 +2728,7 @@
       },
       {
         "operation_id": "cx.events.query_post",
+        "binding_variant_of": "cx.events.query",
         "http": "POST /events/query",
         "grpc": "Events/Query",
         "mq": "events.query",

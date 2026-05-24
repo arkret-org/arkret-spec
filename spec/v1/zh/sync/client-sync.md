@@ -94,7 +94,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
       "account_data": {"events": []}
     }
   },
-  "to_device": {"events": []},
+  "to_device": {"messages": []},
   "device_lists": {"changed": [], "left": []},
   "presence": {"events": []},
   "account_data": {"events": []},

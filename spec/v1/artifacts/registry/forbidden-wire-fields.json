@@ -675,13 +675,103 @@
       "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or the Flow (flow_title); both remain forbidden in the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
     },
     {
+      "id": "frank_only",
+      "context": "moderation_queue_item.visibility",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "franking_proof_only",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation visibility enum values use the full franking_proof noun."
+    },
+    {
+      "id": "requires_frank_verification",
+      "context": "moderation_queue_item.evidence_policy",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "requires_franking_proof_verification",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation evidence policy fields use the full franking_proof noun."
+    },
+    {
+      "id": "retention_until",
+      "context": "moderation_queue_item.evidence_policy",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "retention_expires_at",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Retention time upper bounds use the canonical expires_at suffix."
+    },
+    {
+      "id": "queue_item_id",
+      "context": "moderation_queue_item",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation queue item's own typed identifier uses the common id field."
+    },
+    {
+      "id": "events",
+      "context": "account_subscribe_device_message_container",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "messages",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Account subscribe to_device container carries DeviceMessageEnvelope objects, not Event envelopes."
+    },
+    {
+      "id": "until",
+      "context": "realm_freeze_payload",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "freeze_expires_at",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Realm freeze time upper bounds use the canonical expires_at suffix with a domain prefix."
+    },
+    {
+      "id": "actor",
+      "context": "agent.audit_binding",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent audit binding subject is a protocol actor DID-as-id."
+    },
+    {
+      "id": "sha256",
+      "context": "snapshot.chunks[]",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Snapshot chunk descriptors use digest with an algorithm prefix."
+    },
+    {
+      "id": "service_acceptance_ref",
+      "context": "handle_claim_top_level",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "member_delivery_binding.service_acceptance_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Handle claim delivery binding evidence is single-sourced inside member_delivery_binding."
+    },
+    {
+      "id": "policy_ref",
+      "context": "handle_claim_top_level",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "member_delivery_binding.policy_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Handle claim delivery binding policy references are single-sourced inside member_delivery_binding."
+    },
+    {
       "id": "object_ref",
       "context": "object_patch_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "target_ref",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Generic object_patch_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' and even target-less patches; both shapes are removed. See schemas/event-payload.schema.json $defs/object_patch_payload."
+      "notes": "Generic object_patch_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' and even target-less patches; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms."
     },
     {
       "id": "object_ref",
@@ -690,7 +780,7 @@
       "rejection_level": "hard_reject",
       "replacement": "target_ref",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Generic object_lifecycle_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' or even a target-less {target_state} form; both shapes are removed. See schemas/event-payload.schema.json $defs/object_lifecycle_payload."
+      "notes": "Generic object_lifecycle_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' or even a target-less {target_state} form; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms."
     }
   ]
 }

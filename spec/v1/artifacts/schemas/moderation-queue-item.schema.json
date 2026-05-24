@@ -4,14 +4,14 @@
   "title": "Contrix Moderation Queue Item",
   "type": "object",
   "required": [
-    "queue_item_id",
+    "id",
     "report",
     "status",
     "visibility",
     "created_at"
   ],
   "properties": {
-    "queue_item_id": {
+    "id": {
       "type": "string",
       "pattern": "^cx:moderation_queue_item:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
@@ -45,7 +45,7 @@
         "metadata_only",
         "encrypted_evidence",
         "plaintext_evidence",
-        "frank_only"
+        "franking_proof_only"
       ]
     },
     "assigned_to": {
@@ -59,16 +59,16 @@
       "type": "object",
       "required": [
         "plaintext_allowed",
-        "requires_frank_verification"
+        "requires_franking_proof_verification"
       ],
       "properties": {
         "plaintext_allowed": {
           "type": "boolean"
         },
-        "requires_frank_verification": {
+        "requires_franking_proof_verification": {
           "type": "boolean"
         },
-        "retention_until": {
+        "retention_expires_at": {
           "type": "string",
           "format": "date-time",
           "pattern": "Z$"

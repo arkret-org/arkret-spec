@@ -1157,7 +1157,7 @@
         "effective_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "until": {
+        "freeze_expires_at": {
           "$ref": "#/$defs/timestamp"
         }
       },

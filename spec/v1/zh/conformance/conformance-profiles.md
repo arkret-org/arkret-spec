@@ -547,8 +547,8 @@ MUST 支持：
 - ping / describe endpoint
 - transaction push endpoint
 - transaction idempotency
-- query actor endpoint
-- query realm endpoint
+- resolve actor endpoint
+- resolve realm endpoint
 - protocol metadata endpoint
 - ghost actor accountability metadata
 - portal Realm metadata

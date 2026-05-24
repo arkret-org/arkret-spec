@@ -87,19 +87,9 @@
       "additionalProperties": true,
       "description": "Optional claim_scope such as organization_id, realm_id, purpose, or allowed operations."
     },
-    "service_acceptance_ref": {
-      "type": "string",
-      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Event reference usable as member_delivery_binding.service_acceptance_ref when the claim is accepted by Realm policy."
-    },
-    "policy_ref": {
-      "type": "string",
-      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Policy event that authorizes this handle-to-service binding."
-    },
     "member_delivery_binding": {
       "type": "object",
-      "description": "Single source for the Principal Server service DID and delivery parameters this handle claim offers to the membership builder. The top-level recipient_service_did shortcut is forbidden; use member_delivery_binding.recipient_service_did.",
+      "description": "Single source for the Principal Server service DID and delivery parameters this handle claim offers to the membership builder. Top-level delivery shortcuts are forbidden; use member_delivery_binding.recipient_service_did, member_delivery_binding.service_acceptance_ref, and member_delivery_binding.policy_ref.",
       "required": [
         "recipient_service_did",
         "binding_source"
@@ -187,7 +177,11 @@
   },
   "additionalProperties": true,
   "not": {
-    "required": ["recipient_service_did"]
+    "anyOf": [
+      { "required": ["recipient_service_did"] },
+      { "required": ["service_acceptance_ref"] },
+      { "required": ["policy_ref"] }
+    ]
   },
   "allOf": [
     {

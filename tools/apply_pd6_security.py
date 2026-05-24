@@ -55,14 +55,19 @@ OPERATIONS: dict[str, str] = {
     "cx.events.query_post": "user_or_service",
     "cx.events.subscribe": "user_or_service",
     "cx.events.frontier": "user_or_service",
+    "cx.ephemeral.send": "user_or_service",
     "cx.account.describe": "public_no_auth",
     "cx.account.subscribe": "user_bearer",              # account-aggregate streaming; user only
+    "cx.account.cursor_revoke": "user_bearer",
     "cx.snapshot.head": "user_or_service",
+    "cx.projection.spaces": "user_or_service",
+    "cx.projection.flows": "user_or_service",
+    "cx.projection.morphs": "user_or_service",
 
     # directory_discovery
     "cx.directory.describe": "public_no_auth",
-    "cx.directory.search_spaces": "user_or_service",
-    "cx.directory.resolve_space": "user_or_service",
+    "cx.directory.search_realms": "user_or_service",
+    "cx.directory.resolve_realm": "user_or_service",
     "cx.directory.search_organizations": "user_or_service",
     "cx.directory.resolve_organization": "user_or_service",
     "cx.directory.search_actors": "user_or_service",
@@ -71,7 +76,7 @@ OPERATIONS: dict[str, str] = {
     "cx.directory.private_contact_discovery": "user_bearer",  # PSI privacy
     "cx.directory.announce": "user_or_service",
     "cx.directory.withdraw": "user_or_service",
-    "cx.directory.subscribe": "user_or_service",
+    "cx.directory.push.register": "user_or_service",
 
     # blob_storage
     "cx.blob.upload": "user_bearer",                   # conservative: no S2S upload
@@ -115,8 +120,8 @@ OPERATIONS: dict[str, str] = {
     "cx.applet.ping": "service_only",
     "cx.applet.describe": "public_no_auth",            # public service metadata
     "cx.applet.transaction": "service_only",
-    "cx.applet.query_actor": "service_only",
-    "cx.applet.query_realm": "service_only",
+    "cx.applet.resolve_actor": "service_only",
+    "cx.applet.resolve_realm": "service_only",
     "cx.applet.protocol_metadata": "public_no_auth",
     "cx.applet.third_party_users": "service_only",
     "cx.applet.third_party_locations": "service_only",

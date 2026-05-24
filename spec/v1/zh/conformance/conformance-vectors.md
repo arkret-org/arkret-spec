@@ -1935,7 +1935,6 @@ Directory 返回 verified handle claim：
   "handle_uri": "contrix://acme.example/users/alice",
   "handle_aliases": ["acct:alice@acme.example"],
   "verified": true,
-  "recipient_service_did": "did:web:principal.acme.example",
   "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "claims": [{
     "claim_type": "organization_handle",
@@ -1943,10 +1942,17 @@ Directory 返回 verified handle claim：
     "handle_uri": "contrix://acme.example/users/alice",
     "handle_aliases": ["acct:alice@acme.example"],
     "subject": "did:webvh:QmAlice:users.acme.example",
-    "recipient_service_did": "did:web:principal.acme.example",
     "issuer": "did:web:acme.example",
     "binding_state": "verified",
     "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "member_delivery_binding": {
+      "recipient_service_did": "did:web:principal.acme.example",
+      "recipient_service_type": "principal_server",
+      "binding_source": "organization_policy",
+      "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+      "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001",
+      "policy_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
+    },
     "created_at": "2026-05-19T00:00:00Z",
     "expires_at": "2026-08-19T00:00:00Z",
     "proofs": [{
@@ -1983,8 +1989,8 @@ Negative cases：
 
 - Directory 返回 `verified=false` 或 challenge / audience 不匹配 → builder MUST NOT 构造 handle-based join。
 - 返回 `subject != did` → client MUST reject `handle_subject_mismatch`。
-- 返回 `recipient_service_did` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_invalid`。
-- 返回无 `recipient_service_did` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
+- 返回 `member_delivery_binding.recipient_service_did` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_invalid`。
+- 返回无 `member_delivery_binding.recipient_service_did` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
 
 ## 9. Security Closure Vectors
 

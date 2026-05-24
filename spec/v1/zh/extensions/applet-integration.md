@@ -612,8 +612,8 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 - registration signature
 - namespace matching
 - transaction idempotency
-- query actor
-- query realm
+- resolve actor
+- resolve realm
 - protocol metadata
 - ghost actor accountability
 - capability enforcement

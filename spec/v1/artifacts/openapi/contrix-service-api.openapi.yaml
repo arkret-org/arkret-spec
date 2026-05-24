@@ -3461,8 +3461,8 @@ paths:
         come from the same source — see zh/sync/service-http-binding.md §3.3.
 
         gRPC / MQ bindings reuse the canonical `Events/Query` channel; this
-        operation_id is a HTTP-only alias to keep OpenAPI / SDK generators
-        round-trippable.
+        operation_id is a HTTP-only binding variant of `cx.events.query` to keep
+        OpenAPI / SDK generators round-trippable.
       requestBody:
         required: true
         content:

@@ -8,6 +8,8 @@ sidebar:
 
 Snapshot 用于快速 bootstrap Realm 当前态。Snapshot 不是真相源；真相源仍然是 signed Event Envelope 和可验证 Event history。
 
+Snapshot manifest 的主标识字段使用 `snapshot_ref` 而不是通用 `id`。这是因为 manifest 在协议中被作为可解析 snapshot reference 传递和签名绑定，不是普通 materialized object；`snapshot_ref` 进入 signature transcript 并由 `cx:snapshot:*` typed reference 语义约束。
+
 ## 2. Snapshot Manifest
 
 ```json
@@ -31,7 +33,7 @@ Snapshot 用于快速 bootstrap Realm 当前态。Snapshot 不是真相源；真
   "chunks": [
     {
       "chunk_ref": "cx:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "size_bytes": 524288
     }
   ],
@@ -62,7 +64,7 @@ Snapshot 用于快速 bootstrap Realm 当前态。Snapshot 不是真相源；真
 ```json
 {
   "chunk_ref": "cx:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   "size_bytes": 524288
 }
 ```
@@ -98,7 +100,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 - `items` MUST 按 `(kind, id)` canonical byte order 排序。
 - `object` 是该 reducer profile 在 snapshot frontier 下的 materialized canonical object，包括 active object、active Relation、以及 reducer profile 声明需要保留的 tombstone / redaction verification stub。
 - `source_event_id` 是产生该 materialized object 当前版本的最后 accepted Event；字段级 merge 时 MAY 指向最后改变该对象任一字段的 Event。
-- chunk `sha256` MUST 覆盖 chunk payload 的 canonical JSON bytes。Manifest `state_hash` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
+- chunk `digest` MUST 是 `<alg>:<hex>` 形态，并覆盖 chunk payload 的 canonical JSON bytes。Manifest `state_hash` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
 - `conflict_records`、`soft_failed` 和 `quarantined` 可为空，但 high-assurance snapshot MUST 通过 manifest `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入。
 
 Snapshot-assisted pruning 只能删除或压缩某个存储边界内的 raw payload / derived material；它不删除协议历史事实。若实现因 retention、track archive、Realm tombstone 或 hard erasure 裁剪了对象内容，snapshot chunk MUST 继续包含 reducer profile 声明的最小 verification stub，或在 `soft_failed` / `quarantined` / conflict digest 中提交其存在。Consumer 不得把 snapshot 中缺少 stub 的对象解释为“从未存在”，除非 event-set commitment 和 reducer profile 明确证明该对象不在 covered frontier 中。
@@ -116,7 +118,7 @@ Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排
 
 ## 5. Snapshot Signature
 
-Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `snapshot_ref`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_hash`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（`chunk_ref` / `sha256` / `size_bytes`）、`verification_hints`、`created_by` 与 `created_at`；consumer MUST 先验证该 transcript，再逐个验证 chunk payload digest。
+Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `snapshot_ref`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_hash`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（`chunk_ref` / `digest` / `size_bytes`）、`verification_hints`、`created_by` 与 `created_at`；consumer MUST 先验证该 transcript，再逐个验证 chunk payload digest。
 
 签名 DID MUST 属于以下之一：
 

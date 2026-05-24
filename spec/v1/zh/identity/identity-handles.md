@@ -118,7 +118,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 ### 3.3 `member_delivery_binding`
 
-解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_service_did`、`binding_source`、`service_acceptance_ref`、`policy_ref` 和 `delivery_modes` 可直接用于构造 `cx.member.state{membership="join"}.delivery_binding`。Handle claim schema 不再允许顶层 `recipient_service_did` 快捷字段；投递服务 DID 必须只从 `member_delivery_binding.recipient_service_did` 读取。
+解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_service_did`、`binding_source`、`service_acceptance_ref`、`policy_ref` 和 `delivery_modes` 可直接用于构造 `cx.member.state{membership="join"}.delivery_binding`。Handle claim schema 不再允许顶层 `recipient_service_did`、`service_acceptance_ref` 或 `policy_ref` 快捷字段；这些 delivery binding 字段必须只从 `member_delivery_binding.*` 读取。
 
 `member_delivery_binding.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
 
@@ -174,6 +174,8 @@ Handle 按 holder 披露意图分两类：
 | `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle_uri`、`subject_id`、`member_delivery_binding.recipient_service_did`、`audience`、`issuer_service_did`、`issued_at` 与 `expires_at`。`issued_at` MUST 进入 canonical transcript；缺失即视为重放窗口可篡改并拒绝。 |
 | `claim_digest` | `sha256:<hex>` | SHOULD | candidate 上游 handle claim 的 canonical JSON digest，用于缓存键与 audit chain。 |
 | `intent` | enum | MUST | `member_add` / `invite`，区分 candidate 的 builder 入口；reducer 不依赖该字段，仅用于审计与遥测。 |
+
+`MemberDeliveryBindingCandidate.subject_id` MUST 等于上游 handle claim 的 `subject`。Raw / generic handle claim 使用 `subject`；进入 membership builder candidate 并作为具体 DID 绑定进 proof transcript 时使用 `subject_id`。
 
 `additionalProperties: false`——unknown 字段 MUST 由 verifier 拒绝，避免静默 widening。
 

@@ -93,10 +93,10 @@
     "device_message_container": {
       "type": "object",
       "required": [
-        "events"
+        "messages"
       ],
       "properties": {
-        "events": {
+        "messages": {
           "type": "array",
           "items": {
             "$ref": "./device-message.schema.json"

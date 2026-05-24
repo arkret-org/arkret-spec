@@ -333,6 +333,9 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "delivery_binding_hint": "member_delivery_binding",
     "frank": "franking_proof",
     "frank_id": "franking_proof_id",
+    "requires_frank_verification": "requires_franking_proof_verification",
+    "retention_until": "retention_expires_at",
+    "queue_item_id": "id",
     "actor_did": "actor_id",
     "principal_did": "principal_id",
     "subject_did": "subject_id",
@@ -360,6 +363,7 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "ordered-log": "ordered_log",
     "lww-register": "lww_register",
     "frank_unavailable": "franking_proof_unavailable",
+    "frank_only": "franking_proof_only",
 }
 
 

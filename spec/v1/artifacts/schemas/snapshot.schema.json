@@ -184,7 +184,7 @@
         "type": "object",
         "required": [
           "chunk_ref",
-          "sha256",
+          "digest",
           "size_bytes"
         ],
         "properties": {
@@ -192,9 +192,9 @@
             "type": "string",
             "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
           },
-          "sha256": {
+          "digest": {
             "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
+            "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
           },
           "size_bytes": {
             "type": "integer",
@@ -272,7 +272,7 @@
     },
     "signature": {
       "$ref": "./event-schema.json#/$defs/proof",
-      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds snapshot_ref, realm_id, reducer_profile, schema_profile_refs, state_hash, frontier, event_set_commitment, chunks (chunk_ref / sha256 / size_bytes), verification_hints, created_by, created_at, and authority_binding.",
+      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds snapshot_ref, realm_id, reducer_profile, schema_profile_refs, state_hash, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), verification_hints, created_by, created_at, and authority_binding.",
       "x-canonical-bytes-include": [
         "snapshot_ref",
         "realm_id",

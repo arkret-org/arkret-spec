@@ -51,7 +51,7 @@ title: Common Fields
 - CRDT lattice 字段使用 `lattice`，枚举值使用 snake_case（如 `or_set`、`mv_register`、`cas_register`、`ordered_log`、`lww_register`）。新增 lattice 枚举不得使用 kebab-case。
 - Event kind 动词使用动词原形表达 reducer 动作（如 `authorize`、`revoke`、`rotate`、`tombstone`）；只有纯状态通告或外部标准名有明确理由时才可使用过去分词。
 - Capability action 命名约定：
-  - **`cx.<entity>.<verb>` 是默认形态**，对应 `target_event_kinds` 中的一个或多个 reducer-input event kind。Action name 与 event kind 可以重合 (例如 `cx.flow.archive` action 授权同名 event)，也可以不同 (例如 `cx.invite.create_third_party` action 授权 `cx.invite.third_party` event), 由 capability-action-registry `target_event_kinds` 字段桥接, 无需在命名上一致。
+  - **`cx.<entity>.<verb>` 是默认形态**，对应 `target_event_kinds` 中的一个或多个 reducer-input event kind。新增 action 默认 MUST 与被授权 event kind 同名；只有 [`authz/capabilities.md` §5.0](../authz/capabilities.md#50-action--event-kind-偏离类别normative-reference) 登记的偏离类别允许不同名。授权、IAM 工具、SDK 生成和 audit 解析 MUST 读取 capability-action-registry 的 `target_event_kinds`，不得从 action 字符串拆解推断 event kind。
   - **通用 `cx.object.<verb>`**（如 `cx.object.read` / `cx.object.archive` / `cx.object.restore` / `cx.object.stage.set`) 只允许在 Realm-wide admin 或跨实体审计 grant 中使用 (`match_scope` 不限定单一实体 ID); 对单一实体的常规授权 MUST 使用专属 `cx.<entity>.<verb>` (例如 `cx.flow.archive`)。这是为了让 grant author 在最小作用域内表达意图, 同时保留 admin 路径使用通用 action 的能力。
   - **后缀 `.own` / `.others`**: 不带后缀的 action 默认作用域不限定 "creator = grantee"; 加 `.own` 表示 "仅 actor 自己创建的对象" (例如 `cx.message.revise.own`, `cx.message.redact.own`); 加 `.others` 表示 "允许操作他人创建的对象", 通常 risk_tier=high。三种形态 MUST 在 capability-action-registry 中分别登记, 不得当作通配等价。历史命名 `manage_others` 已收敛为 `.others` 后缀（例如 `cx.flow.watch.set.others`）。
 
@@ -149,13 +149,23 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。 |
 | `issuer` | Capability Grant、Identity Receipt | 签发授权或 receipt 的 DID；必须持有签发权限。 |
 | `subject` | Capability Grant | 被授权 DID 或 selector condition。 |
-| `subject_id` | Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic claim subject 仍使用 `subject`。 |
+| `subject_id` | Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic / raw handle claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
 | `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
 | `created_by_principal` | Realm | Realm create event 的授权 principal（与该事件 `actor_id` 一致）。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 
 ## 5. State 枚举对齐
+
+`state`、`stage`、`status`、`runtime_status` 和 `binding_state` 分属不同状态轴，不是同一字段的别名：
+
+| 字段 | 使用场景 | 语义轴 |
+| --- | --- | --- |
+| `state` | Realm / Space / Flow / Message / Morph / Relation 等 canonical object | 物理生命周期：active、archived、redacted、tombstoned / deleted 等。 |
+| `stage` | Flow / Morph | 业务进度：draft、planned、in_progress、done、cancelled 等；与物理生命周期正交。 |
+| `status` | Account、agent session、delivery、moderation workflow、registry entry 等过程型对象 | 外部过程或会话状态；不得替代 object lifecycle。 |
+| `runtime_status` | Applet bridge / runtime metadata | 跨协议 runtime 可用性或执行态，避免与 canonical object `status` / `state` 混淆。 |
+| `binding_state` | Handle claim / identity binding | claim 绑定验证状态：pending、verified、revoked、expired；不是 materialized object lifecycle。 |
 
 各对象的 `state` 字段值不完全相同（部分名字承载了已稳定的 `cx.*.tombstone` event 命名约定），但在 reducer / projection 语义层等价于以下规范状态机：
 
