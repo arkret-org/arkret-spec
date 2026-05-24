@@ -8,7 +8,7 @@
     "realm_id",
     "reducer_profile",
     "schema_profile_refs",
-    "state_hash",
+    "state_digest",
     "frontier",
     "event_set_commitment",
     "chunks",
@@ -48,10 +48,10 @@
       "minItems": 1,
       "uniqueItems": true
     },
-    "state_hash": {
+    "state_digest": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
-      "description": "Hash of the canonical reducer-derived state at the snapshot frontier (Lattice cell values keyed by cell_family/cell_subject, plus reducer_profile / schema_profile_refs). This binds *what the state is*. Paired with event_set_commitment which binds *which events produced it*: a verifier replays the events covered by event_set_commitment under reducer_profile and MUST obtain the same state_hash. The two digests are independent and BOTH required — state_hash alone cannot detect missing-event tampering, event_set_commitment alone cannot detect reducer divergence."
+      "description": "Hash of the canonical reducer-derived state at the snapshot frontier (Lattice cell values keyed by cell_family/cell_subject, plus reducer_profile / schema_profile_refs). This binds *what the state is*. Paired with event_set_commitment which binds *which events produced it*: a verifier replays the events covered by event_set_commitment under reducer_profile and MUST obtain the same state_digest. The two digests are independent and BOTH required — state_digest alone cannot detect missing-event tampering, event_set_commitment alone cannot detect reducer divergence."
     },
     "frontier": {
       "type": "object",
@@ -76,7 +76,7 @@
     },
     "event_set_commitment": {
       "type": "object",
-      "description": "Commitment to the *set of events* whose replay produces state_hash. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_frontier / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_hash (see state_hash description): both fields are independently required because state_hash binds reducer output and event_set_commitment binds reducer input.",
+      "description": "Commitment to the *set of events* whose replay produces state_digest. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_frontier / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_digest (see state_digest description): both fields are independently required because state_digest binds reducer output and event_set_commitment binds reducer input.",
       "required": [
         "algorithm",
         "root",
@@ -222,7 +222,7 @@
       "required": [
         "issuer",
         "authority_kind",
-        "auth_state_hash",
+        "auth_state_digest",
         "auth_frontier",
         "checked_at"
       ],
@@ -240,7 +240,7 @@
             "witness_quorum"
           ]
         },
-        "auth_state_hash": {
+        "auth_state_digest": {
           "type": "string",
           "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
           "description": "Hash of the authorization state used to verify snapshot issuer authority."
@@ -272,13 +272,13 @@
     },
     "signature": {
       "$ref": "./event-schema.json#/$defs/proof",
-      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds snapshot_ref, realm_id, reducer_profile, schema_profile_refs, state_hash, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), verification_hints, created_by, created_at, and authority_binding.",
+      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds snapshot_ref, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), verification_hints, created_by, created_at, and authority_binding.",
       "x-canonical-bytes-include": [
         "snapshot_ref",
         "realm_id",
         "reducer_profile",
         "schema_profile_refs",
-        "state_hash",
+        "state_digest",
         "frontier",
         "event_set_commitment",
         "chunks",

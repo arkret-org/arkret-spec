@@ -276,7 +276,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "purpose": "principal_method_upgrade",
   "issued_at": "2026-05-19T00:00:00Z",
   "transfer_evidence": {
-    "old_did_document_canonical_hash": "sha256:<64-hex>",
+    "old_did_document_canonical_digest": "sha256:<64-hex>",
     "old_did_document_fetched_at": "<RFC 3339 UTC>",
     "inception_pubkey_fingerprint": "sha256:<64-hex>",
     "user_oob_confirmation_id": "<opaque user-side confirmation token>",
@@ -293,13 +293,13 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 - `signature_chain` **必须**同时含两段签名:**inception key**(原 `did:web` 主体)+ `did:webvh` entry-0 controller key(新 method 主体)。任一缺失或签名失效 → reject `inception_upgrade_signature_chain_invalid`。
 - `inception_pubkey_fingerprint` 必须 byte-for-byte 等于 `did:web` DID Document 当前 `verificationMethod[0]` 的派生 fingerprint;同时必须在 `transfer_evidence` 中以 user-readable 形式呈现给 receiver(便于 receiver 二次校验)。
 - `user_oob_confirmation_id` 是 user-side 不透明 token——客户端 SHOULD 把 OOB 确认结果写入 user-private secret storage,服务端 / receiver 不 trust 该字段为真实人类确认证据,但**保留**以便审计回放与 UI 重现。`user_oob_confirmation_method` 是枚举 hint,receiver MAY 用它把"通过弱通道(independent_channel)确认的迁移"打上额外的低信任标记。
-- 整个 transfer envelope MUST 在签名 transcript 中包含 `old_did_document_canonical_hash`——这一字段 freezes 攻击者对 hosting domain 在升级时刻**之后**继续替换 DID Document 的可能性(任何替换都会让 hash 不再匹配 receiver 拉取的新 document)。
+- 整个 transfer envelope MUST 在签名 transcript 中包含 `old_did_document_canonical_digest`——这一字段 freezes 攻击者对 hosting domain 在升级时刻**之后**继续替换 DID Document 的可能性(任何替换都会让 hash 不再匹配 receiver 拉取的新 document)。
 
 ##### 5.0.5.3 Receiver 验证规则
 
 任何接收升级 transition Event 的 receiver(principal server、其他 federation peer、新设备 join 时)**MUST**:
 
-1. 拉取 `old_did` 的当前 DID Document,canonicalize 后 hash 比对 `transfer_evidence.old_did_document_canonical_hash`;不一致 → reject `inception_upgrade_old_document_hash_mismatch`。
+1. 拉取 `old_did` 的当前 DID Document,canonicalize 后 hash 比对 `transfer_evidence.old_did_document_canonical_digest`;不一致 → reject `inception_upgrade_old_document_hash_mismatch`。
 2. 校验 `transfer_evidence.old_did_document_fetched_at` 是 RFC 3339 UTC，且 receiver 当前时间与该值的差值不得超过 168h（7 天，与 `did:webvh` 单 entry cache evidence age 上限对齐）；超过窗口 → reject `inception_upgrade_evidence_stale`。Receiver MAY 使用更短 deployment policy，但 MUST NOT 接受超过 168h 的 transfer evidence。
 3. 校验 `signature_chain` 两段签名:inception key 签名(`verification_method` 必须出现在被 hash 的 old document `verificationMethod[]` 内)+ `did:webvh` entry-0 controller key 签名(必须能在 `did:webvh` `did.jsonl` entry 0 找到)。任一失败 → reject `inception_upgrade_signature_chain_invalid`。
 4. 校验 `inception_pubkey_fingerprint`,确认它等于步骤 1 拉取到的 old document `verificationMethod[0]` 派生 fingerprint;失败 → reject `inception_upgrade_fingerprint_mismatch`。

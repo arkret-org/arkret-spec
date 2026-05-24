@@ -152,9 +152,9 @@ Anchor {
 
 身份与去自引用模型（normative）：
 
-- `id` 是 Anchor 的 wire-stable typed reference，形态为 `cx:anchor:<algo>:<hex>`。它的 hex 部分等于 `H(anchor_canonical_bytes)`，hash algo 跟 Realm `hash_profile`。`id` **不**进入 `anchor_canonical_bytes`——它在 wire 上是 H 的输出而不是输入，所以不会形成 `id = H(... id ...)` 自引用。
+- `id` 是 Anchor 的 wire-stable typed reference，形态为 `cx:anchor:<algo>:<hex>`。它的 hex 部分等于 `H(anchor_canonical_bytes)`，hash algo 跟 Realm `digest_algorithm`。`id` **不**进入 `anchor_canonical_bytes`——它在 wire 上是 H 的输出而不是输入，所以不会形成 `id = H(... id ...)` 自引用。
 - `anchorer_sig` **不**进入 `anchor_canonical_bytes`：anchor 签名覆盖 canonical bytes，本身不是 canonical bytes 的成员。
-- canonical bytes 由下表"transcript fields"列出的字段按 canonical JSON 编码（[`conformance/encoding.md`](../conformance/encoding.md) §2）形成，**不含** `id` 与 `anchorer_sig`，**包含** `realm_id` / `predecessor_refs` / `frontier` / `state_root` / `anchored_at` / `hlc` 与所有其它 signed 顶层字段（如 hash transition 下的 `previous_state_root` / `previous_hash_profile`）。
+- canonical bytes 由下表"transcript fields"列出的字段按 canonical JSON 编码（[`conformance/encoding.md`](../conformance/encoding.md) §2）形成，**不含** `id` 与 `anchorer_sig`，**包含** `realm_id` / `predecessor_refs` / `frontier` / `state_root` / `anchored_at` / `hlc` 与所有其它 signed 顶层字段（如 hash transition 下的 `previous_state_root` / `previous_digest_algorithm`）。
 
 | 字段 | 进入 canonical bytes？ | 进入 anchorer_sig transcript？ | 来源 |
 | --- | --- | --- | --- |
@@ -164,7 +164,7 @@ Anchor {
 | `frontier` | ✅ | ✅ | anchor body |
 | `state_root` | ✅ | ✅ | anchor body |
 | `previous_state_root` (transition only) | ✅ | ✅ | anchor body |
-| `previous_hash_profile` (transition only) | ✅ | ✅ | anchor body |
+| `previous_digest_algorithm` (transition only) | ✅ | ✅ | anchor body |
 | `anchored_at` | ✅ | ✅ | anchor body |
 | `hlc` | ✅ | ✅ | anchor body |
 | `anchorer_sig` | ❌（覆盖 canonical bytes） | ❌（不签自己） | wire signature |
@@ -203,7 +203,7 @@ effective_anchor_view(leaves):
 
 §4 rule 5 要求 `state_root` 是该 Anchor view 下所有 cell value / bottom 的 canonical Merkle root。本节锁定具体编码以保证不同实现互通。
 
-State root 使用的 hash 算法由 Realm 的 `hash_profile`（create-locked，默认 `sha256`）决定。本节伪代码以 `H(...)` 表示该 algo 的哈希函数；wire 上 hash value 形如 `<algo>:<hex>`，详见 [`encoding.md`](../conformance/encoding.md) §3。
+State root 使用的 hash 算法由 Realm 的 `digest_algorithm`（create-locked，默认 `sha256`）决定。本节伪代码以 `H(...)` 表示该 algo 的哈希函数；wire 上 hash value 形如 `<algo>:<hex>`，详见 [`encoding.md`](../conformance/encoding.md) §3。
 
 #### 4.2.1 Leaf 编码
 
@@ -214,7 +214,7 @@ leaf_input = canonical_json({
   "cell":  "<CellRef wire string>",
   "state": <state_object>
 })
-leaf_hash  = H(0x00 || leaf_input)
+leaf_digest  = H(0x00 || leaf_input)
 ```
 
 `<state_object>` 取决于 cell 当前 join 结果：
@@ -235,18 +235,18 @@ Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定
 #### 4.2.2 树形
 
 1. 收集该 Anchor view 下所有有过至少一次 effect 的 cell。
-2. 对每个 cell 计算 `leaf_hash`（4.2.1）。
-3. 把 `(cell_wire, leaf_hash)` 元组按 `cell_wire` Unicode code point 升序排序。
-4. 把排序后的 `leaf_hash` 列表按 RFC 6962 domain-separated binary Merkle tree 算 root：
+2. 对每个 cell 计算 `leaf_digest`（4.2.1）。
+3. 把 `(cell_wire, leaf_digest)` 元组按 `cell_wire` Unicode code point 升序排序。
+4. 把排序后的 `leaf_digest` 列表按 RFC 6962 domain-separated binary Merkle tree 算 root：
    - 偶数个：两两配对 `parent = H(0x01 || left || right)`，逐层向上。
    - 奇数个：最后一个 leaf 直接提升到上一层（**不复制**）。
-   - 单个 leaf：root = leaf_hash。
+   - 单个 leaf：root = leaf_digest。
    - 空列表：root = `H("")` 用 algo 的空字节摘要值。
-5. wire 形式：`state_root = "<algo>:" + lower_hex(root)`，`<algo>` 即 Realm `hash_profile`。
+5. wire 形式：`state_root = "<algo>:" + lower_hex(root)`，`<algo>` 即 Realm `digest_algorithm`。
 
 #### 4.2.3 增量重算
 
-实现 SHOULD 缓存 cell → leaf_hash 表，在 `apply_anchor` 接受新 Anchor 后只
+实现 SHOULD 缓存 cell → leaf_digest 表，在 `apply_anchor` 接受新 Anchor 后只
 重算受影响 cell 的 leaf 与所属 Merkle 分支；wire 上的 `state_root` 必须等于
 全量重算结果。等价性由 conformance vector
 [`cx.vector.state_root.incremental.v1`](../conformance/conformance-vectors.md)
@@ -261,12 +261,12 @@ v1 wire-incompatible，必须用独立 profile 声明。
 
 #### 4.2.5 Hash Algorithm Transition
 
-Realm 一旦在 create event 中固定 `hash_profile`，所有后续 Anchor / Move / state_root MUST 用同一 algo。需要切换 hash algo（例如 sha256 → blake3 性能升级，或 sha256 → 抗量子 hash family）时：
+Realm 一旦在 create event 中固定 `digest_algorithm`，所有后续 Anchor / Move / state_root MUST 用同一 algo。需要切换 hash algo（例如 sha256 → blake3 性能升级，或 sha256 → 抗量子 hash family）时：
 
 1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `previous_state_root`（旧 algo）和 `state_root`（新 algo）。Receiver 用旧 algo 重算 frontier 验证 `previous_state_root` 与本地一致；用新 algo 重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
-2. **`hash_profile` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Realm 的 `hash_profile` cell（`cas_register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
+2. **`digest_algorithm` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Realm 的 `digest_algorithm` cell（`cas_register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
 3. **后续 Anchor**：新 anchor 只用新 algo。客户端做长历史 inclusion proof 时，跨 transition Anchor 的 proof 由 transition Anchor 的双 root 桥接——proof 在 transition 之前用旧 algo 验证，之后用新 algo 验证。
-4. **降级禁止**：`hash_profile` 只允许从更弱 algo 升级到更强 algo（按 v1 hash registry 中声明的 strength order），不允许降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
+4. **降级禁止**：`digest_algorithm` 只允许从更弱 algo 升级到更强 algo（按 v1 hash registry 中声明的 strength order），不允许降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
 
 实现不强制支持 hash transition；声明 `cx.profile.hash_transition.v1` 的实现 MUST 支持。这条机制保证了未来 hash algorithm 升级路径不需要硬分叉。
 

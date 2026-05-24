@@ -103,11 +103,11 @@ Realm policy MUST 通过 `cx.realm.policy_components.metadata_encryption_profile
     "epoch": 12,
     "content_type": "application/json",
     "ciphertext": "base64url",
-    "aad_visibility_event_id": "routing_hash",
+    "aad_visibility_event_id": "routing_digest",
     "aad": {
       "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "event_kind": "cx.message.create",
-      "event_ref_hash": "sha256:..."
+      "event_ref_digest": "sha256:..."
     },
     "key_ref": {
       "algorithm": "MLS",
@@ -130,14 +130,14 @@ Realm policy MUST 通过 `cx.realm.policy_components.metadata_encryption_profile
 | `content_type` | string | 是 | 解密后内容的 MIME 类型 |
 | `ciphertext` | base64url | 是 | `mls-rfc9420` profile 为 MLS PrivateMessage / application message 序列化字节。 |
 | `authentication_tag` | base64url | 条件 | 仅 raw AEAD / exporter-AEAD profile 使用；MLS profile 的 tag 已在 MLS message 内，不重复拆出。 |
-| `aad_visibility_event_id` | enum(hidden, routing_hash, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_hash` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合。 |
+| `aad_visibility_event_id` | enum(hidden, routing_digest, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_digest` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合。 |
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
 | `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
 | `aad.event_kind` | string | 是 | 路由 event kind。 |
 | `aad.event_id` | id:event | 条件 | `aad_visibility_event_id="opaque_id"` 时必填。 |
-| `aad.event_ref_hash` | hash | 条件 | `aad_visibility_event_id="routing_hash"` 时必填；hash 输入由 profile 固定（推荐 `sha256("cx-aad-event-ref-v1" \|\| event_id \|\| realm_id \|\| policy_nonce)`）。 |
-| `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_hashes`。 |
-| `aad.causal_ref_hashes` | array&lt;hash&gt; | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
+| `aad.event_ref_digest` | hash | 条件 | `aad_visibility_event_id="routing_digest"` 时必填；hash 输入由 profile 固定（推荐 `sha256("cx-aad-event-ref-v1" \|\| event_id \|\| realm_id \|\| policy_nonce)`）。 |
+| `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_digests`。 |
+| `aad.causal_ref_digests` | array&lt;hash&gt; | 条件 | `aad_visibility.causal_refs="routing_digest"` 时使用。 |
 | `key_ref.algorithm` | string | 条件 | `mls-rfc9420` profile 为 `MLS`；其他 profile 必须注册自己的值。 |
 | `key_ref.group_state_ref` | id:event 或 hash | 是 | 指向 accepted `cx.mls.genesis` / winning `cx.mls.commit` event / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes \|\| encrypted_payload_bytes)`；输入定义见 §2.3.3。 |
@@ -150,11 +150,11 @@ Ratchet tree MUST 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 
 
 AAD 字段集合受 Realm 的 `aad_visibility` policy 约束。隐私优先 Realm SHOULD 只保留路由所需的 `realm_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Realm MAY 暴露 opaque `event_id` / `message_id`，但该选择 MUST 在 Realm policy 中声明并纳入 MLS-bound `policy_root`。
 
-`aad_visibility_event_id` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_hash`：
+`aad_visibility_event_id` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_digest`：
 
-- `opaque_id`：AAD MUST 包含 `event_id` 且不得包含 `event_ref_hash`，用于跨 provider 投递确认和精确去重。
-- `routing_hash`：AAD MUST 使用 `event_ref_hash`，不得暴露稳定 `event_id`。
-- `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_hash`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
+- `opaque_id`：AAD MUST 包含 `event_id` 且不得包含 `event_ref_digest`，用于跨 provider 投递确认和精确去重。
+- `routing_digest`：AAD MUST 使用 `event_ref_digest`，不得暴露稳定 `event_id`。
+- `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_digest`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
 
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
@@ -162,7 +162,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 {
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "event_kind": "cx.message.create",
-  "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "causal_refs": ["cx:event:019640ed-0000-7000-8000-000000000000"]
 }
 ```
@@ -188,11 +188,11 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "group_id": "base64url",
   "epoch": 12,
   "content_type": "application/json",
-  "aad_visibility_event_id": "routing_hash",
+  "aad_visibility_event_id": "routing_digest",
   "aad": {
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "event_kind": "cx.message.create",
-    "event_ref_hash": "sha256:..."
+    "event_ref_digest": "sha256:..."
   },
   "key_ref": {
     "algorithm": "MLS",
@@ -321,7 +321,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 | 层 | 名称（wire-level） | 角色 |
 |---|---|---|
-| **Commit-side proof** | `governance_binding`（GroupContext extension `cx_governance_binding`，定义见 §2.5.1，CBOR 编码见 §2.5.3） | 每个 `cx.mls.commit` 携带的 binding payload，把本次 epoch 推进所**断言覆盖**的 governance roots（`membership_frontier` / `policy_root` / `capability_root` / `discussion_metadata_hash`）哈希进 MLS transcript |
+| **Commit-side proof** | `governance_binding`（GroupContext extension `cx_governance_binding`，定义见 §2.5.1，CBOR 编码见 §2.5.3） | 每个 `cx.mls.commit` 携带的 binding payload，把本次 epoch 推进所**断言覆盖**的 governance roots（`membership_frontier` / `policy_root` / `capability_root` / `discussion_metadata_digest`）哈希进 MLS transcript |
 | **Lattice-side accumulator** | `covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or_set，bottom=expose，见 §2.5.2） | MLS Commit Move 的 effect cell，**累计**已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier |
 
 两层缺一不可：`governance_binding` 提供 per-commit 的不可伪造证据并由 MLS transcript hash 覆盖，`covered_frontier_cell` 沉淀 reducer 可查询的累计状态供 message Move precondition 引用。
@@ -345,7 +345,7 @@ flowchart TB
 
     subgraph CS ["Commit-side proof (per cx.mls.commit)"]
         direction TB
-        GB["governance_binding<br/>membership_frontier / policy_root<br/>capability_root / discussion_metadata_hash<br/>previous_epoch → next_epoch"]
+        GB["governance_binding<br/>membership_frontier / policy_root<br/>capability_root / discussion_metadata_digest<br/>previous_epoch → next_epoch"]
         Trans["MLS GroupContext extension<br/>cx_governance_binding (0xF1C0, deterministic CBOR)<br/>→ 进入 MLS transcript hash"]
         GB --> Trans
     end
@@ -391,7 +391,7 @@ MLS group 的 scope 永远绑定到一个 `realm_id`：源 Realm 自身使用 `e
     "membership_frontier": ["cx:event:8ea2dd8c-c436-7b94-9000-000000000000"],
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
-    "discussion_metadata_hash": "sha256:canonical_discussion_metadata",
+    "discussion_metadata_digest": "sha256:canonical_discussion_metadata",
     "binding_profile": "cx.profile.mls_governance_binding.full.v1",
     "reducer_profile": "cx.reducer.v1"
   }
@@ -407,7 +407,7 @@ MLS group 的 scope 永远绑定到一个 `realm_id`：源 Realm 自身使用 `e
 - `previous_epoch` / `next_epoch` MUST 同时出现在 `governance_binding` 与 `cx.mls.commit` payload 中；接收端 MUST 校验 `payload.base_epoch == governance_binding.previous_epoch` 且 `payload.next_epoch == governance_binding.next_epoch`。任一不一致时该 commit 不得推进 `mls_epoch_cell`。
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
 - `capability_root` MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell。
-- `discussion_metadata_hash` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
+- `discussion_metadata_digest` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
 - 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Contrix Anchor view 与 state_root。无法回补 Move/Anchor inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 是并发 Move。它们只有被有效 Anchor frontier 覆盖、且其 preconditions 在 Anchor batch pre-state 下成立时，才能推进 `mls_epoch_cell`。
 
@@ -445,7 +445,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
   "binding_profile":     tstr,
   "binding_version":     uint,    ; v1 = 1
   "capability_root":     bstr,    ; optional, full profile only
-  "discussion_metadata_hash": bstr, ; optional, full profile only
+  "discussion_metadata_digest": bstr, ; optional, full profile only
   "encoding_profile":    tstr,    ; "cbor-deterministic-rfc8949-v1"
   "membership_frontier": [+ bstr],
   "mls_group_id":        bstr,
@@ -465,7 +465,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 | `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
 | `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_frontier_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
 | `realm_id` | **否**（Contrix-specific，MLS 不知道 Realm 概念） | **必须**：realm_id 是把 MLS group 锚定到 Contrix governance state 的核心绑定；缺失则 governance_binding 可能被错误重绑定到不同 Realm 的 commit。 |
-| `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_hash` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
+| `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_digest` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
 | `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
 
 简言之：MLS-redundant 字段（`mls_group_id` / `previous_epoch` / `next_epoch`）以约 ~50 字节的 wire 代价换取 binding payload 的离线自含性，这是有意识设计而不是 leftover；非冗余字段是 governance binding 真正承载的事实。Wire-size 进一步优化（如把 redundant 字段折叠成单个 commit_anchor hash）属于未来 hardening profile，不进入 v1 core。
@@ -506,7 +506,7 @@ published -> claimed -> consumed
   "principal_id": "did:web:alice.example.com",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "keypackage_ref": "sha256:...",
-  "keypackage_hash": "sha256:canonical_keypackage_bytes",
+  "keypackage_digest": "sha256:canonical_keypackage_bytes",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
   "capabilities": ["mimi.content.v1", "cx.content.v1"],
   "state": "published",
@@ -526,9 +526,9 @@ Claim 请求 MUST 绑定：
 
 Claim 成功后：
 
-- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set、`keypackage_hash = canonical_hash(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(claimed_capabilities))`、当前 accepted cross-signing `ssk_generation` 和 expiry。
+- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set、`keypackage_digest = canonical_digest(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(claimed_capabilities))`、当前 accepted cross-signing `ssk_generation` 和 expiry。
 - 同一 KeyPackage 不得被第二个 Realm / MLS group、第二个 requester 或第二次 Welcome 重复使用。
-- Welcome 发送方 MUST 引用 `keypackage_ref` / `keypackage_hash` / `claim_id`，并在 `cx.mls.welcome.payload.claim_ref` 中携带 `{claim_id, keypackage_ref, keypackage_hash, capabilities_digest, ssk_generation}`；该 `claim_ref` MUST 进入 `governance_binding` transcript 或等价 Welcome AAD。接收端在解密 Welcome 前 MUST 校验：`claim_ref.claim_id` / `claim_ref.keypackage_ref` / `claim_ref.keypackage_hash` 与顶层字段一致，`claim_ref.keypackage_hash` 等于已发布 `cx.mls.keypackage.payload.keypackage_hash` 或重新获取 KeyPackage canonical bytes 后得到的 hash，`capabilities_digest == sha256(JCS(claimed_capabilities))`，`claim_ref.ssk_generation` 等于接收端当前 accepted `cx.cross_signing.publish.generation`，且本次 Welcome 要求的 capability / content profile 集合是 `claimed_capabilities` 的子集；否则 fail closed，KeyPackage hash 或 capability 不匹配返回 `welcome_capability_mismatch`，generation 不匹配返回 `claim_generation_mismatch`。
+- Welcome 发送方 MUST 引用 `keypackage_ref` / `keypackage_digest` / `claim_id`，并在 `cx.mls.welcome.payload.claim_ref` 中携带 `{claim_id, keypackage_ref, keypackage_digest, capabilities_digest, ssk_generation}`；该 `claim_ref` MUST 进入 `governance_binding` transcript 或等价 Welcome AAD。接收端在解密 Welcome 前 MUST 校验：`claim_ref.claim_id` / `claim_ref.keypackage_ref` / `claim_ref.keypackage_digest` 与顶层字段一致，`claim_ref.keypackage_digest` 等于已发布 `cx.mls.keypackage.payload.keypackage_digest` 或重新获取 KeyPackage canonical bytes 后得到的 hash，`capabilities_digest == sha256(JCS(claimed_capabilities))`，`claim_ref.ssk_generation` 等于接收端当前 accepted `cx.cross_signing.publish.generation`，且本次 Welcome 要求的 capability / content profile 集合是 `claimed_capabilities` 的子集；否则 fail closed，KeyPackage hash 或 capability 不匹配返回 `welcome_capability_mismatch`，generation 不匹配返回 `claim_generation_mismatch`。
 - 成功处理 Welcome 后，接收端或服务端状态 SHOULD 标记该 KeyPackage 为 `consumed`。若 Welcome 失败或过期，KeyPackage 不得自动回到 `published`；设备 SHOULD 发布新的 KeyPackage。
 - 服务端返回 KeyPackage 时 MUST 附带 device signature、principal binding 和 revocation status。客户端 MUST 通过 DID control chain 与 device trust chain 验证后才能加密。
 
@@ -541,7 +541,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `keypackage_ref` | hash | 被消费的 KeyPackage 的 `keypackage_ref`。 |
-| `keypackage_hash` | hash | 被消费 KeyPackage canonical bytes 的 hash；MUST 等于 Welcome 顶层 `keypackage_hash` 与 `claim_ref.keypackage_hash`。 |
+| `keypackage_digest` | hash | 被消费 KeyPackage canonical bytes 的 hash；MUST 等于 Welcome 顶层 `keypackage_digest` 与 `claim_ref.keypackage_digest`。 |
 | `intended_realm_id` | id | Welcome 真正加入的 Realm ID (与 Realm governance state 同源)。 |
 | `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_space, nonce, expiry)。 |
 | `requester_did` | did | Welcome 发送方 principal DID。 |
@@ -554,8 +554,8 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 
 1. 通过 DID control chain 验证 `claim_envelope.signature` → `requester_did`;
 2. 校验 `intended_realm_id` 等于 MLS Welcome 内 group_id 反向 resolve 出的 Realm(防止 server-side rewrite);
-3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见，`claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致，`claim_envelope.keypackage_hash == payload.keypackage_hash == payload.claim_ref.keypackage_hash`，且 `claim_envelope.ssk_generation == payload.claim_ref.ssk_generation == current accepted cross-signing generation`;
-4. 校验 `welcome_digest` 等于 `canonical_hash(welcome_bytes)`,防止 envelope 被剥离后重新封装。
+3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见，`claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致，`claim_envelope.keypackage_digest == payload.keypackage_digest == payload.claim_ref.keypackage_digest`，且 `claim_envelope.ssk_generation == payload.claim_ref.ssk_generation == current accepted cross-signing generation`;
+4. 校验 `welcome_digest` 等于 `canonical_digest(welcome_bytes)`,防止 envelope 被剥离后重新封装。
 
 任一项失败 → 拒绝 Welcome,reason=`keypackage_welcome_envelope_mismatch`,并 SHOULD 触发 client UI 警示 "received an invalid Welcome envelope; the inviting party's identity could not be verified for this Realm"。
 
@@ -593,7 +593,7 @@ Profile 规则：
   "proof": {
     "verification_method": "did:web:alice.example#key-1",
     "signature_algorithm": "Ed25519",
-    "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "signature": "c2ln"
   }
 }
@@ -601,7 +601,7 @@ Profile 规则：
 
 Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pairwise sender，但不得被提升为已验证 principal DID 发送者。
 
-**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(realm_id, pairwise_did)`，value 中**MUST**额外携带签发时的 `policy_frontier_hash`（参见下方"Policy tightening 失效"）。缓存 value MUST 包含：验证时间、MLS epoch、principal DID、device id、签名证明摘要、`policy_frontier_hash`（绑定该缓存条目所依赖的 Realm policy 快照）。缓存失效规则：
+**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(realm_id, pairwise_did)`，value 中**MUST**额外携带签发时的 `policy_frontier_digest`（参见下方"Policy tightening 失效"）。缓存 value MUST 包含：验证时间、MLS epoch、principal DID、device id、签名证明摘要、`policy_frontier_digest`（绑定该缓存条目所依赖的 Realm policy 快照）。缓存失效规则：
 
 - **Eager invalidation on member leave / ban / remove（normative MUST）**：当客户端处理一个 `cx.member.state` event（或等价的 ban / leave / remove governance Move）时，MUST **立即**（在该 event accepted 进入本地 frontier 的同一事务边界内）失效缓存中所有 `(realm_id == current_realm_id, pairwise_did → leaving_principal)` 的条目。**不得**等待 TTL 过期或 MLS epoch 推进——否则被移除成员的 pairwise→principal 映射会在其它成员客户端中残留至 TTL 末尾，泄露"X 在 T 时刻离开此 Realm"的时间侧信道，违反 minimal-metadata Realm 的核心隐私目标。
 - MLS epoch 变更（任何 commit）时，MUST 检查并失效任何 epoch 匹配旧 epoch 的 stale 条目。
@@ -613,7 +613,7 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
   - `cx.realm.policy_components` 更新中任何 `identity_disclosure_profile` 字段变化。
   - 任何 linked Realm（`Flow.discussion_realm_ref` 指向的 Realm 或 `Realm.linked_realms[]`）的 membership / history visibility 收紧——cross-Realm 解析依赖 linked Realm policy；linked 一端收紧后 source 一端的缓存也 MUST 失效。
   - 对应的失效粒度规则：失效全部 `(realm_id == current_realm_id, *)`，而不仅是当时已 disclosed 的 principal——因为收紧后的 policy 可能撤销之前被 disclose 的部分映射。
-- 缓存比较时，客户端 MUST 把当前 Realm policy 的 `policy_frontier_hash` 与缓存条目内的值做 constant-time 比较；**任一**不一致即视为缓存失效，回退到完整 identity_link 重新验证。`policy_frontier_hash` 在签发缓存条目时由客户端从最近 anchored 的 Realm policy 状态计算（推荐 `sha256(canonical_json({policy_revision, disclosure_policy, history_visibility, identity_disclosure_profile, metadata_encryption_profile, minimal_metadata_mode}))`），并随后续 policy event 推进而变化；不允许仅靠 TTL 或 MLS epoch 等内部计数替代该 hash 比较。
+- 缓存比较时，客户端 MUST 把当前 Realm policy 的 `policy_frontier_digest` 与缓存条目内的值做 constant-time 比较；**任一**不一致即视为缓存失效，回退到完整 identity_link 重新验证。`policy_frontier_digest` 在签发缓存条目时由客户端从最近 anchored 的 Realm policy 状态计算（推荐 `sha256(canonical_json({policy_revision, disclosure_policy, history_visibility, identity_disclosure_profile, metadata_encryption_profile, minimal_metadata_mode}))`），并随后续 policy event 推进而变化；不允许仅靠 TTL 或 MLS epoch 等内部计数替代该 hash 比较。
 - 缓存 TTL SHOULD 不超过 7 天；过期后 MUST 重新验证。该 TTL 仅是**最坏兜底**，不能替代 eager invalidation。
 - 设备丢失或恢复后，MUST 清除所有 identity_link 缓存。
 - conformance vector `cx.vector.identity_link.eager_invalidation.v1`（参见 `conformance-vectors.md`）覆盖 ban / leave / remove 三种触发条件下的 eager invalidation 行为；`cx.vector.identity_link.policy_tightening_invalidation.v1` 覆盖 disclosure policy、history visibility、minimal metadata mode、linked Realm visibility 收紧后的 eager invalidation 行为。
@@ -626,7 +626,7 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 {
   "aad_visibility": {
     "message_id": "hidden",
-    "event_id": "routing_hash",
+    "event_id": "routing_digest",
     "debug_trace_id": "disabled"
   }
 }
@@ -635,11 +635,11 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 取值：
 
 - `hidden`：默认值；不在 MLS AAD 或服务可见 metadata 中暴露稳定 message id。
-- `routing_hash`：只暴露不可逆 hash，用于去重、幂等和 backfill 诊断。
+- `routing_digest`：只暴露不可逆 hash，用于去重、幂等和 backfill 诊断。
 - `opaque_id`：暴露 opaque event/message id，用于跨 provider 投递确认。
 - `debug`：仅限短期调试或受控企业 profile；MUST 有过期时间、审计和用户/管理员可见声明。
 
-隐私优先 Realm SHOULD 使用 `hidden` 或 `routing_hash`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `governance_binding.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
+隐私优先 Realm SHOULD 使用 `hidden` 或 `routing_digest`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `governance_binding.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
 
 加密信封的 Event kind 字段在 AAD 中规范名为 `aad.event_kind`；Realm policy、AAD visibility、日志和 conformance vector MUST 使用该名字。
 
@@ -666,7 +666,7 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
   - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定,即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
   - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Realm SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露,使频次只能 per-target_ref 而非 per-message 关联。
-- Minimal-metadata Realm (`cx.profile.mls.minimal_metadata_realm.v1`): 同上,且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
+- Minimal-metadata Realm (`cx.profile.mls.minimal_metadata_realm.v1`): 同上,且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_digest)` 三元组在服务侧也不直接暴露 principal。
 - `cx.reaction.remove` 走相同规则；`encrypted_payload` 内 MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛,但不得将该 id 暴露在明文。
 
 服务端 / sync service 处理 reaction 时:
@@ -755,8 +755,8 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 - `creator_principal_id`
 - `creator_device_id`
 - `cipher_suite`
-- `group_info_ref` 或 `group_info_hash`
-- `ratchet_tree_ref` 或 `ratchet_tree_hash`
+- `group_info_ref` 或 `group_info_digest`
+- `ratchet_tree_ref` 或 `ratchet_tree_digest`
 - `governance_binding`
 - `created_at`
 
@@ -790,7 +790,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 - `base_epoch`：Commit 构造时读取的当前 epoch。
 - `base_epoch_ref`：本地认为当前 effective 的 `cx.mls.commit` Move 或 `cx.mls.genesis` Move / genesis group state ref（v1 不再有独立的 `cx.mls.epoch` checkpoint event；epoch 由 effective commit 机械派生）。
 - `proposal_refs`：被该 Commit 消费的 `cx.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
-- `commit_message_ref` / `commit_hash`：MLS Commit 消息或其 content-addressed blob。
+- `commit_message_ref` / `commit_digest`：MLS Commit 消息或其 content-addressed blob。
 - `next_epoch`：必须等于 `base_epoch + 1`。
 - `governance_binding`：见第 2.5 节。
 

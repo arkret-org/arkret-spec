@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/anchor.schema.json",
   "title": "Contrix Anchor",
-  "description": "Wire shape of a Contrix Anchor. Identity & signature model (see zh/authz/event-auth-state-resolution.md §4): the typed `id` (`cx:anchor:<algo>:<hex>`) is content-derived — its hex equals H(anchor_canonical_bytes) under the Realm hash_profile. Anchor canonical bytes are the canonical JSON of the body fields ONLY (realm_id, predecessor_refs, frontier, state_root, optional previous_state_root / previous_hash_profile, anchored_at, hlc plus any other signed top-level field). The `id` is NOT part of canonical bytes (it is the hash OUTPUT, not input — no self-reference). The `anchorer_sig` is NOT part of canonical bytes (it covers the bytes; signatures never sign themselves). Receivers MUST (a) recompute H(anchor_canonical_bytes) and verify it equals the hex in `id` (`digest_mismatch` otherwise) and (b) verify `anchorer_sig` over the same canonical bytes (`invalid_signature` otherwise). additionalProperties=false prevents undeclared fields from sneaking into the transcript.",
+  "description": "Wire shape of a Contrix Anchor. Identity & signature model (see zh/authz/event-auth-state-resolution.md §4): the typed `id` (`cx:anchor:<algo>:<hex>`) is content-derived — its hex equals H(anchor_canonical_bytes) under the Realm digest_algorithm. Anchor canonical bytes are the canonical JSON of the body fields ONLY (realm_id, predecessor_refs, frontier, state_root, optional previous_state_root / previous_digest_algorithm, anchored_at, hlc plus any other signed top-level field). The `id` is NOT part of canonical bytes (it is the hash OUTPUT, not input — no self-reference). The `anchorer_sig` is NOT part of canonical bytes (it covers the bytes; signatures never sign themselves). Receivers MUST (a) recompute H(anchor_canonical_bytes) and verify it equals the hex in `id` (`digest_mismatch` otherwise) and (b) verify `anchorer_sig` over the same canonical bytes (`invalid_signature` otherwise). additionalProperties=false prevents undeclared fields from sneaking into the transcript.",
   "type": "object",
   "required": [
     "id",
@@ -17,7 +17,7 @@
   "properties": {
     "id": {
       "$ref": "#/$defs/anchor_ref",
-      "description": "Content-derived typed reference. hex part MUST equal H(anchor_canonical_bytes) under the Realm hash_profile, where anchor_canonical_bytes is the canonical JSON of every signed body field EXCEPT `id` and `anchorer_sig`. Receivers MUST recompute and verify; mismatch → digest_mismatch. NEVER include `id` in the hash input — that would create a self-reference."
+      "description": "Content-derived typed reference. hex part MUST equal H(anchor_canonical_bytes) under the Realm digest_algorithm, where anchor_canonical_bytes is the canonical JSON of every signed body field EXCEPT `id` and `anchorer_sig`. Receivers MUST recompute and verify; mismatch → digest_mismatch. NEVER include `id` in the hash input — that would create a self-reference."
     },
     "realm_id": {
       "$ref": "#/$defs/realm_ref"
@@ -42,15 +42,15 @@
     },
     "previous_state_root": {
       "$ref": "#/$defs/hash",
-      "description": "Hash-algorithm transition only: present iff this Anchor is a Transition Anchor under cx.profile.hash_transition.v1. When present, MUST be computed with the previous hash_profile algorithm over the same frontier as state_root, and MUST equal the receiver-recomputed root under that algorithm before the new state_root is accepted. See event-auth-state-resolution.md §4.2.5."
+      "description": "Hash-algorithm transition only: present iff this Anchor is a Transition Anchor under cx.profile.hash_transition.v1. When present, MUST be computed with the previous digest_algorithm algorithm over the same frontier as state_root, and MUST equal the receiver-recomputed root under that algorithm before the new state_root is accepted. See event-auth-state-resolution.md §4.2.5."
     },
-    "previous_hash_profile": {
+    "previous_digest_algorithm": {
       "type": "string",
       "pattern": "^cx\\.profile\\.hash\\.[a-z0-9_]+\\.v[0-9]+$",
       "description": "Profile id of the previous hash algorithm. Required iff previous_state_root is present; absent on non-transition Anchors."
     },
     "anchorer_sig": {
-      "description": "Signature over anchor_canonical_bytes (every signed body field EXCEPT `id` and `anchorer_sig`). MUST NOT enter the canonical bytes itself — signatures never sign themselves. Anchor is not an Event Envelope, so its signature uses the generic non-Event proof field `payload_hash`; that value MUST equal H(anchor_canonical_bytes) under the Realm hash_profile. Event Envelope proofs use `event_digest` instead.",
+      "description": "Signature over anchor_canonical_bytes (every signed body field EXCEPT `id` and `anchorer_sig`). MUST NOT enter the canonical bytes itself — signatures never sign themselves. Anchor is not an Event Envelope, so its signature uses the generic non-Event proof field `payload_digest`; that value MUST equal H(anchor_canonical_bytes) under the Realm digest_algorithm. Event Envelope proofs use `event_digest` instead.",
       "oneOf": [
         {
           "$ref": "#/$defs/signature"
@@ -80,12 +80,12 @@
         "required": ["previous_state_root"]
       },
       "then": {
-        "required": ["previous_hash_profile"]
+        "required": ["previous_digest_algorithm"]
       }
     },
     {
       "if": {
-        "required": ["previous_hash_profile"]
+        "required": ["previous_digest_algorithm"]
       },
       "then": {
         "required": ["previous_state_root"]
@@ -122,7 +122,7 @@
       "required": [
         "alg",
         "verification_method",
-        "payload_hash",
+        "payload_digest",
         "created_at",
         "jws"
       ],
@@ -141,7 +141,7 @@
           "pattern": "^did:[a-z0-9]+:[^\\s]+$",
           "description": "DID or DID URL of the signing key. Bare DID is accepted (resolves to the controller's current key); DID URLs with key fragment are RECOMMENDED. The previous regex pattern `(#.+)?$` was redundant under greedy `[^\\s]+` and has been normalized to the canonical DID pattern; semantics are unchanged."
         },
-        "payload_hash": {
+        "payload_digest": {
           "$ref": "#/$defs/hash",
           "description": "Hash of anchor_canonical_bytes for this non-Event Anchor signature. Do not rename to event_digest: event_digest is reserved for Event Envelope proofs."
         },

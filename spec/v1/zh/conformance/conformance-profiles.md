@@ -293,7 +293,7 @@ Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID �
 
 `development_mode=true` 时，`verified_profiles[]` MUST 为 `[]`（见 `sync/service-surface.md` §3.0）；cotest 在 verified-profile suite 通过后才能写入 verified entry。
 
-Release readiness MUST 至少覆盖：签发路径拒绝陌生 audience、session grant TTL 上限、proof 绑定 `challenge` / `audience` / `request_canonical_hash` / principal / device、`soft_logged_out` 恢复需要 fresh DID proof，以及 development mode 下不得声明 verified profile。对应 conformance vector 为 `cx.vector.auth.session_grant_audience_binding.v1` 与 `cx.vector.auth.soft_logout_did_proof.v1`。
+Release readiness MUST 至少覆盖：签发路径拒绝陌生 audience、session grant TTL 上限、proof 绑定 `challenge` / `audience` / `request_canonical_digest` / principal / device、`soft_logged_out` 恢复需要 fresh DID proof，以及 development mode 下不得声明 verified profile。对应 conformance vector 为 `cx.vector.auth.session_grant_audience_binding.v1` 与 `cx.vector.auth.soft_logout_did_proof.v1`。
 
 ## 10. Blob Node
 

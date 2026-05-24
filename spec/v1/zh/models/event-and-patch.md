@@ -40,7 +40,7 @@ Schema id: `cx.schema.event.v1`
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Move precondition、Anchor finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<id:event>` | 可为空。仅承载 actor event chain causal predecessors。 | Actor event chain 前序。 |
 | `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`（**替代旧 `auth_refs[]` 字段**）、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
-| `requirements` | no | `object` | `requirements.{schema[], reducer, features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_hash` 指向外部材料。 | 事件依赖声明（schema profile / reducer profile / feature / critical extension）。 |
+| `requirements` | no | `object` | `requirements.{schema[], reducer, features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / reducer profile / feature / critical extension）。 |
 | `preconditions` | conditional | `array<Predicate>` | 仅 reducer-input event 携带；与 `effects[]` / `anchor_ref` 同步出现。非 reducer event（read cursor / typing 等）MUST 省略。 | Move 多 cell 原子 CAS 的 pre-state 谓词。 |
 | `effects` | conditional | `array<Effect>` | 仅 reducer-input event 携带；存在时 MUST 至少 1 项。 | Move 多 cell 原子 CAS 的 effect 集合。 |
 | `anchor_ref` | conditional | `id:anchor` | 仅 reducer-input event 携带；MUST 指向接收方已知 Anchor，并落在 `max_anchor_staleness_ms` 窗口内。 | Move 提交基线 Anchor。 |
@@ -142,7 +142,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `event_digest` | yes | `hash` | MUST 等价于 `canonical_hash(envelope_without_proofs_unsigned)`：hash 输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等）。 | canonical Event digest。 |
+| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned)`：hash 输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等）。 | canonical Event digest。 |
 | `created_at` | yes | `timestamp` |  | 签名时间。 |
 | `domain` | no | `string` | 跨服务 SHOULD 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 跨域/服务调用 SHOULD 设置。 | 受众绑定。 |

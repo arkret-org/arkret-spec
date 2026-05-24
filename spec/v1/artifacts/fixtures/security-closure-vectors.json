@@ -16,15 +16,15 @@
               "Destination-Service-DID": "did:web:beta.example",
               "Source-Trust-Domain": "cx:trust_domain:did.webvh.alpha.example",
               "Destination-Trust-Domain": "cx:trust_domain:did.webvh.beta.example",
-              "Request-Canonical-Hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "Idempotency-Key": "idem-001"
             },
-            "origin_key_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
           "expected": {
             "outcome": "accepted",
             "invariants": [
-              "idempotency cache key includes source service, destination service, request canonical hash, idempotency key, and origin key state hash"
+              "idempotency cache key includes source service, destination service, request canonical digest, idempotency key, and origin key state hash"
             ]
           },
           "runner": {
@@ -37,10 +37,10 @@
                   "Destination-Service-DID": "did:web:beta.example",
                   "Source-Trust-Domain": "cx:trust_domain:did.webvh.alpha.example",
                   "Destination-Trust-Domain": "cx:trust_domain:did.webvh.beta.example",
-                  "Request-Canonical-Hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                   "Idempotency-Key": "idem-001"
                 },
-                "origin_key_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             "operation": "cx.events.submit",
@@ -54,16 +54,16 @@
                   "Destination-Service-DID": "did:web:beta.example",
                   "Source-Trust-Domain": "cx:trust_domain:did.webvh.alpha.example",
                   "Destination-Trust-Domain": "cx:trust_domain:did.webvh.beta.example",
-                  "Request-Canonical-Hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                   "Idempotency-Key": "idem-001"
                 },
-                "origin_key_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             "expected_state_transition": {
               "outcome": "accepted",
               "invariants": [
-                "idempotency cache key includes source service, destination service, request canonical hash, idempotency key, and origin key state hash"
+                "idempotency cache key includes source service, destination service, request canonical digest, idempotency key, and origin key state hash"
               ]
             },
             "expected_external_response": {
@@ -76,7 +76,7 @@
           "name": "replay_after_service_key_revoke",
           "input": {
             "same_http_bytes_as": "accepted_original_push",
-            "origin_key_state_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            "origin_key_state_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "expected": {
             "outcome": "historical_only",
@@ -90,7 +90,7 @@
               "vector_id": "cx.vector.federation.idempotency_after_key_revoke.v1",
               "preconditions": {
                 "same_http_bytes_as": "accepted_original_push",
-                "origin_key_state_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                "origin_key_state_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
             },
             "operation": "security_closure.evaluate",
@@ -99,7 +99,7 @@
               "canonicalization": "fixture_json_v1",
               "input": {
                 "same_http_bytes_as": "accepted_original_push",
-                "origin_key_state_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                "origin_key_state_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
             },
             "expected_state_transition": {

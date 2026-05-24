@@ -670,7 +670,7 @@
       "rejection_level": "hard_reject",
       "replacement": "event_digest",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event proofs bind canonical Event bytes with event_digest. payload_hash remains valid only for generic non-Event detached proofs."
+      "notes": "Event proofs bind canonical Event bytes with event_digest. Generic non-Event detached proofs now use payload_digest (see payload_hash#generic_proof). payload_hash is forbidden in all wire contexts."
     },
     {
       "id": "or-set",
@@ -883,7 +883,7 @@
       "rejection_level": "hard_reject",
       "replacement": "realm_state",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Capability grant_constraint.evaluation_class enum value. The class denotes 'depends on Realm frontier (membership_hash, frontier_hash, policy_version, etc.)' — the boundary is Realm, not an in-Realm Space container. Rename keeps the cacheability hint semantically aligned with the inverted Realm/Space model. See spec/v1/artifacts/schemas/grant-constraint.schema.json and spec/v1/zh/authz/constraint-schema.md §2.3."
+      "notes": "Capability grant_constraint.evaluation_class enum value. The class denotes 'depends on Realm frontier (membership_digest, frontier_digest, policy_version, etc.)' — the boundary is Realm, not an in-Realm Space container. Rename keeps the cacheability hint semantically aligned with the inverted Realm/Space model. See spec/v1/artifacts/schemas/grant-constraint.schema.json and spec/v1/zh/authz/constraint-schema.md §2.3."
     },
     {
       "id": "space_metadata",
@@ -1189,6 +1189,501 @@
       "replacement": "member_delivery_binding.policy_ref",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Handle claim delivery binding policy references are single-sourced inside member_delivery_binding."
+    },
+    {
+      "id": "hash_profile",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "digest_algorithm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Hash vocabulary unification (common-fields.md §2): algorithm/function-family selectors use <noun>_algorithm. Realm-level hash algorithm declaration is now digest_algorithm. The previous_hash_profile field on Transition Anchors is renamed previous_digest_algorithm in lockstep."
+    },
+    {
+      "id": "previous_hash_profile",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "previous_digest_algorithm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Transition Anchor field renamed in lockstep with realm.digest_algorithm. See hash_profile entry."
+    },
+    {
+      "id": "state_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "state_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Snapshot manifest's hash of canonical reducer-derived state. Renamed to state_digest under the v1 hash-vocabulary rule (output bytes use <noun>_digest)."
+    },
+    {
+      "id": "auth_state_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "auth_state_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "snapshot.authority_binding.auth_state_hash renamed to auth_state_digest."
+    },
+    {
+      "id": "expected_state_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "expected_state_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Object patch / lifecycle payload precondition digest renamed."
+    },
+    {
+      "id": "did_document_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "did_document_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Canonical hash of the DID Document used for endpoint validation and delivery_binding evidence. Renamed across agent.schema.json, event-payload.schema.json and membership delivery binding fixtures."
+    },
+    {
+      "id": "old_did_document_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "old_did_document_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DID continuity proof field renamed."
+    },
+    {
+      "id": "new_did_document_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "new_did_document_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DID continuity proof field renamed."
+    },
+    {
+      "id": "old_did_document_canonical_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "old_did_document_canonical_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DID continuity proof transfer-evidence field renamed."
+    },
+    {
+      "id": "head_event_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "head_event_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DID key-log entry / identity receipt head pointer renamed."
+    },
+    {
+      "id": "prev_event_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "prev_event_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DID key-log entry chaining pointer renamed."
+    },
+    {
+      "id": "audit_policy_version_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "audit_policy_version_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Audit RYW receipt and attestation evidence field renamed."
+    },
+    {
+      "id": "code_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "code_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Attestation evidence enclave measurement field renamed."
+    },
+    {
+      "id": "sha256_hash",
+      "kind_class": "schema_def_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "sha256_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "$defs type alias for sha256:<hex> string. Renamed for hash-vocabulary consistency."
+    },
+    {
+      "id": "material_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "material_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Event envelope extension material digest renamed."
+    },
+    {
+      "id": "leaf_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "leaf_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Merkle inclusion-proof leaf digest renamed."
+    },
+    {
+      "id": "query_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "query_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Event batch receipt scope query digest renamed."
+    },
+    {
+      "id": "event_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "event_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Event batch receipt / encoding-fixture event digest field renamed. Aligns with Event-proof canonical event_digest."
+    },
+    {
+      "id": "frontier_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "frontier_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Erasure verification stub / erasure receipt anchor-inclusion frontier digest renamed."
+    },
+    {
+      "id": "membership_frontier_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "membership_frontier_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MLS governance binding membership frontier digest renamed."
+    },
+    {
+      "id": "policy_frontier_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "policy_frontier_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Policy frontier digest covered by policy_components / IssueSessionGrantProof renamed."
+    },
+    {
+      "id": "discussion_metadata_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "discussion_metadata_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MLS governance binding discussion metadata digest renamed."
+    },
+    {
+      "id": "group_info_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "group_info_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MLS GroupInfo digest renamed. v1 wire field; does not change RFC 9420 MLS payload bytes."
+    },
+    {
+      "id": "ratchet_tree_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "ratchet_tree_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MLS ratchet tree digest renamed on Contrix wire. Distinct from RFC 9420's tree_hash inside MLS bytes; this is the Contrix payload field, not the MLS GroupContext extension."
+    },
+    {
+      "id": "commit_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "commit_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MLS commit digest renamed on Contrix wire."
+    },
+    {
+      "id": "proposal_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "proposal_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MLS proposal digest renamed on Contrix wire."
+    },
+    {
+      "id": "keypackage_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "keypackage_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MLS KeyPackage digest renamed on Contrix wire."
+    },
+    {
+      "id": "device_list_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "device_list_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Cross-signing device list digest renamed."
+    },
+    {
+      "id": "audit_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "audit_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Audit payload digest renamed."
+    },
+    {
+      "id": "policy_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "policy_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Policy digest renamed."
+    },
+    {
+      "id": "diagnostic_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "diagnostic_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Diagnostic digest renamed."
+    },
+    {
+      "id": "external_transcript_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "external_transcript_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent protocol session external transcript digest renamed."
+    },
+    {
+      "id": "full_transcript_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "full_transcript_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent protocol session full transcript digest renamed."
+    },
+    {
+      "id": "request_canonical_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "request_canonical_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Session grant request canonical-bytes digest renamed. The HTTP header form Request-Canonical-Hash is renamed Request-Canonical-Digest in lockstep."
+    },
+    {
+      "id": "Request-Canonical-Hash",
+      "kind_class": "http_header",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "Request-Canonical-Digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "HTTP header form of request_canonical_digest; renamed in lockstep so HTTP federation transcript stays consistent with payload field names."
+    },
+    {
+      "id": "source_ip_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "source_ip_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Session grant proof source-IP digest renamed."
+    },
+    {
+      "id": "retained_stub_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "retained_stub_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Erasure receipt retained verification stub digest renamed."
+    },
+    {
+      "id": "artifact_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "artifact_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Service describe verified_profiles artifact digest renamed."
+    },
+    {
+      "id": "original_envelope_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "original_envelope_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MIMI interop mapping receipt original envelope digest renamed."
+    },
+    {
+      "id": "event_ref_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "event_ref_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Encrypted envelope AAD routing-mode event ref digest renamed."
+    },
+    {
+      "id": "causal_ref_hashes",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "causal_ref_digests",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Encrypted envelope AAD causal-ref digests array renamed."
+    },
+    {
+      "id": "routing_hash",
+      "kind_class": "enum_value",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "routing_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Encrypted envelope aad_visibility_event_id enum value renamed to align with the renamed event_ref_digest field."
+    },
+    {
+      "id": "canonical_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "canonical_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Generic canonical-bytes digest used by membership delivery binding evidence and conflict quarantine fixtures."
+    },
+    {
+      "id": "binding_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "binding_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Crypto signature binding-payload digest fixture field renamed."
+    },
+    {
+      "id": "realm_policy_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_policy_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation service_binding_ref realm policy digest renamed."
+    },
+    {
+      "id": "reducer_profile_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "reducer_profile_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation service_binding_ref reducer profile digest renamed."
+    },
+    {
+      "id": "first_body_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "first_body_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation idempotency replay fixture field renamed."
+    },
+    {
+      "id": "second_body_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "second_body_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation idempotency replay fixture field renamed."
+    },
+    {
+      "id": "alpha_event_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "alpha_event_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation fork quarantine fixture field renamed."
+    },
+    {
+      "id": "beta_event_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "beta_event_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation fork quarantine fixture field renamed."
+    },
+    {
+      "id": "http_message_signature_hash",
+      "kind_class": "fixture_case_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "http_message_signature_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation fixture test-case identifier renamed for vocabulary consistency."
+    },
+    {
+      "id": "origin_key_state_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "origin_key_state_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Security closure vector origin key-state digest renamed."
+    },
+    {
+      "id": "content_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "content_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Generic content-bytes digest in session-grant proof fixtures renamed."
+    },
+    {
+      "id": "must_not_affect_state_hash",
+      "kind_class": "profile_flag",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "must_not_affect_state_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Conformance profile flag for unknown non-critical extension preservation; renamed in lockstep with snapshot.state_digest."
+    },
+    {
+      "id": "unsupported_hash",
+      "kind_class": "error_code",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "unsupported_digest_algorithm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Error code returned when a typed digest carries an unsupported algorithm prefix. Aligns with the renamed digest_algorithm field."
     }
   ]
 }

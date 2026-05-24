@@ -273,7 +273,7 @@ Handle 解析示例：
     "kind": "detached_jws",
     "alg": "EdDSA",
     "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#key-1",
-    "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "created_at": "2026-05-19T00:00:00Z",
     "jws": "aaa.bbb.ccc"
   }]
@@ -309,7 +309,7 @@ Handle 解析示例：
     "kind": "detached_jws",
     "alg": "EdDSA",
     "verification_method": "did:web:principal.acme.example#key-1",
-    "payload_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "created_at": "2026-05-19T00:00:00Z",
     "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "jws": "aaa.bbb.ccc"

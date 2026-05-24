@@ -1346,7 +1346,7 @@
           "description": "Closed extension-specific parameter bag. Unknown top-level fields are forbidden; extension-defined data belongs here and is interpreted only after id/schema_ref support is confirmed.",
           "additionalProperties": true
         },
-        "material_hash": {
+        "material_digest": {
           "$ref": "#/$defs/hash",
           "description": "Optional digest of out-of-band extension material when parameters would be too large for the event envelope."
         },
@@ -1518,7 +1518,7 @@
               "type": "string",
               "enum": ["rfc6962_merkle"]
             },
-            "leaf_hash": { "$ref": "#/$defs/hash" },
+            "leaf_digest": { "$ref": "#/$defs/hash" },
             "audit_path": {
               "type": "array",
               "items": { "$ref": "#/$defs/hash" }
@@ -1580,12 +1580,12 @@
     },
     "proof": {
       "type": "object",
-      "description": "Generic detached-JWS proof shape reused by non-Event schemas (snapshot signature, snapshot witness attestations, identity receipts, handle claims, etc.). MUST NOT be used as the shape of Event Envelope `proofs[]` — Event proofs reference $defs/event_proof and bind canonical Event bytes via `event_digest`. drift detection: `payload_hash#event_proof` in forbidden-wire-fields.json is the hard-reject mirror of this rule. New non-Event signed objects MAY $ref this shape; new signed Event-shaped objects MUST instead $ref event_proof.",
+      "description": "Generic detached-JWS proof shape reused by non-Event schemas (snapshot signature, snapshot witness attestations, identity receipts, handle claims, etc.). MUST NOT be used as the shape of Event Envelope `proofs[]` — Event proofs reference $defs/event_proof and bind canonical Event bytes via `event_digest`. drift detection: `payload_digest#event_proof` in forbidden-wire-fields.json is the hard-reject mirror of this rule. New non-Event signed objects MAY $ref this shape; new signed Event-shaped objects MUST instead $ref event_proof.",
       "required": [
         "kind",
         "alg",
         "verification_method",
-        "payload_hash",
+        "payload_digest",
         "created_at",
         "jws"
       ],
@@ -1604,7 +1604,7 @@
           "pattern": "^did:[a-z0-9]+:[^\\s]+$",
           "description": "DID or DID URL of the signing key for this non-Event detached proof. Same pattern as $defs/event_proof.verification_method; semantics are decoupled from Event proof (see $defs/event_proof for the Event-only shape)."
         },
-        "payload_hash": {
+        "payload_digest": {
           "$ref": "#/$defs/hash",
           "description": "Generic non-Event detached-proof hash. This $defs/proof shape is reused by non-Event schemas; Event.properties.proofs references $defs/event_proof and MUST use event_digest instead."
         },

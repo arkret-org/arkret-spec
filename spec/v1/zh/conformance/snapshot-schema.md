@@ -29,7 +29,7 @@ Snapshot manifest 的主标识字段使用 `snapshot_ref` 而不是通用 `id`�
     "covered_event_count": 42000,
     "covered_frontier": ["cx:event:019640ed-8000-7000-8000-000000000000"]
   },
-  "state_hash": "sha256:...",
+  "state_digest": "sha256:...",
   "chunks": [
     {
       "chunk_ref": "cx:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
@@ -52,7 +52,7 @@ Snapshot manifest 的主标识字段使用 `snapshot_ref` 而不是通用 `id`�
     "kind": "detached_jws",
     "alg": "EdDSA",
     "verification_method": "did:web:server.example#snapshot-key-1",
-    "payload_hash": "sha256:...",
+    "payload_digest": "sha256:...",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
   }
@@ -100,25 +100,25 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 - `items` MUST 按 `(kind, id)` canonical byte order 排序。
 - `object` 是该 reducer profile 在 snapshot frontier 下的 materialized canonical object，包括 active object、active Relation、以及 reducer profile 声明需要保留的 tombstone / redaction verification stub。
 - `source_event_id` 是产生该 materialized object 当前版本的最后 accepted Event；字段级 merge 时 MAY 指向最后改变该对象任一字段的 Event。
-- chunk `digest` MUST 是 `<alg>:<hex>` 形态，并覆盖 chunk payload 的 canonical JSON bytes。Manifest `state_hash` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
+- chunk `digest` MUST 是 `<alg>:<hex>` 形态，并覆盖 chunk payload 的 canonical JSON bytes。Manifest `state_digest` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
 - `conflict_records`、`soft_failed` 和 `quarantined` 可为空，但 high-assurance snapshot MUST 通过 manifest `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入。
 
 Snapshot-assisted pruning 只能删除或压缩某个存储边界内的 raw payload / derived material；它不删除协议历史事实。若实现因 retention、track archive、Realm tombstone 或 hard erasure 裁剪了对象内容，snapshot chunk MUST 继续包含 reducer profile 声明的最小 verification stub，或在 `soft_failed` / `quarantined` / conflict digest 中提交其存在。Consumer 不得把 snapshot 中缺少 stub 的对象解释为“从未存在”，除非 event-set commitment 和 reducer profile 明确证明该对象不在 covered frontier 中。
 
 ## 4. State Hash
 
-`state_hash` MUST 是 canonical reducer 输出之上的 Merkle root。  
+`state_digest` MUST 是 canonical reducer 输出之上的 Merkle root。  
 Leaf hash：
 
 ```text
 sha256(kind || ":" || id || ":" || sha256(canonical_json(object)))
 ```
 
-Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。不同 reducer profile 产生的 `state_hash` 不保证可比较，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 equivalent profile。
+Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。不同 reducer profile 产生的 `state_digest` 不保证可比较，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 equivalent profile。
 
 ## 5. Snapshot Signature
 
-Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `snapshot_ref`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_hash`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（`chunk_ref` / `digest` / `size_bytes`）、`verification_hints`、`created_by` 与 `created_at`；consumer MUST 先验证该 transcript，再逐个验证 chunk payload digest。
+Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `snapshot_ref`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（`chunk_ref` / `digest` / `size_bytes`）、`verification_hints`、`created_by` 与 `created_at`；consumer MUST 先验证该 transcript，再逐个验证 chunk payload digest。
 
 签名 DID MUST 属于以下之一：
 
@@ -128,7 +128,7 @@ Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST �
 - witness quorum
 - policy-approved snapshot issuer
 
-Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_hash`、frontier、`event_set_commitment` 与每个 chunk 的 digest。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 必须携带 `authority_binding`，其中 `issuer` 必须等于 `created_by`，`auth_frontier` / `auth_state_hash` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。如果签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
+Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 必须携带 `authority_binding`，其中 `issuer` 必须等于 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。如果签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
 
 **最大接受窗口（normative）**：仅当采纳时同时满足以下**全部**条件，manifest 才可用于 snapshot bootstrap：
 
@@ -144,7 +144,7 @@ Snapshot signer authority 只能证明谁签发了 reduced state；它不能证�
 
 `event_set_commitment.root` 承诺 snapshot frontier 覆盖的 Event Envelope ID 与 canonical event hash 的有序集合。实现 MUST 至少支持以下一种算法：
 
-- `ordered_event_id_sha256_v1`：对按 `(actor_id, actor_seq, event_id)` 排序的 canonical JSON 条目 `{event_id,event_hash,actor_id,actor_seq,hlc}` 计算 SHA-256。
+- `ordered_event_id_sha256_v1`：对按 `(actor_id, actor_seq, event_id)` 排序的 canonical JSON 条目 `{event_id,event_digest,actor_id,actor_seq,hlc}` 计算 SHA-256。
 - `merkle_event_set_v1`：基于同样的 canonical 条目构造 Merkle root。
 
 ### 6.1 能力边界（normative — what omission challenge can and cannot prove）
@@ -209,7 +209,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
       "merkle_branch": ["sha256:...", "sha256:..."],
       "leaf_canonical_entry": {
         "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-        "event_hash": "sha256:...",
+        "event_digest": "sha256:...",
         "actor_id": "did:webvh:...:alice.example",
         "actor_seq": 100,
         "hlc": "01970e589d21-0004-a13f9c2e"
@@ -221,7 +221,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
       "from_seq": 100,
       "to_seq": 199,
       "ordered_set_slice": [
-        {"event_id": "cx:event:...", "event_hash": "sha256:...", "actor_seq": 100, "hlc": "..."},
+        {"event_id": "cx:event:...", "event_digest": "sha256:...", "actor_seq": 100, "hlc": "..."},
         "..."
       ],
       "gap_attribution": [
@@ -234,7 +234,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
     "kind": "detached_jws",
     "alg": "EdDSA",
     "verification_method": "did:web:server.example#snapshot-key-1",
-    "payload_hash": "sha256:...",
+    "payload_digest": "sha256:...",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
   }

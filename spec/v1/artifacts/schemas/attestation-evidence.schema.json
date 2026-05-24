@@ -17,7 +17,7 @@
     "validity",
     "operator_did",
     "audit_purpose",
-    "audit_policy_version_hash",
+    "audit_policy_version_digest",
     "created_at",
     "proofs"
   ],
@@ -29,7 +29,7 @@
     "realm_id": {
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_hash values across Realms do not make evidence portable."
+      "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable."
     },
     "audit_agent_did": {
       "$ref": "#/$defs/did",
@@ -56,10 +56,10 @@
     },
     "measurement": {
       "type": "object",
-      "required": ["code_hash", "policy_version"],
+      "required": ["code_digest", "policy_version"],
       "description": "What is actually running inside the enclave. MUST be identical to the measurement recorded in cx.audit.epoch_key_destruction.enclave_measurement.",
       "properties": {
-        "code_hash": {
+        "code_digest": {
           "$ref": "#/$defs/hash",
           "description": "Hash of the audit agent binary / image / policy bundle that the enclave loads. MUST be reproducible (signed by vendor build pipeline)."
         },
@@ -146,9 +146,9 @@
       "enum": ["compliance_lawful_access", "regulatory_record_keeping", "incident_investigation", "internal_policy_audit"],
       "description": "Why this Audit Agent is joining the Realm. MUST match the Realm policy's declared audit_purpose; mismatch → audit_purpose_mismatch."
     },
-    "audit_policy_version_hash": {
-      "$ref": "#/$defs/sha256_hash",
-      "description": "Same definition as cx.audit.ryw_receipt.audit_policy_version_hash — fixed sha256 over canonical JSON {realm_id, trust_domain, audit_disclosure, audit_assurance} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was joined under matches the current policy state and is not reused across Realms. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile. See encoding.md §2 (canonical JSON) and audited-e2ee.md §4.1."
+    "audit_policy_version_digest": {
+      "$ref": "#/$defs/sha256_digest",
+      "description": "Same definition as cx.audit.ryw_receipt.audit_policy_version_digest — fixed sha256 over canonical JSON {realm_id, trust_domain, audit_disclosure, audit_assurance} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was joined under matches the current policy state and is not reused across Realms. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile. See encoding.md §2 (canonical JSON) and audited-e2ee.md §4.1."
     },
     "created_at": { "$ref": "#/$defs/timestamp" },
     "proofs": {
@@ -175,7 +175,7 @@
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
-    "sha256_hash": {
+    "sha256_digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     }

@@ -46,23 +46,23 @@
     "expires_at": {
       "$ref": "#/$defs/timestamp"
     },
-    "old_did_document_hash": {
+    "old_did_document_digest": {
       "$ref": "#/$defs/hash"
     },
-    "new_did_document_hash": {
+    "new_did_document_digest": {
       "$ref": "#/$defs/hash"
     },
     "transfer_evidence": {
       "type": "object",
       "required": [
-        "old_did_document_canonical_hash",
+        "old_did_document_canonical_digest",
         "old_did_document_fetched_at",
         "inception_pubkey_fingerprint",
         "user_oob_confirmation_id",
         "user_oob_confirmation_method"
       ],
       "properties": {
-        "old_did_document_canonical_hash": {
+        "old_did_document_canonical_digest": {
           "$ref": "#/$defs/hash"
         },
         "old_did_document_fetched_at": {
@@ -95,7 +95,7 @@
           "by",
           "verification_method",
           "algorithm",
-          "payload_hash",
+          "payload_digest",
           "signature"
         ],
         "properties": {
@@ -115,7 +115,7 @@
               "ML-DSA-65"
             ]
           },
-          "payload_hash": {
+          "payload_digest": {
             "$ref": "#/$defs/hash",
             "description": "Hash of utf8('cx-did-continuity-proof-v1\\n') || canonical_json(proof object with signature_chain[].signature omitted)."
           },

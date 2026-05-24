@@ -192,7 +192,7 @@ GET /api/v1/server/describe
       "profile_id": "cx.profile.core_event_store.v1",
       "claim_kind": "cotest_verified",
       "cotest_run_id": "cotest-2026-05-02T000000Z",
-      "artifact_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "artifact_ref": "https://cotest.example/log/cotest-2026-05-02T000000Z",
       "cotest_issuer_did": "did:web:cotest.example",
       "signature": "base64url:...",
@@ -225,7 +225,7 @@ GET /api/v1/server/describe
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
   `claim_kind` 当前固定为 `self_claimed`；cotest 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
-- `verified_profiles: [{profile_id, claim_kind: "cotest_verified", cotest_run_id, artifact_hash, artifact_ref, cotest_issuer_did, signature, timestamp, expires_at?}]` —
+- `verified_profiles: [{profile_id, claim_kind: "cotest_verified", cotest_run_id, artifact_digest, artifact_ref, cotest_issuer_did, signature, timestamp, expires_at?}]` —
   附带 cotest run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、cotest issuer DID、签名与验证时间戳的已验证 profile。**约束**：当 `development_mode=true`
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
@@ -242,7 +242,7 @@ GET /api/v1/server/describe
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
 3. cotest 与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`cotest_verified`、
    `experimental`、`compat`、`not_claimed`。
-4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 cotest artifact，校验 `artifact_hash`、`cotest_issuer_did`、`signature`、时间戳和可选 `expires_at`。
+4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 cotest artifact，校验 `artifact_digest`、`cotest_issuer_did`、`signature`、时间戳和可选 `expires_at`。
 
 `plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
 
@@ -274,7 +274,7 @@ GET /api/v1/identity/document?did=<did>
 返回 SHOULD 包含：
 
 - 当前 materialized DID Document
-- 当前 `head_event_hash`
+- 当前 `head_event_digest`
 - 当前 `seq`
 - 可选 witness receipts
 
@@ -290,7 +290,7 @@ GET /api/v1/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 - 重建 DID Document
 - 验证 `key_log` 与 registry head 一致
 
-返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_hash`；`seq>0` 必须携带 `prev_event_hash`，并且该值必须等于前一条 accepted entry 的 `head_event_hash`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
+返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_digest`；`seq>0` 必须携带 `prev_event_digest`，并且该值必须等于前一条 accepted entry 的 `head_event_digest`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
 
 #### 3.1.4 提交 DID 更新
 
@@ -304,7 +304,7 @@ POST /api/v1/identity/submit-did-operation
 - `did_method`
 - `operation`
 - `proofs`
-- `seq` / `prev_event_hash`（当 DID method 暴露 key-log 序号或 head hash 时）
+- `seq` / `prev_event_digest`（当 DID method 暴露 key-log 序号或 head hash 时）
 - `policy_context`（可选，绑定 resolver / registry policy）
 
 要求：
@@ -712,7 +712,7 @@ Contrix v1 的首次加入流程：
 3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / account / snapshot / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read cursor、notification cursor 等个人状态

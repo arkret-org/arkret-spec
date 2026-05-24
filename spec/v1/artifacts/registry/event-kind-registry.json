@@ -165,7 +165,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_hash MUST cover policy_revision.",
+      "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
       "cell_family": "cx.component.realm.policy_components.v1",
       "cell_subject": null,
       "lattice": "cas_register",

@@ -107,7 +107,7 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 
 服务端返回 `401 soft_logged_out` 时 MUST 不要求客户端删除本地 E2EE 密钥。
 
-`soft_logged_out -> active` 的恢复 MUST 绑定 fresh DID proof：refresh token、OIDC callback 或 re-auth 只能作为会话恢复材料，不能单独把账号状态恢复为 `active`。服务端 MUST 要求当前 principal DID 的授权 device key、account auth key、passkey 或 recovery policy 允许的密钥对一次性 challenge 签名，并把签名覆盖 `principal_id`、`device_id?`、`audience`、`request_canonical_hash`、`challenge` 与 `expires_at?`。缺失该证明时返回 `401 did_proof_required`；refresh token 单独有效时也不得静默签发新的 active session grant。
+`soft_logged_out -> active` 的恢复 MUST 绑定 fresh DID proof：refresh token、OIDC callback 或 re-auth 只能作为会话恢复材料，不能单独把账号状态恢复为 `active`。服务端 MUST 要求当前 principal DID 的授权 device key、account auth key、passkey 或 recovery policy 允许的密钥对一次性 challenge 签名，并把签名覆盖 `principal_id`、`device_id?`、`audience`、`request_canonical_digest`、`challenge` 与 `expires_at?`。缺失该证明时返回 `401 did_proof_required`；refresh token 单独有效时也不得静默签发新的 active session grant。
 
 ## 5. Locked
 
@@ -178,7 +178,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 - account private state：可删除。
 - policy/audit record：按合规周期保留最小字段。
 
-擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `cx.schema.erasure_receipt.v1` payload，并可通过 `cx.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 `subject`、`erasure_scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_hash`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`。`retained_stub_hash` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留验证 event graph、signature event_digest、anchor inclusion、redaction authorization 与 receipt linkage 所需的最小字段，MUST NOT 保留已擦除明文或裸明文 digest。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
+擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `cx.schema.erasure_receipt.v1` payload，并可通过 `cx.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 `subject`、`erasure_scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_digest`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`。`retained_stub_digest` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留验证 event graph、signature event_digest、anchor inclusion、redaction authorization 与 receipt linkage 所需的最小字段，MUST NOT 保留已擦除明文或裸明文 digest。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
 
 ## 9. Session Revocation
 

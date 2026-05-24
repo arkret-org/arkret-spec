@@ -224,7 +224,7 @@
         "mimi_room_uri",
         "source_format",
         "target_format",
-        "original_envelope_hash",
+        "original_envelope_digest",
         "mapped_operation_id"
       ],
       "properties": {
@@ -262,7 +262,7 @@
             "application/vnd.contrix.content+json"
           ]
         },
-        "original_envelope_hash": {
+        "original_envelope_digest": {
           "$ref": "#/$defs/hash"
         },
         "mapped_operation_id": {

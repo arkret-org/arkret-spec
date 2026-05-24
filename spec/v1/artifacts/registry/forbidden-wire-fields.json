@@ -348,7 +348,16 @@
       "rejection_level": "hard_reject",
       "replacement": "event_digest",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event proofs MUST bind canonical Event bytes with event_digest. payload_hash remains valid only for generic non-Event detached proofs."
+      "notes": "Event proofs MUST bind canonical Event bytes with event_digest. Generic non-Event detached proofs now use payload_digest. payload_hash is forbidden in all wire contexts."
+    },
+    {
+      "id": "payload_hash",
+      "context": "generic_proof",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "payload_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Generic detached-JWS proofs over non-Event canonical payloads (Anchor signature, identity-link, did-continuity, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix."
     },
     {
       "id": "cx:notif:",

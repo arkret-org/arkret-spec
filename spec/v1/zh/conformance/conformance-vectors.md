@@ -249,7 +249,7 @@ cx.vector.encoding.event_batch_receipt_digest.v1
   },
   "frontier": {
     "actor_seq": 1,
-    "event_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    "event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
   },
   "events": [
     "sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -261,7 +261,7 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01964186-0000-7000-8000-000000000000","receipt_scope":{"actor_id":"did:web:alice.example"},"schema":"cx.schema.event_batch_receipt.v1"}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01964186-0000-7000-8000-000000000000","receipt_scope":{"actor_id":"did:web:alice.example"},"schema":"cx.schema.event_batch_receipt.v1"}
 ```
 
 期望 digest：
@@ -412,7 +412,7 @@ cursor base64url 解码后对应 canonical JSON：
 
 - 客户端解析 `s` / `x` 后自行构造下一页请求或修改 cursor 内容。
 - 客户端在 cursor 解码失败时拒绝整个协议，而不是按 opaque token 处理。
-- 服务端使用违反 `{v,purpose,t,x,h}` 或 `{v,purpose,t,s,d?,target?,x,_mac/_sig}` 结构的 cursor 内部 payload（例如旧草稿中出现过的 `{query_hash, last_event_id}` 或 `{v,p}` 形式）。
+- 服务端使用违反 `{v,purpose,t,x,h}` 或 `{v,purpose,t,s,d?,target?,x,_mac/_sig}` 结构的 cursor 内部 payload（例如旧草稿中出现过的 `{query_digest, last_event_id}` 或 `{v,p}` 形式）。
 
 ### 1.12 Vector: Encrypted Envelope Digest
 
@@ -587,14 +587,14 @@ Expected：
 
 Steps：
 
-1. KeyPackage claim response 返回 `keypackage_ref=K`、`keypackage_hash=H1`、`capabilities_digest=C`、`ssk_generation=G`。
-2. 攻击者提交 `cx.mls.welcome`，顶层 `keypackage_ref=K`，但 `payload.keypackage_hash=H2` 或 `payload.claim_ref.keypackage_hash=H2`。
+1. KeyPackage claim response 返回 `keypackage_ref=K`、`keypackage_digest=H1`、`capabilities_digest=C`、`ssk_generation=G`。
+2. 攻击者提交 `cx.mls.welcome`，顶层 `keypackage_ref=K`，但 `payload.keypackage_digest=H2` 或 `payload.claim_ref.keypackage_digest=H2`。
 3. Welcome ciphertext、claim_id、capabilities_digest 和 signature envelope 其它字段均有效。
 
 Expected：
 
 - Receiver MUST reject before decrypting or accepting the Welcome。
-- `payload.keypackage_hash`、`payload.claim_ref.keypackage_hash`、claim record `keypackage_hash` 和已发布 `cx.mls.keypackage.payload.keypackage_hash` MUST 全部一致。
+- `payload.keypackage_digest`、`payload.claim_ref.keypackage_digest`、claim record `keypackage_digest` 和已发布 `cx.mls.keypackage.payload.keypackage_digest` MUST 全部一致。
 
 ### 2.6 Vector: Anchorer Cell ⊥ → Recovery Anchorer 上位
 
@@ -660,9 +660,9 @@ cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
 
 输入与期望（多 case 矩阵）：
 
-1. **Base case**：构造 Anchor body fields `{realm_id, predecessor_refs, frontier, state_root, anchored_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `anchor_canonical_bytes`；`id = "cx:anchor:sha256:" || hex(H(anchor_canonical_bytes))`；`anchorer_sig.payload_hash == H(anchor_canonical_bytes)`。Verifier MUST accept。
+1. **Base case**：构造 Anchor body fields `{realm_id, predecessor_refs, frontier, state_root, anchored_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `anchor_canonical_bytes`；`id = "cx:anchor:sha256:" || hex(H(anchor_canonical_bytes))`；`anchorer_sig.payload_digest == H(anchor_canonical_bytes)`。Verifier MUST accept。
 2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `anchor_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
-3. **sig-in-canonical-bytes attack**：若 producer 把 `anchorer_sig` 也进入 canonical bytes，`payload_hash` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
+3. **sig-in-canonical-bytes attack**：若 producer 把 `anchorer_sig` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
 4. **key reorder attack**：取 valid Anchor，把 canonical JSON key 顺序打乱（例如 `frontier` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
 5. **proof injection attack**：取 valid Anchor，注入未定义字段 `extra_proof`。`additionalProperties=false` 的 schema 在 (b) 校验阶段就 reject；若实现错误地 allow 之，hash 会变 → `digest_mismatch`。
 6. **frontier typed-id attack**：构造 `frontier=["cx:event:<uuid>"]`；schema `frontier[]` items 必须匹配 `event_digest` (`<algo>:<hex>`)，typed id 形态 MUST `schema_violation` 立即被拒（早于 hash 校验）。
@@ -682,7 +682,7 @@ cx.vector.state_root.incremental.v1
 
 输入：
 
-- 一个已被接受的 Anchor `A0`，其 frontier 写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 §4.2.1 缓存 `cell → leaf_hash` 表。
+- 一个已被接受的 Anchor `A0`，其 frontier 写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 §4.2.1 缓存 `cell → leaf_digest` 表。
 - 一个新的 Anchor `A1`（`predecessor_refs=[A0]`），frontier 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
 - 一个 corner-case Anchor `A2`：frontier 是空 set（无新 effect）。
 - 一个 schema-evolution case `A3`：frontier 包含一个新 cell（之前从未有过 effect），并删除一个旧 cell 的 effect（通过 lattice 的 ⊥/tombstone 机制）。
@@ -691,15 +691,15 @@ cx.vector.state_root.incremental.v1
 
 每个 case MUST 同时计算：
 
-- `state_root_incremental`：仅对受影响 cell 重算 leaf_hash 与 Merkle 分支，复用 `A0` 缓存。
-- `state_root_full`：丢弃缓存，按 §4.2.2 从 frontier 全量重算所有 cell 的 leaf_hash 与 Merkle root。
+- `state_root_incremental`：仅对受影响 cell 重算 leaf_digest 与 Merkle 分支，复用 `A0` 缓存。
+- `state_root_full`：丢弃缓存，按 §4.2.2 从 frontier 全量重算所有 cell 的 leaf_digest 与 Merkle root。
 
 判定要求：
 
 - `state_root_incremental == state_root_full` 在所有四个 case 上 MUST 成立，bit-exact。
-- 缓存的 `leaf_hash` 表 MUST 在 `apply_anchor` 接受 Anchor 后更新；保留旧 leaf_hash 导致 next-anchor 增量重算偏离全量结果即视为实现 bug。
+- 缓存的 `leaf_digest` 表 MUST 在 `apply_anchor` 接受 Anchor 后更新；保留旧 leaf_digest 导致 next-anchor 增量重算偏离全量结果即视为实现 bug。
 - A2（空 frontier）情况下 `state_root_incremental` MUST 直接复用 `A0.state_root`；不得因为"没有 cell 可重算"而错误地返回空 Merkle root（`H("")`）或 null。
-- A3（新增 cell + 删除旧 cell effect）case 验证两点：(a) 新 cell 的 leaf_hash 进入 sorted leaf 列表（按 `cell_wire` Unicode 升序）；(b) 删除 effect 的 cell 仍以其 `Bottom` 或 tombstone 后的 lattice value 编码 leaf_hash，不被简单从 leaf 列表移除。
+- A3（新增 cell + 删除旧 cell effect）case 验证两点：(a) 新 cell 的 leaf_digest 进入 sorted leaf 列表（按 `cell_wire` Unicode 升序）；(b) 删除 effect 的 cell 仍以其 `Bottom` 或 tombstone 后的 lattice value 编码 leaf_digest，不被简单从 leaf 列表移除。
 
 失败条件：
 
@@ -1319,7 +1319,7 @@ cx.vector.capability.approval_constraint.v1
   "unsigned": {
     "target_ref_hint": "cx:flow:019640c5-0000-7000-8000-000000000000"
   },
-  "content_hash": "sha256:..."
+  "content_digest": "sha256:..."
 }
 ```
 
@@ -1842,14 +1842,14 @@ Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_did_docu
     "binding_source": "did_document_default",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
     "resolved_at": "2026-05-19T10:00:00Z",
-    "did_document_hash": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
+    "did_document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
   }
 }
 ```
 
 期望：
-- reducer 接受 join Move（`did_document_hash` 与 `resolved_at` 满足 conditional required）。
-- 同形 Move 缺少 `did_document_hash` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
+- reducer 接受 join Move（`did_document_digest` 与 `resolved_at` 满足 conditional required）。
+- 同形 Move 缺少 `did_document_digest` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
 - 同形 Move 在 Realm policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
 - 一旦该 join 被接受，sender **不得**在后续投递时 re-resolve DID Document——即使 DID Document 已更新指向新服务，仍按 cell 内 `delivery_binding` 投递，直到一次合法 rebind。
 
@@ -1898,7 +1898,7 @@ Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_unroutab
 | 字段 / 行为 | §7.2 explicit | §7.3 did_document_default | §7.4 unroutable | §7.5 rebind+revoke |
 | --- | --- | --- | --- | --- |
 | Conditional required (`service_acceptance_ref`) | ✓ | — | — | ✓ |
-| Conditional required (`did_document_hash`) | — | ✓ | — | — |
+| Conditional required (`did_document_digest`) | — | ✓ | — | — |
 | Policy `allow_did_document_default=false` 拒绝 | — | ✓ | — | — |
 | Policy `allow_unroutable_membership=false` 拒绝 | — | — | ✓ | — |
 | 投递路径 ≡ binding，无 DID Document fallback | ✓ | ✓ | ✓ (skip) | ✓ |
@@ -1959,7 +1959,7 @@ Directory 返回 verified handle claim：
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:principal.acme.example#key-1",
-      "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-05-19T00:00:00Z",
       "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "jws": "aaa.bbb.ccc"
@@ -2002,7 +2002,7 @@ Negative cases：
 
 Steps：
 
-1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /api/v1/events`，header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Hash`、`Idempotency-Key`，批次 accepted。
+1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /api/v1/events`，header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
@@ -2010,7 +2010,7 @@ Expected：
 
 - 若重放只命中历史幂等缓存，destination MUST 返回 `historical_only`，不得重新接受为当前授权写入。
 - 若 origin service binding 已被 Realm policy 移除，destination MUST 返回 `capability_denied`。
-- 若 `origin_key_state_hash` 或 authorization frontier 与缓存 entry 不一致，receiver MUST 重新执行完整授权判定，不得只凭 `Idempotency-Key` 放行。
+- 若 `origin_key_state_digest` 或 authorization frontier 与缓存 entry 不一致，receiver MUST 重新执行完整授权判定，不得只凭 `Idempotency-Key` 放行。
 
 ### 9.2 Vector: WebRTC Media Plaintext Downgrade
 
@@ -2251,7 +2251,7 @@ Expected：
 Steps：
 
 1. Auth Server 收到 `cx.account.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
-2. 请求缺少 `request_canonical_hash` 或 hash 不覆盖 `principal_id`、`device_id?`、`requested_scope` 与 `audience`。
+2. 请求缺少 `request_canonical_digest` 或 hash 不覆盖 `principal_id`、`device_id?`、`requested_scope` 与 `audience`。
 3. 请求的 `expires_at` 超过 Auth Server 声明的 session grant TTL 上限。
 4. Auth Server 在 `development_mode=true` 时尝试把 `cx.profile.auth_server.v1` 放入 `verified_profiles[]`。
 

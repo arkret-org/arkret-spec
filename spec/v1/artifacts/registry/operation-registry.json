@@ -466,7 +466,7 @@
       "http": "POST /events/resolve",
       "grpc": "Events/Resolve",
       "mq": "events.resolve",
-      "notes": "Dereference a known set of event_id / event_hash references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use cx.events.query for selector-based reads."
+      "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use cx.events.query for selector-based reads."
     },
     {
       "operation_id": "cx.events.subscribe",

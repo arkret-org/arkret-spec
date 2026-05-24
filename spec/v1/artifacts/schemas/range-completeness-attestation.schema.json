@@ -121,7 +121,7 @@
     "root": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
-      "description": "Canonical Merkle root over the sorted set of (actor_id, actor_seq, event_id, event_digest) tuples for every reducer-input event in scope. Hash agility per Realm.hash_profile."
+      "description": "Canonical Merkle root over the sorted set of (actor_id, actor_seq, event_id, event_digest) tuples for every reducer-input event in scope. Digest algorithm agility per Realm.digest_algorithm."
     },
     "count": {
       "type": "integer",

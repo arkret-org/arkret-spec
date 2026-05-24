@@ -80,7 +80,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - `destination-service-endpoint-digest`（自定义 header `Destination-Service-Endpoint-Digest`；shared ingress / 多租户 / allowlist endpoint 场景必填）
 - `source-trust-domain`（自定义 header `Source-Trust-Domain`）
 - `destination-trust-domain`（自定义 header `Destination-Trust-Domain`）
-- `request-canonical-hash`（自定义 header `Request-Canonical-Hash`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /api/v1/events` MUST 携带）
+- `request-canonical-hash`（自定义 header `Request-Canonical-Digest`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /api/v1/events` MUST 携带）
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` header 替代）
 
 签名验证规则：
@@ -92,7 +92,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 返回 `unauthorized`，`reason_code="federation_authority_mismatch"`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
 - shared ingress / 多租户反向代理场景下，TLS Server Name (SNI) 与 `Destination-Service-DID` DID Document 中声明的 service endpoint origin MUST 直接匹配，或该 exact origin MUST 出现在 Realm policy / service delegation 明确登记的 shared ingress allowlist 中。Wildcard host 不能隐式覆盖 service DID 列表；若 deployment 用同一 host 承载多个 service DID，发送方 MUST 携带 `Destination-Service-Endpoint-Digest` header（endpoint canonical URL 的 `sha256:` digest），该 header MUST 进入 HTTP Message Signature transcript，接收方 MUST 与 DID Document / allowlist 中的 endpoint digest 比对。
 - 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。
-- 请求携带 `Request-Canonical-Hash` 时，该值 MUST 等于 canonical request body 的 SHA-256 digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 body 一致。无 body 的 `GET` pull MAY 省略该 header，因为 `@method` / `@target-uri` 已绑定查询语义。
+- 请求携带 `Request-Canonical-Digest` 时，该值 MUST 等于 canonical request body 的 SHA-256 digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 body 一致。无 body 的 `GET` pull MAY 省略该 header，因为 `@method` / `@target-uri` 已绑定查询语义。
 - 受保护联邦 endpoint MUST NOT 接受 query string 认证。
 - 签名失败、destination 不匹配、digest 不匹配或时间窗口失效 MUST 返回标准 error envelope，并尽量不泄露 Realm、Actor 或 Event 是否存在。
 
@@ -127,7 +127,7 @@ Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: cx:trust_domain:did.webvh.alpha.example
 Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
 Content-Digest: sha256=:<base64>:
-Request-Canonical-Hash: sha256:<hex>
+Request-Canonical-Digest: sha256:<hex>
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
 Signature: sig1=:base64...:
 ```
@@ -141,19 +141,19 @@ Signature: sig1=:base64...:
 | `Destination-Service-Endpoint-Digest` | header | `sha256:<hash>` | conditional | shared ingress / 多租户 / allowlist endpoint 场景 required；endpoint canonical URL 的 digest，MUST 进入签名 transcript 并与 DID Document service endpoint 或 Realm policy allowlist 匹配。 |
 | `Source-Trust-Domain` | header | `id:trust_domain` | required | 来源 deployment trust domain；与签名 transcript 绑定，用于 receiver trust policy、审计与跨域 replay 隔离。 |
 | `Destination-Trust-Domain` | header | `id:trust_domain` | required | 目标 deployment trust domain；MUST 等于接收方 `ServiceDescribe.trust_domain` 与目标 Realm `trust_domain`。 |
-| `Request-Canonical-Hash` | header | `sha256:<hash>` | required | canonical request body 的 SHA-256 digest；MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。 |
+| `Request-Canonical-Digest` | header | `sha256:<hash>` | required | canonical request body 的 SHA-256 digest；MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。 |
 | `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`、`request-canonical-hash`，以及 `created` / `expires` 参数；出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `string` | required | 请求体摘要，MUST 覆盖 canonical request body；接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
 | `service_binding_ref.realm_id` | body | `id` | required | 受影响的 Realm。在多 Realm 批量推送中，发送方 SHOULD 把不同 Realm 的 events 拆成独立请求；单请求 MUST 至少携带一个 `realm_id`。 |
-| `service_binding_ref.realm_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
+| `service_binding_ref.realm_policy_digest` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_did = Destination-Service-DID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` 与 `handover_frontier`，sender 切到新目标后重试。 |
 | `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
+| `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
 
 
 请求示例（`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
@@ -162,7 +162,7 @@ Signature: sig1=:base64...:
 {
   "service_binding_ref": {
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-    "realm_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "realm_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "membership_frontier": [
       "cx:event:0196419b-1000-7000-8000-000000000001"
     ],
@@ -173,7 +173,7 @@ Signature: sig1=:base64...:
       "basis": ["member_delivery_binding"]
     },
     "destination_service_type": "principal_server",
-    "reducer_profile_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    "reducer_profile_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   },
   "events": [
     {
@@ -232,7 +232,7 @@ Contrix v1 的联邦批量传播采用依赖感知的 partial accept：最小原
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的**授权 pre-state**。换言之，`refs[role=authorized_by]`、capability grant freshness 校验、policy auth state 引用 MUST 命中后续 Event 自身 `anchor_ref` 指向的 Anchor pre-state；同批前序 Event 创建、delegate、恢复或扩权出的 grant **不**在同一 Anchor batch 内对后续高风险 Event 生效，依赖方必须等待下一 Anchor 覆盖，否则当前批 MUST 以 `dependency_missing` / `stale_frontier` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §POST /api/v1/events 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 `apply_anchor(A)` pre-state 模型完全一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
-**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未 accepted 且仍需投递的 Event；不得原样重放包含已 accepted Event 的旧 `events[]` 来“补齐失败项”。新 batch MUST 重新计算 `Content-Digest`、`Request-Canonical-Hash` 与签名 transcript；幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[]`。
+**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未 accepted 且仍需投递的 Event；不得原样重放包含已 accepted Event 的旧 `events[]` 来“补齐失败项”。新 batch MUST 重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[]`。
 
 接收方服务绑定规则（normative）：
 
@@ -294,8 +294,8 @@ sequenceDiagram
 
     Cli->>Alpha: 提交 signed Event 到 Realm S
     Alpha->>Pol: 解析应接收的 Principal Server
-    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_hash / membership_frontier / delivery_binding_frontier / reducer_profile_hash)
-    Alpha->>Beta: POST /api/v1/events (cx.events.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest / Request-Canonical-Hash<br>service_binding_ref / events 数组
+    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier / delivery_binding_frontier / reducer_profile_digest)
+    Alpha->>Beta: POST /api/v1/events (cx.events.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest / Request-Canonical-Digest<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. anchor_ref / Lattice precondition
     Beta-->>Alpha: 200 + accepted / rejected / quarantine
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
@@ -304,7 +304,7 @@ sequenceDiagram
 读图要点：
 
 - 接收方独立验证每个 Event 的签名与因果链，不信任发送方服务器；服务器之间的握手只是传输面认证。
-- `service_binding_ref.reducer_profile_hash` 不一致时整批拒绝（`reducer_profile_mismatch`），避免同 Event 在两端 reducer 下产生不同 cell 状态的隐性失败。
+- `service_binding_ref.reducer_profile_digest` 不一致时整批拒绝（`reducer_profile_mismatch`），避免同 Event 在两端 reducer 下产生不同 cell 状态的隐性失败。
 - 批内单 Event 失败 **不**回滚同批已接受 Event；依赖同批失败项的后续 Event 必须 `dependency_missing` / `causal_conflict` 拒绝或 quarantine。
 
 ### 4.1.1 批量推送与幂等
@@ -312,7 +312,7 @@ sequenceDiagram
 Contrix v1 联邦推送 **复用** `POST /api/v1/events`（`cx.events.submit`）一个 endpoint，认证侧由 service signature header 区分；不再定义独立 `/federation/*` path：
 
 - 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 返回 `accepted[]` 而非报错，内容不一致 MUST 拒绝（参见 §4.3）。
-- 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Hash` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
+- 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Digest` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
 - `quarantine[]` 项 SHOULD 放入 `rejected[]` 并附 `reason_code=quarantined`，或由实现扩展响应 schema。
 - 持续同步、批量重试和 frontier 交换通过组合 `cx.events.submit`（推送，本节）、`cx.events.query`（拉取 / backfill，§4.2）与 frontier exchange（§4.5）完成；无需额外的有状态事务 endpoint。
 
@@ -356,9 +356,9 @@ Signature: ...
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `snapshot_ref` | `id` | optional | 快照标识。 |
-| `state_hash` | `string` | optional | 快照状态根，必须与快照 frontier 对应。 |
+| `state_digest` | `string` | optional | 快照状态根，必须与快照 frontier 对应。 |
 | `snapshot_frontier` | `id[]` | optional | 需要从该 frontier 之后开始增量回放。 |
-| `signature` | `object` | optional | 标准 Snapshot detached proof，覆盖 `snapshot_ref`、`state_hash`、`snapshot_frontier` 和 reducer/schema profile。 |
+| `signature` | `object` | optional | 标准 Snapshot detached proof，覆盖 `snapshot_ref`、`state_digest`、`snapshot_frontier` 和 reducer/schema profile。 |
 | `signature.verification_method` | `string` | optional | 用于信任锚点的 DID verification method。 |
 | `signature.alg` | `string` | optional | 签名算法。 |
 | `signature.jws` | `string` | optional | detached JWS。 |
@@ -574,7 +574,7 @@ v1 联邦与单域 client 请求共享同一组 events / account / snapshot / id
 
 | 联邦行为 | 复用端点 | 认证模式差异 |
 | --- | --- | --- |
-| 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Hash` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
+| 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Digest` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
 | 跨域 backfill / 拉取缺失历史 | `GET /api/v1/events?before=<cursor>`（`cx.events.query`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest`，但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
 | 跨域 Realm 成员视图 | `GET /api/v1/events`（`cx.events.query`） + `cx.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 actor / DID 验证 | `POST /api/v1/identity/resolve`（`cx.identity.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
@@ -589,7 +589,7 @@ Destination-Service-DID: did:web:server.beta.example
 Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: cx:trust_domain:did.webvh.acme.example
 Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
-Request-Canonical-Hash: sha256:...
+Request-Canonical-Digest: sha256:...
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
 ```
 
@@ -741,15 +741,15 @@ Authorization: <service_signature>
 
 #### 8.5.1 Idempotency cache 绑定 service key state（normative）
 
-仅按 `(origin, destination, Idempotency-Key, canonical_hash)` 建 cache 不足以防御"撤销后重放"——若 origin service key 在 t₀ 签发请求 R，t₁ revoke，t₂ attacker 重放 R，缓存命中后 destination 仍会 accept。本节强制把 service key state 一起进入 cache key：
+仅按 `(origin, destination, Idempotency-Key, canonical_digest)` 建 cache 不足以防御"撤销后重放"——若 origin service key 在 t₀ 签发请求 R，t₁ revoke，t₂ attacker 重放 R，缓存命中后 destination 仍会 accept。本节强制把 service key state 一起进入 cache key：
 
-- Idempotency cache entry MUST 至少携带：`Source-Service-DID`、`origin verification_method`（key id 或 DID URL fragment）、`service_binding_ref`（参见 §4.1）、当时 origin 的 key state frontier（`origin_key_state_hash` = source service 在 origin Realm 上的 service binding state 的 canonical hash）。
+- Idempotency cache entry MUST 至少携带：`Source-Service-DID`、`origin verification_method`（key id 或 DID URL fragment）、`service_binding_ref`（参见 §4.1）、当时 origin 的 key state frontier（`origin_key_state_digest` = source service 在 origin Realm 上的 service binding state 的 canonical hash）。
 - **撤销后重放**：destination 接收同一 `Idempotency-Key` 重复请求时 MUST 重新解析 origin 的 service binding：
-  - 若当前 `verification_method` 仍 active 且 `origin_key_state_hash` 与 cache 一致：MAY 返回 cached accepted 响应（真正幂等）。
-  - 若 `verification_method` 已被 revoke / `origin_key_state_hash` 已变：MUST 返回**仅历史诊断**响应（`status="historical_only"`，附原 cache outcome），不得触发任何新副作用（不向下游 Realm reducer 推送、不刷新 frontier）。
+  - 若当前 `verification_method` 仍 active 且 `origin_key_state_digest` 与 cache 一致：MAY 返回 cached accepted 响应（真正幂等）。
+  - 若 `verification_method` 已被 revoke / `origin_key_state_digest` 已变：MUST 返回**仅历史诊断**响应（`status="historical_only"`，附原 cache outcome），不得触发任何新副作用（不向下游 Realm reducer 推送、不刷新 frontier）。
   - 若 destination 不能解析当前 service binding（federation peer 不可达）：MUST `temporarily_unavailable`，不允许 fall back to cached accept。
 - **Key revoke 后 cache 入口必须重新校验**：cache hit 不豁免授权检查。每次 hit MUST 重新调用 capability check（destination Realm policy 对 source service 的 `federation_peer` 角色是否仍在）；不通过 MUST 拒绝（`capability_denied`），返回历史诊断而非继续推送。
-- **Negative vector** `cx.vector.federation.idempotency_after_key_revoke.v1` 覆盖：(a) origin service key revoke 后同 Idempotency-Key 重放 ⇒ destination 返回 historical_only；(b) origin service binding 被 Realm policy 移除后重放 ⇒ destination 返回 capability_denied；(c) origin_key_state_hash 不一致即使 cache 命中也 MUST 重做完整授权判定。
+- **Negative vector** `cx.vector.federation.idempotency_after_key_revoke.v1` 覆盖：(a) origin service key revoke 后同 Idempotency-Key 重放 ⇒ destination 返回 historical_only；(b) origin service binding 被 Realm policy 移除后重放 ⇒ destination 返回 capability_denied；(c) origin_key_state_digest 不一致即使 cache 命中也 MUST 重做完整授权判定。
 
 ### 8.6 威胁映射落地
 
@@ -774,13 +774,13 @@ Authorization: <service_signature>
 | --- | --- | --- | --- |
 | `snapshot_bootstrap` | `object` | optional | 可选，携带可验证的快照入口，不改变操作集合语义。 |
 | `snapshot_bootstrap.snapshot_ref` | `id` | optional | 触发本次增量前可选的 snapshot id。 |
-| `snapshot_bootstrap.state_hash` | `string` | optional | snapshot 的状态摘要。 |
+| `snapshot_bootstrap.state_digest` | `string` | optional | snapshot 的状态摘要。 |
 | `snapshot_bootstrap.snapshot_frontier` | `id[]` | optional | snapshot 覆盖的 frontier。 |
-| `snapshot_bootstrap.signature` | `object` | optional | 标准 Snapshot detached proof；接收方必须验证签名、state_hash 与 `snapshot_frontier` 一致性。 |
+| `snapshot_bootstrap.signature` | `object` | optional | 标准 Snapshot detached proof；接收方必须验证签名、state_digest 与 `snapshot_frontier` 一致性。 |
 
 校验规则：
 
-- 客户端在接收到 `snapshot_bootstrap` 时，先执行 `signature`、签名者授权、`state_hash` 和 chunk digest 校验。
+- 客户端在接收到 `snapshot_bootstrap` 时，先执行 `signature`、签名者授权、`state_digest` 和 chunk digest 校验。
 - 接受快照后，增量回放起点必须以 `snapshot_frontier` 为锚点，不得把 snapshot 当成无因果前沿的新 genesis。
 - 快照校验失败时，必须退回到纯 Event 增量回放，并将该来源记入 `quarantine` 或 `rate_limited` 分支进行观察。
 

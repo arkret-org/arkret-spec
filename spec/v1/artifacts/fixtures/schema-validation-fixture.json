@@ -159,19 +159,19 @@
       "instance": {
         "request_id": "polreq_01",
         "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-        "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "action": "cx.message.create",
         "actor": "did:webvh:alice.example",
         "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
         "source": {
           "service_did": "did:web:server.example",
           "service_type": "principal_server",
-          "source_ip_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "signed_transport": true
         },
         "event_preview": {
           "kind": "cx.message.create",
-          "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          "content_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
         },
         "auth_context": {
           "membership": "join",
@@ -186,7 +186,7 @@
       "first_expected_error": "$: 'realm_id' is a required property",
       "instance": {
         "request_id": "polreq_01",
-        "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "action": "cx.message.create",
         "actor": "did:webvh:alice.example",
         "source": {
@@ -206,15 +206,15 @@
           "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
           "actor": "did:webvh:alice.example",
           "action": "cx.message.create",
-          "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "policy_server_id": "did:web:policy.example.com"
         },
         "decision": "allow",
         "reason_code": "ok",
         "expires_at": "2026-04-26T00:05:00Z",
-        "auth_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "policy_frontier_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "membership_frontier_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "auth_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "policy_frontier_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "membership_frontier_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "signature": {
           "kid": "did:web:policy.example.com#key-1",
           "sig": "base64url..."
@@ -231,9 +231,9 @@
         "decision": "allow",
         "reason_code": "ok",
         "expires_at": "2026-04-26T00:05:00Z",
-        "auth_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "policy_frontier_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "membership_frontier_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "auth_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "policy_frontier_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "membership_frontier_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "signature": {
           "kid": "did:web:policy.example.com#key-1",
           "sig": "base64url..."
@@ -324,7 +324,7 @@
             "kind": "detached_jws",
             "alg": "EdDSA",
             "verification_method": "did:web:owner.example#key-1",
-            "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
           }
@@ -346,7 +346,7 @@
         "anchorer_sig": {
           "alg": "EdDSA",
           "verification_method": "did:web:anchorer.example#key-1",
-          "payload_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "created_at": "2026-05-20T00:00:00Z",
           "jws": "a..b"
         },
@@ -416,8 +416,8 @@
         "did": "did:web:alice.example",
         "seq": 1,
         "operation": "rotate",
-        "prev_event_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "head_event_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "prev_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "head_event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "operation_body": {
           "method": "webvh",
           "rotate_to": "did:web:alice.example#key-2"
@@ -428,7 +428,7 @@
             "kind": "detached_jws",
             "alg": "EdDSA",
             "verification_method": "did:web:alice.example#key-1",
-            "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
           }
@@ -508,7 +508,7 @@
         "proof": {
           "verification_method": "did:web:alice.example#key-1",
           "signature_algorithm": "Ed25519",
-          "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "signature": "c2ln"
         }
       }
@@ -530,7 +530,7 @@
         "proof": {
           "verification_method": "did:web:alice.example#key-1",
           "signature_algorithm": "Ed25519",
-          "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "signature": "c2ln"
         }
       }
@@ -550,7 +550,7 @@
           "model": "fixture"
         },
         "measurement": {
-          "code_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "code_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "policy_version": "fixture-1"
         },
         "attestation_chain": [
@@ -570,14 +570,14 @@
         },
         "operator_did": "did:web:operator.example",
         "audit_purpose": "internal_policy_audit",
-        "audit_policy_version_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "audit_policy_version_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "created_at": "2026-05-20T00:00:00Z",
         "proofs": [
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
             "verification_method": "did:web:operator.example#key-1",
-            "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
           }
@@ -588,7 +588,7 @@
       "name": "attestation_evidence_non_sha256_policy_hash_rejected",
       "schema_ref": "schemas/attestation-evidence.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.audit_policy_version_hash: 'blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' does not match '^sha256:[0-9a-f]{64}$'",
+      "first_expected_error": "$.audit_policy_version_digest: 'blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' does not match '^sha256:[0-9a-f]{64}$'",
       "instance": {
         "evidence_id": "cx:attestation:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
@@ -600,7 +600,7 @@
           "model": "fixture"
         },
         "measurement": {
-          "code_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "code_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "policy_version": "fixture-1"
         },
         "attestation_chain": [
@@ -620,14 +620,14 @@
         },
         "operator_did": "did:web:operator.example",
         "audit_purpose": "internal_policy_audit",
-        "audit_policy_version_hash": "blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "audit_policy_version_digest": "blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "created_at": "2026-05-20T00:00:00Z",
         "proofs": [
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
             "verification_method": "did:web:operator.example#key-1",
-            "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
           }

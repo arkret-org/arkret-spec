@@ -34,7 +34,7 @@
           "type": "string",
           "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "query_hash": {
+        "query_digest": {
           "$ref": "./event-schema.json#/$defs/hash"
         }
       },
@@ -51,7 +51,7 @@
         "event_id": {
           "$ref": "./event-schema.json#/$defs/eventRef"
         },
-        "event_hash": {
+        "event_digest": {
           "$ref": "./event-schema.json#/$defs/hash"
         },
         "hlc": {

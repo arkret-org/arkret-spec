@@ -197,7 +197,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_hash MUST cover policy_revision.",
+        "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
         "cell_family": "cx.component.realm.policy_components.v1",
         "cell_subject": null,
         "lattice": "cas_register",
@@ -1896,7 +1896,7 @@
         "schema_id": "cx.schema.erasure_verification_stub.v1",
         "file": "schemas/erasure-verification-stub.schema.json",
         "status": "active",
-        "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_hash"
+        "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest"
       },
       {
         "schema_id": "cx.schema.cross_signing_publish.v1",
@@ -2739,7 +2739,7 @@
         "http": "POST /events/resolve",
         "grpc": "Events/Resolve",
         "mq": "events.resolve",
-        "notes": "Dereference a known set of event_id / event_hash references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use cx.events.query for selector-based reads."
+        "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use cx.events.query for selector-based reads."
       },
       {
         "operation_id": "cx.events.subscribe",

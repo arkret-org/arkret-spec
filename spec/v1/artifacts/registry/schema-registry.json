@@ -209,7 +209,7 @@
       "schema_id": "cx.schema.erasure_verification_stub.v1",
       "file": "schemas/erasure-verification-stub.schema.json",
       "status": "active",
-      "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_hash"
+      "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest"
     },
     {
       "schema_id": "cx.schema.cross_signing_publish.v1",

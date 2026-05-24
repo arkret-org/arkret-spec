@@ -7,7 +7,7 @@
     "did",
     "seq",
     "operation",
-    "head_event_hash",
+    "head_event_digest",
     "operation_body",
     "created_at",
     "proofs"
@@ -20,7 +20,7 @@
     "seq": {
       "type": "integer",
       "minimum": 0,
-      "description": "Monotonic DID method log sequence for this DID. seq=0 is the inception entry and MUST NOT carry prev_event_hash; every seq>0 entry MUST carry prev_event_hash equal to the previous accepted entry's head_event_hash."
+      "description": "Monotonic DID method log sequence for this DID. seq=0 is the inception entry and MUST NOT carry prev_event_digest; every seq>0 entry MUST carry prev_event_digest equal to the previous accepted entry's head_event_digest."
     },
     "operation": {
       "type": "string",
@@ -33,12 +33,12 @@
         "service_update"
       ]
     },
-    "prev_event_hash": {
+    "prev_event_digest": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
       "description": "Hash of the previous accepted key-log entry. Required for seq>0 and forbidden for seq=0."
     },
-    "head_event_hash": {
+    "head_event_digest": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
@@ -75,7 +75,7 @@
       "then": {
         "not": {
           "required": [
-            "prev_event_hash"
+            "prev_event_digest"
           ]
         }
       }
@@ -93,7 +93,7 @@
       },
       "then": {
         "required": [
-          "prev_event_hash"
+          "prev_event_digest"
         ]
       }
     }

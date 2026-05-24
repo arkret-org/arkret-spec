@@ -75,10 +75,10 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal`（无 subtype、无 `recurrence`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
 | `temporal` 带 `recurrence`、`subtype=session` 或 `applies_to_actions` | `stateless` | TTL ≤ 下一个 recurrence 边界或 window 剩余时间 | 仍是纯函数，但 TTL 必须缩短 |
 | `field_access`（无 `condition`） | `stateless` | (constraint_hash, op_kind) | 仅 allow / deny 列表比较 |
-| `field_access` 带 `condition.kind` | `realm_state` | (realm_id, frontier_hash, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
+| `field_access` 带 `condition.kind` | `realm_state` | (realm_id, frontier_digest, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
 | `type_restriction` | `stateless` | (constraint_hash, op_target_type) | |
 | `scope_limitation`（普通 scope） | `stateless` | (constraint_hash, op_target) | |
-| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
+| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, frontier_digest, target_container_id) | 看目标 List policy / WIP |
 | `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_classes`） | `stateless` | (constraint_hash, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
 | `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `quota` (`subtype=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
@@ -87,9 +87,9 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `claim_based` (`subtype=claim`) | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
 | `claim_based` (`subtype=approval`) | `external` | 不可缓存 | 等待 approval event |
 | `claim_based` (`subtype=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
-| `claim_based` (`subtype=device_session`) | `realm_state` | (realm_id, frontier_hash, actor_device_id) | 设备 / session 状态来自 principal control stream |
-| `confidentiality` (`subtype=encryption`) | `realm_state` | (realm_id, frontier_hash) | 取 Realm `encryption_profile` / `audit_assurance` |
-| `confidentiality` (`subtype=visibility`) | `realm_state` | (realm_id, frontier_hash) | 看 Realm `history_visibility` |
+| `claim_based` (`subtype=device_session`) | `realm_state` | (realm_id, frontier_digest, actor_device_id) | 设备 / session 状态来自 principal control stream |
+| `confidentiality` (`subtype=encryption`) | `realm_state` | (realm_id, frontier_digest) | 取 Realm `encryption_profile` / `audit_assurance` |
+| `confidentiality` (`subtype=visibility`) | `realm_state` | (realm_id, frontier_digest) | 看 Realm `history_visibility` |
 
 落地要点：
 
@@ -375,7 +375,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `grant_id` 或 `proposal_id` | id | 该 approval 所针对的具体 grant id（§9.1 路径）或 proposal Event id（§9.2 路径）。两者互斥，必填其一。 |
-| `request_canonical_hash` | hash | 被批准的请求 body 的 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) SHA-256 摘要（`sha256:` 前缀）。同一 approver 给"批准 Alice 写 message X"的签名不能被改写后用于"批准 Alice 写 message Y"。 |
+| `request_canonical_digest` | hash | 被批准的请求 body 的 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) SHA-256 摘要（`sha256:` 前缀）。同一 approver 给"批准 Alice 写 message X"的签名不能被改写后用于"批准 Alice 写 message Y"。 |
 | `approver_did` | did | 签发该 approval 的 actor DID。 |
 | `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + clock_skew_tolerance` 或 `approved_at < grant.not_before`。 |
 | `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。reducer MUST 在每个 grant / proposal 范围内拒绝同 `(approver_did, nonce)` 的第二次出现。 |

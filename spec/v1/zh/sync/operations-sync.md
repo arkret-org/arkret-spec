@@ -189,7 +189,7 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
   },
   "frontier": {
     "actor_seq": 144,
-    "event_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "events": [
     "cx:event:019640ed-8000-7000-8000-000000000000",
@@ -262,7 +262,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 1. 收集 scope 内每个 actor 在其 seq interval 内的全部 accepted reducer-input event；
 2. 对每个 event 形成 leaf `canonical_bytes({actor_id, actor_seq, event_id, event_digest})`；
 3. 按 `(actor_id, actor_seq)` 字典序排序；
-4. 计算 binary Merkle tree（Hash 算法按 Realm.hash_profile）；
+4. 计算 binary Merkle tree（digest 算法按 Realm.digest_algorithm）；
 5. `count` MUST 等于叶子数。
 
 不包含 non-reducer event（read cursor / typing 等）。leaves 排序确定性使 verifier 可以局部 backfill 后独立重算 `root`。
@@ -273,7 +273,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 - `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Realm `audit.range_completeness_witnesses[]` 中已声明。
 - `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。
-- 每个 witness 签名 transcript MUST 覆盖完整 attestation scope（`from_frontier`、`to_frontier`、`actor_seq_ranges[]`）、`root`、`count`、`realm_id`、`hash_profile`、`observed_at` 和 issuer 身份；不得只签 `root`。否则 verifier 无法区分同 root 不同 scope 或同 scope 不同事件集。
+- 每个 witness 签名 transcript MUST 覆盖完整 attestation scope（`from_frontier`、`to_frontier`、`actor_seq_ranges[]`）、`root`、`count`、`realm_id`、`digest_algorithm`、`observed_at` 和 issuer 身份；不得只签 `root`。否则 verifier 无法区分同 root 不同 scope 或同 scope 不同事件集。
 - 对同一 Realm 中存在重叠 scope 的两个 witness attestation，若二者对同一 `(actor_id, actor_seq)` 断言的 `event_id` / `event_digest` 不同，或同一 scope 下 `root` 不一致且无法通过 backfill 证明为不同上界，verifier MUST 将其标记为 `witness_disagreement`，quarantine 相关 range，并停止用该 range 推进 snapshot / backfill / frontier completeness。
 
 **重要**：`single_source` attestation 不构成 sovereign-grade completeness 证明——它只是 issuer 的自报。需要"对方未藏分支"语义保证的部署 MUST 要求 `federation_witness_attested`。这是 silent fork 抗性的最后一道防线：base batch receipt（integrity）+ frontier exchange（probe）+ range-completeness attestation（completeness with witness quorum）才能完整覆盖。
@@ -766,7 +766,7 @@ Snapshot manifest MUST 包含：
 - `reducer_profile`
 - `schema_profile_refs`
 - `chunks[]`（每项包含 `chunk_ref`、`sha256`、`size_bytes`）
-- `state_hash`
+- `state_digest`
 - `frontier`
 - `event_set_commitment`
 - `verification_hints`（可选，但 high-assurance profile 必须包含 inclusion proof 入口或 witness quorum）
@@ -774,7 +774,7 @@ Snapshot manifest MUST 包含：
 
 客户端在采用 Snapshot 前 MUST 验证：
 
-1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`realm_id`、`state_hash`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
+1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`realm_id`、`state_digest`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
 2. `signature.verification_method` 对应的 DID 必须是 Realm creator、Realm owner、当前有效 Realm admin、Realm policy 授权的 snapshot issuer 或 witness quorum 成员；该权限 MUST 按 manifest `created_at` 的 as-of auth state 验证，且该 auth state 必须覆盖 snapshot frontier 以及截至 `created_at` 可解析的相关 grant/revoke。若 signer 在 `created_at` 前已被撤销，或 revoke freshness 无法确认，客户端 MUST quarantine / reject snapshot。
 3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
@@ -878,7 +878,7 @@ Contrix 初版不引入全网共识链。
 
 ### 16.1 Reducer Contract
 
-Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一 `realm_id`、同一 Anchor frontier、同一 Move set 和同一 reducer profile，正确实现 MUST 产生相同的 `state_hash`、materialized object state、bottom diagnostics 和 reducer frontier。
+Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一 `realm_id`、同一 Anchor frontier、同一 Move set 和同一 reducer profile，正确实现 MUST 产生相同的 `state_digest`、materialized object state、bottom diagnostics 和 reducer frontier。
 
 Reducer 输入：
 
@@ -995,6 +995,6 @@ Contrix v1 固定：
 
 - Cursor 编码与 opaque 语义见 `encoding.md`、`../models/common-fields.md` 和 `conformance-vectors.md`。
 - HLC 文本格式固定为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，排序向量见 `conformance-vectors.md`。
-- Snapshot manifest、chunk digest、`state_hash` 和签名规则见 `snapshot-schema.md`。
+- Snapshot manifest、chunk digest、`state_digest` 和签名规则见 `snapshot-schema.md`。
 - Flow discussion track / Message 语义见 [`../models/flow-and-message.md`](../models/flow-and-message.md)。
 - Flow / Board / List / Morph 语义见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/morph.md`](../models/morph.md) 和 [`../models/views.md`](../models/views.md)。

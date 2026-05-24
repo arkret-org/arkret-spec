@@ -25,17 +25,17 @@
     ],
     "service_binding_ref": {
       "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-      "realm_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "realm_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "membership_frontier": [
         "cx:event:01964145-8000-7000-8000-000000000000"
       ],
       "destination_service_type": "principal_server",
-      "reducer_profile_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      "reducer_profile_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
     }
   },
   "cases": [
     {
-      "name": "http_message_signature_hash",
+      "name": "http_message_signature_digest",
       "input": {
         "source_service_did": "did:web:server-alpha.example",
         "destination_service_did": "did:web:server-beta.example",
@@ -59,8 +59,8 @@
       "name": "replay_protection",
       "input": {
         "idempotency_key": "0196418b-8000-7000-8000-000000000000",
-        "first_body_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "second_body_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        "first_body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "second_body_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       },
       "expected": "duplicate_idempotency_key_or_replay_key_rejected"
     },
@@ -68,8 +68,8 @@
       "name": "fork_quarantine",
       "input": {
         "event_id": "cx:event:019640f9-8000-7000-8000-000000000000",
-        "alpha_event_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "beta_event_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        "alpha_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "beta_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
       },
       "expected": "divergent_space_history_quarantined"
     },

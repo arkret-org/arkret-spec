@@ -97,7 +97,7 @@ ID 语义：
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:acme.example.com#device-1",
-      "payload_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "payload_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
@@ -632,7 +632,7 @@ Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Serve
 Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定 subject/action/resource 三元组。每个 cache entry 至少包含：
 
 - `realm_id`、scope / track / object selector、subject DID、action 和 constraint profile。
-- `auth_state_hash`：由当前 accepted capability grant/revoke、membership、policy、必要 claim status（包括 condition-selector grant 依赖的 `claim_status_root`）、device/session control checkpoint 和相关 state event canonical digest 计算出的确定性 hash。
+- `auth_state_digest`：由当前 accepted capability grant/revoke、membership、policy、必要 claim status（包括 condition-selector grant 依赖的 `claim_status_root`）、device/session control checkpoint 和相关 state event canonical digest 计算出的确定性 hash。
 - `auth_frontier`：参与该 hash 的 state event head set 或 snapshot frontier。
 - 命中的 grant event id、revoke tombstone / superseding event id（如有）、claim status evidence 和过期时间。
 
@@ -646,11 +646,11 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
     3. `constraints[]` 中存在任何 typed constraint 引用 moderation state cell、moderation queue、moderation report 或 moderation tag。
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；不接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
   - 不在上述条件内的普通 grant（典型如 `cx.flow.update`、`cx.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。
-- Cache entry 的 `auth_state_hash` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；不得继续用旧 grant 允许新写入。
+- Cache entry 的 `auth_state_digest` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；不得继续用旧 grant 允许新写入。
 - 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现不得只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
 - 已被 GC 的 grant 仍必须保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现不得因为 grant payload 已压缩或归档而让旧 cache 重新生效。
 - `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态不得生成 allow cache；只能生成 deny / unknown / pending 诊断。
-- 多 Principal Server 部署中，cache TTL 只是额外保险，不得替代 revoke fanout、frontier 对账和 `auth_state_hash` 失效。
+- 多 Principal Server 部署中，cache TTL 只是额外保险，不得替代 revoke fanout、frontier 对账和 `auth_state_digest` 失效。
 
 ### 18.2 撤销新鲜度 (Revocation Freshness)
 
@@ -677,7 +677,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。任何 high-risk / cross-domain / delegated grant 相关动作的 `freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`；否则本地时钟偏差可覆盖整个 freshness window，receiver MUST 把配置视为 `schema_violation` / deployment misconfiguration。默认值：高风险 `freshness_required_ms = 120_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`；clock_skew_tolerance_ms = 60_000。
 - 在 `unknown` / `stale` 拒绝响应中返回 `freshness_state`、`last_known_frontier_age_ms`、`anchorer_status`、`retry_after_ms`，让客户端 UI 区分"被拒绝"和"暂时不能确认"。
 - 客户端在低风险 `unknown` 模式下 MUST 在 UI 中标记本地 pending 写入为 `pending_local`（例如灰色发送中状态），并暴露"分区恢复后可能丢弃"的提示。
-- 不得用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_hash` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
+- 不得用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_digest` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
 - 不得通过把高风险动作降级为中风险（例如把 `cx.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 字段声明，不接受 grant-side override。
 - 单个分区窗口内允许的本地 pending 数量 MUST 限制（默认 ≤ 1000 / Realm / 5 minutes），超过后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
 

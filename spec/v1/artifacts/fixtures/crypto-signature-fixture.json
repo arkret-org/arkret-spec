@@ -81,26 +81,28 @@
         "created_at": "2026-05-02T00:00:00Z",
         "domain": "contrix-event-v1",
         "verification_method": "did:web:alice.example#ed25519-2026-05-fixture",
-        "event_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e"
+        "event_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e",
+        "payload_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e"
       },
-      "canonical_binding_payload": "{\"actor_id\":\"did:web:alice.example\",\"created_at\":\"2026-05-02T00:00:00Z\",\"domain\":\"contrix-event-v1\",\"event_digest\":\"sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e\",\"verification_method\":\"did:web:alice.example#ed25519-2026-05-fixture\"}",
-      "binding_hash": "sha256:5cfc790e953e044cb54ae464f4d7608fa9810fa3d63948e229f20bf449f83197",
+      "canonical_binding_payload": "{\"actor_id\":\"did:web:alice.example\",\"created_at\":\"2026-05-02T00:00:00Z\",\"domain\":\"contrix-event-v1\",\"event_digest\":\"sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e\",\"payload_digest\":\"sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e\",\"verification_method\":\"did:web:alice.example#ed25519-2026-05-fixture\"}",
+      "binding_digest": "sha256:34966f01c223c22a5849f16044eccf19d98e05a46ee2e1a9434b73f2270c3f39",
       "protected_header": {
         "alg": "EdDSA",
         "kid": "did:web:alice.example#ed25519-2026-05-fixture",
         "typ": "JOSE"
       },
       "protected_header_canonical": "{\"alg\":\"EdDSA\",\"kid\":\"did:web:alice.example#ed25519-2026-05-fixture\",\"typ\":\"JOSE\"}",
-      "detached_payload_b64u": "eyJhY3Rvcl9pZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwWiIsImRvbWFpbiI6ImNvbnRyaXgtZXZlbnQtdjEiLCJldmVudF9kaWdlc3QiOiJzaGEyNTY6MjM3NDRkY2UxZThjMTYyMzZiY2ExZDc2N2EwYjYzODgzOGU3MDU5YjI1NjRiZjQ3MmJkODFjYmI2ZjhiZTM5ZSIsInZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2ViOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ",
-      "jws_signing_input": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSIsInR5cCI6IkpPU0UifQ.eyJhY3Rvcl9pZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwWiIsImRvbWFpbiI6ImNvbnRyaXgtZXZlbnQtdjEiLCJldmVudF9kaWdlc3QiOiJzaGEyNTY6MjM3NDRkY2UxZThjMTYyMzZiY2ExZDc2N2EwYjYzODgzOGU3MDU5YjI1NjRiZjQ3MmJkODFjYmI2ZjhiZTM5ZSIsInZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2ViOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ",
+      "detached_payload_b64u": "eyJhY3Rvcl9pZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwWiIsImRvbWFpbiI6ImNvbnRyaXgtZXZlbnQtdjEiLCJldmVudF9kaWdlc3QiOiJzaGEyNTY6MjM3NDRkY2UxZThjMTYyMzZiY2ExZDc2N2EwYjYzODgzOGU3MDU5YjI1NjRiZjQ3MmJkODFjYmI2ZjhiZTM5ZSIsInBheWxvYWRfZGlnZXN0Ijoic2hhMjU2OjIzNzQ0ZGNlMWU4YzE2MjM2YmNhMWQ3NjdhMGI2Mzg4MzhlNzA1OWIyNTY0YmY0NzJiZDgxY2JiNmY4YmUzOWUiLCJ2ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYjphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
+      "jws_signing_input": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSIsInR5cCI6IkpPU0UifQ.eyJhY3Rvcl9pZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA1LTAyVDAwOjAwOjAwWiIsImRvbWFpbiI6ImNvbnRyaXgtZXZlbnQtdjEiLCJldmVudF9kaWdlc3QiOiJzaGEyNTY6MjM3NDRkY2UxZThjMTYyMzZiY2ExZDc2N2EwYjYzODgzOGU3MDU5YjI1NjRiZjQ3MmJkODFjYmI2ZjhiZTM5ZSIsInBheWxvYWRfZGlnZXN0Ijoic2hhMjU2OjIzNzQ0ZGNlMWU4YzE2MjM2YmNhMWQ3NjdhMGI2Mzg4MzhlNzA1OWIyNTY0YmY0NzJiZDgxY2JiNmY4YmUzOWUiLCJ2ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYjphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
       "proof": {
         "kind": "detached_jws",
         "alg": "EdDSA",
         "verification_method": "did:web:alice.example#ed25519-2026-05-fixture",
         "created_at": "2026-05-02T00:00:00Z",
         "domain": "contrix-event-v1",
-        "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSIsInR5cCI6IkpPU0UifQ..8ek7NLEq_lUmC5lZkb1LUN_tPOOek5213Dt_iksQHInfMOFul3mWBnlZMTUXoBWLV2I3U8O4s3xgZ2LxOVsQAg",
-        "event_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e"
+        "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSIsInR5cCI6IkpPU0UifQ.._5kjJL0f3B83YRBsH20UYKxnTlhdMWdjjiIfrNl9Kq1QJ7LLnHzTormnsLG-srYAfyPifB2CNqdDAkiKA2QABw",
+        "event_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e",
+        "payload_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e"
       },
       "event_with_proof": {
         "event_id": "cx:event:019a54b0-0000-7000-8000-000000000000",
@@ -160,8 +162,9 @@
             "verification_method": "did:web:alice.example#ed25519-2026-05-fixture",
             "created_at": "2026-05-02T00:00:00Z",
             "domain": "contrix-event-v1",
-            "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSIsInR5cCI6IkpPU0UifQ..8ek7NLEq_lUmC5lZkb1LUN_tPOOek5213Dt_iksQHInfMOFul3mWBnlZMTUXoBWLV2I3U8O4s3xgZ2LxOVsQAg",
-            "event_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e"
+            "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWI6YWxpY2UuZXhhbXBsZSNlZDI1NTE5LTIwMjYtMDUtZml4dHVyZSIsInR5cCI6IkpPU0UifQ.._5kjJL0f3B83YRBsH20UYKxnTlhdMWdjjiIfrNl9Kq1QJ7LLnHzTormnsLG-srYAfyPifB2CNqdDAkiKA2QABw",
+            "event_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e",
+            "payload_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e"
           }
         ]
       },
@@ -172,7 +175,8 @@
         "reject_if_jws_payload_segment_is_non_empty_for_detached_profile": true,
         "reject_if_verification_method_not_in_did_document": true
       },
-      "event_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e"
+      "event_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e",
+      "payload_digest": "sha256:23744dce1e8c16236bca1d767a0b638838e7059b2564bf472bd81cbb6f8be39e"
     }
   ]
 }

@@ -339,6 +339,60 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "actor_did": "actor_id",
     "principal_did": "principal_id",
     "subject_did": "subject_id",
+    # Hash → digest vocabulary unification (common-fields.md §2):
+    # algorithm selectors use _algorithm; hash output bytes use _digest; tree roots use _root.
+    "hash_profile": "digest_algorithm",
+    "previous_hash_profile": "previous_digest_algorithm",
+    "payload_hash": "payload_digest",
+    "state_hash": "state_digest",
+    "auth_state_hash": "auth_state_digest",
+    "expected_state_hash": "expected_state_digest",
+    "did_document_hash": "did_document_digest",
+    "old_did_document_hash": "old_did_document_digest",
+    "new_did_document_hash": "new_did_document_digest",
+    "old_did_document_canonical_hash": "old_did_document_canonical_digest",
+    "head_event_hash": "head_event_digest",
+    "prev_event_hash": "prev_event_digest",
+    "audit_policy_version_hash": "audit_policy_version_digest",
+    "code_hash": "code_digest",
+    "sha256_hash": "sha256_digest",
+    "material_hash": "material_digest",
+    "leaf_hash": "leaf_digest",
+    "query_hash": "query_digest",
+    "event_hash": "event_digest",
+    "frontier_hash": "frontier_digest",
+    "membership_frontier_hash": "membership_frontier_digest",
+    "policy_frontier_hash": "policy_frontier_digest",
+    "discussion_metadata_hash": "discussion_metadata_digest",
+    "group_info_hash": "group_info_digest",
+    "ratchet_tree_hash": "ratchet_tree_digest",
+    "commit_hash": "commit_digest",
+    "proposal_hash": "proposal_digest",
+    "keypackage_hash": "keypackage_digest",
+    "device_list_hash": "device_list_digest",
+    "audit_hash": "audit_digest",
+    "policy_hash": "policy_digest",
+    "diagnostic_hash": "diagnostic_digest",
+    "external_transcript_hash": "external_transcript_digest",
+    "full_transcript_hash": "full_transcript_digest",
+    "request_canonical_hash": "request_canonical_digest",
+    "source_ip_hash": "source_ip_digest",
+    "retained_stub_hash": "retained_stub_digest",
+    "artifact_hash": "artifact_digest",
+    "original_envelope_hash": "original_envelope_digest",
+    "event_ref_hash": "event_ref_digest",
+    "causal_ref_hashes": "causal_ref_digests",
+    "canonical_hash": "canonical_digest",
+    "binding_hash": "binding_digest",
+    "realm_policy_hash": "realm_policy_digest",
+    "reducer_profile_hash": "reducer_profile_digest",
+    "first_body_hash": "first_body_digest",
+    "second_body_hash": "second_body_digest",
+    "alpha_event_hash": "alpha_event_digest",
+    "beta_event_hash": "beta_event_digest",
+    "origin_key_state_hash": "origin_key_state_digest",
+    "content_hash": "content_digest",
+    "must_not_affect_state_hash": "must_not_affect_state_digest",
 }
 
 FORBIDDEN_NAMING_STRING_ALIASES = {
@@ -364,6 +418,10 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "lww-register": "lww_register",
     "frank_unavailable": "franking_proof_unavailable",
     "frank_only": "franking_proof_only",
+    "routing_hash": "routing_digest",
+    "http_message_signature_hash": "http_message_signature_digest",
+    "Request-Canonical-Hash": "Request-Canonical-Digest",
+    "unsupported_hash": "unsupported_digest_algorithm",
 }
 
 
@@ -2030,9 +2088,9 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
             expected_binding = canonical_json(binding)
             if vector.get("canonical_binding_payload") != expected_binding:
                 lint.fail(path, f"vectors[{index}] canonical_binding_payload does not match canonical JSON")
-            expected_binding_hash = sha256_text(expected_binding)
-            if vector.get("binding_hash") != expected_binding_hash:
-                lint.fail(path, f"vectors[{index}] binding_hash does not match canonical_binding_payload")
+            expected_binding_digest = sha256_text(expected_binding)
+            if vector.get("binding_digest") != expected_binding_digest:
+                lint.fail(path, f"vectors[{index}] binding_digest does not match canonical_binding_payload")
             if vector.get("detached_payload_b64u") != base64url_text(expected_binding):
                 lint.fail(path, f"vectors[{index}] detached_payload_b64u does not match canonical_binding_payload")
 

@@ -205,7 +205,7 @@
       }
     },
     {
-      "name": "e2ee_routing_hash_dedup",
+      "name": "e2ee_routing_digest_dedup",
       "notes": "In an E2EE realm the plaintext key is sha256(\"cx-reaction-key-v1\" || realm_id || mls_group_id || epoch || canonical_emoji). Two adds with the same routing hash from the same actor in the same epoch collapse to one OR-Set membership; routing hash differs in a different epoch and so does not dedup across epochs. The realm_id binding (added in v1) provides defense-in-depth even if mls_group_id is reused across deployments.",
       "context": {
         "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
@@ -228,11 +228,11 @@
               "epoch": 7,
               "content_type": "application/json",
               "ciphertext": "reactionAlpha",
-              "aad_visibility_event_id": "routing_hash",
+              "aad_visibility_event_id": "routing_digest",
               "aad": {
                 "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add",
-                "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
                 "algorithm": "MLS",
@@ -257,11 +257,11 @@
               "epoch": 7,
               "content_type": "application/json",
               "ciphertext": "reactionAlphaDup",
-              "aad_visibility_event_id": "routing_hash",
+              "aad_visibility_event_id": "routing_digest",
               "aad": {
                 "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add",
-                "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
                 "algorithm": "MLS",
@@ -277,14 +277,14 @@
         "server_side_summary": [
           {
             "target_ref": "cx:message:01964147-0000-7000-8000-000000000020",
-            "routing_hash_key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
+            "routing_digest_key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "members": [
               "did:web:alice.example"
             ],
             "count": 1
           }
         ],
-        "must_not_correlate_routing_hash_across_spaces": true,
+        "must_not_correlate_routing_digest_across_spaces": true,
         "must_not_persist_global_emoji_to_hash_table": true
       }
     },

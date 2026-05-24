@@ -42,7 +42,7 @@ title: Common Fields
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。
 - `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Flow / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只用于外部协议或加密 transcript 自身的创建者 tuple（例如 MLS group creator），不得作为 object 创建主体字段的别名。
-- Event proof 中绑定 canonical Event bytes 的字段名是 `event_digest`。`payload_hash` 仅可用于非 Event 的通用 detached proof，且其说明必须写明被 hash 的 canonical payload；不得在 Event proof 或 Event digest 语义中使用 `payload_hash`。
+- 哈希字段命名三词词汇表：算法/函数族选择器使用 `<noun>_algorithm`（枚举字符串，例如 `digest_algorithm: "sha256"`）；任意字节的不透明哈希输出使用 `<noun>_digest`（wire 形态必须是自描述 `<alg>:<hex>`）；树状 / Merkle / 累加器的根使用 `<noun>_root`（同样是 `<alg>:<hex>`，区别在于单独验证还需配套包含证明）。**新增 wire 字段名 MUST NOT 以"hash"结尾（不论是 `_hash` 后缀还是 `hash_profile`、`hash_algorithm` 等同义形态）**；含义重叠的算法选择器 MUST 收敛到 `<noun>_algorithm`，含义重叠的字节输出 MUST 收敛到 `<noun>_digest`。遗留 `_hash` 字段在 v1 内全部按上述规则映射，典型映射见 `renames.json`（例如 `payload_hash → payload_digest`、`hash_profile → digest_algorithm`、`state_hash → state_digest`）。复合 commitment 对象（例如 `event_set_commitment`）的外层名描述语义，内部以 `algorithm` + `root` 或 `digest` 表达字节材料；外层 MUST NOT 再追加 `_digest` 后缀。Event proof 绑定 canonical Event bytes 的字段名是 `event_digest`；非 Event 通用 detached proof 使用 `payload_digest`，其说明必须写明被 digest 覆盖的 canonical payload。
 - 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
 - `recipient_service_did` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_service_did`；反之亦然。
 - `scope` 命名约定：wire schema 中不得新增裸 `scope` 字段；必须用领域前缀说明形态与用途，例如 `read_scope`、`receipt_scope`、`event_range`、`match_scope`、`claim_scope`、`erasure_scope`、`agent_key_scope`、`consent_scope`、`realm_key_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
@@ -308,7 +308,7 @@ UUID 部分 SHOULD 使用 UUIDv7（time-ordered），便于审计与排序。完
 
 ### 6.1 引用 vs 内联配置的字段命名约定（normative）
 
-实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `encryption_profile`、`federation_policy`、`anchor_profile`、`hash_profile`），又有 `<axis>_policy_ref` 这样指向独立 Policy 对象的字段（如 `policy_ref`、`retention_policy_ref`、`disclosure_policy_ref`、`rate_limit_policy_ref`）。这是有意区分，规则如下：
+实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `encryption_profile`、`federation_policy`、`anchor_profile`、`digest_algorithm`），又有 `<axis>_policy_ref` 这样指向独立 Policy 对象的字段（如 `policy_ref`、`retention_policy_ref`、`disclosure_policy_ref`、`rate_limit_policy_ref`）。这是有意区分，规则如下：
 
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"single_did"` / `"sha256"` / ...）。schema 内联约束，无需引用独立对象。变更需要新 event kind（如 hash-transition Anchor）或新 Realm。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 cell state 有交互。同样内联，不通过引用对象。

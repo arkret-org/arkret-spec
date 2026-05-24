@@ -123,7 +123,7 @@ components:
         Source-Service-DID / Destination-Service-DID / Content-Digest (the
         latter only for requests with a body); federation event push also MUST
         include Source-Trust-Domain / Destination-Trust-Domain and
-        Request-Canonical-Hash. These are modeled as separate apiKey
+        Request-Canonical-Digest. These are modeled as separate apiKey
         securitySchemes and MUST appear in the same security AND group as
         httpMessageSignature when required by the operation.
     sourceServiceDid:
@@ -163,7 +163,7 @@ components:
     requestCanonicalHash:
       type: apiKey
       in: header
-      name: Request-Canonical-Hash
+      name: Request-Canonical-Digest
       description: |
         sha256 digest of the canonical request object used for federation
         idempotency / replay detection. MUST be covered by the HTTP Message
@@ -467,7 +467,7 @@ components:
           type: array
           description: |
             Profiles for which a cotest run has produced a passing artifact.
-            Each entry MUST carry `cotest_run_id`, `artifact_hash`,
+            Each entry MUST carry `cotest_run_id`, `artifact_digest`,
             `artifact_ref`, `cotest_issuer_did`, `signature` and `timestamp`.
             When `development_mode=true` this array MUST be
             empty (see `zh/sync/service-surface.md` §3.0 and
@@ -478,7 +478,7 @@ components:
             - profile_id
             - claim_kind
             - cotest_run_id
-            - artifact_hash
+            - artifact_digest
             - artifact_ref
             - cotest_issuer_did
             - signature
@@ -492,7 +492,7 @@ components:
                 - cotest_verified
               cotest_run_id:
                 type: string
-              artifact_hash:
+              artifact_digest:
                 type: string
                 pattern: ^sha256:[0-9a-f]{64}$
               artifact_ref:
@@ -506,7 +506,7 @@ components:
               signature:
                 type: string
                 minLength: 1
-                description: Signature over profile_id, cotest_run_id, artifact_hash, artifact_ref, issuer and timestamp.
+                description: Signature over profile_id, cotest_run_id, artifact_digest, artifact_ref, issuer and timestamp.
               timestamp:
                 type: string
                 format: date-time
@@ -585,16 +585,16 @@ components:
         receiver to verify the sender's delivery decision; client writes omit it.
       required:
       - realm_id
-      - realm_policy_hash
+      - realm_policy_digest
       - membership_frontier
       - delivery_binding_frontier
       - destination_service_type
-      - reducer_profile_hash
+      - reducer_profile_digest
       properties:
         realm_id:
           type: string
           pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_policy_hash:
+        realm_policy_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
         membership_frontier:
@@ -613,7 +613,7 @@ components:
         destination_service_type:
           type: string
           minLength: 1
-        reducer_profile_hash:
+        reducer_profile_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
       additionalProperties: false
@@ -893,10 +893,10 @@ components:
 
     SnapshotBootstrap:
       type: object
-      description: Optional cx.events.query acceleration hint for federation pull / backfill. Verifier MUST validate signature, state_hash, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (these fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
+      description: Optional cx.events.query acceleration hint for federation pull / backfill. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (these fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
       required:
       - snapshot_ref
-      - state_hash
+      - state_digest
       - snapshot_frontier
       - created_by
       - created_at
@@ -905,7 +905,7 @@ components:
       properties:
         snapshot_ref:
           type: string
-        state_hash:
+        state_digest:
           type: string
         snapshot_frontier:
           type: array
@@ -932,7 +932,7 @@ components:
       description: Result of cx.snapshot.head — a signed snapshot pointer for fast bootstrap. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.
       required:
       - snapshot_ref
-      - state_hash
+      - state_digest
       - frontier
       - event_set_commitment
       - created_by
@@ -942,7 +942,7 @@ components:
       properties:
         snapshot_ref:
           type: string
-        state_hash:
+        state_digest:
           type: string
         frontier:
           type: object
@@ -1144,7 +1144,7 @@ components:
           type: array
           items:
             $ref: ../schemas/capability-grant.schema.json
-        state_hash:
+        state_digest:
           type: string
         evaluated_at:
           type: string
@@ -1764,9 +1764,9 @@ components:
     StateFrontier:
       type: object
       required:
-      - state_hash
+      - state_digest
       properties:
-        state_hash:
+        state_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
         event_ids:
@@ -2539,7 +2539,7 @@ components:
       required:
       - request_id
       - realm_id
-      - request_canonical_hash
+      - request_canonical_digest
       - action
       - actor
       - source
@@ -2549,7 +2549,7 @@ components:
         realm_id:
           type: string
           pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        request_canonical_hash:
+        request_canonical_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
         action:
@@ -2571,7 +2571,7 @@ components:
               pattern: ^did:[a-z0-9]+:[^\s]+$
             service_type:
               type: string
-            source_ip_hash:
+            source_ip_digest:
               type: string
               pattern: ^sha256:[0-9a-f]{64}$
             signed_transport:
@@ -2593,9 +2593,9 @@ components:
       - decision
       - reason_code
       - expires_at
-      - auth_state_hash
-      - policy_frontier_hash
-      - membership_frontier_hash
+      - auth_state_digest
+      - policy_frontier_digest
+      - membership_frontier_digest
       - signature
       properties:
         request_id:
@@ -2607,7 +2607,7 @@ components:
           - realm_id
           - actor
           - action
-          - request_canonical_hash
+          - request_canonical_digest
           - policy_server_id
           properties:
             realm_id:
@@ -2618,7 +2618,7 @@ components:
               pattern: ^did:[a-z0-9]+:[^\s]+$
             action:
               type: string
-            request_canonical_hash:
+            request_canonical_digest:
               type: string
               pattern: ^sha256:[0-9a-f]{64}$
             policy_server_id:
@@ -2638,15 +2638,15 @@ components:
         expires_at:
           type: string
           format: date-time
-        auth_state_hash:
+        auth_state_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
           description: Accepted authorization state hash used when producing the decision.
-        policy_frontier_hash:
+        policy_frontier_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
           description: Policy source frontier / digest used when producing the decision.
-        membership_frontier_hash:
+        membership_frontier_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
           description: Membership / role frontier digest used when producing the decision.
@@ -2695,7 +2695,7 @@ components:
           required:
           - proof_kind
           - challenge
-          - request_canonical_hash
+          - request_canonical_digest
           - audience
           - signature
           properties:
@@ -2709,7 +2709,7 @@ components:
             challenge:
               type: string
               minLength: 16
-            request_canonical_hash:
+            request_canonical_digest:
               type: string
               pattern: ^sha256:[0-9a-f]{64}$
             audience:
@@ -2798,7 +2798,7 @@ components:
           type: integer
           minimum: 0
           description: Optional method sequence number when the DID method exposes one.
-        prev_event_hash:
+        prev_event_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
           description: Optional previous operation hash / key-log head, when required by the DID method.
@@ -2819,7 +2819,7 @@ components:
             required:
             - proof_kind
             - challenge
-            - request_canonical_hash
+            - request_canonical_digest
             - signature
             properties:
               proof_kind:
@@ -2831,7 +2831,7 @@ components:
               challenge:
                 type: string
                 minLength: 16
-              request_canonical_hash:
+              request_canonical_digest:
                 type: string
                 pattern: ^sha256:[0-9a-f]{64}$
               signature:
@@ -2857,7 +2857,7 @@ components:
           type: integer
           minimum: 0
           description: New method sequence number when available.
-        head_event_hash:
+        head_event_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
         operation_ref:
@@ -3625,7 +3625,7 @@ paths:
               $ref: '#/components/schemas/EventsResolveRequest'
       responses:
         '200':
-          description: Resolved events keyed by event_id / event_hash
+          description: Resolved events keyed by event_id / event_digest
           content:
             application/json:
               schema:
@@ -3660,7 +3660,7 @@ paths:
           - federation_peer
           - anonymous_health
           default: account_client
-        description: Frontier caller role. federation_peer requires service-to-service authentication with Source/Destination trust-domain headers and Request-Canonical-Hash; anonymous_health MAY be unauthenticated but MUST be rate-limited and only returns frontier_root summaries.
+        description: Frontier caller role. federation_peer requires service-to-service authentication with Source/Destination trust-domain headers and Request-Canonical-Digest; anonymous_health MAY be unauthenticated but MUST be rate-limited and only returns frontier_root summaries.
       responses:
         '200':
           description: Event frontier visible to caller

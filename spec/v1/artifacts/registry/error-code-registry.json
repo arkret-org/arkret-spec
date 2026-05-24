@@ -410,10 +410,10 @@
       "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {flow,space,morph,message,relation}_not_active / _not_archived / _already_terminal family, or with object-specific reasons like space_parent_cycle. See zh/models/common-fields.md §5.1."
     },
     {
-      "code": "unsupported_hash",
+      "code": "unsupported_digest_algorithm",
       "http_status": 422,
       "scope": "both",
-      "description": "The hash algorithm prefix in a typed hash value (e.g. cx:event:<algo>:<digest>) is not in the receiver's supported hash list. See zh/conformance/encoding.md §3.2."
+      "description": "The digest algorithm prefix in a typed digest value (e.g. cx:event:<algo>:<hex>) is not in the receiver's supported digest algorithm list. See zh/conformance/encoding.md §3.2."
     },
     {
       "code": "anchor_incomplete",
@@ -821,7 +821,7 @@
         "federation_transaction",
         "service_call"
       ],
-      "description": "Federation push / pull body's service_binding_ref.reducer_profile_hash differs from the receiver's reducer profile for the target Realm. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and covered_frontier — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Realm policy update or terminate federation for this Realm."
+      "description": "Federation push / pull body's service_binding_ref.reducer_profile_digest differs from the receiver's reducer profile for the target Realm. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and covered_frontier — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Realm policy update or terminate federation for this Realm."
     },
     {
       "code": "federation_authority_mismatch",
@@ -861,7 +861,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade evidence `old_did_document_canonical_hash` does not match the receiver's canonicalised view of the current `old_did` DID Document. Indicates the hosting domain has been substituted after the upgrade was signed (key-management.md §5.0.5)."
+      "description": "Cross-method principal upgrade evidence `old_did_document_canonical_digest` does not match the receiver's canonicalised view of the current `old_did` DID Document. Indicates the hosting domain has been substituted after the upgrade was signed (key-management.md §5.0.5)."
     },
     {
       "code": "inception_upgrade_fingerprint_mismatch",

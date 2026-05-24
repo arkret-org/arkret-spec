@@ -221,7 +221,7 @@
       ],
       "description": "Create-locked Anchor finality profile. single_did and threshold deployments may require signed Anchor single-chain uniqueness; open_set deployments allow multiple Anchor leaves and deterministic joined views; mixed deployments use a primary anchorer plus fallback recovery anchorer."
     },
-    "hash_profile": {
+    "digest_algorithm": {
       "type": "string",
       "enum": [
         "sha256",

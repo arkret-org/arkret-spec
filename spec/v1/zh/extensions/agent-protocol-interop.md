@@ -182,7 +182,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `cx.agent.sess
         "hash": "sha256:..."
       }
     ],
-    "external_transcript_hash": "sha256:...",
+    "external_transcript_digest": "sha256:...",
     "completed_at": "2026-04-26T00:10:00Z"
   }
 }
@@ -218,14 +218,14 @@ sequenceDiagram
     LocalAg->>Cx: 节流回写 cx.agent.protocol_session.status<br>(working / input_required / blocked / ...)
 
     Remote-->>LocalAg: 终态 (completed / failed / cancelled)
-    LocalAg->>Cx: cx.agent.protocol_session.result<br>(result_objects / artifacts /<br> external_transcript_hash)
+    LocalAg->>Cx: cx.agent.protocol_session.result<br>(result_objects / artifacts /<br> external_transcript_digest)
     note over Cx: reducer 更新 Flow / Morph / Relation<br>外部状态在 result 被 accepted 前不改变 canonical task
 ```
 
 读图要点：
 
 - 步骤 3-4 的 endpoint validation 是 normative MUST：必须把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
-- 节流回写 `status` 不要求每个 token 都进 durable Event；具体频率由 `audit_mode` 决定（`status_only` / `summary_and_artifacts` / `full_transcript_hash` / `full_transcript`）。
+- 节流回写 `status` 不要求每个 token 都进 durable Event；具体频率由 `audit_mode` 决定（`status_only` / `summary_and_artifacts` / `full_transcript_digest` / `full_transcript`）。
 - Contrix 不信任外部 task status：只有 `cx.agent.protocol_session.result` event 被 reducer accept 后才改变 canonical task 状态。
 
 
@@ -287,7 +287,7 @@ Capability constraint SHOULD 支持：
 
 - `status_only`：只记录 start/status/result。
 - `summary_and_artifacts`：记录摘要、artifact hash 和关键状态。
-- `full_transcript_hash`：不保存全部明文 transcript，但保存外部 transcript 的 hash / Merkle root。
+- `full_transcript_digest`：不保存全部明文 transcript，但保存外部 transcript 的 hash / Merkle root。
 - `full_transcript`：完整回写 transcript。仅在 policy 允许且用户知情时使用。
 
 默认 SHOULD 使用 `summary_and_artifacts`。

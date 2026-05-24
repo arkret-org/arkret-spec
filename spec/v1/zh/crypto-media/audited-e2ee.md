@@ -41,7 +41,7 @@ Contrix 引入 **"透明留痕审计 (Transparent Audit Trail)"** 机制：既�
 
 | `audit_assurance` 值 | 对应 profile | 含义 |
 | --- | --- | --- |
-| `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation evidence MUST 走 [`attestation-evidence.schema.json`](../../artifacts/schemas/attestation-evidence.schema.json)（schema id `cx.schema.attestation_evidence.v1`），结构化绑定 `realm_id`、enclave measurement、attestation chain、attestation key（与 `cx.audit.epoch_key_destruction.proofs[*].verification_method` 共享 root of trust）、verification_method、validity 窗口、revocation 检查、operator DID、audit_purpose、`audit_policy_version_hash`（canonical JSON 规则见 [`conformance/encoding.md` §2](../conformance/encoding.md)）。Verifier MUST 拒绝 `realm_id` 与实际 Welcome / Event Realm 不一致的 evidence；相同 policy hash 不使 evidence 可跨 Realm 复用。Key material 与明文输出 MUST 在受控边界内处理。 |
+| `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation evidence MUST 走 [`attestation-evidence.schema.json`](../../artifacts/schemas/attestation-evidence.schema.json)（schema id `cx.schema.attestation_evidence.v1`），结构化绑定 `realm_id`、enclave measurement、attestation chain、attestation key（与 `cx.audit.epoch_key_destruction.proofs[*].verification_method` 共享 root of trust）、verification_method、validity 窗口、revocation 检查、operator DID、audit_purpose、`audit_policy_version_digest`（canonical JSON 规则见 [`conformance/encoding.md` §2](../conformance/encoding.md)）。Verifier MUST 拒绝 `realm_id` 与实际 Welcome / Event Realm 不一致的 evidence；相同 policy hash 不使 evidence 可跨 Realm 复用。Key material 与明文输出 MUST 在受控边界内处理。 |
 | `disclosed_policy` | `cx.profile.disclosed_audit.e2ee.v1` | 不要求 TEE。Audit Agent 仍然 MUST 执行 `cx.audit.accessed` 先写后解密流程并等待 RYW receipt，但**保证类别仅是合规与流程承诺，不是密码学强制**。Realm policy MUST 在加入前可见确认该降级。 |
 
 客户端在加入声明 `audit_disclosure` 的 Realm 前 MUST 读取 `audit_assurance`，并按 §2.1 显示**正确分类**的 join warning；MUST NOT 用同一段笼统文案覆盖两种保证。
@@ -104,7 +104,7 @@ Audit Agent profile MUST 满足：
 | `mls_group_id` | string | 该 Audit Agent 服务的 MLS group。 |
 | `epoch_range` | object | `{first_epoch, last_epoch}`,两端 inclusive,覆盖该 Agent 持有 epoch secret 的全部 epoch。 |
 | `destroyed_at` | timestamp | enclave 内时钟标记的销毁完成时刻。 |
-| `enclave_measurement` | object | `{platform, code_hash, policy_version}` — 与 Audit Agent 入群时 attestation 中相同的 measurement;不一致 → reject `audit_agent_attestation_mismatch`。 |
+| `enclave_measurement` | object | `{platform, code_digest, policy_version}` — 与 Audit Agent 入群时 attestation 中相同的 measurement;不一致 → reject `audit_agent_attestation_mismatch`。 |
 | `remove_commit_ref` | id:event | 把该 Audit Agent 移除的 `cx.mls.commit` event id。reducer 校验该 event 在同一 anchor batch 中存在。 |
 | `proof` | array | 至少一条 enclave-attested signature,`verification_method` MUST 指向 enclave attestation key(以 Audit Agent service DID 控制根追溯,与入群 attestation 共享 attestation chain)。 |
 
@@ -218,7 +218,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:witness.example.com#receipt-key-1",
-      "payload_hash": "sha256:...",
+      "payload_digest": "sha256:...",
       "created_at": "2026-04-26T00:00:00.123Z",
       "jws": "..."
     }
@@ -244,16 +244,16 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
 | `witness_attestation` | yes | Witness attestation block。`witness_attestation.kind` 取值 `federation_witness_attested` / `single_source`；`witness_attestation.witnesses[]` 列出所有 attesting witnesses 的 `(issuer, verification_method, controlling_organization, attested_at)`。`kind` 取值 MUST 由 `witnesses[]` 的基数与独立性外部可验证地推导（`federation_witness_attested` 必须 `witnesses.length >= 2` 且 issuer / controlling_organization / verification_method 两两 distinct 且每个 issuer 出现在 Realm `audit.ryw_witnesses[]`；`single_source` 必须 `witnesses.length == 1`）；不一致 MUST 拒绝并 `audit_receipt_invalidated`。独立性由可外部验证的 witness 列表表达，而不是单点自报。详细聚合规则见 §4.1.1。 |
 | `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Realm `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
-| `audit_policy_version_hash` | yes | Realm-bound policy hash（`sha256` over canonical JSON `{realm_id: <id>, trust_domain: <trust_domain>, audit_disclosure: <object>, audit_assurance: <string>}`）。让接收方 O(1) 校验"receipt 声明的 policy class 与 frontier 处实际 policy 一致"，无需重放事件，同时防止相同 policy 文本跨 Realm 复用。MUST 与 receipt frontier 处的 policy state 一致；不一致 fail closed (`audit_receipt_invalidated`)。 |
+| `audit_policy_version_digest` | yes | Realm-bound policy hash（`sha256` over canonical JSON `{realm_id: <id>, trust_domain: <trust_domain>, audit_disclosure: <object>, audit_assurance: <string>}`）。让接收方 O(1) 校验"receipt 声明的 policy class 与 frontier 处实际 policy 一致"，无需重放事件，同时防止相同 policy 文本跨 Realm 复用。MUST 与 receipt frontier 处的 policy state 一致；不一致 fail closed (`audit_receipt_invalidated`)。 |
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
 
 规则：
 
-`audit_policy_version_hash` 在 v1 中固定为 `sha256:<64 lowercase hex>`，不使用 hash agility。若未来需要迁移到其它算法，必须通过新的 schema/profile 明确升级，而不是让同一字段接受多算法值。
+`audit_policy_version_digest` 在 v1 中固定为 `sha256:<64 lowercase hex>`，不使用 hash agility。若未来需要迁移到其它算法，必须通过新的 schema/profile 明确升级，而不是让同一字段接受多算法值。
 
 - Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；`cx.profile.attested_audit.e2ee.v1` MUST 等待 `witness_attestation.kind="federation_witness_attested"` 的 receipt（即 `witness_attestation.witnesses[]` 同时包含 ≥2 个独立 witness）。
 - Issuer 不得伪造未观测到的 receipt；任何客户端 / 审计客户端 MUST 拒绝 `audit_event_digest` 与 envelope 实际 digest 不符的 receipt，并按 `audit_receipt_invalidated`（参见 `error-code-registry.json`）处理。
-- Verifier MUST 同时校验 `receipt.realm_id == enclosing audit envelope.realm_id`，且 `receipt.trust_domain == current receive context.trust_domain`。仅凭 `audit_policy_version_hash` 相等不得把 receipt 复用于其它 Realm 或其它 trust domain。
+- Verifier MUST 同时校验 `receipt.realm_id == enclosing audit envelope.realm_id`，且 `receipt.trust_domain == current receive context.trust_domain`。仅凭 `audit_policy_version_digest` 相等不得把 receipt 复用于其它 Realm 或其它 trust domain。
 - RYW receipt 默认是 actor-private / ephemeral 在 `cx.profile.disclosed_audit.e2ee.v1` 下；在 `cx.profile.attested_audit.e2ee.v1` 下 receipt 可以同时作为 durable Event（`cx.audit.ryw_receipt`）进入 audit log，便于事后调查。
 - Receipt 可被 redaction 覆盖，但 redaction 只清除 cleartext metadata；`audit_event_id`、`audit_event_digest` 与 `audit_assurance_class` 仍保留，以便审计链可还原。
 

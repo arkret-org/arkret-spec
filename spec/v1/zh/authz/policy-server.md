@@ -59,14 +59,14 @@ Content-Type: application/json
 | `Authorization` | header | `bearer token` 或 `service_signature` | required | Policy Server 授权凭证；MUST 绑定调用服务 DID。 |
 | `request_id` | body | `string` | required | 请求 ID，用于日志和幂等追踪。 |
 | `realm_id` | body | `id` | required | 相关 Realm；进入 cache key、policy transcript 和 obligation `bound_to.realm_id`。纯账号级检查 MUST 使用 principal control Realm id。 |
-| `request_canonical_hash` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
+| `request_canonical_digest` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
 | `action` | body | `string` | required | 待检查动作，例如 `cx.message.create`。 |
 | `actor` | body | `did` | required | 发起动作的 Actor DID。 |
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
 | `source.service_did` | body | `did` | required | 调用服务 DID。 |
 | `source.service_type` | body | `string` | required | 调用服务类型。 |
-| `source.source_ip_hash` | body | `sha256:<hash>` | optional | 来源 IP 的不可逆 hash。 |
+| `source.source_ip_digest` | body | `sha256:<hash>` | optional | 来源 IP 的不可逆 hash。 |
 | `source.signed_transport` | body | `boolean` | required | 请求是否由签名 transport 保护。 |
 | `event_preview` | body | `object` | optional | 最小披露事件预览。 |
 | `auth_context` | body | `object` | optional | membership、capability、origin service 等授权上下文。 |
@@ -77,19 +77,19 @@ Content-Type: application/json
 {
   "request_id": "polreq_01",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "action": "cx.message.create",
   "actor": "did:webvh:...",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "source": {
     "service_did": "did:web:server.example",
     "service_type": "principal_server",
-    "source_ip_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "signed_transport": true
   },
   "event_preview": {
     "kind": "cx.message.create",
-    "content_hash": "sha256:...",
+    "content_digest": "sha256:...",
     "redacted_content": {
       "mentions": ["did:web:bob.example.com"],
       "media": [{"blob_id": "blob:...", "mime": "image/png"}]
@@ -112,18 +112,18 @@ Content-Type: application/json
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `request_id` | `string` | required | 回显请求 ID。 |
-| `bound_to` | `object` | required | Policy Server 回签的请求绑定；MUST 至少包含 `realm_id`、`actor`、`action`、`request_canonical_hash`、`policy_server_id`，调用方缓存或复用 decision 前必须逐字段比较。 |
+| `bound_to` | `object` | required | Policy Server 回签的请求绑定；MUST 至少包含 `realm_id`、`actor`、`action`、`request_canonical_digest`、`policy_server_id`，调用方缓存或复用 decision 前必须逐字段比较。 |
 | `bound_to.realm_id` | `id` | required | 等于 request `realm_id`。 |
 | `bound_to.actor` | `did` | required | 等于 request `actor`。 |
 | `bound_to.action` | `string` | required | 等于 request `action`。 |
-| `bound_to.request_canonical_hash` | `sha256:<hash>` | required | 等于 request `request_canonical_hash`。 |
+| `bound_to.request_canonical_digest` | `sha256:<hash>` | required | 等于 request `request_canonical_digest`。 |
 | `bound_to.policy_server_id` | `did` | required | 签发该 decision 的 Policy Server DID；必须与 declaration `server_id` 和 `signature.kid` 控制者一致。 |
 | `decision` | `enum(allow,soft_deny,hard_deny,quarantine,require_review)` | required | 策略决策。 |
 | `reason_code` | `string` | required | 稳定原因码。 |
 | `expires_at` | `datetime` | required | 决策缓存过期时间。 |
-| `auth_state_hash` | `sha256:<hash>` | required | 生成该 decision 时采用的 accepted authorization state hash；调用方命中缓存或跨服务复核时 MUST 与当前值比较。 |
-| `policy_frontier_hash` | `sha256:<hash>` | required | 生成该 decision 时采用的 policy source frontier / digest。 |
-| `membership_frontier_hash` | `sha256:<hash>` | required | 生成该 decision 时采用的 membership / role frontier digest。 |
+| `auth_state_digest` | `sha256:<hash>` | required | 生成该 decision 时采用的 accepted authorization state hash；调用方命中缓存或跨服务复核时 MUST 与当前值比较。 |
+| `policy_frontier_digest` | `sha256:<hash>` | required | 生成该 decision 时采用的 policy source frontier / digest。 |
+| `membership_frontier_digest` | `sha256:<hash>` | required | 生成该 decision 时采用的 membership / role frontier digest。 |
 | `next_retry_at` | `datetime` | optional | 可重试时间，仅限限流/退避场景。 |
 | `obligations` | `object[]` | optional | 调用方必须执行的附加动作。 |
 | `signature` | `signature` | required | Policy Server 对决策的签名。 |
@@ -139,15 +139,15 @@ Content-Type: application/json
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "actor": "did:webvh:...",
     "action": "cx.message.create",
-    "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "policy_server_id": "did:web:policy.example.com"
   },
   "decision": "allow",
   "reason_code": "ok",
   "expires_at": "2026-04-26T00:05:00Z",
-  "auth_state_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "policy_frontier_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-  "membership_frontier_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "policy_frontier_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "membership_frontier_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
   "next_retry_at": "2026-04-26T00:05:30Z",
   "obligations": [
     {"type": "rate_limit", "bucket": "message", "remaining": 20}
@@ -209,16 +209,16 @@ Content-Type: application/json
 {
   "actor": "did:webvh:bob",
   "action": "member.application",
-  "request_canonical_hash": "sha256:...",
+  "request_canonical_digest": "sha256:...",
   "device_id": "cx:device:..."
 }
 ```
 
 > `bound_to.action` 必须等于被授权动作的规范名称。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate workflow concept/action 名称（不是 v1 wire `Event.kind`，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 candidate reducer 校验都用裸名。已注册的 Move（如 `cx.member.state`）则继续使用 `cx.*` 前缀。
 
-`challenge` obligation 中的 `bound_to.request_canonical_hash` 是**被 challenge 的原始请求 hash**，不是包含 `challenge_proof` 自身的重提 Move hash。计算规则：
+`challenge` obligation 中的 `bound_to.request_canonical_digest` 是**被 challenge 的原始请求 hash**，不是包含 `challenge_proof` 自身的重提 Move hash。计算规则：
 
-1. 首次 `/policy/check` 时，调用方对原始 Move preview / application private record body 做 JCS canonical SHA-256，作为 `request_canonical_hash`。
+1. 首次 `/policy/check` 时，调用方对原始 Move preview / application private record body 做 JCS canonical SHA-256，作为 `request_canonical_digest`。
 2. 客户端重提时可以在 `gate_proofs[]` 或 envelope proof 区追加 runtime challenge proof；reducer 重新计算 hash 时 MUST 先移除 runtime challenge proof 条目（`gate_id="runtime:<challenge_id>"` 或等价 envelope proof 字段），再按同一 JCS 规则计算。
 3. provider 签发的 proof MUST 绑定该原始 hash、`challenge_id`、`actor`、`action`、`realm_id?`、`device_id?`、`expires_at` 和 issuer。实现 MUST NOT 要求 proof 内 hash 等于“包含 proof 自身的最终 Move hash”，否则会形成自引用 transcript。
 
@@ -244,7 +244,7 @@ reducer 校验顺序：
 
 1. provider signature 有效，`kid` 与 obligation `issuer` 匹配；
 2. `expires_at > now`；
-3. `bound_to` 必须存在；`bound_to.actor` 等于 Move envelope `actor`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_hash` 等于按 §4.1 proof-stripped 规则重算出的原始请求 canonical hash；
+3. `bound_to` 必须存在；`bound_to.actor` 等于 Move envelope `actor`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_digest` 等于按 §4.1 proof-stripped 规则重算出的原始请求 canonical hash；
 4. `challenge_id` 在 reducer 的 nonce 缓存中尚未消费；写入成功后入缓存（最少缓存到 `expires_at`）。
 
 任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。
@@ -256,7 +256,7 @@ Join 路径上 `challenge` proof 进入 `cx.member.state{join}.gate_proofs[]` �
 Policy decision 签名输入 MUST 包含：
 
 - `request_id`
-- `bound_to.request_canonical_hash`
+- `bound_to.request_canonical_digest`
 - `bound_to.realm_id`（被评估对象所属的 Realm ID;**v1 normative**）
 - `bound_to.actor`（被评估 actor DID;**v1 normative**）
 - `bound_to.action`（被评估的 capability action token）
@@ -264,22 +264,22 @@ Policy decision 签名输入 MUST 包含：
 - decision
 - reason_code
 - expires_at
-- auth_state_hash
-- policy_frontier_hash
-- membership_frontier_hash
+- auth_state_digest
+- policy_frontier_digest
+- membership_frontier_digest
 - policy server id
 - key id
 
-`request_canonical_hash` MUST 是 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致;任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通,且 MUST 不声明通过 v1 conformance。
+`request_canonical_digest` MUST 是 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致;任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通,且 MUST 不声明通过 v1 conformance。
 
-节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(bound_to.realm_id, bound_to.actor, bound_to.action, bound_to.request_canonical_hash, auth_state_hash)` 五元组为 key，或在 cache entry 中携带 `auth_state_hash` 并在每次命中时与当前 accepted auth state hash constant-time 比较；不一致 MUST 回退完整授权判定。`auth_state_hash` 的定义与 fast-path capability cache 相同（见 [`capabilities.md` §18.1](./capabilities.md)），覆盖当前 capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest。TTL 只能作为额外上限，不能掩盖 auth state 变化。不得仅按 `request_canonical_hash` 索引——后者会让一个 (realm, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (realm, actor) 上下文的请求中(攻击者可在 Realm A 中触发一次合法 allow,再在 Realm B 中用相同请求 body 通过缓存复用,从而绕过 Realm B 的实际 policy)。
+节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(bound_to.realm_id, bound_to.actor, bound_to.action, bound_to.request_canonical_digest, auth_state_digest)` 五元组为 key，或在 cache entry 中携带 `auth_state_digest` 并在每次命中时与当前 accepted auth state hash constant-time 比较；不一致 MUST 回退完整授权判定。`auth_state_digest` 的定义与 fast-path capability cache 相同（见 [`capabilities.md` §18.1](./capabilities.md)），覆盖当前 capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest。TTL 只能作为额外上限，不能掩盖 auth state 变化。不得仅按 `request_canonical_digest` 索引——后者会让一个 (realm, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (realm, actor) 上下文的请求中(攻击者可在 Realm A 中触发一次合法 allow,再在 Realm B 中用相同请求 body 通过缓存复用,从而绕过 Realm B 的实际 policy)。
 
 接收方 MUST 同时校验:
 
 1. signature 由 `policy_server_id` 的当前 active verification method 签发;
-2. `bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor` / `bound_to.action` / `bound_to.request_canonical_hash` 与本次 request 完全一致;
+2. `bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor` / `bound_to.action` / `bound_to.request_canonical_digest` 与本次 request 完全一致;
 3. `expires_at > now`;
-4. `auth_state_hash`、`policy_frontier_hash`、`membership_frontier_hash` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
+4. `auth_state_digest`、`policy_frontier_digest`、`membership_frontier_digest` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
 5. 该 decision 未被同一 policy_server 后续的 `cx.moderation.decision.lift` 或 anchored override 撤销。
 
 Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
@@ -313,7 +313,7 @@ Policy server decision 是 out-of-band 的签名决策，本身不进入 Realm a
 
 - `cell_family = cx.component.moderation_state.v1`
 - `cell_subject` = `target_event_id` 或 `target_object_id` 的 canonical 字符串。
-- `lattice = or_set`，`bottom = expose`。每个 add tag 形如 `<decision_kind>:<issuer_did>:<request_canonical_hash>`，确保不同 issuer 的同类决策可以并存且幂等。
+- `lattice = or_set`，`bottom = expose`。每个 add tag 形如 `<decision_kind>:<issuer_did>:<request_canonical_digest>`，确保不同 issuer 的同类决策可以并存且幂等。
 
 对应 wire event：
 
@@ -358,8 +358,8 @@ Policy server fast path 与 anchored decision 的关系：
 - **反开放联邦入口**：来自未声明 `source.service_did` 的联邦请求先降级到 `rate_limited` 或 `soft_deny`，只有在策略显式 allowlist 后才恢复 normal allow。
 - **反爆发**：策略决策返回中可携带 `rate_limit` `obligation`，要求源服务在 `next_retry_at` 之前退避。
 - **反假源**：`source.signed_transport=true` 且 service key 可校验时可放行；未签名来源只能走更严格决策分支并写入审计。
-- **反重放**：`request_id` 与 `request_canonical_hash` 一起构成 decision 缓存键；不同 payload 使用同一 `request_id` MUST 触发 `duplicate_conflict` 语义。
-- **反钓鱼/内容滥发**：对媒体只传递 `content_hash`、`content_type`、扫描标签；需要二次确认的内容转为 `quarantine` 而非直接拒收。
+- **反重放**：`request_id` 与 `request_canonical_digest` 一起构成 decision 缓存键；不同 payload 使用同一 `request_id` MUST 触发 `duplicate_conflict` 语义。
+- **反钓鱼/内容滥发**：对媒体只传递 `content_digest`、`content_type`、扫描标签；需要二次确认的内容转为 `quarantine` 而非直接拒收。
 - **反枚举**：对未授权目录查询与 join 探测使用统一错误码，不暴露存在性差异；这条规则同时应写入 directory/filter 层。
 
 策略服务实现 SHOULD 引用 [server-threat-model.md](../security/server-threat-model.md) 中“3. 对照：协议内映射与处理”作为联邦威胁基线，并确保本地 policy decision 与本地 `capability/auth` 顺序一致。

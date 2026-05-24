@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Recompute payload_hash and re-sign the JWS in
+"""Recompute payload_digest and re-sign the JWS in
 crypto-signature-fixture.json after the ULID→UUIDv7 migration changed
 the canonical event bytes.
 
@@ -39,26 +39,26 @@ def canonical_json_str(obj) -> str:
 
 def regen_vector(v: dict) -> dict:
     canon = v["canonical_event_payload"].encode("utf-8")
-    payload_hash = "sha256:" + hashlib.sha256(canon).hexdigest()
-    v["payload_hash"] = payload_hash
+    payload_digest = "sha256:" + hashlib.sha256(canon).hexdigest()
+    v["payload_digest"] = payload_digest
 
-    # binding_hash from canonical_binding_payload (independent, but recompute
+    # binding_digest from canonical_binding_payload (independent, but recompute
     # to be safe)
     binding_canon = v["canonical_binding_payload"].encode("utf-8")
-    binding_hash = "sha256:" + hashlib.sha256(binding_canon).hexdigest()
-    v["binding_hash"] = binding_hash
+    binding_digest = "sha256:" + hashlib.sha256(binding_canon).hexdigest()
+    v["binding_digest"] = binding_digest
 
-    # binding_object.payload_hash mirrors payload_hash; it is also already
+    # binding_object.payload_digest mirrors payload_digest; it is also already
     # canonicalized into canonical_binding_payload, so update both consistently
     if "binding_object" in v and isinstance(v["binding_object"], dict):
-        v["binding_object"]["payload_hash"] = payload_hash
-        # Recanonicalize the binding payload to match the new hash inside it
+        v["binding_object"]["payload_digest"] = payload_digest
+        # Recanonicalize the binding payload to match the new digest inside it
         new_binding_canon = canonical_json_str(v["binding_object"])
         if new_binding_canon != v["canonical_binding_payload"]:
             v["canonical_binding_payload"] = new_binding_canon
             binding_canon = new_binding_canon.encode("utf-8")
-            binding_hash = "sha256:" + hashlib.sha256(binding_canon).hexdigest()
-            v["binding_hash"] = binding_hash
+            binding_digest = "sha256:" + hashlib.sha256(binding_canon).hexdigest()
+            v["binding_digest"] = binding_digest
 
     # detached_payload_b64u is base64url(canonical_binding_payload) — it's the
     # "payload" of the JWS, not the event bytes. Recompute.
@@ -88,14 +88,14 @@ def regen_vector(v: dict) -> dict:
 
     # Update proof and event_with_proof
     if "proof" in v and isinstance(v["proof"], dict):
-        v["proof"]["payload_hash"] = payload_hash
+        v["proof"]["payload_digest"] = payload_digest
         v["proof"]["jws"] = detached_jws
 
     if "event_with_proof" in v and isinstance(v["event_with_proof"], dict):
         proofs = v["event_with_proof"].get("proofs", [])
         for p in proofs:
             if isinstance(p, dict):
-                p["payload_hash"] = payload_hash
+                p["payload_digest"] = payload_digest
                 p["jws"] = detached_jws
 
     return v

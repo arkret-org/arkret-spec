@@ -26,7 +26,7 @@
       "type": "string",
       "description": "Method-specific DID Document version / log entry id observed during endpoint validation, when available."
     },
-    "did_document_hash": {
+    "did_document_digest": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
       "description": "Canonical hash of the DID Document used for agent endpoint validation."

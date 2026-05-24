@@ -146,7 +146,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     "kind": "detached_jws",
     "alg": "EdDSA",
     "verification_method": "did:web:acme.example#admin-key-1",
-    "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
   }
@@ -467,7 +467,7 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
     "kind": "detached_jws",
     "alg": "EdDSA",
     "verification_method": "did:web:slack-bridge.example#ghost-u123-key",
-    "payload_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "created_at": "2026-04-26T00:00:01Z",
     "jws": "..."
   }

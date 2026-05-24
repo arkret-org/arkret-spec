@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/erasure-verification-stub.schema.json",
   "title": "Contrix Erasure Verification Stub",
-  "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_hash. It preserves event graph, proof, anchor, redaction, legal-hold and receipt linkage evidence without retaining erased plaintext.",
+  "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest. It preserves event graph, proof, anchor, redaction, legal-hold and receipt linkage evidence without retaining erased plaintext.",
   "type": "object",
   "required": [
     "stub_schema",
@@ -95,7 +95,7 @@
         "anchor_ref": {
           "$ref": "#/$defs/subject_ref"
         },
-        "frontier_hash": {
+        "frontier_digest": {
           "$ref": "#/$defs/hash"
         },
         "state_root": {

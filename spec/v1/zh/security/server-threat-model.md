@@ -137,7 +137,7 @@ sidebar:
 - 所有服务入口区分 `authenticated`、`trusted_service`、`anonymous_forwarded`。
 - `anonymous_forwarded` 来源不直通写入；默认进入 `rate_limited` 或 `quarantine` 流程。
 - 所有统一错误语义在未认证/未授权/不可见场景保持不可区分。
-- `request_id`、`request_canonical_hash`、`Idempotency-Key` 必须参与防重放判定；不同内容不得复用同一签名或请求键。
+- `request_id`、`request_canonical_digest`、`Idempotency-Key` 必须参与防重放判定；不同内容不得复用同一签名或请求键。
 - 受保护 endpoint 不得接受 URL 中的认证材料；反向代理、应用日志和安全审计日志必须对敏感 query 做脱敏或拒绝记录。
 
 ### 4.2 Policy Server 侧

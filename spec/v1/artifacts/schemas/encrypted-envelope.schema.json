@@ -47,10 +47,10 @@
       "type": "string",
       "enum": [
         "hidden",
-        "routing_hash",
+        "routing_digest",
         "opaque_id"
       ],
-      "description": "Normative discriminator for event id visibility in aad. hidden forbids aad.event_id and aad.event_ref_hash; routing_hash requires aad.event_ref_hash and forbids aad.event_id; opaque_id requires aad.event_id and forbids aad.event_ref_hash."
+      "description": "Normative discriminator for event id visibility in aad. hidden forbids aad.event_id and aad.event_ref_digest; routing_digest requires aad.event_ref_digest and forbids aad.event_id; opaque_id requires aad.event_id and forbids aad.event_ref_digest."
     },
     "authentication_tag": {
       "type": "string",
@@ -75,7 +75,7 @@
           "type": "string",
           "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "event_ref_hash": {
+        "event_ref_digest": {
           "type": "string",
           "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
         },
@@ -86,7 +86,7 @@
             "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
-        "causal_ref_hashes": {
+        "causal_ref_digests": {
           "type": "array",
           "items": {
             "type": "string",
@@ -97,7 +97,7 @@
       "not": {
         "required": [
           "event_id",
-          "event_ref_hash"
+          "event_ref_digest"
         ]
       },
       "additionalProperties": true
@@ -158,7 +158,7 @@
             "not": {
               "anyOf": [
                 { "required": ["event_id"] },
-                { "required": ["event_ref_hash"] }
+                { "required": ["event_ref_digest"] }
               ]
             }
           }
@@ -167,13 +167,13 @@
     },
     {
       "if": {
-        "properties": { "aad_visibility_event_id": { "const": "routing_hash" } },
+        "properties": { "aad_visibility_event_id": { "const": "routing_digest" } },
         "required": ["aad_visibility_event_id"]
       },
       "then": {
         "properties": {
           "aad": {
-            "required": ["event_ref_hash"],
+            "required": ["event_ref_digest"],
             "not": { "required": ["event_id"] }
           }
         }
@@ -188,7 +188,7 @@
         "properties": {
           "aad": {
             "required": ["event_id"],
-            "not": { "required": ["event_ref_hash"] }
+            "not": { "required": ["event_ref_digest"] }
           }
         }
       }

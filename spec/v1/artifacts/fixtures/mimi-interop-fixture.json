@@ -62,9 +62,9 @@
         "source_format": "text/markdown;variant=GFM-MIMI",
         "target_format": "cx.message.create",
         "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
-        "original_envelope_hash": "sha256:012345678901234567890123456789012345678901234567890123456789abcd"
+        "original_envelope_digest": "sha256:012345678901234567890123456789012345678901234567890123456789abcd"
       },
-      "expected": "mapped_event_preserves_original_envelope_hash_and_mimi_message_id"
+      "expected": "mapped_event_preserves_original_envelope_digest_and_mimi_message_id"
     },
     {
       "name": "identifier_query_blinded",

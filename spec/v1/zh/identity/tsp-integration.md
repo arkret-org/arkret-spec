@@ -93,7 +93,7 @@ Contrix operation 可作为 TSP application payload：
   "operation": "cx.events.submit",
   "content_type": "application/contrix+json",
   "realm_id": "cx:realm:...",
-  "payload_hash": "sha256:...",
+  "payload_digest": "sha256:...",
   "payload": {}
 }
 ```

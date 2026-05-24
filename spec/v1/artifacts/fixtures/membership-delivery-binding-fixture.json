@@ -69,7 +69,7 @@
         "did_document_service": {
           "service_type": "ContrixPrincipalServer",
           "recipient_service_did": "did:web:personal.alice.example",
-          "canonical_hash": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
+          "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
       },
       "operation": "cx.events.submit",
@@ -93,14 +93,14 @@
               "key_packages"
             ],
             "resolved_at": "2026-05-19T10:00:00Z",
-            "did_document_hash": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
+            "did_document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
           }
         }
       },
       "expected": {
         "outcome": "accepted",
         "delivery_route": "did:web:personal.alice.example",
-        "missing_did_document_hash_reason_code": "schema_violation",
+        "missing_did_document_digest_reason_code": "schema_violation",
         "policy_disallow_reason_code": "delivery_binding_policy_mismatch",
         "must_not_runtime_fallback_to_did_document": true
       }

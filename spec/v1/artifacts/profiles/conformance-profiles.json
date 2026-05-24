@@ -22,7 +22,7 @@
     "unknown_non_critical_extension": {
       "must_preserve_canonical_bytes": true,
       "may_ignore_for_reducer": true,
-      "must_not_affect_state_hash": true
+      "must_not_affect_state_digest": true
     },
     "unknown_required_feature_or_critical_extension": {
       "must_fail_closed": true,
@@ -1097,7 +1097,7 @@
       "additional_requirements": {
         "session_grant_must_be_short_lived": "Auth Server MUST cap session_grant TTL well below the Realm policy review horizon (per device-lifecycle.md §5, typical ceiling is minutes-to-hours, not days).",
         "audience_binding_must": "Every issued session_grant MUST carry an `audience` claim; auth servers MUST refuse to issue grants for audiences they have not been configured to serve.",
-        "session_grant_release_readiness_must": "Release readiness MUST cover cx.vector.auth.session_grant_audience_binding.v1 and cx.vector.auth.soft_logout_did_proof.v1: proof binds challenge, audience, request_canonical_hash, principal and device; stranger audiences are rejected; soft_logged_out recovery requires fresh DID proof; development_mode=true never advertises verified profiles.",
+        "session_grant_release_readiness_must": "Release readiness MUST cover cx.vector.auth.session_grant_audience_binding.v1 and cx.vector.auth.soft_logout_did_proof.v1: proof binds challenge, audience, request_canonical_digest, principal and device; stranger audiences are rejected; soft_logged_out recovery requires fresh DID proof; development_mode=true never advertises verified profiles.",
         "not_identity_registry_must": "Auth Server MUST NOT claim `cx.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
         "not_principal_server_must": "Auth Server MUST NOT claim `cx.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run."

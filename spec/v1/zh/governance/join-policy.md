@@ -213,7 +213,7 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Move�
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `cx.component.realm.delivery_binding_policy.v1`（§5.1.3）的 `allow_binding_sources` 集合内。
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`allow_unroutable_membership=true`），且该成员的客户端理解"该 Realm 仅向本地可见、不接收服务端推送 / 同步 / to-device / push / key-package 投递"。
 4. `delivery_binding.recipient_service_did` 出现在 Realm policy 的 `allowed_recipient_services`（若声明），否则 MUST 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。
-5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_hash`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_ref`）。
+5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_ref`）。
 6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
 
 reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_binding_invalid`，**不得**降级为部分接受。
@@ -223,7 +223,7 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 | `binding_source` | 谁负责填 | 何时使用 | 补充必填 |
 | --- | --- | --- | --- |
 | `explicit` | 邀请方 / 管理员客户端 | 用户显式选择目标服务 | `service_acceptance_ref` |
-| `did_document_default` | 客户端 DID resolver | Realm policy 允许 fallback，未匹配其它来源 | `did_document_hash` |
+| `did_document_default` | 客户端 DID resolver | Realm policy 允许 fallback，未匹配其它来源 | `did_document_digest` |
 | `invite` | 邀请方 builder | 邀请 token 已携带 binding | `service_acceptance_ref` |
 | `join_policy` | reducer 由 Join Policy 推导 | Join Policy 的 gate / role 决定目标服务 | `policy_ref` |
 | `organization_policy` | 组织治理目录 | invitee 是 Org 员工，组织 policy 指定目标 | `service_acceptance_ref` + `policy_ref` |
@@ -485,7 +485,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
       "bound_to": {
         "actor": "did:webvh:applicant.example",
         "action": "member.application",
-        "request_canonical_hash": "sha256:...",
+        "request_canonical_digest": "sha256:...",
         "device_id": "cx:device:01964137-0000-7000-8000-000000000000"
       }
     }
@@ -495,7 +495,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
 
 applicant 完成挑战后，重新提交 join / application Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；历史占位 `gate_id="_runtime"` 只能作为 UI/display 兼容标签，MUST NOT 参与 verifier 选择。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
 
-`bound_to.request_canonical_hash` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Move。重提 Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `/policy/check` 并获取新的 challenge。
+`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Move。重提 Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `/policy/check` 并获取新的 challenge。
 
 `obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `cx.message.create`）若使用 `challenge` 必须遵循同一 envelope。
 

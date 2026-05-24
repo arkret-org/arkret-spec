@@ -95,7 +95,7 @@
           "format": "uri",
           "description": "Optional cached HTTPS endpoint of recipient_service_did at resolved_at. Diagnostic / fast-path hint only; sender MUST re-resolve via DID Document before federation transactions and SHOULD verify endpoint matches the service DID's current binding."
         },
-        "did_document_hash": {
+        "did_document_digest": {
           "$ref": "#/$defs/hash",
           "description": "Canonical hash of invitee's DID Document at resolved_at. Required when binding_source = did_document_default."
         },
@@ -128,7 +128,7 @@
             "required": ["binding_source"]
           },
           "then": {
-            "required": ["did_document_hash"]
+            "required": ["did_document_digest"]
           }
         },
         {
@@ -801,7 +801,7 @@
         "patch": {
           "$ref": "#/$defs/patch"
         },
-        "expected_state_hash": {
+        "expected_state_digest": {
           "$ref": "#/$defs/hash"
         }
       },
@@ -826,7 +826,7 @@
         "patch": {
           "$ref": "#/$defs/patch"
         },
-        "expected_state_hash": {
+        "expected_state_digest": {
           "$ref": "#/$defs/hash"
         }
       },
@@ -845,7 +845,7 @@
         "patch": {
           "$ref": "#/$defs/patch"
         },
-        "expected_state_hash": {
+        "expected_state_digest": {
           "$ref": "#/$defs/hash"
         }
       },
@@ -1965,7 +1965,7 @@
           "enum": [
             "status_only",
             "summary_and_artifacts",
-            "full_transcript_hash",
+            "full_transcript_digest",
             "full_transcript"
           ]
         }
@@ -2033,7 +2033,7 @@
             "type": "object"
           }
         },
-        "external_transcript_hash": {
+        "external_transcript_digest": {
           "$ref": "#/$defs/hash"
         },
         "completed_at": {
@@ -2120,7 +2120,7 @@
         "ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "request_canonical_hash": {
+        "request_canonical_digest": {
           "$ref": "#/$defs/hash"
         },
         "approved_by": {
@@ -2767,7 +2767,7 @@
         },
         {
           "required": [
-            "device_list_hash"
+            "device_list_digest"
           ]
         }
       ],
@@ -2791,7 +2791,7 @@
           },
           "uniqueItems": true
         },
-        "device_list_hash": {
+        "device_list_digest": {
           "$ref": "#/$defs/hash"
         },
         "stream_id": {
@@ -2890,7 +2890,7 @@
       "anyOf": [
         {
           "required": [
-            "proposal_hash"
+            "proposal_digest"
           ]
         },
         {
@@ -2922,7 +2922,7 @@
         "proposal_message_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "proposal_hash": {
+        "proposal_digest": {
           "$ref": "#/$defs/hash"
         },
         "target_principal_id": {
@@ -2945,7 +2945,7 @@
         "recipient_principal_id",
         "recipient_device_id",
         "keypackage_ref",
-        "keypackage_hash",
+        "keypackage_digest",
         "claim_id",
         "claim_ref",
         "expires_at"
@@ -2987,20 +2987,20 @@
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "keypackage_hash": {
+        "keypackage_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Canonical hash of the claimed MLS KeyPackage bytes. MUST equal the referenced cx.mls.keypackage.payload.keypackage_hash and claim_ref.keypackage_hash."
+          "description": "Canonical hash of the claimed MLS KeyPackage bytes. MUST equal the referenced cx.mls.keypackage.payload.keypackage_digest and claim_ref.keypackage_digest."
         },
         "claim_id": {
           "$ref": "#/$defs/non_empty_string"
         },
         "claim_ref": {
           "type": "object",
-          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id, keypackage_ref, and keypackage_hash must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response; ssk_generation is the accepted cross-signing generation used when the claim was issued.",
+          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id, keypackage_ref, and keypackage_digest must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response; ssk_generation is the accepted cross-signing generation used when the claim was issued.",
           "required": [
             "claim_id",
             "keypackage_ref",
-            "keypackage_hash",
+            "keypackage_digest",
             "capabilities_digest",
             "ssk_generation"
           ],
@@ -3011,7 +3011,7 @@
             "keypackage_ref": {
               "$ref": "#/$defs/object_ref"
             },
-            "keypackage_hash": {
+            "keypackage_digest": {
               "$ref": "#/$defs/hash"
             },
             "capabilities_digest": {
@@ -3051,7 +3051,7 @@
         "principal_id",
         "device_id",
         "keypackage_ref",
-        "keypackage_hash",
+        "keypackage_digest",
         "cipher_suites",
         "state",
         "created_at",
@@ -3071,7 +3071,7 @@
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "keypackage_hash": {
+        "keypackage_digest": {
           "$ref": "#/$defs/hash",
           "description": "Canonical hash of the MLS KeyPackage bytes identified by keypackage_ref."
         },
@@ -3227,7 +3227,7 @@
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "audit_hash": {
+        "audit_digest": {
           "$ref": "#/$defs/hash"
         },
         "recorded_at": {
@@ -3240,17 +3240,17 @@
       "type": "object",
       "required": [
         "realm_id",
-        "policy_hash"
+        "policy_digest"
       ],
       "properties": {
         "realm_id": {
           "$ref": "#/$defs/realm_id"
         },
-        "policy_hash": {
+        "policy_digest": {
           "$ref": "#/$defs/hash",
           "description": "Hash of the Realm policy / MLS governance policy root used to authorize this historical key share."
         },
-        "membership_frontier_hash": {
+        "membership_frontier_digest": {
           "$ref": "#/$defs/hash",
           "description": "Optional hash of the membership frontier evaluated for history visibility and recipient membership."
         },
@@ -3325,7 +3325,7 @@
         "capability_root": {
           "$ref": "#/$defs/hash"
         },
-        "discussion_metadata_hash": {
+        "discussion_metadata_digest": {
           "$ref": "#/$defs/hash"
         },
         "binding_profile": {
@@ -3361,7 +3361,7 @@
             },
             {
               "required": [
-                "group_info_hash"
+                "group_info_digest"
               ]
             }
           ]
@@ -3375,7 +3375,7 @@
             },
             {
               "required": [
-                "ratchet_tree_hash"
+                "ratchet_tree_digest"
               ]
             }
           ]
@@ -3404,13 +3404,13 @@
         "group_info_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "group_info_hash": {
+        "group_info_digest": {
           "$ref": "#/$defs/hash"
         },
         "ratchet_tree_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "ratchet_tree_hash": {
+        "ratchet_tree_digest": {
           "$ref": "#/$defs/hash"
         },
         "initial_keypackage_refs": {
@@ -3437,7 +3437,7 @@
         "base_epoch_ref",
         "proposal_refs",
         "next_epoch",
-        "commit_hash",
+        "commit_digest",
         "governance_binding"
       ],
       "not": {
@@ -3473,7 +3473,7 @@
         "commit_message_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "commit_hash": {
+        "commit_digest": {
           "$ref": "#/$defs/hash"
         },
         "governance_binding": {
@@ -3527,7 +3527,7 @@
         "error_code": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "diagnostic_hash": {
+        "diagnostic_digest": {
           "$ref": "#/$defs/hash"
         },
         "failed_at": {

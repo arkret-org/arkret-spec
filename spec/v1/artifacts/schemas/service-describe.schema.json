@@ -267,7 +267,7 @@
           "profile_id",
           "claim_kind",
           "cotest_run_id",
-          "artifact_hash",
+          "artifact_digest",
           "artifact_ref",
           "cotest_issuer_did",
           "signature",
@@ -287,7 +287,7 @@
             "type": "string",
             "minLength": 1
           },
-          "artifact_hash": {
+          "artifact_digest": {
             "type": "string",
             "pattern": "^sha256:[0-9a-f]{64}$"
           },
@@ -304,7 +304,7 @@
           "signature": {
             "type": "string",
             "minLength": 1,
-            "description": "Signature over profile_id, cotest_run_id, artifact_hash, artifact_ref, issuer and timestamp."
+            "description": "Signature over profile_id, cotest_run_id, artifact_digest, artifact_ref, issuer and timestamp."
           },
           "timestamp": {
             "type": "string",

@@ -12,7 +12,7 @@
     "erasure_scope",
     "outcome",
     "erased_classes",
-    "retained_stub_hash",
+    "retained_stub_digest",
     "completed_at",
     "proofs"
   ],
@@ -118,13 +118,13 @@
       },
       "uniqueItems": true
     },
-    "retained_stub_hash": {
+    "retained_stub_digest": {
       "$ref": "#/$defs/hash",
       "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub must be sufficient to verify event id/digest, proof event_digest, redaction authorization, anchor inclusion, target id, legal-hold state, and receipt linkage without retaining erased plaintext."
     },
     "retained_stub": {
       "$ref": "#/$defs/verification_stub",
-      "description": "Optional in-band verification stub. When omitted, the issuer MUST expose the same canonical stub via its erasure receipt endpoint; retained_stub_hash still binds the exact bytes."
+      "description": "Optional in-band verification stub. When omitted, the issuer MUST expose the same canonical stub via its erasure receipt endpoint; retained_stub_digest still binds the exact bytes."
     },
     "legal_hold_ref": {
       "oneOf": [
@@ -152,7 +152,7 @@
         "type": "object",
         "required": [
           "verification_method",
-          "payload_hash",
+          "payload_digest",
           "signature"
         ],
         "properties": {
@@ -160,7 +160,7 @@
             "type": "string",
             "minLength": 1
           },
-          "payload_hash": {
+          "payload_digest": {
             "$ref": "#/$defs/hash"
           },
           "signature": {
@@ -313,7 +313,7 @@
             "anchor_ref": {
               "$ref": "#/$defs/subject_ref"
             },
-            "frontier_hash": {
+            "frontier_digest": {
               "$ref": "#/$defs/hash"
             },
             "state_root": {

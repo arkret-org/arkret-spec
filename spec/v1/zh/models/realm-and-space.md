@@ -81,7 +81,7 @@ Schema id: `cx.schema.realm.v1`
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked。 | 加密配置。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `anchor_profile` | no | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Anchor finality profile。 |
-| `hash_profile` | no | `enum(sha256, sha512, sha3_256, blake3)` | create-locked，默认 `sha256`。 | Hash 算法 profile。 |
+| `digest_algorithm` | no | `enum(sha256, sha512, sha3_256, blake3)` | create-locked，默认 `sha256`。 | Hash 算法 profile。 |
 | `anchorer` | conditional | `object` | Genesis anchorer cell 初值。 | 当前 Anchor 授权规则。 |
 | `max_anchor_staleness_ms` | no | `integer` | 默认 24h。 | Event freshness 窗口。 |
 | `cell_lattices` | no | `array<CellLattice>` |  | Realm-specific 扩展 cell family。 |
@@ -122,14 +122,14 @@ Schema id: `cx.schema.realm.v1`
 
 `cx.realm.create` 是 Realm 生命周期的 genesis event，它同时承担"建 Realm metadata"和"为 `created_by_principal` 引导首份成员资格"两项职责。reducer MUST 在 commit 该 event 时原子完成下述写入，且 MUST 在评估同一 submit 批次中由同一 actor 发起的任何后续 event 之前完成：
 
-1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `anchor_profile` / `hash_profile` 等 create-locked 字段固化）。
+1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `anchor_profile` / `digest_algorithm` 等 create-locked 字段固化）。
 2. **写入 `cx.component.member.state.v1` cell**（`subject=created_by_principal`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `cx.member.state{join}` event，event 本身的 `created_by_principal == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
 3. **写入 `cx.component.realm.create.v1` cell**（cas_register，bottom=reject，duplicate create 拒绝为 `realm_already_exists`）。
 
 Authz 含义：
 
 - 任何 `cx.realm.create` 之后到达的 facet event（`cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / `cx.realm.plaintext_visible_services` / ...）由 `created_by_principal` 提交时，reducer MUST 把 actor 视为已建成员，不得以"actor 不是 Realm 成员"为由 fail closed。
-- `cx.realm.policy_components` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST `failed_precondition`，reason=`policy_revision_rollback` 或 `policy_revision_gap`。任何用于缓存、Policy Server decision、MLS governance binding 或 identity_link 的 `policy_frontier_hash` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合。
+- `cx.realm.policy_components` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST `failed_precondition`，reason=`policy_revision_rollback` 或 `policy_revision_gap`。任何用于缓存、Policy Server decision、MLS governance binding 或 identity_link 的 `policy_frontier_digest` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合。
 - 同一 submit 批次内的事件 reducer MUST 按 wire 顺序处理；create event 必须排在前面（client 不得把 facet event 排在 create 前面，否则 reducer MUST 返回 `out_of_order_bootstrap`）。
 - 重新提交同一 Realm id 的 `cx.realm.create`（无论 `created_by_principal` 是否相同）MUST `realm_already_exists` 拒绝；该规则与 create-locked 字段保护一致。
 
@@ -179,7 +179,7 @@ Realm 有两个终态 event，语义不同：
 - 失败（legal hold、retention 冲突、blob 已被备份到不可达存储）MUST 在 peer 自己的 receipt `outcome` 字段写 `partially_completed` 或 `blocked_by_legal_hold`，不得假装成功；
 - 任何 peer 未在 `erasure_propagation_window_ms`（默认 7 天）内回执，issuing server 在 `cx.audit.erasure_receipt.fanout_status` 上标 `incomplete`，并把 incomplete 状态暴露给 audit/UI；不得静默吞没。
 
-**Hash chain 保护**：hard erasure 仍保留 event graph verification stub（`retained_stub_hash` 字段），允许后续 verifier 校验"该 event 曾合法存在但内容已擦除"，不破坏 hash chain。`retained_stub_hash` 的输入是 `canonical_json(retained_stub)`；`retained_stub` 使用 `cx.schema.erasure_verification_stub.v1` 结构，至少绑定 subject、scope、receipt_id、completed_at，并在适用时包含 event digest / proof `event_digest`、anchor inclusion、redaction authorization ref 与 legal-hold ref。Stub MUST NOT 保留已擦除 plaintext 或未加盐低熵 plaintext digest；若 receipt 不内联 `retained_stub`，签发服务必须在 erasure receipt endpoint 暴露同一 canonical stub。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
+**Hash chain 保护**：hard erasure 仍保留 event graph verification stub（`retained_stub_digest` 字段），允许后续 verifier 校验"该 event 曾合法存在但内容已擦除"，不破坏 hash chain。`retained_stub_digest` 的输入是 `canonical_json(retained_stub)`；`retained_stub` 使用 `cx.schema.erasure_verification_stub.v1` 结构，至少绑定 subject、scope、receipt_id、completed_at，并在适用时包含 event digest / proof `event_digest`、anchor inclusion、redaction authorization ref 与 legal-hold ref。Stub MUST NOT 保留已擦除 plaintext 或未加盐低熵 plaintext digest；若 receipt 不内联 `retained_stub`，签发服务必须在 erasure receipt endpoint 暴露同一 canonical stub。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
 
 ## 3. Space
 

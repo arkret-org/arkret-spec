@@ -6,7 +6,7 @@
     "renderer": "board",
     "view_id": "cx:view:019641be-0000-7000-8000-000000000000",
     "frontier": {
-      "state_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "event_ids": [
         "cx:event:019640ed-8000-7000-8000-000000000000"
       ]
@@ -80,7 +80,7 @@
   },
   "snapshot_frontier_recovery": {
     "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
-    "state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "frontier": {
       "event_ids": [
         "cx:event:019640ed-8000-7000-8000-000000000000"

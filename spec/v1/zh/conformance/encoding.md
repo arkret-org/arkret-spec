@@ -90,13 +90,13 @@ v1 conformance 锁定的 hash 算法集合：
 
 实现 MUST：
 
-- 默认按 `sha256:` 解析；遇到未识别的 algo prefix → 若位于 critical field（event_digest、state_root、prev_refs blob hash）→ fail closed (`unsupported_hash`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
+- 默认按 `sha256:` 解析；遇到未识别的 algo prefix → 若位于 critical field（event_digest、state_root、prev_refs blob hash）→ fail closed (`unsupported_digest_algorithm`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
 - 在 `server/describe.crypto` 暴露支持的 hash algo 集合；client 可据此选择写入算法。
 - 不得"算法升级"已签名的 canonical bytes：一旦 Event 用 `sha256:` 发布，verify 路径永远按 sha256 重算；不能因为本地默认换成 blake3 就重算并替换。
 
 ### 3.3 State Root 与 Anchor Hash 编码
 
-`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt hash 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `hash_profile` 字段固定（默认 `sha256`）。v1 不存在独立 wire `Move id`；Move 是 reducer-input Event 的协议视图，所有 Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。Realm 内所有后续 Anchor / Event digest / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
+`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt hash 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。v1 不存在独立 wire `Move id`；Move 是 reducer-input Event 的协议视图，所有 Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。Realm 内所有后续 Anchor / Event digest / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
 
 ### 3.4 Multihash 兼容（profile-gated）
 
@@ -126,7 +126,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也不得作为 typed `cx:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
 
-`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.event_digest`（≡ `canonical_hash(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
+`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
 
 本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `realm`、`flow`、`space`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`txn` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / move / anchor、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
 
@@ -172,7 +172,7 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
   },
   "frontier": {
     "actor_seq": 1,
-    "event_hash": "sha256:..."
+    "event_digest": "sha256:..."
   },
   "events": ["sha256:..."],
   "created_at": "2026-04-26T00:00:00Z"
@@ -197,7 +197,7 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
 
 Proof MUST bind:
 
-- `event_digest = canonical_hash(event_without_proofs_unsigned)`
+- `event_digest = canonical_digest(event_without_proofs_unsigned)`
 - `actor_id`
 - `verification_method`
 - `created_at`
@@ -511,7 +511,7 @@ rank_between(left, right):
 - 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `cx.container.rebalance`。Reducer 不得接受超过 128 字符的 rank。
 - 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_hlc`、`rank_source_actor_id`、`rank_source_event_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。
 - `cx.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST 拒绝该 rebalance。
-- Rebalance assignments MUST 覆盖 container 内全部 active edges，且不得新增、删除或跨 container 移动 edge。CAS 的 `expected_state_hash` 不匹配时，MUST 拒绝整个 operation，不得部分应用。
+- Rebalance assignments MUST 覆盖 container 内全部 active edges，且不得新增、删除或跨 container 移动 edge。CAS 的 `expected_state_digest` 不匹配时，MUST 拒绝整个 operation，不得部分应用。
 
 ## 9.5. Composite Cell Subject
 
