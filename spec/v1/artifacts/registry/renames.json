@@ -753,6 +753,33 @@
       "replacement": "subject_id",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Protocol responsibility subjects use the _id suffix even when the value is a DID."
+    },
+    {
+      "id": "space_frozen",
+      "kind_class": "error_code",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_frozen",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Error code returned when the target Realm is frozen / archived / tombstoned / closed to ordinary writes. After the Realm/Space inversion the responsibility for freeze/archive/tombstone/destroy lifecycle lives on the Realm boundary; the legacy name 'space_frozen' could mislead implementations into checking only an in-Realm Space container's lifecycle. See spec/v1/artifacts/registry/error-code-registry.json and spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml EventSubmitResponse.rejected[].reason_code."
+    },
+    {
+      "id": "space_state",
+      "kind_class": "enum_value",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_state",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability grant_constraint.evaluation_class enum value. The class denotes 'depends on Realm frontier (membership_hash, frontier_hash, policy_version, etc.)' — the boundary is Realm, not an in-Realm Space container. Rename keeps the cacheability hint semantically aligned with the inverted Realm/Space model. See spec/v1/artifacts/schemas/grant-constraint.schema.json and spec/v1/zh/authz/constraint-schema.md §2.3."
+    },
+    {
+      "id": "space_metadata",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_metadata",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "state_at_window_start anchor field carrying Realm-level Lattice cell value at window start (Realm name / topic / join_rule). The cell value is Realm-scoped; the legacy name 'space_metadata' would suggest in-Realm Space container metadata, which is incorrect. See spec/v1/zh/sync/client-sync.md §5.2."
     }
   ]
 }

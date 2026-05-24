@@ -170,7 +170,7 @@
       }
     },
     {
-      "name": "anchorer_cell_bottom_pauses_space_until_recovery",
+      "name": "anchorer_cell_bottom_pauses_realm_until_recovery",
       "description": "When the anchorer cell resolves to ⊥ (concurrent set on cas_register), the Realm enters anchorer_paused. Only recovery_members declared at genesis MAY sign a recovery Anchor that re-anchors the anchorer cell to a new value.",
       "anchor_profile": "mixed",
       "genesis_anchorer": {
@@ -187,7 +187,7 @@
       ],
       "expected": {
         "anchorer_cell_value": "bottom",
-        "space_state": "anchorer_paused",
+        "realm_state": "anchorer_paused",
         "normal_anchor_emission": "blocked",
         "recovery_anchor_emission": "allowed_only_for_recovery_members",
         "post_recovery_state": "effective"

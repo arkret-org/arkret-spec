@@ -75,10 +75,10 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal`（无 subtype、无 `recurrence`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
 | `temporal` 带 `recurrence`、`subtype=session` 或 `applies_to_actions` | `stateless` | TTL ≤ 下一个 recurrence 边界或 window 剩余时间 | 仍是纯函数，但 TTL 必须缩短 |
 | `field_access`（无 `condition`） | `stateless` | (constraint_hash, op_kind) | 仅 allow / deny 列表比较 |
-| `field_access` 带 `condition.kind` | `space_state` | (realm_id, frontier_hash, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
+| `field_access` 带 `condition.kind` | `realm_state` | (realm_id, frontier_hash, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
 | `type_restriction` | `stateless` | (constraint_hash, op_target_type) | |
 | `scope_limitation`（普通 scope） | `stateless` | (constraint_hash, op_target) | |
-| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `space_state` | (realm_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
+| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
 | `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_classes`） | `stateless` | (constraint_hash, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
 | `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `quota` (`subtype=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
@@ -87,13 +87,13 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `claim_based` (`subtype=claim`) | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
 | `claim_based` (`subtype=approval`) | `external` | 不可缓存 | 等待 approval event |
 | `claim_based` (`subtype=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
-| `claim_based` (`subtype=device_session`) | `space_state` | (realm_id, frontier_hash, actor_device_id) | 设备 / session 状态来自 principal control stream |
-| `confidentiality` (`subtype=encryption`) | `space_state` | (realm_id, frontier_hash) | 取 Realm `encryption_profile` / `audit_assurance` |
-| `confidentiality` (`subtype=visibility`) | `space_state` | (realm_id, frontier_hash) | 看 Realm `history_visibility` |
+| `claim_based` (`subtype=device_session`) | `realm_state` | (realm_id, frontier_hash, actor_device_id) | 设备 / session 状态来自 principal control stream |
+| `confidentiality` (`subtype=encryption`) | `realm_state` | (realm_id, frontier_hash) | 取 Realm `encryption_profile` / `audit_assurance` |
+| `confidentiality` (`subtype=visibility`) | `realm_state` | (realm_id, frontier_hash) | 看 Realm `history_visibility` |
 
 落地要点：
 
-- 8 family（按 subtype 展开后约 14 行）中接近一半是 `external` / `space_state`——这是大型授权图不可整体缓存的根因。fast path（仅 `stateless` + `grant_local`）SHOULD 用于读取 marker、reaction 等低风险动作；写入与高风险动作 MUST 跑完整集合。
+- 8 family（按 subtype 展开后约 14 行）中接近一半是 `external` / `realm_state`——这是大型授权图不可整体缓存的根因。fast path（仅 `stateless` + `grant_local`）SHOULD 用于读取 marker、reaction 等低风险动作；写入与高风险动作 MUST 跑完整集合。
 - `evaluation_class` 同时承担 lint 锚点：实现声明的依赖与 canonical 不一致时，conformance lint MUST 报错。
 
 ### 2.4 字段扁平化与未来嵌套化（normative for new fields）
@@ -587,7 +587,7 @@ function evaluate_constraints(operation, grant_constraints):
     return DENIED
 ```
 
-实现 SHOULD 按 §2.3 的 `evaluation_class` 分组：先跑 `stateless` 与 `grant_local` 的 fast path（命中即可短路返回 DENIED / QUARANTINED / REQUIRES_REVIEW），再跑 `space_state` 与 `external` 的 slow path（必要时走异步 / 缓存绑定 frontier）。`external` 类约束 MUST NOT 缓存。
+实现 SHOULD 按 §2.3 的 `evaluation_class` 分组：先跑 `stateless` 与 `grant_local` 的 fast path（命中即可短路返回 DENIED / QUARANTINED / REQUIRES_REVIEW），再跑 `realm_state` 与 `external` 的 slow path（必要时走异步 / 缓存绑定 frontier）。`external` 类约束 MUST NOT 缓存。
 
 ## 16. 约束匹配
 

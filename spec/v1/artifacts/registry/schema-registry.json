@@ -153,7 +153,7 @@
       "schema_id": "cx.schema.member_delivery_binding_candidate.v1",
       "file": "schemas/member-delivery-binding-candidate.schema.json",
       "status": "active",
-      "description": "Builder-side candidate object for Handle resolution intent=member_add | invite (identity-handles.md §3.7); produces a Space-scoped member_delivery_binding only after Join Policy re-validation."
+      "description": "Builder-side candidate object for Handle resolution intent=member_add | invite (identity-handles.md §3.7); produces a Realm-scoped member_delivery_binding only after Join Policy re-validation."
     },
     {
       "schema_id": "cx.schema.grant_constraint.v1",

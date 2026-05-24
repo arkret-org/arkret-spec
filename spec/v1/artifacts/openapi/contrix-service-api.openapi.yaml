@@ -249,7 +249,7 @@ components:
               - soft_logged_out
               - invalid_signature
               - capability_denied
-              - space_frozen
+              - realm_frozen
               - claim_required
               - not_found
               - unrecognized_endpoint

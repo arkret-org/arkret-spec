@@ -40,10 +40,10 @@
       "enum": [
         "stateless",
         "grant_local",
-        "space_state",
+        "realm_state",
         "external"
       ],
-      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; space_state = depends on Realm frontier (membership, policy_version, etc.); external = depends on data outside the Realm causal frontier (claim revocation status, rate-limit history counts, async approval). Each constraint_type has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
+      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; realm_state = depends on Realm frontier (membership, policy_version, etc.); external = depends on data outside the Realm causal frontier (claim revocation status, rate-limit history counts, async approval). Each constraint_type has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
     },
     "not_before": {
       "type": "string",

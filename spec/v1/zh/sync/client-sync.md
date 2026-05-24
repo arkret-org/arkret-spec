@@ -178,7 +178,7 @@ Account subscribe `delta` frame 包含以下 stream：
   "state_after": {"events": []},
   "state_at_window_start": {
     "actor_profiles": {},
-    "space_metadata": {},
+    "realm_metadata": {},
     "e2ee_epoch": null
   },
   "ephemeral": {"events": []},
@@ -224,14 +224,14 @@ Account subscribe `delta` frame 包含以下 stream：
   },
   "state_at_window_start": {
     "actor_profiles": {"did:webvh:...": {"display_name": "...", "avatar_ref": "..."}},
-    "space_metadata": {"name": "...", "topic": "...", "join_rule": "..."},
+    "realm_metadata": {"name": "...", "topic": "...", "join_rule": "..."},
     "e2ee_epoch": {"epoch": 17, "key_ref": "cx:mls:..."}
   }
 }
 ```
 
 - 该字段是 **派生 projection-only 字段**，不参与 state hash / frontier 计算，不进入因果图。
-- 字段范围仅限三类 anchor：`actor_profiles`（window 内出现的 actor）、`space_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
+- 字段范围仅限三类 anchor：`actor_profiles`（window 内出现的 actor）、`realm_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前 anchor view"。
 - 服务端可以从 anchor view 的历史 cell value（按 HLC 反向查询）派生该状态；不可用时退路径 (b)。
 

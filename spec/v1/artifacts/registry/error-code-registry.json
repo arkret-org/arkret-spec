@@ -128,7 +128,7 @@
       "description": "Capability, policy, or visibility rules deny the request."
     },
     {
-      "code": "space_frozen",
+      "code": "realm_frozen",
       "http_status": 403,
       "scope": "both",
       "description": "The target Realm is frozen, archived, tombstoned, or otherwise closed to ordinary writes."
