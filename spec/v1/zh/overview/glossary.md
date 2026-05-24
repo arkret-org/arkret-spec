@@ -31,8 +31,8 @@ title: 术语表
 | Flow | 协作主对象 | Realm 内承载协作议题、任务、正式表达与讨论轨道的标准对象。 |
 | Flow primary track | Flow 默认入口 | 按 track primary 解析规则得到的默认 track；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
 | ~~Room~~ | _deprecated_ | 历史用语；v1 core model 不使用 `Room` 名词，请使用 `Flow discussion track` / `discussion track view`。`Room` 仅在 MIMI / Matrix interop 模块的明确互操作上下文中允许出现（参见 [`forbidden-model-terms.json`](../../artifacts/registry/forbidden-model-terms.json) `Room` 条目的 `allowed_contexts`）。 |
-| synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。 |
-| discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow 所属 Realm，需要独立访问域时通过 `Flow.discussion_realm_ref` 升级到独立 discussion Realm。 |
+| synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。完整字段、profile、适用场景以 [`../models/flow-and-message.md` §4.2](../models/flow-and-message.md) 为准。 |
+| discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow 所属 Realm，需要独立访问域时通过 `Flow.discussion_realm_ref` 升级到独立 discussion Realm。完整 profile 集合与适用场景以 [`../models/flow-and-message.md` §4.3](../models/flow-and-message.md) 为准。 |
 | Linked Discussion Realm | 独立讨论 Realm | Flow 通过 `discussion_realm_ref` 指向的、承载该 Flow discussion track 的独立 Realm。它是一个完整 Realm 安全边界，不是 Realm hierarchy，也不同于 `Realm Link`（`cx.realm.link` 表达的治理/发现关系）。 |
 | Board | 看板 | `cx:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
 | List | 列 / 泳道 | `cx:space: kind=list`，挂到 Board Space 下、承载 Flow 位置关系的列容器。 |

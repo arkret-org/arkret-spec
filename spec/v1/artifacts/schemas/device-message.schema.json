@@ -19,13 +19,15 @@
       "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
     },
     "sender_principal_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did",
+      "description": "Sender Principal DID. Intentionally NOT named sender_actor_id: device messages are out-of-band per-device transport envelopes that travel principal-to-principal outside any Realm context, so the Realm-scoped Actor identity used by message.schema.json / event-payload.schema.json does not apply here. Pair with sender_device_id for cross-signing binding."
     },
     "sender_device_id": {
       "$ref": "#/$defs/device_id"
     },
     "recipient_principal_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did",
+      "description": "Recipient Principal DID. Same naming rationale as sender_principal_id — device messages are not Realm-scoped, so Actor identity is not used. Pair with recipient_device_id for targeted device delivery."
     },
     "recipient_device_id": {
       "$ref": "#/$defs/device_id"

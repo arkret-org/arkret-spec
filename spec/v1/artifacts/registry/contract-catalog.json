@@ -2010,7 +2010,7 @@
         "category": "extension",
         "status": "active",
         "wire_form": "cx:agent_session:<uuid>",
-        "description": "Agent protocol session ID"
+        "description": "Agent protocol session ID. Note the cross-surface naming: this typed ID uses the short form `agent_session`, while the corresponding event kinds use the full form `cx.agent.protocol_session.{start,status,result}` and capability actions use `cx.agent.session.{start,cancel,stream_status,attach_artifact,read_transcript}` (frozen wire_compat_grandfather bridge — see capabilities.md §5.0 and renames.json migration_group `wire_compat_grandfather`). The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `cx:<event-prefix>:<uuid>` mechanical derivation."
       },
       {
         "kind": "announce",

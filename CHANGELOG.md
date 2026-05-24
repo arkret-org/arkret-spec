@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Description-only doc enhancements from `_simple_report_claude.md` review（2026-05-24）
+
+`_simple_report_claude.md` review 后接受的 4 项低风险文档增强；无 wire / canonical 变更，纯 description / prose 改动。
+
+- **变更类型**: edit（description / prose only）
+- **影响 artifact**: `contract-catalog.json` id_kind_registry + 派生 `id-kind-registry.json`; `schemas/device-message.schema.json`（字段 description）; `zh/identity/tsp-integration.md`; `zh/overview/glossary.md`
+- **canonical 变更**: 无（catalog 中 `agent_session` id_kind 的 `kind` / `wire_form` 不变，仅扩写 description 说明 typed-id / event kind / capability action 三 surface 的双名映射，指向 `capabilities.md §5.0` 与 `renames.json` `wire_compat_grandfather` migration_group）；`device-message.schema.json` 的 `sender_principal_id` / `recipient_principal_id` 仅追加 description 解释为何 device messages 不沿用 `*_actor_id`；`tsp-integration.md` 把 TSP 首次出现处统一为 "Trust over IP 框架的 Trust Spanning Protocol（TSP）"；`glossary.md` 的 `synthesis track` / `discussion track` 末尾各追加 "详见 `../models/flow-and-message.md` §4.2 / §4.3" 链接（与 `MLS Governance Binding` entry 同款模式）。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 重生成派生 registry；`check` 输出 `Artifact registry lint passed (152 event kinds, 53 schemas, 40 typed ID kinds, 87 operations, 58 claimable profiles, 79 profile id references)` 与 `registry diff: clean`。
+- **conformance impact**:
+  - 受影响 profile: 无。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible（description-only）。
+  - reader / writer 行为要求: 无新增 MUST；description 旨在防止 SDK 团队再次提"把 device-message 字段对齐成 *_actor_id"或"把 agent_session ↔ protocol_session 解释成机械推导"类 PR。
+- **fixture / vector 变化**: 无。
+- **prose 同步**: TSP 与 glossary 改动如上；`flow-and-message.md` 不变（glossary 主动引用 §4.2 / §4.3）。
+- **迁移指南**: 无 wire 改动；下游无需迁移。
+
 ### Collapse `read_scope.kind` track variants（2026-05-24）
 
 `read-cursor.schema.json` 的 `read_scope.kind` enum 内联了 `flow_discussion` / `flow_synthesis` 两个 track 专用变体，把 v1 标准 track 名硬编码进了 schema enum，与 "track set is profile-extensible" 的设计相互矛盾。本次折叠到 `kind: "flow"` + 已有的 `track` 字段表达。
