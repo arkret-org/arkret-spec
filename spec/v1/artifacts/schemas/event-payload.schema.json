@@ -2571,7 +2571,8 @@
             },
             "verification_method": {
               "type": "string",
-              "pattern": "^did:[^\\s#]+#[^\\s#]+$"
+              "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$",
+              "description": "DID URL with required key fragment. Method-name normalized to lowercase per W3C DID 1.0; matches the strict form used by $defs/verification_method elsewhere in this schema."
             },
             "subject_id": {
               "$ref": "#/$defs/did"

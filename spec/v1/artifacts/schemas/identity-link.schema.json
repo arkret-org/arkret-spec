@@ -93,8 +93,8 @@
       "properties": {
         "verification_method": {
           "type": "string",
-          "pattern": "^did:[^\\s#]+#[^\\s#]+$",
-          "description": "DID URL of a key controlled by principal_id or by a disclosure proof accepted by Realm policy."
+          "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$",
+          "description": "DID URL of a key controlled by principal_id or by a disclosure proof accepted by Realm policy. Fragment is REQUIRED (this is a DID URL, not a bare DID). DID method-name normalized to lowercase per W3C DID 1.0."
         },
         "signature_algorithm": {
           "type": "string",

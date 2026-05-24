@@ -64,7 +64,8 @@
     },
     "did_url": {
       "type": "string",
-      "pattern": "^did:[^\\s#]+#[A-Za-z0-9._:-]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$",
+      "description": "DID URL with required key fragment. Fragment characters constrained to RFC 3986 unreserved + `:` for stable key ids. DID method-name normalized to lowercase per W3C DID 1.0."
     },
     "signature_b64u": {
       "type": "string",
