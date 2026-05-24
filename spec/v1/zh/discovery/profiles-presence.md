@@ -92,7 +92,7 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:alice.example.com#key-1",
-      "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "created_at": "2026-04-26T00:00:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
     }
@@ -127,7 +127,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:alice.example.com#key-1",
-      "payload_hash": "sha256:6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b",
+      "event_digest": "sha256:6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b",
       "created_at": "2026-04-26T00:01:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
     }
@@ -144,6 +144,8 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 ### 2.4 Per-Realm Profile 覆写
 
 用户 MAY 为特定 Realm 设置不同的显示名或头像（例如在公司 Realm 用真名，在开源项目 Realm 用昵称）：
+
+`cx.profile.space_override` 是保留的 wire kind 名称；其语义是 Realm-scoped profile override，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `cx:space:` 容器，也不创建 Space 级访问边界。
 
 ```json
 {
@@ -173,7 +175,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:alice.example.com#key-1",
-      "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-04-26T00:02:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
     }

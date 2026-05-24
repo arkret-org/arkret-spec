@@ -789,31 +789,39 @@
     },
     "object_patch_payload": {
       "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "target_ref",
-            "patch"
-          ]
-        },
-        {
-          "required": [
-            "object_ref",
-            "patch"
-          ]
-        },
-        {
-          "required": [
-            "patch"
-          ]
-        }
+      "description": "Generic patch payload for object families that do not define a narrower id-specific payload. The target object is single-sourced by target_ref; object_ref and target-less patch forms from earlier drafts are not canonical.",
+      "required": [
+        "target_ref",
+        "patch"
       ],
       "properties": {
         "target_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "object_ref": {
-          "$ref": "#/$defs/object_ref"
+        "patch": {
+          "$ref": "#/$defs/patch"
+        },
+        "expected_state_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": true
+    },
+    "profile_realm_override_payload": {
+      "type": "object",
+      "description": "Realm-scoped actor profile override payload. The event kind remains cx.profile.space_override for wire compatibility, but the semantics and target selector are Realm-scoped. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies.",
+      "required": [
+        "target_ref",
+        "target_realm_id",
+        "patch"
+      ],
+      "properties": {
+        "target_ref": {
+          "type": "string",
+          "pattern": "^cx:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "target_realm_id": {
+          "$ref": "#/$defs/realm_id"
         },
         "patch": {
           "$ref": "#/$defs/patch"
@@ -845,28 +853,12 @@
     },
     "object_lifecycle_payload": {
       "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "target_ref"
-          ]
-        },
-        {
-          "required": [
-            "object_ref"
-          ]
-        },
-        {
-          "required": [
-            "target_state"
-          ]
-        }
+      "description": "Generic lifecycle payload for Flow / Morph archive-restore style events. The target object is single-sourced by target_ref; target_state may describe the intended lifecycle result but cannot replace the target object reference.",
+      "required": [
+        "target_ref"
       ],
       "properties": {
         "target_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "object_ref": {
           "$ref": "#/$defs/object_ref"
         },
         "target_state": {

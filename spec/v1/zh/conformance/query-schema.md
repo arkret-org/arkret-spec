@@ -36,7 +36,7 @@ title: Query JSON Schema
 字段：
 
 - `realm_ids`: REQUIRED，查询范围。
-- `object_types`: OPTIONAL，限制标准对象类型，例如 `realm`、`space`、`flow`、`message`、`morph`、`relation`、`view`。`card` / `room` 必须表达为 `object_types=["flow"]` + `filters` 限制 `kind`；Board/List 容器必须表达为 `object_types=["space"]` + `filters` 限制 `kind`。Board/List 内部 item 查询仍按被投影对象表达，例如 `object_types=["flow"]` 并通过 `contains` relation 约束到目标 Space。
+- `object_types`: OPTIONAL，限制标准对象类型，例如 `realm`、`space`、`flow`、`message`、`morph`、`relation`、`view`。对象类型只在这里表达；不得用 `filters.field=type` 作为别名。`card` 是 View `item_render`，不是 canonical object type；Board/List 容器必须表达为 `object_types=["space"]` + `filters` 限制 Space `kind`。Board/List 内部 item 查询仍按被投影对象表达，例如 `object_types=["flow"]` 并通过 `contains` relation 约束到目标 Space。
 - `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
 - `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、`allowed_tracks` action scope 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
 - `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Flow context 的上下文锚点对象引用。
@@ -56,9 +56,9 @@ title: Query JSON Schema
 
 ```json
 {
-  "field": "fields.status",
+  "field": "fields.review_status",
   "op": "eq",
-  "value": "todo"
+  "value": "in_review"
 }
 ```
 
@@ -84,9 +84,8 @@ title: Query JSON Schema
 ```json
 {
   "and": [
-    { "field": "type", "op": "eq", "value": "flow" },
-    { "field": "kind", "op": "eq", "value": "card" },
-    { "field": "fields.status", "op": "neq", "value": "done" }
+    { "field": "fields.workflow_type", "op": "eq", "value": "review" },
+    { "field": "stage", "op": "neq", "value": "done" }
   ]
 }
 ```
@@ -121,7 +120,7 @@ Relation Query 字段：
 - `direction`: REQUIRED，`out` / `in` / `both`。
 - `source_ref`: OPTIONAL，限制 relation 起点对象、Actor 或 Realm。
 - `target_ref`: OPTIONAL，限制 relation 终点对象、Actor 或 Realm。
-- `source_type`: OPTIONAL，限制起点类型，例如 `flow`、`actor`、`realm`。需要区分 `card` / `room` 时使用 Flow `kind` 过滤。
+- `source_type`: OPTIONAL，限制起点类型，例如 `flow`、`actor`、`realm`。业务分类应通过 Realm schema/profile、`fields`、Relation、labels 或 Morph type 表达；不要把 `card` / `room` 当作 canonical source type。
 - `target_type`: OPTIONAL，限制终点类型。
 - `depth`: OPTIONAL，关系展开深度；跨 Realm 规则见 `views.md` Lazy Link。
 
@@ -151,9 +150,10 @@ Flow synthesis 与 discussion 的 relation 查询必须遵守有效 access 授�
 ```json
 [
   "id",
-  "type",
+  "schema",
   "title",
-  "fields.status"
+  "stage",
+  "fields.review_status"
 ]
 ```
 

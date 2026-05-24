@@ -1137,7 +1137,7 @@
       "cell_family": "cx.component.profile.create.v1",
       "cell_subject": {
         "type": "id:actor_profile",
-        "field": "payload.object.id"
+        "field": "payload.target_ref"
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -1148,7 +1148,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm-scoped profile override"
+      "payload": "Realm-scoped profile override. The event kind keeps the historical space_override spelling for wire compatibility; payload.target_realm_id is the target Realm and no Space boundary is created."
     },
     {
       "event_kind": "cx.device.authorize",

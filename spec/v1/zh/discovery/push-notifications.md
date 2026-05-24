@@ -340,7 +340,7 @@ POST /api/v1/push/notify
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
 
-`notification.event_id`、`notification.realm_id`、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.space_name` 等识别字段 **MUST NOT** 出现在 `cx.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `cx.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
+`notification.event_id`、`notification.realm_id`、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.flow_title` 等识别字段 **MUST NOT** 出现在 `cx.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `cx.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
 
 1. Realm policy 显式把该 Push Gateway 列入 `plaintext_visible_services`，且声明允许 `visible_notification`。
 2. 接收设备在其授权状态中显式记录 `visible_notification` opt-in；未 opt-in 的设备 MUST 回退到 `cx.profile.push_gateway.blind_wakeup.v1`。

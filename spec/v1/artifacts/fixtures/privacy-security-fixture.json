@@ -152,14 +152,15 @@
       "expected": {
         "no_plaintext_message_body": true,
         "no_member_list": true,
-        "no_room_title_for_e2ee": true,
+        "no_realm_or_flow_title_for_e2ee": true,
         "forbidden_fields_absent": [
           "notification.event_id",
           "notification.realm_id",
           "notification.kind",
           "notification.sender_actor_id",
           "notification.sender_actor_display_name",
-          "notification.space_name"
+          "notification.realm_title",
+          "notification.flow_title"
         ],
         "device_payload_max_bytes": 512
       }

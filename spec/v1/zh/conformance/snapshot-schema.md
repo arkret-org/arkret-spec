@@ -77,11 +77,11 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
   "reducer_profile": "cx.reducer.v1",
   "items": [
     {
-      "kind": "card",
+      "kind": "flow",
       "id": "cx:flow:019640c5-0000-7000-8000-000000000000",
       "object": {
         "id": "cx:flow:019640c5-0000-7000-8000-000000000000",
-        "kind": "card",
+        "kind": "flow",
         "schema": "cx.schema.flow.v1"
       },
       "source_event_id": "cx:event:019640ed-8000-7000-8000-000000000000"

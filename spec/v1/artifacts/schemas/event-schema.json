@@ -576,11 +576,8 @@
           "kind": {
             "enum": [
               "cx.realm.update",
-              "cx.flow.update",
-              "cx.flow.tracks.update",
               "cx.morph.update",
-              "cx.profile.update",
-              "cx.profile.space_override"
+              "cx.profile.update"
             ]
           }
         },
@@ -588,6 +585,15 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/object_patch_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.profile.space_override" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/profile_realm_override_payload" } }
       }
     },
     {

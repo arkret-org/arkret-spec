@@ -15,7 +15,7 @@
     {
       "order": 2,
       "source": "realm.schema.morph_type_profiles[<morph_type>]",
-      "role": "space_scoped_tightening",
+      "role": "realm_scoped_tightening",
       "writable_by": ["cx.realm.schema.update", "cx.realm.profile.update"],
       "consumed_by": ["reducer.field_validation", "capability.required_action_check"],
       "tightening_only": true,
@@ -72,7 +72,7 @@
       "rationale": "Facet is a hint, not a contract."
     },
     {
-      "case": "morph_type_unknown_in_space_schema",
+      "case": "morph_type_unknown_in_realm_schema",
       "result": "order2_treated_as_empty_tightening",
       "MUST_NOT": "auto_widen_to_all_fields_allowed"
     },

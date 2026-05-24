@@ -39,7 +39,7 @@
       }
     },
     {
-      "name": "linked_room_permission_is_not_inherited_from_card",
+      "name": "linked_discussion_realm_permission_is_not_inherited_from_flow",
       "grants": [
         {
           "id": "cx:grant:0196410c-0400-7000-8000-000000000000",

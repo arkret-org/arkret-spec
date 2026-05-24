@@ -293,7 +293,7 @@ POST /api/v1/events
       "op": {
         "kind": "set",
         "value": {
-          "status": "done"
+          "fields.review_status": "approved"
         }
       }
     }
@@ -301,14 +301,14 @@ POST /api/v1/events
   "anchor_ref": "cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
-    "patch": { "fields.status": "done" }
+    "patch": { "fields.review_status": "approved" }
   },
   "proofs": [
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:alice.example.com#device-1",
-      "payload_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "event_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "created_at": "2026-04-22T08:30:00Z",
       "jws": "..."
     }

@@ -71,20 +71,20 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   "preconditions": [
     {
       "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
-      "predicate": { "op": "head_eq", "value": { "fields.status": "in_progress" } }
+      "predicate": { "op": "head_eq", "value": { "fields.review_status": "in_review" } }
     }
   ],
   "effects": [
     {
       "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "fields.status": "done" } }
+      "op": { "kind": "set", "value": { "fields.review_status": "approved" } }
     }
   ],
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
-      "fields.status": "done"
+      "fields.review_status": "approved"
     }
   },
   "proofs": [

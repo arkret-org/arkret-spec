@@ -13,18 +13,18 @@
     },
     "groups": [
       {
-        "id": "cx:realm:01964010-8400-7000-8000-000000000000",
+        "id": "cx:space:01964010-8400-7000-8000-000000000000",
         "title": "Todo",
         "items": [
           {
             "object": {
               "id": "cx:flow:019640c5-0400-7000-8000-000000000000",
-              "kind": "card",
               "title": "Legal review"
             },
+            "item_render": "card",
             "position": {
               "model": "relation",
-              "container_id": "cx:realm:01964010-8400-7000-8000-000000000000",
+              "container_id": "cx:space:01964010-8400-7000-8000-000000000000",
               "relation_id": "cx:relation:01964187-0400-7000-8000-000000000000",
               "rank": "U"
             },
@@ -40,7 +40,7 @@
       }
     ]
   },
-  "room_timeline": {
+  "flow_discussion_timeline": {
     "flow_id": "cx:flow:01964180-0000-7000-8000-000000000000",
     "ordering": [
       "causal_depth",

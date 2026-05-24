@@ -138,7 +138,7 @@ API 调用 SHOULD 使用以下方式之一：
   "ok": false,
   "error": {
     "code": "capability_denied",
-    "message": "actor does not have card.update on this card",
+    "message": "actor does not have cx.flow.update on this flow",
     "retry_after_ms": null,
     "details": {}
   },
