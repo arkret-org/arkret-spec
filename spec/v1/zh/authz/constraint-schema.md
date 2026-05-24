@@ -148,7 +148,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "field_access",
   "effect": "allow",
-  "fields_write_allow": ["title", "body", "fields.status"],
+  "fields_write_allow": ["title", "body", "fields.review_status"],
   "condition": {
     "kind": "object_is_owned_by_actor"
   }
@@ -175,7 +175,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "field_access",
   "effect": "allow",
-  "fields_read_allow": ["title", "fields.status"],
+  "fields_read_allow": ["title", "fields.review_status"],
   "sensitive_fields": ["fields.ssn", "fields.salary"],
   "sensitive_handling": "redact|hash|omit"
 }
@@ -197,7 +197,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。`realm_kind_allow` 在 v1 没有规范用途——v1 中所有 Realm 都是同一种安全边界，无 kind 区分。该约束保留 schema 字段是为了扩展 profile 注册新 Realm kind 时可启用；v1 实现 SHOULD 把它视为 no-op。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `space_kind_allow` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；space_kind_allow 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`realm_kind_allow` / `realm_kind_deny` 在 v1 没有规范用途——v1 中所有 Realm 都是同一种安全边界，无 kind 区分。该字段仅作为 reserved / deprecated no-op 保留在 schema 中以避免旧数据立刻失效；producer SHOULD NOT 发送，receiver MUST 忽略。未来如果真的引入 Realm kind，必须注册新约束版本或明确 profile 语义，不能把 v1 no-op 静默改成有效约束。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `space_kind_allow` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；space_kind_allow 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
@@ -726,7 +726,7 @@ function matches_field_access(operation, constraint):
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "fields_write_allow": ["title", "fields.status", "fields.priority"]
+      "fields_write_allow": ["title", "fields.review_status", "fields.priority"]
     },
     {
       "constraint_type": "claim_based",
@@ -797,7 +797,7 @@ Grant envelope 字段、签名规则与必填性以
   {
     "constraint_type": "field_access",
     "effect": "allow",
-    "fields_write_allow": ["title", "fields.status"]
+    "fields_write_allow": ["title", "fields.review_status"]
   },
   {
     "constraint_type": "type_restriction",

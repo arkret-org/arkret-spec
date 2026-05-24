@@ -91,6 +91,17 @@
       "pattern": "Z$",
       "description": "Top-level grant validity end. Authorization evaluates this together with temporal constraints: effective_expires_at = min(expires_at, every temporal.expires_at present). Delegated grants MUST not extend beyond the parent's effective_expires_at."
     },
+    "updated_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "description": "Reducer-derived actor that produced the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Reducer-derived timestamp for the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
+    },
     "revoked_by": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s]+$"

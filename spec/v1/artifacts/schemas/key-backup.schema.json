@@ -22,7 +22,7 @@
     },
     "actor_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:.+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "device_id": {
       "type": "string",

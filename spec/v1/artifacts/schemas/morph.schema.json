@@ -107,6 +107,9 @@
     "created_at": {
       "$ref": "#/$defs/timestamp"
     },
+    "updated_by": {
+      "$ref": "#/$defs/did"
+    },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
     }

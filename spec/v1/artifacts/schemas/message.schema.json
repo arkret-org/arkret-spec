@@ -159,6 +159,13 @@
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
+    },
+    "updated_by": {
+      "$ref": "#/$defs/did",
+      "description": "Reducer-derived actor that produced the most recent materialized message update, such as cx.message.revise or cx.message.redact."
+    },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
     }
   },
   "$defs": {

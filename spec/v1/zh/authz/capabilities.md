@@ -89,7 +89,7 @@ ID 语义：
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "fields_write_allow": ["title", "summary", "body", "fields.status"]
+      "fields_write_allow": ["title", "summary", "body", "fields.review_status"]
     }
   ],
   "proofs": [
@@ -148,7 +148,7 @@ Contrix v1 支持以下 `kind`：
 
 | 类别 | 形态 | 标准示例 |
 | --- | --- | --- |
-| **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `cx.realm.admin` → 17 条 `cx.realm.*` policy event；`cx.policy.manage` → `cx.policy.*` 与 `cx.realm.policy_*` 系列 |
+| **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `cx.realm.admin` → registry 中声明的 Realm policy facet events；`cx.policy.manage` → `cx.policy.*` 与 `cx.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Flow / Morph / Space 等同语义 event | `cx.object.archive` → `{cx.flow.archive, cx.morph.archive}`；`cx.object.restore` → `{cx.flow.restore, cx.morph.restore, cx.space.restore}`；`cx.object.stage.set` → `{cx.flow.stage.set, cx.morph.stage.set}` |
 | **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `cx.message.revise.own` → `cx.message.revise`；`cx.message.redact.own` → `cx.message.redact`；`cx.flow.watch.set.others` → `cx.flow.watch.set` |
 | **verb-noun 桥** | action 用动词形态、event kind 因 wire 兼容保留名词形态 | `cx.invite.create_third_party` → `cx.invite.third_party`；`cx.policy.rule.manage` → `cx.policy.rule`；`cx.policy.action.manage` → `cx.policy.action`；`cx.realm.link.manage` → `cx.realm.link`；`cx.realm.plaintext_visible_services.modify` → `cx.realm.plaintext_visible_services`；`cx.realm.moderate` → `cx.realm.moderation_policy` |
@@ -293,7 +293,7 @@ Contrix v1 支持：
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `realm_kind_allow`（v1 reserved / no-op：v1 中所有 Realm 同属一种安全边界,无 kind 区分,v1 实现 SHOULD 把该约束视为 always-allow；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
+- `realm_kind_allow`（v1 reserved / deprecated no-op：v1 中所有 Realm 同属一种安全边界,无 kind 区分,producer SHOULD NOT 发送；receiver MUST 忽略；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
 - `space_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
@@ -352,7 +352,7 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `not_before` | `temporal` | — | `not_before` |
 | `fields_write_allow` | `field_access` | — | `fields_write_allow` |
 | `fields_write_deny` | `field_access` | — | `fields_write_deny` |
-| `realm_kind_allow` | `type_restriction` | — | `realm_kind_allow` |
+| `realm_kind_allow` | `type_restriction` | — | `realm_kind_allow`（v1 reserved / deprecated no-op；producer SHOULD NOT 发送） |
 | `space_kind_allow` | `type_restriction` | — | `space_kind_allow`（限定 Space 的 kind，例如 board / list / swimlane）|
 | `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
 | `facet_allow` | `type_restriction` | — | `facet_allow` |

@@ -55,6 +55,15 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "updated_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
     }
   },
   "additionalProperties": true

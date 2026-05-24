@@ -53,6 +53,7 @@ title: Profiles And Presence
 | `accountable_to` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
 | `profile_fields` | object | 可选 | 代词、时区、locale、状态消息、组织自定义字段等扩展展示字段。 |
 | `created_at` | timestamp | MUST | 创建时间。 |
+| `updated_by` | did | 可选 | 最近更新者；由 profile update Event actor 派生。 |
 | `updated_at` | timestamp | 可选 | 最近更新时间。 |
 
 ### 2.3 Profile 创建与更新

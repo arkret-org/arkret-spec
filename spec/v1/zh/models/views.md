@@ -115,6 +115,8 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `updated_by` | no | `did` |  | 最近更新者。 |
+| `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `timeline` / `graph` / `document` / `composite` 分别只允许携带对应的 `collection` / `timeline` / `graph` / `document` / `dashboard` 配置。`kind="composite"` 的 `dashboard.widgets[]` 至少包含一个 widget；若携带 `renderer`，只能是 `dashboard` 或 profile-defined `custom`。
 

@@ -87,6 +87,8 @@ Schema id: `cx.schema.policy.v1`
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
 | `created_by` | yes | `did` | 必须有 policy/admin capability。 | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `updated_by` | no | `did` | 必须有 policy/admin capability。 | 最近更新者。 |
+| `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 ### 3.3 Policy Server 与决策
 
@@ -117,6 +119,8 @@ Schema id: `cx.schema.capability.v1`
 | `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `cx:grant:` 开头，不得指向 `cx:capability:`。 | 父授权。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
+| `updated_by` | no | `did` | grant lifecycle update 的 actor；普通 grant body 仍不可变。 | 最近更新者。 |
+| `updated_at` | no | `timestamp` | grant lifecycle update 的时间；普通 grant body 仍不可变。 | 最近更新时间。 |
 | `revoked_by` | no | `did` | 撤销后设置。 | 撤销者。 |
 | `revoked_at` | no | `timestamp` |  | 撤销时间。 |
 | `proofs` | yes | `array<Proof>` |  | 授权签名。 |
@@ -148,6 +152,8 @@ Schema id: `cx.schema.invite.v1`
 | `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD 不超过 24 小时。 | 过期时间。 |
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed, send_failed, revoked_by_capability_loss, revoked_by_inviter_left, invalidated_by_rate_limit)` | Invite 的流程对象状态；保留为 `state` 是 v1 兼容例外，不表示通用对象物理 lifecycle。 | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `updated_by` | no | `did` | 最近一次 invite state update 的 actor。 | 最近更新者。 |
+| `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 ### 5.3 行为规则
 

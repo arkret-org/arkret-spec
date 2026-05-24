@@ -35,6 +35,12 @@ sidebar:
 
 新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-catalog.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
 
+### 1.1.1 error code 命名空间例外（normative）
+
+`error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `bad_json`、`policy_violation`、`failed_precondition`），不加 `cx.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `cx.` 前缀补进 wire code。
+
+新增标准错误码必须继续登记在 `error-code-registry.json`，不得因为本例外而在其它 registry 里注册裸名 action / event / operation。
+
 ### 1.2 有意保留的旧命名（intentionally retained legacy wire names）
 
 以下名称在 Realm/Space 反转或其它命名收敛之后**语义已迁移**到新模型，但**字符串本身保留**以保持 wire 兼容。`renames.json` 与 `forbidden-wire-fields.json` 等漂移防护机制不针对它们，授权 / 解析逻辑必须按更新后的语义处理：

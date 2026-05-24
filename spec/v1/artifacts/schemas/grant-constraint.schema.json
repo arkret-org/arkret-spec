@@ -201,7 +201,7 @@
         ]
       },
       "uniqueItems": true,
-      "description": "v1: only 'collaboration' is a Realm kind. Board/list are Space kinds — use space_kind_allow."
+      "description": "v1 reserved / deprecated no-op. All v1 Realms share one security-boundary kind, so producers SHOULD NOT emit this field and receivers MUST ignore it. Board/list are Space kinds — use space_kind_allow."
     },
     "realm_kind_deny": {
       "type": "array",
@@ -211,7 +211,8 @@
           "collaboration"
         ]
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "description": "v1 reserved / deprecated no-op. Producers SHOULD NOT emit this field and receivers MUST ignore it."
     },
     "morph_type_allow": {
       "type": "array",

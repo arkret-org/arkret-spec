@@ -27,6 +27,8 @@ Schema id: `cx.schema.relation.v1`
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `updated_by` | no | `did` |  | 最近更新者。 |
+| `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询层或 schema 派生。
 

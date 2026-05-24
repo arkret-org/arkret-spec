@@ -64,6 +64,13 @@
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
+    },
+    "updated_by": {
+      "$ref": "#/$defs/did",
+      "description": "Reducer-derived actor that produced the most recent invite state update."
+    },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
     }
   },
   "$defs": {

@@ -34,6 +34,8 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `media_type` | `string` | optional | 上传声明或服务端校正后的 MIME。缺省为 `application/octet-stream`。 |
 | `created_by` | `did` | required | 上传 Actor 或 service DID。 |
 | `created_at` | `datetime` | required | 服务端接收时间。 |
+| `updated_by` | `did` | optional | 最近更新 Blob metadata 的 Actor 或 service DID。 |
+| `updated_at` | `datetime` | optional | 最近更新时间。 |
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
 | `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |
 
