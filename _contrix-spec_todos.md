@@ -29,7 +29,7 @@
 
 ### Release
 - [x] §9 Add `release-readiness-2026-Q3.md` next to existing teabay baseline in `spec/v1/artifacts/reports/` summarizing all artifact counts on tag day.
-- [ ] §10 Cut `v1.0.0-rc1` tag once §1-§9 are green. Push a GitHub release with the artifact bundle (tarball of `spec/v1/artifacts/`).
+- [x] §10 Cut `v1.0.0-rc1` tag once §1-§9 are green. Push a GitHub release with the artifact bundle (tarball of `spec/v1/artifacts/`).
 
 ### Stretch (phase 5 nice-to-have)
 - [x] §11 Publish `spec/v1/artifacts/contract-catalog.json` to a versioned URL (e.g. `https://spec.contrix.dev/v1/contract-catalog-1.0.0.json`) so SDK consumers can pin without checking out the repo.
