@@ -37,7 +37,7 @@ cx.profile.<name>.v<major>
 | --- | --- | --- |
 | Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `cx.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/frontier/backfill、标准错误。 |
 | Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`principal_server`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
-| Extension（v1 lattice / interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `cx.profile.collaborative_text.v1`（lww-register / rga lattice 扩展）、`cx.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义；账号聚合不声明 Matrix `/sync` wire parity）。 |
+| Extension（v1 lattice / interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `cx.profile.collaborative_text.v1`（lww_register / rga lattice 扩展）、`cx.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义；账号聚合不声明 Matrix `/sync` wire parity）。 |
 | Interop staging extension | **不属于 v1 core interop floor**，跟踪外部演进标准；声明 v1 core 的实现 MAY 完全省略。 | MIMI interop、Applet integration、Agent protocol bridge、TSP integration 等；这些 profile 在外部标准定型后将被稳定版本固定取代。 |
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
@@ -146,7 +146,7 @@ MUST 支持 Minimal Client 的全部能力，并额外支持：
 - 幂等重放
 - Realm bootstrap
 - invite accept / reject
-- read marker
+- read cursor
 - notification rule
 - profile / presence / typing
 - blob upload / download
@@ -580,24 +580,24 @@ SHOULD 支持：
 
 MUST 支持：
 
-- 在接收 E2EE Event Envelope 时签发 `cx.moderation.frank` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim` (含 mls_group_id + epoch)、`received_by` (service DID)、`received_at`、`replay_nonce`。
-- frank `signature` 由 service DID 当前有效 verification method 签发，覆盖 frank canonical bytes。
-- 每条 frank 必须可被独立 verify：service DID Document 解析 + verification method 有效期 + Realm service binding 校验 + payload hash 重算。
-- 接收 reporter 提交的 `cx.moderation.report` 时，把 frank ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
-- frank cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 frank 仍可历史验证（用历史 key state），但不签发新 frank。
+- 在接收 E2EE Event Envelope 时签发 `cx.moderation.franking_proof` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim` (含 mls_group_id + epoch)、`received_by` (service DID)、`received_at`、`replay_nonce`。
+- franking proof `signature` 由 service DID 当前有效 verification method 签发，覆盖 franking proof canonical bytes。
+- 每条 franking proof 必须可被独立 verify：service DID Document 解析 + verification method 有效期 + Realm service binding 校验 + payload hash 重算。
+- 接收 reporter 提交的 `cx.moderation.report` 时，把 franking proof ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
+- franking proof cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 franking proof 仍可历史验证（用历史 key state），但不签发新 franking proof。
 
 MUST NOT：
 
-- 在 frank 中包含明文正文、附件文件名、reply 摘录、mention 列表、私有 handle 或解密内容 hash，除非 Realm policy 显式允许该字段。
-- 用 frank 单独证明明文含义——frank 只证明"该密文事件被该 service 在该时间收到"。
-- 跨 Realm 复用同一 frank（`replay_nonce` 与 `realm_id` 必须进 frank 签名）。
-- 在没有有效 service DID 绑定的情况下签发 frank。
+- 在 franking proof 中包含明文正文、附件文件名、reply 摘录、mention 列表、私有 handle 或解密内容 hash，除非 Realm policy 显式允许该字段。
+- 用 franking proof 单独证明明文含义——franking proof 只证明"该密文事件被该 service 在该时间收到"。
+- 跨 Realm 复用同一 franking proof（`replay_nonce` 与 `realm_id` 必须进 franking proof 签名）。
+- 在没有有效 service DID 绑定的情况下签发 franking proof。
 
 SHOULD 支持：
 
-- frank batch endpoint（一次 fetch 多条 frank）以减少 audit traffic。
-- frank inclusion proof：frank 可被签入定期 frank-log Merkle tree，向举报者证明"该 frank 不是后补的"。该 inclusion proof 与 Anchor state_root 独立，因为 frank 不进入 Realm anchor frontier（frank 是 service-side audit material，不改变协作状态）。
-- 显式 `frank_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 frank（如 service downgrade / outage），而不是误以为消息根本未投递。
+- franking proof batch endpoint（一次 fetch 多条 franking proof）以减少 audit traffic。
+- franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 Anchor state_root 独立，因为 franking proof 不进入 Realm anchor frontier（franking proof 是 service-side audit material，不改变协作状态）。
+- 显式 `franking_proof_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 franking proof（如 service downgrade / outage），而不是误以为消息根本未投递。
 
 ## 19b. WebRTC Media Service
 
@@ -686,7 +686,7 @@ Moderation profile MUST 额外覆盖：
 - `cx.schema.moderation_report.v1`
 - `cx.schema.moderation_queue_item.v1`
 - `cx.moderation.report` payload schema validation
-- E2EE evidence package / frank 只向授权 moderation recipient 披露
+- E2EE evidence package / franking proof 只向授权 moderation recipient 披露
 
 Identity profile MUST 额外提供：
 

@@ -298,7 +298,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
   "format": "markdown",
   "reply_context": {
     "ref": "cx:message:01964200-0000-7000-8000-000000000129",
-    "sender": "did:web:alice.example.com",
+    "sender_actor_id": "did:web:alice.example.com",
     "excerpt": "这个方案可行吗？"
   }
 }

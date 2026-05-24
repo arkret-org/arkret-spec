@@ -30,7 +30,7 @@ Contrix v1 区分：
 
 ### 2.1 Event Store 与 reducer-input Event
 
-Contrix v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read marker、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
+Contrix v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read cursor、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
 
 Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3）：
 
@@ -49,7 +49,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | `proofs[]` | 至少一条 detached JWS，覆盖 canonical event bytes（不含 `proofs` 与 `unsigned`）。 |
 | `hlc` | advisory tie-breaker。**进入 canonical event bytes 与 proof `event_digest`**（与 [encoding.md](../conformance/encoding.md) §7、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3 rule 1 一致），因此被生产者签名锁定、relay 不得改写；但语义上仅用于 timeline 展示与 freshness 诊断，MUST NOT 进授权决策、Lattice 收敛、Move precondition 比较或 Anchor finality 判断。 |
 
-非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.device.push_route`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
+非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.cursor`、`cx.device.push_route`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
 
 Actor-private state 是独立层，不是“弱 durable Event”。标准规则：
 
@@ -121,7 +121,7 @@ Contrix 采用 Event-first 模型：
 1. actor/device/service 生成 signed Event。reducer-input event 在顶层带 `preconditions[]` / `effects[]` / `anchor_ref`（§2.1）。
 2. `/events/*` 或等价 transport 接收 event，校验 schema、签名、actor chain；对 reducer-input event 走 `verify_event` + Anchor pipeline。
 3. Principal Server / Sync Service 同步调用方授权可见的 Realm Event。每个 reducer-input event 与 Anchor 的当前态 (`event_state` / `anchor view` / `state_root`) 通过同步 surface 暴露给客户端 reducer。
-4. client reducer 将 accepted reducer-input event 集合按 Lattice + Anchor frontier 归约为当前态；non-reducer event（read marker / notification / typing 等）不进 cell。客户端可选择生成本地搜索索引和 View projection。
+4. client reducer 将 accepted reducer-input event 集合按 Lattice + Anchor frontier 归约为当前态；non-reducer event（read cursor / notification / typing 等）不进 cell。客户端可选择生成本地搜索索引和 View projection。
 
 这套模型同时适用于：
 
@@ -170,7 +170,7 @@ flowchart TB
 读图要点：
 
 - Sync Service 与 Anchor pipeline 不是真相源，只是按 Anchor finality 暴露 `events + state_after` 的传输面；Producer 与 Consumer 的客户端都可以重算同样的 effective state。
-- Consumer 端 reducer 的输入是 accepted reducer-input event 集合 + Anchor frontier；non-reducer event（read marker / typing 等）不进 cell、不进 state_root。
+- Consumer 端 reducer 的输入是 accepted reducer-input event 集合 + Anchor frontier；non-reducer event（read cursor / typing 等）不进 cell、不进 state_root。
 - soft-fail 路径是 §6.2 的 reconciliation 主题：推测态会被标记，最终升级或回滚都必须确定性。
 
 ## 4. Event Batch Receipt / Checkpoint
@@ -183,7 +183,7 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
 {
   "receipt_id": "cx:receipt:01964186-5800-7000-8000-000000000000",
   "issuer": "did:web:alice.example.net",
-  "scope": {
+  "receipt_scope": {
     "actor_id": "did:web:alice.example.com",
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
   },
@@ -206,10 +206,10 @@ Receipt 可用于 read-your-writes、回放完整性检查、witness 证明或�
 
 Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range completeness（范围完整覆盖）证明。即使在 `events[]` 上叠加 Merkle commitment（如 `event_set_commitment` / batch root），它也只保证 *integrity*（issuer 给出的事件集合未被中间人篡改），不保证 *completeness*（issuer 没有静默丢弃属于该范围的其他事件）。本节明确列出 receipt 不证明的事实：
 
-- Receipt MUST NOT 被实现解释为“该 `scope`（actor / realm / frontier）下的所有已 accepted reducer-input event 都包含在 `events[]` 中”。Issuer 可以选择性 commit 任意子集，set-bound commitment 不构成抗丢弃证明。
+- Receipt MUST NOT 被实现解释为“该 `receipt_scope`（actor / realm / frontier）下的所有已 accepted reducer-input event 都包含在 `events[]` 中”。Issuer 可以选择性 commit 任意子集，set-bound commitment 不构成抗丢弃证明。
 - Receipt MUST NOT 替代 Event 自身签名作为 reducer 输入合法性凭据：reducer MUST 按 §5 / event-and-patch.md §6 在 Event 层验证签名、prev_refs、refs、anchor 与 schema。
 - Receipt MUST NOT 被 Anchor pipeline 当作 canonical history 输入：Anchor 仍以 Event 为真源。
-- 想取得 range completeness 的实现，MUST 使用 §4.2 定义的 `cx.attestation.range_completeness` 原语（active event kind；payload schema `cx.schema.range_completeness_attestation.v1`），其 scope 必须有显式 range 语义（per-actor seq interval + frontier 上下界），并伴随 witness quorum 或独立 anchor 背书。Core batch receipt 不承担此职责。
+- 想取得 range completeness 的实现，MUST 使用 §4.2 定义的 `cx.attestation.range_completeness` 原语（active event kind；payload schema `cx.schema.range_completeness_attestation.v1`），其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界），并伴随 witness quorum 或独立 anchor 背书。Core batch receipt 不承担此职责。
 
 > 术语：*integrity* 指给定数据未被篡改；*completeness* 指给定范围内没有漏给的成员。Set-bound Merkle commitment 提供 integrity，不提供 completeness——后者必须依赖 range-bound 语义。详见 [glossary.md](../overview/glossary.md)。
 
@@ -226,7 +226,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
   "issuer": "did:web:witness.example",
   "issuer_role": "witness",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "scope": {
+  "event_range": {
     "from_frontier": {"realm_frontier": ["cx:event:..."]},
     "to_frontier":   {"realm_frontier": ["cx:event:..."]},
     "actor_seq_ranges": [
@@ -265,7 +265,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 4. 计算 binary Merkle tree（Hash 算法按 Realm.hash_profile）；
 5. `count` MUST 等于叶子数。
 
-不包含 non-reducer event（read marker / typing 等）。leaves 排序确定性使 verifier 可以局部 backfill 后独立重算 `root`。
+不包含 non-reducer event（read cursor / typing 等）。leaves 排序确定性使 verifier 可以局部 backfill 后独立重算 `root`。
 
 #### 4.2.3 Witness Attestation 与 sovereign-grade 完整性
 
@@ -361,7 +361,7 @@ Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）�
 }
 ```
 
-Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `cx.read.marker`）：
+Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `cx.read.cursor`）：
 
 ```json
 {
@@ -369,7 +369,7 @@ Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例�
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 43,
-  "kind": "cx.read.marker",
+  "kind": "cx.read.cursor",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0008-a13f9c2e",
   "prev_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
@@ -510,7 +510,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.reorder`
 - `cx.flow.watch.set`
 
-`cx.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `cx.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / E2EE 的 discussion MUST 升级为 linked Realm 并通过 `Flow.discussion_realm_ref` 引用（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md)）。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas-register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
+`cx.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `cx.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / E2EE 的 discussion MUST 升级为 linked Realm 并通过 `Flow.discussion_realm_ref` 引用（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md)）。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas_register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
 
 ### 7.3 Space
 
@@ -539,7 +539,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.morph.restore`
 - `cx.relation.create`
 - `cx.relation.update`
-- `cx.relation.delete`
+- `cx.relation.tombstone`
 - `cx.container.move_item`
 - `cx.container.rebalance`
 - `cx.view.create`
@@ -566,8 +566,8 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 - `cx.profile.update`
 - `cx.profile.space_override`
-- `cx.device.authorized`
-- `cx.device.revoked`
+- `cx.device.authorize`
+- `cx.device.revoke`
 - `cx.device.list_update`
 - `cx.mls.keypackage`
 - `cx.realm_key.share`
@@ -583,7 +583,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 以下标准 kind 不属于共享 durable Realm history，不能列入本节 durable 写路径：
 
-- `cx.read.marker`：`actor_private_event`，只能进入 encrypted account data 或 actor-private stream。
+- `cx.read.cursor`：`actor_private_event`，只能进入 encrypted account data 或 actor-private stream。
 - `cx.receipt.read`：`ephemeral_event`，只能走 ephemeral / receipt stream，不推进 `actor_seq`、Realm reducer frontier 或 state hash。
 
 ## 8. 操作体原则
@@ -634,7 +634,7 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 
 `cx.flow.move` 用于跨 List-Space 移动 Flow。它移动的是 Flow 在一个 Board Space 内的主位置，而不是修改 track 定义。
 
-写入路径是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`（详见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md#36-flow-位置)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_space_id` + `rank` 编译为 `set { list_space_id, rank }` effect。Payload 上的目的地输入字段只有 `target_space_id` 一个；MUST NOT 在 `cx.flow.move` payload 上直接写 `list_space_id`（schema `additionalProperties=false` 已经会拒）——`list_space_id` 是 cell value 字段名，由 reducer 从 `target_space_id` 编译而来。这与 Space-parent 的 cas-register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
+写入路径是 cas_register cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`（详见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md#36-flow-位置)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_space_id` + `rank` 编译为 `set { list_space_id, rank }` effect。Payload 上的目的地输入字段只有 `target_space_id` 一个；MUST NOT 在 `cx.flow.move` payload 上直接写 `list_space_id`（schema `additionalProperties=false` 已经会拒）——`list_space_id` 是 cell value 字段名，由 reducer 从 `target_space_id` 编译而来。这与 Space-parent 的 cas_register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
 
 ```json
 {
@@ -663,7 +663,7 @@ Reducer 语义：
 2. 验证 `target_space_id` 是 `board_space_id` 下的 active List Space（`kind="list"` 且 `parent_ref` 为 board）。
 3. 验证目标 Flow 所属 Realm schema/profile 允许它进入该 Board Space。
 4. 把 `expected_position` 编译为 cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>` 的 `head_eq` precondition；把 `target_space_id` + `rank` 编译为 `set { list_space_id: target_space_id, rank }` effect。
-5. cas-register lattice 在该 cell 上 join：成功则 `target_space_id --contains--> flow_id` 派生 Relation 由 cell value 自动投影出来（旧 list 的派生 Relation 自动失效）；并发不同 set 返回 `⊥`（kind=conflict），依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery。
+5. cas_register lattice 在该 cell 上 join：成功则 `target_space_id --contains--> flow_id` 派生 Relation 由 cell value 自动投影出来（旧 list 的派生 Relation 自动失效）；并发不同 set 返回 `⊥`（kind=conflict），依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery。
 6. 对相同 Event 保持幂等（同一 `event_id` / `event_digest` 的重放是 cell 的恒等 set，不产生新 ⊥）。
 
 `cx.flow.move` 不得把 `board_space_id`、`space_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源；真相是 cell value。View projection MAY 返回这些派生字段，但必须能追溯到该 cell 的 anchored value 和 reducer frontier。
@@ -674,7 +674,7 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 - `expected_position.rank` → `head_eq.rank`
 - `expected_position.relation_id` 仅作为客户端 hint，不参与 cell join（派生 Relation 的 id 由 reducer 计算）。
 
-不一致时 cas-register 直接返回 `failed_precondition`（走标准 lattice 路径）。`expected_position` 缺失 / 为空 → 等价 `head_eq null`，仅在 cell 真正处于初始态（Flow 尚未进入该 Board）时通过；非初始态下省略 `expected_position` MUST `failed_precondition`，不接受"无 CAS 强制写"。policy 明确允许"无条件覆盖"的特殊场景（如管理员强制重置）必须使用专门的高权限 event kind，而不是省略 `cx.flow.move` 的 `expected_position`。
+不一致时 cas_register 直接返回 `failed_precondition`（走标准 lattice 路径）。`expected_position` 缺失 / 为空 → 等价 `head_eq null`，仅在 cell 真正处于初始态（Flow 尚未进入该 Board）时通过；非初始态下省略 `expected_position` MUST `failed_precondition`，不接受"无 CAS 强制写"。policy 明确允许"无条件覆盖"的特殊场景（如管理员强制重置）必须使用专门的高权限 event kind，而不是省略 `cx.flow.move` 的 `expected_position`。
 
 ### 9.2 `cx.flow.reorder`
 
@@ -699,7 +699,7 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 }
 ```
 
-`cx.flow.reorder` 不得改变 List Space。`expected_position` 编译为 cell `head_eq`；不一致时 cas-register 返回 `failed_precondition`，不再走单独的 `cas_conflict` 旁路。`expected_position` 缺失只在 Flow 尚未进入该 Board 的初始态合法（理论上此时也不该用 reorder），其他情况 MUST `failed_precondition`。
+`cx.flow.reorder` 不得改变 List Space。`expected_position` 编译为 cell `head_eq`；不一致时 cas_register 返回 `failed_precondition`，不再走单独的 `cas_conflict` 旁路。`expected_position` 缺失只在 Flow 尚未进入该 Board 的初始态合法（理论上此时也不该用 reorder），其他情况 MUST `failed_precondition`。
 
 ### 9.3 List Space 排序
 
@@ -914,7 +914,7 @@ Reducer 输出：
 
 ### 17.3 Board position
 
-同一个 Flow 在同一 Board 内的唯一主位置 key 是 `(board_id, flow_id)`，但 canonical truth 不是多条 `contains` / position edge 的 winner，而是 §9.1 定义的 cas-register cell：
+同一个 Flow 在同一 Board 内的唯一主位置 key 是 `(board_id, flow_id)`，但 canonical truth 不是多条 `contains` / position edge 的 winner，而是 §9.1 定义的 cas_register cell：
 
 ```text
 cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>

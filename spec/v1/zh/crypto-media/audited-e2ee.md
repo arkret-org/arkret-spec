@@ -133,7 +133,7 @@ Audit Agent profile MUST 满足：
 - 代价:enclave / HSM 必须支持 attestation-signed zeroization 操作(主流 TEE 如 Intel TDX / AMD SEV-SNP / AWS Nitro Enclave / SGX 均已具备此类原语);依赖纯软件审计 agent 的部署 MUST 改用 `disclosed_policy` profile,**不得使用** `attested_hardware` 措辞。
 - 与 §1 disclosed 文案的区分:disclosed 部署移除 Audit Agent 后历史密钥**仍然存在**(只是 Realm policy 不再认可它);attested 部署移除时 enclave 内部已经销毁,这是两种 profile 的关键区别。
 
-不需要常驻审计解密能力的 Realm SHOULD 使用 franking / moderation proof profile（例如 `cx.moderation.frank` 或 profile 注册的等价 token）来证明消息可审计性，并在真正审计时由发送方、持钥成员或受控服务按 policy 解密；不得把 standing Audit Agent 作为唯一合规模式。
+不需要常驻审计解密能力的 Realm SHOULD 使用 franking / moderation proof profile（例如 `cx.moderation.franking_proof` 或 profile 注册的等价 token）来证明消息可审计性，并在真正审计时由发送方、持钥成员或受控服务按 policy 解密；不得把 standing Audit Agent 作为唯一合规模式。
 
 ## 4. 强制留痕机制 (Audit Record Mandatory)
 

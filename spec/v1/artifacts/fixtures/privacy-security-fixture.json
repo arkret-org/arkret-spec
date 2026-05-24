@@ -157,8 +157,8 @@
           "notification.event_id",
           "notification.realm_id",
           "notification.kind",
-          "notification.sender",
-          "notification.sender_display_name",
+          "notification.sender_actor_id",
+          "notification.sender_actor_display_name",
           "notification.space_name"
         ],
         "device_payload_max_bytes": 512

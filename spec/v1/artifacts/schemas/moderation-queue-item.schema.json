@@ -13,7 +13,7 @@
   "properties": {
     "queue_item_id": {
       "type": "string",
-      "pattern": "^cx:modq:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:moderation_queue_item:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "report": {
       "$ref": "./moderation-report.schema.json"

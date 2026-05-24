@@ -169,10 +169,10 @@
       "description": "Device ID"
     },
     {
-      "kind": "devmsg",
+      "kind": "device_message",
       "category": "sync",
       "status": "active",
-      "wire_form": "cx:devmsg:<uuid>",
+      "wire_form": "cx:device_message:<uuid>",
       "description": "To-device message queue ID"
     },
     {
@@ -197,10 +197,10 @@
       "description": "Non-HTTP stream frame ID"
     },
     {
-      "kind": "frank",
+      "kind": "franking_proof",
       "category": "moderation",
       "status": "active",
-      "wire_form": "cx:frank:<uuid>",
+      "wire_form": "cx:franking_proof:<uuid>",
       "description": "Message franking proof ID"
     },
     {
@@ -218,10 +218,10 @@
       "description": "Invite object ID"
     },
     {
-      "kind": "keyevt",
+      "kind": "key_event",
       "category": "identity",
       "status": "active",
-      "wire_form": "cx:keyevt:<uuid>",
+      "wire_form": "cx:key_event:<uuid>",
       "description": "DID/key log event ID"
     },
     {
@@ -239,18 +239,18 @@
       "description": "Morph object ID"
     },
     {
-      "kind": "notif",
+      "kind": "notification",
       "category": "derived_projection",
       "status": "active",
-      "wire_form": "cx:notif:<uuid>",
+      "wire_form": "cx:notification:<uuid>",
       "description": "Notification projection ID"
     },
     {
-      "kind": "read_marker",
+      "kind": "read_cursor",
       "category": "account_private",
       "status": "active",
-      "wire_form": "cx:read_marker:<uuid>",
-      "description": "Actor-private read marker ID"
+      "wire_form": "cx:read_cursor:<uuid>",
+      "description": "Actor-private read cursor ID"
     },
     {
       "kind": "policy",
@@ -295,17 +295,17 @@
       "description": "Moderation report ID"
     },
     {
-      "kind": "modq",
+      "kind": "moderation_queue_item",
       "category": "moderation",
       "status": "active",
-      "wire_form": "cx:modq:<uuid>",
+      "wire_form": "cx:moderation_queue_item:<uuid>",
       "description": "Moderation queue item ID"
     },
     {
-      "kind": "req",
+      "kind": "request",
       "category": "transport",
       "status": "active",
-      "wire_form": "cx:req:<uuid>",
+      "wire_form": "cx:request:<uuid>",
       "description": "Request/correlation ID"
     },
     {
@@ -330,10 +330,10 @@
       "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
     },
     {
-      "kind": "txn",
+      "kind": "transaction",
       "category": "transport",
       "status": "active",
-      "wire_form": "cx:txn:<uuid>",
+      "wire_form": "cx:transaction:<uuid>",
       "description": "Federation/applet transaction ID"
     },
     {

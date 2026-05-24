@@ -308,12 +308,12 @@
       "profile": null
     },
     {
-      "action": "cx.relation.delete",
+      "action": "cx.relation.tombstone",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.relation.delete"
+        "cx.relation.tombstone"
       ],
       "profile": null
     },
@@ -667,9 +667,9 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.key.authorized",
-        "cx.agent.key.revoked",
-        "cx.agent.key.rotated"
+        "cx.agent.key.authorize",
+        "cx.agent.key.revoke",
+        "cx.agent.key.rotate"
       ],
       "profile": null
     },
@@ -1082,12 +1082,12 @@
       "profile": null
     },
     {
-      "action": "cx.read.marker",
+      "action": "cx.read.cursor",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.read.marker"
+        "cx.read.cursor"
       ],
       "profile": null
     },

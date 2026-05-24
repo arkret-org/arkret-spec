@@ -52,7 +52,7 @@ title: Key Management
 
 - `expires_at`
 - revoke event、status event 或 profile 注册的 credential status mechanism
-- `scope`
+- `agent_key_scope`
 - `audience`
 - `not_before`
 
@@ -122,7 +122,7 @@ agent key 用于 AI agent、bot、CI 或 automation。
 
 要求：
 
-- MUST 有明确 scope
+- MUST 有明确 agent_key_scope
 - MUST 有 `expires_at` 或 revocation check
 - MUST 绑定 accountable actor
 - SHOULD 使用 proposal / approval 约束执行高风险动作
@@ -131,9 +131,9 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 
 | 事件 | 用途 | 必要授权 |
 | --- | --- | --- |
-| `cx.agent.key.authorized` | Payload MUST validate as `event-payload.schema.json#/$defs/agent_key_authorized_payload`，绑定 `agent_did` / `key_id` / `verification_method` / `accountable_actor` / `scope` / `audience` / `issued_at` / `expires_at` / `approval_evidence`。 | `cx.agent.key.manage` |
-| `cx.agent.key.rotated` | Payload MUST validate as `agent_key_rotated_payload`；`key_id` 是被替换 key，`replacement_key_id` 是新 key，二者必须在同一 accountable actor 下，scope 不得扩大，TTL 不得长于被替换 key。 | `cx.agent.key.manage` |
-| `cx.agent.key.revoked` | Payload MUST validate as `agent_key_revoked_payload`，绑定 `agent_did` / `key_id` / `revoked_at` / `revoked_by` / `revocation_frontier`，并使后续 session / protocol action proof fail closed。 | `cx.agent.key.manage` |
+| `cx.agent.key.authorize` | Payload MUST validate as `event-payload.schema.json#/$defs/agent_key_authorize_payload`，绑定 `agent_did` / `key_id` / `verification_method` / `accountable_actor` / `agent_key_scope` / `audience` / `issued_at` / `expires_at` / `approval_evidence`。 | `cx.agent.key.manage` |
+| `cx.agent.key.rotate` | Payload MUST validate as `agent_key_rotate_payload`；`key_id` 是被替换 key，`replacement_key_id` 是新 key，二者必须在同一 accountable actor 下，agent_key_scope 不得扩大，TTL 不得长于被替换 key。 | `cx.agent.key.manage` |
+| `cx.agent.key.revoke` | Payload MUST validate as `agent_key_revoke_payload`，绑定 `agent_did` / `key_id` / `revoked_at` / `revoked_by` / `revocation_frontier`，并使后续 session / protocol action proof fail closed。 | `cx.agent.key.manage` |
 
 高风险 agent key（能写入、调用外部工具、管理 capability、读取审计材料或代表用户发起 service-call）的 grant MUST 同时有 `expires_at`、resource selector、accountable actor、approval/proposal evidence 和 revocation freshness check。只声明 API token 或本地环境变量而没有上述事件链的 agent key 不得用于 v1 standard operation。
 
@@ -175,7 +175,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意协作 Realm。Contrix v1 使用 **Principal Control Event Stream** 承载这些 durable identity state。
 
-当 `cx.device.authorized`、`cx.device.revoked`、`cx.device.list_update` 或 `cx.session.grant` 以 `cx.schema.event.v1` Event Envelope 传播时：
+当 `cx.device.authorize`、`cx.device.revoke`、`cx.device.list_update` 或 `cx.session.grant` 以 `cx.schema.event.v1` Event Envelope 传播时：
 
 - `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意协作 Realm 的 `realm_id`。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
@@ -191,7 +191,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 ### 5.0 First-Device Inception Bootstrap
 
-§5.1 假设新设备由"已授权设备"签发 `cx.device.authorized` 才能加入。但 principal 第一次激活时只有一台设备，没有任何已授权 peer 可以扮演这个角色。如果不为这种"无 peer 设备"的初始情形定义协议路径，§5.1 的链条永远无法启动，§4.1 的 control stream 也无法获得 genesis record。
+§5.1 假设新设备由"已授权设备"签发 `cx.device.authorize` 才能加入。但 principal 第一次激活时只有一台设备，没有任何已授权 peer 可以扮演这个角色。如果不为这种"无 peer 设备"的初始情形定义协议路径，§5.1 的链条永远无法启动，§4.1 的 control stream 也无法获得 genesis record。
 
 Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信任根，把"第一台设备的 device key"和"DID 的 inception controller key"建立可验证绑定。Contrix 不发明新的 DID inception 操作；它把已有 DID method 的 inception 证据**重用**为 principal control stream 的 genesis record 授权依据。
 
@@ -207,9 +207,9 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
    - `created_by_principal = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
 
    Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；缺一即按普通 collaboration Realm 处理（不再具备 control stream 的特殊语义）。
-4. **首台设备自授权**：客户端构造 `cx.device.authorized` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
-5. **Inception key 的归宿**：完成步骤 4 后，inception key 的在线签名角色 MUST 在 `inception_key_max_online_window` 内退出。推荐窗口为 ≤1h；24h 只是协议硬上限，deployment policy MUST NOT 配置更长窗口。`personal_node` / `small_team` profile 在首台 `cx.device.authorized` accepted 后 SHOULD 立即触发 `did:webvh` entry 1 写入或封存流程，不应等待硬上限。退出方式只能是：（a）写入 `did:webvh` entry 1 或等价 DID method operation，把日常 update / device authorization 权限轮换到新的 controller / device key，并从首台设备销毁 inception private key；或（b）把 inception key 封存为 recovery-only key，放入 secret storage / threshold recovery，记录 `sealed_at`、`expires_at?`、allowed recovery method，并禁止在线日常签名。窗口过期后，receiver / Auth Server MUST 拒绝 inception key 继续签发 `cx.device.authorized`、`cx.session.grant`、长期 capability 或 ordinary DID update，并写入安全审计；它只能按已声明 recovery policy 进入恢复流程。它 MUST NOT 长期作为日常 device signing key——暴露面应被限制到 inception bootstrap 与 recovery。
-6. **后续设备**：第二台及以后设备走 §5.1 标准流程，由首台已授权设备签发 `cx.device.authorized`。
+4. **首台设备自授权**：客户端构造 `cx.device.authorize` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
+5. **Inception key 的归宿**：完成步骤 4 后，inception key 的在线签名角色 MUST 在 `inception_key_max_online_window` 内退出。推荐窗口为 ≤1h；24h 只是协议硬上限，deployment policy MUST NOT 配置更长窗口。`personal_node` / `small_team` profile 在首台 `cx.device.authorize` accepted 后 SHOULD 立即触发 `did:webvh` entry 1 写入或封存流程，不应等待硬上限。退出方式只能是：（a）写入 `did:webvh` entry 1 或等价 DID method operation，把日常 update / device authorization 权限轮换到新的 controller / device key，并从首台设备销毁 inception private key；或（b）把 inception key 封存为 recovery-only key，放入 secret storage / threshold recovery，记录 `sealed_at`、`expires_at?`、allowed recovery method，并禁止在线日常签名。窗口过期后，receiver / Auth Server MUST 拒绝 inception key 继续签发 `cx.device.authorize`、`cx.session.grant`、长期 capability 或 ordinary DID update，并写入安全审计；它只能按已声明 recovery policy 进入恢复流程。它 MUST NOT 长期作为日常 device signing key——暴露面应被限制到 inception bootstrap 与 recovery。
+6. **后续设备**：第二台及以后设备走 §5.1 标准流程，由首台已授权设备签发 `cx.device.authorize`。
 
 #### 5.0.2 `personal_node` Profile 降级路径（principal_method=`did:web`）
 
@@ -230,10 +230,10 @@ Receiver 接受 principal 的首批 control stream Event 时，MUST：
   - `did:webvh`：拉取 `did.jsonl` entry 0，校验 SCID、entry hash、controller proof，确认 inception key 与 genesis Event `proofs[].verification_method` 一致。
   - `did:web` (personal_node)：拉取当前 DID Document，校验 inception public key 出现在 `verificationMethod` 中，并校验 continuity proof 由 `did:key:<inception_pub>` 签发。
   - 其他 method：按对应 method evidence 验证 inception 控制权。
-- 校验首台 `cx.device.authorized` Event 的 `authorized_by` 引用与 inception key 一致；不接受 `authorized_by` 引用任何尚未 anchored 的 device。
-- Inception bootstrap 成功后，receiver MUST 标记该 control realm 已通过 inception；后续 §5.1 的 `cx.device.authorized` Event MUST `authorized_by` 一台已 anchored 的 device，不得再次自授权。
+- 校验首台 `cx.device.authorize` Event 的 `authorized_by` 引用与 inception key 一致；不接受 `authorized_by` 引用任何尚未 anchored 的 device。
+- Inception bootstrap 成功后，receiver MUST 标记该 control realm 已通过 inception；后续 §5.1 的 `cx.device.authorize` Event MUST `authorized_by` 一台已 anchored 的 device，不得再次自授权。
 
-**后续 device authorization 的 control Realm 归属校验（normative）**：reducer 接收非 inception-bootstrap 的 `cx.device.authorized` 时，不能只验证 device signature 与 `authorized_by` 链。它还 MUST 校验 enclosing `realm_id` 指向的 Realm 已 accepted 且满足全部 control-stream 绑定：(a) `fields.purpose == "principal_control"`；(b) `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；(c) `created_by_principal` 等于被授权 device 所属 principal DID，且该 DID 与签发 `authorized_by` device 的 principal 一致。任一不满足时 MUST `failed_precondition`，`reason_code=device_authorized_principal_control_realm_mismatch`；实现不得把该 event 当作普通 collaboration Realm 中的业务事件继续处理，也不得把另一个 principal 的 control Realm 状态复用于当前 principal。
+**后续 device authorization 的 control Realm 归属校验（normative）**：reducer 接收非 inception-bootstrap 的 `cx.device.authorize` 时，不能只验证 device signature 与 `authorized_by` 链。它还 MUST 校验 enclosing `realm_id` 指向的 Realm 已 accepted 且满足全部 control-stream 绑定：(a) `fields.purpose == "principal_control"`；(b) `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；(c) `created_by_principal` 等于被授权 device 所属 principal DID，且该 DID 与签发 `authorized_by` device 的 principal 一致。任一不满足时 MUST `failed_precondition`，`reason_code=device_authorized_principal_control_realm_mismatch`；实现不得把该 event 当作普通 collaboration Realm 中的业务事件继续处理，也不得把另一个 principal 的 control Realm 状态复用于当前 principal。
 
 #### 5.0.4 攻击模型
 
@@ -326,11 +326,11 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 1. 新设备本地生成 device key。
 2. 新设备展示 pairing code / QR，其中包含 device public key、challenge、过期时间。
 3. 已授权设备扫描并验证 challenge。
-4. 已授权设备签发 `cx.device.authorized` event。
+4. 已授权设备签发 `cx.device.authorize` event。
 5. Events API / identity registry 接受并传播该 event。
 6. 新设备开始同步 Event history、Realm membership 和必要的 MLS Welcome。
 
-`cx.device.authorized.payload` 示例：
+`cx.device.authorize.payload` 示例：
 
 ```json
 {
@@ -356,13 +356,13 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 ### 5.2 设备吊销
 
-设备丢失、出售、被恶意控制或员工离职时，MUST 发布 `cx.device.revoked`。
+设备丢失、出售、被恶意控制或员工离职时，MUST 发布 `cx.device.revoke`。
 
 吊销后：
 
 - Events API MUST 拒绝该设备的新签名写入
 - authz MUST 视相关 session grant 失效
-- 加密 Realm SHOULD 通过 MLS Remove 推进 epoch；Remove 的 `governance_binding.membership_frontier` MUST 覆盖 `cx.device.revoked.payload.revocation_frontier` 或覆盖已导入该 control-stream frontier 的 Realm governance Move
+- 加密 Realm SHOULD 通过 MLS Remove 推进 epoch；Remove 的 `governance_binding.membership_frontier` MUST 覆盖 `cx.device.revoke.payload.revocation_frontier` 或覆盖已导入该 control-stream frontier 的 Realm governance Move
 - 客户端和受托 projection executor SHOULD 标记已撤销设备产生的未确认 Operation 为高风险
 
 ## 6. Session Grant
@@ -410,7 +410,7 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 
 Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 中声明备份域，且不得把一个域的解锁材料当作另一个域的授权证明：
 
-- `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `cx.device.authorized` 等操作。
+- `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `cx.device.authorize` 等操作。
 - `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。
 - `mls_history`：保存用户已有权读取的 Realm / Flow track 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
 
@@ -536,7 +536,7 @@ Producer MUST reject attempts to write two backup envelopes with the same nonce 
 2. 用户输入 passphrase 或收集 recovery shares。
 3. 客户端解密 backup envelope。
 4. 客户端验证 backup commitment。
-5. 客户端用 recovery policy 发布 `recover` 或 `cx.device.authorized`。
+5. 客户端用 recovery policy 发布 `recover` 或 `cx.device.authorize`。
 6. 若涉及 E2EE Realm，客户端拉取 MLS state 并处理 epoch 缺口。
 
 恢复 device key 时 MUST 生成新的 device key，不得把备份中的旧设备身份克隆到新设备。恢复出的 `self_signing_key` / `user_signing_key` 可用于重建 cross-signing 状态，但 Cross-Signing Reset 仍必须满足 `device-lifecycle.md` 的高风险证明要求。
@@ -546,7 +546,7 @@ Producer MUST reject attempts to write two backup envelopes with the same nonce 
 DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某段历史密文”：
 
 - 当前控制密钥、已授权 device key 或 recovery key 对服务端 fresh challenge 签名。
-- 新设备生成 device key 后，由当前有效设备或 recovery policy 签发 `cx.device.authorized`。
+- 新设备生成 device key 后，由当前有效设备或 recovery policy 签发 `cx.device.authorize`。
 - recovery service 在 DID Document、organization policy 或 recovery policy 中被明确声明，并签发可验证 recovery event。
 
 “能解密用某个公钥加密的数据”MAY 作为恢复流程中的一个密码学因子，但不得单独等同于账号所有权。允许的形式是：服务端生成短期随机 challenge，按当前 key-log / recovery policy 指定的 recovery public key 加密，客户端在本地解密后对 challenge transcript 签名或返回 proof。该流程 MUST 绑定：
@@ -575,7 +575,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 - **钓鱼与中继**：攻击者可能诱导用户解密 challenge；proof 必须绑定 domain / service DID / audience，并在 UI 中展示高风险恢复意图。
 - **隐私泄露**：用历史内容证明所有权会向恢复服务暴露用户拥有或可读哪些私有内容。
 
-因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 DID method history、key log、`recover`、`rotate`、`cx.device.authorized` 或等价 signed event。
+因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 DID method history、key log、`recover`、`rotate`、`cx.device.authorize` 或等价 signed event。
 
 ## 8. 社交恢复与门限恢复
 
@@ -640,7 +640,7 @@ Recovery policy 字段：
 Contrix v1 对设备、会话和恢复要求如下：
 
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
-- `cx.device.authorized` 与 `cx.device.revoked` MUST 进入 schema registry，并按 event auth 规则验证。`cx.device.revoked.payload.revocation_frontier` MUST 绑定撤销被接受时的 principal control stream frontier；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
+- `cx.device.authorize` 与 `cx.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`cx.device.revoke.payload.revocation_frontier` MUST 绑定撤销被接受时的 principal control stream frontier；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
 - Session grant MUST 绑定 principal DID、device id、service DID / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
 - Backup envelope test vector MUST 覆盖加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定和服务端不可解密要求。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。

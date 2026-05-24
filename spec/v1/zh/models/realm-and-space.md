@@ -123,7 +123,7 @@ Schema id: `cx.schema.realm.v1`
 
 1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `anchor_profile` / `hash_profile` 等 create-locked 字段固化）。
 2. **写入 `cx.component.member.state.v1` cell**（`subject=created_by_principal`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `cx.member.state{join}` event，event 本身的 `created_by_principal == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
-3. **写入 `cx.component.realm.create.v1` cell**（cas-register，bottom=reject，duplicate create 拒绝为 `realm_already_exists`）。
+3. **写入 `cx.component.realm.create.v1` cell**（cas_register，bottom=reject，duplicate create 拒绝为 `realm_already_exists`）。
 
 Authz 含义：
 
@@ -146,7 +146,7 @@ Realm 有两个终态 event，语义不同：
 | `cx.realm.tombstone` | "本 Realm 不再活跃" — 转移到 successor Realm（产品改版、组织重组等）。 | ❌ 但 successor 接续历史可达 | 必填 `successor_realm_id` |
 | `cx.realm.destroy` | "本 Realm 永久退役" — 终极去活。无 successor，等同于"该 Realm 在该 deployment 内永久关闭"。 | ❌ | MUST NOT 设 successor |
 
-`cx.realm.tombstone` 写入 `cx.component.realm.tombstone.v1`，`cx.realm.destroy` 写入 `cx.component.realm.destroy.v1`；二者均为 cas-register（bottom=reject），各自不可重复写入。capability：`cx.realm.lifecycle.tombstone` / `cx.realm.lifecycle.destroy`（high risk，capabilities.md §10）。
+`cx.realm.tombstone` 写入 `cx.component.realm.tombstone.v1`，`cx.realm.destroy` 写入 `cx.component.realm.destroy.v1`；二者均为 cas_register（bottom=reject），各自不可重复写入。capability：`cx.realm.lifecycle.tombstone` / `cx.realm.lifecycle.destroy`（high risk，capabilities.md §10）。
 
 #### 2.6.1 `cx.realm.destroy` 终态规则（normative）
 
@@ -243,13 +243,13 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。pre-inversion 形态已在 [`removed-event-kinds.json`](../../artifacts/registry/removed-event-kinds.json) 中标 hard_reject，不存在兼容映射通道；下游迁移工具按 drift artifact 一次性翻译为新名称后再回放。
 
-### 3.5 `cx.space.parent` cas-register basis
+### 3.5 `cx.space.parent` cas_register basis
 
 `cx.space.parent` 写入 cell：
 
 ```text
 cell_id := cx:cell:cx.component.space.parent.v1:<space_id>
-lattice := cas-register
+lattice := cas_register
 bottom  := reject
 value   := id:space | null
 ```
@@ -264,11 +264,11 @@ value   := id:space | null
 
 ### 3.6 Flow 位置
 
-Flow 在 board/list 类 Space 中的位置仍由 cas-register cell 维护：
+Flow 在 board/list 类 Space 中的位置仍由 cas_register cell 维护：
 
 ```text
 cell_id     := cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
-lattice     := cas-register
+lattice     := cas_register
 bottom      := reject
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
@@ -343,5 +343,5 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 - Flow / Message / track 语义：[flow-and-message.md](./flow-and-message.md)。
 - Relation 基数与跨 Realm 规则：[relation.md](./relation.md)。
 - Move / Anchor / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
-- `cx.flow.move` / cas-register sync 编译：[`../sync/operations-sync.md`](../sync/operations-sync.md)。
+- `cx.flow.move` / cas_register sync 编译：[`../sync/operations-sync.md`](../sync/operations-sync.md)。
 - Realm / Space schema：`artifacts/schemas/realm.schema.json`、`artifacts/schemas/space.schema.json`。

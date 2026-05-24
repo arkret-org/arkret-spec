@@ -71,13 +71,13 @@ ID 语义：
       "kind": "object",
       "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "object_type": "flow",
-      "scope": "realm_wide"
+      "match_scope": "realm_wide"
     },
     {
       "kind": "morph",
       "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "morph_type": "document",
-      "scope": "realm_wide"
+      "match_scope": "realm_wide"
     }
   ],
   "constraints": [
@@ -129,7 +129,7 @@ Contrix v1 支持以下 `kind`：
 - `policy`
 - `invite`
 - `notification`
-- `read_marker`
+- `read_cursor`
 - `blob`
 
 资源选择器应把 Space（`kind=board/list/...`）、Flow track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
@@ -169,7 +169,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.flow.tracks.manage`（Flow tracks map 写入入口，对应 event `cx.flow.tracks.update`）
 - `cx.relation.create`
 - `cx.relation.update`
-- `cx.relation.delete`
+- `cx.relation.tombstone`
 - `cx.space.create`
 - `cx.space.update`
 - `cx.space.parent`
@@ -217,7 +217,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.capability.grant`
 - `cx.capability.delegate`
 - `cx.capability.revoke`
-- `cx.agent.key.manage`（high risk；授权、轮换、撤销 agent key，target=`cx.agent.key.authorized` / `cx.agent.key.rotated` / `cx.agent.key.revoked`）
+- `cx.agent.key.manage`（high risk；授权、轮换、撤销 agent key，target=`cx.agent.key.authorize` / `cx.agent.key.rotate` / `cx.agent.key.revoke`）
 - `cx.policy.manage`
 - `cx.policy.set`
 - `cx.policy.rule`
@@ -262,7 +262,7 @@ Audit action 只授权受控审计代理执行“先记录后解密”、读取�
 
 ### 5.6 人类界面与个人状态动作
 
-- `cx.read.marker`
+- `cx.read.cursor`
 - `cx.notification.read`
 - `cx.notification.ack`
 - `cx.invite.accept`
@@ -313,11 +313,11 @@ Contrix v1 支持：
 
 ### 6.1 Effective Validity Window
 
-Grant 的 wire schema 同时允许顶层 `valid_from` / `valid_until` 和 `constraints[]` 中的 temporal `not_before` / `expires_at`。它们不是两套独立有效期；授权解析 MUST 先归一化为单一 effective window：
+Grant 的 wire schema 同时允许顶层 `not_before` / `expires_at` 和 `constraints[]` 中的 temporal `not_before` / `expires_at`。它们不是两套独立有效期；授权解析 MUST 先归一化为单一 effective window：
 
 ```text
-effective_not_before = max(grant.valid_from?, temporal.not_before[]?)
-effective_expires_at = min(grant.valid_until?, temporal.expires_at[]?)
+effective_not_before = max(grant.not_before?, temporal.not_before[]?)
+effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 ```
 
 缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但高风险、agent、service、delegated grant 仍按本文风险规则要求必须有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、delegation narrowing 和 revoke freshness 判断都 MUST 使用 effective window，不得分别按顶层字段和 temporal constraint 做两次不一致判断。
@@ -450,7 +450,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 | 子 grant 字段 | 与 parent grant 关系 |
 | --- | --- |
 | `effective_not_before` | MUST ≥ `parent.effective_not_before` |
-| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent 在 v1 中不允许;若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `valid_until` 或 temporal `expires_at`，且 `effective_expires_at` ≤ `now + max_delegation_lifetime_ms`,默认 24 小时) |
+| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent 在 v1 中不允许;若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `expires_at` 或 temporal `expires_at`，且 `effective_expires_at` ≤ `now + max_delegation_lifetime_ms`,默认 24 小时) |
 | `max_delegation_depth` | MUST ≤ `parent.max_delegation_depth - 1` |
 | `actions[]` | MUST ⊆ `parent.actions[]` |
 | `resources[]` | MUST 是 `parent.resources[]` 的 selector-narrowing 子集(见 `resource-selector-grammar.md`) |
@@ -517,7 +517,7 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 
 - 创建 / 取消 invite 需要 `cx.invite.create` / `cx.invite.revoke`
 - 接受发给自己的 invite 需要 `cx.invite.accept`
-- 写入自己的 `read_marker` 需要 `cx.read.marker`
+- 写入自己的 `read_cursor` 需要 `cx.read.cursor`
 - 读取 notification 需要 `cx.notification.read`
 - `cx.notification.ack` 只应影响自己的派生 inbox 状态
 
@@ -650,7 +650,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 | --- | --- | --- | --- |
 | 高风险（`cx.realm.lifecycle.destroy`、`cx.capability.revoke`、`cx.realm.admin`、`cx.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
 | 中风险（`cx.flow.update`、`cx.member.state`、`cx.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
-| 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read.marker`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
+| 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read.cursor`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
 
 设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Move 直接丢弃，无副作用。
 
@@ -672,7 +672,7 @@ Contrix v1 固定：
 - 权限采用 capability 模型。
 - Flow、discussion、agent 执行都使用统一 grant 体系；Flow track 完全继承源 Realm access，独立访问域升级到 linked Realm。
 - `cx.message.revise.own` 与 `cx.message.redact` 分开。
-- invite / notification / read marker 进入统一 capability 体系。
+- invite / notification / read cursor 进入统一 capability 体系。
 - 协议级语义采用 allow-grant + explicit revoke。
 - agent 使用窄权限、短时效、可审计授权。
 - accountable Actor 是通用授权对象。

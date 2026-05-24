@@ -10,7 +10,7 @@
     "principal_id",
     "previous_generation",
     "new_generation",
-    "reset_reason",
+    "reset_reason_code",
     "proof",
     "issued_at"
   ],
@@ -36,10 +36,10 @@
       "minimum": 2,
       "description": "Generation that the successor cx.cross_signing.publish will use; MUST equal previous_generation + 1."
     },
-    "reset_reason": {
+    "reset_reason_code": {
       "type": "string",
-      "minLength": 1,
-      "description": "Free string; SHOULD come from {rotation, compromise, device_loss, policy_required}."
+      "enum": ["rotation", "compromise", "device_loss", "policy_required"],
+      "description": "Machine-readable reset reason code."
     },
     "proof": {
       "oneOf": [
@@ -76,11 +76,11 @@
     },
     "principal_signing_proof": {
       "type": "object",
-      "description": "Principal-control-key proof. The schema only encodes wire shape; key-class verification is normative in zh/crypto-media/device-lifecycle.md §14.4. `signed_by` MUST be a principal-grade DID-control verification method (zh/identity/key-management.md §3.2 — e.g. `did:webvh:...#cx_principal_signing_v1` or the DID method's equivalent control key), and MUST NOT be the self_signing_key or user_signing_key being retired by this reset.",
-      "required": ["kind", "signed_by", "alg", "signature"],
+      "description": "Principal-control-key proof. The schema only encodes wire shape; key-class verification is normative in zh/crypto-media/device-lifecycle.md §14.4. `verification_method` MUST be a principal-grade DID-control verification method (zh/identity/key-management.md §3.2 — e.g. `did:webvh:...#cx_principal_signing_v1` or the DID method's equivalent control key), and MUST NOT be the self_signing_key or user_signing_key being retired by this reset.",
+      "required": ["kind", "verification_method", "alg", "signature"],
       "properties": {
         "kind": { "const": "principal_signing" },
-        "signed_by": {
+        "verification_method": {
           "$ref": "#/$defs/did_url",
           "description": "Principal-grade control-key verification method. MUST NOT reference the SSK/USK being reset (§14.4 rule (a))."
         },
@@ -111,13 +111,13 @@
     },
     "device_quorum_signature": {
       "type": "object",
-      "required": ["device_id", "signed_by", "alg", "signature"],
+      "required": ["device_id", "verification_method", "alg", "signature"],
       "properties": {
         "device_id": {
           "type": "string",
           "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "signed_by": { "$ref": "#/$defs/did_url" },
+        "verification_method": { "$ref": "#/$defs/did_url" },
         "alg": { "type": "string", "minLength": 1 },
         "signature": { "$ref": "#/$defs/signature_b64u" }
       },
@@ -145,11 +145,11 @@
     },
     "trusted_recovery_service_proof": {
       "type": "object",
-      "required": ["kind", "service_did", "signed_by", "alg", "signature"],
+      "required": ["kind", "service_did", "verification_method", "alg", "signature"],
       "properties": {
         "kind": { "const": "trusted_recovery_service" },
         "service_did": { "$ref": "#/$defs/did" },
-        "signed_by": { "$ref": "#/$defs/did_url" },
+        "verification_method": { "$ref": "#/$defs/did_url" },
         "alg": { "type": "string", "minLength": 1 },
         "signature": { "$ref": "#/$defs/signature_b64u" },
         "attestation_ref": {

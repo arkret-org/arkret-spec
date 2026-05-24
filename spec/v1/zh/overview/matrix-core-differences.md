@@ -96,7 +96,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 
 | Matrix | Contrix | 说明 |
 | --- | --- | --- |
-| Device Ed25519 fingerprint key | `cx:device:` 记录里的 `verify_key` (Ed25519) | Contrix 把 device 公钥写进 `cx:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `cx.device.authorized` Event 锚定到 principal DID，而非 homeserver 账号。 |
+| Device Ed25519 fingerprint key | `cx:device:` 记录里的 `verify_key` (Ed25519) | Contrix 把 device 公钥写进 `cx:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `cx.device.authorize` Event 锚定到 principal DID，而非 homeserver 账号。 |
 | Device Curve25519 identity key | `cx:device:` 记录里的 `hpke_key` (X25519) | 用于 HPKE-based to-device 通道、KeyPackage init key 来源、加密 backup envelope 接收。Matrix Curve25519 用于 Olm 长期 DH，语义对等但用途窄一些。 |
 | (homeserver 账号绑定) | DID method controller / inception key | Contrix 在 master 密钥之上多一层：DID method 的初始控制材料（`did:webvh` entry-0 controller、`did:plc` rotation key、KERI inception 等）是身份根。principal signing key 必须进入 DID method history / key log，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §5.0。 |
 
@@ -128,7 +128,7 @@ Contrix 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lif
 
 差异：Contrix `principal_signing_key` 的演进绑定到 DID method 链（`did:webvh` entry、`did:plc` operation 等），不是 homeserver 内部状态；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`，并需要 DID 控制证明、recovery 解锁、设备 quorum 签名或受信账户恢复服务签名之一。
 
-线级形态：SSK / USK 公钥与 PSK 绑定通过 `cx.cross_signing.publish`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `cx.device.authorized` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `cx.cross_signing.reset`（§14.1），`new_generation = previous_generation + 1`，并必须在 `cx.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布对应 publish，否则接收方对该 `new_generation` 的 device authorization MUST 拒绝。验证 transaction 检测到 reset 时以 `code=cross_signing_reset` 取消，对应 §10.6 / §14.3 cancel code。
+线级形态：SSK / USK 公钥与 PSK 绑定通过 `cx.cross_signing.publish`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `cx.device.authorize` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `cx.cross_signing.reset`（§14.1），`new_generation = previous_generation + 1`，并必须在 `cx.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布对应 publish，否则接收方对该 `new_generation` 的 device authorization MUST 拒绝。验证 transaction 检测到 reset 时以 `code=cross_signing_reset` 取消，对应 §10.6 / §14.3 cancel code。
 
 #### 4.5.5 Secret Storage 与 Key Backup
 
@@ -156,7 +156,7 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 - **Session key（`cx.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。MUST 绑定 audience / origin / service / scope / 过期时间；不得签发长期 device grant、不得访问 E2EE 历史密钥。资源服务器仍 MUST 重新验证 DID control state，而不是把 OIDC 成功视为 DID 控制证明。
 - **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，MUST 有 scope、`expires_at`、accountable actor 绑定，SHOULD 用 proposal / approval 约束高风险动作。Matrix bot 复用 user / appservice token，没有这一层 scope/审计要求。
 - **Applet delegated device key**：Applet 代表 ghost actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` MUST 标记 `applet_id`，capability MUST 限定 Realm / 协议 / 动作 / 有效期，**且 delegated device 不得签发新的人类 device**。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
-- **Inception key**：DID method 层的初始控制密钥，是 principal control realm genesis 与首台 `cx.device.authorized` 的信任根。使用后 SHOULD 立即写入 DID method 轮换链中并从首台设备销毁，或作为 recovery share 存入 secret storage；MUST NOT 长期作为日常 device signing key。
+- **Inception key**：DID method 层的初始控制密钥，是 principal control realm genesis 与首台 `cx.device.authorize` 的信任根。使用后 SHOULD 立即写入 DID method 轮换链中并从首台设备销毁，或作为 recovery share 存入 secret storage；MUST NOT 长期作为日常 device signing key。
 
 #### 4.5.8 验证 / 登录 / 设备授权的语义解耦
 
@@ -164,8 +164,8 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 
 | 操作 | Contrix 允许产出 | Contrix MUST NOT 自动产出 |
 | --- | --- | --- |
-| 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `cx.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`cx.device.authorized`、E2EE 历史密钥访问 |
-| 设备授权 | `cx.device.authorized`、DID key-log operation、`cx.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
+| 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `cx.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`cx.device.authorize`、E2EE 历史密钥访问 |
+| 设备授权 | `cx.device.authorize`、DID key-log operation、`cx.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
 | 设备密钥验证（SAS / QR） | `user_signing_key` 签名（跨 principal）、本地信任标记 | 长期 device grant、Realm capability、登录态 |
 
 验证消息形状（`cx.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Contrix 进一步规范化：
@@ -269,7 +269,7 @@ Matrix state event 没有显式的 cell 代数。Contrix v1 的 registry / Realm
 
 - `cell_family`（稳定 `cx.component.*.v<n>` URI）
 - `cell_subject`（null、payload field 或 composite descriptor）
-- `lattice`（`or-set` / `mv-register` / `cas-register` / `fsm` / `counter` / `ordered-log`）
+- `lattice`（`or_set` / `mv_register` / `cas_register` / `fsm` / `counter` / `ordered_log`）
 - `bottom`（`reject` / `expose`）
 
 Receiver 不识别核心 lattice type MUST fail closed；扩展 cell family 必须通过 schema/profile 显式 opt-in。
@@ -279,13 +279,13 @@ Receiver 不识别核心 lattice type MUST fail closed；扩展 cell family 必�
 Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Contrix v1 引入 **MLS Governance Binding**（profile `cx.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
 - **Commit 侧** —— 每个 `cx.mls.commit` 携带 `governance_binding`（GroupContext extension `cx_governance_binding`），把 membership / policy / capability / discussion-metadata roots 哈希进 MLS transcript。
-- **Lattice 侧** —— MLS commit 是 Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_frontier_cell`（or-set）。E2EE message Move 用 `contains` precondition 证明 `covered_frontier_cell` 覆盖自身 `anchor_ref` 所需 governance frontier。
+- **Lattice 侧** —— MLS commit 是 Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_frontier_cell`（or_set）。E2EE message Move 用 `contains` precondition 证明 `covered_frontier_cell` 覆盖自身 `anchor_ref` 所需 governance frontier。
 
 **理由**：撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。`covered_frontier_cell` 让这条 "governance state 已被 commit attest 覆盖" 的事实变成可被 reducer 确定性查询的 lattice cell，而不是隐含在 transcript hash 里的 ad-hoc 检查。governance / recovery Move 不引用 `covered_frontier_cell`，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Contrix v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`cx.consent.grant` / `cx.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `cx:cell:cx.component.consent.grant.v1:<consent_id>` cell（or-set, bottom=reject；or-set 本身不产生 ⊥，该 bottom 值与 registry 保持一致），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Contrix v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`cx.consent.grant` / `cx.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `cx:cell:cx.component.consent.grant.v1:<consent_id>` cell（or_set, bottom=reject；or_set 本身不产生 ⊥，该 bottom 值与 registry 保持一致），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
 
 **理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent cell 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 
@@ -305,7 +305,7 @@ Contrix 不应忽略 Matrix 的成熟度：
 - [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Governance Binding：`governance_binding` 与 `covered_frontier_cell`
 - [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) — device 密钥记录、prekey / fallback / KeyPackage claim、to-device 验证状态机、`push_target_id`、key backup envelope
 - [`identity/key-management.md`](../identity/key-management.md) — inception / principal / recovery / device / session / agent / KeyPackage 密钥层级，`backup_class` 域隔离，社交恢复
-- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or-set lattice）
+- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or_set lattice）
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)
 - [`extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)

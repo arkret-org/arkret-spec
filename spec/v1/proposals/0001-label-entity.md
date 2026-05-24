@@ -65,7 +65,7 @@ morph --labeled_with-->  label    cardinality: many-to-many
 ```
 
 - 写入:`cx.relation.create relation_kind=labeled_with`
-- 删除:`cx.relation.delete`
+- 删除:`cx.relation.tombstone`
 - 冲突收敛:Relation 集合,OR-Set
 - **跨 Realm 约束**:`from_ref.realm_id == to_ref.realm_id`,否则 `schema_violation`(避免审计边界逃逸,与 Realm 是安全边界一致)。
 
@@ -84,7 +84,7 @@ morph --labeled_with-->  label    cardinality: many-to-many
 | action | risk_tier | target event kinds |
 | --- | --- | --- |
 | `cx.label.manage` | medium | `cx.label.create`, `cx.label.update`, `cx.label.archive`, `cx.label.restore`, `cx.label.tombstone` |
-| `cx.label.apply` | low | `cx.relation.create` 限 `relation_kind=labeled_with` + `cx.relation.delete` 限同 kind(通过 capability constraint `relation_kind_allow`) |
+| `cx.label.apply` | low | `cx.relation.create` 限 `relation_kind=labeled_with` + `cx.relation.tombstone` 限同 kind(通过 capability constraint `relation_kind_allow`) |
 
 理由:Trello / GitHub 常见场景是"只有 admin 能扩调色板,所有成员都能贴 label"。
 

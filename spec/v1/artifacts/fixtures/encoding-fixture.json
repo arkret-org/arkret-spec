@@ -139,7 +139,7 @@
         "schema": "cx.schema.event_batch_receipt.v1",
         "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
         "issuer": "did:web:alice.example",
-        "scope": {
+        "receipt_scope": {
           "actor_id": "did:web:alice.example"
         },
         "frontier": {
@@ -151,12 +151,12 @@
         ],
         "created_at": "2026-04-26T00:00:00Z"
       },
-      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_hash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"cx:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"cx.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:web:alice.example\"}}",
-      "expected_digest": "sha256:eb40300af8308005fc059cd441e5981f21ae54466e1d1653cca983e49193e915",
+      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_hash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"cx:receipt:01964186-0000-7000-8000-000000000000\",\"receipt_scope\":{\"actor_id\":\"did:web:alice.example\"},\"schema\":\"cx.schema.event_batch_receipt.v1\"}",
+      "expected_digest": "sha256:a828dc768e814ca0be50b5014e1115612776fa342f66df849e8bdd7e72dfa9b4",
       "fail_conditions": [
         "events array sorted or deduplicated before hashing",
         "proof field included in receipt digest",
-        "issuer/scope/frontier/schema excluded from digest",
+        "issuer/receipt_scope/frontier/schema excluded from digest",
         "receipt_id case-folded by implementation"
       ]
     },

@@ -151,7 +151,7 @@ GET /api/v1/server/describe
     "max_body_bytes": 1048576,
     "max_events_per_batch": 100,
     "device_message_max_ttl_seconds": 86400,
-    "read_marker_debounce_ms": 1000,
+    "read_cursor_debounce_ms": 1000,
     "dangling_redaction_min_retention_days": 30,
     "snapshot_retention_heads": 2
   },
@@ -169,7 +169,7 @@ GET /api/v1/server/describe
     "entries": [
       {
         "operation_id": "cx.events.submit",
-        "scope": ["service_did", "realm_id"],
+        "rate_limit_scope": ["service_did", "realm_id"],
         "window_seconds": 60,
         "max_requests": 120,
         "burst": 20
@@ -225,7 +225,7 @@ GET /api/v1/server/describe
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
   `claim_kind` 当前固定为 `self_claimed`；cotest 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
-- `verified_profiles: [{profile_id, claim_kind: "cotest_verified", cotest_run_id, artifact_hash, artifact_ref, cotest_issuer_did, signature, timestamp, valid_until?}]` —
+- `verified_profiles: [{profile_id, claim_kind: "cotest_verified", cotest_run_id, artifact_hash, artifact_ref, cotest_issuer_did, signature, timestamp, expires_at?}]` —
   附带 cotest run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、cotest issuer DID、签名与验证时间戳的已验证 profile。**约束**：当 `development_mode=true`
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
@@ -242,7 +242,7 @@ GET /api/v1/server/describe
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
 3. cotest 与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`cotest_verified`、
    `experimental`、`compat`、`not_claimed`。
-4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 cotest artifact，校验 `artifact_hash`、`cotest_issuer_did`、`signature`、时间戳和可选 `valid_until`。
+4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 cotest artifact，校验 `artifact_hash`、`cotest_issuer_did`、`signature`、时间戳和可选 `expires_at`。
 
 `plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
 
@@ -517,7 +517,7 @@ Flow context timeline、Flow discussion timeline 和 Flow context projection 是
 
 ### 6.3 Inbox / Notification Projection
 
-Inbox 和 notification 可以由客户端从本地 Event、read marker、mention Relation、assignment Relation 和 actor-private account data 派生。若受托服务生成 inbox preview、通知摘要或可逆派生内容，必须满足本节明文边界。
+Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention Relation、assignment Relation 和 actor-private account data 派生。若受托服务生成 inbox preview、通知摘要或可逆派生内容，必须满足本节明文边界。
 
 ### 6.4 全文搜索
 
@@ -529,7 +529,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read marker、mention
   "realm_ids": ["cx:realm:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["message", "flow", "morph"],
   "morph_types": ["comment"],
-  "sender": "did:web:alice.example.com",
+  "sender_actor_id": "did:web:alice.example.com",
   "time_range": {
     "after": "2026-04-01T00:00:00Z",
     "before": "2026-04-26T00:00:00Z"
@@ -665,7 +665,7 @@ POST /api/v1/directory/search-users
 POST /api/v1/directory/resolve-handle
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `recipient_service_did`，但只在 claim、audience、requester policy 和 Realm intent 验证通过时披露。Directory 返回的 service DID 只是 join builder 输入，不能替代 Realm `delivery_binding` 或 grant 校验。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 Realm intent 验证通过时披露。Directory 返回的 `member_delivery_binding.recipient_service_did` 只是 join builder 输入，不能替代 Realm `delivery_binding` 或 grant 校验。
 
 ### 8.6 私密联系人发现
 
@@ -715,7 +715,7 @@ Contrix v1 的首次加入流程：
 6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
-9. 建立 read marker、notification cursor 等个人状态
+9. 建立 read cursor、notification cursor 等个人状态
 
 ## 12. 新鲜度与多服务并存
 
@@ -791,7 +791,7 @@ Contrix v1 固定：
 以下事项是 v1 的落地要求：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
-- Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_valid_until`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
+- Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_expires_at`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
 - Service describe MUST 声明 `service_did`、`trust_domain`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
 - Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `cx.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 cotest artifact、issuer 签名和 hash 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。

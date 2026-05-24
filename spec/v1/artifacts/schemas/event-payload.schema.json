@@ -264,7 +264,7 @@
             "ref": {
               "$ref": "#/$defs/message_id"
             },
-            "sender": {
+            "sender_actor_id": {
               "$ref": "#/$defs/did"
             },
             "excerpt": {
@@ -328,7 +328,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(cx:(realm|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(cx:(realm|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
     "device_or_principal_ref": {
       "oneOf": [
@@ -2136,15 +2136,15 @@
       },
       "additionalProperties": false
     },
-    "agent_key_authorized_payload": {
+    "agent_key_authorize_payload": {
       "type": "object",
-      "description": "Payload for cx.agent.key.authorized. Binds one concrete agent signing key to an accountable actor, explicit scope, audience, validity window, and approval evidence.",
+      "description": "Payload for cx.agent.key.authorize. Binds one concrete agent signing key to an accountable actor, explicit agent_key_scope, audience, validity window, and approval evidence.",
       "required": [
         "agent_did",
         "key_id",
         "verification_method",
         "accountable_actor",
-        "scope",
+        "agent_key_scope",
         "audience",
         "issued_at",
         "expires_at",
@@ -2167,7 +2167,7 @@
         "accountable_actor": {
           "$ref": "#/$defs/did"
         },
-        "scope": {
+        "agent_key_scope": {
           "$ref": "#/$defs/agent_key_scope"
         },
         "audience": {
@@ -2189,9 +2189,9 @@
       },
       "additionalProperties": false
     },
-    "agent_key_revoked_payload": {
+    "agent_key_revoke_payload": {
       "type": "object",
-      "description": "Payload for cx.agent.key.revoked. The OR-set cell subject is (agent_did, key_id); future protocol proofs from this key fail closed once this event is accepted.",
+      "description": "Payload for cx.agent.key.revoke. The or_set cell subject is (agent_did, key_id); future protocol proofs from this key fail closed once this event is accepted.",
       "required": [
         "agent_did",
         "key_id",
@@ -2224,16 +2224,16 @@
       },
       "additionalProperties": false
     },
-    "agent_key_rotated_payload": {
+    "agent_key_rotate_payload": {
       "type": "object",
-      "description": "Payload for cx.agent.key.rotated. key_id names the retiring key used as the cell subject; replacement_key_id names the new key. Reducers MUST verify the accountable_actor is unchanged, scope is equivalent or narrower, and expires_at does not extend the retiring key's effective TTL.",
+      "description": "Payload for cx.agent.key.rotate. key_id names the retiring key used as the cell subject; replacement_key_id names the new key. Reducers MUST verify the accountable_actor is unchanged, agent_key_scope is equivalent or narrower, and expires_at does not extend the retiring key's effective TTL.",
       "required": [
         "agent_did",
         "key_id",
         "replacement_key_id",
         "replacement_verification_method",
         "accountable_actor",
-        "scope",
+        "agent_key_scope",
         "audience",
         "issued_at",
         "expires_at",
@@ -2258,7 +2258,7 @@
         "accountable_actor": {
           "$ref": "#/$defs/did"
         },
-        "scope": {
+        "agent_key_scope": {
           "$ref": "#/$defs/agent_key_scope"
         },
         "audience": {
@@ -2326,11 +2326,11 @@
     },
     "consent_grant_payload": {
       "type": "object",
-      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell cx:cell:cx.component.consent.grant.v1:<consent_id> (or-set lattice); cx.consent.revoke writes a remove on the same cell. Lives in the holder's principal control Realm (or holder-private actor stream); MUST NOT be written to a shared collaboration Realm.",
+      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell cx:cell:cx.component.consent.grant.v1:<consent_id> (or_set lattice); cx.consent.revoke writes a remove on the same cell. Lives in the holder's principal control Realm (or holder-private actor stream); MUST NOT be written to a shared collaboration Realm.",
       "required": [
         "consent_id",
         "peer",
-        "scope"
+        "consent_scope"
       ],
       "properties": {
         "consent_id": {
@@ -2341,7 +2341,7 @@
           "$ref": "#/$defs/did",
           "description": "Counterparty DID (or pairwise DID) that this consent applies to."
         },
-        "scope": {
+        "consent_scope": {
           "type": "string",
           "enum": [
             "invite",
@@ -2351,12 +2351,12 @@
             "presence",
             "any"
           ],
-          "description": "What kind of contact is consented to. 'invite' = peer may send Realm / Flow invites; 'direct_message' = peer may initiate 1:1 message; 'voice_call' / 'video_call' = peer may initiate WebRTC call; 'presence' = peer may observe presence; 'any' = full consent across all scopes."
+          "description": "What kind of contact is consented to. 'invite' = peer may send Realm / Flow invites; 'direct_message' = peer may initiate 1:1 message; 'voice_call' / 'video_call' = peer may initiate WebRTC call; 'presence' = peer may observe presence; 'any' = full consent across all consent scopes."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
         },
-        "valid_until": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
         "constraints": {
@@ -2397,7 +2397,7 @@
             "type": "string",
             "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$"
           },
-          "description": "Exact add dots being removed. A full revoke, including scope=any cascade, MUST enumerate every active dot that becomes inactive; implicit cascade without dot enumeration is invalid."
+          "description": "Exact add dots being removed. A full revoke, including consent_scope=any cascade, MUST enumerate every active dot that becomes inactive; implicit cascade without dot enumeration is invalid."
         },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"
@@ -2616,7 +2616,7 @@
       },
       "additionalProperties": false
     },
-    "device_authorized_payload": {
+    "device_authorize_payload": {
       "type": "object",
       "required": [
         "principal_id",
@@ -2671,7 +2671,7 @@
       },
       "additionalProperties": true
     },
-    "device_revoked_payload": {
+    "device_revoke_payload": {
       "type": "object",
       "required": [
         "principal_id",
@@ -2846,7 +2846,7 @@
         "principal_id",
         "previous_generation",
         "new_generation",
-        "reset_reason",
+        "reset_reason_code",
         "proof",
         "issued_at"
       ],
@@ -2862,7 +2862,10 @@
         "principal_id": { "$ref": "#/$defs/did" },
         "previous_generation": { "type": "integer", "minimum": 1 },
         "new_generation": { "type": "integer", "minimum": 2 },
-        "reset_reason": { "type": "string", "minLength": 1 },
+        "reset_reason_code": {
+          "type": "string",
+          "enum": ["rotation", "compromise", "device_loss", "policy_required"]
+        },
         "proof": {
           "type": "object",
           "required": ["kind"],
@@ -3346,7 +3349,7 @@
       "type": "object",
       "required": [
         "mls_group_id",
-        "scope",
+        "realm_key_scope",
         "epoch",
         "creator_principal_id",
         "creator_device_id",
@@ -3389,7 +3392,7 @@
           "type": "string",
           "minLength": 1
         },
-        "scope": {
+        "realm_key_scope": {
           "$ref": "#/$defs/realm_key_scope"
         },
         "epoch": {
@@ -3581,7 +3584,7 @@
         "evidence_package": {
           "type": "object"
         },
-        "frank": {
+        "franking_proof": {
           "type": "object"
         }
       },
@@ -3772,7 +3775,7 @@
         },
         "target_space_id": {
           "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas-register cell value as 'list_space_id' on the cell at cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>. Writers MUST NOT put 'list_space_id' directly on the cx.flow.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
+          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas_register cell value as 'list_space_id' on the cell at cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>. Writers MUST NOT put 'list_space_id' directly on the cx.flow.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
         },
         "rank": {
           "$ref": "#/$defs/rank"

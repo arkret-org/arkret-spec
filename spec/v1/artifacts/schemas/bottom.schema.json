@@ -19,7 +19,7 @@
         "anchorer_split",
         "schema_error"
       ],
-      "description": "Why the join produced bottom. 'conflict' = concurrent cas-register / fsm divergence on safety-critical cell. 'invalid_transition' = fsm op violates allowed_transitions. 'missing_dependency' = Move ref to absent / failed prior Move. 'unauthorized' = Move issuer lacks capability for the op (verifier-side). 'anchorer_split' = multiple anchorer cell Anchor leaves diverge on next-batch authority. 'schema_error' = lattice op or value violates declared cell schema."
+      "description": "Why the join produced bottom. 'conflict' = concurrent cas_register / fsm divergence on safety-critical cell. 'invalid_transition' = fsm op violates allowed_transitions. 'missing_dependency' = Move ref to absent / failed prior Move. 'unauthorized' = Move issuer lacks capability for the op (verifier-side). 'anchorer_split' = multiple anchorer cell Anchor leaves diverge on next-batch authority. 'schema_error' = lattice op or value violates declared cell schema."
     },
     "cells": {
       "type": "array",
@@ -67,7 +67,7 @@
     "heads": {
       "type": "array",
       "uniqueItems": true,
-      "description": "When kind=conflict and the cell's lattice exposes multiple candidate heads (mv-register, or-set with conflicting tag values), the candidate values. Implementations MUST NOT pick a winner from this array; it is for UI / audit only.",
+      "description": "When kind=conflict and the cell's lattice exposes multiple candidate heads (mv_register, or_set with conflicting tag values), the candidate values. Implementations MUST NOT pick a winner from this array; it is for UI / audit only.",
       "items": true
     },
     "details": {

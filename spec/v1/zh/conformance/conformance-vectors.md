@@ -244,7 +244,7 @@ cx.vector.encoding.event_batch_receipt_digest.v1
   "schema": "cx.schema.event_batch_receipt.v1",
   "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
-  "scope": {
+  "receipt_scope": {
     "actor_id": "did:web:alice.example"
   },
   "frontier": {
@@ -261,20 +261,20 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01964186-0000-7000-8000-000000000000","schema":"cx.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"}}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01964186-0000-7000-8000-000000000000","receipt_scope":{"actor_id":"did:web:alice.example"},"schema":"cx.schema.event_batch_receipt.v1"}
 ```
 
 期望 digest：
 
 ```text
-sha256:eb40300af8308005fc059cd441e5981f21ae54466e1d1653cca983e49193e915
+sha256:a828dc768e814ca0be50b5014e1115612776fa342f66df849e8bdd7e72dfa9b4
 ```
 
 失败条件：
 
 - `events` 数组被排序或去重后再 hash。
 - proof 字段被包含进 receipt digest。
-- `issuer`、`scope`、`frontier` 或 `schema` 被排除在 digest 外。
+- `issuer`、`receipt_scope`、`frontier` 或 `schema` 被排除在 digest 外。
 - `receipt_id` 大小写被实现私自改写。
 
 ### 1.8 Vector: Signature Binding Payload
@@ -511,7 +511,7 @@ cx.vector.move_anchor_lattice.multi_cell_ban_revoke.v1
 - 三个 precondition 全部成立时 Move PASS。
 - 任一 precondition 不成立时整个 Move FAIL，不能部分撤销 grant 或部分 ban。
 
-### 2.3 Vector: `cas-register` 并发冲突返回 Bottom
+### 2.3 Vector: `cas_register` 并发冲突返回 Bottom
 
 向量名称：
 
@@ -521,7 +521,7 @@ cx.vector.move_anchor_lattice.cas_bottom.v1
 
 输入：
 
-- 两个 anchored Move 并发写同一 `cas-register + bottom=reject` policy cell。
+- 两个 anchored Move 并发写同一 `cas_register + bottom=reject` policy cell。
 
 期望：
 
@@ -607,7 +607,7 @@ cx.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1
 输入：
 
 - Realm 以 `anchor_profile=mixed` 起始；`primary=did:web:host-a.example`，`recovery_members=[did:web:recovery-1.example, did:web:recovery-2.example]`。
-- 两条并发 Move 在 anchorer cell（cas-register, bottom=reject）上提交不同 value。
+- 两条并发 Move 在 anchorer cell（cas_register, bottom=reject）上提交不同 value。
 
 期望：
 
@@ -727,14 +727,14 @@ cx.vector.flow_tracks_update.atomic.v1
 
 期望：
 
-- **Case A**: reducer 应用 patch 后，`Flow.tracks.synthesis.is_primary == false` 且 `Flow.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，cas-register cell 一次 atomic update。
+- **Case A**: reducer 应用 patch 后，`Flow.tracks.synthesis.is_primary == false` 且 `Flow.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，cas_register cell 一次 atomic update。
 - **Case B**: reducer 接受合并后状态 `{ synthesis: {is_primary: false, enabled: true}, discussion: {is_primary: false, enabled: false}, review: {is_primary: true, enabled: true} }`；中间过程 MUST 在同一 cell update 内完成，不得分裂为 4 个独立 cell write。
 - **Case C**: reducer MUST 在 effect 应用前 (cell update 之前) 校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Flow `tracks` 不发生任何变化。
 
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`（`tracks` 是 map，不是 unique-key 数组）。
-- `cx.flow.tracks.update` 写入的 cell 是 `cx:cell:cx.component.flow.tracks.v1:<flow_id>`（cas-register），reducer 校验合并后 invariant 在 cell update 之前 完成。
+- `cx.flow.tracks.update` 写入的 cell 是 `cx:cell:cx.component.flow.tracks.v1:<flow_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
 
 失败条件：
 
@@ -925,7 +925,7 @@ cx.vector.redaction.policy_scope.v1
       "actor_id": "did:web:policy-bot.example.com",
       "payload": {
         "target_id": "cx:event:0196417d-8400-7000-8000-000000000000",
-        "scope": "public",
+        "policy_scope": "public",
         "decision": "quarantine"
       }
     },
@@ -1039,11 +1039,17 @@ cx.vector.capability.delegate_chain.v1
       "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:root-admin.example.com",
       "payload": {
-        "source_capability": "realm-admin",
+        "parent_grant_id": "cx:grant:019640d0-b800-7000-8000-000000000000",
         "subject": "did:web:ops.example.com",
-        "scope": "realm:01js0ms000000000000000000",
+        "resources": [
+          {
+            "kind": "realm",
+            "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+            "match_scope": "realm_wide"
+          }
+        ],
         "actions": [
-          "cx.capability.*",
+          "cx.capability.delegate",
           "cx.invite.create"
         ],
         "constraints": [
@@ -1071,9 +1077,15 @@ cx.vector.capability.delegate_chain.v1
       "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:ops.example.com",
       "payload": {
-        "source_capability": "realm-admin-delegate-a",
+        "parent_grant_id": "cx:grant:019640d0-c000-7000-8000-000000000000",
         "subject": "did:web:intern.example.com",
-        "scope": "realm:01js0ms000000000000000000",
+        "resources": [
+          {
+            "kind": "realm",
+            "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+            "match_scope": "realm_wide"
+          }
+        ],
         "actions": [
           "cx.invite.create"
         ],
@@ -1121,7 +1133,7 @@ cx.vector.capability.delegate_chain.v1
   ],
   "constraints_checked": {
     "time": true,
-    "scope": true,
+    "resource_scope": true,
     "rate_limit": true,
     "audience": true
   }
@@ -1233,7 +1245,7 @@ cx.vector.capability.approval_constraint.v1
       "action": "cx.realm.admin",
       "approval_required": true,
       "approval_quorum": 2,
-      "scope": "realm:01js0ms000000000000000000"
+      "policy_scope": "realm:01js0ms000000000000000000"
     },
     "refs": [
       { "id": "cx:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
@@ -1947,7 +1959,7 @@ Directory 返回 verified handle claim：
       "jws": "aaa.bbb.ccc"
     }]
   }],
-  "delivery_binding_hint": {
+  "member_delivery_binding": {
     "recipient_service_did": "did:web:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
@@ -2313,7 +2325,7 @@ Expected：
 
 Steps：
 
-1. `cx.device.revoked` 被 principal control stream 接受，payload 携带 `revocation_frontier=[R]`。
+1. `cx.device.revoke` 被 principal control stream 接受，payload 携带 `revocation_frontier=[R]`。
 2. 攻击者重放该设备在 R 之后签发的 session grant、KeyPackage publish 或 to-device write。
 3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖 R，也未覆盖导入 R 的 Realm governance Move。
 

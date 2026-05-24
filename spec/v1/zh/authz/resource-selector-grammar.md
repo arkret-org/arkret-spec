@@ -130,7 +130,7 @@ selector_term        ::= wildcard_selector
                       | object_selector
                       | blob_selector
                       | notification_selector
-                      | read_marker_selector
+                      | read_cursor_selector
 
 wildcard_selector    ::= "*"
 
@@ -164,7 +164,7 @@ blob_selector        ::= "blob" ":" (blob_ref | "*")
 
 notification_selector ::= "notification" ":" realm_part ":" "*"
 
-read_marker_selector ::= "read_marker" ":" realm_part ":" "*"
+read_cursor_selector ::= "read_cursor" ":" realm_part ":" "*"
 
 realm_part           ::= realm_id | "*"
 flow_part            ::= flow_id | "*"
@@ -221,7 +221,7 @@ flow_part            ::= flow_id | "*"
 `realm:cx:realm:0196419b-0000-7000-8000-000000000000`
 
 - 匹配：特定 Realm。
-- 适用：该 Realm 中的对象、Event、View、policy、invite、read marker、notification 和 Blob 引用。
+- 适用：该 Realm 中的对象、Event、View、policy、invite、read cursor、notification 和 Blob 引用。
 - 不含义：不自动匹配 linked Realm 的内容，除非 selector 或继承策略明确声明。
 
 `realm:*`

@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Naming normalization closure pass（2026-05-24）
+
+补齐 `_name_report.md` / `_name_report_codex.md` 中命名归一化项的 wire、schema、registry 与 prose 闭环。
+
+- **变更类型**: rename + remove（breaking for old wire names）
+- **影响 artifact**: `renames.json`; `forbidden-wire-fields.json`; `removed-event-kinds.json`; `event-kind-registry.json`; `id-kind-registry.json`; `schema-registry.json`; `capability-action-registry.json`; `contract-catalog.json`; schemas (`capability-grant`, `policy`, `attestation-evidence`, `event-schema`, `event-payload`, `realm`, `read-cursor`, `handle-claim`, moderation / delivery / receipt schemas); fixtures (`encoding`, `crypto-signature`, validation fixtures); OpenAPI; `zh/**` prose.
+- **canonical 变更**: ID prefix 缩写全部展开（`cx:notif:` / `cx:devmsg:` / `cx:keyevt:` / `cx:modq:` / `cx:req:` / `cx:txn:` / `cx:frank:` → full snake_case）；agent/device event kind 改为 imperative（`authorize` / `revoke` / `rotate`）；`cx.relation.delete` → `cx.relation.tombstone`; `read-marker` → `read-cursor`; 时间字段统一为 `not_before` / `expires_at`; `signed_by` → `verification_method`; `sender` → `sender_actor_id`; Event proof 使用 `event_digest`; CRDT lattice 字段 / enum 统一为 `lattice` + snake_case; Directory / projection alias 回归 canonical 字段名; `_did` 主体别名改为 `_id`; handle claim delivery routing single-source 到 `member_delivery_binding.recipient_service_did`.
+- **派生 artifact 同步**: registry、schema、fixture、OpenAPI 与 prose 已同步；本条要求 `python tools\lint_artifacts.py` 通过，并要求旧 wire alias 由 `renames.json` / `forbidden-wire-fields.json` / `removed-event-kinds.json` 提供 fail-closed 依据。
+- **conformance impact**:
+  - 受影响 profile: core event envelope validation、identity handles、directory discovery、read receipts/cursors、device lifecycle、agent key authorization、moderation/franking、capability authorization。
+  - profile tier 变化: 无。
+  - wire 兼容性: **breaking** — 旧字段名、旧 Event.kind、旧 typed ID prefix 和旧 schema id 不再合法；只允许在 changelog、legacy migration helper 或 negative test 中出现。
+  - reader / writer 行为要求: writers MUST emit only canonical names; readers / reducers MUST hard-reject old forms with `schema_violation` except where explicitly marked legacy migration.
+- **fixture / vector 变化**: `encoding-fixture.json` 的 Event Batch Receipt canonical bytes / digest 更新为 `receipt_scope`; crypto detached JWS fixture 重算 `event_digest` / binding hash / signature；schema validation fixtures 与 negative fixtures 同步旧名拒绝面。
+- **prose 同步**: `common-fields.md` 新增 naming convention；identity handles、directory、read receipts、device lifecycle、content moderation、sync surface、conformance vectors 等章节同步。
+- **迁移指南**: 下游 SDK / validator 需要重新生成 typed ID、event kind、schema id 与 field-name 常量；旧 wire form 应根据 `renames.json` 做一次性迁移，运行时 parser / reducer 对旧 form fail closed。
+
 ### Report consolidation closure pass（2026-05-24）
 
 合并 `_codex_report.md` 与 `_claude_report.md` 中经复核成立、且不需要重塑现有概念的闭环修订。

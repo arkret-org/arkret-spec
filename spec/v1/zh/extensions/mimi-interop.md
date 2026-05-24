@@ -135,7 +135,7 @@ MIMI facade 至少定义以下 canonical operation：
 | `cx.mimi.request_consent` | `POST /mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
 | `cx.mimi.update_consent` | `POST /mimi/consent/update` | 更新 consent state。 |
 | `cx.mimi.identifier_query` | `POST /mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
-| `cx.mimi.report_abuse` | `POST /mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE frank。 |
+| `cx.mimi.report_abuse` | `POST /mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
 | `cx.mimi.proxy_download` | `POST /mimi/proxy-download` | 代理或 oblivious 下载资产。 |
 
 所有写入型 endpoint MUST 使用 HTTP Message Signatures 或等价 service proof，并绑定：
@@ -252,7 +252,7 @@ Contrix 的 unknown handling 来自 Lattice bottom：
 - 接收 MIMI policy update 时 MUST 验证目标 `cell_family` 已注册（或被部署的 profile 显式 opt-in），并归约为对应 Move effect；未注册 MIMI component MUST 按其 MIMI unknown-handling 处理。
 - 发送 Contrix state 到 MIMI 时 MUST 按 §9.1 表生成 MIMI component。Contrix 专属 component（无 MIMI 对应）在 facade 输出中标记为 `application/vnd.contrix.component+json` 私有扩展。
 
-MIMI role 只能作为 interop projection。Contrix 授权仍以 capability Move / grant cell 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为 `cx.capability.*` 或具体 `cx.realm.<facet>` Move effect，并经过 Contrix Move refs 授权验证后才能生效。
+MIMI role 只能作为 interop projection。Contrix 授权仍以 capability Move / grant cell 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为具体 capability event（如 `cx.capability.grant` / `cx.capability.delegate` / `cx.capability.revoke`）或具体 `cx.realm.<facet>` Move effect，并经过 Contrix Move refs 授权验证后才能生效。
 
 ## 10. Identifiers And Consent
 
@@ -267,7 +267,7 @@ MIMI identifier MUST NOT 被直接作为 Contrix actor。映射规则：
 
 ## 11. Abuse Report And Proxy Download
 
-`cx.mimi.report_abuse` MUST 映射到 `cx.moderation.report`。E2EE report SHOULD 携带 message frank、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
+`cx.mimi.report_abuse` MUST 映射到 `cx.moderation.report`。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
 `cx.mimi.proxy_download` MUST 遵守 `cx.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
 

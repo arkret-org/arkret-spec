@@ -94,10 +94,10 @@
     },
     {
       "name": "cas_register_conflict_returns_bottom",
-      "description": "Two anchored Moves concurrently set the same cas-register cell. Query returns structured bottom rather than choosing a winner.",
+      "description": "Two anchored Moves concurrently set the same cas_register cell. Query returns structured bottom rather than choosing a winner.",
       "cell": "cx:cell:cx.component.realm.policy.v1:cx.realm.0196419b-0000-7000-8000-000000000000",
-      "lattice": {
-        "type": "cas-register",
+      "cell_lattice": {
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       "anchored_moves": [
@@ -171,7 +171,7 @@
     },
     {
       "name": "anchorer_cell_bottom_pauses_space_until_recovery",
-      "description": "When the anchorer cell resolves to ⊥ (concurrent set on cas-register), the Realm enters anchorer_paused. Only recovery_members declared at genesis MAY sign a recovery Anchor that re-anchors the anchorer cell to a new value.",
+      "description": "When the anchorer cell resolves to ⊥ (concurrent set on cas_register), the Realm enters anchorer_paused. Only recovery_members declared at genesis MAY sign a recovery Anchor that re-anchors the anchorer cell to a new value.",
       "anchor_profile": "mixed",
       "genesis_anchorer": {
         "type": "mixed",

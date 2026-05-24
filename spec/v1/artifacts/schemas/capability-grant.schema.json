@@ -79,17 +79,17 @@
       "type": "string",
       "pattern": "^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "valid_from": {
+    "not_before": {
       "type": "string",
       "format": "date-time",
       "pattern": "Z$",
-      "description": "Top-level grant validity start. Authorization evaluates this together with temporal constraints: effective_not_before = max(valid_from, every temporal.not_before present)."
+      "description": "Top-level grant validity start. Authorization evaluates this together with temporal constraints: effective_not_before = max(not_before, every temporal.not_before present)."
     },
-    "valid_until": {
+    "expires_at": {
       "type": "string",
       "format": "date-time",
       "pattern": "Z$",
-      "description": "Top-level grant validity end. Authorization evaluates this together with temporal constraints: effective_expires_at = min(valid_until, every temporal.expires_at present). Delegated grants MUST not extend beyond the parent's effective_expires_at."
+      "description": "Top-level grant validity end. Authorization evaluates this together with temporal constraints: effective_expires_at = min(expires_at, every temporal.expires_at present). Delegated grants MUST not extend beyond the parent's effective_expires_at."
     },
     "revoked_by": {
       "type": "string",

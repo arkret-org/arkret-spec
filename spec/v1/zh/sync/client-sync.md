@@ -40,7 +40,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
    - 用户主动进入"高级 / 投递设置"面板查看 / 修改。
 2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_service_did` 不属于该 actor DID Document 默认 `ContrixPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
 3. **邀请 flow 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
-   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，先走 `cx.directory.resolve_handle(intent="member_add")` 得到 `subject` DID 与 `delivery_binding_hint`，UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
+   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，先走 `cx.directory.resolve_handle(intent="member_add")` 得到 `subject` DID 与 `member_delivery_binding`，UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
    - 邀请方在 Org-A 内部 Realm 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
    - 邀请方在个人 Realm 中邀请 → 默认 invitee DID Document `did_document_default`（若 Realm policy 允许）；
    - 多上下文 invitee + 无明确默认 → 提示用户在已知上下文中选择，**不要静默选择**。
@@ -145,7 +145,7 @@ Account subscribe `delta` frame 包含以下 stream：
 | `account_data` | 私有持久 | 标签、UI 偏好、recent emoji、push rules |
 | `to_device` | 设备队列 | key verification、secret sharing、device messages |
 | `ephemeral` | 短暂 | typing、presence、live cursor |
-| `receipts` | 可配置 | read receipt / read marker delta |
+| `receipts` | 可配置 | read receipt / read cursor delta |
 | `notifications` | 派生 | inbox / push notification delta |
 | `device_lists` | 持久 delta | E2EE device trust 更新 |
 | `applet` | 持久/短暂 | Applet delivery receipt、bridge health |
@@ -153,7 +153,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 客户端 MUST 使用 `cursor` 作为唯一 resume token，不得解析 token 内部结构。
 
-`receipts`、`notifications` 和高频 actor-private `read_marker` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
+`receipts`、`notifications` 和高频 actor-private `read_cursor` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
 
 ## 4. Realm Buckets
 

@@ -62,7 +62,7 @@ Schema id: `cx.schema.actor_profile.v1`
 
 `principal_id` 是授权、签名和审计归属的根；`actor_kind` 只是该 DID 在协作图中的展示和策略分类。
 
-- `actor_kind="device"`：表示该 DID 被作为设备级或 pairwise device principal 直接行动；若设备只是某个用户/组织 principal 的授权设备，则 Event 仍以用户/组织 DID 作为 `actor_id`，设备身份通过 proof `verification_method`、`device_id`、`cx.device.authorized` 或 session grant 表达。
+- `actor_kind="device"`：表示该 DID 被作为设备级或 pairwise device principal 直接行动；若设备只是某个用户/组织 principal 的授权设备，则 Event 仍以用户/组织 DID 作为 `actor_id`，设备身份通过 proof `verification_method`、`device_id`、`cx.device.authorize` 或 session grant 表达。
 - `team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_to` 指向控制/责任 principal；它们不会因为 `accountable_to` 自动继承权限。
 
 ### 3.3.1 `accountable_to` 的可验证性（normative）
@@ -99,7 +99,7 @@ Schema id: `cx.schema.actor_profile.v1`
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、Read Marker、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID。 |
+| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。 |
 | `accountable_to` | Actor Profile | Agent / 托管账号的责任主体；不传染 capability。 |

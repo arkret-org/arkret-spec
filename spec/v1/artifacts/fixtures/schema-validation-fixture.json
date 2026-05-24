@@ -241,12 +241,12 @@
       }
     },
     {
-      "name": "event_envelope_valid_non_reducer_read_marker",
+      "name": "event_envelope_valid_non_reducer_read_cursor",
       "schema_ref": "schemas/event-envelope.schema.json",
       "expect_valid": true,
       "instance": {
         "event_id": "cx:event:019a6aa0-0000-7000-8000-000000000000",
-        "kind": "cx.read.marker",
+        "kind": "cx.read.cursor",
         "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:web:alice.example",
         "actor_seq": 1,
@@ -421,15 +421,15 @@
       }
     },
     {
-      "name": "agent_key_authorized_payload_valid",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorized_payload",
+      "name": "agent_key_authorize_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorize_payload",
       "expect_valid": true,
       "instance": {
         "agent_did": "did:web:agent.example",
         "key_id": "did:web:agent.example#key-1",
         "verification_method": "did:web:agent.example#key-1",
         "accountable_actor": "did:web:alice.example",
-        "scope": {
+        "agent_key_scope": {
           "actions": [
             "cx.flow.update"
           ],
@@ -551,7 +551,7 @@
         "verification_method": "did:web:audit.example#attestation-1",
         "validity": {
           "not_before": "2026-05-20T00:00:00Z",
-          "not_after": "2026-06-20T00:00:00Z"
+          "expires_at": "2026-06-20T00:00:00Z"
         },
         "operator_did": "did:web:operator.example",
         "audit_purpose": "internal_policy_audit",
@@ -601,7 +601,7 @@
         "verification_method": "did:web:audit.example#attestation-1",
         "validity": {
           "not_before": "2026-05-20T00:00:00Z",
-          "not_after": "2026-06-20T00:00:00Z"
+          "expires_at": "2026-06-20T00:00:00Z"
         },
         "operator_did": "did:web:operator.example",
         "audit_purpose": "internal_policy_audit",
@@ -638,7 +638,7 @@
           "public_key": "BB",
           "key_format": "raw_base64url",
           "binding": {
-            "signed_by": "did:web:alice.example#psk",
+            "verification_method": "did:web:alice.example#psk",
             "alg": "EdDSA",
             "signature": "c2ln"
           }
@@ -649,7 +649,7 @@
           "public_key": "CC",
           "key_format": "raw_base64url",
           "binding": {
-            "signed_by": "did:web:alice.example#psk",
+            "verification_method": "did:web:alice.example#psk",
             "alg": "EdDSA",
             "signature": "c2ln"
           }

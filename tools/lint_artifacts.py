@@ -313,6 +313,59 @@ LEGACY_WIRE_FIELDS: dict[str, dict[str, Any]] = {
     },
 }
 
+MIGRATION_BOOKKEEPING_FILES = {
+    "renames.json",
+    "forbidden-wire-fields.json",
+    "removed-event-kinds.json",
+}
+
+FORBIDDEN_NAMING_ALIAS_KEYS = {
+    "valid_from": "not_before",
+    "valid_until": "expires_at",
+    "not_after": "expires_at",
+    "cache_valid_until": "cache_expires_at",
+    "signed_by": "verification_method",
+    "sender": "sender_actor_id",
+    "sender_display_name": "sender_actor_display_name",
+    "source_capability": "parent_grant_id",
+    "parent_space_refs": "membership_source_realm_refs",
+    "parent_realm_id": "source_realm_id",
+    "delivery_binding_hint": "member_delivery_binding",
+    "frank": "franking_proof",
+    "frank_id": "franking_proof_id",
+    "actor_did": "actor_id",
+    "principal_did": "principal_id",
+    "subject_did": "subject_id",
+}
+
+FORBIDDEN_NAMING_STRING_ALIASES = {
+    "cx:notif:": "cx:notification:",
+    "cx:devmsg:": "cx:device_message:",
+    "cx:keyevt:": "cx:key_event:",
+    "cx:modq:": "cx:moderation_queue_item:",
+    "cx:req:": "cx:request:",
+    "cx:txn:": "cx:transaction:",
+    "cx:frank:": "cx:franking_proof:",
+    "cx.agent.key.authorized": "cx.agent.key.authorize",
+    "cx.agent.key.revoked": "cx.agent.key.revoke",
+    "cx.agent.key.rotated": "cx.agent.key.rotate",
+    "cx.device.authorized": "cx.device.authorize",
+    "cx.device.revoked": "cx.device.revoke",
+    "cx.relation.delete": "cx.relation.tombstone",
+    "cx.read.marker": "cx.read.cursor",
+    "cx.schema.read_marker.v1": "cx.schema.read_cursor.v1",
+    "or-set": "or_set",
+    "mv-register": "mv_register",
+    "cas-register": "cas_register",
+    "ordered-log": "ordered_log",
+    "lww-register": "lww_register",
+    "frank_unavailable": "franking_proof_unavailable",
+}
+
+
+def is_migration_bookkeeping_file(path: Path) -> bool:
+    return path.name in MIGRATION_BOOKKEEPING_FILES or path.name == "CHANGELOG.md"
+
 
 def check_legacy_wire_fields(lint: Lint) -> None:
     """Reject lingering deprecated wire field names outside of migration notes.
@@ -328,6 +381,8 @@ def check_legacy_wire_fields(lint: Lint) -> None:
     scan_paths.extend(p for p in all_json_files() if ARTIFACTS in p.parents)
     seen: set[tuple[Path, int]] = set()
     for path in scan_paths:
+        if is_migration_bookkeeping_file(path):
+            continue
         try:
             text = path.read_text(encoding="utf-8")
         except Exception:
@@ -349,6 +404,85 @@ def check_legacy_wire_fields(lint: Lint) -> None:
                     f"or add a migration-context token "
                     f"(e.g. 替代/迁移/dropped/replaces) on the same line.",
                 )
+
+
+def check_forbidden_naming_aliases(lint: Lint) -> None:
+    """Reject old names from the naming-normalization pass.
+
+    The drift registries and changelog intentionally mention legacy spellings;
+    current schemas, fixtures, OpenAPI, and prose examples must not. This guard
+    catches schema/property-name regressions that JSON Schema alone cannot
+    detect, especially exact legacy keys inside examples.
+    """
+
+    def check_key(path: Path, where: str, key: str | None) -> None:
+        if not key:
+            return
+        replacement = FORBIDDEN_NAMING_ALIAS_KEYS.get(key)
+        if replacement:
+            lint.fail(path, f"{where} uses forbidden legacy field `{key}`; use `{replacement}`")
+
+    def check_json_value(path: Path, data: Any, where: str = "$") -> None:
+        for json_path, _value, key in walk_json(data, where):
+            check_key(path, json_path, key)
+
+    json_paths = [p for p in all_json_files() if not is_migration_bookkeeping_file(p)]
+    for path in json_paths:
+        data = load_json(lint, path)
+        if data is not None:
+            check_json_value(path, data)
+
+    text_paths = markdown_files()
+    text_paths.extend(
+        path
+        for path in raw_artifact_files()
+        if path.suffix.lower() in {".json", ".yaml", ".yml", ".md"}
+        and not is_migration_bookkeeping_file(path)
+    )
+    for path in text_paths:
+        if is_migration_bookkeeping_file(path):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            for old, replacement in FORBIDDEN_NAMING_STRING_ALIASES.items():
+                if old in line:
+                    lint.fail(path, f"line {line_no}: legacy name `{old}` appears; use `{replacement}`")
+
+        for match in JSON_FENCE_RE.finditer(text):
+            try:
+                data = json.loads(match.group("body"))
+            except Exception:
+                continue
+            line_no = text.count("\n", 0, match.start()) + 1
+            check_json_value(path, data, f"json block line {line_no}")
+
+
+def check_event_proof_digest_shape(lint: Lint) -> None:
+    """Event proofs must use event_digest, not generic payload_hash."""
+
+    path = ARTIFACTS / "schemas" / "event-schema.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    proofs = (((data.get("properties") or {}).get("proofs") or {}).get("items") or {})
+    if proofs.get("$ref") != "#/$defs/event_proof":
+        lint.fail(path, "Event.properties.proofs.items must reference $defs/event_proof")
+
+    event_proof = ((data.get("$defs") or {}).get("event_proof") or {})
+    if not isinstance(event_proof, dict):
+        lint.fail(path, "$defs.event_proof must exist")
+        return
+
+    required = event_proof.get("required") or []
+    properties = event_proof.get("properties") or {}
+    if "event_digest" not in required or "event_digest" not in properties:
+        lint.fail(path, "$defs.event_proof must require event_digest")
+    if "payload_hash" in required or "payload_hash" in properties:
+        lint.fail(path, "$defs.event_proof must not expose payload_hash; use event_digest")
 
 
 LEGACY_ANNOUNCE_ID_RE = re.compile(r"\bann_(?:[0-9a-f]{16,64}|<hex>|\*)\b")
@@ -870,6 +1004,8 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
         "removed-event-kinds.json",
         "removed-operation-ids.json",
         "deprecated-profile-ids.json",
+        "renames.json",
+        "forbidden-wire-fields.json",
     }
     for path in all_json_files():
         data = load_json(lint, path)
@@ -2595,6 +2731,8 @@ def main() -> int:
     check_markdown_links(lint)
     check_markdown_examples(lint, known)
     check_legacy_wire_fields(lint)
+    check_forbidden_naming_aliases(lint)
+    check_event_proof_digest_shape(lint)
     check_legacy_announce_id_form(lint)
     check_join_policy_gate_id_uniqueness(lint)
     check_content_composite_uses_parts(lint)

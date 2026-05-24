@@ -9,7 +9,7 @@
     "schema",
     "issuer",
     "subject",
-    "scope",
+    "erasure_scope",
     "outcome",
     "erased_classes",
     "retained_stub_hash",
@@ -51,7 +51,7 @@
       },
       "additionalProperties": false
     },
-    "scope": {
+    "erasure_scope": {
       "type": "object",
       "description": "Boundary in which deletion was attempted. This MUST be narrow enough for an auditor to tell which service/storage class made the claim.",
       "required": [
@@ -223,7 +223,7 @@
       "required": [
         "stub_schema",
         "subject",
-        "scope",
+        "erasure_scope",
         "receipt_id",
         "completed_at"
       ],
@@ -255,7 +255,7 @@
           },
           "additionalProperties": false
         },
-        "scope": {
+        "erasure_scope": {
           "type": "object",
           "required": [
             "storage_boundary"

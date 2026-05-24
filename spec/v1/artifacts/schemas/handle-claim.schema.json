@@ -40,11 +40,6 @@
       "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Principal DID controlled by the handle holder. This remains the protocol actor / grant subject."
     },
-    "recipient_service_did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
-      "description": "Principal Server service DID this handle binds to. When present, it MUST be used as member_delivery_binding.recipient_service_did at join time. The recipient service is always principal_server in v1; the type tag lives on delivery_binding_hint when this claim ships a builder payload."
-    },
     "issuer": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s]+$|^[a-z0-9.-]+$"
@@ -87,10 +82,10 @@
     "challenge": {
       "type": "string"
     },
-    "scope": {
+    "claim_scope": {
       "type": "object",
       "additionalProperties": true,
-      "description": "Optional scope such as organization_did, realm_id, purpose, or allowed operations."
+      "description": "Optional claim_scope such as organization_id, realm_id, purpose, or allowed operations."
     },
     "service_acceptance_ref": {
       "type": "string",
@@ -102,8 +97,9 @@
       "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Policy event that authorizes this handle-to-service binding."
     },
-    "delivery_binding_hint": {
+    "member_delivery_binding": {
       "type": "object",
+      "description": "Single source for the Principal Server service DID and delivery parameters this handle claim offers to the membership builder. The top-level recipient_service_did shortcut is forbidden; use member_delivery_binding.recipient_service_did.",
       "required": [
         "recipient_service_did",
         "binding_source"
@@ -190,6 +186,9 @@
     }
   },
   "additionalProperties": true,
+  "not": {
+    "required": ["recipient_service_did"]
+  },
   "allOf": [
     {
       "if": {
@@ -205,24 +204,11 @@
     },
     {
       "if": {
-        "required": ["recipient_service_did"]
+        "required": ["member_delivery_binding"]
       },
       "then": {
         "required": [
           "handle_uri",
-          "audience",
-          "expires_at"
-        ]
-      }
-    },
-    {
-      "if": {
-        "required": ["delivery_binding_hint"]
-      },
-      "then": {
-        "required": [
-          "handle_uri",
-          "recipient_service_did",
           "audience",
           "expires_at"
         ]

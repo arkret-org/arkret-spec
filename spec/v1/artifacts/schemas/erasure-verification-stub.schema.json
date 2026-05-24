@@ -7,7 +7,7 @@
   "required": [
     "stub_schema",
     "subject",
-    "scope",
+    "erasure_scope",
     "receipt_id",
     "completed_at"
   ],
@@ -39,7 +39,7 @@
       },
       "additionalProperties": false
     },
-    "scope": {
+    "erasure_scope": {
       "type": "object",
       "required": [
         "storage_boundary"

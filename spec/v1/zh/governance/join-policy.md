@@ -39,7 +39,7 @@ title: Join Policy
 
 ```text
 cell_id     := cx:cell:realm.join_policy.v1:<realm_id>
-lattice     := cas-register
+lattice     := cas_register
 bottom      := reject
 value shape := JoinPolicy（见下）
 ```
@@ -241,14 +241,14 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 2. 调用 `cx.directory.resolve_handle` 或等价 Principal Server / Organization Directory 解析，带上 `intent="member_add"`、目标 `realm_id`、`requester` 和 challenge。
 3. 验证响应中的 handle claim / presentation 绑定 `handle_uri`、`subject` DID、`recipient_service_did`、issuer、`expires_at`、撤销状态，以及 `audience`：claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
 4. 生成 member Move 时使用 `payload.actor_id = subject`；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
-5. 若解析结果携带 `delivery_binding_hint`，将其物化为 `payload.delivery_binding`，并按 Realm `cx.realm.delivery_binding_policy` 选择 `binding_source`：
+5. 若解析结果携带 `member_delivery_binding`，将其物化为 `payload.delivery_binding`，并按 Realm `cx.realm.delivery_binding_policy` 选择 `binding_source`：
    - 若 invite token / signed candidate 内嵌 binding，优先使用 `invite`，并携带 `service_acceptance_ref`；
    - 其次使用 Realm join policy 推导的 `join_policy`，并携带 `policy_ref`；
    - 组织目录 / 员工名录背书的地址使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_ref`；
    - Space / linked Realm policy 继承使用 `space_policy`，并携带 `policy_ref`；
    - 用户 / 管理员显式选择服务时使用 `explicit`，并携带 `service_acceptance_ref`；
    - 最后才考虑 `did_document_default`，且仅当 Realm `delivery_binding_policy.allow_did_document_default=true` 并已在 join 时物化 DID document hash。
-   - `delivery_binding_hint.binding_source` 不得是 `did_document_default`；handle resolution 与 DID Document fallback 是两条独立的物化路径。
+   - `member_delivery_binding.binding_source` 不得是 `did_document_default`；handle resolution 与 DID Document fallback 是两条独立的物化路径。
 6. 若解析结果没有 `recipient_service_did`，该 handle 只能证明 actor DID；除非 Realm policy 允许 `did_document_default` fallback 并在 join 时完成物化，否则 reducer MUST 拒绝 handle-based join。
 
 Reducer MUST 在 gate proof 通过前先校验 applicant 是否具备提交 `cx.member.state{join}` 的 capability 或等价 invite / join-authorized grant；gate 只能增加限制，不能创造权限。最终 `binding_source` 不在 `allow_binding_sources` 中、或优先级决策得到的 binding 与 policy allowlist 冲突时，reducer MUST 返回 `delivery_binding_policy_mismatch`，不得降级到下一个来源。
@@ -257,7 +257,7 @@ Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Mo
 
 #### 5.1.3 Policy 事件：`cx.realm.delivery_binding_policy`
 
-Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员投递绑定的强约束。该事件写入 `cx.component.realm.delivery_binding_policy.v1` cell（cas-register, cell_subject=null, bottom=reject），与 `cx.realm.join_rule` / `cx.realm.history_visibility` 等其它 realm policy 事件并列。Realm 在 `cx.realm.policy_components` 中将该 component 列入 active set 后，reducer 强制其约束。
+Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员投递绑定的强约束。该事件写入 `cx.component.realm.delivery_binding_policy.v1` cell（cas_register, cell_subject=null, bottom=reject），与 `cx.realm.join_rule` / `cx.realm.history_visibility` 等其它 realm policy 事件并列。Realm 在 `cx.realm.policy_components` 中将该 component 列入 active set 后，reducer 强制其约束。
 
 ```json
 {
@@ -295,7 +295,7 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
 | `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Move 的合法签名 / 背书集合（见 §5.1.5）。 |
 | `expires_after_seconds` | `int?` | unset = 不过期 | 该 Realm 中所有 binding 的最大有效期；reducer MUST 在物化时把 `delivery_binding.expires_at = resolved_at + expires_after_seconds`，除非 binding 显式声明更短的 `expires_at`。 |
 
-`cx.component.realm.delivery_binding_policy.v1` 是 cas-register cell（`cell_subject=null`，每 Realm 一个）。变更走 [`models/realm-and-space.md`](../models/realm-and-space.md) 的 `cx.realm.policy_components` 通用路径。
+`cx.component.realm.delivery_binding_policy.v1` 是 cas_register cell（`cell_subject=null`，每 Realm 一个）。变更走 [`models/realm-and-space.md`](../models/realm-and-space.md) 的 `cx.realm.policy_components` 通用路径。
 
 #### 5.1.4 路由不可降级（normative）
 
@@ -317,7 +317,7 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
    - `admin_only`：仅 Realm admin 可发起（用于离职 / 强制迁移）。
    - `service_only`：仅当前 / 目标 recipient service DID 可发起（用于服务运维迁移）。
    - `any`：上述任一即可。
-2. **Precondition**：Move 的 `prev_refs` MUST 引用前一 accepted member cell 的 head；reducer 用 cas-register 校验前态。
+2. **Precondition**：Move 的 `prev_refs` MUST 引用前一 accepted member cell 的 head；reducer 用 cas_register 校验前态。
 3. **Handover frontier `F`**：该 Move 被接受时的 accepted causal frontier 是 rebind 切换点。
    - causal 上 `prec(F)`（不含 F）的 Realm events MUST 仍投递到旧 `recipient_service_did`。
    - causal 上 `succ(F)`（含 F）的 Realm events MUST 投递到新 `recipient_service_did`。

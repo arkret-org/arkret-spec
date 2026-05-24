@@ -50,7 +50,7 @@
       "description": "Profile id of the previous hash algorithm. Required iff previous_state_root is present; absent on non-transition Anchors."
     },
     "anchorer_sig": {
-      "description": "Signature over anchor_canonical_bytes (every signed body field EXCEPT `id` and `anchorer_sig`). MUST NOT enter the canonical bytes itself — signatures never sign themselves. payload_hash inside each signature MUST equal H(anchor_canonical_bytes) under the Realm hash_profile.",
+      "description": "Signature over anchor_canonical_bytes (every signed body field EXCEPT `id` and `anchorer_sig`). MUST NOT enter the canonical bytes itself — signatures never sign themselves. Anchor is not an Event Envelope, so its signature uses the generic non-Event proof field `payload_hash`; that value MUST equal H(anchor_canonical_bytes) under the Realm hash_profile. Event Envelope proofs use `event_digest` instead.",
       "oneOf": [
         {
           "$ref": "#/$defs/signature"
@@ -141,7 +141,8 @@
           "pattern": "^did:[a-z0-9]+:[^\\s]+(#.+)?$"
         },
         "payload_hash": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "Hash of anchor_canonical_bytes for this non-Event Anchor signature. Do not rename to event_digest: event_digest is reserved for Event Envelope proofs."
         },
         "created_at": {
           "type": "string",

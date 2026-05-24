@@ -131,12 +131,12 @@ POST /api/v1/moderation/report
 
 在 E2EE Realm 中，服务端无法读取正文，但审核方仍需要验证“被举报明文确实对应某条已投递消息”。实现 SHOULD 支持 message franking：服务在接收密文事件时生成不可伪造的收讫证明，而不保存明文。
 
-推荐 frank 结构：
+推荐 franking proof 结构：
 
 ```json
 {
-  "kind": "cx.moderation.frank",
-  "frank_id": "cx:frank:0196425b-0000-7000-8000-000000000000",
+  "kind": "cx.moderation.franking_proof",
+  "franking_proof_id": "cx:franking_proof:0196425b-0000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "ciphertext_digest": "sha256:...",
@@ -155,20 +155,20 @@ POST /api/v1/moderation/report
 
 规则：
 
-- Frank MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID 与接收时间之上生成。
-- Frank MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash，除非 Realm policy 明确允许该字段。
-- 接收方客户端在解密消息后 SHOULD 保存 frank 与明文的本地绑定证明；该绑定默认只在本地或 E2EE 私有报告中保存。
-- 举报 E2EE 内容时，`cx.moderation.report` MAY 携带 `plaintext_evidence` 的加密副本、原始 encrypted envelope、frank 和 reporter 对明文/evidence package 的签名。
-- 审核方验证时 MUST 检查：frank 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
-- Frank 只证明服务接收过对应密文事件，不单独证明明文含义。审核决定仍必须落成 signed moderation decision，并受 Realm policy、capability 和 appeal 规则约束。
+- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID 与接收时间之上生成。
+- `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash，除非 Realm policy 明确允许该字段。
+- 接收方客户端在解密消息后 SHOULD 保存 `franking_proof` 与明文的本地绑定证明；该绑定默认只在本地或 E2EE 私有报告中保存。
+- 举报 E2EE 内容时，`cx.moderation.report` MAY 携带 `plaintext_evidence` 的加密副本、原始 encrypted envelope、`franking_proof` 和 reporter 对明文/evidence package 的签名。
+- 审核方验证时 MUST 检查：`franking_proof` 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
+- `franking_proof` 只证明服务接收过对应密文事件，不单独证明明文含义。审核决定仍必须落成 signed moderation decision，并受 Realm policy、capability 和 appeal 规则约束。
 
-#### 3.4.1 Frank 不证明的事实 (Normative Non-Properties)
+#### 3.4.1 `franking_proof` 不证明的事实 (Normative Non-Properties)
 
-Frank 是 service-side delivery proof for ciphertext，**不是**明文归因凭据。为防止 moderation pipeline 误把 frank 当作明文级证据，本节明确列出 frank 不证明的事实：
+`franking_proof` 是 service-side delivery proof for ciphertext，**不是**明文归因凭据。为防止 moderation pipeline 误把 `franking_proof` 当作明文级证据，本节明确列出它不证明的事实：
 
-- Frank MUST NOT 被实现解释为“reporter 提交的明文与 sender 加密的明文一致”——除非额外验证流程（reporter 提交的 encrypted envelope 与 frank 中 `ciphertext_digest` 匹配，且审核方能独立解密或验证 sender-bound content commitment）通过。
-- Frank MUST NOT 被实现解释为“sender authored the plaintext”。Frank 只能归因 *密文 envelope* 由 `sender_claim` 中声明的 device 在 receiving service 处投递；plaintext 与该 envelope 的绑定不在 frank 覆盖范围内。
-- Frank MUST NOT 被实现解释为“sender 对该明文内容在群外仍负 non-repudiation 责任”。MLS 等 group messaging 协议默认不为群外审核提供 plaintext non-repudiation；frank 不改变这一边界。
+- `franking_proof` MUST NOT 被实现解释为“reporter 提交的明文与 sender 加密的明文一致”——除非额外验证流程（reporter 提交的 encrypted envelope 与 `franking_proof` 中 `ciphertext_digest` 匹配，且审核方能独立解密或验证 sender-bound content commitment）通过。
+- `franking_proof` MUST NOT 被实现解释为“sender authored the plaintext”。它只能归因 *密文 envelope* 由 `sender_claim` 中声明的 device 在 receiving service 处投递；plaintext 与该 envelope 的绑定不在 `franking_proof` 覆盖范围内。
+- `franking_proof` MUST NOT 被实现解释为“sender 对该明文内容在群外仍负 non-repudiation 责任”。MLS 等 group messaging 协议默认不为群外审核提供 plaintext non-repudiation；`franking_proof` 不改变这一边界。
 - Reporter 提交的 `plaintext_evidence` 在以下任一条件不满足时，MUST NOT 与 sender identity 自动绑定：(a) 审核方有独立解密能力并完成解密一致性校验；或 (b) 存在该 Realm 启用的 `cx.profile.franking.sender_commitment.v1` profile 且 §3.4.2 校验通过；或 (c) reporter 自身的明文签名/承诺与该 Realm 协议绑定（明确归因 reporter 而非 sender）。
 
 Sender 级 plaintext attribution 由独立的 opt-in profile `cx.profile.franking.sender_commitment.v1` 提供（见 §3.4.2）。该 profile 不改变 core franking 的 wire 形态：sender commitment 走独立 sidecar 字段；未启用该 profile 的部署 plaintext-level sender attribution 依旧不可用。
@@ -266,12 +266,12 @@ SC = HMAC-SHA-256(
 
 Franking 信任链：
 
-1. 从 frank 的 `received_by` 取得 receiving service DID。
-2. 解析该 DID Document，并验证 frank `signature` 使用的 verification method 在 `received_at` 时有效且未撤销。
+1. 从 `franking_proof` 的 `received_by` 取得 receiving service DID。
+2. 解析该 DID Document，并验证 `franking_proof.signature` 使用的 verification method 在 `received_at` 时有效且未撤销。
 3. 验证该 service DID 在目标 Realm 的 policy / service binding 中被授权为 Sync、Federation、MIMI facade 或 moderation ingestion 服务。
 4. 验证 DID service endpoint、HTTP Message Signature / federation binding 与实际接收服务一致，防止把其他服务签名重放到本 Realm。
-5. 验证 frank payload hash 覆盖 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、received time 和 replay nonce。
-6. 若任一环节缺失，审核方 MAY 接收举报材料作人工线索，但 MUST NOT 将 frank 视为可验证投递证明。
+5. 验证 `franking_proof` payload hash 覆盖 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、received time 和 replay nonce。
+6. 若任一环节缺失，审核方 MAY 接收举报材料作人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。
 
 ## 4. 用户屏蔽 (Ignore/Block)
 
@@ -518,7 +518,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
   "kind": "cx.organization.moderation_policy",
   "organization_did": "did:web:acme.example",
   "policy_id": "cx:org-policy:abuse-v1",
-  "scope": {
+  "policy_scope": {
     "realm_ids": ["cx:realm:01964280-0000-7000-8000-000000000000"],
     "service_dids": [
       "did:web:server.acme.example",
@@ -544,8 +544,8 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
       "action": "deny_restricted_join"
     }
   ],
-  "valid_from": "2026-04-26T00:00:00Z",
-  "valid_until": null,
+  "not_before": "2026-04-26T00:00:00Z",
+  "expires_at": null,
   "proof": {
     "kind": "detached_jws",
     "verification_method": "did:web:acme.example#governance-key-1",

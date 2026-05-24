@@ -7,7 +7,7 @@
     "receipt_id",
     "schema",
     "issuer",
-    "scope",
+    "receipt_scope",
     "frontier",
     "events",
     "created_at",
@@ -24,7 +24,7 @@
     "issuer": {
       "$ref": "./event-schema.json#/$defs/did"
     },
-    "scope": {
+    "receipt_scope": {
       "type": "object",
       "properties": {
         "actor_id": {

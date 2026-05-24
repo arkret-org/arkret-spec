@@ -178,7 +178,7 @@ Signature: sig1=:base64...:
   "events": [
     {
       "event_id": "cx:event:0196419b-2000-7000-8000-000000000001",
-      "kind": "cx.read.marker",
+      "kind": "cx.read.cursor",
       "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:web:alice.example",
       "actor_seq": 42,
@@ -676,7 +676,7 @@ Authorization: <service_signature>
   "valid": true,
   "actor_id": "did:webvh:...",
   "verified_key_id": "did:webvh:...#device-a",
-  "key_log_head": "cx:keyevt:...",
+  "key_log_head": "cx:key_event:...",
   "did_document_ref": "sha256:...",
   "expires_at": "2026-04-26T00:05:00Z",
   "warnings": []

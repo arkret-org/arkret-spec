@@ -23,7 +23,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Field-level position move was subsumed by track-relative ordering and per-cell ordered-log lattice; no direct replacement."
+      "notes": "Field-level position move was subsumed by track-relative ordering and per-cell ordered_log lattice; no direct replacement."
     },
     {
       "id": "cx.field.position.reorder",
@@ -267,7 +267,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Removed with cx.profile.agent_workspace.v1. The cas-register reservation lattice (mirror_space_by_source / mirror_flow_by_source cells) was specific to that profile and is not retained."
+      "notes": "Removed with cx.profile.agent_workspace.v1. The cas_register reservation lattice (mirror_space_by_source / mirror_flow_by_source cells) was specific to that profile and is not retained."
     },
     {
       "id": "cx.agent_workspace.reservation.recover",
@@ -284,6 +284,62 @@
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
       "notes": "Removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.agent.key.authorized",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.agent.key.authorize",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Renamed to imperative event-kind spelling."
+    },
+    {
+      "id": "cx.agent.key.revoked",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.agent.key.revoke",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Renamed to imperative event-kind spelling."
+    },
+    {
+      "id": "cx.agent.key.rotated",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.agent.key.rotate",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Renamed to imperative event-kind spelling."
+    },
+    {
+      "id": "cx.device.authorized",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.device.authorize",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Renamed to imperative event-kind spelling."
+    },
+    {
+      "id": "cx.device.revoked",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.device.revoke",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Renamed to imperative event-kind spelling."
+    },
+    {
+      "id": "cx.relation.delete",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.relation.tombstone",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Relation termination uses the canonical tombstone verb."
+    },
+    {
+      "id": "cx.read.marker",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.read.cursor",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Actor-private persistent read position is named read cursor."
     }
   ]
 }

@@ -309,7 +309,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "max_operations": 100,
   "period": "1h",
   "burst": 10,
-  "scope": "per_space|global"
+  "constraint_scope": "per_space|global"
 }
 ```
 
@@ -325,7 +325,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "blob_presign_max_ttl_seconds": 300,
   "max_artifact_bytes": 10485760,
   "period": "24h",
-  "scope": "per_space"
+  "constraint_scope": "per_space"
 }
 ```
 
@@ -521,11 +521,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "blob_max_bytes": 10485760,
   "max_total_blob_bytes": 104857600,
-  "scope": "per_space"
+  "constraint_scope": "per_space"
 }
 ```
 
-`blob_max_bytes` 限制单次上传 blob 的最大字节数。`max_total_blob_bytes` 限制 scope 内的累计 blob 大小。
+`blob_max_bytes` 限制单次上传 blob 的最大字节数。`max_total_blob_bytes` 限制 `constraint_scope` 内的累计 blob 大小。
 
 ### 14.2 消息编辑窗口
 

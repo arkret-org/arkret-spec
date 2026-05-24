@@ -86,9 +86,9 @@
         "key_format": { "$ref": "#/$defs/key_format" },
         "binding": {
           "type": "object",
-          "required": ["signed_by", "alg", "signature"],
+          "required": ["verification_method", "alg", "signature"],
           "properties": {
-            "signed_by": {
+            "verification_method": {
               "type": "string",
               "minLength": 1,
               "description": "PSK kid that signed this subordinate key's canonical signing input."

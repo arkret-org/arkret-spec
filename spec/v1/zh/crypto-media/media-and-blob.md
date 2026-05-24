@@ -270,7 +270,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 然而浏览器原生媒体标签（`<img src>`、`<video src>`、`<audio src>`、`<link href>`、CSS `background-image: url(...)` 等）**无法附加 `Authorization` header**——浏览器在解析这些属性时直接对目标 URL 发起未带认证 header 的 GET。`fetch()` API 本身可以附加 `Authorization`，但其返回的 `Response` 仅能转换为 Blob URL 后由 JS 注入 DOM 才能让原生标签消费，无法直接代替原生 src 的同源加载语义。若严格执行"无 URL 认证"规则，受保护媒体只能通过 service worker 代理或 JS Blob URL 间接渲染——这在很多原生体验、邮件预览、跨页面共享场景中是死路。
 
-为此 v1 定义 **`cx.blob.presign`** 作为该规则的**狭窄定制例外**：发出短 TTL、单对象、只读、可撤销的 pre-signed URL，让浏览器原生标签直接使用，同时通过严格 scope 限制把 URL 泄露的最大损失收敛在一个具体 blob 的短时间访问。
+为此 v1 定义 **`cx.blob.presign`** 作为该规则的**狭窄定制例外**：发出短 TTL、单对象、只读、可撤销的 pre-signed URL，让浏览器原生标签直接使用，同时通过严格 access_scope 限制把 URL 泄露的最大损失收敛在一个具体 blob 的短时间访问。
 
 #### 5.4.1 流程
 
@@ -305,7 +305,7 @@ Cache-Control: public, immutable, max-age=31536000
   "purpose": "media_inline",
   "audience_hint": "did:webvh:Qm...:alice.example",
   "nonce": "base64url:random_16_bytes",
-  "scope": {
+  "access_scope": {
     "method": ["GET", "HEAD"],
     "byte_range": null
   }
@@ -324,8 +324,8 @@ Cache-Control: public, immutable, max-age=31536000
 | `purpose` | yes | `media_inline` / `thumbnail` / `download`；服务端按 purpose 决定 `Content-Disposition`、限流强度等 |
 | `audience_hint` | optional | 期望使用者 DID（**仅诊断 hint，不构成访问控制**；浏览器原生标签无法证明调用者身份，详见 §5.4.4.1）。 |
 | `nonce` | yes | 16+ bytes 随机；作为 presign envelope id、audit key 与撤销列表 key。除非显式声明 single-use profile，服务端不得因同一 nonce 被浏览器重复 GET / HEAD / Range 拉取而拒绝正常媒体加载。 |
-| `scope.method` | yes | 仅允许 `GET` / `HEAD` 中的子集；MUST NOT 包含写方法 |
-| `scope.byte_range` | optional | 可限制可访问字节区间（如 `[0, 65536]` 仅头部） |
+| `access_scope.method` | yes | 仅允许 `GET` / `HEAD` 中的子集；MUST NOT 包含写方法 |
+| `access_scope.byte_range` | optional | 可限制可访问字节区间（如 `[0, 65536]` 仅头部） |
 
 #### 5.4.3 接收方校验
 
@@ -336,7 +336,7 @@ Cache-Control: public, immutable, max-age=31536000
 3. **scheme 校验**：仅识别注册 scheme id（v1 = `cx.blob.presign.v1`）；未知 scheme MUST 拒绝
 4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同
 5. **Realm 绑定校验**：若 blob metadata 有 `realm_id`，envelope `realm_id` MUST 存在且完全相同；若 envelope 省略 `realm_id`，该 blob 必须是 deployment policy 显式允许的 public/global blob。为 Realm A 签发的 presign 不能作为 Realm B 的授权使用。
-6. **method 校验**：本次请求方法在 envelope `scope.method` 列表内
+6. **method 校验**：本次请求方法在 envelope `access_scope.method` 列表内
 7. **TTL 校验**：`now() ∈ (issued_at, expires_at)`；含合理 clock skew tolerance（如 ±30s）
 8. **nonce / 撤销校验**：`nonce` 未在撤销列表内；普通 `media_inline` / `thumbnail` presign 是短 TTL 多次可用 bearer URL，服务端 MUST NOT 把浏览器正常的重复 GET / HEAD / Range 请求当作 replay 拒绝。只有 profile 显式声明 single-use presign 时，才可维护 consumed set。
 9. **撤销校验**：blob 已被 redaction / erasure 处理时即便 envelope 仍有效也 MUST 拒绝
@@ -373,7 +373,7 @@ Cache-Control: public, immutable, max-age=31536000
 `audience_hint` 是 **诊断 hint**，**不是访问控制**。原因：浏览器原生标签（`<img>` / `<video>`）在加载 presign URL 时不会附加任何调用者凭据；服务端无法在响应阶段验证当前请求确实来自 `audience_hint` 指向的 actor。任何把 `audience_hint` 当作 audience 强制的实现都会形成假阳性安全感。本节固定如下规则：
 
 - **实现 MUST NOT** 把 `audience_hint` 当成访问控制 — 它只能进入 audit log 用于事后排查"presign 给谁发的"。
-- presign 是一个**短 TTL bearer URL**：任何持有该 URL 的人在 TTL 内都可拉取 `blob_ref` 对应字节。最大损失窗口由 (a) TTL、(b) `scope.method`/`scope.byte_range`、(c) revocation（redaction / erasure 触发即时拒绝）三者共同收敛。
+- presign 是一个**短 TTL bearer URL**：任何持有该 URL 的人在 TTL 内都可拉取 `blob_ref` 对应字节。最大损失窗口由 (a) TTL、(b) `access_scope.method`/`access_scope.byte_range`、(c) revocation（redaction / erasure 触发即时拒绝）三者共同收敛。
 - `nonce` 不提供普通媒体 presign 的单次消费语义。浏览器原生标签可能对同一 URL 执行 `HEAD` + `GET`、Range、retry 或解码器重复拉取；v1 `media_inline` / `thumbnail` presign MUST 允许这些重复请求。需要单次下载时必须声明独立 profile（例如 `single_use=true` 或专用 purpose），且不得用于原生媒体标签。
 - **下列 blob 类别 MUST 走 fail-closed 规则，不得发 presign**：
   - **E2EE ciphertext** — 已经在 §5.4.4 MUST NOT 列出。E2EE 附件 fetch 走 client-side `fetch()` + `Authorization` header 路径。

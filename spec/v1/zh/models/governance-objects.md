@@ -83,8 +83,8 @@ Schema id: `cx.schema.policy.v1`
 | `rules` | yes | `array<PolicyRule>` | 每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
 | `priority` | no | `integer` | 数值大者优先。 | 策略优先级。 |
-| `valid_from` | no | `timestamp` |  | 生效时间。 |
-| `valid_until` | no | `timestamp` |  | 过期时间。 |
+| `not_before` | no | `timestamp` |  | 生效时间。 |
+| `expires_at` | no | `timestamp` |  | 过期时间。 |
 | `created_by` | yes | `did` | 必须有 policy/admin capability。 | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
@@ -115,8 +115,8 @@ Schema id: `cx.schema.capability.v1`
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
 | `parent_grant_id` | no | `id:grant` | derived grant 必填。 | 父授权。 |
-| `valid_from` | no | `timestamp` |  | 生效时间。 |
-| `valid_until` | no | `timestamp` |  | 过期时间。 |
+| `not_before` | no | `timestamp` |  | 生效时间。 |
+| `expires_at` | no | `timestamp` |  | 过期时间。 |
 | `revoked_by` | no | `did` | 撤销后设置。 | 撤销者。 |
 | `revoked_at` | no | `timestamp` |  | 撤销时间。 |
 | `proofs` | yes | `array<Proof>` |  | 授权签名。 |

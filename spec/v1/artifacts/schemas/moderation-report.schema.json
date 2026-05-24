@@ -46,7 +46,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^(cx:(event|message|blob|frank|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64})$"
+        "pattern": "^(cx:(event|message|blob|franking_proof|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64})$"
       },
       "uniqueItems": true
     },
@@ -73,9 +73,9 @@
       },
       "additionalProperties": true
     },
-    "frank": {
-      "$ref": "#/$defs/frank",
-      "description": "Optional Franking metadata block. Mirrors the frank object spec'd in zh/governance/content-moderation.md §3.4. Frank proves service receipt of ciphertext metadata; it does not prove plaintext authorship unless a separate sender-commitment profile is enabled."
+    "franking_proof": {
+      "$ref": "#/$defs/franking_proof",
+      "description": "Optional franking proof metadata block. Mirrors the franking_proof object spec'd in zh/governance/content-moderation.md §3.4. It proves service receipt of ciphertext metadata; it does not prove plaintext authorship unless a separate sender-commitment profile is enabled."
     },
     "created_at": {
       "type": "string",
@@ -140,11 +140,11 @@
       "type": "string",
       "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "frank": {
+    "franking_proof": {
       "type": "object",
       "required": [
         "kind",
-        "frank_id",
+        "franking_proof_id",
         "realm_id",
         "event_id",
         "ciphertext_digest",
@@ -156,11 +156,11 @@
       ],
       "properties": {
         "kind": {
-          "const": "cx.moderation.frank"
+          "const": "cx.moderation.franking_proof"
         },
-        "frank_id": {
+        "franking_proof_id": {
           "type": "string",
-          "pattern": "^cx:frank:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^cx:franking_proof:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
           "type": "string",
@@ -215,7 +215,7 @@
         "signature": {
           "type": "string",
           "minLength": 1,
-          "description": "Receiving service signature over the canonical frank transcript."
+          "description": "Receiving service signature over the canonical franking proof transcript."
         }
       },
       "additionalProperties": false

@@ -139,7 +139,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
-`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意协作 Realm history。两 kind 共写入同一 cell `cx:cell:cx.component.profile.v1:<target_actor_profile_id>`（cas-register, bottom=reject），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
+`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意协作 Realm history。两 kind 共写入同一 cell `cx:cell:cx.component.profile.v1:<target_actor_profile_id>`（cas_register, bottom=reject），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
 
 ### 2.4 Per-Realm Profile 覆写
 
@@ -286,7 +286,7 @@ POST /api/v1/directory/search-users
 | `results` | `object[]` | required | 授权可发现的用户结果。 |
 | `results[].handle` | `string` | optional | 可展示 / 可再次 resolve 的 handle。未满足 claim / audience / requester policy 时，结果 SHOULD 只返回 handle 或 display preview，不返回 DID。 |
 | `results[].did` | `did` | conditional | 用户 DID。仅当请求方已通过 `resolve-handle` 所需的 claim / presentation / audience / Realm intent 验证，或结果来自调用方本地联系人索引且 DID 已由用户本地持有时才可返回。共同 Realm membership 不得单独授权披露。 |
-| `results[].recipient_service_did` | `did` | conditional | 仅在 `intent ∈ {invite, member_add}` 且 claim 明确授权该 Realm / requester 获取投递上下文时返回；不得用于普通 mention autocomplete。 |
+| `results[].member_delivery_binding` | `object` | conditional | 仅在 `intent ∈ {invite, member_add}` 且 claim 明确授权该 Realm / requester 获取投递上下文时返回；不得用于普通 mention autocomplete。 |
 | `results[].display_name` | `string` | optional | 显示名。 |
 | `results[].avatar_blob_ref` | `id:blob` | optional | 头像 Blob 引用；字段名与 Actor Profile canonical 字段保持一致。 |
 | `results[].membership` | `string` | optional | 与 `realm_id` 相关的成员状态。 |
@@ -313,7 +313,7 @@ POST /api/v1/directory/search-users
 - 默认搜索当前 Realm 的成员
 - 可选扩展到同一组织域下的所有已知用户
 - 不应跨域搜索未授权的外部用户
-- `search-users` 是候选发现接口，不是身份解析接口；需要得到 `subject` DID、`recipient_service_did` 或 `delivery_binding_hint` 时，客户端 MUST 调用 `resolve-handle` 并满足其 claim / audience / requester policy。
+- `search-users` 是候选发现接口，不是身份解析接口；需要得到 `subject` DID 或 `member_delivery_binding` 时，客户端 MUST 调用 `resolve-handle` 并满足其 claim / audience / requester policy。
 
 ## 5. v1 规则
 

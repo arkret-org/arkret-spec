@@ -134,7 +134,7 @@ Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`
 - 签名者的权限链（Realm owner / admin / trusted issuer / witness quorum membership）在当前 auth state 下仍**可解析**。如果该链已被裁剪（例如 Realm tombstone、governance reset 或越过 manifest 时代的 auth-chain compaction），snapshot MUST 被拒绝。
 - 若签名者曾被撤销，则 `signer.revoked_at` 不存在，**或** `signer.revoked_at > manifest.created_at`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但 client 在用当前状态写入新 Event 前 MUST 先重放 snapshot frontier 之后的事件。
 
-`proof`、`signed_by`、`generator_signature` 与 `state_signature` 不是 v1 snapshot manifest 字段。
+`proof`、`verification_method`、`generator_signature` 与 `state_signature` 不是 v1 snapshot manifest 字段。
 
 ## 6. Inclusion 与 Omission 防御
 
@@ -175,7 +175,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 ```json
 {
   "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
-  "challenge_id": "cx:txn:019640c8-8000-7000-8000-000000000000",
+  "challenge_id": "cx:transaction:019640c8-8000-7000-8000-000000000000",
   "samples": [
     {
       "kind": "event_id",
@@ -197,7 +197,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 ```json
 {
   "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
-  "challenge_id": "cx:txn:019640c8-8000-7000-8000-000000000000",
+  "challenge_id": "cx:transaction:019640c8-8000-7000-8000-000000000000",
   "commitment_algorithm": "merkle_event_set_v1",
   "commitment_root": "sha256:...",
   "proofs": [

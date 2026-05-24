@@ -131,13 +131,13 @@ title: Spec Map
 | --- | --- |
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
-| `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas-register / cascade。 |
-| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`discussion_realm_ref`、Watch / 通知订阅模型（`watches` Relation + cas-register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas_register / cascade。 |
+| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`discussion_realm_ref`、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
 | `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、RelationProfile、冲突处理。 |
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
-| `models/private-objects.md` | Read Marker、Notification、actor-private account data 引导。 |
+| `models/private-objects.md` | Read Cursor、Notification、actor-private account data 引导。 |
 | `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`cx.patch.v1`)、Event Batch Receipt、reducer 总则。 |
 | `models/extension-objects.md` | Applet、Agent、Blob 等通过 extension profile 接入的对象（指向 `extensions/` 与 `crypto-media/`）。 |
 | `models/views.md` | View kind / renderer、Query、Board / Timeline / Graph / Document projection。 |
@@ -181,7 +181,7 @@ title: Spec Map
 | `discovery/profiles-presence.md` | Actor profile、presence、typing、用户目录。 |
 | `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist、联系人 / Realm 本地备注。 |
 | `discovery/push-notifications.md` | 推送规则、推送网关、E2EE 脱敏推送。 |
-| `discovery/read-receipts.md` | Read receipt 与 read marker。 |
+| `discovery/read-receipts.md` | Read receipt 与 read cursor。 |
 
 ### 4.7 加密、设备与媒体
 

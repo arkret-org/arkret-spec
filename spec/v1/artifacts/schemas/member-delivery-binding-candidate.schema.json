@@ -7,8 +7,7 @@
   "required": [
     "subject_id",
     "handle_uri",
-    "recipient_service_did",
-    "delivery_binding_hint",
+    "member_delivery_binding",
     "issuer_service_did",
     "audience",
     "issued_at",
@@ -37,12 +36,7 @@
       "uniqueItems": true,
       "description": "Optional interop aliases (RFC 7565 acct:). Never used for cache keys, signature transcripts, or delivery_binding materialisation."
     },
-    "recipient_service_did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
-      "description": "Principal Server service DID — source of member_delivery_binding.recipient_service_did once materialised."
-    },
-    "delivery_binding_hint": {
+    "member_delivery_binding": {
       "type": "object",
       "required": [
         "recipient_service_did",
@@ -130,7 +124,7 @@
         "$ref": "./event-schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "At least one proof binding handle_uri, subject_id, recipient_service_did, audience, issuer_service_did, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
+      "description": "At least one proof binding handle_uri, subject_id, member_delivery_binding.recipient_service_did, audience, issuer_service_did, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
     },
     "claim_digest": {
       "type": "string",

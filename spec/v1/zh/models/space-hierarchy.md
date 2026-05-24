@@ -35,7 +35,7 @@ Reducer 编译为：
 
 ```text
 cell_id := cx:cell:cx.component.space.parent.v1:<space_id>
-lattice := cas-register
+lattice := cas_register
 bottom  := reject
 effect  := set <parent_space_id | null>
 precondition := head_eq <expected_parent_space_id | null>
@@ -86,7 +86,7 @@ Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_re
 
 ## 6. Workflow Containers
 
-`kind=board` / `kind=list` 也是 Space。Flow 位置仍由 `cx.flow.move` / `cx.flow.reorder` 的 cas-register cell 维护：
+`kind=board` / `kind=list` 也是 Space。Flow 位置仍由 `cx.flow.move` / `cx.flow.reorder` 的 cas_register cell 维护：
 
 ```text
 cell_id := cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>

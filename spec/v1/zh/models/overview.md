@@ -49,7 +49,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
-| Read Marker | actor-private 已读位置（id 由 actor + 范围派生，非 typed-id） | [private-objects.md](./private-objects.md) |
+| Read Cursor | actor-private 已读位置（id 由 actor + 范围派生，非 typed-id） | [private-objects.md](./private-objects.md) |
 | Notification | inbox projection（id content-addressed 或派生，非 typed-id） | [private-objects.md](./private-objects.md) |
 
 ### 2.4 内容 / 媒体 / 扩展对象
@@ -186,7 +186,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 | Relation 基数、跨 Realm、冲突 | [relation.md](./relation.md) |
 | Actor、Actor Profile | [actor.md](./actor.md) |
 | Schema / Policy / Capability Grant / Invite | [governance-objects.md](./governance-objects.md) |
-| Read Marker / Notification | [private-objects.md](./private-objects.md) |
+| Read Cursor / Notification | [private-objects.md](./private-objects.md) |
 | Event Envelope / Proof / Patch / Receipt / reducer | [event-and-patch.md](./event-and-patch.md) |
 | Applet / Agent / Blob | [extension-objects.md](./extension-objects.md) |
 | Content Block（消息正文 / 富文本 / 媒体） | [content-types.md](./content-types.md) |

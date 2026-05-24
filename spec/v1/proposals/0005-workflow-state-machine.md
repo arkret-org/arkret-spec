@@ -126,7 +126,7 @@ Schema id: `cx.schema.workflow.v1`
 5. 校验 `transition.preconditions[]` 全部满足;否则 `failed_precondition`,`reason="workflow_precondition_unmet"` + 具体哪条
 6. 校验 actor 持有 `cx.flow.workflow.transition` 基础 capability **AND** `transition.required_capability`(若有)
 7. 校验 Flow.state=active(共用 `cx.flow.update` 的 non-active 拒写规则)
-8. 写入 cell:`cx.component.flow.workflow_state.v1` cas-register,head_eq precondition
+8. 写入 cell:`cx.component.flow.workflow_state.v1` cas_register,head_eq precondition
 9. 自动派生 `Flow.stage = target_state.stage_category`,通过同一 reducer transaction 触发"内部" stage 更新(**不**对外暴露为单独的 `cx.flow.stage.set` event;那个仍是 actor 直接推进 stage 的路径)
 10. 写入 `Flow.workflow_state_ref.state_key = target_state.key`
 

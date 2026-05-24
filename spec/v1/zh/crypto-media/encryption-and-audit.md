@@ -236,7 +236,7 @@ late key recovery 接受条件（normative）— 客户端 MUST 全部通过才�
 a. **Membership 时点校验**：受影响 event 的 T₀，receiver 在 T₀ 必须确实是该 Realm 的成员（`cx.member.state` 在 T₀ pre-state 下为 join，且不是 ban / leave）。如果 receiver 在 T₀ 不是成员、或当时还未被 invite，late key 解码出的明文 MUST NOT 进入 verified timeline；audit log emit `late_recovery_rejected_membership`。
 b. **Policy 时点校验**：T₀ 处的 Realm policy MUST 允许该 receiver 类别看到该 event（history visibility / disclosure policy 在 T₀ 处）；若 policy 在 T₀ 之后收紧到禁止该 receiver，late material 仍按 T₀ policy 解码（policy 不溯及既往），但 UI MUST 提示"已不在当前 policy 下可见"。
 c. **Key share 来源授权**：late key 提供方 MUST 是 Realm policy 声明的合法 key recovery 源（key backup、archive node、authorized peer）；P2P 之间随意 share key MUST 被拒。
-d. **Audit profile 强制**：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 下，late_recovered transition MUST 同步 emit `cx.audit.accessed` Event（payload `access_kind="e2ee_late_recovery"`、`late_recovery_original_event_id=<原 event_id>`、当前 receiver actor），并等待 RYW receipt 与正常解码相同的流程；未拿到 receipt MUST 不解码。`cx.audit.ryw_receipt` 在 receipt object 上 MAY 标 `recovery_reason` = "late_key_arrival"（payload 取值，**不是** error code registry 中的 reason_code；仅用于 audit projection 区分晚到 key 触发的访问与首次访问）。
+d. **Audit profile 强制**：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 下，late_recovered transition MUST 同步 emit `cx.audit.accessed` Event（payload `access_kind="e2ee_late_recovery"`、`late_recovery_original_event_id=<原 event_id>`、当前 receiver actor），并等待 RYW receipt 与正常解码相同的流程；未拿到 receipt MUST 不解码。`cx.audit.ryw_receipt` 在 receipt object 上 MAY 标 `recovery_reason_code` = "late_key_arrival"（payload 取值，**不是** error code registry 中的 reason_code；仅用于 audit projection 区分晚到 key 触发的访问与首次访问）。
 
 **Revoked / removed actor 负向**：若 receiver 在 T₀ 已不是成员，或 late key share 的签发时刻该 receiver 已被 ban / removed 且 key source 未重新执行 T₀ 校验，则 late key MUST NOT 进入 verified timeline。T₀ 之后发生的 ban / remove 不自动追溯撤销其在 T₀ 合法可见的历史，但 key backup / archive node / peer share 在发送 late material 前 MUST 重新执行 T₀ membership + policy 校验，并确认当前 share policy 仍允许向该 device 交付；否则必须拒绝并写 `late_recovery_rejected_membership` 或 `late_recovery_share_not_authorized`。`cx.vector.late_key_recovery.removed_actor.v1` 覆盖：(a) receiver 在 T₀ 不可见时不解密；(b) key source 在 ban 后未重新校验时拒绝 share；(c) 客户端 UI 不显示未授权明文。
 
@@ -322,7 +322,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 | 层 | 名称（wire-level） | 角色 |
 |---|---|---|
 | **Commit-side proof** | `governance_binding`（GroupContext extension `cx_governance_binding`，定义见 §2.5.1，CBOR 编码见 §2.5.3） | 每个 `cx.mls.commit` 携带的 binding payload，把本次 epoch 推进所**断言覆盖**的 governance roots（`membership_frontier` / `policy_root` / `capability_root` / `discussion_metadata_hash`）哈希进 MLS transcript |
-| **Lattice-side accumulator** | `covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or-set，bottom=expose，见 §2.5.2） | MLS Commit Move 的 effect cell，**累计**已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier |
+| **Lattice-side accumulator** | `covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or_set，bottom=expose，见 §2.5.2） | MLS Commit Move 的 effect cell，**累计**已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier |
 
 两层缺一不可：`governance_binding` 提供 per-commit 的不可伪造证据并由 MLS transcript hash 覆盖，`covered_frontier_cell` 沉淀 reducer 可查询的累计状态供 message Move precondition 引用。
 
@@ -352,7 +352,7 @@ flowchart TB
 
     subgraph LS ["Lattice-side accumulator"]
         direction TB
-        CFC["covered_frontier_cell<br/>(or-set, bottom=expose)<br/>累加已被 commit attest 的 governance frontier"]
+        CFC["covered_frontier_cell<br/>(or_set, bottom=expose)<br/>累加已被 commit attest 的 governance frontier"]
         EpC["mls_epoch_cell / key_schedule_cell"]
     end
 
@@ -413,7 +413,7 @@ MLS group 的 scope 永远绑定到一个 `realm_id`：源 Realm 自身使用 `e
 
 #### 2.5.2 Covered Frontier Cell (`covered_frontier_cell`)
 
-`covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or-set，bottom=expose）是 MLS Governance Binding 的 lattice 侧累加器。它声明 "本 MLS group 已由 commit attest 覆盖的 governance Anchor frontier 集合"；MLS Commit 被建模为 Move，读取 governance Anchor frontier，写入：
+`covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or_set，bottom=expose）是 MLS Governance Binding 的 lattice 侧累加器。它声明 "本 MLS group 已由 commit attest 覆盖的 governance Anchor frontier 集合"；MLS Commit 被建模为 Move，读取 governance Anchor frontier，写入：
 
 - `mls_epoch_cell`
 - `key_schedule_cell`
@@ -645,7 +645,7 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 
 ### 2.9 Reaction 与短轻量事件的可见性
 
-`cx.reaction.add` / `cx.reaction.remove`、`cx.read.marker`、`cx.receipt.read`、`cx.typing` 等高频小载荷事件需要明确 plaintext 与 ciphertext 的边界，否则即便消息正文加密，元数据通道仍可能泄露交互模式。
+`cx.reaction.add` / `cx.reaction.remove`、`cx.read.cursor`、`cx.receipt.read`、`cx.typing` 等高频小载荷事件需要明确 plaintext 与 ciphertext 的边界，否则即便消息正文加密，元数据通道仍可能泄露交互模式。
 
 Reaction 事件 (`cx.reaction.*`) 的可见性规则：
 
@@ -764,7 +764,7 @@ Genesis 接受规则：
 
 1. 创建者必须在 `governance_binding.membership_frontier` 和 `policy_root` 覆盖的状态下有创建该 MLS group 的权限；通常需要 `cx.mls.genesis` 或包含该动作的管理 grant。
 2. `governance_binding.next_epoch` MUST 为 `0`；若包含 `previous_epoch`，也 MUST 为 `0`。
-3. 同一 `(scope, mls_group_id)` 的 genesis cell 使用 `cas-register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Move 必须 fail closed，直到 recovery Move 修复。
+3. 同一 `(scope, mls_group_id)` 的 genesis cell 使用 `cas_register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Move 必须 fail closed，直到 recovery Move 修复。
 4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `cx.mls.commit` Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `cx.mls.genesis`、`next_epoch=1`。
 5. 新加入成员的 `cx.mls.welcome` MUST 引用 effective genesis 或后续 effective commit 派生出的 epoch state；客户端不得从未被 Anchor 覆盖的 welcome / ratchet tree 本地推断 group authority。
 
@@ -781,7 +781,7 @@ Genesis 接受规则：
 ### 5.4 并发 Commit
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
 - 节点 MUST 以 Anchor frontier 下的 `mls_epoch_cell` / `key_schedule_cell` Lattice 结果为准。互不可达候选不会按时间或 actor 自动选 winner。
-- 若并发 Commit Move 都满足各自 precondition 但写入同一 `cas-register` epoch cell 的不同值，该 cell 返回 `⊥`；后续 E2EE message Move fail closed，直到 recovery Move 或后续有效 Commit 修复。
+- 若并发 Commit Move 都满足各自 precondition 但写入同一 `cas_register` epoch cell 的不同值，该 cell 返回 `⊥`；后续 E2EE message Move fail closed，直到 recovery Move 或后续有效 Commit 修复。
 - 只有 effective Commit Move 能成为合法的下一个 Epoch。未被 Anchor 覆盖或导致 bottom 的 Commit 客户端 MUST 丢弃本地 epoch 变更并拉取当前 Anchor view。
 
 MLS Commit 的输入和输出必须在 Event payload 中可验证表达：

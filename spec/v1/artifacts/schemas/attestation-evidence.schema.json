@@ -115,11 +115,11 @@
     },
     "validity": {
       "type": "object",
-      "required": ["not_before", "not_after"],
-      "description": "Validity window of THIS evidence. Verifier MUST reject evidence outside the window. not_after - not_before SHOULD be ≤ 90 days; long-lived evidence is a red flag.",
+      "required": ["not_before", "expires_at"],
+      "description": "Validity window of THIS evidence. Verifier MUST reject evidence outside the window. expires_at - not_before SHOULD be ≤ 90 days; long-lived evidence is a red flag.",
       "properties": {
         "not_before": { "$ref": "#/$defs/timestamp" },
-        "not_after": { "$ref": "#/$defs/timestamp" }
+        "expires_at": { "$ref": "#/$defs/timestamp" }
       },
       "additionalProperties": false
     },
@@ -139,7 +139,7 @@
     },
     "operator_did": {
       "$ref": "#/$defs/did",
-      "description": "DID of the controlling organization actually operating this enclave / HSM. MUST match what the Realm policy lists as the allowed audit operator. Distinct from service_did when the operating org is different from the technical service DID (e.g. service hosted by org A on behalf of org B)."
+      "description": "DID of the controlling organization actually operating this enclave / HSM. This intentionally keeps the _did suffix because it is raw external DID material being compared against service_did and Realm policy, not a protocol actor_id/principal_id alias. MUST match what the Realm policy lists as the allowed audit operator. Distinct from service_did when the operating org is different from the technical service DID (e.g. service hosted by org A on behalf of org B)."
     },
     "audit_purpose": {
       "type": "string",

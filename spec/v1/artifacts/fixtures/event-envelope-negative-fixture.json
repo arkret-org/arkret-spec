@@ -61,7 +61,7 @@
             "critical_extensions": [
               {
                 "id": "cx.feature.future_required.v1",
-                "scope": "reducer",
+                "extension_scope": "reducer",
                 "fail_closed": true
               }
             ]
@@ -406,7 +406,7 @@
         "wire_scope": "durable_history",
         "event": {
           "event_id": "cx:event:019a6b30-0000-7000-8000-000000000000",
-          "kind": "cx.read.marker",
+          "kind": "cx.read.cursor",
           "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 14,

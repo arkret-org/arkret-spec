@@ -118,7 +118,7 @@ API 调用 SHOULD 使用以下方式之一：
 ```json
 {
   "ok": true,
-  "request_id": "cx:req:01964137-0000-7000-8000-000000000000",
+  "request_id": "cx:request:01964137-0000-7000-8000-000000000000",
   "result": {}
 }
 ```
@@ -138,7 +138,7 @@ API 调用 SHOULD 使用以下方式之一：
     "retry_after_ms": null,
     "details": {}
   },
-  "request_id": "cx:req:01964137-0000-7000-8000-000000000000"
+  "request_id": "cx:request:01964137-0000-7000-8000-000000000000"
 }
 ```
 

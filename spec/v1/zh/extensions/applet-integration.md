@@ -218,7 +218,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 {
   "issuer": "did:web:acme.example",
   "subject": "did:web:slack-bridge.example#bot",
-  "scope": {
+  "claim_scope": {
     "realm_ids": [
       "cx:realm:0196419b-0000-7000-8000-000000000000"
     ],

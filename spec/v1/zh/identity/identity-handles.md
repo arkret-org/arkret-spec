@@ -45,7 +45,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 | 角色 | 可见性默认 | 验证路径 | 协议主体 |
 | --- | --- | --- | --- |
 | Connection Identifier | 关系私有；仅在发现 / 邀请 / consent 阶段使用 | provider 可达性证明 + invite / consent 流程 | 否 |
-| Handle | 公开或受限；用于 @mention / 邀请 / 成员添加 / 跨上下文可读寻址 | Directory / Principal Server / Organization DID 签发的 handle claim（`acct:` / `contrix://` URI 双向验证），解析为 `subject DID` 与可选 `recipient_service_did` | 否 |
+| Handle | 公开或受限；用于 @mention / 邀请 / 成员添加 / 跨上下文可读寻址 | Directory / Principal Server / Organization DID 签发的 handle claim（`acct:` / `contrix://` URI 双向验证），解析为 `subject DID` 与可选 `member_delivery_binding` | 否 |
 | Administrative Identifier | 组织本地；不出协议线 | 组织 governance / 内部 Directory | 否 |
 | Display Name | UI 展示 | 无 | 否 |
 | Principal DID | 公开或 pairwise；按 disclosure policy 控制 | DID resolver + 签名 | 是 |
@@ -112,15 +112,15 @@ Handle 解析结果（无论来自 Directory、Principal Server、Organization c
 
 Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时，**额外** MUST 包含：
 
-- `recipient_service_did`：该 handle 在投递层指向的 Principal Server service DID。
+- `member_delivery_binding`：该 handle 在投递层提供给 membership builder 的完整投递绑定；其中 `member_delivery_binding.recipient_service_did` 是 Principal Server service DID 的唯一来源。
 - `audience`：claim 绑定的目标 Realm DID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。
 - `issuer_service_did`（条件必填）：claim 由 Organization 或 Directory 签发时给出实际签名的服务 DID。
 
-### 3.3 `delivery_binding_hint`
+### 3.3 `member_delivery_binding`
 
-解析结果 MAY 携带 `delivery_binding_hint`，其中 `recipient_service_did`、`binding_source`、`service_acceptance_ref`、`policy_ref` 和 `delivery_modes` 可直接用于构造 `cx.member.state{membership="join"}.delivery_binding`。
+解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_service_did`、`binding_source`、`service_acceptance_ref`、`policy_ref` 和 `delivery_modes` 可直接用于构造 `cx.member.state{membership="join"}.delivery_binding`。Handle claim schema 不再允许顶层 `recipient_service_did` 快捷字段；投递服务 DID 必须只从 `member_delivery_binding.recipient_service_did` 读取。
 
-`delivery_binding_hint.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
+`member_delivery_binding.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
 
 该 hint 是 builder 输入；reducer 仍 MUST 按 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 独立验证 Realm policy、claim issuer、服务背书和条件必填字段。
 
@@ -148,7 +148,7 @@ Handle 按 holder 披露意图分两类：
 
 ### 3.6 与跨上下文 unlinkability 的关系
 
-`recipient_service_did` 必然在解析结果中暴露 handle 与服务的绑定关系；同一 holder 在两个上下文使用同一公开 DID 时，外部观察者通过 `subject` 字段仍能关联到同一人。**Handle 不提供跨上下文 unlinkability**。
+`member_delivery_binding.recipient_service_did` 必然在解析结果中暴露 handle 与服务的绑定关系；同一 holder 在两个上下文使用同一公开 DID 时，外部观察者通过 `subject` 字段仍能关联到同一人。**Handle 不提供跨上下文 unlinkability**。
 
 需要不可关联的部署 MUST 为每个上下文使用 pairwise / private DID（见 §10、§11、§16），并在每个 pairwise DID 下独立签发 handle claim。pairwise DID 与 handle 是正交机制：handle 解决"易懂寻址 + 可选默认投递"，pairwise DID 解决"跨关系不可关联"。
 
@@ -165,14 +165,13 @@ Handle 按 holder 披露意图分两类：
 | `subject_id` | DID | MUST | 被寻址主体的 principal DID；最终物化为 `payload.actor_id` / cell subject。 |
 | `handle_uri` | canonical URI | MUST | `contrix://<domain>(:<port>)?/users/<localpart>`，`<localpart>` 已 lowercase。`acct:` / 显示形态 / 裸 host 一律拒绝。 |
 | `handle_aliases[]` | `acct:` URI 数组 | MAY | 仅互通别名；不参与权威比对、缓存键或 `delivery_binding` 物化。 |
-| `recipient_service_did` | DID | MUST | Principal Server service DID，是 `member_delivery_binding.recipient_service_did` 的来源。 |
-| `delivery_binding_hint` | object | MUST | 与 [`handle-claim.schema.json#/properties/delivery_binding_hint`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`；MUST NOT 为 `did_document_default`。 |
+| `member_delivery_binding` | object | MUST | 与 [`handle-claim.schema.json#/properties/member_delivery_binding`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`；MUST NOT 为 `did_document_default`。 |
 | `issuer_service_did` | DID | MUST | 实际签发该 candidate 的服务 DID（Directory / Principal Server / Organization service DID）。 |
 | `audience` | string | MUST | 目标 Space DID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。 |
 | `issued_at` | timestamp | MUST | RFC 3339 `Z` 形式；issuer 签发该 candidate 的时刻。MUST ≤ `expires_at`；与 `expires_at` 一起界定 candidate 的有效窗口并阻止 MITM 把 `issued_at` 改写以扩大重放窗口。 |
 | `expires_at` | timestamp | MUST | RFC 3339 `Z` 形式；过期 candidate MUST 被视为不可用。 |
 | `source_refs[]` | event id 数组 | MUST | 至少一条 `cx:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |
-| `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle_uri`、`subject_id`、`recipient_service_did`、`audience`、`issuer_service_did`、`issued_at` 与 `expires_at`。`issued_at` MUST 进入 canonical transcript；缺失即视为重放窗口可篡改并拒绝。 |
+| `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle_uri`、`subject_id`、`member_delivery_binding.recipient_service_did`、`audience`、`issuer_service_did`、`issued_at` 与 `expires_at`。`issued_at` MUST 进入 canonical transcript；缺失即视为重放窗口可篡改并拒绝。 |
 | `claim_digest` | `sha256:<hex>` | SHOULD | candidate 上游 handle claim 的 canonical JSON digest，用于缓存键与 audit chain。 |
 | `intent` | enum | MUST | `member_add` / `invite`，区分 candidate 的 builder 入口；reducer 不依赖该字段，仅用于审计与遥测。 |
 
@@ -183,7 +182,7 @@ Handle 按 holder 披露意图分两类：
 candidate 只能来自以下两类签发路径：
 
 1. **Directory 解析**：`cx.directory.resolve_handle(intent="member_add" \| "invite")` 响应 MUST 把 [`discovery-directory.md` §9.0/§9.1](../discovery/discovery-directory.md) 的 handle 解析与通用结果字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
-2. **受信 issuer 直接签发**：Organization / Principal Server / 受信 service DID 可以离开 Directory 直接对某 `(handle_uri, subject_id, recipient_service_did, audience)` 组合发签名 candidate，例如随 invite token 内嵌、随 organization-issued member roster 下发。
+2. **受信 issuer 直接签发**：Organization / Principal Server / 受信 service DID 可以离开 Directory 直接对某 `(handle_uri, subject_id, member_delivery_binding.recipient_service_did, audience)` 组合发签名 candidate，例如随 invite token 内嵌、随 organization-issued member roster 下发。
 
 candidate **不得**直接构造自客户端字符串拼接、UI text、未签名 directory 响应或 cache 残留。任何缺少 `proofs[]` 的对象 MUST NOT 被命名为 candidate。
 
@@ -193,11 +192,11 @@ candidate **不得**直接构造自客户端字符串拼接、UI text、未签�
 
 ```text
 payload.actor_id = candidate.subject_id
-payload.delivery_binding.recipient_service_did = candidate.recipient_service_did
+payload.delivery_binding.recipient_service_did = candidate.member_delivery_binding.recipient_service_did
 payload.delivery_binding.resolved_at = candidate.proofs[].created_at 或 candidate.expires_at 之前的 issuer as_of
-payload.delivery_binding.service_acceptance_ref = candidate.delivery_binding_hint.service_acceptance_ref
-payload.delivery_binding.policy_ref = candidate.delivery_binding_hint.policy_ref
-payload.delivery_binding.delivery_modes = candidate.delivery_binding_hint.delivery_modes
+payload.delivery_binding.service_acceptance_ref = candidate.member_delivery_binding.service_acceptance_ref
+payload.delivery_binding.policy_ref = candidate.member_delivery_binding.policy_ref
+payload.delivery_binding.delivery_modes = candidate.member_delivery_binding.delivery_modes
 payload.delivery_binding.binding_source = join-policy §5.1.2.1 决策树输出
 ```
 
@@ -211,10 +210,9 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 2. **`handle_uri` canonical**：必须匹配 `contrix://<domain>(:<port>)?/users/<localpart>` 主形态，且 `<localpart>` 已 lowercase。verifier 不得在签名 transcript 中接受任何非 canonical 形态；`acct:` 出现在 `handle_uri` 即拒绝。
 3. **audience match**：`audience` MUST 等于当前 invocation 上下文（目标 `space_id` 对应的 DID 或邀请方 service DID）；不一致 MUST 返回与 "无可披露 claim" 不可区分的统一拒绝。
 4. **expiry**：`expires_at` 严格大于当前时间；过期 candidate MUST NOT 进入 builder。
-5. **proof 验证**：`proofs[]` 中至少一条由 `issuer_service_did`（或受 issuer 委派的 verification method）签名，且 binding transcript 覆盖 `handle_uri`、`subject_id`、`recipient_service_did`、`audience`、`issuer_service_did`、`issued_at`、`expires_at` 与 `claim_digest`（如有）。任何 transcript 漏掉 `issued_at` 或 `issued_at > expires_at` MUST fail closed，避免 MITM 通过重写时间窗口实施重放。
+5. **proof 验证**：`proofs[]` 中至少一条由 `issuer_service_did`（或受 issuer 委派的 verification method）签名，且 binding transcript 覆盖 `handle_uri`、`subject_id`、`member_delivery_binding.recipient_service_did`、`audience`、`issuer_service_did`、`issued_at`、`expires_at` 与 `claim_digest`（如有）。任何 transcript 漏掉 `issued_at` 或 `issued_at > expires_at` MUST fail closed，避免 MITM 通过重写时间窗口实施重放。
 6. **subject / handle 关联**：candidate 内 `subject_id` MUST 等于上游 handle claim 中的 subject（不允许 verifier 在 builder 入口 "替换" subject）。
-7. **`delivery_binding_hint.binding_source` 合法值**：MUST 是 §3.3 列出的五种之一；`did_document_default` 即拒绝。
-8. **`recipient_service_did` 一致性**：candidate 顶层 `recipient_service_did` MUST 与 `delivery_binding_hint.recipient_service_did` byte-for-byte 相同。
+7. **`member_delivery_binding.binding_source` 合法值**：MUST 是 §3.3 列出的五种之一；`did_document_default` 即拒绝。
 
 通过上述检查的 candidate 是 builder 的合法输入；reducer 仍 MUST 按 Join Policy 再验签 / 再过审。
 
@@ -224,8 +222,8 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 | Intent | 返回字段（必含） | 是否产 candidate | 说明 |
 | --- | --- | --- | --- |
-| `lookup` / display resolve | `subject`、`handle_uri`、`verified` | 否 | 仅用于显示双向验证状态；不暴露 `recipient_service_did`、`audience`、`delivery_binding_hint`。 |
-| `mention` resolve | `subject`、`handle_uri`、`display_name?` | 否 | mention autocomplete 需要的最小字段；MUST NOT 在未授权时披露 `recipient_service_did`。结果存为 message 内 mention snapshot，不进入 membership builder。 |
+| `lookup` / display resolve | `subject`、`handle_uri`、`verified` | 否 | 仅用于显示双向验证状态；不暴露 `audience` 或 `member_delivery_binding`。 |
+| `mention` resolve | `subject`、`handle_uri`、`display_name?` | 否 | mention autocomplete 需要的最小字段；MUST NOT 在未授权时披露 `member_delivery_binding`。结果存为 message 内 mention snapshot，不进入 membership builder。 |
 | `member_add` / `invite` resolve | §3.7.1 全部 MUST 字段 | 是 | 仅当 caller 已经过授权（共同 Space、Directory policy、organization grant 等）才返回。Directory 拒绝时使用与 "未发现资源" 不可区分的统一拒绝。 |
 
 实现 MUST NOT 跨 intent 复用结果：以 `mention` 解析拿到的 payload 不得提升为 candidate；以 `member_add` 解析拿到的 candidate 不得被广播到 mention autocomplete 缓存。
@@ -289,14 +287,13 @@ Handle 解析示例：
   "handle_uri": "contrix://acme.example/users/alice",
   "handle_aliases": ["acct:alice@acme.example"],
   "subject": "did:webvh:QmAlice:users.acme.example",
-  "recipient_service_did": "did:web:principal.acme.example",
   "issuer": "did:web:acme.example",
   "issuer_service_did": "did:web:principal.acme.example",
   "claim_type": "organization_handle",
   "visibility": "restricted",
   "binding_state": "verified",
   "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "delivery_binding_hint": {
+  "member_delivery_binding": {
     "recipient_service_did": "did:web:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
@@ -357,7 +354,7 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 
 - verified handle cache MUST 绑定 `handle_uri`（canonical `contrix://` 形态）、`subject`、issuer、DID Document version / digest、alsoKnownAs proof、issuer proof、verified_at、expires_at 和 resolver policy。claim 同时携带 `handle_uri` 与 `handle_aliases[]` 时，缓存键 MUST 取 `handle_uri`；`acct:` alias 只作为附加索引，但仍指向同一 cache entry。
 - alias lookup 命中缓存时，verifier MUST 跳转到 canonical `handle_uri` 的 freshness re-check 路径：重新检查 TTL、issuer revocation、DID Document digest / version、alsoKnownAs proof 与 resolver policy。实现不得把 `handle_aliases[]` 中的 `acct:` 或其它互通别名当作独立 cache key 直接返回 verified claim，也不得为 alias 单独延长 freshness window。
-- handle cache 若含 `recipient_service_did`，还 MUST 绑定 `recipient_service_did`、claim digest、audience / scope、`service_acceptance_ref` / `policy_ref`（如有）；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
+- handle cache 若含 `member_delivery_binding`，还 MUST 绑定 `member_delivery_binding.recipient_service_did`、claim digest、audience / scope、`service_acceptance_ref` / `policy_ref`（如有）；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
 - DNS / HTTPS 解析结果的 TTL MUST 不超过底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL 和本地 resolver policy 上限中的最小值。未提供 TTL 时，verified cache SHOULD 不超过 24 小时；高风险授权或组织背书 SHOULD 使用更短 TTL 或实时 status check。
 - 当 DID Document 移除对应 `alsoKnownAs`、issuer claim 被 revoke / expired、well-known 绑定变更、DNSSEC validation 失败、handle 被解析到不同 DID、或 resolver policy 更新时，缓存 MUST 失效或降级为 unverified。
 
@@ -392,7 +389,7 @@ Handle、组织成员、邮箱控制权和角色 SHOULD 通过 credential / atte
 - claim 是否未撤销
 - claim 内容是否满足 grant constraint
 - presentation 是否绑定当前 verifier challenge / domain
-- 若 claim 携带 `recipient_service_did`，该服务 DID 是否被 issuer 授权、被 Realm policy 接受，并能作为 `delivery_binding.recipient_service_did` 通过 Join Policy 校验。
+- 若 claim 携带 `member_delivery_binding`，其 `recipient_service_did` 是否被 issuer 授权、被 Realm policy 接受，并能作为 `delivery_binding.recipient_service_did` 通过 Join Policy 校验。
 
 ## 8. 隐私保护型 Handle 证明
 
@@ -402,7 +399,7 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 - `alice@facebook.com`
 - 第三方 profile URL
 - 跨组织账号名
-- 受限 handle 到 `recipient_service_did` 的映射
+- 受限 handle 到 `member_delivery_binding.recipient_service_did` 的映射
 - 可关联多个 persona 的相同 service endpoint
 - 可关联多个 persona 的相同 verification method
 
@@ -580,7 +577,7 @@ grant subject = alice@google.com
 ```json
 {
   "kind": "cx.identity.presentation_request",
-  "request_id": "cx:req:d8764019-0000-7000-8000-000000000000",
+  "request_id": "cx:request:d8764019-0000-7000-8000-000000000000",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
   "domain": "google.example",
@@ -659,7 +656,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm�
 ```json
 {
   "kind": "cx.identity.presentation_response",
-  "request_id": "cx:req:d8764019-0000-7000-8000-000000000000",
+  "request_id": "cx:request:d8764019-0000-7000-8000-000000000000",
   "holder_subject": "did:key:z6Mkgpairwise...",
   "proof_profile": "vc_di_bbs_2023",
   "presentation": {},
@@ -681,7 +678,7 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 {
   "kind": "cx.identity.disclosure_receipt",
   "receipt_id": "cx:receipt:a1cb0019-0000-7000-8000-000000000000",
-  "request_id": "cx:req:d8764019-0000-7000-8000-000000000000",
+  "request_id": "cx:request:d8764019-0000-7000-8000-000000000000",
   "holder_did": "did:key:z6Mkgpairwise...",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
@@ -722,7 +719,7 @@ Service authorization claim 示例：
   "subject": "did:web:login.google.example",
   "claim_type": "org_service_authorization",
   "service": "contrix_verifier",
-  "valid_until": "2026-07-26T00:00:00Z"
+  "expires_at": "2026-07-26T00:00:00Z"
 }
 ```
 
@@ -815,7 +812,7 @@ Verifier MUST：
 
 - Handle canonical URI 是 `contrix://<domain>(:<port>)?/users/<localpart>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证，显示层必须防同形混淆。
 - DNS TXT record 格式 MUST 绑定 `handle_uri`、`subject`、issuer、`service_did`、`created_at`、`expires_at` 和 signature / hash commitment；过期或不匹配时不得显示 verified。
-- Well-known / Directory response schema MUST 返回 `subject` DID、canonical `handle_uri`、issuer、proof、validity、optional `recipient_service_did` / `delivery_binding_hint` 和 optional challenge；公开 handle 客户端必须做 DID `alsoKnownAs` 双向验证，受限 handle 必须做 issuer claim / audience / policy 验证。
+- Well-known / Directory response schema MUST 返回 `subject` DID、canonical `handle_uri`、issuer、proof、validity、optional `member_delivery_binding` 和 optional challenge；公开 handle 客户端必须做 DID `alsoKnownAs` 双向验证，受限 handle 必须做 issuer claim / audience / policy 验证。
 - Credential schema、presentation request、disclosure policy 和 disclosure receipt 必须绑定 holder DID、verifier DID、audience、challenge、domain、disclosed fields、withheld fields 和 proof profile。
 - Status list profile MUST 支持凭证撤销和暂停。授权依赖的 credential 无法确认状态时 MUST fail closed。
 - BBS / SD-JWT VC conformance vectors MUST 覆盖选择性披露、challenge/domain 绑定、错误 issuer、过期凭证、撤销凭证和 pairwise DID unlinkability。

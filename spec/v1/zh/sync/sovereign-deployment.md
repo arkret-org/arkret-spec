@@ -254,12 +254,12 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组
   "claim_type": "external_org_authorization",
   "issuer": "did:web:defense.example",
   "subject": "did:web:contractor.example",
-  "scope": {
+  "claim_scope": {
     "realm_id": "cx:realm:400d7400-0000-7000-8000-000000000000",
     "roles": ["contractor_reviewer"],
     "max_members": 20
   },
-  "valid_until": "2026-07-26T00:00:00Z"
+  "expires_at": "2026-07-26T00:00:00Z"
 }
 ```
 

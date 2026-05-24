@@ -36,7 +36,7 @@ sidebar:
 | `cx.schema.view.v1` | View |
 | `cx.schema.policy.v1` | Policy |
 | `cx.schema.invite.v1` | Invite |
-| `cx.schema.read_marker.v1` | Read Marker |
+| `cx.schema.read_cursor.v1` | Read Cursor |
 | `cx.schema.notification.v1` | Notification |
 | `cx.schema.capability.v1` | Capability Grant |
 | `cx.schema.event.v1` | Event Envelope |
@@ -112,10 +112,10 @@ sidebar:
 | `cx.flow.move` | Flow move between Lists |
 | `cx.flow.reorder` | Flow reorder within List |
 | `cx.flow.tracks.update` | Flow tracks map patch（`cx.patch.v1` payload；详见 [`../models/flow-and-message.md` §4.8](../models/flow-and-message.md)） |
-| `cx.flow.watch.set` | Set / clear per-(flow, actor) watch subscription (writes cas-register cell `cx.component.flow.watch.v1`; derives `watches` Relation) |
+| `cx.flow.watch.set` | Set / clear per-(flow, actor) watch subscription (writes cas_register cell `cx.component.flow.watch.v1`; derives `watches` Relation) |
 | `cx.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
 | `cx.space.update` | Space metadata patch |
-| `cx.space.parent` | Space parent declaration (cas-register cell) |
+| `cx.space.parent` | Space parent declaration (cas_register cell) |
 | `cx.space.archive` | Space archive (reversible UI hide) |
 | `cx.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
 | `cx.space.tombstone` | Space tombstone (irreversible; contained Flows MUST be relocated first) |
@@ -135,10 +135,10 @@ sidebar:
 | `cx.message.redact` | Message-scoped redaction |
 | `cx.relation.create` | Relation create |
 | `cx.relation.update` | Relation patch |
-| `cx.relation.delete` | Relation tombstone |
+| `cx.relation.tombstone` | Relation tombstone |
 | `cx.reaction.add` | Reaction add |
 | `cx.reaction.remove` | Reaction remove |
-| `cx.read.marker` | Read marker event |
+| `cx.read.cursor` | Read cursor event |
 | `cx.receipt.read` | Read receipt event |
 
 ### 4.3 授权与治理
@@ -164,8 +164,8 @@ sidebar:
 | `cx.key.verification.done` | Device key verification completion |
 | `cx.key.verification.cancel` | Device key verification cancellation |
 | `cx.session.grant` | Session grant |
-| `cx.device.authorized` | Device authorization |
-| `cx.device.revoked` | Device revocation |
+| `cx.device.authorize` | Device authorization |
+| `cx.device.revoke` | Device revocation |
 | `cx.device.list_update` | Device list update |
 | `cx.call.signal` | WebRTC signal message |
 

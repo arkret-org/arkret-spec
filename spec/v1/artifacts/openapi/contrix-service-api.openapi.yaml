@@ -510,7 +510,7 @@ components:
               timestamp:
                 type: string
                 format: date-time
-              valid_until:
+              expires_at:
                 type: string
                 format: date-time
         experimental_features:
@@ -1012,8 +1012,8 @@ components:
           - conflict
         value:
           description: 'Effective Lattice value when status=value. Shape is
-            cell-type specific (or-set members, mv-register tuple, cas-register
-            atom, fsm state, counter integer, ordered-log tail).'
+            cell-type specific (or_set members, mv_register tuple, cas_register
+            atom, fsm state, counter integer, ordered_log tail).'
         heads:
           type: array
           uniqueItems: true
@@ -1224,7 +1224,7 @@ components:
           - unreachable
           - unknown
           description: Coarse status of the anchorer/frontier source used to diagnose stale or unknown revocation freshness.
-        cache_valid_until:
+        cache_expires_at:
           type: string
           format: date-time
           pattern: Z$

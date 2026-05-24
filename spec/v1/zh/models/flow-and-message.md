@@ -375,7 +375,7 @@ flowchart LR
 
 Watch 是个人通知订阅模型：actor 声明自己对某个 Flow（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由所属 Realm 的 capability 决定，与本节完全正交（参见 §4.4）。
 
-Wire 形态：`cx.flow.watch.set` durable event 写入下文 §8.3 描述的 cas-register cell（cell 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> flow`，见 [relation.md §3](./relation.md)）供查询，但 **`cx.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Flow position 派生 `contains` Relation 的双源约束同模式。
+Wire 形态：`cx.flow.watch.set` durable event 写入下文 §8.3 描述的 cas_register cell（cell 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> flow`，见 [relation.md §3](./relation.md)）供查询，但 **`cx.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Flow position 派生 `contains` Relation 的双源约束同模式。
 
 在 Flow 顶层或 `fields` 中携带 `participants` / `watchers` 列表等价物 MUST 被 reducer 拒绝（`schema_violation`），避免与 watch cell 双源并存。
 
@@ -394,13 +394,13 @@ Wire 形态：`cx.flow.watch.set` durable event 写入下文 §8.3 描述的 cas
 
 ### 8.3 Cell basis 与写入事件
 
-`watches` 由 cas-register cell 维护：
+`watches` 由 cas_register cell 维护：
 
 ```text
 event_kind  := cx.flow.watch.set
 cell_family := cx.component.flow.watch.v1
 cell_id     := cx:cell:cx.component.flow.watch.v1:<flow_id>:<watcher_actor_id>
-lattice     := cas-register
+lattice     := cas_register
 bottom      := reject
 value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
                  "level_public": boolean? }
@@ -420,7 +420,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 约束：
 
 - `null` value 等价于 `mentions_only`。客户端必须显式 `level: null` 来清空，不允许通过省略 `level` 字段隐式清空——避免 wire 上的歧义。
-- 同一 `(flow_id, watcher_actor_id)` cell 内的并发写入按标准 cas-register 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §4.2.4](../authz/event-auth-state-resolution.md) 描述的 `head_eq` precondition，**比较整个 cell value**（不是单字段）。例如 cell 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `head_eq null`：只有 cell 尚未存在时通过；cell 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
+- 同一 `(flow_id, watcher_actor_id)` cell 内的并发写入按标准 cas_register 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §4.2.4](../authz/event-auth-state-resolution.md) 描述的 `head_eq` precondition，**比较整个 cell value**（不是单字段）。例如 cell 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `head_eq null`：只有 cell 尚未存在时通过；cell 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
 - **Cell 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `cx.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §3.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
 - Cell 的 Realm 归属：`<flow_id>` 隐含决定 Realm（Flow.realm_id），cell 始终落在 Flow 所属 Realm 的 namespace 下。即使 Flow 设置了 `discussion_realm_ref`，watch cell 也仍在 source Realm —— discussion 消息通知派发由 Sync Service 跨 Realm 查询该 cell 完成（详见 §8.9）。
 
@@ -655,10 +655,10 @@ Message timeline 的同步与 reducer 行为：
 - typing
 - 当前输入草稿
 - 临时在线状态
-- 高频 read marker
+- 高频 read cursor
 
 它们 SHOULD 作为 Sync Service 上的 ephemeral signal，或由各端本地缓存。Read
-receipt / read marker 的具体规则见 [`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
+receipt / read cursor 的具体规则见 [`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
 
 ### 9.7 Message 常见关系
 
@@ -673,7 +673,7 @@ receipt / read marker 的具体规则见 [`../discovery/read-receipts.md`](../di
 - Space / Flow 位置语义：[realm-and-space.md](./realm-and-space.md) §3.6。
 - Relation 基数与跨 Realm：[relation.md](./relation.md)。
 - Content Block：[content-types.md](./content-types.md)。
-- Read receipts / read markers：[`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
+- Read receipts / read cursors：[`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
 - 历史可见性 / E2EE：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Flow / Message schema：`artifacts/schemas/flow.schema.json`、`artifacts/schemas/message.schema.json`。
 - Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/flow_stage_set_payload`。

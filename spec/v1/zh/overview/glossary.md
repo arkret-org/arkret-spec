@@ -73,15 +73,15 @@ title: 术语表
 | Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。 |
 | Anchor DAG | 锚点图 | 某个 Realm 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `cx:cell:<component>:<subject>`。 |
-| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or-set`、`mv-register`、`cas-register`、`fsm`、`counter`、`ordered-log`、`lww-register`（仅可用于 profile 明确标记 `client_projection_only=true` 的 UI affordance，不得作为授权或 Anchor 关键路径）、`rga`（协作文本与有序列表）。 |
+| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`、`lww_register`（仅可用于 profile 明确标记 `client_projection_only=true` 的 UI affordance，不得作为授权或 Anchor 关键路径）、`rga`（协作文本与有序列表）。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的 Move fail closed，`bottom=expose` 时可投影为冲突诊断。 |
-| Reset | 重置语义 | 规范中“reset”不是单一 wire 动作：capability reset 通常是 revoke + reissue；cross-signing reset 是 `cx.cross_signing.reset`；cas-register / fsm 进入 `⊥` 后的恢复是 conflict-recovery Move（带 `state_witness` / `inclusion_proof` / recovery capability），不是普通 CAS 覆盖。正文使用 reset 时必须说明对应 event kind 或 recovery path。 |
+| Reset | 重置语义 | 规范中“reset”不是单一 wire 动作：capability reset 通常是 revoke + reissue；cross-signing reset 是 `cx.cross_signing.reset`；cas_register / fsm 进入 `⊥` 后的恢复是 conflict-recovery Move（带 `state_witness` / `inclusion_proof` / recovery capability），不是普通 CAS 覆盖。正文使用 reset 时必须说明对应 event kind 或 recovery path。 |
 | Component / Cell Family | 组件 / Cell 族 | 跨协议版本稳定的 cell family 标识符，URI 形式 `cx.component.<facet-path>.v<n>`；registry 为 reducer-input kind 声明 `cell_family`、`lattice` 与 `bottom`。 |
 | MLS Governance Binding | MLS 治理绑定 | E2EE Realm 中把 MLS epoch 与 governance state（membership / policy / capability / Anchor frontier）强绑定的机制（profile `cx.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`）。由两层 artifact 组成：commit 侧的 *Governance Binding Payload* (`governance_binding`) 提供证据，lattice 侧的 *Covered Frontier Cell* (`covered_frontier_cell`) 沉淀状态。 |
 | Governance Binding Payload | 治理绑定 payload | MLS Governance Binding 的 **commit-side proof**：每个 `cx.mls.commit` 携带的 `governance_binding` payload（MLS GroupContext extension `cx_governance_binding`，codepoint `0xF1C0`），哈希进 MLS transcript，覆盖 `membership_frontier`、`policy_root`、`capability_root`、`discussion_metadata_hash`。 |
-| Covered Frontier | 已覆盖前沿 | MLS Governance Binding 的 **lattice-side accumulator**：`covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or-set，bottom=expose）当前值，累积已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier。 |
+| Covered Frontier | 已覆盖前沿 | MLS Governance Binding 的 **lattice-side accumulator**：`covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or_set，bottom=expose）当前值，累积已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier。 |
 | Anchor Profile | 锚点 Profile | Realm create 时固定的 Anchor finality profile：`single_did`、`threshold`、`open_set` 或 `mixed`。 |
-| Anchorer Cell | 锚定者 Cell | 定义下一批 Anchor 由谁授权的 `cas-register + bottom=reject` cell；冲突时产生 Realm-wide Anchor pause。 |
+| Anchorer Cell | 锚定者 Cell | 定义下一批 Anchor 由谁授权的 `cas_register + bottom=reject` cell；冲突时产生 Realm-wide Anchor pause。 |
 | Consent | 同意 | Holder-private 决策："我同意接收来自 X 的某种联系"。表达为 consent cell 上的 Move effect，是 invite / contact 路径的前置 gate。 |
 | Consent Scope | 同意范围 | Consent grant 适用的联系类型枚举：`invite` / `direct_message` / `voice_call` / `video_call` / `presence` / `any`。 |
 | Reducer | 归约器 | 确定性纯函数，将 Anchor frontier 中的 Move effects 归约为 cell values、state_root、bottom diagnostics 与产品 projection。 |

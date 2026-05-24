@@ -7,7 +7,7 @@ title: Device Lifecycle
 去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Contrix 把以下三件事分开处理：
 
 - **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
-- **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorized`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
+- **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
 - **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
 ### 1.1 认证服务器验证什么
@@ -25,7 +25,7 @@ Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根�
 认证成功后，Auth Service MUST 产出以下至少一种可验证绑定：
 
 - `cx.session.grant`：把短期 `session_public_key` 委托给 DID principal / device。
-- `cx.device.authorized`：把新设备公钥加入当前设备集合。
+- `cx.device.authorize`：把新设备公钥加入当前设备集合。
 - 满足 `recovery_policy` 的 `recover` / key-log event。
 
 资源服务器验证的是 session grant、device authorization、DID proof、capability 和 Realm policy，而不是“用户刚刚输入了正确密码”。密码、SSO session 和 service account id 都不能直接作为 `actor_id`、event sender 或 capability subject。
@@ -37,10 +37,10 @@ Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根�
 Contrix v1 把三件事分开处理：
 
 - **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
-- **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorized`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
+- **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
 - **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
-因此“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `cx.device.authorized` 或短期 `cx.session.grant`。短期 Web/OIDC 登录可以只使用 `cx.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须走设备授权和设备密钥验证。
+因此“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `cx.device.authorize` 或短期 `cx.session.grant`。短期 Web/OIDC 登录可以只使用 `cx.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须走设备授权和设备密钥验证。
 
 
 ## 2. 多设备配对 (Device Pairing)
@@ -52,16 +52,16 @@ Contrix v1 把三件事分开处理：
 1. **新设备初始化**：用户在新手机或新电脑上打开应用，本地生成一组全新的 ECDSA/Ed25519 密钥对。屏幕上显示包含公钥与临时连接信息的二维码 (QR Code)。
 2. **主设备扫码**：用户使用已登录的主设备（如已通过面容 ID 解锁的手机）扫描该二维码。
 3. **密码学授权**：
-   - 主设备验证 pairing challenge 后，签发 `cx.device.authorized`、符合 DID method 的 key-log operation，或触发 recovery policy 允许的设备授权流程。
+   - 主设备验证 pairing challenge 后，签发 `cx.device.authorize`、符合 DID method 的 key-log operation，或触发 recovery policy 允许的设备授权流程。
    - DID Document SHOULD 只承载身份控制密钥和服务发现入口。普通设备列表、设备信任状态、吊销状态和算法更新 SHOULD 由 `cx.device.*` 事件、device key log 或受控 device registry 表达；只有 DID method 本身要求时，才把设备 verification method 写入 DID Document。
    - 短期浏览器或临时执行环境 MAY 只拿到 `cx.session.grant`，但它不改变长期设备集合，也不得访问 E2EE 历史密钥，除非另有有效设备授权和密钥共享流程。
 4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过 MLS Welcome / Commit 把新设备加入合适的 group）同步给新设备。
-5. **事件广播**：主设备向 principal control stream 广播 `cx.device.authorized` 事件；若封装为 Event Envelope，其 `realm_id` 是目标 principal 的 `principal_control_realm_id`。新设备获得的能力由该事件、session grant、Realm capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
+5. **事件广播**：主设备向 principal control stream 广播 `cx.device.authorize` 事件；若封装为 Event Envelope，其 `realm_id` 是目标 principal 的 `principal_control_realm_id`。新设备获得的能力由该事件、session grant、Realm capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
 
 ### 2.2 设备吊销
-当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `cx.device.revoked`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
+当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `cx.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`cx.device.revoked.payload` MUST 携带 `revocation_frontier`：该撤销在 principal control stream 中被接受时的 Anchor frontier（以 event_digest hash 数组表达）。撤销证明签名和任何后续 device trust proof MUST 覆盖该 frontier；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 frontier 或其后继 view 作为判定依据。
+`cx.device.revoke.payload` MUST 携带 `revocation_frontier`：该撤销在 principal control stream 中被接受时的 Anchor frontier（以 event_digest hash 数组表达）。撤销证明签名和任何后续 device trust proof MUST 覆盖该 frontier；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 frontier 或其后继 view 作为判定依据。
 
 共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `cx.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `revocation_frontier`，或覆盖一个已经把该 principal control frontier 导入 Realm governance state 的显式 Move；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_frontier_cell` 不得声称已覆盖该设备撤销。
 
@@ -80,7 +80,7 @@ Contrix v1 把三件事分开处理：
 4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。资源服务器仍 MUST 重新验证 DID control state、capability、Realm policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
 5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。续期需要重新验证 OIDC session，并重新检查组织 policy、设备状态和风险信号。
 
-此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `cx.device.authorized`、DID/key-log operation 或 recovery policy。
+此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `cx.device.authorize`、DID/key-log operation 或 recovery policy。
 
 
 ## 4. Device Identity
@@ -145,7 +145,7 @@ Schema id：`cx.schema.cross_signing_publish.v1`
       "public_key": "z6Mk...",
       "key_format": "multibase",
       "binding": {
-        "signed_by": "did:webvh:...#cx_principal_signing_v1",
+        "verification_method": "did:webvh:...#cx_principal_signing_v1",
         "alg": "EdDSA",
         "signature": "base64url..."
       }
@@ -156,7 +156,7 @@ Schema id：`cx.schema.cross_signing_publish.v1`
       "public_key": "z6Mk...",
       "key_format": "multibase",
       "binding": {
-        "signed_by": "did:webvh:...#cx_principal_signing_v1",
+        "verification_method": "did:webvh:...#cx_principal_signing_v1",
         "alg": "EdDSA",
         "signature": "base64url..."
       }
@@ -186,7 +186,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
     "public_key": "BB",
     "key_format": "raw_base64url",
     "binding": {
-      "signed_by": "did:web:alice.example#cx_principal_signing_v1",
+      "verification_method": "did:web:alice.example#cx_principal_signing_v1",
       "alg": "EdDSA",
       "signature": "c2ln"
     }
@@ -197,7 +197,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
     "public_key": "CC",
     "key_format": "raw_base64url",
     "binding": {
-      "signed_by": "did:web:alice.example#cx_principal_signing_v1",
+      "verification_method": "did:web:alice.example#cx_principal_signing_v1",
       "alg": "EdDSA",
       "signature": "c2ln"
     }
@@ -214,7 +214,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 | --- | --- | --- |
 | `principal_signing_key` | required | PSK 当前公钥引用。`kid` MUST 出现在该 principal 当前 DID document 或 key-log head 的 verification methods 中；服务端不接受 `kid` 不在当前控制集中的 publish。 |
 | `trust_domain` | required | 部署级 trust domain（`cx:trust_domain:<scope>`）。Receiver MUST 在验证任一 binding 签名前先检查该值与当前接收上下文一致；不一致 MUST `cross_domain_replay_rejected`。 |
-| `self_signing_key` | required | SSK 公钥 + 由 PSK 对 canonical SSK record 的签名。`binding.signed_by` MUST 与 `principal_signing_key.kid` 相同 DID 控制集。 |
+| `self_signing_key` | required | SSK 公钥 + 由 PSK 对 canonical SSK record 的签名。`binding.verification_method` MUST 与 `principal_signing_key.kid` 相同 DID 控制集。 |
 | `user_signing_key` | required | USK 公钥 + 由 PSK 对 canonical USK record 的签名；MUST 与 `self_signing_key` 不同 `public_key`。 |
 | `expected_previous_generation` | required | CAS precondition。首次 publish 使用 `0`；后续 publish MUST 等于 receiver 当前 accepted generation。 |
 | `generation` | required | 单调递增整数。每次 cross-signing reset（§14）MUST `generation += 1`。Receiver 见到 `generation` 比已 accepted 状态低的 publish MUST 拒绝。 |
@@ -249,17 +249,17 @@ DID-method history → principal_signing_key (PSK)
                        └── user_signing_key (USK)   ── signs ──► other principal's verify_key
 ```
 
-每条 `cx.device.authorized` 事件 MUST 在 `payload.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key` 的签名：
+每条 `cx.device.authorize` 事件 MUST 在 `payload.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key` 的签名：
 
 ```json
 {
-  "kind": "cx.device.authorized",
+  "kind": "cx.device.authorize",
   "payload": {
     "principal_id": "did:webvh:...",
     "device_id": "cx:device:...",
     "device_public_key": "z6Mk...",
     "cross_signing_binding": {
-      "signed_by": "did:webvh:...#cx_self_signing_v1",
+      "verification_method": "did:webvh:...#cx_self_signing_v1",
       "alg": "EdDSA",
       "ssk_generation": 1,
       "signature": "base64url..."
@@ -288,18 +288,18 @@ DID-method history → principal_signing_key (PSK)
 1. 解析 principal control stream 中 `accepted_generation = max(publish.generation)` 的 `cx.cross_signing.publish` 事件作为当前 PSK / SSK / USK。
 2. 校验 `publish.principal_signing_key.kid` 出现在该 principal DID method 当前控制集中。
 3. 校验 `publish.self_signing_key.binding.signature` 由 PSK 对 §5.1 canonical 输入签名。
-4. 在该设备的最新 `cx.device.authorized` 事件中读取 `cross_signing_binding`；若缺失 MUST 视为 `unverified`，不得回退到"已授权 ⇒ cross-signed"。
+4. 在该设备的最新 `cx.device.authorize` 事件中读取 `cross_signing_binding`；若缺失 MUST 视为 `unverified`，不得回退到"已授权 ⇒ cross-signed"。
 5. 比较 `cross_signing_binding.ssk_generation` 与 `accepted_generation`：
    - 相等：用当前 SSK 公钥校验签名；通过则 `cross_signed`，失败则 `unverified`。
    - 小于：cross-signing 在该设备签发后已重置；设备 trust state MUST 强制降为 `needs_reverification`（见 §14）。
    - 大于：未来 generation；MUST 视为 `unverified` 并触发 stream re-sync。
 6. 跨 principal 信任（USK 签对方 PSK / device key）按对称流程执行：本端 USK binding 必须签发对方 PSK 的 `(kid, generation)` 元组而不是裸公钥，避免对方静默轮换 PSK 后仍继承信任。
 
-实现 MUST 把"未携带 `cross_signing_binding` 的 `cx.device.authorized`"与"binding 校验失败"区分上报，因为前者属于 bootstrap 例外（仅 §5.0.1 inception 路径允许），后者属于密码学异常。
+实现 MUST 把"未携带 `cross_signing_binding` 的 `cx.device.authorize`"与"binding 校验失败"区分上报，因为前者属于 bootstrap 例外（仅 §5.0.1 inception 路径允许），后者属于密码学异常。
 
 ### 5.3 Bootstrap 例外
 
-§5.0.1 中首台设备由 inception key 自授权时，`cx.device.authorized.payload.cross_signing_binding` MUST 省略 `signed_by` 引用，并改用 `bootstrap_binding`：
+§5.0.1 中首台设备由 inception key 自授权时，`cx.device.authorize.payload.cross_signing_binding` MUST 省略 `verification_method` 引用，并改用 `bootstrap_binding`：
 
 ```json
 {
@@ -310,7 +310,7 @@ DID-method history → principal_signing_key (PSK)
 }
 ```
 
-receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream 中尚无任何 `cx.cross_signing.publish` 事件。首次 publish 写入后，所有后续 `cx.device.authorized` MUST 使用 §5.2 形式的 `cross_signing_binding`。
+receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream 中尚无任何 `cx.cross_signing.publish` 事件。首次 publish 写入后，所有后续 `cx.device.authorize` MUST 使用 §5.2 形式的 `cross_signing_binding`。
 
 ## 5a. Privacy-Preserving Push
 
@@ -325,7 +325,7 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 
 ### 5a.2 注册与撤销
 
-- 设备 MUST 通过 `cx.device.push_route` actor-private state Event 把 `(recipient_service_did, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 `preconditions` / `effects` / `anchor_ref`，不进入 shared Realm Anchor frontier。目标 actor-private cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_did, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas-register, bottom=reject）。`recipient_service_did` MUST 与 §5.1.1 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_did` 一致；推送注册按 `(recipient_service_did, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
+- 设备 MUST 通过 `cx.device.push_route` actor-private state Event 把 `(recipient_service_did, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 `preconditions` / `effects` / `anchor_ref`，不进入 shared Realm Anchor frontier。目标 actor-private cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_did, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas_register, bottom=reject）。`recipient_service_did` MUST 与 §5.1.1 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_did` 一致；推送注册按 `(recipient_service_did, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
 - 撤销：设备 MUST 在同一 actor-private cell 上写后继 `cx.device.push_route` event 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 actor-private state 收敛后停止接受旧伪名。
 - 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(recipient_service_did, principal, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。
@@ -583,7 +583,7 @@ POST /api/v1/keys/keypackages/revoke
 
 设备密钥验证用于确认“这个 principal/device/key 是否是用户想信任的对象”。验证成功本身不授予登录态、Realm 权限或长期设备权力：
 
-- 同一 principal 的新设备登录，验证成功后仍 MUST 通过 `cx.device.authorized`、DID/key-log operation 或 recovery policy 把设备加入有效设备集合。
+- 同一 principal 的新设备登录，验证成功后仍 MUST 通过 `cx.device.authorize`、DID/key-log operation 或 recovery policy 把设备加入有效设备集合。
 - 跨 principal 验证只表达人工信任；通常由本地 `user_signing_key` 签名对方 identity key 或设备 key，不得改变对方设备授权状态。
 - `cx.session.grant` 只授予短期会话能力；不得因 SAS/QR 成功而自动升级为长期设备授权。
 
@@ -680,7 +680,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 
 同一 principal 的新设备配对完成后，已授权设备 MAY：
 
-1. 签发 `cx.device.authorized` 或符合 DID method 的 key-log operation。
+1. 签发 `cx.device.authorize` 或符合 DID method 的 key-log operation。
 2. 发布 `cx.device.list_update`。
 3. 在用户或 policy 允许时，通过加密 to-device 消息共享 `self_signing_key`、secret storage bootstrap 或 MLS Welcome。
 
@@ -858,10 +858,10 @@ Schema id：`cx.schema.cross_signing_reset.v1`
     "principal_id": "did:webvh:...",
     "previous_generation": 1,
     "new_generation": 2,
-    "reset_reason": "rotation",
+    "reset_reason_code": "rotation",
     "proof": {
       "kind": "principal_signing",
-      "signed_by": "did:webvh:...#cx_principal_signing_v1",
+      "verification_method": "did:webvh:...#cx_principal_signing_v1",
       "alg": "EdDSA",
       "signature": "base64url..."
     },
@@ -879,10 +879,10 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
   "principal_id": "did:web:alice.example",
   "previous_generation": 1,
   "new_generation": 2,
-  "reset_reason": "rotation",
+  "reset_reason_code": "rotation",
   "proof": {
     "kind": "principal_signing",
-    "signed_by": "did:web:alice.example#cx_principal_signing_v1",
+    "verification_method": "did:web:alice.example#cx_principal_signing_v1",
     "alg": "EdDSA",
     "signature": "c2ln"
   },
@@ -896,7 +896,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 | --- | --- | --- |
 | `previous_generation` | required | 被重置前的 `generation`；MUST 等于当前 accepted publish 的 `generation`。 |
 | `new_generation` | required | 后续 publish 将使用的 `generation`；MUST = `previous_generation + 1`。 |
-| `reset_reason` | required | 自由字符串，但 SHOULD 来自 `{"rotation", "compromise", "device_loss", "policy_required"}`。 |
+| `reset_reason_code` | required | 机器可读枚举：`rotation` / `compromise` / `device_loss` / `policy_required`。 |
 | `proof` | required | 四类高风险证明之一，详见 §14；接收方 MUST 拒绝缺失 / 无效的 proof。 |
 
 所有 proof 签名的 canonical input MUST 是：
@@ -909,7 +909,7 @@ canonical_json({
   "principal_id": principal_id,
   "previous_generation": previous_generation,
   "new_generation": new_generation,
-  "reset_reason": reset_reason,
+  "reset_reason_code": reset_reason_code,
   "issued_at": issued_at,
   "proof_kind": proof.kind,
   "proof_body": proof without signature fields
@@ -943,7 +943,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 3. **MLS leaf credential** 不直接因 reset 失效——MLS credential 由 device key 与 KeyPackage 单独签名。但发送方 SHOULD 在 reset 后尽快发起一次 Empty Commit，让 epoch transcript 在新 SSK generation 下重新被覆盖；接收方 MUST 允许该 commit 推进。
 4. **in-flight verification transaction**（§10 状态机里仍在 `request` / `ready` / `start` / `accept` / `key` / `mac` 阶段的）MUST 以 `code=cross_signing_reset` cancel，禁止把基于旧 SSK 的 SAS / QR transcript 用旧 generation 完成。
 5. **To-device 队列隔离**：reset accepted 后，服务端和客户端 MUST drop 或 quarantine 所有已排队但尚未处理的 `cx.key.verification.*` to-device 消息，以及任何未显式绑定 `new_generation` 的 cross-signing / trust bootstrap 消息。隔离窗口内仅允许 `cx.key.verification.cancel(code=cross_signing_reset)`、新的 `cx.cross_signing.publish` 可验证通知和重新发起的、显式绑定 `new_generation` 的验证事务通过；不得让旧 generation 的 `mac` / `done` 消息在 reset 后完成信任升级。
-6. **新的 `cx.cross_signing.publish`** MUST 在 reset 接受后 `cx.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布到 control stream（默认 24h）；超时未发布的 reset 会让该 principal 进入"无可用 SSK / USK"窗口，接收方在此窗口内 MUST 拒绝任何 `cx.device.authorized.cross_signing_binding.ssk_generation == new_generation` 的事件，避免静默接受未公布的 SSK。
+6. **新的 `cx.cross_signing.publish`** MUST 在 reset 接受后 `cx.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布到 control stream（默认 24h）；超时未发布的 reset 会让该 principal 进入"无可用 SSK / USK"窗口，接收方在此窗口内 MUST 拒绝任何 `cx.device.authorize.cross_signing_binding.ssk_generation == new_generation` 的事件，避免静默接受未公布的 SSK。
 
 ### 14.3 Cancel Code
 
@@ -959,10 +959,10 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
 | proof.kind | Receiver MUST 校验 | 失败 reason_code |
 | --- | --- | --- |
-| `principal_signing` | (a) `signed_by` MUST 是该 principal 当前 DID Document 中具备**principal-grade 控制权**的 verification method（即 [`../identity/key-management.md` §3.2](../identity/key-management.md) 定义的 principal signing key 类，例如 `did:webvh:...#cx_principal_signing_v1` 或等价 DID method 控制密钥），且在 `issued_at` 时刻未撤销 / 未轮换；**MUST NOT** 是被本次 reset 重置对象的 `self_signing_key` / `user_signing_key`（让被废止的密钥自我授权废止自身会导致 trust circular）。(b) `signature` 在 `alg` 下覆盖 §14.1 canonical input 验证通过；(c) `previous_generation` 等于 receiver 持有的 accepted publish generation，`new_generation = previous_generation + 1`。 | `cross_signing_reset_proof_authority_invalid` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_generation_mismatch` |
+| `principal_signing` | (a) `verification_method` MUST 是该 principal 当前 DID Document 中具备**principal-grade 控制权**的 verification method（即 [`../identity/key-management.md` §3.2](../identity/key-management.md) 定义的 principal signing key 类，例如 `did:webvh:...#cx_principal_signing_v1` 或等价 DID method 控制密钥），且在 `issued_at` 时刻未撤销 / 未轮换；**MUST NOT** 是被本次 reset 重置对象的 `self_signing_key` / `user_signing_key`（让被废止的密钥自我授权废止自身会导致 trust circular）。(b) `signature` 在 `alg` 下覆盖 §14.1 canonical input 验证通过；(c) `previous_generation` 等于 receiver 持有的 accepted publish generation，`new_generation = previous_generation + 1`。 | `cross_signing_reset_proof_authority_invalid` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_generation_mismatch` |
 | `recovery_unlock` | (a) `recovery_secret_ref` 解析到 principal **当前 DID Document recovery 区或 `recovery_policy`** 中声明的 recovery key entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；(b) `signature` 验证使用该 entry 绑定的 public key、`alg` 在 entry 的算法白名单内、覆盖 §14.1 canonical input（**密码学强度仅由本签名提供**——拥有 recovery 私钥即视作 unlock 通过）；(c) `unlock_commitment` 等于 `SHA-256(utf8("cx-cross-signing-reset-unlock-binding-v1\n") \|\| recovery_secret_ref \|\| unlock_binding_input_bytes)`；`unlock_binding_input_bytes` 按 §14.1 定义，使用同一组 reset 字段，但 `proof_body` 同时排除 `signature` 与 `unlock_commitment`，避免 commitment 对自身取 hash。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 `unlock_binding_input_bytes` 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但绑定 proof 到具体 ref + reset 内容，阻止把同一 ref 的签名跨 reset 复用为另一组 (principal_id, generation) 的 proof shell。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
-| `device_quorum` | (a) 每个 `signatures[i]` 的 `signed_by` 是当前 principal device set 中**已授权且未撤销**的 device key（按 `signatures[i].device_id` 查找其 `cx.device.authorized` 记录），并验证 `signature` 覆盖 §14.1 canonical input；(b) `signatures[]` 按 `device_id` 去重；(c) 去重后**有效**签名数 ≥ `threshold`；(d) `threshold` 等于 receiver 当前 `recovery_policy.device_quorum.threshold`（或等价已发布门限策略），小于该值 MUST 拒。 | `cross_signing_reset_signature_invalid` / `cross_signing_reset_quorum_insufficient` / `cross_signing_reset_quorum_below_policy` |
-| `trusted_recovery_service` | (a) `service_did` 出现在 principal DID Document 的恢复服务声明（或 organization recovery_policy `trusted_services[]`）中、未撤销、`issued_at` 在其有效窗口内；(b) `signed_by` 是该服务**已公布**的 verification method；(c) `signature` 覆盖 §14.1 canonical input；(d) 若 service 声明要求 `attestation_ref`，则该 ref MUST 解析到一条 receiver 可校验的 attestation event，且 attestation 所属 trust domain MUST 等于 reset payload 的 `trust_domain`；跨 trust domain attestation 不得作为恢复服务授权依据。 | `cross_signing_reset_recovery_service_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_attestation_missing` / `cross_signing_reset_recovery_service_attestation_domain_mismatch` |
+| `device_quorum` | (a) 每个 `signatures[i]` 的 `verification_method` 是当前 principal device set 中**已授权且未撤销**的 device key（按 `signatures[i].device_id` 查找其 `cx.device.authorize` 记录），并验证 `signature` 覆盖 §14.1 canonical input；(b) `signatures[]` 按 `device_id` 去重；(c) 去重后**有效**签名数 ≥ `threshold`；(d) `threshold` 等于 receiver 当前 `recovery_policy.device_quorum.threshold`（或等价已发布门限策略），小于该值 MUST 拒。 | `cross_signing_reset_signature_invalid` / `cross_signing_reset_quorum_insufficient` / `cross_signing_reset_quorum_below_policy` |
+| `trusted_recovery_service` | (a) `service_did` 出现在 principal DID Document 的恢复服务声明（或 organization recovery_policy `trusted_services[]`）中、未撤销、`issued_at` 在其有效窗口内；(b) `verification_method` 是该服务**已公布**的 verification method；(c) `signature` 覆盖 §14.1 canonical input；(d) 若 service 声明要求 `attestation_ref`，则该 ref MUST 解析到一条 receiver 可校验的 attestation event，且 attestation 所属 trust domain MUST 等于 reset payload 的 `trust_domain`；跨 trust domain attestation 不得作为恢复服务授权依据。 | `cross_signing_reset_recovery_service_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_attestation_missing` / `cross_signing_reset_recovery_service_attestation_domain_mismatch` |
 
 通用规则：
 
@@ -977,7 +977,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
 1. **Recovery policy 触发**：新设备声明恢复意图，引用 principal DID 当前 `recovery_policy`、目标 `principal_id`、新 `device_id`、当前 `ssk_generation` 和 trust domain。恢复请求必须带 challenge，防止把旧恢复 proof 复制到新设备。
 2. **新设备认证**：按 recovery policy 选择 `principal_signing`、`recovery_unlock`、`device_quorum` 或 `trusted_recovery_service` proof。proof transcript MUST 绑定 `(principal_id, device_id, trust_domain, recovery_session_id, ssk_generation, created_at)`。
-3. **设备授权与列表更新**：成功后发布 `cx.device.authorized`，并在 principal control stream 发布 `cx.device.list_update`。若当前 accepted `cx.cross_signing.publish.generation` 与请求中的 `ssk_generation` 不一致，reducer MUST 拒绝，reason=`device_recovery_ssk_generation_mismatch`。
+3. **设备授权与列表更新**：成功后发布 `cx.device.authorize`，并在 principal control stream 发布 `cx.device.list_update`。若当前 accepted `cx.cross_signing.publish.generation` 与请求中的 `ssk_generation` 不一致，reducer MUST 拒绝，reason=`device_recovery_ssk_generation_mismatch`。
 4. **Key backup / Secret storage unlock**：新设备只能拉取 policy 允许的 backup class（`did_recovery` / `secret_storage` / `mls_history`），每个 backup decrypt proof MUST 绑定 `recovery_session_id` 和新设备 key。服务端不得把恢复 proof 当作长期 bearer token。
 5. **MLS Welcome replay**：对每个可恢复 Realm，授权 peer / key service 重新发 Welcome 或 history key share；Welcome 的 `claim_ref.ssk_generation` MUST 等于当前 accepted cross-signing generation。旧 generation 的 Welcome MUST `claim_generation_mismatch`。
 6. **Secret storage ready**：客户端在本地 secret storage 解锁、device list 同步、关键 Realm Welcome 完成前，只能进入 `recovery_pending`；不得把设备显示为 fully verified。

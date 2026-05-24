@@ -167,7 +167,7 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
   "schema": "cx.schema.event_batch_receipt.v1",
   "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
-  "scope": {
+  "receipt_scope": {
     "actor_id": "did:web:alice.example"
   },
   "frontier": {
@@ -179,7 +179,7 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
 }
 ```
 
-`receipt_hash = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 和 `type` 必须进入 hash，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
+`receipt_hash = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`receipt_scope`、`frontier`、`events`、`schema` 和 `type` 必须进入 hash，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
 
 ## 6. Signature
 
@@ -347,7 +347,7 @@ Stream 形态：
     }
   },
   "d": {
-    "cx:device:019640da-0000-7000-8000-000000000000": "cx:devmsg:019640da-0000-7000-8000-000000000000"
+    "cx:device:019640da-0000-7000-8000-000000000000": "cx:device_message:019640da-0000-7000-8000-000000000000"
   },
   "x": 1714080000000
 }
@@ -515,7 +515,7 @@ rank_between(left, right):
 
 ## 9.5. Composite Cell Subject
 
-部分 cell 的 subject 由多个 sub-component 复合派生（例如 `cx.device.authorized` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Move precondition、Lattice join 和 fixture 必须使用同一形态。
+部分 cell 的 subject 由多个 sub-component 复合派生（例如 `cx.device.authorize` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Move precondition、Lattice join 和 fixture 必须使用同一形态。
 
 ### 9.5.1 通用规则
 
@@ -534,8 +534,8 @@ rank_between(left, right):
 
 | Cell family / Event kind | components_array 顺序（来源字段） |
 | --- | --- |
-| `cx.component.device.authorized.v1` / `cx.device.authorized` | `[principal_id, device_id]` |
-| `cx.component.device.authorized.v1` / `cx.device.revoked` | `[principal_id, device_id]` |
+| `cx.component.device.authorization.v1` / `cx.device.authorize` | `[principal_id, device_id]` |
+| `cx.component.device.authorization.v1` / `cx.device.revoke` | `[principal_id, device_id]` |
 
 `principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。
 

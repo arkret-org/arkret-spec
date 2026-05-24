@@ -172,12 +172,12 @@
       },
       "minItems": 1
     },
-    "recovery_reason": {
+    "recovery_reason_code": {
       "type": "string",
       "enum": [
         "late_key_arrival"
       ],
-      "description": "Optional, set only when this RYW receipt covers a cx.audit.accessed Event emitted via the Late Key Recovery path (see zh/crypto-media/encryption-and-audit.md §2.3.5 / §3.3.1 footnote). Payload value, NOT an error-code-registry reason_code. Used by audit projections to distinguish late-key-triggered accesses from first-access reads. When absent, the receipt covers a normal (first-access) cx.audit.accessed Event."
+      "description": "Optional machine-readable code, set only when this RYW receipt covers a cx.audit.accessed Event emitted via the Late Key Recovery path (see zh/crypto-media/encryption-and-audit.md §2.3.5 / §3.3.1 footnote). Payload value, not an error-code-registry reason_code. Used by audit projections to distinguish late-key-triggered accesses from first-access reads. When absent, the receipt covers a normal (first-access) cx.audit.accessed Event."
     }
   },
   "allOf": [

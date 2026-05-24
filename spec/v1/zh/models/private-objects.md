@@ -6,29 +6,29 @@ title: Private & Derived Objects
 
 本文集中定义 Contrix 协作图中的**派生 / actor-private 对象**：
 
-- **Read Marker**：actor 私有的已读位置状态。
+- **Read Cursor**：actor 私有的已读位置状态。
 - **Notification**：从 Event / Flow / Message / Relation 派生的 inbox projection。
 
 这些对象**不是 canonical truth**——它们由 client / SDK 从 Event 集合本地计算；schema 仅用于 wire 表示。它们不进入协作图归约，不向其他 actor 广播持久化共享对象。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
-## 2. Read Marker
+## 2. Read Cursor
 
 ### 2.1 概念
 
-`read_marker` 是 actor-private 状态。它 SHOULD 存在于私有 account data 或 ephemeral sync channel 中，而不是作为公共 durable Event 高频写入。
+`read_cursor` 是 actor-private 状态。它 SHOULD 存在于私有 account data 或 ephemeral sync channel 中，而不是作为公共 durable Event 高频写入。
 
-完整 read receipt / read marker 同步规则、`cx.receipt.read` 的 disclosure 选项和高频更新策略见 [`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
+完整 read receipt / read cursor 同步规则、`cx.receipt.read` 的 disclosure 选项和高频更新策略见 [`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
 
 ### 2.2 Schema 与字段
 
-Schema id: `cx.schema.read_marker.v1`
+Schema id: `cx.schema.read_cursor.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:read_marker` | `cx:read_marker:<uuidv7>`。 | 私有状态 ID。 |
-| `schema` | yes | `cx.schema.read_marker.v1` |  | Schema ID。 |
+| `id` | yes | `id:read_cursor` | `cx:read_cursor:<uuidv7>`。 | 私有状态 ID。 |
+| `schema` | yes | `cx.schema.read_cursor.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `realm_id` | yes | `id:realm` |  | Realm。 |
 | `scope` | yes | `object` | `{kind, ref?, track?}`；`kind=realm` 时 `ref` 省略，其余 kind 必填对应对象 ref。 | 已读范围。 |
@@ -54,7 +54,7 @@ Schema id: `cx.schema.notification.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:notif` | `cx:notif:<uuidv7>`。 | 通知 ID。 |
+| `id` | yes | `id:notification` | `cx:notification:<uuidv7>`。 | 通知 ID。 |
 | `schema` | yes | `cx.schema.notification.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `realm_id` | no | `id:realm` |  | 来源 Realm。 |

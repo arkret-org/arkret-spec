@@ -118,8 +118,8 @@
       "file": "schemas/notification.schema.json"
     },
     {
-      "schema_id": "cx.schema.read_marker.v1",
-      "file": "schemas/read-marker.schema.json"
+      "schema_id": "cx.schema.read_cursor.v1",
+      "file": "schemas/read-cursor.schema.json"
     },
     {
       "schema_id": "cx.schema.read_receipt.v1",

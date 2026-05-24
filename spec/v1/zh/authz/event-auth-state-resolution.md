@@ -50,7 +50,7 @@ flowchart LR
 
     subgraph L ["Cell × Lattice（per-cell deterministic join）"]
         direction TB
-        Cells["cas-register / or-set / mv-register<br/>fsm / counter / ordered-log"]
+        Cells["cas_register / or_set / mv_register<br/>fsm / counter / ordered_log"]
         Bot["⊥ bottom<br/>bottom=reject → 依赖 Move fail closed<br/>bottom=expose → 暴露多值诊断 + 等待 conflict-recovery"]
         Cells -. "并发冲突 / 非法状态" .-> Bot
     end
@@ -121,13 +121,13 @@ Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容。`lattice_
 
 | Lattice type | `op.kind` | 必填字段 | 可选字段 |
 | --- | --- | --- | --- |
-| `or-set` | `add` | `tag`、`value` | — |
-| `or-set` | `remove` | `tag` | `reason` |
-| `mv-register` | `set` | `value` | — |
-| `cas-register` | `set` | `value` | — |
+| `or_set` | `add` | `tag`、`value` | — |
+| `or_set` | `remove` | `tag` | `reason` |
+| `mv_register` | `set` | `value` | — |
+| `cas_register` | `set` | `value` | — |
 | `fsm` | `transition` | `from`、`to` | `reason` |
 | `counter` | `inc` / `dec` | `value`（非负整数增量） | `tag`（per-counter 维度） |
-| `ordered-log` | `append` | `value`（entry payload）、`issuer_seq` | — |
+| `ordered_log` | `append` | `value`（entry payload）、`issuer_seq` | — |
 
 `op.value` 与 entry payload 必须满足该 cell schema；接收方 MUST 拒绝多余字段（`additionalProperties=false`）。
 
@@ -264,7 +264,7 @@ v1 wire-incompatible，必须用独立 profile 声明。
 Realm 一旦在 create event 中固定 `hash_profile`，所有后续 Anchor / Move / state_root MUST 用同一 algo。需要切换 hash algo（例如 sha256 → blake3 性能升级，或 sha256 → 抗量子 hash family）时：
 
 1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `previous_state_root`（旧 algo）和 `state_root`（新 algo）。Receiver 用旧 algo 重算 frontier 验证 `previous_state_root` 与本地一致；用新 algo 重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
-2. **`hash_profile` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Realm 的 `hash_profile` cell（`cas-register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
+2. **`hash_profile` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Realm 的 `hash_profile` cell（`cas_register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
 3. **后续 Anchor**：新 anchor 只用新 algo。客户端做长历史 inclusion proof 时，跨 transition Anchor 的 proof 由 transition Anchor 的双 root 桥接——proof 在 transition 之前用旧 algo 验证，之后用新 algo 验证。
 4. **降级禁止**：`hash_profile` 只允许从更弱 algo 升级到更强 algo（按 v1 hash registry 中声明的 strength order），不允许降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
 
@@ -295,7 +295,7 @@ assert merkle_root(post_state) == A.state_root
 
 ```text
 cell = cx:cell:cx.component.anchorer.v1:<realm_id>
-lattice = cas-register
+lattice = cas_register
 bottom = reject
 ```
 
@@ -326,25 +326,25 @@ v1 封闭核心集（core）：
 
 | Type | Join 语义 | 用途 | 授权层禁用 |
 | --- | --- | --- | --- |
-| `or-set` | observed-remove set；add/remove 通过唯一 tag 收敛。 | capability grant set、device list、凭证撤销集合。 | — |
-| `mv-register` | 并发 set 暴露多值；无单一 winner。 | 非安全草稿、可人工选择的偏好。 | 不得作授权根 |
-| `cas-register` | 严格 CAS；并发不同值返回 `⊥`。 | anchorer、关键 singleton policy、host 指针类状态。 | — |
+| `or_set` | observed-remove set；add/remove 通过唯一 tag 收敛。 | capability grant set、device list、凭证撤销集合。 | — |
+| `mv_register` | 并发 set 暴露多值；无单一 winner。 | 非安全草稿、可人工选择的偏好。 | 不得作授权根 |
+| `cas_register` | 严格 CAS；并发不同值返回 `⊥`。 | anchorer、关键 singleton policy、host 指针类状态。 | — |
 | `fsm` | 状态机迁移；非法迁移或并发不可合并迁移返回 `⊥`。 | membership、lifecycle、invite/approval。 | — |
 | `counter` | PN-counter 求和。 | 配额、审计计数。 | — |
-| `ordered-log` | append-only log；按 issuer chain 与 entry id 去重。 | 审计、消息历史、不可变操作日志。 | — |
+| `ordered_log` | append-only log；按 issuer chain 与 entry id 去重。 | 审计、消息历史、不可变操作日志。 | — |
 
 依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均不得进入协议授权根。
 
-#### 5.0.1 扩展 Lattice：`lww-register` / `rga`
+#### 5.0.1 扩展 Lattice：`lww_register` / `rga`
 
-`lww-register` 与 `rga` **不属于** v1 core 封闭集；它们由扩展 profile [`cx.profile.collaborative_text.v1`](../conformance/conformance-profiles.md) 引入，目的是支持协作文本与 cosmetic 字段。声明该 profile 的实现 MUST 完整实现下列 §5.3.7 / §5.3.8 中的 join 与 validate 语义；未声明的实现遇到使用这两种 type 的 cell schema MUST fail closed（`unsupported_lattice_type`）。
+`lww_register` 与 `rga` **不属于** v1 core 封闭集；它们由扩展 profile [`cx.profile.collaborative_text.v1`](../conformance/conformance-profiles.md) 引入，目的是支持协作文本与 cosmetic 字段。声明该 profile 的实现 MUST 完整实现下列 §5.3.7 / §5.3.8 中的 join 与 validate 语义；未声明的实现遇到使用这两种 type 的 cell schema MUST fail closed（`unsupported_lattice_type`）。
 
 | Type | Join 语义 | 用途 | 授权层禁用 |
 | --- | --- | --- | --- |
-| `lww-register` | 按 anchor-derived order 选最近 set；同 anchor batch 并发用 deterministic tiebreaker。 | UI affordance：Flow.title / summary、Morph 非关键字段、 emoji shortcuts、cosmetic preferences。 | **MUST NOT 作授权、policy、membership、anchorer、capability cell**。schema 静态拒绝。|
+| `lww_register` | 按 anchor-derived order 选最近 set；同 anchor batch 并发用 deterministic tiebreaker。 | UI affordance：Flow.title / summary、Morph 非关键字段、 emoji shortcuts、cosmetic preferences。 | **MUST NOT 作授权、policy、membership、anchorer、capability cell**。schema 静态拒绝。|
 | `rga` | Replicated Growable Array：插入 op 携带 `(predecessor_id, element_id=issuer:seq)`，删除 op 写 tombstone；按 (anchor index, issuer, seq) 全序确定性合并。 | 协作文本编辑（Flow.body 富文本、Morph 文档段、Markdown 块的字符级编辑）、可插入的有序列表。 | **MUST NOT 作授权根**；只用于 content cell。|
 
-`lww-register` 与 `rga` 的"时间"由 Anchor 批次索引与批次内确定性 tiebreaker 提供，**不**读取 actor 自报 HLC 或外部 wall clock。这是它们被允许出现在 conformance core 之外但仍是封闭代数的前提。
+`lww_register` 与 `rga` 的"时间"由 Anchor 批次索引与批次内确定性 tiebreaker 提供，**不**读取 actor 自报 HLC 或外部 wall clock。这是它们被允许出现在 conformance core 之外但仍是封闭代数的前提。
 
 ### 5.1 Bottom Diagnostics
 
@@ -365,21 +365,21 @@ Bottom {
 
 `bottom=reject` 的 cell 被 Move precondition 读取时，Move MUST fail closed（state code `failed_bottom`），错误至少包含 `cells[]` 与 `event_ids[]`。`bottom=expose` 的 cell MAY 返回 `{status:"conflict", heads:[...]}` 给 projection；它不得被授权路径当作 allow。
 
-`bottom=reject` 不是可被普通 CAS 写入直接覆盖的临时值。只要当前 effective view 下 cell value 为 `⊥`，任何普通 Move（包括携带 `head_eq` 的 cas-register set）读取或写入该 cell 时都 MUST `failed_bottom` / `failed_precondition`，`reason_code=cell_in_bottom_state`；实现不得把 `⊥` 当作 `null`、空 head 或任一候选 head。修复只能通过 §8 的 conflict-recovery Move 完成：该 Move MUST 引用冲突前 `state_witness`、`inclusion_proof` 与被授权的 recovery capability，并在新的 Anchor view 中把 cell 收敛到明确 value。若某 cell family 需要更专门的 recovery 事件，profile 可以在自己的 event kind 上定义 payload，但不能绕过本段的 witness 与 capability 要求。
+`bottom=reject` 不是可被普通 CAS 写入直接覆盖的临时值。只要当前 effective view 下 cell value 为 `⊥`，任何普通 Move（包括携带 `head_eq` 的 cas_register set）读取或写入该 cell 时都 MUST `failed_bottom` / `failed_precondition`，`reason_code=cell_in_bottom_state`；实现不得把 `⊥` 当作 `null`、空 head 或任一候选 head。修复只能通过 §8 的 conflict-recovery Move 完成：该 Move MUST 引用冲突前 `state_witness`、`inclusion_proof` 与被授权的 recovery capability，并在新的 Anchor view 中把 cell 收敛到明确 value。若某 cell family 需要更专门的 recovery 事件，profile 可以在自己的 event kind 上定义 payload，但不能绕过本段的 witness 与 capability 要求。
 
-`anchorer_split` 是特殊 kind：当 anchorer cell（cas-register, bottom=reject）出现并发 set 时该诊断生效；它对应 §13 的 `anchorer_paused` Realm 状态，仅 recovery anchorer / emergency quorum 签发的 Anchor 可恢复推进。
+`anchorer_split` 是特殊 kind：当 anchorer cell（cas_register, bottom=reject）出现并发 set 时该诊断生效；它对应 §13 的 `anchorer_paused` Realm 状态，仅 recovery anchorer / emergency quorum 签发的 Anchor 可恢复推进。
 
 **Lattice type 与 bottom 行为对照**：
 
 | Lattice type | bottom 是否出现 | bottom 配置语义 |
 | --- | --- | --- |
-| `or-set` | 永不 | bottom=expose 仅用于多 head 场景的 add/remove 并发可视化 |
-| `mv-register` | 永不 reject；多值即 expose | bottom=expose 是常态：projection 暴露多个 head 给 UI，授权路径不得据此选 winner |
-| `cas-register` | 出现：并发不同 set + 不同 basis 时返回 ⊥ | bottom=reject 是标准（anchorer / 关键 singleton）；依赖该 cell 的 Move fail closed |
+| `or_set` | 永不 | bottom=expose 仅用于多 head 场景的 add/remove 并发可视化 |
+| `mv_register` | 永不 reject；多值即 expose | bottom=expose 是常态：projection 暴露多个 head 给 UI，授权路径不得据此选 winner |
+| `cas_register` | 出现：并发不同 set + 不同 basis 时返回 ⊥ | bottom=reject 是标准（anchorer / 关键 singleton）；依赖该 cell 的 Move fail closed |
 | `fsm` | 出现：非法 transition / 并发 divergent next_state 时返回 ⊥ | bottom=reject 是标准（membership / lifecycle / invite-approval）|
 | `counter` | 永不 | bottom=expose 仅在配额跨界等场景作诊断 |
-| `ordered-log` | 永不 | bottom=expose 用于审计、消息历史；并发 append 不阻塞 |
-| `lww-register` | **永不出现于 value path**——并发 sibling 由 §5.3.7 deterministic tiebreaker 选 winner | bottom=expose 仅由诊断层暴露 lost siblings；**授权层不得据此选 winner**（schema 已静态禁止 lww-register 作授权根）|
+| `ordered_log` | 永不 | bottom=expose 用于审计、消息历史；并发 append 不阻塞 |
+| `lww_register` | **永不出现于 value path**——并发 sibling 由 §5.3.7 deterministic tiebreaker 选 winner | bottom=expose 仅由诊断层暴露 lost siblings；**授权层不得据此选 winner**（schema 已静态禁止 lww_register 作授权根）|
 | `rga` | **永不**——RGA 总有合法 deterministic order | bottom=expose 用于把并发 insert/delete 多值反馈给 projection，不阻塞协议判断 |
 
 ### 5.2 序内因果
@@ -387,8 +387,8 @@ Bottom {
 Lattice `join()` 输入是 Move set，而不是本地接收序列。需要顺序语义的 type 必须把顺序编码进 op：
 
 - `fsm` 通过 `transition.from` / `transition.to` 校验路径。
-- `ordered-log` 通过 `issuer_seq`、`parent_entry` 或 entry hash 链校验 append。
-- `cas-register` 通过 Move precondition `head_eq` 表达 basis。
+- `ordered_log` 通过 `issuer_seq`、`parent_entry` 或 entry hash 链校验 append。
+- `cas_register` 通过 Move precondition `head_eq` 表达 basis。
 
 若某 lattice type 对同一输入 set 不能给出 deterministic value / bottom，则该 type 的实现不符合 v1。
 
@@ -396,7 +396,7 @@ Lattice `join()` 输入是 Move set，而不是本地接收序列。需要顺序
 
 下列伪代码为各核心 Lattice type 的 normative `join()` 与 `validate_op()` 行为；参考向量在 [`conformance-vectors.md`](../conformance/conformance-vectors.md) §2。
 
-#### 5.3.1 `or-set`
+#### 5.3.1 `or_set`
 
 真正的 observed-remove set，按 **dot** 收敛。
 
@@ -429,9 +429,9 @@ validate_op(op):
 
 **部分撤销**：remove op 只 invalidates 它枚举的 dots。撤销整个 intent 需要 issuer 列出该 intent 下当前所有 active dots；missing 一些就只是部分撤销，剩余 dot 仍 active。这是 OR-Set 的 normative 语义，不是 bug。
 
-`bottom` 永远不出现（or-set 总有合法 join 值）。`bottom=expose` 仅用于 projection 在多 head 场景把 add/remove 并发可视化，不影响协议授权判断。
+`bottom` 永远不出现（or_set 总有合法 join 值）。`bottom=expose` 仅用于 projection 在多 head 场景把 add/remove 并发可视化，不影响协议授权判断。
 
-#### 5.3.2 `mv-register`
+#### 5.3.2 `mv_register`
 
 Multi-value register。所有未被后续 set 取代的并发值都暴露。
 
@@ -446,13 +446,13 @@ validate_op(op):
   op.value satisfies schema
 ```
 
-`bottom=expose` 是 mv-register 的常态：projection 以 `{status:"conflict", heads:[...]}` 暴露多值。授权路径不得用 mv-register 表达。
+`bottom=expose` 是 mv_register 的常态：projection 以 `{status:"conflict", heads:[...]}` 暴露多值。授权路径不得用 mv_register 表达。
 
-#### 5.3.3 `cas-register`
+#### 5.3.3 `cas_register`
 
 Compare-and-swap register。Move 通过 precondition `head_eq` 声明 basis；并发不同 set 返回 `⊥`。Move 的因果序由 (a) Anchor batch 包含关系，与 (b) 跨 batch 时 `Move.refs(role="after")` 显式声明给出；同 Anchor batch 内的 sibling Moves 视为并发。
 
-**Cell schema 可选参数 `initial_value`**：cas-register cell schema MAY 声明 `initial_value`，该值在 cell 未被任何 Move 写过时作为 `current` 的初值。算法第一行原本 `current = null`，schema 声明 `initial_value` 时改为 `current = initial_value`。**单例 cell 模式**：schema 声明 `initial_value = "<sentinel>"` 时，配合 `head_eq: "<sentinel>"` predicate 的第一次 set Move 才能成功；后续 Move 因 `basis ≠ settled and basis is not null` 触发 `⊥`，从而强制 singleton 语义。
+**Cell schema 可选参数 `initial_value`**：cas_register cell schema MAY 声明 `initial_value`，该值在 cell 未被任何 Move 写过时作为 `current` 的初值。算法第一行原本 `current = null`，schema 声明 `initial_value` 时改为 `current = initial_value`。**单例 cell 模式**：schema 声明 `initial_value = "<sentinel>"` 时，配合 `head_eq: "<sentinel>"` predicate 的第一次 set Move 才能成功；后续 Move 因 `basis ≠ settled and basis is not null` 触发 `⊥`，从而强制 singleton 语义。
 
 ```text
 join(moves, cell_schema) -> value | ⊥:
@@ -496,7 +496,7 @@ validate_op(op, cell_schema, move_envelope):
       // capability check is reducer's normal authz path; not duplicated here.
 ```
 
-`bottom=reject` 是 cas-register 的标准配置：依赖该 cell 的 Move MUST `fail_bottom`（spec 状态码 `failed_bottom`）。anchorer cell、关键 singleton policy 与 host 指针均使用此组合。
+`bottom=reject` 是 cas_register 的标准配置：依赖该 cell 的 Move MUST `fail_bottom`（spec 状态码 `failed_bottom`）。anchorer cell、关键 singleton policy 与 host 指针均使用此组合。
 
 #### 5.3.4 `fsm`
 
@@ -550,7 +550,7 @@ validate_op(op):
 
 `bottom` 永远不出现。`bottom=expose` 仅在配额跨界等场景下作为诊断（actual value still defined）。
 
-#### 5.3.6 `ordered-log`
+#### 5.3.6 `ordered_log`
 
 Append-only log。Entry payload 通过 `op.value` 承载；每 issuer 子链由 `op.issuer_seq` 单调推进；跨 Move 全局去重依赖 `cell schema` 在 entry 内声明的稳定 entry id（如 `value.entry_id` 或 canonical-bytes-derived hash），具体由 cell schema `parameters.entry_id_field` 指定。
 
@@ -582,9 +582,9 @@ validate_op(op):
 
 `bottom` 永远不出现。审计、消息历史、不可变操作日志均使用 `bottom=expose`，并发 append 不阻塞协议判断。
 
-#### 5.3.7 `lww-register`（扩展：`cx.profile.collaborative_text.v1`）
+#### 5.3.7 `lww_register`（扩展：`cx.profile.collaborative_text.v1`）
 
-Last-write-wins register。本节是该 lattice type 的 normative 行为，但**仅在实现声明 `cx.profile.collaborative_text.v1` 时启用**——未声明的实现遇到使用 `lww-register` 的 cell schema MUST 按 §5.4 fail closed。"时间"由 Anchor DAG 中可推导的 effective depth 提供，**不**读 actor HLC，也不把批次序号写入 `state_root` leaf：
+Last-write-wins register。本节是该 lattice type 的 normative 行为，但**仅在实现声明 `cx.profile.collaborative_text.v1` 时启用**——未声明的实现遇到使用 `lww_register` 的 cell schema MUST 按 §5.4 fail closed。"时间"由 Anchor DAG 中可推导的 effective depth 提供，**不**读 actor HLC，也不把批次序号写入 `state_root` leaf：
 
 - 跨 Anchor batch：后批次 effect 覆盖前批次。
 - 同 Anchor batch（sibling Move）并发不同 set：用 deterministic tiebreaker `(issuer DID lex order, event_digest lex order)` 选 winner；记录 lost siblings 进 bottom diagnostics 但不影响最终 value。
@@ -621,7 +621,7 @@ validate_op(op):
 
 `bottom` 不出现于 value path。`bottom=expose` 仅当并发 sibling 出现时由诊断层暴露 lost values；授权层 MUST NOT 据此选 winner（cell 已被 schema 静态禁止作授权根）。
 
-Schema 声明 cell 为 `lww-register` 时 MUST 同时声明 `cell_role ∈ {ui_affordance, content, draft, cosmetic}`；声明 `cell_role` 为 authorization-related 值时 schema_violation。这是把 lww-register 关在协议安全圈外的硬约束。realm.schema.json 在 `cell_lattice` 上有 `allOf` 条件强制此规则。
+Schema 声明 cell 为 `lww_register` 时 MUST 同时声明 `cell_role ∈ {ui_affordance, content, draft, cosmetic}`；声明 `cell_role` 为 authorization-related 值时 schema_violation。这是把 lww_register 关在协议安全圈外的硬约束。realm.schema.json 在 `cell_lattice` 上有 `allOf` 条件强制此规则。
 
 #### 5.3.8 `rga` (Replicated Growable Array，扩展：`cx.profile.collaborative_text.v1`)
 
@@ -684,7 +684,7 @@ RGA 的开销：每个未 GC 的 element 持续占空间。Realm 可声明 `rga_
 
 v1 已注册扩展 Lattice type：
 
-- `lww-register` / `rga` — `cx.profile.collaborative_text.v1`（§5.0.1、§5.3.7、§5.3.8）。
+- `lww_register` / `rga` — `cx.profile.collaborative_text.v1`（§5.0.1、§5.3.7、§5.3.8）。
 
 未声明 `cx.profile.collaborative_text.v1` 的实现遇到使用这两种 type 的 cell schema 时 MUST 返回 `unsupported_lattice_type` 并拒绝写入对应 cell；既有 Move 已被 anchored 的 RGA / lww 历史 SHOULD 仍能 backfill 但只能透出诊断态，不得参与新 Move 的 reducer 决策。
 
@@ -818,7 +818,7 @@ Realm create MUST 固定 genesis anchorer 与 recovery anchorer。`cx.schema.rea
 
 - **`single_did` anchorer 审查与 DOS**：anchorer 拒签 = Realm 写阻塞。`single_did` profile MUST 在 Realm create 时同时声明非空 recovery anchorer 路径（wire 字段为 `anchorer.recovery_members[]`，语义等价于 recovery anchorer 集合），且至少一个 recovery controller MUST 与主 anchorer 在不同的 controlling organization；不满足者 reducer MUST 在 `cx.realm.create` 步骤返回 `anchorer_recovery_missing` 并拒绝创建。Receiver 不能只信任字符串不相等：它 MUST 用 DID resolver、deployment policy 或 `controller_organization` / `recovery_controller_organizations` evidence 验证组织多样性；无法验证时 MUST fail closed。声称对抗审查能力的部署 MUST NOT 选择 `single_did`，应使用 `threshold` 或 `open_set`。
 - **`threshold` 委员会合谋**：k 个签名者可以联合审查特定 actor。Realm MUST 在 governance policy 中声明委员会成员选拔、轮换与 quorum recovery 流程。
-- **`open_set` peer 集合污染**：若 anchorer cell 中加入了恶意 peer，它可签发恶意 leaf。anchorer cell 是 cas-register + bottom=reject，所以新增 peer 必须由当前合法 anchorer 签发的 Move 加入；但**初始 genesis anchorer 设置错误是不可恢复的**——MUST 在 genesis 时审慎选择并多方签名 verify。
+- **`open_set` peer 集合污染**：若 anchorer cell 中加入了恶意 peer，它可签发恶意 leaf。anchorer cell 是 cas_register + bottom=reject，所以新增 peer 必须由当前合法 anchorer 签发的 Move 加入；但**初始 genesis anchorer 设置错误是不可恢复的**——MUST 在 genesis 时审慎选择并多方签名 verify。
 - **签名 key 失窃与 anchorer key rotation**：anchorer 签名 key 失窃 → 攻击者可签发任意 Anchor。Recovery 路径必须是 genesis 时声明的 recovery_anchorer 通过 ⊥ + recovery Move 替换被泄露的 anchorer cell；deployment SHOULD 强制 anchorer key 用 HSM / threshold key 而非软件 key。
 
 `server-threat-model.md` §2.1 已涵盖对应通用攻击面；本节专门点出**不可由协议层规避、必须由 governance 与 deployment 主动设防的部分**。
@@ -832,8 +832,8 @@ MLS commit 是 Move，不是 Anchor。它写入三个 well-known cell（cell fam
 ```text
 Move(MLS commit) {
   preconditions: [
-    (mls_epoch_cell,        head_eq prev_epoch),                  // cas-register
-    (covered_frontier_cell, contains governance_frontier_required) // or-set / set semantics
+    (mls_epoch_cell,        head_eq prev_epoch),                  // cas_register
+    (covered_frontier_cell, contains governance_frontier_required) // or_set / set semantics
   ],
   effects: [
     (mls_epoch_cell,        set new_epoch),
@@ -843,7 +843,7 @@ Move(MLS commit) {
 }
 ```
 
-`covered_frontier_cell` 是声明"该 MLS group 当前已绑定的 governance Anchor frontier"的 cell（`or-set`，bottom=expose）：每个 MLS commit 把它绑定到的 governance Anchor 加入；E2EE message Move 在 preconditions 中要求 `contains` 自身 `anchor_ref` 所代表的 governance frontier。
+`covered_frontier_cell` 是声明"该 MLS group 当前已绑定的 governance Anchor frontier"的 cell（`or_set`，bottom=expose）：每个 MLS commit 把它绑定到的 governance Anchor 加入；E2EE message Move 在 preconditions 中要求 `contains` 自身 `anchor_ref` 所代表的 governance frontier。
 
 E2EE message Move（即在加密 payload 上下文中提交的 Move，例如 `cx.message.create` 在 E2EE Realm）MUST 在 preconditions 中证明 `covered_frontier_cell` 覆盖其 `anchor_ref` 所需 governance frontier。MLS 滞后只阻塞 E2EE message / key schedule Move（它们引用 `covered_frontier_cell`），不阻塞 governance / recovery Move（它们不引用该 cell）。
 
@@ -853,7 +853,7 @@ Move 在 Anchor 前是 pending；被 Anchor 后是否可用于 E2EE 由 `covered
 
 Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须保留足以验证 `event_id` / `event_digest`、签名、anchor inclusion、target id、授权凭证和 tombstone stub 的最小数据。
 
-对 `ordered-log` 历史，redaction 不删除 log entry id；它写入同 target 的 redaction cell，使 projection 隐藏或替换 payload。审计、legal hold 与 erasure receipt 规则见隐私和安全文档。
+对 `ordered_log` 历史，redaction 不删除 log entry id；它写入同 target 的 redaction cell，使 projection 隐藏或替换 payload。审计、legal hold 与 erasure receipt 规则见隐私和安全文档。
 
 ## 12. Snapshot、GC 与恢复
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/event-schema.json",
   "title": "Contrix Event",
-  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) carry top-level preconditions / effects / anchor_ref; non-reducer events (read marker, batch receipts, range completeness, audit RYW, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.event_digest is the hash of canonical event bytes minus proofs and unsigned; detached_jws signs the canonical proof binding object that includes event_digest, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (cx.presence, cx.typing, cx.receipt.read, cx.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Anchor frontier, Move state_root, or reducer state). Likewise cx.key.verification.* kinds use device-message.schema.json on the point-to-point to-device channel. cx.events.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §3.6 (wire-scope reject rule).",
+  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) carry top-level preconditions / effects / anchor_ref; non-reducer events (read cursor, batch receipts, range completeness, audit RYW, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.event_digest is the hash of canonical event bytes minus proofs and unsigned; detached_jws signs the canonical proof binding object that includes event_digest, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (cx.presence, cx.typing, cx.receipt.read, cx.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Anchor frontier, Move state_root, or reducer state). Likewise cx.key.verification.* kinds use device-message.schema.json on the point-to-point to-device channel. cx.events.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §3.6 (wire-scope reject rule).",
   "type": "object",
   "required": [
     "event_id",
@@ -135,7 +135,7 @@
             "$ref": "#/$defs/criticalExtension"
           },
           "uniqueItems": true,
-          "description": "Critical extension declarations; each entry MUST have id, scope, fail_closed=true."
+          "description": "Critical extension declarations; each entry MUST have id, extension_scope, fail_closed=true."
         }
       },
       "additionalProperties": false
@@ -153,7 +153,7 @@
               "cx.attestation.range_completeness",
               "cx.audit.ryw_receipt",
               "cx.device.push_route",
-              "cx.read.marker"
+              "cx.read.cursor"
             ]
           }
         },
@@ -225,9 +225,9 @@
               "cx.container.rebalance",
               "cx.cross_signing.publish",
               "cx.cross_signing.reset",
-              "cx.device.authorized",
+              "cx.device.authorize",
               "cx.device.list_update",
-              "cx.device.revoked",
+              "cx.device.revoke",
               "cx.did.proof",
               "cx.flow.archive",
               "cx.flow.create",
@@ -267,7 +267,7 @@
               "cx.moderation.appeal.submit",
               "cx.moderation.decision",
               "cx.moderation.decision.lift",
-              "cx.moderation.frank",
+              "cx.moderation.franking_proof",
               "cx.moderation.report",
               "cx.morph.archive",
               "cx.morph.create",
@@ -293,7 +293,7 @@
               "cx.reaction.remove",
               "cx.redaction",
               "cx.relation.create",
-              "cx.relation.delete",
+              "cx.relation.tombstone",
               "cx.relation.update",
               "cx.schema.define",
               "cx.schema.update",
@@ -822,7 +822,7 @@
           "kind": {
             "enum": [
               "cx.relation.update",
-              "cx.relation.delete"
+              "cx.relation.tombstone"
             ]
           }
         },
@@ -903,29 +903,29 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.key.authorized" } },
+        "properties": { "kind": { "const": "cx.agent.key.authorize" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_authorized_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload" } }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.key.revoked" } },
+        "properties": { "kind": { "const": "cx.agent.key.revoke" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_revoked_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload" } }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.key.rotated" } },
+        "properties": { "kind": { "const": "cx.agent.key.rotate" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_rotated_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_rotate_payload" } }
       }
     },
     {
@@ -1007,11 +1007,11 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.device.authorized" } },
+        "properties": { "kind": { "const": "cx.device.authorize" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_authorized_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_authorize_payload" } }
       }
     },
     {
@@ -1052,11 +1052,11 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.device.revoked" } },
+        "properties": { "kind": { "const": "cx.device.revoke" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_revoked_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_revoke_payload" } }
       }
     },
     {
@@ -1220,7 +1220,7 @@
               "cx.audit.ryw_receipt",
               "cx.audit.epoch_key_destruction",
               "cx.realm.audit_policy_downgrade",
-              "cx.moderation.frank",
+              "cx.moderation.franking_proof",
               "cx.attestation.range_completeness"
             ]
           }
@@ -1304,12 +1304,12 @@
       "type": "object",
       "required": [
         "id",
-        "scope",
+        "extension_scope",
         "fail_closed"
       ],
       "properties": {
         "id": { "$ref": "#/$defs/featureRef" },
-        "scope": {
+        "extension_scope": {
           "type": "string",
           "enum": [
             "event",
@@ -1453,7 +1453,7 @@
             "insert",
             "delete"
           ],
-          "description": "add/remove → or-set; set → mv-register/cas-register/lww-register; transition → fsm; inc/dec → counter; append → ordered-log; insert/delete → rga (rga + lww-register require cx.profile.collaborative_text.v1)."
+          "description": "add/remove → or_set; set → mv_register/cas_register/lww_register; transition → fsm; inc/dec → counter; append → ordered_log; insert/delete → rga (rga + lww_register require cx.profile.collaborative_text.v1)."
         },
         "tag": { "type": "string" },
         "value": true,
@@ -1586,7 +1586,10 @@
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s]+(#.+)?$"
         },
-        "payload_hash": { "$ref": "#/$defs/hash" },
+        "payload_hash": {
+          "$ref": "#/$defs/hash",
+          "description": "Generic non-Event detached-proof hash. This $defs/proof shape is reused by non-Event schemas; Event.properties.proofs references $defs/event_proof and MUST use event_digest instead."
+        },
         "created_at": { "$ref": "#/$defs/timestamp" },
         "domain": { "type": "string" },
         "audience": {
@@ -1619,7 +1622,7 @@
         },
         "target_space_id": {
           "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas-register cell value as 'list_space_id' on the cell at cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>. Writers MUST NOT put 'list_space_id' directly on the cx.flow.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
+          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas_register cell value as 'list_space_id' on the cell at cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>. Writers MUST NOT put 'list_space_id' directly on the cx.flow.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
         },
         "rank": { "$ref": "#/$defs/rank" },
         "expected_position": {
@@ -1685,7 +1688,7 @@
           "description": "Opt-in publication of the level value to non-self projection consumers. Default false. muted MUST NOT be exposed even with level_public=true. MUST be omitted when level is null."
         },
         "expected_value": {
-          "description": "Compiles to cas-register head_eq precondition. Whole-value compare against the cell pre-state: either null (assert no prior record) or { level, level_public? } matching the prior cell value exactly. When omitted, reducers MUST treat it as head_eq null: only the initial write may pass; an existing cell MUST fail_precondition. Omission MUST NOT disable CAS or imply last-write-wins.",
+          "description": "Compiles to cas_register head_eq precondition. Whole-value compare against the cell pre-state: either null (assert no prior record) or { level, level_public? } matching the prior cell value exactly. When omitted, reducers MUST treat it as head_eq null: only the initial write may pass; an existing cell MUST fail_precondition. Omission MUST NOT disable CAS or imply last-write-wins.",
           "oneOf": [
             { "type": "null" },
             {

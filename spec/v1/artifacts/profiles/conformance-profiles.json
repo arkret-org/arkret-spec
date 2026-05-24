@@ -308,8 +308,8 @@
       ],
       "required_event_kinds": [
         "cx.realm.create",
-        "cx.device.authorized",
-        "cx.device.revoked",
+        "cx.device.authorize",
+        "cx.device.revoke",
         "cx.device.list_update",
         "cx.session.grant",
         "cx.cross_signing.publish",
@@ -364,8 +364,8 @@
         "allowlist_only": true,
         "allowed_event_kinds": [
           "cx.realm.create",
-          "cx.device.authorized",
-          "cx.device.revoked",
+          "cx.device.authorize",
+          "cx.device.revoke",
           "cx.device.list_update",
           "cx.session.grant",
           "cx.cross_signing.publish",
@@ -615,14 +615,14 @@
         "cx.reaction.add",
         "cx.redaction",
         "cx.account_data.set",
-        "cx.read.marker"
+        "cx.read.cursor"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.account_subscribe_frame.v1",
         "cx.schema.blob.v1",
         "cx.schema.notification.v1",
-        "cx.schema.read_marker.v1"
+        "cx.schema.read_cursor.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json",
@@ -664,8 +664,8 @@
         "cx.keys.backups.delete"
       ],
       "required_event_kinds": [
-        "cx.device.authorized",
-        "cx.device.revoked",
+        "cx.device.authorize",
+        "cx.device.revoke",
         "cx.mls.proposal",
         "cx.mls.commit",
         "cx.mls.welcome",
@@ -1206,8 +1206,8 @@
         "cx.push.notify"
       ],
       "required_event_kinds": [
-        "cx.device.authorized",
-        "cx.device.revoked",
+        "cx.device.authorize",
+        "cx.device.revoke",
         "cx.account_data.set"
       ],
       "rejected_event_kinds": [],
@@ -1274,7 +1274,7 @@
         "cx.push.notify"
       ],
       "required_event_kinds": [
-        "cx.device.authorized"
+        "cx.device.authorize"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1528,7 +1528,7 @@
         "cx.account.subscribe"
       ],
       "required_event_kinds": [
-        "cx.moderation.frank",
+        "cx.moderation.franking_proof",
         "cx.moderation.report"
       ],
       "rejected_event_kinds": [],
@@ -1549,7 +1549,7 @@
           "frank_signature_alg",
           "frank_canonical_fields"
         ],
-        "unsupported_optional": "return frank_unavailable rather than silently dropping"
+        "unsupported_optional": "return franking_proof_unavailable rather than silently dropping"
       }
     },
     "cx.profile.franking.sender_commitment.v1": {
@@ -1829,7 +1829,7 @@
         "cx.admin.revoke_device"
       ],
       "required_event_kinds": [
-        "cx.device.revoked",
+        "cx.device.revoke",
         "cx.mls.commit",
         "cx.realm_key.withheld",
         "cx.realm.moderation_policy"
@@ -2129,7 +2129,7 @@
       ],
       "required_event_kinds": [
         "cx.message.create",
-        "cx.read.marker",
+        "cx.read.cursor",
         "cx.typing"
       ],
       "rejected_event_kinds": [
@@ -2555,7 +2555,7 @@
     },
     "cx.profile.collaborative_text.v1": {
       "inherits": [],
-      "description": "Lattice extension profile that registers lww-register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww-register and rga MUST NOT be used for authorization_root / policy_root / anchorer_root / membership / lifecycle cells (statically rejected by realm.schema.json).",
+      "description": "Lattice extension profile that registers lww_register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww_register and rga MUST NOT be used for authorization_root / policy_root / anchorer_root / membership / lifecycle cells (statically rejected by realm.schema.json).",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],

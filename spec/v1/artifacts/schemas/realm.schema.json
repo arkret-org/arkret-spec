@@ -96,7 +96,7 @@
           "to_type": {
             "type": "string"
           },
-          "scope": {
+          "relation_scope": {
             "type": "string",
             "enum": [
               "realm",
@@ -526,7 +526,7 @@
           "type": "string",
           "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "valid_until": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         }
       },
@@ -536,7 +536,7 @@
       "type": "object",
       "required": [
         "cell_family",
-        "type",
+        "lattice",
         "bottom",
         "cell_role"
       ],
@@ -545,16 +545,16 @@
           "type": "string",
           "pattern": "^cx\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
         },
-        "type": {
+        "lattice": {
           "type": "string",
           "enum": [
-            "or-set",
-            "mv-register",
-            "cas-register",
+            "or_set",
+            "mv_register",
+            "cas_register",
             "fsm",
             "counter",
-            "ordered-log",
-            "lww-register",
+            "ordered_log",
+            "lww_register",
             "rga"
           ]
         },
@@ -580,13 +580,13 @@
             "audit",
             "telemetry"
           ],
-          "description": "Semantic role declared by Realm schema. authorization_root / policy_root / anchorer_root / membership / lifecycle MUST NOT use lattice types lww-register or rga (enforced by allOf below). ui_affordance / content / draft / cosmetic MAY use lww-register or rga."
+          "description": "Semantic role declared by Realm schema. authorization_root / policy_root / anchorer_root / membership / lifecycle MUST NOT use lattice types lww_register or rga (enforced by allOf below). ui_affordance / content / draft / cosmetic MAY use lww_register or rga."
         },
         "parameters": {
           "type": "object"
         },
         "initial_value": {
-          "description": "Optional cell schema initial value (cas-register only). When defined, the cas-register `join` algorithm initialises `current` to this value (rather than null) before applying any Move. Combined with a `head_eq: <initial_value>` predicate on the first set Move, this implements singleton-once-set cells via the empty sentinel pattern. See event-auth-state-resolution.md §5.3.3."
+          "description": "Optional cell schema initial value (cas_register only). When defined, the cas_register `join` algorithm initialises `current` to this value (rather than null) before applying any Move. Combined with a `head_eq: <initial_value>` predicate on the first set Move, this implements singleton-once-set cells via the empty sentinel pattern. See event-auth-state-resolution.md §5.3.3."
         },
         "sentinel_writers": {
           "type": "array",
@@ -595,7 +595,7 @@
             "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
           },
           "uniqueItems": true,
-          "description": "Optional companion to `initial_value` (cas-register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §5.3.3."
+          "description": "Optional companion to `initial_value` (cas_register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §5.3.3."
         }
       },
       "additionalProperties": false,
@@ -603,15 +603,15 @@
         {
           "if": {
             "properties": {
-              "type": {
+              "lattice": {
                 "enum": [
-                  "lww-register",
+                  "lww_register",
                   "rga"
                 ]
               }
             },
             "required": [
-              "type"
+              "lattice"
             ]
           },
           "then": {
@@ -628,27 +628,27 @@
           }
         },
         {
-          "$comment": "initial_value is only defined for cas-register (see event-auth-state-resolution.md §5.3.3). Other lattices reject the field.",
+          "$comment": "initial_value is only defined for cas_register (see event-auth-state-resolution.md §5.3.3). Other lattices reject the field.",
           "if": {
             "required": ["initial_value"]
           },
           "then": {
             "properties": {
-              "type": { "const": "cas-register" }
+              "lattice": { "const": "cas_register" }
             },
-            "required": ["type"]
+            "required": ["lattice"]
           }
         },
         {
-          "$comment": "sentinel_writers is the companion of initial_value; it only makes sense on a cas-register cell that has declared initial_value. Reject declarations on other lattices, and reject declarations on cas-register cells that lack initial_value (since there is no sentinel to authorise writing back).",
+          "$comment": "sentinel_writers is the companion of initial_value; it only makes sense on a cas_register cell that has declared initial_value. Reject declarations on other lattices, and reject declarations on cas_register cells that lack initial_value (since there is no sentinel to authorise writing back).",
           "if": {
             "required": ["sentinel_writers"]
           },
           "then": {
             "properties": {
-              "type": { "const": "cas-register" }
+              "lattice": { "const": "cas_register" }
             },
-            "required": ["type", "initial_value"]
+            "required": ["lattice", "initial_value"]
           }
         }
       ]

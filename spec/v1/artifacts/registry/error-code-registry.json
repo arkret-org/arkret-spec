@@ -395,7 +395,7 @@
       "code": "unsupported_lattice_type",
       "http_status": 422,
       "scope": "both",
-      "description": "The implementation does not support a lattice type referenced by the Realm schema (e.g., lww-register or rga without cx.profile.collaborative_text.v1). Receivers fail closed."
+      "description": "The implementation does not support a lattice type referenced by the Realm schema (e.g., lww_register or rga without cx.profile.collaborative_text.v1). Receivers fail closed."
     },
     {
       "code": "profile_unsupported",
@@ -422,10 +422,10 @@
       "description": "Anchor frontier has gaps within the receiver's auth_chain backfill bound; soft-fail per zh/conformance/scalability-constraints.md."
     },
     {
-      "code": "frank_unavailable",
+      "code": "franking_proof_unavailable",
       "http_status": 503,
       "scope": "both",
-      "description": "E2EE frank cannot be produced for the requested ciphertext (sender did not include franking sidecar). See zh/governance/content-moderation.md §3.4."
+      "description": "E2EE franking proof cannot be produced for the requested ciphertext (sender did not include franking sidecar). See zh/governance/content-moderation.md §3.4."
     },
     {
       "code": "turn_credential_expired",
@@ -1037,7 +1037,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`cx.relation.delete` rejected because the target Relation is already `tombstone`."
+      "description": "`cx.relation.tombstone` rejected because the target Relation is already `tombstone`."
     },
     {
       "code": "cross_signing_reset",
@@ -1053,7 +1053,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A `cx.cross_signing.reset` proof was signed by a key class that does not have authority for that proof.kind: `principal_signing.signed_by` is not a principal-grade DID control key (or is the self/user signing key being retired), `recovery_unlock` is signed by a key that is not the declared recovery key, `trusted_recovery_service` is signed by a non-published verification method, or `device_quorum.signatures[i].signed_by` is not the named device's authorized key. See zh/crypto-media/device-lifecycle.md §14.4."
+      "description": "A `cx.cross_signing.reset` proof was signed by a key class that does not have authority for that proof.kind: `principal_signing.verification_method` is not a principal-grade DID control key (or is the self/user signing key being retired), `recovery_unlock` is signed by a key that is not the declared recovery key, `trusted_recovery_service` is signed by a non-published verification method, or `device_quorum.signatures[i].verification_method` is not the named device's authorized key. See zh/crypto-media/device-lifecycle.md §14.4."
     },
     {
       "code": "cross_signing_reset_signature_invalid",
@@ -1327,7 +1327,7 @@
         "auth_decision",
         "event_envelope"
       ],
-      "description": "A capability grant's normalized effective validity window is empty: effective_not_before >= effective_expires_at after combining top-level valid_from/valid_until with temporal not_before/expires_at constraints. Reducer MUST reject the grant. See zh/authz/capabilities.md §6.1."
+      "description": "A capability grant's normalized effective validity window is empty: effective_not_before >= effective_expires_at after combining top-level not_before/expires_at with temporal not_before/expires_at constraints. Reducer MUST reject the grant. See zh/authz/capabilities.md §6.1."
     },
     {
       "code": "principal_deactivated",
@@ -1858,7 +1858,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A non-bootstrap cx.device.authorized event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by_principal does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §5.0.3."
+      "description": "A non-bootstrap cx.device.authorize event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by_principal does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §5.0.3."
     },
     {
       "code": "cell_in_bottom_state",

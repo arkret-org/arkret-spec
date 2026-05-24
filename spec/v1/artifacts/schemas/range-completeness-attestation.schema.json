@@ -10,7 +10,7 @@
     "issuer",
     "issuer_role",
     "realm_id",
-    "scope",
+    "event_range",
     "root",
     "count",
     "observed_at",
@@ -42,7 +42,7 @@
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "scope": {
+    "event_range": {
       "type": "object",
       "required": [
         "from_frontier",

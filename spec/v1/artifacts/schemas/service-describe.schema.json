@@ -310,7 +310,7 @@
             "type": "string",
             "format": "date-time"
           },
-          "valid_until": {
+          "expires_at": {
             "type": "string",
             "format": "date-time"
           }

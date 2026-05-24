@@ -46,8 +46,8 @@
       "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
       "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Realm Move/Anchor history.",
-      "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas-register only) initial_value. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas-register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells.",
-      "Lattice MUST be one of: core types or-set, mv-register, cas-register, fsm, counter, ordered-log; or extension types lww-register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement cx.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww-register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww-register or rga.",
+      "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas_register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells.",
+      "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement cx.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww_register or rga.",
       "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority."
     ],
     "payload_schema_contract": {
@@ -67,7 +67,7 @@
         "payload": "Realm create",
         "cell_family": "cx.component.realm.create.v1",
         "cell_subject": null,
-        "lattice": "ordered-log",
+        "lattice": "ordered_log",
         "bottom": "expose"
       },
       {
@@ -90,7 +90,7 @@
           "type": "profile_ref",
           "field": "payload.target_reducer_profile"
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -102,7 +102,7 @@
         "payload": "Realm official or sponsoring organization statement",
         "cell_family": "cx.component.realm.organization.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -128,7 +128,7 @@
             }
           ]
         },
-        "lattice": "ordered-log",
+        "lattice": "ordered_log",
         "bottom": "expose"
       },
       {
@@ -140,7 +140,7 @@
         "payload": "Realm access policy reference (policy_ref)",
         "cell_family": "cx.component.realm.policy.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -152,7 +152,7 @@
         "payload": "Realm join rule (public/invite/knock/restricted/closed)",
         "cell_family": "cx.component.realm.join_rule.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -164,7 +164,7 @@
         "payload": "Realm history visibility scope",
         "cell_family": "cx.component.realm.history_visibility.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -176,7 +176,7 @@
         "payload": "Realm discoverability state",
         "cell_family": "cx.component.realm.discovery.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -188,7 +188,7 @@
         "payload": "Realm Policy Server binding",
         "cell_family": "cx.component.realm.policy_server.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -200,7 +200,7 @@
         "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_hash MUST cover policy_revision.",
         "cell_family": "cx.component.realm.policy_components.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -212,7 +212,7 @@
         "payload": "E2EE history sharing policy",
         "cell_family": "cx.component.realm.history_sharing_policy.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -224,7 +224,7 @@
         "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of cx.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
         "cell_family": "cx.component.realm.delivery_binding_policy.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -236,7 +236,7 @@
         "payload": "Realm asset privacy policy",
         "cell_family": "cx.component.realm.asset_privacy_policy.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -248,7 +248,7 @@
         "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / allow_child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5 for the compliance-floor escape switch",
         "cell_family": "cx.component.realm.read_receipt_policy.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -260,7 +260,7 @@
         "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
         "cell_family": "cx.component.realm.moderation_policy.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -272,7 +272,7 @@
         "payload": "Plaintext-visible services declaration outside E2EE boundary",
         "cell_family": "cx.component.realm.plaintext_visible_services.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -284,7 +284,7 @@
         "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
         "cell_family": "cx.component.realm.media_service.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -296,7 +296,7 @@
         "payload": "Realm schema_refs declaration",
         "cell_family": "cx.component.realm.schema.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -311,7 +311,7 @@
           "type": "id:realm",
           "field": "payload.source_realm_id"
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -323,7 +323,7 @@
         "payload": "Realm archive lifecycle facet (reversible boolean)",
         "cell_family": "cx.component.realm.archive.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -335,7 +335,7 @@
         "payload": "Realm freeze lifecycle facet (reversible boolean)",
         "cell_family": "cx.component.realm.freeze.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -347,7 +347,7 @@
         "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
         "cell_family": "cx.component.realm.tombstone.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -359,7 +359,7 @@
         "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
         "cell_family": "cx.component.realm.destroy.v1",
         "cell_subject": null,
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -486,7 +486,7 @@
           "type": "string",
           "field": "payload.rule_id"
         },
-        "lattice": "ordered-log",
+        "lattice": "ordered_log",
         "bottom": "expose"
       },
       {
@@ -532,7 +532,7 @@
           "type": "id:flow",
           "field": "payload.flow_id"
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -563,7 +563,7 @@
           "type": "id:flow",
           "field": "payload.flow_id"
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -578,7 +578,7 @@
           "type": "id:flow",
           "field": "payload.flow_id"
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -587,7 +587,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow move between Spaces (target_space_id in payload). Writes a cas-register cell keyed by (board_space_id, flow_id); the contains Relation list_space_id->flow_id is derived from cell value, not a separate truth source.",
+        "payload": "Flow move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, flow_id); the contains Relation list_space_id->flow_id is derived from cell value, not a separate truth source.",
         "cell_family": "cx.component.flow.position.v1",
         "cell_subject": {
           "type": "tuple",
@@ -604,7 +604,7 @@
             }
           ]
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -630,7 +630,7 @@
             }
           ]
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -639,7 +639,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas-register cell keyed by (flow_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds cx.flow.watch.manage_others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event with access_kind=watch_manage_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct cx.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
+        "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas_register cell keyed by (flow_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds cx.flow.watch.manage_others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event with access_kind=watch_manage_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct cx.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
         "cell_family": "cx.component.flow.watch.v1",
         "cell_subject": {
           "type": "tuple",
@@ -656,7 +656,7 @@
             }
           ]
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -687,7 +687,7 @@
           "type": "id:space",
           "field": "payload.space_id"
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -814,7 +814,7 @@
           "type": "id:morph",
           "field": "payload.morph_id"
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -834,7 +834,7 @@
         "payload": "Relation patch"
       },
       {
-        "event_kind": "cx.relation.delete",
+        "event_kind": "cx.relation.tombstone",
         "category": "relation",
         "status": "active",
         "wire_scope": "durable_event",
@@ -869,7 +869,7 @@
           "type": "string",
           "field": "payload.view_id"
         },
-        "lattice": "mv-register",
+        "lattice": "mv_register",
         "bottom": "expose"
       },
       {
@@ -884,7 +884,7 @@
           "type": "string",
           "field": "payload.view_id"
         },
-        "lattice": "mv-register",
+        "lattice": "mv_register",
         "bottom": "expose"
       },
       {
@@ -899,7 +899,7 @@
           "type": "string",
           "field": "payload.view_id"
         },
-        "lattice": "mv-register",
+        "lattice": "mv_register",
         "bottom": "expose"
       },
       {
@@ -911,12 +911,12 @@
         "payload": "Agent protocol endpoint declaration"
       },
       {
-        "event_kind": "cx.agent.key.authorized",
+        "event_kind": "cx.agent.key.authorize",
         "category": "agent",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorized_payload and bind agent_did, key_id, verification_method, accountable_actor, scope, audience, issued_at, expires_at, and approval_evidence.",
+        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_did, key_id, verification_method, accountable_actor, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
@@ -925,16 +925,16 @@
             "payload.key_id"
           ]
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
-        "event_kind": "cx.agent.key.revoked",
+        "event_kind": "cx.agent.key.revoke",
         "category": "agent",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoked_payload and bind agent_did, key_id, revoked_at, revoked_by, and revocation_frontier.",
+        "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_did, key_id, revoked_at, revoked_by, and revocation_frontier.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
@@ -943,16 +943,16 @@
             "payload.key_id"
           ]
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
-        "event_kind": "cx.agent.key.rotated",
+        "event_kind": "cx.agent.key.rotate",
         "category": "agent",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key rotation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_rotated_payload; key_id names the retiring key and replacement_key_id names the new key under the same accountable_actor with equivalent or narrower scope.",
+        "payload": "Agent signing key rotation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_rotate_payload; key_id names the retiring key and replacement_key_id names the new key under the same accountable_actor with equivalent or narrower agent_key_scope.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
@@ -961,7 +961,7 @@
             "payload.key_id"
           ]
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1000,7 +1000,7 @@
           "type": "string",
           "field": "payload.grant_id"
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1015,7 +1015,7 @@
           "type": "string",
           "field": "payload.grant_id"
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1030,7 +1030,7 @@
           "type": "string",
           "field": "payload.grant_id"
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1045,7 +1045,7 @@
           "type": "string",
           "field": "payload.grant_id"
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1060,7 +1060,7 @@
           "type": "string",
           "field": "payload.grant_id"
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1069,13 +1069,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Holder-private consent declaration: 'I consent to receive <scope> from <peer>'",
+        "payload": "Holder-private consent declaration: 'I consent to receive <consent_scope> from <peer>'",
         "cell_family": "cx.component.consent.grant.v1",
         "cell_subject": {
           "type": "string",
           "field": "payload.consent_id"
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1084,13 +1084,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Revoke a previously granted consent (shares the cx.consent.grant cell; semantically a remove on the consent or-set)",
+        "payload": "Revoke a previously granted consent (shares the cx.consent.grant cell; semantically a remove on the consent or_set)",
         "cell_family": "cx.component.consent.grant.v1",
         "cell_subject": {
           "type": "string",
           "field": "payload.consent_id"
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1105,7 +1105,7 @@
           "type": "did",
           "field": "payload.principal_id"
         },
-        "lattice": "ordered-log",
+        "lattice": "ordered_log",
         "bottom": "expose"
       },
       {
@@ -1152,7 +1152,7 @@
           "type": "id:actor_profile",
           "field": "payload.object.id"
         },
-        "lattice": "mv-register",
+        "lattice": "mv_register",
         "bottom": "expose"
       },
       {
@@ -1167,7 +1167,7 @@
           "type": "id:actor_profile",
           "field": "payload.object.id"
         },
-        "lattice": "mv-register",
+        "lattice": "mv_register",
         "bottom": "expose"
       },
       {
@@ -1179,13 +1179,13 @@
         "payload": "Realm-scoped profile override"
       },
       {
-        "event_kind": "cx.device.authorized",
+        "event_kind": "cx.device.authorize",
         "category": "device",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Device authorization",
-        "cell_family": "cx.component.device.authorized.v1",
+        "cell_family": "cx.component.device.authorization.v1",
         "cell_subject": {
           "type": "composite",
           "components": [
@@ -1193,17 +1193,17 @@
             "payload.device_id"
           ]
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
-        "event_kind": "cx.device.revoked",
+        "event_kind": "cx.device.revoke",
         "category": "device",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Device revocation",
-        "cell_family": "cx.component.device.authorized.v1",
+        "cell_family": "cx.component.device.authorization.v1",
         "cell_subject": {
           "type": "composite",
           "components": [
@@ -1211,7 +1211,7 @@
             "payload.device_id"
           ]
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1226,7 +1226,7 @@
           "type": "did",
           "field": "payload.principal_id"
         },
-        "lattice": "or-set",
+        "lattice": "or_set",
         "bottom": "reject"
       },
       {
@@ -1246,7 +1246,7 @@
             "payload.push_route"
           ]
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -1273,7 +1273,7 @@
             }
           ]
         },
-        "lattice": "cas-register",
+        "lattice": "cas_register",
         "bottom": "reject"
       },
       {
@@ -1289,7 +1289,7 @@
           "type": "did",
           "field": "payload.principal_id"
         },
-        "lattice": "ordered-log",
+        "lattice": "ordered_log",
         "bottom": "reject"
       },
       {
@@ -1469,7 +1469,7 @@
         "payload": "Moderation report"
       },
       {
-        "event_kind": "cx.moderation.frank",
+        "event_kind": "cx.moderation.franking_proof",
         "category": "moderation",
         "status": "active",
         "wire_scope": "durable_event",
@@ -1525,12 +1525,12 @@
         "payload": "Closes the appeal after the decided window expires (default 30 days). Transitions cell state decided → closed; locks against re-appeal of the same target by the same appellant. Schema: cx.schema.moderation_appeal.v1."
       },
       {
-        "event_kind": "cx.read.marker",
+        "event_kind": "cx.read.cursor",
         "category": "read",
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Read marker event"
+        "payload": "Read cursor event"
       },
       {
         "event_kind": "cx.receipt.read",
@@ -1632,7 +1632,7 @@
           "type": "mimi_uri",
           "field": "payload.mimi_room_uri"
         },
-        "lattice": "mv-register",
+        "lattice": "mv_register",
         "bottom": "expose"
       },
       {
@@ -1801,8 +1801,8 @@
         "file": "schemas/notification.schema.json"
       },
       {
-        "schema_id": "cx.schema.read_marker.v1",
-        "file": "schemas/read-marker.schema.json"
+        "schema_id": "cx.schema.read_cursor.v1",
+        "file": "schemas/read-cursor.schema.json"
       },
       {
         "schema_id": "cx.schema.read_receipt.v1",
@@ -2093,10 +2093,10 @@
         "description": "Device ID"
       },
       {
-        "kind": "devmsg",
+        "kind": "device_message",
         "category": "sync",
         "status": "active",
-        "wire_form": "cx:devmsg:<uuid>",
+        "wire_form": "cx:device_message:<uuid>",
         "description": "To-device message queue ID"
       },
       {
@@ -2121,10 +2121,10 @@
         "description": "Non-HTTP stream frame ID"
       },
       {
-        "kind": "frank",
+        "kind": "franking_proof",
         "category": "moderation",
         "status": "active",
-        "wire_form": "cx:frank:<uuid>",
+        "wire_form": "cx:franking_proof:<uuid>",
         "description": "Message franking proof ID"
       },
       {
@@ -2142,10 +2142,10 @@
         "description": "Invite object ID"
       },
       {
-        "kind": "keyevt",
+        "kind": "key_event",
         "category": "identity",
         "status": "active",
-        "wire_form": "cx:keyevt:<uuid>",
+        "wire_form": "cx:key_event:<uuid>",
         "description": "DID/key log event ID"
       },
       {
@@ -2163,18 +2163,18 @@
         "description": "Morph object ID"
       },
       {
-        "kind": "notif",
+        "kind": "notification",
         "category": "derived_projection",
         "status": "active",
-        "wire_form": "cx:notif:<uuid>",
+        "wire_form": "cx:notification:<uuid>",
         "description": "Notification projection ID"
       },
       {
-        "kind": "read_marker",
+        "kind": "read_cursor",
         "category": "account_private",
         "status": "active",
-        "wire_form": "cx:read_marker:<uuid>",
-        "description": "Actor-private read marker ID"
+        "wire_form": "cx:read_cursor:<uuid>",
+        "description": "Actor-private read cursor ID"
       },
       {
         "kind": "policy",
@@ -2219,17 +2219,17 @@
         "description": "Moderation report ID"
       },
       {
-        "kind": "modq",
+        "kind": "moderation_queue_item",
         "category": "moderation",
         "status": "active",
-        "wire_form": "cx:modq:<uuid>",
+        "wire_form": "cx:moderation_queue_item:<uuid>",
         "description": "Moderation queue item ID"
       },
       {
-        "kind": "req",
+        "kind": "request",
         "category": "transport",
         "status": "active",
-        "wire_form": "cx:req:<uuid>",
+        "wire_form": "cx:request:<uuid>",
         "description": "Request/correlation ID"
       },
       {
@@ -2254,10 +2254,10 @@
         "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
       },
       {
-        "kind": "txn",
+        "kind": "transaction",
         "category": "transport",
         "status": "active",
-        "wire_form": "cx:txn:<uuid>",
+        "wire_form": "cx:transaction:<uuid>",
         "description": "Federation/applet transaction ID"
       },
       {
@@ -3323,12 +3323,12 @@
         "profile": null
       },
       {
-        "action": "cx.relation.delete",
+        "action": "cx.relation.tombstone",
         "category": "flow",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "cx.relation.delete"
+          "cx.relation.tombstone"
         ],
         "profile": null
       },
@@ -3682,9 +3682,9 @@
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [
-          "cx.agent.key.authorized",
-          "cx.agent.key.revoked",
-          "cx.agent.key.rotated"
+          "cx.agent.key.authorize",
+          "cx.agent.key.revoke",
+          "cx.agent.key.rotate"
         ],
         "profile": null
       },
@@ -4097,12 +4097,12 @@
         "profile": null
       },
       {
-        "action": "cx.read.marker",
+        "action": "cx.read.cursor",
         "category": "personal",
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [
-          "cx.read.marker"
+          "cx.read.cursor"
         ],
         "profile": null
       },

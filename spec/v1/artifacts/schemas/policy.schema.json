@@ -59,10 +59,10 @@
     "priority": {
       "type": "integer"
     },
-    "valid_from": {
+    "not_before": {
       "$ref": "#/$defs/timestamp"
     },
-    "valid_until": {
+    "expires_at": {
       "$ref": "#/$defs/timestamp"
     },
     "created_by": {

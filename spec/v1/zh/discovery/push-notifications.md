@@ -35,7 +35,7 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 
 ### 2.4 多订阅信道去重与 presence timing
 
-同一事件可能同时命中显式 watch、隐式参与订阅、mention rule、read-marker badge recompute、presence-triggered foreground wakeup 或 notification projection。Sync Service / notification service 在调用 Push Gateway 前 MUST 在出口做去重：同一 `(recipient_service_did, device_id, push_route_id, source_event_digest)` 在一个 delivery window 内最多产生一条 push wakeup。默认 `blind_wakeup` profile 下，去重 key 是服务端内部状态，MUST NOT 出现在 push payload、日志导出、provider custom data 或客户端可见的 stable correlation key 中。
+同一事件可能同时命中显式 watch、隐式参与订阅、mention rule、read-cursor badge recompute、presence-triggered foreground wakeup 或 notification projection。Sync Service / notification service 在调用 Push Gateway 前 MUST 在出口做去重：同一 `(recipient_service_did, device_id, push_route_id, source_event_digest)` 在一个 delivery window 内最多产生一条 push wakeup。默认 `blind_wakeup` profile 下，去重 key 是服务端内部状态，MUST NOT 出现在 push payload、日志导出、provider custom data 或客户端可见的 stable correlation key 中。
 
 Presence 不得作为精确 push timing oracle。服务端把 presence update、watch recompute 与 push activation 组合使用时，MUST 至少按 Realm policy 声明的 bucket 粒度（默认不小于 60s；高隐私部署 SHOULD 使用 5min 或更粗）批处理或延迟；不得在用户刚上线 / 刚离线的瞬间立即发出可被 provider 观察到的 per-event push burst。该规则不阻止本地客户端在已在线连接上立即显示通知；它只约束第三方 push provider 可见的出向时序。
 
@@ -340,7 +340,7 @@ POST /api/v1/push/notify
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
 
-`notification.event_id`、`notification.realm_id`、`notification.kind`、`notification.sender`、`notification.sender_display_name`、`notification.space_name` 等识别字段 **MUST NOT** 出现在 `cx.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `cx.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
+`notification.event_id`、`notification.realm_id`、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.space_name` 等识别字段 **MUST NOT** 出现在 `cx.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `cx.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
 
 1. Realm policy 显式把该 Push Gateway 列入 `plaintext_visible_services`，且声明允许 `visible_notification`。
 2. 接收设备在其授权状态中显式记录 `visible_notification` opt-in；未 opt-in 的设备 MUST 回退到 `cx.profile.push_gateway.blind_wakeup.v1`。
@@ -430,6 +430,6 @@ Matrix 互通部署 MAY 声明 `cx.profile.push_gateway.matrix_passthrough.v1` �
 ## 8. v1 互操作要求
 
 - 推送规则的跨设备同步使用私有加密 Account Data；规则变更 MUST 由 holder device 签名，未授权服务不得读取敏感关键词或联系人规则。
-- Delivery Receipt 只能表示推送网关或平台尝试投递，不等于用户已读。已读状态仍由 read marker / read receipt profile 表达。
+- Delivery Receipt 只能表示推送网关或平台尝试投递，不等于用户已读。已读状态仍由 read cursor / read receipt profile 表达。
 - 语音/视频通话推送使用 `cx.call.signal` 的 invite hint；payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会议标题，除非 Realm policy 明确允许。
 - Push Gateway 高可用不得通过共享长期 device token 实现。多网关部署 MUST 使用 service DID、短期授权、token 分片或 per-gateway registration，并支持撤销。
