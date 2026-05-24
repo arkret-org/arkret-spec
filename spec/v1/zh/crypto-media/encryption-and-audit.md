@@ -645,7 +645,7 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 
 ### 2.9 Reaction 与短轻量事件的可见性
 
-`cx.reaction.add` / `cx.reaction.remove`、`cx.read.cursor`、`cx.receipt.read`、`cx.typing` 等高频小载荷事件需要明确 plaintext 与 ciphertext 的边界，否则即便消息正文加密，元数据通道仍可能泄露交互模式。
+`cx.reaction.add` / `cx.reaction.remove`、`cx.read_cursor.advance`、`cx.receipt.read`、`cx.typing` 等高频小载荷事件需要明确 plaintext 与 ciphertext 的边界，否则即便消息正文加密，元数据通道仍可能泄露交互模式。
 
 Reaction 事件 (`cx.reaction.*`) 的可见性规则：
 

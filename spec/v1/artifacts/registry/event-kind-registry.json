@@ -1497,12 +1497,12 @@
       "payload": "Closes the appeal after the decided window expires (default 30 days). Transitions cell state decided → closed; locks against re-appeal of the same target by the same appellant. Schema: cx.schema.moderation_appeal.v1."
     },
     {
-      "event_kind": "cx.read.cursor",
+      "event_kind": "cx.read_cursor.advance",
       "category": "read",
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Read cursor event"
+      "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named cx.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
     },
     {
       "event_kind": "cx.receipt.read",

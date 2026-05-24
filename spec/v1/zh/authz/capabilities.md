@@ -217,7 +217,9 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.capability.grant`
 - `cx.capability.delegate`
 - `cx.capability.revoke`
-- `cx.agent.key.manage`（high risk；授权、轮换、撤销 agent key，target=`cx.agent.key.authorize` / `cx.agent.key.rotate` / `cx.agent.key.revoke`）
+- `cx.agent.key.authorize`（high risk；授权 agent key，target=`cx.agent.key.authorize`）
+- `cx.agent.key.rotate`（high risk；轮换 agent key，target=`cx.agent.key.rotate`）
+- `cx.agent.key.revoke`（high risk；撤销 agent key，target=`cx.agent.key.revoke`）
 - `cx.policy.manage`
 - `cx.policy.set`
 - `cx.policy.rule.manage`（capability action; 对应 event kind 保留为 `cx.policy.rule`）
@@ -262,7 +264,7 @@ Audit action 只授权受控审计代理执行“先记录后解密”、读取�
 
 ### 5.6 人类界面与个人状态动作
 
-- `cx.cursor.advance`（capability action; 对应 event kind 保留为 `cx.read.cursor`）
+- `cx.read_cursor.advance`（capability action; 对应 event kind 同名 `cx.read_cursor.advance`）
 - `cx.notification.read`
 - `cx.notification.ack`
 - `cx.invite.accept`
@@ -517,7 +519,7 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 
 - 创建 / 取消 invite 需要 `cx.invite.create` / `cx.invite.revoke`
 - 接受发给自己的 invite 需要 `cx.invite.accept`
-- 写入自己的 `read_cursor` 需要 `cx.cursor.advance`（事件 kind 仍为 `cx.read.cursor`）
+- 写入自己的 `read_cursor` 需要 `cx.read_cursor.advance`（事件 kind 同名）
 - 读取 notification 需要 `cx.notification.read`
 - `cx.notification.ack` 只应影响自己的派生 inbox 状态
 
@@ -650,7 +652,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 | --- | --- | --- | --- |
 | 高风险（`cx.realm.destroy`、`cx.capability.revoke`、`cx.realm.admin`、`cx.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
 | 中风险（`cx.flow.update`、`cx.member.state`、`cx.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
-| 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read.cursor`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
+| 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read_cursor.advance`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
 
 设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Move 直接丢弃，无副作用。
 

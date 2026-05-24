@@ -615,7 +615,7 @@
         "cx.reaction.add",
         "cx.redaction",
         "cx.account_data.set",
-        "cx.read.cursor"
+        "cx.read_cursor.advance"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -2129,7 +2129,7 @@
       ],
       "required_event_kinds": [
         "cx.message.create",
-        "cx.read.cursor",
+        "cx.read_cursor.advance",
         "cx.typing"
       ],
       "rejected_event_kinds": [

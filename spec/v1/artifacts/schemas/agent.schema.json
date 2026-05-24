@@ -48,13 +48,17 @@
     "status": {
       "type": "string",
       "enum": [
-        "pending",
-        "running",
+        "negotiating",
+        "accepted",
+        "working",
+        "input_required",
+        "blocked",
         "completed",
         "failed",
-        "cancelled"
+        "cancelled",
+        "expired"
       ],
-      "description": "Session status for cx.agent.protocol_session.status events."
+      "description": "Session status for cx.agent.protocol_session.status events. Same enum as agent_session_status_payload.status in event-payload.schema.json — the registry-object snapshot MUST carry the canonical session state machine, not a coarse subset."
     },
     "params": {
       "description": "Caller-supplied parameters for protocol_session.start. Opaque to soland — agent runtimes interpret per agent manifest."

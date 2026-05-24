@@ -178,7 +178,7 @@ Signature: sig1=:base64...:
   "events": [
     {
       "event_id": "cx:event:0196419b-2000-7000-8000-000000000001",
-      "kind": "cx.read.cursor",
+      "kind": "cx.read_cursor.advance",
       "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:web:alice.example",
       "actor_seq": 42,

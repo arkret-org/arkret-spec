@@ -35,7 +35,7 @@
       "description": "Per-invocation correlation id used by protocol_session.start / .status to pair request/response.",
       "minLength": 1
     },
-    "status": {
+    "runtime_status": {
       "type": "string",
       "enum": [
         "pending",
@@ -44,7 +44,7 @@
         "failed",
         "cancelled"
       ],
-      "description": "Session status for cx.applet.protocol_session.status events."
+      "description": "Bridge-implementation-defined runtime status for cx.applet.protocol_session.status events. v1 does NOT mandate a canonical applet session state machine (unlike cx.agent.* which uses the 9-value agent_session_status enum); bridges MAY restrict the set further in their applet manifest. The field name is `runtime_status` (not `status`) to keep applet object snapshots distinguishable from the canonical agent session state machine in agent.schema.json."
     },
     "params": {
       "description": "Caller-supplied parameters for protocol_session.start. Opaque to soland — bridge implementations interpret per applet manifest."

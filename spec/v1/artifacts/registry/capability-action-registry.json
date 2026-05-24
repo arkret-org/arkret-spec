@@ -692,13 +692,31 @@
       "profile": null
     },
     {
-      "action": "cx.agent.key.manage",
+      "action": "cx.agent.key.authorize",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.key.authorize",
-        "cx.agent.key.revoke",
+        "cx.agent.key.authorize"
+      ],
+      "profile": null
+    },
+    {
+      "action": "cx.agent.key.revoke",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.agent.key.revoke"
+      ],
+      "profile": null
+    },
+    {
+      "action": "cx.agent.key.rotate",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
         "cx.agent.key.rotate"
       ],
       "profile": null
@@ -774,7 +792,20 @@
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
-      "target_event_kinds": [],
+      "target_event_kinds": [
+        "cx.policy.set",
+        "cx.policy.rule",
+        "cx.policy.action",
+        "cx.realm.policy",
+        "cx.realm.policy_server",
+        "cx.realm.policy_components",
+        "cx.realm.delivery_binding_policy",
+        "cx.realm.asset_privacy_policy",
+        "cx.realm.read_receipt_policy",
+        "cx.realm.history_sharing_policy",
+        "cx.realm.moderation_policy",
+        "cx.realm.audit_policy_downgrade"
+      ],
       "profile": null
     },
     {
@@ -1112,12 +1143,12 @@
       "profile": null
     },
     {
-      "action": "cx.cursor.advance",
+      "action": "cx.read_cursor.advance",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.read.cursor"
+        "cx.read_cursor.advance"
       ],
       "profile": null
     },

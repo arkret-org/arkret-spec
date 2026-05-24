@@ -138,7 +138,7 @@ sidebar:
 | `cx.relation.tombstone` | Relation tombstone |
 | `cx.reaction.add` | Reaction add |
 | `cx.reaction.remove` | Reaction remove |
-| `cx.read.cursor` | Read cursor event |
+| `cx.read_cursor.advance` | Read cursor advance event |
 | `cx.receipt.read` | Read receipt event |
 
 ### 4.3 授权与治理

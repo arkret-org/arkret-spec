@@ -337,9 +337,17 @@
       "id": "cx.read.marker",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.read.cursor",
+      "replacement": "cx.read_cursor.advance",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Actor-private persistent read position is named read cursor."
+      "notes": "Actor-private persistent read position is named read cursor; canonical event kind is cx.read_cursor.advance."
+    },
+    {
+      "id": "cx.read.cursor",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.read_cursor.advance",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (cx:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor."
     }
   ]
 }

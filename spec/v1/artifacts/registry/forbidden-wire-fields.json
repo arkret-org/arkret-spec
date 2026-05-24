@@ -472,9 +472,9 @@
       "context": "event_kind_or_capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.read.cursor",
+      "replacement": "cx.read_cursor.advance",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Read position state is read cursor."
+      "notes": "Read position state is read cursor; the canonical event_kind and capability action share the name cx.read_cursor.advance."
     },
     {
       "id": "cx.schema.read_marker.v1",

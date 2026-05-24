@@ -246,7 +246,7 @@
       "expect_valid": true,
       "instance": {
         "event_id": "cx:event:019a6aa0-0000-7000-8000-000000000000",
-        "kind": "cx.read.cursor",
+        "kind": "cx.read_cursor.advance",
         "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:web:alice.example",
         "actor_seq": 1,

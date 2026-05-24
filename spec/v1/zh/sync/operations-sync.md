@@ -49,7 +49,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | `proofs[]` | 至少一条 detached JWS，覆盖 canonical event bytes（不含 `proofs` 与 `unsigned`）。 |
 | `hlc` | advisory tie-breaker。**进入 canonical event bytes 与 proof `event_digest`**（与 [encoding.md](../conformance/encoding.md) §7、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3 rule 1 一致），因此被生产者签名锁定、relay 不得改写；但语义上仅用于 timeline 展示与 freshness 诊断，MUST NOT 进授权决策、Lattice 收敛、Move precondition 比较或 Anchor finality 判断。 |
 
-非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.cursor`、`cx.device.push_route`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
+非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read_cursor.advance`、`cx.device.push_route`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
 
 Actor-private state 是独立层，不是“弱 durable Event”。标准规则：
 
@@ -361,7 +361,7 @@ Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）�
 }
 ```
 
-Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `cx.read.cursor`）：
+Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `cx.read_cursor.advance`）：
 
 ```json
 {
@@ -369,7 +369,7 @@ Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例�
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 43,
-  "kind": "cx.read.cursor",
+  "kind": "cx.read_cursor.advance",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0008-a13f9c2e",
   "prev_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
@@ -594,7 +594,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 以下标准 kind 不属于共享 durable Realm history，不能列入本节 durable 写路径：
 
-- `cx.read.cursor`：`actor_private_event`，只能进入 encrypted account data 或 actor-private stream。
+- `cx.read_cursor.advance`：`actor_private_event`，只能进入 encrypted account data 或 actor-private stream。
 - `cx.receipt.read`：`ephemeral_event`，只能走 ephemeral / receipt stream，不推进 `actor_seq`、Realm reducer frontier 或 state hash。
 
 ## 8. 操作体原则

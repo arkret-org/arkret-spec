@@ -153,7 +153,7 @@
               "cx.attestation.range_completeness",
               "cx.audit.ryw_receipt",
               "cx.device.push_route",
-              "cx.read.cursor"
+              "cx.read_cursor.advance"
             ]
           }
         },
@@ -171,7 +171,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.read.cursor" } },
+        "properties": { "kind": { "const": "cx.read_cursor.advance" } },
         "required": ["kind"]
       },
       "then": {
@@ -412,7 +412,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_move_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_move_payload" } }
       }
     },
     {
@@ -477,7 +477,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_reorder_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_reorder_payload" } }
       }
     },
     {
@@ -486,7 +486,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_watch_set_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_watch_set_payload" } }
       }
     },
     {
@@ -1613,126 +1613,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "flow_move_payload": {
-      "type": "object",
-      "required": [
-        "board_space_id",
-        "flow_id",
-        "target_space_id",
-        "rank"
-      ],
-      "properties": {
-        "board_space_id": { "$ref": "#/$defs/board_space_id" },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "from_space_id": {
-          "$ref": "#/$defs/list_space_id",
-          "description": "Source List Space (optional; reducer infers from current active edge if omitted)."
-        },
-        "target_space_id": {
-          "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas_register cell value as 'list_space_id' on the cell at cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>. Writers MUST NOT put 'list_space_id' directly on the cx.flow.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
-        },
-        "rank": { "$ref": "#/$defs/rank" },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "space_id": { "$ref": "#/$defs/list_space_id" },
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "flow_reorder_payload": {
-      "type": "object",
-      "required": [
-        "board_space_id",
-        "flow_id",
-        "space_id",
-        "rank"
-      ],
-      "properties": {
-        "board_space_id": { "$ref": "#/$defs/board_space_id" },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "space_id": { "$ref": "#/$defs/list_space_id" },
-        "rank": { "$ref": "#/$defs/rank" },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "flow_watch_set_payload": {
-      "type": "object",
-      "description": "Payload for cx.flow.watch.set. Writes the (flow_id, watcher_actor_id) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds cx.flow.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event whose payload access_kind=watch_set_others identifies writer / target / cell / before-after heads. See models/flow-and-message.md §8.4.",
-      "required": [
-        "flow_id",
-        "watcher_actor_id",
-        "level"
-      ],
-      "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "watcher_actor_id": { "$ref": "#/$defs/did" },
-        "level": {
-          "type": ["string", "null"],
-          "enum": [
-            "mentions_only",
-            "participating",
-            "all",
-            "muted",
-            null
-          ],
-          "description": "Watch level. Required. null clears the cell (equivalent to mentions_only / no record); in that case level_public MUST be omitted."
-        },
-        "level_public": {
-          "type": "boolean",
-          "description": "Opt-in publication of the level value to non-self projection consumers. Default false. muted MUST NOT be exposed even with level_public=true. MUST be omitted when level is null."
-        },
-        "expected_value": {
-          "description": "Compiles to cas_register head_eq precondition. Whole-value compare against the cell pre-state: either null (assert no prior record) or { level, level_public? } matching the prior cell value exactly. When omitted, reducers MUST treat it as head_eq null: only the initial write may pass; an existing cell MUST fail_precondition. Omission MUST NOT disable CAS or imply last-write-wins.",
-          "oneOf": [
-            { "type": "null" },
-            {
-              "type": "object",
-              "required": ["level"],
-              "properties": {
-                "level": {
-                  "type": "string",
-                  "enum": [
-                    "mentions_only",
-                    "participating",
-                    "all",
-                    "muted"
-                  ]
-                },
-                "level_public": { "type": "boolean" }
-              },
-              "additionalProperties": false
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "description": "level_public MUST be omitted when level is null (clearing a cell does not carry a public-level setting).",
-          "if": {
-            "properties": { "level": { "type": "null" } },
-            "required": ["level"]
-          },
-          "then": {
-            "not": { "required": ["level_public"] }
-          }
-        }
-      ]
     }
   },
   "additionalProperties": false

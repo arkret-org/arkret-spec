@@ -16,7 +16,7 @@ title: "Read Receipts & Markers"
 | 对象 / Event | Wire scope | 持久性 | 谁可见 | 推送 / 审计关系 |
 | --- | --- | --- | --- | --- |
 | `cx.receipt.read` / `cx.schema.read_receipt.v1` | `ephemeral_event` | 短 TTL，不进入 durable Event history | 按 visibility 规则广播给发送者或可见成员 | Push Gateway MUST NOT 因 receipt 本身发通知；只能用于 unread / suppression 派生 |
-| `cx.read.cursor` / `cx.schema.read_cursor.v1` | actor-private account / durable sync object | 持久保存最新阅读位置，多端同步 | 仅该 actor 的设备和授权 account aggregate 服务 | 作为 unread count、badge 与 push suppression 输入 |
+| `cx.read_cursor.advance` / `cx.schema.read_cursor.v1` | actor-private account / durable sync object | 持久保存最新阅读位置，多端同步 | 仅该 actor 的设备和授权 account aggregate 服务 | 作为 unread count、badge 与 push suppression 输入 |
 | `cx.notification` / `cx.schema.notification.v1` | derived projection / account aggregate | 派生状态，可重建 | 目标 actor 及其设备 | 不是协议真相源；必须绑定 read cursor frontier、notification rule frontier 与 source event frontier |
 | `cx.audit.accessed` | durable Event（审计 profile 下） | 按 audit retention 保留 | 由 Realm audit policy / capability 控制 | 记录受控读取、watch manage_others、late recovery 等访问证明；不得替代 read receipt |
 
@@ -152,14 +152,14 @@ Read cursor schema：`cx.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 
 Read Cursor 是 actor-private 持久状态，但仍然是高频更新。客户端 MUST 按 read_scope 合并，只提交相对本地已知 read cursor 单调前进的位置；在同一 `(actor_id, device_id, realm_id, read_scope)` 上的连续滚动 SHOULD 以最新位置覆盖待发送更新。默认建议将活跃阅读期间的持久写入 debounce 到 1 秒以上，或在离开 Flow、应用进入后台、手动标记已读时立即 flush。
 
-服务端接收 actor-private `cx.read.cursor` 时 SHOULD 按第 5 节合并，而不是保留不可见的全量游标历史。若实现需要审计，可保留最小 device、old/new position 和时间摘要；不得把共享 Realm timeline 当作 read cursor 的压缩日志。
+服务端接收 actor-private `cx.read_cursor.advance` 时 SHOULD 按第 5 节合并，而不是保留不可见的全量游标历史。若实现需要审计，可保留最小 device、old/new position 和时间摘要；不得把共享 Realm timeline 当作 read cursor 的压缩日志。
 
 ## 4. 未读计数 (Unread Notification Count)
 
 未读计数是客户端本地或受托 notification service 维护的派生数据。
 
-1. 客户端同步用户的 account data 拿到最新的 `cx.read.cursor`。
-2. 客户端计算 `cx.read.cursor` 指向的 `event_id` 之后，该 Flow discussion track 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
+1. 客户端同步用户的 account data 拿到最新的 `cx.read_cursor.advance`。
+2. 客户端计算 `cx.read_cursor.advance` 指向的 `event_id` 之后，该 Flow discussion track 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
 3. 若部署使用受托 notification service，该服务必须按调用者权限和 `plaintext_visible_services` 规则生成最小化结果。
 
 Notification / unread count 是派生状态。服务 MAY 在一个 sync response 中合并多次 read cursor、receipt 和 notification rule 变化，只返回最终 count 与必要 frontier；客户端不得把中间 badge 抖动当作协议事件缺失。
@@ -167,7 +167,7 @@ Notification / unread count 是派生状态。服务 MAY 在一个 sync response
 ## 5. Thread (子线程) 的已读隔离
 
 在 Thread 模式下，Flow discussion timeline 和子 Thread 的阅读进度是分离的。
-如果 `cx.receipt.read` 或 `cx.read.cursor` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Flow discussion timeline 的游标，反之亦然。
+如果 `cx.receipt.read` 或 `cx.read_cursor.advance` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Flow discussion timeline 的游标，反之亦然。
 
 ## 6. Schema 与 Notification Projection
 
@@ -279,11 +279,11 @@ state=unread, cursor=<cursor>, limit=<int>
 
 ### 6.6 跨设备同步语义
 
-`cx.read.cursor` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer frontier。其 payload MUST 使用 `cx.schema.read_cursor.v1` 的 Read Cursor 对象形态；该对象仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id。
+`cx.read_cursor.advance` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer frontier。其 payload MUST 使用 `cx.schema.read_cursor.v1` 的 Read Cursor 对象形态；该对象仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id。
 
 跨设备已读同步流程：
 
-1. 设备本地读到某个 read_scope 的位置后，提交或更新 actor-private `cx.read.cursor`。
+1. 设备本地读到某个 read_scope 的位置后，提交或更新 actor-private `cx.read_cursor.advance`。
 2. Principal Server / Sync Service 只向同一 principal 的授权设备返回该 read cursor，可通过 `account_data` 或 `receipts` stream 增量同步。
 3. 每个设备按 §6.5 规则合并同一 read_scope 的 marker，重新派生本地 notification state、unread count 和 push suppression state。
 4. 派生 notification 的 `state=read/unread` 不得作为共享 Realm 事实写回；需要公开已读回执时，必须使用 Realm policy 允许的 `cx.receipt.read` ephemeral / receipt stream，并与 private read cursor 分开授权。
