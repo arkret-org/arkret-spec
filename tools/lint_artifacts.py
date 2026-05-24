@@ -422,6 +422,13 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "http_message_signature_hash": "http_message_signature_digest",
     "Request-Canonical-Hash": "Request-Canonical-Digest",
     "unsupported_hash": "unsupported_digest_algorithm",
+    # verb_noun_bridge_collapse — capability action MUST equal target event kind
+    "cx.invite.create_third_party": "cx.invite.third_party",
+    "cx.policy.rule.manage": "cx.policy.rule",
+    "cx.policy.action.manage": "cx.policy.action",
+    "cx.realm.link.manage": "cx.realm.link",
+    "cx.realm.plaintext_visible_services.modify": "cx.realm.plaintext_visible_services",
+    "cx.realm.moderate": "cx.realm.moderation_policy",
 }
 
 
@@ -468,6 +475,9 @@ def check_legacy_wire_fields(lint: Lint) -> None:
                 )
 
 
+STRIKETHROUGH_RE = re.compile(r"~~[^~]+~~")
+
+
 def check_forbidden_naming_aliases(lint: Lint) -> None:
     """Reject old names from the naming-normalization pass.
 
@@ -509,8 +519,14 @@ def check_forbidden_naming_aliases(lint: Lint) -> None:
         except Exception:
             continue
         for line_no, line in enumerate(text.splitlines(), start=1):
+            # Documentation-conversion-table lines may legitimately quote both old and new names side by side.
+            # Convention: strike-through the old name with markdown ~~...~~ around it. The strike-through marker
+            # is the explicit signal "this is a deprecation table cell, not a live use of the legacy name".
+            stripped = line
+            if "~~" in stripped:
+                stripped = STRIKETHROUGH_RE.sub("", stripped)
             for old, replacement in FORBIDDEN_NAMING_STRING_ALIASES.items():
-                if old in line:
+                if old in stripped:
                     lint.fail(path, f"line {line_no}: legacy name `{old}` appears; use `{replacement}`")
 
         for match in JSON_FENCE_RE.finditer(text):

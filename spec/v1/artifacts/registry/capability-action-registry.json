@@ -582,7 +582,7 @@
       "profile": null
     },
     {
-      "action": "cx.realm.link.manage",
+      "action": "cx.realm.link",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -602,7 +602,7 @@
       "profile": null
     },
     {
-      "action": "cx.realm.moderate",
+      "action": "cx.realm.moderation_policy",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -612,7 +612,7 @@
       "profile": null
     },
     {
-      "action": "cx.realm.plaintext_visible_services.modify",
+      "action": "cx.realm.plaintext_visible_services",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -819,7 +819,7 @@
       "profile": null
     },
     {
-      "action": "cx.policy.rule.manage",
+      "action": "cx.policy.rule",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -829,7 +829,7 @@
       "profile": null
     },
     {
-      "action": "cx.policy.action.manage",
+      "action": "cx.policy.action",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -867,7 +867,7 @@
       "profile": null
     },
     {
-      "action": "cx.invite.create_third_party",
+      "action": "cx.invite.third_party",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],

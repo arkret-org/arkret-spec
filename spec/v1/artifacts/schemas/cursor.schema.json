@@ -2,13 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/cursor.schema.json",
   "title": "Contrix Cursor",
-  "description": "Single opaque cursor type. Used as both stream continuation token (incremental sync, list pagination — 'after', 'before', 'prev_cursor', 'next_cursor') and barrier token (read-your-writes wait — 'X-Contrix-Wait-For'). The wire form is always cx:cursor:<base64url(canonical_json)>. Clients MUST treat the wire form as opaque; only the issuing server reads the inner structure. The 'purpose' field discriminates how the cursor is consumed.\n\nIntegrity contract (normative, see client-sync.md §12 and encoding.md §10): every cursor MUST be server-verifiable in one of two forms — (A) stateless self-describing cursor with mandatory issuer_kid and mandatory '_mac' or '_sig' covering the canonical body (transcript binds purpose, principal_id, device_id, service_id, filter_hash, positions, target?, x, issuer_kid); or (B) stateful opaque-handle cursor whose body is reduced to {v, purpose, t, x, h} where 'h' is an unguessable server-side handle that the issuing server resolves to the bound (principal, device, service, filter_hash, purpose, positions, expiry) tuple. Servers MUST validate integrity (verify MAC/signature, or look up handle) before using the cursor to advance to-device acknowledgement, /account/subscribe after position, X-Contrix-Wait-For barrier, or 'dropped'/'resync_required' recovery state. Integrity failures map to 'cursor_integrity_invalid' (distinct from 'cursor_expired' which is a TTL outcome).",
+  "description": "Single opaque cursor type. Used as both stream continuation token (incremental sync, list pagination — 'after', 'before', 'prev_cursor', 'next_cursor') and barrier token (read-your-writes wait — 'X-Contrix-Wait-For'). Wire form is always cx:cursor:<base64url(canonical_json)>. Clients MUST treat the wire form as opaque; only the issuing server reads the inner structure.\n\nIntegrity contract (normative, see client-sync.md §12 and encoding.md §10): v1 core uses the stateful opaque-handle form only — body is {v, purpose, t, x, h} where 'h' is an unguessable server-side handle that the issuing server resolves to the bound (principal_id, device_id, service_id, filter_hash, purpose, positions, target?, expiry) tuple. Server-side handle lookup IS the integrity check; there is no inline transcript binding to verify on the client side. Servers MUST reject unknown / expired / cross-binding handles with cursor_integrity_invalid.\n\nStateless self-describing cursors (MAC- or signature-bound inline body with positions, target and issuer_kid) are NOT part of the v1 core schema. Implementations that need a stateless cursor MUST opt in to the cx.profile.stateless_cursor.v1 profile, which extends this schema with the inline body fields and integrity proof. Core consumers (sync, federation, snapshot) do not need to implement the stateless path.",
   "type": "object",
   "required": [
     "v",
     "purpose",
     "t",
-    "x"
+    "x",
+    "h"
   ],
   "properties": {
     "v": {
@@ -20,79 +21,12 @@
         "stream",
         "barrier"
       ],
-      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync / list pagination. Used as 'after' on /account/subscribe, 'before' / 'after' on cx.events.query (including its service-to-service federation pull form GET /api/v1/events?before=<cursor>), and as response 'prev_cursor' (older direction) / 'next_cursor' (newer direction). prev_cursor / next_cursor carry absolute directional meaning regardless of how the request was issued — see api-conventions.md §7.0. 'barrier' = read-your-writes / wait-for-event cursor (use in X-Contrix-Wait-For header to block until local frontier covers target.event_id). 'stream' cursors MAY include 's' (Realm frontiers) and 'd' (device positions). 'barrier' cursors MUST include 'target'."
+      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync / list pagination. Used as 'after' on /account/subscribe, 'before' / 'after' on cx.events.query (including its service-to-service federation pull form GET /api/v1/events?before=<cursor>), and as response 'prev_cursor' (older direction) / 'next_cursor' (newer direction). prev_cursor / next_cursor carry absolute directional meaning regardless of how the request was issued — see api-conventions.md §7.0. 'barrier' = read-your-writes / wait-for-event cursor (use in X-Contrix-Wait-For header to block until local frontier covers target.event_id). The handle binding (resolved server-side) carries positions for 'stream' or target for 'barrier'; the wire body does not."
     },
     "t": {
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
-    },
-    "s": {
-      "type": "object",
-      "description": "Per-Realm frontier (stream cursors). Key is realm_id; value pins the frontier this cursor describes for that Realm.",
-      "patternProperties": {
-        "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
-          "type": "object",
-          "required": [
-            "p",
-            "o",
-            "h"
-          ],
-          "properties": {
-            "p": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-              }
-            },
-            "o": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
-            },
-            "h": {
-              "type": "string",
-              "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "d": {
-      "type": "object",
-      "description": "Device-message stream positions (stream cursors).",
-      "patternProperties": {
-        "^.+$": {
-          "type": "string",
-          "pattern": "^cx:device_message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        }
-      },
-      "additionalProperties": false
-    },
-    "target": {
-      "type": "object",
-      "description": "Required when purpose='barrier'. Identifies the specific event whose causal frontier the consumer must reach before answering.",
-      "required": [
-        "event_id",
-        "event_digest"
-      ],
-      "properties": {
-        "event_id": {
-          "type": "string",
-          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "event_digest": {
-          "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
-        },
-        "realm_id": {
-          "type": "string",
-          "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        }
-      },
-      "additionalProperties": false
     },
     "x": {
       "type": "integer",
@@ -104,85 +38,12 @@
       "minLength": 22,
       "maxLength": 256,
       "pattern": "^[A-Za-z0-9_-]+$",
-      "description": "Server-side opaque handle (stateful cursor form). When present, the cursor body MUST be reduced to {v, purpose, t, x, h} — the 's', 'd', 'target' and 'issuer_kid' fields MUST be absent and instead resolved by the issuing server from the handle. The handle MUST be unguessable (≥ 128 bits entropy after base64url decoding). minLength=22 enforces that floor mechanically: base64url packs 6 bits per character so 128/6 ≈ 21.33 → at least 22 chars of the [A-Za-z0-9_-] alphabet are required to encode 128 bits. The handle MUST be bound by the issuing server to (principal_id, device_id, service_id, filter_hash, purpose, positions, target?, expiry), and revocable. Servers MUST reject any unknown / expired / cross-binding handle with `cursor_integrity_invalid`. This is the integrity path for implementations that do not want to embed a MAC/signature; it is the moral equivalent of Matrix `next_batch` / MSC4186 `pos` and satisfies the integrity contract without crypto. A cursor that contains 'h' MUST NOT also contain '_mac' or '_sig' (handle lookup is itself the integrity check); a cursor without 'h' MUST carry '_mac' or '_sig'."
-    },
-    "issuer_kid": {
-      "type": "string",
-      "pattern": "^(did:[a-z0-9]+:[^\\s#]+#[^\\s#]+|[a-zA-Z0-9._:-]{1,256})$",
-      "description": "Key identifier for the stateless cursor MAC/signature key. Required in stateless form so verifiers can select the correct active/retired cursor key and make rotation/revocation auditable. Forbidden in stateful handle form because the issuing service resolves key/session metadata from h."
-    },
-    "_mac": {
-      "type": "string",
-      "pattern": "^hmac-(?:sha256|sha384|sha512):[0-9a-f]{64}(?:[0-9a-f]{32}(?:[0-9a-f]{32})?)?$",
-      "description": "HMAC over the cursor's canonical bytes (every property EXCEPT `_mac` itself, encoded per RFC 8785 JCS). Wire form: `hmac-<alg>:<hex>`; alg MUST be hmac-sha256 or stronger (hmac-sha384 / hmac-sha512). The hex MUST be 64 / 96 / 128 lowercase hex chars matching the alg's tag length. Transcript MUST bind purpose, principal_id, device_id, service_id, filter_hash, positions, target?, x, issuer_kid (see encoding.md §8.3.1). MUST appear iff the cursor is in stateless form (no `h`). MUST NOT appear together with `h` or `_sig`."
-    },
-    "_sig": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$",
-      "description": "Detached JWS signature over the cursor's canonical bytes (every property EXCEPT `_sig` itself, encoded per RFC 8785 JCS). Format is compact JWS `<protected>.<payload?>.<signature>` (base64url segments separated by dots). Same transcript binding rules as `_mac`. MUST appear iff the cursor is in stateless form (no `h`). MUST NOT appear together with `h` or `_mac`."
+      "description": "Server-side opaque handle. The issuing server MUST bind this handle to (principal_id, device_id, service_id, filter_hash, purpose, positions, target?, expiry) and MUST be able to revoke it. The handle MUST be unguessable (≥ 128 bits entropy after base64url decoding); minLength=22 enforces that floor mechanically (base64url packs 6 bits per character so 128/6 ≈ 21.33 → at least 22 chars of the [A-Za-z0-9_-] alphabet). Servers MUST reject any unknown / expired / cross-binding handle with `cursor_integrity_invalid`. Handle lookup IS the integrity check — there is no MAC or signature to verify inline. This is the moral equivalent of Matrix `next_batch` / MSC4186 `pos` and satisfies the integrity contract without crypto."
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "allOf": [
-          {
-            "properties": {
-              "purpose": {
-                "const": "barrier"
-              }
-            },
-            "required": [
-              "purpose"
-            ]
-          },
-          {
-            "not": {
-              "required": [
-                "h"
-              ]
-            }
-          }
-        ]
-      },
-      "then": {
-        "required": [
-          "target"
-        ]
-      }
-    },
-    {
-      "description": "Integrity contract: either 'h' (stateful handle) MUST be present, or '_mac' / '_sig' (stateless self-describing). Handle form and MAC/sig form are mutually exclusive — handle lookup is itself the integrity check.",
-      "oneOf": [
-        {
-          "required": ["h"],
-          "not": {
-            "anyOf": [
-              {"required": ["_mac"]},
-              {"required": ["_sig"]}
-            ]
-          },
-          "properties": {
-            "s": false,
-            "d": false,
-            "target": false,
-            "issuer_kid": false
-          }
-        },
-        {
-          "not": {"required": ["h"]},
-          "required": ["issuer_kid"],
-          "anyOf": [
-            {"required": ["_mac"]},
-            {"required": ["_sig"]}
-          ]
-        }
-      ]
-    }
-  ],
   "patternProperties": {
-    "^_(?!mac$|sig$)[A-Za-z0-9_]*$": {
-      "description": "Server-private auxiliary fields (e.g. `_compress` / `_kid` flags). Names MUST start with underscore and MUST NOT be `_mac` or `_sig` (those are typed top-level properties with explicit constraints — see `_mac` / `_sig` above). Auxiliary `_*` fields are excluded from cursor migration translation but MUST be included in `_mac` / `_sig` canonical transcript so they cannot be silently stripped or injected. Implementations MUST NOT use `_mac_foo` / `_sig_bar` / similar to spoof integrity fields — only the exact names `_mac` and `_sig` are integrity-bearing, and this pattern explicitly excludes them so the typed property constraints govern."
+    "^_[A-Za-z0-9_]*$": {
+      "description": "Server-private auxiliary fields (e.g. `_compress` / `_kid` flags). Names MUST start with underscore. Auxiliary `_*` fields are excluded from cursor migration translation. In v1 core (stateful-only) there is no `_mac` / `_sig` integrity field — handle lookup IS the integrity check — so the underscore namespace is fully private to the issuing server."
     }
   },
   "additionalProperties": false

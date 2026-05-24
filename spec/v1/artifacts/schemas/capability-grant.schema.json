@@ -136,7 +136,7 @@
               "enum": [
                 "cx.moderation.decision",
                 "cx.moderation.decision.lift",
-                "cx.realm.moderate"
+                "cx.realm.moderation_policy"
               ]
             }
           }

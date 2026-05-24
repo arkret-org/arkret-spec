@@ -317,9 +317,9 @@ Policy server decision 是 out-of-band 的签名决策，本身不进入 Realm a
 
 对应 wire event：
 
-- `cx.moderation.decision` — 由持有 `cx.realm.moderate` 或 `cx.policy.manage` 的 actor 签发的 Move，在 `cx.component.moderation_state.v1:<target>` cell 上写一个 `or_set add` effect。
+- `cx.moderation.decision` — 由持有 `cx.realm.moderation_policy` 或 `cx.policy.manage` 的 actor 签发的 Move，在 `cx.component.moderation_state.v1:<target>` cell 上写一个 `or_set add` effect。
 - `cx.moderation.decision.lift` — 在同一 cell 上写 `or_set remove` effect，针对此前 add 的 tag。
-- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 policy server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。policy server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `cx.realm.moderate` 或 `cx.policy.manage`。
+- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 policy server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。policy server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `cx.realm.moderation_policy` 或 `cx.policy.manage`。
 
 Reducer 与所有读路径 MUST：
 
@@ -331,7 +331,7 @@ Reducer 与所有读路径 MUST：
 Policy server fast path 与 anchored decision 的关系：
 
 - Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `cx.moderation.decision` Move 到该 Realm 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
-- 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `cx.realm.moderate` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
+- 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `cx.realm.moderation_policy` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
 - Receiver 节点收到 fast-path quarantine signaling（policy server 签名）但无对应 anchored Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_pending_anchor` 并在 anchored decision 抵达后切换显示。
 
 **Fast-path 退回的 UX 规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：

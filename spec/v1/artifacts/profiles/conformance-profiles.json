@@ -69,7 +69,8 @@
     "cx.profile.franking.v1",
     "cx.profile.franking.sender_commitment.v1",
     "cx.profile.morph.schema_migration_transformations.v1",
-    "cx.profile.webrtc_media.v1"
+    "cx.profile.webrtc_media.v1",
+    "cx.profile.stateless_cursor.v1"
   ],
   "profile_tiers": {
     "v1_profile_catalog": [
@@ -96,7 +97,8 @@
       "cx.profile.franking.v1",
       "cx.profile.franking.sender_commitment.v1",
       "cx.profile.morph.schema_migration_transformations.v1",
-      "cx.profile.webrtc_media.v1"
+      "cx.profile.webrtc_media.v1",
+      "cx.profile.stateless_cursor.v1"
     ],
     "v1_minimal_interop_floor": [
       "cx.profile.core_event_store.v1"
@@ -185,6 +187,7 @@
     "cx.profile.franking.sender_commitment.v1": "client",
     "cx.profile.morph.schema_migration_transformations.v1": "server",
     "cx.profile.webrtc_media.v1": "gateway",
+    "cx.profile.stateless_cursor.v1": "server",
     "cx.profile.personal_node.v1": "admin",
     "cx.profile.small_team.v1": "admin",
     "cx.profile.organization.v1": "admin",
@@ -1640,6 +1643,39 @@
           "turn_secret_rotation_window"
         ],
         "unsupported_optional": "return turn_credential_expired with next_retry_at"
+      }
+    },
+    "cx.profile.stateless_cursor.v1": {
+      "role": "server",
+      "description": "Opt-in extension for stateless self-describing cursors (canonical body contains s / d / target / issuer_kid plus _mac or _sig). v1 core cursor schema rejects this body shape; services that declare this profile MUST extend cursor.schema.json to accept the stateless body and implement the transcript-verification path. See sync/client-sync.md §12.1 and conformance/conformance-profiles.md §19c.",
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.events.subscribe",
+        "cx.account.subscribe"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.cursor.v1"
+      ],
+      "required_fixtures": [
+        "schema-validation-fixture.json"
+      ],
+      "optional_extensions": [
+        "cursor_revoke_high_assurance",
+        "cross_issuer_key_trust_list"
+      ],
+      "feature_discovery": {
+        "required": [
+          "stateless_cursor"
+        ],
+        "unsupported_optional": "if stateless_cursor is not advertised, the service MUST reject cursors lacking h with cursor_integrity_invalid"
+      },
+      "additional_requirements": {
+        "transcript_binding_must": "Stateless cursor _mac / _sig MUST bind purpose, principal_id, device_id, service_id, filter_hash, positions (s / d), target (barrier only), x, and issuer_kid. Mismatched transcript MUST be rejected with cursor_integrity_invalid.",
+        "issuer_kid_must": "Stateless cursors MUST carry issuer_kid for cursor-signing key selection; servers MUST support at least one active and one retired key for rotation overlap.",
+        "core_compat_must": "Services declaring this profile MUST still accept core-form stateful handle cursors ({v, purpose, t, x, h}); core form is the default and stateless is the extension, never the other way around.",
+        "fixture_must": "schema-validation-fixture.json cursor_stateless_body_rejected_by_core_schema documents the core-schema fail-closed; profile-declaring services MUST provide additional fixtures showing successful transcript verification under the profile's schema overlay."
       }
     },
     "cx.profile.sovereign_client.v1": {

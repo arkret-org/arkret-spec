@@ -97,7 +97,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 - Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 只可在 join / rebind 时作为 Realm policy 明确允许的 `did_document_default` 物化来源，binding accepted 之后不得再作为投递 fallback。组织 Principal Server 上存在同一 DID 的内部账号，不自动获得该 DID 的其它 Realm 或个人上下文投递权。
 - 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Realm policy 中声明为 `plaintext_visible_services`。
 - `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_body`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，不得单独作为明文授权依据。
-- 修改 `plaintext_visible_services` 的事件必须经 `cx.realm.plaintext_visible_services.modify` 授权；普通 `cx.realm.update` 或服务自声明不得隐式扩大明文可见边界。
+- 修改 `plaintext_visible_services` 的事件必须经 `cx.realm.plaintext_visible_services` 授权；普通 `cx.realm.update` 或服务自声明不得隐式扩大明文可见边界。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 

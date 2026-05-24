@@ -144,19 +144,37 @@ Contrix v1 支持以下 `kind`：
 
 ### 5.0 Action ↔ Event kind 偏离类别（normative reference）
 
-绝大多数 action 与其 `target_event_kinds` 单一同名映射（`cx.flow.create` action ↔ `cx.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。偏离限定为以下五类，**禁止任何其它类型的偏离**：
+绝大多数 action 与其 `target_event_kinds` 单一同名映射（`cx.flow.create` action ↔ `cx.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，**禁止任何其它类型的偏离**；先前的"verb-noun 桥"类已于 v3 收敛废除（参见 §5.0a）：
 
 | 类别 | 形态 | 标准示例 |
 | --- | --- | --- |
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `cx.realm.admin` → registry 中声明的 Realm policy facet events；`cx.policy.manage` → `cx.policy.*` 与 `cx.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Flow / Morph / Space 等同语义 event | `cx.object.archive` → `{cx.flow.archive, cx.morph.archive}`；`cx.object.restore` → `{cx.flow.restore, cx.morph.restore, cx.space.restore}`；`cx.object.stage.set` → `{cx.flow.stage.set, cx.morph.stage.set}` |
 | **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `cx.message.revise.own` → `cx.message.revise`；`cx.message.redact.own` → `cx.message.redact`；`cx.flow.watch.set.others` → `cx.flow.watch.set` |
-| **verb-noun 桥** | action 用动词形态、event kind 因 wire 兼容保留名词形态 | `cx.invite.create_third_party` → `cx.invite.third_party`；`cx.policy.rule.manage` → `cx.policy.rule`；`cx.policy.action.manage` → `cx.policy.action`；`cx.realm.link.manage` → `cx.realm.link`；`cx.realm.plaintext_visible_services.modify` → `cx.realm.plaintext_visible_services`；`cx.realm.moderate` → `cx.realm.moderation_policy` |
-| **保留旧 wire 命名** | action 用收敛后命名，event kind 因 wire 兼容保留旧前缀 / 旧 punctuation | `cx.agent.session.*` → `cx.agent.protocol_session.*`；`cx.morph.schema.migrate` → `cx.morph.schema_migrate`；`cx.flow.tracks.manage` → `cx.flow.tracks.update`；`cx.call.configure_media_service` → `cx.realm.media_service` |
+| **保留旧 wire 命名（migration_group: wire_compat_grandfather）** | action 用收敛后命名、event kind 因已发布的 wire bytes 不可改名而保留旧前缀 / 旧 punctuation。本类**冻结**，**不允许新增条目**：所有现存条目都是 2026-05-24 之前已存在的 wire kinds | `cx.agent.session.*` → `cx.agent.protocol_session.*`（5 pair，namespace 折叠）；`cx.morph.schema.migrate` → `cx.morph.schema_migrate`（separator 差异）；`cx.flow.tracks.manage` → `cx.flow.tracks.update`（umbrella verb vs 具体 verb）；`cx.call.configure_media_service` → `cx.realm.media_service`（跨 namespace 语义） |
 
 `cx.mls.commit` action → `{cx.mls.commit, cx.mls.commit_failed}`、`cx.message.redact` → `{cx.message.redact, cx.redaction}`、`cx.moderation.appeal.review` → `{cx.moderation.appeal.review, cx.moderation.appeal.decision, cx.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
 
-新增动作 MUST 默认与 event kind 同名；只有上述五类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds`。新增偏离类别 MUST 先在本节增表项再写入 registry。
+新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；不得通过 lint 例外或注释方式悄悄引入新桥**。
+
+#### 5.0a verb-noun 桥的废除（normative，2026-05-24）
+
+历史上 v1 早期为 action 名加上动词后缀（`.manage` / `.modify` / `create_` 前缀等）以保持"action 为动词"惯例，导致与 event kind 产生 6 处 verb-noun 桥；这些桥强迫每个 IAM 工具维护一张翻译表。
+
+v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机械收敛回 event kind 形态（见 `renames.json.migration_group: verb_noun_bridge_collapse`）：
+
+| 旧 action（已禁止，hard_reject） | 现行 canonical action | target event kind |
+| --- | --- | --- |
+| ~~`cx.invite.create_third_party`~~ | `cx.invite.third_party` | `cx.invite.third_party` |
+| ~~`cx.policy.rule.manage`~~ | `cx.policy.rule` | `cx.policy.rule` |
+| ~~`cx.policy.action.manage`~~ | `cx.policy.action` | `cx.policy.action` |
+| ~~`cx.realm.link.manage`~~ | `cx.realm.link` | `cx.realm.link` |
+| ~~`cx.realm.plaintext_visible_services.modify`~~ | `cx.realm.plaintext_visible_services` | `cx.realm.plaintext_visible_services` |
+| ~~`cx.realm.moderate`~~ | `cx.realm.moderation_policy` | `cx.realm.moderation_policy` |
+
+权衡：这放弃了"action 都是动词"的惯例换取"action 与 event kind 同名"的更强不变量。IAM 直接以 event kind 字符串作为 grant `actions[]` 元素，零翻译；动词形态由 capabilities.md prose 表达（例如 prose 描述"该 capability 授权写入 cx.invite.third_party 邀请事件"）。
+
+剩余"保留旧 wire 命名"类（agent.protocol_session / morph.schema_migrate / flow.tracks.update / realm.media_service）的 event kind 已发布且无法机械收敛，所以保留为冻结的 grandfather 桥；新条目禁止落入此类。
 
 ### 5.1 通用动作
 
@@ -222,10 +240,10 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 ### 5.4 管理动作
 
 - `cx.realm.admin`
-- `cx.realm.link.manage`
+- `cx.realm.link`（管理 Realm 间关系图，target=`cx.realm.link`）
 - `cx.realm.upgrade`
-- `cx.realm.moderate`
-- `cx.realm.plaintext_visible_services.modify`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`cx.realm.plaintext_visible_services`）
+- `cx.realm.moderation_policy`（管理 Realm 审核策略，target=`cx.realm.moderation_policy`）
+- `cx.realm.plaintext_visible_services`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`cx.realm.plaintext_visible_services`）
 - `cx.flow.admin`
 - `cx.realm.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `cx.audit.accessed` 同时持有，详见 [`../models/flow-and-message.md` §8.5](../models/flow-and-message.md)）
 - `cx.schema.define`
@@ -238,11 +256,11 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.agent.key.revoke`（high risk；撤销 agent key，target=`cx.agent.key.revoke`）
 - `cx.policy.manage`
 - `cx.policy.set`
-- `cx.policy.rule.manage`（capability action; 对应 event kind 保留为 `cx.policy.rule`）
-- `cx.policy.action.manage`（capability action; 对应 event kind 保留为 `cx.policy.action`）
+- `cx.policy.rule`（管理 policy 规则集合，target=`cx.policy.rule`）
+- `cx.policy.action`（管理 policy 动作集合，target=`cx.policy.action`）
 - `cx.invite.create`
 - `cx.invite.cancel`
-- `cx.invite.create_third_party`（capability action; 对应 event kind 保留为 `cx.invite.third_party`）
+- `cx.invite.third_party`（签发 3PID 邀请，target=`cx.invite.third_party`）
 - `cx.invite.claim`
 - `cx.invite.revoke`
 - `cx.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。capability-action-registry 中 `profile = "cx.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance）
@@ -642,7 +660,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - **Moderation state cell 与 cache 的关系**：anchored moderation decision（写入 `cx.component.moderation_state.v1`，见 [`policy-server.md` §7.1](./policy-server.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation cell 标记的 actor 不在其中），则该 cell 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
   - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
     1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
-    2. `actions[]` 包含 `cx.moderation.decision` / `cx.moderation.decision.lift` / `cx.realm.moderate` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；
+    2. `actions[]` 包含 `cx.moderation.decision` / `cx.moderation.decision.lift` / `cx.realm.moderation_policy` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；
     3. `constraints[]` 中存在任何 typed constraint 引用 moderation state cell、moderation queue、moderation report 或 moderation tag。
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；不接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
   - 不在上述条件内的普通 grant（典型如 `cx.flow.update`、`cx.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。

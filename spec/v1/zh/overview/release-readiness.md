@@ -26,12 +26,12 @@ title: 实现就绪与发布门槛
 | Schema | 53 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 40 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 87 | `artifacts/registry/operation-registry.json` |
-| Claimable conformance profile | 57 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | 78 | `artifacts/profiles/conformance-profiles.json` |
+| Claimable conformance profile | 58 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 79 | `artifacts/profiles/conformance-profiles.json` |
 
 上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 当前另有 54 个 raw JSON Schema artifact file；其中 `event-schema.json` 是 `cx.schema.event.v1` 的 internal `$ref` target，由已注册的 `event-envelope.schema.json` 引入。发布站点仍然 MUST raw 发布这些同目录 `$ref` 目标文件，registry consumer 也必须递归解析同目录 `$ref`，不能只下载 registry 直接列出的文件后停止。
 
-当前 `conformance-profiles.json` 另含 67 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `cx.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+当前 `conformance-profiles.json` 另含 68 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `cx.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
 > `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `cx.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 

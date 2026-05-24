@@ -367,9 +367,11 @@
       }
     },
     {
-      "name": "cursor_valid_stateless_stream_with_issuer_kid",
+      "name": "cursor_stateless_body_rejected_by_core_schema",
       "schema_ref": "schemas/cursor.schema.json",
-      "expect_valid": true,
+      "expect_valid": false,
+      "first_expected_error": "$: 'h' is a required property",
+      "notes": "Stateless self-describing cursor (issuer_kid + s + _mac in body, no h) is REJECTED by the v1 core cursor schema. Implementations that need this form MUST declare cx.profile.stateless_cursor.v1 and apply that profile's schema overlay; core consumers fail-closed with cursor_integrity_invalid. See conformance/conformance-profiles.md §19c.",
       "instance": {
         "v": "1",
         "purpose": "stream",

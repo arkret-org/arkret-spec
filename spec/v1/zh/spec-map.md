@@ -37,10 +37,21 @@ title: Spec Map
 
 每条 entry 公共字段：`id`、`since_revision`（生效起始的 spec revision）、`rejection_level`
 （`hard_reject` / `migration_only` / `compat_only` / `docs_only`）、`replacement`、`allowed_contexts`
-（`changelog` / `legacy_migration` / `interop_module` / `negative_test`）、`notes`。
+（`changelog` / `legacy_migration` / `interop_module` / `negative_test`）、`notes`；
+可选字段：`migration_group`（同一设计决策的批量条目归并标签，见 `renames.json.migration_group_definitions`）、
+`migration_tool_only: true`（仅离线 migration / replay 工具可消费的 disambiguation entry）。
 
 新增、移除或重命名标准 cx.* 概念时 MUST 同步更新这组 artifacts；CHANGELOG 条目和这些 artifacts 是
 "机器可发现的协议演化记录"的两面。
+
+#### 1.2.1 Parser 分层（normative）
+
+`renames.json` 的条目按消费方分两层，分别由 `renames.json.parser_tier_definitions` 定义：
+
+- **Current parser**：sync service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。MUST 把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目都视作输入禁止；**MUST NOT 做 payload-shape disambiguation**；遇到旧 id MUST 直接返回 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误，**不得在线静默重写**。
+- **Migration tool**：离线批处理工具，读取 pre-v1 / pre-inversion bytes 并改写成 canonical v1 形态。MAY 消费带 `migration_tool_only: true` 的 entry（例如 `cx.space.create#pre_inversion_security_boundary`），按 `disambiguation_payload_shape` 规则鉴别。MUST NOT 嵌入实时 parser 表面（无 inline transform；无 "auto-accept legacy and quietly rewrite"）。
+
+这条规则把 Realm/Space inversion 时引入的"payload-shape 鉴别"复杂度严格限制在迁移工具内：当前 v1 sync / federation / snapshot 路径不需要也不允许实现这条 fallback。新增的 `migration_tool_only` 标志使该约束机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。
 
 ## 2. 推荐阅读顺序
 

@@ -382,26 +382,18 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 无论 stream 还是 barrier cursor，wire 形态 `cx:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于推进 to-device ack、`/account/subscribe` `after=` resume 起点、`X-Contrix-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。
 
-实现 MUST 选择以下两种 cursor 形态之一（互斥，由 schema `oneOf` 强制）；两种形态都满足"服务端可验证"的安全契约：
+**v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, t, x, h}`，其中 `h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal_id, device_id, service_id, filter_hash, purpose, positions, target?, expiry)` 映射。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
 
-**(A) Stateless self-describing cursor**：canonical body 内含 `s` / `d` / `target` 等结构化状态字段，**MUST** 携带 `issuer_kid`，并携带 `_mac` 或 `_sig` 中的至少一个：
-
-- `_mac`：HMAC over canonical bytes (除 `_mac` 自身外的所有字段)，密钥由 issuing service 持有，算法 MUST 是 HMAC-SHA-256 或更强。
-- `_sig`：detached signature over same canonical bytes，密钥使用 issuing service 的 cursor-signing key。
-- transcript MUST 绑定：`purpose`、principal id、device id、service DID / service id、filter hash、stream positions（`s` / `d`）、`target`（barrier 时）、`x`、issuer key id。
-
-**(B) Stateful opaque handle cursor**：canonical body 缩为 `{v, purpose, t, x, h}`，无 `s` / `d` / `target` / `issuer_kid`；`h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal, device, service, filter_hash, purpose, positions, target?, expiry)` 映射。Handle 校验本身就是完整性校验 — 不可加 `_mac` / `_sig`。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式，适合不想引入 MAC/签名密钥管理的实现。
+> Stateless 自描述 cursor（body 内含 `s` / `d` / `target` / `issuer_kid` 并以 `_mac` / `_sig` 绑定 transcript）不属于 v1 core schema；需要 stateless cursor 的实现 MUST 显式声明 `cx.profile.stateless_cursor.v1` 扩展 profile（参见 [`conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）。Core consumer（sync / federation / snapshot）默认不实现这条路径。
 
 ### 12.2 校验流程 (normative)
 
 任何 endpoint 在使用客户端回传的 cursor 推进 server-side state 之前，MUST 执行：
 
 1. 解析 `cx:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL (`x` 未过期)。语法/参数失败映射顶层 `invalid_param`（reason `invalid_cursor`）；TTL 失败映射 `cursor_expired`。
-2. **完整性校验**:
-   - 若 body 含 `h`：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal, device, service, filter_hash, purpose)` 与当前 authenticated request 匹配。
-   - 若 body 含 `_mac` / `_sig`：body MUST 含 `issuer_kid`，并以 issuing service 的当前或仍在验证窗口内的 cursor key (按 `issuer_kid` 选取) 校验 MAC/signature；transcript 必须重算一致，且绑定字段与当前 authenticated request 匹配。
-3. 任一校验失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
-4. 校验通过后才可读 cursor 内部 `s` / `d` / `target`（stateless 形态）或 handle 解析出的 positions（stateful 形态），并用于推进同步状态。
+2. **Handle 查表完整性校验**：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal_id, device_id, service_id, filter_hash, purpose)` 与当前 authenticated request 匹配；任一失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
+3. 校验通过后才可读 handle 解析出的 positions（stream cursors）或 target（barrier cursors），并用于推进同步状态。
+4. 若实现声明 `cx.profile.stateless_cursor.v1`，且收到的 cursor body 缺 `h` 但含 `_mac` / `_sig` / `issuer_kid` / `s` / `d` / `target` 字段，按该 profile 在 [`conformance/conformance-profiles.md` §19c](../conformance/conformance-profiles.md) 的额外校验流程处理；core implementations 收到缺 `h` 的 cursor MUST 返回 `cursor_integrity_invalid`。
 
 `cursor_integrity_invalid` 与 `cursor_expired` 语义不同：前者是 tamper / 未知 handle / cross-binding，后者是 TTL 超时。客户端对 `cursor_integrity_invalid` 的恢复路径与 `cursor_expired` 一致（重做 initial sync），但客户端 SHOULD 把它视为本端 cursor 状态被污染的信号，清理本地 cursor 缓存。
 
@@ -417,13 +409,13 @@ POST /api/v1/account/cursor/revoke
 
 `revoke_scope` 范围的 normative 定义（与 [`identity/account-lifecycle.md`](../identity/account-lifecycle.md) 中的 session/device 标识对齐）：
 
-- session 抽象为 `(principal_id, device_id, issued_at, session_id)` 四元组，由签发 cursor 的服务在派发时记录在 cursor signing material 或 cursor revocation set 元数据中。
-- `this_cursor`：仅撤销当前提交的 cursor 本体（按 `_mac` / `_sig` digest 或 stateful handle 匹配）。
+- session 抽象为 `(principal_id, device_id, issued_at, session_id)` 四元组，由签发 cursor 的服务在派发时记录在 cursor handle metadata 中（或 stateless profile 的 cursor signing material 中）。
+- `this_cursor`：仅撤销当前提交的 cursor 本体（按 stateful handle 匹配；声明了 `cx.profile.stateless_cursor.v1` 的服务也按 `_mac` / `_sig` digest 匹配）。
 - `same_session`：撤销与当前 cursor 同 `(principal_id, device_id, issued_at, session_id)` 的所有未过期 cursor（含同会话内派发的派生 cursor）。
 - `same_device`：撤销与当前 cursor 同 `(principal_id, device_id)` 的所有未过期 cursor（跨会话）。
 - 当 cursor 来自浏览器或其它无稳定 `device_id` 的环境时，`same_device` MUST 在效果上退化为 `this_cursor`（服务端不得猜测设备同一性），并在响应 `revoke_scope_effective="this_cursor"` 中显式回执，以避免客户端误以为全设备已撤销。
 
-服务端接受后 MUST 将对应 stateless cursor 的 `_mac` / `_sig` digest 或 stateful handle 写入 cursor revocation set，保留时间不少于该服务声明的最长 cursor TTL（stream cursor 默认 7 天，barrier cursor 1 小时）。撤销命中时，任何 endpoint MUST 返回 `cursor_revoked`，并且不得推进 to-device ack、subscription position、barrier wait 或 dropped recovery state。
+服务端接受后 MUST 将对应 cursor 写入 cursor revocation set（核心：按 stateful handle 匹配；可选 `cx.profile.stateless_cursor.v1`：还按 `_mac` / `_sig` digest 匹配），保留时间不少于该服务声明的最长 cursor TTL（stream cursor 默认 7 天，barrier cursor 1 小时）。撤销命中时，任何 endpoint MUST 返回 `cursor_revoked`，并且不得推进 to-device ack、subscription position、barrier wait 或 dropped recovery state。
 
 Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 完整性校验；完整性失败返回 `cursor_integrity_invalid`，不泄露该 cursor 是否曾被 revoke。
 

@@ -628,6 +628,29 @@ SHOULD 支持：
 - 多 region failover：refresh 时返回 region-aware `ice_servers[]`。
 - credential issuance audit log（仅记录 expiry + pseudonym hash，不记录 principal binding）。
 
+## 19c. Stateless Cursor (`cx.profile.stateless_cursor.v1`)
+
+v1 core 默认 cursor 形态是 stateful opaque handle（参见 [`sync/client-sync.md` §12.1](../sync/client-sync.md)）：cursor body 缩为 `{v, purpose, t, x, h}`，由 issuing service 内部表把 `h` 解析到完整状态，无需密钥管理。绝大多数实现 SHOULD 使用 core 形态。
+
+本 opt-in profile 为需要 stateless 自描述 cursor（cursor body 内含 `s` / `d` / `target` / `issuer_kid` 并以 `_mac` 或 `_sig` 绑定 transcript）的实现提供契约。典型使用场景：
+
+- Service mesh 内多副本无共享 cursor 状态存储，需要 cursor 在副本之间自验。
+- High-assurance 部署希望客户端能离线审计 cursor 完整性（MAC / 签名校验链）。
+
+声明 `cx.profile.stateless_cursor.v1` 的实现 MUST：
+
+- 在 cursor body 中除 core 必填字段 `{v, purpose, t, x}` 外，**禁止**携带 `h`，**MUST** 携带 `issuer_kid` 与 `_mac` 或 `_sig` 之一；其余必填字段按 cursor purpose 决定：stream cursor 携带 `s`（per-Realm frontier）与/或 `d`（device-message stream positions）；barrier cursor 携带 `target`。
+- `_mac` 是 HMAC over canonical bytes（除 `_mac` 自身外的所有字段），密钥由 issuing service 持有，算法 MUST 是 HMAC-SHA-256 或更强。
+- `_sig` 是 detached signature over same canonical bytes，密钥使用 issuing service 的 cursor-signing key（按 `issuer_kid` 解析）。
+- transcript 绑定 MUST 覆盖：`purpose`、`principal_id`、`device_id`、`service_id`、`filter_hash`、stream positions（`s` / `d`）、`target`（barrier 时）、`x`、`issuer_kid`。
+- 收到 cursor 时按 [`sync/client-sync.md` §12.2](../sync/client-sync.md) §第 4 步处理：缺 `h` 但满足上述 transcript 校验则放行；transcript 不匹配返回 `cursor_integrity_invalid`。
+- ServiceDescribe `supported_features[]` MUST 含 `stateless_cursor`，供 client 通过 feature discovery 判断是否可发送 stateless cursor。
+- `cursor.schema.json` core schema 之上 MUST 通过 profile 自带 schema overlay 接受额外字段；core consumer 不实现该 overlay 即正确地拒绝 stateless cursor（fail-closed）。
+
+不声明本 profile 的实现 MUST 把缺 `h` 的 cursor 直接判为 `cursor_integrity_invalid`，**不得**尝试 transcript 校验作为后备路径——这避免了核心实现需要维护 cursor signing key、key rotation 与 cross-issuer key trust list。
+
+Fixture：`schema-validation-fixture.json` 的 `cursor_valid_stateless_*` 条目集合是本 profile 的最小验证向量；core profile 在不声明 `cx.profile.stateless_cursor.v1` 时 MUST 在同一组 fixture 上回退到 `cursor_integrity_invalid`。
+
 ## 20. Conformance 测试要求
 
 每个 profile SHOULD 提供：

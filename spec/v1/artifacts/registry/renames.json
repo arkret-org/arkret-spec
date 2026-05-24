@@ -5,16 +5,32 @@
   "source_of_truth": true,
   "description": "Canonical rename mapping from removed / deprecated identifiers to their v1 replacements (or to null when the concept was deleted with no direct successor). cotest scanner and downstream migration tooling consume this as the single source of truth for mechanical renames. Replacement=null means there is no automatic substitution; readers / writers MUST follow the migration guidance in 'notes'.",
   "rejection_levels": {
-    "hard_reject": "After replacement, the old identifier MUST NOT appear in current code or wire bytes.",
-    "migration_only": "Mechanical replacement window; both forms tolerated for the bounded migration period.",
+    "hard_reject": "After replacement, the old identifier MUST NOT appear in current code or wire bytes. Current v1 parsers MUST reject the old identifier without inspecting payload shape.",
+    "migration_only": "Tolerated only inside offline migration / replay tools, NEVER in current v1 wire parsers. Current parsers (sync, federation, snapshot consumers, reducer) MUST reject the old identifier without inspecting payload shape; migration_tool_only entries below carry the `migration_tool_only: true` flag to make this enforceable. The 'mechanical replacement window' language has been retired — there is no in-band tolerance.",
     "compat_only": "Old form retained only on explicit interop surfaces.",
     "docs_only": "Old form survives in CHANGELOG / migration docs only."
+  },
+  "parser_tier_definitions": {
+    "current_parser": "Sync service, federation peer, snapshot consumer, reducer, conformance test runner — anything that processes live or persisted v1 wire bytes. MUST treat every entry in this file as forbidden in input; MUST NOT do payload-shape disambiguation; reject with the schema's standard unknown_kind / unknown_field / schema_violation error.",
+    "migration_tool": "Offline batch tool that reads pre-v1 / pre-inversion bytes and rewrites them to canonical v1 form. May consult migration_tool_only entries (those carrying the explicit flag) and apply their disambiguation_payload_shape rule. MUST NOT be embedded in a real-time parser surface (no inline transform; no 'auto-accept legacy and quietly rewrite')."
   },
   "allowed_context_definitions": {
     "changelog": "Reference in CHANGELOG / migration documentation.",
     "legacy_migration": "Reference in time-bounded migration code.",
     "interop_module": "Reference in interop binding (not core).",
     "negative_test": "Reference in cotest drift fixtures."
+  },
+  "migration_group_definitions": {
+    "agent_session_namespace_collapse": "Capability action namespace flattened from cx.agent.protocol_session.* to cx.agent.session.* (5 actions); event kinds preserved for wire-format stability. Single design decision; entries are mechanical applications.",
+    "typed_id_prefix_unabbreviation": "Abbreviated typed-id prefixes expanded to full snake_case kind. Single rule: cx:<abbrev>: → cx:<full_kind>: (9 entries).",
+    "realm_lifecycle_segment_realignment": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.<verb>) to 3 segments (cx.realm.<verb>) to match the corresponding event kind (4 entries). target_event_kinds preserved.",
+    "did_id_suffix": "Protocol responsibility subjects use the _id suffix even when the value is a DID. actor_did / principal_did / subject_did renamed to actor_id / principal_id / subject_id (3 entries).",
+    "agent_key_imperative_verbs": "Event kind verbs use imperative action names, not past participles. cx.agent.key.{authorized,revoked,rotated} → cx.agent.key.{authorize,revoke,rotate} (3 entries).",
+    "device_imperative_verbs": "Same rule as agent_key_imperative_verbs but for device key events (2 entries).",
+    "crdt_lattice_snake_case": "CRDT lattice enum values use snake_case (5 entries).",
+    "hash_to_digest_vocabulary": "Wire fields carrying hash output bytes use _digest with self-describing <alg>:<hex>; algorithm selectors use _algorithm; tree roots use _root. _hash is forbidden as wire field-name suffix (~50 entries).",
+    "frank_to_franking_proof_noun": "Moderation franking objects use the full franking_proof noun (4 entries).",
+    "verb_noun_bridge_collapse": "Capability actions converged back to noun form matching their target event kind. The earlier verb-form action names (.manage / .modify / create_*) are forbidden; new IAM tools can use the event kind string verbatim as the action token. 6 entries; v3 (2026-05-24). See authz/capabilities.md §5.0a."
   },
   "entries": [
     {
@@ -23,7 +39,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Deleted: track does not carry independent membership. Migrate access to Realm-level cx.member.state or, when a separate discussion boundary is required, use a linked Realm via Flow.discussion_realm_ref."
     },
     {
@@ -32,7 +52,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Deleted: history visibility lives at the Realm boundary."
     },
     {
@@ -41,7 +65,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Deleted: track-scoped read receipt override is explicitly out of v1 scope."
     },
     {
@@ -50,7 +78,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Deleted: policy attaches to the Realm boundary or to a linked discussion Realm via Flow.discussion_realm_ref, not to a track."
     },
     {
@@ -59,7 +91,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": "Space(kind=list)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "List containers are Spaces. Realm remains the boundary concept; Space carries the container shape."
     },
     {
@@ -68,7 +104,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": "track",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track'. Track is display-only and inherits access from the Flow's Realm."
     },
     {
@@ -77,7 +117,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "Space",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Realm/Space inversion: the pre-inversion container model 'Place' is renamed to 'Space'. The pre-inversion security-boundary model 'Space' is renamed to 'Realm'."
     },
     {
@@ -86,7 +130,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "discussion_realm_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename on Flow payload: 'discussion_space_ref' -> 'discussion_realm_ref'. The security boundary for the discussion side of a Flow is Realm post-inversion."
     },
     {
@@ -95,7 +143,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.space.create",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: container-shape event 'cx.place.create' -> 'cx.space.create'."
     },
     {
@@ -104,7 +156,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.space.update",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: container-shape event 'cx.place.update' -> 'cx.space.update'."
     },
     {
@@ -113,7 +169,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.space.parent",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: container-shape event 'cx.place.parent' -> 'cx.space.parent'."
     },
     {
@@ -122,7 +182,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.space.archive",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: container-shape event 'cx.place.archive' -> 'cx.space.archive'."
     },
     {
@@ -131,7 +195,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.space.restore",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: container-shape event 'cx.place.restore' -> 'cx.space.restore'."
     },
     {
@@ -140,7 +208,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.space.tombstone",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: container-shape event 'cx.place.tombstone' -> 'cx.space.tombstone'."
     },
     {
@@ -149,13 +221,24 @@
       "kind_class": "event_kind",
       "since_revision": "59ac1d4",
       "rejection_level": "migration_only",
+      "migration_tool_only": true,
       "replacement": "cx.realm.create",
       "disambiguation": "payload_shape",
       "disambiguation_payload_shape": {
-        "realm_level_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"]
+        "realm_level_fields": [
+          "security_class",
+          "join_rule",
+          "history_visibility",
+          "policy_server",
+          "delivery_binding_policy"
+        ]
       },
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Disambiguation: the pre-inversion 'cx.space.create' (security-boundary semantic) maps to current 'cx.realm.create'. The current 'cx.space.create' is a DIFFERENT active event with container-shape semantic. Migration tooling MUST inspect wire_id plus payload shape (presence of Realm-level fields like security_class / join_rule / history_visibility / policy_server) to disambiguate."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Disambiguation entry, migration_tool_only. The current v1 'cx.space.create' is an ACTIVE container-shape event; current parsers (sync, federation, snapshot, reducer, conformance) MUST NOT inspect payload shape and MUST treat any 'cx.space.create' with Realm-level fields (security_class / join_rule / history_visibility / policy_server / delivery_binding_policy) as a schema_violation. This entry is ONLY consulted by offline migration / replay tools rewriting pre-inversion bytes to canonical 'cx.realm.create'. See parser_tier_definitions.migration_tool above."
     },
     {
       "id": "cx.space.update#pre_inversion_security_boundary",
@@ -163,13 +246,24 @@
       "kind_class": "event_kind",
       "since_revision": "59ac1d4",
       "rejection_level": "migration_only",
+      "migration_tool_only": true,
       "replacement": "cx.realm.update",
       "disambiguation": "payload_shape",
       "disambiguation_payload_shape": {
-        "realm_level_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"]
+        "realm_level_fields": [
+          "security_class",
+          "join_rule",
+          "history_visibility",
+          "policy_server",
+          "delivery_binding_policy"
+        ]
       },
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Disambiguation: pre-inversion 'cx.space.update' (security-boundary semantic) -> 'cx.realm.update'. The current 'cx.space.update' remains an active container-shape event. See note on cx.space.create rename."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Disambiguation entry, migration_tool_only. See cx.space.create#pre_inversion_security_boundary for the parser-tier rule."
     },
     {
       "id": "cx.space.organization",
@@ -177,7 +271,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.organization",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: organization metadata event 'cx.space.organization' -> 'cx.realm.organization'."
     },
     {
@@ -186,7 +284,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.policy",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: 'cx.space.policy' -> 'cx.realm.policy'."
     },
     {
@@ -195,7 +297,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.join_rule",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: 'cx.space.join_rule' -> 'cx.realm.join_rule'."
     },
     {
@@ -204,7 +310,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.history_visibility",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: 'cx.space.history_visibility' -> 'cx.realm.history_visibility'."
     },
     {
@@ -213,7 +323,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.discovery",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: 'cx.space.discovery' -> 'cx.realm.discovery'."
     },
     {
@@ -222,7 +336,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.policy_server",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: 'cx.space.policy_server' -> 'cx.realm.policy_server'."
     },
     {
@@ -231,7 +349,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.delivery_binding_policy",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename: 'cx.space.delivery_binding_policy' -> 'cx.realm.delivery_binding_policy'."
     },
     {
@@ -240,7 +362,11 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.notification.audit",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Mechanical rename of capability-action vocabulary: 'cx.space.notification.audit' -> 'cx.realm.notification.audit'. Required by audit reads of per-Flow watch state under the Realm-scoped notification namespace (see error-code-registry note)."
     },
     {
@@ -249,7 +375,11 @@
       "since_revision": "T20",
       "rejection_level": "hard_reject",
       "replacement": "realm_frontier",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Frontier object property used in cx.audit.ryw_receipt, cx.attestation.range_completeness event_range (from_frontier/to_frontier), and POST /events response is renamed 'space_frontier' -> 'realm_frontier'. The boundary covered by this frontier is the Realm (replication/security boundary in v1), not an in-Realm Space container. The new name removes a long-standing source of confusion where implementations could mistakenly validate completeness at Space scope."
     },
     {
@@ -258,7 +388,11 @@
       "since_revision": "T21",
       "rejection_level": "hard_reject",
       "replacement": "cx.directory.search_realms",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory search operation id is renamed 'cx.directory.search_spaces' -> 'cx.directory.search_realms'. The Directory has always searched Realms (the replication/security boundary), never in-Realm Space containers; the old name was a leftover from the pre-inversion Space=boundary model and could mislead implementations into thinking they should search nested Spaces. HTTP path /directory/search-realms was already aligned; gRPC binding becomes Directory/SearchRealms and MQ binding becomes directory.search_realms."
     },
     {
@@ -267,7 +401,11 @@
       "since_revision": "T21",
       "rejection_level": "hard_reject",
       "replacement": "cx.directory.resolve_realm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory resolve operation id is renamed 'cx.directory.resolve_space' -> 'cx.directory.resolve_realm'. Resolution is by realm_id / alias / invite_token / signed_link and returns a Realm preview. HTTP path /directory/resolve-realm was already aligned; gRPC binding becomes Directory/ResolveRealm and MQ binding becomes directory.resolve_realm. Response field 'space_preview' is replaced by 'realm_preview' so the result structure matches the Realm boundary being resolved."
     },
     {
@@ -276,7 +414,11 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.events.resolve",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Batch identifier dereference is renamed to resolve; selector / cursor reads stay on cx.events.query."
     },
     {
@@ -285,7 +427,11 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.account.subscribe",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Account aggregate moved out of the Matrix-derived /sync namespace and changed wire delivery from long-poll JSON response to NDJSON streaming frames."
     },
     {
@@ -294,7 +440,11 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.account.describe",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Account aggregate describe moved to the /account namespace."
     },
     {
@@ -303,7 +453,11 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.snapshot.head",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Snapshot manifest discovery moved to its own /snapshot namespace."
     },
     {
@@ -312,7 +466,11 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.account.subscribe",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Historical account long-poll name; use streaming account subscribe."
     },
     {
@@ -321,7 +479,11 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.events.query",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Historical event listing operation; use cx.events.query."
     },
     {
@@ -330,7 +492,11 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.events.query",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Historical backfill operation; use cx.events.query with the appropriate cursor/range direction."
     },
     {
@@ -339,7 +505,11 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.events.subscribe",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Historical Realm stream operation; use cx.events.subscribe."
     },
     {
@@ -348,7 +518,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "cx.applet.resolve_realm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Realm/Space inversion cleanup: operation semantics, path parameter and response are Realm-scoped; migrate operation id, gRPC method and MQ topic mechanically."
     },
     {
@@ -357,7 +531,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.applet.resolve_actor",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Applet actor lookup is a single-object resolver, not a cursor/range query."
     },
     {
@@ -366,7 +544,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.applet.resolve_realm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Applet Realm lookup is a single-object resolver, aligned with cx.directory.resolve_* naming."
     },
     {
@@ -375,7 +557,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.directory.push.register",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory webhook registration is control-plane push registration, not a streaming subscribe surface."
     },
     {
@@ -384,7 +570,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.flow.watch.set.others",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Capability action now uses the canonical .others suffix on the base cx.flow.watch.set action."
     },
     {
@@ -393,7 +583,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "watch_set_others",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Audit access_kind aligned with the renamed cx.flow.watch.set.others capability action."
     },
     {
@@ -402,7 +596,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "watch_set_others_audit_missing",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Error code aligned with the renamed watch .others capability action."
     },
     {
@@ -412,7 +610,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "withheld_reason_code",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Realm key withheld uses a controlled machine-readable enum, so the field follows *_reason_code naming."
     },
     {
@@ -422,7 +624,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "report_reason_code",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Moderation report reason is a controlled enum; human-readable explanation remains description."
     },
     {
@@ -432,7 +638,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "event_state_reason_code",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Account subscribe event-state diagnostics use a short machine reason code."
     },
     {
@@ -442,7 +652,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "abuse_reason_code",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "MIMI abuse report reason is a controlled enum and now follows *_reason_code naming."
     },
     {
@@ -451,7 +665,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Umbrella action cx.agent.key.manage split into three atomic actions: cx.agent.key.authorize, cx.agent.key.rotate, cx.agent.key.revoke (each 1-to-1 with the same event_kind). Grant authors MUST list the specific verbs they intend to delegate; a key rotator should no longer implicitly receive the right to revoke."
     },
     {
@@ -461,7 +679,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "runtime_status",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "cx.schema.applet.v1 object snapshot field 'status' renamed to 'runtime_status' so that applet registry-object state does not appear interchangeable with the canonical agent session state machine. v1 does not define a canonical applet protocol-session state machine; bridges declare their own enum within {pending,running,completed,failed,cancelled}. cx.schema.agent.v1 keeps its `status` field but its enum was widened to mirror agent_session_status_payload.status (9 values)."
     },
     {
@@ -470,8 +692,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx:notification:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind.",
+      "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
       "id": "cx:devmsg:",
@@ -479,8 +706,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx:device_message:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind.",
+      "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
       "id": "cx:keyevt:",
@@ -488,8 +720,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx:key_event:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind.",
+      "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
       "id": "cx:modq:",
@@ -497,8 +734,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx:moderation_queue_item:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind.",
+      "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
       "id": "cx:req:",
@@ -506,8 +748,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx:request:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind.",
+      "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
       "id": "cx:txn:",
@@ -515,8 +762,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx:transaction:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind.",
+      "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
       "id": "cx:frank:",
@@ -524,8 +776,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx:franking_proof:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Abbreviated typed ID prefix expanded to the canonical full snake_case kind.",
+      "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
       "id": "cx.agent.key.authorized",
@@ -533,8 +790,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.authorize",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event kind verbs use imperative action names, not past participles."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event kind verbs use imperative action names, not past participles.",
+      "migration_group": "agent_key_imperative_verbs"
     },
     {
       "id": "cx.agent.key.revoked",
@@ -542,8 +804,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.revoke",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event kind verbs use imperative action names, not past participles."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event kind verbs use imperative action names, not past participles.",
+      "migration_group": "agent_key_imperative_verbs"
     },
     {
       "id": "cx.agent.key.rotated",
@@ -551,8 +818,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.rotate",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event kind verbs use imperative action names, not past participles."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event kind verbs use imperative action names, not past participles.",
+      "migration_group": "agent_key_imperative_verbs"
     },
     {
       "id": "cx.device.authorized",
@@ -560,8 +832,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.device.authorize",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event kind verbs use imperative action names, not past participles."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event kind verbs use imperative action names, not past participles.",
+      "migration_group": "device_imperative_verbs"
     },
     {
       "id": "cx.device.revoked",
@@ -569,8 +846,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.device.revoke",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event kind verbs use imperative action names, not past participles."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event kind verbs use imperative action names, not past participles.",
+      "migration_group": "device_imperative_verbs"
     },
     {
       "id": "cx.relation.delete",
@@ -578,7 +860,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.relation.tombstone",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Relation lifecycle termination uses the canonical tombstone verb."
     },
     {
@@ -587,7 +873,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.read_cursor.advance",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Actor-private persistent read position is named read cursor, not read marker. Canonical event kind and capability action share the single name cx.read_cursor.advance (renamed mid-2026-05-24 from the prior split cx.read.cursor / cx.cursor.advance)."
     },
     {
@@ -596,7 +886,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.schema.read_cursor.v1",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Schema id follows the read cursor terminology."
     },
     {
@@ -605,7 +899,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "not_before",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Validity lower-bound fields use not_before across grants, policies, evidence and event payloads."
     },
     {
@@ -614,7 +912,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Validity upper-bound fields use expires_at across grants, policies, evidence and event payloads."
     },
     {
@@ -623,7 +925,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Validity upper-bound fields use expires_at; not_after is not a v1 wire alias."
     },
     {
@@ -632,7 +938,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cache_expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Cache expiry fields use the domain-prefixed cache_expires_at spelling."
     },
     {
@@ -641,7 +951,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "verification_method",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Proof signer key material is always expressed as a DID URL verification_method."
     },
     {
@@ -650,7 +964,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "sender_actor_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Sender identity fields must carry the role and id suffix explicitly."
     },
     {
@@ -659,7 +977,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "sender_actor_display_name",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Notification projection sender display names carry the sender_actor role prefix."
     },
     {
@@ -669,8 +991,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "event_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event proofs bind canonical Event bytes with event_digest. Generic non-Event detached proofs now use payload_digest (see payload_hash#generic_proof). payload_hash is forbidden in all wire contexts."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event proofs bind canonical Event bytes with event_digest. Generic non-Event detached proofs now use payload_digest (see payload_hash#generic_proof). payload_hash is forbidden in all wire contexts.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "or-set",
@@ -678,8 +1005,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "or_set",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "CRDT lattice enum values use snake_case."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "CRDT lattice enum values use snake_case.",
+      "migration_group": "crdt_lattice_snake_case"
     },
     {
       "id": "mv-register",
@@ -687,8 +1019,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "mv_register",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "CRDT lattice enum values use snake_case."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "CRDT lattice enum values use snake_case.",
+      "migration_group": "crdt_lattice_snake_case"
     },
     {
       "id": "cas-register",
@@ -696,8 +1033,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cas_register",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "CRDT lattice enum values use snake_case."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "CRDT lattice enum values use snake_case.",
+      "migration_group": "crdt_lattice_snake_case"
     },
     {
       "id": "ordered-log",
@@ -705,8 +1047,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ordered_log",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "CRDT lattice enum values use snake_case."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "CRDT lattice enum values use snake_case.",
+      "migration_group": "crdt_lattice_snake_case"
     },
     {
       "id": "lww-register",
@@ -714,8 +1061,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "lww_register",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "CRDT lattice enum values use snake_case."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "CRDT lattice enum values use snake_case.",
+      "migration_group": "crdt_lattice_snake_case"
     },
     {
       "id": "type#realm_cell_lattice",
@@ -724,7 +1076,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "lattice",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Realm cell schema uses lattice for reducer / CRDT dispatch instead of the generic type field."
     },
     {
@@ -733,7 +1089,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "membership_source_realm_refs",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Join-policy membership evidence points at source Realms; it does not express Realm tree parentage."
     },
     {
@@ -742,7 +1102,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "parent_grant_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Capability delegation names the parent grant explicitly; source_capability was an imprecise draft alias."
     },
     {
@@ -751,7 +1115,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "source_realm_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory search context is a source Realm filter, not a parent Realm relationship."
     },
     {
@@ -760,7 +1128,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "realm_sync_entry",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Account subscribe frame entries describe Realm sync state."
     },
     {
@@ -769,8 +1141,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "franking_proof_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Moderation franking objects use the full franking_proof noun."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Moderation franking objects use the full franking_proof noun.",
+      "migration_group": "frank_to_franking_proof_noun"
     },
     {
       "id": "frank#moderation_report_payload",
@@ -779,7 +1156,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "franking_proof",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Moderation report payloads use franking_proof for the proof object; 'frank' survives only as informal prose or legacy migration text."
     },
     {
@@ -788,8 +1169,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "franking_proof_unavailable",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Error code uses the full franking_proof noun."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Error code uses the full franking_proof noun.",
+      "migration_group": "frank_to_franking_proof_noun"
     },
     {
       "id": "delivery_binding_hint",
@@ -797,7 +1183,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "member_delivery_binding",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Handle / member-add candidates carry a concrete member delivery binding builder object, not a vague hint."
     },
     {
@@ -807,7 +1197,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "member_delivery_binding.recipient_service_did",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Handle claim delivery routing is single-sourced inside member_delivery_binding."
     },
     {
@@ -817,7 +1211,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "title",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory / projection rows reuse canonical object title rather than a name alias."
     },
     {
@@ -827,7 +1225,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "avatar_blob_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory / projection rows reuse canonical avatar_blob_ref rather than an avatar alias."
     },
     {
@@ -837,7 +1239,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "owning_organizations",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory / projection rows reuse canonical owning_organizations rather than an official_organizations alias."
     },
     {
@@ -846,8 +1252,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "actor_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Protocol responsibility subjects use the _id suffix even when the value is a DID."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Protocol responsibility subjects use the _id suffix even when the value is a DID.",
+      "migration_group": "did_id_suffix"
     },
     {
       "id": "principal_did",
@@ -855,8 +1266,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "principal_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Protocol responsibility subjects use the _id suffix even when the value is a DID."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Protocol responsibility subjects use the _id suffix even when the value is a DID.",
+      "migration_group": "did_id_suffix"
     },
     {
       "id": "subject_did",
@@ -864,8 +1280,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "subject_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Protocol responsibility subjects use the _id suffix even when the value is a DID."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Protocol responsibility subjects use the _id suffix even when the value is a DID.",
+      "migration_group": "did_id_suffix"
     },
     {
       "id": "space_frozen",
@@ -873,7 +1294,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "realm_frozen",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Error code returned when the target Realm is frozen / archived / tombstoned / closed to ordinary writes. After the Realm/Space inversion the responsibility for freeze/archive/tombstone/destroy lifecycle lives on the Realm boundary; the legacy name 'space_frozen' could mislead implementations into checking only an in-Realm Space container's lifecycle. See spec/v1/artifacts/registry/error-code-registry.json and spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml EventSubmitResponse.rejected[].reason_code."
     },
     {
@@ -882,7 +1307,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "realm_state",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Capability grant_constraint.evaluation_class enum value. The class denotes 'depends on Realm frontier (membership_digest, frontier_digest, policy_version, etc.)' — the boundary is Realm, not an in-Realm Space container. Rename keeps the cacheability hint semantically aligned with the inverted Realm/Space model. See spec/v1/artifacts/schemas/grant-constraint.schema.json and spec/v1/zh/authz/constraint-schema.md §2.3."
     },
     {
@@ -891,7 +1320,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "realm_metadata",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "state_at_window_start anchor field carrying Realm-level Lattice cell value at window start (Realm name / topic / join_rule). The cell value is Realm-scoped; the legacy name 'space_metadata' would suggest in-Realm Space container metadata, which is incorrect. See spec/v1/zh/sync/client-sync.md §5.2."
     },
     {
@@ -900,7 +1333,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.schema.encrypted_envelope.v1",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Contrix Encrypted Payload Envelope'. The wire field name 'encrypted_payload' remains unchanged on Message / Flow / Morph / event payloads."
     },
     {
@@ -909,7 +1346,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "authority_binding.issuer",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "snapshot.schema.json authority_binding.signer_did renamed to authority_binding.issuer to match the canonical 'issuer' DID field used by audit-ryw-receipt / range-completeness-attestation / capability-grant / handle-claim / identity-receipt (see common-fields.md §4.2). MUST still equal the snapshot's top-level created_by."
     },
     {
@@ -918,7 +1359,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "DeviceMessagesGetResponse.messages",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Response field of cx.device_messages.get renamed from events[] to messages[] because the items are DeviceMessageEnvelope[], not Event Envelope[]. Removes the misleading appearance that this endpoint serves the durable Event timeline (which lives on cx.events.query / cx.events.subscribe)."
     },
     {
@@ -927,8 +1372,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.archive",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.archive) to 3 segments (cx.realm.archive) to match the corresponding event kind. All other entities (flow / space / morph) already used the 3-segment form; the 4-segment Realm form was an outlier that forced IAM tooling to special-case Realm. target_event_kinds for the action is still cx.realm.archive."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.archive) to 3 segments (cx.realm.archive) to match the corresponding event kind. All other entities (flow / space / morph) already used the 3-segment form; the 4-segment Realm form was an outlier that forced IAM tooling to special-case Realm. target_event_kinds for the action is still cx.realm.archive.",
+      "migration_group": "realm_lifecycle_segment_realignment"
     },
     {
       "id": "cx.realm.lifecycle.freeze",
@@ -936,8 +1386,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.freeze",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "See cx.realm.lifecycle.archive entry."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "See cx.realm.lifecycle.archive entry.",
+      "migration_group": "realm_lifecycle_segment_realignment"
     },
     {
       "id": "cx.realm.lifecycle.tombstone",
@@ -945,8 +1400,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.tombstone",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "See cx.realm.lifecycle.archive entry."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "See cx.realm.lifecycle.archive entry.",
+      "migration_group": "realm_lifecycle_segment_realignment"
     },
     {
       "id": "cx.realm.lifecycle.destroy",
@@ -954,16 +1414,25 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.realm.destroy",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "See cx.realm.lifecycle.archive entry."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "See cx.realm.lifecycle.archive entry.",
+      "migration_group": "realm_lifecycle_segment_realignment"
     },
     {
       "id": "cx.invite.third_party",
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.invite.create_third_party",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "cx.invite.third_party",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Capability action renamed from noun form 'third_party' to verb form 'create_third_party'. Sibling actions cx.invite.create / cancel / claim / revoke / accept are all verbs; third_party was an outlier. The event kind cx.invite.third_party is preserved unchanged; action ↔ event kind bridging lives in target_event_kinds."
     },
     {
@@ -971,8 +1440,12 @@
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.policy.rule.manage",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "cx.policy.rule",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Capability action renamed from noun form 'rule' to '<noun>.manage' verb form. Sibling actions cx.policy.manage / set are verb forms. Event kind cx.policy.rule is preserved."
     },
     {
@@ -980,8 +1453,12 @@
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.policy.action.manage",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "cx.policy.action",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "See cx.policy.rule entry. Event kind cx.policy.action is preserved."
     },
     {
@@ -990,7 +1467,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.read_cursor.advance",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Both the legacy event kind cx.read.cursor and the previously-renamed capability action cx.cursor.advance now collapse to the single canonical name cx.read_cursor.advance. This aligns the typed-id prefix (cx:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action on the same noun root read_cursor."
     },
     {
@@ -999,7 +1480,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.read_cursor.advance",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Capability action renamed to cx.read_cursor.advance so the four layers (typed id / schema id / event kind / capability action) share a single noun root read_cursor."
     },
     {
@@ -1008,8 +1493,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.session.start",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Capability action namespace flattened from cx.agent.protocol_session.* to cx.agent.session.* (the cx.agent.* context already implies protocol session). Event kinds cx.agent.protocol_session.{start,status,result} are preserved for wire-format stability; the action ↔ event kind bridge is via target_event_kinds. Same applies to .cancel / .stream_status / .attach_artifact / .read_transcript."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Capability action namespace flattened from cx.agent.protocol_session.* to cx.agent.session.* (the cx.agent.* context already implies protocol session). Event kinds cx.agent.protocol_session.{start,status,result} are preserved for wire-format stability; the action ↔ event kind bridge is via target_event_kinds. Same applies to .cancel / .stream_status / .attach_artifact / .read_transcript.",
+      "migration_group": "agent_session_namespace_collapse"
     },
     {
       "id": "cx.agent.protocol_session.cancel",
@@ -1017,8 +1507,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.session.cancel",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "See cx.agent.protocol_session.start entry."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "See cx.agent.protocol_session.start entry.",
+      "migration_group": "agent_session_namespace_collapse"
     },
     {
       "id": "cx.agent.protocol_session.stream_status",
@@ -1026,8 +1521,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.session.stream_status",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "See cx.agent.protocol_session.start entry."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "See cx.agent.protocol_session.start entry.",
+      "migration_group": "agent_session_namespace_collapse"
     },
     {
       "id": "cx.agent.protocol_session.attach_artifact",
@@ -1035,8 +1535,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.session.attach_artifact",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "See cx.agent.protocol_session.start entry."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "See cx.agent.protocol_session.start entry.",
+      "migration_group": "agent_session_namespace_collapse"
     },
     {
       "id": "cx.agent.protocol_session.read_transcript",
@@ -1044,8 +1549,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.session.read_transcript",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "See cx.agent.protocol_session.start entry."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "See cx.agent.protocol_session.start entry.",
+      "migration_group": "agent_session_namespace_collapse"
     },
     {
       "id": "/mimi/rooms/{flow_id}/...",
@@ -1053,7 +1563,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "/mimi/flows/{flow_id}/...",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "MIMI interop HTTP paths /mimi/rooms/{flow_id}/{update,notify,messages,group-info} renamed to /mimi/flows/{flow_id}/.... The path parameter was always {flow_id} (a Contrix Flow), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
     },
     {
@@ -1062,7 +1576,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "notification.realm_title or notification.flow_title",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Push-notification payload field 'space_name' was a pre-inversion alias whose value source could be either a Realm or a Flow title. After the inversion the two are distinct objects: notification.realm_title comes from Realm.title and notification.flow_title from Flow.title. Both remain forbidden under the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3."
     },
     {
@@ -1071,7 +1589,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "realm_scoped_tightening",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Morph type decision table role for Realm-scoped morph_type_profiles tightening (order 2 in the merge precedence). After the Realm/Space inversion the schema source is realm.schema.morph_type_profiles[<morph_type>], not space.schema; the role enum is renamed to match. See artifacts/registry/morph-type-decision-table.json and zh/models/morph.md §4."
     },
     {
@@ -1080,7 +1602,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "morph_type_unknown_in_realm_schema",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Morph type decision table case label for 'morph_type not declared by Realm schema'. After the inversion the schema is Realm-scoped (realm.schema.morph_type_profiles); the case label is renamed to match. See artifacts/registry/morph-type-decision-table.json."
     },
     {
@@ -1089,7 +1615,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "current_realm_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Variable name used in minimal-metadata Realm identity_link cache invalidation MUST rules (zh/crypto-media/encryption-and-audit.md §). The cache key first component is a realm_id, not an in-Realm Space container id; the name 'this_space' was a pre-inversion leftover that could mislead implementations into scoping invalidation to a Space container instead of the Realm boundary. Use current_realm_id (or this_realm) in normative prose; do not reintroduce this_space."
     },
     {
@@ -1098,8 +1628,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "franking_proof_only",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Moderation queue visibility enum uses the full franking_proof noun."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Moderation queue visibility enum uses the full franking_proof noun.",
+      "migration_group": "frank_to_franking_proof_noun"
     },
     {
       "id": "requires_frank_verification",
@@ -1107,8 +1642,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "requires_franking_proof_verification",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Moderation queue evidence policy uses the full franking_proof noun."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Moderation queue evidence policy uses the full franking_proof noun.",
+      "migration_group": "frank_to_franking_proof_noun"
     },
     {
       "id": "retention_until#moderation_queue_item",
@@ -1117,7 +1657,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "retention_expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Retention time upper bounds use the canonical expires_at suffix."
     },
     {
@@ -1127,7 +1671,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Moderation queue item is a typed canonical object; its own identifier uses the common id field."
     },
     {
@@ -1137,7 +1685,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "messages",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Account subscribe to_device container carries DeviceMessageEnvelope objects, not Event envelopes."
     },
     {
@@ -1147,7 +1699,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "freeze_expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Realm freeze time upper bounds use the canonical expires_at suffix with a domain prefix."
     },
     {
@@ -1157,7 +1713,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "actor_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Agent audit_binding subject is a protocol actor DID-as-id and uses the _id suffix."
     },
     {
@@ -1167,7 +1727,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Snapshot chunk descriptors use digest with an algorithm prefix instead of a raw SHA-256 hex field."
     },
     {
@@ -1177,7 +1741,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "member_delivery_binding.service_acceptance_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Handle claim delivery binding evidence is single-sourced inside member_delivery_binding."
     },
     {
@@ -1187,7 +1755,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "member_delivery_binding.policy_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Handle claim delivery binding policy references are single-sourced inside member_delivery_binding."
     },
     {
@@ -1196,8 +1768,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "digest_algorithm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Hash vocabulary unification (common-fields.md §2): algorithm/function-family selectors use <noun>_algorithm. Realm-level hash algorithm declaration is now digest_algorithm. The previous_hash_profile field on Transition Anchors is renamed previous_digest_algorithm in lockstep."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Hash vocabulary unification (common-fields.md §2): algorithm/function-family selectors use <noun>_algorithm. Realm-level hash algorithm declaration is now digest_algorithm. The previous_hash_profile field on Transition Anchors is renamed previous_digest_algorithm in lockstep.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "previous_hash_profile",
@@ -1205,8 +1782,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "previous_digest_algorithm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Transition Anchor field renamed in lockstep with realm.digest_algorithm. See hash_profile entry."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Transition Anchor field renamed in lockstep with realm.digest_algorithm. See hash_profile entry.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "state_hash",
@@ -1214,8 +1796,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "state_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Snapshot manifest's hash of canonical reducer-derived state. Renamed to state_digest under the v1 hash-vocabulary rule (output bytes use <noun>_digest)."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Snapshot manifest's hash of canonical reducer-derived state. Renamed to state_digest under the v1 hash-vocabulary rule (output bytes use <noun>_digest).",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "auth_state_hash",
@@ -1223,8 +1810,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "auth_state_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "snapshot.authority_binding.auth_state_hash renamed to auth_state_digest."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "snapshot.authority_binding.auth_state_hash renamed to auth_state_digest.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "expected_state_hash",
@@ -1232,8 +1824,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "expected_state_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Object patch / lifecycle payload precondition digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Object patch / lifecycle payload precondition digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "did_document_hash",
@@ -1241,8 +1838,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "did_document_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Canonical hash of the DID Document used for endpoint validation and delivery_binding evidence. Renamed across agent.schema.json, event-payload.schema.json and membership delivery binding fixtures."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Canonical hash of the DID Document used for endpoint validation and delivery_binding evidence. Renamed across agent.schema.json, event-payload.schema.json and membership delivery binding fixtures.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "old_did_document_hash",
@@ -1250,8 +1852,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "old_did_document_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "DID continuity proof field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "DID continuity proof field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "new_did_document_hash",
@@ -1259,8 +1866,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "new_did_document_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "DID continuity proof field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "DID continuity proof field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "old_did_document_canonical_hash",
@@ -1268,8 +1880,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "old_did_document_canonical_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "DID continuity proof transfer-evidence field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "DID continuity proof transfer-evidence field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "head_event_hash",
@@ -1277,8 +1894,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "head_event_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "DID key-log entry / identity receipt head pointer renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "DID key-log entry / identity receipt head pointer renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "prev_event_hash",
@@ -1286,8 +1908,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "prev_event_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "DID key-log entry chaining pointer renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "DID key-log entry chaining pointer renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "audit_policy_version_hash",
@@ -1295,8 +1922,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "audit_policy_version_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Audit RYW receipt and attestation evidence field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Audit RYW receipt and attestation evidence field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "code_hash",
@@ -1304,8 +1936,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "code_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Attestation evidence enclave measurement field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Attestation evidence enclave measurement field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "sha256_hash",
@@ -1313,8 +1950,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "sha256_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "$defs type alias for sha256:<hex> string. Renamed for hash-vocabulary consistency."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "$defs type alias for sha256:<hex> string. Renamed for hash-vocabulary consistency.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "material_hash",
@@ -1322,8 +1964,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "material_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event envelope extension material digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event envelope extension material digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "leaf_hash",
@@ -1331,8 +1978,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "leaf_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Merkle inclusion-proof leaf digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Merkle inclusion-proof leaf digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "query_hash",
@@ -1340,8 +1992,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "query_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event batch receipt scope query digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event batch receipt scope query digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "event_hash",
@@ -1349,8 +2006,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "event_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event batch receipt / encoding-fixture event digest field renamed. Aligns with Event-proof canonical event_digest."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event batch receipt / encoding-fixture event digest field renamed. Aligns with Event-proof canonical event_digest.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "frontier_hash",
@@ -1358,8 +2020,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "frontier_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Erasure verification stub / erasure receipt anchor-inclusion frontier digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Erasure verification stub / erasure receipt anchor-inclusion frontier digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "membership_frontier_hash",
@@ -1367,8 +2034,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "membership_frontier_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "MLS governance binding membership frontier digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MLS governance binding membership frontier digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "policy_frontier_hash",
@@ -1376,8 +2048,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "policy_frontier_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Policy frontier digest covered by policy_components / IssueSessionGrantProof renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Policy frontier digest covered by policy_components / IssueSessionGrantProof renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "discussion_metadata_hash",
@@ -1385,8 +2062,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "discussion_metadata_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "MLS governance binding discussion metadata digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MLS governance binding discussion metadata digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "group_info_hash",
@@ -1394,8 +2076,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "group_info_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "MLS GroupInfo digest renamed. v1 wire field; does not change RFC 9420 MLS payload bytes."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MLS GroupInfo digest renamed. v1 wire field; does not change RFC 9420 MLS payload bytes.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "ratchet_tree_hash",
@@ -1403,8 +2090,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ratchet_tree_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "MLS ratchet tree digest renamed on Contrix wire. Distinct from RFC 9420's tree_hash inside MLS bytes; this is the Contrix payload field, not the MLS GroupContext extension."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MLS ratchet tree digest renamed on Contrix wire. Distinct from RFC 9420's tree_hash inside MLS bytes; this is the Contrix payload field, not the MLS GroupContext extension.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "commit_hash",
@@ -1412,8 +2104,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "commit_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "MLS commit digest renamed on Contrix wire."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MLS commit digest renamed on Contrix wire.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "proposal_hash",
@@ -1421,8 +2118,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "proposal_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "MLS proposal digest renamed on Contrix wire."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MLS proposal digest renamed on Contrix wire.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "keypackage_hash",
@@ -1430,8 +2132,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "keypackage_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "MLS KeyPackage digest renamed on Contrix wire."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MLS KeyPackage digest renamed on Contrix wire.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "device_list_hash",
@@ -1439,8 +2146,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "device_list_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Cross-signing device list digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Cross-signing device list digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "audit_hash",
@@ -1448,8 +2160,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "audit_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Audit payload digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Audit payload digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "policy_hash",
@@ -1457,8 +2174,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "policy_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Policy digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Policy digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "diagnostic_hash",
@@ -1466,8 +2188,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "diagnostic_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Diagnostic digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Diagnostic digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "external_transcript_hash",
@@ -1475,8 +2202,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "external_transcript_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Agent protocol session external transcript digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent protocol session external transcript digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "full_transcript_hash",
@@ -1484,8 +2216,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "full_transcript_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Agent protocol session full transcript digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent protocol session full transcript digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "request_canonical_hash",
@@ -1493,8 +2230,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "request_canonical_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Session grant request canonical-bytes digest renamed. The HTTP header form Request-Canonical-Hash is renamed Request-Canonical-Digest in lockstep."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Session grant request canonical-bytes digest renamed. The HTTP header form Request-Canonical-Hash is renamed Request-Canonical-Digest in lockstep.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "Request-Canonical-Hash",
@@ -1502,8 +2244,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "Request-Canonical-Digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "HTTP header form of request_canonical_digest; renamed in lockstep so HTTP federation transcript stays consistent with payload field names."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "HTTP header form of request_canonical_digest; renamed in lockstep so HTTP federation transcript stays consistent with payload field names.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "source_ip_hash",
@@ -1511,8 +2258,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "source_ip_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Session grant proof source-IP digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Session grant proof source-IP digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "retained_stub_hash",
@@ -1520,8 +2272,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "retained_stub_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Erasure receipt retained verification stub digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Erasure receipt retained verification stub digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "artifact_hash",
@@ -1529,8 +2286,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "artifact_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Service describe verified_profiles artifact digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Service describe verified_profiles artifact digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "original_envelope_hash",
@@ -1538,8 +2300,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "original_envelope_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "MIMI interop mapping receipt original envelope digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MIMI interop mapping receipt original envelope digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "event_ref_hash",
@@ -1547,8 +2314,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "event_ref_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Encrypted envelope AAD routing-mode event ref digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Encrypted envelope AAD routing-mode event ref digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "causal_ref_hashes",
@@ -1556,8 +2328,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "causal_ref_digests",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Encrypted envelope AAD causal-ref digests array renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Encrypted envelope AAD causal-ref digests array renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "routing_hash",
@@ -1565,8 +2342,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "routing_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Encrypted envelope aad_visibility_event_id enum value renamed to align with the renamed event_ref_digest field."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Encrypted envelope aad_visibility_event_id enum value renamed to align with the renamed event_ref_digest field.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "canonical_hash",
@@ -1574,8 +2356,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "canonical_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Generic canonical-bytes digest used by membership delivery binding evidence and conflict quarantine fixtures."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Generic canonical-bytes digest used by membership delivery binding evidence and conflict quarantine fixtures.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "binding_hash",
@@ -1583,8 +2370,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "binding_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Crypto signature binding-payload digest fixture field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Crypto signature binding-payload digest fixture field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "realm_policy_hash",
@@ -1592,8 +2384,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "realm_policy_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Federation service_binding_ref realm policy digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Federation service_binding_ref realm policy digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "reducer_profile_hash",
@@ -1601,8 +2398,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "reducer_profile_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Federation service_binding_ref reducer profile digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Federation service_binding_ref reducer profile digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "first_body_hash",
@@ -1610,8 +2412,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "first_body_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Federation idempotency replay fixture field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Federation idempotency replay fixture field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "second_body_hash",
@@ -1619,8 +2426,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "second_body_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Federation idempotency replay fixture field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Federation idempotency replay fixture field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "alpha_event_hash",
@@ -1628,8 +2440,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "alpha_event_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Federation fork quarantine fixture field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Federation fork quarantine fixture field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "beta_event_hash",
@@ -1637,8 +2454,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "beta_event_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Federation fork quarantine fixture field renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Federation fork quarantine fixture field renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "http_message_signature_hash",
@@ -1646,8 +2468,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "http_message_signature_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Federation fixture test-case identifier renamed for vocabulary consistency."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Federation fixture test-case identifier renamed for vocabulary consistency.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "origin_key_state_hash",
@@ -1655,8 +2482,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "origin_key_state_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Security closure vector origin key-state digest renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Security closure vector origin key-state digest renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "content_hash",
@@ -1664,8 +2496,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "content_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Generic content-bytes digest in session-grant proof fixtures renamed."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Generic content-bytes digest in session-grant proof fixtures renamed.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "must_not_affect_state_hash",
@@ -1673,8 +2510,13 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "must_not_affect_state_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Conformance profile flag for unknown non-critical extension preservation; renamed in lockstep with snapshot.state_digest."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Conformance profile flag for unknown non-critical extension preservation; renamed in lockstep with snapshot.state_digest.",
+      "migration_group": "hash_to_digest_vocabulary"
     },
     {
       "id": "unsupported_hash",
@@ -1682,8 +2524,73 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "unsupported_digest_algorithm",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Error code returned when a typed digest carries an unsupported algorithm prefix. Aligns with the renamed digest_algorithm field.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "cx.invite.third_party",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.invite.third_party",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Error code returned when a typed digest carries an unsupported algorithm prefix. Aligns with the renamed digest_algorithm field."
+      "notes": "Capability action converged back to noun form to match its target event kind. The earlier verb-form rename (cx.invite.third_party → cx.invite.third_party) is reverted; v3 rule (capabilities.md §5.0a) is 'action name MUST equal event kind name' — IAM tools use the event kind string verbatim as the action token, no bridge table.",
+      "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "cx.policy.rule",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.policy.rule",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action converged to match event kind cx.policy.rule. See verb_noun_bridge_collapse migration group.",
+      "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "cx.policy.action",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.policy.action",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action converged to match event kind cx.policy.action. See verb_noun_bridge_collapse migration group.",
+      "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "cx.realm.link",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.link",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action converged to match event kind cx.realm.link. See verb_noun_bridge_collapse migration group.",
+      "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "cx.realm.plaintext_visible_services",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.plaintext_visible_services",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action converged to match event kind cx.realm.plaintext_visible_services. See verb_noun_bridge_collapse migration group.",
+      "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "cx.realm.moderation_policy",
+      "kind_class": "capability_action",
+      "since_revision": "2026-05-24",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.moderation_policy",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability action converged to match event kind cx.realm.moderation_policy. See verb_noun_bridge_collapse migration group.",
+      "migration_group": "verb_noun_bridge_collapse"
     }
   ]
 }

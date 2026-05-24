@@ -168,7 +168,7 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 | --- | --- | --- |
 | `expires_at <= now` | `pending → expired` | 任何 claim MUST `expired_invite_token` 拒绝；服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录。 |
 | 邮件 / SMS 发送失败（gateway 5xx / bounce / DKIM fail） | `pending → send_failed`（携带 `send_failure_reason`） | 邀请者 UI MUST 显式提示发送失败；服务端 MUST NOT 假装成功；MAY 在 retry budget 内自动重试（建议 ≤ 3 次，指数退避）。retry 耗尽后 transition 为 `send_failed`，服务端 MUST 在 24h 内 zeroize token material；邀请者 MAY 手动重发（产生新 `invite_id` + 新 token + 新 commitment）。 |
-| 邀请者失去 `cx.invite.create_third_party` capability（grant revoke、role change） | `pending → revoked_by_capability_loss` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除，`token_salt` / lookup pepper material MUST 在 24h 内 zeroize。 |
+| 邀请者失去 `cx.invite.third_party` capability（grant revoke、role change） | `pending → revoked_by_capability_loss` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除，`token_salt` / lookup pepper material MUST 在 24h 内 zeroize。 |
 | 邀请者主动离开 Realm（`cx.member.state` → `leave`/`ban`/`remove`） | `pending → revoked_by_inviter_left` | 同上 capability loss 处理；邀请不随邀请者继承到其他成员。 |
 | token 泄漏 / 怀疑泄漏（邀请者或 admin 发起 `cx.invite.revoke`） | `pending → revoked` | 立即拒绝任何 claim；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；客户端 UI MUST 显示"邀请已撤销"。 |
 | claim 成功 | `pending → claimed` | 同一 `token_commitment` 第二次 claim MUST `duplicate_conflict`；claim 接受后 `token_salt` / lookup pepper material MUST 在 24h 内 zeroize，只保留不可枚举 audit receipt。 |
