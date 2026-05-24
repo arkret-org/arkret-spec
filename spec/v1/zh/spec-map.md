@@ -108,10 +108,10 @@ title: Spec Map
 | `index.md` | 项目定位、设计目标、规范入口。 |
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
 | `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
-| `overview/matrix-core-differences.md` | 与 Matrix 的核心区别、边界和取舍。 |
 | `overview/current-model.md` | Flow / track / board / list / view 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
+| `guides/migrating-from-matrix.md` | 与 Matrix 的核心区别、边界和取舍（面向 Matrix 实现者的迁移视角；旧路径 `overview/matrix-core-differences.md`）。 |
 
 ### 4.2 身份、组织与隐私
 
