@@ -32,7 +32,7 @@
 - [x] §10 Produce local `v1.0.0-rc1` artifact evidence once §1-§9 are green. Do not create GitHub releases or push release tags.
 
 ### Stretch (phase 5 nice-to-have)
-- [x] §11 Publish `spec/v1/artifacts/contract-catalog.json` to a versioned URL (e.g. `https://spec.contrix.dev/v1/contract-catalog-1.0.0.json`) so SDK consumers can pin without checking out the repo.
+- [x] §11 Stage `spec/v1/artifacts/contract-catalog.json` in local versioned artifact evidence so SDK consumers can pin without any remote publish step.
 
 ## Exit gate (phase 1)
 
