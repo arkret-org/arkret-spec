@@ -415,7 +415,7 @@ flowchart LR
 - user/org DID 作为 authority
 - agent DID 拥有受限 capability
 - agent 的结果和审计摘要写成 agent 签名 Event
-- agent 的 Principal Server 将这些 Event 同步到协作 Realm
+- agent 的 Principal Server 将这些 Event 同步到 Collaboration Realm（参见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）
 - 客户端或受托 projection 扩展生成 human review queue
 
 ### 4.4 Sovereign / High-Assurance 拓扑
@@ -424,9 +424,9 @@ flowchart LR
 
 该拓扑默认关闭公共 federation 和公共 directory，只允许 allowlist service DID 与受控客户端接入。
 
-Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **Controlled Collaboration Realm**，只向经过验证的外部人员或组织开放特定 Realm，而不是开放整个内部网络。
+Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **External Collaboration Realm**，只向经过验证的外部人员或组织开放特定 Realm，而不是开放整个内部网络。Realm 角色分类（Internal / External Collaboration Realm、Principal Control Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)；sovereign deployment 对 External Collaboration Realm 施加的强制 policy 见 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)。
 
-Controlled Collaboration Realm SHOULD：
+在 sovereign deployment 下，External Collaboration Realm SHOULD：
 
 - 使用 `discoverability=unlisted`、`invite_only` 或 `secret`。
 - 使用 `join_rule=restricted` 或 `knock_restricted`。
@@ -435,7 +435,7 @@ Controlled Collaboration Realm SHOULD：
 - 使用独立 Principal Server / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
 - 对 Applet、Agent handoff、media recording、export、bulk download 默认 deny，按 capability 显式授权。
 
-详细规则见 `sovereign-deployment.md`。
+详细规则见 [`sync/sovereign-deployment.md`](../sync/sovereign-deployment.md)。
 
 ## 5. 核心架构取向
 

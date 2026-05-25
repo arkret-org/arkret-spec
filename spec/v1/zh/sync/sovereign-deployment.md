@@ -1,5 +1,5 @@
 ---
-title: Sovereign Deployment and Controlled Collaboration
+title: Sovereign Deployment and External Collaboration
 status: candidate
 normative: true
 stability: v1
@@ -14,15 +14,17 @@ sidebar:
 
 ## 1. 目标
 
-高安全组织可以运行独立的 Contrix 网络，同时在必要时为外部人员或外部组织开启受控协作 Realm。
+高安全组织可以运行独立的 Contrix 网络，同时在必要时为外部人员或外部组织开启 **External Collaboration Realm**。
 
 本文定义：
 
 - sovereign deployment 的边界
 - isolated federation domain
-- controlled collaboration Realm
+- 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（`cx.profile.sovereign_deployment.v1`）
 - 外部主体进入高安全网络的验证、授权、加密、审计和退出规则
 - sovereign client 与 DID resolver policy
+
+> Realm 角色分类（Principal Control Realm / Internal Collaboration Realm / External Collaboration Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。
 
 ## 2. 部署模型
 
@@ -60,7 +62,7 @@ flowchart TB
     end
 
     subgraph "Controlled Collaboration Enclave"
-        ESPACE["Controlled Collaboration<br/>Realm"]
+        ESPACE["External Collaboration<br/>Realm"]
         ESVC["Enclave Service Plane<br/>(Principal / Directory / Blob / Policy)"]
 
         ESPACE --> ESVC
@@ -86,7 +88,7 @@ flowchart TB
     end
 
     subgraph "Controlled Collaboration Enclave"
-        ESPACE["Controlled Collaboration<br/>Realm"]
+        ESPACE["External Collaboration<br/>Realm"]
         EPOL["Enclave Policy<br/>Server"]
         ESYNC["Enclave Principal Server /<br/>Sync Service"]
     end
@@ -178,13 +180,11 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 - 涉及关联风险的外部协作 SHOULD 使用 pairwise DID。
 - 指向公共 Sync Service / Directory 的 DID Document service endpoint 在未 allowlist 时 MUST 被忽略。
 
-## 4. 受控协作 Realm
+## 4. External Collaboration Realm 在 sovereign deployment 下的强制 policy
 
-组织 MAY 创建受控协作 Realm，允许外部网络的人员或组织加入特定协作范围。
+启用 `cx.profile.sovereign_deployment.v1` 的部署中，组织 MAY 创建 External Collaboration Realm，允许外部网络的人员或组织加入特定协作范围。该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。Realm 角色分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。
 
-该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。
-
-Controlled Collaboration Realm SHOULD 使用：
+在该部署下 External Collaboration Realm SHOULD 使用：
 
 ```json
 {
@@ -194,7 +194,7 @@ Controlled Collaboration Realm SHOULD 使用：
       "id": "cx:realm:019640ea-8000-7000-8000-000000000000",
       "schema": "cx.schema.realm.v1",
       "security_class": "high_assurance",
-      "title": "Controlled Collaboration",
+      "title": "External Collaboration",
       "created_by_principal": "did:web:defense.example",
       "trust_domain": "cx:trust_domain:did.webvh.defense.example",
       "owning_organizations": [
@@ -295,7 +295,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组
 
 ## 8. Applet 与 Agent 控制
 
-受控协作 Realm SHOULD 默认：
+Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 
 - 禁用 Applet。
 - 禁用 Agent protocol handoff。
@@ -353,7 +353,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组
 
 - 默认 closed federation
 - service DID allowlist
-- 受控协作 Realm 的创建流程
+- External Collaboration Realm 的创建流程
 - restricted 外部加入流程
 - policy server 的 closed fail 模式
 - 仅向受批准的外部设备发送 MLS welcome

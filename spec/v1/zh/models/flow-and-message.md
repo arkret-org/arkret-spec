@@ -187,7 +187,11 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 
 `body` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `fields`，不要把可归约状态只藏在富文本正文中。
 
+`synthesis` 是可选 track：`tracks` map 不要求声明它。「只聊天不归纳」的 Flow（仅 `discussion`）是合法形态，见 §9.4 与 [`overview/current-model.md` §3](../overview/current-model.md)。若 Flow 同时声明了 `synthesis` 与 `discussion` 且未显式标 primary，`synthesis` 按 §4.5 第 2 条派生为 primary。关闭已存在的 `synthesis` track 与关闭任何 track 同形：在 `cx.flow.tracks.update` 同一 patch 中写 `tracks.synthesis.enabled: set false`；若当前 primary 是 `synthesis`，同一 patch 必须把 primary 转给另一个 active track（§4.6 / §4.7 / §4.8）。
+
 ### 4.3 `discussion` track
+
+`discussion` track 也是可选 track：`tracks` map 不要求声明它，纯结构化 Flow（仅 `synthesis`，例如归档文档、只读规格条目）合法。与 `synthesis` 不对称的一点：reducer MUST NOT 隐式创建 `discussion` track——切换 primary 到 `discussion` 时，必须在同一 `cx.flow.tracks.update` patch 中显式 `tracks.discussion.enabled: set true`（详见 §4.6 / §4.8）。
 
 `discussion` track 承载会话能力，而不是独立对象。它包含：
 

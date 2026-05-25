@@ -30,13 +30,13 @@ Contrix 的访问授权由 **capability + invite** 两条路径承担。但二�
 
 ### 2.1 Consent 是 holder 私有状态
 
-Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holder 的 principal control Realm（或等价的 actor-private 流），不暴露给任何协作 Realm。
+Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holder 的 Principal Control Realm（或等价的 actor-private 流），不暴露给任何 Collaboration Realm。Realm 角色分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。
 
 > **术语**：principal control Realm 是 holder 个人控制下的 Realm（profile = `cx.profile.principal_control_realm.v1`，purpose = `principal_control`），用于承载 consent、device authorization、session grant、push registration 等 holder 私有状态。Realm 的创建、字段、生命周期与 device-key 引导见 [`identity/key-management.md` §3.2](./key-management.md)；下文凡是出现"holder principal control Realm"或"等价 actor-private 流"，含义均以此为准。
 
 - 写入方：holder 自己（或 holder 显式授权的 controller / agent）。
 - 可见方：默认仅 holder；MAY 通过 holder 主动 disclose 给 peer 作为"green light"信号。
-- 不进入协作 Realm：consent 状态不暴露 holder 的隐私偏好给 Realm 内的其他成员。
+- 不进入 Collaboration Realm：consent 状态不暴露 holder 的隐私偏好给 Realm 内的其他成员。
 
 ### 2.2 Consent 不授予 Realm 权限
 

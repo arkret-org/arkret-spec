@@ -190,7 +190,7 @@ see_also:
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
 | `sync/transport-bindings.md` | HTTP/REST、gRPC、WebSocket、SSE、MQ、libp2p 等 binding。 |
 | `sync/federation.md` | 跨域联邦模型、节点认证、Event 交换协议、跨域加入、frontier exchange、wire transaction 形态（合并自原 federation-wire.md）。 |
-| `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、受控外部协作 Realm、enclave、导入导出和撤销规则。 |
+| `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、sovereign deployment 下 External Collaboration Realm 的强制 policy、enclave、导入导出和撤销规则。 |
 
 ### 4.6 发现、目录与用户状态
 

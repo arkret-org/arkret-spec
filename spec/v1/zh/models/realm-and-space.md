@@ -189,6 +189,60 @@ Realm 有两个终态 event，语义不同：
 
 **Hash chain 保护**：hard erasure 仍保留 event graph verification stub（`retained_stub_digest` 字段），允许后续 verifier 校验"该 event 曾合法存在但内容已擦除"，不破坏 hash chain。`retained_stub_digest` 的输入是 `canonical_json(retained_stub)`；`retained_stub` 使用 `cx.schema.erasure_verification_stub.v1` 结构，至少绑定 subject、scope、receipt_id、completed_at，并在适用时包含 event digest / proof `event_digest`、anchor inclusion、redaction authorization ref 与 legal-hold ref。Stub MUST NOT 保留已擦除 plaintext 或未加盐低熵 plaintext digest；若 receipt 不内联 `retained_stub`，签发服务必须在 erasure receipt endpoint 暴露同一 canonical stub。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
 
+### 2.7 Realm 角色分类（normative）
+
+schema 层只有一个 `cx.schema.realm.v1`；按 **用途** 把 Realm 分成两大类，Collaboration 再按 **成员是否跨信任域** 分两类。所有 Realm 共享同一组生命周期 event（`cx.realm.create` / `cx.realm.tombstone` / `cx.realm.destroy`）与同一套 reducer 规则；下面的分类影响的是 marker 字段、policy 字段默认值与允许的 event kind 集合。
+
+```
+Realm（cx.schema.realm.v1，schema 层统一）
+├── Collaboration Realm        ← 多方业务协作（Flow / Message / Space / Morph / Relation）
+│   ├── Internal Collaboration Realm   ← 仅本信任域成员
+│   └── External Collaboration Realm   ← 含跨信任域成员
+└── Principal Control Realm    ← 单 principal 身份基础设施流（device / session / KeyPackage / profile / consent）
+```
+
+#### 2.7.1 Principal Control Realm（PCR）
+
+- 与 principal DID **1:1 绑定**，由 `principal_control_realm_id` 标识，由 DID method 的 inception 证据钉死（参见 [`identity/key-management.md` §4.1 与 §5.0](../identity/key-management.md)）。
+- Marker 字段 MUST：
+  - `fields.purpose = "principal_control"`
+  - `schema_refs` 包含 `cx.profile.principal_control_realm.v1`
+  - `created_by_principal = <principal DID>`，`anchorer = <principal DID>`，`anchor_profile = "single_did"`
+  - `security_class = "high_assurance"`，`federation_policy ∈ {closed, restricted, quarantine}`
+- 事件类型由 `cx.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 device / session / KeyPackage / recovery / profile / consent 等身份基础设施 event；普通 Message / Flow / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。
+- 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
+- "私有"语义由 **用途 + event-kind allowlist** 锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
+
+#### 2.7.2 Collaboration Realm
+
+承载多方业务协作。除 PCR 之外的所有 Realm 都属于这一类。
+
+- `fields.purpose` 不为 `"principal_control"`（缺省或显式标记为 `"collaboration"`）。
+- 不引用 `cx.profile.principal_control_realm.v1`。
+- 按 `federation_policy` 与实际成员构成进一步分为 Internal / External 两种。
+
+##### Internal Collaboration Realm
+
+- `federation_policy ∈ {closed, restricted}`，且实际成员仅来自本部署 trust domain。
+- 组织主网络上的普通项目 / 团队 / 文档 / 群聊 Realm 默认属于此类。
+- 不需要外部组织 authority chain 或外部 principal 验证流程。
+
+##### External Collaboration Realm
+
+- 含至少一个跨信任域成员（external Organization DID、external principal、跨部署 service DID）。
+- `federation_policy` 通常为 `restricted`（allowlist）或 `open`；`discoverability` / `join_rule` 与 `external_federation` 由 deployment policy 决定。
+- 外部主体进入 MUST 经过组织 authority chain 或 verifiable credential 验证（详细规则见 [`sync/sovereign-deployment.md` §5–§6](../sync/sovereign-deployment.md)）。
+
+启用 `cx.profile.sovereign_deployment.v1` 的部署对 External Collaboration Realm 施加额外的强制约束（allowlist federation、独立 enclave、E2EE、deny-default applet/agent 等），规则见 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)。非 sovereign 部署下 External Collaboration Realm 仍须遵守 federation_policy / E2EE / capability 等普通 Realm 规则，但不强制 sovereign profile 的全部约束。
+
+#### 2.7.3 关系与正交轴
+
+- "Internal / External" 的判定轴是 **是否含跨信任域成员**，不是 hosting 在哪台 server 上：一个 Realm 由组织自己的 Principal Server 托管，但邀请了外部 Organization DID 的成员——它就是 External Collaboration Realm。
+- Sovereign deployment 对 External Collaboration Realm 加的那一组 policy 来自 `cx.profile.sovereign_deployment.v1`，是 **部署 profile** 决定的 policy 配置，不是另一种 Realm 类型。
+- PCR 永远是 Internal 的，不存在 "External PCR"：principal DID 与其 control Realm 1:1 绑定，跨域 PCR 在结构上不存在。
+- `security_class=high_assurance` 是横切标签，可叠加在 Internal / External Collaboration Realm 与 PCR 上，不属于本分类的一层节点。
+- 这套分类是 **prose / glossary 层** 的角色术语，便于跨章节统一指代；底层 schema、reducer、Anchor pipeline、Move 处理对三类一视同仁。
+
 ## 3. Space
 
 ### 3.1 概念

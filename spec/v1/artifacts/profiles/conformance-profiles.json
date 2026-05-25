@@ -299,7 +299,7 @@
   "profile_requirements": {
     "cx.profile.principal_control_realm.v1": {
       "role": "admin",
-      "description": "Realm profile for a principal-scoped durable control stream. It is an ordinary collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",
+      "description": "Realm profile for a principal-scoped durable control stream (the Principal Control Realm role; see zh/models/realm-and-space.md §2.7). It is an ordinary Collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",
       "required_endpoints": [
         "cx.events.submit",
         "cx.events.query",
@@ -361,7 +361,7 @@
           "control_event_kind_allowlist",
           "principal_control_binding_check"
         ],
-        "unsupported_optional": "Receivers that do not understand cx.profile.principal_control_realm.v1 MUST treat the Realm as an ordinary collaboration Realm and MUST NOT accept device/session/cross-signing state from it as principal control state."
+        "unsupported_optional": "Receivers that do not understand cx.profile.principal_control_realm.v1 MUST treat the Realm as an ordinary Collaboration Realm and MUST NOT accept device/session/cross-signing state from it as principal control state."
       },
       "realm_event_kind_policy": {
         "allowlist_only": true,

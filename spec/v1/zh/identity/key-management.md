@@ -181,15 +181,15 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 ### 4.1 Principal Control Event Stream
 
-设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意协作 Realm。Contrix v1 使用 **Principal Control Event Stream** 承载这些 durable identity state。
+设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Contrix v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#27-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.7 中正式分类）。
 
 当 `cx.device.authorize`、`cx.device.revoke`、`cx.device.list_update` 或 `cx.session.grant` 以 `cx.schema.event.v1` Event Envelope 传播时：
 
-- `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意协作 Realm 的 `realm_id`。
+- `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意 Collaboration Realm 的 `realm_id`。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
 - `payload.principal_id` / `payload.subject` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
 - control Realm 的 `cx.realm.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Realm MUST 使用 v1 标准 `kind=collaboration`，并通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `cx.profile.principal_control_realm.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走 collaboration kind 的标准路径。
-- 普通协作 Realm 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、policy server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该协作 Realm history 来改变身份状态。
+- 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、policy server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
 
 `principal_control_realm_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Realm 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
 

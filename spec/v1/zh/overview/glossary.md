@@ -33,7 +33,11 @@ see_also:
 | Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Realm history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
-| Realm | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Realm 为根。`cx:realm:` 永远是边界，不承担产品导航树职责。 |
+| Realm | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Realm 为根。`cx:realm:` 永远是边界，不承担产品导航树职责。底层只有一个 schema `cx.schema.realm.v1`；按用途分为 Principal Control Realm 与 Collaboration Realm 两类（见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）。 |
+| Collaboration Realm | 协作 Realm（角色） | Realm 的一种用途，承载多方业务协作状态（Flow / Message / Space / Morph / Relation 等）。与 Principal Control Realm 互补。按是否含跨信任域成员再分 Internal / External 两类。 |
+| Internal Collaboration Realm | 域内协作 Realm | Collaboration Realm 的一种：`federation_policy ∈ {closed, restricted}` 且成员仅来自本部署 trust domain。组织主网络上的普通项目 / 团队 Realm 默认属于此类。 |
+| External Collaboration Realm | 跨域协作 Realm | Collaboration Realm 的一种：含跨信任域成员（external Organization DID / external principal）。Sovereign deployment 中其 policy 受 `cx.profile.sovereign_deployment.v1` 进一步约束（allowlist federation、独立 enclave、E2EE、deny-default applet/agent；见 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)）。 |
+| Principal Control Realm | 主体控制 Realm（PCR） | Realm 的另一用途：与某 principal DID 1:1 绑定，承载该 principal 的身份基础设施事件（device / session / KeyPackage / recovery / profile / consent）。schema 层仍是 `cx.schema.realm.v1`，通过 `fields.purpose="principal_control"` + `schema_refs` 含 `cx.profile.principal_control_realm.v1` 标记 + 事件类型 allowlist 与一般 Collaboration Realm 区分。详见 [`identity/key-management.md` §4.1](../identity/key-management.md)。 |
 | Trust Domain | 信任域 | deployment / sovereign replay boundary，wire 形态为 `cx:trust_domain:<scope>`。它在 service describe、Realm create 和跨域 proof transcript 中绑定接收上下文；定义见 [`../identity/identity-did.md` §3.6](../identity/identity-did.md#36-trust-domain)。 |
 | Official Realm | 官方边界 | 由组织或 policy 明确确认的 Realm；它是治理 / 安全声明，不等同于用户可见的 Space。 |
 | Realm Link | Realm 关系边 | Realm 之间通过 `cx.realm.link` 表达的显式治理、发现、mirror、confidential extension、迁移等关系；不是 hierarchy，不默认级联权限或历史。 |

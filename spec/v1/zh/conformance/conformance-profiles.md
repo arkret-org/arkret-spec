@@ -417,10 +417,10 @@ MUST 支持：
 - 服务 DID allowlist
 - 默认 closed federation
 - 默认私有目录
-- 受控协作 Realm
+- 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md) 与 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)）
 - restricted 或 invite-only 外部加入
 - Policy Server `closed` 或 `quarantine` 失败模式
-- 受控协作默认 E2EE
+- sovereign deployment 下 External Collaboration Realm 默认 E2EE
 - MLS Welcome 只发给已批准的外部设备
 - 外部 Applet / Agent / transport allowlist
 - 跨域事件审计

@@ -32,7 +32,9 @@ updated: 2026-05-25
 
 轨道规则：
 
-- `discussion` 可独立启用或关闭
+- `synthesis` 与 `discussion` 都可独立启用或关闭；`tracks` map 只要求至少有一个 active track。「只聊天不归纳」（仅 `discussion`）和「只承载结构化正文不开讨论」（仅 `synthesis`）都是合法形态。
+- 关闭 track 用 `tracks.<name>.enabled: set false`（冻结新写入、保留历史），或从 map 中删除 key。primary track 不能空缺：若被关闭的是当前 primary，MUST 在同一 `cx.flow.tracks.update` patch 中把 primary 转给另一个 active track。
+- `discussion` 的额外护栏：reducer MUST NOT 隐式创建 `discussion` track——切换 primary 到 `discussion` 时，若该 track 尚未 enabled，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`。`synthesis` 没有此特殊约束（默认即标准 primary 候选，见 [`models/flow-and-message.md` §4.5](../models/flow-and-message.md)）。
 - 任何 track 启用、关停或切换 primary 通过单一 event `cx.flow.tracks.update`（payload 为 `cx.patch.v1` 形态）原子完成，不改变 `flow_id`；详见 [`models/flow-and-message.md` §4.8](../models/flow-and-message.md)。
 
 ## 4. 工作流容器

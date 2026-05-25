@@ -2442,7 +2442,7 @@
     },
     "consent_grant_payload": {
       "type": "object",
-      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell cx:cell:cx.component.consent.grant.v1:<consent_id> (or_set lattice); cx.consent.revoke writes a remove on the same cell. Lives in the holder's principal control Realm (or holder-private actor stream); MUST NOT be written to a shared collaboration Realm.",
+      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell cx:cell:cx.component.consent.grant.v1:<consent_id> (or_set lattice); cx.consent.revoke writes a remove on the same cell. Lives in the holder's Principal Control Realm (or holder-private actor stream); MUST NOT be written to a shared Collaboration Realm. Realm role taxonomy: zh/models/realm-and-space.md §2.7.",
       "required": [
         "consent_id",
         "peer",
