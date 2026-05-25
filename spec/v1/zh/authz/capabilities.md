@@ -1,6 +1,14 @@
 ---
 title: Capability Model
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -311,7 +319,7 @@ Contrix v1 支持：
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `realm_kind_allow`（v1 reserved / deprecated no-op：v1 中所有 Realm 同属一种安全边界,无 kind 区分,producer SHOULD NOT 发送；receiver MUST 忽略；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
+- `realm_kind_allow`（v1 reserved / deprecated no-op：v1 中所有 Realm 同属一种安全边界，无 kind 区分,producer SHOULD NOT 发送；receiver MUST 忽略；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
 - `space_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
@@ -486,7 +494,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 | 子 grant 字段 | 与 parent grant 关系 |
 | --- | --- |
 | `effective_not_before` | MUST ≥ `parent.effective_not_before` |
-| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent 在 v1 中不允许;若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `expires_at` 或 temporal `expires_at`，且 `effective_expires_at` ≤ `now + max_delegation_lifetime_ms`,默认 24 小时) |
+| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent 在 v1 中不允许；若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `expires_at` 或 temporal `expires_at`，且 `effective_expires_at` ≤ `now + max_delegation_lifetime_ms`,默认 24 小时) |
 | `max_delegation_depth` | MUST ≤ `parent.max_delegation_depth - 1` |
 | `actions[]` | MUST ⊆ `parent.actions[]` |
 | `resources[]` | MUST 是 `parent.resources[]` 的 selector-narrowing 子集(见 `resource-selector-grammar.md`) |
@@ -496,7 +504,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 ### 10.2 Cycle detection（normative）
 
-`cx.capability.delegate` event 的 `refs[]` 中包含 `role="parent_grant"` 引用作为父 grant id。Reducer **MUST** 把所有已 anchored 的 delegation 关系视为有向图,节点是 `grant_id`,边是 `(parent_grant_id, child_grant_id)`,并按下列算法做 cycle detection:
+`cx.capability.delegate` event 的 `refs[]` 中包含 `role="parent_grant"` 引用作为父 grant id。Reducer **MUST** 把所有已 anchored 的 delegation 关系视为有向图，节点是 `grant_id`,边是 `(parent_grant_id, child_grant_id)`,并按下列算法做 cycle detection:
 
 1. 收到新的 `cx.capability.delegate(child_grant_id, parent_grant_id)` 时,reducer 沿 parent chain 做 DFS,直到遇到无 parent 的 root grant 或深度 = `max_delegation_depth_observed`。
 2. 若在 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中(即新 grant 会 close 一条循环 path),reducer **MUST** 拒绝整条 delegation chain 上的本 Event,reason=`delegation_cycle`,不接受任何子 grant 即便它们单看 valid。
@@ -508,7 +516,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 ### 10.3 Revoke 因果传播
 
-`parent grant` 被 revoke 时,所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。具体行为见 [`event-auth-state-resolution.md` §8](./event-auth-state-resolution.md) 委托链 revocation 传播规则;本节只补充: revoke 与 freshness 不一致期间(receiver 已收到 revoke 但未达到 freshness windows),derived child grant 已发起的 in-flight Events 由 reducer 按 §6 fast-path freshness 表判定(parent freshness `unknown` 时 fail closed 适用于高风险 action)。
+`parent grant` 被 revoke 时，所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。具体行为见 [`event-auth-state-resolution.md` §8](./event-auth-state-resolution.md) 委托链 revocation 传播规则；本节只补充: revoke 与 freshness 不一致期间(receiver 已收到 revoke 但未达到 freshness windows),derived child grant 已发起的 in-flight Events 由 reducer 按 §6 fast-path freshness 表判定(parent freshness `unknown` 时 fail closed 适用于高风险 action)。
 
 上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Move MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或 Anchor frontier 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 

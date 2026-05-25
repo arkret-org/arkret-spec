@@ -1,6 +1,14 @@
 ---
 title: Push Notifications
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -291,7 +299,7 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
 3. **降级标记**：Sync Service 在 push payload 中携带 `evaluation_locus_unresolved=true`，让客户端知道"我已经被 wakeup 但匹配尚未在 server 端确定"。客户端 MUST 完成本地评估后才决定是否进入用户感知的通知 surface；不得仅凭 wakeup 就在 system tray 弹出。
 4. **明文 hint 限制**：E2EE Realm 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。默认 `blind_wakeup` 下，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`）或 `l10n_key`，不能携带匹配到的具体内容。即使 Realm policy 把 push gateway 列入 `plaintext_visible_services`，也只允许进入 §5.1 的 `visible_notification` profile；不得把该授权解释为放宽 `blind_wakeup` 的 metadata 限制。
 5. **限速降级**：E2EE Realm + client-side rule 多的 client 在高消息量场景会被持续 wakeup，电池负担显著。客户端 MUST 暴露 `aggressive_wakeup_threshold`（默认每 60 秒 ≤ 30 次）；超过阈值后切换到批量 wakeup 模式，Sync Service 把多个 wakeup 合并为单个 batch wakeup（仍携带 `evaluation_locus_unresolved=true`），客户端醒来一次评估全部待处理 Event。Realm policy MAY 要求所有设备注册 `client_rule_digest`；digest 不匹配或缺失时，server 只能按 `wakeup_default` 的更保守结果处理，不得猜测规则内容。
-6. **`mentions_actor` 通过 mention sidecar 提示**（可选,使用 keyed HMAC 形态）：严格 E2EE 默认走第 1-5 步 blind / batch wakeup。若 Realm policy 允许 `mention_routing_hint="recipient_registered_token"`，且被提及接收方已经为当前 `(realm_id, mls_group_id, epoch, pairwise_or_principal_id)` 向 Sync Service 注册 opaque routing token，发送者的客户端 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上,定义为:
+6. **`mentions_actor` 通过 mention sidecar 提示**（可选，使用 keyed HMAC 形态）：严格 E2EE 默认走第 1-5 步 blind / batch wakeup。若 Realm policy 允许 `mention_routing_hint="recipient_registered_token"`，且被提及接收方已经为当前 `(realm_id, mls_group_id, epoch, pairwise_or_principal_id)` 向 Sync Service 注册 opaque routing token，发送者的客户端 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上，定义为:
 
     ```text
     mention_routing_hmac_v2 =

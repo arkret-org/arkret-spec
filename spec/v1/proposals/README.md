@@ -1,5 +1,9 @@
 ---
 title: Contrix Proposals (CXP)
+status: candidate
+normative: false
+stability: v1
+updated: 2026-05-25
 ---
 
 # Contrix Proposals

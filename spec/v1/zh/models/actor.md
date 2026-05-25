@@ -1,6 +1,14 @@
 ---
 title: Actor & Actor Profile
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -53,7 +61,7 @@ Schema id: `cx.schema.actor_profile.v1`
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
 | `avatar_blob_ref` | no | `id:blob` |  | 头像。 |
 | `status` | no | `enum(active, soft_logged_out, locked, suspended, deactivated, erasure_pending)` | 账户生命周期 status 的 public projection，不复用 [`common-fields.md` §5](./common-fields.md) 的对象通用 state；具体语义、转移与允许的写入主体见 [`../identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)。 | 状态。 |
-| `accountable_to` | no | `array<did>` | agent/托管账号 SHOULD 设置;每个 DID 必须由对应 `cx.identity.accountability_grant` 背书,详见 §3.3.1。 | 责任主体。 |
+| `accountable_to` | no | `array<did>` | agent/托管账号 SHOULD 设置；每个 DID 必须由对应 `cx.identity.accountability_grant` 背书，详见 §3.3.1。 | 责任主体。 |
 | `profile_fields` | no | `object` | 不得包含未授权披露的私密 handle。 | 扩展展示字段。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
@@ -67,12 +75,12 @@ Schema id: `cx.schema.actor_profile.v1`
 
 ### 3.3.1 `accountable_to` 的可验证性（normative）
 
-`accountable_to` 是社工攻击面: actor 可以单方填入 `accountable_to: ["did:web:famous-org.example"]`,让其他客户端 / Directory UI 显示 "由 famous-org 担保" 的暗示信任,即便 famous-org 从未批准过。这对接收方做出"是否互动 / 是否接受邀请"的判断有真实影响。
+`accountable_to` 是社工攻击面: actor 可以单方填入 `accountable_to: ["did:web:famous-org.example"]`,让其他客户端 / Directory UI 显示 "由 famous-org 担保" 的暗示信任，即便 famous-org 从未批准过。这对接收方做出"是否互动 / 是否接受邀请"的判断有真实影响。
 
 因此 reducer **MUST** 校验:
 
 1. 写入 / 更新 `Actor Profile.accountable_to[]` 的 Event 提交时,reducer MUST 解析数组中**每个** DID,并检查是否存在已 anchored 的 `cx.identity.accountability_grant` event,其 `issuer = <该 DID>`、`subject = profile.principal_id`、`grant_status = "active"`、`not_before <= now <= expires_at`。
-2. 不存在对应 grant 的 DID 条目 MUST 被 reducer 从 accountable_to 中剔除(或整个 Event 以 `failed_precondition` reason=`accountability_grant_missing` 拒绝;部署 policy 可选其一,默认推荐"剔除 + audit log",见下方)。
+2. 不存在对应 grant 的 DID 条目 MUST 被 reducer 从 accountable_to 中剔除(或整个 Event 以 `failed_precondition` reason=`accountability_grant_missing` 拒绝；部署 policy 可选其一，默认推荐"剔除 + audit log",见下方)。
 3. accountability grant 被签发方 revoke 后,reducer **SHOULD** 在 freshness 窗口(默认 ≤ 1 小时)内把对应 actor profile 的 `accountable_to[]` 中该条目降级为 `unverified`(projection 层标记),并在下次 actor profile update 时移除。
 
 `cx.identity.accountability_grant` 字段:
@@ -81,9 +89,9 @@ Schema id: `cx.schema.actor_profile.v1`
 | --- | --- | --- |
 | `issuer` | did | 签发 accountability 担保的主体(`accountable_to[]` 中被声明的 DID) |
 | `subject` | did | 被担保的 actor principal(actor profile 的 `principal_id`) |
-| `scope` | string \| array | 担保范围(例如 `"employment"` / `"contracted_service"` / `"agent_operator"`);仅供 UI 与 governance 展示,不参与授权 |
+| `scope` | string \| array | 担保范围(例如 `"employment"` / `"contracted_service"` / `"agent_operator"`);仅供 UI 与 governance 展示，不参与授权 |
 | `not_before` | timestamp | 担保起始时间 |
-| `expires_at` | timestamp | 担保到期;过期后视作 unverified |
+| `expires_at` | timestamp | 担保到期；过期后视作 unverified |
 | `grant_status` | enum(active, revoked) | issuer 主动 revoke 改为 `revoked` |
 | `proof` | object | 由 `issuer` 的 active authentication key 签发 |
 
@@ -93,7 +101,7 @@ Schema id: `cx.schema.actor_profile.v1`
 - 客户端 UI **MUST NOT** 仅根据 actor profile 字面值显示信任暗示。
 - Directory / Search 投影把 `accountable_to` 作为过滤条件时 MUST 只对 verified 条目生效。
 
-**Why**: 没有这层校验时,actor 可以伪造任意大型组织或知名实体作为"担保人",借此社工诱导对端;有了 grant-based 校验,虚假声明会被 reducer 剔除,UI 不会显示信任暗示。
+**Why**: 没有这层校验时,actor 可以伪造任意大型组织或知名实体作为"担保人",借此社工诱导对端；有了 grant-based 校验，虚假声明会被 reducer 剔除,UI 不会显示信任暗示。
 
 ## 4. 跨链路引用对照
 

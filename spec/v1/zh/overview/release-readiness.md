@@ -1,5 +1,9 @@
 ---
 title: 实现就绪与发布门槛
+status: candidate
+normative: false
+stability: v1
+updated: 2026-05-25
 ---
 
 ## 1. 目标

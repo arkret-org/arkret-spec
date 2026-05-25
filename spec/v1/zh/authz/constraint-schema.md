@@ -1,6 +1,14 @@
 ---
 title: 授权约束 Schema
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 概述
 
@@ -384,12 +392,12 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 **Reducer normative**:
 
-1. reducer MUST 校验 approval signature 由 `approver_did` 的当前 active verification method 签发,且 verification method 在 `approved_at` 时间点未被 revoke;
+1. reducer MUST 校验 approval signature 由 `approver_did` 的当前 active verification method 签发，且 verification method 在 `approved_at` 时间点未被 revoke;
 2. reducer MUST 维护 per-(grant_id 或 proposal_id, approver_did) 的 nonce 集合; 同 `(approver_did, nonce)` 的二次提交 MUST 返回 `failed_precondition` reason=`approval_nonce_reused`;
-3. `timeout` 过期后,所有未达 threshold 的 approval signature MUST 被视为失效——后续即便补够数量,也 MUST 重新由 approver 在新 nonce 下重签;
+3. `timeout` 过期后，所有未达 threshold 的 approval signature MUST 被视为失效——后续即便补够数量，也 MUST 重新由 approver 在新 nonce 下重签;
 4. `approval_mode=before_commit` 与 `approval_mode=proposal_then_approve` 都适用本节; `after_commit_review`(若 profile 注册) 单独定义自己的 replay 边界。
 
-> **Why**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名,把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Realm / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的 sine qua non。
+> **Why**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名，把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Realm / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的 sine qua non。
 
 ## 10. 基于声明的约束（claim_based, subtype=claim）
 

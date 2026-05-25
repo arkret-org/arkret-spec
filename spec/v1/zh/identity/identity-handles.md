@@ -1,6 +1,14 @@
 ---
 title: Handle 与 Claim 证明
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -130,7 +138,7 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical URI 形态可以�
 
 | Issuer 类型 | 典型场景 | 验证锚点 |
 | --- | --- | --- |
-| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/contrix-did` 或 DNS TXT `_contrix.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `contrix://<domain>/users/<localpart>`；两侧均验签通过。 |
+| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 ` CODE0  或 DNS TXT `_contrix.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `contrix://<domain>/users/<localpart>`；两侧均验签通过。 |
 | **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:web:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
 | **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:web:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
 | **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；Directory 是镜像层，不是真相源。 |
@@ -249,7 +257,7 @@ Pairwise DID、临时 DID、设备 DID、agent 执行 DID 和隐私敏感关系 
 
 Handle 解析输入是 canonical `handle_uri = contrix://<domain>/users/<localpart>`（或 normalize 自显示形态）。客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
-1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/contrix-handle?u=<localpart>` 或等价的 `GET https://<domain>/.well-known/contrix-did`（向后兼容旧客户端按整体 handle 拉取）。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
+1. **`<domain>` 的 well-known**：`GET  CODE0  或等价的 `GET https://<domain>/.well-known/contrix-did`（向后兼容旧客户端按整体 handle 拉取）。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Principal Server 部署。
 2. **DNS TXT**：`_contrix.<domain>` 或 `_contrix.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
 3. **Directory / Organization 服务**：`POST /api/v1/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 Organization-specific endpoint。response 仍是签名 `cx.schema.handle_claim.v1`。

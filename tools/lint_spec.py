@@ -125,7 +125,8 @@ def lint_file(path: Path) -> list[Finding]:
 
     is_normative = bool(fm.get("normative"))
 
-    if is_normative and "normative-language.md" not in text:
+    is_self_normative_language = path.name == "normative-language.md"
+    if is_normative and not is_self_normative_language and "normative-language.md" not in text:
         findings.append(
             Finding(
                 path,
@@ -141,6 +142,7 @@ def lint_file(path: Path) -> list[Finding]:
         pass
 
     in_code = False
+    pending_ignore: set[str] = set()
     for idx, raw in enumerate(text.splitlines(), start=1):
         stripped = raw.strip()
         if stripped.startswith("```"):
@@ -151,6 +153,24 @@ def lint_file(path: Path) -> list[Finding]:
         # Skip frontmatter range.
         if idx <= body_offset:
             continue
+
+        # "<!-- lint-ignore: CODE,CODE -->" on its own line applies to the next
+        # non-blank, non-comment content line. Same-line comments apply to
+        # that line.
+        ignore_match = re.search(r"<!--\s*lint-ignore:\s*([A-Z0-9, ]+?)(?:\s*[—–-]\s.*?)?\s*-->", raw)
+        same_line_codes: set[str] = set()
+        if ignore_match:
+            codes = {c.strip() for c in ignore_match.group(1).split(",")}
+            stripped_no_comment = re.sub(r"<!--.*?-->", "", raw).strip()
+            if stripped_no_comment:
+                same_line_codes = codes
+            else:
+                pending_ignore |= codes
+                continue
+
+        ignored = same_line_codes | pending_ignore
+        if stripped:
+            pending_ignore = set()
 
         if CASUAL_HEADING_RE.match(raw):
             findings.append(
@@ -165,7 +185,8 @@ def lint_file(path: Path) -> list[Finding]:
 
         # Strip inline code spans before second-person / punctuation checks.
         scrubbed = re.sub(r"`[^`]*`", "", raw)
-        if SECOND_PERSON_RE.search(scrubbed):
+
+        if "ST002" not in ignored and SECOND_PERSON_RE.search(scrubbed):
             findings.append(
                 Finding(
                     path,
@@ -176,7 +197,7 @@ def lint_file(path: Path) -> list[Finding]:
                 )
             )
 
-        if MIXED_PUNCT_RE.search(scrubbed):
+        if "PU001" not in ignored and MIXED_PUNCT_RE.search(scrubbed):
             findings.append(
                 Finding(
                     path,

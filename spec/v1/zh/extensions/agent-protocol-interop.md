@@ -1,5 +1,9 @@
 ---
 title: Agent Protocol Interop and Upgrade
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 sidebar:
   label: Agent Protocol Interop
 ---
@@ -10,6 +14,10 @@ sidebar:
 > 仅作为 actor + capability 出现，外协议升级在标准成熟前由 `cx.profile.agent_runtime.v1`
 > 单独承载，且视为可选 interop extension profile（见 `artifacts/profiles/conformance-profiles.json`
 > 的 `profile_tiers.extension_profile_implementation`）。
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 

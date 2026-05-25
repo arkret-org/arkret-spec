@@ -1,8 +1,16 @@
 ---
 title: Encoding, IDs, Hashes, Signatures
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 sidebar:
   label: Encoding & IDs
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -557,9 +565,9 @@ payload_digest = sha256(canonical_json(cleartext_metadata) || ciphertext_bytes)
 
 任何在 v1 wire 上承载 AEAD 加密内容的 envelope（`encrypted_payload`、blob attachment、`to_device` payload 等）MUST 满足 AEAD nonce 唯一性 contract：
 
-- **绝对禁止**:在同一 `key_ref` 下重用 nonce — AEAD 在 nonce 复用时机密性 + 完整性同时被打破,影响所有曾用该 (key, nonce) 加密的密文。
+- **绝对禁止**:在同一 `key_ref` 下重用 nonce — AEAD 在 nonce 复用时机密性 + 完整性同时被打破，影响所有曾用该 (key, nonce) 加密的密文。
 - **派生形态**:nonce MUST 从 MLS exporter secret 派生的 `nonce_key` 与 per-device `(device_id, monotonic_counter)` 通过 HMAC 派生而来; exporter context MUST 绑定 canonical `key_ref`、MLS `epoch` 和 AEAD purpose,具体公式与字段 schema 见 [`crypto-media/media-and-blob.md` §3.1](../crypto-media/media-and-blob.md)。
 - **不允许 fallback 到 random**:96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率;Contrix MLS application key 跨多设备共享,naive random nonce **不满足** v1 normative。
-- **接收方 replay 防护**:接收方 MUST 维护 per-`(key_ref, epoch, device_id)` 已见 counter 集合或等价无误判结构,重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
-- **AAD binding**:AEAD AAD MUST 绑定 `(key_ref, ciphertext_digest, nonce)` canonical 形态,防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密。
+- **接收方 replay 防护**:接收方 MUST 维护 per-`(key_ref, epoch, device_id)` 已见 counter 集合或等价无误判结构，重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
+- **AAD binding**:AEAD AAD MUST 绑定 `(key_ref, ciphertext_digest, nonce)` canonical 形态，防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密。
 - **不同 AEAD 用途独立 nonce 域**:`label` 输入 MUST 至少包含 purpose 子域(例如 `"contrix-aead-nonce-derivation-v1"` + purpose),避免 `blob-attachment` 与 `to-device` 共享 nonce 计数器。

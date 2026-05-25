@@ -1,6 +1,14 @@
 ---
 title: Transport Bindings
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -67,7 +75,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.events.query` | 按 actor / Realm / cursor 双向查询 Event（替代旧 `cx.events.list` + `cx.sync.backfill`）。 |
 | `cx.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay（替代旧 `cx.sync.subscribe`）。 |
 | `cx.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
-| `cx.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流;与 `cx.events.subscribe` 对称)。 |
+| `cx.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `cx.events.subscribe` 对称)。 |
 | Federation push（复用 `cx.events.submit` + service_signature） | 联邦推送复用 `POST /api/v1/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
 | Federation pull / backfill（复用 `cx.events.query` + service_signature） | 跨域历史回补复用 `GET /api/v1/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
 | `cx.directory.search_realms` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |

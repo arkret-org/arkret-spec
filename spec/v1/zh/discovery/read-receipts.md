@@ -1,13 +1,21 @@
 ---
 title: "Read Receipts & Markers"
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
 在即时通讯与协作中，“已读”状态是消除信息不对称的关键。Contrix 协议将“已读”分为两种机制：
 
-1. **Read Receipt (已读回执)**：公开的或共享的，让**其他人**知道你已经读到哪条消息。
-2. **Read Cursor (已读游标)**：私有的，让你自己的**多端设备**同步你的阅读进度。
+1. **Read Receipt (已读回执)**：公开或共享的，让**其他人**知道某 actor 已读至哪条消息。
+2. **Read Cursor (已读游标)**：私有的，用于 actor **多端设备**之间同步阅读进度。
 
 本规范定义了这两种机制的触发与同步方式。
 
@@ -115,7 +123,7 @@ Realm MAY 通过 `cx.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 ## 3. Read Cursor (私有游标)
 
-Read Cursor 用于多设备同步（例如你在手机上看了消息，电脑端不应再显示未读红点）。这是纯纯的**私有状态**。
+Read Cursor 用于同一 actor 多设备之间的进度同步（例如手机端已读后，桌面端不再显示未读红点）。它是 actor 的**私有状态**。
 
 ### 3.1 存储位置
 

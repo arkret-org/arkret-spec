@@ -1,6 +1,14 @@
 ---
 title: Morph
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -75,7 +83,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 ## 4. Morph 类型系统合并优先级
 
-> Machine-readable canonical: [`artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json) 。下表与该 artifact 双向同步;有歧义时以 artifact 为准,本表为人类可读视图。
+> Machine-readable canonical: [`artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json) 。下表与该 artifact 双向同步；有歧义时以 artifact 为准，本表为人类可读视图。
 
 ### 4.0 决策矩阵 (Normative summary)
 

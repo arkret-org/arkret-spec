@@ -1,6 +1,9 @@
 ---
 cxp: CXP-0007
 title: Circle — intra-Realm cryptographic sub-boundary primitive
+normative: false
+stability: v1
+updated: 2026-05-25
 status: accepted
 created: 2026-05-25
 authors:

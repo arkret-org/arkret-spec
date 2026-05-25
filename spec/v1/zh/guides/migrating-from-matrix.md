@@ -1,5 +1,9 @@
 ---
 title: 从 Matrix 迁移到 Contrix
+status: candidate
+normative: false
+stability: v1
+updated: 2026-05-25
 ---
 
 > 本文档原位于 `overview/matrix-core-differences.md`，于 2026-05-24 迁移到 `guides/` 并改名为 `migrating-from-matrix.md`。读者群从"协议概览读者"调整为"已熟悉 Matrix 并计划迁移或对接的实现者"，定位更准确。

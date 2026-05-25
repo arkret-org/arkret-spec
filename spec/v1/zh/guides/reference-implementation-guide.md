@@ -1,5 +1,9 @@
 ---
 title: Reference Implementation Guide
+status: candidate
+normative: false
+stability: v1
+updated: 2026-05-25
 sidebar:
   label: Reference Impl
 ---

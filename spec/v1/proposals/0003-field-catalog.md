@@ -1,6 +1,9 @@
 ---
 cxp: CXP-0003
 title: Field Catalog (typed custom fields)
+normative: false
+stability: v1
+updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:

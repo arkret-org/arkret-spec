@@ -1,6 +1,14 @@
 ---
 title: Event, Proof, Patch & Receipt
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -206,11 +214,11 @@ escape         = "\" ( '"' / "\" / "/" / "b" / "f" / "n" / "r" / "t" / "u" 4HEXD
 
 具体约束：
 
-- `identifier` 与 `key-name` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`(snake_case,首字符必须小写字母,长度 ≤ 64);
+- `identifier` 与 `key-name` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`(snake_case,首字符必须小写字母，长度 ≤ 64);
 - `selector-value` MUST 是合法的 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JCS canonical JSON string,**包括外层 ASCII 双引号**,内部按 JCS 转义规则 (`\"` / `\\` / `\/` / `\b` / `\f` / `\n` / `\r` / `\t` / `\uXXXX`);
 - selector-value 内字面 `]`、`[`、`=`、`"`、`\` MUST 出现为 `\uXXXX` 或对应反斜杠转义形式;
 - `quoted-identifier` 用于字段名包含非 snake_case 字符的特殊场景(v1 标准 schema 不应使用),字面 backtick 必须 escape 成连续两个 backtick;
-- 默认仅支持对象路径,不支持数字数组下标。
+- 默认仅支持对象路径，不支持数字数组下标。
 
 #### 4.2.2 Parser 责任
 
@@ -224,7 +232,7 @@ reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、
 - selector 值按 canonical JSON string 解析后用于精确比较;
 - 匹配 0 项时 `set` / `add` MUST reject (`failed_precondition`, reason=`patch_selector_no_match`);
 - 匹配多项表示对象已违反 schema 的 uniqueness 约束,reducer MUST fail closed (`failed_precondition`, reason=`patch_selector_ambiguous`);
-- Flow `tracks` 在 v1 是 map(key 即 track 名),patch path 直接使用普通对象段,例如 `tracks.discussion.profile`,不需要 selector。
+- Flow `tracks` 在 v1 是 map(key 即 track 名),patch path 直接使用普通对象段，例如 `tracks.discussion.profile`,不需要 selector。
 
 #### 4.2.4 Op 与 redactable 字段交互（normative）
 
@@ -243,8 +251,8 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 
 - `unset` 不允许带 `value`(空 value object MUST 视作 `{"$op":"unset"}`);
 - `set`、`add`、`remove` 必须带 `value`;
-- 客户端不能把数字数组下标写入 path; 如需更新无 stable key 的列表元素,必须将对象重建为具名集合项、用 profile 注册的 move/update event,或使用明确的 API 约束字段表示更新目标;
-- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `realm_id` / `created_by` / `created_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改;见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。
+- 客户端不能把数字数组下标写入 path; 如需更新无 stable key 的列表元素，必须将对象重建为具名集合项、用 profile 注册的 move/update event,或使用明确的 API 约束字段表示更新目标;
+- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `realm_id` / `created_by` / `created_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改；见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。
 
 ### 4.3 在 Event 中的位置
 

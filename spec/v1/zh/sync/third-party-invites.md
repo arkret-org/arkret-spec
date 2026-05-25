@@ -1,6 +1,14 @@
 ---
 title: Third-Party Invites
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -62,7 +70,7 @@ title: Third-Party Invites
 
 - URL query / path 会被 HTTP `Referer` 头泄露给第三方页面;
 - 浏览器历史、邮件预览爬虫、URL preview 服务、HTTP access log、CDN log、SMTP gateway log 都会无差别记录 query / path;
-- fragment 段不会随 HTTP 请求发送给服务端,也不进入 Referer 头;
+- fragment 段不会随 HTTP 请求发送给服务端，也不进入 Referer 头;
 - 这条规则与 [`api-conventions.md` §3](./api-conventions.md) 的 URL credential taxonomy 一致：invite token 是 capability-equivalent material，但 `#token=` 只是客户端 handoff，不是服务端认证入口。客户端读取 fragment 后 MUST 通过 JSON body 或 signed proof 提交 claim，MUST 使用 `history.replaceState` 或等价机制清除地址栏 fragment，且 MUST NOT 将 token 写入 route state、analytics、crash report、普通日志、local storage 或浏览器历史。
 
 **Canonical 示例**（fragment 形式）：

@@ -1,6 +1,14 @@
 ---
 title: Flow & Message
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -266,7 +274,7 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
 }
 ```
 
-整个变更作为**原子 Move** 在同一 cell precondition / effect 中完成,避免中间态被其它 actor 抢写。
+整个变更作为**原子 Move** 在同一 cell precondition / effect 中完成，避免中间态被其它 actor 抢写。
 
 **Capability**: `cx.flow.tracks.manage` 一个 action 覆盖该 event。
 

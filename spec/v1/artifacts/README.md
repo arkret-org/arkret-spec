@@ -1,5 +1,9 @@
 ---
 title: Artifacts
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
 
 `artifacts/` 存放 Contrix 的机器可读协议契约（machine-readable contract）。

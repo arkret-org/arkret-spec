@@ -1,6 +1,9 @@
 ---
 cxp: CXP-0005
 title: Workflow State Machine (per-Realm status)
+normative: false
+stability: v1
+updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:

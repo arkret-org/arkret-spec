@@ -1,14 +1,22 @@
 ---
 title: Standard Event and Object Schema Registry
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 sidebar:
   label: Schema Registry
 ---
 
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+
 ## 1. 目标与真源
 
 > **本文是 generated documentation view,不是 schema/event 真源。**
-> 下方的 schema id 表与 event kind 表由 `artifacts/registry/*.json` 渲染得到;两者不一致时 **JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。
-> 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 各 `*-registry.json` 与本文表格一并刷新;不得只手工编辑本文表格。
+> 下方的 schema id 表与 event kind 表由 `artifacts/registry/*.json` 渲染得到；两者不一致时 **JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。
+> 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 各 `*-registry.json` 与本文表格一并刷新；不得只手工编辑本文表格。
 
 字段级结构定义见 `../models/common-fields.md` 及各对象专属文件（`realm-and-space.md` / `flow-and-message.md` / `morph.md` / `relation.md` / `actor.md` / `governance-objects.md` / `private-objects.md` / `event-and-patch.md`）。
 

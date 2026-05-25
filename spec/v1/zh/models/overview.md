@@ -13,6 +13,10 @@ see_also:
   - conformance/normative-language.md
 ---
 
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+
 ## 1. 目标
 
 Contrix 的核心数据模型是一张以 Realm 为边界、以标准对象和开放 Morph 共同组成的可审计协作图。本目录定义协作图中所有标准对象的语义、字段、行为与互相之间的关系。

@@ -1,6 +1,9 @@
 ---
 cxp: CXP-0000
 title: Proposal Template (Do Not Edit)
+normative: false
+stability: v1
+updated: 2026-05-25
 status: draft
 created: 2026-05-23
 authors:

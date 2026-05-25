@@ -1,5 +1,8 @@
 ---
 title: Contrix Protocol (English)
+status: candidate
+stability: v1
+updated: 2026-05-25
 normative: false
 translation_tracking: CXP-EN-MIRROR
 ---

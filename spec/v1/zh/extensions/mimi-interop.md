@@ -1,5 +1,9 @@
 ---
 title: MIMI Interoperability
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
 
 > **状态：interop extension profile（非 v1 core 互操作必需）**。本文档描述的 MIMI Provider Facade 跟踪的
@@ -7,6 +11,10 @@ title: MIMI Interoperability
 > facade；声称 `cx.profile.principal_server.v1` 或 `cx.profile.full_client.v1` 的实现
 > 可以完全不实现本 profile。当 MIMI 升级为 RFC 后，将以新的 `cx.profile.mimi_interop_<rfc>.v1`
 > 引入稳定 profile；当前 `cx.profile.mimi_interop.v1` 视为实验性 interop extension profile。
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 

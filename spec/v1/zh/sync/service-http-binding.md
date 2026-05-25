@@ -1,6 +1,14 @@
 ---
 title: Service HTTP/JSON Binding
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -91,12 +99,12 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/events/subscribe` | query `{realms?: id[], actors?: did[], after?: cursor, catchup?: boolean}` | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-realm `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, realm_id?: id, cursor?: cursor, payload?: object}` |
 | `GET /api/v1/events/frontier` | query `{actor_id?: did, realm_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Realm 或 private DID。 | `{frontier, receipts?}` |
 | `POST /api/v1/ephemeral` | body `cx.schema.ephemeral_envelope.v1` (`kind` ∈ `cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`) | `user_session` 或 service signature；actor 必须可在 `realm_id` 的 ephemeral channel 中广播该 kind，并持有对应 `cx.presence.broadcast` / `cx.typing.broadcast` / `cx.receipt.broadcast` / `cx.call.signal.send` action。 | `{accepted: true, kind, realm_id, dispatched_to?, server_received_at?}`；不生成 Event ID、不推进 actor_seq / Realm frontier。 |
-| `GET /api/v1/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object, set_presence?: enum}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts) streaming NDJSON 推送,不是裸事件读。 | `application/x-ndjson` AccountSubscribeFrame 流;frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`。 |
+| `GET /api/v1/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object, set_presence?: enum}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts) streaming NDJSON 推送，不是裸事件读。 | `application/x-ndjson` AccountSubscribeFrame 流;frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`。 |
 | `POST /api/v1/account/cursor/revoke` | body `{cursor: cursor, reason_code: string, revoke_scope?: enum(this_cursor,same_device,same_session)}` | `user_session` bound to principal/device；high-assurance optional profile。 | `{revoked: boolean, expires_at: datetime}`；撤销命中后的 cursor 使用返回 `cursor_revoked`，不得推进任何 server-side state。 |
 | `GET /api/v1/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
 | `GET /api/v1/snapshot/head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`、`created_by`、`created_at`、`authority_binding`（与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）。high-assurance profile MUST 校验 `authority_binding` 证明 `created_by` 在 `created_at` 时被 Realm policy / witness quorum 授权。 | `{snapshot_ref, state_digest, frontier, event_set_commitment, created_by, created_at, authority_binding, verification_hints?, signature}` |
 | `GET /api/v1/projection/spaces` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | `user_session` 或服务签名；调用方必须满足该 Realm 的 metadata/read 可见性。 | `{realm_id, spaces[], total, next_cursor?, has_more}`；`spaces[]` 行含 `space_id, realm_id, kind, title, parent_ref?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
-| `GET /api/v1/projection/flows` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, flows[], total, next_cursor?, has_more}`；`flows[]` 行含 `flow_id, realm_id, title?, summary?, board_space_id?, list_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。`board_space_id/list_space_id/rank` 是从 `cx.component.flow.position.v1` cell 派生的只读 view 字段,不是 Flow object 的 canonical truth。 |
+| `GET /api/v1/projection/flows` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, flows[], total, next_cursor?, has_more}`；`flows[]` 行含 `flow_id, realm_id, title?, summary?, board_space_id?, list_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。`board_space_id/list_space_id/rank` 是从 `cx.component.flow.position.v1` cell 派生的只读 view 字段，不是 Flow object 的 canonical truth。 |
 | `GET /api/v1/projection/morphs` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, morphs[], total, next_cursor?, has_more}`；`morphs[]` 行含 `morph_id, realm_id, morph_type, title?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
 | `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `ServiceDescribe`；directory resource / discovery capability 放入 `supported_features` / `limits` / 扩展字段。 |
 | `POST /api/v1/directory/search-realms` | body `{query?: string, organization_did?: did, source_realm_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?, has_more}` |
@@ -140,7 +148,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/keys/keypackages/revoke` | body `{keypackage_ref, reason?}` | `user_session` + 当前 device proof;不可撤销已消费的 KeyPackage。 | `{ok: true, revoked_at}` |
 | `POST /api/v1/directory/announce` | body `{resource_kind, resource_id, discoverability, signatures[]}` | `user_session` 或 `service_signature` 视 resource_kind;principal MUST 签发 announcement 凭据。 | `{ok: true, announcement_id, expires_at?}` |
 | `POST /api/v1/directory/withdraw` | body `{announcement_id, reason?}` | `user_session`;只能撤销自己签发的 announcement。 | `{ok: true, withdrawn_at}` |
-| `POST /auth/account/session-grants` | body `SessionGrantRequest {principal_id, device_id?, requested_scope?, proof}` | DID-bound signature / paired device proof / passkey assertion / OIDC code exchange proof；此 endpoint **不**挂在 `/api/v1` 下，SDK MUST 走 path-level `servers: https://{host}` 覆盖。请求体 proof MUST 绑定 challenge、audience、request canonical hash、principal 与 device。 | `SessionGrantResponse {principal_id, device_id?, session_grant, expires_at, granted_scope?}` |
+| `POST /auth/account/session-grants` | body `SessionGrantRequest {principal_id, device_id?, requested_scope?, proof}` | DID-bound signature / paired device proof / passkey assertion / OIDC code exchange proof；此 endpoint **不**挂在 `/api/v1` 下，SDK MUST 走 path-level `servers:  CODE0  覆盖。请求体 proof MUST 绑定 challenge、audience、request canonical hash、principal 与 device。 | `SessionGrantResponse {principal_id, device_id?, session_grant, expires_at, granted_scope?}` |
 | `POST /auth/account/device-pair` | body `{pairing_code, new_device_pubkey, challenge_signature}` | `user_session` + existing device proof + freshly minted pairing code(短 TTL, one-time, audience-bound to this Auth Server origin); endpoint 与 session-grants 同一部署本地 namespace；服务端 MUST 对 `(principal_id, source_device_id, target_origin)` 限速并防重放。 | `{device_id, authorized_event_ref}` |
 | `POST /auth/account/oidc/callback` | body `AccountOidcCallbackRequest {state, code, nonce?, redirect_uri?}` | `public_metadata` 的回调入口(OIDC IdP 重定向);服务端 MUST 校验 `state` / `nonce` / `redirect_uri` 并把外部主体映射到 Contrix principal。 | `AccountOidcCallbackResponse {principal_id, session?}` 或 `{redirect_url}` |
 | `GET /admin/server/status` | query none | `admin_bearer`(MUST 是 admin role 的 user_session)。该 endpoint **不**挂在 `/api/v1` 下。 | `{service_did, build, uptime_seconds, registry_versions, queues?}` |
@@ -157,9 +165,9 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/mimi/consent/update` | body MIMI consent update body | `service_signature` 或 `user_session`。 | `{ok: true, applied_at}` |
 | `POST /api/v1/mimi/identifiers/query` | body `{identifiers[], proof?}` | `service_signature` 或 `user_session`;不得用于枚举攻击,query MUST 限速。 | `{results[], has_more}` |
 | `POST /api/v1/mimi/report-abuse` | body MIMI abuse report body | `user_session` 或 `service_signature`;同 `cx.moderation.report` 互补。 | `{report_id, routed_to?}` |
-| `POST /api/v1/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用;不接受 user_session。 | `{relayed: true, expires_at?}` |
+| `POST /api/v1/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用；不接受 user_session。 | `{relayed: true, expires_at?}` |
 
-> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 87 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中;之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
+> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 87 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中；之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
 
 跨域 actor 验证响应（通过 `/api/v1/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy；不得把对端"验证通过"当成最终授权依据。
 
@@ -186,7 +194,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.events.query_post` | body 至少一个：`realms: id[]` 或 `actors: did[]` | `before: cursor`; `after: cursor`; `order: enum(default,ascending,descending)=default`; `limit: int`; `filters: object` | 与 `cx.events.query` 同 | `cx.events.query` 的 HTTP POST/body binding variant（registry `binding_variant_of="cx.events.query"`）。语义、selector 规则、默认顺序、响应 cursor 含义、错误码与 GET 形态完全一致；仅 wire 形态从 query string 变为 JSON body。**何时使用**：`realms[]` / `actors[]` 较大、`filters` 较复杂、或部署侧记录 access log 时担心 query string 泄露 filter 内容。gRPC / MQ 不需要单独绑定（统一走 `Events/Query`）。 |
 | `cx.events.subscribe` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.after: cursor`; `query.catchup: boolean=false` | stream frame: `kind: enum(event,frontier,heartbeat,catchup_complete,epoch_rotation,dropped,resync_required,unauthorized)`; `realm_id: id?`; `cursor: cursor?`; `payload: object?` | 同 `cx.events.query` 逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性。`after=<cursor>` 是订阅起点（不含 cursor 本身），与 `cx.events.query` 的 `after=` 同义；subscribe 天然只走未来方向，不接受 `before=` / `order=`。`catchup=true` 只表示从 `after=` 到当前 frontier 的追赶 replay，不表示全量历史；缺省或无 `after` 时只进入 live tail。某 realm 中途授权丢失 MUST 发出 `unauthorized` 帧并继续其他 realm；该帧 payload 至少包含 `reason_code`、`selector`、`retry_after_ms?`，不得包含不可见 Realm 标题、成员或 actor 集合。服务端因容量丢弃发出 `dropped` 帧，客户端必须 reconcile。 |
 | `cx.events.frontier` | 至少一个：`query.actor_id: did` 或 `query.realm_id: id` | `query.peer_role: enum(account_client, federation_peer, anonymous_health) = account_client` | `frontier: object`; `receipts: object[]?`; `frontier_root: hash?`; `actor_seq_upper_bounds: object?`; `signature: object?`; `cache_until: datetime?`; `retry_after_ms: int?` | 统一 operation 同时承载 public Events API 与 federation peer frontier probe（federation.md §4.5.1）；`peer_role=federation_peer` MUST 通过 §3 节点间认证 + Realm service binding（`sync_endpoints` 或等价 policy facet）中的 `federation_peer` 角色校验，响应携带完整 `frontier_root` / `actor_seq_upper_bounds` / `signature`；`peer_role=anonymous_health` MUST 仅返回 `frontier_root` 摘要，并携带 `cache_until` 或 `retry_after_ms` 之一以约束轮询频率，服务端 MUST 对 `(realm_id, source_prefix)` 限速。普通 `account_client` 维持既有响应。不得泄露不可见 Realm 或 private DID。 |
-| `cx.account.subscribe` | 无 | `query.after: cursor`; `query.catchup: boolean=false`; `query.filter: object`; `query.set_presence: enum(online,offline,unavailable)` | NDJSON 流,每行一个 `AccountSubscribeFrame`(`kind: delta / catchup_complete / frontier / heartbeat / dropped / resync_required / unauthorized`,`delta` 含 `cursor` + `realms?` + `to_device?` + `account_data?` + `device_lists?` + `presence?` + `notifications?`) | `user_session` 必须绑定 principal/device。聚合账号视角 delta streaming push;裸事件读用 `cx.events.query` / `cx.events.subscribe`。`cursor` 是 stream purpose。Initial sync 使用 `catchup=true` 且省略 `after`;baseline 不是完整历史。 |
+| `cx.account.subscribe` | 无 | `query.after: cursor`; `query.catchup: boolean=false`; `query.filter: object`; `query.set_presence: enum(online,offline,unavailable)` | NDJSON 流，每行一个 `AccountSubscribeFrame`(`kind: delta / catchup_complete / frontier / heartbeat / dropped / resync_required / unauthorized`,`delta` 含 `cursor` + `realms?` + `to_device?` + `account_data?` + `device_lists?` + `presence?` + `notifications?`) | `user_session` 必须绑定 principal/device。聚合账号视角 delta streaming push;裸事件读用 `cx.events.query` / `cx.events.subscribe`。`cursor` 是 stream purpose。Initial sync 使用 `catchup=true` 且省略 `after`;baseline 不是完整历史。 |
 | `cx.account.cursor_revoke` | `cursor: cursor` | `reason_code: string`; `revoke_scope: enum(this_cursor,same_device,same_session)=this_cursor` | `revoked: boolean`; `expires_at: datetime` | High-assurance optional profile；撤销 cursor authority，详见 [`client-sync.md` §12.2.1](./client-sync.md)。 |
 | `cx.account.describe` | 无 | 无 | `ServiceDescribe` | 私有 frontier 可认证后作为扩展字段返回。 |
 | `cx.ephemeral.send` | body `cx.schema.ephemeral_envelope.v1` | `proof: object`（按 kind 需要）；payload 内 kind-specific 字段 | `accepted: boolean`; `kind: string`; `realm_id: id`; `dispatched_to: int?`; `server_received_at: datetime?` | broadcast ephemeral channel；只承载 `cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`，并分别要求 `cx.presence.broadcast` / `cx.typing.broadcast` / `cx.receipt.broadcast` / `cx.call.signal.send`。MUST NOT 写入 durable Event history，MUST NOT 推进 actor_seq / Realm frontier。拒绝码包括 `ephemeral_kind_not_permitted`、`ephemeral_ttl_out_of_range`、`ephemeral_channel_unavailable`。 |
@@ -537,13 +545,13 @@ GET /api/v1/account/subscribe?after=<cursor>                        # live tail 
 GET /api/v1/account/subscribe?after=<cursor>&catchup=true           # reconnect / dropped catch-up
 ```
 
-该端点对应 `cx.account.subscribe`,wire 形态是长连接 NDJSON 流。客户端建立长连接后,服务端按 account / Realm filter 推送 `delta` frame(跨 Realm delta + to_device + account_data + device_lists + presence + notifications)与控制 frame(`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`)。请求参数、frame schema 与重连规则见 [`client-sync.md`](./client-sync.md) §2。
+该端点对应 `cx.account.subscribe`,wire 形态是长连接 NDJSON 流。客户端建立长连接后，服务端按 account / Realm filter 推送 `delta` frame(跨 Realm delta + to_device + account_data + device_lists + presence + notifications)与控制 frame(`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`)。请求参数、frame schema 与重连规则见 [`client-sync.md`](./client-sync.md) §2。
 
-它与 `cx.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log),共享 cursor / `dropped` / `resync_required` 控制模型,但恢复面不同:`account.subscribe` 的 `dropped` 用 `GET /account/subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;裸 Event 缺口才使用 `cx.events.query`。`catchup=true` 不表示全量历史;完整历史读取必须走 `cx.events.query`。它不是裸事件读取——裸事件读取请使用 `cx.events.query` / `cx.events.subscribe`。
+它与 `cx.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log),共享 cursor / `dropped` / `resync_required` 控制模型，但恢复面不同:`account.subscribe` 的 `dropped` 用 `GET /account/subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;裸 Event 缺口才使用 `cx.events.query`。`catchup=true` 不表示全量历史；完整历史读取必须走 `cx.events.query`。它不是裸事件读取——裸事件读取请使用 `cx.events.query` / `cx.events.subscribe`。
 
 ## 6. Snapshot API
 
-`/snapshot/*` 提供 Realm snapshot manifest 入口；snapshot 是派生的当前态缓存,客户端使用前 MUST 校验签名、签名者授权、`state_digest` 和每个 chunk digest（见 [`service-surface.md` §11](./service-surface.md)）。
+`/snapshot/*` 提供 Realm snapshot manifest 入口；snapshot 是派生的当前态缓存，客户端使用前 MUST 校验签名、签名者授权、`state_digest` 和每个 chunk digest（见 [`service-surface.md` §11](./service-surface.md)）。
 
 ### 6.1 当前 snapshot manifest（`cx.snapshot.head`）
 
@@ -551,7 +559,7 @@ GET /api/v1/account/subscribe?after=<cursor>&catchup=true           # reconnect 
 GET /api/v1/snapshot/head?realm_id=<id>
 ```
 
-该端点对应 `cx.snapshot.head`，返回当前推荐 snapshot manifest 指针（不含 chunk bytes）。客户端通过 manifest 中的 `chunks[].chunk_ref` 走 blob surface 取实际数据。snapshot 不是真相源,校验失败时客户端 MUST 回退到 Event history replay。
+该端点对应 `cx.snapshot.head`，返回当前推荐 snapshot manifest 指针（不含 chunk bytes）。客户端通过 manifest 中的 `chunks[].chunk_ref` 走 blob surface 取实际数据。snapshot 不是真相源，校验失败时客户端 MUST 回退到 Event history replay。
 
 ## 7. Directory API
 

@@ -1,5 +1,9 @@
 ---
 title: Conformance Vectors
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
 
 本文整合所有 v1 conformance 测试向量，按域分组：
@@ -13,6 +17,10 @@ title: Conformance Vectors
 可执行向量数据集位于 [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/)；
 本文档把对应规范条款与文件入口集中呈现，便于一致性测试 runner 引用。
 所有 `cx.vector.*` 标识符的机器索引位于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；新增、删除或重命名向量时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 的闭包校验。
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. Encoding & Crypto Vectors
 

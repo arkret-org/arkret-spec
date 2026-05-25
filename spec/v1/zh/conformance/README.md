@@ -1,11 +1,19 @@
 ---
 title: Contrix v1 一致性工件索引
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
 
 本目录是 Contrix v1 一致性规范的 normative prose 入口。它只承载文字化规范，
 不再保存 schema / fixture 镜像副本——canonical machine artifact 唯一来源是
 [`spec/v1/artifacts/`](../../artifacts/README.md)，由 `tools/artifact_pipeline.py`
 管理。
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 文档清单
 

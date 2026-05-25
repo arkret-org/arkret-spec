@@ -1,11 +1,19 @@
 ---
 title: TSP Integration
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
 
 > **状态：interop extension profile（非 v1 core 互操作必需）**。Contrix v1 core 默认使用
 > HTTPS JWE / MLS DM 进行跨主体可信传输。Trust over IP 框架的 Trust Spanning Protocol
 >（TSP）是可选的 metadata-privacy 增强 transport；v1 core 实现 **不要求** 实现本文档。
 > 当 TSP 实现成熟后将以独立 interop profile 承载稳定 wire 形态。
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 

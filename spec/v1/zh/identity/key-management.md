@@ -1,6 +1,14 @@
 ---
 title: Key Management
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -247,9 +255,9 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
 
 #### 5.0.5 `personal_node`(`did:web`) → `small_team`(`did:webvh`) 跨 method 安全升级
 
-**问题**: `personal_node` 阶段的 `did:web` inception 只受 hosting domain DNS/TLS 保护;若用户在注册期间 DNS 被劫持,攻击者可写入伪造 inception(并控制 inception key)。一旦该 principal 直接"无审"升级到 `small_team` 的 `did:webvh`,被劫持的 inception 历史会被当作正常历史延续,所有后续 capability / device authorization / state 都建立在攻击者根之上。
+**问题**: `personal_node` 阶段的 `did:web` inception 只受 hosting domain DNS/TLS 保护；若用户在注册期间 DNS 被劫持，攻击者可写入伪造 inception(并控制 inception key)。一旦该 principal 直接"无审"升级到 `small_team` 的 `did:webvh`,被劫持的 inception 历史会被当作正常历史延续，所有后续 capability / device authorization / state 都建立在攻击者根之上。
 
-为此,跨 method 升级 **MUST** 满足以下硬条件,否则 receiver MUST `reject` 升级 transition Event(reason `inception_upgrade_evidence_insufficient`):
+为此，跨 method 升级 **MUST** 满足以下硬条件，否则 receiver MUST `reject` 升级 transition Event(reason `inception_upgrade_evidence_insufficient`):
 
 ##### 5.0.5.1 OOB inception fingerprint 验证
 
@@ -292,7 +300,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 关键 normative 规则:
 - `signature_chain` **必须**同时含两段签名:**inception key**(原 `did:web` 主体)+ `did:webvh` entry-0 controller key(新 method 主体)。任一缺失或签名失效 → reject `inception_upgrade_signature_chain_invalid`。
 - `inception_pubkey_fingerprint` 必须 byte-for-byte 等于 `did:web` DID Document 当前 `verificationMethod[0]` 的派生 fingerprint;同时必须在 `transfer_evidence` 中以 user-readable 形式呈现给 receiver(便于 receiver 二次校验)。
-- `user_oob_confirmation_id` 是 user-side 不透明 token——客户端 SHOULD 把 OOB 确认结果写入 user-private secret storage,服务端 / receiver 不 trust 该字段为真实人类确认证据,但**保留**以便审计回放与 UI 重现。`user_oob_confirmation_method` 是枚举 hint,receiver MAY 用它把"通过弱通道(independent_channel)确认的迁移"打上额外的低信任标记。
+- `user_oob_confirmation_id` 是 user-side 不透明 token——客户端 SHOULD 把 OOB 确认结果写入 user-private secret storage,服务端 / receiver 不 trust 该字段为真实人类确认证据，但**保留**以便审计回放与 UI 重现。`user_oob_confirmation_method` 是枚举 hint,receiver MAY 用它把"通过弱通道(independent_channel)确认的迁移"打上额外的低信任标记。
 - 整个 transfer envelope MUST 在签名 transcript 中包含 `old_did_document_canonical_digest`——这一字段 freezes 攻击者对 hosting domain 在升级时刻**之后**继续替换 DID Document 的可能性(任何替换都会让 hash 不再匹配 receiver 拉取的新 document)。
 
 ##### 5.0.5.3 Receiver 验证规则
@@ -304,7 +312,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 3. 校验 `signature_chain` 两段签名:inception key 签名(`verification_method` 必须出现在被 hash 的 old document `verificationMethod[]` 内)+ `did:webvh` entry-0 controller key 签名(必须能在 `did:webvh` `did.jsonl` entry 0 找到)。任一失败 → reject `inception_upgrade_signature_chain_invalid`。
 4. 校验 `inception_pubkey_fingerprint`,确认它等于步骤 1 拉取到的 old document `verificationMethod[0]` 派生 fingerprint;失败 → reject `inception_upgrade_fingerprint_mismatch`。
 5. 校验 `did:webvh` `entry 0` 的 SCID / entry hash / controller proof(标准 `did:webvh` inception 验证)——这一段独立于 `did:web` 阶段。
-6. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记;后续 Event 的 `actor_id` MAY 是 `did:web:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
+6. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记；后续 Event 的 `actor_id` MAY 是 `did:web:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
 
 ##### 5.0.5.4 不允许的简化
 
@@ -315,8 +323,8 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 ##### 5.0.5.5 安全代价登记
 
-- 该流程把 personal_node 阶段被 DNS 劫持的损害限制在 personal_node Realm 内部;升级后 attacker 无法通过升级路径继承新 method 的根。
-- 代价:升级流程对用户**强制**至少一次离线 / 独立通道确认,UI 不能"自动一键升级"。这是明确取舍:为防止注册期 DNS 劫持继承,引入一次性 OOB 友好度成本。
+- 该流程把 personal_node 阶段被 DNS 劫持的损害限制在 personal_node Realm 内部；升级后 attacker 无法通过升级路径继承新 method 的根。
+- 代价:升级流程对用户**强制**至少一次离线 / 独立通道确认,UI 不能"自动一键升级"。这是明确取舍:为防止注册期 DNS 劫持继承，引入一次性 OOB 友好度成本。
 - 对从未通过 personal_node 阶段(直接以 `did:webvh` 走 §5.0.1)的 principal,本节不适用。
 
 ### 5.1 新设备加入（首台设备已存在）

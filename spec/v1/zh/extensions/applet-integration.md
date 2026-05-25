@@ -1,5 +1,9 @@
 ---
 title: Applet Integration
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
 ---
 
 > **状态：extension profile（非 v1 core 互操作必需）**。Applet registry、审核 SLA 与 capability
@@ -7,6 +11,10 @@ title: Applet Integration
 > 实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。
 > `cx.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json`
 > 的 `profile_tiers.extension_profile_implementation`）。
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -548,13 +556,13 @@ Alice via Calendar Applet
 **Reducer normative**:
 
 - 当 Event 的 envelope signature 由 applet / delegated agent key 签发但 `actor_id` 指向 native principal DID 时（即 actor_id ≠ signing key 所属 DID），reducer MUST 校验：
-  1. `executed_by` 必填,指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致;
-  2. `authorization_ref` 必填,指向已 accepted 的 `cx.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
+  1. `executed_by` 必填，指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致;
+  2. `authorization_ref` 必填，指向已 accepted 的 `cx.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
   3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet;
   4. grant constraint MUST 绑定 `applet_id`、`executed_by` DID、`executed_by` DID Document canonical hash / method-specific version（若 DID method 提供）和 registration epoch hash。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。
 - 缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时,reducer MUST `schema_violation` 拒绝。该规则适用于所有 `cx.profile.applet_*` profile,客户端 / SDK 不得退回到 SHOULD 形态。
 
-Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示 `via applet`：UI 在渲染 mention、notification、audit log、moderation queue 等任何"who did this"上下文时,MUST 同时显示 native actor 与 `executed_by` 双重署名,不得仅显示 native actor 而隐藏 applet 身份。
+Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示 `via applet`：UI 在渲染 mention、notification、audit log、moderation queue 等任何"who did this"上下文时,MUST 同时显示 native actor 与 `executed_by` 双重署名，不得仅显示 native actor 而隐藏 applet 身份。
 
 `requested_scopes` 只服务 consent / audit UI：registration 接受时，reviewer 可据此决定是否签发 capability grant；一旦 grant 写入，后续 reducer 只看 grant `actions[]` / selector / constraint，不再从 `requested_scopes` 推断权限。实现 MUST 在 audit log 中把最终 grant 与 registration `requested_scopes` 的差异显示给 reviewer，避免 Applet 请求 A、实际被授予 B 时无人可见。
 
