@@ -21,7 +21,6 @@ Contrix 使用 DID 作为稳定身份根。Handle、邮箱、组织用户名和�
 - resolver policy 与 method adapter
 - DID Document normalized view
 - 组织账号绑定的 DID proof
-- `did:uuid` 不纳入 v1 协议 DID 方法集合
 
 Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 MUST 使用已有 DID method，例如 `did:webvh`、`did:web`、`did:key`、`did:pkh`、`did:plc`，或本地 trust policy 明确允许的其他公开 DID method。
 
@@ -63,10 +62,6 @@ DID Document SHOULD 只承载：
 - method-specific 更新、恢复或历史所需状态
 
 DID Document MUST NOT 被用作跨组织身份画像。邮箱、跨组织 handle、第三方账号和隐私敏感属性应通过 claim / presentation 按需证明。
-
-### 2.4 `did:uuid` 不属于 v1 规范方法
-
-新实现、测试向量、fixture、规范示例和新写入的协议对象 MUST NOT 使用 `did:uuid`。`did:uuid` 不属于 Contrix v1 的主身份形式；解析与写入路径对该方法直接拒绝。
 
 ## 3. 默认 DID 方法
 
@@ -589,7 +584,6 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 7. DID 未被 deactivated、quarantined 或本地 policy 禁止。
 8. `did:key`、`did:pkh` 等受限 method 未被用于 policy 禁止的长期 principal、组织或高风险 service 角色。
 9. Pairwise/private DID 不被强制公开 `alsoKnownAs`。
-10. `did:uuid` 不得用于新写入；`did:uuid` 对象不得进入当前协议可读写身份主键通道。
 
 ## 10. 一致性要求
 
@@ -597,7 +591,6 @@ Contrix v1 对 DID 实现要求如下：
 
 - v1 core 默认 principal DID 创建 MUST 使用 `did:webvh`（见 §3 / §3.4），除非部署 policy 显式选择了另一个已有 DID method。`personal_node` deployment profile MAY 把 principal method 降级为 `did:web`，但 MUST 在 deployment profile 中显式声明 `principal_method=did:web`；其他 deployment profile（`small_team` / `organization` / `high_security_organization` / `sovereign_deployment`）MUST 使用 `did:webvh` 或更强 method 作为长期 principal。`did:web` 仅作为 service DID 默认 method 与 `personal_node` 显式 principal method；`did:webvh` outage 只允许 cache-only degraded mode。
 - Method adapter conformance tests MUST 覆盖 `did:webvh`、`did:web`、`did:key`；声明 AT Protocol interop profile 的实现 MUST 额外覆盖 `did:plc` adapter；声明 wallet interop profile 的实现 MUST 额外覆盖 `did:pkh`。
-- `did:uuid` MUST NOT 出现在规范示例、新 fixture、新一致性向量、服务 DID、actor DID、capability subject、federation transaction 或新写入的 Event 中。
 - DID proof JSON Schema MUST 与 `../models/event-and-patch.md` §3 的 Proof 和 `../conformance/encoding.md` 的 canonical JSON 规则一致。
 - Normalized principal view MUST 保留 raw document hash、method-specific proof、current control keys、service bindings、contrix bindings 和 evidence；不得丢弃外部 DID 的原始语义。
 - 无法验证 method history 的 adapter 只能声明 limited trust profile，并且 MUST NOT 被默认用于高风险组织、service delegation 或长期 principal 创建。
