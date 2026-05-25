@@ -4,7 +4,7 @@
 - Generated: `2026-05-24`
 - Spec head checked: recorded by the `v1.0.0-rc1` tag.
 - Target tag: `v1.0.0-rc1`
-- Status: phase-1 readiness checks prepared; release publication still requires tag push and GitHub release artifact upload.
+- Status: phase-1 readiness checks prepared for local development evidence only; do not push tags, create GitHub releases, or upload remote release artifacts from this workflow.
 
 ## Artifact Counts
 
