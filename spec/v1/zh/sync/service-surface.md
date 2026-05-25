@@ -334,7 +334,7 @@ Contrix v1 要求：
 
 Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/events/*`。
 
-Contrix v1 不要求实现 atprotocol/Git 式数据仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event，但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` 与 `refs[role=authorized_by]` 因果依赖和 `event_id` 幂等性。
+Contrix v1 不规定 Event 在服务端的物化形态——不要求集中式 record 仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event,但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` 与 `refs[role=authorized_by]` 因果依赖和 `event_id` 幂等性。
 
 Events API 至少应提供以下语义：
 

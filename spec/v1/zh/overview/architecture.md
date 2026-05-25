@@ -58,7 +58,7 @@ Realm 则是协作数据边界。它定义 membership、capability scope、schem
 
 ### 2.2 Per-Actor Event Chain
 
-Contrix v1 不把用户数据仓库作为协议一等概念。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
+Contrix v1 的协议一等概念是 **signed Event** 与 **per-actor event chain**，不是任何形式的内容仓库或公开发布记录。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
 
 它承担：
 
@@ -67,7 +67,7 @@ Contrix v1 不把用户数据仓库作为协议一等概念。每个 actor 通�
 - 设备离线后重传
 - 审计基线
 
-这保留了 atproto per-principal publication 的安全目标，但不要求实现 atprotocol/Git 式数据仓库。Contrix 记录的是 **协作 Event**，不是面向公开内容分发的 record 集。
+Contrix 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 event chain 物化成仓库、append-only log、Merkle tree 或对象存储,完全是实现选择,协议不规定。
 
 Event chain 可以由以下形态承载：
 
