@@ -11,3 +11,5 @@ site/.output
 .DS_Store
 _*.md
 .gstack/
+/_circle_rollout_baseline.md
+/_*_todos.md
