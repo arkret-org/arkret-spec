@@ -60,11 +60,6 @@ Contrix 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flo
 4. 带协作语义的最小单元 MUST 使用 `cx:flow:`。
 5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../../proposals/) 留档。
 
-> [!DEPRECATED] 已移除：`Flow.discussion_realm_ref` 跨 Realm 模式。
-> 决策来源：[proposals/0007-circle-primitive.md](../../proposals/0007-circle-primitive.md)；
-> 机器视图：[`renames.json`](../../artifacts/registry/renames.json)。
-> 替代方案：两个 Flow + `confidential_discussion_of` Relation，见 [`models/circle.md` §7.2](../models/circle.md#72)。
-
 详细字段定义见 [`models/realm-and-space.md`](../models/realm-and-space.md)、[`models/circle.md`](../models/circle.md)、[`models/space-hierarchy.md`](../models/space-hierarchy.md)、[`models/realm-links.md`](../models/realm-links.md) 与 [`models/flow-and-message.md`](../models/flow-and-message.md)。
 
 ### 2.1 Organization / Realm 边界

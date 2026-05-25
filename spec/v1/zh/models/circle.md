@@ -14,7 +14,7 @@ updated: 2026-05-25
 
 **Circle**(`cx:circle:`)是 Realm 内的**密码学子边界**:拥有独立 MLS group、独立 key epoch、独立 history key eligibility、Realm membership 的真子集成员，但**不**持有 federation identity 或 policy server。Circle 表达"窄于 Realm 的加密可见性圈"。
 
-Circle 解决了 Contrix v1 早期设计中的抽象漏失:把"密码学子圈"作为一等原语拆出来，使 Realm 只承担 federation/identity boundary,Circle 专门承担 cryptographic access circle。这同时使得"一对象一安全边界"成为协议级硬不变量，不再需要让一个对象跨两个 Realm 存在。
+Realm 与 Circle 分工正交:Realm 承担 federation / identity boundary,Circle 承担 cryptographic access circle。**一对象一安全边界**是协议级硬不变量——任何对象 MUST 只属于一个 effective encryption scope(Realm-default 或某个 Circle)。
 
 **非目标**:Circle **不是** access-filter / ACL segment 的新名字，也不是 Realm 的"默认加密圈"。若实现只需要授权窄化但不需要独立密钥材料，应使用 [`realm-and-space.md` §4](./realm-and-space.md) 的 Group / capability constraint / resource selector;不得声明 Circle。Realm 自身仍拥有 **Realm-default encryption scope**;Circle 只表示 Realm 内更窄的额外 MLS scope。
 
@@ -175,7 +175,7 @@ Reducer MUST 在 `cx.flow.create`、`cx.flow.move`、`cx.space.parent`、structu
 
 ### 7.2 "宽 synthesis + 窄 discussion" 场景如何表达
 
-历史 spec 曾用 `Flow.discussion_realm_ref` 让 Flow 跨两个 Realm 存在(已删除，详见 §11 与本文件序言)。本协议下统一用 **两个 Flow + Relation** 表达，不再有 per-track 安全边界:
+需要"公开锚 + 私密讨论"组合时,MUST 用 **两个 Flow + Relation** 表达;Flow 永远单一 scope,不存在 per-track 安全边界:
 
 ```
 Flow F_public  (scope_circle_id = null)              ← 公开 anchor Flow,承载 title/summary/stage/fields
@@ -251,7 +251,7 @@ Membership transition table:
 | Circle history visibility 收紧 | 不受影响 | 投影、watch、message read/write 按新状态重新裁剪 |
 | `scope_circle_id` 改绑 | — | 默认拒;profile 允许时 audit-paired,新旧历史分段展示(见 §6.1) |
 
-每个对象有唯一 scope,lifecycle 只需在该 scope 与父 Realm 两层间做判定，不需要历史 spec `discussion_realm_ref` 时代的四象限组合表。
+每个对象有唯一 scope,lifecycle 只需在该 scope 与父 Realm 两层间做判定，不存在跨双 scope 的组合表。
 
 ### 9.3 Sync / 投递不变量
 
@@ -330,4 +330,3 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - 历史可见性枚举:[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
 - MLS 加密 / governance binding:[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)。
 - Circle schema artifact:`spec/v1/artifacts/schemas/circle.schema.json`。
-- 删除的历史字段(协议演化背景):本文件序言;CXP-0007 提案;CHANGELOG。
