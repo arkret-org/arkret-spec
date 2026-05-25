@@ -1,8 +1,23 @@
 ---
 title: Operations And Sync
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
+see_also:
+  - sync/service-surface.md
+  - sync/client-sync.md
+  - authz/event-auth-state-resolution.md
+  - models/event-and-patch.md
+  - conformance/encoding.md
+  - conformance/normative-language.md
 ---
 
-## 1. 目标
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+
+## 1. 目标（Goals）
 
 Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议。
 
@@ -88,7 +103,7 @@ Actor-private state 是独立层，不是“弱 durable Event”。标准规则�
 
 ### 2.1.2 Event Store
 
-Event Store 是 Principal Server、客户端、本地节点或授权副本保存 Event 的服务/存储能力。它不是独立权威对象,也不是协议一等概念——协议不规定其存储形态或对外接口语义。实现可以用数据库、append-only file、Merkle log、object store、content-addressed block store 或其他存储引擎保存 Event；协议只要求下列语义可验证：
+Event Store 是 Principal Server、客户端、本地节点或授权副本保存 Event 的服务/存储能力。它不是独立权威对象，也不是协议一等概念——协议不规定其存储形态或对外接口语义。实现可以用数据库、append-only file、Merkle log、object store、content-addressed block store 或其他存储引擎保存 Event；协议只要求下列语义可验证：
 
 - event store：保存 signed Event。
 - per-actor event chain：由 `actor_id`、`actor_seq` 和 `prev_refs` 表达 actor 自己的发布顺序。
@@ -129,9 +144,11 @@ Contrix 采用 Event-first 模型：
 - Realm / Space / Flow（看板与列容器是 Space）
 - Morph
 
-### 3.1 写入流水线
+### 3.1 写入流水线（Write Pipeline）
 
 下图把 Event 从生成到呈现的完整链路画成三段：Producer 生成签名 Event，Principal Server / Sync Service 校验并通过 Anchor pipeline 给出 finality，Consumer 增量同步并本地 reduce + project。Soft-fail 是这条链路上唯一的可逆退化路径。
+
+*Figure 3-1. Event 写入到呈现流水线（informative）。*
 
 ```mermaid
 flowchart TB
@@ -167,7 +184,7 @@ flowchart TB
     SF -. "backfill → upgrade（保留推测态）<br/>或 reject → 回滚 effects" .-> S2
 ```
 
-读图要点：
+规范要点（_informative_）：
 
 - Sync Service 与 Anchor pipeline 不是真相源，只是按 Anchor finality 暴露 `events + state_after` 的传输面；Producer 与 Consumer 的客户端都可以重算同样的 effective state。
 - Consumer 端 reducer 的输入是 accepted reducer-input event 集合 + Anchor frontier；non-reducer event（read cursor / typing 等）不进 cell、不进 state_root。
@@ -177,7 +194,9 @@ flowchart TB
 
 Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只是加速层或审计证明，不是 reducer 输入的替代物。
 
-实现 MAY 为一批已接受 Event 生成签名 receipt：
+实现 MAY 为一批已接受 Event 生成签名 receipt。
+
+*Example (informative). Event batch receipt 示例。*
 
 ```json
 {
@@ -218,6 +237,8 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 `cx.attestation.range_completeness` 是独立的 attestation event kind（见 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)，`status=active`），用于提供 *completeness* 证明——即"该范围内没有 reducer-input event 被静默丢弃"。它与 `cx.event_batch_receipt`（set-bound integrity）和 `cx.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
 
 事件 kind 不携带 `.v1` 后缀；版本号只出现在 payload schema id 上。Schema id: `cx.schema.range_completeness_attestation.v1`（artifact `artifacts/schemas/range-completeness-attestation.schema.json`）。
+
+*Example (informative). Range completeness attestation 示例。*
 
 ```json
 {
@@ -312,7 +333,7 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
 
 如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event 顶层 `requirements` 对象中声明对应 `features` 或 `critical_extensions`。`requirements.{schema, reducer, features, critical_extensions}` 全部 MUST 进入 canonical event bytes、event digest 和 proof `event_digest`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
 
-Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）：
+*Example (informative). Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）。*
 
 ```json
 {
@@ -361,7 +382,7 @@ Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）�
 }
 ```
 
-Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `cx.read_cursor.advance`）：
+*Example (informative). Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `cx.read_cursor.advance`）。*
 
 ```json
 {

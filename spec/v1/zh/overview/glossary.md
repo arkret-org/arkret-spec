@@ -1,5 +1,13 @@
 ---
 title: 术语表
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
+see_also:
+  - index.md
+  - overview/architecture.md
+  - conformance/normative-language.md
 ---
 
 ## 1. 目标

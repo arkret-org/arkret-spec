@@ -1,8 +1,22 @@
 ---
 title: Service Surface And Bootstrap
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
+see_also:
+  - sync/service-http-binding.md
+  - sync/operations-sync.md
+  - sync/transport-bindings.md
+  - sync/federation.md
+  - conformance/normative-language.md
 ---
 
-## 1. 目标
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+
+## 1. 目标（Goals）
 
 如果只有对象模型、同步原则和 capability，而没有最小线级服务面，协议仍然很难真正互操作。
 
@@ -72,7 +86,9 @@ DID Document SHOULD 只负责：
 
 协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
 
-常见组合如下。这里的“需要”表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建一个 Principal Server，其余基础设施可使用公共或托管服务。
+常见组合如下。这里的"需要"表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建一个 Principal Server，其余基础设施可使用公共或托管服务。
+
+*Table 2-1. 服务角色与 REST namespace 对照（informative）。*
 
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
@@ -113,7 +129,7 @@ DID Document SHOULD 只负责：
 GET /api/v1/server/describe
 ```
 
-示例：
+*Example (informative). `/server/describe` 响应示例，字段权威定义以 schema 为准。*
 
 ```json schema=schemas/service-describe.schema.json
 {

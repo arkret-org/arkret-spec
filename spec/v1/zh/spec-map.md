@@ -1,5 +1,12 @@
 ---
 title: Spec Map
+status: candidate
+normative: false
+stability: v1
+updated: 2026-05-25
+see_also:
+  - index.md
+  - conformance/normative-language.md
 ---
 
 ## 1. 目标

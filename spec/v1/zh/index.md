@@ -1,10 +1,23 @@
 ---
 title: Contrix Protocol
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
+see_also:
+  - spec-map.md
+  - overview/architecture.md
+  - overview/glossary.md
+  - conformance/normative-language.md
 ---
 
-## 1. 一句话理解
+## 0. 规范语言
 
-`contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。其核心不是界面，而是“可验证协作事实 + 可投影的对象语义”：
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](./conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+
+## 1. 范围（Scope）
+
+`contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。其核心不是界面，而是"可验证协作事实 + 可投影的对象语义"：
 
 - 身份主键：DID principal
 - 数据主语：Realm / Space（含 Board/List）/ Flow / Message / Relation / Event / View / Capability
@@ -13,7 +26,7 @@ title: Contrix Protocol
 - 呈现主语：views / projection
 - 扩展承载：Morph + schema / profile-defined facets
 
-## 2. 不做什么
+## 2. 非目标（Non-Goals）
 
 Contrix v1 明确不把以下内容作为基础互操作必需项：
 
@@ -24,11 +37,11 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 以 embedding、向量库替代协议真相源
 - 以高复杂字段级/字节级 ACL 作为第一阶段互操作要求
 
-## 3. 规范地图
+## 3. 文档地图（Document Map）
 
 [spec-map.md](./spec-map.md) 是总目录。README 仅保留顶层入口与实施路径，避免因 profile 增长变成长清单。
 
-### 3.1 一分钟实施链路（实现导向）
+### 3.1 实施清单（Implementation Checklist, _informative_）
 
 1. 完成 DID 与服务发现，建立 principal/service 绑定。
 2. Realm 创建后锁定 schema 与策略基线。
@@ -39,7 +52,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 7. reducer 产出 canonical projection，UI 只消费 projection。
 8. 失败场景进入可恢复退化状态（如 `decryption_pending`、`state_mismatch`）。
 
-### 3.2 先读路径
+### 3.2 推荐阅读顺序（Suggested Reading Order, _informative_）
 
 - `overview/architecture.md`：架构、服务角色、部署与信任边界。
 - `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Principal Server 等术语。
@@ -135,6 +148,6 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - MLS E2EE、设备验证、WebRTC、blob 与媒体
 - Applet、Agent 互通、Directory、Federation、Sovereign deployment
 
-## 7. 一句话总结
+## 7. 摘要（Summary）
 
-Contrix 的目标是统一协作对象语义，建立“可验证审计 + 长期可恢复”的协作基础设施，而不是绑定聊天协议外壳。
+Contrix 的目标是统一协作对象语义，建立"可验证审计 + 长期可恢复"的协作基础设施，而不是绑定聊天协议外壳。

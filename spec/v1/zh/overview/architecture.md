@@ -1,8 +1,23 @@
 ---
 title: Architecture
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
+see_also:
+  - sync/operations-sync.md
+  - sync/service-surface.md
+  - sync/sovereign-deployment.md
+  - models/realm-and-space.md
+  - models/circle.md
+  - conformance/normative-language.md
 ---
 
-## 1. 目标
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+
+## 1. 目标（Goals）
 
 Contrix 的顶层架构要同时满足四件事：
 
@@ -23,23 +38,34 @@ Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织
 
 协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Flow、Space、Message 等标准对象；看板与列容器是独立的 Space（`cx:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
 
-### 2.0 容器选型速查（Realm vs Circle vs Space vs Flow）
+### 2.0 容器选型参考（Container Selection Reference）
 
-Contrix 有四种"包含 / 边界"语义。决定使用哪一个的速查表（normative reference）：
+Contrix 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow。
 
-| 你的诉求 | 选哪个 | 一句话理由 |
+*Table 2-1. 容器对象按使用场景索引（informative）。*
+
+| 使用场景 | 推荐对象 | 关键边界属性 |
 | --- | --- | --- |
-| 共享 federation/identity、policy server、capability registry、Realm-default E2EE group | **Realm**（独立 Realm 或加入既有 Realm） | Realm 承担 federation/identity boundary；持有 membership 主源、policy server、capability registry、Realm-default MLS group。 |
-| 在已有 Realm 内做**密码学子圈**（独立 MLS group / 子集成员 / 独立 history），但共享 federation / policy / capability registry | **Circle**（`cx:circle:`），对象 `scope_ref` 引用 | Circle 是 Realm 内的密码学子边界；不持有 federation identity 或 policy server；`Circle.members ⊆ Realm.members`。详见 [`../models/circle.md`](../models/circle.md)。 |
-| 在已有 Realm 内做"看板 / 列 / 文件夹 / swimlane / calendar bucket"等**结构分组**，让用户在 UI 中导航和排序 | **Space**（`cx:space:`，`kind` 表 board/list/folder/project/...） | Space 是 "authorization-transparent" 容器：自身不持有 membership / key，只承载导航与分类。`Space.scope_ref` 仅决定 Space 自身 metadata 的加密 scope，不让 Space 成为安全边界。 |
-| 在同一个 Realm 内做"协作单元"（任务、文档、会话、工单），需要带 stage / state / fields / track 时间线 | **Flow** | Flow 是 Realm 内的协作主体；整 Flow 单一加密 scope（由 `Flow.scope_ref` 决定，null = Realm-default，否则指向 Circle）。 |
-| 想"软隐藏一组 Realm 让导航更整洁" | **不要新建容器**：在客户端用 View / Space hierarchy / Realm linking 处理 | Realm 之间不形成树形包含关系（只有 link graph）；用户层的"我的工作区"完全是 client-side 概念。 |
+| 共享 federation / identity、policy server、capability registry、Realm-default E2EE group | `cx:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、policy server、capability registry、Realm-default MLS group |
+| Realm 内独立 MLS group + 子集成员 + 独立 history，复用父 Realm federation / policy / capability registry | `cx:circle:`，对象通过 `scope_ref` 引用 | cryptographic sub-boundary；不持有 federation identity 或 policy server；约束 `Circle.members ⊆ Realm.members` |
+| Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `cx:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_ref` 仅决定 Space metadata 加密 scope，不构成安全边界 |
+| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `cx:flow:` | Realm 内协作主体；整 Flow 单一加密 scope（由 `Flow.scope_ref` 决定，`null` = Realm-default，否则指向 Circle） |
+| 客户端导航整洁化（"软隐藏一组 Realm"） | （不新建容器）使用 View / Space hierarchy / Realm linking | Realm 间无树形包含关系，仅有 link graph；产品层"我的工作区"为 client-side 概念 |
 
-判断规则 MUST 按上表顺序:**只有跨 federation/policy/capability registry 边界才升级到独立 Realm**;Realm 内的密码学子圈用 Circle;纯导航/结构分组用 Space;协作单元用 Flow。新增容器型概念 MUST 先验证是否可以分解为以上四种已有形态；不得自行造第五类。
+判定顺序（normative）：
 
-> **v1 设计变更**：早期版本曾在本表中列出 `Flow + discussion_realm_ref 指向 linked Realm` 作为第五类，让一个 Flow 跨两个 Realm 存在。该模式与字段已通过 CXP-0007 彻底删除；"宽 synthesis + 窄 discussion" 改用两个 Flow + `confidential_discussion_of` Relation 表达（见 [`../models/circle.md` §7.2](../models/circle.md)）。
+1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `cx:realm:`。
+2. Realm 内若需要独立 MLS group 或 history visibility 边界，MUST 使用 `cx:circle:`，对象通过 `scope_ref` 引用。
+3. 仅用于导航 / 结构分组的容器 MUST 使用 `cx:space:`，不得借此获得 membership 或安全边界。
+4. 带协作语义的最小单元 MUST 使用 `cx:flow:`。
+5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../proposals/) 留档。
 
-详细字段见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/circle.md`](../models/circle.md)、[`../models/space-hierarchy.md`](../models/space-hierarchy.md)、[`../models/realm-links.md`](../models/realm-links.md) 和 [`../models/flow-and-message.md`](../models/flow-and-message.md)。
+> [!DEPRECATED] 已移除：`Flow.discussion_realm_ref` 跨 Realm 模式。
+> 决策来源：[proposals/0007-circle-primitive.md](../proposals/0007-circle-primitive.md)；
+> 机器视图：[`renames.json`](../../artifacts/registry/renames.json)。
+> 替代方案：两个 Flow + `confidential_discussion_of` Relation，见 [`models/circle.md` §7.2](../models/circle.md#72)。
+
+详细字段定义见 [`models/realm-and-space.md`](../models/realm-and-space.md)、[`models/circle.md`](../models/circle.md)、[`models/space-hierarchy.md`](../models/space-hierarchy.md)、[`models/realm-links.md`](../models/realm-links.md) 与 [`models/flow-and-message.md`](../models/flow-and-message.md)。
 
 ### 2.1 Organization / Realm 边界
 
@@ -67,7 +93,7 @@ Contrix v1 的协议一等概念是 **signed Event** 与 **per-actor event chain
 - 设备离线后重传
 - 审计基线
 
-Contrix 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 event chain 物化成仓库、append-only log、Merkle tree 或对象存储,完全是实现选择,协议不规定。
+Contrix 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 event chain 物化成仓库、append-only log、Merkle tree 或对象存储，完全是实现选择，协议不规定。
 
 Event chain 可以由以下形态承载：
 
@@ -179,9 +205,11 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 
 某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /api/v1/server/describe`、`supported_operations`、conformance profile 和 Realm policy 共同声明。
 
-## 3. 架构平面
+## 3. 架构平面（Architectural Planes）
 
 七个平面按职责分层：Identity / Write / Distribution / Local Query / Presentation 形成自下而上的核心栈，Confidentiality 与 Portability 是横切关注点。
+
+*Figure 3-1. 架构平面分层（informative）。*
 
 ```mermaid
 flowchart TB
@@ -207,7 +235,7 @@ flowchart TB
     Port -. "横切" .-> Dist
 ```
 
-读图要点：
+规范要点（_informative_）：
 
 - Presentation 永远消费 Projection 的输出，不持有真相副本；Projection 永远是派生层，可重算。
 - Confidentiality 是包裹层，决定 Distribution / Write / Projection 各自能看到什么；Sync Service 不解密正文也能继续转发。
@@ -283,7 +311,9 @@ Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可
 
 Contrix 不要求所有角色分离部署。
 
-### 4.0 通用网络拓扑图
+### 4.0 通用网络拓扑（General Network Topology）
+
+*Figure 4-1. 通用网络拓扑（informative）。*
 
 ```mermaid
 flowchart LR
@@ -344,7 +374,7 @@ flowchart LR
     C1 --> PUSH
 ```
 
-要点：
+规范要点（_informative_）：
 
 - DID / Registry / Witness 负责身份解析和控制链证明。
 - Actor Event Chain 是主体发布日志，Principal Server 提供受控同步、托管和联邦入口。

@@ -2,6 +2,15 @@
 title: Overview
 sidebar:
   order: 0
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-25
+see_also:
+  - models/common-fields.md
+  - models/realm-and-space.md
+  - models/flow-and-message.md
+  - conformance/normative-language.md
 ---
 
 ## 1. 目标
@@ -173,11 +182,11 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
 - 标准对象不得阻止 Realm 定义自定义 Morph type。
 
-## 4. 阅读路径
+## 4. 阅读路径（Reading Paths）
 
-按你想了解的层面选择：
+按目标层面索引：
 
-| 想了解 | 起点 |
+| 关注层面 | 起点 |
 | --- | --- |
 | 协作图整体结构 / 标准对象一览 | 本文 §2-§3 |
 | 公共字段、lifecycle、reducer 总则 | [common-fields.md](./common-fields.md) |
