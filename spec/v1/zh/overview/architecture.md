@@ -194,7 +194,7 @@ Principal Server
 └─ basic app view / inbox
 ```
 
-默认可使用的公共基础设施：Identity Resolver、Directory Server、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署 Directory、Push、Identity Resolution Infrastructure、TURN / Media Relay 或 Moderation / Compliance；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些基础设施收回自建。
+默认可使用的公共基础设施：Identity Resolution Infrastructure、Directory Server、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署 Identity Resolution Infrastructure、Directory Server、Push Gateway、TURN / Media Relay 或 Moderation / Compliance Server；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些基础设施收回自建。
 
 Identity 部署常识（无法在 deployment profile 表中表达）：
 

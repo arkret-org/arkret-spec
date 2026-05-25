@@ -110,7 +110,7 @@ DID Document SHOULD 只负责：
 
 推荐 deployment profile：
 
-- `principal_server_personal`：一个 Principal Server；内部合并 Events API + Sync/Federation + Blob + Device/Key + Authz；客户端可自行维护本地 search / projection；Identity Resolver、Directory、Push 和 TURN/Media 默认可用公共服务。
+- `principal_server_personal`：一个 Principal Server；内部合并 Events API + Sync/Federation + Blob + Device/Key + Authz；客户端可自行维护本地 search / projection；Identity Resolution Infrastructure、Directory、Push 和 TURN/Media 默认可用公共服务。
 - `principal_server_organization`：一个组织委托的 Principal Server；通常搭配 Auth / Account Server；需要统一授权和审计时增加 Policy Server；Blob、Directory、Push 可按规模和合规要求拆分。
 - `principal_server_secure_organization`：一个或多个组织委托的 Principal Server，搭配 Auth / Account Server、Identity Resolution Infrastructure、Policy/Authz、Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Events/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
