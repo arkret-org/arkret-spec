@@ -270,7 +270,7 @@ for each member m of Realm S that needs to receive event E:
 **MUST NOT fallback** 路径：
 
 - 即便 `recipient_service_did` 解析失败、binding 过期、或 binding 被撤销，sender **MUST NOT** 退回 actor DID Document 的 `ContrixPrincipalServer` service entry 作为替代目的地。这是设计上的硬约束。
-- 即便 actor DID 在接收方 (或任何其它) Principal Server 上存在本地账号、OIDC/SSO 绑定、员工目录记录、device session，**这些都不构成 Realm-scoped 投递授权**。投递授权仅来自 member binding 的 `service_acceptance_ref` / `policy_ref` 链。
+- 即便 actor DID 在接收方 (或任何其它) Principal Server 上存在本地账号、OIDC/SSO 绑定、员工目录记录、device session，**这些都不构成 Realm-scoped 投递授权**。投递授权仅来自 member binding 的 `service_acceptance_ref` / `policy_event_ref` 链。
 - 即便 actor DID Document 当前可解析且其 service entry 指向某个 Principal Server，**这也不是 Realm-scoped 投递的目的地**——DID Document service entry 是 actor event source / 非 Realm 默认服务发现入口（§6.2），与 member-level delivery 解耦。
 
 Rebind handover：

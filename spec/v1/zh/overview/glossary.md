@@ -41,17 +41,17 @@ see_also:
 | Trust Domain | 信任域 | deployment / sovereign replay boundary，wire 形态为 `cx:trust_domain:<scope>`。它在 service describe、Realm create 和跨域 proof transcript 中绑定接收上下文；定义见 [`../identity/identity-did.md` §3.6](../identity/identity-did.md#36-trust-domain)。 |
 | Official Realm | 官方边界 | 由组织或 policy 明确确认的 Realm；它是治理 / 安全声明，不等同于用户可见的 Space。 |
 | Realm Link | Realm 关系边 | Realm 之间通过 `cx.realm.link` 表达的显式治理、发现、mirror、confidential extension、迁移等关系；不是 hierarchy，不默认级联权限或历史。 |
-| Space | 结构性分组对象 | 用户可理解的结构容器与导航节点（project、folder、board、list、泳道、calendar bucket、page group 等），ID 形如 `cx:space:`。永远没有自己的 membership / policy / E2EE group / federation policy；metadata 由 `realm_id` 指向的 home Realm 授权，子资源默认 Realm 由 `default_realm_ref` 解析。 |
-| Space Hierarchy | Space 层级 | Space 之间通过 `parent_ref` + `cx.space.parent` 表达父子关系；可跨 Realm 做导航，但不传播 Realm membership、capability、history 或 E2EE key。 |
+| Space | 结构性分组对象 | 用户可理解的结构容器与导航节点（project、folder、board、list、泳道、calendar bucket、page group 等），ID 形如 `cx:space:`。永远没有自己的 membership / policy / E2EE group / federation policy；metadata 由 `realm_id` 指向的 home Realm 授权，子资源默认 Realm 由 `default_realm_id` 解析。 |
+| Space Hierarchy | Space 层级 | Space 之间通过 `parent_space_id` + `cx.space.parent` 表达父子关系；可跨 Realm 做导航，但不传播 Realm membership、capability、history 或 E2EE key。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
 | Flow | 协作主对象 | Realm 内承载协作议题、任务、正式表达与讨论轨道的标准对象。 |
 | Flow primary track | Flow 默认入口 | 按 track primary 解析规则得到的默认 track；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
 | ~~Room~~ | _deprecated_ | 历史用语；v1 core model 不使用 `Room` 名词，请使用 `Flow discussion track` / `discussion track view`。`Room` 仅在 MIMI / Matrix interop 模块的明确互操作上下文中允许出现（参见 [`forbidden-model-terms.json`](../../artifacts/registry/forbidden-model-terms.json) `Room` 条目的 `allowed_contexts`）。 |
 | synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。完整字段、profile、适用场景以 [`../models/flow-and-message.md` §4.2](../models/flow-and-message.md) 为准。 |
-| discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 由 Flow 整体的 `scope_ref` 决定（`null`=Realm-default scope，否则=该 [Circle](../models/circle.md) scope）。Flow 单一 scope，不存在 per-track 安全边界。完整 profile 集合与适用场景以 [`../models/flow-and-message.md` §4.3](../models/flow-and-message.md) 为准。 |
-| Circle | 信任圈 / 密码学子边界 | `cx:circle:` 对象，Realm 内的独立 MLS group + 子集成员 + 独立 history visibility 边界。**不**持有 federation identity 或 policy server（这些仍在父 Realm）。对象通过 `scope_ref` 引用 Circle 表达"窄于 Realm 的加密可见性圈"。详见 [`../models/circle.md`](../models/circle.md)。 |
-| Circle scope / `scope_ref` | 对象加密 scope 引用 | 对象（Flow / Message / Morph / Space）的 `scope_ref` 字段；`null` = Realm-default encryption scope，否则指向同 Realm 的 Circle。Reducer 把它物化为 immutable tagged `effective_scope`，进入 Event envelope / E2EE AAD / Anchor leaf。 |
-| effective_scope | 事件 immutable scope tag | Reducer 在每个 Event 接受时固化的 tagged scope（`{kind:"realm",realm_id}` 或 `{kind:"circle",realm_id,circle_id}`）。进入 envelope / AAD / sub-anchor leaf；后续 `scope_ref` 改绑不得重解释旧 event。 |
+| discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 由 Flow 整体的 `scope_circle_id` 决定（`null`=Realm-default scope，否则=该 [Circle](../models/circle.md) scope）。Flow 单一 scope，不存在 per-track 安全边界。完整 profile 集合与适用场景以 [`../models/flow-and-message.md` §4.3](../models/flow-and-message.md) 为准。 |
+| Circle | 信任圈 / 密码学子边界 | `cx:circle:` 对象，Realm 内的独立 MLS group + 子集成员 + 独立 history visibility 边界。**不**持有 federation identity 或 policy server（这些仍在父 Realm）。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的加密可见性圈"。详见 [`../models/circle.md`](../models/circle.md)。 |
+| Circle scope / `scope_circle_id` | 对象加密 scope 引用 | 对象（Flow / Message / Morph / Space）的 `scope_circle_id` 字段；`null` = Realm-default encryption scope，否则指向同 Realm 的 Circle。Reducer 把它物化为 immutable tagged `effective_scope`，进入 Event envelope / E2EE AAD / Anchor leaf。 |
+| effective_scope | 事件 immutable scope tag | Reducer 在每个 Event 接受时固化的 tagged scope（`{kind:"realm",realm_id}` 或 `{kind:"circle",realm_id,circle_id}`）。进入 envelope / AAD / sub-anchor leaf；后续 `scope_circle_id` 改绑不得重解释旧 event。 |
 | Board | 看板 | `cx:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
 | List | 列 / 泳道 | `cx:space: kind=list`，挂到 Board Space 下、承载 Flow 位置关系的列容器。 |
 | Message | 消息对象 | 发生在 Flow discussion 轨道中的即时沟通与补充记录。 |

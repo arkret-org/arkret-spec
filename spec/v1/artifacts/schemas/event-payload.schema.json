@@ -111,7 +111,7 @@
           "$ref": "#/$defs/event_ref",
           "description": "Reference to the member's DID proof (challenge-response) that bound the DID to recipient_service_did at the auth/account layer. Required when the member did not submit the join Move directly from a session at recipient_service_did."
         },
-        "policy_ref": {
+        "policy_event_ref": {
           "$ref": "#/$defs/event_ref",
           "description": "Reference to the Realm / Join / Organization policy revision that authorised this binding. Required when binding_source ∈ {join_policy, organization_policy, realm_policy}."
         },
@@ -146,7 +146,7 @@
             "required": ["binding_source"]
           },
           "then": {
-            "required": ["service_acceptance_ref", "policy_ref"]
+            "required": ["service_acceptance_ref", "policy_event_ref"]
           }
         },
         {
@@ -155,7 +155,7 @@
             "required": ["binding_source"]
           },
           "then": {
-            "required": ["policy_ref"]
+            "required": ["policy_event_ref"]
           }
         },
         {
@@ -1320,7 +1320,7 @@
         "effective_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "retention_policy_ref": {
+        "retention_policy_id": {
           "$ref": "#/$defs/object_ref"
         },
         "verification_stub_required": {

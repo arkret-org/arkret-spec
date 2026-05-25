@@ -17,7 +17,7 @@ Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系
 这样做的原因是：
 
 - `flow`、`message`、`realm`、`morph`、`view` 的动作集不同。
-- Flow 的所有 track（含 `synthesis` 与 `discussion`）共享同一 effective scope（由 `Flow.scope_ref` 决定，`null` = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。Flow 永远单一 scope，不存在 per-track 安全边界。
+- Flow 的所有 track（含 `synthesis` 与 `discussion`）共享同一 effective scope（由 `Flow.scope_circle_id` 决定，`null` = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。Flow 永远单一 scope，不存在 per-track 安全边界。
 - agent 必须被精细授权。
 - 授权变化必须可审计。
 
@@ -227,7 +227,7 @@ v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机
 - `cx.morph.create`(默认 required constraint:`morph_type_allow`)
 - `cx.morph.update`(默认 required constraint:`fields_write_allow`)
 
-Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Flow 的 effective scope 判断：`Flow.scope_ref=null` 时使用 Realm-default capability；`scope_ref` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
+Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Flow 的 effective scope 判断：`Flow.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
 Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morph.update` 对应 `cx.flow.read` / `cx.flow.create` / `cx.flow.update`),通过 `morph_type_allow` constraint 进一步限定可创建或操作的 `morph_type`。
 

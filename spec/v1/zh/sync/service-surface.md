@@ -231,7 +231,7 @@ GET /api/v1/server/describe
 ### 3.0 Describe response claim levels
 
 `server/describe`（以及结构等价的 `identity/describe` / `events/describe` / `sync/describe` /
-`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_did`、`trust_domain`、`service_type`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_ref` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
+`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_did`、`trust_domain`、`service_type`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`cx.schema.service_describe.v1`）：
 
 - `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
@@ -529,7 +529,7 @@ barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不�
 
 ### 6.2 Flow Discussion / Context Projection
 
-Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow 的所有 track 都按 Flow 的 effective scope 执行 membership / history visibility 检查：`Flow.scope_ref=null` 时按父 Realm；`scope_ref` 指向 [Circle](../models/circle.md) 时按该 Circle 自身 policy 与 membership 独立裁剪。Synthesis 与 discussion 同 scope，可见性同源。不得因为 Flow 在某 scope 可见就授予其他 scope 或 Board/List 或其他 Realm 对象权限。
+Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow 的所有 track 都按 Flow 的 effective scope 执行 membership / history visibility 检查：`Flow.scope_circle_id=null` 时按父 Realm；`scope_circle_id` 指向 [Circle](../models/circle.md) 时按该 Circle 自身 policy 与 membership 独立裁剪。Synthesis 与 discussion 同 scope，可见性同源。不得因为 Flow 在某 scope 可见就授予其他 scope 或 Board/List 或其他 Realm 对象权限。
 
 ### 6.3 Inbox / Notification Projection
 
@@ -808,7 +808,7 @@ Contrix v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_expires_at`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
-- Service describe MUST 声明 `service_did`、`trust_domain`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe MUST 声明 `service_did`、`trust_domain`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
 - Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `cx.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 cotest artifact、issuer 签名和 hash 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。

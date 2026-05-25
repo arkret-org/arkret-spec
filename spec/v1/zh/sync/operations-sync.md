@@ -543,7 +543,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.reorder`
 - `cx.flow.watch.set`
 
-`cx.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `cx.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / E2EE 时，把整个 Flow 通过 `Flow.scope_ref` 落在一个 [Circle](../models/circle.md)（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md) 与 [`../models/circle.md`](../models/circle.md)）。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas_register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
+`cx.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `cx.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md) 与 [`../models/circle.md`](../models/circle.md)）。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas_register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
 
 ### 7.3 Space
 
@@ -656,8 +656,8 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 规则：
 
 - 开 / 关 track 不改变 Flow identity。
-- 开 `discussion` track 时，access 完全继承 Flow 的 effective scope（与 synthesis 同 scope）。需要让 Flow 拥有独立 membership / history visibility / E2EE 时，把整个 Flow 通过 `Flow.scope_ref` 落在一个 [Circle](../models/circle.md)——`cx.flow.tracks.update` payload 不支持 `access` 子对象，也不修改 `scope_ref`。
-- Flow synthesis 与 discussion 共享同一 effective scope，可见性同源：`scope_ref=null` 时按 Realm-default history visibility；`scope_ref` 指向 Circle 时按该 Circle 自身 policy 判断。projection 必须按 effective scope 裁剪。
+- 开 `discussion` track 时，access 完全继承 Flow 的 effective scope（与 synthesis 同 scope）。需要让 Flow 拥有独立 membership / history visibility / E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)——`cx.flow.tracks.update` payload 不支持 `access` 子对象，也不修改 `scope_circle_id`。
+- Flow synthesis 与 discussion 共享同一 effective scope，可见性同源：`scope_circle_id=null` 时按 Realm-default history visibility；`scope_circle_id` 指向 Circle 时按该 Circle 自身 policy 判断。projection 必须按 effective scope 裁剪。
 - Reducer MUST 保证同一 Flow 至多一个 active track 设置 `is_primary=true`。若没有显式 primary，且 `synthesis` 与 `discussion` 同时存在，默认入口 MUST 派生为 `synthesis`。
 - 发送 `cx.message.*` 到未启用的 discussion track MUST 返回 `discussion_track_disabled` 或等价 fail-closed 结果。
 
@@ -693,7 +693,7 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 Reducer 语义：
 
 1. 验证 actor 对 `board_space_id`、`flow_id`、`from_space_id` 和 `target_space_id` 的 move/reorder 权限（落到 Flow 所属 Realm）。
-2. 验证 `target_space_id` 是 `board_space_id` 下的 active List Space（`kind="list"` 且 `parent_ref` 为 board）。
+2. 验证 `target_space_id` 是 `board_space_id` 下的 active List Space（`kind="list"` 且 `parent_space_id` 为 board）。
 3. 验证目标 Flow 所属 Realm schema/profile 允许它进入该 Board Space。
 4. 把 `expected_position` 编译为 cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>` 的 `head_eq` precondition；把 `target_space_id` + `rank` 编译为 `set { list_space_id: target_space_id, rank }` effect。
 5. cas_register lattice 在该 cell 上 join：成功则 `target_space_id --contains--> flow_id` 派生 Relation 由 cell value 自动投影出来（旧 list 的派生 Relation 自动失效）；并发不同 set 返回 `⊥`（kind=conflict），依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery。
@@ -736,7 +736,7 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 
 ### 9.3 List Space 排序
 
-List Space 在 Board Space 内的顺序通过 `cx.space.update` 修改 List Space 的 `rank` 字段（或 `cx.space.parent` 调整 `parent_ref` + rank）来改变。它不得移动 Flow。**禁止**使用 `cx.realm.update` 修改 List 排序——Space 不是 Realm，不与 Realm 共享生命周期 / membership / E2EE 边界。
+List Space 在 Board Space 内的顺序通过 `cx.space.update` 修改 List Space 的 `rank` 字段（或 `cx.space.parent` 调整 `parent_space_id` + rank）来改变。它不得移动 Flow。**禁止**使用 `cx.realm.update` 修改 List 排序——Space 不是 Realm，不与 Realm 共享生命周期 / membership / E2EE 边界。
 
 ### 9.4 切换 Flow 默认 track
 
@@ -1004,7 +1004,7 @@ Contrix v1 固定：
 - Flow / Message、Board / List 工作流、Morph 共享同一同步协议。
 - `flow` 是统一协作主对象；默认 track 由 track primary 解析规则表达。
 - `synthesis` track 承载整理后的正式表达与推进字段。
-- Track 不携带独立 access；整 Flow 共享单一 effective scope（由 `Flow.scope_ref` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](../models/circle.md)）。
+- Track 不携带独立 access；整 Flow 共享单一 effective scope（由 `Flow.scope_circle_id` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](../models/circle.md)）。
 - invite / grant / snapshot 组成 Realm bootstrap 主流程。
 - event 重试必须幂等。
 - 授权有效性由同一 reducer 顺序收敛。

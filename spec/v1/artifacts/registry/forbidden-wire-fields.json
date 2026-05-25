@@ -49,18 +49,45 @@
       "context": "flow_payload",
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
-      "replacement": "scope_ref",
+      "replacement": "scope_circle_id",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Pre-inversion Flow payload exposed 'discussion_space_ref' pointing at the (then) security-boundary Space. After the Realm/Space inversion, and then after CXP-0007 removal of per-track security boundaries, the canonical field is now 'scope_ref' pointing at an intra-Realm Circle (see schemas/flow.schema.json, zh/models/circle.md). The legacy 'discussion_space_ref' MUST NOT appear on the current wire."
+      "notes": "Pre-inversion Flow payload exposed 'discussion_space_ref' pointing at the (then) security-boundary Space. After the Realm/Space inversion, and then after CXP-0007 removal of per-track security boundaries, the canonical field is now 'scope_circle_id' pointing at an intra-Realm Circle (see schemas/flow.schema.json, zh/models/circle.md). The legacy 'discussion_space_ref' MUST NOT appear on the current wire."
     },
     {
       "id": "discussion_realm_ref",
       "context": "flow_payload",
       "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
-      "replacement": "scope_ref (intra-Realm Circle, see zh/models/circle.md); for 'wide synthesis + narrow discussion' scenarios use two Flows + confidential_discussion_of Relation per circle.md §7.2.",
+      "replacement": "scope_circle_id (intra-Realm Circle, see zh/models/circle.md); for 'wide synthesis + narrow discussion' scenarios use two Flows + confidential_discussion_of Relation per circle.md §7.2.",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "CXP-0007 removed Flow.discussion_realm_ref entirely. The earlier semantics let a single Flow span two Realms (synthesis in source Realm, discussion in linked Realm) and brought a whole patch set: §5.0.1 cross-Realm lifecycle cascade, §8.9 watch cross-Realm projection, rebinding prohibition, etc. The replacement is the Circle primitive plus Flow.scope_ref; one Flow has one encryption scope, period. Any occurrence of 'discussion_realm_ref' on the v1+ wire MUST be rejected with schema_violation reason=discussion_realm_ref_removed."
+      "notes": "CXP-0007 removed Flow.discussion_realm_ref entirely. The earlier semantics let a single Flow span two Realms (synthesis in source Realm, discussion in linked Realm) and brought a whole patch set: §5.0.1 cross-Realm lifecycle cascade, §8.9 watch cross-Realm projection, rebinding prohibition, etc. The replacement is the Circle primitive plus Flow.scope_circle_id; one Flow has one encryption scope, period. Any occurrence of 'discussion_realm_ref' on the v1+ wire MUST be rejected with schema_violation reason=discussion_realm_ref_removed."
+    },
+    {
+      "id": "identifier_suffix_ref_to_id_batch",
+      "context": "single_kind_identifier_fields",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "parent_space_id / default_realm_id / scope_circle_id / default_scope_circle_id / retention_policy_id / disclosure_policy_id / rate_limit_policy_id / policy_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. The old fields parent_ref, default_realm_ref, scope_ref, default_scope_ref, retention_policy_ref, disclosure_policy_ref, rate_limit_policy_ref, and Policy-object policy_ref MUST NOT appear on current v1 wire."
+    },
+    {
+      "id": "policy_ref#member_delivery_binding",
+      "context": "member_delivery_binding",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "policy_event_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "member_delivery_binding references the policy revision Event that authorized a delivery binding, not a Policy object. The field therefore carries explicit event-reference semantics as policy_event_ref."
+    },
+    {
+      "id": "require_scope_ref",
+      "context": "child_scope_policy.kind",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "require_scope_circle_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "The child_scope_policy discriminator now names the concrete field it requires: scope_circle_id."
     },
     {
       "id": "space_frontier",
@@ -778,7 +805,7 @@
       "context": "handle_claim_top_level",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "member_delivery_binding.policy_ref",
+      "replacement": "member_delivery_binding.policy_event_ref",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Handle claim delivery binding policy references are single-sourced inside member_delivery_binding."
     },

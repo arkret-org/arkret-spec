@@ -69,8 +69,8 @@
           },
           "uniqueItems": true
         },
-        "retention_policy_ref": {
-          "$ref": "#/$defs/policy_ref"
+        "retention_policy_id": {
+          "$ref": "#/$defs/policy_id"
         },
         "service_scope": {
           "type": "string",
@@ -113,7 +113,7 @@
           "type": "null"
         },
         {
-          "$ref": "#/$defs/policy_ref"
+          "$ref": "#/$defs/policy_id"
         },
         {
           "$ref": "#/$defs/hash"
@@ -143,7 +143,7 @@
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "policy_ref": {
+    "policy_id": {
       "type": "string",
       "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },

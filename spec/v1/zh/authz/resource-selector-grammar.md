@@ -243,7 +243,7 @@ flow_part            ::= flow_id | "*"
 
 - 匹配：特定结构 Space。
 - 适用：Space metadata、Space lifecycle、Space parent、board/list 类 workflow container 操作。
-- 不含义：不自动授予该 Space `default_realm_ref` 指向 Realm 的 membership、history 或 E2EE key；也不自动授予 Space 下资源的读取权，除非资源 selector / action / constraint 同时命中。
+- 不含义：不自动授予该 Space `default_realm_id` 指向 Realm 的 membership、history 或 E2EE key；也不自动授予 Space 下资源的读取权，除非资源 selector / action / constraint 同时命中。
 
 `space:*`
 
@@ -268,7 +268,7 @@ flow_part            ::= flow_id | "*"
 
 - 匹配：某个 Flow `discussion` track 内的所有 Message。
 - 不授予 Flow synthesis 字段写入权限。
-- 不绕过 Flow 的 effective scope（`Flow.scope_ref=null` 时为父 Realm scope，否则为该 [Circle](../models/circle.md) scope）的 membership、history visibility、redaction 或 E2EE key eligibility。
+- 不绕过 Flow 的 effective scope（`Flow.scope_circle_id=null` 时为父 Realm scope，否则为该 [Circle](../models/circle.md) scope）的 membership、history visibility、redaction 或 E2EE key eligibility。
 
 ### 4.5 Morph 选择器
 

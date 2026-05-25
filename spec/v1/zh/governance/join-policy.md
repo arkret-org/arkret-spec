@@ -221,7 +221,7 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Move�
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `cx.component.realm.delivery_binding_policy.v1`（§5.1.3）的 `allow_binding_sources` 集合内。
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`allow_unroutable_membership=true`），且该成员的客户端理解"该 Realm 仅向本地可见、不接收服务端推送 / 同步 / to-device / push / key-package 投递"。
 4. `delivery_binding.recipient_service_did` 出现在 Realm policy 的 `allowed_recipient_services`（若声明），否则 MUST 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。
-5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_ref`）。
+5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
 
 reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_binding_invalid`，**不得**降级为部分接受。
@@ -233,9 +233,9 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 | `explicit` | 邀请方 / 管理员客户端 | 用户显式选择目标服务 | `service_acceptance_ref` |
 | `did_document_default` | 客户端 DID resolver | Realm policy 允许 fallback，未匹配其它来源 | `did_document_digest` |
 | `invite` | 邀请方 builder | 邀请 token 已携带 binding | `service_acceptance_ref` |
-| `join_policy` | reducer 由 Join Policy 推导 | Join Policy 的 gate / role 决定目标服务 | `policy_ref` |
-| `organization_policy` | 组织治理目录 | invitee 是 Org 员工，组织 policy 指定目标 | `service_acceptance_ref` + `policy_ref` |
-| `realm_policy` | Realm policy 默认值 | Realm 声明 default recipient | `policy_ref` |
+| `join_policy` | reducer 由 Join Policy 推导 | Join Policy 的 gate / role 决定目标服务 | `policy_event_ref` |
+| `organization_policy` | 组织治理目录 | invitee 是 Org 员工，组织 policy 指定目标 | `service_acceptance_ref` + `policy_event_ref` |
+| `realm_policy` | Realm policy 默认值 | Realm 声明 default recipient | `policy_event_ref` |
 
 所有六类来源都要求 `resolved_at`；任何 `binding_source` 进入 canonical Event 时，**结果 MUST 已在客户端 / 提交服务侧解析完成**，不得留"运行时再 resolve"的隐含状态。
 
@@ -251,9 +251,9 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 4. 生成 member Move 时使用 `payload.actor_id = subject`；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
 5. 若解析结果携带 `member_delivery_binding`，将其物化为 `payload.delivery_binding`，并按 Realm `cx.realm.delivery_binding_policy` 选择 `binding_source`：
    - 若 invite token / signed candidate 内嵌 binding，优先使用 `invite`，并携带 `service_acceptance_ref`；
-   - 其次使用 Realm join policy 推导的 `join_policy`，并携带 `policy_ref`；
-   - 组织目录 / 员工名录背书的地址使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_ref`；
-   - Realm / linked Realm policy 继承使用 `realm_policy`，并携带 `policy_ref`；
+   - 其次使用 Realm join policy 推导的 `join_policy`，并携带 `policy_event_ref`；
+   - 组织目录 / 员工名录背书的地址使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_event_ref`；
+   - Realm / linked Realm policy 继承使用 `realm_policy`，并携带 `policy_event_ref`；
    - 用户 / 管理员显式选择服务时使用 `explicit`，并携带 `service_acceptance_ref`；
    - 最后才考虑 `did_document_default`，且仅当 Realm `delivery_binding_policy.allow_did_document_default=true` 并已在 join 时物化 DID document hash。
    - `member_delivery_binding.binding_source` 不得是 `did_document_default`；handle resolution 与 DID Document fallback 是两条独立的物化路径。
@@ -311,7 +311,7 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
 
 - MUST 解析当前 effective `delivery_binding.recipient_service_did` 作为唯一投递目标。
 - MUST NOT 退路到该 actor 的 DID Document `ContrixPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_did` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（默认重试上限见 [`sync/federation.md` §4.1](../sync/federation.md)），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
-- MUST NOT 把"recipient_service_did 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_ref` 显式建立。
+- MUST NOT 把"recipient_service_did 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
 
 `expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并提示该成员客户端通过 §5.1.5 rebind 流程提交新 binding。**未提供 fallback path**——这是设计约束。
 

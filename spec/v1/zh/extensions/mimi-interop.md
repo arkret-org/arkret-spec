@@ -243,7 +243,7 @@ Contrix v1 把 Realm-level policy 映射为 Move effects on cell families。Faca
 
 > 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Contrix 中是 `cx.realm.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `cx.realm.policy_components` Move effect。
 >
-> MIMI room policy 投影 MUST 落在有效 Realm 的 `cx.realm.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Flow 通过 `scope_ref` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
+> MIMI room policy 投影 MUST 落在有效 Realm 的 `cx.realm.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Flow 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
 
 ### 9.2 Unknown Handling
 

@@ -49,9 +49,9 @@
       "context": "prose_or_ui_copy",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Realm members (or Circle members, when Flow.scope_ref points at a Circle)",
+      "replacement": "Realm members (or Circle members, when Flow.scope_circle_id points at a Circle)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track does not carry independent membership; the entire Flow shares one effective scope (Flow.scope_ref). UI copy and docs MUST refer to Realm members or Circle members (per zh/models/circle.md). A Flow needing its own membership boundary MUST set scope_ref to point at an intra-Realm Circle; per-track membership boundaries do not exist."
+      "notes": "Track does not carry independent membership; the entire Flow shares one effective scope (Flow.scope_circle_id). UI copy and docs MUST refer to Realm members or Circle members (per zh/models/circle.md). A Flow needing its own membership boundary MUST set scope_circle_id to point at an intra-Realm Circle; per-track membership boundaries do not exist."
     },
     {
       "id": "Room visibility",

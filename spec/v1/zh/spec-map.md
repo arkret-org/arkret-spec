@@ -94,7 +94,7 @@ see_also:
 - Realm 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
 - Flow、Message 和 Realm workflow 容器是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- Flow 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力。Track 是纯展示 / 时间线分段标识，**不携带独立 access**——整个 Flow 共享单一 effective scope（由 `Flow.scope_ref` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](./models/circle.md)）。需要独立 membership、历史可见性或 E2EE 边界时，把整 Flow 落在 Circle，或按 [`models/circle.md` §7.2](./models/circle.md) 拆为两个 Flow + Relation。
+- Flow 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力。Track 是纯展示 / 时间线分段标识，**不携带独立 access**——整个 Flow 共享单一 effective scope（由 `Flow.scope_circle_id` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](./models/circle.md)）。需要独立 membership、历史可见性或 E2EE 边界时，把整 Flow 落在 Circle，或按 [`models/circle.md` §7.2](./models/circle.md) 拆为两个 Flow + Relation。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Projection
@@ -150,8 +150,8 @@ see_also:
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas_register / cascade。 |
-| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`scope_ref`（Flow effective scope）、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
-| `models/circle.md` | Circle（intra-Realm 密码学子边界）、`scope_ref` / `effective_scope`、Circle 独立 MLS group、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS rotate amplification 缓解、Circle UX 视觉一致性要求。 |
+| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Flow effective scope）、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/circle.md` | Circle（intra-Realm 密码学子边界）、`scope_circle_id` / `effective_scope`、Circle 独立 MLS group、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、RelationProfile、冲突处理。 |
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |

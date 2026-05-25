@@ -39,13 +39,13 @@ updated: 2026-05-25
 
 ## 4. 工作流容器
 
-工作流容器是独立的 `Space` 对象（`cx:space:`）。Space 是产品结构节点，不形成自己的 boundary；它的 metadata 写入 `realm_id` 指向的 home Realm，子资源默认落点由 `default_realm_ref` 解析：
+工作流容器是独立的 `Space` 对象（`cx:space:`）。Space 是产品结构节点，不形成自己的 boundary；它的 metadata 写入 `realm_id` 指向的 home Realm，子资源默认落点由 `default_realm_id` 解析：
 
 - `Board Space`（`kind=board`）
 - `List Space`（`kind=list`）
 - 未来可扩展：`swimlane` / `calendar_bucket` / `page_group` / …（profile 注册）
 
-Flow 在 `Board Space` / `List Space` 中的位置通过 `contains` relation 与 `cx.flow.move` / `cx.flow.reorder` 维护。Space 之间的层级用 Space 自己的 `parent_ref` + `cx.space.parent` 表达，可跨 Realm 做导航，但不级联 Realm 权限或密钥。
+Flow 在 `Board Space` / `List Space` 中的位置通过 `contains` relation 与 `cx.flow.move` / `cx.flow.reorder` 维护。Space 之间的层级用 Space 自己的 `parent_space_id` + `cx.space.parent` 表达，可跨 Realm 做导航，但不级联 Realm 权限或密钥。
 
 ## 5. View 的职责
 
@@ -62,17 +62,17 @@ Realm membership、Flow 更新权限与 discussion access 使用统一授权模�
 
 - `cx.member.state` 控制 Realm membership
 - `cx.flow.*` 控制 Flow 自身与工作流位置
-- Track 不携带独立 access；整 Flow 共享单一加密 scope（`Flow.scope_ref`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
-- 需要让 Flow 拥有独立 membership / history visibility / E2EE 时，把 `Flow.scope_ref` 指向一个 Circle；`cx.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
-- Flow 可见性按整 Flow 单一 scope 判定：`scope_ref=null` 按 Realm-default policy；`scope_ref` 指向 Circle 时按该 Circle 自身 history visibility 与 membership 独立判断。
+- Track 不携带独立 access；整 Flow 共享单一加密 scope（`Flow.scope_circle_id`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
+- 需要让 Flow 拥有独立 membership / history visibility / E2EE 时，把 `Flow.scope_circle_id` 指向一个 Circle；`cx.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
+- Flow 可见性按整 Flow 单一 scope 判定：`scope_circle_id=null` 按 Realm-default policy；`scope_circle_id` 指向 Circle 时按该 Circle 自身 history visibility 与 membership 独立判断。
 - Flow 可读不代表 Flow synthesis 可写——授权评估始终是 capability ∧ scope membership 两层 AND（详见 [`../models/circle.md` §8](../models/circle.md)）。
 
 ## 7. E2EE 边界
 
 MLS 加密绑定到 Realm 或 Realm 内的 Circle:
 
-- 默认（`Flow.scope_ref=null`）：Flow 落在 Realm-default MLS group；该 Realm 全员可解。
-- 独立 Flow access：`Flow.scope_ref` 指向某 Circle 时，整个 Flow 落在该 Circle 的独立 MLS group / 独立成员 / 独立 history sharing。Circle key MUST NOT 从 Realm-default key 派生。
+- 默认（`Flow.scope_circle_id=null`）：Flow 落在 Realm-default MLS group；该 Realm 全员可解。
+- 独立 Flow access：`Flow.scope_circle_id` 指向某 Circle 时，整个 Flow 落在该 Circle 的独立 MLS group / 独立成员 / 独立 history sharing。Circle key MUST NOT 从 Realm-default key 派生。
 - MLS group 的 scope 绑定 `(realm_id, circle_id?)`：`scope=realm` 时承担 Realm-default 加密；`scope=circle` 时承担 Circle 加密。不存在 "track-internal MLS group"。
 - 详见 [`../models/circle.md` §10](../models/circle.md)（含 Realm-member-removal 触发的 N+1 rotate amplification 与缓解策略）。
 

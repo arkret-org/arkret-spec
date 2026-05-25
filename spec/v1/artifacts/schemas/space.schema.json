@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/space.schema.json",
   "title": "Contrix Space",
-  "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; its metadata may be placed in an existing Realm/Circle encryption scope via scope_ref.",
+  "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; its metadata may be placed in an existing Realm/Circle encryption scope via scope_circle_id.",
   "type": "object",
   "required": [
     "id",
@@ -24,18 +24,18 @@
     "realm_id": {
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Home Realm that stores, syncs, and authorizes this Space object's own metadata. This is also the fallback default Realm for new resources under this Space when default_realm_ref is absent."
+      "description": "Home Realm that stores, syncs, and authorizes this Space object's own metadata. This is also the fallback default Realm for new resources under this Space when default_realm_id is absent."
     },
-    "default_realm_ref": {
+    "default_realm_id": {
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional default Realm for resources created under this Space. Omitted means inherit from the nearest ancestor Space with default_realm_ref, falling back to realm_id. This field does not grant membership or decryption rights."
+      "description": "Optional default Realm for resources created under this Space. Omitted means inherit from the nearest ancestor Space with default_realm_id, falling back to realm_id. This field does not grant membership or decryption rights."
     },
-    "scope_ref": {
+    "scope_circle_id": {
       "$ref": "#/$defs/circle_id",
       "description": "Optional Circle scope for this Space object's own metadata and scoped structural relation facts. Space still does not own a security boundary; it only places its metadata into an existing Circle. Omitted means Realm-default encryption scope."
     },
-    "default_scope_ref": {
+    "default_scope_circle_id": {
       "$ref": "#/$defs/circle_id",
       "description": "Optional default Circle scope for newly created child resources. This is a creation hint, not an authorization or placement constraint; use child_scope_policy for reducer-enforced requirements."
     },
@@ -43,7 +43,7 @@
       "$ref": "#/$defs/child_scope_policy",
       "description": "Reducer-enforced placement/encryption policy for child resources created in or moved into this Space."
     },
-    "parent_ref": {
+    "parent_space_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional parent in the structural hierarchy. Parent MAY live in a different Realm; such a link is navigation only and never propagates membership, capabilities, history, E2EE keys, retention, or federation policy."
@@ -176,10 +176,10 @@
             "allow_any",
             "require_e2ee",
             "require_same_scope",
-            "require_scope_ref"
+            "require_scope_circle_id"
           ]
         },
-        "scope_ref": {
+        "scope_circle_id": {
           "$ref": "#/$defs/circle_id"
         },
         "metadata_encryption_floor": {
@@ -191,7 +191,7 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "require_scope_ref"
+                "const": "require_scope_circle_id"
               }
             },
             "required": [
@@ -200,7 +200,7 @@
           },
           "then": {
             "required": [
-              "scope_ref"
+              "scope_circle_id"
             ]
           }
         }

@@ -105,7 +105,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm access policy reference (policy_ref)",
+      "payload": "Realm access policy reference (policy_id)",
       "cell_family": "cx.component.realm.policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",

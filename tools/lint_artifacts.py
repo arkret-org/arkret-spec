@@ -339,6 +339,14 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "actor_did": "actor_id",
     "principal_did": "principal_id",
     "subject_did": "subject_id",
+    "parent_ref": "parent_space_id",
+    "default_realm_ref": "default_realm_id",
+    "scope_ref": "scope_circle_id",
+    "default_scope_ref": "default_scope_circle_id",
+    "retention_policy_ref": "retention_policy_id",
+    "disclosure_policy_ref": "disclosure_policy_id",
+    "rate_limit_policy_ref": "rate_limit_policy_id",
+    "policy_ref": "policy_id for Policy objects, or policy_event_ref for policy-revision Event references",
     # Hash → digest vocabulary unification (common-fields.md §2):
     # algorithm selectors use _algorithm; hash output bytes use _digest; tree roots use _root.
     "hash_profile": "digest_algorithm",
@@ -429,6 +437,14 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "cx.realm.link.manage": "cx.realm.link",
     "cx.realm.plaintext_visible_services.modify": "cx.realm.plaintext_visible_services",
     "cx.realm.moderate": "cx.realm.moderation_policy",
+    "parent_ref": "parent_space_id",
+    "default_realm_ref": "default_realm_id",
+    "scope_ref": "scope_circle_id",
+    "default_scope_ref": "default_scope_circle_id",
+    "require_scope_ref": "require_scope_circle_id",
+    "retention_policy_ref": "retention_policy_id",
+    "disclosure_policy_ref": "disclosure_policy_id",
+    "rate_limit_policy_ref": "rate_limit_policy_id",
 }
 
 
@@ -526,7 +542,8 @@ def check_forbidden_naming_aliases(lint: Lint) -> None:
             if "~~" in stripped:
                 stripped = STRIKETHROUGH_RE.sub("", stripped)
             for old, replacement in FORBIDDEN_NAMING_STRING_ALIASES.items():
-                if old in stripped:
+                pattern = rf"(?<![A-Za-z0-9_]){re.escape(old)}(?![A-Za-z0-9_])"
+                if re.search(pattern, stripped):
                     lint.fail(path, f"line {line_no}: legacy name `{old}` appears; use `{replacement}`")
 
         for match in JSON_FENCE_RE.finditer(text):

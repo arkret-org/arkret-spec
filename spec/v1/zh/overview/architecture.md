@@ -47,21 +47,21 @@ Contrix 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flo
 | 使用场景 | 推荐对象 | 关键边界属性 |
 | --- | --- | --- |
 | 共享 federation / identity、policy server、capability registry、Realm-default E2EE group | `cx:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、policy server、capability registry、Realm-default MLS group |
-| Realm 内独立 MLS group + 子集成员 + 独立 history，复用父 Realm federation / policy / capability registry | `cx:circle:`，对象通过 `scope_ref` 引用 | cryptographic sub-boundary；不持有 federation identity 或 policy server；约束 `Circle.members ⊆ Realm.members` |
-| Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `cx:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_ref` 仅决定 Space metadata 加密 scope，不构成安全边界 |
-| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `cx:flow:` | Realm 内协作主体；整 Flow 单一加密 scope（由 `Flow.scope_ref` 决定，`null` = Realm-default，否则指向 Circle） |
+| Realm 内独立 MLS group + 子集成员 + 独立 history，复用父 Realm federation / policy / capability registry | `cx:circle:`，对象通过 `scope_circle_id` 引用 | cryptographic sub-boundary；不持有 federation identity 或 policy server；约束 `Circle.members ⊆ Realm.members` |
+| Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `cx:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_circle_id` 仅决定 Space metadata 加密 scope，不构成安全边界 |
+| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `cx:flow:` | Realm 内协作主体；整 Flow 单一加密 scope（由 `Flow.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
 | 客户端导航整洁化（"软隐藏一组 Realm"） | （不新建容器）使用 View / Space hierarchy / Realm linking | Realm 间无树形包含关系，仅有 link graph；产品层"我的工作区"为 client-side 概念 |
 
 判定顺序（normative）：
 
 1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `cx:realm:`。
-2. Realm 内若需要独立 MLS group 或 history visibility 边界，MUST 使用 `cx:circle:`，对象通过 `scope_ref` 引用。
+2. Realm 内若需要独立 MLS group 或 history visibility 边界，MUST 使用 `cx:circle:`，对象通过 `scope_circle_id` 引用。
 3. 仅用于导航 / 结构分组的容器 MUST 使用 `cx:space:`，不得借此获得 membership 或安全边界。
 4. 带协作语义的最小单元 MUST 使用 `cx:flow:`。
-5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../proposals/) 留档。
+5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../../proposals/) 留档。
 
 > [!DEPRECATED] 已移除：`Flow.discussion_realm_ref` 跨 Realm 模式。
-> 决策来源：[proposals/0007-circle-primitive.md](../proposals/0007-circle-primitive.md)；
+> 决策来源：[proposals/0007-circle-primitive.md](../../proposals/0007-circle-primitive.md)；
 > 机器视图：[`renames.json`](../../artifacts/registry/renames.json)。
 > 替代方案：两个 Flow + `confidential_discussion_of` Relation，见 [`models/circle.md` §7.2](../models/circle.md#72)。
 

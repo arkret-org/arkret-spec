@@ -44,7 +44,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Deleted: track does not carry independent membership. Use Realm-level cx.member.state for Realm-default access; when narrower cryptographic visibility is required, put the entire Flow in a Circle via Flow.scope_ref or split wide/narrow discussion into two Flows linked by confidential_discussion_of."
+      "notes": "Deleted: track does not carry independent membership. Use Realm-level cx.member.state for Realm-default access; when narrower cryptographic visibility is required, put the entire Flow in a Circle via Flow.scope_circle_id or split wide/narrow discussion into two Flows linked by confidential_discussion_of."
     },
     {
       "id": "cx.flow.track.history_visibility",
@@ -83,7 +83,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Deleted: policy attaches to the Realm boundary or, for intra-Realm cryptographic narrowing, to a Circle referenced by Flow.scope_ref. Track-level policy is not a v1 boundary."
+      "notes": "Deleted: policy attaches to the Realm boundary or, for intra-Realm cryptographic narrowing, to a Circle referenced by Flow.scope_circle_id. Track-level policy is not a v1 boundary."
     },
     {
       "id": "Realm(kind=list)",
@@ -129,13 +129,105 @@
       "kind_class": "wire_field_name",
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
-      "replacement": "scope_ref",
+      "replacement": "scope_circle_id",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy Flow payload field. The intermediate 'discussion_realm_ref' successor was removed by CXP-0007; current v1 has no per-track discussion boundary. Use Flow.scope_ref for a whole-Flow Circle scope, or two Flows linked by confidential_discussion_of for wide synthesis + narrow discussion."
+      "notes": "Legacy Flow payload field. The intermediate 'discussion_realm_ref' successor was removed by CXP-0007; current v1 has no per-track discussion boundary. Use Flow.scope_circle_id for a whole-Flow Circle scope, or two Flows linked by confidential_discussion_of for wide synthesis + narrow discussion."
+    },
+    {
+      "id": "parent_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "parent_space_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Single concrete Space identifier fields use `_id`; Space parent is materialized as parent_space_id across event payload, object, projection, and query surfaces."
+    },
+    {
+      "id": "default_realm_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "default_realm_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "default_realm_id is a single concrete Realm identifier, not reference material."
+    },
+    {
+      "id": "scope_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "scope_circle_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Flow / Space / Morph encryption scope fields point at one concrete Circle object, so the field carries the explicit Circle kind."
+    },
+    {
+      "id": "default_scope_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "default_scope_circle_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Space default child scope points at one concrete Circle object."
+    },
+    {
+      "id": "policy_ref#policy_object",
+      "wire_id": "policy_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "policy_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Fields that point at a Policy object use policy_id. Fields that point at an authorizing policy revision Event use policy_event_ref."
+    },
+    {
+      "id": "policy_ref#member_delivery_binding",
+      "wire_id": "policy_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "policy_event_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "member_delivery_binding stores an Event reference to the policy revision that authorized the binding."
+    },
+    {
+      "id": "retention_policy_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "retention_policy_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "retention_policy_id points at one concrete Policy object."
+    },
+    {
+      "id": "disclosure_policy_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "disclosure_policy_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "disclosure_policy_id points at one concrete Policy object."
+    },
+    {
+      "id": "rate_limit_policy_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "rate_limit_policy_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "rate_limit_policy_id points at one concrete Policy object."
+    },
+    {
+      "id": "require_scope_ref",
+      "kind_class": "wire_enum_value",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "require_scope_circle_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "child_scope_policy.kind names the concrete required field."
     },
     {
       "id": "cx.place.create",
@@ -1754,7 +1846,7 @@
       "kind_class": "wire_field_name",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "member_delivery_binding.policy_ref",
+      "replacement": "member_delivery_binding.policy_event_ref",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -2599,7 +2691,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow.discussion_realm_ref removed entirely by CXP-0007. There is NO direct successor field — the semantics it served (a Flow spanning two Realms with separate discussion access) are intentionally deleted; one Flow has exactly one encryption scope. Replacement patterns: (1) For Realm-internal narrowing, set Flow.scope_ref to point at an intra-Realm Circle (zh/models/circle.md). (2) For 'wide synthesis + narrow discussion', create two Flows linked by confidential_discussion_of Relation per circle.md §7.2. (3) For cross-federation discussion mirrors, create an independent Flow in the linked Realm and connect via cx.realm.link{link_kind=confidential_extension_of} — not a Flow field. Wire-level rejection details in forbidden-wire-fields.json id=discussion_realm_ref.",
+      "notes": "Flow.discussion_realm_ref removed entirely by CXP-0007. There is NO direct successor field — the semantics it served (a Flow spanning two Realms with separate discussion access) are intentionally deleted; one Flow has exactly one encryption scope. Replacement patterns: (1) For Realm-internal narrowing, set Flow.scope_circle_id to point at an intra-Realm Circle (zh/models/circle.md). (2) For 'wide synthesis + narrow discussion', create two Flows linked by confidential_discussion_of Relation per circle.md §7.2. (3) For cross-federation discussion mirrors, create an independent Flow in the linked Realm and connect via cx.realm.link{link_kind=confidential_extension_of} — not a Flow field. Wire-level rejection details in forbidden-wire-fields.json id=discussion_realm_ref.",
       "migration_group": "cxp_0007_circle_introduction"
     },
     {

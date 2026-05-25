@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-Handle 是人类可读入口，不是权限主键。  
+Handle 是人类可读入口，不是权限主键。
 Contrix 使用 DID 作为稳定主体，用可验证 claim / attestation 表达 handle、组织成员、邮箱控制权和其他动态属性。
 
 本文定义：
@@ -43,7 +43,7 @@ authorization condition = verified claim / attestation
 
 ### 2.2 Handle 可以迁移
 
-Handle MAY 变更、冻结、迁移或重新绑定。  
+Handle MAY 变更、冻结、迁移或重新绑定。
 历史 Event 仍然保留原 DID 作为 actor，因此 handle 被回收不会改变历史责任主体。
 
 ### 2.3 标识角色与可见性
@@ -126,7 +126,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 ### 3.3 `member_delivery_binding`
 
-解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_service_did`、`binding_source`、`service_acceptance_ref`、`policy_ref` 和 `delivery_modes` 可直接用于构造 `cx.member.state{membership="join"}.delivery_binding`。Handle claim schema 不再允许顶层 `recipient_service_did`、`service_acceptance_ref` 或 `policy_ref` 快捷字段；这些 delivery binding 字段必须只从 `member_delivery_binding.*` 读取。
+解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_service_did`、`binding_source`、`service_acceptance_ref`、`policy_event_ref` 和 `delivery_modes` 可直接用于构造 `cx.member.state{membership="join"}.delivery_binding`。Handle claim schema 不再允许顶层 `recipient_service_did`、`service_acceptance_ref` 或 `policy_event_ref` 快捷字段；这些 delivery binding 字段必须只从 `member_delivery_binding.*` 读取。
 
 `member_delivery_binding.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
 
@@ -205,7 +205,7 @@ payload.actor_id = candidate.subject_id
 payload.delivery_binding.recipient_service_did = candidate.member_delivery_binding.recipient_service_did
 payload.delivery_binding.resolved_at = candidate.proofs[].created_at 或 candidate.expires_at 之前的 issuer as_of
 payload.delivery_binding.service_acceptance_ref = candidate.member_delivery_binding.service_acceptance_ref
-payload.delivery_binding.policy_ref = candidate.member_delivery_binding.policy_ref
+payload.delivery_binding.policy_event_ref = candidate.member_delivery_binding.policy_event_ref
 payload.delivery_binding.delivery_modes = candidate.member_delivery_binding.delivery_modes
 payload.delivery_binding.binding_source = join-policy §5.1.2.1 决策树输出
 ```
@@ -309,7 +309,7 @@ Handle 解析示例：
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
     "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001",
-    "policy_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
+    "policy_event_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
   },
   "created_at": "2026-05-19T00:00:00Z",
   "expires_at": "2026-08-19T00:00:00Z",
@@ -364,7 +364,7 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 
 - verified handle cache MUST 绑定 `handle_uri`（canonical `contrix://` 形态）、`subject`、issuer、DID Document version / digest、alsoKnownAs proof、issuer proof、verified_at、expires_at 和 resolver policy。claim 同时携带 `handle_uri` 与 `handle_aliases[]` 时，缓存键 MUST 取 `handle_uri`；`acct:` alias 只作为附加索引，但仍指向同一 cache entry。
 - alias lookup 命中缓存时，verifier MUST 跳转到 canonical `handle_uri` 的 freshness re-check 路径：重新检查 TTL、issuer revocation、DID Document digest / version、alsoKnownAs proof 与 resolver policy。实现不得把 `handle_aliases[]` 中的 `acct:` 或其它互通别名当作独立 cache key 直接返回 verified claim，也不得为 alias 单独延长 freshness window。
-- handle cache 若含 `member_delivery_binding`，还 MUST 绑定 `member_delivery_binding.recipient_service_did`、claim digest、audience / scope、`service_acceptance_ref` / `policy_ref`（如有）；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
+- handle cache 若含 `member_delivery_binding`，还 MUST 绑定 `member_delivery_binding.recipient_service_did`、claim digest、audience / scope、`service_acceptance_ref` / `policy_event_ref`（如有）；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
 - DNS / HTTPS 解析结果的 TTL MUST 不超过底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL 和本地 resolver policy 上限中的最小值。未提供 TTL 时，verified cache SHOULD 不超过 24 小时；高风险授权或组织背书 SHOULD 使用更短 TTL 或实时 status check。
 - 当 DID Document 移除对应 `alsoKnownAs`、issuer claim 被 revoke / expired、well-known 绑定变更、DNSSEC validation 失败、handle 被解析到不同 DID、或 resolver policy 更新时，缓存 MUST 失效或降级为 unverified。
 
@@ -502,7 +502,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
 }
 ```
 
-Wallet MUST 展示将要披露的 claim。  
+Wallet MUST 展示将要披露的 claim。
 Wallet SHOULD 拒绝或警告请求无关 handle、global subject identifier、credential id 或不必要人口属性的 presentation request。
 
 ## 13. Proof Profile

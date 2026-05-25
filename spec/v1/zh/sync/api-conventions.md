@@ -305,7 +305,7 @@ X-Contrix-Wait-For: <cursor>
 
 核心协议不定义全网统一的固定请求数下限；不同 sovereign、public federation、high-assurance 或离线 profile 可以有不同容量与滥用模型。但任何可被客户端或联邦对端调用的服务，MUST 通过 describe endpoint 暴露当前有效的限流配置，使对端能做自适应重试。
 
-限流配置 MUST 使用 `rate_limit_policy` 内联对象，或使用 `rate_limit_policy_ref` 指向可缓存、可验证的同等策略对象。策略至少包含：
+限流配置 MUST 使用 `rate_limit_policy` 内联对象，或使用 `rate_limit_policy_id` 指向可缓存、可验证的同等策略对象。策略至少包含：
 
 - `policy_version` 或等价版本/hash。
 - `entries[]`，每项绑定 `endpoint` 或 `operation_id`。
@@ -314,7 +314,7 @@ X-Contrix-Wait-For: <cursor>
 - 重试提示：`retry_after_ms`、`backoff_hint` 或 `next_retry_at` 的语义。
 - `effective_at` / `expires_at` 或缓存 TTL；未知时客户端 MUST 按保守策略重试。
 
-公开 describe MAY 只返回 coarse policy，避免暴露内部防滥用细节；认证后的 describe SHOULD 返回调用方当前可见的精确有效策略。服务若省略 `rate_limit_policy` 和 `rate_limit_policy_ref`，表示除了通用滥用防护外没有可预期的端点级限流；一旦可能返回 `rate_limited`，就 MUST 暴露足够的策略信息供对端调度。
+公开 describe MAY 只返回 coarse policy，避免暴露内部防滥用细节；认证后的 describe SHOULD 返回调用方当前可见的精确有效策略。服务若省略 `rate_limit_policy` 和 `rate_limit_policy_id`，表示除了通用滥用防护外没有可预期的端点级限流；一旦可能返回 `rate_limited`，就 MUST 暴露足够的策略信息供对端调度。
 
 触发限流时 MUST 返回 `rate_limited`，并 SHOULD 附带：
 
@@ -369,7 +369,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - `max_body_bytes`
 - `limits`
 - `rate_limit_policy`
-- `rate_limit_policy_ref`
+- `rate_limit_policy_id`
 
 客户端 MUST 根据 feature discovery 决定是否启用可选能力，不得假设所有节点都支持完整协议。
 

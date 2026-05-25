@@ -144,8 +144,8 @@ Space hierarchy 可以跨 Realm 做导航。例如：
 ```text
 Acme (Space, realm_id=R_org)
   Projects (Space, realm_id=R_org)
-    Website Redesign (Space, default_realm_ref=R_default)
-    Pricing Strategy (Space, default_realm_ref=R_confidential)
+    Website Redesign (Space, default_realm_id=R_default)
+    Pricing Strategy (Space, default_realm_id=R_confidential)
 ```
 
 这里 `R_default` 与 `R_confidential` 不需要是 parent/linked Realm。若存在关系，也应使用明确 kind，例如：

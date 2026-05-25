@@ -126,7 +126,7 @@ Schema id: `cx.schema.version.v1`
 
 ### 5.2 为什么 Component 不是 Space 的一种 kind?
 
-- Space 形成 navigation tree / boundary 派生 / `default_realm_ref` 等结构语义
+- Space 形成 navigation tree / boundary 派生 / `default_realm_id` 等结构语义
 - Component 是纯分类标签,贴上去就完事,不应承担容器语义
 - 一个 Flow 可以在多个 component(many-to-many),Space 是 1:N 的位置语义
 
@@ -142,7 +142,7 @@ Schema id: `cx.schema.version.v1`
 
 ## 6. Open questions
 
-- [ ] Component 是否需要 hierarchy(`parent_ref`)?Jira 允许 nested components。建议 v1 不嵌套,保持平铺。
+- [ ] Component 是否需要 hierarchy(`parent_space_id`)?Jira 允许 nested components。建议 v1 不嵌套,保持平铺。
 - [ ] Version 是否需要 dependencies(`blocks_release_of`)?engineering team 常用。建议作为 Relation 而非内嵌字段。
 - [ ] release_state archived 是否需要 unarchive?(发布的 version 已是事实,反向只能用 tombstone)
 - [ ] 跨 Realm dashboard 引用 component / version:同 Realm 限制,还是允许 organization-level shared?postpone。

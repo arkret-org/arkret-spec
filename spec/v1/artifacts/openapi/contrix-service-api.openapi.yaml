@@ -324,7 +324,7 @@ components:
       - required:
         - rate_limit_policy
       - required:
-        - rate_limit_policy_ref
+        - rate_limit_policy_id
       properties:
         protocol_version:
           type: string
@@ -430,7 +430,7 @@ components:
         limits:
           type: object
           additionalProperties: true
-        rate_limit_policy_ref:
+        rate_limit_policy_id:
           type: string
         rate_limit_policy:
           type: object
@@ -1696,12 +1696,12 @@ components:
     SpaceHierarchyResponse:
       type: object
       required:
-      - root_realm_id
+      - root_space_id
       - children
       properties:
-        root_realm_id:
+        root_space_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         root:
           $ref: '#/components/schemas/ProjectionObject'
         children:
@@ -1746,16 +1746,16 @@ components:
     SpaceHierarchyEdge:
       type: object
       required:
-      - parent_ref
-      - child_ref
+      - parent_space_id
+      - child_space_id
       - edge_status
       properties:
-        parent_ref:
+        parent_space_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        child_ref:
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        child_space_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         relation_kind:
@@ -2887,7 +2887,7 @@ components:
           description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
         title:
           type: string
-        parent_ref:
+        parent_space_id:
           type:
           - string
           - 'null'

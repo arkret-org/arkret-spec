@@ -148,25 +148,18 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 自定义 profile 若新增 `cx:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `cx:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
-### 4.1 Field Naming: `<noun>_id` vs `<noun>_ref`（normative for new fields）
+### 4.1 Field Naming: `_id` / `_ref` / `_did`（normative）
 
-v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<uuid>`）的字段。不同对象按下表选择后缀：`realm_id` / `flow_id` / `target_space_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `scope_ref` / `policy_ref` 用 `_ref`。
-
-**v1 现状（不变）**：所有现有字段名锁定在当前 wire 形态，重命名是 breaking change，不在 v1 范围内执行。下表列出**已定型**的字段命名约定，实现 MUST 按现有命名解析；不得依赖前缀做字段类型推断。
-
-**新字段命名规则（normative，对未来增量与扩展 profile 适用）**：本规范之后引入的新字段、新 schema、新 profile MUST 遵循以下规则，避免不一致进一步扩散：
+Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/common-fields.md#21-identifier-字段命名约定normative)。本节只给出编码层摘要：字段后缀表达 wire value category，不表达授权、同步、retention 或 E2EE 级联语义。
 
 | 用途 | 命名后缀 | 说明 |
 | --- | --- | --- |
 | 对象自身 ID（primary key） | `id` | canonical object 的主 ID，无下划线前缀。例：`id`。 |
-| 对象的 *primary parent* ID（同类对象自然父子）| `<noun>_id` | 例：`realm_id`（所属 Realm）、`flow_id`（所属 Flow）。仅用于该对象的"出生地"绑定。 |
-| 任何其它跨对象引用（pointer to another typed object） | `<noun>_ref` | 例：`from_ref` / `to_ref` / `parent_ref` / `scope_ref` / `policy_ref`。新字段 MUST 使用 `_ref`。 |
-| Content-addressed 引用（hash-based） | `<noun>_ref` | 例：`blob_ref`、`event_digest`（hash form）。 |
-| Cell 引用（cell id 字符串） | `<noun>_cell` 或 `<noun>_ref` | 例：`anchor_cell`、`mls_epoch_cell`。 |
-
-判别规则：**当字段同时具备"主从语义 + 指向同一 schema 的对象 + 该对象是 wire 接收方的命名上下文"时使用 `_id`；其余一律 `_ref`**。例如新增 "morph 引用某 Flow" 的字段：用 `flow_ref`，因为 Morph 与 Flow 不构成 primary parent 关系；但 Message 引用所属 Flow 仍是 `flow_id`，因为 Message **必须**属于一个 Flow（出生地绑定）。
-
-任何 new field 在 PR review 中违反上述规则 MUST 被 lint 标记 `naming_convention_violation`（warning 级，不阻塞合并）；conformance 测试不强制现有字段重命名。
+| 单一具体 protocol object kind | `<role>_<kind>_id` | 例：`realm_id`、`parent_space_id`、`scope_circle_id`、`policy_id`。 |
+| 协议责任主体（DID 作为主体 ID） | `<role>_id` | 例：`actor_id`、`principal_id`、`subject_id`。 |
+| 因果 / finality / proof / schema-profile reference | `<noun>_ref` / `<noun>_refs` | 例：`prev_refs`、`anchor_ref`、`schema_refs`、`policy_event_ref`。 |
+| Blob / content-addressed / polymorphic reference | `<noun>_ref` / `<noun>_refs` | 例：`blob_ref`、`target_ref`、`from_ref`、`to_ref`。 |
+| 原始 DID ecosystem material | `<role>_did` | 例：`service_did`、`pairwise_did`、`old_did`、`new_did`。 |
 
 ## 5. Event Batch Receipt Hash
 

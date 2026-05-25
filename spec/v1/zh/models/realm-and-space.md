@@ -62,13 +62,13 @@ Realm 与 MLS group 不是同义词：
 
 - `encryption_profile` 是 Realm 的 create-locked 基线。
 - 同一 Realm 内不允许把普通 Flow 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_profile` 声明（详见 [`circle.md` §7](./circle.md)）。
-- 若某个 Flow / artifact 需要 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history），创建一个 [Circle](./circle.md) 并把对象的 `scope_ref` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `cx.realm.link` 显式引用连接。
+- 若某个 Flow / artifact 需要 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history），创建一个 [Circle](./circle.md) 并把对象的 `scope_circle_id` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `cx.realm.link` 显式引用连接。
 
 ### 2.3 Schema id 与字段
 
 Schema id: `cx.schema.realm.v1`
 
-> Materialized Realm 上以 **reducer 派生** 标注的字段（`policy_ref` / `default_discoverability` / `default_join_rule` / `history_visibility` / `federation_policy` 等）只是当前态快照。写入路径必须使用对应 per-facet state event（`cx.realm.policy` / `cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / ...），不得直接 PATCH Realm 对象更新这些字段。`trust_domain` 与 `encryption_profile` 在 create event 时锁定，后续不可变。
+> Materialized Realm 上以 **reducer 派生** 标注的字段（`policy_id` / `default_discoverability` / `default_join_rule` / `history_visibility` / `federation_policy` 等）只是当前态快照。写入路径必须使用对应 per-facet state event（`cx.realm.policy` / `cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / ...），不得直接 PATCH Realm 对象更新这些字段。`trust_domain` 与 `encryption_profile` 在 create event 时锁定，后续不可变。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ Schema id: `cx.schema.realm.v1`
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `cx.schema.realm.v1`。 | 启用 schema / profile。 |
 | `relation_profiles` | no | `array<RelationProfile>` | 同一 `(relation_kind, from_type, to_type, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
-| `policy_ref` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
+| `policy_id` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | reducer 派生。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | reducer 派生。 | 历史可见性。 |
@@ -94,7 +94,7 @@ Schema id: `cx.schema.realm.v1`
 | `max_anchor_staleness_ms` | no | `integer` | 默认 24h。 | Event freshness 窗口。 |
 | `cell_lattices` | no | `array<CellLattice>` |  | Realm-specific 扩展 cell family。 |
 | `co_write_policy` | no | `array<array<component>>` |  | Move 原子写约束。 |
-| `retention_policy_ref` | no | `id:policy` |  | 保留策略。 |
+| `retention_policy_id` | no | `id:policy` |  | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
@@ -169,8 +169,8 @@ Realm 有两个终态 event，语义不同：
 3. **Successor / Tombstone 区分**：`cx.realm.destroy` MUST NOT 携带 `successor_realm_id`；如果产品需要迁移到新 Realm，使用 `cx.realm.tombstone` 而不是 destroy。
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `cx.audit.erasure_receipt`（schema `cx.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：destroy event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state` 并停止接受该 Realm 的新 `cx.events.submit`（包括 backfill 写入）。
-6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST 不再作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `cx.flow.move`、`cx.space.parent`、`cx.space.update` 等普通写入复活它们。跨 Realm `parent_ref` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
-7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_ref` 指向已 tombstone Circle 时，写入 MUST fail closed,projection 显示 `scope_unavailable`;`scope_ref` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。（旧版规则"跨 Realm `Flow.discussion_realm_ref` 边 cascade"已随该字段一同删除 —— CXP-0007。）
+6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST 不再作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `cx.flow.move`、`cx.space.parent`、`cx.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
+7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed,projection 显示 `scope_unavailable`;`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。（旧版规则"跨 Realm `Flow.discussion_realm_ref` 边 cascade"已随该字段一同删除 —— CXP-0007。）
 
 #### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
 
@@ -254,12 +254,12 @@ Space 是用户和产品层可见的结构容器。它可以表达：
 - document outline group / page group
 - 任意 profile 注册的结构节点
 
-Space **不**拥有自己的 membership、policy、history visibility、E2EE group 或 federation policy。它通过 `realm_id` 和可选 `default_realm_ref` 解析到 Realm：
+Space **不**拥有自己的 membership、policy、history visibility、E2EE group 或 federation policy。它通过 `realm_id` 和可选 `default_realm_id` 解析到 Realm：
 
 - `realm_id`：该 Space 对象自身 metadata 的 home Realm。创建、更新、archive、tombstone 该 Space 的事件写入这个 Realm。
-- `default_realm_ref`：该 Space 下新建资源默认落入的 Realm。省略时继承最近 ancestor Space 的 `default_realm_ref`，再退回自身 `realm_id`。
+- `default_realm_id`：该 Space 下新建资源默认落入的 Realm。省略时继承最近 ancestor Space 的 `default_realm_id`，再退回自身 `realm_id`。
 
-这允许 UI 上的同一个 Space tree 跨越多个 Realm。例如 `/Acme/Projects` 下面的普通项目、机密项目和 HR 项目可以是兄弟 Space，但各自 `default_realm_ref` 不同。
+这允许 UI 上的同一个 Space tree 跨越多个 Realm。例如 `/Acme/Projects` 下面的普通项目、机密项目和 HR 项目可以是兄弟 Space，但各自 `default_realm_id` 不同。
 
 ### 3.2 Schema id 与字段
 
@@ -270,11 +270,11 @@ Schema id: `cx.schema.space.v1`
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
 | `schema` | yes | `cx.schema.space.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | MUST 指向 `cx:realm:`。 | Space metadata 的 home Realm。 |
-| `default_realm_ref` | no | `id:realm` | MUST 指向 `cx:realm:`。 | 子资源默认 Realm；省略时继承。 |
-| `scope_ref` | no | `id:circle` | MUST 指向同 Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 encryption scope；省略表示 Realm-default。 |
-| `default_scope_ref` | no | `id:circle` | MUST 指向同 Realm 的 Circle。 | 在该 Space 下新建子资源的默认 Circle scope；hint，不强制。 |
-| `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_ref`。 | 子资源 placement / encryption floor 的 reducer-enforced 约束。 |
-| `parent_ref` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |
+| `default_realm_id` | no | `id:realm` | MUST 指向 `cx:realm:`。 | 子资源默认 Realm；省略时继承。 |
+| `scope_circle_id` | no | `id:circle` | MUST 指向同 Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 encryption scope；省略表示 Realm-default。 |
+| `default_scope_circle_id` | no | `id:circle` | MUST 指向同 Realm 的 Circle。 | 在该 Space 下新建子资源的默认 Circle scope；hint，不强制。 |
+| `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement / encryption floor 的 reducer-enforced 约束。 |
+| `parent_space_id` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`；profile 可注册新 kind。 | Space 类型。 |
 | `title` | yes | `string` | 1..256 chars。 | 显示名。 |
 | `summary` | no | `string` | <= 2048 chars。 | 简短说明。 |
@@ -296,10 +296,10 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 - **授权**：任何对 Space 的写入（`cx.space.create` / `cx.space.update` / `cx.space.archive` / `cx.space.restore` / `cx.space.tombstone` / `cx.space.parent`）都在 `realm_id` 指向的 home Realm 内授权。
 - **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
-- **加密**：Space 没有自己的 MLS group。Space metadata 默认取决于 home Realm 的 `encryption_profile` 与 metadata profile；若 `scope_ref` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing MLS scope。
+- **加密**：Space 没有自己的 MLS group。Space metadata 默认取决于 home Realm 的 `encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing MLS scope。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
-- **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_ref` / `default_scope_ref` 推导初值。
-- **强保密升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的密码学子边界，创建 Circle 并把 `scope_ref` / `default_scope_ref` / `child_scope_policy` 指向该 Circle；只有需要独立 federation / policy server / capability registry 时才创建新的 Realm。
+- **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。
+- **强保密升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的密码学子边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；只有需要独立 federation / policy server / capability registry 时才创建新的 Realm。
 
 ### 3.4 Lifecycle 与 Cascade 规则
 
@@ -327,7 +327,7 @@ value   := id:space | null
 - 首次 set 使用 `head_eq null`。
 - reparent 使用 `head_eq <old_parent_space_id>`。
 - 并发 reparent 返回 `⊥`，后续 Move fail closed，必须走 conflict recovery。
-- `parent_ref == this_space_id` MUST `schema_violation`。
+- `parent_space_id == this_space_id` MUST `schema_violation`。
 - parent Space MAY 位于不同 Realm；这只影响导航，不传播 membership、capability、history、E2EE key 或 retention policy。
 
 ### 3.6 Flow 位置
@@ -360,7 +360,7 @@ Project Space：
   "id": "cx:space:019640b6-8000-7000-8000-000000000000",
   "schema": "cx.schema.space.v1",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "default_realm_ref": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "default_realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "kind": "project",
   "title": "Website Redesign",
   "created_by": "did:web:alice.example",
@@ -375,8 +375,8 @@ Confidential sibling Space：
   "id": "cx:space:019640c0-8000-7000-8000-000000000000",
   "schema": "cx.schema.space.v1",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "default_realm_ref": "cx:realm:019641aa-0000-7000-8000-000000000000",
-  "parent_ref": "cx:space:019640a0-8000-7000-8000-000000000000",
+  "default_realm_id": "cx:realm:019641aa-0000-7000-8000-000000000000",
+  "parent_space_id": "cx:space:019640a0-8000-7000-8000-000000000000",
   "kind": "project",
   "title": "Pricing Strategy",
   "created_by": "did:web:alice.example",

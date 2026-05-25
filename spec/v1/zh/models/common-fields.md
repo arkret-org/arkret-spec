@@ -45,7 +45,7 @@ updated: 2026-05-25
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<uuid>`，不得写成局部别名如 `dev_a` 或 `a`。
 - `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Flow 等 canonical object 的显示名。
 - Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），不得另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
-- `_id` / `_ref` / `_did` 后缀约定：`_id` 表示 typed protocol id，或本协议把 DID 当作责任主体 id 使用的字段（如 `actor_id`、`principal_id`、`subject_id`、`watcher_actor_id`）；`_ref` 表示可解引用对象、版本、receipt、anchor 或 content-addressed reference；`_did` 只在字段必须强调“原始 DID material”并与 pairwise DID、DID URL、外部 DID 或 disclosure transcript 对照时使用。新增主体字段默认不得使用 `_did` 后缀。
+- `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；原始 DID ecosystem material 使用 `_did`。字段后缀表达 wire value category，不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
 - `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。
 - `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Flow / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
@@ -62,6 +62,50 @@ updated: 2026-05-25
   - **`cx.<entity>.<verb>` 是默认形态**，对应 `target_event_kinds` 中的一个或多个 reducer-input event kind。新增 action 默认 MUST 与被授权 event kind 同名；只有 [`authz/capabilities.md` §5.0](../authz/capabilities.md#50-action--event-kind-偏离类别normative-reference) 登记的偏离类别允许不同名。授权、IAM 工具、SDK 生成和 audit 解析 MUST 读取 capability-action-registry 的 `target_event_kinds`，不得从 action 字符串拆解推断 event kind。
   - **通用 `cx.object.<verb>`**（如 `cx.object.read` / `cx.object.archive` / `cx.object.restore` / `cx.object.stage.set`) 只允许在 Realm-wide admin 或跨实体审计 grant 中使用 (`match_scope` 不限定单一实体 ID); 对单一实体的常规授权 MUST 使用专属 `cx.<entity>.<verb>` (例如 `cx.flow.archive`)。这是为了让 grant author 在最小作用域内表达意图, 同时保留 admin 路径使用通用 action 的能力。
   - **后缀 `.own` / `.others`**: 不带后缀的 action 默认作用域不限定 "creator = grantee"; 加 `.own` 表示 "仅 actor 自己创建的对象" (例如 `cx.message.revise.own`, `cx.message.redact.own`); 加 `.others` 表示 "允许操作他人创建的对象", 通常 risk_tier=high。三种形态 MUST 在 capability-action-registry 中分别登记, 不得当作通配等价。历史命名 `manage_others` 已收敛为 `.others` 后缀（例如 `cx.flow.watch.set.others`）。
+
+### 2.1 Identifier 字段命名约定（normative）
+
+本节适用所有持有 protocol identifier、DID material 或 reference material 的 wire 字段。字段名只表达 **value category**，不表达"硬归属 vs 软导航"、权限传播、同步传播、retention 级联或 E2EE key 级联。后者 MUST 由 role prefix、JSON Schema `description` 和对象专属章节共同定义。
+
+#### 2.1.1 `_id`
+
+`_id` 用于单一、具体、已在 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 登记的 protocol kind，或本协议把 DID 当作责任主体 ID 使用的字段。
+
+形式：
+
+```text
+id
+<kind>_id
+<role>_<kind>_id
+expected_<role>_<kind>_id
+```
+
+规则：
+
+- canonical object 自身 primary identity 字段 MUST 使用 `id`。
+- 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
+- protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`watcher_actor_id`。
+- Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
+
+#### 2.1.2 `_ref` / `_refs`
+
+`_ref` / `_refs` 只用于 reference material，而不是单一具体 object kind 字段。允许类别：
+
+- Event / Anchor / Cell / Snapshot / Receipt 等因果、finality、state 或证明引用：`prev_refs`、`anchor_ref`、`cell_ref`、`snapshot_ref`。
+- Blob 或 content-addressed 引用：`blob_ref`、`avatar_blob_ref`、`thumbnail_ref`。
+- Schema / Profile / Feature 引用：`schema_refs`、`profile_ref`、`feature_ref`。
+- Proof / evidence / transcript 引用：`evidence_ref`、`proof_ref`、`service_acceptance_ref`、`policy_event_ref`。
+- Polymorphic reference：字段允许多个 protocol kind、DID、content-addressed value 或 hash 形态时使用 `_ref`，例如 `target_ref`、`object_ref`、Relation 的 `from_ref` / `to_ref`。
+
+新增字段若只允许一个具体 protocol kind，MUST 使用 `_id` 而不是 `_ref`。
+
+#### 2.1.3 `_did`
+
+`_did` 只用于必须强调原始 DID ecosystem material 的字段，例如 service endpoint DID、pairwise DID、DID continuity proof 或外部验证服务 DID。例：`service_did`、`recipient_service_did`、`pairwise_did`、`old_did`、`new_did`、`verification_service_did`、`agent_did`。
+
+普通协议责任主体不得使用 `_did`；使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id` 等 `_id` 字段。
+
+`verification_method` 保留 W3C DID 规范字段名，承载 DID URL，不改名为 `_id` 或 `_did`。
 
 ## 3. Common Object Fields
 
@@ -314,15 +358,15 @@ cx:receipt:<uuid>
 
 UUID 部分 SHOULD 使用 UUIDv7（time-ordered），便于审计与排序。完整 ID kind 注册表见 `artifacts/registry/id-kind-registry.json`。
 
-### 6.1 引用 vs 内联配置的字段命名约定（normative）
+### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 
-实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `encryption_profile`、`federation_policy`、`anchor_profile`、`digest_algorithm`），又有 `<axis>_policy_ref` 这样指向独立 Policy 对象的字段（如 `policy_ref`、`retention_policy_ref`、`disclosure_policy_ref`、`rate_limit_policy_ref`）。这是有意区分，规则如下：
+实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `encryption_profile`、`federation_policy`、`anchor_profile`、`digest_algorithm`），又有 `<axis>_policy_id` 这样指向独立 Policy 对象的字段（如 `policy_id`、`retention_policy_id`、`disclosure_policy_id`、`rate_limit_policy_id`）。这是有意区分，规则如下：
 
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"single_did"` / `"sha256"` / ...）。schema 内联约束，无需引用独立对象。变更需要新 event kind（如 hash-transition Anchor）或新 Realm。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 cell state 有交互。同样内联，不通过引用对象。
-- **`<axis>_policy_ref`**：指向独立 Policy 对象（`cx:policy:<uuid>`）的引用，pattern `^cx:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。引用而非内联用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
+- **`<axis>_policy_id`**：指向独立 Policy 对象（`cx:policy:<uuid>`）的 ID，pattern `^cx:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
 
-判定流程：写新字段时若是**封闭 enum**（值集已知、协议级固定）用 `_profile` 或 `_policy`；若是**指向 Policy 对象**用 `_policy_ref`；不得在同一对象上同时定义 `xxx_policy` 与 `xxx_policy_ref` 表示同一个轴。命名 MUST 使用 `_ref` 后缀以区别于内联策略字符串。
+判定流程：写新字段时若是**封闭 enum**（值集已知、协议级固定）用 `_profile` 或 `_policy`；若是**指向 Policy 对象**用 `_policy_id`；不得在同一对象上同时定义 `xxx_policy` 与 `xxx_policy_id` 表示同一个轴。若字段引用的是"授权该决策的 policy revision Event"，使用带 event 语义的 `_ref` 名称，例如 `policy_event_ref`，不得与 `policy_id` 混用。
 
 公共字段示例：
 

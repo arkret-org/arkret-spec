@@ -65,7 +65,7 @@ sequenceDiagram
 MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第一个成员”。Contrix v1 按当前 accepted auth state 确定管理集合：
 
 - Realm-scoped MLS group 的默认 admin set 来自 `cx.realm.create.payload.object.initial_creators` / `created_by_principal`，以及当前有效的 `cx.realm.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Realm policy 声明的等价 E2EE admin capability。
-- Realm 内的 [Circle](../models/circle.md)（`Flow.scope_ref` 指向的密码学子边界）的 MLS group admin set 由该 Circle 的 `cx.circle.create` / `cx.circle.member.state` / `cx.mls.commit` / `cx.mls.welcome` 等事件按 Circle 自身的 capability 与 membership 体系收敛，与 Realm-default MLS group admin set 独立；Circle key MUST NOT 从 Realm-default key 派生。
+- Realm 内的 [Circle](../models/circle.md)（`Flow.scope_circle_id` 指向的密码学子边界）的 MLS group admin set 由该 Circle 的 `cx.circle.create` / `cx.circle.member.state` / `cx.mls.commit` / `cx.mls.welcome` 等事件按 Circle 自身的 capability 与 membership 体系收敛，与 Realm-default MLS group admin set 独立；Circle key MUST NOT 从 Realm-default key 派生。
 - Admin capability 可以通过普通 capability grant / revoke Move 转移或收回；转移生效点由 Anchor finality、Lattice value 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
 
 发送 `cx.mls.proposal`、`cx.mls.commit` 或 `cx.mls.welcome` 的 actor 必须在其事件自己的 causal auth state 下属于上述 admin set，或满足该 event kind 允许的普通成员 update / self-update 规则。
@@ -78,7 +78,7 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
 
 #### 2.3.0 E2EE Profile：plaintext metadata 边界
 
-v1 基线 E2EE profile 是 **body-only E2EE**，不得在 UI、营销材料或 service describe 中简称为“完整 E2EE”：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Space 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Space `parent_ref` 等结构化 metadata 在未声明 minimal-metadata profile 时 **MUST** 以明文形式存在于 wire schema 中，即便所属 Realm 声明 `encryption_profile="mls_rfc9420"`。高隐私或 audited Realm 若要求 metadata 机密性，MUST 声明 minimal-metadata / encrypted-field profile，而不是仅依赖 body-only E2EE。
+v1 基线 E2EE profile 是 **body-only E2EE**，不得在 UI、营销材料或 service describe 中简称为“完整 E2EE”：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Space 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Space `parent_space_id` 等结构化 metadata 在未声明 minimal-metadata profile 时 **MUST** 以明文形式存在于 wire schema 中，即便所属 Realm 声明 `encryption_profile="mls_rfc9420"`。高隐私或 audited Realm 若要求 metadata 机密性，MUST 声明 minimal-metadata / encrypted-field profile，而不是仅依赖 body-only E2EE。
 
 理由与影响：
 
@@ -268,7 +268,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
 
-- 会影响 E2EE 可见性的 `cx.member.state`（Realm-level）或 `cx.circle.member.state`（Circle-level）accepted 后（track 不携带独立 membership；Realm 内的密码学子边界由 [Circle](../models/circle.md) 通过 `Flow.scope_ref` 表达，并由 `cx.circle.member.state` 管理 Circle 成员），相应 encryption scope（Realm-default 或 Circle）进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
+- 会影响 E2EE 可见性的 `cx.member.state`（Realm-level）或 `cx.circle.member.state`（Circle-level）accepted 后（track 不携带独立 membership；Realm 内的密码学子边界由 [Circle](../models/circle.md) 通过 `Flow.scope_circle_id` 表达，并由 `cx.circle.member.state` 管理 Circle 成员），相应 encryption scope（Realm-default 或 Circle）进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
 - 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新 application messages 并标记 `encryption_transition_pending`,直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Realm,无论 `security_class`——忽略 governance frontier 的发送会让 ban / revoke 在新消息上失效，正是引入 MLS Governance Binding 要消除的风险。

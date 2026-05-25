@@ -1395,7 +1395,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
           "id": "cx:space:01964010-8400-7000-8000-000000000000",
           "schema": "cx.schema.space.v1",
           "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-          "parent_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
+          "parent_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
           "kind": "list",
           "title": "Todo",
           "rank": "U",
@@ -1547,7 +1547,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 期望：
 
 - 当 viewer 可读取 Flow discussion track 时，`flow-discussion-timeline` MUST 返回该消息。
-- 仅当 viewer 可读取 Flow（按 Flow 的 effective scope）时，`flow-discussions` MUST 才包含该消息；当 Flow 通过 `scope_ref` 落在 Realm 内的 [Circle](../models/circle.md) 时，仅有 Realm-default 成员身份不足以读取该 Flow——必须同时是该 Circle 成员。
+- 仅当 viewer 可读取 Flow（按 Flow 的 effective scope）时，`flow-discussions` MUST 才包含该消息；当 Flow 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，仅有 Realm-default 成员身份不足以读取该 Flow——必须同时是该 Circle 成员。
 
 ## 6. Space Lifecycle Vectors
 
@@ -1617,7 +1617,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 - 应用 `cx.space.archive` 后，Space 物化对象 MUST 有 `state == "archived"` 且 `state_changed_at == "2026-05-15T10:05:00Z"`。默认 collection projection（不显式包含 archived items）MUST NOT 返回该 Space；显式带 `include_states=["archived"]` 的查询 MUST 仍可返回它。
 - 应用 `cx.space.restore` 后，Space 物化对象 MUST 有 `state == "active"` 且 `state_changed_at == "2026-05-15T10:10:00Z"`。默认 projection MUST 重新展示该 Space。
 - Restore **不**级联——若该 Space 包含 child Space（如 List 在 Board 内）或内部 Flow 且它们各自处于 `archived`，restore parent MUST NOT 改变 children 的 state。
-- archive 期间未被擦除的 `contains` Relation、Flow position cell 与 `parent_ref` cell MUST 在 restore 后保持原值；用户看到的内容与 archive 之前一致。
+- archive 期间未被擦除的 `contains` Relation、Flow position cell 与 `parent_space_id` cell MUST 在 restore 后保持原值；用户看到的内容与 archive 之前一致。
 
 ### 6.3 Vector: Space Restore 在 `active` 状态被拒绝
 
@@ -1959,7 +1959,7 @@ Directory 返回 verified handle claim：
       "binding_source": "organization_policy",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
       "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001",
-      "policy_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
+      "policy_event_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
     },
     "created_at": "2026-05-19T00:00:00Z",
     "expires_at": "2026-08-19T00:00:00Z",
@@ -1979,7 +1979,7 @@ Directory 返回 verified handle claim：
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
     "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001",
-    "policy_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
+    "policy_event_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
   },
   "expires_at": "2026-08-19T00:00:00Z"
 }
@@ -1990,7 +1990,7 @@ Expected join Move:
 - `payload.actor_id = did:webvh:QmAlice:users.acme.example`。
 - `payload.delivery_binding.recipient_service_did = did:web:principal.acme.example`。
 - `payload.delivery_binding.binding_source = organization_policy`。
-- `payload.delivery_binding.service_acceptance_ref` 与 `policy_ref` 来自 verified claim / policy。
+- `payload.delivery_binding.service_acceptance_ref` 与 `policy_event_ref` 来自 verified claim / policy。
 - Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Realm history。
 
 Negative cases：

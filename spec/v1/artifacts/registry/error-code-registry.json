@@ -1930,14 +1930,14 @@
         "schema_validation",
         "state_resolution"
       ],
-      "description": "Sub-reason for schema_violation when an object's scope_ref references a Circle whose realm_id does not match the object's realm_id. See zh/models/circle.md §6.1."
+      "description": "Sub-reason for schema_violation when an object's scope_circle_id references a Circle whose realm_id does not match the object's realm_id. See zh/models/circle.md §6.1."
     },
     {
       "code": "circle_not_active",
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when scope_ref points at a Circle whose state is archived or tombstoned. See zh/models/circle.md §6.1."
+      "description": "Sub-reason for failed_precondition when scope_circle_id points at a Circle whose state is archived or tombstoned. See zh/models/circle.md §6.1."
     },
     {
       "code": "circle_member_must_be_realm_member",
@@ -1951,7 +1951,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when scope_ref rebind is attempted without an explicitly profile-permitted audited-high-risk path. Default reducer rejects rebinds to prevent silent historical-discussion migration. See zh/models/circle.md §6.1."
+      "description": "Sub-reason for failed_precondition when scope_circle_id rebind is attempted without an explicitly profile-permitted audited-high-risk path. Default reducer rejects rebinds to prevent silent historical-discussion migration. See zh/models/circle.md §6.1."
     },
     {
       "code": "metadata_encryption_floor_violation",
@@ -1966,7 +1966,7 @@
       "applies_to": [
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when the removed legacy field Flow.discussion_realm_ref appears on the v1+ wire. The replacement is Flow.scope_ref pointing at an intra-Realm Circle; for 'wide synthesis + narrow discussion' patterns use two Flows + confidential_discussion_of Relation per zh/models/circle.md §7.2. Removed by CXP-0007."
+      "description": "Sub-reason for schema_violation when the removed legacy field Flow.discussion_realm_ref appears on the v1+ wire. The replacement is Flow.scope_circle_id pointing at an intra-Realm Circle; for 'wide synthesis + narrow discussion' patterns use two Flows + confidential_discussion_of Relation per zh/models/circle.md §7.2. Removed by CXP-0007."
     }
   ]
 }

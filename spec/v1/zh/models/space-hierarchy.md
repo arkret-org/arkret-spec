@@ -18,11 +18,11 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 
 ## 2. 基本规则
 
-1. Space hierarchy 使用 `cx.space.parent` 写入 `parent_ref` cell。
+1. Space hierarchy 使用 `cx.space.parent` 写入 `parent_space_id` cell。
 2. 一个 Space MAY 有 0 或 1 个 active parent；需要多归属时使用 Relation / View，而不是多个 parent。
 3. Parent Space MAY 位于不同 Realm。跨 Realm parent 只表示导航，不级联任何安全语义。
 4. 遍历 Space tree 时，客户端 / 服务端 MUST 对每个 Space 的 `realm_id` 独立做授权检查。
-5. `default_realm_ref` 只为新建资源提供默认落点；不得被解释为读取或解密授权。
+5. `default_realm_id` 只为新建资源提供默认落点；不得被解释为读取或解密授权。
 
 ## 3. Space Parent Event
 
@@ -55,14 +55,14 @@ precondition := head_eq <expected_parent_space_id | null>
 - Reducer 在接受 `cx.space.parent` 前 MUST 以上移后的 parent 链为准自上而下检测 acyclic；若新 edge 会让 `space_id` 重新出现在自己的 ancestor 集合中，MUST 拒绝，reason=`space_parent_cycle`。跨 Realm parent 也必须参与该检测；无法读取某个 ancestor 时不得假设无环，必须 fail closed 或进入 pending until proof。
 - `parent_space_id = null` 表示移动到 root。
 - 并发 reparent 返回 `⊥`，依赖该 cell 的后续 Move fail closed。
-- 若 parent Space 不可读取，projection MAY 返回 `{ parent_ref_hidden: true }`，但不得伪造 root。
+- 若 parent Space 不可读取，projection MAY 返回 `{ parent_space_id_hidden: true }`，但不得伪造 root。
 
 ## 4. Effective Realm
 
-Space 的 `realm_id` 与 `default_realm_ref` 分工如下：
+Space 的 `realm_id` 与 `default_realm_id` 分工如下：
 
 - `realm_id`：Space metadata 自身所在的 home Realm。
-- `default_realm_ref`：该 Space 下新建资源默认使用的 Realm。
+- `default_realm_id`：该 Space 下新建资源默认使用的 Realm。
 
 Effective default Realm 解析：
 
@@ -70,16 +70,16 @@ Effective default Realm 解析：
 effective_default_realm(space):
   if space already appears in current resolution stack:
     fail closed (space_parent_cycle)
-  if space.default_realm_ref exists:
-    return space.default_realm_ref
-  if space.parent_ref exists and parent is readable:
+  if space.default_realm_id exists:
+    return space.default_realm_id
+  if space.parent_space_id exists and parent is readable:
     return effective_default_realm(parent)
   return space.realm_id
 ```
 
 客户端从某个 Space 创建 Flow / Morph / View 时，MUST 把解析结果显式写入新资源的 `realm_id`。服务端 / reducer 不得在签名后根据当前 tree 状态隐式改写资源 Realm。
 
-Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_realm_ref` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_as`、`confidential_extension`、`mirror_of` 或 migration link，也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
+Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_realm_id` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_as`、`confidential_extension`、`mirror_of` 或 migration link，也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
 
 ## 5. Cross-Realm Navigation
 
@@ -88,7 +88,7 @@ Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_re
 - Parent Realm 成员不会自动成为 child Space home Realm 成员。
 - Child Space home Realm 成员不会自动读取 parent Space。
 - Parent Space archive / tombstone 不自动改变 child Space lifecycle。
-- Parent Space 的 `default_realm_ref` 只作为 child 省略 `default_realm_ref` 时的默认解析输入；它不授予访问目标 Realm 的能力。
+- Parent Space 的 `default_realm_id` 只作为 child 省略 `default_realm_id` 时的默认解析输入；它不授予访问目标 Realm 的能力。
 
 如果跨 Realm parent 暴露过多 metadata，实现 SHOULD 使用 minimal metadata profile 或把敏感 child Space 放到不可枚举 parent 下，仅通过授权后的 Relation / View 显示。
 
@@ -128,9 +128,9 @@ Space hierarchy 查询返回产品结构，不返回 Realm link graph。
 | --- | --- | --- |
 | `space_id` | `id:space` | Space ID。 |
 | `realm_id` | `id:realm` | Space metadata home Realm。 |
-| `default_realm_ref` | `id:realm` | 可选默认资源 Realm。 |
+| `default_realm_id` | `id:realm` | 可选默认资源 Realm。 |
 | `effective_default_realm` | `id:realm` | 解析后的默认资源 Realm。 |
-| `parent_ref` | `id:space` | 可选 parent。 |
+| `parent_space_id` | `id:space` | 可选 parent。 |
 | `accessible` | `boolean` | 调用方是否可读取该 Space metadata。 |
 | `children` | `object[]` | 子 Space 摘要。 |
 
