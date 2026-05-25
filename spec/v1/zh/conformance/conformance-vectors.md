@@ -1539,7 +1539,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 期望：
 
 - 当 viewer 可读取 Flow discussion track 时，`flow-discussion-timeline` MUST 返回该消息。
-- 仅当 viewer 可读取 Flow discussion track 时，`flow-discussions` MUST 才包含该消息；当 discussion 位于独立的 `discussion_realm_ref` linked Realm 时，仅有 Flow synthesis 可见性是不够的。
+- 仅当 viewer 可读取 Flow（按 Flow 的 effective scope）时，`flow-discussions` MUST 才包含该消息；当 Flow 通过 `scope_ref` 落在 Realm 内的 [Circle](../models/circle.md) 时，仅有 Realm-default 成员身份不足以读取该 Flow——必须同时是该 Circle 成员。
 
 ## 6. Space Lifecycle Vectors
 
@@ -2048,7 +2048,7 @@ Expected：
 
 Steps：
 
-1. Principal 在 disclosure policy、history visibility、minimal metadata mode 或 linked Realm visibility 放宽时建立 identity link。
+1. Principal 在 disclosure policy、history visibility、minimal metadata mode、linked Realm visibility 或 Circle effective-scope visibility 放宽时建立 identity link。
 2. 任一 policy 被收紧，使旧 link 的披露范围不再被允许。
 3. 调用者继续使用旧 directory / sync cache 查询同一 principal。
 

@@ -9,7 +9,9 @@ title: Flow & Message
 - **Flow**（`cx:flow:`）：Realm 内统一的协作主对象，承载"这件事本身"。
 - **Message**（`cx:message:`）：Flow `discussion` track 时间线中的原子消息。
 
-Flow 通过 `tracks` map 表达多种能力面，并可选通过 `discussion_realm_ref` 把讨论升级到独立 linked Realm。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
+Flow 通过 `tracks` map 表达多种能力面，并可选通过 `scope_ref` 把整个 Flow 落在 Realm 内的某个 [Circle](./circle.md)（独立 MLS 子边界）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
+
+> **v1 设计变更**：历史 spec 曾允许 `Flow.discussion_realm_ref` 让 Flow 跨两个 Realm 存在（synthesis 在源 Realm，discussion 在 linked Realm）。该字段已**彻底删除**（CXP-0007）。当前协议下，Flow 永远只有**一个**加密 scope —— 整个 Flow（所有 track）共享同一安全边界。需要"宽 synthesis + 窄 discussion"的场景统一用**两个 Flow + Relation**（`confidential_discussion_of`）表达，详见 [`circle.md` §7.2](./circle.md)。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -42,7 +44,7 @@ Schema id: `cx.schema.flow.v1`
 | `body` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `body` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
-| `discussion_realm_ref` | no | `id:realm` | 必须是同 organization / federation 范围内的 Realm。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该 linked Realm 承载。详见 §5。 |
+| `scope_ref` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的加密 scope（含所有 track）。未设置时 Flow 落在 Realm-default encryption scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 MLS group 与 membership 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`cx.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`cx.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
@@ -77,7 +79,7 @@ Schema id: `cx.schema.flow.v1`
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "discussion_realm_ref": "cx:realm:019640dc-8000-7000-8000-000000000000",
+  "scope_ref": "cx:circle:019640dc-8000-7000-8000-000000000000",
   "state": "active",
   "stage": "in_progress",
   "created_by": "did:web:alice.example",
@@ -199,14 +201,14 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 - `profile` 是 discussion track 的 UI / 语义 hint，不是自动授权后门。
 - `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `profile` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
-- discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Flow relation 隐式派生；track 自身不持有 membership，可见成员一律由所属 Realm（未设 `discussion_realm_ref` 时为源 Realm，否则为 linked Realm）的 membership / capability / policy 决定，若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
+- discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Flow relation 隐式派生；track 自身不持有 membership，可见成员一律由 Flow 的 effective scope 决定（`scope_ref=null` 时为父 Realm 的 membership / capability / policy；`scope_ref` 指向 Circle 时为该 [Circle](./circle.md) 的 membership / capability / policy），若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
 - 当 `discussion` track 不存在或不处于 active 状态时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_track_disabled` 或等价 fail-closed 结果。
 
 ### 4.4 Track 是纯展示标识，不是 access 域
 
-**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自所属 Realm（或 `discussion_realm_ref` 指向的 linked Realm，见 §5）。
+**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自 Flow 的 effective scope —— `scope_ref=null` 时继承父 Realm，`scope_ref` 指向 Circle 时继承该 Circle（见 §5 与 [`circle.md`](./circle.md)）。
 
-Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）——任何需要独立访问域的 discussion 必须升级为 linked Realm。
+Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）—— 任何需要独立访问域的场景必须通过 `Flow.scope_ref` 把整个 Flow 落在 [Circle](./circle.md)，或者按 [`circle.md` §7.2](./circle.md) 拆为两个 Flow + Relation。
 
 `assigned_to`、`watches` 或其他业务关系不会自动成为 discussion 成员或获取访问权，除非 Realm policy 明确把它们映射为授权条件。`watches` Relation 表达**通知订阅偏好**，与访问控制完全正交——完整语义、状态枚举、投影脱敏规则见 §8。
 
@@ -235,7 +237,7 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 - 切换到 `track="discussion"` 时，若 `discussion` track 尚不存在，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`；写入仅含 `is_primary` 而 track 未 enabled 时 MUST `failed_precondition`，不得隐式创建 track。
 - 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须在同一或后续 `cx.flow.tracks.update` patch 中显式 `tracks.discussion.enabled: set false`（或按 profile 声明的 archive 语义）。
 - 转换不自动移除 Board Space / List Space 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
-- `cx.flow.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 linked Realm；linked Realm 的生命周期由独立 `cx.realm.*` event 管理。
+- `cx.flow.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 Circle 或修改 Flow 的 `scope_ref`；Circle 的生命周期由独立 `cx.circle.*` event 管理（见 [`circle.md`](./circle.md)），Flow 的 scope 改绑默认禁止。
 
 ### 4.7 Track 启用 / 禁用
 
@@ -270,13 +272,13 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
 
 **Reducer 规则**: 同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成); primary track 不能空缺(切走旧 primary 后必须有一个新 primary); track key 必须匹配 `^[a-z][a-z0-9_]{0,63}$`。
 
-## 5. Discussion 独立 Realm (`discussion_realm_ref`)
+## 5. Flow Scope（`scope_ref`）
 
-需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，**不再**通过 track hybrid 表达，而是创建一个 linked Realm 并通过 `Flow.discussion_realm_ref` 引用：
+Flow 永远只有**一个**加密 scope。整个 Flow（含所有 track：synthesis、discussion 等）共享同一安全边界，要么落在 Realm-default encryption scope，要么落在 Realm 内的某个 [Circle](./circle.md)。Flow 不允许跨两个安全边界。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `discussion_realm_ref` | no | `id:realm` | 必须是同 organization / federation 范围内的 Realm。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该独立 Realm 承载。 |
+| `scope_ref` | no | `id:circle` | 引用的 Circle MUST `realm_id` 与 Flow.realm_id 一致（否则 `schema_violation` `reason=circle_realm_mismatch`）；引用的 Circle MUST `state=active`（否则 `failed_precondition` `reason=circle_not_active`）。 | 整个 Flow 的加密 scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 MLS group / membership / history visibility 内。 |
 
 ```json
 {
@@ -284,67 +286,46 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "discussion_realm_ref": "cx:realm:019640dc-8000-7000-8000-000000000000"
+  "scope_ref": "cx:circle:019640dc-8000-7000-8000-000000000000"
 }
 ```
 
-规则：
+规则（详尽 normative 见 [`circle.md` §6](./circle.md)）：
 
-- 未设置 `discussion_realm_ref` 时，discussion 时间线事件直接写在 Flow 所属 Realm，访问规则完全等于源 Realm。能看源 Realm 的 actor 即可看 discussion 时间线（按源 Realm history visibility）。
-- 设置 `discussion_realm_ref` 时，所有 discussion-side `cx.message.*` / `cx.reaction.*` / `cx.member.state` 写入 MUST 使用该 linked Realm 的 `realm_id`；track 不持有独立 membership，成员关系一律落在 linked Realm 上。linked Realm 是独立的安全边界，按其自身 policy 收敛。能否看 discussion 由 linked Realm 自身 access policy 决定，与源 Realm 的 Flow synthesis 可见性无关。Flow synthesis 和 discussion 是两个独立 reducer 视图，不共享 cell。
-- 能看 `discussion` 不表示能改 Flow 的字段、状态或 Board 位置（这些仍按源 Realm capability 判断）。
-- 独立访问域只能通过 linked Realm + `discussion_realm_ref` 实现；track 配置内不携带 access 子对象。
-- `discussion_realm_ref` 启用 MLS 时，对应 MLS group 绑定该 linked Realm；E2EE 边界、membership frontier、`covered_frontier_cell` 都按 linked Realm 自身收敛。
-- `discussion_realm_ref` 的生命周期由独立 `cx.realm.*` event 管理；Flow 不能通过修改自身字段间接 reinit / archive linked Realm。
-- Flow 所属 Realm 与 `discussion_realm_ref` Realm 之间的关系 MAY 用 `cx.realm.link{link_kind="confidential_extension_of"}` 或 profile 声明的 governance link 表达；reducer 不要求 Realm hierarchy，授权仍按各自 Realm policy 独立判断。
+- `scope_ref=null` 时，Flow 与所有 track 的事件落在父 Realm 的 Realm-default MLS group / membership / history visibility；reducer 把 `effective_scope` 物化为 `{kind:"realm", realm_id}`。
+- `scope_ref` 指向 Circle 时，整个 Flow 与所有 track 的事件落在该 Circle 的独立 MLS group / membership / history；reducer 把 `effective_scope` 物化为 `{kind:"circle", realm_id, circle_id}`。
+- `effective_scope` 是 reducer 在每个 event 接受时**immutable stamped**，进入 Event envelope / E2EE AAD / MLS governance binding / Anchor leaf。后续 `scope_ref` 改绑不得重解释旧 event。
+- 改绑 `scope_ref` 默认 reducer 拒绝（`failed_precondition` `reason=scope_rebind_forbidden`）；profile MAY 允许，但 MUST audit-paired high-risk update，且既有历史保留在原 scope，新内容才进新 scope。
+- 跨 Flow 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Flow + `confidential_discussion_of` Relation。
+- Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述，不再在本文件单独发明特例。
 
-### 5.0.1 Linked Discussion Realm 生命周期级联
+### 5.1 Track 与 scope 关系图
 
-`discussion_realm_ref` 不建立 Realm 层级，但会影响 Flow discussion 投影。Reducer / projection MUST 按下表处理：
-
-| 场景 | Source Realm / Flow synthesis | Discussion timeline |
-| --- | --- | --- |
-| source Realm `destroy` / `tombstone` | Flow synthesis 按 source Realm lifecycle 停止写入或进入 tombstone；不得继续创建新的 discussion pointer。 | linked Realm 不被隐式 destroy；但客户端 MUST 在 Flow 投影中隐藏或标记 discussion 已脱离 source Flow，除非 actor 仍能直接读取 linked Realm。 |
-| linked Realm `destroy` / `tombstone` | Flow synthesis 仍按 source Realm policy 可读写；`discussion_realm_ref` 保留为历史指针，不得自动重写。 | `cx.message.*` / `cx.reaction.*` 写入 MUST fail closed，projection 显示 discussion unavailable / tombstoned。 |
-| linked Realm membership / history visibility 收紧 | Flow synthesis 不因此获得或失去权限。 | 通知、watcher projection、message read/write 必须按 linked Realm 新状态重新裁剪；source Realm membership 不得绕过。 |
-| `discussion_realm_ref` 解绑或改绑 | 需要 profile 明确允许，且必须是 audited high-risk Flow update；默认 v1 reducer SHOULD 拒绝改绑，防止历史讨论被静默迁移。 | 旧 linked Realm 历史不被复制或删除；新消息只能写入新绑定 Realm，客户端必须把两个 Realm 的历史分段显示。 |
-- 切换 primary track 不会自动删除已有讨论历史。
-
-### 5.1 Track / discussion_realm_ref 关系图
-
-下图把 Flow 的 track 模型和 linked Realm 升级路径画在一起。Flow 只有一份 identity，`tracks` map 的 key 决定可用协作面，是否设置 `discussion_realm_ref` 决定 discussion 的访问域落在哪个 Realm。
+Flow 只有一份 identity；`tracks` map 的 key 决定可用协作面；`scope_ref` 决定**整个** Flow 的加密 scope（不是 per-track）。
 
 ```mermaid
 flowchart LR
-    subgraph Parent ["cx:realm: — Parent Realm（capability / E2EE 边界）"]
+    subgraph Realm ["cx:realm: — 父 Realm（federation / policy / capability registry）"]
         direction TB
-        Flow["cx:flow:<br/>title / summary / body / fields"]
-        Syn["tracks.synthesis<br/>（正式表达，默认 primary）"]
-        Dis["tracks.discussion<br/>（会话能力面，纯展示标识）"]
-        ParentMsgs["cx:message: ×N<br/>（默认：写在 Parent Realm）"]
+        FlowA["cx:flow: F_A<br/>scope_ref = null"]
+        FlowB["cx:flow: F_B<br/>scope_ref = cx:circle:0196419c-0000-7000-8000-000000000000"]
+        RealmMLS["Realm-default MLS group<br/>+ Realm membership"]
+        subgraph Circle ["cx:circle: C — 密码学子边界"]
+            direction TB
+            CircleMLS["独立 MLS group<br/>+ Circle membership（⊆ Realm.members）<br/>+ 独立 history visibility"]
+        end
 
-        Flow -- "tracks 配置" --> Syn
-        Flow -- "tracks 配置" --> Dis
-        Dis -- "未设 discussion_realm_ref" --> ParentMsgs
+        FlowA -. "effective_scope = realm" .-> RealmMLS
+        FlowB -. "effective_scope = circle" .-> CircleMLS
     end
-
-    subgraph Child ["cx:realm: — Child Realm（独立 capability / E2EE 边界）"]
-        direction TB
-        ChildMsgs["cx:message: ×N<br/>（按 linked Realm policy）"]
-        ChildMLS["独立 MLS group / membership / history visibility"]
-        ChildMsgs --- ChildMLS
-    end
-
-    Flow -. "discussion_realm_ref（一旦设置）" .-> Child
-    Dis -- "设 discussion_realm_ref" --> ChildMsgs
 ```
 
 读图要点：
 
-- Track 是纯展示 / 时间线分段标识，不携带独立 access；`synthesis` 与 `discussion` 都继承 Parent Realm 的 capability。
-- `cx.flow.tracks.update` 通过 patch `Flow.tracks` map 切换 primary / 启用 / 关闭 track，不复制对象、不迁移历史；切到 `discussion` 必须在同一 patch 内同时 enable 该 track。
-- 想给 discussion 独立 membership / E2EE / history 时，**必须**升级为 linked Realm 并通过 `discussion_realm_ref` 引用——track 内嵌 access 的 hybrid 模式在 v1 不存在。
-- 能看 discussion 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 Parent Realm capability 判断。
+- Track 是纯展示 / 时间线分段标识，本身不携带 access；synthesis 与 discussion 在 F_A 上都继承 Realm-default scope，在 F_B 上都继承 Circle scope。
+- `cx.flow.tracks.update` 不修改 `scope_ref`；scope 的生命周期事件由 [`circle.md` §5](./circle.md) 的 `cx.circle.*` 系列承担。
+- 想让 discussion 独立 membership / E2EE / history 时，**正确的做法**是给整个 Flow 设置 `scope_ref`，或按 [`circle.md` §7.2](./circle.md) 拆为两个 Flow（一个公开 anchor Flow + 一个 Circle 内 private Flow）+ `confidential_discussion_of` Relation。
+- 能看 Flow 的 effective scope 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 capability + scope membership 的两层 AND 判断（见 [`circle.md` §8](./circle.md)）。
 
 ## 6. Flow 行为规则
 
@@ -422,7 +403,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 - `null` value 等价于 `mentions_only`。客户端必须显式 `level: null` 来清空，不允许通过省略 `level` 字段隐式清空——避免 wire 上的歧义。
 - 同一 `(flow_id, watcher_actor_id)` cell 内的并发写入按标准 cas_register 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §4.2.4](../authz/event-auth-state-resolution.md) 描述的 `head_eq` precondition，**比较整个 cell value**（不是单字段）。例如 cell 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `head_eq null`：只有 cell 尚未存在时通过；cell 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
 - **Cell 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `cx.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §3.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
-- Cell 的 Realm 归属：`<flow_id>` 隐含决定 Realm（Flow.realm_id），cell 始终落在 Flow 所属 Realm 的 namespace 下。即使 Flow 设置了 `discussion_realm_ref`，watch cell 也仍在 source Realm —— discussion 消息通知派发由 Sync Service 跨 Realm 查询该 cell 完成（详见 §8.9）。
+- Cell 的 scope 归属：`<flow_id>` 隐含决定 Flow.realm_id；cell 的 `effective_scope` 由 Flow.scope_ref 决定（`scope_ref=null` → cell 落在 Realm-default scope namespace；`scope_ref` 指向 Circle → cell 落在该 Circle scope namespace，单源不双投影）。详见 §8.9。
 
 ### 8.4 写入授权
 
@@ -448,7 +429,7 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 
 `cx.realm.notification.audit` 是纯 READ capability（target_event_kinds 为空），授予"读取完整 watch 状态（含 `muted`）"的权限。审计写入闭环要求读取方**同时**持有 `cx.audit.accessed` capability，并在每次 audit 读取前提交一条 accepted durable event（payload 使用 `access_kind="watch_audit_read"`，包含 `writer_actor_id`、`target_actor_id`、`target_cell_id`、`target_ref`、`purpose`、`accessed_at`），或在同一投影事务中提交并等待 RYW receipt 后再释放完整 watch 结果。该流程与 [`../crypto-media/audited-e2ee.md` §4](../crypto-media/audited-e2ee.md) "先写后解密"模型同构。
 
-当 Flow 设置了 `discussion_realm_ref` 时，watch cell 仍存放在 source Realm，但 watcher list projection MUST 按 linked discussion Realm 的 read 权限裁剪：对 Realm 其他成员展示 watcher 列表时，只有同时可读取 linked Realm discussion 的 actor 才可出现在列表中；不满足 linked Realm read 的 watch 记录只对本人、通知 dispatcher 和完成 `cx.audit.accessed` 配对的 audit reader 可见。仅持有 source Realm membership 不得推断某 actor 正在观察 linked Realm 的机密讨论。
+当 Flow 设置了 `scope_ref` 指向 Circle 时，watch cell 落在该 Circle 的 scope namespace（单源），projection 直接受 Circle membership 约束：watcher 列表只对该 Circle 的成员、本人、通知 dispatcher 和完成 `cx.audit.accessed` 配对的 audit reader 可见。仅持有父 Realm membership 不得推断某 actor 正在观察 Circle scope 的机密 Flow。
 
 - 仅持有 `cx.realm.notification.audit` 而无 `cx.audit.accessed` 的 actor MUST 被 reducer / projection executor 拒绝（`failed_precondition`，`reason="audit_capability_incomplete"`）。
 - 默认 admin 角色 bundle SHOULD 同时包含两者；profile SHOULD 把它们作为不可拆分的 bundle 授予。
@@ -495,14 +476,15 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 - **Push rule = "通知如何投递"**：在 watch level 允许通知发生的前提下，push rule 决定提示音、是否高亮、DND 例外等。
 - Push rule 引擎 MAY 通过 `watch_state` condition 显式引用本节级别（详见 [push-notifications.md §4.3](../discovery/push-notifications.md)），常见用途是用户显式声明"watching=all 也只想要静默通知"等更细粒度策略。
 
-### 8.9 `discussion_realm_ref` 场景
+### 8.9 `scope_ref` 场景
 
-当 Flow 设置了 `discussion_realm_ref`（§5），watch 行为分两层：
+当 Flow 的 `scope_ref` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛（不再有"跨两 Realm 双层校验"的特例）：
 
-- Flow synthesis 字段变更通知：watch cell 在源 Realm namespace 下，按本节规则收敛。
-- Discussion 消息通知：消息 Event 写在 linked Realm。Sync Service 在派发时 MUST 用 actor 在 linked Realm 的 capability 重新校验**可见性**（actor 不是 linked Realm 成员则无论 watch level 如何都不发通知），然后再应用 actor 在源 Realm 的 watch level 决定通知级别。
+- Watch cell 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Flow 的 watch 写入 MUST `failed_precondition`。
+- Flow synthesis 与 discussion 通知均按同一 effective scope 派发：Sync Service 用 §3.8 / §9.3 [`circle.md`](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
+- Realm-only 成员（不在 Circle 中）不会看到该 Flow 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
 
-换言之：访问权先于订阅意愿。无访问权 = 没有通知，无论 watch 设了什么。
+换言之：访问权先于订阅意愿。`scope_ref` 决定访问权;watch 只在访问权前提下叠加通知偏好。无访问权 = 没有通知，无论 watch 设了什么。
 
 ## 9. Message
 
@@ -567,7 +549,7 @@ Schema id: `cx.schema.message.v1`
 ### 9.4 Chat 模式示例
 
 讨论型 Realm 的最小实施序列：创建 Flow（`discussion` 默认 primary）→
-（如需要独立访问域）创建 linked Realm 并设置 `Flow.discussion_realm_ref` →
+（如需要独立访问域）创建 [Circle](./circle.md) 并设置 `Flow.scope_ref` →
 加入成员 → 发消息 → 编辑 / 撤回 / reaction。
 
 ```json

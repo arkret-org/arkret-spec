@@ -260,7 +260,7 @@ flow_part            ::= flow_id | "*"
 
 - 匹配：某个 Flow `discussion` track 内的所有 Message。
 - 不授予 Flow synthesis 字段写入权限。
-- 不绕过 discussion 所属 Realm（源 Realm 或 `discussion_realm_ref` linked Realm）的 membership、history visibility、redaction 或 E2EE key eligibility。
+- 不绕过 Flow 的 effective scope（`Flow.scope_ref=null` 时为父 Realm scope，否则为该 [Circle](../models/circle.md) scope）的 membership、history visibility、redaction 或 E2EE key eligibility。
 
 ### 4.5 Morph 选择器
 

@@ -89,6 +89,85 @@
       "profile": null
     },
     {
+      "action": "cx.circle.create",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.circle.create"
+      ],
+      "profile": null,
+      "notes": "Creates an intra-Realm Circle (cryptographic sub-boundary). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
+    },
+    {
+      "action": "cx.circle.manage",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_circle_refs"
+      ],
+      "target_event_kinds": [
+        "cx.circle.update",
+        "cx.circle.archive",
+        "cx.circle.restore",
+        "cx.circle.tombstone"
+      ],
+      "profile": null,
+      "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission."
+    },
+    {
+      "action": "cx.circle.member.add",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.circle.member.state"
+      ],
+      "profile": null,
+      "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed."
+    },
+    {
+      "action": "cx.circle.member.manage",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_circle_refs"
+      ],
+      "target_event_kinds": [
+        "cx.circle.member.state"
+      ],
+      "profile": null,
+      "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id."
+    },
+    {
+      "action": "cx.circle.member.add.others",
+      "category": "audit",
+      "risk_tier": "high",
+      "required_constraints": [
+        "allowed_circle_refs"
+      ],
+      "required_evaluator_checks": [
+        "audit_pair_required"
+      ],
+      "target_event_kinds": [
+        "cx.circle.member.state"
+      ],
+      "profile": null,
+      "notes": "Cross-actor write (rare). MUST carry cx.audit.accessed pair (same model as cx.flow.watch.set.others)."
+    },
+    {
+      "action": "cx.circle.audit",
+      "category": "audit",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "audit_pair_required"
+      ],
+      "target_event_kinds": [],
+      "profile": null,
+      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with cx.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle."
+    },
+    {
       "action": "cx.object.read",
       "category": "general",
       "risk_tier": "low",

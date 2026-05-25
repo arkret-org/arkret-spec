@@ -77,6 +77,7 @@ discussion: <PR / issue 链接>
 | [CXP-0004](./0004-form-layout.md) | Form Layout | deferred-to-v1.1 | 单 Flow 详情面板字段排列(类似 Jira "Work item layout") |
 | [CXP-0005](./0005-workflow-state-machine.md) | Workflow State Machine | deferred-to-v1.1 | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
 | [CXP-0006](./0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `cx:component:` / `cx:version:` 结构性分类对象 |
+| [CXP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | **accepted** (merged 2026-05-25 → [`zh/models/circle.md`](../zh/models/circle.md)) | 引入 `cx:circle:` 作为 Realm 内的密码学子边界(独立 MLS / 子集成员 / 独立 history),**彻底删除** `Flow.discussion_realm_ref`,Flow 永远单一 scope |
 
 ## 6. 写作风格
 

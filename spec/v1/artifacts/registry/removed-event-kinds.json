@@ -39,7 +39,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track no longer carries independent membership; access semantics inherit from the Flow's Realm. Use cx.member.state at the Realm boundary, or in the linked discussion Realm referenced by Flow.discussion_realm_ref. See current-model 'Track 不携带独立 access'."
+      "notes": "Track no longer carries independent membership; access semantics derive from the Flow's effective scope. Use cx.member.state at the Realm boundary, or cx.circle.member.state when Flow.scope_ref points at an intra-Realm Circle (see zh/models/circle.md). See current-model 'Track 不携带独立 access'."
     },
     {
       "id": "cx.flow.track.history_visibility",
@@ -47,7 +47,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "History visibility lives on the Realm boundary, not on a track. Use Realm-level history visibility; use Flow.discussion_realm_ref if a discussion needs an independent linked Realm boundary."
+      "notes": "History visibility lives on the Realm or Circle boundary, not on a track. Use Realm-level history visibility, or Circle-level when Flow.scope_ref points at an intra-Realm Circle (see zh/models/circle.md)."
     },
     {
       "id": "cx.flow.track.read_receipt_policy",
@@ -55,7 +55,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track-scoped read-receipt override is explicitly out of v1 scope (see discovery/read-receipts.md). Read receipts evaluate at the Realm boundary or linked discussion Realm boundary."
+      "notes": "Track-scoped read-receipt override is explicitly out of v1 scope (see discovery/read-receipts.md). Read receipts evaluate at the Flow's effective scope: Realm-default or the Circle referenced by Flow.scope_ref."
     },
     {
       "id": "cx.flow.track.policy_components",
@@ -63,7 +63,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track-scoped policy components were removed; policy attaches to the Realm boundary or to the linked discussion Realm referenced by Flow.discussion_realm_ref."
+      "notes": "Track-scoped policy components were removed; policy attaches to the Realm boundary, or to an intra-Realm Circle when Flow.scope_ref points at one (see zh/models/circle.md)."
     },
     {
       "id": "cx.realm.lifecycle.set",

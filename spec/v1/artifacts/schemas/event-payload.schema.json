@@ -194,6 +194,10 @@
       "type": "string",
       "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "circle_id": {
+      "type": "string",
+      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "space_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -328,7 +332,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(cx:(realm|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(cx:(realm|circle|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
     "device_or_principal_ref": {
       "oneOf": [
@@ -544,6 +548,31 @@
             "type": "object"
           }
         }
+      },
+      "additionalProperties": true
+    },
+    "circle_create_payload": {
+      "type": "object",
+      "description": "Create payload uses the Circle object schema for wire validation. Reducer validation MUST require payload.object.created_by to match top-level actor_id and payload.object.created_at to match top-level created_at, then derive the independent MLS group binding for (realm_id, circle_id). payload.object.mls_group_ref is reducer-derived and MUST NOT be actor supplied.",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "./circle.schema.json"
+        }
+      },
+      "not": {
+        "properties": {
+          "object": {
+            "required": [
+              "mls_group_ref"
+            ]
+          }
+        },
+        "required": [
+          "object"
+        ]
       },
       "additionalProperties": true
     },
@@ -851,9 +880,29 @@
       },
       "additionalProperties": true
     },
+    "circle_patch_payload": {
+      "type": "object",
+      "description": "Payload class for cx.circle.update. Patch path MUST NOT contain realm_id, encryption_profile, mls_group_ref, state, state_changed_at, created_by, or created_at; reducer enforces the path-level lock and semantic policy floor checks.",
+      "required": [
+        "circle_id",
+        "patch"
+      ],
+      "properties": {
+        "circle_id": {
+          "$ref": "#/$defs/circle_id"
+        },
+        "patch": {
+          "$ref": "#/$defs/patch"
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": true
+    },
     "object_lifecycle_payload": {
       "type": "object",
-      "description": "Generic lifecycle payload for Flow / Morph archive-restore style events. The target object is single-sourced by target_ref; target_state may describe the intended lifecycle result but cannot replace the target object reference.",
+      "description": "Generic lifecycle payload for Flow / Circle / Morph archive-restore-tombstone style events. The target object is single-sourced by target_ref; target_state may describe the intended lifecycle result but cannot replace the target object reference.",
       "required": [
         "target_ref"
       ],
@@ -869,6 +918,80 @@
           "type": "string"
         },
         "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": true
+    },
+    "circle_member_state_payload": {
+      "type": "object",
+      "description": "Payload for cx.circle.member.state. Parallel to cx.member.state but scoped to a Circle; reducer MUST verify actor_id is an active member of the parent Realm before any transition to active, and MUST reject self-unban/self-unremove paths.",
+      "required": [
+        "circle_id",
+        "actor_id",
+        "membership"
+      ],
+      "properties": {
+        "circle_id": {
+          "$ref": "#/$defs/circle_id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "membership": {
+          "type": "string",
+          "enum": [
+            "invited",
+            "active",
+            "left",
+            "banned"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expected_membership": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "invited",
+            "active",
+            "left",
+            "banned",
+            null
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "circle_anchor_commit_payload": {
+      "type": "object",
+      "description": "Reducer-derived payload for cx.circle.anchor_commit. Commits an opaque Circle sub-anchor head digest into the parent Realm Anchor stream at the profile-defined cadence.",
+      "required": [
+        "circle_id",
+        "sub_anchor_head_digest",
+        "epoch"
+      ],
+      "properties": {
+        "circle_id": {
+          "$ref": "#/$defs/circle_id"
+        },
+        "sub_anchor_head_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "covered_frontier_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "committed_at": {
           "$ref": "#/$defs/timestamp"
         }
       },

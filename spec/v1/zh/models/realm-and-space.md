@@ -48,13 +48,13 @@ Realm 与 MLS group 不是同义词：
 - 非 E2EE Realm 可以没有 MLS group。
 - E2EE Realm 通常拥有一个 primary MLS group。
 - Realm 还包含 policy、membership、history、sync frontier、federation、retention 和 capability 等语义；MLS group 只承载加密成员、epoch 和密钥演进。
-- 实现 MAY 在同一 Realm 中声明辅助 MLS group（例如 reviewer subgroup、audit subgroup、sealed application group），但这些辅助 group 不改变 Realm 作为主内容边界的事实。
+- 实现把 Realm 内的"辅助 MLS group"形式化为一等对象 [Circle](./circle.md)（`cx:circle:`）：独立 MLS group、独立 history visibility、`Circle.members ⊆ Realm.members`，但 federation identity / policy server / capability registry 仍在父 Realm。
 
 规范性规则：
 
 - `encryption_profile` 是 Realm 的 create-locked 基线。
-- 同一 Realm 内不允许把普通 Flow 任意混合成“有的 E2EE、有的非 E2EE”的保密等级拼盘。
-- 若某个 Flow / discussion / artifact 需要不同读隔离或不同密钥资格，必须升级到另一个 Realm，并通过 Space / Relation / `discussion_realm_ref` 等显式引用连接。
+- 同一 Realm 内不允许把普通 Flow 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_profile` 声明（详见 [`circle.md` §7](./circle.md)）。
+- 若某个 Flow / artifact 需要 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history），创建一个 [Circle](./circle.md) 并把对象的 `scope_ref` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `cx.realm.link` 显式引用连接。
 
 ### 2.3 Schema id 与字段
 
@@ -162,7 +162,7 @@ Realm 有两个终态 event，语义不同：
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `cx.audit.erasure_receipt`（schema `cx.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：destroy event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state` 并停止接受该 Realm 的新 `cx.events.submit`（包括 backfill 写入）。
 6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST 不再作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `cx.flow.move`、`cx.space.parent`、`cx.space.update` 等普通写入复活它们。跨 Realm `parent_ref` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
-7. **Discussion Realm edge cascade**：`Flow.discussion_realm_ref` 是跨 Realm 可见性边，destroy 必须双向 fail closed。若 `discussion_realm_ref` 指向的 linked Realm 被 destroy，源 Flow 的 discussion track projection MUST 标记为 `realm_destroyed_orphan` / locked，不得继续接受 `cx.message.*` 写入该 discussion，也不得把 source Realm membership 映射成 linked Realm 访问。若 source Realm 被 destroy 而 linked discussion Realm 仍 live，linked Realm 中既有 discussion history MAY 按其自身 policy 被授权 reader 回放，但 MUST 与已 destroyed source Flow 解耦为 locked historical context；新的 discussion 写入、watch 派发和 reverse navigation MUST 停止，除非后续显式 reparent/migration event 在 linked Realm 内被授权接受。
+7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_ref` 指向已 tombstone Circle 时,写入 MUST fail closed,projection 显示 `scope_unavailable`;`scope_ref` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。（旧版规则"跨 Realm `Flow.discussion_realm_ref` 边 cascade"已随该字段一同删除 —— CXP-0007。）
 
 #### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
 
@@ -209,6 +209,9 @@ Schema id: `cx.schema.space.v1`
 | `schema` | yes | `cx.schema.space.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | MUST 指向 `cx:realm:`。 | Space metadata 的 home Realm。 |
 | `default_realm_ref` | no | `id:realm` | MUST 指向 `cx:realm:`。 | 子资源默认 Realm；省略时继承。 |
+| `scope_ref` | no | `id:circle` | MUST 指向同 Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 encryption scope；省略表示 Realm-default。 |
+| `default_scope_ref` | no | `id:circle` | MUST 指向同 Realm 的 Circle。 | 在该 Space 下新建子资源的默认 Circle scope；hint，不强制。 |
+| `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_ref`。 | 子资源 placement / encryption floor 的 reducer-enforced 约束。 |
 | `parent_ref` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`；profile 可注册新 kind。 | Space 类型。 |
 | `title` | yes | `string` | 1..256 chars。 | 显示名。 |
@@ -231,10 +234,10 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 - **授权**：任何对 Space 的写入（`cx.space.create` / `cx.space.update` / `cx.space.archive` / `cx.space.restore` / `cx.space.tombstone` / `cx.space.parent`）都在 `realm_id` 指向的 home Realm 内授权。
 - **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
-- **加密**：Space 没有自己的 MLS group。Space metadata 是否 E2EE 取决于 home Realm 的 `encryption_profile` 与 metadata profile。
+- **加密**：Space 没有自己的 MLS group。Space metadata 默认取决于 home Realm 的 `encryption_profile` 与 metadata profile；若 `scope_ref` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing MLS scope。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
-- **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_ref` 推导初值。
-- **强保密升级**：若 Space subtree 或单个 Flow 需要不同读隔离，创建新的 Realm 并把对应 Space 的 `default_realm_ref` 或资源的 `realm_id` 指向该 Realm；不要在同一 Realm 内伪造 per-Flow E2EE 等级。
+- **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_ref` / `default_scope_ref` 推导初值。
+- **强保密升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的密码学子边界，创建 Circle 并把 `scope_ref` / `default_scope_ref` / `child_scope_policy` 指向该 Circle；只有需要独立 federation / policy server / capability registry 时才创建新的 Realm。
 
 ### 3.4 Lifecycle 与 Cascade 规则
 

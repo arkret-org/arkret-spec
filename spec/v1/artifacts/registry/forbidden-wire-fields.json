@@ -49,9 +49,18 @@
       "context": "flow_payload",
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
-      "replacement": "discussion_realm_ref",
+      "replacement": "scope_ref",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Pre-inversion Flow payload exposed 'discussion_space_ref' pointing at the (then) security-boundary Space. After the Realm/Space inversion the security boundary is Realm; the canonical field is now 'discussion_realm_ref' (see schemas/flow.schema.json). The legacy 'discussion_space_ref' MUST NOT appear on the current wire."
+      "notes": "Pre-inversion Flow payload exposed 'discussion_space_ref' pointing at the (then) security-boundary Space. After the Realm/Space inversion, and then after CXP-0007 removal of per-track security boundaries, the canonical field is now 'scope_ref' pointing at an intra-Realm Circle (see schemas/flow.schema.json, zh/models/circle.md). The legacy 'discussion_space_ref' MUST NOT appear on the current wire."
+    },
+    {
+      "id": "discussion_realm_ref",
+      "context": "flow_payload",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "scope_ref (intra-Realm Circle, see zh/models/circle.md); for 'wide synthesis + narrow discussion' scenarios use two Flows + confidential_discussion_of Relation per circle.md §7.2.",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "CXP-0007 removed Flow.discussion_realm_ref entirely. The earlier semantics let a single Flow span two Realms (synthesis in source Realm, discussion in linked Realm) and brought a whole patch set: §5.0.1 cross-Realm lifecycle cascade, §8.9 watch cross-Realm projection, rebinding prohibition, etc. The replacement is the Circle primitive plus Flow.scope_ref; one Flow has one encryption scope, period. Any occurrence of 'discussion_realm_ref' on the v1+ wire MUST be rejected with schema_violation reason=discussion_realm_ref_removed."
     },
     {
       "id": "space_frontier",

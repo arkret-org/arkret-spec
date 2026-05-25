@@ -142,7 +142,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 ### 4.1 Field Naming: `<noun>_id` vs `<noun>_ref`（normative for new fields）
 
-v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<uuid>`）的字段。不同对象按下表选择后缀：`realm_id` / `flow_id` / `target_space_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `discussion_realm_ref` / `policy_ref` 用 `_ref`。
+v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<uuid>`）的字段。不同对象按下表选择后缀：`realm_id` / `flow_id` / `target_space_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `scope_ref` / `policy_ref` 用 `_ref`。
 
 **v1 现状（不变）**：所有现有字段名锁定在当前 wire 形态，重命名是 breaking change，不在 v1 范围内执行。下表列出**已定型**的字段命名约定，实现 MUST 按现有命名解析；不得依赖前缀做字段类型推断。
 
@@ -152,7 +152,7 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
 | --- | --- | --- |
 | 对象自身 ID（primary key） | `id` | canonical object 的主 ID，无下划线前缀。例：`id`。 |
 | 对象的 *primary parent* ID（同类对象自然父子）| `<noun>_id` | 例：`realm_id`（所属 Realm）、`flow_id`（所属 Flow）。仅用于该对象的"出生地"绑定。 |
-| 任何其它跨对象引用（pointer to another typed object） | `<noun>_ref` | 例：`from_ref` / `to_ref` / `parent_ref` / `discussion_realm_ref` / `policy_ref`。新字段 MUST 使用 `_ref`。 |
+| 任何其它跨对象引用（pointer to another typed object） | `<noun>_ref` | 例：`from_ref` / `to_ref` / `parent_ref` / `scope_ref` / `policy_ref`。新字段 MUST 使用 `_ref`。 |
 | Content-addressed 引用（hash-based） | `<noun>_ref` | 例：`blob_ref`、`event_digest`（hash form）。 |
 | Cell 引用（cell id 字符串） | `<noun>_cell` 或 `<noun>_ref` | 例：`anchor_cell`、`mls_epoch_cell`。 |
 

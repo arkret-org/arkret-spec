@@ -42,6 +42,52 @@
 
 ## [Unreleased]
 
+### CXP-0007: introduce Circle primitive; remove Flow.discussion_realm_ref（2026-05-25）
+
+引入 **Circle**（`cx:circle:`）作为 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history visibility），同时**彻底删除** `Flow.discussion_realm_ref` 字段及其全部补丁规则（§5.0.1 跨 Realm lifecycle 级联表、§8.9 watch 跨 Realm 投影、改绑禁令等）。Flow 永远只有一个 effective encryption scope —— "一对象一安全边界"成为协议级硬不变量。
+
+- **变更类型**: add（Circle 原语 + `Flow.scope_ref` / `Space.scope_ref` / `Space.default_scope_ref` / `Space.child_scope_policy` / `Morph.scope_ref`）+ remove（`Flow.discussion_realm_ref` 与 §5 整节 / §5.0.1 / §5.1 / §8.9 旧形态）。
+- **影响 artifact**:
+  - 新增 `schemas/circle.schema.json`（`cx.schema.circle.v1`）。
+  - 修改 `schemas/flow.schema.json`：删除 `discussion_realm_ref` 字段；追加 `scope_ref`；更新 `tracks` / `flow_track` description（消除 per-track 安全边界假设）。
+  - 新增 normative 文档 `zh/models/circle.md`。
+  - 重写 `zh/models/flow-and-message.md` §1 / §3 schema 表 / §4.3 / §4.4 / §4.6 / §5（整节）/ §8.3 / §8.5 / §8.9 / §9.4；删除 §5.0.1 lifecycle 表、§5.1 mermaid 图。
+  - 修改 `zh/overview/architecture.md` §2.0 容器选型表（追加 Circle 行，删除 `discussion_realm_ref` 行）。
+  - 修改 `zh/overview/glossary.md`：删除 `Linked Discussion Realm` 条目，修订 `discussion track` 条目，新增 `Circle` / `Circle scope` / `effective_scope` 条目。
+  - 修改 `zh/overview/current-model.md` §6 / §7（MLS 边界改为 Realm-default + Circle 双层）。
+  - 修改 `zh/models/realm-and-space.md` §2.2（Circle 替代"辅助 MLS group"）、§2.6 cascade 表（Circle scope cascade 替代 Discussion Realm edge cascade）。
+  - 修改 `zh/models/realm-links.md` §1 序言；`zh/models/overview.md` 关系图；`zh/models/private-objects.md` §2.3；`zh/models/views.md` §6.1。
+  - 修改 `zh/authz/capabilities.md` §1 / §3 / §6.x；`zh/authz/resource-selector-grammar.md` §4.4。
+  - 修改 `zh/sync/operations-sync.md` §7.2 / §7.4 / §11；`zh/sync/service-surface.md` §6.2。
+  - 修改 `zh/discovery/push-notifications.md` §4.3；`zh/discovery/read-receipts.md` §2.5 / 字段表。
+  - 修改 `zh/crypto-media/encryption-and-audit.md`：MLS admin set / epoch_update_required / cache invalidation / `scope` 字段定义全部改为 `(realm_id, circle_id?)` 复合 scope。
+  - 修改 `zh/extensions/mimi-interop.md` §9.1（MIMI room policy 投影规则）。
+  - 修改 `zh/conformance/conformance-vectors.md`（Flow discussion 可见性条件改为 effective scope）、`zh/conformance/encoding.md`（`<noun>_ref` 例子换为 `scope_ref`）、`zh/conformance/query-schema.md` §5（查询授权检查改为 effective scope）。
+  - 修改 `zh/index.md` §4.3；`zh/spec-map.md`（新增 `circle.md` 行，修订 `flow-and-message.md` 描述）。
+  - 修改 registries:
+    - `id-kind-registry.json`: 新增 `circle`。
+    - `schema-registry.json`: 新增 `cx.schema.circle.v1`。
+    - `event-kind-registry.json`: 新增 7 条 `cx.circle.*` event kinds（`cx.circle.create` / `update` / `archive` / `restore` / `tombstone` / `member.state` / `anchor_commit`）。
+    - `capability-action-registry.json`: 新增 6 条 capability actions（`cx.circle.create` / `cx.circle.manage` / `cx.circle.member.add` / `cx.circle.member.manage` / `cx.circle.member.add.others` / `cx.circle.audit`）。
+    - `forbidden-wire-fields.json`: 新增 `discussion_realm_ref` 进入 reserved-name guard（`hard_reject`，reason=`discussion_realm_ref_removed`）；更新既有 `discussion_space_ref` 条目的 replacement 指向 `scope_ref`。
+    - `error-code-registry.json`: 新增 6 条 reason codes（`circle_realm_mismatch` / `circle_not_active` / `circle_member_must_be_realm_member` / `scope_rebind_forbidden` / `metadata_encryption_floor_violation` / `discussion_realm_ref_removed`）。
+    - `renames.json`: 新增 `discussion_realm_ref`（object_field, replacement=null）与 `Linked Discussion Realm`（glossary_term, replacement=Circle），migration_group=`cxp_0007_circle_introduction`。
+    - `forbidden-model-terms.json`: 修订 `Room` / `track members` 条目，从"linked discussion Realm" 改为 "Circle (intra-Realm cryptographic sub-boundary)"。
+    - `removed-event-kinds.json`: 修订 `cx.flow.track.member` / `cx.flow.track.history_visibility` / `cx.flow.track.policy_components` 三条 notes。
+- **canonical 变更**: Flow 顶层字段 `discussion_realm_ref` 删除；Flow 顶层字段 `scope_ref`（id:circle, optional, null = Realm-default scope）新增。Event envelope / payload / AAD / Anchor leaf 新增 reducer-stamped immutable tagged `effective_scope`（`{kind:"realm"|"circle", realm_id, circle_id?}`）。
+- **派生 artifact 同步**: 待 `python tools/artifact_pipeline.py generate` 与 `check` 在迁移 PR 中执行；MLS governance binding artifacts 与 Event envelope schema 的 `effective_scope` 落地、Circle sub-anchor + `cx.circle.anchor_commit` 固定节拍 profile、completion conformance vector cluster 列为 v1.0 ship 前必完成项（CXP-0007 §8.1）。
+- **conformance impact**:
+  - 受影响 profile: `core_event_store`（新增 Circle event kinds 与 effective_scope canonical bytes）、`chat_mvp`（讨论可见性改按 effective scope 判断）、`e2ee_v1`（Realm-default 与 Circle 独立 MLS group；Realm-member-removal 触发 N+1 rotate amplification，详见 [`zh/models/circle.md` §10.3](spec/v1/zh/models/circle.md)）。
+  - profile tier 变化: 待 conformance-profiles.json 在迁移 PR 中同步。
+  - wire 兼容性: **breaking**（删除字段 + 新增字段 + 新增 immutable envelope tag）。本变更必须在 v1 freeze 前 ship；freeze 后将升级为 v2 breaking change。
+  - reader / writer 行为要求:
+    - Writer MUST NOT emit `discussion_realm_ref` on the v1 wire.
+    - Reader MUST reject `discussion_realm_ref` with `schema_violation reason=discussion_realm_ref_removed`.
+    - Reader MUST stamp / verify `effective_scope` on every Event envelope (cryptographically bound; subsequent rebinds MUST NOT reinterpret prior events).
+    - Sync Service MUST filter Circle-scoped events at delivery time per `effective_scope` membership (zh/models/circle.md §9.3).
+- **fixture / vector 变化**: 待 fixtures / vector-registry 同步在迁移 PR 中执行；CXP-0007 §8.1 第 8 步 conformance vector cluster 必须落地。
+- **迁移指南**: 见 [CXP-0007 §8](spec/v1/proposals/0007-circle-primitive.md) Migration plan 与 [renames.json](spec/v1/artifacts/registry/renames.json) `cxp_0007_circle_introduction` migration group。对"宽 synthesis + 窄 discussion" 业务诉求，改用两个 Flow + `confidential_discussion_of` Relation（见 [`zh/models/circle.md` §7.2](spec/v1/zh/models/circle.md)）。
+
 ### Description-only doc enhancements from `_simple_report_claude.md` review（2026-05-24）
 
 `_simple_report_claude.md` review 后接受的 4 项低风险文档增强；无 wire / canonical 变更，纯 description / prose 改动。

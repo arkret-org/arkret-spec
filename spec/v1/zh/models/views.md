@@ -301,7 +301,7 @@ Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开未被有效 a
 | 卡片 | `flow` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=flow_id}` | 表示 List 与 Flow 的 canonical 包含关系。 |
 | 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系。 |
-| 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Flow；access 完全继承源 Realm，独立访问域通过 `Flow.discussion_realm_ref` 升级到 linked Realm。 |
+| 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Flow；access 完全继承 Flow 的 effective scope（由 `Flow.scope_ref` 决定，null=Realm-default，否则=该 [Circle](./circle.md)）。 |
 
 ### 6.2 Board 不显示全 Realm 数据
 

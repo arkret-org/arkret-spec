@@ -335,6 +335,81 @@
       "bottom": "reject"
     },
     {
+      "event_kind": "cx.circle.create",
+      "category": "circle",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Circle create (intra-Realm cryptographic sub-boundary). Initializes the independent MLS group and epoch-0 governance binding. See zh/models/circle.md §3, §5.",
+      "cell_family": "cx.component.circle.create.v1",
+      "cell_subject": null,
+      "lattice": "ordered_log",
+      "bottom": "expose"
+    },
+    {
+      "event_kind": "cx.circle.update",
+      "category": "circle",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Circle patch (cx.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
+    },
+    {
+      "event_kind": "cx.circle.archive",
+      "category": "circle",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Circle archive lifecycle facet (active -> archived)."
+    },
+    {
+      "event_kind": "cx.circle.restore",
+      "category": "circle",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Circle restore lifecycle facet (archived -> active)."
+    },
+    {
+      "event_kind": "cx.circle.tombstone",
+      "category": "circle",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
+      "lifecycle_modality": "terminal",
+      "cell_family": "cx.component.circle.tombstone.v1",
+      "cell_subject": null,
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "cx.circle.member.state",
+      "category": "circle",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Circle membership state (parallel to cx.member.state). Reducer MUST first validate the target actor is parent Realm active member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+      "cell_family": "cx.component.circle.member.v1",
+      "cell_subject": {
+        "type": "actor_in_circle",
+        "fields": [
+          "payload.circle_id",
+          "payload.actor_id"
+        ]
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "cx.circle.anchor_commit",
+      "category": "circle",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": false,
+      "payload": "Reducer-derived: Circle sub-anchor commits opaque sub_anchor_head_digest to the Realm Anchor stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2."
+    },
+    {
       "event_kind": "cx.organization.discovery",
       "category": "organization",
       "status": "active",

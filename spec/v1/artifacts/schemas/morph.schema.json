@@ -31,6 +31,10 @@
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "scope_ref": {
+      "$ref": "#/$defs/circle_id",
+      "description": "Optional reference to an intra-Realm Circle that defines this Morph's encryption scope. Omitted means Realm-default encryption scope. Reducer enforces scope_ref.realm_id == Morph.realm_id and stamps immutable effective_scope onto emitted events."
+    },
     "schema_refs": {
       "type": "array",
       "minItems": 1,
@@ -137,6 +141,10 @@
     }
   ],
   "$defs": {
+    "circle_id": {
+      "type": "string",
+      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "facet_config": {
       "type": "object",
       "additionalProperties": true

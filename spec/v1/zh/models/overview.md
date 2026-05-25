@@ -93,8 +93,8 @@ flowchart TB
         Rel -. "from_ref / to_ref" .-> Space
     end
 
-    DiscussionRealm["cx:realm:<br/>(discussion Realm)"]
-    Flow -. "discussion_realm_ref<br/>（升级独立边界）" .-> DiscussionRealm
+    Circle["cx:circle:<br/>(Realm 内密码学子边界)"]
+    Flow -. "scope_ref<br/>（窄化加密 scope）" .-> Circle
 
     View["cx:view:<br/>投影定义（不持有真相）"]
     View -. "投影" .-> Flow
@@ -102,16 +102,17 @@ flowchart TB
     View -. "投影" .-> Msg
 
     Event ==> SP
-    Event ==> DiscussionRealm
+    Event ==> Circle
 ```
 
 读图要点：
 
-- 实线箭头是结构归属或容纳关系；虚线是引用 / 投影 / 升级到独立边界。
-- `cx:realm:` 是硬边界——授权、E2EE、history visibility、federation 都以它为根。`cx:space:` 永远不是边界，Space metadata 由 `realm_id` 指向的 home Realm 授权，子资源默认 Realm 由 `default_realm_ref` 解析。
+- 实线箭头是结构归属或容纳关系；虚线是引用 / 投影 / scope 窄化。
+- `cx:realm:` 是 federation/identity 硬边界——federation、policy、capability registry、Realm-default MLS 都以它为根。`cx:space:` 永远不是边界，Space metadata 由 `realm_id` 指向的 home Realm 授权。
+- `cx:circle:` 是 Realm 内的密码学子边界——独立 MLS group / 子集成员 / 独立 history。`Flow.scope_ref` 指向 Circle 表示整个 Flow（所有 track）落在该 Circle scope。
 - `cx:relation:` 是一等对象，跨对象语义 MUST 通过 Relation 表达，不藏在字段里。
 - `cx:view:` 拥有投影定义的真相，但不持有被投影对象的协作事实。
-- Discussion 想要独立 membership / E2EE / history visibility 时，必须升级为独立 discussion Realm 并通过 `Flow.discussion_realm_ref` 引用，而不是在 track 内部表达。
+- Discussion 想要独立 membership / E2EE / history visibility 时，整个 Flow 通过 `scope_ref` 落在一个 [Circle](./circle.md)；不再有 per-track 安全边界。
 
 ## 3. 设计原则
 

@@ -1923,6 +1923,50 @@
         "state_resolution"
       ],
       "description": "Sub-reason for a schema_violation on cx.realm.join_policy where gates[] contains duplicate gate_id values. gate_id MUST be stable and unique within the policy so that audit refs in cx.member.state{gate_proofs[gate_id=…]} are unambiguous. Wire response uses code=schema_violation with reason_code=join_policy_duplicate_gate_id. See zh/governance/join-policy.md §3.1."
+    },
+    {
+      "code": "circle_realm_mismatch",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for schema_violation when an object's scope_ref references a Circle whose realm_id does not match the object's realm_id. See zh/models/circle.md §6.1."
+    },
+    {
+      "code": "circle_not_active",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when scope_ref points at a Circle whose state is archived or tombstoned. See zh/models/circle.md §6.1."
+    },
+    {
+      "code": "circle_member_must_be_realm_member",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition on cx.circle.member.state -> active when target actor is not yet an active member of the parent Realm. Circle.members ⊆ Realm.members is a hard invariant. See zh/models/circle.md §9.1."
+    },
+    {
+      "code": "scope_rebind_forbidden",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when scope_ref rebind is attempted without an explicitly profile-permitted audited-high-risk path. Default reducer rejects rebinds to prevent silent historical-discussion migration. See zh/models/circle.md §6.1."
+    },
+    {
+      "code": "metadata_encryption_floor_violation",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a write would expose metadata below the effective metadata_encryption_profile floor (max of parent Realm floor, Circle metadata_encryption_floor, Space child_scope_policy.metadata_encryption_floor, object profile requirement). See zh/models/circle.md §7."
+    },
+    {
+      "code": "discussion_realm_ref_removed",
+      "applies_to": [
+        "schema_validation"
+      ],
+      "description": "Sub-reason for schema_violation when the removed legacy field Flow.discussion_realm_ref appears on the v1+ wire. The replacement is Flow.scope_ref pointing at an intra-Realm Circle; for 'wide synthesis + narrow discussion' patterns use two Flows + confidential_discussion_of Relation per zh/models/circle.md §7.2. Removed by CXP-0007."
     }
   ]
 }

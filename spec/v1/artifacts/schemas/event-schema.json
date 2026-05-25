@@ -30,6 +30,10 @@
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "effective_scope": {
+      "$ref": "#/$defs/effective_scope",
+      "description": "Reducer-stamped immutable encryption scope for this Event. scope_ref=null materializes as {kind:'realm', realm_id}; Circle-scoped objects materialize as {kind:'circle', realm_id, circle_id}. This value enters canonical event bytes, E2EE AAD, MLS governance binding input, and Anchor/sub-anchor leaves."
+    },
     "actor_id": {
       "$ref": "#/$defs/did"
     },
@@ -152,6 +156,7 @@
               "cx.account_data.set",
               "cx.attestation.range_completeness",
               "cx.audit.ryw_receipt",
+              "cx.circle.anchor_commit",
               "cx.device.push_route",
               "cx.read_cursor.advance"
             ]
@@ -228,6 +233,12 @@
               "cx.capability.derived",
               "cx.capability.grant",
               "cx.capability.revoke",
+              "cx.circle.archive",
+              "cx.circle.create",
+              "cx.circle.member.state",
+              "cx.circle.restore",
+              "cx.circle.tombstone",
+              "cx.circle.update",
               "cx.consent.grant",
               "cx.consent.revoke",
               "cx.container.move_item",
@@ -536,6 +547,15 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.circle.create" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/circle_create_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": { "kind": { "const": "cx.morph.create" } },
         "required": ["kind"]
       },
@@ -585,6 +605,15 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/object_patch_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.circle.update" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/circle_patch_payload" } }
       }
     },
     {
@@ -752,6 +781,9 @@
             "enum": [
               "cx.flow.archive",
               "cx.flow.restore",
+              "cx.circle.archive",
+              "cx.circle.restore",
+              "cx.circle.tombstone",
               "cx.morph.archive",
               "cx.morph.restore"
             ]
@@ -761,6 +793,24 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.circle.member.state" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.circle.anchor_commit" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/circle_anchor_commit_payload" } }
       }
     },
     {
@@ -1314,6 +1364,54 @@
     "featureRef": {
       "type": "string",
       "pattern": "^(cx|[a-z0-9][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)+)\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "circle_id": {
+      "type": "string",
+      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "effective_scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            },
+            "circle_id": {
+              "$ref": "#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "criticalExtension": {
       "type": "object",

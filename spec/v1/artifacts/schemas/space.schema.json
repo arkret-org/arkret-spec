@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/space.schema.json",
   "title": "Contrix Space",
-  "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; resolves to the containing Realm.",
+  "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; its metadata may be placed in an existing Realm/Circle encryption scope via scope_ref.",
   "type": "object",
   "required": [
     "id",
@@ -30,6 +30,18 @@
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional default Realm for resources created under this Space. Omitted means inherit from the nearest ancestor Space with default_realm_ref, falling back to realm_id. This field does not grant membership or decryption rights."
+    },
+    "scope_ref": {
+      "$ref": "#/$defs/circle_id",
+      "description": "Optional Circle scope for this Space object's own metadata and scoped structural relation facts. Space still does not own a security boundary; it only places its metadata into an existing Circle. Omitted means Realm-default encryption scope."
+    },
+    "default_scope_ref": {
+      "$ref": "#/$defs/circle_id",
+      "description": "Optional default Circle scope for newly created child resources. This is a creation hint, not an authorization or placement constraint; use child_scope_policy for reducer-enforced requirements."
+    },
+    "child_scope_policy": {
+      "$ref": "#/$defs/child_scope_policy",
+      "description": "Reducer-enforced placement/encryption policy for child resources created in or moved into this Space."
     },
     "parent_ref": {
       "type": "string",
@@ -139,5 +151,62 @@
       }
     }
   ],
+  "$defs": {
+    "circle_id": {
+      "type": "string",
+      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "metadata_encryption_profile": {
+      "type": "string",
+      "enum": [
+        "body_only",
+        "minimal_encrypted",
+        "full_encrypted"
+      ]
+    },
+    "child_scope_policy": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "allow_any",
+            "require_e2ee",
+            "require_same_scope",
+            "require_scope_ref"
+          ]
+        },
+        "scope_ref": {
+          "$ref": "#/$defs/circle_id"
+        },
+        "metadata_encryption_floor": {
+          "$ref": "#/$defs/metadata_encryption_profile"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "require_scope_ref"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "scope_ref"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
   "additionalProperties": true
 }

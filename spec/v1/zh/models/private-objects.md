@@ -38,7 +38,7 @@ Schema id: `cx.schema.read_cursor.v1`
 ### 2.3 行为规则
 
 - Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [flow-and-message.md §9.6](./flow-and-message.md)）。
-- Discussion 时间线与源 Realm 在 read receipt policy 上需要分离时，必须把 discussion 升级为独立 linked Realm（参见 `Flow.discussion_realm_ref`，[flow-and-message.md §5](./flow-and-message.md)），由 linked Realm 自己声明 `cx.realm.read_receipt_policy`；track 级别 override 不在 v1 范围内。
+- Flow 时间线与父 Realm 在 read receipt policy 上需要分离时，整个 Flow 通过 `Flow.scope_ref` 落在一个 [Circle](./circle.md)（参见 [flow-and-message.md §5](./flow-and-message.md)）；effective policy 由 Circle 自身策略与父 Realm `cx.realm.read_receipt_policy` 取更严格者。Track 级别 override 不在 v1 范围内。
 
 ## 3. Notification
 

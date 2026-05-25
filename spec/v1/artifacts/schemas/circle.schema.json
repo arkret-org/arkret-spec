@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/circle.schema.json",
+  "title": "Contrix Circle",
+  "description": "Circle — intra-Realm cryptographic sub-boundary. Hosts its own MLS group, its own membership (strict subset of parent Realm.members), and its own history visibility. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. Circle is NOT an access-filter or ACL segment; access-only narrowing belongs on Group / capability constraint / resource selector. See spec/v1/zh/models/circle.md.",
+  "type": "object",
+  "required": [
+    "id",
+    "schema",
+    "realm_id",
+    "title",
+    "display",
+    "directory_visibility",
+    "join_rule",
+    "history_visibility",
+    "encryption_profile",
+    "state",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "schema": {
+      "const": "cx.schema.circle.v1"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Parent Realm. create-locked; Circle never re-binds to another Realm."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "display": {
+      "$ref": "#/$defs/display"
+    },
+    "directory_visibility": {
+      "type": "string",
+      "enum": [
+        "members",
+        "realm_members"
+      ],
+      "description": "Who may see this Circle exists as a directory entry. 'members' means only Circle members see its title/display/member_count. 'realm_members' exposes directory metadata only and does NOT grant event or history access."
+    },
+    "join_rule": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "request",
+        "open"
+      ],
+      "description": "How an actor becomes a Circle member. 'open' lets any active Realm member self-join. 'request' requires profile-defined application/approval. 'invite' requires Circle admin add or invite."
+    },
+    "history_visibility": {
+      "type": "string",
+      "enum": [
+        "world_readable",
+        "shared",
+        "invited",
+        "joined",
+        "restricted"
+      ],
+      "description": "Circle's own history visibility. Effective visibility MUST NOT be wider than the parent Realm's policy floor. See zh/authz/event-auth-state-resolution.md §6."
+    },
+    "metadata_encryption_floor": {
+      "type": "string",
+      "enum": [
+        "body_only",
+        "minimal_encrypted",
+        "full_encrypted"
+      ],
+      "description": "Optional Circle-local metadata encryption floor. When omitted, the Circle inherits parent Realm's metadata_encryption_profile. May only tighten, never widen, parent Realm floor."
+    },
+    "encryption_profile": {
+      "type": "string",
+      "enum": [
+        "mls_rfc9420"
+      ],
+      "description": "Cryptographic profile. v1 only allows 'mls_rfc9420'; enum form reserves room for future MLS versions / PQ-MLS. create-locked. Circle MUST own an independent MLS group and MUST NOT derive its keys from the Realm-default MLS group."
+    },
+    "mls_group_ref": {
+      "type": "string",
+      "pattern": "^cx:mls:[a-z0-9_]+:.+$",
+      "description": "Reducer-derived reference to the independent MLS group bound to (realm_id, circle_id). Populated by cx.circle.create reducer; not actor-supplied on wire."
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "tombstoned"
+      ]
+    },
+    "state_changed_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "created_by": {
+      "$ref": "#/$defs/did"
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "updated_by": {
+      "$ref": "#/$defs/did"
+    },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "enum": [
+              "archived",
+              "tombstoned"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "required": [
+          "state_changed_at"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "display": {
+      "type": "object",
+      "required": [
+        "short_name",
+        "color_token",
+        "symbol"
+      ],
+      "properties": {
+        "short_name": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9 _-]{0,23}$",
+          "description": "Human-facing short name. Unique per (realm_id, short_name) case-insensitive — reducer-enforced."
+        },
+        "color_token": {
+          "type": "string",
+          "enum": [
+            "slate",
+            "red",
+            "orange",
+            "amber",
+            "yellow",
+            "lime",
+            "green",
+            "emerald",
+            "teal",
+            "cyan",
+            "sky",
+            "blue",
+            "indigo",
+            "violet",
+            "fuchsia",
+            "pink",
+            "gray_high_contrast"
+          ],
+          "description": "Color token from the spec-controlled palette. Clients MUST map token -> theme color (light/dark/high-contrast) consistently across devices; clients MUST NOT reassign tokens."
+        },
+        "symbol": {
+          "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "emoji"
+              ]
+            },
+            {
+              "required": [
+                "glyph"
+              ]
+            }
+          ],
+          "properties": {
+            "emoji": {
+              "type": "string"
+            },
+            "glyph": {
+              "type": "string",
+              "enum": [
+                "lock",
+                "shield",
+                "eye",
+                "diamond",
+                "flame",
+                "leaf",
+                "anchor",
+                "compass",
+                "key",
+                "atom",
+                "bolt",
+                "moon",
+                "sun",
+                "star",
+                "globe",
+                "satellite",
+                "ring",
+                "chain",
+                "tag",
+                "flag",
+                "scroll",
+                "scale",
+                "hourglass",
+                "spark"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
+  "additionalProperties": true
+}

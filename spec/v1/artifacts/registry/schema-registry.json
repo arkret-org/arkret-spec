@@ -17,6 +17,11 @@
       "file": "schemas/actor-profile.schema.json"
     },
     {
+      "schema_id": "cx.schema.circle.v1",
+      "file": "schemas/circle.schema.json",
+      "description": "Circle — intra-Realm cryptographic sub-boundary. Independent MLS group, subset membership, independent history visibility. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
+    },
+    {
       "schema_id": "cx.schema.flow.v1",
       "file": "schemas/flow.schema.json"
     },

@@ -294,6 +294,15 @@
       },
       "uniqueItems": true
     },
+    "allowed_circle_refs": {
+      "type": "array",
+      "description": "Limits Circle-scoped capability actions to the listed Circle ids. Used by cx.circle.manage / cx.circle.member.manage style grants; unconstrained Realm-wide Circle management grants are not a normal permission shape.",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "uniqueItems": true
+    },
     "denied_flow_refs": {
       "type": "array",
       "items": {

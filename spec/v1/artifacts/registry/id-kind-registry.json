@@ -141,6 +141,13 @@
       "description": "Abstract capability definition reference ID; signed grant objects use cx:grant:<uuid>."
     },
     {
+      "kind": "circle",
+      "category": "core_object",
+      "status": "active",
+      "wire_form": "cx:circle:<uuid>",
+      "description": "Circle object ID — intra-Realm cryptographic sub-boundary. Hosts its own MLS group, its own membership (strict subset of parent Realm.members), and its own history visibility. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
+    },
+    {
       "kind": "flow",
       "category": "core_object",
       "status": "active",

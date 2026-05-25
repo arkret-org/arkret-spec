@@ -23,21 +23,23 @@ Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织
 
 协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Flow、Space、Message 等标准对象；看板与列容器是独立的 Space（`cx:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
 
-### 2.0 容器选型速查（Realm vs Space vs Flow.discussion_realm_ref）
+### 2.0 容器选型速查（Realm vs Circle vs Space vs Flow）
 
-Contrix 在反转后有三种"包含"语义。决定使用哪一个的速查表（normative reference）：
+Contrix 有四种"包含 / 边界"语义。决定使用哪一个的速查表（normative reference）：
 
 | 你的诉求 | 选哪个 | 一句话理由 |
 | --- | --- | --- |
-| 共享成员、共享 policy、共享 history visibility、共享 E2EE group | **Realm**（独立 Realm 或加入既有 Realm） | Realm 是 v1 唯一的安全边界；只有 Realm 承载 membership/capability/E2EE/federation。 |
-| 在已有 Realm 内做"看板 / 列 / 文件夹 / swimlane / calendar bucket"等**结构分组**，让用户在 UI 中导航和排序 | **Space**（`cx:space:`，`kind` 表 board/list/folder/project/...） | Space 是 "authorization-transparent" 容器：membership 永远落在 Realm 边界上，Space 自身只承载导航与分类。 |
-| 在同一个 Realm 内做"协作单元"（任务、文档、会话、工单），需要带 stage / state / fields / track 时间线 | **Flow** | Flow 是 Realm 内的协作主体；discussion track 默认与 Flow 共享所在 Realm 的访问边界。 |
-| 在 Flow 上加一个**独立**的讨论安全边界（独立成员、独立 history visibility、独立 E2EE group），但又要在 UI 上与原 Flow 绑定 | **Flow + `discussion_realm_ref` 指向 linked Realm** | linked Realm 是一个正式 Realm，承载该 Flow discussion 时间线的所有 access；与源 Realm 独立授权。 |
+| 共享 federation/identity、policy server、capability registry、Realm-default E2EE group | **Realm**（独立 Realm 或加入既有 Realm） | Realm 承担 federation/identity boundary；持有 membership 主源、policy server、capability registry、Realm-default MLS group。 |
+| 在已有 Realm 内做**密码学子圈**（独立 MLS group / 子集成员 / 独立 history），但共享 federation / policy / capability registry | **Circle**（`cx:circle:`），对象 `scope_ref` 引用 | Circle 是 Realm 内的密码学子边界；不持有 federation identity 或 policy server；`Circle.members ⊆ Realm.members`。详见 [`../models/circle.md`](../models/circle.md)。 |
+| 在已有 Realm 内做"看板 / 列 / 文件夹 / swimlane / calendar bucket"等**结构分组**，让用户在 UI 中导航和排序 | **Space**（`cx:space:`，`kind` 表 board/list/folder/project/...） | Space 是 "authorization-transparent" 容器：自身不持有 membership / key，只承载导航与分类。`Space.scope_ref` 仅决定 Space 自身 metadata 的加密 scope，不让 Space 成为安全边界。 |
+| 在同一个 Realm 内做"协作单元"（任务、文档、会话、工单），需要带 stage / state / fields / track 时间线 | **Flow** | Flow 是 Realm 内的协作主体；整 Flow 单一加密 scope（由 `Flow.scope_ref` 决定，null = Realm-default，否则指向 Circle）。 |
 | 想"软隐藏一组 Realm 让导航更整洁" | **不要新建容器**：在客户端用 View / Space hierarchy / Realm linking 处理 | Realm 之间不形成树形包含关系（只有 link graph）；用户层的"我的工作区"完全是 client-side 概念。 |
 
-判断规则 MUST 按上表顺序：**只有真正需要独立 access boundary 才升级到独立 Realm**；其余分组诉求一律 Space 或 View。新增容器型概念 MUST 先验证是否可以分解为以上三种已有形态；不得自行造第四类。
+判断规则 MUST 按上表顺序:**只有跨 federation/policy/capability registry 边界才升级到独立 Realm**;Realm 内的密码学子圈用 Circle;纯导航/结构分组用 Space;协作单元用 Flow。新增容器型概念 MUST 先验证是否可以分解为以上四种已有形态；不得自行造第五类。
 
-详细字段见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/space-hierarchy.md`](../models/space-hierarchy.md)、[`../models/realm-links.md`](../models/realm-links.md) 和 [`../models/flow-and-message.md`](../models/flow-and-message.md)。
+> **v1 设计变更**：早期版本曾在本表中列出 `Flow + discussion_realm_ref 指向 linked Realm` 作为第五类，让一个 Flow 跨两个 Realm 存在。该模式与字段已通过 CXP-0007 彻底删除；"宽 synthesis + 窄 discussion" 改用两个 Flow + `confidential_discussion_of` Relation 表达（见 [`../models/circle.md` §7.2](../models/circle.md)）。
+
+详细字段见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/circle.md`](../models/circle.md)、[`../models/space-hierarchy.md`](../models/space-hierarchy.md)、[`../models/realm-links.md`](../models/realm-links.md) 和 [`../models/flow-and-message.md`](../models/flow-and-message.md)。
 
 ### 2.1 Organization / Realm 边界
 

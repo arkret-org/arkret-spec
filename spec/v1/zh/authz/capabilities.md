@@ -9,7 +9,7 @@ Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系
 这样做的原因是：
 
 - `flow`、`message`、`realm`、`morph`、`view` 的动作集不同。
-- Flow 的 `synthesis` 与 `discussion` track 共享源 Realm 的 access；需要让 discussion 拥有独立 access 域时升级到 linked Realm (`Flow.discussion_realm_ref`)。
+- Flow 的所有 track（含 `synthesis` 与 `discussion`）共享同一 effective scope（由 `Flow.scope_ref` 决定，`null` = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。Flow 永远单一 scope，不存在 per-track 安全边界。
 - agent 必须被精细授权。
 - 授权变化必须可审计。
 
@@ -219,7 +219,7 @@ v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机
 - `cx.morph.create`(默认 required constraint:`morph_type_allow`)
 - `cx.morph.update`(默认 required constraint:`fields_write_allow`)
 
-Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按有效 Realm 判断:未设 `discussion_realm_ref` 时使用源 Realm 的 capability;设了 `discussion_realm_ref` 时使用 linked Realm 的 capability,与源 Realm 独立。
+Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Flow 的 effective scope 判断：`Flow.scope_ref=null` 时使用 Realm-default capability；`scope_ref` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
 Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morph.update` 对应 `cx.flow.read` / `cx.flow.create` / `cx.flow.update`),通过 `morph_type_allow` constraint 进一步限定可创建或操作的 `morph_type`。
 
@@ -592,7 +592,7 @@ Contrix v1 至少区分：
 
 - 修改 Flow synthesis。
 - 开启或关闭 discussion track。
-- 管理源 Realm 或 `discussion_realm_ref` linked Realm 的成员。
+- 管理 Realm 成员（`cx.member.state`）或 Circle 成员（`cx.circle.member.state`，见 [`../models/circle.md`](../models/circle.md)）。
 - 普通发送消息。
 - 编辑自己的消息。
 - 编辑任意消息。
@@ -600,7 +600,7 @@ Contrix v1 至少区分：
 - 撤回任意消息。
 - 切换 primary track。
 
-这能避免把"能改 Flow"和"能进入 discussion"混成一种权限——普通 discussion 时按源 Realm capability 判断，独立 linked Realm 时按 linked Realm capability 判断。
+这能避免把"能改 Flow"和"能进入 discussion"混成一种权限——Realm-default discussion 按源 Realm capability 判断；若整个 Flow 落在 Circle，则还必须满足该 Circle 的 membership / effective scope 校验。
 
 ## 17. 决策执行位置
 
@@ -706,7 +706,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 Contrix v1 固定：
 
 - 权限采用 capability 模型。
-- Flow、discussion、agent 执行都使用统一 grant 体系；Flow track 完全继承源 Realm access，独立访问域升级到 linked Realm。
+- Flow、discussion、agent 执行都使用统一 grant 体系；Flow track 不携带独立 access，整个 Flow 通过 Realm-default scope 或 Circle scope 形成单一安全边界。
 - `cx.message.revise.own` 与 `cx.message.redact` 分开。
 - invite / notification / read cursor 进入统一 capability 体系。
 - 协议级语义采用 allow-grant + explicit revoke。

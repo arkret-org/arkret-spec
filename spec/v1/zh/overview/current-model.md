@@ -52,18 +52,19 @@ Realm membership、Flow 更新权限与 discussion access 使用统一授权模�
 
 - `cx.member.state` 控制 Realm membership
 - `cx.flow.*` 控制 Flow 自身与工作流位置
-- Track 不携带独立 access；discussion 时间线默认完全继承源 Realm。
-- 需要让 discussion 拥有独立 membership / history visibility / E2EE 时，必须创建独立 discussion Realm 并通过 `Flow.discussion_realm_ref` 引用；discussion Realm 上的 `cx.member.state` 控制 discussion 成员状态。
-- Flow synthesis 可见性 ≠ discussion 可见性：未设置 `discussion_realm_ref` 时按源 Realm history visibility 判断；设置时按 linked Realm policy 独立判断。
-- discussion 可读不代表 Flow synthesis 可写。
+- Track 不携带独立 access；整 Flow 共享单一加密 scope（`Flow.scope_ref`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
+- 需要让 Flow 拥有独立 membership / history visibility / E2EE 时，把 `Flow.scope_ref` 指向一个 Circle；`cx.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
+- Flow 可见性按整 Flow 单一 scope 判定：`scope_ref=null` 按 Realm-default policy；`scope_ref` 指向 Circle 时按该 Circle 自身 history visibility 与 membership 独立判断。
+- Flow 可读不代表 Flow synthesis 可写——授权评估始终是 capability ∧ scope membership 两层 AND（详见 [`../models/circle.md` §8](../models/circle.md)）。
 
 ## 7. E2EE 边界
 
-MLS 加密绑定到 Realm：
+MLS 加密绑定到 Realm 或 Realm 内的 Circle:
 
-- 默认（未设 `discussion_realm_ref`）：整个源 Realm 共用一个加密边界，Flow synthesis 与 discussion 共享同一 MLS group。
-- 独立 discussion access：Flow 所属 Realm 与 `discussion_realm_ref` 指向的 discussion Realm 是两个独立 Realm，各自拥有独立 MLS group、独立成员、独立 history sharing。
-- 不存在 "track-internal MLS group"：MLS group 的 scope 永远绑定到某个具体 `realm_id`。
+- 默认（`Flow.scope_ref=null`）：Flow 落在 Realm-default MLS group；该 Realm 全员可解。
+- 独立 Flow access：`Flow.scope_ref` 指向某 Circle 时，整个 Flow 落在该 Circle 的独立 MLS group / 独立成员 / 独立 history sharing。Circle key MUST NOT 从 Realm-default key 派生。
+- MLS group 的 scope 绑定 `(realm_id, circle_id?)`：`scope=realm` 时承担 Realm-default 加密；`scope=circle` 时承担 Circle 加密。不存在 "track-internal MLS group"。
+- 详见 [`../models/circle.md` §10](../models/circle.md)（含 Realm-member-removal 触发的 N+1 rotate amplification 与缓解策略）。
 
 ## 8. Agent 结果落点
 

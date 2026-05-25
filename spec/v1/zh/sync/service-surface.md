@@ -513,7 +513,7 @@ barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不�
 
 ### 6.2 Flow Discussion / Context Projection
 
-Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` track 都必须按所属 Realm 执行 membership / history visibility 检查：未设 `Flow.discussion_realm_ref` 时按源 Realm；设了时按 linked Realm 独立裁剪。不得因为 Flow synthesis 可见就展开未授权的 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Realm 对象权限。
+Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow 的所有 track 都按 Flow 的 effective scope 执行 membership / history visibility 检查：`Flow.scope_ref=null` 时按父 Realm；`scope_ref` 指向 [Circle](../models/circle.md) 时按该 Circle 自身 policy 与 membership 独立裁剪。Synthesis 与 discussion 同 scope，可见性同源。不得因为 Flow 在某 scope 可见就授予其他 scope 或 Board/List 或其他 Realm 对象权限。
 
 ### 6.3 Inbox / Notification Projection
 

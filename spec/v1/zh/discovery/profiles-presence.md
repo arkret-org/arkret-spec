@@ -260,7 +260,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 - 客户端 SHOULD 限制 Typing 广播频率（建议每 3 秒最多一次）
 - 客户端 SHOULD 在用户停止输入后主动发送 `typing: false`
 - Typing 指示器 MUST 遵循与 Presence 至少同等严格的可见性策略：当 `presence_visibility="nobody"` 或接收方不在允许集合内时，不得发送或转发 `cx.typing`；`contacts_only` 时只可发给明确联系人且仍需满足 Realm membership / history visibility。
-- Sync Service 转发 typing 前 MUST 同时检查发送者与接收者在目标 Realm / linked discussion Realm 的可见性、personal blocklist 过滤结果和 `discussion` track 状态。被屏蔽、无权读取 discussion、或不可枚举的接收方 MUST 看到与未发生 typing 一致的空结果，不得收到可区分的拒绝。
+- Sync Service 转发 typing 前 MUST 同时检查发送者与接收者在目标 Flow effective scope（Realm-default 或 Circle）的可见性、personal blocklist 过滤结果和 `discussion` track 状态。被屏蔽、无权读取 discussion、或不可枚举的接收方 MUST 看到与未发生 typing 一致的空结果，不得收到可区分的拒绝。
 
 ## 4. 用户目录 (User Directory)
 

@@ -90,7 +90,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 看板定义：`Board Space -> List Space -> Flow`。
 - 会话定义：`Flow(discussion track) -> Message`。
 - `cx.flow.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
-- Track 不携带独立 access；discussion 完全继承源 Realm。需要独立成员、历史或 E2EE 边界时，必须升级为 linked Realm 并通过 `Flow.discussion_realm_ref` 引用。
+- Track 不携带独立 access；整个 Flow 共享单一 effective scope（由 `Flow.scope_ref` 决定）。需要独立成员、历史或 E2EE 边界时，把整个 Flow 通过 `scope_ref` 落在一个 [Circle](./models/circle.md)，或拆为两个 Flow + `confidential_discussion_of` Relation（见 [`models/circle.md` §7.2](./models/circle.md)）。
 
 ### 4.4 同步与真相模型
 

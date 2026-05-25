@@ -367,6 +367,81 @@
         "bottom": "reject"
       },
       {
+        "event_kind": "cx.circle.create",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle create (intra-Realm cryptographic sub-boundary). Initializes the independent MLS group and epoch-0 governance binding. See zh/models/circle.md §3, §5.",
+        "cell_family": "cx.component.circle.create.v1",
+        "cell_subject": null,
+        "lattice": "ordered_log",
+        "bottom": "expose"
+      },
+      {
+        "event_kind": "cx.circle.update",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle patch (cx.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
+      },
+      {
+        "event_kind": "cx.circle.archive",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle archive lifecycle facet (active -> archived)."
+      },
+      {
+        "event_kind": "cx.circle.restore",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle restore lifecycle facet (archived -> active)."
+      },
+      {
+        "event_kind": "cx.circle.tombstone",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
+        "lifecycle_modality": "terminal",
+        "cell_family": "cx.component.circle.tombstone.v1",
+        "cell_subject": null,
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.circle.member.state",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle membership state (parallel to cx.member.state). Reducer MUST first validate the target actor is parent Realm active member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+        "cell_family": "cx.component.circle.member.v1",
+        "cell_subject": {
+          "type": "actor_in_circle",
+          "fields": [
+            "payload.circle_id",
+            "payload.actor_id"
+          ]
+        },
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.circle.anchor_commit",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": false,
+        "payload": "Reducer-derived: Circle sub-anchor commits opaque sub_anchor_head_digest to the Realm Anchor stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2."
+      },
+      {
         "event_kind": "cx.organization.discovery",
         "category": "organization",
         "status": "active",
@@ -1704,6 +1779,11 @@
         "file": "schemas/actor-profile.schema.json"
       },
       {
+        "schema_id": "cx.schema.circle.v1",
+        "file": "schemas/circle.schema.json",
+        "description": "Circle — intra-Realm cryptographic sub-boundary. Independent MLS group, subset membership, independent history visibility. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
+      },
+      {
         "schema_id": "cx.schema.flow.v1",
         "file": "schemas/flow.schema.json"
       },
@@ -2067,6 +2147,13 @@
         "status": "active",
         "wire_form": "cx:capability:<uuid>",
         "description": "Abstract capability definition reference ID; signed grant objects use cx:grant:<uuid>."
+      },
+      {
+        "kind": "circle",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:circle:<uuid>",
+        "description": "Circle object ID — intra-Realm cryptographic sub-boundary. Hosts its own MLS group, its own membership (strict subset of parent Realm.members), and its own history visibility. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
       },
       {
         "kind": "flow",
@@ -3107,6 +3194,85 @@
           "cx.realm.destroy"
         ],
         "profile": null
+      },
+      {
+        "action": "cx.circle.create",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.circle.create"
+        ],
+        "profile": null,
+        "notes": "Creates an intra-Realm Circle (cryptographic sub-boundary). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
+      },
+      {
+        "action": "cx.circle.manage",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "allowed_circle_refs"
+        ],
+        "target_event_kinds": [
+          "cx.circle.update",
+          "cx.circle.archive",
+          "cx.circle.restore",
+          "cx.circle.tombstone"
+        ],
+        "profile": null,
+        "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission."
+      },
+      {
+        "action": "cx.circle.member.add",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.circle.member.state"
+        ],
+        "profile": null,
+        "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed."
+      },
+      {
+        "action": "cx.circle.member.manage",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "allowed_circle_refs"
+        ],
+        "target_event_kinds": [
+          "cx.circle.member.state"
+        ],
+        "profile": null,
+        "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id."
+      },
+      {
+        "action": "cx.circle.member.add.others",
+        "category": "audit",
+        "risk_tier": "high",
+        "required_constraints": [
+          "allowed_circle_refs"
+        ],
+        "required_evaluator_checks": [
+          "audit_pair_required"
+        ],
+        "target_event_kinds": [
+          "cx.circle.member.state"
+        ],
+        "profile": null,
+        "notes": "Cross-actor write (rare). MUST carry cx.audit.accessed pair (same model as cx.flow.watch.set.others)."
+      },
+      {
+        "action": "cx.circle.audit",
+        "category": "audit",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "audit_pair_required"
+        ],
+        "target_event_kinds": [],
+        "profile": null,
+        "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with cx.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle."
       },
       {
         "action": "cx.object.read",

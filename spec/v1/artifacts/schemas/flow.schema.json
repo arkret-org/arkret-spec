@@ -82,7 +82,7 @@
     },
     "tracks": {
       "type": "object",
-      "description": "Active Flow tracks, keyed by track name. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. Any sub-Realm-level access scoping MUST be modelled as a linked Realm referenced via 'discussion_realm_ref'. At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in models/flow-and-message.md §4.5. The map MUST contain at least one entry; track names are validated by propertyNames.",
+      "description": "Active Flow tracks, keyed by track name. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. The entire Flow shares a single encryption scope determined by Flow.scope_ref (see models/circle.md); there is no per-track security boundary. At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in models/flow-and-message.md §4.5. The map MUST contain at least one entry; track names are validated by propertyNames.",
       "minProperties": 1,
       "propertyNames": {
         "$ref": "#/$defs/track_name"
@@ -91,10 +91,10 @@
         "$ref": "#/$defs/flow_track"
       }
     },
-    "discussion_realm_ref": {
+    "scope_ref": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional reference to a linked Realm that hosts this Flow's discussion-side membership, history visibility, and (if E2EE) MLS group. Setting this field means the discussion lives in its own security boundary distinct from the Flow's source Realm. When unset, discussion timeline events live in the source Realm and inherit its access."
+      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Flow's encryption scope. When set, ALL Flow tracks (synthesis, discussion, etc.) share that Circle's MLS group, membership, and history visibility. When unset, the Flow lives in Realm-default encryption scope. The referenced Circle MUST have realm_id == this Flow's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_ref is forbidden by default (failed_precondition reason=scope_rebind_forbidden). Replaces the removed pre-v1 'discussion_realm_ref' field; the legacy name is reserved in forbidden-wire-fields.json. See CXP-0007 / circle.md for the migration to two-Flow + Relation patterns for 'wide synthesis + narrow discussion' scenarios."
     },
     "created_by": {
       "$ref": "#/$defs/did"
@@ -198,7 +198,7 @@
     },
     "flow_track": {
       "type": "object",
-      "description": "Flow track entry — a pure section pointer (synthesis vs discussion timeline). The track's stable name is the map key in Flow.tracks; this object holds the track's per-entry config. Tracks do NOT carry independent membership / permissions / history visibility / E2EE. To give the discussion side its own security boundary, set Flow.discussion_realm_ref to a linked Realm.",
+      "description": "Flow track entry — a pure section pointer (synthesis vs discussion timeline). The track's stable name is the map key in Flow.tracks; this object holds the track's per-entry config. Tracks do NOT carry independent membership / permissions / history visibility / E2EE. The whole Flow has a single encryption scope determined by Flow.scope_ref (see models/circle.md); there is no per-track security boundary. To represent 'wide synthesis + narrow discussion', create two Flows linked by a confidential_discussion_of Relation per models/circle.md §7.2.",
       "properties": {
         "enabled": {
           "type": "boolean",
