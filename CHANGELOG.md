@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Clarify `alsoKnownAs` narrow scope and verification authority/cache split（2026-05-26）
+
+`identity-handles.md` 长期把 `alsoKnownAs` 与 "客户端 / verifier 双向验证" 写成笼统规则，导致两类常见误读：(a) 实现者把 `alsoKnownAs` 当作 mention 索引 / Directory 主键 / 投递路径的候选字段；(b) 不清楚 Principal Server / Directory 对 `binding_state=verified` 的代验是 hint 还是权威背书。本次新增 §4.1 与 §6.0 两节，把"`alsoKnownAs` 只服务公开 handle 的 holder-side 反向背书"与"first-party 客户端验证才是 authority，server-side 预验只是 cache hint"两条边界写进规范。
+
+- **变更类型**: edit（description / prose only）
+- **影响 artifact**: `zh/identity/identity-handles.md`
+- **canonical 变更**: 无（无 schema / registry / wire field 变化）。新增 §4.1 列出 `alsoKnownAs` 不参与的机制（投递路由、Realm 加成员、actor 归因、Principal Server 搬迁、受限 handle、pairwise / 设备 / agent DID、跨上下文 unlinkability、handle 重分配历史归因）及其对应权威字段；改写 §6 顶层把"客户端 MUST 解析 DID Document"一般化为"verifier MUST 取得 DID Document 当前内容"，并显式枚举两条达成路径（live parse 或 verifier 自有 / co-trusted 缓存按 §6.1.1 / §6.1.2 命中）；新增 §6.0 把 verifier 分为 Authority（first-party MUST：wallet 披露 / accept invite / join official Realm / 跨组织 federation 信任决策 / audit-trail 记录）与 Pre-verification & Cache（SHOULD first-party；MAY use bounded cache：verified 徽章 / mention autocomplete / 联系人卡片展示）两层，并规定缓存失效或 §6.1.2 信号触发时 UI MUST 降级为 unverified。Server-attested hint 的可选附加字段（DID Document digest 副本、`alsoKnownAs` proof 副本）显式声明为实现层，v1 不为此层定义规范 wire schema；互操作性由"verifier MUST 保留独立 re-verify 能力"保证。
+- **派生 artifact 同步**: 无（无 catalog / registry 改动；不触发 `tools/artifact_pipeline.py` 重生成）。
+- **conformance impact**:
+  - 受影响 profile: 无（既有 MUST 不变，新增的 §6.0 把"verifier 自验"的隐含期望显式化）。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible（description-only）。
+  - reader / writer 行为要求: 无新增 wire MUST；新增 prose MUST 是"做信任决策的一方 MUST first-party 验证、MUST NOT 把 server-attested `binding_state` 当作权威背书"，与既有 §6 / §6.1 缓存规则一致。
+- **fixture / vector 变化**: 无。
+- **prose 同步**: 仅 `zh/identity/identity-handles.md` §4.1（新增）/ §6 顶层（改写）/ §6.0（新增）；其它章节通过既有引用链自然受益。
+- **迁移指南**: 实现侧无 wire / API 变更。若实现把 `alsoKnownAs` 用作 mention 索引、Directory 主键、缓存键、投递路径或 actor 归因依据，应按 §4.1 表格迁回对应权威字段（`delivery_binding.recipient_service_did` / `MemberDeliveryBindingCandidate` / issuer claim / event `actor_id`）。
+
 ### CXP-0007: introduce Circle primitive; remove Flow.discussion_realm_ref（2026-05-25）
 
 引入 **Circle**（`cx:circle:`）作为 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history visibility），同时**彻底删除** `Flow.discussion_realm_ref` 字段及其全部补丁规则（§5.0.1 跨 Realm lifecycle 级联表、§8.9 watch 跨 Realm 投影、改绑禁令等）。Flow 永远只有一个 effective encryption scope —— "一对象一安全边界"成为协议级硬不变量。

@@ -253,6 +253,32 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 Pairwise DID、临时 DID、设备 DID、agent 执行 DID 和隐私敏感关系 DID SHOULD NOT 强制绑定公开 handle。受限 handle 只有在 holder 明确选择公开该上下文关联时才 SHOULD 写入 `alsoKnownAs`；否则必须通过受限 claim / presentation 返回。
 
+### 4.1 `alsoKnownAs` 的窄用途
+
+`alsoKnownAs` 在 Contrix v1 协议层**只承担一件事**：为 §3.4 issuer claim 提供 holder 侧的反向背书，使公开 handle 的双向验证（§6）可独立于任何 issuer / Directory 完成。完整链路是：
+
+```text
+issuer claim:        handle_uri → subject_did   (issuer 单方面签名声明)
+holder DID Document: subject_did → handle_uri   (列入 alsoKnownAs，holder 单方面承认)
+```
+
+没有 holder 侧这条边，任何被信任的 issuer 都可以单方面把 handle "塞" 到受害者 DID 上而 holder 无从拒绝。`alsoKnownAs` 把这种 issuer-unilateral 攻击降级为 issuer × holder 双方均需主动表态——`did:webvh` 等带历史 method 还能让 alsoKnownAs 增删进入可回溯链路，使 holder 的撤销动作具备 audit 证据（§6.1.2 第 3 条）。
+
+`alsoKnownAs` **不参与**以下机制；这些机制各自有专用字段或独立机制：
+
+| 机制 | 权威字段 / 路径 |
+| --- | --- |
+| Realm 内投递路由 | `cx.member.state{join}.delivery_binding.recipient_service_did` |
+| Realm 加成员 / Join Policy | `MemberDeliveryBindingCandidate`（§3.7）+ issuer claim + audience |
+| Actor / 签名归因、审计 | Event envelope `actor_id` = DID 本身 |
+| Principal Server 搬迁、域名变更 | DID Document `service` entry + service delegation |
+| 受限 handle（组织内部账号） | issuer claim + audience + scope（§3.5 默认不进公开 DID Document） |
+| Pairwise / 设备 / agent / 临时 DID | 显式 SHOULD NOT 写入 `alsoKnownAs`（见上文与 [identity-did.md §6 / §9.9](./identity-did.md)） |
+| 跨上下文 unlinkability | pairwise DID 机制，正交于 handle 层（§3.6） |
+| Handle 重分配后的历史归因 | 历史 Event 内固化的 `subject` DID 与 display snapshot（§6.1.3） |
+
+实现 MUST NOT 把 `alsoKnownAs` 用作 mention 索引、Directory 主键、缓存键、投递路径或 actor 归因依据；它的唯一规范用途是"public handle 的 holder-side 反向背书"。
+
 ## 5. Handle 解析
 
 Handle 解析输入是 canonical `handle_uri = contrix://<domain>/users/<localpart>`（或 normalize 自显示形态）。客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
@@ -327,17 +353,22 @@ Handle 解析示例：
 
 ## 6. 双向验证
 
-客户端解析 handle 得到 `subject` DID 与 issuer 后，验证规则按 handle 的公开 / 受限语义分两条：
+解析 handle 得到 `subject` DID 与 issuer 后，验证规则按 handle 的公开 / 受限语义分两条：
 
-**公开 handle（holder 主动公开）**：客户端 MUST 解析 `subject` DID Document，并验证：
+**公开 handle（holder 主动公开）**：verifier MUST 取得 `subject` DID Document 的当前内容，并验证：
 
 ```text
 did_document.alsoKnownAs contains the canonical handle_uri
 ```
 
-双向验证失败 MUST NOT 把该 handle 当作公开可信绑定。
+"取得当前内容" MAY 通过下列任一方式满足：
 
-**受限 handle（issuer 是 Organization / Principal Server / Directory，holder 未公开）**：handle claim 可能不出现在 holder 公开 DID Document 中；此时客户端 MUST 改为验证：
+- 现场（live）解析 `subject` DID Document；或
+- 命中 verifier 自有缓存条目（含 verifier 完全信任、共享同一 DID resolver 与 trust policy 的 co-trusted node，例如自己的 personal node 缓存），且该条目按 §6.1.1 绑定了 DID Document version / digest、`alsoKnownAs` proof，并仍在 TTL 内、未触发 §6.1.2 任何失效信号。
+
+跨信任边界（例如第三方 Directory / 其它组织的 Principal Server）下发的 server-attested `binding_state` 不属于此处可直接满足 MUST 的"缓存条目"——它属于 §6.0 Cache 层的 hint，只能用于明确允许接受 server-attested 结果的展示动作。双向验证失败 MUST NOT 把该 handle 当作公开可信绑定。
+
+**受限 handle（issuer 是 Organization / Principal Server / Directory，holder 未公开）**：handle claim 可能不出现在 holder 公开 DID Document 中；此时 verifier MUST 改为验证：
 
 - issuer claim 签名有效，且 issuer 在当前调用上下文的本地 trust policy 内；
 - claim `audience` 与当前调用上下文一致；
@@ -347,6 +378,30 @@ did_document.alsoKnownAs contains the canonical handle_uri
 - holder consent / organization policy 允许向当前 requester 披露。
 
 DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的判定；判定来自 issuer claim 验签链 + audience / scope 校验。
+
+### 6.0 验证职责分工
+
+"verifier" 是任何**正在做信任决策**的节点。`alsoKnownAs` 双向验证的真相源永远是 holder 自己的 DID Document，因此 authority 与 cache 必须分开：
+
+**Authority（first-party 验证，MUST）**：以下信任决策 MUST 由发起方亲自完成双向验证，**不得**用 server-attested `binding_state` 替代亲自解析 DID Document：
+
+- Wallet 决定是否对某 verifier 披露某 handle（disclosure policy 匹配）；
+- 接受 invite、加入 official Realm、接纳 self-issued handle、跨组织 federation 信任决策；
+- 任何把双向验证结果记入 audit trail 的动作。
+
+**Pre-verification & Cache（hint 层，SHOULD first-party；MAY use bounded cache）**：Directory / Principal Server / 其它中间方 MAY 代行一次验证并把结果（含 DID Document digest / version、`alsoKnownAs` proof、`verified_at` / `expires_at`）写进 directory entry 或 handle claim 作为 hint。下列展示类动作适用此层：
+
+- 客户端展示 "verified handle ✓" 徽章、mention autocomplete、联系人卡片上的 verified 状态。
+
+规则：
+
+- 这种 server-attested `binding_state` 是性能 hint，**不是**权威背书；
+- verifier MUST 能用自己的 DID resolver 独立 re-verify（按 §6 顶层取得 `subject` DID Document 当前内容并复算 `alsoKnownAs` 包含校验），不得仅凭 server-attested `binding_state` 字段做信任决策。Server-attested hint 携带的附加字段（例如 DID Document digest 副本、`alsoKnownAs` proof 副本）是实现可选优化，v1 不为此层定义规范 wire schema；不同实现的 hint 字段差异不影响互操作，因为 verifier 始终保留独立 re-verify 路径；
+- 上述展示类动作 SHOULD 优先 first-party 验证；MAY 接受 server-attested `binding_state=verified` 命中，并把 UI 状态展示为 verified（cache hit 与 first-party verified 之间不做用户可见区分），前提是 hint 仍在 verifier 本地 trust policy 允许的 TTL 上限内、未触发 §6.1.2 失效信号；
+- 命中超期、§6.1.2 任一失效信号触发、或 verifier 本地 trust policy 拒绝该 hint 来源时，UI MUST 降级为 `unverified` 或等价的视觉降级状态，**不得**继续展示 verified 徽章；
+- 一个被攻陷的 Directory 与一个被信任的 issuer 串通可以伪造 server-attested verified 状态——这是把展示动作放在 SHOULD/MAY 而非 MUST 层的根本风险；Authority 层动作不允许承担此风险。
+
+Principal Server 在自己的职责范围内（事件接收 / 路由 / 投递 / Realm reducer 决策）**不读** `alsoKnownAs`——这些决策的权威字段是 `delivery_binding.recipient_service_did`、`MemberDeliveryBindingCandidate` 与 issuer claim（见 §4.1 与 §3.7）。Principal Server 出现在本节 cache 层的角色是"为它服务的客户端预解析公开 handle 并维护缓存"，与它作为 Realm 投递与 reducer 节点的角色互不替代。
 
 **DNS TXT 通道**：DNS TXT 只能作为发现通道。若 issuer 通过 DNS TXT 直接声明 handle 绑定，客户端 MUST 满足以下至少一项才可显示为 verified：
 
