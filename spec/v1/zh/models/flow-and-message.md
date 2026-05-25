@@ -19,7 +19,7 @@ updated: 2026-05-25
 
 Flow 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Flow 落在 Realm 内的某个 [Circle](./circle.md)（独立 MLS 子边界）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
 
-> **v1 设计变更**：历史 spec 曾允许 `Flow.discussion_realm_ref` 让 Flow 跨两个 Realm 存在（synthesis 在源 Realm，discussion 在 linked Realm）。该字段已**彻底删除**（CXP-0007）。当前协议下，Flow 永远只有**一个**加密 scope —— 整个 Flow（所有 track）共享同一安全边界。需要"宽 synthesis + 窄 discussion"的场景统一用**两个 Flow + Relation**（`confidential_discussion_of`）表达，详见 [`circle.md` §7.2](./circle.md)。
+Flow 永远只有**一个**加密 scope —— 整个 Flow(所有 track)共享同一安全边界。需要"宽 synthesis + 窄 discussion"的场景 MUST 用**两个 Flow + Relation**(`confidential_discussion_of`)表达,详见 [`circle.md` §7.2](./circle.md)。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
