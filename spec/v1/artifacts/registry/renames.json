@@ -135,7 +135,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy Flow payload field. The intermediate 'discussion_realm_ref' successor was removed by CXP-0007; current v1 has no per-track discussion boundary. Use Flow.scope_circle_id for a whole-Flow Circle scope, or two Flows linked by confidential_discussion_of for wide synthesis + narrow discussion."
+      "notes": "Legacy Flow payload field. Current v1 has no per-track discussion boundary. Use Flow.scope_circle_id for a whole-Flow Circle scope, or two Flows linked by confidential_discussion_of for wide synthesis + narrow discussion."
     },
     {
       "id": "parent_ref",
@@ -2683,26 +2683,6 @@
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Capability action converged to match event kind cx.realm.moderation_policy. See verb_noun_bridge_collapse migration group.",
       "migration_group": "verb_noun_bridge_collapse"
-    },
-    {
-      "id": "discussion_realm_ref",
-      "kind_class": "object_field",
-      "since_revision": "2026-05-25",
-      "rejection_level": "hard_reject",
-      "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow.discussion_realm_ref removed entirely by CXP-0007. There is NO direct successor field — the semantics it served (a Flow spanning two Realms with separate discussion access) are intentionally deleted; one Flow has exactly one encryption scope. Replacement patterns: (1) For Realm-internal narrowing, set Flow.scope_circle_id to point at an intra-Realm Circle (zh/models/circle.md). (2) For 'wide synthesis + narrow discussion', create two Flows linked by confidential_discussion_of Relation per circle.md §7.2. (3) For cross-federation discussion mirrors, create an independent Flow in the linked Realm and connect via cx.realm.link{link_kind=confidential_extension_of} — not a Flow field. Wire-level rejection details in forbidden-wire-fields.json id=discussion_realm_ref.",
-      "migration_group": "cxp_0007_circle_introduction"
-    },
-    {
-      "id": "Linked Discussion Realm",
-      "kind_class": "glossary_term",
-      "since_revision": "2026-05-25",
-      "rejection_level": "docs_only",
-      "replacement": "Circle",
-      "allowed_contexts": ["changelog", "legacy_migration"],
-      "notes": "Glossary entry removed by CXP-0007. The 'Linked Discussion Realm' concept (a separate Realm hosting a Flow's discussion track via Flow.discussion_realm_ref) no longer exists. The intra-Realm cryptographic sub-boundary primitive is now Circle (cx:circle:), see zh/models/circle.md and zh/overview/glossary.md.",
-      "migration_group": "cxp_0007_circle_introduction"
     }
   ]
 }

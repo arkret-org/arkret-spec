@@ -1960,13 +1960,6 @@
         "state_resolution"
       ],
       "description": "Sub-reason for failed_precondition when a write would expose metadata below the effective metadata_encryption_profile floor (max of parent Realm floor, Circle metadata_encryption_floor, Space child_scope_policy.metadata_encryption_floor, object profile requirement). See zh/models/circle.md §7."
-    },
-    {
-      "code": "discussion_realm_ref_removed",
-      "applies_to": [
-        "schema_validation"
-      ],
-      "description": "Sub-reason for schema_violation when the removed legacy field Flow.discussion_realm_ref appears on the v1+ wire. The replacement is Flow.scope_circle_id pointing at an intra-Realm Circle; for 'wide synthesis + narrow discussion' patterns use two Flows + confidential_discussion_of Relation per zh/models/circle.md §7.2. Removed by CXP-0007."
     }
   ]
 }
