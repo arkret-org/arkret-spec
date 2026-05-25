@@ -16,7 +16,7 @@ title: 实现就绪与发布门槛
 - 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry
 - OpenAPI、非 HTTP binding、fixture 与中文规范均可回指这些 registry
 
-当前仓库的发布状态是 `v1.0.0` 规范稳定基线：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。历史候选标签不得用于描述当前正式发布包。
+当前仓库处于 `v1.0.0` stable promotion 候选状态：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。CXP-0007 机器契约、版本化 public catalog 快照、站点依赖审计与远端 CI 证据关闭前，不得把当前 HEAD 描述为已发布的 stable 包；历史候选标签也不得用于描述当前正式发布包。
 
 `v1.0.0` 基线下，机器 registry 的当前覆盖范围为：
 
@@ -81,13 +81,17 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 ## 5. 发布门槛
 
-### 5.1 `v1.0.0` 规范稳定基线
+### 5.1 `v1.0.0` stable promotion gate
 
 - `zh/` 与 `artifacts/` registry lint 通过
-- `core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema、fixture、profile 已冻结
+- `core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema、fixture、profile 已冻结；若 accepted proposal 改动这些 surface，必须在 freeze 前同步 schema / fixture / profile / vector，而不是只更新 prose
 - OpenAPI 不得包含未发布生成器报告、占位 body 说明或 operation-level 非法字段
 - fixture 与 Markdown JSON 示例不得使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，不能被更早的 schema 错误掩盖。
 - 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；不得让 schema `$id` 解析到 HTML 文档。
+- 版本化 public catalog 快照 MUST 与发布说明中的语义一致：若 `contract-catalog-<version>.json` 是冻结 baseline，当前 release 必须发布新的 versioned snapshot；若同名快照代表当前 release，则必须由 CI 用 count/hash gate 证明它与 canonical catalog 一致。
+- CXP-0007 stable gate MUST 闭合 `effective_scope` submit-input / reducer-output schema 角色、Message / Anchor output shape、Anchor leaf canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle/effective-scope conformance vector cluster；否则 release notes 必须明确 de-scope，且不得把这些项当作 v1.0 wire contract 宣布。
+- 英文 mirror 完成前，`/en/v1/...` fallback 页面不得作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。
+- 站点生产依赖不得存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。
 
 ### 5.2 `v1-interop-preview` 实现互操作预览
 

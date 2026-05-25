@@ -7,8 +7,9 @@ Astro Starlight 站点，把 `spec/v1/` 渲染成可浏览的协议规范网站�
 - 内容源直接读 `../spec/v1/{zh,en}/` 与 `../spec/v1/artifacts/`，**不复制、不镜像**。
   内容路径由 `src/content.config.ts` 通过 `docsLoader({ generateId })` 重写：
   `spec/v1/zh/sync/client-sync.md` → 路由 `/zh/v1/sync/client-sync/`。
-- Markdown 首行 `#` 标题由 `plugins/remark-title-from-heading.mjs` 自动提升为
-  Starlight 要求的 frontmatter `title`，因此既存的 `.md` 文件不需要逐个加 frontmatter。
+- Markdown / MDX 内容通过 Astro Starlight content loader 读取；页面标题以已有
+  frontmatter 或内容元数据为准。当前自定义 remark 插件只负责 Mermaid block 与相对
+  Markdown 链接归一化。
 - 机器构件（registry / schema / openapi / fixtures）通过 `src/lib/artifacts.ts`
   在构建期由 `import.meta.glob` 全部 eager-import，全静态 bundle，无运行时 fetch。
 - 自定义 MDX 组件使每个 spec 页面都能引用 catalog 条目，构建期校验 prop 必须命中
@@ -36,7 +37,7 @@ Astro Starlight 站点，把 `spec/v1/` 渲染成可浏览的协议规范网站�
 | --- | --- |
 | `/` | 首页 + catalog 概览 |
 | `/zh/v1/...` | 中文 normative 全文（`spec/v1/zh/...`） |
-| `/en/v1/...` | 英文占位（未发布，非 normative） |
+| `/en/v1/...` | 英文占位（未发布，非 normative）；目前只有 `en/index.md` 是英文页面，其他可见 fallback 页面不得视为英文翻译 |
 | `/openapi/` | Scalar OpenAPI 视图 |
 | `/catalog/event-kinds/` 与 `/[kind]/` | event_kind 目录 + 详情 |
 | `/catalog/errors/` 与 `/[code]/` | 错误码目录 + 详情 |
@@ -61,7 +62,8 @@ npm run crossref     # 校验 spec/ 中所有 <EventKind/> <ErrorCode/> 等 prop
 site/
 ├── astro.config.mjs                 # Starlight + remark plugin + i18n
 ├── plugins/
-│   └── remark-title-from-heading.mjs
+│   ├── remark-mermaid.mjs
+│   └── remark-rel-md-links.mjs
 ├── scripts/
 │   └── crossref-check.mjs           # 预构建校验
 ├── src/
@@ -72,7 +74,7 @@ site/
 │   │       ├── types.ts             # JSON Schema 子集
 │   │       ├── deref.ts             # $ref / JSON pointer 解析
 │   │       └── walk.ts              # schema -> SchemaRow 树
-│   ├── components/                  # 8 个 MDX 组件
+│   ├── components/                  # MDX / catalog 组件
 │   ├── pages/
 │   │   ├── index.astro
 │   │   ├── openapi.astro            # Scalar
@@ -84,6 +86,7 @@ site/
 ## 演进
 
 - 多版本：将来加 `spec/v1.1/zh/`，`docsLoader` 自动收录为 `/zh/v1.1/...`。
-- 英文：写 `spec/v1/en/<topic>.md`，路由自动生效；缺失页面在 zh 侧不会受影响。
+- 英文：写 `spec/v1/en/<topic>.md`，路由自动生效；CXP-EN-MIRROR 完成前，
+  不得把 `/en/v1/...` fallback 页面当作英文 normative mirror 发布。
 - 新构件类型：在 `src/lib/artifacts.ts` 加 typed 入口 + 在 `src/components/` 加组件 +
   在 `src/pages/catalog/` 加 index/[param] 路由。crossref 脚本只需在 `checks` 数组里加一行。

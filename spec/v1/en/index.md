@@ -15,3 +15,9 @@ across both locales.
 
 Until the English text is regenerated, treat `spec/v1/zh/` plus
 `spec/v1/artifacts/` as the only maintained v1 source.
+
+If the documentation site exposes additional `/en/v1/...` routes before the
+translation mirror is complete, those pages are locale fallback views and are
+not English normative translations. They must not be cited as an English v1
+contract until CXP-EN-MIRROR publishes the corresponding translated source
+files under `spec/v1/en/`.

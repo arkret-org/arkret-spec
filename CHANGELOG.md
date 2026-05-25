@@ -75,17 +75,17 @@
     - `forbidden-model-terms.json`: 修订 `Room` / `track members` 条目，从"linked discussion Realm" 改为 "Circle (intra-Realm cryptographic sub-boundary)"。
     - `removed-event-kinds.json`: 修订 `cx.flow.track.member` / `cx.flow.track.history_visibility` / `cx.flow.track.policy_components` 三条 notes。
 - **canonical 变更**: Flow 顶层字段 `discussion_realm_ref` 删除；Flow 顶层字段 `scope_ref`（id:circle, optional, null = Realm-default scope）新增。Event envelope / payload / AAD / Anchor leaf 新增 reducer-stamped immutable tagged `effective_scope`（`{kind:"realm"|"circle", realm_id, circle_id?}`）。
-- **派生 artifact 同步**: 待 `python tools/artifact_pipeline.py generate` 与 `check` 在迁移 PR 中执行；MLS governance binding artifacts 与 Event envelope schema 的 `effective_scope` 落地、Circle sub-anchor + `cx.circle.anchor_commit` 固定节拍 profile、completion conformance vector cluster 列为 v1.0 ship 前必完成项（CXP-0007 §8.1）。
+- **派生 artifact 同步**: canonical registry 已重新生成并通过 `python tools/artifact_pipeline.py check`：`159 event kinds, 54 schemas, 41 typed ID kinds, 87 operations, 58 claimable profiles, 79 profile id references`，`registry diff: clean`。Circle schema / event kind / typed ID / capability action / error code / rename / forbidden-field artifacts 已落地。v1.0 stable promotion 前仍必须关闭 CXP-0007 §8.1 机器契约缺口：`effective_scope` submit-input 与 reducer-output schema 角色需显式区分，Message / Anchor output shape 与 Anchor leaf canonical bytes 需绑定 `effective_scope`，`content_encryption_floor` 需机器化，`confidential_discussion_of` Relation 需注册并验证，Circle sub-anchor + `cx.circle.anchor_commit` 固定节拍 profile 与 completion conformance vector cluster 需落地或被正式 de-scope。
 - **conformance impact**:
   - 受影响 profile: `core_event_store`（新增 Circle event kinds 与 effective_scope canonical bytes）、`chat_mvp`（讨论可见性改按 effective scope 判断）、`e2ee_v1`（Realm-default 与 Circle 独立 MLS group；Realm-member-removal 触发 N+1 rotate amplification，详见 [`zh/models/circle.md` §10.3](spec/v1/zh/models/circle.md)）。
-  - profile tier 变化: 待 conformance-profiles.json 在迁移 PR 中同步。
+  - profile tier 变化: 尚未同步 Circle/effective-scope vector/profile 要求；除非在 freeze 前明确 de-scope，否则属于 stable release blocker。
   - wire 兼容性: **breaking**（删除字段 + 新增字段 + 新增 immutable envelope tag）。本变更必须在 v1 freeze 前 ship；freeze 后将升级为 v2 breaking change。
   - reader / writer 行为要求:
     - Writer MUST NOT emit `discussion_realm_ref` on the v1 wire.
     - Reader MUST reject `discussion_realm_ref` with `schema_violation reason=discussion_realm_ref_removed`.
     - Reader MUST stamp / verify `effective_scope` on every Event envelope (cryptographically bound; subsequent rebinds MUST NOT reinterpret prior events).
     - Sync Service MUST filter Circle-scoped events at delivery time per `effective_scope` membership (zh/models/circle.md §9.3).
-- **fixture / vector 变化**: 待 fixtures / vector-registry 同步在迁移 PR 中执行；CXP-0007 §8.1 第 8 步 conformance vector cluster 必须落地。
+- **fixture / vector 变化**: 尚未同步 Circle/effective-scope fixture / vector cluster；当前 `vector-registry.json`、`fixtures/` 与 `conformance-profiles.json` 未形成可执行的 Circle coverage。CXP-0007 §8.1 第 8 步必须在 v1.0 stable 前落地，或在 release notes 中明确降级为 post-freeze 非 v1.0 contract。
 - **迁移指南**: 见 [CXP-0007 §8](spec/v1/proposals/0007-circle-primitive.md) Migration plan 与 [renames.json](spec/v1/artifacts/registry/renames.json) `cxp_0007_circle_introduction` migration group。对"宽 synthesis + 窄 discussion" 业务诉求，改用两个 Flow + `confidential_discussion_of` Relation（见 [`zh/models/circle.md` §7.2](spec/v1/zh/models/circle.md)）。
 
 ### Description-only doc enhancements from `_simple_report_claude.md` review（2026-05-24）
