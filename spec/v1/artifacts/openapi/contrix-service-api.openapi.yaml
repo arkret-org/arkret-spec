@@ -2972,6 +2972,23 @@ components:
           type:
           - string
           - 'null'
+        board_space_id:
+          type:
+          - string
+          - 'null'
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          description: Derived board Space id from cx.component.flow.position.v1; not canonical Flow object state.
+        list_space_id:
+          type:
+          - string
+          - 'null'
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          description: Derived list Space id from cx.component.flow.position.v1; not canonical Flow object state.
+        rank:
+          type:
+          - string
+          - 'null'
+          description: Derived rank within list_space_id from cx.component.flow.position.v1.
         created_by:
           type:
           - string
