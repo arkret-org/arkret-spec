@@ -10,7 +10,7 @@ authors:
   - did:web:contrix.example
 ---
 
-> **本文件是模板,不要直接修改**。新提案 `cp 0000-template.md NNNN-<slug>.md` 之后填写。
+> **本文件是模板,不要直接修改**。新提案 `cp .templates/cxp-template.md NNNN-<slug>.md` 之后填写(`NNNN-<slug>.md` 放在 `spec/v1/proposals/` 顶层)。
 
 ## 1. Summary
 

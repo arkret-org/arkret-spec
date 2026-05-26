@@ -14,7 +14,8 @@ updated: 2026-05-25
 
 ## 1. 目录约定
 
-- 文件名 `NNNN-<kebab-slug>.md`,`NNNN` 为四位数字,从 `0001` 起递增,**永不复用**。`0000-template.md` 是模板。
+- 文件名 `NNNN-<kebab-slug>.md`,`NNNN` 为四位数字,从 `0001` 起递增,**永不复用**。模板见 [`.templates/cxp-template.md`](./.templates/cxp-template.md)。
+- `deferred-to-v1.1` 状态的提案归档到 [`.deferred/`](./.deferred/) 子目录,保留 frontmatter 不变,v1.1 周期再决定是否捞回顶层目录继续 review。
 - 一个提案一个文件;有依赖时通过 frontmatter `depends_on: [CXP-NNNN, ...]` 声明,不要拆成多个相互引用的小文件。
 - 配套草案 artifact(schema 草稿、payload 形态举例)直接内嵌 markdown 代码块,**不**写进 `spec/v1/artifacts/`。一旦 accepted,迁移那一步才会真正落 artifact。
 
@@ -61,7 +62,7 @@ discussion: <PR / issue 链接>
 
 ## 4. 章节模板
 
-见 [`0000-template.md`](./0000-template.md)。核心章节:
+见 [`.templates/cxp-template.md`](./.templates/cxp-template.md)。核心章节:
 
 1. **Summary** — 一两句话能讲清楚是什么。
 2. **Motivation** — 为什么现在要做;参考了哪个外部产品的形态(Jira / Trello / Linear / GitHub / ...)。
@@ -75,12 +76,12 @@ discussion: <PR / issue 链接>
 
 | CXP | 标题 | Status | 备注 |
 | --- | --- | --- | --- |
-| [CXP-0001](./0001-label-entity.md) | Label as first-class entity | deferred-to-v1.1 | 把 `labels: array<string>` 升级为 `cx:label:` 对象 + `labeled_with` Relation |
-| [CXP-0002](./0002-flow-type.md) | Flow Type (Work Item Type) | deferred-to-v1.1 | 引入 `cx:flow_type:`(Task / Sub-task / Bug / Story / ...) |
-| [CXP-0003](./0003-field-catalog.md) | Field Catalog | deferred-to-v1.1 | 引入 `cx:field_def:` 可复用 typed 字段目录 |
-| [CXP-0004](./0004-form-layout.md) | Form Layout | deferred-to-v1.1 | 单 Flow 详情面板字段排列(类似 Jira "Work item layout") |
-| [CXP-0005](./0005-workflow-state-machine.md) | Workflow State Machine | deferred-to-v1.1 | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
-| [CXP-0006](./0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `cx:component:` / `cx:version:` 结构性分类对象 |
+| [CXP-0001](./.deferred/0001-label-entity.md) | Label as first-class entity | deferred-to-v1.1 | 把 `labels: array<string>` 升级为 `cx:label:` 对象 + `labeled_with` Relation |
+| [CXP-0002](./.deferred/0002-flow-type.md) | Flow Type (Work Item Type) | deferred-to-v1.1 | 引入 `cx:flow_type:`(Task / Sub-task / Bug / Story / ...) |
+| [CXP-0003](./.deferred/0003-field-catalog.md) | Field Catalog | deferred-to-v1.1 | 引入 `cx:field_def:` 可复用 typed 字段目录 |
+| [CXP-0004](./.deferred/0004-form-layout.md) | Form Layout | deferred-to-v1.1 | 单 Flow 详情面板字段排列(类似 Jira "Work item layout") |
+| [CXP-0005](./.deferred/0005-workflow-state-machine.md) | Workflow State Machine | deferred-to-v1.1 | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
+| [CXP-0006](./.deferred/0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `cx:component:` / `cx:version:` 结构性分类对象 |
 | [CXP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | **accepted** (merged 2026-05-25 → [`zh/models/circle.md`](../zh/models/circle.md)) | 引入 `cx:circle:` 作为 Realm 内的密码学子边界(独立 MLS / 子集成员 / 独立 history),**彻底删除** `Flow.discussion_realm_ref`,Flow 永远单一 scope |
 
 ## 6. 写作风格
