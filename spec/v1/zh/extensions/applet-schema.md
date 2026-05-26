@@ -17,7 +17,7 @@ updated: 2026-05-25
   "kind": "cx.applet.registration",
   "applet_id": "cx:applet:dd552c17-0000-7000-8000-000000000000",
   "service_did": "did:web:applet.example",
-  "controller_did": "did:web:acme.example",
+  "controller_did": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://applet.example/api/v1/applet",
   "bot_actor_id": "did:web:applet.example#bot",
   "protocols": ["slack"],
@@ -33,7 +33,7 @@ updated: 2026-05-25
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:web:applet.example#controller-key-1",
+    "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#controller-key-1",
     "payload_digest": "sha256:<canonical-registration-hash>",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "<detached-jws-signature>"

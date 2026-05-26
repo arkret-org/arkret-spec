@@ -108,7 +108,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "kind": "cx.applet.registration",
   "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
   "service_did": "did:web:slack-bridge.example",
-  "controller_did": "did:web:acme.example",
+  "controller_did": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://slack-bridge.example/api/v1/applet",
   "bot_actor_id": "did:web:slack-bridge.example#bot",
   "protocols": [
@@ -153,7 +153,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:web:acme.example#admin-key-1",
+    "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#admin-key-1",
     "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
@@ -224,7 +224,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 
 ```json
 {
-  "issuer": "did:web:acme.example",
+  "issuer": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "subject": "did:web:slack-bridge.example#bot",
   "claim_scope": {
     "realm_ids": [
@@ -501,7 +501,7 @@ Ghost Actor profile SHOULD 包含：
   },
   "accountability": {
     "mode": "applet_managed",
-    "responsible_actor_id": "did:web:acme.example",
+    "responsible_actor_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
     "operator_actor_ids": [
       "did:web:slack-bridge.example"
     ]
