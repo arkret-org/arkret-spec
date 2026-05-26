@@ -258,6 +258,69 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 
 Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
 
+下面是一个 `cx.flow.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`fields.review_status` 标量字段）、对象形态 `set`（`fields.due_date`）、`unset`（`fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
+
+```json schema=schemas/patch.schema.json expect=valid
+{
+  "fields.review_status": "approved",
+  "fields.due_date": { "$op": "set", "value": "2026-06-01" },
+  "fields.dropped_field": { "$op": "unset" },
+  "labels.security": { "$op": "add", "value": "confidential" }
+}
+```
+
+完整 event 中的位置示例：
+
+```json schema=schemas/event-schema.json expect=valid
+{
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "actor_id": "did:web:alice.example",
+  "actor_seq": 5,
+  "kind": "cx.flow.update",
+  "created_at": "2026-04-26T00:00:00Z",
+  "hlc": "01970e589d21-0004-a13f9c2e",
+  "prev_refs": ["cx:event:019640ed-7000-7000-8000-000000000000"],
+  "refs": [
+    { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+  ],
+  "preconditions": [
+    {
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "predicate": { "op": "head_eq", "value": { "fields.review_status": "in_review" } }
+    }
+  ],
+  "effects": [
+    {
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "set", "value": { "fields.review_status": "approved", "fields.due_date": "2026-06-01", "labels.security": "confidential" } }
+    }
+  ],
+  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "payload": {
+    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
+    "patch": {
+      "fields.review_status": "approved",
+      "fields.due_date": { "$op": "set", "value": "2026-06-01" },
+      "fields.dropped_field": { "$op": "unset" },
+      "labels.security": { "$op": "add", "value": "confidential" }
+    }
+  },
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example#device-1",
+      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "created_at": "2026-04-26T00:00:00Z",
+      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+    }
+  ]
+}
+```
+
+Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部成功才接受），其中每条 path 还要分别通过 §4.2.4 redactable 字段保护与 §4.2.5 reducer-managed 字段保护检查。
+
 ### 4.4 原子性与 precondition
 
 同一个 `payload.patch` map 中的所有 path 变更属于同一个 Move 的单次原子写入。Reducer MUST 在读取旧对象状态后先验证全部 path grammar、schema transition、capability field constraint、redactable / reducer-managed 字段限制和 Move `preconditions[]`；任一失败时整个 patch MUST fail closed，不得部分应用已经通过的 path。

@@ -72,6 +72,8 @@ Profile 不支持某个标准能力时的默认行为：
 
 机器可读默认行为见 `artifacts/profiles/conformance-profiles.json.default_unsupported_behavior`。其中 `must_not_accept`、`must_fail_closed`、`allowed_results` 等字段用于 conformance lint / test，而不是自由文本提示。
 
+Profile 之间的 `inherits` / `depends_on` / `mutually_exclusive_with` 关系以 DAG 形式集中聚合在 [`artifacts/registry/profiles-dependency-graph.json`](../../artifacts/registry/profiles-dependency-graph.json)（canonical mirror，每次新增或修改 profile 关系时 MUST 同步）。该 graph 用于可视化 DAG 工具与 conformance loader：实现 SHOULD 先按 `inherits` 边做拓扑排序，再按 `depends_on` 检查共生约束，最后按 `mutually_exclusive_with` 检查冲突；任一阶段失败 MUST 拒绝 profile claim。
+
 ### 2.1.1 Profile 数量约束与 Composition 路线（normative for new profiles）
 
 v1 stable + extension catalog 已包含较大的 implementation / deployment / vector / hardening profile 矩阵，组合空间已经较大。为防止 profile 数量进一步爆炸，**新增 implementation profile MUST 满足**以下条件之一：

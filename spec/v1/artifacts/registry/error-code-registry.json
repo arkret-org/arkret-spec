@@ -1954,6 +1954,13 @@
       "description": "Sub-reason for failed_precondition when scope_circle_id rebind is attempted without an explicitly profile-permitted audited-high-risk path. Default reducer rejects rebinds to prevent silent historical-discussion migration. See zh/models/circle.md §6.1."
     },
     {
+      "code": "effective_scope_reducer_managed",
+      "applies_to": [
+        "schema_validation"
+      ],
+      "description": "Sub-reason for schema_violation when actor-side submit payload illegally carries a top-level `effective_scope` field. `effective_scope` is the canonical reducer-output form (tagged {kind:realm|circle}); actors only supply `scope_circle_id` (id:circle | null). Reducer stamps the immutable tagged form on the Event envelope and materialized object cell. See zh/models/circle.md §6.2."
+    },
+    {
       "code": "metadata_encryption_floor_violation",
       "applies_to": [
         "schema_validation",

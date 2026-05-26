@@ -142,6 +142,22 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical mapping from removed / deprecated identifiers to their v1 replacements (or null when no successor). Consumed by cotest and migration tooling."
+    },
+    {
+      "name": "operations_error_mapping",
+      "file": "registry/operations-error-mapping.json",
+      "kind": "operations_error_mapping",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical endpoint -> operation-specific error code map. Layered on top of the universal failure surface (auth / schema / rate-limit / internal). Cross-linked from zh/sync/service-http-binding.md §2.3."
+    },
+    {
+      "name": "profiles_dependency_graph",
+      "file": "registry/profiles-dependency-graph.json",
+      "kind": "profiles_dependency_graph",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical DAG view of profile inherits / depends_on / mutually_exclusive_with edges, mirroring profile_requirements[<id>] relations in profiles/conformance-profiles.json. Rendered as a visualization aid in zh/conformance/conformance-profiles.md §2.1. Must be kept in sync when profile inheritance changes; conformance-profiles.json remains the source-of-truth for individual profile shape."
     }
   ]
 }

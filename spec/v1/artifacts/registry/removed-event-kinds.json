@@ -291,7 +291,8 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.authorize",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Renamed to imperative event-kind spelling."
+      "migration_window_until": "2026-12-31",
+      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31; after that date the rename is purely changelog/negative_test."
     },
     {
       "id": "cx.agent.key.revoked",
@@ -299,7 +300,8 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.revoke",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Renamed to imperative event-kind spelling."
+      "migration_window_until": "2026-12-31",
+      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
     },
     {
       "id": "cx.agent.key.rotated",
@@ -307,7 +309,8 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.rotate",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Renamed to imperative event-kind spelling."
+      "migration_window_until": "2026-12-31",
+      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
     },
     {
       "id": "cx.device.authorized",
@@ -315,7 +318,8 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.device.authorize",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Renamed to imperative event-kind spelling."
+      "migration_window_until": "2026-12-31",
+      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
     },
     {
       "id": "cx.device.revoked",
@@ -323,7 +327,8 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.device.revoke",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Renamed to imperative event-kind spelling."
+      "migration_window_until": "2026-12-31",
+      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
     },
     {
       "id": "cx.relation.delete",
@@ -331,7 +336,8 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.relation.tombstone",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Relation termination uses the canonical tombstone verb."
+      "migration_window_until": "2026-12-31",
+      "notes": "Relation termination uses the canonical tombstone verb. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
     },
     {
       "id": "cx.read.marker",
@@ -339,7 +345,8 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.read_cursor.advance",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Actor-private persistent read position is named read cursor; canonical event kind is cx.read_cursor.advance."
+      "migration_window_until": "2026-12-31",
+      "notes": "Actor-private persistent read position is named read cursor; canonical event kind is cx.read_cursor.advance. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
     },
     {
       "id": "cx.read.cursor",
@@ -347,7 +354,26 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.read_cursor.advance",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (cx:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor."
+      "migration_window_until": "2026-12-31",
+      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (cx:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+    },
+    {
+      "id": "cx.flow.discussion_realm_ref",
+      "since_revision": "2026-05-25",
+      "rejection_level": "migration_only",
+      "replacement": "Flow.scope_circle_id (see zh/models/circle.md)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "migration_window_until": "2026-12-31",
+      "notes": "CXP-0007 Circle introduction removed Flow.discussion_realm_ref. Writers MUST NOT emit; readers MAY tolerate stored legacy events through 2026-12-31 to support cross-version migration. See renames.json group cxp_0007_circle_introduction and forbidden-wire-fields.json discussion_realm_ref."
+    },
+    {
+      "id": "cx.member.application.legacy",
+      "since_revision": "2026-05-26",
+      "rejection_level": "migration_only",
+      "replacement": "candidate cx.profile.candidate.join_policy.v1 surface (still unregistered as wire Event.kind)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "migration_window_until": "2026-12-31",
+      "notes": "Pre-v1.0 join-policy spike kinds (member.application / member.application.review / member.application.cancel) never reached canonical registry. Migration-only entry tracks downstream translation for stored fixture data; new writers MUST use the candidate profile surface and MUST NOT re-introduce the bare names. Migration window aligns with the 2026-12-31 horizon used by the 2026-05-24 imperative-rename batch."
     }
   ]
 }

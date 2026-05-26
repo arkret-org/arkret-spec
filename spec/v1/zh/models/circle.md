@@ -104,11 +104,40 @@ Morph.scope_circle_id         : id:circle | null
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope MLS;新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
 - Structural Relation / position cell 的 `effective_scope` **MUST 不宽于参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Flow (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Flow 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据。
 
-### 6.2 `effective_scope` wire shape
+### 6.2 `effective_scope` wire shape — submit-payload vs canonical reducer-output
+
+`effective_scope` 在 wire 上有**两个不同的形态**,机器契约 MUST 分别校验:
+
+1. **Submit-payload form (actor-supplied)**:actor 在 `cx.flow.create` / `cx.message.create` / `cx.morph.create` / `cx.relation.create` / `cx.space.create` / `cx.space.parent` 等写事件的 `payload` 中只 supply `scope_circle_id` 字段(可为 `null`)。**MUST NOT** 携带 `effective_scope` 顶层字段；若 supply，reducer MUST 返回 `schema_violation` (`reason=effective_scope_reducer_managed`)。
+2. **Canonical reducer-output form (reducer-stamped, immutable)**:reducer 在接受 event 时把 `scope_circle_id` 物化为 tagged 对象，写入 Event envelope 的 `effective_scope` 字段 + 物化对象的 `effective_scope` cell。该字段一经写入 immutable;旧 event 即使 `scope_circle_id` 后续改绑也保留写入时的值。
+
+两个形态的 schema:
+
+**Submit-payload (actor-side input shape)**:
+
+```json
+{
+  "scope_circle_id": null
+}
+```
+
+```json
+{
+  "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+}
+```
+
+`scope_circle_id` 是 `id:circle | null`;`effective_scope` 字段 MUST NOT 出现。
+
+**Canonical reducer-output (Event envelope + materialized object)**:
+
+`effective_scope.kind = "realm"`(对应 submit-payload `scope_circle_id=null`):
 
 ```json
 { "kind": "realm", "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000" }
 ```
+
+`effective_scope.kind = "circle"`(对应 submit-payload `scope_circle_id=cx:circle:...`):
 
 ```json
 {
@@ -117,6 +146,14 @@ Morph.scope_circle_id         : id:circle | null
   "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
 }
 ```
+
+Reducer 校验顺序(MUST):
+
+1. 解析 submit-payload,确认顶层无 `effective_scope`,确认 `scope_circle_id` 为合法 `id:circle | null`。
+2. 若 `scope_circle_id` 非 null:解析对应 Circle,校验 `realm_id` 一致 + `state=active`(§6.1)。
+3. 物化 tagged `effective_scope` 对象，写入 Event envelope + 物化 cell;后续 Event reader / projection / Anchor verifier MUST 使用 canonical reducer-output form 进行 authorization 与 history visibility 评估。
+
+Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 None→None / 同scope→同scope / None→Some / Some→None / Some(A)→Some(B) 五种 rebind transition 与 schema-violation negative case。
 
 ### 6.3 Space 三个 scope 相关字段语义辨析
 

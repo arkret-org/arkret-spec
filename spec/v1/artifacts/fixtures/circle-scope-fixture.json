@@ -1,0 +1,201 @@
+{
+  "suite": "circle_scope",
+  "profile": "cx.profile.circle_conformance.v1",
+  "version": "2026-05-26",
+  "description": "Machine-contract fixture for Circle effective_scope semantics. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers None->None, same-scope->same-scope, None->Some, Some->None, Some(A)->Some(B) rebind transitions plus negative cases. See spec/v1/zh/models/circle.md §6.1 / §6.2.",
+  "submit_payload_shape": {
+    "description": "Actor-supplied input on cx.flow.create / cx.message.create / cx.morph.create / cx.relation.create / cx.space.* writes. MUST carry only scope_circle_id (id:circle | null). MUST NOT carry effective_scope.",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "scope_circle_id": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "string",
+              "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          ]
+        }
+      },
+      "required": ["scope_circle_id"],
+      "not": {
+        "required": ["effective_scope"]
+      }
+    }
+  },
+  "canonical_reducer_output_shape": {
+    "description": "Reducer-stamped, immutable tagged scope written to Event envelope and materialized object cell. Two discriminated forms: kind=realm | kind=circle.",
+    "schema": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "realm_id"],
+          "properties": {
+            "kind": { "const": "realm" },
+            "realm_id": {
+              "type": "string",
+              "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "realm_id", "circle_id"],
+          "properties": {
+            "kind": { "const": "circle" },
+            "realm_id": {
+              "type": "string",
+              "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "circle_id": {
+              "type": "string",
+              "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "scope_rebind_transition_cases": [
+    {
+      "name": "none_to_none_noop",
+      "description": "scope_circle_id=null -> scope_circle_id=null. No-op rebind; reducer MUST accept (idempotent same-scope), effective_scope stays {kind:realm}.",
+      "from_submit_payload": { "scope_circle_id": null },
+      "to_submit_payload": { "scope_circle_id": null },
+      "from_canonical_effective_scope": {
+        "kind": "realm",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+      },
+      "to_canonical_effective_scope": {
+        "kind": "realm",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+      },
+      "expect_reducer_result": "accepted",
+      "rebind_classification": "same_scope_noop"
+    },
+    {
+      "name": "same_circle_to_same_circle_noop",
+      "description": "scope_circle_id=Some(A) -> scope_circle_id=Some(A). No-op rebind; reducer MUST accept.",
+      "from_submit_payload": {
+        "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "to_submit_payload": {
+        "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "from_canonical_effective_scope": {
+        "kind": "circle",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "to_canonical_effective_scope": {
+        "kind": "circle",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "expect_reducer_result": "accepted",
+      "rebind_classification": "same_scope_noop"
+    },
+    {
+      "name": "none_to_circle_default_reject",
+      "description": "scope_circle_id=null -> scope_circle_id=Some(A). True rebind; default reducer MUST reject with failed_precondition reason=scope_rebind_forbidden. Profile MAY enable audit-paired high-risk update.",
+      "from_submit_payload": { "scope_circle_id": null },
+      "to_submit_payload": {
+        "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "from_canonical_effective_scope": {
+        "kind": "realm",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+      },
+      "to_canonical_effective_scope_when_profile_allows": {
+        "kind": "circle",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "expect_reducer_result": "failed_precondition",
+      "reason": "scope_rebind_forbidden",
+      "rebind_classification": "widen_or_narrow"
+    },
+    {
+      "name": "circle_to_none_default_reject",
+      "description": "scope_circle_id=Some(A) -> scope_circle_id=null. True rebind; default reducer MUST reject with failed_precondition reason=scope_rebind_forbidden. Profile MAY enable audit-paired high-risk update.",
+      "from_submit_payload": {
+        "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "to_submit_payload": { "scope_circle_id": null },
+      "from_canonical_effective_scope": {
+        "kind": "circle",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "to_canonical_effective_scope_when_profile_allows": {
+        "kind": "realm",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+      },
+      "expect_reducer_result": "failed_precondition",
+      "reason": "scope_rebind_forbidden",
+      "rebind_classification": "widen_or_narrow"
+    },
+    {
+      "name": "circle_a_to_circle_b_default_reject",
+      "description": "scope_circle_id=Some(A) -> scope_circle_id=Some(B). True rebind across circles; default reducer MUST reject with failed_precondition reason=scope_rebind_forbidden. Profile MAY enable audit-paired high-risk update.",
+      "from_submit_payload": {
+        "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "to_submit_payload": {
+        "scope_circle_id": "cx:circle:0196419d-0000-7000-8000-000000000000"
+      },
+      "from_canonical_effective_scope": {
+        "kind": "circle",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "to_canonical_effective_scope_when_profile_allows": {
+        "kind": "circle",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "cx:circle:0196419d-0000-7000-8000-000000000000"
+      },
+      "expect_reducer_result": "failed_precondition",
+      "reason": "scope_rebind_forbidden",
+      "rebind_classification": "cross_circle"
+    }
+  ],
+  "negative_cases": [
+    {
+      "name": "submit_payload_carrying_effective_scope_rejected",
+      "description": "Actor MUST NOT supply effective_scope in submit payload. Reducer MUST schema_violation with reason=effective_scope_reducer_managed.",
+      "invalid_submit_payload": {
+        "scope_circle_id": null,
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+        }
+      },
+      "expect_reducer_result": "schema_violation",
+      "reason": "effective_scope_reducer_managed"
+    },
+    {
+      "name": "scope_circle_id_targets_inactive_circle",
+      "description": "scope_circle_id references a Circle with state != active. Reducer MUST failed_precondition reason=circle_not_active.",
+      "submit_payload": {
+        "scope_circle_id": "cx:circle:0196419e-0000-7000-8000-000000000000"
+      },
+      "circle_state_at_evaluation": "archived",
+      "expect_reducer_result": "failed_precondition",
+      "reason": "circle_not_active"
+    },
+    {
+      "name": "scope_circle_id_realm_mismatch",
+      "description": "scope_circle_id references a Circle whose realm_id != object.realm_id. Reducer MUST schema_violation reason=circle_realm_mismatch.",
+      "submit_payload": {
+        "scope_circle_id": "cx:circle:0196419f-0000-7000-8000-000000000000"
+      },
+      "object_realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "circle_realm_id_at_evaluation": "cx:realm:01964200-0000-7000-8000-000000000000",
+      "expect_reducer_result": "schema_violation",
+      "reason": "circle_realm_mismatch"
+    }
+  ]
+}

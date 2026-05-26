@@ -5,6 +5,10 @@
       "sha256": "5091e1ab2e97adb205874cf1798137eb94ff0936ec88f05c5176124c6f42459d"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
+      "sha256": "a9c3c4a195b8060342bf7d1829d1108c2e5ae6e393c054205930a41ef6e21f54"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
       "sha256": "b8f2136cd06e339d40cf4c84bfe80c81cab938745d1062ac908d6cd3b08a113e"
     },

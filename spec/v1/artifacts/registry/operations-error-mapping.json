@@ -1,0 +1,358 @@
+{
+  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/operations-error-mapping.schema.json",
+  "version": "2026-05-26",
+  "kind": "operations_error_mapping",
+  "source_role": "canonical",
+  "source_of_truth": true,
+  "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
+  "rules": {
+    "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
+    "operation_specific": "operation_specific[] lists the error codes that are semantically tied to this operation's domain logic (event ingest, key claim, blob upload, push gateway, directory ingest, ...). Receivers SHOULD recognize and surface these codes specifically.",
+    "endpoint_aliases": "Each operation entry lists its canonical HTTP method+path alias for human navigation; alternative bindings (gRPC, MQ) inherit the same error code set."
+  },
+  "operations": [
+    {
+      "operation_id": "cx.events.submit",
+      "http_alias": "POST /api/v1/events",
+      "operation_specific": [
+        "duplicate_event",
+        "failed_precondition",
+        "schema_violation",
+        "actor_seq_invalid",
+        "anchor_ref_stale",
+        "anchor_ref_unknown",
+        "realm_frozen",
+        "unsupported_event_kind",
+        "quarantine"
+      ],
+      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes."
+    },
+    {
+      "operation_id": "cx.events.get",
+      "http_alias": "GET /api/v1/events/{event_id}",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "not_found is returned both for nonexistent events and for events hidden by visibility (uniform failure surface)."
+    },
+    {
+      "operation_id": "cx.events.query",
+      "http_alias": "GET /api/v1/events",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked"
+      ]
+    },
+    {
+      "operation_id": "cx.events.query_post",
+      "http_alias": "POST /api/v1/events/query",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked"
+      ]
+    },
+    {
+      "operation_id": "cx.events.subscribe",
+      "http_alias": "GET /api/v1/events/subscribe",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked",
+        "stream_dropped",
+        "stream_resync_required"
+      ]
+    },
+    {
+      "operation_id": "cx.events.resolve",
+      "http_alias": "POST /api/v1/events/resolve",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "cx.events.frontier",
+      "http_alias": "GET /api/v1/events/frontier",
+      "operation_specific": [
+        "frontier_unavailable"
+      ]
+    },
+    {
+      "operation_id": "cx.account.subscribe",
+      "http_alias": "GET /api/v1/account/subscribe",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked",
+        "stream_dropped",
+        "stream_resync_required"
+      ]
+    },
+    {
+      "operation_id": "cx.account.cursor_revoke",
+      "http_alias": "POST /api/v1/account/cursor/revoke",
+      "operation_specific": [
+        "cursor_revoked"
+      ]
+    },
+    {
+      "operation_id": "cx.snapshot.head",
+      "http_alias": "GET /api/v1/snapshot/head",
+      "operation_specific": [
+        "snapshot_unavailable",
+        "snapshot_authority_unverified"
+      ]
+    },
+    {
+      "operation_id": "cx.identity.resolve",
+      "http_alias": "POST /api/v1/identity/resolve",
+      "operation_specific": [
+        "unsupported_did_method",
+        "did_not_found",
+        "did_revoked"
+      ]
+    },
+    {
+      "operation_id": "cx.identity.get_document",
+      "http_alias": "GET /api/v1/identity/document",
+      "operation_specific": [
+        "unsupported_did_method",
+        "did_not_found",
+        "did_revoked"
+      ]
+    },
+    {
+      "operation_id": "cx.identity.get_log",
+      "http_alias": "GET /api/v1/identity/log",
+      "operation_specific": [
+        "unsupported_did_method",
+        "did_not_found"
+      ]
+    },
+    {
+      "operation_id": "cx.identity.submit_did_operation",
+      "http_alias": "POST /api/v1/identity/submit-did-operation",
+      "operation_specific": [
+        "unsupported_did_method",
+        "did_already_exists",
+        "failed_precondition",
+        "schema_violation"
+      ]
+    },
+    {
+      "operation_id": "cx.directory.search_realms",
+      "http_alias": "POST /api/v1/directory/search-realms",
+      "operation_specific": [
+        "cursor_invalid"
+      ]
+    },
+    {
+      "operation_id": "cx.directory.resolve_realm",
+      "http_alias": "POST /api/v1/directory/resolve-realm",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "cx.directory.resolve_handle",
+      "http_alias": "POST /api/v1/directory/resolve-handle",
+      "operation_specific": [
+        "not_found",
+        "handle_unverified"
+      ]
+    },
+    {
+      "operation_id": "cx.directory.announce",
+      "http_alias": "POST /api/v1/directory/announce",
+      "operation_specific": [
+        "directory_not_authorized",
+        "accept_policy_denied",
+        "signature_invalid",
+        "signature_stale",
+        "source_refs_unverifiable",
+        "governance_key_invalid",
+        "ttl_out_of_range",
+        "takedown_in_force",
+        "policy_revision_rollback"
+      ]
+    },
+    {
+      "operation_id": "cx.directory.withdraw",
+      "http_alias": "POST /api/v1/directory/withdraw",
+      "operation_specific": [
+        "directory_not_authorized",
+        "signature_invalid",
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "cx.directory.private_contact_discovery",
+      "http_alias": "POST /api/v1/directory/private-contact-discovery",
+      "operation_specific": [
+        "rate_limited",
+        "unsupported_feature"
+      ]
+    },
+    {
+      "operation_id": "cx.blob.upload",
+      "http_alias": "POST /api/v1/blob/upload",
+      "operation_specific": [
+        "too_large",
+        "blob_quota_exceeded",
+        "unsupported_media_policy",
+        "blob_digest_mismatch"
+      ]
+    },
+    {
+      "operation_id": "cx.blob.get",
+      "http_alias": "GET /api/v1/blob/get",
+      "operation_specific": [
+        "not_found",
+        "blob_expired",
+        "blob_presign_invalid"
+      ]
+    },
+    {
+      "operation_id": "cx.blob.head",
+      "http_alias": "HEAD /api/v1/blob/get",
+      "operation_specific": [
+        "not_found",
+        "blob_expired",
+        "blob_presign_invalid"
+      ]
+    },
+    {
+      "operation_id": "cx.push.register_device",
+      "http_alias": "POST /api/v1/push/register-device",
+      "operation_specific": [
+        "push_gateway_unreachable",
+        "push_token_invalid"
+      ]
+    },
+    {
+      "operation_id": "cx.push.unregister_device",
+      "http_alias": "POST /api/v1/push/unregister-device",
+      "operation_specific": [
+        "push_token_unknown"
+      ]
+    },
+    {
+      "operation_id": "cx.push.notify",
+      "http_alias": "POST /api/v1/push/notify",
+      "operation_specific": [
+        "push_gateway_unreachable",
+        "push_target_unknown",
+        "push_payload_too_large",
+        "profile_unsupported"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.upload",
+      "http_alias": "POST /api/v1/keys/upload",
+      "operation_specific": [
+        "device_unknown",
+        "key_replay",
+        "schema_violation"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.claim",
+      "http_alias": "POST /api/v1/keys/claim",
+      "operation_specific": [
+        "one_time_keys_exhausted",
+        "device_unknown"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.keypackages.claim",
+      "http_alias": "POST /api/v1/keys/keypackages/claim",
+      "operation_specific": [
+        "one_time_keys_exhausted",
+        "principal_unknown"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.keypackages.consume",
+      "http_alias": "POST /api/v1/keys/keypackages/consume",
+      "operation_specific": [
+        "keypackage_already_consumed",
+        "keypackage_unknown"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.keypackages.revoke",
+      "http_alias": "POST /api/v1/keys/keypackages/revoke",
+      "operation_specific": [
+        "keypackage_already_consumed",
+        "keypackage_unknown"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.backups.put",
+      "http_alias": "PUT /api/v1/keys/backups/{backup_id}",
+      "operation_specific": [
+        "legacy_secret_storage_wire_form",
+        "series_chain_broken",
+        "schema_violation"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.backups.get",
+      "http_alias": "GET /api/v1/keys/backups/{backup_id}",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.backups.list",
+      "http_alias": "GET /api/v1/keys/backups",
+      "operation_specific": [
+        "cursor_invalid"
+      ]
+    },
+    {
+      "operation_id": "cx.keys.backups.delete",
+      "http_alias": "DELETE /api/v1/keys/backups/{backup_id}",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "cx.authz.check",
+      "http_alias": "POST /api/v1/authz/check",
+      "operation_specific": [
+        "capability_denied",
+        "policy_unavailable"
+      ]
+    },
+    {
+      "operation_id": "cx.policy.check",
+      "http_alias": "POST /api/v1/policy/check",
+      "operation_specific": [
+        "policy_unavailable",
+        "policy_stale"
+      ]
+    },
+    {
+      "operation_id": "cx.ephemeral.send",
+      "http_alias": "POST /api/v1/ephemeral",
+      "operation_specific": [
+        "ephemeral_kind_not_permitted",
+        "ephemeral_ttl_out_of_range",
+        "ephemeral_channel_unavailable"
+      ]
+    },
+    {
+      "operation_id": "cx.account.issue_session_grant",
+      "http_alias": "POST /auth/account/session-grants",
+      "operation_specific": [
+        "did_proof_required",
+        "soft_logged_out",
+        "invalid_signature",
+        "audience_unknown"
+      ]
+    }
+  ],
+  "cross_links": {
+    "service_http_binding": "spec/v1/zh/sync/service-http-binding.md §2.3",
+    "error_code_registry": "spec/v1/artifacts/registry/error-code-registry.json",
+    "operation_registry": "spec/v1/artifacts/registry/operation-registry.json"
+  }
+}

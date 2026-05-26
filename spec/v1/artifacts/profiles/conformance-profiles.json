@@ -70,7 +70,8 @@
     "cx.profile.franking.sender_commitment.v1",
     "cx.profile.morph.schema_migration_transformations.v1",
     "cx.profile.webrtc_media.v1",
-    "cx.profile.stateless_cursor.v1"
+    "cx.profile.stateless_cursor.v1",
+    "cx.profile.circle_conformance.v1"
   ],
   "profile_tiers": {
     "v1_profile_catalog": [
@@ -98,7 +99,8 @@
       "cx.profile.franking.sender_commitment.v1",
       "cx.profile.morph.schema_migration_transformations.v1",
       "cx.profile.webrtc_media.v1",
-      "cx.profile.stateless_cursor.v1"
+      "cx.profile.stateless_cursor.v1",
+      "cx.profile.circle_conformance.v1"
     ],
     "v1_minimal_interop_floor": [
       "cx.profile.core_event_store.v1"
@@ -188,6 +190,7 @@
     "cx.profile.morph.schema_migration_transformations.v1": "server",
     "cx.profile.webrtc_media.v1": "gateway",
     "cx.profile.stateless_cursor.v1": "server",
+    "cx.profile.circle_conformance.v1": "interop",
     "cx.profile.personal_node.v1": "admin",
     "cx.profile.small_team.v1": "admin",
     "cx.profile.organization.v1": "admin",
@@ -2739,6 +2742,62 @@
           "cross_signing_reset_publish_window"
         ],
         "unsupported_optional": "fail closed or omit profile claim"
+      }
+    },
+    "cx.profile.circle_conformance.v1": {
+      "role": "interop",
+      "inherits": [],
+      "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm cryptographic sub-boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Flow / Message / Morph / Relation / Space objects.",
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.events.query"
+      ],
+      "required_event_kinds": [
+        "cx.circle.create",
+        "cx.circle.update",
+        "cx.circle.archive",
+        "cx.circle.restore",
+        "cx.circle.tombstone",
+        "cx.circle.member.state",
+        "cx.circle.anchor_commit"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.circle.v1",
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_capability_actions": [
+        "cx.circle.create",
+        "cx.circle.manage",
+        "cx.circle.member.add",
+        "cx.circle.member.manage",
+        "cx.circle.member.add.others",
+        "cx.circle.audit"
+      ],
+      "required_fixtures": [
+        "circle-scope-fixture.json",
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "scope_rebind_audit_paired"
+      ],
+      "feature_discovery": {
+        "required": [
+          "circle_submit_payload_shape",
+          "circle_canonical_effective_scope_shape",
+          "circle_scope_rebind_default_reject",
+          "circle_member_state_transition_table"
+        ],
+        "unsupported_optional": "implementations that cannot enforce canonical reducer-stamped effective_scope MUST NOT claim cx.profile.circle_conformance.v1; receivers MUST treat any unknown Circle event-kind as schema_violation"
+      },
+      "additional_requirements": {
+        "submit_payload_must": "Submit payload for cx.flow.create / cx.message.create / cx.morph.create / cx.relation.create / cx.space.create / cx.space.parent MUST carry only scope_circle_id (id:circle | null). Reducer MUST reject any submit payload that also carries effective_scope (reason=effective_scope_reducer_managed).",
+        "canonical_reducer_output_must": "Reducer MUST stamp tagged effective_scope on accepted Event envelope and materialized object cell. effective_scope is immutable per-event; later scope_circle_id rebinds MUST NOT re-interpret historical events.",
+        "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit cx.audit.accessed pairing.",
+        "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject cx.circle.member.state -> active when the target actor is not a Realm active member (reason=circle_member_must_be_realm_member).",
+        "scope_invariant_must": "Sync Service MUST NOT deliver events with effective_scope.kind=circle to actors not in that Circle's member frontier at the event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }
     }
   },

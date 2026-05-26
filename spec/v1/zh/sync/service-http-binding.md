@@ -169,6 +169,156 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 > **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 87 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中；之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
 
+> **错误码映射**: 每个 operation_id 的 operation-specific 错误码集合（在通用 `unauthenticated` / `auth_expired` / `schema_violation` / `rate_limited` / `internal_error` / `service_unavailable` 等通用失败面之外）由 [`artifacts/registry/operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 给出。错误码语义见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。
+
+#### 2.3.1 Wire-level JSON 示例
+
+以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-schema.json expect=valid`(canonical `cx.schema.event.v1` artifact),与 [`event-and-patch.md` §2.3](../models/event-and-patch.md) 的 canonical Event Envelope shape 一致。每条 envelope 均为 reducer-input event,因此携带顶层 `preconditions[]` / `effects[]` / `anchor_ref` 三件套(详见 [`event-and-patch.md` §2.2](../models/event-and-patch.md))。
+
+**示例 A — `POST /api/v1/events`(单事件提交,`cx.message.create`)**:
+
+```json schema=schemas/event-schema.json expect=valid
+{
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "actor_id": "did:web:alice.example",
+  "actor_seq": 4,
+  "kind": "cx.message.create",
+  "created_at": "2026-04-26T00:00:00Z",
+  "hlc": "01970e589d21-0004-a13f9c2e",
+  "prev_refs": ["cx:event:019640ed-0000-7000-8000-000000000000"],
+  "refs": [
+    { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+  ],
+  "preconditions": [
+    {
+      "cell": "cx:cell:cx.component.flow.discussion.timeline.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "predicate": { "op": "head_eq", "value": { "head_event_id": "cx:event:019640ed-0000-7000-8000-000000000000" } }
+    }
+  ],
+  "effects": [
+    {
+      "cell": "cx:cell:cx.component.flow.discussion.timeline.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "append", "value": { "message_id": "cx:message:019640ed-8000-7000-8000-000000000000" } }
+    }
+  ],
+  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "payload": {
+    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
+    "track": "discussion",
+    "content": { "kind": "cx.content.text", "body": "Sample message" }
+  },
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example#device-1",
+      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "created_at": "2026-04-26T00:00:00Z",
+      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+    }
+  ]
+}
+```
+
+**示例 B — `GET /api/v1/events?realms=...&after=...&limit=2`(分页响应,`events[]` 中的一条 `cx.message.create`)**:
+
+```json schema=schemas/event-schema.json expect=valid
+{
+  "event_id": "cx:event:019640ed-9000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "actor_id": "did:web:bob.example",
+  "actor_seq": 7,
+  "kind": "cx.message.create",
+  "created_at": "2026-04-26T00:01:00Z",
+  "hlc": "01970e589d34-0001-c00ff00f",
+  "prev_refs": ["cx:event:019640ed-8500-7000-8000-000000000000"],
+  "refs": [
+    { "id": "cx:grant:0196410c-1000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+  ],
+  "preconditions": [
+    {
+      "cell": "cx:cell:cx.component.flow.discussion.timeline.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "predicate": { "op": "head_eq", "value": { "head_event_id": "cx:event:019640ed-8500-7000-8000-000000000000" } }
+    }
+  ],
+  "effects": [
+    {
+      "cell": "cx:cell:cx.component.flow.discussion.timeline.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "append", "value": { "message_id": "cx:message:019640ed-9000-7000-8000-000000000000" } }
+    }
+  ],
+  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "payload": {
+    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
+    "track": "discussion",
+    "content": { "kind": "cx.content.text", "body": "Reply" }
+  },
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:bob.example#device-1",
+      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "created_at": "2026-04-26T00:01:00Z",
+      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+    }
+  ]
+}
+```
+
+外层分页响应形如 `{events: [<示例 A>, <示例 B>], next_cursor: "<opaque>", has_more: true}`(`events[]` 顺序见 §3.3,`next_cursor` 永远朝更新方向)。
+
+**示例 C — `GET /api/v1/events/subscribe`(NDJSON stream frame 的 `cx.reaction.add` payload)**:
+
+每一帧为一行 JSON;`event` kind frame 携带完整 envelope:
+
+```json schema=schemas/event-schema.json expect=valid
+{
+  "event_id": "cx:event:019640ee-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "actor_id": "did:web:carol.example",
+  "actor_seq": 12,
+  "kind": "cx.reaction.add",
+  "created_at": "2026-04-26T00:02:00Z",
+  "hlc": "01970e589d40-0002-c00fbeef",
+  "prev_refs": ["cx:event:019640ed-9000-7000-8000-000000000000"],
+  "refs": [
+    { "id": "cx:grant:0196410c-2000-7000-8000-000000000000", "role": "authorized_by", "critical": true },
+    { "id": "cx:event:019640ed-8000-7000-8000-000000000000", "role": "parent_event", "critical": false }
+  ],
+  "preconditions": [
+    {
+      "cell": "cx:cell:cx.component.message.reactions.v1:cx:message:019640ed-8000-7000-8000-000000000000",
+      "predicate": { "op": "satisfies", "value": { "actor_id": "did:web:carol.example", "key": "+1", "absent": true } }
+    }
+  ],
+  "effects": [
+    {
+      "cell": "cx:cell:cx.component.message.reactions.v1:cx:message:019640ed-8000-7000-8000-000000000000",
+      "op": { "kind": "add", "value": { "actor_id": "did:web:carol.example", "key": "+1" } }
+    }
+  ],
+  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "payload": {
+    "target_ref": "cx:message:019640ed-8000-7000-8000-000000000000",
+    "key": "+1"
+  },
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:carol.example#device-2",
+      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "created_at": "2026-04-26T00:02:00Z",
+      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+    }
+  ]
+}
+```
+
+订阅外层帧形如 `{"kind":"event","realm_id":"cx:realm:...","cursor":"<opaque>","payload":<上面 envelope>}`,详见 §2.3 `cx.events.subscribe` 行与 [`client-sync.md`](./client-sync.md) §12。
+
 跨域 actor 验证响应（通过 `/api/v1/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy；不得把对端"验证通过"当成最终授权依据。
 
 ### 2.4 字段级 Schema 索引

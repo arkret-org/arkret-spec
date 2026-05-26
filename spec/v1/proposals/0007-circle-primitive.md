@@ -7,7 +7,7 @@ updated: 2026-05-25
 status: accepted
 created: 2026-05-25
 authors:
-  - did:web:contrix.example
+  - chris@acroidea.com
 merged_into: spec/v1/zh/models/circle.md
 ---
 
