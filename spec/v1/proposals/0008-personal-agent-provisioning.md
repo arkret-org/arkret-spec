@@ -307,6 +307,7 @@ profile: cx.profile.personal_agent_provisioning.v1
 - 写入的 `agent_key_scope` MUST 不宽于 controller 已批准的初始 capability 与 Realm policy。
 - `approval_evidence` SHOULD 引用 pairing request 或 controller approval event。
 - v1 `runtime_attestation.kind` 的最低 baseline 是 `self_asserted`。Accepted profile SHOULD 把批准后的 runtime attestation 摘要写入 `cx.agent.key.authorize` payload 或可验证 refs,使 grant validator 能执行 attestation constraint。实现遇到无法解析的 attestation kind MUST fail closed。后续 TEE / SLSA / hosted workload attestation 可以作为更高级 profile 进入同一 slot,不需要再改 agent key authorization 的主线 wire。
+- **Sidecar exposure 披露(与 CXP-0009 §3 invariant 10 联动)**:在写入 `cx.agent.key.authorize` 之前的 controller approval UI 上,如果该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `cx.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 向 controller 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(以及涉及的 Realm 列表与 sidecar 数量)。该披露是 pairing approval 的必备信息项,不能折叠进通用 capability 列表。Controller 必须能在不批准 pairing 的前提下取消该流程。
 
 ### 4.6 Agent runtime 认证
 
