@@ -3,7 +3,7 @@ title: Operations And Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-26
 see_also:
   - sync/service-surface.md
   - sync/client-sync.md
@@ -983,7 +983,7 @@ ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。
 
 字段可见性分级：
 
-- 可路由元数据：`realm_id`、`target_ref`、`type`、`causal`。
+- Event Envelope 顶层可路由 / 因果元数据：`event_id`、`realm_id`、`kind`、`prev_refs`、`refs[]`、`actor_id`、`actor_seq`、`hlc`、`anchor_ref`。历史草案中的顶层 `type` / `target_ref` 已被 `event-schema.json` 拒绝；操作目标等路由 hint MUST 放在 payload 的领域字段（例如 `payload.target_ref`）或 `unsigned` 中，不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
 - 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，接收它们的受托 search / projection 服务必须列入 `plaintext_visible_services`。
 - 不透明加密负载：message body、附件内容等。
 

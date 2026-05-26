@@ -3,7 +3,7 @@ title: Circle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-26
 ---
 
 ## 0. 规范语言
@@ -43,7 +43,7 @@ Schema id: `cx.schema.circle.v1`
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `metadata_encryption_floor` | no | `enum(body_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm floor。 | Circle 内对象的 metadata 加密下限；只能收紧，不得放宽父 Realm floor。 |
 | `encryption_profile` | yes | `const(mls_rfc9420)` | create-locked。v1 仅允许 `mls_rfc9420`;未来 MLS 版本 / PQ-MLS 必须显式扩展 schema。Circle 必须拥有独立 MLS group;不得复用 Realm-default MLS group 或从其导出密钥。 | 加密形态。 |
-| `mls_group_ref` | derived | `id:mls` | 由 `cx.circle.create` reducer 派生,scope 绑定 `(realm_id, circle_id)`;actor-supplied create payload MUST NOT 携带。 | 独立 MLS group 引用。 |
+| `mls_group_ref` | derived | `ref:mls` | 由 `cx.circle.create` reducer 派生,scope 绑定 `(realm_id, circle_id)`;actor-supplied create payload MUST NOT 携带。字段使用 `_ref` 是因为 `cx:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` | — | 创建者。 |

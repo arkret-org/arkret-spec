@@ -3,7 +3,7 @@ title: Media and Blob
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-26
 ---
 
 ## 0. 规范语言
@@ -46,6 +46,8 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `updated_at` | `datetime` | optional | 最近更新时间。 |
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
 | `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |
+
+命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的 `size` 固定表示字节数，沿用文件 / 媒体 descriptor 的短名；新增的限额、统计或非媒体 descriptor 字节数字段 SHOULD 使用 `_bytes` 后缀（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。
 
 上传规则：
 

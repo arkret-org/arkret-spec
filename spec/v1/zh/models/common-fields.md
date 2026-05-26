@@ -3,7 +3,7 @@ title: Common Fields
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-26
 ---
 
 ## 0. 规范语言
@@ -29,6 +29,7 @@ updated: 2026-05-25
 | `timestamp` | RFC 3339 UTC string，必须以 `Z` 结尾。 |
 | `did` | DID URI string。 |
 | `id:<kind>` | `cx:<kind>:<uuid>` typed ID，或该 kind 在 `id-kind-registry.json` 声明的特殊 wire form。 |
+| `ref:<kind>` | 指向 `<kind>` 的 typed reference material；wire form 同样由 `id-kind-registry.json` 或对应 profile 声明，但字段语义是因果 / proof / content-addressed / profile-scoped reference，而不是普通对象主键。 |
 | `hash` | `sha256:<lowercase_hex_digest>`。 |
 | `cursor` | `cx:cursor:<base64url>` opaque string。 |
 | `patch` | `cx.patch.v1` 形态的 JSON patch 片段，具体路径与 op 规则见 [`event-and-patch.md`](./event-and-patch.md)。 |
@@ -82,7 +83,8 @@ expected_<role>_<kind>_id
 
 规则：
 
-- canonical object 自身 primary identity 字段 MUST 使用 `id`。
+- canonical materialized object 自身 primary identity 字段 MUST 使用 `id`，不得写成 `flow_id` / `message_id` / `actor_profile_id` 等带对象名前缀的字段。Actor / user-facing identity 在 v1 中由 Actor Profile 表达：Profile 对象自身仍使用 `id`，其授权主体 DID 另用 `principal_id`。
+- Event Envelope、Receipt、Attestation / Evidence、Key Backup、Applet / Agent 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`evidence_id`、`backup_id`、`applet_id`、`agent_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Flow / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`watcher_actor_id`。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
@@ -95,9 +97,10 @@ expected_<role>_<kind>_id
 - Blob 或 content-addressed 引用：`blob_ref`、`avatar_blob_ref`、`thumbnail_ref`。
 - Schema / Profile / Feature 引用：`schema_refs`、`profile_ref`、`feature_ref`。
 - Proof / evidence / transcript 引用：`evidence_ref`、`proof_ref`、`service_acceptance_ref`、`policy_event_ref`。
+- Profile-scoped typed reference 或 profile-defined 非 UUID form：例如 `mls_group_ref` 使用 `cx:mls:<profile>:<profile_id>`，由 E2EE profile 校验。它故意不同于 MLS 标准 payload 内的原始 `mls_group_id`。
 - Polymorphic reference：字段允许多个 protocol kind、DID、content-addressed value 或 hash 形态时使用 `_ref`，例如 `target_ref`、`object_ref`、Relation 的 `from_ref` / `to_ref`。
 
-新增字段若只允许一个具体 protocol kind，MUST 使用 `_id` 而不是 `_ref`。
+新增字段若只允许一个具体 canonical materialized object kind，且不是上述因果、proof、schema/profile、content-addressed 或 profile-scoped reference，MUST 使用 `_id` 而不是 `_ref`。
 
 #### 2.1.3 `_did`
 
@@ -128,6 +131,10 @@ expected_<role>_<kind>_id
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
 对象种类由 `id` 的 typed prefix（`cx:flow:` / `cx:realm:` / ...）唯一决定；扩展字段统一走 `fields`，由对象 `schema_refs` 约束。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
+
+### 3.0.1 Size 字段命名
+
+新增表示字节数的独立约束、限额或统计字段 SHOULD 使用 `_bytes` 后缀，例如 `max_total_blob_bytes`、`canonical_payload_bytes`、`size_bytes`。已有 Blob / Media metadata 与 Content Block descriptor 中的 `size` 是文件/媒体生态的固定短名，语义恒为字节数；这些字段不得再新增同义的 `size_bytes` 别名。Snapshot chunk descriptor 使用 `size_bytes`，因为它是 manifest 内的 chunk 统计字段，不是通用媒体 descriptor。
 
 ### 3.1 字段 × 对象适用性矩阵（normative reference）
 
@@ -336,7 +343,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 ## 6. 通用对象 ID 约定
 
-对象 ID SHOULD 使用带类型前缀的稳定字符串：
+Protocol typed identifier / reference 的 wire value SHOULD 使用带类型前缀的稳定字符串：
 
 ```text
 cx:realm:<uuid>
@@ -356,7 +363,7 @@ cx:blob:<hash>
 cx:receipt:<uuid>
 ```
 
-UUID 部分 SHOULD 使用 UUIDv7（time-ordered），便于审计与排序。完整 ID kind 注册表见 `artifacts/registry/id-kind-registry.json`。
+UUID 部分 SHOULD 使用 UUIDv7（time-ordered），便于审计与排序；content-addressed form 使用对应 digest。上表只说明 wire value 形态，不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。完整 ID kind 注册表见 `artifacts/registry/id-kind-registry.json`。
 
 ### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 
