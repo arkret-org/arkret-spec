@@ -156,13 +156,22 @@ profile: cx.profile.personal_agent_provisioning.v1
     }
   ],
   "approval_policy": {
-    "high_risk_actions": "require_human_approval",
-    "act_on_behalf": "disabled_by_default"
+    "default_for_unlisted_actions": "deny",
+    "act_on_behalf": "disabled_by_default",
+    "require_controller_approval_for": ["cx.flow.create", "cx.capability.delegate"]
   }
 }
 ```
 
-`requested_capabilities` 示例使用 canonical grant shape。产品 UI / SDK MAY 接受 `read_only`、`write_summary` 等预设名,但服务端写入的 capability grant MUST 展开为 `actions[]`、resource selectors、registered constraints 与 TTL;预设名本身不进入 canonical wire。
+`approval_policy` 是 request-side DSL,不进入 canonical grant wire。服务端 MUST 把它展开为 §4.9 vocabulary 中的 registered constraints:
+
+- `default_for_unlisted_actions: "deny"` → 未列入 `requested_capabilities[].actions[]` 的 action 不签发 grant(不是 wildcard `allow`)。
+- `act_on_behalf: "disabled_by_default"` → 不签发任何 `executed_by = agent_principal_id` 形态的 grant,除非 caller 在 `requested_capabilities[]` 中显式声明 `act_on_behalf` mode 并满足 §4.10 的 fresh approval 要求。
+- `require_controller_approval_for: [actions...]` → 对列出的每个 action,在对应 `requested_capabilities[].constraints[]` 中加入 `claim_based.approval`(`approval_required=true`, `approval_actor_refs=[<controller_did>]`)与 `claim_based.accountability`(`controller_approval_required=true`)。
+
+`approval_policy` 不引入"high risk" 这类未注册分类。如果实现需要按 risk tier 自动应用 approval,该 tier 表必须由 deployment profile 显式定义并文档化,不得依赖隐含的服务端 hardcoding。
+
+`requested_capabilities` 示例使用 canonical grant shape。产品 UI / SDK MAY 接受 §4.7 表中的预设名(`read_only`、`draft_only`、`reply_as_agent`、`act_on_behalf`、`organizer`),但服务端写入的 capability grant MUST 展开为 `actions[]`、resource selectors、registered constraints 与 TTL;预设名本身不进入 canonical wire,且实现不得引入未注册的预设名(例如 `write_summary` 等任意字符串)而不在 §4.7 表中登记。
 
 响应:
 
@@ -173,7 +182,7 @@ profile: cx.profile.personal_agent_provisioning.v1
   "accountability_grant_event_id": "cx:event:01970000-0000-7000-8000-000000000011",
   "initial_capability_grant_ids": ["cx:grant:01970000-0000-7000-8000-000000000012"],
   "pairing": {
-    "pairing_uri": "contrix://pair-agent?request=01970000-0000-7000-8000-000000000020",
+    "pairing_request_id": "01970000-0000-7000-8000-000000000020",
     "pairing_code": "R7K9-2M4P",
     "expires_at": "2026-05-26T12:00:00Z"
   },
@@ -181,7 +190,32 @@ profile: cx.profile.personal_agent_provisioning.v1
 }
 ```
 
-响应 MUST NOT 包含长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token。
+响应 MUST NOT 包含长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token。也 MUST NOT 引入 custom URI scheme(例如 `contrix://`)承载 pairing / management / approval 入口。客户端跳转链接由客户端自己用 deployment 已知的 `contrix_base_url` 拼接 HTTPS URL,例如 `https://<contrix_base_url>/auth/account/agent-pair?request=<pairing_request_id>`;移动端依赖 OS Universal Links / App Links 把 HTTPS URL 路由到原生 app。这样 spec 不背 URI scheme 注册债,联邦多实例下 host 也不会丢失。
+
+#### 4.3.1 Provisioning `status` 枚举
+
+`status` 字段是 provisioning operation 的 lifecycle 投影,枚举闭合为:
+
+| 值 | 含义 | 退出条件 |
+| --- | --- | --- |
+| `pending_runtime_key` | agent principal 已创建,初始 grant 已签发但 `effective_after_first_authorized_key=true`(见 §4.3.2),等待 pairing 完成 | pairing 成功 → `active`;`pairing.expires_at` 到达 → `pairing_expired` |
+| `active` | agent 已有 accepted `cx.agent.key.authorize`,grants 已生效,runtime 可签发 `agent_key_proof` | controller pause → `paused`;controller revoke 或 controller deactivate → `deactivated` |
+| `paused` | agent identity 与历史保留,但 Auth Server 拒绝新 session grant(见 §4.11) | controller resume + 重新校验通过 → `active`;controller revoke → `deactivated` |
+| `pairing_expired` | pairing 窗口过期且未完成 | controller 重新发起 pairing → 新 `pending_runtime_key`;controller 显式 revoke → `deactivated` |
+| `deactivated` | agent terminal state,所有 active sessions / keys / grants / runtime bindings 已失效 | terminal,不再转换 |
+
+该枚举与 [`zh/models/actor.md` §3.2](spec/v1/zh/models/actor.md) 的 actor profile `status` 字段对齐,但 `pending_runtime_key` 与 `pairing_expired` 是 provisioning-specific 投影,不直接出现在 actor profile 上(actor profile 在这些过渡状态下表现为 `active` 或 `suspended`,具体由 account lifecycle 文档定义)。
+
+#### 4.3.2 Pairing 失败时的 grant 清理
+
+`initial_capability_grant_ids` 在 `pending_runtime_key` 阶段已写入 durable storage,但此时 agent 无可用 key,grant 无法被执行。为避免遗留无法激活的孤儿 grant,实现 MUST 遵守:
+
+- `pending_runtime_key` 阶段写入的 grant payload SHOULD 携带 `effective_after_first_authorized_key=true` 标志(profile 字段,reducer 接受为 inactive-but-durable 状态)。Auth Server / capability evaluator 在该 flag 为 true 且对应 agent principal 还没有 accepted `cx.agent.key.authorize` 时 MUST fail closed。
+- pairing 完成(§4.5 写入 `cx.agent.key.authorize`)后,reducer MUST 把同 agent principal 名下所有 `effective_after_first_authorized_key=true` grant 的该 flag 清除,转入正常 effective window 评估。
+- `pairing.expires_at` 到达且未完成 pairing 时,服务 MUST 自动写入 `cx.capability.revoke` 撤销 `pending_runtime_key` 阶段签发的 grant,并把 agent status 转入 `pairing_expired`。
+- controller 也 MAY 在 `pending_runtime_key` 阶段显式 revoke,效果等价于上一条。
+
+实现不得让 pending grant 永远停留在 durable storage 而无可执行路径。
 
 ### 4.4 用户与 runtime 分别拿到什么
 
@@ -192,8 +226,7 @@ Provisioning 完成后,controller 侧应看到管理信息:
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "display_name": "Summary Assistant",
   "status": "pending_runtime_key",
-  "accountable_to": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
-  "management_uri": "contrix://agents/did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
+  "accountable_to": ["did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice"],
   "grants": [
     {
       "grant_id": "cx:grant:01970000-0000-7000-8000-000000000012",
@@ -359,10 +392,12 @@ Agent 的 E2EE access MUST 作为独立 MLS member 表达,不得把 agent 伪装
   "error": {
     "code": "claim_required",
     "reason_code": "human_approval_required",
-    "approval_request_uri": "contrix://approval/01970000-0000-7000-8000-000000000099"
+    "approval_request_id": "01970000-0000-7000-8000-000000000099"
   }
 }
 ```
+
+`approval_request_id` 是 opaque ID;agent runtime 不要解释成 URL,也不要尝试打开 UI。Controller 客户端在自己的 session 中查询该 id 对应的 approval request 详情(端点由 deployment 文档定义,典型路径 `GET https://<contrix_base_url>/auth/account/approvals/<approval_request_id>`),并在人类 UI 中带外批准。本 profile 不引入 custom URI scheme 来承载 approval 跳转——理由同 §4.3 末尾。
 
 controller 通过人类 UI 在带外批准。批准会产生新的 capability / delegation / approval event,agent retry 时引用该 event。
 
@@ -557,7 +592,16 @@ Revocation MUST 使以下材料失效:
 - push / webhook / runtime endpoint bindings,如果存在;
 - pending action requests,除非 controller 显式保留。
 
-Pause SHOULD 保留 agent identity 与历史记录,但拒绝新的 session grant 和写入。
+Pause 的精确语义:
+
+- 保留 agent identity、历史记录、accountability_grant、agent_key_authorize 与 capability grants 的 durable state。
+- Auth Server MUST 拒绝**新**的 agent session grant 请求(返回 §4.6 同款 structured error,reason_code 建议为 `agent_paused`)。
+- 已签发但未过期的 session token:Auth Server SHOULD 在 revocation freshness window(默认与 session 最大 TTL 对齐,即 ≤ 15 分钟)内令其 fail closed。实现路径有两种,profile MUST 在二者中选其一并声明:
+  - 同步 revocation:把现有 session token id 推入 revocation list,资源服务器在校验时拒绝(对 high-risk action MUST fail closed when revocation state stale)。
+  - 自然过期:不主动撤销现有 token,但 freshness window 内 high-risk action MUST 重新查询 agent status 并 fail closed。
+- 与 pause 并行的 pending action requests SHOULD 标记为 `awaiting_resume`,不自动失败也不继续执行,直到 resume 或 revoke。
+
+Resume 前 MUST 重新校验 controller、agent、key、capability、Realm policy 与 accountability_grant freshness;任一不通过则拒绝 resume,agent 保持 `paused`。
 
 Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key 的 `agent_key_scope` 等于或窄于旧 key。
 
@@ -579,10 +623,10 @@ Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key
 - `zh/identity/account-lifecycle.md`: 定义 agent principal 的 pause / deactivate 行为。
 - `zh/authz/capabilities.md`: 增加 agent provisioning / management actions,并明确 personal agent 复用现有 `allowed_tracks`、`allowed_flow_refs`、`allowed_data_classes`、`allowed_endpoints`、`rate_limit` 与 approval/accountability constraints。
 - `zh/models/private-objects.md`、`zh/sync/client-sync.md` 与 `zh/sync/operations-sync.md`: 澄清 draft-only 使用 encrypted account data / actor-private stream,不得进入 shared Realm history。
-- `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段、canonicalization、Anchor 输入与校验规则。
+- `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段、canonicalization、Anchor 输入与校验规则。同时 SHOULD 在 Event Envelope 上 cache 一个 `actor_kind` projection(由 reducer 在写入时从 Actor Profile 解析),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断 event 是 agent 行为或 controller 行为。该 projection 是 reducer-stamped immutable 字段,不进入 actor-supplied submit payload。
 - `zh/extensions/applet-integration.md`: 澄清管理员管理的 Ghost AI agents 是 Applet-managed external/integration actors,而本 CXP 覆盖 native personal agents。
 - `zh/extensions/agent-protocol-interop.md`: 确保 agent runtime session 不暗示支持外部 A2A / ACP session。
-- `zh/sync/service-surface.md` 与 `service-http-binding.md`: 增加 profile operations。
+- `zh/sync/service-surface.md` 与 `service-http-binding.md`: 增加 profile operations。本 CXP 不引入 custom URI scheme;客户端 deep-link 由 OS Universal Links / App Links 拦截标准 HTTPS URL(host 来自 deployment 已知的 `contrix_base_url`)。
 - `zh/conformance/conformance-profiles.md`: 增加三个新 profile 与测试期望。
 
 ### 5.2 Accepted 后可能需要的 artifact 改动
@@ -592,7 +636,7 @@ Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key
 - `account-data-type-registry.json`: 增加 `cx.agent.draft.v1`,key pattern 建议为 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`,并声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。
 - `capability-action-registry.json`: 增加 `cx.agent.provision` 作为 aggregate admin action,其 `target_event_kinds` MUST 显式列出 fan-out 子事件,例如 `cx.profile.create`、`cx.identity.accountability_grant`、`cx.agent.key.authorize`、`cx.capability.grant`,并标注 migration group。Agent management actions 同样必须声明 target event kinds,不得从 action 字符串推断。
 - `event-payload.schema.json`: 若现有 `agent_key_authorize_payload` 尚未包含 runtime attestation,增加 `runtime_attestation` 或 attestation digest/ref 字段;v1 enum 至少包含 `self_asserted`,未知 kind fail closed。
-- `event-envelope.schema.json` / `event-payload.schema.json`: 为 accepted 新 event 增加 payload defs;为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段,并同步 canonicalization / Anchor vectors。
+- `event-envelope.schema.json` / `event-payload.schema.json`: 为 accepted 新 event 增加 payload defs;为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段,并同步 canonicalization / Anchor vectors。同时增加 reducer-stamped `actor_kind` projection 字段(由 reducer 从 Actor Profile 解析,immutable,不接受 actor-supplied 输入),供审计与离线读取使用。
 - `conformance-profiles.json`: 注册 `cx.profile.personal_agent_provisioning.v1`、`cx.profile.agent_auth.v1`、`cx.profile.agent_delegation_policy.v1`。
 - OpenAPI: 增加 agent provisioning、pairing typed schemas,并扩展现有 `SessionGrantRequest` / `SessionGrantResponse` 以支持 `proof.proof_kind="agent_key_proof"`、独立 proof schema branch、独立 validator 与 `scope_details` profile overlay。
 

@@ -12,6 +12,8 @@ depends_on: [CXP-0007, CXP-0008]
 discussion: https://github.com/contrix-dev/contrix-spec/discussions/cxp-0009
 ---
 
+> **Coupled-accept dependency**: 本提案直接引用 CXP-0008 §4.5/§4.6/§4.10 的 wire 形态(`cx.agent.key.authorize` payload、`agent_key_proof` proof_kind、Event Envelope 的 signed `executed_by`/`authorization_ref` 字段、`cx.agent.draft.v1` 命名空间)。CXP-0008 在 review 阶段对这些字段的任何修改 MUST 在本提案同步,二者 SHOULD lockstep 推进 `draft → review → accepted`。
+
 ## 1. 概要
 
 本提案定义 `cx.profile.agent_sidecar_thread.v1`:controller 可以从某个 Flow、Message、track 或 cursor 位置开启一个只对自己和自己的 native AI agent 可见的私有上下文线程。
@@ -148,11 +150,13 @@ Sidecar private Flow SHOULD lazy-create。实现不应在用户打开目标 Flow
 
 Candidate participant models:
 
-| Model | Private Flow 粒度 | 默认成员 | 适用场景 |
-| --- | --- | --- | --- |
-| `context_shared` | `(controller, context_ref)` | controller + 一个或多个被显式选择的 agents | 默认模式;一个 Flow 上一个 "My AI" 私有上下文,多个 agents 可协作。 |
-| `agent_isolated` | `(controller, agent, context_ref)` | controller + 一个 agent | 强隔离模式;不同 agents 不共享 sidecar 历史。 |
-| `controller_agent_global` | `(controller, agent)` | controller + 一个 agent | 全局 assistant inbox;可引用多个 contexts,但不适合作为 Flow-specific 默认值。 |
+| Model | Private Flow 粒度 | 默认成员 | 适用场景 | v1 状态 |
+| --- | --- | --- | --- | --- |
+| `context_shared` | `(controller, context_ref)` | controller + 一个或多个被显式选择的 agents | 默认模式;一个 Flow 上一个 "My AI" 私有上下文,多个 agents 可协作。 | **default**,本 CXP 范围内 |
+| `agent_isolated` | `(controller, agent, context_ref)` | controller + 一个 agent | 强隔离模式;不同 agents 不共享 sidecar 历史。 | 本 CXP 范围内 |
+| `controller_agent_global` | `(controller, agent)` | controller + 一个 agent | 全局 assistant inbox;可引用多个 contexts。 | **out of scope for v1**(与 §3.4 / §4.4 "sidecar Realm = context Realm" 不变量冲突,留给独立 future profile / CXP) |
+
+`controller_agent_global` 在 v1 不进入 `cx.agent.sidecar_thread.ensure` 的合法 `participant_model` 枚举。请求若声明该值,reducer / operation MUST 返回 `failed_precondition`(`reason="participant_model_unsupported_in_v1"`),不得 fallback 到其它模式。理由是该模式需要一个不依赖 `context_ref.realm_id` 的 sidecar home Realm 选择,会打破本 CXP 单一 Realm 归属不变量;若未来 v2 引入跨 Realm controller home Realm,该模式应由独立 CXP 处理。
 
 向既有 sidecar 添加 agent 是显式 participant expansion。默认只授予新 agent 加入后的未来 epoch;历史内容是否回填必须由 controller 显式批准,且受 target content transfer 与 E2EE history policy 约束。
 
@@ -185,11 +189,46 @@ Sidecar profile MUST NOT 创建隐藏 Realm member 来绕过 Circle membership �
 - 该 Circle 的成员是 controller + 该 participant set 中的 agents。
 - 同一个 Flow / Message 上的多个 agents 可以共用一个 private Flow 与这个 Circle,因为这表示 controller 明确希望它们在同一上下文协作。
 
+#### 4.5.1 `participant_set_id` 派生(normative)
+
+`participant_set_id` MUST 是参与者 DID 集合的确定性 hash,具体规则:
+
+1. 收集 `{controller_principal_id} ∪ {agent_principal_ids[]}` 的所有 DID 字符串。
+2. 按 NFC normalize 后逐项按 UTF-8 字节序升序排序,排序键 = DID 字符串本身。
+3. 以单 0x0A 字节(`\n`)作为分隔符拼接,得到 canonical byte sequence。
+4. `participant_set_id = base32(sha256(canonical_bytes))[:24].lower()`(去除 padding,小写)。
+
+理由:hash 派生使 set 是 immutable 标识——controller 给 set 加 / 移 agent 永远产生新 `participant_set_id`,因此对应新 Circle,旧 Circle 与旧 MLS group 保持不变。这与"set 是 named mutable entity"的实现路径相反,后者会让旧 Circle 在 set 变化时被迫频繁 epoch rotation,且与 immutable canonical bytes 模型不兼容。
+
+#### 4.5.2 Circle 与 sidecar private Flow 的关系(normative)
+
+二者使用不同的 reuse key,关系为一对多:
+
+| 实体 | Reuse key | 创建 / 复用粒度 |
+| --- | --- | --- |
+| Sidecar user-agent Circle | `(realm_id, controller_principal_id, participant_set_id)` | 同一 (controller, participant_set) 在同一 Realm 中复用一个 Circle |
+| Sidecar private Flow | `(controller_principal_id, normalized_context_ref)` | 同一 (controller, context) 复用一个 Flow,Flow `scope_circle_id` 指向上面那个 Circle |
+
+例:Alice 把 agents `{S, R}` 加入一个 participant set,她在 Realm 内 Flow F1 上的 message M1 与 Flow F2 上的 message M2 分别打开 sidecar。结果:
+
+- 一个 Circle `C_{A,{S,R}}`(由 `(realm, Alice, hash({A,S,R}))` 派生)。
+- 两个 sidecar private Flow `F'_{A,F1,M1}` 与 `F'_{A,F2,M2}`,二者 `scope_circle_id = C_{A,{S,R}}`。
+- 两条 sidecar private Relation `agent_sidecar_of`,分别从 `F'_{A,F1,M1}` 指向 M1、从 `F'_{A,F2,M2}` 指向 M2,`scope_circle_id` 同样指向 `C_{A,{S,R}}`。
+
 可选强化:
 
-- 对高敏感上下文,policy MAY 强制 `per_sidecar` Circle,禁止跨 context Circle 复用。
+- 对高敏感上下文,policy MAY 强制 `per_sidecar` Circle,禁止跨 context Circle 复用——此时每个 sidecar private Flow 拥有独立 Circle。
 - 对互不信任的 agents,controller MAY 创建多个 participant sets,每个 set 使用不同 Circle。
-- 新 agent 加入一个已复用的 Circle 后,它会进入该 Circle 的未来 epoch。是否给它历史 key / sidecar backfill 必须由 controller 与 Realm policy 显式决定。
+- 新 agent 加入一个 participant set 会产生新 `participant_set_id`,从而产生新 Circle;它不会"merge into"旧 Circle。
+
+#### 4.5.3 历史 backfill 的密码学边界(normative)
+
+MLS 协议本身不允许向新成员转移过去 epoch 的 group secrets。把一个新 agent 加入既有 sidecar Circle 时:
+
+- 新 agent **MUST NOT** 获得 MLS 历史 epoch 密钥;它只能解密 join 之后的 future epoch payload。
+- 若 controller 显式同意把 sidecar history backfill 给该 agent,实现 MUST 通过 application-level message resend 完成(controller 设备解密历史 plaintext,在新 epoch 下重新加密发送),不得通过共享 MLS exporter secret、past commit secret 或等价手段。
+- 该 backfill 是显式 plaintext 披露动作,与 §4.10 "目标内容转入" 接受同等的 capability、approval 与 audit 约束。
+- 实现 MUST NOT 把 "backfill 给新成员" 实现为静默后台 sync,该动作 SHOULD 在 UI 上显式向 controller 呈现并要求确认。
 
 ### 4.6 组合 durable objects
 
@@ -210,7 +249,7 @@ Accepted profile SHOULD 编排以下 durable material:
     "circle_id": "cx:circle:01970000-0000-7000-8000-000000000080",
     "title": "Agent sidecar",
     "display": {
-      "short_name": "AI Sidecar",
+      "short_name": "AI-A4F2N1QZ",
       "color_token": "teal",
       "symbol": {"glyph": "lock"}
     },
@@ -222,6 +261,22 @@ Accepted profile SHOULD 编排以下 durable material:
   }
 }
 ```
+
+`display.short_name` MUST 由 sidecar profile 派生,不接受 caller 提供任意字符串。派生规则:
+
+```text
+short_name = "AI-" + participant_set_id[:8].upper()
+```
+
+(`participant_set_id` 已是 §4.5.1 派生的小写 base32 字符串;取前 8 字符并大写得到 8-char 后缀,合计 11 字符,在 [`circle.md` §4](spec/v1/zh/models/circle.md) 的 24 字符上限内。)
+
+理由:[`circle.md` §4](spec/v1/zh/models/circle.md) 在 `(realm_id, short_name)` 上有 reducer-enforced 唯一性约束。当 controller 在同一 Realm 创建多个 sidecar Circle(不同 participant set,或 `per_sidecar` 强化模式)时,硬编码 short_name 会立刻碰撞。按 `participant_set_id` 派生既保证唯一性,又使同一 participant set 的 Circle 可以稳定复用。
+
+存在性侧信道防护:`directory_visibility=members` 已要求 non-member 不可见 Circle metadata,但 reducer 的唯一性校验仍是侧信道。本 profile 要求:
+
+- reducer 在 sidecar Circle 创建路径上,若检测到 `(realm_id, short_name)` 碰撞**且**调用方不是已有 Circle 的 member,MUST 返回与 "Realm policy 拒绝" 同款 generic `failed_precondition`(`reason="sidecar_create_denied"`),不得返回 `short_name_already_taken` 这类可区分错误。
+- 同一 controller 在同一 Realm 重复 ensure 同一 participant set 时,returning member 的请求 idempotently 解析为既有 Circle,不触发唯一性错误路径。
+- 上述规则只适用于 sidecar profile;一般 `cx.circle.create` 的唯一性错误语义不变。
 
 默认成员为:
 
@@ -267,13 +322,16 @@ Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普�
     "from_ref": "cx:flow:01970000-0000-7000-8000-000000000081",
     "to_ref": "cx:message:01970000-0000-7000-8000-000000000071",
     "fields": {
-      "target_realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
       "context_track": "discussion"
     },
     "scope_circle_id": "cx:circle:01970000-0000-7000-8000-000000000080"
   }
 }
 ```
+
+`to_ref` 可以是目标 Flow、Message 或 Relation;若 `context_ref` 只给出 `flow_id`(没有 `message_id`),则 `to_ref` 指向该 Flow。`fields.context_track` 是 sidecar-local audit hint。
+
+不在 `fields` 中重复 `target_realm_id`:本 CXP §3.4 / §4.4 已经保证 sidecar Realm = context Realm,Relation 自身 `realm_id` 与 `to_ref` 解析出的 Realm 必然相等;重复字段只会诱导实现误把它当作跨 Realm hint。
 
 `agent_sidecar_of` 是标准化候选 relation kind:weak-semantic、non-structural、non-cascading,from endpoint 为 sidecar Flow,to endpoint 为目标 Flow / Message / Relation。该 relation fact MUST 存在 sidecar private scope 内。实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation,因为这会泄露 sidecar 存在性。
 
@@ -343,6 +401,7 @@ Agent 参与 sidecar 必须是 normal MLS member,不是 controller 的 delegated
 - agent key rotation SHOULD 根据 key model 触发 MLS member update 或 remove/add。
 - agent revoke / pause MUST 从 sidecar MLS group 移除 agent,并阻止未来的 sidecar session grant。
 - 在 `context_shared` 模式下,移除一个 agent MUST rotate 到新 epoch;被移除 agent 不应获得后续消息 key。
+- 由于 §4.5.2 允许同一个 sidecar Circle 承载多个 sidecar private Flow,Circle MLS group 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Flow,**不可**只 rotate 某一个 Flow。实现若以"按 Flow 独立 rotate"模型对待,会破坏 Circle 的密码学边界假设——任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Flow 的未来 epoch。
 
 Agent 已经解密过的历史 plaintext 无法被密码学撤回。Revocation 只保护未来 epoch 与未来 sync。
 
@@ -365,15 +424,26 @@ Agent 已经解密过的历史 plaintext 无法被密码学撤回。Revocation �
 - reply-as-agent: `actor_id = agent_principal_id`;
 - act-on-behalf: `actor_id = controller_principal_id`, `executed_by = agent_principal_id`,并带 `authorization_ref`。
 
+在 `context_shared` 模式下 sidecar 可能有多个参与 agents。Publish 时:
+
+- `actor_id` / `executed_by` MUST 是**实际签发 publish 的单一 agent principal**——即调用 publish capability action、提供 `agent_key_proof` 并通过 capability / approval 校验的那个 agent;不得使用 "agent group" 或多个 DID 的复合值。
+- 其他 agent 对该消息的协作仅通过 sidecar private Flow 的 audit history 可见,不进入 shared event 的 envelope 或 payload。
+- 若产品需要表达"两个 agent 共同生成此消息",该归因 MAY 通过 sidecar-side audit projection 或 message body 内 controller-visible attribution 完成,但 wire 层 `executed_by` 始终是单一 DID。
+
 目标 shared event MAY 包含 opaque approval reference 或 digest。除非 controller 明确选择公开,否则 MUST NOT 泄露 sidecar private Flow id、sidecar Circle id、private messages、scratchpad 或 draft history。
 
 ### 4.12 通知与发现
 
 Sidecar notifications 只投递给 sidecar Circle members 与 authorized devices / runtimes。目标 Flow 的 notification fanout MUST NOT 提及 sidecar activity。
 
-Sidecar private Flow MUST NOT 出现在普通 Realm navigation、board/list placement、public search、public relation expansion 或目标 Flow projections 中。Controller UI MAY 使用 controller-private account data 展示本地入口,例如"AI sidecar available"。
+**Invariant**: Sidecar private Flow MUST NOT 出现在普通 Realm navigation、board/list placement、public search、public relation expansion 或目标 Flow projections 中。Controller UI MAY 使用 controller-private account data 展示本地入口,例如"AI sidecar available"。
 
-这必须是 profile-enforced projection rule,不能只是 UI recommendation。Accepted migration SHOULD 注册 `navigation_visibility="scope_only"` 或等价 Flow projection 标记;若采用等价规则,它必须在 reducer / sync projection 层阻止 non-sidecar-member 通过 Realm-wide board / list / directory / search 观察 sidecar Flow 的存在。
+该不变量必须由 reducer / sync projection 层强制执行,不能依赖 UI client 自觉遵守。Accepted migration MUST 选择以下二者之一并在 conformance profile 中声明所选机制:
+
+- (a) 在 [`flow-and-message.md`](spec/v1/zh/models/flow-and-message.md) 注册 Flow 字段 `navigation_visibility="scope_only"`(或等价 enum 值),sidecar private Flow 提交时该字段必填;reducer / projection 层依据该字段过滤 Realm-wide projection。
+- (b) 在本 profile 注册 sidecar-specific projection rule,把"以 sidecar Circle 为 `scope_circle_id` 的 Flow 不可进入 Realm-wide projection"作为 reducer-enforced 规则,无需 Flow 字段。
+
+两种实现路径达成同一可观察 invariant;选择由 §7.2 Q2 决议。在该决议落定前,本 profile 不预先 lock schema 形态,但 invariant 本身是规范要求。
 
 ### 4.13 Personal track projection
 
@@ -421,6 +491,14 @@ Flow F
 ```
 
 `cx.agent.sidecar_projection.v1` 只是候选 account-data type。Accepted 前不得把它当作 registered artifact。
+
+若 §7.2 Q1 决议把它标准化为 controller-private account-data,key pattern 建议为:
+
+```text
+cx.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>
+```
+
+理由:projection index 按 controller 属人(controller-private),按 `(target_realm_id, target_flow_id)` 做 per-Flow 投影。CXP-0008 的 `cx.agent.draft.v1` 使用 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`(agent-attributed,per-draft)。二者 key 前缀不同(`cx.agent.sidecar_projection.v1` vs `cx.agent.draft.v1`)、key 第二段语义不同(controller vs agent),不会在 `cx.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-type-registry.json` 显式声明 key pattern 与 owner principal,reducer 据此做归属校验。
 
 ## 5. 与 normative spec 的交互
 
