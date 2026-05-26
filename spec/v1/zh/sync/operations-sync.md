@@ -261,8 +261,8 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
   "witness_attestation": {
     "kind": "federation_witness_attested",
     "witnesses": [
-      {"issuer": "did:web:witness.example",  "verification_method": "did:web:witness.example#range-attest-1",  "controlling_organization": "did:webvh:witness-coop"},
-      {"issuer": "did:web:witness2.example", "verification_method": "did:web:witness2.example#range-attest-3", "controlling_organization": "did:webvh:audit-co"}
+      {"issuer": "did:web:witness.example",  "verification_method": "did:web:witness.example#range-attest-1",  "controlling_organization": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:witness.example:coop"},
+      {"issuer": "did:web:witness2.example", "verification_method": "did:web:witness2.example#range-attest-3", "controlling_organization": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:audit.example:co"}
     ]
   },
   "proofs": [ { "kind": "detached_jws", "alg": "EdDSA", "verification_method": "did:web:witness.example#range-attest-1", "event_digest": "sha256:...", "created_at": "2026-05-18T08:30:00Z", "jws": "..." } ]

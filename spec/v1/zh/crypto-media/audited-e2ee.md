@@ -217,7 +217,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
       {
         "issuer": "did:web:witness2.acme.example",
         "verification_method": "did:web:witness2.acme.example#receipt-key-3",
-        "controlling_organization": "did:webvh:acme.example",
+        "controlling_organization": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
         "attested_at": "2026-04-26T00:00:00.456Z"
       }
     ]

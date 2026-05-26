@@ -8,7 +8,7 @@
       "vector_id": "cx.vector.membership.delivery_binding.explicit.v1",
       "given_state": {
         "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
-        "actor_id": "did:webvh:alice.example",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "delivery_binding_policy": {
           "allow_binding_sources": [
             "explicit"
@@ -26,7 +26,7 @@
         "event_kind": "cx.member.state",
         "payload": {
           "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
-          "actor_id": "did:webvh:alice.example",
+          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
@@ -62,7 +62,7 @@
       "vector_id": "cx.vector.membership.delivery_binding.did_document_default.v1",
       "given_state": {
         "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
-        "actor_id": "did:webvh:alice.example",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "delivery_binding_policy": {
           "allow_did_document_default": true
         },
@@ -77,7 +77,7 @@
         "event_kind": "cx.member.state",
         "payload": {
           "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
-          "actor_id": "did:webvh:alice.example",
+          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
@@ -118,7 +118,7 @@
         "event_kind": "cx.member.state",
         "payload": {
           "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
-          "actor_id": "did:webvh:alice.example",
+          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "unroutable"
         }
@@ -190,7 +190,7 @@
         "event_kind": "cx.member.state",
         "payload": {
           "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
-          "actor_id": "did:webvh:alice.example",
+          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {

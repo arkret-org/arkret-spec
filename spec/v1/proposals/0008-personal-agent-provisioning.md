@@ -79,7 +79,12 @@ Native personal agent 由现有 Contrix primitive 组合表达:
 
 Agent principal 不是 Ghost Actor。它可以按 DID 与 account policy 独立被 mention、assign、grant、revoke、suspend 或 migrate。
 
-本文示例使用 `did:webvh:alice.example:agents:summary-assistant` 这类 DID path 只是 non-normative illustration。是否推荐或标准化 personal agent 的 DID path 约定仍是 §7 的开放问题;DID method 与 deployment policy 可以选择其它合法布局。
+`did:webvh` 部署 SHOULD 为 personal agent 分配独立 SCID,并 MAY 在 `did:webvh:<scid>:<host-and-path>` 的 `<host-and-path>` 部分使用 `agents/<slug>` 这类可读路径约定,例如 `did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant`。该路径只是 DID history 托管位置的可读约定,规范性硬性要求只有两条:
+
+1. Agent DID MUST 有独立 DID document、独立 verification method 与独立 key rotation 日志;不得只是 controller DID 的虚拟子身份或路径别名。
+2. `accountable_to[]` 对应的 `cx.identity.accountability_grant` MUST 由 controller 的 primary DID 显式签发,不能从 DID path 形态推导信任。
+
+其它 DID method 的 agent DID 形态由 method-specific deployment policy 决定,但同样必须满足"独立 DID document + 显式 accountability grant"。
 
 ### 4.3 Agent 创建操作
 
@@ -97,7 +102,7 @@ profile: cx.profile.personal_agent_provisioning.v1
 
 ```json
 {
-  "controller_principal_id": "did:webvh:alice.example",
+  "controller_principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
   "display_name": "Summary Assistant",
   "description": "Reads selected Flows and posts summaries.",
   "agent_did_method": "did:webvh",
@@ -163,7 +168,7 @@ profile: cx.profile.personal_agent_provisioning.v1
 
 ```json
 {
-  "agent_principal_id": "did:webvh:alice.example:agents:summary-assistant",
+  "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "agent_profile_event_id": "cx:event:01970000-0000-7000-8000-000000000010",
   "accountability_grant_event_id": "cx:event:01970000-0000-7000-8000-000000000011",
   "initial_capability_grant_ids": ["cx:grant:01970000-0000-7000-8000-000000000012"],
@@ -184,11 +189,11 @@ Provisioning 完成后,controller 侧应看到管理信息:
 
 ```json
 {
-  "agent_principal_id": "did:webvh:alice.example:agents:summary-assistant",
+  "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "display_name": "Summary Assistant",
   "status": "pending_runtime_key",
-  "accountable_to": "did:webvh:alice.example",
-  "management_uri": "contrix://agents/did:webvh:alice.example:agents:summary-assistant",
+  "accountable_to": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+  "management_uri": "contrix://agents/did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "grants": [
     {
       "grant_id": "cx:grant:01970000-0000-7000-8000-000000000012",
@@ -204,7 +209,7 @@ Agent runtime 只需要 bootstrap material:
 {
   "contrix_base_url": "https://contrix.example",
   "service_did": "did:web:contrix.example",
-  "agent_principal_id": "did:webvh:alice.example:agents:summary-assistant",
+  "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "pairing_request_id": "01970000-0000-7000-8000-000000000020",
   "pairing_code": "R7K9-2M4P",
   "pairing_expires_at": "2026-05-26T12:00:00Z"
@@ -237,9 +242,9 @@ profile: cx.profile.personal_agent_provisioning.v1
 ```json
 {
   "pairing_request_id": "01970000-0000-7000-8000-000000000020",
-  "agent_principal_id": "did:webvh:alice.example:agents:summary-assistant",
-  "key_id": "did:webvh:alice.example:agents:summary-assistant#runtime-key-1",
-  "verification_method": "did:webvh:alice.example:agents:summary-assistant#runtime-key-1",
+  "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
+  "key_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
+  "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
   "public_key": {
     "key_type": "Ed25519",
     "public_key_multibase": "z..."
@@ -267,7 +272,7 @@ profile: cx.profile.personal_agent_provisioning.v1
 - Pairing approval MUST 写入可审计的 `cx.agent.key.authorize` event。
 - 写入的 `agent_key_scope` MUST 不宽于 controller 已批准的初始 capability 与 Realm policy。
 - `approval_evidence` SHOULD 引用 pairing request 或 controller approval event。
-- v1 `runtime_attestation.kind` 的最低 baseline 是 `self_asserted`。实现遇到无法解析的 attestation kind MUST fail closed。后续 TEE / SLSA / hosted workload attestation 可以作为更高级 profile 进入同一 slot,不需要再改 agent key authorization 的主线 wire。
+- v1 `runtime_attestation.kind` 的最低 baseline 是 `self_asserted`。Accepted profile SHOULD 把批准后的 runtime attestation 摘要写入 `cx.agent.key.authorize` payload 或可验证 refs,使 grant validator 能执行 attestation constraint。实现遇到无法解析的 attestation kind MUST fail closed。后续 TEE / SLSA / hosted workload attestation 可以作为更高级 profile 进入同一 slot,不需要再改 agent key authorization 的主线 wire。
 
 ### 4.6 Agent runtime 认证
 
@@ -287,7 +292,7 @@ profile: cx.profile.agent_auth.v1
 
 ```json
 {
-  "principal_id": "did:webvh:alice.example:agents:summary-assistant",
+  "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "requested_scope": ["cx.events.subscribe", "cx.message.create"],
   "agent_key_authorization_ref": "cx:event:01970000-0000-7000-8000-000000000021",
   "agent_scope_request": {
@@ -297,7 +302,7 @@ profile: cx.profile.agent_auth.v1
   },
   "proof": {
     "proof_kind": "agent_key_proof",
-    "key_id": "did:webvh:alice.example:agents:summary-assistant#runtime-key-1",
+    "key_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
     "challenge": "base64url...",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "audience": "https://contrix.example/api/v1",
@@ -317,7 +322,7 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
 
 ```json
 {
-  "principal_id": "did:webvh:alice.example:agents:summary-assistant",
+  "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "session_grant": "opaque-short-lived-token",
   "expires_at": "2026-05-26T10:30:00Z",
   "granted_scope": ["cx.events.subscribe", "cx.message.create"],
@@ -403,8 +408,8 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
 {
   "type": "cx.agent.draft.v1",
   "draft_id": "01970000-0000-7000-8000-000000000070",
-  "owner_principal_id": "did:webvh:alice.example",
-  "agent_principal_id": "did:webvh:alice.example:agents:summary-assistant",
+  "owner_principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+  "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "target": {
     "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
     "flow_id": "cx:flow:01970000-0000-7000-8000-000000000001",
@@ -496,7 +501,7 @@ Reply-as-agent:
 
 ```json
 {
-  "actor_id": "did:webvh:alice.example:agents:summary-assistant",
+  "actor_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "kind": "cx.message.create"
 }
 ```
@@ -512,8 +517,8 @@ Act-on-behalf:
 
 ```json
 {
-  "actor_id": "did:webvh:alice.example",
-  "executed_by": "did:webvh:alice.example:agents:summary-assistant",
+  "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+  "executed_by": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "authorization_ref": "cx:grant:01970000-0000-7000-8000-000000000030",
   "kind": "cx.message.create"
 }
@@ -586,6 +591,7 @@ Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key
 - `event-kind-registry.json`: 不增加 `cx.agent.provision` aggregate event;provisioning operation fan-out 到 `cx.profile.create`、`cx.identity.accountability_grant`、`cx.agent.key.authorize`、`cx.capability.grant` 等既有 durable events。增加 `cx.agent.pause`、`cx.agent.resume`、`cx.agent.deactivate` 或等价 lifecycle state events,并增加 `cx.agent.draft.propose`、`cx.agent.action_request`、`cx.agent.action_approve`、`cx.agent.action_reject` draft/action-request family。
 - `account-data-type-registry.json`: 增加 `cx.agent.draft.v1`,key pattern 建议为 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`,并声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。
 - `capability-action-registry.json`: 增加 `cx.agent.provision` 作为 aggregate admin action,其 `target_event_kinds` MUST 显式列出 fan-out 子事件,例如 `cx.profile.create`、`cx.identity.accountability_grant`、`cx.agent.key.authorize`、`cx.capability.grant`,并标注 migration group。Agent management actions 同样必须声明 target event kinds,不得从 action 字符串推断。
+- `event-payload.schema.json`: 若现有 `agent_key_authorize_payload` 尚未包含 runtime attestation,增加 `runtime_attestation` 或 attestation digest/ref 字段;v1 enum 至少包含 `self_asserted`,未知 kind fail closed。
 - `event-envelope.schema.json` / `event-payload.schema.json`: 为 accepted 新 event 增加 payload defs;为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段,并同步 canonicalization / Anchor vectors。
 - `conformance-profiles.json`: 注册 `cx.profile.personal_agent_provisioning.v1`、`cx.profile.agent_auth.v1`、`cx.profile.agent_delegation_policy.v1`。
 - OpenAPI: 增加 agent provisioning、pairing typed schemas,并扩展现有 `SessionGrantRequest` / `SessionGrantResponse` 以支持 `proof.proof_kind="agent_key_proof"`、独立 proof schema branch、独立 validator 与 `scope_details` profile overlay。
@@ -641,10 +647,10 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 - [x] `agent_scope_request` 保持 `cx.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequest` schema。
 - [x] Agent E2EE access 表达为独立 MLS member,默认无 E2EE access;不得作为 controller delegated device 继承 history keys。
 - [x] `act_on_behalf` 默认 fresh approval 粒度为 `(action, target_flow)` + 短期 window,通过现有 approval/accountability constraints 表达。
+- [x] `did:webvh` deployment SHOULD 为 personal agent 分配独立 SCID,并 MAY 在 `did:webvh:<scid>:<host-and-path>` 的 `<host-and-path>` 中采用 `agents/<slug>` 可读路径约定;规范信任来源是独立 DID document 与显式 accountability grant,不是路径继承。
 
 ### 7.2 仍需讨论
 
-- [ ] personal agent 是否应建议 DID path 约定,例如 `did:webvh:<host>:agents:<slug>`,还是完全交给 DID method / deployment policy?
 - [ ] hosted runtime attestation 的高级 profile 时间表是什么? v1 baseline 是 `runtime_attestation.kind="self_asserted"`,但 TEE / SLSA / workload identity 的 profile taxonomy 仍需单独设计。
 - [ ] `cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 是否注册为这些具体 event kind,还是复用更通用 principal lifecycle state event?
 

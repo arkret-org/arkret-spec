@@ -215,7 +215,7 @@ Content-Type: application/json
 
 ```json
 {
-  "actor": "did:webvh:bob",
+  "actor": "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
   "action": "member.application",
   "request_canonical_digest": "sha256:...",
   "device_id": "cx:device:..."

@@ -42,7 +42,7 @@ CXP-0008 解决"个人 AI agent 如何创建、认证、授权和运行"。但�
 1. **目标 Flow 内没有隐藏消息**:sidecar 内容不写入目标 Flow 的 `discussion`、`synthesis` 或任何 track。
 2. **默认保护存在性隐私**:目标 Flow 成员默认不能推断 sidecar 是否存在。
 3. **上下文引用不是 capability**:`context_ref` 只说明 sidecar 从哪里被打开,不授予 agent 读取目标 Flow / Message 的权利。
-4. **Sidecar home 必须显式选择**:sidecar 可以落在 controller home Realm,也可以落在目标上下文 Realm;选择本身影响 membership、retention、audit 和存在性隐私。
+4. **Sidecar 属于目标 Realm**:sidecar Circle、private Flow 与 private Relation MUST 创建在目标上下文所在 Realm,不引入额外 Realm fallback。
 5. **独立 E2EE scope**:sidecar 使用自己的 Circle MLS group。不得从目标 Flow / Realm 的 MLS key 派生 sidecar key,也不得反向继承目标 Flow history key。
 6. **内容转入必须显式**:把目标内容带入 sidecar 是一次显式披露。默认只引用上下文,不复制目标 message body。
 7. **发布必须显式**:sidecar 中的内容只有通过新的 shared event 才能进入目标 Flow。
@@ -77,10 +77,10 @@ profile: cx.profile.agent_sidecar_thread.v1
 
 ```json
 {
-  "controller_principal_id": "did:webvh:alice.example",
+  "controller_principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
   "agent_principal_ids": [
-    "did:webvh:alice.example:agents:summary-assistant",
-    "did:webvh:alice.example:agents:research-assistant"
+    "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
+    "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:agents:research-assistant"
   ],
   "context_ref": {
     "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
@@ -90,7 +90,6 @@ profile: cx.profile.agent_sidecar_thread.v1
   },
   "reuse_policy": "same_controller_context",
   "participant_model": "context_shared",
-  "sidecar_home_policy": "context_realm_preferred",
   "metadata_policy": {
     "target_ref_visible_to_agent": true,
     "copy_target_content": "never"
@@ -157,32 +156,31 @@ Candidate participant models:
 
 向既有 sidecar 添加 agent 是显式 participant expansion。默认只授予新 agent 加入后的未来 epoch;历史内容是否回填必须由 controller 显式批准,且受 target content transfer 与 E2EE history policy 约束。
 
-### 4.4 Sidecar Home Realm
+### 4.4 Realm 归属
 
-Sidecar 必须显式选择 home Realm。该选择决定 Circle 的父 Realm、Flow 所属 Realm、retention policy、audit surface、federation delivery 和 agent membership 要求。
+Sidecar 不引入独立归属 Realm。对于 Flow / Message / track / cursor 上下文,sidecar 所属 Realm MUST 等于 `context_ref.realm_id`。因此 private Circle 的父 Realm、private Flow 的 `realm_id`、private Relation 的 `realm_id`、retention / audit / federation delivery surface 都是目标上下文所在 Realm。
 
-| 模式 | Sidecar home Realm | 优点 | 代价 |
-| --- | --- | --- | --- |
-| `context_realm` | 目标 Flow 所在 Realm | 不需要额外 controller-home Realm;sidecar audit / retention 留在当前 Realm 管辖内;适合用户已把自己的 agents 加入当前 Realm 的场景 | Circle.members 必须是父 Realm members;agent 成为 Realm member 本身是显式治理动作。 |
-| `controller_home` | controller 的 personal / principal-control / private workspace Realm | 不要求 agent 成为目标 Realm member;适合跨 Realm personal assistant 或用户不想把 agent 加入目标 Realm 的场景 | 需要跨 Realm private Relation 指向目标上下文;目标 Realm policy 可能限制可引用性或内容复制。 |
+该规则依赖 CXP-0007 的现有能力:只要 private Flow 的 `scope_circle_id` 指向 user-agent sidecar Circle,非 Circle 成员就不能收到该 Flow 的 events envelope / payload,也不应看到该 Flow 的存在、活动节奏、watcher 列表、private Relation 或 notification。换言之,"当前 Realm 内的私有 Circle + private Flow"已经足以表达"我的 AI 私聊",不需要把它移动到另一个 Realm。
 
-本提案倾向默认 `context_realm_preferred`:如果 controller 与被选择的 agents 都已经是目标 Realm active members,且 Realm policy 允许用户创建或复用 user-agent Circle,sidecar SHOULD 落在目标 Realm。这样无需额外 controller-home Realm,也符合"这个 Realm 内我的 AI 私聊"的直觉。
+`cx.agent.sidecar_thread.ensure` MUST fail closed,除非以下 Realm-local 条件全部成立:
 
-若使用 `context_realm`,实现 MUST 先证明每个 agent 已是目标 Realm active member,或通过正常 Realm membership 流程加入。Sidecar profile MUST NOT 创建隐藏 Realm member 来绕过 CXP-0007 的 `Circle.members ⊆ Realm.members` 不变量。
+- `context_ref.realm_id` 可解析且与目标 Flow / Message 所在 Realm 一致。
+- controller 是该 Realm active member。
+- 每个被选择的 agent 都是该 Realm active member,或先通过普通 Realm membership 流程加入。
+- Realm policy 允许该 controller 创建或复用 user-agent sidecar Circle。
+- Circle membership 满足 `Circle.members ⊆ Realm.members`。
 
-若使用 `controller_home`,sidecar Relation 是跨 Realm weak-semantic reference。它不复制目标内容,不授予目标读权,也不在目标 Realm 写任何反向对象。该模式是 fallback 或跨 Realm personal assistant 模式,不是本提案的首选默认。
-
-在 `context_realm` 模式下,sidecar private Flow 是当前 Realm 中的普通 Flow,但其 `scope_circle_id` 指向 user-agent sidecar Circle。因此它对非 Circle 成员等价于不可见私有 Flow:非成员不应收到该 Flow 的 events envelope / payload,不应看到该 Flow 的存在、活动节奏、watcher 列表、private Relation 或 notification。该语义直接继承 CXP-0007 / Circle 的投递不变量。
+Sidecar profile MUST NOT 创建隐藏 Realm member 来绕过 Circle membership 不变量。跨 Realm personal assistant、controller private workspace 或全局 AI inbox 是独立产品形态,不属于本 CXP 的默认路径;若未来需要,应由单独 profile / CXP 定义,不得作为本 operation 的 fallback。
 
 ### 4.5 Circle 粒度
 
-在 `context_realm` 模式下,一个用户可以在当前 Realm 内拥有一个专门的 user-agent sidecar Circle,用于承载该用户与自己 agents 的 private sidecar Flows。这个模型简单,也避免引入额外 controller-home Realm。
+在本 Realm 模型下,一个用户可以在当前 Realm 内拥有一个专门的 user-agent sidecar Circle,用于承载该用户与自己 agents 的 private sidecar Flows。这个模型简单,也避免引入额外私有 Realm。
 
 关键约束是:Circle 是密码学可见性边界。如果多个 private Flows 复用同一个 Circle,则该 Circle 的所有成员原则上处在同一 MLS group 中。只要某 agent 是该 Circle member,它就应被视为能访问该 Circle scope 下的 sidecar private Flows。这个语义如果正是用户想要的"我的几个 agents 一起参与我的 AI 私聊",则复用同一个 Circle 没问题;如果用户需要不同 agents 之间隔离,则必须使用不同 Circle。
 
 推荐默认:
 
-- 在 `context_realm` 中,按 `(realm_id, controller_principal_id, participant_set_id)` 创建或复用 user-agent sidecar Circle。
+- 在目标 Realm 中,按 `(realm_id, controller_principal_id, participant_set_id)` 创建或复用 user-agent sidecar Circle。
 - 同一个 Circle 可以承载该 controller 在该 Realm 内多个 sidecar private Flows。
 - 该 Circle 的成员是 controller + 该 participant set 中的 agents。
 - 同一个 Flow / Message 上的多个 agents 可以共用一个 private Flow 与这个 Circle,因为这表示 controller 明确希望它们在同一上下文协作。
@@ -255,6 +253,8 @@ Accepted profile SHOULD 编排以下 durable material:
 
 Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普通私聊不需要额外定义 `cx.agent.sidecar_message.create`。
 
+`tracks.discussion.profile="agent_sidecar"` 只是 FlowTrack 的 semantic hint,不创建独立权限、成员或 E2EE scope。读取 / 写入仍由 Flow `scope_circle_id`、`allowed_tracks` 与 sidecar capability policy 决定。
+
 私有 Relation:
 
 ```json
@@ -289,8 +289,7 @@ Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普�
 - Realm policy 允许 native personal agents 与 agent sidecar threads。
 - controller 在相关 frontier 上有权读取目标上下文。
 - 创建或复用 private Circle / Flow 满足 Circle、Flow、Relation 与 E2EE policy。
-- 如果 `sidecar_home_policy` 解析为 `context_realm`,agent Realm membership 必须符合普通 Realm membership 规则。
-- 如果 `sidecar_home_policy` 解析为 `controller_home`,cross-Realm reference policy 必须允许保存指向目标上下文的 opaque reference。
+- controller 与所有被选择 agents 都必须是目标 Realm active members;不得创建隐藏成员或跨 Realm fallback。
 - `participant_model`、reuse policy 与 requested participants 必须被 controller grant 与 Realm policy 允许。
 - 如果 `target_ref_visible_to_agent=true`,向 agent 披露目标标识符必须被 policy 与 capability 覆盖。
 - 如果目标内容被复制进 sidecar,该复制必须是显式的、被单独授权的,并作为 sidecar Circle scope 下的 sidecar content 记录。
@@ -318,13 +317,12 @@ Agent runtime SHOULD NOT 只凭宽泛的 "create hidden channels" grant 调用�
 | 限定 context Realm | resource selector `kind="realm"` 或 context object selector,不是新 constraint。 |
 | 限定 context Flow | 现有 `allowed_flow_refs`。 |
 | 限定 relation kind | 现有 `relation_kind_allow=["agent_sidecar_of"]`。 |
-| 限定 sidecar home mode | Profile-specific `allowed_sidecar_home_modes`。 |
 | 限定 participant model | Profile-specific `allowed_participant_models`。 |
 | 限制 sidecar 数量 / agent 数量 | `quota` / resource-limit family,字段为 `max_sidecars_per_context`、`max_agents_per_sidecar` 等 profile extension。 |
 | Circle 复用策略 | Profile-specific `circle_reuse_policy`。 |
 | 目标内容复制策略 | Profile-specific `copy_target_content_policy`。 |
 | E2EE 要求 | 复用 confidentiality / encryption constraint;sidecar profile 默认要求 MLS-backed Circle scope。 |
-| retention | `retention_policy_ref` 只能收紧 home Realm retention,不得放宽。 |
+| retention | `retention_policy_ref` 只能收紧目标 Realm retention,不得放宽。 |
 
 ### 4.9 E2EE 与 key management
 
@@ -334,7 +332,7 @@ Sidecar E2EE MUST 遵守 Circle 规则:
 - Sidecar MLS secrets MUST NOT 从目标 Realm / Flow / Circle secrets 派生。
 - 目标 Flow MLS membership 不会自动包含 sidecar membership。
 - Sidecar membership 不授予目标 Flow history keys。
-- 如果 sidecar 落在 controller home Realm,目标 Realm MLS membership 与 sidecar MLS membership 完全分离。
+- Sidecar Circle MLS membership 与目标 Flow / Realm default MLS membership 独立,即使二者同属一个 Realm。
 - Event AAD MUST 绑定 sidecar effective scope 与 Circle 规则要求的 immutable event context。
 
 Agent 参与 sidecar 必须是 normal MLS member,不是 controller 的 delegated device:
@@ -413,7 +411,7 @@ Flow F
     {
       "sidecar_thread_id": "01970000-0000-7000-8000-000000000090",
       "private_flow_id": "cx:flow:01970000-0000-7000-8000-000000000081",
-      "agent_principal_id": "did:webvh:alice.example:agents:summary-assistant",
+      "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
       "display_label": "Summary Assistant",
       "presentation": "track_tab",
       "rank": "a0"
@@ -481,7 +479,7 @@ Lazy creation 也很重要:如果用户每打开一个 Flow 就为每个 agent �
 
 ### 6.7 为什么默认 Realm-local user-agent Circle
 
-当用户已经把自己的 agents 加入当前 Realm,并希望这些 agents 都参与自己的 AI 私聊时,Realm-local user-agent Circle 是最简单的默认模型:private Flow 留在当前 Realm,治理、retention、audit 与目标上下文一致,非 Circle 成员又看不到该 private Flow 的存在或事件。
+当用户已经把自己的 agents 加入当前 Realm,并希望这些 agents 都参与自己的 AI 私聊时,Realm-local user-agent Circle 是最简单的模型:private Flow 留在当前 Realm,治理、retention、audit 与目标上下文一致,非 Circle 成员又看不到该 private Flow 的存在或事件。
 
 边界在于 participant set。一个 Circle 不应模糊地表示"用户所有未来 agents";它应表示一个明确的 `(realm, controller, participant_set)`。如果用户以后新增 agent,加入该 Circle 就意味着该 agent 进入同一 AI 私聊可见性圈。若这不是用户想要的,就应创建新的 participant set / Circle。
 
@@ -491,14 +489,14 @@ Lazy creation 也很重要:如果用户每打开一个 Flow 就为每个 agent �
 
 - [x] Relation kind 使用 `agent_sidecar_of`,注册为 weak-semantic、non-structural、non-cascading kind。`from_ref` 为 sidecar Flow,`to_ref` 为目标 Flow / Message / Relation。
 - [x] 普通用户即使没有 general `cx.circle.create`,也可以通过受限 `cx.agent.sidecar_thread.ensure` 创建 sidecar composite。该 action 只允许 controller + accountable agents、profile-enforced private Circle / Flow / Relation,不等于授予普通 Circle 创建权。
-- [x] 默认 home policy 是 `context_realm_preferred`:controller 与 agents 都是目标 Realm active members 且 policy 允许时,sidecar 落在当前 Realm。`controller_home` 保留为 fallback / cross-Realm personal assistant 模式。
+- [x] Sidecar 所属 Realm 固定为目标上下文所在 Realm;本 CXP 不引入额外 Realm 选择或跨 Realm fallback。
 - [x] 默认 participant model 是 `context_shared`:同一个 `(controller, normalized_context_ref)` 一个 sidecar private Flow,多个被 controller 显式选择的 agents 在同一 Circle / Flow 协作。
 - [x] Circle reuse 默认 `per_realm_controller_participant_set`;high-security policy MAY 强制 `per_sidecar`。
 - [x] `context_ref` 默认对 agent 可见为 opaque target ID,但不复制目标内容。High-secrecy profile MAY 设置 `target_ref_visible_to_agent=false`。
 - [x] Agent 是 normal MLS member,KeyPackage 由 active `cx.agent.key.authorize` 支撑;不是 controller delegated device。
 - [x] Sidecar Flow 从普通 Realm navigation / search / board / relation expansion 隐藏是 profile-enforced rule,不是 UI recommendation。
 - [x] 多 agent projection 默认 grouped 为一个 controller-local "My AI" personal track;客户端 MAY 在该 grouped track 内显示多个 agent entry。
-- [x] Retention 默认继承 sidecar home Realm: `context_realm` 继承目标 Realm retention,`controller_home` 继承 controller home retention。Sidecar profile MAY 通过 `retention_policy_ref` 收紧,不得放宽。
+- [x] Retention 默认继承目标 Realm。Sidecar profile MAY 通过 `retention_policy_ref` 收紧,不得放宽。
 
 ### 7.2 仍需讨论
 
@@ -523,10 +521,11 @@ Accepted profile SHOULD 增加以下 conformance fixtures:
 
 1. 注册 `cx.profile.agent_sidecar_thread.v1`。
 2. 增加 `cx.agent.sidecar_thread.ensure` service operation 与 OpenAPI schemas。
-3. 增加 sidecar capability actions 与 constraints。
-4. 决定并注册 private relation kind。
-5. 如需要,增加 controller-private sidecar index / personal track projection account-data type。
-6. 增加 privacy、lazy creation、context-shared default、agent-isolated override、Circle reuse boundary、personal track projection non-leakage、E2EE separation、revocation 与 publish boundary 的 conformance vectors。
+3. 增加 sidecar capability actions,并把 context Flow / relation kind / quota / E2EE / retention 约束映射到现有 constraint vocabulary 或 profile-specific extension。
+4. 注册 `agent_sidecar_of` private relation kind。
+5. 增加 `navigation_visibility="scope_only"` 或等价 projection rule。
+6. 如需要,增加 controller-private sidecar index / personal track projection account-data type。
+7. 增加 privacy、lazy creation、context-shared default、agent-isolated override、Circle reuse boundary、personal track projection non-leakage、E2EE separation、revocation 与 publish boundary 的 conformance vectors。
 
 ## 9. 引用
 

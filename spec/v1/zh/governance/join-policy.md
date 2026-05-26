@@ -162,7 +162,7 @@ applicant 直接提交：
   "kind": "cx.member.state",
   "payload": {
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-    "actor_id": "did:webvh:bob",
+    "actor_id": "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
     "membership": "join",
     "delivery_status": "routable",
     "delivery_binding": {
@@ -435,8 +435,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
     "scheme": "hpke-base-x25519-aes256gcm",
     "ciphertext": "base64url:...",
     "recipients": [
-      {"reviewer_did": "did:webvh:alice", "device_id": "cx:device:...", "wrapped_key": "base64url:..."},
-      {"reviewer_did": "did:webvh:carol", "device_id": "cx:device:...", "wrapped_key": "base64url:..."}
+      {"reviewer_did": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "cx:device:...", "wrapped_key": "base64url:..."},
+      {"reviewer_did": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "cx:device:...", "wrapped_key": "base64url:..."}
     ]
   }
 }
@@ -491,7 +491,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
       "max_proof_age": "PT5M",
       "must_satisfy_before_resubmit": true,
       "bound_to": {
-        "actor": "did:webvh:applicant.example",
+        "actor": "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:applicant",
         "action": "member.application",
         "request_canonical_digest": "sha256:...",
         "device_id": "cx:device:01964137-0000-7000-8000-000000000000"
