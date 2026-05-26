@@ -41,7 +41,7 @@ discussion: https://github.com/contrix-dev/contrix-spec/discussions/cxp-0008
 2. 创建后用户得到哪些管理信息?哪些 bootstrap material 应该交给 AI runtime?
 3. AI runtime 之后如何认证?是否必须打开人类 coauth / CAPTCHA / OTP UI?
 4. 用户如何授予窄权限,例如只读、以 agent 身份回复、代表用户执行、把概要写入某个 Flow track、创建新 Flow?
-5. agent 是否应继承用户在 Realm 内的最大权限?答案应为否。
+5. 如何保证 agent 不自动继承用户在 Realm 内的最大权限(最小权限原则)?
 
 目标产品体验接近 workspace UI 中的 "Create Agent"。但协议结果必须仍然是 DID-rooted、capability-scoped、auditable、short-lived、revocable。
 
@@ -171,6 +171,11 @@ profile: cx.profile.personal_agent_provisioning.v1
 
 `approval_policy` 不引入"high risk" 这类未注册分类。如果实现需要按 risk tier 自动应用 approval,该 tier 表必须由 deployment profile 显式定义并文档化,不得依赖隐含的服务端 hardcoding。
 
+请求字段 enum:
+
+- `agent_did_method`: 接受 `zh/identity/identity-did.md` 注册的 DID method 列表(典型为 `did:webvh`、`did:plc`、`did:keri`)。Method 不在该列表时 fail closed。
+- `runtime.kind`: v1 枚举 `{custom_endpoint, custodial}`。`custom_endpoint` = controller 提供 runtime URL 自托管;`custodial` = deployment 提供 hosted runtime,并按 §4.5 规则向 controller 披露 custodial-key 风险。未来 attestation profile 可扩展该枚举。未知值 fail closed。
+
 `requested_capabilities` 示例使用 canonical grant shape。产品 UI / SDK MAY 接受 §4.7 表中的预设名(`read_only`、`draft_only`、`reply_as_agent`、`act_on_behalf`、`organizer`),但服务端写入的 capability grant MUST 展开为 `actions[]`、resource selectors、registered constraints 与 TTL;预设名本身不进入 canonical wire,且实现不得引入未注册的预设名(例如 `write_summary` 等任意字符串)而不在 §4.7 表中登记。
 
 响应:
@@ -251,14 +256,14 @@ Agent runtime 只需要 bootstrap material:
 }
 ```
 
-Bootstrap material 是一次性、短期、可撤销材料。它不能被当作 session grant、capability grant 或长期 secret。
+Bootstrap material 是一次性、短期、可撤销的 pairing 输入。它不能被当作 session grant、capability grant 或长期 secret。
 
 ### 4.5 Runtime key pairing
 
-推荐 bootstrap 分两阶段:
+推荐 bootstrap 分两阶段(第 1 步是 §4.3 provisioning 调用的延续):
 
-1. controller 通过 coauth / passkey / device proof 创建 pending agent。
-2. agent runtime 在本地生成自己的 key pair。
+1. (§4.3) controller 通过 coauth / passkey / device proof 完成 provisioning,得到 `pending_runtime_key` agent 与一次性 `pairing_request_id` / `pairing_code`。
+2. (§4.5) agent runtime 在本地生成自己的 key pair。
 3. runtime 把 public key 与 proof-of-possession 提交给 pairing endpoint。
 4. controller 或 policy engine 批准该 key 绑定。
 5. 服务写入 `cx.agent.key.authorize`。
@@ -303,6 +308,7 @@ profile: cx.profile.personal_agent_provisioning.v1
 - SHOULD 优先使用 runtime-generated private key。
 - 除非 deployment profile 明确声明 custodial-key 语义并向用户披露风险,生产托管 agent MUST NOT 使用服务端生成的 private key。
 - Pairing token MUST 短期、单次、audience-bound、request-digest-bound、可撤销。
+- Pairing endpoint MUST 校验 `verification_method` 的 DID 部分(strip fragment 与 query 后)与请求体中 `agent_principal_id` bit-identical;不匹配 MUST fail closed(`reason="verification_method_principal_mismatch"`),不得自动选用任一为准。
 - Pairing approval MUST 写入可审计的 `cx.agent.key.authorize` event。
 - 写入的 `agent_key_scope` MUST 不宽于 controller 已批准的初始 capability 与 Realm policy。
 - `approval_evidence` SHOULD 引用 pairing request 或 controller approval event。
@@ -593,7 +599,13 @@ Act-on-behalf:
 Alice via Summary Assistant
 ```
 
-Act-on-behalf grant 是 high risk。它 MUST 有限期、窄范围、可审计、可撤销,且默认禁止,除非 controller 与 Realm policy 显式允许。Receiver MUST 校验 `executed_by` 与实际 signing key / agent proof 一致,并校验 `authorization_ref` 覆盖目标 action 与 resource。默认 fresh approval 粒度 SHOULD 是 `(action, target_flow)` + 短期 temporal window;批量 window 必须由 Realm policy 显式开启。该规则通过现有 `approval_required` / `approval_mode` / `approval_actor_refs` / `controller_approval_required` 组合表达,不新增 `act_on_behalf_allowed` constraint。
+Act-on-behalf grant 是 high risk。规则:
+
+- **默认禁止**:除非 controller 与 Realm policy 显式允许,grant MUST 不签发。
+- **窄范围**:grant MUST 有限期、限定 action / resource、可审计、可撤销。
+- **Receiver 校验**:Receiver MUST 校验 `executed_by` 与实际 signing key / agent proof 一致,并校验 `authorization_ref` 覆盖目标 action 与 resource。
+- **Fresh approval 粒度**:默认 SHOULD 是 `(action, target_flow)` + 短期 temporal window;批量 window 必须由 Realm policy 显式开启。
+- **Wire 表达**:全部通过现有 `approval_required` / `approval_mode` / `approval_actor_refs` / `controller_approval_required` 组合,不新增 `act_on_behalf_allowed` constraint。
 
 Schema impact:该形态要求 Event Envelope 增加 signed `executed_by` 与 `authorization_ref` 字段,并把二者纳入 event canonical bytes、event digest、E2EE AAD 与 Anchor/sub-anchor leaf 输入。它们不能只作为 UI-only unsigned extension。Accepted migration 必须同时更新 `event-envelope.schema.json`、canonicalization 规则、`event-and-patch.md` 与 schema-registry / service-surface 相关说明,并定义它们与 `proof.verification_method` / active `cx.agent.key.authorize` 的校验关系。
 
@@ -633,12 +645,12 @@ Resume 前 MUST 重新校验 controller、agent、key、capability、Realm polic
 
 Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key 的 `agent_key_scope` 等于或窄于旧 key。
 
-这些 management operation MUST 产生可审计的 durable state,不得只修改服务端内存或私有配置。候选落点:
+这些 management operation MUST 产生可审计的 durable state,不得只修改服务端内存或私有配置。候选 durable event 落点(运行时行为已在前文给出,本处只列审计材料形态):
 
-- `pause`: 写入 `cx.agent.pause` 或等价 signed agent status event / principal-control state;生效后 Auth Server MUST 拒绝新的 agent session grant。
-- `resume`: 写入 `cx.agent.resume` 或等价 signed status transition;恢复前 MUST 重新检查 controller、agent、key、capability 与 Realm policy。
-- `revoke`: 写入 `cx.agent.deactivate` 或等价 terminal state,并 fan-out 写入必要的 `cx.agent.key.revoke`、`cx.capability.revoke` / delegation revoke、runtime endpoint revoke。
-- `rotate-key`: 复用 `cx.agent.key.rotate`,并记录 replacement key proof 与 approval evidence。
+- `pause`: `cx.agent.pause` 或等价 signed agent status event / principal-control state。
+- `resume`: `cx.agent.resume` 或等价 signed status transition。
+- `revoke`: `cx.agent.deactivate` 或等价 terminal state,并 fan-out `cx.agent.key.revoke`、`cx.capability.revoke` / delegation revoke、runtime endpoint revoke。
+- `rotate-key`: `cx.agent.key.rotate`,记录 replacement key proof 与 approval evidence。
 
 具体 event kind 是否注册为 `cx.agent.pause` / `resume` / `deactivate` 仍是 §7 开放问题;但 accepted profile MUST 有可重放的审计材料。
 
@@ -723,8 +735,7 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 
 ### 7.2 仍需讨论
 
-- [ ] hosted runtime attestation 的高级 profile 时间表是什么? v1 baseline 是 `runtime_attestation.kind="self_asserted"`,但 TEE / SLSA / workload identity 的 profile taxonomy 仍需单独设计。
-- [ ] `cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 是否注册为这些具体 event kind,还是复用更通用 principal lifecycle state event?
+- [ ] `cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 是否注册为这些具体 event kind,还是复用未来可能的通用 `cx.principal.status.set` lifecycle event?后者取决于 `zh/identity/account-lifecycle.md` 是否要为所有 principal type 引入统一 lifecycle event。§4.11 已经保证"MUST 有可重放审计材料",但具体 kind 名字需要在 accepted artifact 阶段敲定,影响 `event-kind-registry.json` 与 conformance vectors。
 
 ## 8. 迁移计划
 
