@@ -65,6 +65,8 @@ grpc:
       Frontier: cx.events.frontier
     Ephemeral:
       Send: cx.ephemeral.send
+    CallMedia:
+      TokenExchange: cx.call.media.token_exchange
     Snapshot:
       Head: cx.snapshot.head
     Directory:
@@ -190,6 +192,7 @@ mq:
     events.query: cx.events.query
     events.subscribe: cx.events.subscribe
     ephemeral.send: cx.ephemeral.send
+    call.media.token_exchange: cx.call.media.token_exchange
     account.subscribe: cx.account.subscribe
     account.cursor_revoke: cx.account.cursor_revoke
     account.agent_key_pair: cx.account.agent_key_pair

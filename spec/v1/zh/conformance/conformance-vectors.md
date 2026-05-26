@@ -2533,3 +2533,130 @@ Expected:
 
 - 第 2 步 `actor_id` / `executed_by` MUST 是 S 单一 DID,而非 "agent group"。
 - 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布,但 attribution 仍是 R 单一 DID;不得复合 S+R。
+
+## 12. Media Service Binding Vectors（CXP-0010）
+
+本节列出 `cx.profile.media_service_binding.v1` 的核心 conformance 向量。完整 fixture 与执行脚本在 candidate 阶段补完；以下为 normative steps + expected outcomes 的最小契约。详见 [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) §6.1 / §6.4 / §10 / §11。
+
+### 12.1 Focus Selection — Oldest Membership Wins
+
+`vector_id`: `cx.vector.media_binding.focus_selection_oldest_membership.v1`
+
+Steps:
+
+1. Alice 与 Bob 加入同一 call；Alice 早于 Bob，`Alice.foci_preferred=[fra-1, us-east-1]`，`Bob.foci_preferred=[us-east-1, fra-1]`。
+2. 首个 `cx.call.state` 事件 commit。
+
+Expected:
+
+- `session_focus` MUST 为 `fra-1`（Alice 是 oldest member，胜出）；`Bob.foci_preferred[0]` 不参与决策。
+- 后续 token exchange 请求 `focus_id=us-east-1` MUST 被 issuer 以 `focus_mismatch` 拒绝。
+
+### 12.2 Session Focus — No Split Brain
+
+`vector_id`: `cx.vector.media_binding.session_focus_no_split_brain.v1`
+
+Steps:
+
+1. `session_focus=fra-1` 已 committed。
+2. Carol 加入，本地 `fra-1` connect 失败（network 中断）。
+
+Expected:
+
+- Carol MUST NOT silent fallback 到其它 focus；MUST 以 `focus_unavailable_for_client` 向用户暴露失败。
+- 任何后续 `cx.call.state` 事件试图改写 `session_focus` 为 `us-east-1` MUST 被 reducer 拒绝 `session_focus_already_committed`。
+
+### 12.3 Token Exchange — Minimal Fields
+
+`vector_id`: `cx.vector.media_binding.token_exchange_minimal.v1`
+
+Steps:
+
+1. Client POST `/api/v1/rtc/token` with the minimum required fields `(realm_id, call_id, actor_id, device_id, focus_id)`。
+2. Issuer 返回 200 with `backend_token` / `participant_identity` / `participant_binding` / `expires_at` / `service_signature`。
+
+Expected:
+
+- `expires_at - now` MUST ≤ 600s（SHOULD ≤ 300s）。
+- `participant_binding.scheme` MUST = `cx.media.participant_binding.v1`。
+- `service_signature.kid` 与 `participant_binding.issuer_kid` MUST 解析到当前 epoch `cx.realm.media_service.service_id`。
+
+### 12.4 Token Issuer — Unauthorised DID Rejected
+
+`vector_id`: `cx.vector.media_binding.token_issuer_unauthorised.v1`
+
+Steps:
+
+1. 攻击者 DID `did:web:rogue.example` 模拟 token issuer 签发一个语法合法的 token。
+2. Client 收到该响应。
+
+Expected:
+
+- Client MUST 拒绝并报 `token_issuer_unauthorised`，不得尝试连接 `connect_url`。
+
+### 12.5 Participant Binding — Required
+
+`vector_id`: `cx.vector.media_binding.participant_binding_required.v1`
+
+Steps:
+
+1. Token issuer 返回 response 缺失 `participant_binding`，或 `participant_binding.sig` 无效。
+2. Client 试图把它写入 `cx.call.state.participants[]`。
+
+Expected:
+
+- Client MUST 拒绝该 token，不发起 `cx.call.state` 事件。
+- 即便强行提交，reducer MUST `failed_precondition` `reason=participant_binding_invalid`。
+
+### 12.6 Unknown Focus Type — Fail Closed
+
+`vector_id`: `cx.vector.media_binding.unknown_type_fail_closed.v1`
+
+Steps:
+
+1. Realm policy 中某 `foci[].type = "experimental-x"`（unregistered）。
+2. Client SDK 尝试解析。
+
+Expected:
+
+- Client MUST 报 `unknown_focus_type` 并拒绝把该 focus 用作 session_focus；MUST NOT 把 `backend_token` 透传到任意 SDK。
+
+### 12.7 E2EE Key Source — MLS Exporter Only
+
+`vector_id`: `cx.vector.media_binding.e2ee_key_source.v1`
+
+Steps:
+
+1. LiveKit Cloud key escrow 试图通过 backend channel 注入 SFrame key。
+2. Client binding adapter 收到非 §10.5.0 来源的 key。
+
+Expected:
+
+- Client MUST 拒绝该 key 并报 `e2ee_key_source_unauthorised`。
+- 唯一合法 key 来源是 MLS-Exporter（label `cx-rtc-frame-key/v1`, length=19 bytes, Context="", KDF.Nh=32 bytes）。
+
+### 12.8 Participant Identity — Cross-Check
+
+`vector_id`: `cx.vector.media_binding.participant_identity_unrecognised.v1`
+
+Steps:
+
+1. Backend signal `ParticipantConnected` with `participant_identity=cx:rtcpart:<unknown>`，无对应 `cx.call.state.participants[]` 项。
+
+Expected:
+
+- Client MUST 拒绝为该 participant 建立媒体流（不收音、不订阅 video），报 `participant_identity_unrecognised`。
+
+### 12.9 Recording Artifact — Via Contrix Blob Pipeline
+
+`vector_id`: `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1`
+
+Steps:
+
+1. LiveKit Egress 配置指向非 Contrix endpoint（如 `s3://livekit-cloud-recordings/...`）。
+2. Recording 完成。
+
+Expected:
+
+- Client MUST 检测 Egress destination 不是 Contrix media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
+- 合法路径：Egress → Contrix blob upload → `cx.call.state` lifecycle `state="recording_ready"` + blob hash。

@@ -3839,6 +3839,202 @@ paths:
             `capability_denied` or `policy_violation` — caller cannot broadcast
             this signal in the Realm, or the effective read-receipt policy
             disables `cx.receipt.read`.
+  /rtc/token:
+    post:
+      operationId: cx.call.media.token_exchange
+      security:
+      - bearerAuth: []
+      summary: Exchange Contrix capability proof for a backend media token.
+      description: |
+        Media service token exchange operation (CXP-0010,
+        zh/crypto-media/webrtc-signaling.md §6.4). Issues a short-lived
+        (TTL ≤ 600s, SHOULD ≤ 300s) backend_token + participant_binding for
+        joining a focus declared in `cx.realm.media_service.foci[]`.
+
+        Same wire across all backend types (livekit / mediasoup / janus /
+        contrix-native); only `backend_token` shape is type-specific and opaque
+        to the protocol layer (parsed by backend SDK only).
+
+        Token issuer MUST be one of the Realm-authorized media service DIDs;
+        clients MUST reject otherwise (`token_issuer_unauthorised`). Issuer
+        MUST validate: device proof, `cx.call.join` capability, focus_id
+        membership in current `foci[]`, session_focus persistence, MLS
+        governance binding policy_root freshness, and `media_service_decrypts`
+        pre-conditions (§10.5.1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - realm_id
+              - call_id
+              - actor_id
+              - device_id
+              - focus_id
+              properties:
+                realm_id:
+                  type: string
+                  pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                call_id:
+                  type: string
+                  pattern: ^cx:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                actor_id:
+                  type: string
+                  pattern: '^did:'
+                device_id:
+                  type: string
+                  pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                focus_id:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                capability_refs:
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                desired_media:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    audio:
+                      type: boolean
+                    video:
+                      type: boolean
+                    screen:
+                      type: boolean
+              additionalProperties: false
+      responses:
+        '200':
+          description: Token exchange accepted; backend_token + participant_binding returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - focus_id
+                - type
+                - connect_url
+                - backend_token
+                - participant_identity
+                - participant_binding
+                - expires_at
+                - service_signature
+                properties:
+                  focus_id:
+                    type: string
+                    minLength: 1
+                    maxLength: 64
+                  type:
+                    type: string
+                    description: Backend binding type identifier (livekit / contrix-native / etc.).
+                    enum:
+                    - livekit
+                    - mediasoup
+                    - janus
+                    - contrix-native
+                    - moq-relay
+                  connect_url:
+                    type: string
+                    format: uri
+                  backend_token:
+                    type: string
+                    description: Opaque to Contrix protocol; type-specific (e.g. LiveKit JWT).
+                    minLength: 1
+                  participant_identity:
+                    type: string
+                    description: SFU-local short handle, scope `(call_id, focus_id, sfu_did)`. UUIDv7-form rtcpart typed ID.
+                    pattern: ^cx:rtcpart:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                  participant_binding:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - scheme
+                    - realm_id
+                    - call_id
+                    - focus_id
+                    - actor_id
+                    - device_id
+                    - participant_identity
+                    - issued_at
+                    - expires_at
+                    - issuer_kid
+                    - sig
+                    properties:
+                      scheme:
+                        const: cx.media.participant_binding.v1
+                      realm_id:
+                        type: string
+                        pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                      call_id:
+                        type: string
+                        pattern: ^cx:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                      focus_id:
+                        type: string
+                        minLength: 1
+                        maxLength: 64
+                      actor_id:
+                        type: string
+                        pattern: '^did:'
+                      device_id:
+                        type: string
+                        pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                      participant_identity:
+                        type: string
+                        pattern: ^cx:rtcpart:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                      issued_at:
+                        type: string
+                        format: date-time
+                      expires_at:
+                        type: string
+                        format: date-time
+                      issuer_kid:
+                        type: string
+                        pattern: ^did:[a-z0-9]+:[^\s]+#.+$
+                      sig:
+                        type: string
+                        minLength: 1
+                  expires_at:
+                    type: string
+                    format: date-time
+                  service_signature:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - kid
+                    - sig
+                    properties:
+                      kid:
+                        type: string
+                        pattern: ^did:[a-z0-9]+:[^\s]+#.+$
+                      sig:
+                        type: string
+                additionalProperties: false
+        '403':
+          description: |
+            `capability_denied` — actor lacks `cx.call.join` or
+            requested `desired_media` exceeds granted sub-capabilities; or
+            `token_issuer_unauthorised` when the issuing DID is not registered
+            in `cx.realm.media_service.service_id`.
+        '409':
+          description: |
+            `focus_mismatch` — requested `focus_id` differs from the
+            already-committed `cx.call.state.session_focus`; clients MUST
+            re-target the established focus rather than retrying.
+        '412':
+          description: |
+            `mls_governance_binding_stale` — current MLS epoch policy_root
+            does not cover the `cx.realm.media_service` cell; or
+            `media_plaintext_service_not_authorised` for SFUs negotiating
+            decryption role without `plaintext_visible_services` entry.
+        '422':
+          description: |
+            `unknown_focus_type` — `focus_id` resolves to a `foci[]` entry
+            whose `type` is unsupported by this token issuer; or
+            `legacy_single_endpoint_media_service` (v1.1+) when the Realm
+            still uses the deprecated single-`sfu_endpoint` shape.
   /account/subscribe:
     get:
       operationId: cx.account.subscribe

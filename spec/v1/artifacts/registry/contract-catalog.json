@@ -2229,6 +2229,13 @@
         "description": "Call/session ID"
       },
       {
+        "kind": "rtcpart",
+        "category": "media",
+        "status": "active",
+        "wire_form": "cx:rtcpart:<uuid>",
+        "description": "SFU-local participant handle (CXP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `cx.call.state.participants[].participant_identity` and in `participant_binding`. Implementations MAY render the derivation output as UUIDv7 (preferred) or any 16-byte token serialized in the canonical UUID hex form."
+      },
+      {
         "kind": "capability",
         "category": "authz",
         "status": "active",
@@ -2522,7 +2529,8 @@
           "cx.account.subscribe",
           "cx.account.cursor_revoke",
           "cx.ephemeral.send",
-          "cx.snapshot.head"
+          "cx.snapshot.head",
+          "cx.call.media.token_exchange"
         ]
       },
       {
@@ -3023,6 +3031,13 @@
         "grpc": "Ephemeral/Send",
         "mq": "ephemeral.send",
         "notes": "Canonical broadcast ephemeral send operation for cx.schema.ephemeral_envelope.v1. Carries cx.presence, cx.typing, cx.receipt.read, and cx.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier."
+      },
+      {
+        "operation_id": "cx.call.media.token_exchange",
+        "http": "POST /rtc/token",
+        "grpc": "CallMedia/TokenExchange",
+        "mq": "call.media.token_exchange",
+        "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in cx.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / contrix-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/webrtc-signaling.md §6.4."
       },
       {
         "operation_id": "cx.identity.describe_registry",
@@ -4633,6 +4648,57 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.call.join",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.state"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.call.screen_share",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.state"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.call.record",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.recording.start",
+          "cx.call.state"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.call.transcribe",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.state"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.call.moderate",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.state"
+        ],
         "profile": null
       },
       {

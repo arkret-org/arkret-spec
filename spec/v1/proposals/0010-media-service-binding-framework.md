@@ -1,15 +1,27 @@
 ---
 cxp: CXP-0010
 title: Media Service Binding Framework（媒体服务 Backend 绑定框架）
-status: draft
+status: accepted
 created: 2026-05-27
+accepted: 2026-05-27
+merged_to:
+  - spec/v1/zh/crypto-media/webrtc-signaling.md
+  - spec/v1/zh/crypto-media/bindings/livekit.md
+  - spec/v1/zh/crypto-media/bindings/contrix-native.md
+  - spec/v1/artifacts/registry/event-kind-registry.json
+  - spec/v1/artifacts/registry/error-code-registry.json
+  - spec/v1/artifacts/registry/operation-registry.json
+  - spec/v1/artifacts/registry/vector-registry.json
+  - spec/v1/artifacts/profiles/conformance-profiles.json
 authors:
   - chris@acroidea.com
 depends_on: []
 discussion: <pending>
 ---
 
-> **Status: draft — outline only.** 本文件是大纲草案，仅勾勒章节骨架、关键设计决策与 open questions，wire schema 细节延后到 review 阶段。
+> **Status: accepted (merged 2026-05-27).** 本提案已合入 normative spec;`merged_to` 列出主要落地文件。
+>
+> This proposal file is retained as historical design rationale. Future updates to media service binding framework MUST land directly on `zh/crypto-media/webrtc-signaling.md` and the `bindings/` directory, not here.
 >
 > 本提案不替代 [`spec/v1/zh/crypto-media/webrtc-signaling.md`](../zh/crypto-media/webrtc-signaling.md)，而是在其上方补一层 **transport-agnostic 的媒体服务发现、凭证交换与 focus 选择**抽象，让 LiveKit / mediasoup / Janus / 未来的 MoQ-relay 都可以作为可替换 backend，而不污染 Contrix 核心信令模型。
 

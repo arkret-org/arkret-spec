@@ -68,7 +68,8 @@
         "cx.account.subscribe",
         "cx.account.cursor_revoke",
         "cx.ephemeral.send",
-        "cx.snapshot.head"
+        "cx.snapshot.head",
+        "cx.call.media.token_exchange"
       ]
     },
     {
@@ -569,6 +570,13 @@
       "grpc": "Ephemeral/Send",
       "mq": "ephemeral.send",
       "notes": "Canonical broadcast ephemeral send operation for cx.schema.ephemeral_envelope.v1. Carries cx.presence, cx.typing, cx.receipt.read, and cx.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier."
+    },
+    {
+      "operation_id": "cx.call.media.token_exchange",
+      "http": "POST /rtc/token",
+      "grpc": "CallMedia/TokenExchange",
+      "mq": "call.media.token_exchange",
+      "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in cx.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / contrix-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/webrtc-signaling.md §6.4."
     },
     {
       "operation_id": "cx.identity.describe_registry",

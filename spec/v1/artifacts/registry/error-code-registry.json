@@ -1259,6 +1259,81 @@
       "description": "Returned in three surfaces. (1) `event_envelope` / `auth_decision`: an Actor Profile update declares an `accountable_to[]` entry without a corresponding active `cx.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Deployment policy chooses between reducer reject with this reason or silently strip the unverified entry + emit audit log; the `cx.profile.accountable_to.strict_reject.v1` profile forces the reject path. See zh/models/actor.md §3.3.1. (2) `service_call`: returned by orchestrator HTTP operations that fan-out an accountability grant — `cx.agent.provision` rejects when the controller cannot present an issuable accountability grant for the new agent principal (CXP-0008 §4.5), and `cx.agent.resume` rejects when the controller's accountability grant over the agent has been revoked or has lapsed its freshness window since `cx.agent.pause` (CXP-0008 §4.11). HTTP callers MUST treat this as a precondition-class failure, not transient."
     },
     {
+      "code": "focus_mismatch",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "Media token exchange (cx.call.media.token_exchange) requested a `focus_id` different from the already-committed `cx.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/webrtc-signaling.md §6.4 and §10.2."
+    },
+    {
+      "code": "unknown_focus_type",
+      "applies_to": [
+        "service_call",
+        "schema_validation"
+      ],
+      "description": "A `cx.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `contrix-native` / `moq-relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/webrtc-signaling.md §6.1."
+    },
+    {
+      "code": "token_issuer_unauthorised",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A media token's `service_signature.kid` or `participant_binding.issuer_kid` resolves to a service DID that does NOT appear in the current epoch `cx.realm.media_service.service_id` (or the foci[]-aligned token endpoint anchor). Clients MUST reject — this closes the attack where any service can forge a focus join token. See zh/crypto-media/webrtc-signaling.md §6.4."
+    },
+    {
+      "code": "participant_binding_invalid",
+      "applies_to": [
+        "event_envelope",
+        "service_call"
+      ],
+      "description": "A `cx.call.state` participant's `participant_binding` failed one of: (a) issuer_kid resolution against current `cx.realm.media_service.service_id`; (b) field consistency with the participant entry (`realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity`); (c) `expires_at` freshness vs event `created_at`; (d) signature verification. Reducer MUST `failed_precondition`. See zh/crypto-media/webrtc-signaling.md §11.1."
+    },
+    {
+      "code": "participant_identity_unrecognised",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Backend (LiveKit / SFU / etc.) signalled `ParticipantConnected` with a `participant_identity` that has no matching entry in `cx.call.state.participants[]` (or matches an entry whose `participant_binding` fails verification). Client MUST refuse to establish media streams for that participant — this closes the attack where a compromised backend tries to inject unauthorized participants into the conference. See zh/crypto-media/webrtc-signaling.md §10.4."
+    },
+    {
+      "code": "session_focus_already_committed",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A subsequent `cx.call.state` event attempted to write a `session_focus` value different from the already-committed one. The reducer MUST `failed_precondition` — `session_focus` is write-once per call lifecycle; in-session focus migration is not supported in v1. See zh/crypto-media/webrtc-signaling.md §11.1."
+    },
+    {
+      "code": "e2ee_key_source_unauthorised",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "A backend media SDK supplied an SFrame / frame encryption key from a source other than the Contrix MLS exporter (label `cx-rtc-frame-key/v1`). Clients MUST reject and refuse to publish / subscribe media. Closes the attack where backend cloud key escrow could intercept ostensibly-E2EE media. See zh/crypto-media/webrtc-signaling.md §10.5.0."
+    },
+    {
+      "code": "recording_artifact_pipeline_bypassed",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Contrix-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Contrix media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/webrtc-signaling.md §13 and proposals/0010-media-service-binding-framework.md §4.7."
+    },
+    {
+      "code": "legacy_single_endpoint_media_service",
+      "applies_to": [
+        "service_call",
+        "schema_validation"
+      ],
+      "description": "A `cx.realm.media_service` event still uses the v1.0 legacy single-`sfu_endpoint` shape after v1.1. In v1 cycle servers SHOULD normalize the legacy shape to `foci=[{focus_id:\"legacy\", type:\"contrix-native\", ...}]` with audit log; starting v1.1 this MUST be rejected with `failed_precondition` and this `reason`. See zh/crypto-media/webrtc-signaling.md §6.1."
+    },
+    {
+      "code": "focus_unavailable_for_client",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Client cannot use the committed `session_focus` (e.g. focus not in local `foci_preferred[]`, region restricted, capability mismatch). Client MAY fail closed without joining the call rather than silently degrading; clients MUST NOT pick a different focus to bypass `session_focus_no_split_brain`. See zh/crypto-media/webrtc-signaling.md §10.2."
+    },
+    {
       "code": "verification_method_principal_mismatch",
       "applies_to": [
         "auth_decision",
@@ -1833,7 +1908,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without being listed in Realm policy plaintext_visible_services[] with purpose=media_plaintext, OR without policy_root covering media_service_decrypts=true. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/webrtc-signaling.md §10.3.1."
+      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without being listed in Realm policy plaintext_visible_services[] with purpose=media_plaintext, OR without policy_root covering media_service_decrypts=true. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/webrtc-signaling.md §10.5.1."
     },
     {
       "code": "mls_governance_binding_stale",
@@ -1841,7 +1916,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Current MLS epoch's governance binding policy_root does not cover the Realm policy components the client wants to act on (e.g. media_service_decrypts toggle, plaintext_visible_services). Receivers MUST refuse to act until a fresh commit updates policy_root. See zh/crypto-media/webrtc-signaling.md §10.3.1 and zh/crypto-media/encryption-and-audit.md §3.2."
+      "description": "Current MLS epoch's governance binding policy_root does not cover the Realm policy components the client wants to act on (e.g. media_service_decrypts toggle, plaintext_visible_services). Receivers MUST refuse to act until a fresh commit updates policy_root. See zh/crypto-media/webrtc-signaling.md §10.5.1 and zh/crypto-media/encryption-and-audit.md §3.2."
     },
     {
       "code": "mimi_governance_binding_missing",

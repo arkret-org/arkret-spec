@@ -25,7 +25,7 @@ CXP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 | [CXP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | `accepted` | 2026-05-25 | 2026-05-25 → accepted (merged 2026-05-25 → `zh/models/circle.md`) | — |
 | [CXP-0008](./0008-personal-agent-provisioning.md) | 个人 AI Agent 创建与运行时认证 | `accepted` | 2026-05-26 | 2026-05-26 → accepted (merged → `zh/identity/key-management.md` 等) | [`discussion`](https://github.com/contrix-dev/contrix-spec/discussions/cxp-0008) |
 | [CXP-0009](./0009-agent-sidecar-thread.md) | Agent Sidecar Thread（Agent 旁路私聊线程） | `accepted` | 2026-05-26 | 2026-05-26 → accepted (merged → `zh/models/circle.md` 等) | [`discussion`](https://github.com/contrix-dev/contrix-spec/discussions/cxp-0009) |
-| [CXP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | `draft` | 2026-05-27 | 2026-05-27 → draft | `<pending>` |
+| [CXP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | `accepted` | 2026-05-27 | 2026-05-27 → accepted (merged → `zh/crypto-media/webrtc-signaling.md` 与 `bindings/`) | `<pending>` |
 
 ## 3. 状态转移汇总
 
@@ -44,15 +44,15 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 - `0007`: `draft` → `review` → `accepted` (2026-05-25 merged into `zh/models/circle.md`)
 - `0008`: `draft` → `accepted` (2026-05-26 merged into identity / agent runtime normative files)
 - `0009`: `draft` → `accepted` (2026-05-26 merged into sidecar thread normative files; accepted in lockstep with CXP-0008)
-- `0010`: `draft` (2026-05-27 created; pending discussion link)
+- `0010`: `draft` → `accepted` (2026-05-27 merged into `zh/crypto-media/webrtc-signaling.md` 与 `zh/crypto-media/bindings/`)
 
 ## 4. 状态健康度指标
 
 | 指标 | 当前值 | 阈值 / 备注 |
 | --- | --- | --- |
 | `total_proposals` | 10 | — |
-| `active_count` (`draft` + `review`) | 1 | CXP-0010 |
-| `accepted_count` | 3 | CXP-0007 (Circle), CXP-0008 (Personal Agent), CXP-0009 (Agent Sidecar Thread) |
+| `active_count` (`draft` + `review`) | 0 | — |
+| `accepted_count` | 4 | CXP-0007 (Circle), CXP-0008 (Personal Agent), CXP-0009 (Agent Sidecar Thread), CXP-0010 (Media Service Binding Framework) |
 | `deferred_to_v11_count` | 6 | 0001–0006 |
 | `rejected_count` | 0 | — |
 | `withdrawn_count` | 0 | — |

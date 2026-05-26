@@ -340,6 +340,20 @@
       ]
     },
     {
+      "operation_id": "cx.call.media.token_exchange",
+      "http_alias": "POST /api/v1/rtc/token",
+      "operation_specific": [
+        "focus_mismatch",
+        "unknown_focus_type",
+        "token_issuer_unauthorised",
+        "mls_governance_binding_stale",
+        "media_plaintext_service_not_authorised",
+        "capability_denied",
+        "legacy_single_endpoint_media_service"
+      ],
+      "description": "Media service token exchange (CXP-0010, zh/crypto-media/webrtc-signaling.md §6.4). Token issuer validates device proof / bearer, cx.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. v1.1 servers also return legacy_single_endpoint_media_service when callers reference a remnant sfu_endpoint cx.realm.media_service shape; in v1 cycle servers MAY auto-normalize and proceed."
+    },
+    {
       "operation_id": "cx.account.issue_session_grant",
       "http_alias": "POST /auth/account/session-grants",
       "operation_specific": [
