@@ -22,7 +22,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "schema": "cx.schema.blob.v1",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "sha256": "hex...",
-  "size": 1234,
+  "size_bytes": 1234,
   "media_type": "image/png",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
@@ -38,7 +38,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `schema` | `cx.schema.blob.v1` | required | Blob metadata schema discriminator。 |
 | `realm_id` | `id:realm` | conditional | Owning Realm。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Realm 服务 blob（例如 avatar 公共预览）才可省略。 |
 | `sha256` | `string` | required | 服务端计算的内容 hash。 |
-| `size` | `int` | required | 字节大小。 |
+| `size_bytes` | `int` | required | 字节大小。 |
 | `media_type` | `string` | optional | 上传声明或服务端校正后的 MIME。缺省为 `application/octet-stream`。 |
 | `created_by` | `did` | required | 上传 Actor 或 service DID。 |
 | `created_at` | `datetime` | required | 服务端接收时间。 |
@@ -47,7 +47,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
 | `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |
 
-命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的 `size` 固定表示字节数，沿用文件 / 媒体 descriptor 的短名；新增的限额、统计或非媒体 descriptor 字节数字段 SHOULD 使用 `_bytes` 后缀（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。
+命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。
 
 上传规则：
 
@@ -72,7 +72,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "epoch": 42,
   "nonce": "base64url...",
   "ciphertext_digest": "sha256:...",
-  "size": 1234,
+  "size_bytes": 1234,
   "media_type": "image/png"
 }
 ```
@@ -475,7 +475,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 Blob service SHOULD:
 
-- validate declared size
+- validate declared `size_bytes`
 - compute digest server-side
 - reject digest mismatch
 - store MIME metadata as untrusted

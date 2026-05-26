@@ -3,7 +3,7 @@ title: Sovereign Deployment and External Collaboration
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-26
 sidebar:
   label: Sovereign Deployment
 ---
@@ -195,7 +195,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "schema": "cx.schema.realm.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
-      "created_by_principal": "did:web:defense.example",
+      "created_by": "did:web:defense.example",
       "trust_domain": "cx:trust_domain:did.webvh.defense.example",
       "owning_organizations": [
         "did:web:defense.example"

@@ -425,8 +425,8 @@
     "plaintext_data_class": {
       "type": "string",
       "enum": [
-        "message_body",
-        "flow_body",
+        "message_content",
+        "flow_content",
         "attachment_plaintext",
         "attachment_preview",
         "thumbnail",

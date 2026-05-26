@@ -1858,7 +1858,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A non-bootstrap cx.device.authorize event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by_principal does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §5.0.3."
+      "description": "A non-bootstrap cx.device.authorize event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §5.0.3."
     },
     {
       "code": "cell_in_bottom_state",
@@ -1978,12 +1978,12 @@
       "description": "cx.schema.key_backup.v1 envelope chain failed verification: a `supersedes_digest` does not match the canonical_json digest of its predecessor, or a non-genesis envelope is missing a predecessor accessible to the caller. See zh/identity/key-management.md §7.6 and zh/crypto-media/device-lifecycle.md §12 / §12.1."
     },
     {
-      "code": "series_sequence_not_monotonic",
+      "code": "series_seq_not_monotonic",
       "applies_to": [
         "schema_validation",
         "state_resolution"
       ],
-      "description": "A PUT /api/v1/keys/backups/{backup_id} request whose `series_sequence` is not strictly greater than the current maximum sequence within the same (actor_id, series_id), or whose genesis envelope sets series_sequence != 0. See zh/crypto-media/device-lifecycle.md §12.1."
+      "description": "A PUT /api/v1/keys/backups/{backup_id} request whose `series_seq` is not strictly greater than the current maximum sequence within the same (actor_id, series_id), or whose genesis envelope sets series_seq != 0. See zh/crypto-media/device-lifecycle.md §12.1."
     },
     {
       "code": "series_predecessor_not_found",

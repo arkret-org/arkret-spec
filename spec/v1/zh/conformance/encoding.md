@@ -55,10 +55,10 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` �
 | Connection identifier（email / phone canonical 形态） | ✓ | ✓ | ✓（local part）|
 | Organization name | ✓ | ✓ | ✓ |
 | Display name | ✓ | ✓ | 仅 SHOULD（默认开启 confusable warning，用户 opt-out）|
-| Title / summary / body 等正文字段 | ✓ | — | — |
+| Title / summary / content body 等正文字段 | ✓ | — | — |
 | Schema id / event kind / cell family 等 protocol identifier | ✓ | ASCII-only（schema 已 enforce） | — |
 
-为什么把 NFKC + confusable 限定在身份相关字段而不是全字段：正文（Flow.body、Message.content）允许任何脚本混排是合理的（中文夹拉丁、阿拉伯夹希伯来），不能强制 single-script。但身份相关字段是 trust UI 决策点，必须 reject 同形字攻击。
+为什么把 NFKC + confusable 限定在身份相关字段而不是全字段：正文（Flow.content、Message.content）允许任何脚本混排是合理的（中文夹拉丁、阿拉伯夹希伯来），不能强制 single-script。但身份相关字段是 trust UI 决策点，必须 reject 同形字攻击。
 
 ### 2.2 备用 canonical encoding (profile-gated)
 

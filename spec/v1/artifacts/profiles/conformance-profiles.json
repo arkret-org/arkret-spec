@@ -2664,7 +2664,7 @@
     },
     "cx.profile.key_backup.memory_hard.v1": {
       "inherits": [],
-      "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_sequence / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
+      "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_seq / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
       "required_endpoints": [
         "cx.keys.backups.put",
         "cx.keys.backups.list",

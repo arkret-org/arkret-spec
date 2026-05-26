@@ -49,8 +49,8 @@ Schema id: `cx.schema.flow.v1`
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `title` | yes | `string` | 1..512 chars。 | 标题。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 一句话/一段话简介。 |
-| `body` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
-| `encrypted_payload` | conditional | `EncryptedPayload` | 与 `body` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
+| `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
+| `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的加密 scope（含所有 track）。未设置时 Flow 落在 Realm-default encryption scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 MLS group 与 membership 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
 | `fields` | no | `object` |  | 扩展字段。 |
@@ -72,7 +72,7 @@ Schema id: `cx.schema.flow.v1`
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "title": "支付重构",
   "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
-  "body": {
+  "content": {
     "kind": "cx.content.text",
     "body": "Please finish the final review.",
     "format": "markdown",
@@ -135,7 +135,7 @@ Schema id: `cx.schema.flow.v1`
 - 该 Message 受 `discussion` track 的权限、E2EE、redaction、editing 规则约束（与所有其他讨论同级），可以被引用、回应、撤回。
 - 审计归属由 `cx.flow.stage.set` event 自身的 `actor_id` / `created_at` 提供——事件日志就是真源，不需要在对象上再开一个 256-char 黑盒字段。
 
-**Capability**：`cx.flow.stage.set`（low risk_tier）—— 允许把推进 Flow 进度的权限授予 reporter / assignee / participant，而不必给完整 `cx.flow.update`（后者可改 title / body / fields）。
+**Capability**：`cx.flow.stage.set`（low risk_tier）—— 允许把推进 Flow 进度的权限授予 reporter / assignee / participant，而不必给完整 `cx.flow.update`（后者可改 title / content / fields）。
 
 **Reducer 硬约束**（来自 [common-fields.md §5.3.3](./common-fields.md)）：
 
@@ -180,12 +180,12 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 
 - `title`
 - `summary`
-- `body`
+- `content`
 - `fields`
 - 状态推进字段
 - 结构化业务字段
 
-`body` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `fields`，不要把可归约状态只藏在富文本正文中。
+`content` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `fields`，不要把可归约状态只藏在富文本正文中。
 
 `synthesis` 是可选 track：`tracks` map 不要求声明它。「只聊天不归纳」的 Flow（仅 `discussion`）是合法形态，见 §9.4 与 [`overview/current-model.md` §3](../overview/current-model.md)。若 Flow 同时声明了 `synthesis` 与 `discussion` 且未显式标 primary，`synthesis` 按 §4.5 第 2 条派生为 primary。关闭已存在的 `synthesis` track 与关闭任何 track 同形：在 `cx.flow.tracks.update` 同一 patch 中写 `tracks.synthesis.enabled: set false`；若当前 primary 是 `synthesis`，同一 patch 必须把 primary 转给另一个 active track（§4.6 / §4.7 / §4.8）。
 

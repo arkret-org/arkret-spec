@@ -14,9 +14,9 @@
     "created_at"
   ],
   "not": {
-    "required": [
-      "body",
-      "encrypted_payload"
+    "anyOf": [
+      { "required": ["body"], "$comment": "legacy Flow top-level field; canonical name is content" },
+      { "required": ["content", "encrypted_payload"] }
     ]
   },
   "properties": {
@@ -40,7 +40,7 @@
       "type": "string",
       "maxLength": 2048
     },
-    "body": {
+    "content": {
       "$ref": "#/$defs/content_block"
     },
     "encrypted_payload": {
@@ -176,10 +176,11 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Reject legacy discriminator `type` and legacy composite child array name `blocks`; canonical content blocks use `kind` and composite children use `parts`.",
+        "$comment": "Reject legacy discriminator `type`, legacy composite child array name `blocks`, and byte-count field `size`; canonical content blocks use `kind`, composite children use `parts`, and byte counts use `size_bytes`.",
         "anyOf": [
           { "required": ["type"] },
-          { "required": ["blocks"] }
+          { "required": ["blocks"] },
+          { "required": ["size"], "$comment": "byte counts use size_bytes" }
         ]
       },
       "allOf": [

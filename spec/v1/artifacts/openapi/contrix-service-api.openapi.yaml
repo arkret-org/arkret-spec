@@ -379,8 +379,8 @@ components:
               items:
                 type: string
                 enum:
-                  - message_body
-                  - flow_body
+                  - message_content
+                  - flow_content
                   - attachment_plaintext
                   - attachment_preview
                   - thumbnail
@@ -893,7 +893,7 @@ components:
 
     SnapshotBootstrap:
       type: object
-      description: Optional cx.events.query acceleration hint for federation pull / backfill. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (these fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
+      description: Optional cx.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
       required:
       - snapshot_ref
       - state_digest
@@ -905,6 +905,7 @@ components:
       properties:
         snapshot_ref:
           type: string
+          description: External pointer to the Snapshot manifest; MUST equal schemas/snapshot.schema.json#/properties/id.
         state_digest:
           type: string
         snapshot_frontier:
@@ -929,7 +930,7 @@ components:
 
     SnapshotHeadResponse:
       type: object
-      description: Result of cx.snapshot.head — a signed snapshot pointer for fast bootstrap. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.
+      description: Result of cx.snapshot.head — a signed snapshot pointer for fast bootstrap. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.
       required:
       - snapshot_ref
       - state_digest
@@ -942,6 +943,7 @@ components:
       properties:
         snapshot_ref:
           type: string
+          description: External pointer to the Snapshot manifest; MUST equal schemas/snapshot.schema.json#/properties/id.
         state_digest:
           type: string
         frontier:
@@ -4572,7 +4574,7 @@ paths:
       - in: query
         name: series_id
         required: false
-        description: Filter by backup series. When present, response metadata is ordered by series_sequence ascending so clients can rebuild the chain.
+        description: Filter by backup series. When present, response metadata is ordered by series_seq ascending so clients can rebuild the chain.
         schema:
           type: string
           pattern: ^cx:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$

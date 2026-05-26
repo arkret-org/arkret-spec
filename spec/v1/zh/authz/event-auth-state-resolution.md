@@ -350,7 +350,7 @@ v1 封闭核心集（core）：
 | Type | Join 语义 | 用途 | 授权层禁用 |
 | --- | --- | --- | --- |
 | `lww_register` | 按 anchor-derived order 选最近 set；同 anchor batch 并发用 deterministic tiebreaker。 | UI affordance：Flow.title / summary、Morph 非关键字段、 emoji shortcuts、cosmetic preferences。 | **MUST NOT 作授权、policy、membership、anchorer、capability cell**。schema 静态拒绝。|
-| `rga` | Replicated Growable Array：插入 op 携带 `(predecessor_id, element_id=issuer:seq)`，删除 op 写 tombstone；按 (anchor index, issuer, seq) 全序确定性合并。 | 协作文本编辑（Flow.body 富文本、Morph 文档段、Markdown 块的字符级编辑）、可插入的有序列表。 | **MUST NOT 作授权根**；只用于 content cell。|
+| `rga` | Replicated Growable Array：插入 op 携带 `(predecessor_id, element_id=issuer:seq)`，删除 op 写 tombstone；按 (anchor index, issuer, seq) 全序确定性合并。 | 协作文本编辑（Flow.content 富文本、Morph 文档段、Markdown 块的字符级编辑）、可插入的有序列表。 | **MUST NOT 作授权根**；只用于 content cell。|
 
 `lww_register` 与 `rga` 的"时间"由 Anchor 批次索引与批次内确定性 tiebreaker 提供，**不**读取 actor 自报 HLC 或外部 wall clock。这是它们被允许出现在 conformance core 之外但仍是封闭代数的前提。
 
@@ -532,7 +532,7 @@ validate_op(op):
 
 membership / lifecycle / invite-approval 多用 `bottom=reject`。
 
-**Realm bootstrap exception**: `cx.realm.create` 的 reducer 既是 Realm metadata 的 genesis, 也是 `created_by_principal` 首份成员资格的 genesis — 二者必须原子完成（详见 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-cxrealmcreate-reducer-bootstrapnormative)）。任何后续 reducer / authz layer 在判定"`actor` 是否是 Realm 成员"时, MUST 以 `cx.component.member.state.v1` cell 的 reducer view 为准, 而该 cell 在 `cx.realm.create` commit 之后已经包含 `created_by_principal`。"显式 `cx.member.state{join}` event 必须先到"是错误读法; create event 本身就是 genesis member 凭证。
+**Realm bootstrap exception**: `cx.realm.create` 的 reducer 既是 Realm metadata 的 genesis, 也是 `created_by` 首份成员资格的 genesis — 二者必须原子完成（详见 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-cxrealmcreate-reducer-bootstrapnormative)）。任何后续 reducer / authz layer 在判定"`actor` 是否是 Realm 成员"时, MUST 以 `cx.component.member.state.v1` cell 的 reducer view 为准, 而该 cell 在 `cx.realm.create` commit 之后已经包含 `created_by`。"显式 `cx.member.state{join}` event 必须先到"是错误读法; create event 本身就是 genesis member 凭证。
 
 #### 5.3.5 `counter`
 

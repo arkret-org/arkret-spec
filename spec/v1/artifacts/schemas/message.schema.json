@@ -230,10 +230,11 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Mirror of event-payload.schema.json $defs.content_block: reject legacy discriminator `type` (canonical: `kind`) and legacy composite child array name `blocks` (canonical: `parts`). Keeps materialized Message and Event payload schemas in lockstep so that the materialized Message.content cannot smuggle through wire-forbidden field names.",
+        "$comment": "Mirror of event-payload.schema.json $defs.content_block: reject legacy discriminator `type` (canonical: `kind`), legacy composite child array name `blocks` (canonical: `parts`), and byte-count field `size` (canonical: `size_bytes`). Keeps materialized Message and Event payload schemas in lockstep so that the materialized Message.content cannot smuggle through wire-forbidden field names.",
         "anyOf": [
           { "required": ["type"] },
-          { "required": ["blocks"] }
+          { "required": ["blocks"] },
+          { "required": ["size"], "$comment": "byte counts use size_bytes" }
         ]
       },
       "allOf": [

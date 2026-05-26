@@ -363,10 +363,10 @@ Signature: ...
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `snapshot_ref` | `id` | optional | 快照标识。 |
+| `snapshot_ref` | `id` | optional | 外部快照指针，MUST 等于 Snapshot manifest 的 `id`。 |
 | `state_digest` | `string` | optional | 快照状态根，必须与快照 frontier 对应。 |
 | `snapshot_frontier` | `id[]` | optional | 需要从该 frontier 之后开始增量回放。 |
-| `signature` | `object` | optional | 标准 Snapshot detached proof，覆盖 `snapshot_ref`、`state_digest`、`snapshot_frontier` 和 reducer/schema profile。 |
+| `signature` | `object` | optional | 标准 Snapshot detached proof；接收方 MUST 验证该 proof 覆盖的 manifest `id` 与本对象的 `snapshot_ref` 相等。 |
 | `signature.verification_method` | `string` | optional | 用于信任锚点的 DID verification method。 |
 | `signature.alg` | `string` | optional | 签名算法。 |
 | `signature.jws` | `string` | optional | detached JWS。 |
@@ -781,7 +781,7 @@ Authorization: <service_signature>
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `snapshot_bootstrap` | `object` | optional | 可选，携带可验证的快照入口，不改变操作集合语义。 |
-| `snapshot_bootstrap.snapshot_ref` | `id` | optional | 触发本次增量前可选的 snapshot id。 |
+| `snapshot_bootstrap.snapshot_ref` | `id` | optional | 触发本次增量前可选的 snapshot 外部指针，MUST 等于 Snapshot manifest 的 `id`。 |
 | `snapshot_bootstrap.state_digest` | `string` | optional | snapshot 的状态摘要。 |
 | `snapshot_bootstrap.snapshot_frontier` | `id[]` | optional | snapshot 覆盖的 frontier。 |
 | `snapshot_bootstrap.signature` | `object` | optional | 标准 Snapshot detached proof；接收方必须验证签名、state_digest 与 `snapshot_frontier` 一致性。 |

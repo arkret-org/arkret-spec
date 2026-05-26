@@ -281,10 +281,11 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Reject legacy discriminator field name `type` and legacy composite child array name `blocks`. The discriminator is `kind`, the composite child array is `parts` (see schemas/message.schema.json and forbidden-wire-fields.json `blocks/content_block_composite`).",
+        "$comment": "Reject legacy discriminator field name `type`, legacy composite child array name `blocks`, and byte-count field `size`. The discriminator is `kind`, the composite child array is `parts`, and byte counts use `size_bytes` (see schemas/message.schema.json and forbidden-wire-fields.json `blocks/content_block_composite`).",
         "anyOf": [
           { "required": ["type"] },
-          { "required": ["blocks"] }
+          { "required": ["blocks"] },
+          { "required": ["size"], "$comment": "byte counts use size_bytes" }
         ]
       },
       "allOf": [
@@ -496,7 +497,7 @@
     },
     "realm_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by_principal to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
       "required": [
         "object"
       ],
@@ -1469,8 +1470,8 @@
     "plaintext_data_class": {
       "type": "string",
       "enum": [
-        "message_body",
-        "flow_body",
+        "message_content",
+        "flow_content",
         "attachment_plaintext",
         "attachment_preview",
         "thumbnail",

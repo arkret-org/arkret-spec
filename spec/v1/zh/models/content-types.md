@@ -22,7 +22,7 @@ Contrix 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_payload` 字段、Flow 的 `body` / `encrypted_payload` 字段、Flow discussion 摘要以及 Morph 的 `content` / `encrypted_payload` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
+Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_payload` 字段、Flow 的 `content` / `encrypted_payload` 字段、Flow discussion 摘要以及 Morph 的 `content` / `encrypted_payload` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 
@@ -83,13 +83,13 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
   "mime_type": "image/png",
   "width": 1920,
   "height": 1080,
-  "size": 204800,
+  "size_bytes": 204800,
   "thumbnail": {
     "blob_ref": "cx:blob:sha256:d4e5f6...",
     "mime_type": "image/webp",
     "width": 320,
     "height": 180,
-    "size": 12400
+    "size_bytes": 12400
   },
   "alt_text": "Release dashboard showing 3 critical issues"
 }
@@ -101,7 +101,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 | `mime_type` | string | MUST | MIME 类型 |
 | `width` | integer | SHOULD | 像素宽度 |
 | `height` | integer | SHOULD | 像素高度 |
-| `size` | integer | SHOULD | 字节数 |
+| `size_bytes` | integer | SHOULD | 字节数 |
 | `thumbnail` | object | SHOULD | 缩略图信息 |
 | `alt_text` | string | SHOULD | 无障碍访问文本描述 |
 
@@ -116,7 +116,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
   "width": 1280,
   "height": 720,
   "duration_ms": 45000,
-  "size": 10485760,
+  "size_bytes": 10485760,
   "thumbnail": {
     "blob_ref": "cx:blob:sha256:e5f6a7...",
     "mime_type": "image/jpeg",
@@ -139,7 +139,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
   "blob_ref": "cx:blob:sha256:c3d4e5...",
   "mime_type": "audio/ogg",
   "duration_ms": 12000,
-  "size": 96000,
+  "size_bytes": 96000,
   "waveform": [10, 25, 48, 62, 55, 30, 15, 8]
 }
 ```
@@ -156,7 +156,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
   "body": "Q2-financial-report.pdf",
   "blob_ref": "cx:blob:sha256:d4e5f6...",
   "mime_type": "application/pdf",
-  "size": 2097152,
+  "size_bytes": 2097152,
   "filename": "Q2-financial-report.pdf"
 }
 ```
@@ -266,7 +266,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
       "body": "spec-v3.pdf",
       "blob_ref": "cx:blob:sha256:bbb...",
       "mime_type": "application/pdf",
-      "size": 1048576,
+      "size_bytes": 1048576,
       "filename": "spec-v3.pdf"
     }
   ]
@@ -336,7 +336,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 在端到端加密场景下：
 - `content` 字段的完整 JSON 对象被加密为 `encrypted_payload`
-- `encrypted_payload` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`cx.message.create` / `cx.message.revise`、Flow synthesis `body` 和 Morph `content` 使用同一 canonical envelope
+- `encrypted_payload` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`cx.message.create` / `cx.message.revise`、Flow synthesis `content` 和 Morph `content` 使用同一 canonical envelope
 - `body` 字段在密文信封中**不保留明文副本**（防止元数据泄露）
 - 用于推送通知的脱敏摘要由发送者的客户端单独生成并附在明文元数据中（参见 `push-notifications.md`）
 

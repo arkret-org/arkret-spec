@@ -49,7 +49,7 @@
           "minimum": 0
         },
         "event_id": {
-          "$ref": "./event-schema.json#/$defs/eventRef"
+          "$ref": "./event-schema.json#/$defs/event_ref"
         },
         "event_digest": {
           "$ref": "./event-schema.json#/$defs/hash"
@@ -67,7 +67,7 @@
       "items": {
         "oneOf": [
           {
-            "$ref": "./event-schema.json#/$defs/eventRef"
+            "$ref": "./event-schema.json#/$defs/event_ref"
           },
           {
             "$ref": "./event-schema.json#/$defs/hash"

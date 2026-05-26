@@ -783,7 +783,7 @@ Snapshot 是加速层，不是真相源。
 
 Snapshot manifest MUST 包含：
 
-- `snapshot_ref`
+- `id`
 - `realm_id`
 - `reducer_profile`
 - `schema_profile_refs`
@@ -796,7 +796,7 @@ Snapshot manifest MUST 包含：
 
 客户端在采用 Snapshot 前 MUST 验证：
 
-1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`realm_id`、`state_digest`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
+1. `signature` 是标准 detached proof，覆盖 `id`、`realm_id`、`state_digest`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
 2. `signature.verification_method` 对应的 DID 必须是 Realm creator、Realm owner、当前有效 Realm admin、Realm policy 授权的 snapshot issuer 或 witness quorum 成员；该权限 MUST 按 manifest `created_at` 的 as-of auth state 验证，且该 auth state 必须覆盖 snapshot frontier 以及截至 `created_at` 可解析的相关 grant/revoke。若 signer 在 `created_at` 前已被撤销，或 revoke freshness 无法确认，客户端 MUST quarantine / reject snapshot。
 3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。

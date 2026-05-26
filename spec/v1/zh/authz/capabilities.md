@@ -97,7 +97,7 @@ ID 语义：
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "fields_write_allow": ["title", "summary", "body", "fields.review_status"]
+      "fields_write_allow": ["title", "summary", "content", "fields.review_status"]
     }
   ],
   "proofs": [

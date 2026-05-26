@@ -9,7 +9,7 @@
     "backup_class",
     "backup_version",
     "series_id",
-    "series_sequence",
+    "series_seq",
     "created_at",
     "encryption",
     "contents",
@@ -53,7 +53,7 @@
       "pattern": "^cx:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Stable identifier for the chain of envelopes belonging to the same (actor_id, backup_class). MUST be constant across rotations within a series. Receivers use (actor_id, backup_class, series_id) to detect server-side rollback / withholding (see identity/key-management.md §7.6)."
     },
-    "series_sequence": {
+    "series_seq": {
       "type": "integer",
       "minimum": 0,
       "description": "0-based, strictly monotonically increasing sequence number within (actor_id, series_id). Genesis envelope of a series MUST set 0. Receivers MUST reject envelopes whose sequence does not strictly exceed the previously accepted sequence in the same series."
@@ -66,7 +66,7 @@
           "pattern": "^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ],
-      "description": "backup_id of the immediate predecessor in the same series_id. MUST be null for series_sequence=0; MUST be non-null and reference an existing predecessor for series_sequence>0."
+      "description": "backup_id of the immediate predecessor in the same series_id. MUST be null for series_seq=0; MUST be non-null and reference an existing predecessor for series_seq>0."
     },
     "supersedes_digest": {
       "$ref": "#/$defs/hash",
@@ -427,13 +427,13 @@
             { "contains": { "const": "backup_class" } },
             { "contains": { "const": "backup_version" } },
             { "contains": { "const": "series_id" } },
-            { "contains": { "const": "series_sequence" } },
+            { "contains": { "const": "series_seq" } },
             { "contains": { "const": "supersedes" } },
             { "contains": { "const": "encryption" } },
             { "contains": { "const": "contents" } },
             { "contains": { "const": "ciphertext_digest" } }
           ],
-          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_sequence, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest and frontier_ref."
+          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest and frontier_ref."
         }
       },
       "patternProperties": {
@@ -524,9 +524,9 @@
     {
       "if": {
         "properties": {
-          "series_sequence": { "const": 0 }
+          "series_seq": { "const": 0 }
         },
-        "required": [ "series_sequence" ]
+        "required": [ "series_seq" ]
       },
       "then": {
         "properties": {
@@ -541,9 +541,9 @@
     {
       "if": {
         "properties": {
-          "series_sequence": { "type": "integer", "minimum": 1 }
+          "series_seq": { "type": "integer", "minimum": 1 }
         },
-        "required": [ "series_sequence" ]
+        "required": [ "series_seq" ]
       },
       "then": {
         "properties": {

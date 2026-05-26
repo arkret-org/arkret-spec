@@ -91,7 +91,7 @@ operation_id: cx.agent.provision
 profile: cx.profile.personal_agent_provisioning.v1
 ```
 
-该 operation 是一个编排入口。最小形态 SHOULD 由服务写入或返回一组现有事件引用:Actor Profile、`cx.identity.accountability_grant`、pending pairing record、初始 capability grant。是否还需要 durable `cx.agent.provision` event 见 §7 开放问题。
+该 operation 是一个编排入口,不是 durable event kind。最小形态 SHOULD 由服务写入或返回一组现有事件引用:Actor Profile、`cx.identity.accountability_grant`、pending pairing record、初始 capability grant。Provisioning 的可审计状态来自这些子事件;不得再增加一个 `cx.agent.provision` aggregate event 造成 audit 双源。
 
 请求:
 
@@ -108,17 +108,45 @@ profile: cx.profile.personal_agent_provisioning.v1
   },
   "requested_capabilities": [
     {
-      "mode": "read_only",
-      "realm_ids": ["cx:realm:01970000-0000-7000-8000-000000000000"],
-      "flow_ids": ["cx:flow:01970000-0000-7000-8000-000000000001"],
-      "data_classes": ["message_body", "flow_body"],
+      "actions": ["cx.events.subscribe"],
+      "resources": [
+        {
+          "kind": "object",
+          "object_type": "flow",
+          "match_scope": "object_refs",
+          "allowed_object_refs": ["cx:flow:01970000-0000-7000-8000-000000000001"]
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_type": "scope_limitation",
+          "allowed_data_classes": ["message_content", "flow_content"]
+        }
+      ],
       "expires_at": "2026-06-26T00:00:00Z"
     },
     {
-      "mode": "write_summary",
-      "realm_ids": ["cx:realm:01970000-0000-7000-8000-000000000000"],
-      "allowed_track_names": ["synthesis", "summary"],
       "actions": ["cx.message.create"],
+      "resources": [
+        {
+          "kind": "object",
+          "object_type": "flow",
+          "match_scope": "object_refs",
+          "allowed_object_refs": ["cx:flow:01970000-0000-7000-8000-000000000001"]
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_type": "scope_limitation",
+          "allowed_tracks": ["synthesis", "summary"]
+        },
+        {
+          "constraint_type": "quota",
+          "subtype": "rate",
+          "max_operations": 20,
+          "period": "PT1H"
+        }
+      ],
       "expires_at": "2026-06-26T00:00:00Z"
     }
   ],
@@ -128,6 +156,8 @@ profile: cx.profile.personal_agent_provisioning.v1
   }
 }
 ```
+
+`requested_capabilities` 示例使用 canonical grant shape。产品 UI / SDK MAY 接受 `read_only`、`write_summary` 等预设名,但服务端写入的 capability grant MUST 展开为 `actions[]`、resource selectors、registered constraints 与 TTL;预设名本身不进入 canonical wire。
 
 响应:
 
@@ -237,6 +267,7 @@ profile: cx.profile.personal_agent_provisioning.v1
 - Pairing approval MUST 写入可审计的 `cx.agent.key.authorize` event。
 - 写入的 `agent_key_scope` MUST 不宽于 controller 已批准的初始 capability 与 Realm policy。
 - `approval_evidence` SHOULD 引用 pairing request 或 controller approval event。
+- v1 `runtime_attestation.kind` 的最低 baseline 是 `self_asserted`。实现遇到无法解析的 attestation kind MUST fail closed。后续 TEE / SLSA / hosted workload attestation 可以作为更高级 profile 进入同一 slot,不需要再改 agent key authorization 的主线 wire。
 
 ### 4.6 Agent runtime 认证
 
@@ -280,7 +311,7 @@ profile: cx.profile.agent_auth.v1
 
 Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` discriminator。Accepted 后需要把现有 `SessionGrantRequest.proof.proof_kind` 枚举扩展为包含 `agent_key_proof`,并为该分支定义独立 required fields、proof canonicalization 与 validator。实现不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。
 
-`agent_scope_request.track_names` 仅为示例 overlay 字段。具体 track-level constraint key 与 schema 仍由 §7 开放问题决定;在进入 capability vocabulary 前,实现不得把该示例字段视为已注册的 canonical constraint。
+`agent_scope_request` 是 `cx.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequest` schema。`agent_scope_request.track_names` 是请求侧窄化字段;签发后的 capability / session scope MUST 物化为现有 capability vocabulary 中的 `allowed_tracks` 等 registered constraints,不得把 `track_names` 当作新的 grant constraint。
 
 响应示例:
 
@@ -313,6 +344,8 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
 - 对 high-risk action,撤销状态 unknown 或 stale 时 MUST fail closed。
 - Session grant 不授予 E2EE history key、secret storage 或长期 device 权限,除非另一个 E2EE / device profile 显式授权。
 
+Agent 的 E2EE access MUST 作为独立 MLS member 表达,不得把 agent 伪装成 controller 的 delegated device。默认情况下 agent 没有任何 Realm / Circle history key;只有被显式加入对应 MLS group 后,才获得该 scope 的 future epoch access。Agent MLS KeyPackage SHOULD 由 active `cx.agent.key.authorize` 中的 `verification_method` 签发或绑定,使 key authorization、session proof 与 MLS membership 可审计地收敛。
+
 当需要人类批准时,Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面。它 SHOULD 返回结构化错误:
 
 ```json
@@ -344,10 +377,9 @@ controller 通过人类 UI 在带外批准。批准会产生新的 capability / 
 
 Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本身不是"在当前 Flow 内开一个隐形私聊"。若产品需要 controller 与 agent 围绕某个 Flow / Message 位置持续对话,见 CXP-0009 `Agent Sidecar Thread`。
 
-若后续标准化一等 draft / action-request event,它们必须是 private/account-data 语义,不应被命名或实现成共享 message event。候选方向:
+本 profile 标准化 draft-only 的最小互操作面。它们必须是 private/account-data 语义,不应被命名或实现成共享 message event。候选方向:
 
-- `cx.agent.draft.set`
-- `cx.agent.draft.delete`
+- `cx.agent.draft.propose`
 - `cx.agent.action_request`
 - `cx.agent.action_approve`
 - `cx.agent.action_reject`
@@ -386,7 +418,7 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
 }
 ```
 
-`cx.agent.draft.v1` 只是候选 account-data type,不在本 draft 阶段注册为 artifact。Accepted 后若要标准化 draft-only,应在 account-data type registry 中定义 key pattern、payload schema、加密要求、tombstone 规则和 retention policy。
+Accepted 后 draft-only MUST 注册 controller-owned account-data type `cx.agent.draft.v1`。建议 key pattern 为 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`,并标注 `encrypted_at_rest=true`、payload schema、tombstone 规则和 retention policy。Agent-facing `cx.agent.draft.propose` / `cx.agent.action_request` 通过 Principal Server 的 capability、policy、accountability 与 risk check 后,才 materialize 为该 controller-owned account-data。
 
 隐私边界:
 
@@ -396,7 +428,7 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
 - 若服务端存储 draft 明文,该部署 MUST 把明文可见服务写入 profile / policy 并向 controller 披露;默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 可以引用目标 `realm_id`、`flow_id`、`track_name`、`message_id` 或 cursor,但这些引用不授予目标 Realm 成员读取 draft 内容的权利。
 
-发布时,controller approval 或 fresh authorization 会生成真正的 shared event,例如 `cx.message.create`。Shared event MAY 携带 opaque `draft_ref` 或 digest 便于审计,但 MUST NOT 把未批准 draft 的私有 metadata、scratchpad 或历史版本泄露到共享历史。发布后的可见内容只以最终 approved payload 为准。
+发布时,controller approval 或 fresh authorization 会生成真正的 shared event,例如 `cx.message.create`。Shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest 便于审计,但明文 draft id、private metadata、scratchpad 或历史版本 MUST NOT 泄露到共享历史。发布后的可见内容只以最终 approved payload 为准。
 
 ### 4.9 Effective permission rule
 
@@ -414,21 +446,45 @@ AND current revocation / freshness state
 
 Agent MUST NOT 自动继承 controller 在 Realm 内的最大权限。即便 controller 是 Realm admin、owner 或拥有广泛 membership,agent 也只获得显式授予的、受限的、短期的能力。
 
-Grant constraints SHOULD 至少支持:
+本 profile 不新增并行 constraint vocabulary。它复用 `capabilities.md` 已注册的 resource selector 与 typed constraints:
 
-| Constraint | 含义 |
+| 需求 | Canonical 表达 |
 | --- | --- |
-| `allowed_realm_ids` | agent 可访问的 Realms。 |
-| `allowed_flow_ids` | agent 可访问的具体 Flows。 |
-| `allowed_track_names` | agent 可写入的 tracks,例如 `summary`、`synthesis`、`discussion`。该 constraint 只限制输出位置,不创建 per-track security boundary。命名和 schema 仍是 §7 开放问题,此处为候选 vocabulary。 |
-| `allowed_data_classes` | 可见明文类别,例如 `message_body`、`flow_body`、`attachment_plaintext`、`embedding`。 |
-| `allowed_actions` | 具体 capability actions。 |
-| `max_flows_per_day` | organizer agent 创建 Flow 的速率限制。 |
-| `max_messages_per_window` | 发消息速率限制。 |
-| `requires_human_approval_for` | 总是需要 controller 批准的 action 集合。 |
-| `act_on_behalf_allowed` | agent 是否可把 `actor_id` 设置为 controller principal。 |
-| `tool_allowlist` | agent 可调用的外部工具或 service endpoint。 |
-| `output_track_policy` | summary、decision 或 tool result 可写入的位置。 |
+| 限定 Realm | resource selector `kind="realm"` 或对象 selector 的 `realm` / `match_scope`,不是 constraint。 |
+| 限定 Flow | resource selector `kind="object"`, `object_type="flow"`, `match_scope="object_refs"` + `allowed_object_refs[]`;或已注册 `allowed_flow_refs` constraint。 |
+| 限定输出 track | `constraint_type="scope_limitation"` + `allowed_tracks[]`。它只限制输出位置,不创建 per-track security boundary。 |
+| 限定明文类别 | `allowed_data_classes[]`。 |
+| 限定动作 | grant 顶层 `actions[]`,不是 constraint。 |
+| 限速 / 配额 | `constraint_type="quota"`, `subtype="rate"`, `max_operations` + `period`。 |
+| 人类批准 | `constraint_type="claim_based"`, `subtype="approval"`, `approval_required`, `approval_mode`, `approval_actor_refs`。 |
+| controller accountability approval | `constraint_type="claim_based"`, `subtype="accountability"`, `controller_approval_required`。 |
+| 允许外部工具 / service endpoint | `allowed_endpoints[]`。 |
+| summary / decision 输出位置 | `allowed_tracks[]`,不另设 `output_track_policy`。 |
+
+例如"只允许把 summary 写入 synthesis track"的 canonical grant:
+
+```json
+{
+  "actions": ["cx.message.create"],
+  "resources": [
+    {
+      "kind": "object",
+      "object_type": "flow",
+      "match_scope": "object_refs",
+      "allowed_object_refs": ["cx:flow:01970000-0000-7000-8000-000000000001"]
+    }
+  ],
+  "constraints": [
+    {
+      "constraint_type": "scope_limitation",
+      "allowed_tracks": ["synthesis"]
+    }
+  ],
+  "expires_at": "2026-06-26T00:00:00Z"
+}
+```
+
+`act_on_behalf` 不是一个 constraint。它由 event attribution (`actor_id` = controller, `executed_by` = agent, `authorization_ref` = grant / approval)、capability grant、Realm policy、accountability constraint 与 fresh approval 共同校验。
 
 如果接收方无法执行某个 constraint,它 MUST fail closed 或拒绝该 grant;不得忽略 constraint 后放行。
 
@@ -469,9 +525,9 @@ Act-on-behalf:
 Alice via Summary Assistant
 ```
 
-Act-on-behalf grant 是 high risk。它 MUST 有限期、窄范围、可审计、可撤销,且默认禁止,除非 controller 与 Realm policy 显式允许。Receiver MUST 校验 `executed_by` 与实际 signing key / agent proof 一致,并校验 `authorization_ref` 覆盖目标 action 与 resource。
+Act-on-behalf grant 是 high risk。它 MUST 有限期、窄范围、可审计、可撤销,且默认禁止,除非 controller 与 Realm policy 显式允许。Receiver MUST 校验 `executed_by` 与实际 signing key / agent proof 一致,并校验 `authorization_ref` 覆盖目标 action 与 resource。默认 fresh approval 粒度 SHOULD 是 `(action, target_flow)` + 短期 temporal window;批量 window 必须由 Realm policy 显式开启。该规则通过现有 `approval_required` / `approval_mode` / `approval_actor_refs` / `controller_approval_required` 组合表达,不新增 `act_on_behalf_allowed` constraint。
 
-Schema impact:该形态依赖 Event Envelope 或标准 payload metadata 中可表达 `executed_by` 与 `authorization_ref`。若 accepted 时现有 event schema 尚未包含这两个字段,迁移必须把它们加入可签名 canonical bytes,并定义它们与 `proof.verification_method` / agent key authorization 的校验关系。该字段不能只作为 UI-only unsigned extension。
+Schema impact:该形态要求 Event Envelope 增加 signed `executed_by` 与 `authorization_ref` 字段,并把二者纳入 event canonical bytes、event digest、E2EE AAD 与 Anchor/sub-anchor leaf 输入。它们不能只作为 UI-only unsigned extension。Accepted migration 必须同时更新 `event-envelope.schema.json`、canonicalization 规则、`event-and-patch.md` 与 schema-registry / service-surface 相关说明,并定义它们与 `proof.verification_method` / active `cx.agent.key.authorize` 的校验关系。
 
 ### 4.11 管理与撤销
 
@@ -516,9 +572,9 @@ Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key
 - `zh/models/actor.md`: 澄清 personal native agent、accountability UI,以及与 Ghost Actor 的区别。
 - `zh/identity/key-management.md`: 增加 runtime key pairing 与 agent session grant 规则。
 - `zh/identity/account-lifecycle.md`: 定义 agent principal 的 pause / deactivate 行为。
-- `zh/authz/capabilities.md`: 增加 agent provisioning、agent auth、track-level 与 data-class constraints。
+- `zh/authz/capabilities.md`: 增加 agent provisioning / management actions,并明确 personal agent 复用现有 `allowed_tracks`、`allowed_flow_refs`、`allowed_data_classes`、`allowed_endpoints`、`rate_limit` 与 approval/accountability constraints。
 - `zh/models/private-objects.md`、`zh/sync/client-sync.md` 与 `zh/sync/operations-sync.md`: 澄清 draft-only 使用 encrypted account data / actor-private stream,不得进入 shared Realm history。
-- `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:若尚未存在,为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段及校验规则。
+- `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段、canonicalization、Anchor 输入与校验规则。
 - `zh/extensions/applet-integration.md`: 澄清管理员管理的 Ghost AI agents 是 Applet-managed external/integration actors,而本 CXP 覆盖 native personal agents。
 - `zh/extensions/agent-protocol-interop.md`: 确保 agent runtime session 不暗示支持外部 A2A / ACP session。
 - `zh/sync/service-surface.md` 与 `service-http-binding.md`: 增加 profile operations。
@@ -527,12 +583,12 @@ Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key
 ### 5.2 Accepted 后可能需要的 artifact 改动
 
 - `operation-registry.json`: 增加 `cx.agent.provision`、`cx.account.agent_key_pair`、list/get/pause/resume/revoke/rotate/grant management operations。Agent runtime session 复用现有 `cx.account.issue_session_grant` operation,不注册单独的 agent-session 签发 operation。
-- `event-kind-registry.json`: 可能增加 `cx.agent.provision`、`cx.agent.pause`、`cx.agent.resume`、`cx.agent.deactivate`,以及可选 `cx.agent.action_request` family。
-- `account-data-type-registry.json`: 若标准化 draft-only 私有草稿,增加 `cx.agent.draft.v1` 或等价 key pattern,并声明 encrypted account data storage。
-- `capability-action-registry.json`: 增加 provisioning 与 management actions,以及 track/data-class constraint 要求。
-- `event-envelope.schema.json` / `event-payload.schema.json`: 为任何 accepted 新 event 增加 payload defs;若 act-on-behalf 字段尚未存在,增加 signed `executed_by` 与 `authorization_ref` 字段。
+- `event-kind-registry.json`: 不增加 `cx.agent.provision` aggregate event;provisioning operation fan-out 到 `cx.profile.create`、`cx.identity.accountability_grant`、`cx.agent.key.authorize`、`cx.capability.grant` 等既有 durable events。增加 `cx.agent.pause`、`cx.agent.resume`、`cx.agent.deactivate` 或等价 lifecycle state events,并增加 `cx.agent.draft.propose`、`cx.agent.action_request`、`cx.agent.action_approve`、`cx.agent.action_reject` draft/action-request family。
+- `account-data-type-registry.json`: 增加 `cx.agent.draft.v1`,key pattern 建议为 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`,并声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。
+- `capability-action-registry.json`: 增加 `cx.agent.provision` 作为 aggregate admin action,其 `target_event_kinds` MUST 显式列出 fan-out 子事件,例如 `cx.profile.create`、`cx.identity.accountability_grant`、`cx.agent.key.authorize`、`cx.capability.grant`,并标注 migration group。Agent management actions 同样必须声明 target event kinds,不得从 action 字符串推断。
+- `event-envelope.schema.json` / `event-payload.schema.json`: 为 accepted 新 event 增加 payload defs;为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段,并同步 canonicalization / Anchor vectors。
 - `conformance-profiles.json`: 注册 `cx.profile.personal_agent_provisioning.v1`、`cx.profile.agent_auth.v1`、`cx.profile.agent_delegation_policy.v1`。
-- OpenAPI: 增加 agent provisioning、pairing typed schemas,并扩展现有 `SessionGrantRequest` / `SessionGrantResponse` 以支持 `proof.proof_kind="agent_key_proof"` 与 `scope_details` profile overlay。
+- OpenAPI: 增加 agent provisioning、pairing typed schemas,并扩展现有 `SessionGrantRequest` / `SessionGrantResponse` 以支持 `proof.proof_kind="agent_key_proof"`、独立 proof schema branch、独立 validator 与 `scope_details` profile overlay。
 
 本提案仍为 `draft` / `review` 时不得改 artifact。
 
@@ -579,17 +635,18 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 - [x] Agent session grant 默认最大 TTL 收敛为 15 分钟;更长 TTL 必须 profile 声明额外风险控制,且不应超过 60 分钟。
 - [x] Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor。
 - [x] Flow-context private agent chat 不放入本提案;拆分到 CXP-0009 `Agent Sidecar Thread`。
+- [x] `cx.agent.provision` 只作 service operation;durable audit 由 `cx.profile.create`、`cx.identity.accountability_grant`、`cx.agent.key.authorize`、`cx.capability.grant` 等 fan-out 子事件承载。
+- [x] Draft-only 标准化为 `cx.agent.draft.propose` / `cx.agent.action_request` family + controller-owned `cx.agent.draft.v1` encrypted account data。
+- [x] Track-level grant 复用现有 `allowed_tracks`;不引入 `allowed_track_names` 或其它并行 vocabulary。
+- [x] `agent_scope_request` 保持 `cx.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequest` schema。
+- [x] Agent E2EE access 表达为独立 MLS member,默认无 E2EE access;不得作为 controller delegated device 继承 history keys。
+- [x] `act_on_behalf` 默认 fresh approval 粒度为 `(action, target_flow)` + 短期 window,通过现有 approval/accountability constraints 表达。
 
 ### 7.2 仍需讨论
 
-- [ ] `cx.agent.provision` 应该只是 service operation,还是也需要 durable event kind?当前倾向:先作为 service operation 编排现有 event,必要时再增加 durable event。
-- [ ] 协议是否应标准化 `cx.agent.draft.v1` account-data type、private `cx.agent.draft.*` event family,还是 v1 中 draft-only agent 保持应用层模式?
-- [ ] "只允许把 summary 写入 synthesis,不能写 discussion" 需要的最小 track-level constraint vocabulary 是什么?
 - [ ] personal agent 是否应建议 DID path 约定,例如 `did:webvh:<host>:agents:<slug>`,还是完全交给 DID method / deployment policy?
-- [ ] hosted runtime 如何证明 software / workload identity,自声明是否足够?未来是否需要 attestation profile?
-- [ ] `act_on_behalf` 应该按每个 action、每个 Flow、每个 session,还是一个受限时间窗要求 fresh human approval?
-- [ ] E2EE access 如何表示:agent 作为 MLS member、delegated device,还是默认无 E2EE access?
-- [ ] `agent_scope_request` 是否应进入通用 `SessionGrantRequest`,还是保持 `cx.profile.agent_auth.v1` overlay?
+- [ ] hosted runtime attestation 的高级 profile 时间表是什么? v1 baseline 是 `runtime_attestation.kind="self_asserted"`,但 TEE / SLSA / workload identity 的 profile taxonomy 仍需单独设计。
+- [ ] `cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 是否注册为这些具体 event kind,还是复用更通用 principal lifecycle state event?
 
 ## 8. 迁移计划
 
@@ -598,9 +655,9 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 1. 增加 conformance profile declarations。
 2. 增加 service operations 与 OpenAPI typed schemas。
 3. 扩展 `SessionGrantRequest.proof.proof_kind` 枚举,新增 `agent_key_proof` 分支。
-4. 增加 capability actions 与 constraint vocabulary。
-5. 若 accepted,增加 draft-only account-data type / draft event family。
-6. 增加任何 accepted durable event kinds。
+4. 增加 capability actions,并把 agent grant 示例全部映射到现有 constraint vocabulary。
+5. 增加 draft-only account-data type / draft event family。
+6. 增加 pause / resume / deactivate 等 accepted durable lifecycle event kinds。
 7. 增加 pairing、agent session grant、draft privacy、revocation、act-on-behalf attribution 和 permission intersection 的 conformance vectors。
 
 ## 9. 引用

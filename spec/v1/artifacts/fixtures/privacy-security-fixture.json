@@ -86,7 +86,7 @@
               "service_did": "did:web:principal.example",
               "service_type": "principal_server",
               "data_classes": [
-                "message_body"
+                "message_content"
               ],
               "purposes": [
                 "events",
@@ -150,7 +150,7 @@
         }
       },
       "expected": {
-        "no_plaintext_message_body": true,
+        "no_plaintext_message_content": true,
         "no_member_list": true,
         "no_realm_or_flow_title_for_e2ee": true,
         "forbidden_fields_absent": [

@@ -41,7 +41,7 @@ Schema id: `cx.schema.circle.v1`
 | `directory_visibility` | yes | `enum(members, realm_members)` | 默认 `members`。 | Circle 元数据可发现性。`members` 时非成员不得看到 title / display / member_count;`realm_members` 仅披露目录元数据，不授予事件或历史访问。 |
 | `join_rule` | yes | `enum(invite, request, open)` | 默认 `invite`。 | Circle 加入规则。`open` 仅允许父 Realm active member 自助加入;`request` 需要 profile 定义申请/批准流程;`invite` 只能由 Circle 管理员加入或邀请。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
-| `metadata_encryption_floor` | no | `enum(body_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm floor。 | Circle 内对象的 metadata 加密下限；只能收紧，不得放宽父 Realm floor。 |
+| `metadata_encryption_floor` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm floor。 | Circle 内对象的 metadata 加密下限；只能收紧，不得放宽父 Realm floor。 |
 | `encryption_profile` | yes | `const(mls_rfc9420)` | create-locked。v1 仅允许 `mls_rfc9420`;未来 MLS 版本 / PQ-MLS 必须显式扩展 schema。Circle 必须拥有独立 MLS group;不得复用 Realm-default MLS group 或从其导出密钥。 | 加密形态。 |
 | `mls_group_ref` | derived | `ref:mls` | 由 `cx.circle.create` reducer 派生,scope 绑定 `(realm_id, circle_id)`;actor-supplied create payload MUST NOT 携带。字段使用 `_ref` 是因为 `cx:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
@@ -179,17 +179,17 @@ Realm **不会**自动创建默认 Circle。Realm-default encryption scope 是 R
 | policy field | enum | 说明 |
 | --- | --- | --- |
 | `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | `e2ee_required` 时,Flow / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed:Realm-default MLS 或 Circle MLS。 |
-| `metadata_encryption_profile` | `body_only` / `minimal_encrypted` / `full_encrypted` | Realm-wide metadata 加密下限；不得被 Circle、Space 或对象 profile 放宽。 |
+| `metadata_encryption_profile` | `content_only` / `minimal_encrypted` / `full_encrypted` | Realm-wide metadata 加密下限；不得被 Circle、Space 或对象 profile 放宽。 |
 
 `metadata_encryption_profile` 语义:
 
 | value | 明文允许范围 | 必须加密范围 |
 | --- | --- | --- |
-| `body_only` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow title / summary / fields、Space parent / rank 等结构 metadata | Message / Morph body、附件正文、明确标注 encrypted 的字段 |
+| `content_only` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow title / summary / fields、Space parent / rank 等结构 metadata | Message / Morph / Flow content、附件正文、明确标注 encrypted 的字段 |
 | `minimal_encrypted` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs | 用户可读 title / summary / fields、mention / reply excerpt、search token、关系预览、附件文件名 |
 | `full_encrypted` | 仅 envelope routing stub、opaque refs、policy/audit 必需的不可逆 commitment | 绝大多数应用 metadata、可逆索引材料、展示标签、结构标题、关系摘要 |
 
-Effective metadata profile = max(parent Realm `metadata_encryption_profile`, Circle `metadata_encryption_floor` if present, Space `child_scope_policy.metadata_encryption_floor` if in placement context, object profile requirement)。比较顺序为 `body_only < minimal_encrypted < full_encrypted`;任何写入若低于 effective profile MUST `failed_precondition`(`reason=metadata_encryption_floor_violation`)。
+Effective metadata profile = max(parent Realm `metadata_encryption_profile`, Circle `metadata_encryption_floor` if present, Space `child_scope_policy.metadata_encryption_floor` if in placement context, object profile requirement)。比较顺序为 `content_only < minimal_encrypted < full_encrypted`;任何写入若低于 effective profile MUST `failed_precondition`(`reason=metadata_encryption_floor_violation`)。
 
 ### 7.1 Space child scope policy
 
@@ -199,7 +199,7 @@ Space 不拥有 membership / policy server / MLS group;`Space.scope_circle_id` �
 | --- | --- | --- |
 | `child_scope_policy.kind` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id` | 子资源 scope 约束。 |
 | `child_scope_policy.scope_circle_id` | `id:circle` | `kind=require_scope_circle_id` 时必填。 |
-| `child_scope_policy.metadata_encryption_floor` | `body_only` / `minimal_encrypted` / `full_encrypted` | 可选，对该 Space 下新建 / 移入对象施加更严格 metadata floor。 |
+| `child_scope_policy.metadata_encryption_floor` | `content_only` / `minimal_encrypted` / `full_encrypted` | 可选，对该 Space 下新建 / 移入对象施加更严格 metadata floor。 |
 
 Reducer MUST 在 `cx.flow.create`、`cx.flow.move`、`cx.space.parent`、structural `contains` projection 写入时检查 effective Space policy:
 

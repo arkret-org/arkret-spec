@@ -123,7 +123,7 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 
 Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：
 
-- `cx.realm.create.payload.object.created_by_principal` MUST 等于顶层 `actor_id`。
+- `cx.realm.create.payload.object.created_by` MUST 等于顶层 `actor_id`。
 - `cx.flow.create` / `cx.morph.create` / `cx.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller。
 - `payload.object.created_at` MUST 等于顶层 `created_at`。
 

@@ -156,7 +156,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "field_access",
   "effect": "allow",
-  "fields_write_allow": ["title", "body", "fields.review_status"],
+  "fields_write_allow": ["title", "content", "fields.review_status"],
   "condition": {
     "kind": "object_is_owned_by_actor"
   }

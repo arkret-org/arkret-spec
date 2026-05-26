@@ -16,13 +16,13 @@ sidebar:
 
 Snapshot 用于快速 bootstrap Realm 当前态。Snapshot 不是真相源；真相源仍然是 signed Event Envelope 和可验证 Event history。
 
-Snapshot manifest 的主标识字段使用 `snapshot_ref` 而不是通用 `id`。这是因为 manifest 在协议中被作为可解析 snapshot reference 传递和签名绑定，不是普通 materialized object；`snapshot_ref` 进入 signature transcript 并由 `cx:snapshot:*` typed reference 语义约束。
+Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `cx:snapshot:*` typed identifier。其他对象、chunk payload、challenge 请求或 API hint 指向该 manifest 时使用 `snapshot_ref`；`_ref` 不用于 manifest 自身 primary identity。
 
 ## 2. Snapshot Manifest
 
 ```json
 {
-  "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
+  "id": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "reducer_profile": "cx.reducer.v1",
   "security_class": "high_assurance",
@@ -126,7 +126,7 @@ Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排
 
 ## 5. Snapshot Signature
 
-Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `snapshot_ref`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（`chunk_ref` / `digest` / `size_bytes`）、`verification_hints`、`created_by` 与 `created_at`；consumer MUST 先验证该 transcript，再逐个验证 chunk payload digest。
+Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `id`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（`chunk_ref` / `digest` / `size_bytes`）、`verification_hints`、`created_by` 与 `created_at`；consumer MUST 先验证该 transcript，再逐个验证 chunk payload digest。
 
 签名 DID MUST 属于以下之一：
 

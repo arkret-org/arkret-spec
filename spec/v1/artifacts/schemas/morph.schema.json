@@ -193,10 +193,11 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Reject legacy discriminator `type` and legacy composite child array name `blocks`; canonical content blocks use `kind` and composite children use `parts`.",
+        "$comment": "Reject legacy discriminator `type`, legacy composite child array name `blocks`, and byte-count field `size`; canonical content blocks use `kind`, composite children use `parts`, and byte counts use `size_bytes`.",
         "anyOf": [
           { "required": ["type"] },
-          { "required": ["blocks"] }
+          { "required": ["blocks"] },
+          { "required": ["size"], "$comment": "byte counts use size_bytes" }
         ]
       },
       "allOf": [

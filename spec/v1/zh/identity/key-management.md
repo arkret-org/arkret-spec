@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-26
 ---
 
 ## 0. 规范语言
@@ -212,13 +212,13 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
    - `schema_refs` 包含 `cx.profile.principal_control_realm.v1`（profile id；该 profile 收紧 control realm 的允许 event kinds、capability action、E2EE/federation 默认值）。
    - `cx.profile.principal_control_realm.v1` 的机器化要求见 `artifacts/profiles/conformance-profiles.json#profile_requirements`：control Realm MUST 使用 allowlist-only event kind policy；普通 Flow / Message / Space / Relation / View / Morph / Call 协作事件在该 Realm 内 MUST `principal_control_event_kind_forbidden`。
    - `encryption_profile = "none"`，`history_visibility = "joined"`，`anchor_profile = "single_did"`，`anchorer = <principal DID>`。
-   - `created_by_principal = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
+   - `created_by = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
 
    Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；缺一即按普通 collaboration Realm 处理（不再具备 control stream 的特殊语义）。
 4. **首台设备自授权**：客户端构造 `cx.device.authorize` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
 5. **Inception key 的归宿**：完成步骤 4 后，inception key 的在线签名角色 MUST 在 `inception_key_max_online_window` 内退出。推荐窗口为 ≤1h；24h 只是协议硬上限，deployment policy MUST NOT 配置更长窗口。`personal_node` / `small_team` profile 在首台 `cx.device.authorize` accepted 后 SHOULD 立即触发 `did:webvh` entry 1 写入或封存流程，不应等待硬上限。退出方式只能是：（a）写入 `did:webvh` entry 1 或等价 DID method operation，把日常 update / device authorization 权限轮换到新的 controller / device key，并从首台设备销毁 inception private key；或（b）把 inception key 封存为 recovery-only key，放入 secret storage / threshold recovery，记录 `sealed_at`、`expires_at?`、allowed recovery method，并禁止在线日常签名。窗口过期后，receiver / Auth Server MUST 拒绝 inception key 继续签发 `cx.device.authorize`、`cx.session.grant`、长期 capability 或 ordinary DID update，并写入安全审计；它只能按已声明 recovery policy 进入恢复流程。它 MUST NOT 长期作为日常 device signing key——暴露面应被限制到 inception bootstrap 与 recovery。
 6. **First-backup gate（normative）**：inception key 退场（步骤 5）之前，客户端 MUST 完成以下二者之一，作为 inception 窗口关闭的硬前置条件：
-   - 发布一条 `backup_class="did_recovery"` 的 `cx.schema.key_backup.v1` envelope，`series_sequence=0`，加密给 `recovery_public_key` / `threshold_recovery` / `hardware_wrapped_key` 之一（**禁止**仅用 `passphrase_kdf` 的 `did_recovery` envelope 充当唯一 recovery 路径，因为它会让全部恢复能力坍缩到单一弱口令）；或
+   - 发布一条 `backup_class="did_recovery"` 的 `cx.schema.key_backup.v1` envelope，`series_seq=0`，加密给 `recovery_public_key` / `threshold_recovery` / `hardware_wrapped_key` 之一（**禁止**仅用 `passphrase_kdf` 的 `did_recovery` envelope 充当唯一 recovery 路径，因为它会让全部恢复能力坍缩到单一弱口令）；或
    - 写入一份带签名的 offline-sealed receipt（纸质 / 硬件钱包 / 物理离线 module），由 inception key 签发并记录 fingerprint、`sealed_at`、allowed recovery method；UI MUST 要求用户二次确认已离线持有该 receipt。
 
    实现 MUST 在该 gate 失败时阻止 inception 退场，并向用户展示明确的"当前为单点失效"警告；实现 MUST NOT 把 inception key 在未完成 gate 的情况下静默销毁。当 `personal_node` profile 用户拒绝完成 gate 时，实现 MAY 允许继续，但 MUST 把账号标记为 `single_point_of_failure=true`，并在后续每次启动时提醒用户。
@@ -246,7 +246,7 @@ Receiver 接受 principal 的首批 control stream Event 时，MUST：
 - 校验首台 `cx.device.authorize` Event 的 `authorized_by` 引用与 inception key 一致；不接受 `authorized_by` 引用任何尚未 anchored 的 device。
 - Inception bootstrap 成功后，receiver MUST 标记该 control realm 已通过 inception；后续 §5.1 的 `cx.device.authorize` Event MUST `authorized_by` 一台已 anchored 的 device，不得再次自授权。
 
-**后续 device authorization 的 control Realm 归属校验（normative）**：reducer 接收非 inception-bootstrap 的 `cx.device.authorize` 时，不能只验证 device signature 与 `authorized_by` 链。它还 MUST 校验 enclosing `realm_id` 指向的 Realm 已 accepted 且满足全部 control-stream 绑定：(a) `fields.purpose == "principal_control"`；(b) `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；(c) `created_by_principal` 等于被授权 device 所属 principal DID，且该 DID 与签发 `authorized_by` device 的 principal 一致。任一不满足时 MUST `failed_precondition`，`reason_code=device_authorized_principal_control_realm_mismatch`；实现不得把该 event 当作普通 collaboration Realm 中的业务事件继续处理，也不得把另一个 principal 的 control Realm 状态复用于当前 principal。
+**后续 device authorization 的 control Realm 归属校验（normative）**：reducer 接收非 inception-bootstrap 的 `cx.device.authorize` 时，不能只验证 device signature 与 `authorized_by` 链。它还 MUST 校验 enclosing `realm_id` 指向的 Realm 已 accepted 且满足全部 control-stream 绑定：(a) `fields.purpose == "principal_control"`；(b) `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；(c) `created_by` 等于被授权 device 所属 principal DID，且该 DID 与签发 `authorized_by` device 的 principal 一致。任一不满足时 MUST `failed_precondition`，`reason_code=device_authorized_principal_control_realm_mismatch`；实现不得把该 event 当作普通 collaboration Realm 中的业务事件继续处理，也不得把另一个 principal 的 control Realm 状态复用于当前 principal。
 
 #### 5.0.4 攻击模型
 
@@ -466,7 +466,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
   "backup_class": "secret_storage",
   "backup_version": "kb_1",
   "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
-  "series_sequence": 0,
+  "series_seq": 0,
   "supersedes": null,
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": {
@@ -607,7 +607,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 
 - `recipient_key_ref` MUST 是当前 accepted recovery policy（§8）中声明的 verification_method，或当前 DID Document 中声明的 `recoveryKeyAgreement`。
 - KEM MUST 是 `X25519` 或 `P-256`，KDF MUST 是 `HKDF-SHA256`，AEAD MUST 与 envelope 的 `aead.name` 一致。
-- HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_sequence, actor_id, backup_class, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
+- HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_seq, actor_id, backup_class, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
 - 受 DID 轮换影响：recovery key 轮换后产生的新 envelope MUST 引用新 verification_method；旧 envelope 在轮换 grace window 之后 receiver MUST 拒绝用旧 key 完成的解锁证明。
 
 #### 7.5.3 `secret_storage_key`
@@ -637,18 +637,18 @@ DEK 由本地或托管 HSM / TPM / Secure Enclave wrap。
 
 ### 7.6 Backup Series & Freshness
 
-服务端是不可信存储；攻击者控制服务端时，可以静默返回**旧**版本 envelope 让恢复设备解出已经 retired 的密钥。`cx.schema.key_backup.v1` 通过 `series_id` / `series_sequence` / `supersedes` / `supersedes_digest` / `frontier_ref` 链堵塞这一点。
+服务端是不可信存储；攻击者控制服务端时，可以静默返回**旧**版本 envelope 让恢复设备解出已经 retired 的密钥。`cx.schema.key_backup.v1` 通过 `series_id` / `series_seq` / `supersedes` / `supersedes_digest` / `frontier_ref` 链堵塞这一点。
 
 要求：
 
 - `series_id` 是 `cx:backup_series:<uuid>` typed-id，每对 `(actor_id, backup_class)` 一条。新建系列 MUST 生成新 `series_id`，并在 §11 conformance 中绑定到 actor 的 control stream。
-- 新 envelope MUST 满足 `series_sequence == prev.series_sequence + 1`；`supersedes` MUST 是同 `series_id` 中上一条 envelope 的 `backup_id`，且 `supersedes_digest` MUST 等于上一条 envelope 排除 `auth_data.signature` 后 canonical_json 的哈希。
-- genesis envelope MUST `series_sequence == 0`，`supersedes == null`，且 MUST NOT 携带 `supersedes_digest`。
-- `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_sequence` / `supersedes`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
+- 新 envelope MUST 满足 `series_seq == prev.series_seq + 1`；`supersedes` MUST 是同 `series_id` 中上一条 envelope 的 `backup_id`，且 `supersedes_digest` MUST 等于上一条 envelope 排除 `auth_data.signature` 后 canonical_json 的哈希。
+- genesis envelope MUST `series_seq == 0`，`supersedes == null`，且 MUST NOT 携带 `supersedes_digest`。
+- `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_seq` / `supersedes`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
 - `frontier_ref` 是 RECOMMENDED 字段；当声明 `cx.profile.key_backup.memory_hard.v1` 或更高 hardening profile 时，`secret_storage` 与 `did_recovery` 类备份的新 envelope MUST 携带 `frontier_ref.frontier_digest`，并 SHOULD 携带 `frontier_ref.anchor_ref` 与 `frontier_ref.ssk_generation`。
 - 客户端发起恢复（device-lifecycle.md §14.5）时 MUST：
   1. `LIST /api/v1/keys/backups?series_id=<series_id>` 取回**全部** envelope metadata；
-  2. 按 `series_sequence` 重建链，验证每条 `supersedes` / `supersedes_digest` 正确；任一 envelope 缺失或 hash 不匹配 → MUST `series_chain_broken`；
+  2. 按 `series_seq` 重建链，验证每条 `supersedes` / `supersedes_digest` 正确；任一 envelope 缺失或 hash 不匹配 → MUST `series_chain_broken`；
   3. 用链的**最尾**条进行解密；任何中间条目 MUST NOT 被用作主恢复源；
   4. 当存在 `frontier_ref` 时 MUST 用 control stream snapshot 验证 frontier_digest 落入当前 principal control stream，且 `ssk_generation` 不低于当前 accepted generation；否则 MUST `backup_frontier_stale`。
 - 服务端 MUST 把同一 series 内的删除视为高风险动作（参见 §12.1 / `device-lifecycle.md §12.1`）：删除非尾部 envelope 会破坏链，删除尾部 envelope 等同于让 series 失效，二者都 MUST 在 audit 中可见。
@@ -657,7 +657,7 @@ DEK 由本地或托管 HSM / TPM / Secure Enclave wrap。
 
 恢复 UI 是用户唯一能识别"我在恢复一个真实的自己 vs 我在被钓鱼"的界面。实现 MUST：
 
-- 在尝试解密任何备份 envelope 之前，向用户展示：`backup_class`、`series_id`、`series_sequence`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）、`frontier_ref.ssk_generation?`。
+- 在尝试解密任何备份 envelope 之前，向用户展示：`backup_class`、`series_id`、`series_seq`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）、`frontier_ref.ssk_generation?`。
 - 在使用 `passphrase_kdf` 时，明确展示 KDF（Argon2id / PBKDF2）与参数；用 PBKDF2 的 envelope MUST 在 UI 中显示 `degraded_profile_reason`，且不得自动选用 PBKDF2 envelope 当 Argon2id envelope 同时存在。
 - 在 envelope 携带 `mixed_secret_storage=true` 时 MUST 显著警告"该备份同时保护身份签名与 E2EE 历史，单一口令被攻破将同时丢失两者"；非 `personal_node` profile 下 MUST 直接拒绝展示此类 envelope 作为 primary recovery source。
 - 在 `did_recovery` 域使用 `passphrase_kdf` 单独路径时 MUST 拒绝继续（参见 §7.5.1）。
@@ -810,7 +810,7 @@ Contrix v1 对设备、会话和恢复要求如下：
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
 - `cx.device.authorize` 与 `cx.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`cx.device.revoke.payload.revocation_frontier` MUST 绑定撤销被接受时的 principal control stream frontier；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
 - Session grant MUST 绑定 principal DID、device id、service DID / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
-- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_sequence` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 仅 `passphrase_kdf` 路径被拒绝、§7.8 服务端限速与跨 actor 拒绝。
+- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 仅 `passphrase_kdf` 路径被拒绝、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。
 - Recovery policy grammar 由 `cx.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate / share-revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed_proof_kinds、approval requirement 与 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。
 - Recovery receipt 由 `cx.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；§14.5 step 7 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `proof_summary` / `backup_classes_unlocked` / `welcome_count` / `outcome`。

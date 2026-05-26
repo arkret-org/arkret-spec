@@ -3,7 +3,7 @@ title: Realm & Space
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-26
 ---
 
 ## 0. 规范语言
@@ -77,7 +77,7 @@ Schema id: `cx.schema.realm.v1`
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称；产品 UI MAY 隐藏或弱化它。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`。 | 安全等级标签。 |
-| `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
+| `created_by` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `cx.schema.realm.v1`。 | 启用 schema / profile。 |
@@ -107,7 +107,7 @@ Schema id: `cx.schema.realm.v1`
   "id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "schema": "cx.schema.realm.v1",
   "title": "Launch Plan Confidential Realm",
-  "created_by_principal": "did:web:acme.example",
+  "created_by": "did:web:acme.example",
   "trust_domain": "cx:trust_domain:did.webvh.acme.example",
   "schema_refs": ["cx.schema.realm.v1"],
   "default_discoverability": "invite_only",
@@ -128,18 +128,18 @@ Schema id: `cx.schema.realm.v1`
 
 ### 2.5 `cx.realm.create` Reducer Bootstrap（normative）
 
-`cx.realm.create` 是 Realm 生命周期的 genesis event，它同时承担"建 Realm metadata"和"为 `created_by_principal` 引导首份成员资格"两项职责。reducer MUST 在 commit 该 event 时原子完成下述写入，且 MUST 在评估同一 submit 批次中由同一 actor 发起的任何后续 event 之前完成：
+`cx.realm.create` 是 Realm 生命周期的 genesis event，它同时承担"建 Realm metadata"和"为 `created_by` 引导首份成员资格"两项职责。reducer MUST 在 commit 该 event 时原子完成下述写入，且 MUST 在评估同一 submit 批次中由同一 actor 发起的任何后续 event 之前完成：
 
 1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `anchor_profile` / `digest_algorithm` 等 create-locked 字段固化）。
-2. **写入 `cx.component.member.state.v1` cell**（`subject=created_by_principal`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `cx.member.state{join}` event，event 本身的 `created_by_principal == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
+2. **写入 `cx.component.member.state.v1` cell**（`subject=created_by`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `cx.member.state{join}` event，event 本身的 `created_by == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
 3. **写入 `cx.component.realm.create.v1` cell**（cas_register，bottom=reject，duplicate create 拒绝为 `realm_already_exists`）。
 
 Authz 含义：
 
-- 任何 `cx.realm.create` 之后到达的 facet event（`cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / `cx.realm.plaintext_visible_services` / ...）由 `created_by_principal` 提交时，reducer MUST 把 actor 视为已建成员，不得以"actor 不是 Realm 成员"为由 fail closed。
+- 任何 `cx.realm.create` 之后到达的 facet event（`cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / `cx.realm.plaintext_visible_services` / ...）由 `created_by` 提交时，reducer MUST 把 actor 视为已建成员，不得以"actor 不是 Realm 成员"为由 fail closed。
 - `cx.realm.policy_components` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST `failed_precondition`，reason=`policy_revision_rollback` 或 `policy_revision_gap`。任何用于缓存、Policy Server decision、MLS governance binding 或 identity_link 的 `policy_frontier_digest` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合。
 - 同一 submit 批次内的事件 reducer MUST 按 wire 顺序处理；create event 必须排在前面（client 不得把 facet event 排在 create 前面，否则 reducer MUST 返回 `out_of_order_bootstrap`）。
-- 重新提交同一 Realm id 的 `cx.realm.create`（无论 `created_by_principal` 是否相同）MUST `realm_already_exists` 拒绝；该规则与 create-locked 字段保护一致。
+- 重新提交同一 Realm id 的 `cx.realm.create`（无论 `created_by` 是否相同）MUST `realm_already_exists` 拒绝；该规则与 create-locked 字段保护一致。
 
 Server 端实现合规要点：
 
@@ -207,7 +207,7 @@ Realm（cx.schema.realm.v1，schema 层统一）
 - Marker 字段 MUST：
   - `fields.purpose = "principal_control"`
   - `schema_refs` 包含 `cx.profile.principal_control_realm.v1`
-  - `created_by_principal = <principal DID>`，`anchorer = <principal DID>`，`anchor_profile = "single_did"`
+  - `created_by = <principal DID>`，`anchorer = <principal DID>`，`anchor_profile = "single_did"`
   - `security_class = "high_assurance"`，`federation_policy ∈ {closed, restricted, quarantine}`
 - 事件类型由 `cx.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 device / session / KeyPackage / recovery / profile / consent 等身份基础设施 event；普通 Message / Flow / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。

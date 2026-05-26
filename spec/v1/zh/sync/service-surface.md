@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-26
 see_also:
   - sync/service-http-binding.md
   - sync/operations-sync.md
@@ -178,7 +178,7 @@ GET /api/v1/server/describe
     "payload_paths": [],
     "blob_purposes": [],
     "projection_outputs": [],
-    "notes": "body-only E2EE baseline"
+    "notes": "content-only E2EE baseline"
   },
   "rate_limit_policy": {
     "policy_version": "2026-05-02",
@@ -605,7 +605,7 @@ POST /api/v1/blob/upload
 
 - `blob_ref`
 - `sha256`
-- `size`
+- `size_bytes`
 
 ### 7.2 查询 blob 头信息
 

@@ -4,7 +4,7 @@
   "title": "Contrix Snapshot Manifest",
   "type": "object",
   "required": [
-    "snapshot_ref",
+    "id",
     "realm_id",
     "reducer_profile",
     "schema_profile_refs",
@@ -18,7 +18,7 @@
     "signature"
   ],
   "properties": {
-    "snapshot_ref": {
+    "id": {
       "type": "string",
       "pattern": "^cx:snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
@@ -272,9 +272,9 @@
     },
     "signature": {
       "$ref": "./event-schema.json#/$defs/proof",
-      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds snapshot_ref, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), verification_hints, created_by, created_at, and authority_binding.",
+      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds id, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), verification_hints, created_by, created_at, and authority_binding.",
       "x-canonical-bytes-include": [
-        "snapshot_ref",
+        "id",
         "realm_id",
         "reducer_profile",
         "schema_profile_refs",

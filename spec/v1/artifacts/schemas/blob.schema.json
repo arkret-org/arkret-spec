@@ -7,11 +7,15 @@
     "blob_ref",
     "schema",
     "sha256",
-    "size",
+    "size_bytes",
     "media_type",
     "created_by",
     "created_at"
   ],
+  "not": {
+    "required": ["size"],
+    "$comment": "byte counts use size_bytes"
+  },
   "properties": {
     "blob_ref": {
       "type": "string",
@@ -29,7 +33,7 @@
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     },
-    "size": {
+    "size_bytes": {
       "type": "integer",
       "minimum": 0
     },

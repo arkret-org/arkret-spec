@@ -7,7 +7,7 @@
     "id",
     "schema",
     "title",
-    "created_by_principal",
+    "created_by",
     "trust_domain",
     "schema_refs",
     "default_discoverability",
@@ -18,6 +18,10 @@
     "anchorer",
     "created_at"
   ],
+  "not": {
+    "required": ["created_by_principal"],
+    "$comment": "legacy Realm authorship field; canonical name is created_by"
+  },
   "properties": {
     "id": {
       "type": "string",
@@ -43,7 +47,7 @@
       ],
       "description": "Optional security class. 'high_assurance' forbids federation_policy=open and SHOULD use stricter resolver/E2EE/audit defaults. Omitted = 'standard'."
     },
-    "created_by_principal": {
+    "created_by": {
       "$ref": "#/$defs/did"
     },
     "trust_domain": {

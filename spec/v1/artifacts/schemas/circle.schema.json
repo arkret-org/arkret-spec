@@ -74,7 +74,7 @@
     "metadata_encryption_floor": {
       "type": "string",
       "enum": [
-        "body_only",
+        "content_only",
         "minimal_encrypted",
         "full_encrypted"
       ],

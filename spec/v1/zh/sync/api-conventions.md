@@ -140,7 +140,7 @@ API 调用 SHOULD 使用以下方式之一：
 
 - **`{ok: true, ...payload}`** — 简单 mutation (push / device_messages.put / applet.transactions / 等)；
 - **`{status: enum, ...payload}`** — 批量提交语义复杂时 (events.submit `status ∈ {accepted, duplicate, partial}`、keys.backups.put `status ∈ {accepted, duplicate}`)；
-- **裸字段直接返回** — 创建 / 解析类 (blob.upload `{blob_ref, size, ...}`、directory.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
+- **裸字段直接返回** — 创建 / 解析类 (blob.upload `{blob_ref, size_bytes, ...}`、directory.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
 
 新增 endpoint 设计时建议:
 - 简单 idempotent mutation 默认走 `{ok: true, ...payload}`；

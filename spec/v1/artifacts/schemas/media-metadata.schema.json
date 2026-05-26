@@ -6,9 +6,13 @@
   "required": [
     "blob_ref",
     "media_type",
-    "size",
+    "size_bytes",
     "access"
   ],
+  "not": {
+    "required": ["size"],
+    "$comment": "byte counts use size_bytes"
+  },
   "properties": {
     "blob_ref": {
       "type": "string",
@@ -18,7 +22,7 @@
       "type": "string",
       "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
     },
-    "size": {
+    "size_bytes": {
       "type": "integer",
       "minimum": 0
     },

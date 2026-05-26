@@ -84,6 +84,7 @@ expected_<role>_<kind>_id
 规则：
 
 - canonical materialized object 自身 primary identity 字段 MUST 使用 `id`，不得写成 `flow_id` / `message_id` / `actor_profile_id` 等带对象名前缀的字段。Actor / user-facing identity 在 v1 中由 Actor Profile 表达：Profile 对象自身仍使用 `id`，其授权主体 DID 另用 `principal_id`。
+- Snapshot manifest 自身也使用 `id`；`snapshot_ref` 只在其他对象、chunk payload、challenge 或 API hint 指向该 manifest 时使用。
 - Event Envelope、Receipt、Attestation / Evidence、Key Backup、Applet / Agent 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`evidence_id`、`backup_id`、`applet_id`、`agent_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Flow / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`watcher_actor_id`。
@@ -134,7 +135,7 @@ expected_<role>_<kind>_id
 
 ### 3.0.1 Size 字段命名
 
-新增表示字节数的独立约束、限额或统计字段 SHOULD 使用 `_bytes` 后缀，例如 `max_total_blob_bytes`、`canonical_payload_bytes`、`size_bytes`。已有 Blob / Media metadata 与 Content Block descriptor 中的 `size` 是文件/媒体生态的固定短名，语义恒为字节数；这些字段不得再新增同义的 `size_bytes` 别名。Snapshot chunk descriptor 使用 `size_bytes`，因为它是 manifest 内的 chunk 统计字段，不是通用媒体 descriptor。
+表示字节数的字段 MUST 使用 `_bytes` 后缀，例如 `size_bytes`、`max_total_blob_bytes`、`canonical_payload_bytes`。不得新增裸 `size` 表示字节数；Blob metadata、Media metadata、Content Block descriptor 与 Snapshot chunk descriptor 均使用 `size_bytes`。
 
 ### 3.1 字段 × 对象适用性矩阵（normative reference）
 
@@ -153,8 +154,7 @@ expected_<role>_<kind>_id
 | `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
 | `realm_id` | Universal | — (self) | Y | Y | Y | Y | Y | Y | Y | O | Y | Y | O | O | O |
 | `created_at` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
-| `created_by` | Authorship | — (see `created_by_principal`) | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
-| `created_by_principal` | Authorship | Y | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| `created_by` | Authorship | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
 | `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
 | `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
 | `deleted_at` | Lifecycle | O | O | O | O | O | O | O | O | O | — | — | — | — | — |
@@ -167,7 +167,7 @@ expected_<role>_<kind>_id
 
 附注：
 
-- Realm 的 authorship 字段是 `created_by_principal`（强调创建者同时是 authorizing principal），不是 `created_by`；这是有意区分，不是离群点（见 §4.1 / §4.2）。
+- Realm 使用通用 `created_by` 字段；其额外语义是 Realm create event 的 authorizing principal，并作为 genesis member bootstrap 主体（见 §4.1 / §4.2 与 [`realm-and-space.md` §2.5](./realm-and-space.md#25-cxrealmcreate-reducer-bootstrapnormative)）。
 - Capability Grant / Invite / Read Cursor / Notification / Actor Profile 用领域特有的 authorship 字段（`issuer` / `inviter` / `actor_id` / `principal_id`），各对象 schema 内部独立约束；本表对应格写"—"是因为它们不使用通用 `created_by`，并不表示没有创建主体记录。
 - Read Cursor / Notification 是 actor-private 状态，`realm_id` 通常存在但允许 actor-scoped 视图省略（按 schema 决定）；`updated_by` 不适用——这些对象由系统派生或 actor 本人推进。
 - 任何 `state != active` 的对象 MUST 写入 `state_changed_at`；该字段被 reducer 强制覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。
@@ -188,7 +188,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | Actor identity（user / org / team / agent / service / device / integration） | DID 本身 | Actor 的身份根就是 DID；若需要在协作图中展示，则用 Actor Profile 承载展示字段。 |
 | Actor Profile (`cx:actor_profile:`) | `principal_id` | Profile 只是展示镜像；`principal_id` 才是授权、签名和审计归属的主体 DID。 |
 | Event Envelope (`cx:event:`) | `actor_id`; Proof 中的 `verification_method` 为 DID URL | `actor_id` 是签署并提交事件的 actor DID，MUST 匹配 proof 控制链。 |
-| Realm (`cx:realm:`) | `created_by_principal` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |
+| Realm (`cx:realm:`) | `created_by` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |
 | Space / Flow / Message / Morph / Relation / View / Policy / Blob metadata | `created_by`; 更新时可有 `updated_by` | 这些对象自身不使用 DID 做 `id`；DID 只记录创建 / 更新主体。协作图对象的创建 / 更新主体由 reducer 从对应 Event 的 `actor_id` 派生；Blob metadata 的 `created_by` 来自 authenticated media 写入主体。 |
 | Capability Grant (`cx:grant:`) | `issuer`; `subject` 为具体主体时必须是 DID | `subject` 也可以是条件 selector；handle、邮箱、域名用户名等不得作为权限主体主键。 |
 | Invite (`cx:invite:`) | `inviter`; `invitee` 在直接 DID 邀请时使用 DID | 3PID 邀请可没有 `invitee`，但认领后必须绑定可验证主体。 |
@@ -205,12 +205,11 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID（`actor_kind` 决定它是 user / agent / service 等）。 |
 | `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 actor DID-as-id；字段名必须说明角色，避免回退到模糊的 `actor_did`。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
-| `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。 |
+| `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing principal 语义。 |
 | `issuer` | Capability Grant、Identity Receipt | 签发授权或 receipt 的 DID；必须持有签发权限。 |
 | `subject` | Capability Grant | 被授权 DID 或 selector condition。 |
 | `subject_id` | Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic / raw handle claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
 | `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
-| `created_by_principal` | Realm | Realm create event 的授权 principal（与该事件 `actor_id` 一致）。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 

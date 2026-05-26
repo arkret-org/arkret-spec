@@ -96,7 +96,7 @@ Blob 是 Contrix 中由 **Blob Store** 管理的内容寻址数据：图片、�
 Blob 在协作图中通过 `cx:blob:<hash>` 引用：
 
 - Message `cx.content.image` / `cx.content.video` / `cx.content.audio` / `cx.content.file` 中的 `blob_ref`。
-- Flow `body` Content Block 中的引用。
+- Flow `content` Content Block 中的引用。
 - `Realm.avatar_blob_ref` / `Space.avatar_blob_ref` / `actor_profile.avatar_blob_ref`。
 - Relation `attached_to` 指向 blob 的边。
 

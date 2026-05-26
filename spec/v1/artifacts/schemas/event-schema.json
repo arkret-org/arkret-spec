@@ -55,7 +55,7 @@
       "maxItems": 128,
       "uniqueItems": true,
       "items": {
-        "$ref": "#/$defs/eventRef"
+        "$ref": "#/$defs/event_ref"
       }
     },
     "refs": {
@@ -92,7 +92,7 @@
       "description": "Reducer-input only. Anchor DAG node this event is submitted against. Receivers MUST verify it is within the Realm's max_anchor_staleness_ms window."
     },
     "redacts": {
-      "$ref": "#/$defs/eventRef"
+      "$ref": "#/$defs/event_ref"
     },
     "payload": {
       "type": "object"
@@ -116,19 +116,19 @@
         "schema": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/profileRef"
+            "$ref": "#/$defs/profile_ref"
           },
           "uniqueItems": true,
           "description": "Schema profile ids this event depends on."
         },
         "reducer": {
-          "$ref": "#/$defs/profileRef",
+          "$ref": "#/$defs/profile_ref",
           "description": "Reducer profile id this event depends on."
         },
         "features": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/featureRef"
+            "$ref": "#/$defs/feature_ref"
           },
           "uniqueItems": true,
           "description": "Features this event requires; receiver MUST fail closed if any is unknown."
@@ -136,7 +136,7 @@
         "critical_extensions": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/criticalExtension"
+            "$ref": "#/$defs/critical_extension"
           },
           "uniqueItems": true,
           "description": "Critical extension declarations; each entry MUST have id, extension_scope, fail_closed=true."
@@ -1357,11 +1357,11 @@
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
-    "profileRef": {
+    "profile_ref": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
     },
-    "featureRef": {
+    "feature_ref": {
       "type": "string",
       "pattern": "^(cx|[a-z0-9][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)+)\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$"
     },
@@ -1413,7 +1413,7 @@
         }
       ]
     },
-    "criticalExtension": {
+    "critical_extension": {
       "type": "object",
       "required": [
         "id",
@@ -1421,7 +1421,7 @@
         "fail_closed"
       ],
       "properties": {
-        "id": { "$ref": "#/$defs/featureRef" },
+        "id": { "$ref": "#/$defs/feature_ref" },
         "extension_scope": {
           "type": "string",
           "enum": [
@@ -1434,9 +1434,9 @@
             "encryption"
           ]
         },
-        "schema_ref": { "$ref": "#/$defs/profileRef" },
+        "schema_ref": { "$ref": "#/$defs/profile_ref" },
         "profile_ref": {
-          "$ref": "#/$defs/profileRef",
+          "$ref": "#/$defs/profile_ref",
           "description": "Profile that defines this extension's semantics when schema_ref is not the exact governing profile."
         },
         "parameters": {
@@ -1449,7 +1449,7 @@
           "description": "Optional digest of out-of-band extension material when parameters would be too large for the event envelope."
         },
         "evidence_ref": {
-          "$ref": "#/$defs/eventRef"
+          "$ref": "#/$defs/event_ref"
         },
         "fail_closed": { "const": true }
       },
@@ -1483,7 +1483,7 @@
       "type": "string",
       "pattern": "^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "eventRef": {
+    "event_ref": {
       "type": "string",
       "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
