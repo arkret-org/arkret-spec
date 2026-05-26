@@ -66,27 +66,30 @@ cx.profile.agent_sidecar_thread.v1
 新增 profile operation:
 
 ```text
-POST /api/v1/agents/{agent_principal_id}/sidecar-threads:ensure
+POST /api/v1/agent-sidecar-threads:ensure
 operation_id: cx.agent.sidecar_thread.ensure
 profile: cx.profile.agent_sidecar_thread.v1
 ```
 
-该 operation 是幂等编排入口。它创建或复用一条 controller-agent sidecar thread,并返回 private Circle、private Flow 与 private Relation 的引用。
+该 operation 是幂等编排入口。它创建或复用一条 controller-context sidecar thread,并返回 private Circle、private Flow 与 private Relation 的引用。实现 MAY 提供 `POST /api/v1/agents/{agent_principal_id}/sidecar-threads:ensure` 作为单 agent 快捷 binding,但 canonical operation 语义由 request body 中的参与者集合决定。
 
 请求:
 
 ```json
 {
   "controller_principal_id": "did:webvh:alice.example",
-  "agent_principal_id": "did:webvh:alice.example:agents:summary-assistant",
+  "agent_principal_ids": [
+    "did:webvh:alice.example:agents:summary-assistant",
+    "did:webvh:alice.example:agents:research-assistant"
+  ],
   "context_ref": {
     "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
     "flow_id": "cx:flow:01970000-0000-7000-8000-000000000001",
     "track": "discussion",
     "message_id": "cx:message:01970000-0000-7000-8000-000000000071"
   },
-  "reuse_policy": "same_controller_agent_context",
-  "participant_model": "single_agent",
+  "reuse_policy": "same_controller_context",
+  "participant_model": "context_shared",
   "sidecar_home_policy": "controller_home_preferred",
   "metadata_policy": {
     "target_ref_visible_to_agent": true,
@@ -133,25 +136,26 @@ Sidecar private Flow SHOULD lazy-create。实现不应在用户打开目标 Flow
 - 只存在 `draft_only` account-data 草稿。
 - 只因为 agent 有 read permission 或 watch 了某个 Flow。
 
-默认复用粒度是 `same_controller_agent_context`:一个 private Flow 对应一个 `(controller_principal_id, agent_principal_id, normalized_context_ref)`。这让不同 agent 默认互相隔离,也让 agent revoke、retention、audit 与 E2EE membership 更直接。
+默认复用粒度是 `same_controller_context`:一个 private Flow 对应一个 `(controller_principal_id, normalized_context_ref)`。这更符合产品体验:用户在某个 Flow / Message 上打开一个 "My AI" 私有上下文,可以在同一个 sidecar 中让多个 agents 协作。
 
 若用户有多个 AI agents,默认行为 SHOULD 是:
 
-- 每个 agent 与同一 Flow / Message 上下文创建自己的 sidecar private Flow。
-- UI MAY 把这些 sidecars group 成一个 "My AI" personal track projection。
-- 不同 agent 默认不能读取彼此 sidecar 历史。
+- 同一 Flow / Message 上下文默认复用同一个 sidecar private Flow。
+- controller 显式选择或邀请的 agents 可以加入该 sidecar。
+- UI SHOULD 把该 sidecar 呈现为一个 "My AI" personal track projection,内部显示参与 agents。
+- 未被加入该 sidecar 的 agents 不能读取该 sidecar 历史。
 
-多 agent 共用一个 private Flow 只应在显式 `participant_model="multi_agent_shared"` 或等价 policy 下发生。该模式表示 controller 想让多个 agents 在同一个 sidecar 中协作。所有被加入的 agents 都是同一 sidecar Circle 的 members,因此可见性、E2EE epoch、retention 与 revocation 按共享私聊处理。
+多 agent 共用一个 private Flow 是 `participant_model="context_shared"` 的默认语义。所有被加入的 agents 都是同一 sidecar Circle 的 members,因此可见性、E2EE epoch、retention 与 revocation 按共享私聊处理。向既有 sidecar 加入新 agent 必须是 controller 显式动作,不得因为 agent 拥有目标 Flow 读权而自动加入。
 
 Candidate participant models:
 
 | Model | Private Flow 粒度 | 默认成员 | 适用场景 |
 | --- | --- | --- | --- |
-| `single_agent` | `(controller, agent, context_ref)` | controller + 一个 agent | 默认模式;最小权限、最少泄露、撤销简单。 |
-| `multi_agent_shared` | `(controller, context_ref, participant_set_id)` | controller + 多个 agents | 用户明确要求多个 agents 协作讨论同一上下文。 |
+| `context_shared` | `(controller, context_ref)` | controller + 一个或多个被显式选择的 agents | 默认模式;一个 Flow 上一个 "My AI" 私有上下文,多个 agents 可协作。 |
+| `agent_isolated` | `(controller, agent, context_ref)` | controller + 一个 agent | 强隔离模式;不同 agents 不共享 sidecar 历史。 |
 | `controller_agent_global` | `(controller, agent)` | controller + 一个 agent | 全局 assistant inbox;可引用多个 contexts,但不适合作为 Flow-specific 默认值。 |
 
-向既有 sidecar 添加第二个 agent 是 high-risk action。默认只授予新 agent 加入后的未来 epoch;历史内容是否回填必须由 controller 显式批准,且受 target content transfer 与 E2EE history policy 约束。
+向既有 sidecar 添加 agent 是显式 participant expansion。默认只授予新 agent 加入后的未来 epoch;历史内容是否回填必须由 controller 显式批准,且受 target content transfer 与 E2EE history policy 约束。
 
 ### 4.4 Sidecar Home Realm
 
@@ -168,7 +172,26 @@ Sidecar 必须显式选择 home Realm。该选择决定 Circle 的父 Realm、Fl
 
 若使用 `controller_home`,sidecar Relation 是跨 Realm weak-semantic reference。它不复制目标内容,不授予目标读权,也不在目标 Realm 写任何反向对象。
 
-### 4.5 组合 durable objects
+### 4.5 Circle 粒度
+
+一个用户可以有专门的 controller-home Realm 承载这些 private sidecar Flows。但本提案不建议默认让一个用户只有一个全局 sidecar Circle 来承载所有 private Flows。
+
+原因是 Circle 是密码学可见性边界。如果多个 private Flows 复用同一个 Circle,则该 Circle 的所有成员原则上都处在同一 MLS group 中。即使服务端用 capability 或 projection 限制投递,密码学隔离也已经弱化:一旦某 agent 是该 Circle member,它就可能解密该 Circle scope 下被投递或缓存到它的内容。
+
+推荐默认:
+
+- 一个 controller-home Realm 可以容纳多个 sidecar private Flows。
+- 每个 context sidecar private Flow SHOULD 拥有自己的 sidecar Circle。
+- 该 Circle 的成员是 controller + 当前 sidecar 中被显式选择的 agents。
+- 同一个 Flow / Message 上的多个 agents 可以共用这个 private Flow 与这个 Circle,因为这表示 controller 明确希望它们在同一上下文协作。
+
+可选优化:
+
+- 若 controller 明确创建一个长期 "AI team",实现 MAY 为该固定 participant set 复用一个 Circle,并把多个 sidecar private Flows 放入该 Circle。
+- 这种复用必须向 controller 表达为"这些 agents 可见同一组 sidecar Flows",不能伪装成 agent-isolated。
+- 对高敏感上下文,policy MAY 强制 per-sidecar Circle,禁止跨 context Circle 复用。
+
+### 4.6 组合 durable objects
 
 Accepted profile SHOULD 编排以下 durable material:
 
@@ -198,7 +221,7 @@ Accepted profile SHOULD 编排以下 durable material:
 默认成员为:
 
 - controller principal / controller authorized devices;
-- 通过 CXP-0008 key pairing 接受的 agent principal runtime device 或 workload identity。
+- 一个或多个通过 CXP-0008 key pairing 接受的 agent principal runtime device 或 workload identity。
 
 添加任何其他成员都是 high-risk operation,MUST 要求 controller 显式批准。
 
@@ -247,12 +270,12 @@ Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普�
 
 `agent_sidecar_of` 是候选 weak-semantic relation kind。该 relation fact MUST 存在 sidecar private scope 内。实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation,因为这会泄露 sidecar 存在性。
 
-### 4.6 授权校验
+### 4.7 授权校验
 
 `cx.agent.sidecar_thread.ensure` MUST fail closed,除非以下校验全部通过:
 
 - `controller_principal_id` 已认证,或由 fresh controller approval 表示。
-- `agent_principal_id` 是 accountable to controller 的 native agent principal。
+- `agent_principal_ids[]` 中每个 agent 都是 accountable to controller 的 native agent principal。
 - controller、agent 与 agent key 均处于 active,未 suspended、未 deactivated、未 revoked。
 - Realm policy 允许 native personal agents 与 agent sidecar threads。
 - controller 在相关 frontier 上有权读取目标上下文。
@@ -265,7 +288,7 @@ Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普�
 
 Agent runtime SHOULD NOT 只凭宽泛的 "create hidden channels" grant 调用该 operation。如果 agent 在没有既有授权的情况下发起 sidecar request,服务 SHOULD 像 CXP-0008 一样返回 structured human approval request。
 
-### 4.7 Capability vocabulary
+### 4.8 Capability vocabulary
 
 候选 capability actions:
 
@@ -285,14 +308,15 @@ Agent runtime SHOULD NOT 只凭宽泛的 "create hidden channels" grant 调用�
 | `allowed_context_realm_ids` | 允许开启 sidecar 的 context Realms。 |
 | `allowed_context_flow_ids` | 更窄的目标 Flow allowlist。 |
 | `allowed_sidecar_home_modes` | `controller_home`、`context_realm` 或两者。 |
-| `allowed_participant_models` | `single_agent`、`multi_agent_shared`、`controller_agent_global` 等允许的 participant model。 |
-| `max_sidecars_per_context` | 通常对 `(controller, agent, context_ref)` 取 `1`。 |
+| `allowed_participant_models` | `context_shared`、`agent_isolated`、`controller_agent_global` 等允许的 participant model。 |
+| `max_sidecars_per_context` | 默认对 `(controller, context_ref)` 取 `1`;`agent_isolated` profile 可按 `(controller, agent, context_ref)` 覆盖。 |
 | `max_agents_per_sidecar` | 单个 sidecar 允许的 agent 数量上限。 |
+| `circle_reuse_policy` | `per_sidecar`、`per_participant_set` 或 profile-defined values。 |
 | `copy_target_content_policy` | `never`、`controller_explicit_selection` 或 profile-defined values。 |
 | `e2ee_required` | sidecar 是否 MUST 使用 MLS-backed Circle scope。 |
 | `retention_policy_ref` | sidecar history 的 retention / erasure policy。 |
 
-### 4.8 E2EE 与 key management
+### 4.9 E2EE 与 key management
 
 Sidecar E2EE MUST 遵守 Circle 规则:
 
@@ -309,11 +333,11 @@ Agent 参与 sidecar 需要一个具体的 cryptographic member:
 - sidecar 创建被接受后,通过 profile-defined delivery path 向 agent runtime 发送 MLS Welcome。
 - agent key rotation SHOULD 根据 key model 触发 MLS member update 或 remove/add。
 - agent revoke / pause MUST 从 sidecar MLS group 移除 agent,并阻止未来的 sidecar session grant。
-- 在 `multi_agent_shared` 模式下,移除一个 agent MUST rotate 到新 epoch;被移除 agent 不应获得后续消息 key。
+- 在 `context_shared` 模式下,移除一个 agent MUST rotate 到新 epoch;被移除 agent 不应获得后续消息 key。
 
 Agent 已经解密过的历史 plaintext 无法被密码学撤回。Revocation 只保护未来 epoch 与未来 sync。
 
-### 4.9 目标内容转入 sidecar
+### 4.10 目标内容转入 sidecar
 
 打开 sidecar 不会复制目标内容。
 
@@ -325,7 +349,7 @@ Agent 已经解密过的历史 plaintext 无法被密码学撤回。Revocation �
 
 任何被复制的目标内容都会成为新的 sidecar content,并在 sidecar Circle 下加密。必要时可携带 `source_ref` / digest metadata,但 source metadata MUST NOT 泄露回目标 Flow。
 
-### 4.10 从 sidecar 发布
+### 4.11 从 sidecar 发布
 
 发布到目标 Flow 不是对 sidecar 自身的 mutation,而是在目标上下文中生成新的 shared event:
 
@@ -334,13 +358,13 @@ Agent 已经解密过的历史 plaintext 无法被密码学撤回。Revocation �
 
 目标 shared event MAY 包含 opaque approval reference 或 digest。除非 controller 明确选择公开,否则 MUST NOT 泄露 sidecar private Flow id、sidecar Circle id、private messages、scratchpad 或 draft history。
 
-### 4.11 通知与发现
+### 4.12 通知与发现
 
 Sidecar notifications 只投递给 sidecar Circle members 与 authorized devices / runtimes。目标 Flow 的 notification fanout MUST NOT 提及 sidecar activity。
 
 Sidecar private Flow SHOULD NOT 出现在普通 Realm navigation、board/list placement、public search、public relation expansion 或目标 Flow projections 中。Controller UI MAY 使用 controller-private account data 展示本地入口,例如"AI sidecar available"。
 
-### 4.12 Personal track projection
+### 4.13 Personal track projection
 
 实现 MAY 把 sidecar 在目标 Flow UI 中呈现为 controller-local personal track,例如:
 
