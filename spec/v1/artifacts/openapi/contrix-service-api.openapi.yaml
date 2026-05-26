@@ -2693,6 +2693,39 @@ components:
           type: array
           items:
             type: string
+        agent_key_authorization_ref:
+          type: string
+          description: |
+            `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Event ref of the accepted
+            `cx.agent.key.authorize` that authorized the runtime key. REQUIRED when
+            `proof.proof_kind="agent_key_proof"`; MUST be omitted for human session grants.
+          pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        agent_scope_request:
+          type: object
+          description: |
+            `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Narrowing hints for the
+            issued session scope; the server still intersects with the agent's accepted
+            capability grants and Realm policy. REQUIRED when `proof.proof_kind="agent_key_proof"`;
+            MUST be omitted for human session grants. `track_names` is a request-side
+            narrowing field only — the materialized session grant MUST express track scope
+            via the canonical `allowed_tracks` constraint, not via a new `track_names` grant.
+          additionalProperties: false
+          properties:
+            realm_ids:
+              type: array
+              items:
+                type: string
+                pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            flow_ids:
+              type: array
+              items:
+                type: string
+                pattern: ^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            track_names:
+              type: array
+              items:
+                type: string
+                minLength: 1
         proof:
           type: object
           additionalProperties: false
@@ -2705,11 +2738,16 @@ components:
           properties:
             proof_kind:
               type: string
+              description: |
+                `agent_key_proof` selects the `cx.profile.agent_auth.v1` overlay branch (CXP-0008 §4.6).
+                Implementations MUST route `agent_key_proof` to an independent validator and MUST NOT
+                fall back to password / OIDC / passkey validators for this branch.
               enum:
               - did_bound_signature
               - paired_device_proof
               - passkey_assertion
               - oidc_code_exchange
+              - agent_key_proof
             challenge:
               type: string
               minLength: 16
@@ -2721,9 +2759,58 @@ components:
             expires_at:
               type: string
               format: date-time
+            verification_method:
+              type: string
+              description: |
+                `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). DID URL of the runtime
+                signing key (`<agent_principal_id>#<key-fragment>`). REQUIRED when
+                `proof_kind="agent_key_proof"`; the DID component MUST bit-identically equal
+                `principal_id` after stripping the fragment / query — otherwise the endpoint
+                returns `verification_method_principal_mismatch`. MUST be omitted for human
+                proof kinds.
+              pattern: ^did:[a-z0-9]+:[^\s]+#.+$
             signature:
               type: string
               minLength: 1
+      allOf:
+      - description: |
+          Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is
+          `agent_key_proof`, the request MUST carry the `cx.profile.agent_auth.v1` overlay
+          fields (`agent_key_authorization_ref`, `agent_scope_request`, `proof.verification_method`);
+          when it is any other enum value, those fields MUST be absent. SDKs and server-side
+          validators MUST reject violations at schema-validation time, not at proof-validator
+          time.
+        if:
+          properties:
+            proof:
+              properties:
+                proof_kind:
+                  const: agent_key_proof
+              required:
+              - proof_kind
+          required:
+          - proof
+        then:
+          required:
+          - agent_key_authorization_ref
+          - agent_scope_request
+          properties:
+            proof:
+              required:
+              - verification_method
+        else:
+          allOf:
+          - not:
+              required:
+              - agent_key_authorization_ref
+          - not:
+              required:
+              - agent_scope_request
+          - properties:
+              proof:
+                not:
+                  required:
+                  - verification_method
     SessionGrantResponse:
       type: object
       additionalProperties: false
@@ -2747,6 +2834,30 @@ components:
           type: array
           items:
             type: string
+        scope_details:
+          type: object
+          description: |
+            `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Materialized narrow scope
+            actually granted to the agent runtime session, after intersecting `agent_scope_request`
+            with capability grants and Realm policy. Present iff the request was the
+            `proof.proof_kind="agent_key_proof"` branch; absent for human session grants.
+          additionalProperties: false
+          properties:
+            realm_ids:
+              type: array
+              items:
+                type: string
+                pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            flow_ids:
+              type: array
+              items:
+                type: string
+                pattern: ^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            track_names:
+              type: array
+              items:
+                type: string
+                minLength: 1
     AccountOidcCallbackRequest:
       type: object
       additionalProperties: false
@@ -5338,7 +5449,7 @@ paths:
           default: localhost
     post:
       operationId: cx.account.agent_key_pair
-      description: Personal agent runtime key pairing (CXP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes cx.agent.key.authorize on approval.
+      description: Native personal agent runtime key pairing (CXP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes cx.agent.key.authorize on approval.
       security:
       - bearerAuth: []
       responses:
@@ -5359,7 +5470,7 @@ paths:
   /agents:
     get:
       operationId: cx.agent.list
-      description: List personal agents visible to the authenticated controller.
+      description: List native personal agents visible to the authenticated controller.
       security:
       - bearerAuth: []
       responses:
@@ -5390,7 +5501,7 @@ paths:
   /agents/{agent_principal_id}:
     get:
       operationId: cx.agent.get
-      description: Read one personal agent projection.
+      description: Read one native personal agent projection.
       security:
       - bearerAuth: []
       parameters:
@@ -5456,10 +5567,10 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /agents/{agent_principal_id}/revoke:
+  /agents/{agent_principal_id}/deactivate:
     post:
       operationId: cx.agent.deactivate
-      description: Terminally deactivate a native personal agent.
+      description: Terminally deactivate a native personal agent. fan-out cx.agent.key.revoke / cx.capability.revoke / runtime endpoint revocation.
       security:
       - bearerAuth: []
       parameters:
@@ -5558,7 +5669,17 @@ paths:
   /agent-sidecar-threads:ensure:
     post:
       operationId: cx.agent.sidecar_thread.ensure
-      description: Idempotently ensure the controller-agent sidecar Circle, Flow, and relation.
+      description: |
+        Idempotently ensure the controller-agent sidecar Circle, Flow, and relation (CXP-0009 §4.2.1).
+        The wire-level idempotency keys are **server-derived**: the sidecar Circle is keyed by
+        `(realm_id, controller_principal_id)` and the sidecar private Flow / reuse identity by
+        `(controller_principal_id, normalized_context_ref)`. Note that `agent_principal_id` is NOT part of
+        either key — a single sidecar Circle is shared across all eligible agents owned by the same controller
+        in a given Realm. Clients MUST NOT supply an `Idempotency-Key` header and MUST NOT retry with a different
+        body to "force" creation. Concurrent ensure calls converge to the same sidecar refs; repeated calls
+        after creation return the existing refs. Existence-privacy failures surface as `sidecar_create_denied`
+        (a deliberately generic precondition that hides whether a sidecar with the same derived short_name
+        already exists).
       security:
       - bearerAuth: []
       responses:

@@ -729,7 +729,7 @@ Native personal agent 的 management 与 sidecar operations 落在 `/api/v1/agen
 | `cx.account.agent_key_pair` | `POST /auth/account/agent-key-pair` | `cx.profile.personal_agent_provisioning.v1` |
 | `cx.account.issue_session_grant`(扩展为 `proof.proof_kind="agent_key_proof"` 分支) | `POST /auth/account/session-grants` | `cx.profile.agent_auth.v1` |
 | `cx.agent.list` / `cx.agent.get` | `GET /api/v1/agents` / `GET /api/v1/agents/{agent_principal_id}` | `cx.profile.personal_agent_provisioning.v1` |
-| `cx.agent.pause` / `resume` / `revoke` / `rotate_key` | `POST /api/v1/agents/{agent_principal_id}/{pause,resume,revoke,rotate-key}` | `cx.profile.personal_agent_provisioning.v1` |
+| `cx.agent.pause` / `resume` / `deactivate` / `rotate_key` | `POST /api/v1/agents/{agent_principal_id}/{pause,resume,deactivate,rotate-key}` | `cx.profile.personal_agent_provisioning.v1` |
 | `cx.agent.grant.attach` / `cx.agent.grant.detach` | `POST /api/v1/agents/{agent_principal_id}/grants` / `DELETE /api/v1/agents/{agent_principal_id}/grants/{grant_id}` | `cx.profile.personal_agent_provisioning.v1` |
 | `cx.agent.sidecar_thread.ensure` | `POST /api/v1/agent-sidecar-threads:ensure` | `cx.profile.agent_sidecar_thread.v1` |
 

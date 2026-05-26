@@ -1328,6 +1328,155 @@ def collect_payload_dispatch_kinds(value: Any) -> set[str]:
     return dispatched
 
 
+# Matches dispatch refs of the form `[./]?<filename>.schema.json#/$defs/<class>`.
+# Covers `event-payload.schema.json#/$defs/...` (canonical) and sibling-schema
+# refs such as `moderation-appeal.schema.json#/$defs/submit_payload`.
+# Refs without a $defs anchor (e.g. `./read-cursor.schema.json` whose entire
+# file is the payload) have no class name to lint and are intentionally skipped.
+PAYLOAD_DISPATCH_REF_RE = re.compile(
+    r"[A-Za-z0-9_-]+\.schema\.json#/\$defs/([a-z][a-z0-9_]*)"
+)
+
+
+# Kind → payload-class pairs where the class name intentionally diverges from
+# the kind's last dot-segment (one-to-one semantic renames).
+KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
+    "cx.member.state": "membership_payload",
+    "cx.circle.update": "circle_patch_payload",
+    "cx.profile.space_override": "profile_realm_override_payload",
+}
+
+
+# Legitimate kind → payload-class pairs where multiple kinds intentionally
+# share a "category" payload class (object_lifecycle, state, audit, view,
+# invite, capability_grant, generic_standard, reaction, container_position,
+# call, message_redact, relation_update, space_state_transition, flow_patch,
+# object_patch). Adding a new dispatch that doesn't match the last-segment
+# rule MUST add the pair here, forcing reviewer awareness of the rename.
+LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
+    ("cx.actor.discovery", "state_payload"),
+    ("cx.applet.bridge_error", "generic_standard_payload"),
+    ("cx.applet.discovery", "state_payload"),
+    ("cx.applet.protocol_session.start", "generic_standard_payload"),
+    ("cx.applet.protocol_session.status", "generic_standard_payload"),
+    ("cx.applet.registration", "generic_standard_payload"),
+    ("cx.attestation.range_completeness", "audit_payload"),
+    ("cx.audit.epoch_key_destruction", "audit_payload"),
+    ("cx.audit.ryw_receipt", "audit_payload"),
+    ("cx.call.recording.start", "call_payload"),
+    ("cx.call.state", "call_payload"),
+    ("cx.capability.delegate", "capability_grant_payload"),
+    ("cx.capability.derived", "capability_grant_payload"),
+    ("cx.circle.archive", "object_lifecycle_payload"),
+    ("cx.circle.restore", "object_lifecycle_payload"),
+    ("cx.circle.tombstone", "object_lifecycle_payload"),
+    ("cx.container.move_item", "container_position_payload"),
+    ("cx.container.rebalance", "container_position_payload"),
+    ("cx.did.proof", "state_payload"),
+    ("cx.flow.archive", "object_lifecycle_payload"),
+    ("cx.flow.restore", "object_lifecycle_payload"),
+    ("cx.flow.tracks.update", "flow_patch_payload"),
+    ("cx.flow.update", "flow_patch_payload"),
+    ("cx.handle.discovery", "state_payload"),
+    ("cx.identity.accountability_grant", "state_payload"),
+    ("cx.identity.disclosure_policy", "state_payload"),
+    ("cx.identity.disclosure_receipt", "state_payload"),
+    ("cx.identity.presentation_request", "state_payload"),
+    ("cx.identity.presentation_response", "state_payload"),
+    ("cx.invite.accept", "invite_payload"),
+    ("cx.invite.cancel", "invite_payload"),
+    ("cx.invite.claim", "invite_payload"),
+    ("cx.invite.create", "invite_payload"),
+    ("cx.invite.revoke", "invite_payload"),
+    ("cx.invite.third_party", "invite_payload"),
+    ("cx.mimi.room_binding", "generic_standard_payload"),
+    ("cx.moderation.decision", "generic_standard_payload"),
+    ("cx.moderation.decision.lift", "generic_standard_payload"),
+    ("cx.moderation.franking_proof", "audit_payload"),
+    ("cx.morph.archive", "object_lifecycle_payload"),
+    ("cx.morph.restore", "object_lifecycle_payload"),
+    ("cx.morph.update", "object_patch_payload"),
+    ("cx.organization.discovery", "state_payload"),
+    ("cx.organization.moderation_policy", "state_payload"),
+    ("cx.policy.action", "state_payload"),
+    ("cx.policy.rule", "state_payload"),
+    ("cx.policy.set", "state_payload"),
+    ("cx.profile.update", "object_patch_payload"),
+    ("cx.reaction.add", "reaction_payload"),
+    ("cx.reaction.remove", "reaction_payload"),
+    ("cx.realm.asset_privacy_policy", "state_payload"),
+    ("cx.realm.audit_policy_downgrade", "audit_payload"),
+    ("cx.realm.delivery_binding_policy", "state_payload"),
+    ("cx.realm.discovery", "state_payload"),
+    ("cx.realm.history_sharing_policy", "state_payload"),
+    ("cx.realm.history_visibility", "state_payload"),
+    ("cx.realm.join_rule", "state_payload"),
+    ("cx.realm.link", "state_payload"),
+    ("cx.realm.media_service", "state_payload"),
+    ("cx.realm.moderation_policy", "state_payload"),
+    ("cx.realm.organization", "state_payload"),
+    ("cx.realm.policy", "state_payload"),
+    ("cx.realm.policy_components", "state_payload"),
+    ("cx.realm.policy_server", "state_payload"),
+    ("cx.realm.read_receipt_policy", "state_payload"),
+    ("cx.realm.schema", "state_payload"),
+    ("cx.realm.update", "object_patch_payload"),
+    ("cx.realm.upgrade", "state_payload"),
+    ("cx.redaction", "message_redact_payload"),
+    ("cx.relation.tombstone", "relation_update_payload"),
+    ("cx.schema.define", "state_payload"),
+    ("cx.schema.update", "state_payload"),
+    ("cx.sovereign.did_policy", "state_payload"),
+    ("cx.space.archive", "generic_standard_payload"),
+    ("cx.space.archive", "space_state_transition_payload"),
+    ("cx.space.create", "generic_standard_payload"),
+    ("cx.space.parent", "generic_standard_payload"),
+    ("cx.space.restore", "generic_standard_payload"),
+    ("cx.space.restore", "space_state_transition_payload"),
+    ("cx.space.tombstone", "generic_standard_payload"),
+    ("cx.space.update", "generic_standard_payload"),
+    ("cx.view.create", "view_payload"),
+    ("cx.view.reconcile", "view_payload"),
+    ("cx.view.update", "view_payload"),
+}
+
+
+def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
+    """Return [(kind, payload_class_name)] for every `if kind=const → then payload $ref` block."""
+    pairs: list[tuple[str, str]] = []
+    if isinstance(value, dict):
+        if_schema = value.get("if")
+        then_schema = value.get("then")
+        if isinstance(if_schema, dict) and isinstance(then_schema, dict):
+            then_properties = then_schema.get("properties")
+            payload_schema = (
+                then_properties.get("payload")
+                if isinstance(then_properties, dict)
+                else None
+            )
+            if isinstance(payload_schema, dict):
+                ref = payload_schema.get("$ref")
+                if isinstance(ref, str):
+                    match = PAYLOAD_DISPATCH_REF_RE.search(ref)
+                    if match:
+                        class_name = match.group(1)
+                        if_properties = if_schema.get("properties")
+                        kind_schema = (
+                            if_properties.get("kind")
+                            if isinstance(if_properties, dict)
+                            else None
+                        )
+                        for kind in collect_kind_selector_tokens(kind_schema):
+                            if kind.startswith("cx."):
+                                pairs.append((kind, class_name))
+        for child in value.values():
+            pairs.extend(collect_payload_dispatch_pairs(child))
+    elif isinstance(value, list):
+        for child in value:
+            pairs.extend(collect_payload_dispatch_pairs(child))
+    return pairs
+
+
 def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     path = ARTIFACTS / "schemas" / "event-schema.json"
     data = load_json(lint, path)
@@ -1364,6 +1513,40 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     }
     for token in sorted(active_envelope_event_kinds - payload_dispatch_kinds):
         lint.fail(path, f"active Event.kind missing payload schema dispatch: {token}")
+
+    # Mis-routed dispatch detector: each (kind, payload_class) pair must either
+    # appear in KIND_PAYLOAD_RENAME_EXEMPTIONS verbatim, or embed the kind's
+    # last dot-segment as a case-insensitive substring of the class name.
+    # Catches typo / copy-paste errors like `cx.agent.pause → agent_resume_payload`.
+    seen_pairs: set[tuple[str, str]] = set()
+    for kind, class_name in collect_payload_dispatch_pairs(data):
+        if (kind, class_name) in seen_pairs:
+            continue
+        seen_pairs.add((kind, class_name))
+        if SCHEMA_ID_RE.fullmatch(kind) or PROFILE_ID_RE.fullmatch(kind):
+            continue
+        exempt = KIND_PAYLOAD_RENAME_EXEMPTIONS.get(kind)
+        if exempt is not None:
+            if exempt != class_name:
+                lint.fail(
+                    path,
+                    f"kind {kind} is exempt and MUST dispatch to {exempt!r}, "
+                    f"but dispatches to {class_name!r}",
+                )
+            continue
+        if (kind, class_name) in LEGACY_SHARED_PAYLOAD_DISPATCH:
+            continue
+        last_segment = kind.rsplit(".", 1)[-1].lower()
+        if last_segment not in class_name.lower():
+            lint.fail(
+                path,
+                f"kind {kind} dispatches to payload class {class_name!r} "
+                f"whose name does not contain the kind's last segment "
+                f"{last_segment!r}; likely a mis-routed $ref. If this rename "
+                f"is intentional, add the (kind, class) pair to "
+                f"LEGACY_SHARED_PAYLOAD_DISPATCH or KIND_PAYLOAD_RENAME_EXEMPTIONS "
+                f"in tools/lint_artifacts.py.",
+            )
 
 
 def parse_openapi_operation_http_map(text: str) -> tuple[dict[str, str], list[str]]:

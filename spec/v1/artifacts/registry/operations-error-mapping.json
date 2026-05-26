@@ -1,6 +1,6 @@
 {
   "$schema": "https://contrix.dev/spec/v1/artifacts/registry/operations-error-mapping.schema.json",
-  "version": "2026-05-26",
+  "version": "2026-05-27",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -346,8 +346,121 @@
         "did_proof_required",
         "soft_logged_out",
         "invalid_signature",
-        "audience_unknown"
+        "audience_unknown",
+        "proof_invalid",
+        "verification_method_principal_mismatch",
+        "agent_paused",
+        "agent_deactivated",
+        "accountability_grant_missing"
+      ],
+      "description": "Session grant issuance. Shared by human user_session and agent runtime branches (CXP-0008 §4.6): when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
+    },
+    {
+      "operation_id": "cx.account.agent_key_pair",
+      "http_alias": "POST /auth/account/agent-key-pair",
+      "operation_specific": [
+        "verification_method_principal_mismatch",
+        "pairing_request_expired",
+        "proof_invalid",
+        "agent_deactivated"
+      ],
+      "description": "Native personal agent runtime key pairing (CXP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
+    },
+    {
+      "operation_id": "cx.agent.provision",
+      "http_alias": "POST /api/v1/agents",
+      "operation_specific": [
+        "failed_precondition",
+        "accountability_grant_missing"
+      ],
+      "description": "Provision a native personal agent principal (CXP-0008). The op is the aggregate `cx.agent.provision` capability action (capability-action-registry.json) and fans out `cx.profile.create` + `cx.identity.accountability_grant` + `cx.agent.key.authorize` + `cx.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `cx.identity.accountability_grant` (controller lacks `cx.agent.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
+    },
+    {
+      "operation_id": "cx.agent.list",
+      "http_alias": "GET /api/v1/agents",
+      "operation_specific": [
+        "cursor_invalid"
       ]
+    },
+    {
+      "operation_id": "cx.agent.get",
+      "http_alias": "GET /api/v1/agents/{agent_principal_id}",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches cx.events.get pattern)."
+    },
+    {
+      "operation_id": "cx.agent.pause",
+      "http_alias": "POST /api/v1/agents/{agent_principal_id}/pause",
+      "operation_specific": [
+        "agent_paused",
+        "agent_deactivated",
+        "failed_precondition"
+      ],
+      "description": "agent_paused is returned for idempotent re-pause; agent_deactivated is terminal."
+    },
+    {
+      "operation_id": "cx.agent.resume",
+      "http_alias": "POST /api/v1/agents/{agent_principal_id}/resume",
+      "operation_specific": [
+        "agent_deactivated",
+        "failed_precondition",
+        "accountability_grant_missing"
+      ],
+      "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar exposure re-disclosure failure surfaces as failed_precondition with reason=`sidecar_exposure_ack_required`."
+    },
+    {
+      "operation_id": "cx.agent.deactivate",
+      "http_alias": "POST /api/v1/agents/{agent_principal_id}/deactivate",
+      "operation_specific": [
+        "agent_deactivated",
+        "failed_precondition"
+      ],
+      "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal agent."
+    },
+    {
+      "operation_id": "cx.agent.rotate_key",
+      "http_alias": "POST /api/v1/agents/{agent_principal_id}/rotate-key",
+      "operation_specific": [
+        "agent_paused",
+        "agent_deactivated",
+        "verification_method_principal_mismatch",
+        "proof_invalid",
+        "failed_precondition"
+      ],
+      "description": "Wire op cx.agent.rotate_key corresponds to event kind cx.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
+    },
+    {
+      "operation_id": "cx.agent.grant.attach",
+      "http_alias": "POST /api/v1/agents/{agent_principal_id}/grants",
+      "operation_specific": [
+        "agent_paused",
+        "agent_deactivated",
+        "capability_denied",
+        "failed_precondition"
+      ],
+      "description": "Attaches a capability grant to the agent. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate."
+    },
+    {
+      "operation_id": "cx.agent.grant.detach",
+      "http_alias": "DELETE /api/v1/agents/{agent_principal_id}/grants/{grant_id}",
+      "operation_specific": [
+        "not_found",
+        "agent_deactivated"
+      ],
+      "description": "not_found is returned for nonexistent grant_id and for grants not attached to this agent (uniform failure surface)."
+    },
+    {
+      "operation_id": "cx.agent.sidecar_thread.ensure",
+      "http_alias": "POST /api/v1/agent-sidecar-threads:ensure",
+      "operation_specific": [
+        "sidecar_create_denied",
+        "agent_paused",
+        "agent_deactivated",
+        "failed_precondition"
+      ],
+      "description": "Idempotent ensure (CXP-0009 §4.2.1): server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Flow / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
     }
   ],
   "cross_links": {

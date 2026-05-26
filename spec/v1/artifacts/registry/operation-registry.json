@@ -279,7 +279,7 @@
     },
     {
       "operation_id": "cx.agent.deactivate",
-      "http": "POST /agents/{agent_principal_id}/revoke",
+      "http": "POST /agents/{agent_principal_id}/deactivate",
       "grpc": "Agent/Deactivate",
       "mq": "agent.deactivate"
     },

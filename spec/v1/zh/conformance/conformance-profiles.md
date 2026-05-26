@@ -559,7 +559,7 @@ MUST 支持:
 - `POST /auth/account/agent-key-pair` (`cx.account.agent_key_pair`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `cx.agent.key.authorize`,清除 effective_after_first_authorized_key
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
 - Pairing expiry 自动 `cx.capability.revoke` pending grants
-- Agent management operations(list/get/pause/resume/revoke/rotate-key/grant attach/detach)写入 durable lifecycle events
+- Agent management operations(list/get/pause/resume/deactivate/rotate-key/grant attach/detach)写入 durable lifecycle events
 - Draft-only family:`cx.agent.draft.propose` / `cx.agent.action_request` / `cx.agent.action_approve` / `cx.agent.action_reject`,materialize 为 controller-owned `cx.agent.draft.v1` encrypted account-data
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
@@ -580,7 +580,7 @@ MUST 支持:
 - 复用 `POST /auth/account/session-grants` 通过 `proof.proof_kind="agent_key_proof"` 分支
 - 独立 schema branch、独立 proof validator、独立 returned scope(交集 from agent key authorization / capability grant / Realm policy / requested scope)
 - `agent_scope_request` overlay 与 `scope_details` response overlay
-- key proof 绑定 challenge / audience / request canonical digest / agent principal / `verification_method` / nonce / expiry
+- key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段——CXP-0008 §4.6 proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
 - Structured human approval request 返回(`code=claim_required` / `reason_code=human_approval_required` / `approval_request_id`),不向 agent runtime 展示 CAPTCHA / OTP

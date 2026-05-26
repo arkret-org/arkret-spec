@@ -238,7 +238,7 @@ inject_frame_key(key_bytes: 32-byte secret,
                  rotation_trigger: enum{member_join,member_leave,manual,scheduled})
 ```
 
-- `key_bytes` MUST 由 Contrix MLS exporter 派生（label 由本提案在 conformance 阶段固定，例如 `"cx-rtc-frame-key/v1"`）。
+- `key_bytes` MUST 由 Contrix MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`Context = ""`，`KDF.Nh` 长度 32 bytes）。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking 改动，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
 - backend SDK / adapter 内部如何把该 key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 [`webrtc-signaling.md` §10.3.1](../zh/crypto-media/webrtc-signaling.md) 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
 - Conformance negative vector：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
@@ -306,7 +306,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 | `artifacts/profiles/conformance-profiles.json` | 新增 `cx.profile.media_service_binding.v1`；具体 backend binding 作为可选 sub-profile |
 | `artifacts/registry/vector-registry.json` | 新增 §4.8 列出的向量 |
 
-**Forbidden wire**：旧客户端发出的 `cx.realm.media_service` 单 endpoint 形态 SHOULD 被规范化为单 focus 列表；服务端 MAY 自动迁移。`foci[].type` MUST 有 registry source of truth；客户端遇到未知 `type` 或已知但 unsupported / experimental 的 `type` MUST fail closed，而不是尝试把 token 交给任意 SDK。
+**Forbidden wire**：旧客户端发出的 `cx.realm.media_service` 单 endpoint 形态在本提案 accepted 后的 **v1 cycle 全程** SHOULD 被规范化为单 focus 列表；服务端 MAY 在事件 reducer / projection 入口自动迁移（把 `sfu_endpoint` 重写为 `foci=[{focus_id:"legacy",type:"contrix-native",connect_url:<sfu_endpoint>,...}]`），且 MUST 在 normalization 时打 audit log；v1.1 起单 endpoint 形态升级为 `failed_precondition`（`reason="legacy_single_endpoint_media_service"`）。`foci[].type` MUST 有 registry source of truth；客户端遇到未知 `type` 或已知但 unsupported / experimental 的 `type` MUST fail closed，而不是尝试把 token 交给任意 SDK。
 
 ## 6. Rationale & alternatives
 
@@ -332,7 +332,8 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 - **Token TTL**：MUST ≤ 600s，SHOULD ≤ 300s（§4.2）。
 - **Token issuer DID 锚定**：必须等于 Realm-configured `cx.realm.media_service.service_id`（§4.2）。
 - **Focus health check**：可选 `health_endpoint` 只参与 pre-commit 排序；`session_focus` 写入后不得静默 fallback（§4.1 / §4.3）。
-- **Backend-native E2EE 密钥来源**：MUST 来自 Contrix MLS exporter，固定客户端侧接口 `inject_frame_key(key_bytes, epoch_id, rotation_trigger)`（§4.5.1）。
+- **Backend-native E2EE 密钥来源**：MUST 来自 Contrix MLS exporter，固定客户端侧接口 `inject_frame_key(key_bytes, epoch_id, rotation_trigger)`，MLS-Exporter label 固定为 `"cx-rtc-frame-key/v1"`、context 空、`KDF.Nh=32`（§4.5.1）。
+- **遗留单 endpoint 形态**：v1 cycle 内 SHOULD 接受并 normalize 为 `foci=[{type:"contrix-native",...}]`；v1.1 起 `failed_precondition` `reason="legacy_single_endpoint_media_service"`（§5）。
 - **Participant identity 交叉校验**：客户端 MUST 校验 backend 通知的 participant 与 `cx.call.state` 中的 signed `participant_binding` 一致（§4.5.2）。
 - **MoQ 保留位**：v1 schema 接受 `type: "moq-relay"`，但 v1 周期内不提供 normative binding（§4.1）。
 - **Recording artifact**：backend 可执行录制，但 artifact MUST 经 Contrix blob pipeline 入库，加密 key 来自协议层，结果通过 `cx.call.state` 发布，不新增 `cx.call.recording.artifact` event（§4.7）。

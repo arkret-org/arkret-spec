@@ -39,7 +39,7 @@ merged_into:
 >
 > Schema / registry artifacts: `event-schema.json`、`event-payload.schema.json`、`event-kind-registry.json`、`operation-registry.json`、`capability-action-registry.json`、`account-data-type-registry.json`、`profiles/conformance-profiles.json`。CHANGELOG entry under 2026-05-26 "Personal AI Agent provisioning & sidecar threads"。
 >
-> 仍有一项 review-stage 项保留:`cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 三独立 event kind 当前作为 v1 形态注册;未来若 `cx.principal.status.set` 通用 lifecycle event 出现,会通过 `renames.json` migration_group 收敛(见 §7.2)。
+> Accepted 阶段所有 review-stage 决议均已闭合(见 §7.1);§7.2 当前为空。`cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 三独立 event kind 已注册为 v1 形态;如果未来引入通用 `cx.principal.status.set` lifecycle event,会通过 `renames.json` migration_group 收敛,而不会回到本文件再讨论。
 >
 > This proposal file is retained as historical design rationale. Future updates to personal agent provisioning MUST land directly on normative files, not here.
 
@@ -650,7 +650,7 @@ GET  /api/v1/agents
 GET  /api/v1/agents/{agent_principal_id}
 POST /api/v1/agents/{agent_principal_id}/pause
 POST /api/v1/agents/{agent_principal_id}/resume
-POST /api/v1/agents/{agent_principal_id}/revoke
+POST /api/v1/agents/{agent_principal_id}/deactivate
 POST /api/v1/agents/{agent_principal_id}/rotate-key
 POST /api/v1/agents/{agent_principal_id}/grants
 DELETE /api/v1/agents/{agent_principal_id}/grants/{grant_id}
@@ -681,10 +681,10 @@ Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key
 
 - `pause`: `cx.agent.pause` 或等价 signed agent status event / principal-control state。
 - `resume`: `cx.agent.resume` 或等价 signed status transition。
-- `revoke`: `cx.agent.deactivate` 或等价 terminal state,并 fan-out `cx.agent.key.revoke`、`cx.capability.revoke` / delegation revoke、runtime endpoint revoke。
+- `deactivate`: `cx.agent.deactivate` terminal state,并 fan-out `cx.agent.key.revoke`、`cx.capability.revoke` / delegation revoke、runtime endpoint revoke。canonical op id 为 `cx.agent.deactivate`,URL `/api/v1/agents/{agent_principal_id}/deactivate`。
 - `rotate-key`: `cx.agent.key.rotate`,记录 replacement key proof 与 approval evidence。
 
-具体 event kind 是否注册为 `cx.agent.pause` / `resume` / `deactivate` 仍是 §7 开放问题;但 accepted profile MUST 有可重放的审计材料。
+`cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 已在 accepted artifact 中作为 active event kinds 注册;此处保留枚举以便 audit material 实现者快速查找。
 
 ## 5. 与 normative spec 的交互
 
@@ -703,7 +703,7 @@ Agent key rotation SHOULD 复用 `cx.agent.key.rotate`,并要求 replacement key
 
 ### 5.2 Accepted 后可能需要的 artifact 改动
 
-- `operation-registry.json`: 增加 `cx.agent.provision`、`cx.account.agent_key_pair`、list/get/pause/resume/revoke/rotate/grant management operations。Agent runtime session 复用现有 `cx.account.issue_session_grant` operation,不注册单独的 agent-session 签发 operation。
+- `operation-registry.json`: 增加 `cx.agent.provision`、`cx.account.agent_key_pair`、list/get/pause/resume/deactivate/rotate_key/grant management operations(canonical op id `cx.agent.deactivate`, URL `/api/v1/agents/{agent_principal_id}/deactivate`,旧 `/revoke` 形态不再 normative)。Agent runtime session 复用现有 `cx.account.issue_session_grant` operation,不注册单独的 agent-session 签发 operation。
 - `event-kind-registry.json`: 不增加 `cx.agent.provision` aggregate event;provisioning operation fan-out 到 `cx.profile.create`、`cx.identity.accountability_grant`、`cx.agent.key.authorize`、`cx.capability.grant` 等既有 durable events。增加 `cx.agent.pause`、`cx.agent.resume`、`cx.agent.deactivate` 或等价 lifecycle state events,并增加 `cx.agent.draft.propose`、`cx.agent.action_request`、`cx.agent.action_approve`、`cx.agent.action_reject` draft/action-request family。
 - `account-data-type-registry.json`: 增加 `cx.agent.draft.v1`,key pattern 建议为 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`,并声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。
 - `capability-action-registry.json`: 增加 `cx.agent.provision` 作为 aggregate admin action,其 `target_event_kinds` MUST 显式列出 fan-out 子事件,例如 `cx.profile.create`、`cx.identity.accountability_grant`、`cx.agent.key.authorize`、`cx.capability.grant`,并标注 migration group。Agent management actions 同样必须声明 target event kinds,不得从 action 字符串推断。
@@ -764,10 +764,11 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 - [x] Agent E2EE access 表达为独立 MLS member,默认无 E2EE access;不得作为 controller delegated device 继承 history keys。
 - [x] `act_on_behalf` 默认 fresh approval 粒度为 `(action, target_flow)` + 短期 window,通过现有 approval/accountability constraints 表达。
 - [x] `did:webvh` deployment SHOULD 为 personal agent 分配独立 SCID,并 MAY 在 `did:webvh:<scid>:<host-and-path>` 的 `<host-and-path>` 中采用 `agents/<slug>` 可读路径约定;规范信任来源是独立 DID document 与显式 accountability grant,不是路径继承。
+- [x] Lifecycle event kinds 注册为 `cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate`(已在 accepted artifact 中作为 active event kinds,FSM lattice / `bottom=reject`,payload schema 已 wire 在 `event-payload.schema.json`)。不复用未来可能的通用 `cx.principal.status.set`——principal type 之间的 status 字段语义差异(agent freshness frontier vs human soft_logged_out vs service endpoint revoke)足以让单一 lifecycle event 反而增加 reducer 复杂度。该决议关闭后任何统一 lifecycle event 提案需要独立 CXP。
 
 ### 7.2 仍需讨论
 
-- [ ] `cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 是否注册为这些具体 event kind,还是复用未来可能的通用 `cx.principal.status.set` lifecycle event?后者取决于 `zh/identity/account-lifecycle.md` 是否要为所有 principal type 引入统一 lifecycle event。§4.11 已经保证"MUST 有可重放审计材料",但具体 kind 名字需要在 accepted artifact 阶段敲定,影响 `event-kind-registry.json` 与 conformance vectors。
+本节当前为空——所有 accepted 阶段必需的决议已迁入 §7.1。后续 review feedback 若出现新的待议事项,会重新列入本节。
 
 ## 8. 迁移计划
 
