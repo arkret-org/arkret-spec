@@ -167,7 +167,7 @@ profile: cx.profile.personal_agent_provisioning.v1
 
 - `default_for_unlisted_actions: "deny"` → 未列入 `requested_capabilities[].actions[]` 的 action 不签发 grant(不是 wildcard `allow`)。
 - `act_on_behalf: "disabled_by_default"` → 不签发任何 `executed_by = agent_principal_id` 形态的 grant,除非 caller 在 `requested_capabilities[]` 中显式声明 `act_on_behalf` mode 并满足 §4.10 的 fresh approval 要求。
-- `require_controller_approval_for: [actions...]` → 对列出的每个 action,在对应 `requested_capabilities[].constraints[]` 中加入 `claim_based.approval`(`approval_required=true`, `approval_actor_refs=[<controller_did>]`)与 `claim_based.accountability`(`controller_approval_required=true`)。
+- `require_controller_approval_for: [actions...]` → 对列出的每个 action,在对应 `requested_capabilities[].constraints[]` 中加入 `claim_based.approval`(`approval_required=true`, `approval_actor_refs=[<controller_principal_id>]`)与 `claim_based.accountability`(`controller_approval_required=true`)。
 
 `approval_policy` 不引入"high risk" 这类未注册分类。如果实现需要按 risk tier 自动应用 approval,该 tier 表必须由 deployment profile 显式定义并文档化,不得依赖隐含的服务端 hardcoding。
 
@@ -189,6 +189,8 @@ profile: cx.profile.personal_agent_provisioning.v1
   "status": "pending_runtime_key"
 }
 ```
+
+`pairing_request_id` 是 account/auth profile-local artifact ID,不是 `cx:<kind>:<uuid>` protocol object id。Accepted schema MUST 显式声明其 opaque UUIDv7 wire form、TTL 与单次消费规则;其它 durable Event 或 object 若引用 pairing approval 结果,应引用 accepted event (`*_event_id` / `authorization_ref`),而不是把 pairing request 当作可长期解析的 `_ref`。
 
 响应 MUST NOT 包含长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token。也 MUST NOT 引入 custom URI scheme(例如 `contrix://`)承载 pairing / management / approval 入口。客户端跳转链接由客户端自己用 deployment 已知的 `contrix_base_url` 拼接 HTTPS URL,例如 `https://<contrix_base_url>/auth/account/agent-pair?request=<pairing_request_id>`;移动端依赖 OS Universal Links / App Links 把 HTTPS URL 路由到原生 app。这样 spec 不背 URI scheme 注册债,联邦多实例下 host 也不会丢失。
 
@@ -276,7 +278,6 @@ profile: cx.profile.personal_agent_provisioning.v1
 {
   "pairing_request_id": "01970000-0000-7000-8000-000000000020",
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
-  "key_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
   "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
   "public_key": {
     "key_type": "Ed25519",
@@ -335,7 +336,7 @@ profile: cx.profile.agent_auth.v1
   },
   "proof": {
     "proof_kind": "agent_key_proof",
-    "key_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
+    "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
     "challenge": "base64url...",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "audience": "https://contrix.example/api/v1",
@@ -345,7 +346,7 @@ profile: cx.profile.agent_auth.v1
 }
 ```
 
-`agent_key_authorization_ref`、`agent_scope_request` 和 `proof.key_id` 是 `cx.profile.agent_auth.v1` 对现有 `SessionGrantRequest` 的 schema overlay。Accepted 后应扩展 OpenAPI typed schema;在 proposal 阶段不改 artifact。
+`agent_key_authorization_ref`、`agent_scope_request` 和 `proof.verification_method` 是 `cx.profile.agent_auth.v1` 对现有 `SessionGrantRequest` 的 schema overlay。`verification_method` 承载 DID URL,遵循 [`common-fields.md` §2.1.3](../zh/models/common-fields.md#213-_did)。Accepted 后应扩展 OpenAPI typed schema;在 proposal 阶段不改 artifact。
 
 Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` discriminator。Accepted 后需要把现有 `SessionGrantRequest.proof.proof_kind` 枚举扩展为包含 `agent_key_proof`,并为该分支定义独立 required fields、proof canonicalization 与 validator。实现不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。
 
@@ -372,7 +373,7 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
 校验规则:
 
 - key MUST 被一个 accepted、未过期、未撤销的 `cx.agent.key.authorize` 授权。
-- key proof MUST 绑定 challenge、audience、request canonical digest、agent principal、key id、nonce 和 expiry。
+- key proof MUST 绑定 challenge、audience、request canonical digest、agent principal、`verification_method`、nonce 和 expiry。
 - `request_canonical_digest` MUST 覆盖整个 session grant request 的 canonical bytes,但不包含 `proof.signature` 自身。
 - Auth Server MUST 维护 challenge / nonce replay table 或等价一次性校验状态,至少覆盖 proof `expires_at` 后的 replay grace window。已使用或过期 challenge MUST 拒绝。
 - requested scope MUST 不宽于 `agent_key_scope`、effective capability grants 与 policy constraints。
@@ -397,7 +398,7 @@ Agent 的 E2EE access MUST 作为独立 MLS member 表达,不得把 agent 伪装
 }
 ```
 
-`approval_request_id` 是 opaque ID;agent runtime 不要解释成 URL,也不要尝试打开 UI。Controller 客户端在自己的 session 中查询该 id 对应的 approval request 详情(端点由 deployment 文档定义,典型路径 `GET https://<contrix_base_url>/auth/account/approvals/<approval_request_id>`),并在人类 UI 中带外批准。本 profile 不引入 custom URI scheme 来承载 approval 跳转——理由同 §4.3 末尾。
+`approval_request_id` 是 account/auth profile-local opaque artifact ID,不是 target Flow / Event / Grant 的 reference。Agent runtime 不要解释成 URL,也不要尝试打开 UI。Controller 客户端在自己的 session 中查询该 id 对应的 approval request 详情(端点由 deployment 文档定义,典型路径 `GET https://<contrix_base_url>/auth/account/approvals/<approval_request_id>`),并在人类 UI 中带外批准。本 profile 不引入 custom URI scheme 来承载 approval 跳转——理由同 §4.3 末尾。
 
 controller 通过人类 UI 在带外批准。批准会产生新的 capability / delegation / approval event,agent retry 时引用该 event。
 
@@ -460,6 +461,8 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
 
 Accepted 后 draft-only MUST 注册 controller-owned account-data type `cx.agent.draft.v1`。建议 key pattern 为 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`,并标注 `encrypted_at_rest=true`、payload schema、tombstone 规则和 retention policy。Agent-facing `cx.agent.draft.propose` / `cx.agent.action_request` 通过 Principal Server 的 capability、policy、accountability 与 risk check 后,才 materialize 为该 controller-owned account-data。
 
+`draft_id` 是 `cx.agent.draft.v1` account-data artifact ID,不是 canonical Flow / Message / Event id。Accepted schema MUST 定义其 opaque UUIDv7 wire form;shared events 需要审计关联时使用 digest 或 accepted approval / publish event reference,不得把 private draft account-data key 当作 target Flow 内的 `_ref`。
+
 隐私边界:
 
 - Draft storage MUST 使用 `wire_scope=actor_private_event` 的通道,例如 encrypted account data 或 actor-private stream;不得进入 shared Realm Move / Anchor history。
@@ -469,6 +472,30 @@ Accepted 后 draft-only MUST 注册 controller-owned account-data type `cx.agent
 - Draft 可以引用目标 `realm_id`、`flow_id`、`track_name`、`message_id` 或 cursor,但这些引用不授予目标 Realm 成员读取 draft 内容的权利。
 
 发布时,controller approval 或 fresh authorization 会生成真正的 shared event,例如 `cx.message.create`。Shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest 便于审计,但明文 draft id、private metadata、scratchpad 或历史版本 MUST NOT 泄露到共享历史。发布后的可见内容只以最终 approved payload 为准。
+
+#### 4.8.1 Draft approval / publish lifecycle
+
+Draft approval MUST 建模为 controller-private lifecycle,而不是对 target Flow 的 mutation。最小状态机:
+
+```text
+proposed -> approved -> published
+proposed -> rejected
+proposed -> expired
+approved -> expired
+```
+
+规则:
+
+- `cx.agent.draft.propose` / `cx.agent.action_request` 只创建或更新 controller-owned `cx.agent.draft.v1` account data,状态为 `proposed`。
+- `cx.agent.action_approve` MUST 由 controller principal 或 fresh controller approval 产生,并绑定 `draft_id`、draft content digest、target descriptor、`proposed_action`、approved payload digest、approval expiry 和 single-use nonce。Controller 可以在批准前编辑内容;此时 approved payload digest 以编辑后的最终 payload 为准,原 draft content 只作为 private 审计输入。
+- `cx.agent.action_reject` 把 draft 标记为 `rejected`;agent runtime MUST NOT 继续尝试发布该 draft。
+- `approved` draft 仍不是 shared content。它只是一份 controller-private authorization artifact。
+- 真正进入目标 Realm / Flow 的步骤是生成新的 shared event。若由 controller 客户端发布,shared event 的 `actor_id` 是 controller。若由 agent runtime 发布,则必须按 §4.10 使用 reply-as-agent 或 act-on-behalf attribution,并通过 `authorization_ref` / approval reference 证明该 publish 覆盖目标 action 与 resource。
+- Publish executor MUST 对 approval nonce 做 atomic consume / compare-and-set。成功发布后,对应 draft 状态变为 `published`,并记录 shared event digest / opaque reference;重复提交同一 approval MUST fail closed(`reason="approval_already_consumed"` 或等价错误)。
+- Draft 过期、被拒绝或已发布后,MUST NOT 再生成新的 shared event;如需重新发布,agent 必须创建新的 draft / action request。
+- Shared event MAY 携带 `refs[].role="draft_source"` 的 opaque digest 或 approval reference,但不得携带明文 `draft_id`、account-data key、`private_flow_id`、scratchpad、private prompt 或历史版本。
+
+因此,"草稿成为正式信息"不是对象搬迁,而是 controller 批准后产生一条新的 shared event;draft 本身始终留在 private/account-data 语义内。
 
 ### 4.9 Effective permission rule
 
