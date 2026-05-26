@@ -801,6 +801,136 @@
       "profile": null
     },
     {
+      "action": "cx.agent.provision",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [
+        "expires_at",
+        "controller_approval_required"
+      ],
+      "target_event_kinds": [
+        "cx.profile.create",
+        "cx.identity.accountability_grant",
+        "cx.agent.key.authorize",
+        "cx.capability.grant"
+      ],
+      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "migration_group": "cxp_0008_agent_provisioning"
+    },
+    {
+      "action": "cx.agent.pause",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.agent.pause"
+      ],
+      "profile": "cx.profile.personal_agent_provisioning.v1"
+    },
+    {
+      "action": "cx.agent.resume",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.agent.resume"
+      ],
+      "profile": "cx.profile.personal_agent_provisioning.v1"
+    },
+    {
+      "action": "cx.agent.deactivate",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.agent.deactivate"
+      ],
+      "profile": "cx.profile.personal_agent_provisioning.v1"
+    },
+    {
+      "action": "cx.agent.draft.propose",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [
+        "expires_at"
+      ],
+      "target_event_kinds": [
+        "cx.agent.draft.propose"
+      ],
+      "profile": "cx.profile.personal_agent_provisioning.v1"
+    },
+    {
+      "action": "cx.agent.action_request",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [
+        "expires_at"
+      ],
+      "target_event_kinds": [
+        "cx.agent.action_request"
+      ],
+      "profile": "cx.profile.personal_agent_provisioning.v1"
+    },
+    {
+      "action": "cx.agent.action_approve",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.agent.action_approve"
+      ],
+      "profile": "cx.profile.personal_agent_provisioning.v1"
+    },
+    {
+      "action": "cx.agent.action_reject",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.agent.action_reject"
+      ],
+      "profile": "cx.profile.personal_agent_provisioning.v1"
+    },
+    {
+      "action": "cx.agent.sidecar_thread.ensure",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.circle.create",
+        "cx.circle.member.state",
+        "cx.flow.create",
+        "cx.relation.create"
+      ],
+      "profile": "cx.profile.agent_sidecar_thread.v1",
+      "migration_group": "cxp_0009_sidecar_ensure"
+    },
+    {
+      "action": "cx.agent.sidecar_thread.write",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [
+        "allowed_flow_refs"
+      ],
+      "target_event_kinds": [
+        "cx.message.create"
+      ],
+      "profile": "cx.profile.agent_sidecar_thread.v1"
+    },
+    {
+      "action": "cx.agent.sidecar_thread.publish",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [
+        "expires_at",
+        "approval_required"
+      ],
+      "target_event_kinds": [
+        "cx.message.create"
+      ],
+      "profile": "cx.profile.agent_sidecar_thread.v1"
+    },
+    {
       "action": "cx.agent.protocol.discover",
       "category": "general",
       "risk_tier": "low",

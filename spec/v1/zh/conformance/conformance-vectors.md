@@ -2363,3 +2363,156 @@ Expected：
 - 第 1 步 MUST NOT 发送单事件 blind wakeup。
 - 第 2 步 MUST 按更保守策略处理，不得猜测规则内容。
 - 第 3 步 MUST 合并为 batch wakeup，仍携带 `evaluation_locus_unresolved=true`。
+
+## 11. Personal Agent & Sidecar Vectors(CXP-0008 / CXP-0009)
+
+### 11.1 Vector: Provisioning + Pairing + Effective Grant
+
+`vector_id`: `cx.vector.agent.provision.v1`
+
+Steps:
+
+1. Controller 调用 `cx.agent.provision`,得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
+2. Agent runtime 生成 key pair,调用 `cx.account.agent_key_pair`。
+3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_principal_id` bit-identical。
+4. 批准后写入 `cx.agent.key.authorize`,reducer 清除 effective_after_first_authorized_key flag。
+
+Expected:
+
+- 第 3 步 verification_method 与 agent_principal_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
+- 在第 4 步之前,任何 `agent_key_proof` session grant 请求 MUST fail closed;以该 grant 为基础的 capability check 也 MUST fail closed。
+- 第 4 步后 grant 进入正常 effective window 评估;agent runtime 可签发 session grant 并执行 capability action。
+
+### 11.2 Vector: Pairing Expiry Auto-Revoke
+
+`vector_id`: `cx.vector.agent.pairing_expiry.v1`
+
+Steps:
+
+1. Controller 调用 `cx.agent.provision`,pairing 窗口 12 小时,grant TTL 30 天。
+2. Pairing 12 小时窗口过期,未提交 `cx.account.agent_key_pair`。
+
+Expected:
+
+- 服务 MUST 自动写入 `cx.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
+- 重放 `cx.account.agent_key_pair`(使用过期 pairing_request_id)MUST fail closed。
+- Controller 可重新发起 `cx.agent.provision`,得到新 pairing_request_id;旧 agent_principal_id 与新 provisioning 不复用。
+
+### 11.3 Vector: Agent Session Grant Replay Protection
+
+`vector_id`: `cx.vector.agent.session_grant.replay.v1`
+
+Steps:
+
+1. Agent runtime 提交 `cx.account.issue_session_grant`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
+2. 第二次提交同样的 proof(同样 challenge / digest / signature)。
+3. 提交一份 audience 改成另一 service 的 proof。
+4. 把 proof.signature 改写但 challenge 不变。
+
+Expected:
+
+- 第 1 步 MUST 成功,服务端把 challenge 进入 replay table。
+- 第 2 步 MUST fail closed(challenge 已使用)。
+- 第 3 步 MUST fail closed(audience mismatch)。
+- 第 4 步 MUST fail closed(signature 不验,且 challenge 仍 burnt)。
+
+### 11.4 Vector: Controller Deactivate → Agent Session Cascade
+
+`vector_id`: `cx.vector.agent.controller_lifecycle.v1`
+
+Steps:
+
+1. Controller 拥有 active agent `A`,A 持有未过期 session grant `S`。
+2. Controller 进入 `deactivated`。
+
+Expected:
+
+- A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
+- A 后续任何 `cx.account.issue_session_grant` MUST fail closed。
+- A 在已加入的 sidecar Circle 中由 reducer 主动 fan-out `cx.circle.member.state -> left`,MLS group 进入新 epoch。
+
+### 11.5 Vector: Act-on-behalf Attribution
+
+`vector_id`: `cx.vector.agent.act_on_behalf.v1`
+
+Steps:
+
+1. Agent A 持 act-on-behalf grant `G`(scope: `cx.message.create` on Flow F,approval_required=true, expiry < 15 min)。
+2. Agent A 提交 message,envelope `actor_id=controller`,`executed_by=A`,`authorization_ref=G`,`proof.verification_method` 解析到 A 的 agent key。
+3. Receiver 校验。
+4. 第二次重用同一 approval nonce。
+
+Expected:
+
+- 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `cx.message.create` + Flow F + 未过期;通过则接受。
+- Reducer 写入 `actor_kind="agent"` projection(注意是 reducer-stamped,actor 提交侧不携带)。
+- 第 4 步 MUST fail closed(`reason=approval_already_consumed`)。
+- 客户端渲染 "Controller via Agent" 双重署名;不显示为纯 controller 行为。
+
+### 11.6 Vector: Sidecar Circle Idempotent Ensure
+
+`vector_id`: `cx.vector.sidecar.ensure_idempotent.v1`
+
+Steps:
+
+1. Alice 的两台设备并发调用 `cx.agent.sidecar_thread.ensure` 同一 `context_ref`。
+2. 同一 Alice 第三次调用 `ensure`(同样 context_ref),`addressed_agent_principal_ids` 列表不同。
+3. Alice 在另一 context_ref 调用 ensure(同 Realm)。
+
+Expected:
+
+- 第 1 步并发 MUST 收敛到单一 sidecar Circle 与单一 sidecar private Flow;两个请求返回 bit-identical typed IDs;不出现 `failed_precondition`。
+- 第 2 步 MUST 复用既有 Circle 与 Flow,addressed list 不持久化到 Circle/Flow/Relation;只影响本次 notification fanout。
+- 第 3 步 MUST 复用既有 Circle(per_realm_controller_agent_pool),创建新 sidecar private Flow。
+
+### 11.7 Vector: Existence Privacy
+
+`vector_id`: `cx.vector.sidecar.existence_privacy.v1`
+
+Steps(均以 non-sidecar-member 视角):
+
+1. `cx.events.subscribe` / `cx.events.query` 目标 Realm。
+2. 对 `to_ref=<target_message_id>` 的 relation query。
+3. Realm directory 调用。
+4. 触发目标 Flow 的 notification fanout。
+5. 读取目标 Realm default anchor leaf 明文 metadata。
+
+Expected:
+
+- 第 1 步返回 zero events referencing sidecar Circle / Flow / Relation。
+- 第 2 步看不到 `agent_sidecar_of` 边。
+- 第 3 步 zero hits for sidecar Circle title / display / short_name / member_count。
+- 第 4 步 sidecar 内 `cx.message.create` 不触发任何 target Flow member 的 notification。
+- 第 5 步 sidecar `effective_scope=circle` event 不出现在 default anchor leaf 明文中;只能作为 opaque commitment。
+
+### 11.8 Vector: Eligibility 三态 + Revocation 闭环
+
+`vector_id`: `cx.vector.sidecar.eligibility_states.v1`
+
+Steps:
+
+1. Alice 有 agents `{S, R}`。S 已 paired (`active`),R 未发布 KeyPackage(eligible but pending join)。
+2. Alice 调用 ensure。
+3. R 发布 KeyPackage,服务端 async reconcile。
+4. Alice 调用 `cx.agent.deactivate` 对 R。
+
+Expected:
+
+- 第 2 步 ensure SHOULD succeed,response 携带 `pending_member_reconciliation: [{agent_principal_id: R, reason: missing_mls_keypackage}]`。
+- 第 3 步 R 通过 MLS Welcome 加入,得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)。
+- 第 4 步 reducer 主动 fan-out `cx.circle.member.state` 把 R 标记 left,MLS group 进入新 epoch;后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
+
+### 11.9 Vector: Multi-Agent Publish Attribution
+
+`vector_id`: `cx.vector.sidecar.multi_agent_publish.v1`
+
+Steps:
+
+1. Sidecar Circle 含 Alice + `{S, R}`。S 与 R 都在 sidecar private Flow 中产生协作内容。
+2. S 调用 publish capability action,生成目标 Flow `cx.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
+3. R 同时尝试 publish 含 S 部分内容的另一条消息。
+
+Expected:
+
+- 第 2 步 `actor_id` / `executed_by` MUST 是 S 单一 DID,而非 "agent group"。
+- 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布,但 attribution 仍是 R 单一 DID;不得复合 S+R。

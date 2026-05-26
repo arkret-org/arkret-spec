@@ -64,6 +64,10 @@
     "cx.profile.push_gateway.matrix_passthrough.v1",
     "cx.profile.applet_service.v1",
     "cx.profile.agent_runtime.v1",
+    "cx.profile.personal_agent_provisioning.v1",
+    "cx.profile.agent_auth.v1",
+    "cx.profile.agent_delegation_policy.v1",
+    "cx.profile.agent_sidecar_thread.v1",
     "cx.profile.mimi_interop.v1",
     "cx.profile.sovereign_client.v1",
     "cx.profile.franking.v1",
@@ -1417,6 +1421,154 @@
           "grant_scope"
         ],
         "unsupported_optional": "require explicit grant before join or tool use"
+      }
+    },
+    "cx.profile.personal_agent_provisioning.v1": {
+      "inherits": [
+        "cx.profile.agent_runtime.v1"
+      ],
+      "required_endpoints": [
+        "cx.agent.provision",
+        "cx.account.agent_key_pair",
+        "cx.events.submit",
+        "cx.events.query"
+      ],
+      "required_event_kinds": [
+        "cx.profile.create",
+        "cx.identity.accountability_grant",
+        "cx.agent.key.authorize",
+        "cx.agent.key.rotate",
+        "cx.agent.key.revoke",
+        "cx.agent.pause",
+        "cx.agent.resume",
+        "cx.agent.deactivate",
+        "cx.agent.draft.propose",
+        "cx.agent.action_request",
+        "cx.agent.action_approve",
+        "cx.agent.action_reject",
+        "cx.capability.grant",
+        "cx.capability.revoke"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.actor_profile.v1",
+        "cx.schema.capability.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "feature_discovery": {
+        "required": [
+          "pending_runtime_key_status",
+          "pairing_request",
+          "executed_by_attribution",
+          "actor_kind_projection",
+          "sidecar_exposure_disclosure"
+        ],
+        "unsupported_optional": "fail closed; do not return long-lived bearer or private key"
+      }
+    },
+    "cx.profile.agent_auth.v1": {
+      "inherits": [
+        "cx.profile.agent_runtime.v1",
+        "cx.profile.auth_server.v1"
+      ],
+      "required_endpoints": [
+        "cx.account.issue_session_grant"
+      ],
+      "required_event_kinds": [
+        "cx.agent.key.authorize",
+        "cx.agent.key.revoke"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.session_grant.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
+      "feature_discovery": {
+        "required": [
+          "agent_key_proof_branch",
+          "agent_scope_request_overlay",
+          "scope_details_overlay",
+          "structured_human_approval_request"
+        ],
+        "unsupported_optional": "fail closed; never fallback to password / OIDC / passkey validator"
+      }
+    },
+    "cx.profile.agent_delegation_policy.v1": {
+      "inherits": [
+        "cx.profile.agent_runtime.v1"
+      ],
+      "required_endpoints": [
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.capability.grant",
+        "cx.capability.delegate",
+        "cx.capability.revoke",
+        "cx.message.create"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.capability.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
+      "feature_discovery": {
+        "required": [
+          "effective_permission_intersection",
+          "reply_as_agent_attribution",
+          "act_on_behalf_attribution",
+          "executed_by_signed",
+          "authorization_ref_signed",
+          "realm_policy_distinguishes_native_agent_from_ghost_actor"
+        ],
+        "unsupported_optional": "fail closed; do not inherit controller permissions"
+      }
+    },
+    "cx.profile.agent_sidecar_thread.v1": {
+      "inherits": [
+        "cx.profile.personal_agent_provisioning.v1",
+        "cx.profile.circle_conformance.v1"
+      ],
+      "required_endpoints": [
+        "cx.agent.sidecar_thread.ensure",
+        "cx.events.submit",
+        "cx.events.query"
+      ],
+      "required_event_kinds": [
+        "cx.circle.create",
+        "cx.circle.member.state",
+        "cx.flow.create",
+        "cx.relation.create",
+        "cx.message.create"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.circle.v1",
+        "cx.schema.flow.v1",
+        "cx.schema.relation.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "feature_discovery": {
+        "required": [
+          "controller_agent_circle_key_derivation",
+          "eligible_sidecar_agent_predicate",
+          "pending_member_reconciliation",
+          "addressed_agents_not_a_boundary",
+          "agent_sidecar_of_relation",
+          "navigation_visibility_scope_only",
+          "existence_privacy_invariants",
+          "single_executed_by_on_publish"
+        ],
+        "unsupported_optional": "fail closed; do not split into multiple sidecar Circles"
       }
     },
     "cx.profile.mimi_interop.v1": {

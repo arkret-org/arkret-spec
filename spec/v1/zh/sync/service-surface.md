@@ -719,6 +719,28 @@ POST /api/v1/authz/check
 - sync service 分发前快速过滤
 - client 发送前本地 UX 提示
 
+## 10.1 Personal Agent Surface(CXP-0008 / CXP-0009)
+
+Native personal agent 的 management 与 sidecar operations 落在 `/api/v1/agents/*` 与 `/api/v1/agent-sidecar-threads*`,pairing 与 session grant 复用 `/auth/account/*`:
+
+| Operation | HTTP binding | Profile |
+| --- | --- | --- |
+| `cx.agent.provision` | `POST /api/v1/agents` | `cx.profile.personal_agent_provisioning.v1` |
+| `cx.account.agent_key_pair` | `POST /auth/account/agent-key-pair` | `cx.profile.personal_agent_provisioning.v1` |
+| `cx.account.issue_session_grant`(扩展为 `proof.proof_kind="agent_key_proof"` 分支) | `POST /auth/account/session-grants` | `cx.profile.agent_auth.v1` |
+| `cx.agent.list` / `cx.agent.get` | `GET /api/v1/agents` / `GET /api/v1/agents/{agent_principal_id}` | `cx.profile.personal_agent_provisioning.v1` |
+| `cx.agent.pause` / `resume` / `revoke` / `rotate_key` | `POST /api/v1/agents/{agent_principal_id}/{pause,resume,revoke,rotate-key}` | `cx.profile.personal_agent_provisioning.v1` |
+| `cx.agent.grant.attach` / `cx.agent.grant.detach` | `POST /api/v1/agents/{agent_principal_id}/grants` / `DELETE /api/v1/agents/{agent_principal_id}/grants/{grant_id}` | `cx.profile.personal_agent_provisioning.v1` |
+| `cx.agent.sidecar_thread.ensure` | `POST /api/v1/agent-sidecar-threads:ensure` | `cx.profile.agent_sidecar_thread.v1` |
+
+约束:
+
+- 本 CXP 不引入 custom URI scheme(`contrix://` 等);所有 deep-link 由客户端用 deployment 已知的 `contrix_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
+- `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `cx:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
+- `{agent_principal_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
+
+详细 wire 规则见 CXP-0008 §4 / CXP-0009 §4。
+
 ## 11. Realm Bootstrap Flow
 
 Contrix v1 的首次加入流程：

@@ -200,6 +200,19 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 撤销 device MUST 产生 device list update。E2EE 客户端 MUST 停止向 revoked device 分享新密钥。
 
+## 9.1 Personal agent principal lifecycle(CXP-0008)
+
+Native personal agent(`actor_kind="agent"`,`accountable_to` 指向 controller principal)的 lifecycle 是 controller 账户 lifecycle 的从属体:
+
+- **Provisioning** 由 controller 通过 `cx.agent.provision` operation 发起,fan-out 写入 Actor Profile、`cx.identity.accountability_grant`、初始 `cx.capability.grant`(带 `effective_after_first_authorized_key=true` flag)。Agent provisioning status 投影闭合枚举:`pending_runtime_key` → `active`(pairing 完成) / `pairing_expired`(pairing 窗口过期) → `paused` / `deactivated`。
+- **Pause**(`cx.agent.pause`):保留 agent identity、`accountability_grant`、`agent_key_authorize`、capability grants 的 durable state。Auth Server MUST 拒绝新 agent session grant;已签发 session token SHOULD 在 revocation freshness window(默认 ≤ session TTL,即 15 分钟)内 fail closed,实现可选同步 revocation 或自然过期 + status 重查。Pending action requests SHOULD 标 `awaiting_resume`。
+- **Resume**(`cx.agent.resume`):前 MUST 重新校验 controller、agent、key、capability、Realm policy 与 `accountability_grant` freshness;任一不通过则拒绝 resume,agent 保持 `paused`。
+- **Deactivate**(`cx.agent.deactivate`):terminal state,fan-out `cx.agent.key.revoke`、`cx.capability.revoke` / delegation revoke、runtime endpoint revoke、pending action request 失效。Sidecar Circle MLS group 同步移除该 agent 并 epoch rotation(见 CXP-0009 §4.9)。
+- **Controller lifecycle 传播**:Controller 进入 `deactivated` / `suspended` 时,其 accountable native agents 的 active sessions MUST 通过本节 revocation 链失效,后续 agent session grant MUST fail closed。Accountability grant 失效同样使 agent 进入 ineligible 状态。
+- **Pairing expiry**:`pairing.expires_at` 到达且未完成 pairing 时,服务 MUST 自动 `cx.capability.revoke` 撤销 pending grant,agent status 转 `pairing_expired`;controller 可重新发起 pairing 或显式 revoke 进入 `deactivated`。
+
+具体 wire 与 conformance 规则见 [`key-management.md` §3.6.1](./key-management.md) 与 CXP-0008。
+
 ## 10. Admin and Support APIs
 
 实现 SHOULD 提供：

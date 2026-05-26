@@ -42,6 +42,48 @@
 
 ## [Unreleased]
 
+### Personal AI Agent provisioning & sidecar threads(CXP-0008 / CXP-0009)(2026-05-26)
+
+引入 native personal AI agent 的端到端创建、运行时认证、capability 委托、生命周期管理路径,以及 controller 与其 native agents 之间的私聊上下文线程(sidecar thread)。Native agent 与 Applet-managed Ghost AI agent 是两类不同 actor,Realm policy 必须能分别控制。
+
+- **变更类型**: add
+- **影响 artifact**: schema / registry / profile / prose / conformance
+- **canonical 变更**:
+  - `event-schema.json`: Event Envelope 增加 `executed_by`(signed, conditional)、`authorization_ref`(signed, conditional)、`actor_kind`(reducer-stamped projection, immutable);加入新 reducer-input event kinds `cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 与 actor_private event kinds `cx.agent.draft.propose` / `cx.agent.action_request` / `cx.agent.action_approve` / `cx.agent.action_reject`。
+  - `event-payload.schema.json`: `agent_key_authorize_payload` 增加可选 `runtime_attestation`(v1 baseline `kind="self_asserted"`,未知 kind fail closed)。
+  - `event-kind-registry.json`: 注册上述 7 个新 event kinds(3 lifecycle + 4 draft/action)。
+  - `operation-registry.json`: 注册 `cx.account.agent_key_pair`、`cx.agent.provision` / `list` / `get` / `pause` / `resume` / `deactivate` / `rotate_key` / `grant.attach` / `grant.detach`、`cx.agent.sidecar_thread.ensure`(共 11 个)。
+  - `capability-action-registry.json`: 注册 14 个新 actions(`cx.agent.provision` / `pause` / `resume` / `deactivate` / `draft.propose` / `action_request` / `action_approve` / `action_reject` / `sidecar_thread.ensure` / `sidecar_thread.write` / `sidecar_thread.publish`);aggregate action 显式声明 `target_event_kinds` 并标 migration_group。
+  - `account-data-type-registry.json`: 注册 `cx.agent.draft.v1` (controller-private, encrypted_at_rest) 与 `cx.agent.sidecar_projection.v1` (controller-private)。
+  - `relation.md`: 标准 relation kinds 加入 `agent_sidecar_of`(weak-semantic, non-structural, non-cascading)。
+  - `conformance-profiles.json`: 注册 4 个 profile `cx.profile.personal_agent_provisioning.v1` / `cx.profile.agent_auth.v1` / `cx.profile.agent_delegation_policy.v1` / `cx.profile.agent_sidecar_thread.v1`。
+- **conformance impact**:
+  - 受影响 profile: 4 个新 profile;`cx.profile.full_client.v1` / `cx.profile.e2ee_client.v1` / `cx.profile.principal_server.v1` 在支持 personal agent 时 SHOULD 声明上述新 profile。
+  - profile tier 变化: 4 个新 profile 列入 v1 profile catalog。
+  - wire 兼容性: backward-compatible(新字段 `executed_by` / `authorization_ref` / `actor_kind` 都是 conditional 或 reducer-stamped;旧 event 无须改写)。
+  - reader / writer 行为要求: receiver MUST 拒绝未知 critical extension;reducer MUST 拒绝 actor-supplied `actor_kind`;`executed_by` 出现时 MUST 校验 proof.verification_method 对应该 DID。
+- **fixture / vector 变化**: `conformance-vectors.md` 新增 §11 共 9 个 vectors,覆盖 provisioning + pairing + grant 生效顺序、pairing 过期自动撤销、session grant replay 防护、controller deactivate cascade、act-on-behalf attribution、sidecar Circle 幂等 ensure、existence privacy、eligibility 三态 + revocation 闭环、multi-agent publish attribution。
+- **prose 同步**:
+  - `zh/models/event-and-patch.md` §2.2 / §2.4:`executed_by` / `authorization_ref` / `actor_kind` 字段与 normative 规则。
+  - `zh/models/actor.md` §3.3:native personal agent vs Ghost Actor 边界、reducer-stamped `actor_kind` projection。
+  - `zh/identity/key-management.md` §3.6.1:personal agent runtime pairing 与 session normative 规则。
+  - `zh/identity/account-lifecycle.md` §9.1:agent pause/resume/deactivate 语义与 controller lifecycle 传播。
+  - `zh/authz/capabilities.md` §5.4:14 个新 actions。
+  - `zh/models/relation.md` §3:`agent_sidecar_of` relation kind。
+  - `zh/models/circle.md` §11.1:agent sidecar Circle 形态约束。
+  - `zh/models/private-objects.md` §4.1 / §4.2:draft 与 sidecar projection account-data 与隐私边界。
+  - `zh/sync/service-surface.md` §10.1:Personal Agent surface 与 operations。
+  - `zh/conformance/conformance-profiles.md` §18.1–18.4:4 个新 profile 详情。
+  - `zh/extensions/applet-integration.md` §3.4.1:Ghost Actor vs Native Personal Agent 边界。
+  - `zh/extensions/agent-protocol-interop.md` §7.1:外部 agent protocol session 与 personal agent runtime session 边界。
+- **迁移指南**: backward-compatible add;实现按以下顺序采纳即可——
+  1. 升级 `event-schema.json` / `event-payload.schema.json`,扩展 reducer 处理 `executed_by` / `authorization_ref` / `actor_kind`。
+  2. 实现 `cx.account.agent_key_pair` 与 `SessionGrantRequest` 的 `agent_key_proof` 分支,独立 schema branch + 独立 proof validator。
+  3. 实现 `cx.agent.provision` orchestration 与 lifecycle operations。
+  4. 实现 sidecar `cx.agent.sidecar_thread.ensure` 与 controller_agent_circle_key 派生。
+  5. UI 实现 sidecar exposure 披露(CXP-0009 §3 invariant 10 / CXP-0008 §4.5)。
+- **CXP**: [`spec/v1/proposals/0008-personal-agent-provisioning.md`](spec/v1/proposals/0008-personal-agent-provisioning.md) / [`spec/v1/proposals/0009-agent-sidecar-thread.md`](spec/v1/proposals/0009-agent-sidecar-thread.md)。
+
 ### Naming consistency pass for id/ref/content/size fields（2026-05-26）
 
 按 `common-fields.md` 的严格语义规则统一字段前后缀：对象自身主标识用 `id`，单一具体 kind 外引用用

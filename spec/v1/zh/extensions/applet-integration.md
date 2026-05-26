@@ -91,6 +91,23 @@ did:web:slack-bridge.example#ghost-u123
 
 Ghost Actor MUST 带有 `accountability`，指向 Applet controller 和外部网络来源。
 
+#### 3.4.1 Ghost Actor vs Native Personal Agent(CXP-0008 边界)
+
+`actor_kind="agent"` 下,**native personal AI agent**(由 controller 通过 `cx.agent.provision` 创建,见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))与 **Applet-managed Ghost AI agent**(本节)是两类不同 actor,生命周期与治理路径完全分离:
+
+| 维度 | Native personal agent | Applet-managed Ghost AI agent |
+| --- | --- | --- |
+| 创建路径 | `cx.agent.provision` operation,fan-out `cx.profile.create` / `cx.identity.accountability_grant` / `cx.agent.key.authorize` / `cx.capability.grant` | `cx.applet.registration` + Applet bot/ghost actor 注册 |
+| `accountable_to` | 指向 controller principal,显式 `cx.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
+| Runtime credential | 通过 `POST /auth/account/agent-key-pair` pairing 得到 `cx.agent.key.authorize` 绑定的 key | Applet 管辖,通常是 Applet service DID + HTTP signature |
+| Session 路径 | `POST /auth/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `cx.applet.transaction` 与 Applet 的 delegated session |
+| 撤销 | `cx.agent.pause` / `cx.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;ghost actor 跟随 Applet 生命周期 |
+| Realm policy | Realm policy MUST 单独允许 native personal agent(`cx.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet + Ghost Actor(`cx.profile.applet_service.v1`) |
+
+**Realm policy MUST 至少能分别控制 native personal agent 与 Applet / Ghost Actor**:部署可以禁止普通用户创建或使用 personal agents 同时允许管理员安装的 Applet + Ghost Actor,也可以反向配置;**二者不得被合并为一个不可区分的 "automation allowed" 开关**。
+
+CXP-0008 / CXP-0009 只覆盖 native personal agent 路径;Ghost Actor / Applet bot actor 不走 CXP-0008 provisioning 或 CXP-0009 sidecar thread profile。
+
 ### 3.5 Portal Realm
 
 外部网络 location 在 Contrix 中的镜像 Realm。例如 Slack channel、Discord guild channel、GitHub issue discussion。

@@ -262,6 +262,17 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.agent.key.authorize`（high risk；授权 agent key，target=`cx.agent.key.authorize`）
 - `cx.agent.key.rotate`（high risk；轮换 agent key，target=`cx.agent.key.rotate`）
 - `cx.agent.key.revoke`（high risk；撤销 agent key，target=`cx.agent.key.revoke`）
+- `cx.agent.provision`(CXP-0008;aggregate admin action,`target_event_kinds=[cx.profile.create, cx.identity.accountability_grant, cx.agent.key.authorize, cx.capability.grant]`,migration_group=`cxp_0008_agent_provisioning`)
+- `cx.agent.pause`(controller-only;target=`cx.agent.pause`)
+- `cx.agent.resume`(controller-only;target=`cx.agent.resume`)
+- `cx.agent.deactivate`(controller-only,terminal;target=`cx.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
+- `cx.agent.draft.propose`(agent-initiated draft;target=`cx.agent.draft.propose`,wire_scope=`actor_private_event`)
+- `cx.agent.action_request`(agent-initiated action request;target=`cx.agent.action_request`)
+- `cx.agent.action_approve`(controller-only;target=`cx.agent.action_approve`)
+- `cx.agent.action_reject`(controller-only;target=`cx.agent.action_reject`)
+- `cx.agent.sidecar_thread.ensure`(CXP-0009;aggregate admin action,`target_event_kinds=[cx.circle.create, cx.circle.member.state, cx.flow.create, cx.relation.create]`,migration_group=`cxp_0009_sidecar_ensure`。Controller-private projection 写入(`cx.agent.sidecar_projection.v1`)不属于此 grant 集合)
+- `cx.agent.sidecar_thread.write`(profile action;`target_event_kinds=[cx.message.create]`,resource 必须限定 sidecar private Flow)
+- `cx.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定,至少包括 `cx.message.create`,受 reply-as-agent / act-on-behalf attribution 规则约束)
 - `cx.policy.manage`
 - `cx.policy.set`
 - `cx.policy.rule`（管理 policy 规则集合，target=`cx.policy.rule`）

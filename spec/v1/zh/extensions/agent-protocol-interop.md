@@ -277,6 +277,20 @@ Capability constraint SHOULD 支持：
 }
 ```
 
+## 7.1 与 Personal Agent Runtime Session 的边界(CXP-0008)
+
+本文档定义的是与 **外部 A2A / ACP / MCP agent protocol** 互操作的 session 模型(`cx.agent.protocol_session.start/status/result`)。它与 CXP-0008 §4.6 定义的 **personal agent runtime authentication session**(`/auth/account/session-grants` + `proof.proof_kind="agent_key_proof"`)是**两个不同的 session 概念**:
+
+| 维度 | Personal agent runtime session(CXP-0008) | External agent protocol session(本文档) |
+| --- | --- | --- |
+| 用途 | Contrix 内部 native agent runtime 认证 Auth Server 与 Events API | 与外部 A2A / ACP / MCP endpoint 协商执行 task |
+| Endpoint | `/auth/account/session-grants` | `cx.agent.protocol_session.start` Event + 外部 protocol endpoint |
+| Proof | `agent_key_proof`(短期 `cx.session.grant`) | 由 `cx.agent.endpoint` policy / external protocol auth 决定 |
+| 是否数据外发 | 否——session 只用于在 Contrix 内签发后续 wire write | 是——外发到 external agent network |
+| Realm policy 闸口 | `cx.profile.personal_agent_provisioning.v1` / `cx.profile.agent_auth.v1` | `cx.profile.agent_runtime.v1` + `audit_mode` |
+
+Agent runtime 拥有 `cx.profile.agent_auth.v1` session grant **不**自动授权其启动外部 agent protocol session;后者仍需独立的 `cx.agent.protocol_session.start` 写入、`cx.agent.endpoint` policy 校验、以及 §8 的外发行为约束。实现 MUST 把二者作为独立 capability 与独立 audit 流处理。
+
 ## 8. 安全边界
 
 外部 agent protocol session 是数据外发行为。实现 MUST：

@@ -4,12 +4,44 @@ title: 个人 AI Agent 创建与运行时认证
 normative: false
 stability: v1
 updated: 2026-05-26
-status: draft
+status: accepted
 created: 2026-05-26
 authors:
   - chris@acroidea.com
 discussion: https://github.com/contrix-dev/contrix-spec/discussions/cxp-0008
+merged_into:
+  - spec/v1/zh/identity/key-management.md
+  - spec/v1/zh/identity/account-lifecycle.md
+  - spec/v1/zh/models/actor.md
+  - spec/v1/zh/models/event-and-patch.md
+  - spec/v1/zh/models/private-objects.md
+  - spec/v1/zh/authz/capabilities.md
+  - spec/v1/zh/sync/service-surface.md
+  - spec/v1/zh/conformance/conformance-profiles.md
+  - spec/v1/zh/conformance/conformance-vectors.md
+  - spec/v1/zh/extensions/applet-integration.md
+  - spec/v1/zh/extensions/agent-protocol-interop.md
 ---
+
+> **Status: accepted, merged into v1 normative spec on 2026-05-26.**
+>
+> Normative entry points:
+>
+> - [`spec/v1/zh/identity/key-management.md`](../zh/identity/key-management.md) §3.6.1 — runtime pairing 与 agent session grant 规则。
+> - [`spec/v1/zh/identity/account-lifecycle.md`](../zh/identity/account-lifecycle.md) §9.1 — agent pause/resume/deactivate 语义与 controller lifecycle 传播。
+> - [`spec/v1/zh/models/event-and-patch.md`](../zh/models/event-and-patch.md) §2.2 / §2.4 — Event Envelope `executed_by` / `authorization_ref` / `actor_kind` projection。
+> - [`spec/v1/zh/models/actor.md`](../zh/models/actor.md) §3.3 — native personal agent vs Ghost Actor 边界。
+> - [`spec/v1/zh/models/private-objects.md`](../zh/models/private-objects.md) §4.1 / §4.2 — draft account-data 与隐私边界。
+> - [`spec/v1/zh/authz/capabilities.md`](../zh/authz/capabilities.md) §5.4 — agent / draft capability actions。
+> - [`spec/v1/zh/sync/service-surface.md`](../zh/sync/service-surface.md) §10.1 — personal agent operations。
+> - [`spec/v1/zh/conformance/conformance-profiles.md`](../zh/conformance/conformance-profiles.md) §18.1–18.3。
+> - [`spec/v1/zh/conformance/conformance-vectors.md`](../zh/conformance/conformance-vectors.md) §11.1–11.5。
+>
+> Schema / registry artifacts: `event-schema.json`、`event-payload.schema.json`、`event-kind-registry.json`、`operation-registry.json`、`capability-action-registry.json`、`account-data-type-registry.json`、`profiles/conformance-profiles.json`。CHANGELOG entry under 2026-05-26 "Personal AI Agent provisioning & sidecar threads"。
+>
+> 仍有一项 review-stage 项保留:`cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 三独立 event kind 当前作为 v1 形态注册;未来若 `cx.principal.status.set` 通用 lifecycle event 出现,会通过 `renames.json` migration_group 收敛(见 §7.2)。
+>
+> This proposal file is retained as historical design rationale. Future updates to personal agent provisioning MUST land directly on normative files, not here.
 
 ## 1. 概要
 

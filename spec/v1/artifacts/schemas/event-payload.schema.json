@@ -2302,6 +2302,35 @@
         "revocation_check_ref": {
           "$ref": "#/$defs/object_ref",
           "description": "Optional freshness source for revocation checking. Absence does not waive expires_at."
+        },
+        "runtime_attestation": {
+          "type": "object",
+          "description": "Optional runtime / workload attestation captured at pairing approval time (CXP-0008 §4.5). v1 enum includes self_asserted as baseline; future profiles MAY register TEE / SLSA / SPIFFE attestation kinds. Implementations encountering an unknown kind MUST fail closed.",
+          "required": ["kind"],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["self_asserted"],
+              "description": "v1 enum. Future profiles MAY extend via accepted attestation taxonomy."
+            },
+            "software": {
+              "type": "string",
+              "maxLength": 256
+            },
+            "version": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "attestation_digest": {
+              "$ref": "#/$defs/hash",
+              "description": "Optional digest of verifiable attestation material when kind is not self_asserted."
+            },
+            "evidence_ref": {
+              "$ref": "#/$defs/object_ref",
+              "description": "Optional external verifiable attestation reference (TEE quote, SLSA provenance, etc.)."
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

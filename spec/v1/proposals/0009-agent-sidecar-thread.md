@@ -4,15 +4,39 @@ title: Agent Sidecar Thread（Agent 旁路私聊线程）
 normative: false
 stability: v1
 updated: 2026-05-26
-status: draft
+status: accepted
 created: 2026-05-26
 authors:
   - chris@acroidea.com
 depends_on: [CXP-0007, CXP-0008]
 discussion: https://github.com/contrix-dev/contrix-spec/discussions/cxp-0009
+merged_into:
+  - spec/v1/zh/models/circle.md
+  - spec/v1/zh/models/relation.md
+  - spec/v1/zh/models/private-objects.md
+  - spec/v1/zh/authz/capabilities.md
+  - spec/v1/zh/sync/service-surface.md
+  - spec/v1/zh/conformance/conformance-profiles.md
+  - spec/v1/zh/conformance/conformance-vectors.md
 ---
 
-> **Coupled-accept dependency**: 本提案直接引用 CXP-0008 §4.5/§4.6/§4.10 的 wire 形态(`cx.agent.key.authorize` payload、`agent_key_proof` proof_kind、Event Envelope 的 signed `executed_by`/`authorization_ref` 字段、`cx.agent.draft.v1` 命名空间)。CXP-0008 在 review 阶段对这些字段的任何修改 MUST 在本提案同步,二者 SHOULD lockstep 推进 `draft → review → accepted`。
+> **Status: accepted, merged into v1 normative spec on 2026-05-26.** Accepted in lockstep with CXP-0008.
+>
+> Normative entry points:
+>
+> - [`spec/v1/zh/models/circle.md`](../zh/models/circle.md) §11.1 — agent sidecar Circle 形态约束、`controller_agent_circle_key` 派生、`display.short_name` 派生与存在性侧信道防护、MLS history backfill 边界、epoch rotation scope。
+> - [`spec/v1/zh/models/relation.md`](../zh/models/relation.md) §3 — `agent_sidecar_of` relation kind(weak-semantic, non-structural, non-cascading)。
+> - [`spec/v1/zh/models/private-objects.md`](../zh/models/private-objects.md) §4.1 / §4.2 — sidecar projection account-data 与隐私边界。
+> - [`spec/v1/zh/authz/capabilities.md`](../zh/authz/capabilities.md) §5.4 — sidecar capability actions。
+> - [`spec/v1/zh/sync/service-surface.md`](../zh/sync/service-surface.md) §10.1 — `cx.agent.sidecar_thread.ensure` operation。
+> - [`spec/v1/zh/conformance/conformance-profiles.md`](../zh/conformance/conformance-profiles.md) §18.4。
+> - [`spec/v1/zh/conformance/conformance-vectors.md`](../zh/conformance/conformance-vectors.md) §11.6–11.9。
+>
+> Schema / registry artifacts: `operation-registry.json`、`capability-action-registry.json`、`account-data-type-registry.json`、`profiles/conformance-profiles.json`。`agent_sidecar_of` relation kind 在 relation-vocabulary 中注册;sidecar Flow projection 隐藏由 sidecar profile-specific reducer rule 实现(选择 §4.12 option (b))。CHANGELOG entry under 2026-05-26。
+>
+> Sidecar Flow `navigation_visibility="scope_only"` 字段不进入 v1 通用 Flow schema;它是 sidecar profile 自己的 reducer rule(invariant 相同,实现路径 (b))。
+>
+> This proposal file is retained as historical design rationale. Future updates to agent sidecar threads MUST land directly on normative files, not here.
 
 ## 1. 概要
 

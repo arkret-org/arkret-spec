@@ -84,6 +84,26 @@ Schema id: `cx.schema.notification.v1`
 
 Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠等本地状态都属于 **actor-private account data** 类别。完整 account data 模型、私有标签、个人 blocklist 见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)。
 
+### 4.1 Agent draft 与 sidecar projection account data(CXP-0008 / CXP-0009)
+
+两类 controller-owned encrypted account data 类型在 `cx.agent.*` 命名空间下:
+
+- **`cx.agent.draft.v1`**(CXP-0008 §4.8 draft-only):agent 通过 `cx.agent.draft.propose` / `cx.agent.action_request`(actor_private_event)提议候选内容,Principal Server 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `cx.agent.draft.v1` account-data。Key pattern 建议 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `cx.message.create` / `cx.flow.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `flow_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
+- **`cx.agent.sidecar_projection.v1`**(CXP-0009 §4.14 personal track projection):controller-private UI projection,跨设备同步 "My AI" tab 顺序、pin / 折叠状态、addressed agents list 等。Key pattern `cx.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>`。它**不**修改目标 Flow `tracks` map,不写入 target metadata / target-side Relation / watch cell / unread cell / search index / notification state。
+
+二者 key 前缀不同、key 第二段语义不同(controller vs agent),不会在 `cx.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-type-registry.json` 显式声明 key pattern 与 owner principal,reducer 据此做归属校验。
+
+### 4.2 隐私边界(normative)
+
+针对上述 agent-attributed private state:
+
+- 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm Move / Anchor history。
+- 目标 Realm 的 `cx.events.subscribe` / `cx.events.query` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft 或 sidecar projection 内容。
+- `cx.account.subscribe` 只能把 controller-owned approval draft / sidecar projection 返回给 controller principal 的授权 session,以及 scope 明确包含该 account-data 访问权的 agent runtime。
+- 若服务端存储明文,该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露;默认语义 SHOULD 是服务端只保存 encrypted account data。
+- Draft 发布到目标 Flow 时,shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest,但明文 draft id、private metadata、scratchpad、private prompt 或历史版本 MUST NOT 泄露到共享历史。
+- Sidecar 发布到目标 Flow 时,MUST NOT 泄露 sidecar `private_flow_id`、`private_circle_id`、private messages、scratchpad 或 draft history。
+
 ## 5. 规范性引用
 
 - 公共字段：[common-fields.md](./common-fields.md)。

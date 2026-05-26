@@ -346,6 +346,20 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 6. 跨 Circle 引用以虚线框 + "另一信任圈"标识展示,**不**预览内容。
 7. "宽 anchor Flow + 窄 discussion Flow" 的组合形态(§7.2)在 UI 上 MAY 渲染为单卡片 + tab 切换,**但** tab 之间切换 MUST 表现为跨 scope 转场(banner 颜色变化 + compose scope 指示更新),不是同 Flow 内不同视图。
 
+## 11.1 Agent sidecar Circle(CXP-0009 profile)
+
+`cx.profile.agent_sidecar_thread.v1` 把 Circle 作为 controller 与 controller 的 native personal agents 之间的私聊密码学边界。该 profile 对 Circle 形态加了若干 sidecar-specific 约束:
+
+- **Reuse key**:每个 `(realm_id, controller_principal_id)` 在本 profile 下有且仅有一个 sidecar Circle(profile constant `per_realm_controller_agent_pool`)。reducer 以该 tuple 作为 idempotency key,并发 `cx.circle.create` 的 sidecar 路径 MUST 收敛到单一 Circle。
+- **Membership**:active membership 由 `eligible_sidecar_agent(realm, controller, agent)` predicate 派生(详见 CXP-0009 §4.5)。当 agent 因 pause / deactivate / revoke / pairing_expired / accountability grant 失效等任何原因转出 eligible 集合时,reducer / service layer MUST **主动** fan-out 写入 `cx.circle.member.state`(membership: `left` 或 `banned`),不得等被动 reconcile,以消除 stale-membership 窗口。
+- **`display.short_name`** MUST 由 profile 派生(`"AI-" + base32(sha256(canonical("cx.agent_sidecar_circle.v1\n" + realm_id + "\n" + controller_principal_id)))[:12].upper()`),不接受 caller 提供任意字符串。short_name 碰撞且 caller 不是已有 Circle member 时,reducer MUST 返回 generic `failed_precondition` `reason=sidecar_create_denied`(不暴露 `short_name_already_taken` 这类可区分错误),避免存在性侧信道。
+- **`directory_visibility="members"`** + `metadata_encryption_floor="full_encrypted"`,non-member 不可见任何 sidecar Circle metadata。
+- **Membership 闭集**:实现 MUST NOT 把其它 human actor、非 accountable agent、Applet Ghost Actor 或外部 service principal 加入 controller-Realm sidecar Circle。
+- **MLS history backfill**:新 eligible agent 加入既有 sidecar Circle 时,MLS 协议本身不允许转移过去 epoch group secrets。controller 显式同意 sidecar history backfill 时,实现 MUST 通过 application-level message resend 完成(controller 设备解密 plaintext 在新 epoch 下重新加密),不得通过共享 MLS exporter secret / past commit secret 或等价手段。该 backfill 是显式 plaintext 披露,与 CXP-0009 §4.10 "目标内容转入" 接受同等 capability / approval / audit 约束。
+- **Epoch rotation scope**:同一 sidecar Circle 可承载多个 sidecar private Flow;Circle MLS group 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Flow,不可按 Flow 独立 rotate(任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Flow 的未来 epoch)。
+- **Sidecar Flow projection**:以 sidecar Circle 为 `scope_circle_id` 的 Flow MUST NOT 出现在 Realm-wide navigation / board / list / public search / public relation expansion / 目标 Flow projections。该 invariant 由 sidecar profile-specific reducer rule enforce,而不是给 Flow schema 加 `navigation_visibility` 字段。
+- **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时,客户端 UI MUST 在 CXP-0008 §4.5 pairing approval 流程中显式披露 "该 agent 将自动获得现有 sidecar 私聊访问权"。
+
 ## 12. 与既有概念的区分
 
 | 概念 | 含义 | 主要承担 |

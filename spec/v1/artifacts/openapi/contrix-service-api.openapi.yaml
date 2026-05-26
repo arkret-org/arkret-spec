@@ -5326,6 +5326,32 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
+  /auth/account/agent-key-pair:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: cx.account.agent_key_pair
+      description: Personal agent runtime key pairing (CXP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes cx.agent.key.authorize on approval.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Agent key pairing accepted; cx.agent.key.authorize event written.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+        '412':
+          description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
   /auth/account/oidc/callback:
     servers:
     - url: https://{host}

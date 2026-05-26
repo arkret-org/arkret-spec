@@ -546,6 +546,89 @@ SHOULD 支持：
 - deterministic replay metadata
 - tool call audit envelope
 
+### 18.1 Personal Agent Provisioning (CXP-0008)
+
+`cx.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `cx.profile.agent_runtime.v1`。
+
+MUST 支持:
+- `POST /api/v1/agents` (`cx.agent.provision`) 编排 Actor Profile + `cx.identity.accountability_grant` + 初始 `cx.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
+- `POST /auth/account/agent-key-pair` (`cx.account.agent_key_pair`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `cx.agent.key.authorize`,清除 effective_after_first_authorized_key
+- Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
+- Pairing expiry 自动 `cx.capability.revoke` pending grants
+- Agent management operations(list/get/pause/resume/revoke/rotate-key/grant attach/detach)写入 durable lifecycle events
+- Draft-only family:`cx.agent.draft.propose` / `cx.agent.action_request` / `cx.agent.action_approve` / `cx.agent.action_reject`,materialize 为 controller-owned `cx.agent.draft.v1` encrypted account-data
+- Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
+- Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
+- Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
+- Controller deactivate / suspend 时,accountable native agents 的 active sessions revocation 链失效
+- Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 CXP-0009)
+
+MUST NOT:
+- 注册独立 `cx.agent.provision` aggregate durable event(provisioning operation fan-out 到既有子事件)
+- 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
+- 引入 custom URI scheme(`contrix://` 等)
+
+### 18.2 Agent Auth (CXP-0008)
+
+`cx.profile.agent_auth.v1` 注册 agent runtime 的 authentication surface,与 `cx.profile.personal_agent_provisioning.v1` 解耦。
+
+MUST 支持:
+- 复用 `POST /auth/account/session-grants` 通过 `proof.proof_kind="agent_key_proof"` 分支
+- 独立 schema branch、独立 proof validator、独立 returned scope(交集 from agent key authorization / capability grant / Realm policy / requested scope)
+- `agent_scope_request` overlay 与 `scope_details` response overlay
+- key proof 绑定 challenge / audience / request canonical digest / agent principal / `verification_method` / nonce / expiry
+- Replay table 覆盖 proof `expires_at` 后的 grace window
+- Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
+- Structured human approval request 返回(`code=claim_required` / `reason_code=human_approval_required` / `approval_request_id`),不向 agent runtime 展示 CAPTCHA / OTP
+
+MUST NOT:
+- 把 `agent_key_proof` 降级走 password / OIDC / passkey validator fallback
+- 在 session grant 中授予 E2EE history key、secret storage 或长期 device 权限
+- 把 controller 进入 `deactivated` / `suspended` 后的 agent session 视为有效
+
+### 18.3 Agent Delegation Policy (CXP-0008)
+
+`cx.profile.agent_delegation_policy.v1` 注册 capability vocabulary 与 act-on-behalf attribution 规则。
+
+MUST 支持:
+- Effective permission rule:`controller-approved grant AND controller's own delegable authority AND Realm policy AND resource selector / constraints AND agent key scope AND requested session scope AND current revocation / freshness state`,默认拒绝 wildcard
+- Canonical constraint vocabulary:`allowed_tracks` / `allowed_flow_refs` / `allowed_data_classes` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
+- Reply-as-agent 与 act-on-behalf wire(`actor_id` / `executed_by` / `authorization_ref`)与双重署名渲染
+- act-on-behalf 默认 fresh approval 粒度 `(action, target_flow)` + 短期 temporal window
+- Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor
+
+MUST NOT:
+- 让 agent 自动继承 controller 在 Realm 内的最大权限
+- 把 `act_on_behalf_allowed` 当作 constraint;它由 attribution + capability + approval 组合表达
+
+### 18.4 Agent Sidecar Thread (CXP-0009)
+
+`cx.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 CXP-0007 / CXP-0008。
+
+MUST 支持:
+- `POST /api/v1/agent-sidecar-threads:ensure` (`cx.agent.sidecar_thread.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliation?}`
+- `context_ref` polymorphic descriptor(`relation_id` 单独 / `flow_id` 加可选 `track` + 可选 anchor)
+- Closed request schema(reject unknown top-level fields)
+- Fixed reuse:Flow `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
+- 派生 `controller_agent_circle_key`(canonical realm_id + canonical DID + UTF-8 + SHA-256 + base32 + 24 字符小写)
+- Sidecar Circle `display.short_name = "AI-" + controller_agent_circle_key[:12].upper()`,short_name 碰撞且 caller 非 member 时 generic `failed_precondition` `reason=sidecar_create_denied`
+- `eligible_sidecar_agent(realm, controller, agent)` predicate;Circle membership 主动 fan-out `cx.circle.member.state`(不被动 reconcile)
+- Eligibility / MLS membership 三态(eligible+active / pending join / not eligible)
+- `addressed_agent_principal_ids[]` per-ensure ephemeral(服务端不持久化);MUST 不包含 controller 自身
+- 历史 backfill 经由 application-level resend(显式 plaintext 披露)而非 MLS exporter secret
+- Cross-Realm fan-out:agent deactivate 只影响该 agent 实际所在的 sidecar Circles
+- `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`
+- Sidecar private Flow 不出现在 Realm-wide navigation / board / list / public search(profile-specific reducer rule:`scope_circle_id` 指向 sidecar Circle 的 Flow 过滤)
+- 多 agent publish 时 `actor_id` / `executed_by` MUST 是单一签发 agent principal
+- Retention 继承目标 Realm,profile 可收紧不可放宽
+- `cx.agent.sidecar_projection.v1` controller-private encrypted account-data SHOULD 注册(跨设备 UI 一致性)
+
+MUST NOT:
+- 在目标公开 Flow 写 target-side reverse `agent_sidecar_of` relation
+- 修改目标 Flow `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
+- 接受 `participant_model` 等替代 reuse 字段;invariant 9 是 v1 取舍
+- 为单个 sidecar 偷偷创建第二个 Circle 以绕开 invariant 9
+
 ## 19. Applet Service / Bridge
 
 `cx.profile.applet_service.v1` 适用于桥接外部系统和运行 Applet 集成服务。

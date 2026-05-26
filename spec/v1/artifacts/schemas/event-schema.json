@@ -37,6 +37,19 @@
     "actor_id": {
       "$ref": "#/$defs/did"
     },
+    "executed_by": {
+      "$ref": "#/$defs/did",
+      "description": "Optional. Present only when an agent acts on behalf of the controller actor. actor_id is the principal of record (controller), executed_by is the agent principal that actually issued the wire write. MUST be a registered native personal agent principal accountable to actor_id (CXP-0008 §4.10). When present, MUST appear together with authorization_ref. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) when this field is present."
+    },
+    "authorization_ref": {
+      "$ref": "#/$defs/event_ref",
+      "description": "Optional. Required when executed_by is present. References the cx.capability.grant or cx.capability.delegate event that authorizes the agent to act on behalf of actor_id for this action/resource. Reducer MUST validate the referenced grant covers the event kind and target resource and is within its effective validity window."
+    },
+    "actor_kind": {
+      "type": "string",
+      "enum": ["user", "org", "team", "agent", "service", "device", "integration"],
+      "description": "Reducer-stamped projection of the actor_id Actor Profile's actor_kind at write time (CXP-0008 §5.1). Lets audit/forensic/offline readers classify the event without resolving Actor Profile. MUST NOT appear in actor-supplied submit payload (schema_violation reason=actor_kind_reducer_managed); reducer stamps it during accept. Immutable once written."
+    },
     "actor_seq": {
       "type": "integer",
       "minimum": 0
@@ -154,6 +167,10 @@
             "enum": [
               "cx.account.blocklist",
               "cx.account_data.set",
+              "cx.agent.action_approve",
+              "cx.agent.action_reject",
+              "cx.agent.action_request",
+              "cx.agent.draft.propose",
               "cx.attestation.range_completeness",
               "cx.audit.ryw_receipt",
               "cx.circle.anchor_commit",
@@ -215,10 +232,13 @@
             "enum": [
               "cx.account.status",
               "cx.actor.discovery",
+              "cx.agent.deactivate",
               "cx.agent.endpoint",
+              "cx.agent.pause",
               "cx.agent.protocol_session.result",
               "cx.agent.protocol_session.start",
               "cx.agent.protocol_session.status",
+              "cx.agent.resume",
               "cx.applet.bridge_error",
               "cx.applet.discovery",
               "cx.applet.protocol_session.start",
