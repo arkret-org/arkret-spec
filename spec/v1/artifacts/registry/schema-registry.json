@@ -119,6 +119,18 @@
       "file": "schemas/key-backup.schema.json"
     },
     {
+      "schema_id": "cx.schema.recovery_policy.v1",
+      "file": "schemas/recovery-policy.schema.json",
+      "status": "active",
+      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / cx.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
+    },
+    {
+      "schema_id": "cx.schema.recovery_receipt.v1",
+      "file": "schemas/recovery-receipt.schema.json",
+      "status": "active",
+      "description": "Signed completion receipt for a principal recovery flow. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §14.5 step 7."
+    },
+    {
       "schema_id": "cx.schema.notification.v1",
       "file": "schemas/notification.schema.json"
     },

@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/recovery-receipt.schema.json",
+  "title": "Contrix Recovery Receipt",
+  "description": "Signed completion receipt for a principal recovery flow. Bound to the recovery_session_id used by every proof, backup unlock, and MLS Welcome replay action; written to either the audit Realm declared by the active recovery policy or — when audit policy permits — as an actor-private record on the Principal Control Realm. See crypto-media/device-lifecycle.md §14.5 step 7.",
+  "type": "object",
+  "required": [
+    "schema",
+    "receipt_id",
+    "principal_id",
+    "recovery_session_id",
+    "policy_id",
+    "policy_version",
+    "trust_domain",
+    "new_device_id",
+    "proof_summary",
+    "backup_classes_unlocked",
+    "welcome_count",
+    "outcome",
+    "started_at",
+    "completed_at",
+    "auth_data"
+  ],
+  "properties": {
+    "schema": {
+      "const": "cx.schema.recovery_receipt.v1"
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^cx:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "principal_id": {
+      "$ref": "#/$defs/did"
+    },
+    "recovery_session_id": {
+      "type": "string",
+      "pattern": "^cx:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Stable session identifier used by every proof transcript, backup decrypt proof, and MLS Welcome replay during this recovery. Receivers MUST reject receipts that reuse a session id already accepted for the same principal."
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "policy_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
+    },
+    "new_device_id": {
+      "type": "string",
+      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "previous_ssk_generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "new_ssk_generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "proof_summary": {
+      "type": "object",
+      "required": [
+        "kind",
+        "proof_digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "principal_signing",
+            "recovery_unlock",
+            "device_quorum",
+            "trusted_recovery_service",
+            "threshold_recovery"
+          ]
+        },
+        "proof_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Canonical-JSON digest of the proof transcript used to satisfy the active recovery policy. Auditors recompute against the originating proof event to verify."
+        },
+        "quorum_size": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Required for device_quorum and threshold_recovery; equals the number of participating members / shares."
+        },
+        "share_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "description": "When kind=threshold_recovery, the share_ids that participated. MUST be a subset of the active policy's shares[]."
+        }
+      },
+      "additionalProperties": false
+    },
+    "backup_classes_unlocked": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "required": [
+          "backup_class",
+          "backup_id",
+          "series_id",
+          "ciphertext_digest"
+        ],
+        "properties": {
+          "backup_class": {
+            "type": "string",
+            "enum": [
+              "did_recovery",
+              "secret_storage",
+              "mls_history",
+              "external"
+            ]
+          },
+          "backup_id": {
+            "type": "string",
+            "pattern": "^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "series_id": {
+            "type": "string",
+            "pattern": "^cx:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "ciphertext_digest": {
+            "$ref": "#/$defs/hash"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "welcome_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of MLS Welcomes successfully replayed for the recovering device."
+    },
+    "welcome_realm_summary": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "realm_id",
+          "mls_group_id",
+          "epoch"
+        ],
+        "properties": {
+          "realm_id": {
+            "$ref": "#/$defs/realm_id"
+          },
+          "mls_group_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "epoch": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "partial",
+        "aborted_by_user",
+        "policy_denied",
+        "evidence_insufficient",
+        "service_defined"
+      ]
+    },
+    "outcome_reason_code": {
+      "type": "string",
+      "description": "Free-form reason code; MUST be present when outcome != 'completed'."
+    },
+    "started_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "completed_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "auth_data": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signature_alg",
+        "signature",
+        "signed_fields"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string"
+        },
+        "signature_alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256"
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "signed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "allOf": [
+            { "contains": { "const": "receipt_id" } },
+            { "contains": { "const": "principal_id" } },
+            { "contains": { "const": "recovery_session_id" } },
+            { "contains": { "const": "policy_id" } },
+            { "contains": { "const": "policy_version" } },
+            { "contains": { "const": "trust_domain" } },
+            { "contains": { "const": "new_device_id" } },
+            { "contains": { "const": "proof_summary" } },
+            { "contains": { "const": "backup_classes_unlocked" } },
+            { "contains": { "const": "welcome_count" } },
+            { "contains": { "const": "outcome" } },
+            { "contains": { "const": "started_at" } },
+            { "contains": { "const": "completed_at" } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "proof_summary": {
+            "properties": {
+              "kind": { "const": "threshold_recovery" }
+            },
+            "required": [ "kind" ]
+          }
+        },
+        "required": [ "proof_summary" ]
+      },
+      "then": {
+        "properties": {
+          "proof_summary": {
+            "required": [ "quorum_size", "share_ids" ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "proof_summary": {
+            "properties": {
+              "kind": { "const": "device_quorum" }
+            },
+            "required": [ "kind" ]
+          }
+        },
+        "required": [ "proof_summary" ]
+      },
+      "then": {
+        "properties": {
+          "proof_summary": {
+            "required": [ "quorum_size" ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "not": { "const": "completed" }
+          }
+        },
+        "required": [ "outcome" ]
+      },
+      "then": {
+        "required": [ "outcome_reason_code" ],
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "outcome_reason_code" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  }
+}

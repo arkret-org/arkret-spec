@@ -42,6 +42,46 @@
 
 ## [Unreleased]
 
+### Key-backup hardening: series chain, recovery policy / receipt schemas, first-backup gate（2026-05-26）
+
+闭合 v1 候选稿中"用户密钥备份"复审发现的多处缺口：(a) recovery policy 只有内联示例无 schema 与 lifecycle；(b) 备份 envelope 无法防止服务端静默 rollback；(c) recipient method 中只有 `passphrase_kdf` 完整；(d) recovery receipt 无 schema；(e) cross-signing reset 与 `secret_storage` backup refresh 无窗口耦合；(f) inception key 退场无 first-backup 硬前置；(g) `cx.secret_storage.v1` wire deprecation 与 retention/erasure 交互未规范。
+
+- **变更类型**: add（recovery_policy / recovery_receipt schema、backup series 链字段、first-backup gate、recipient method profiles、server-side rate limiting、recovery UI MUSTs、retention/erasure 表）+ modify（`cx.schema.key_backup.v1` 字段与 signed_fields；`cx.profile.key_backup.memory_hard.v1` 必需 endpoints / schemas / fixtures / feature_discovery；openapi `cx.keys.backups.list` 查询参数）。
+- **影响 artifact**:
+  - 新增 `schemas/recovery-policy.schema.json`（`cx.schema.recovery_policy.v1`）、`schemas/recovery-receipt.schema.json`（`cx.schema.recovery_receipt.v1`）。
+  - 修改 `schemas/key-backup.schema.json`：required 集合追加 `series_id` / `series_sequence`；新增 `supersedes` / `supersedes_digest` / `frontier_ref` 字段；signed_fields 必须覆盖 series & supersedes，并在 `series_sequence >= 1` 与 `frontier_ref` 存在时按条件分支扩展；新增 genesis vs successor 的 `allOf` 互斥约束。
+  - 修改 `openapi/contrix-service-api.openapi.yaml`：`cx.keys.backups.list` 新增 `?series_id=` 与 `?backup_class=` 查询参数。
+  - 修改 `profiles/conformance-profiles.json#cx.profile.key_backup.memory_hard.v1`：endpoints 扩展至 put/list/get/delete；required_schemas 增加两个新 schema；required_fixtures 加 `key-backup-fixture.json`；feature_discovery 增加 series chain / freshness anchor / recipient method profiles / server rate limit / recovery policy & receipt 6 项。
+  - 新增 `fixtures/key-backup-fixture.json`：9 个 `schema_validation_cases`（正/负向）。
+  - 修改 registries：
+    - `id-kind-registry.json`: 新增 `backup_series`、`recovery_session`。
+    - `schema-registry.json`: 新增 `cx.schema.recovery_policy.v1`、`cx.schema.recovery_receipt.v1`。
+    - `error-code-registry.json`: 新增 11 条 reason codes（`series_chain_broken` / `series_sequence_not_monotonic` / `series_predecessor_not_found` / `recovery_policy_mismatch` / `share_commitment_mismatch` / `backup_frontier_stale` / `backup_post_reset_stale` / `legacy_secret_storage_wire_form` / `recovery_evidence_unbound` / `unsupported_aead_profile` / `attestation_missing`）。
+  - 修改 prose：
+    - `zh/identity/key-management.md` §5.0.1 step 6（first-backup gate）；新增 §7.5 Recipient Method Profiles、§7.6 Backup Series & Freshness、§7.7 Recovery UI Requirements、§7.8 Server-Side Hardening、§7.9 Algorithm Agility；§8 替换 recovery_policy 内联示例为 `cx.schema.recovery_policy.v1` 形态并新增 §8.1 policy lifecycle / §8.2 holder retrieval；§10 / §11 conformance 行补强。
+    - `zh/crypto-media/device-lifecycle.md` §11 新增 wire deprecation 段；§12 example 与 prose 同步 series 字段；§12.1 PUT 三类 409 reason / GET filter / DELETE high-risk proof；新增 §12.2 Retention and Erasure；§14.2 新增 step 7（reset → secret_storage backup refresh 同步窗口）；§14.5 step 7 收紧到 `cx.schema.recovery_receipt.v1` 校验。
+    - `zh/overview/release-readiness.md`: schema 54→56、typed ID 41→43、raw schema file 54→57。
+- **canonical 变更**: `cx.schema.key_backup.v1` wire 要求扩展（新 required 字段、条件分支签名覆盖、新 typed-id kind）；新增两类 wire payload schema。`cx.keys.backups.list` 操作扩展查询参数。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 已重新生成 schema-registry / id-kind-registry / 其它派生视图；`python tools/artifact_pipeline.py check` clean（`159 event kinds, 56 schemas, 43 typed ID kinds, 87 operations, 58 claimable profiles, 79 profile id references`）；`python tools/lint_artifacts.py`、`python tools/lint_spec.py`、`python tools/check_fixture_digests.py` 全部通过。`fixture-digests.json` 已更新。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.key_backup.memory_hard.v1`（feature_discovery 与 required_fixtures 扩张）；`cx.profile.cross_signing.reset.v1`（reset accepted 后新增 `secret_storage` backup refresh 同步窗口要求）。
+  - profile tier 变化: 无新增 profile 层级；既有 hardening profile 收紧。
+  - wire 兼容性: **breaking** 对仍处于 candidate 状态的 `cx.schema.key_backup.v1`（required 集合扩展、signed_fields 条件覆盖）；候选稿期内引入，未影响已发布 v1.0 稳定基线。
+  - reader / writer 行为要求:
+    - Writer MUST emit `series_id` / `series_sequence` on every backup envelope, set `supersedes`+`supersedes_digest` on successors, and cover them in `auth_data.signed_fields`.
+    - Reader MUST `LIST` per series_id, verify the `supersedes`/`supersedes_digest` chain, and decrypt only from the tail. On stale frontier or post-reset stale envelope MUST emit `backup_frontier_stale` / `backup_post_reset_stale`.
+    - Server MUST enforce series monotonicity & predecessor existence on `PUT`, return the three 409 reasons listed in `zh/crypto-media/device-lifecycle.md §12.1`, and rate-limit `GET` per §7.8 defaults.
+    - Server MUST reject legacy `cx.secret_storage.v1` wire envelopes with `schema_violation reason=legacy_secret_storage_wire_form`.
+- **fixture / vector 变化**: 新增 `fixtures/key-backup-fixture.json`（series chain / passphrase_kdf nonce_salt / Argon2id 下限 / PBKDF2 degraded reason / mixed_secret_storage strict KDF / successor digest 强制）。后续 release 应补 KAT-级别正向 fixture（passphrase → KDF → nonce → AEAD KAT）。
+- **prose 同步**: `zh/identity/key-management.md` §5.0.1 / §7 / §8 / §10 / §11；`zh/crypto-media/device-lifecycle.md` §11 / §12 / §14.2 / §14.5；`zh/overview/release-readiness.md`。
+- **迁移指南**: 实现侧最小变更清单：
+  1. 在产生新备份 envelope 时分配 `series_id`、把 `series_sequence` 设为 0（genesis）或现有最大 +1（successor）。
+  2. successor 在签名前先 canonicalize 前一条 envelope（排除 `auth_data.signature`）并计算 `supersedes_digest`；把 `supersedes` / `supersedes_digest` / `frontier_ref?` 加入 `auth_data.signed_fields`。
+  3. 备份恢复路径切到 `LIST?series_id=` 路径，按 sequence 顺序重建链并仅使用尾部。
+  4. inception bootstrap 完成首台 `cx.device.authorize` 后，**先**发布 `backup_class=did_recovery` envelope（或离线封存 receipt）再让 inception key 退场。
+  5. cross-signing reset 接收后 24h 内为现存 `secret_storage` series 发布后继 envelope，否则恢复流程将拒绝旧 envelope。
+  6. 旧 `cx.secret_storage.v1` 远端对象一次性迁移到 `cx.schema.key_backup.v1`；wire endpoint 升级后不再接受旧形态。
+
 ### Clarify `alsoKnownAs` narrow scope and verification authority/cache split（2026-05-26）
 
 `identity-handles.md` 长期把 `alsoKnownAs` 与 "客户端 / verifier 双向验证" 写成笼统规则，导致两类常见误读：(a) 实现者把 `alsoKnownAs` 当作 mention 索引 / Directory 主键 / 投递路径的候选字段；(b) 不清楚 Principal Server / Directory 对 `binding_state=verified` 的代验是 hint 还是权威背书。本次新增 §4.1 与 §6.0 两节，把"`alsoKnownAs` 只服务公开 handle 的 holder-side 反向背书"与"first-party 客户端验证才是 authority，server-side 预验只是 cache hint"两条边界写进规范。

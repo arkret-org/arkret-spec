@@ -1,0 +1,768 @@
+{
+  "suite": "key_backup_schema_validation",
+  "profile": "cx.profile.key_backup.memory_hard.v1",
+  "version": "2026-05-26",
+  "description": "Positive and negative wire-form validation cases for key backup and recovery contracts. Covers cx.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, auth_data.signed_fields coverage required for series fields, and minimal cx.schema.recovery_policy.v1 / cx.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.6 / §8 and crypto-media/device-lifecycle.md §12 / §14.5. Lint runs tools/lint_artifacts.py against schema_validation_cases[].",
+  "schema_validation_cases": [
+    {
+      "name": "genesis_envelope_valid",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_sequence": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "aead_profile": "cx.aead.xchacha20_poly1305.v1",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
+          },
+          "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" },
+          { "item_type": "user_signing_key", "secret_id": "user_signing_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "successor_envelope_valid",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "backup_id": "cx:backup:01964137-1000-7000-8000-000000000001",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "backup_version": "kb_2",
+        "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_sequence": 1,
+        "supersedes": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "supersedes_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "frontier_ref": {
+          "frontier_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "ssk_generation": 2
+        },
+        "created_at": "2026-04-27T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "aead_profile": "cx.aead.xchacha20_poly1305.v1",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt1111"
+          },
+          "key_commitment": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" },
+          { "item_type": "user_signing_key", "secret_id": "user_signing_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "supersedes_digest",
+            "frontier_ref",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "genesis_missing_series_id_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'series_id' is a required property",
+      "instance": {
+        "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "backup_version": "kb_1",
+        "series_sequence": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
+          }
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "genesis_missing_series_sequence_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'series_sequence' is a required property",
+      "instance": {
+        "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
+          }
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "passphrase_kdf_missing_nonce_salt_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.encryption.aead: 'nonce_salt' is a required property",
+      "instance": {
+        "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_sequence": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder"
+          }
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "argon2id_below_memory_floor_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.encryption.kdf.params.memory_kib: 8192 is less than the minimum of 65536",
+      "instance": {
+        "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_sequence": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 8192,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
+          }
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "pbkdf2_missing_degraded_reason_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.encryption.kdf: 'degraded_profile_reason' is a required property",
+      "instance": {
+        "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_sequence": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "pbkdf2",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "iterations": 600000,
+              "hash": "sha256"
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
+          }
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "successor_missing_supersedes_digest_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'supersedes_digest' is a required property",
+      "instance": {
+        "backup_id": "cx:backup:01964137-1000-7000-8000-000000000001",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "backup_version": "kb_2",
+        "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_sequence": 1,
+        "supersedes": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "created_at": "2026-04-27T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt1111"
+          }
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "mixed_secret_storage_underfloor_kdf_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.encryption.kdf.params.memory_kib: 65536 is less than the minimum of 262144",
+      "instance": {
+        "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "secret_storage",
+        "mixed_secret_storage": true,
+        "backup_version": "kb_mixed",
+        "series_id": "cx:backup_series:01964137-2000-7000-8000-000000000000",
+        "series_sequence": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 4,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
+          }
+        },
+        "contents": [
+          { "item_type": "self_signing_key", "secret_id": "self_signing_key" },
+          { "item_type": "mls_group_secrets_backup_key", "secret_id": "mls_group_secrets_backup_key" }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_sequence",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_policy_threshold_valid",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "cx.schema.recovery_policy.v1",
+        "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+        "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "version": 1,
+        "supersedes": null,
+        "trust_domain": "cx:trust_domain:did.webvh.example",
+        "allowed_proof_kinds": [
+          "threshold_recovery"
+        ],
+        "threshold": {
+          "k": 2,
+          "n": 2,
+          "shares": [
+            {
+              "share_id": "s1",
+              "holder": "did:web:bob.example",
+              "transport": "hpke_x25519",
+              "share_commitment": {
+                "algorithm": "feldman-vss-sha256",
+                "commitment_b64": "commitment1"
+              }
+            },
+            {
+              "share_id": "s2",
+              "holder": "did:web:carol.example",
+              "transport": "hpke_x25519",
+              "share_commitment": {
+                "algorithm": "feldman-vss-sha256",
+                "commitment_b64": "commitment2"
+              }
+            }
+          ]
+        },
+        "issued_at": "2026-04-26T00:00:00Z",
+        "auth_data": {
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "policy_id",
+            "principal_id",
+            "version",
+            "supersedes",
+            "trust_domain",
+            "allowed_proof_kinds",
+            "threshold",
+            "issued_at"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_policy_v2_missing_supersedes_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'supersedes' is a required property",
+      "instance": {
+        "schema": "cx.schema.recovery_policy.v1",
+        "policy_id": "cx:policy:01964140-0000-7000-8000-000000000001",
+        "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "version": 2,
+        "trust_domain": "cx:trust_domain:did.webvh.example",
+        "allowed_proof_kinds": [
+          "device_quorum"
+        ],
+        "device_quorum": {
+          "k": 2,
+          "members": [
+            "cx:device:01964137-0000-7000-8000-000000000000",
+            "cx:device:01964138-0000-7000-8000-000000000000"
+          ]
+        },
+        "issued_at": "2026-04-27T00:00:00Z",
+        "auth_data": {
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "policy_id",
+            "principal_id",
+            "version",
+            "supersedes",
+            "trust_domain",
+            "allowed_proof_kinds",
+            "device_quorum",
+            "issued_at"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_policy_revocation_empty_proofs_valid",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "cx.schema.recovery_policy.v1",
+        "policy_id": "cx:policy:01964140-0000-7000-8000-000000000002",
+        "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "version": 2,
+        "supersedes": "cx:policy:01964140-0000-7000-8000-000000000000",
+        "trust_domain": "cx:trust_domain:did.webvh.example",
+        "allowed_proof_kinds": [],
+        "expires_at": "2026-04-27T00:00:00Z",
+        "issued_at": "2026-04-27T00:00:00Z",
+        "auth_data": {
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "policy_id",
+            "principal_id",
+            "version",
+            "supersedes",
+            "trust_domain",
+            "allowed_proof_kinds",
+            "expires_at",
+            "issued_at"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_receipt_completed_valid",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "cx.schema.recovery_receipt.v1",
+        "receipt_id": "cx:receipt:01964141-0000-7000-8000-000000000000",
+        "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "recovery_session_id": "cx:recovery_session:01964142-0000-7000-8000-000000000000",
+        "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+        "policy_version": 1,
+        "trust_domain": "cx:trust_domain:did.webvh.example",
+        "new_device_id": "cx:device:01964139-0000-7000-8000-000000000000",
+        "proof_summary": {
+          "kind": "threshold_recovery",
+          "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "quorum_size": 2,
+          "share_ids": [
+            "s1",
+            "s2"
+          ]
+        },
+        "backup_classes_unlocked": [
+          {
+            "backup_class": "secret_storage",
+            "backup_id": "cx:backup:01964137-1000-7000-8000-000000000001",
+            "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+            "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+          }
+        ],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-04-27T00:00:00Z",
+        "completed_at": "2026-04-27T00:05:00Z",
+        "auth_data": {
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964139",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "receipt_id",
+            "principal_id",
+            "recovery_session_id",
+            "policy_id",
+            "policy_version",
+            "trust_domain",
+            "new_device_id",
+            "proof_summary",
+            "backup_classes_unlocked",
+            "welcome_count",
+            "outcome",
+            "started_at",
+            "completed_at"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_receipt_missing_series_id_rejected",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.backup_classes_unlocked[0]: 'series_id' is a required property",
+      "instance": {
+        "schema": "cx.schema.recovery_receipt.v1",
+        "receipt_id": "cx:receipt:01964141-0000-7000-8000-000000000001",
+        "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "recovery_session_id": "cx:recovery_session:01964142-0000-7000-8000-000000000001",
+        "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+        "policy_version": 1,
+        "trust_domain": "cx:trust_domain:did.webvh.example",
+        "new_device_id": "cx:device:01964139-0000-7000-8000-000000000000",
+        "proof_summary": {
+          "kind": "threshold_recovery",
+          "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "quorum_size": 2,
+          "share_ids": [
+            "s1",
+            "s2"
+          ]
+        },
+        "backup_classes_unlocked": [
+          {
+            "backup_class": "secret_storage",
+            "backup_id": "cx:backup:01964137-1000-7000-8000-000000000001",
+            "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+          }
+        ],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-04-27T00:00:00Z",
+        "completed_at": "2026-04-27T00:05:00Z",
+        "auth_data": {
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964139",
+          "signature_alg": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "receipt_id",
+            "principal_id",
+            "recovery_session_id",
+            "policy_id",
+            "policy_version",
+            "trust_domain",
+            "new_device_id",
+            "proof_summary",
+            "backup_classes_unlocked",
+            "welcome_count",
+            "outcome",
+            "started_at",
+            "completed_at"
+          ]
+        }
+      }
+    }
+  ]
+}

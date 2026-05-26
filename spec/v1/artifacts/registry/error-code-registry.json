@@ -1960,6 +1960,95 @@
         "state_resolution"
       ],
       "description": "Sub-reason for failed_precondition when a write would expose metadata below the effective metadata_encryption_profile floor (max of parent Realm floor, Circle metadata_encryption_floor, Space child_scope_policy.metadata_encryption_floor, object profile requirement). See zh/models/circle.md §7."
+    },
+    {
+      "code": "series_chain_broken",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution",
+        "device_recovery"
+      ],
+      "description": "cx.schema.key_backup.v1 envelope chain failed verification: a `supersedes_digest` does not match the canonical_json digest of its predecessor, or a non-genesis envelope is missing a predecessor accessible to the caller. See zh/identity/key-management.md §7.6 and zh/crypto-media/device-lifecycle.md §12 / §12.1."
+    },
+    {
+      "code": "series_sequence_not_monotonic",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "A PUT /api/v1/keys/backups/{backup_id} request whose `series_sequence` is not strictly greater than the current maximum sequence within the same (actor_id, series_id), or whose genesis envelope sets series_sequence != 0. See zh/crypto-media/device-lifecycle.md §12.1."
+    },
+    {
+      "code": "series_predecessor_not_found",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "`cx.schema.key_backup.v1.supersedes` references a backup_id that is unknown to the server, deleted, or owned by a different actor / series. Wire endpoint returns 409 Conflict; receivers MUST treat the chain as broken. See zh/crypto-media/device-lifecycle.md §12.1."
+    },
+    {
+      "code": "recovery_policy_mismatch",
+      "applies_to": [
+        "device_recovery",
+        "state_resolution"
+      ],
+      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery flows MUST surface this to the user as 'update recovery policy' rather than silently continuing. See zh/identity/key-management.md §7.5.4 / §7.7 and zh/crypto-media/device-lifecycle.md §14.5."
+    },
+    {
+      "code": "share_commitment_mismatch",
+      "applies_to": [
+        "crypto",
+        "device_recovery"
+      ],
+      "description": "A threshold-recovery share submitted during reconstruction does not match the `share_commitment{algorithm, commitment_b64}` declared in the active recovery policy. Coordinator MUST notify the user which holder submitted an invalid share. See zh/identity/key-management.md §7.5.4 / §8."
+    },
+    {
+      "code": "backup_frontier_stale",
+      "applies_to": [
+        "device_recovery",
+        "state_resolution"
+      ],
+      "description": "`cx.schema.key_backup.v1.frontier_ref.frontier_digest` does not match the current principal control stream frontier, or `ssk_generation` is below the current accepted generation. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md §7.6."
+    },
+    {
+      "code": "backup_post_reset_stale",
+      "applies_to": [
+        "device_recovery",
+        "cross_signing"
+      ],
+      "description": "A `secret_storage` backup envelope references a `self_signing_key` / `user_signing_key` whose generation was retired by a cross-signing reset, and the publish-recovery window elapsed without a successor envelope. Receivers MUST refuse it as the primary recovery source. See zh/crypto-media/device-lifecycle.md §14.2 step 7."
+    },
+    {
+      "code": "legacy_secret_storage_wire_form",
+      "applies_to": [
+        "schema_validation"
+      ],
+      "description": "Device / Key Server received a request body whose top-level `schema == \"cx.secret_storage.v1\"` or that otherwise matches the deprecated client-local secret-storage envelope shape on the `cx.keys.backups.*` wire endpoints. Wire MUST use `cx.schema.key_backup.v1`. See zh/crypto-media/device-lifecycle.md §11."
+    },
+    {
+      "code": "recovery_evidence_unbound",
+      "applies_to": [
+        "device_recovery",
+        "cross_signing"
+      ],
+      "description": "A proof transcript for recovery, cross-signing reset, device authorization, or recovery-policy rotation is not bound to `(policy_id, version, recovery_session_id)`. Receivers MUST reject. See zh/identity/key-management.md §8.1."
+    },
+    {
+      "code": "unsupported_aead_profile",
+      "applies_to": [
+        "crypto",
+        "schema_validation"
+      ],
+      "description": "Receiver does not recognise `encryption.aead.aead_profile` (or sees a reserved-but-unpublished profile such as `cx.aead.hybrid_kem.*`). Receivers MUST fail closed; inferring parameters from `aead.name` alone is forbidden. See zh/identity/key-management.md §7.9."
+    },
+    {
+      "code": "attestation_missing",
+      "applies_to": [
+        "crypto",
+        "device_recovery",
+        "schema_validation"
+      ],
+      "description": "A `recipient_method=hardware_wrapped_key` key-backup envelope, or any recovery / cross-signing proof requiring hardware attestation, lacks an `attestation` chain that the receiver can verify against the active recovery policy's `trusted_recovery_services[]`. See zh/identity/key-management.md §7.5.5."
     }
   ]
 }

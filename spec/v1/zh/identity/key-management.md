@@ -217,7 +217,12 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
    Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；缺一即按普通 collaboration Realm 处理（不再具备 control stream 的特殊语义）。
 4. **首台设备自授权**：客户端构造 `cx.device.authorize` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
 5. **Inception key 的归宿**：完成步骤 4 后，inception key 的在线签名角色 MUST 在 `inception_key_max_online_window` 内退出。推荐窗口为 ≤1h；24h 只是协议硬上限，deployment policy MUST NOT 配置更长窗口。`personal_node` / `small_team` profile 在首台 `cx.device.authorize` accepted 后 SHOULD 立即触发 `did:webvh` entry 1 写入或封存流程，不应等待硬上限。退出方式只能是：（a）写入 `did:webvh` entry 1 或等价 DID method operation，把日常 update / device authorization 权限轮换到新的 controller / device key，并从首台设备销毁 inception private key；或（b）把 inception key 封存为 recovery-only key，放入 secret storage / threshold recovery，记录 `sealed_at`、`expires_at?`、allowed recovery method，并禁止在线日常签名。窗口过期后，receiver / Auth Server MUST 拒绝 inception key 继续签发 `cx.device.authorize`、`cx.session.grant`、长期 capability 或 ordinary DID update，并写入安全审计；它只能按已声明 recovery policy 进入恢复流程。它 MUST NOT 长期作为日常 device signing key——暴露面应被限制到 inception bootstrap 与 recovery。
-6. **后续设备**：第二台及以后设备走 §5.1 标准流程，由首台已授权设备签发 `cx.device.authorize`。
+6. **First-backup gate（normative）**：inception key 退场（步骤 5）之前，客户端 MUST 完成以下二者之一，作为 inception 窗口关闭的硬前置条件：
+   - 发布一条 `backup_class="did_recovery"` 的 `cx.schema.key_backup.v1` envelope，`series_sequence=0`，加密给 `recovery_public_key` / `threshold_recovery` / `hardware_wrapped_key` 之一（**禁止**仅用 `passphrase_kdf` 的 `did_recovery` envelope 充当唯一 recovery 路径，因为它会让全部恢复能力坍缩到单一弱口令）；或
+   - 写入一份带签名的 offline-sealed receipt（纸质 / 硬件钱包 / 物理离线 module），由 inception key 签发并记录 fingerprint、`sealed_at`、allowed recovery method；UI MUST 要求用户二次确认已离线持有该 receipt。
+
+   实现 MUST 在该 gate 失败时阻止 inception 退场，并向用户展示明确的"当前为单点失效"警告；实现 MUST NOT 把 inception key 在未完成 gate 的情况下静默销毁。当 `personal_node` profile 用户拒绝完成 gate 时，实现 MAY 允许继续，但 MUST 把账号标记为 `single_point_of_failure=true`，并在后续每次启动时提醒用户。
+7. **后续设备**：第二台及以后设备走 §5.1 标准流程，由首台已授权设备签发 `cx.device.authorize`。
 
 #### 5.0.2 `personal_node` Profile 降级路径（principal_method=`did:web`）
 
@@ -460,6 +465,9 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "secret_storage",
   "backup_version": "kb_1",
+  "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+  "series_sequence": 0,
+  "supersedes": null,
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": {
     "recipient_method": "passphrase_kdf",
@@ -585,33 +593,184 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 DID method history、key log、`recover`、`rotate`、`cx.device.authorize` 或等价 signed event。
 
+### 7.5 Recipient Method Profiles
+
+`cx.schema.key_backup.v1.encryption.recipient_method` 枚举 5 种解锁方式。每种方式 MUST 按下列 normative 约束实现；服务端遇到本节未定义的 `recipient_method` MUST fail closed。
+
+#### 7.5.1 `passphrase_kdf`
+
+参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 覆盖全部 envelope metadata。仅用于 `secret_storage` 与 `mls_history`；**MUST NOT** 单独构成 `did_recovery` 域的唯一解锁路径——`did_recovery` 域的 passphrase_kdf envelope 必须与另一种 method（threshold_recovery / hardware_wrapped_key / recovery_public_key）并列存在，作为 fallback 而非主路径。
+
+#### 7.5.2 `recovery_public_key`
+
+DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
+
+- `recipient_key_ref` MUST 是当前 accepted recovery policy（§8）中声明的 verification_method，或当前 DID Document 中声明的 `recoveryKeyAgreement`。
+- KEM MUST 是 `X25519` 或 `P-256`，KDF MUST 是 `HKDF-SHA256`，AEAD MUST 与 envelope 的 `aead.name` 一致。
+- HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_sequence, actor_id, backup_class, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
+- 受 DID 轮换影响：recovery key 轮换后产生的新 envelope MUST 引用新 verification_method；旧 envelope 在轮换 grace window 之后 receiver MUST 拒绝用旧 key 完成的解锁证明。
+
+#### 7.5.3 `secret_storage_key`
+
+仅用于已经持有 `secret_storage` root key 的现有设备本地缓存/同步（不是 bootstrap）。
+
+- `recipient_key_ref` MUST 命名一个已经在该设备 device-local secret storage（参见 `crypto-media/device-lifecycle.md` §11 `cx.secret_storage.v1`）中存在的 key id（例如 `mls_group_secrets_backup_key`）。
+- 新设备 MUST NOT 通过 `secret_storage_key` envelope 直接 bootstrap：新设备必须先经由 `passphrase_kdf` / `recovery_public_key` / `threshold_recovery` 解出 root `secret_storage` key，然后才能拉取 `secret_storage_key` envelope。
+- 这是为了消除"新设备能解 wire envelope"的循环依赖。
+
+#### 7.5.4 `threshold_recovery`
+
+DEK 通过门限秘密分享拆分；reconstruction 需要 §8 recovery policy 的 `threshold.k` 份 share。
+
+- envelope 的 `encryption` MUST 携带 `recipient_key_ref` 指向当前 accepted `cx.schema.recovery_policy.v1.policy_id`；不一致的 envelope MUST `recovery_policy_mismatch`。
+- 每份 share 的取回 MUST 绑定当前 recovery 流程的 `recovery_session_id`（§14.5）；holder 服务 MUST NOT 把同一 share 多次释放给不同 session 而不经显式授权。
+- reconstruction 完成的 DEK MUST NOT 写入持久化存储；reconstruction 上下文 MUST 在解密 envelope 后立即销毁。
+- share commitment 校验：reconstruction 前 client / recovery coordinator MUST 验证每份 share 与 `recovery_policy.threshold.shares[].share_commitment` 一致；失败时 MUST `share_commitment_mismatch` 并通知用户特定 holder 提交了 invalid share。
+
+#### 7.5.5 `hardware_wrapped_key`
+
+DEK 由本地或托管 HSM / TPM / Secure Enclave wrap。
+
+- envelope MUST 携带 `encryption.attestation` 或在 `auth_data` 中绑定 hardware attestation evidence，receiver 据此判定 hardware profile 是否在 recovery policy 的 `trusted_recovery_services` 中。
+- `recipient_key_ref` 是 wrap key 的稳定标识；receiver MUST 验证当前的 hardware attestation evidence 仍声明同一 key id（即设备未在静默状态下被替换）。
+- 单纯展示 `recipient_method=hardware_wrapped_key` 而无 attestation chain 的 envelope MUST 被 receiver 视为 `attestation_missing` 并拒绝。
+
+### 7.6 Backup Series & Freshness
+
+服务端是不可信存储；攻击者控制服务端时，可以静默返回**旧**版本 envelope 让恢复设备解出已经 retired 的密钥。`cx.schema.key_backup.v1` 通过 `series_id` / `series_sequence` / `supersedes` / `supersedes_digest` / `frontier_ref` 链堵塞这一点。
+
+要求：
+
+- `series_id` 是 `cx:backup_series:<uuid>` typed-id，每对 `(actor_id, backup_class)` 一条。新建系列 MUST 生成新 `series_id`，并在 §11 conformance 中绑定到 actor 的 control stream。
+- 新 envelope MUST 满足 `series_sequence == prev.series_sequence + 1`；`supersedes` MUST 是同 `series_id` 中上一条 envelope 的 `backup_id`，且 `supersedes_digest` MUST 等于上一条 envelope 排除 `auth_data.signature` 后 canonical_json 的哈希。
+- genesis envelope MUST `series_sequence == 0`，`supersedes == null`，且 MUST NOT 携带 `supersedes_digest`。
+- `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_sequence` / `supersedes`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
+- `frontier_ref` 是 RECOMMENDED 字段；当声明 `cx.profile.key_backup.memory_hard.v1` 或更高 hardening profile 时，`secret_storage` 与 `did_recovery` 类备份的新 envelope MUST 携带 `frontier_ref.frontier_digest`，并 SHOULD 携带 `frontier_ref.anchor_ref` 与 `frontier_ref.ssk_generation`。
+- 客户端发起恢复（device-lifecycle.md §14.5）时 MUST：
+  1. `LIST /api/v1/keys/backups?series_id=<series_id>` 取回**全部** envelope metadata；
+  2. 按 `series_sequence` 重建链，验证每条 `supersedes` / `supersedes_digest` 正确；任一 envelope 缺失或 hash 不匹配 → MUST `series_chain_broken`；
+  3. 用链的**最尾**条进行解密；任何中间条目 MUST NOT 被用作主恢复源；
+  4. 当存在 `frontier_ref` 时 MUST 用 control stream snapshot 验证 frontier_digest 落入当前 principal control stream，且 `ssk_generation` 不低于当前 accepted generation；否则 MUST `backup_frontier_stale`。
+- 服务端 MUST 把同一 series 内的删除视为高风险动作（参见 §12.1 / `device-lifecycle.md §12.1`）：删除非尾部 envelope 会破坏链，删除尾部 envelope 等同于让 series 失效，二者都 MUST 在 audit 中可见。
+
+### 7.7 Recovery UI Requirements（normative）
+
+恢复 UI 是用户唯一能识别"我在恢复一个真实的自己 vs 我在被钓鱼"的界面。实现 MUST：
+
+- 在尝试解密任何备份 envelope 之前，向用户展示：`backup_class`、`series_id`、`series_sequence`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）、`frontier_ref.ssk_generation?`。
+- 在使用 `passphrase_kdf` 时，明确展示 KDF（Argon2id / PBKDF2）与参数；用 PBKDF2 的 envelope MUST 在 UI 中显示 `degraded_profile_reason`，且不得自动选用 PBKDF2 envelope 当 Argon2id envelope 同时存在。
+- 在 envelope 携带 `mixed_secret_storage=true` 时 MUST 显著警告"该备份同时保护身份签名与 E2EE 历史，单一口令被攻破将同时丢失两者"；非 `personal_node` profile 下 MUST 直接拒绝展示此类 envelope 作为 primary recovery source。
+- 在 `did_recovery` 域使用 `passphrase_kdf` 单独路径时 MUST 拒绝继续（参见 §7.5.1）。
+- 展示当前 envelope 与 `recovery_policy.policy_id` / `policy_version` 的一致性；不一致时 MUST `recovery_policy_mismatch`，并指向"更新 recovery policy"流程而不是默默继续。
+- 不得从本地缓存读取用户先前确认的 fingerprint / passphrase / OOB token 跳过当次显式确认。本地缓存 MAY 用于自动补全，但用户 MUST 显式提交本次输入。
+- 在 §7.4 列出的禁用证明类型（历史明文、邮箱验证码、撤销设备等）被用户尝试时 MUST 给出可读的拒绝原因。
+
+### 7.8 Server-Side Hardening for Backup Access
+
+加密备份的密文虽然不暴露明文，但下载即"投喂 KDF 爆破弹药"。Device / Key Server MUST 对 `cx.keys.backups.*` 接口实施：
+
+- **每 principal 每 24h 下载上限**：默认 `daily_principal_download_limit = 64`（覆盖单一 series 下大量历史 epoch 备份的合理使用，又能拦截批量 dump）。`cx.profile.key_backup.memory_hard.v1` 实现 MUST 公布所采用的实际上限，并接受 deployment 配置在 `[16, 256]` 范围内调整。
+- **每 IP / 每 session 限速**：默认 `per_ip_get_burst = 8`，`per_ip_get_sustained_per_minute = 4`；逾限响应 MUST 是 `429 Too Many Requests`，并 SHOULD 在 `Retry-After` 中给出建议。
+- **认证降级阻断**：`GET /api/v1/keys/backups/{backup_id}` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_did / principal_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
+- **审计记录**：超出阈值或在异常时间窗内的下载 MUST 写入 `cx.audit.accessed`，`access_kind="key_backup_read"`，并按 `cx.profile.attested_audit.e2ee.v1`（若声明）配对 audit pair。
+- **跨 actor 拒绝**：服务端 MUST 在 envelope `actor_id` 与请求 caller 不一致时返回 `forbidden`，并不得通过 metadata 暴露 envelope 是否存在。
+- **删除验证**：`DELETE` MUST 在尾部 envelope 上额外要求 §14.5 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）。仅持 device proof 的 caller 只能删除**非尾部**或 `expired_at < now` 的 envelope。
+
+实现 MAY 在 deployment policy 中收紧上述阈值；MUST NOT 放宽超过本节默认。
+
+### 7.9 Algorithm Agility & Forward Compatibility
+
+v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybrid 迁移：
+
+- Receiver MUST 对未知 `encryption.kdf.name`、`encryption.aead.name`、`encryption.aead.aead_profile`、`encryption.recipient_method` fail closed（不得回退到默认）。
+- AEAD profile namespace `cx.aead.*` 中保留 `cx.aead.hybrid_kem.*` 供未来 hybrid PQ-KEM + classical KEM 组合使用。在该 profile 发布之前，receiver 收到该前缀 MUST 报告 `unsupported_aead_profile`。
+- 当 `frontier_ref` 携带 `anchor_ref` 时，client 可以用 Anchor inclusion proof 来证明 envelope 创建时刻不晚于 Anchor commit；receiver MAY 在 sovereign / high_security_organization profile 中要求该证明。
+- 实现 MUST 在 envelope metadata 中保留 `additionalProperties` 与 `x_*` 前缀作为 forward-compat 扩展槽；MUST NOT 在 wire 上接受未知顶层字段（已由 schema `additionalProperties: false` 强制）。
+
 ## 8. 社交恢复与门限恢复
 
-高价值账号 SHOULD 支持门限恢复。
-
-Recovery policy 字段：
+高价值账号 SHOULD 支持门限恢复。Recovery policy 的规范形态由 `cx.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）固定；本节内联 JSON 仅作示意，wire 实现 MUST 以 schema 为准。
 
 ```json
 {
-  "type": "recovery_policy",
-  "threshold": 3,
-  "shares": [
-    {
-      "holder": "did:web:alice-friend.example",
-      "share_id": "s1",
-      "transport": "sealed_box",
-      "share_commitment": {
-        "algorithm": "feldman-vss-sha256",
-        "commitment_b64": "base64url:..."
+  "schema": "cx.schema.recovery_policy.v1",
+  "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+  "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "version": 1,
+  "supersedes": null,
+  "trust_domain": "cx:trust_domain:did.webvh.example",
+  "allowed_proof_kinds": ["threshold_recovery", "device_quorum"],
+  "threshold": {
+    "k": 3,
+    "n": 5,
+    "shares": [
+      {
+        "share_id": "s1",
+        "holder": "did:web:alice-friend.example",
+        "transport": "hpke_x25519",
+        "share_commitment": {
+          "algorithm": "feldman-vss-sha256",
+          "commitment_b64": "base64url..."
+        },
+        "not_before": "2026-04-26T00:00:00Z",
+        "expires_at": null,
+        "revoked_at": null
       }
+    ],
+    "reshare_policy": {
+      "max_share_age_seconds": 7776000,
+      "scheme": "proactive_vss"
     }
-  ],
+  },
+  "device_quorum": {
+    "k": 2,
+    "members": [
+      "cx:device:01964137-0000-7000-8000-000000000000",
+      "cx:device:01964138-0000-7000-8000-000000000000"
+    ]
+  },
+  "approval_requirement": {
+    "min_approvals": 1,
+    "cooldown_seconds": 3600,
+    "announcement_required": true
+  },
   "not_before": "2026-04-26T00:00:00Z",
-  "expires_at": null
+  "expires_at": null,
+  "issued_at": "2026-04-26T00:00:00Z",
+  "auth_data": {
+    "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
+    "signature_alg": "EdDSA",
+    "signature": "base64url...",
+    "signed_fields": [
+      "policy_id", "principal_id", "version", "trust_domain",
+      "supersedes", "allowed_proof_kinds", "threshold", "device_quorum",
+      "approval_requirement", "not_before", "expires_at", "issued_at"
+    ]
+  }
 }
 ```
 
-恢复 share holder 只能帮助恢复控制权，不自动获得读取内容或代表主体操作的 capability。Recovery policy SHOULD 为每个门限 share 记录 `share_commitment{algorithm, commitment_b64}`（如 Feldman VSS commitment 或 share hash commitment）；恢复时客户端 / recovery coordinator SHOULD 校验提交的 share 与 commitment 一致，避免 holder 或中间服务替换 share 后仍通过 policy 语法检查。
+恢复 share holder 只能帮助恢复控制权，不自动获得读取内容或代表主体操作的 capability。Recovery policy MUST 为每个门限 share 记录 `share_commitment{algorithm, commitment_b64}`（如 Feldman VSS commitment 或 share hash commitment）；恢复时客户端 / recovery coordinator MUST 校验提交的 share 与 commitment 一致，避免 holder 或中间服务替换 share 后仍通过 policy 语法检查。
+
+### 8.1 Policy 生命周期
+
+Recovery policy 是 principal control state；它的发布、轮换、撤销 MUST 通过当前 accepted principal signing key（或满足旧 policy 的 quorum）签名进入 principal control stream：
+
+- **publish**：首次发布或后续无中断更新。新 envelope 的 `version` MUST 严格大于当前 accepted policy 的 `version`，`supersedes` MUST 引用前一份 `policy_id`（首版为 `null`）。
+- **rotate**：用于 `reshare_policy` 触发的 proactive secret sharing 或更换 holder 集合；rotate envelope MUST 在 `signed_fields` 中覆盖 `threshold` 与 `device_quorum`，并 SHOULD 同时附带新 share commitment。轮换期内的 in-flight recovery session（参见 §14.5）MUST 使用其 `issued_at` 时点的 policy；服务端 / coordinator MUST 拒绝跨 policy 版本拼接 share。
+- **revoke share**：当某个 share holder 被怀疑泄露时，policy holder 可发布只更新 `threshold.shares[i].revoked_at` 与 `revocation_reason_code` 的 rotate envelope。recovery coordinator MUST 拒绝任何 `revoked_at != null` 的 share，即便 commitment 仍能通过。`reshare_policy.max_share_age_seconds` 到期后未 reshare 的 share 在 coordinator 侧 MUST 被视为 stale，UI MUST 提醒用户。
+- **revoke policy**：用 `expires_at = now`、`allowed_proof_kinds = []`、或专门的 `policy_id` revoke 进入 principal control stream；revoke 之后只有写入新 policy 才能恢复账号——这是高代价动作，必须配 §7.7 UI 警告。
+
+任何允许的恢复方式（principal_signing / device_quorum / trusted_recovery_service / threshold_recovery / recovery_unlock）的 proof transcript MUST 绑定 `(policy_id, version, recovery_session_id)`；不绑定的 proof MUST `recovery_evidence_unbound`。
+
+### 8.2 Holder 取回与防滥用
+
+share holder（无论是个人 DID、托管服务 DID，还是 hardware module）在向恢复请求方释放 share 时 MUST：
+
+- 验证 `recovery_session_id` 来源——session id MUST 来自当前 accepted recovery policy 中的 announcement event 或 trusted_recovery_service 签发的 challenge；不得接受任何 client 直接构造的 session id。
+- 在签发 share release 之前 MUST 验证：(a) 请求方设备的 device key 已绑定到目标 principal 的 control stream 中某个尚未 revoke 的 device record；(b) holder 自己未被 §8.1 revoke；(c) 当前时间在 `not_before` / `expires_at` 范围内。
+- share release transcript MUST 绑定 `(share_id, holder, recovery_session_id, requesting_device_id, audience, issued_at)`，并由 holder 签名；coordinator 在 reconstruction 之前 MUST 重放该 transcript 比对，并 MUST NOT 把同一 transcript 用于两次 reconstruction。
+- holder MAY 引入额外 OOB confirmation（电话回拨、共享密语）；该层不在 protocol normative 之内，但被纳入 holder 自身的安全 surface。
 
 ## 9. 泄露响应
 
@@ -632,9 +791,10 @@ Recovery policy 字段：
 
 - 使用系统安全存储保存私钥
 - 对可导出密钥做用户确认
-- 对恢复操作做高风险 UI
+- 对恢复操作做高风险 UI，且 §7.7 的 UI 字段展示要求 MUST 被遵守
 - 对设备列表显示最近活动和授权来源
 - 对吊销操作做不可抵赖记录
+- 在 first-device inception bootstrap 中按 §5.0.1 step 6（first-backup gate）阻塞 inception key 退场
 
 实现 SHOULD：
 
@@ -650,6 +810,8 @@ Contrix v1 对设备、会话和恢复要求如下：
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
 - `cx.device.authorize` 与 `cx.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`cx.device.revoke.payload.revocation_frontier` MUST 绑定撤销被接受时的 principal control stream frontier；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
 - Session grant MUST 绑定 principal DID、device id、service DID / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
-- Backup envelope test vector MUST 覆盖加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定和服务端不可解密要求。
+- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_sequence` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 仅 `passphrase_kdf` 路径被拒绝、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。
-- Recovery policy grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed recovery methods、approval requirement 和 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。
+- Recovery policy grammar 由 `cx.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate / share-revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed_proof_kinds、approval requirement 与 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。
+- Recovery receipt 由 `cx.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；§14.5 step 7 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `proof_summary` / `backup_classes_unlocked` / `welcome_count` / `outcome`。
+- Backup series MUST 满足 §7.6：客户端 `LIST` 后重建链 → 验证 `supersedes_digest` → 用尾部 envelope 解密；当 `frontier_ref` 存在时 MUST 用 control stream snapshot 验证 frontier_digest 与 `ssk_generation`。

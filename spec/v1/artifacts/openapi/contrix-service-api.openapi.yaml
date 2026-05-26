@@ -4568,6 +4568,25 @@ paths:
       operationId: cx.keys.backups.list
       security:
       - bearerAuth: []
+      parameters:
+      - in: query
+        name: series_id
+        required: false
+        description: Filter by backup series. When present, response metadata is ordered by series_sequence ascending so clients can rebuild the chain.
+        schema:
+          type: string
+          pattern: ^cx:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      - in: query
+        name: backup_class
+        required: false
+        description: Filter by key-backup class.
+        schema:
+          type: string
+          enum:
+          - did_recovery
+          - secret_storage
+          - mls_history
+          - external
       responses:
         '200':
           description: Encrypted key backup metadata list

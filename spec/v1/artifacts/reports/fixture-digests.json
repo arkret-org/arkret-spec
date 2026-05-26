@@ -21,6 +21,10 @@
       "sha256": "d28164cbad7736212a26901f5d2ecd0131a0632cfca4419c06060a422e8bfc1a"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
+      "sha256": "341c748c7ba4833f4c83ce83f8ad4b93c240b7ffe10dbe7b39a0b0f34081e4f0"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
       "sha256": "bb41ebdbda05714a279bce37b8b802e0f0a626b43b28a5fe14e9939caaea4e9b"
     },

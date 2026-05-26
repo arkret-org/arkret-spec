@@ -1881,6 +1881,18 @@
         "file": "schemas/key-backup.schema.json"
       },
       {
+        "schema_id": "cx.schema.recovery_policy.v1",
+        "file": "schemas/recovery-policy.schema.json",
+        "status": "active",
+        "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / cx.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
+      },
+      {
+        "schema_id": "cx.schema.recovery_receipt.v1",
+        "file": "schemas/recovery-receipt.schema.json",
+        "status": "active",
+        "description": "Signed completion receipt for a principal recovery flow. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §14.5 step 7."
+      },
+      {
         "schema_id": "cx.schema.notification.v1",
         "file": "schemas/notification.schema.json"
       },
@@ -2114,6 +2126,13 @@
         "description": "Encrypted backup object ID"
       },
       {
+        "kind": "backup_series",
+        "category": "identity",
+        "status": "active",
+        "wire_form": "cx:backup_series:<uuid>",
+        "description": "Stable identifier for a chain of encrypted backup envelopes belonging to the same (actor_id, backup_class) over time. Used by cx.schema.key_backup.v1.series_id and by recovery flows to detect rollback. See identity/key-management.md §7.6."
+      },
+      {
         "kind": "batch",
         "category": "discovery",
         "status": "active",
@@ -2287,6 +2306,13 @@
         "status": "active",
         "wire_form": "cx:receipt:<uuid>",
         "description": "Receipt object ID"
+      },
+      {
+        "kind": "recovery_session",
+        "category": "identity",
+        "status": "active",
+        "wire_form": "cx:recovery_session:<uuid>",
+        "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery flow. Referenced by cx.schema.recovery_receipt.v1 and by §14.5 recovery proofs. See crypto-media/device-lifecycle.md §14.5."
       },
       {
         "kind": "attestation",

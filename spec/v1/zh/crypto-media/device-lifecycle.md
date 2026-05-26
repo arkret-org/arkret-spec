@@ -724,7 +724,11 @@ Secret storage 用于保存：
 - MLS group secrets backup key
 - applet delegated device secret
 
-`cx.secret_storage.v1` 是 **client-local** envelope，仅用于设备本地或可信操作系统 keychain；**不再作为线级 (wire) 上传格式**。任何同步到 Device / Key Server 或其它远端服务的 secret，MUST 使用 §12 的 `cx.schema.key_backup.v1` envelope，并设置对应 `backup_class`：
+`cx.secret_storage.v1` 是 **client-local** envelope，仅用于设备本地或可信操作系统 keychain；**不再作为线级 (wire) 上传格式**。
+
+> **Wire deprecation（normative）**：Device / Key Server 的 `cx.keys.backups.*` endpoint MUST 在收到 envelope 顶层 `schema == "cx.secret_storage.v1"` 或与该 schema 等价的旧版字段时返回 `schema_violation`，原因码 `legacy_secret_storage_wire_form`。具体而言，wire endpoint MUST 拒绝任何不符合 `cx.schema.key_backup.v1` 顶层 `required`（含 `series_id` / `series_sequence`）的请求体；现存的 client-local `cx.secret_storage.v1` 存储不受影响，但 MUST NOT 通过 `PUT /api/v1/keys/backups/{backup_id}` 同步。clients 在升级到 v1 final 之前的现存远端 `cx.secret_storage.v1` envelope SHOULD 由客户端在首次启动时迁移为 §12 wire 形态（`backup_class` 按下表映射，`series_sequence=0` 新建系列），原对象 MUST 被服务端拒绝继续 GET。
+
+任何同步到 Device / Key Server 或其它远端服务的 secret，MUST 使用 §12 的 `cx.schema.key_backup.v1` envelope，并设置对应 `backup_class`：
 
 | Secret 类别 | `backup_class` |
 | --- | --- |
@@ -750,6 +754,9 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "mls_history",
   "backup_version": "kb_1",
+  "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000000",
+  "series_sequence": 0,
+  "supersedes": null,
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": {
     "recipient_method": "secret_storage_key",
@@ -782,6 +789,9 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
       "actor_id",
       "backup_class",
       "backup_version",
+      "series_id",
+      "series_sequence",
+      "supersedes",
       "encryption",
       "contents",
       "ciphertext_digest"
@@ -795,11 +805,12 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 规则：
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名；`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`encryption`、`contents` 与 `ciphertext_digest`，签名链必须链接到当前 principal 的 self-signing / device trust chain。
+- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名；`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_sequence`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
+- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_sequence` / `supersedes` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
 
 ### 12.1 Backup API
 
@@ -814,7 +825,29 @@ DELETE /api/v1/keys/backups/{backup_id}
 
 `PUT` 请求体 MUST 是 `cx.schema.key_backup.v1`，且 path 中的 `backup_id` MUST 与 body 中的 `backup_id` 一致。`PUT` 按 `(actor_id, backup_id)` 幂等；同一 `backup_id` 若提交不同 canonical content MUST 返回冲突错误。
 
-`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints。`get` 返回完整 encrypted backup object。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明。
+`PUT` 还 MUST：(a) 校验 `series_sequence` 严格大于该 series 已有的最大 sequence（首条 MUST `series_sequence=0`）；(b) 校验 `supersedes` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_sequence_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
+
+`GET /api/v1/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_sequence` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 §7.8 的限速。
+
+`get` 返回完整 encrypted backup object，并受 §7.8 的 fresh device proof 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；删除链尾部 envelope MUST 同时附 §14.5 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）。
+
+### 12.2 Retention and Erasure
+
+| Profile | `delete_after` 默认 | `legal_hold` 行为 |
+| --- | --- | --- |
+| `cx.profile.personal_node.v1` | `null`（无自动过期） | clients-only flag；服务端不强制 |
+| `cx.profile.small_team.v1` | `null` | 仅在组织声明 `cx:policy:<id>` 允许时可置 `true` |
+| `cx.profile.organization.v1` | 365d（可被 Realm policy 覆盖） | 服务端 MUST 在 `legal_hold=true` 时阻塞 user-initiated delete |
+| `cx.profile.high_security_organization.v1` | 90d | 服务端 MUST 强制 `legal_hold` 与审计配对 |
+| `cx.profile.sovereign_deployment.v1` | deployment-defined | 与本地法务合规框架对齐 |
+
+要求：
+
+- 服务端 MUST 在收到 user erasure 请求（参见 `cx.audit.erasure_receipt` / `cx.schema.erasure_receipt.v1`）时，按 erasure receipt 的 `erasure_scope` 与 `subject` 处理对应 backup envelope：若 `subject.kind="principal"` 且 `erasure_scope.storage_boundary` 涵盖 `device_secret_store`，相应 `did_recovery` / `secret_storage` envelope MUST 被删除并产出 `cx.schema.erasure_receipt.v1` 子条目。
+- 用户主动删除自身备份与 erasure 流程区分清晰：常规 `DELETE` 不写 erasure receipt，但 §7.8 的高风险审计仍要求落地 `cx.audit.accessed` (`access_kind="key_backup_delete"`).
+- `legal_hold=true` 的 envelope MUST 被服务端拒绝删除（即便提供 high-risk proof）；解除 hold MUST 由声明该 hold 的 policy server 通过 policy update 完成，并写入审计。
+- 同一 series 内的 retention 必须保证链不被打破：服务端 MUST NOT 删除非尾部 envelope，除非整个 series 已经被新 series 取代且旧 series 的尾部已被合法删除。
+- erasure 完成后保留的 `retained_stub_digest` MUST 仅含 metadata 哈希，不含密文与 KDF 参数，以避免间接成为离线爆破证据。
 
 ## 13. Realm Key Share and Withholding
 
@@ -952,6 +985,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 4. **in-flight verification transaction**（§10 状态机里仍在 `request` / `ready` / `start` / `accept` / `key` / `mac` 阶段的）MUST 以 `code=cross_signing_reset` cancel，禁止把基于旧 SSK 的 SAS / QR transcript 用旧 generation 完成。
 5. **To-device 队列隔离**：reset accepted 后，服务端和客户端 MUST drop 或 quarantine 所有已排队但尚未处理的 `cx.key.verification.*` to-device 消息，以及任何未显式绑定 `new_generation` 的 cross-signing / trust bootstrap 消息。隔离窗口内仅允许 `cx.key.verification.cancel(code=cross_signing_reset)`、新的 `cx.cross_signing.publish` 可验证通知和重新发起的、显式绑定 `new_generation` 的验证事务通过；不得让旧 generation 的 `mac` / `done` 消息在 reset 后完成信任升级。
 6. **新的 `cx.cross_signing.publish`** MUST 在 reset 接受后 `cx.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布到 control stream（默认 24h）；超时未发布的 reset 会让该 principal 进入"无可用 SSK / USK"窗口，接收方在此窗口内 MUST 拒绝任何 `cx.device.authorize.cross_signing_binding.ssk_generation == new_generation` 的事件，避免静默接受未公布的 SSK。
+7. **`secret_storage` backup 同步刷新（normative）**：reset accepted 后，所有引用旧 SSK 的 `secret_storage` 类 `cx.schema.key_backup.v1` envelope MUST 在同一 `publish_recovery_window_seconds` 窗口内被新设备签发的后继 envelope 取代——后继 envelope 的 `series_id` 保持不变、`series_sequence` 严格递增、`supersedes` 指向旧 envelope；`contents` 中含 `self_signing_key` / `user_signing_key` 的条目 MUST 对应 `new_generation`。窗口过期后，receiver MUST 把任何引用 retired generation 的 `secret_storage` envelope 视为 `backup_post_reset_stale`，并在恢复流程（§14.5 step 4）中拒绝作为主解锁源；服务端 SHOULD 在 list 响应中通过 metadata flag 提示该 envelope 已 stale，但 MUST NOT 自行删除（删除属于 §12.2 retention 流程）。
 
 ### 14.3 Cancel Code
 
@@ -989,7 +1023,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 4. **Key backup / Secret storage unlock**：新设备只能拉取 policy 允许的 backup class（`did_recovery` / `secret_storage` / `mls_history`），每个 backup decrypt proof MUST 绑定 `recovery_session_id` 和新设备 key。服务端不得把恢复 proof 当作长期 bearer token。
 5. **MLS Welcome replay**：对每个可恢复 Realm，授权 peer / key service 重新发 Welcome 或 history key share；Welcome 的 `claim_ref.ssk_generation` MUST 等于当前 accepted cross-signing generation。旧 generation 的 Welcome MUST `claim_generation_mismatch`。
 6. **Secret storage ready**：客户端在本地 secret storage 解锁、device list 同步、关键 Realm Welcome 完成前，只能进入 `recovery_pending`；不得把设备显示为 fully verified。
-7. **Finalize / audit**：恢复完成后写入恢复 receipt（可为 actor-private 或 audit Event，取决于 profile），至少绑定 `recovery_session_id`、`device_id`、proof digest、backup classes、Welcome count 和 completed_at。
+7. **Finalize / audit**：恢复完成后 MUST 按 `cx.schema.recovery_receipt.v1`（[`recovery-receipt.schema.json`](../../artifacts/schemas/recovery-receipt.schema.json)）写入恢复 receipt（可为 actor-private 或 audit Event，取决于 profile）。receipt MUST 绑定 `recovery_session_id`、`policy_id`、`policy_version`、`trust_domain`、`new_device_id`、`proof_summary`（含 proof_digest）、`backup_classes_unlocked[]`（每条记录 `backup_class` / `backup_id` / `series_id` / `ciphertext_digest`）、`welcome_count` / `welcome_realm_summary?`、`outcome` 与 `started_at` / `completed_at`；`outcome != completed` 时 MUST 携带 `outcome_reason_code`。`auth_data.signed_fields` MUST 覆盖上述全部 normative 字段（schema 在 `signed_fields.allOf.contains` 中强制）。同一 `recovery_session_id` 上的重复 receipt MUST 被 receiver 拒绝。
 
 KeyPackage low-water refresh：claim 失败后 KeyPackage 不得自动放回；服务端响应 SHOULD 返回 `available_count`、`low_watermark` 和 `suggested_publish_count`。当 `available_count < low_watermark` 时，设备 SHOULD 发布新的 KeyPackage；若低水位持续低于 Realm policy 的最小值，发送方 MAY 延迟新设备 Welcome 并返回 `keypackage_refresh_required`。同一 device 多个 KeyPackage 的选择 MUST 使用服务端返回的最早 unclaimed package 或 deterministic order，不得按本地随机重试导致重复 claim。
 

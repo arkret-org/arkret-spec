@@ -1,0 +1,592 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/recovery-policy.schema.json",
+  "title": "Contrix Recovery Policy",
+  "description": "Normative grammar for a principal's recovery policy. Bound to the Principal Control Realm via signed publish / rotate / revoke control events; receivers MUST reject `recover`, `rotate`, `cx.device.authorize` and Cross-Signing Reset evidence whose proof family / threshold / approval requirement is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §14.5.",
+  "type": "object",
+  "required": [
+    "schema",
+    "policy_id",
+    "principal_id",
+    "version",
+    "supersedes",
+    "trust_domain",
+    "allowed_proof_kinds",
+    "issued_at",
+    "auth_data"
+  ],
+  "properties": {
+    "schema": {
+      "const": "cx.schema.recovery_policy.v1"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "principal_id": {
+      "$ref": "#/$defs/did"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Monotonically increasing counter scoped by principal_id. Receivers MUST reject a publish whose version is not strictly greater than the currently accepted policy."
+    },
+    "supersedes": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "string",
+          "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      ],
+      "description": "Predecessor policy_id. Null only for the genesis policy of a principal."
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[A-Za-z0-9_.:-]{1,128}$",
+      "description": "Deployment-scope trust domain identifier the policy applies to. Cross-domain proofs MUST fail."
+    },
+    "allowed_proof_kinds": {
+      "type": "array",
+      "minItems": 0,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "principal_signing",
+          "recovery_unlock",
+          "device_quorum",
+          "trusted_recovery_service",
+          "threshold_recovery"
+        ]
+      },
+      "description": "Which proof families this policy authorizes for recovery and cross-signing reset. Each entry constrains the matching proof kind defined in device-lifecycle.md §14. Empty array is valid only for an explicit revocation policy that also sets expires_at."
+    },
+    "threshold": {
+      "type": "object",
+      "description": "Threshold-recovery configuration. Required when allowed_proof_kinds contains 'threshold_recovery'.",
+      "required": [
+        "k",
+        "n",
+        "shares"
+      ],
+      "properties": {
+        "k": {
+          "type": "integer",
+          "minimum": 2,
+          "description": "Minimum share count required to reconstruct the recovery secret. MUST be >= 2; threshold=1 is forbidden because it collapses to a single-holder bearer."
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 2,
+          "description": "Total number of shares issued. MUST equal shares.length and MUST be >= k."
+        },
+        "shares": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/share"
+          }
+        },
+        "vss_root_commitment": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional VSS root commitment binding all shares' polynomial commitments. SHOULD be present for Feldman / Pedersen schemes."
+        },
+        "reshare_policy": {
+          "type": "object",
+          "description": "Proactive secret sharing / re-share cadence. Holders MUST be able to refresh shares without reconstructing the secret. Implementations SHOULD re-share at least once per `max_share_age_seconds`.",
+          "properties": {
+            "max_share_age_seconds": {
+              "type": "integer",
+              "minimum": 86400
+            },
+            "scheme": {
+              "type": "string",
+              "enum": [
+                "none",
+                "proactive_vss",
+                "proactive_feldman",
+                "service_defined"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_quorum": {
+      "type": "object",
+      "description": "Device-quorum configuration. Required when allowed_proof_kinds contains 'device_quorum'.",
+      "required": [
+        "k",
+        "members"
+      ],
+      "properties": {
+        "k": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "members": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "trusted_recovery_services": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "service_did",
+          "audience"
+        ],
+        "properties": {
+          "service_did": {
+            "$ref": "#/$defs/did"
+          },
+          "audience": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attestation_required": {
+            "type": "boolean",
+            "default": false
+          },
+          "scope": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "cx.device.authorize",
+                "cx.cross_signing.reset",
+                "cx.recovery_policy.rotate"
+              ]
+            },
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Recovery services explicitly declared in the principal's DID Document (or sovereign trust anchor). Required when allowed_proof_kinds contains 'trusted_recovery_service'."
+    },
+    "approval_requirement": {
+      "type": "object",
+      "description": "Two-person rule / cooldown enforcement layered on top of cryptographic proofs.",
+      "properties": {
+        "min_approvals": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cooldown_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum wall-clock window between recovery announcement and effective key change. Receivers MUST reject control-stream Events whose accepted_at is earlier than announcement_at + cooldown_seconds."
+        },
+        "announcement_required": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, recovery MUST be announced on the principal control stream and visible to authorized devices before effective key change."
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit": {
+      "type": "object",
+      "description": "Where the recovery flow MUST emit auditable records (recovery announcement, holder participation, completion receipt).",
+      "properties": {
+        "audit_realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "receipt_required": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true, recovery completion MUST produce a cx.schema.recovery_receipt.v1 record."
+        }
+      },
+      "additionalProperties": false
+    },
+    "not_before": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expires_at": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/timestamp" }
+      ]
+    },
+    "issued_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "auth_data": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signature_alg",
+        "signature",
+        "signed_fields"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "description": "DID URL identifying the principal signing key (or quorum coordinator) that issued the policy."
+        },
+        "signature_alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256"
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "signed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "allOf": [
+            { "contains": { "const": "policy_id" } },
+            { "contains": { "const": "principal_id" } },
+            { "contains": { "const": "version" } },
+            { "contains": { "const": "supersedes" } },
+            { "contains": { "const": "trust_domain" } },
+            { "contains": { "const": "allowed_proof_kinds" } },
+            { "contains": { "const": "issued_at" } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "version": { "const": 1 }
+        },
+        "required": [ "version" ]
+      },
+      "then": {
+        "properties": {
+          "supersedes": { "type": "null" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "version": { "type": "integer", "minimum": 2 }
+        },
+        "required": [ "version" ]
+      },
+      "then": {
+        "properties": {
+          "supersedes": {
+            "type": "string",
+            "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "allowed_proof_kinds": {
+            "type": "array",
+            "maxItems": 0
+          }
+        },
+        "required": [ "allowed_proof_kinds" ]
+      },
+      "then": {
+        "required": [ "expires_at" ],
+        "properties": {
+          "expires_at": { "$ref": "#/$defs/timestamp" }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [ "threshold" ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "threshold" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [ "device_quorum" ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "device_quorum" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [ "trusted_recovery_services" ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "trusted_recovery_services" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [ "approval_requirement" ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "approval_requirement" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [ "audit" ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "audit" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [ "not_before" ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "not_before" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [ "expires_at" ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "expires_at" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "allowed_proof_kinds": {
+            "type": "array",
+            "contains": { "const": "threshold_recovery" }
+          }
+        },
+        "required": [ "allowed_proof_kinds" ]
+      },
+      "then": {
+        "required": [ "threshold" ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "allowed_proof_kinds": {
+            "type": "array",
+            "contains": { "const": "device_quorum" }
+          }
+        },
+        "required": [ "allowed_proof_kinds" ]
+      },
+      "then": {
+        "required": [ "device_quorum" ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "allowed_proof_kinds": {
+            "type": "array",
+            "contains": { "const": "trusted_recovery_service" }
+          }
+        },
+        "required": [ "allowed_proof_kinds" ]
+      },
+      "then": {
+        "required": [ "trusted_recovery_services" ]
+      }
+    }
+  ],
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "share": {
+      "type": "object",
+      "required": [
+        "share_id",
+        "holder",
+        "transport",
+        "share_commitment"
+      ],
+      "properties": {
+        "share_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "holder": {
+          "$ref": "#/$defs/did",
+          "description": "DID of the share holder. MAY be a user, a hardware module identified by did:key, or a custodial service. The holder DID does NOT inherit any business capability of the principal."
+        },
+        "transport": {
+          "type": "string",
+          "enum": [
+            "sealed_box",
+            "hpke_x25519",
+            "wrapped_key_did_document",
+            "offline_qr",
+            "hardware_module",
+            "service_defined"
+          ]
+        },
+        "share_commitment": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "commitment_b64"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "enum": [
+                "feldman-vss-sha256",
+                "pedersen-vss-sha256",
+                "share-hash-sha256",
+                "share-hash-blake3"
+              ]
+            },
+            "commitment_b64": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/timestamp" }
+          ]
+        },
+        "revoked_at": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/timestamp" }
+          ]
+        },
+        "revocation_reason_code": {
+          "type": "string",
+          "enum": [
+            "holder_compromised",
+            "holder_unreachable",
+            "policy_rotation",
+            "scheduled_reshare",
+            "service_defined"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

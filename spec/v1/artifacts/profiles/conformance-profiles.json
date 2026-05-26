@@ -2661,18 +2661,23 @@
     },
     "cx.profile.key_backup.memory_hard.v1": {
       "inherits": [],
-      "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, and deterministic AEAD nonce recomputation.",
+      "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_sequence / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
       "required_endpoints": [
         "cx.keys.backups.put",
-        "cx.keys.backups.get"
+        "cx.keys.backups.list",
+        "cx.keys.backups.get",
+        "cx.keys.backups.delete"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.key_backup.v1"
+        "cx.schema.key_backup.v1",
+        "cx.schema.recovery_policy.v1",
+        "cx.schema.recovery_receipt.v1"
       ],
       "required_fixtures": [
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "key-backup-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -2680,7 +2685,13 @@
           "key_backup_argon2id_floor",
           "key_backup_domain_separation",
           "passphrase_kdf_nonce_recompute",
-          "mixed_secret_storage_policy"
+          "mixed_secret_storage_policy",
+          "key_backup_series_chain_verification",
+          "key_backup_freshness_anchor",
+          "key_backup_recipient_method_profiles",
+          "key_backup_server_rate_limit",
+          "recovery_policy_binding",
+          "recovery_receipt_emission"
         ],
         "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"
       }
