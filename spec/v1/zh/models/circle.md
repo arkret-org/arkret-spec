@@ -263,7 +263,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_refs` / `circle_id` 
 1. `Circle.members ⊆ Realm.members`。reducer 在 `cx.circle.member.state -> active` 时，若 target actor 不是父 Realm `active` member,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
 2. 父 Realm `cx.member.state -> left/banned` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `left`,并触发各 Circle 的 MLS `remove` proposal。不需要 actor 显式写。
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时,actor 同时属于多个 Circle 即可。
-4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 `cx.circle.admin` 等 Circle-scoped cell 或带 `circle_id` selector 的 capability grant 表达。
+4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_refs` selector 的 capability grant 表达；v1 不注册单独的 `cx.circle.admin` action。
 
 Membership transition table:
 

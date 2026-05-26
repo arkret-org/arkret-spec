@@ -131,8 +131,7 @@ Audit Agent profile MUST 满足：
 
 ##### 3.1.1.4 文案与降级义务
 
-- 在 destruction attestation 落盘前，该 Audit Agent **仍然被视作历史 epoch 密文的有效持有者**;Realm members 看到的 §2.1 attested 文案中"被移除的合规员仍可解密成员期间的历史"这句**继续适用**,直到 attestation 落盘后才能改述。
-- 若部署在 6 个 anchor cadence(默认 ≈ 1 小时) 内仍未发布配套 destruction attestation,group 中任一 member MAY 发起 `cx.realm.audit_policy_downgrade` Move,把 `audit_assurance` 强制降级为 `disclosed_policy`;reducer 在收到该 Move 后立即重写 Realm policy,UI MUST 显式横幅"该群已不再满足 attested_hardware 担保"。
+- 因 §3.1.1.1 step 3 强制 attestation 与 remove commit 同一 anchor batch,语义上 "remove 已生效但 attestation 缺失" 的中间态在 reducer 层不可达——任何缺失配套 attestation 的 remove commit 在 reducer 入口即被 §3.1.1.3 拒绝,不会落入 frontier。因此 §3.1.1.4 不再描述 grace window 路径。`cx.realm.audit_policy_downgrade` 仍是 active event kind,但只表示管理员 / policy server 在后续操作前显式把 Realm 从 `attested_hardware` 降级到 `disclosed_policy`；它 **MUST NOT** 被当作"remove 已接受但 attestation 超时"的补救事件,也不得 retroactively 使一个缺失 destruction attestation 的 remove batch 生效。
 - destruction attestation 落盘后,UI MAY 显示"已由 enclave 完成受控边界内 epoch 密钥销毁 — 该 Agent 不应再通过该 enclave 继续访问对应历史"; UI MUST 同时避免暗示已经泄漏或导出的历史 key / 明文可被 retroactively 撤销。
 - `audit_assurance = "disclosed_policy"` 部署**不要求**本节(disclosed 文案本就声明不提供密码学强制);只有 `attested_hardware` profile 必须实现。
 - Fraud detection：attestation 落盘后，若同一 Audit Agent / enclave measurement 后续又签发对已销毁 epoch 的 `cx.audit.accessed`、RYW receipt 或外部 export proof，verifier MUST 标记 `audit_agent_destroyed_epoch_accessed`，quarantine 该访问链，并触发 Realm `audit_assurance` 降级或 operator incident。该检测使用 `cx.component.audit.epoch_key_destruction.v1` state，不依赖 UI 记忆。

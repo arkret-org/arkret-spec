@@ -71,6 +71,8 @@ bottom   = reject  // or_set never produces ⊥; declared value follows registry
 
 ### 3.2 `cx.consent.grant` Move
 
+**为什么暴露 dot 模型（normative rationale）**: observe-remove OR-Set 要求 revoker 在 wire 层能枚举将要撤销的具体 dot；否则两个并发 revoke 会因为没有 `observed_dots` 上下文产生分布式 race（一方撤旧 dot，另一方撤新 dot，UI 看似已撤销但 state 仍 active）。把 dot 暴露给客户端是正确性必需，不是冗余复杂度。
+
 ```text
 Move(cx.consent.grant) {
   event_id     = cx:event:019640ed-7000-7000-8000-000000000001   // producer-assigned typed UUIDv7
@@ -257,6 +259,8 @@ Peer 发送 invite Move 时，invite service / facade SHOULD 在 Move 接受 / �
 3. 若有匹配活跃 grant 且当前时间在 `[not_before, expires_at]`：invite Move 正常 anchor。
 
 policy MAY 声明 `cx.realm.policy_components` 中的 `preauth` component 包含 `require_consent: true`，对该 Realm 的所有 invite Move 强制以 consent cell precondition 表达。
+
+**UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 提示用户 "已发出的 invite 不会自动失效；如需撤销已发出 invite，请单独执行 `cx.invite.revoke`"。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 
 ### 6.2 Contact / DM 前置 gate
 

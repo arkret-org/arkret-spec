@@ -331,6 +331,8 @@ SHOULD 支持：
 
 ## 11. Push Gateway
 
+> 三个 `cx.profile.push_gateway.*` profile 等价于一个离散 `payload_disclosure_class ∈ {blind, visible, matrix}` 选择（informative）；部署 MUST 通过 profile id 声明，而非自定义 enum，以保留 conformance gate 粒度。
+
 `cx.profile.push_gateway.v1` 适用于移动端或桌面通知的推送网关。Push gateway 实现 MUST 同时满足下方拆分的三个子 profile 之一或多个组合（默认基线为 blind wakeup，visible / matrix 互通为 opt-in）。
 
 | Profile id | role | 必选 / 可选 | 强制能力 | Fixture |
@@ -338,7 +340,7 @@ SHOULD 支持：
 | `cx.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `register_device` / `unregister_device` / `notify` 三个操作，`cx.schema.notification.v1`，service DID 校验，`rejected[]` 回传，失效 token 回收 | `privacy-security-fixture.json` |
 | `cx.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Flow / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
 | `cx.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
-| `cx.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `cx.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_did, device)` 元组上同时声明两者 | `privacy-security-fixture.json` |
+| `cx.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `cx.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_did, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与 minimal-metadata Realm 共享同一 `(recipient_service_did, device)` 元组。 | `privacy-security-fixture.json` |
 
 MUST 支持（在所有变体上）：
 
@@ -522,6 +524,8 @@ SHOULD 支持：
 - closed federation default
 - 导入导出审查
 - 外部服务与 applet allowlist
+
+`cx.profile.accountable_to.strict_reject.v1` 是 deployment hardening profile。声明该 profile 的 Realm / deployment MUST 在 `Actor Profile.accountable_to[]` 中任一 DID 缺少 active `cx.identity.accountability_grant` 时拒绝整个 `cx.profile.create` / `cx.profile.update` Event（`failed_precondition`, reason=`accountability_grant_missing`），不得使用默认的"strip unverifiable entry + audit log"路径。未声明该 profile 时，默认行为仍是 [`models/actor.md` §3.3.1](../models/actor.md) 的剔除 + audit log。
 
 ## 18. Agent Runtime
 

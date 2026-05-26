@@ -389,6 +389,8 @@ Candidate payload:
 
 SFU MUST 有 service DID，并通过 `cx.realm.media_service` 或 feature discovery 声明。
 
+**`participant_id` 与 `device_id` 关系（normative）**: `participant_id` 是 SFU-local 短期 handle，scope 限 `(call_id, sfu_did)`；由 SFU 在每次 `call_join` 派生，与 `device_id` 在同一 call leg 内一对一；`participant_id` 不出 SFU，不进入 control event 或 audit log。
+
 SFU join request:
 
 ```json
@@ -442,6 +444,8 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 若 SFU 或 MCU 会解密媒体，客户端 MUST 显示明确安全边界，并且 Realm policy MUST 允许 `media_service_decrypts=true`。
 
 #### 10.3.1 治理绑定（normative）
+
+**三层关系**: `cx.realm.media_service` declares SFU existence; `plaintext_visible_services` grants decryption authority; `cx.realm.policy_components.media_service_decrypts=true` carries the boolean toggle — 三者 MUST 同时成立才能让 media service 解密。
 
 `media_service_decrypts=true` **不**是一个可单独由 SFU 服务自报或客户端配置的开关。它 MUST 同时满足下列约束，否则客户端 MUST 拒绝加入会议、SFU MUST 拒绝媒体协商：
 
@@ -551,6 +555,8 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `cx.call.signal{kind=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
 Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；只允许 §14 上面 4 个脱敏字段，其它一切信息必须通过本地解密获得。
+
+**Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新 `call_invite` 流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
 
 ## 15. 安全与隐私
 

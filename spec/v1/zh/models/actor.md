@@ -87,6 +87,8 @@ Schema id: `cx.schema.actor_profile.v1`
 2. 不存在对应 grant 的 DID 条目 MUST 被 reducer 从 accountable_to 中剔除(或整个 Event 以 `failed_precondition` reason=`accountability_grant_missing` 拒绝；部署 policy 可选其一，默认推荐"剔除 + audit log",见下方)。
 3. accountability grant 被签发方 revoke 后,reducer **SHOULD** 在 freshness 窗口(默认 ≤ 1 小时)内把对应 actor profile 的 `accountable_to[]` 中该条目降级为 `unverified`(projection 层标记),并在下次 actor profile update 时移除。
 
+**Profile-visible 选择**：deployment 若需要让选择 wire-visible，可声明 `cx.profile.accountable_to.strict_reject.v1` profile（整 Realm 走 reject 路径，而非默认"strip + audit log"）；该 profile 在 [`../conformance/conformance-profiles.md` §17](../conformance/conformance-profiles.md) 与 `artifacts/profiles/conformance-profiles.json` 注册。
+
 `cx.identity.accountability_grant` 字段:
 
 | 字段 | 类型 | 说明 |

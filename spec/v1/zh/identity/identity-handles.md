@@ -138,7 +138,7 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical URI 形态可以�
 
 | Issuer 类型 | 典型场景 | 验证锚点 |
 | --- | --- | --- |
-| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 ` CODE0  或 DNS TXT `_contrix.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `contrix://<domain>/users/<localpart>`；两侧均验签通过。 |
+| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/contrix/handle?localpart=<localpart>` 或 DNS TXT `_contrix.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `contrix://<domain>/users/<localpart>`；两侧均验签通过。 |
 | **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:web:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
 | **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:web:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
 | **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；Directory 是镜像层，不是真相源。 |
@@ -283,7 +283,7 @@ holder DID Document: subject_did → handle_uri   (列入 alsoKnownAs，holder �
 
 Handle 解析输入是 canonical `handle_uri = contrix://<domain>/users/<localpart>`（或 normalize 自显示形态）。客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
-1. **`<domain>` 的 well-known**：`GET  CODE0  或等价的 `GET https://<domain>/.well-known/contrix-did`（向后兼容旧客户端按整体 handle 拉取）。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
+1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/contrix/handle?localpart=<localpart>` 或等价的 `GET https://<domain>/.well-known/contrix-did`（向后兼容旧客户端按整体 handle 拉取）。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Principal Server 部署。
 2. **DNS TXT**：`_contrix.<domain>` 或 `_contrix.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
 3. **Directory / Organization 服务**：`POST /api/v1/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 Organization-specific endpoint。response 仍是签名 `cx.schema.handle_claim.v1`。
@@ -875,7 +875,7 @@ Verifier MUST：
 
 ## 17. v1 互操作要求
 
-- Handle canonical URI 是 `contrix://<domain>(:<port>)?/users/<localpart>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证，显示层必须防同形混淆。
+- Handle canonical URI 是 `contrix://<domain>(:<port>)?/users/<localpart>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证。**Wire-level canonical 比较(normative)**:issuer / registry / resolver 在做 handle 注册、claim 校验、§13 跨 issuer 冲突检测时,MUST 先对 `<localpart>` 与 `<domain>` 应用 Unicode NFC normalization,再应用 [UTS#39](https://www.unicode.org/reports/tr39/) confusable skeleton 折叠;比较与冲突判定 MUST 在折叠后的形态上执行。issuer / registry MUST 拒绝 *script-mixed* handle(同一 label 内同时含 Latin 与 Cyrillic / Greek / Armenian 等不同 script 字符,例如 `аcme.example` U+0430 + Latin 混排),以及 `hyphen-disallowed-position` 形态;违反者注册请求 `failed_precondition` `reason="handle_homograph_forbidden"`。显示层防混淆仍 MUST 实现,但不能替代 wire-level 检测。
 - DNS TXT record 格式 MUST 绑定 `handle_uri`、`subject`、issuer、`service_did`、`created_at`、`expires_at` 和 signature / hash commitment；过期或不匹配时不得显示 verified。
 - Well-known / Directory response schema MUST 返回 `subject` DID、canonical `handle_uri`、issuer、proof、validity、optional `member_delivery_binding` 和 optional challenge；公开 handle 客户端必须做 DID `alsoKnownAs` 双向验证，受限 handle 必须做 issuer claim / audience / policy 验证。
 - Credential schema、presentation request、disclosure policy 和 disclosure receipt 必须绑定 holder DID、verifier DID、audience、challenge、domain、disclosed fields、withheld fields 和 proof profile。

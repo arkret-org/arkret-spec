@@ -776,6 +776,7 @@ Receiver 在 verify_move(M) 时，对 critical role ∈ {`state_witness`, `inclu
 - 若 inclusion proof 不能重算出 witness 的 `state_root` → `failed_precondition`（`reason="recovery_witness_invalid"`）。
 - 若 witness frontier 与触发 ⊥ 的 sibling Move 之一存在因果路径（即 witness 不在冲突前）→ `failed_precondition`（`reason="recovery_witness_post_conflict"`）。
 - 若 witness 的 state_root 不包含 recovery_capability cell 或包含的 cell value 与 grant 引用不一致 → `failed_precondition`（`reason="recovery_capability_not_anchored"`）。
+- 若 witness 的 anchor frontier 早于本地 anchor head 超过 `recovery_witness_freshness_window`（默认 ≤ 6 anchor cadence，与 §9 anchor cadence 一致），或本地 frontier 在 witness 之后已观察到任何针对 `recovery_capability` 所引用 cell 的 accepted revoke / supersede event → `failed_precondition`（`reason="recovery_witness_revoke_lagging"`）。该检查关闭"持有合法旧 witness + 等待 recovery_capability 被 revoke 后重放"的 stale-witness 攻击面：witness 自身的签名时点是合法的，但若它无法反映已 anchored 的 revoke，receiver 不得据它接受 recovery Move。Realm 部署 MAY 在 deployment policy 内收紧窗口，但 MUST NOT 放宽到 6 anchor cadence 以上。
 
 `single_did` Anchor profile 下，由于 anchor view 全网唯一，该机制等价于自然成立——但 wire 上仍 MUST 携带 witness ref，便于审计回放。这避免实现因为"现在用的是 single_did 就跳过校验"而在未来 anchorer 升级到 `open_set` 时无声留下盲区。
 

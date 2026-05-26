@@ -165,6 +165,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
 
+**`⊥` / unknown freshness 时 fail closed**：若 condition 依赖的 cell 处于 `⊥`（cas_register bottom）或 freshness 状态为 `unknown`，condition 评估 MUST fail closed，不得 silent allow；该规则对所有 `realm_state` 类 condition 适用。
+
 实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
 
 ### 4.2 字段写入拒绝

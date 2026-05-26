@@ -817,6 +817,158 @@
       },
       "additionalProperties": true
     },
+    "account_data_set_payload": {
+      "type": "object",
+      "description": "Payload for cx.account_data.set. Writes one holder-private account-data key; the value may be cleartext inside an already private envelope, encrypted account-data material, or a tombstone.",
+      "required": [
+        "key"
+      ],
+      "anyOf": [
+        { "required": ["body"] },
+        { "required": ["encrypted_payload"] },
+        { "required": ["tombstone"] }
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "owner": {
+          "$ref": "#/$defs/did"
+        },
+        "body": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "encrypted_payload": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "body_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "tombstone": {
+          "const": true
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_blocklist_payload": {
+      "type": "object",
+      "description": "Payload for cx.account.blocklist. Holder-private personal blocklist state; it never enters shared Realm state or federation payloads.",
+      "required": [
+        "owner",
+        "entries"
+      ],
+      "properties": {
+        "kind": {
+          "const": "cx.account.blocklist"
+        },
+        "owner": {
+          "$ref": "#/$defs/did"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "target",
+              "mode",
+              "created_at"
+            ],
+            "properties": {
+              "entry_id": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "target": {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "actor",
+                      "device",
+                      "service",
+                      "handle",
+                      "domain",
+                      "organization",
+                      "applet",
+                      "keyword"
+                    ]
+                  },
+                  "did": {
+                    "$ref": "#/$defs/did"
+                  },
+                  "ref": {
+                    "$ref": "#/$defs/object_ref"
+                  },
+                  "value": {
+                    "$ref": "#/$defs/non_empty_string"
+                  }
+                },
+                "anyOf": [
+                  { "required": ["did"] },
+                  { "required": ["ref"] },
+                  { "required": ["value"] }
+                ],
+                "additionalProperties": false
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "block",
+                  "mute",
+                  "hide"
+                ]
+              },
+              "applies_to": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "messages",
+                    "mentions",
+                    "dm",
+                    "calls",
+                    "presence",
+                    "notifications",
+                    "directory"
+                  ]
+                },
+                "uniqueItems": true
+              },
+              "reason_code": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "created_at": {
+                "$ref": "#/$defs/timestamp"
+              },
+              "expires_at": {
+                "$ref": "#/$defs/nullable_timestamp"
+              }
+            },
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
     "object_patch_payload": {
       "type": "object",
       "description": "Generic patch payload for object families that do not define a narrower id-specific payload. The target object is single-sourced by target_ref; object_ref and target-less patch forms from earlier drafts are not canonical.",
@@ -2421,6 +2573,382 @@
         },
         "previous_authorization_ref": {
           "$ref": "#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_lifecycle_frontier": {
+      "type": "object",
+      "description": "Auth/key/grant freshness frontier captured when accepting an agent lifecycle transition.",
+      "minProperties": 1
+    },
+    "agent_sidecar_exposure_ack": {
+      "type": "object",
+      "description": "Controller acknowledgement of sidecar Circles that became newly visible or eligible while the agent was paused.",
+      "required": [
+        "acknowledged_at",
+        "acknowledged_by",
+        "sidecar_refs"
+      ],
+      "properties": {
+        "acknowledged_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "acknowledged_by": {
+          "$ref": "#/$defs/did"
+        },
+        "sidecar_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/object_ref"
+          },
+          "uniqueItems": true,
+          "maxItems": 128
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_pause_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.pause. The status cell is keyed by agent_principal_id and moves from active to paused under the captured freshness frontier.",
+      "required": [
+        "agent_principal_id",
+        "controller_principal_id",
+        "transition",
+        "previous_status",
+        "changed_at",
+        "freshness_frontier"
+      ],
+      "properties": {
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "transition": {
+          "const": "pause"
+        },
+        "previous_status": {
+          "const": "active"
+        },
+        "changed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "freshness_frontier": {
+          "$ref": "#/$defs/agent_lifecycle_frontier"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_resume_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.resume. Reducers re-check controller, agent, key, capability, Realm policy, accountability grant, and any sidecar exposure acknowledgement before returning the agent to active.",
+      "required": [
+        "agent_principal_id",
+        "controller_principal_id",
+        "transition",
+        "previous_status",
+        "changed_at",
+        "freshness_frontier"
+      ],
+      "properties": {
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "transition": {
+          "const": "resume"
+        },
+        "previous_status": {
+          "const": "paused"
+        },
+        "changed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "freshness_frontier": {
+          "$ref": "#/$defs/agent_lifecycle_frontier"
+        },
+        "sidecar_exposure_ack": {
+          "$ref": "#/$defs/agent_sidecar_exposure_ack"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_deactivate_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.deactivate. The terminal transition binds revocation fan-out to the same freshness frontier used to reject future agent sessions.",
+      "required": [
+        "agent_principal_id",
+        "controller_principal_id",
+        "transition",
+        "previous_status",
+        "changed_at",
+        "revocation_frontier"
+      ],
+      "properties": {
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "transition": {
+          "const": "deactivate"
+        },
+        "previous_status": {
+          "type": "string",
+          "enum": [
+            "pending_runtime_key",
+            "active",
+            "paused",
+            "pairing_expired"
+          ]
+        },
+        "changed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "revocation_frontier": {
+          "$ref": "#/$defs/agent_lifecycle_frontier"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_action_target": {
+      "type": "object",
+      "description": "Minimal target descriptor for an actor-private agent draft or approval. It identifies the eventual shared write surface without disclosing private draft content.",
+      "required": [
+        "kind"
+      ],
+      "anyOf": [
+        { "required": ["realm_id"] },
+        { "required": ["ref"] },
+        { "required": ["operation_id"] },
+        { "required": ["account_data_key"] }
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "realm",
+            "space",
+            "flow",
+            "message",
+            "object",
+            "service_operation",
+            "account_data"
+          ]
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "operation_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "account_data_type": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "account_data_key": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_propose_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.draft.propose. Actor-private proposal that may materialize into controller-owned encrypted draft account data after policy checks.",
+      "required": [
+        "draft_id",
+        "agent_principal_id",
+        "controller_principal_id",
+        "proposed_action",
+        "target",
+        "content_digest",
+        "created_at",
+        "expires_at"
+      ],
+      "properties": {
+        "draft_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "proposed_action": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "target": {
+          "$ref": "#/$defs/agent_action_target"
+        },
+        "content_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "account_data_key": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_action_request_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.action_request. Actor-private request for controller approval before a shared Realm write is emitted.",
+      "required": [
+        "request_id",
+        "agent_principal_id",
+        "controller_principal_id",
+        "proposed_action",
+        "target",
+        "request_canonical_digest",
+        "created_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "draft_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "proposed_action": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "target": {
+          "$ref": "#/$defs/agent_action_target"
+        },
+        "request_canonical_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_action_approve_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.action_approve. Controller approval binds the draft/action request, target, approved payload digest, expiry, and single-use nonce.",
+      "required": [
+        "approval_id",
+        "agent_principal_id",
+        "controller_principal_id",
+        "proposed_action",
+        "target",
+        "approved_payload_digest",
+        "approval_nonce",
+        "approved_at",
+        "expires_at"
+      ],
+      "properties": {
+        "approval_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "request_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "draft_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "proposed_action": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "target": {
+          "$ref": "#/$defs/agent_action_target"
+        },
+        "approved_payload_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "draft_content_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "approval_nonce": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "approved_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_action_reject_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent.action_reject. Controller rejection terminates a draft/action request without shared Realm side effects.",
+      "required": [
+        "rejection_id",
+        "agent_principal_id",
+        "controller_principal_id",
+        "rejected_at"
+      ],
+      "properties": {
+        "rejection_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "request_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "draft_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "rejected_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false

@@ -1537,7 +1537,7 @@ components:
           - view_id
     ObjectRef:
       type: string
-      pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     ObjectLookupResponse:
       type: object
       required:
@@ -1860,10 +1860,10 @@ components:
           const: relation_container
         scope_container_id:
           type: string
-          pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
@@ -1946,10 +1946,10 @@ components:
           const: relation
         scope_container_id:
           type: string
-          pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
@@ -2193,11 +2193,13 @@ components:
       properties:
         id:
           type: string
-          pattern: ^cx:(realm|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         type:
           type: string
           enum:
           - realm
+          - space
+          - circle
           - flow
           - message
           - morph
@@ -2355,10 +2357,10 @@ components:
           minLength: 1
         from_ref:
           type: string
-          pattern: ^(cx:(realm|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(cx:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         to_ref:
           type: string
-          pattern: ^(cx:(realm|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(cx:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -4218,7 +4220,9 @@ paths:
           description: |
             `capability_denied` — caller lacks `cx.blob.presign` for this
             blob or this purpose; or the grant's TTL constraint forbids the
-            requested `max_age_seconds`.
+            requested `max_age_seconds`; or the target is a minimal-metadata
+            Realm-owned blob for which bearer presign is forbidden by
+            media-and-blob.md §5.4.4.1.
         '404':
           description: |
             `not_found` — blob does not exist or is not visible to the
@@ -5346,6 +5350,224 @@ paths:
                 $ref: '#/components/schemas/OperationResult'
         '412':
           description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /agents:
+    get:
+      operationId: cx.agent.list
+      description: List personal agents visible to the authenticated controller.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Agent list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+    post:
+      operationId: cx.agent.provision
+      description: Provision a native personal agent principal (CXP-0008).
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Agent provisioning accepted; pending runtime key pairing returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /agents/{agent_principal_id}:
+    get:
+      operationId: cx.agent.get
+      description: Read one personal agent projection.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Agent projection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+  /agents/{agent_principal_id}/pause:
+    post:
+      operationId: cx.agent.pause
+      description: Pause a native personal agent and reject new agent sessions.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Agent paused
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /agents/{agent_principal_id}/resume:
+    post:
+      operationId: cx.agent.resume
+      description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Agent resumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /agents/{agent_principal_id}/revoke:
+    post:
+      operationId: cx.agent.deactivate
+      description: Terminally deactivate a native personal agent.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Agent deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /agents/{agent_principal_id}/rotate-key:
+    post:
+      operationId: cx.agent.rotate_key
+      description: Rotate the active runtime key for a native personal agent.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Agent key rotated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /agents/{agent_principal_id}/grants:
+    post:
+      operationId: cx.agent.grant.attach
+      description: Attach a capability grant to a native personal agent.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Grant attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /agents/{agent_principal_id}/grants/{grant_id}:
+    delete:
+      operationId: cx.agent.grant.detach
+      description: Detach or revoke a capability grant from a native personal agent.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: grant_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Grant detached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+  /agent-sidecar-threads:ensure:
+    post:
+      operationId: cx.agent.sidecar_thread.ensure
+      description: Idempotently ensure the controller-agent sidecar Circle, Flow, and relation.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Sidecar thread ensured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
       requestBody:
         required: true
         content:

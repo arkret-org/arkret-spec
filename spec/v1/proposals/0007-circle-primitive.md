@@ -247,7 +247,7 @@ authorized(actor, action, object) ⇔
 
 其中 `scope(object)` 对 durable Event 使用 immutable `effective_scope`,对 materialized object 使用当前 `scope_circle_id` 派生出的 tagged scope。capability 决定"能不能做",Circle membership 决定"够不够近"。任一不满足都拒绝。
 
-Circle 管理类 grant MUST 显式约束到 `allowed_circles` / `circle_id` selector,或由 Circle 自身的 admin cell 派生;不得把无约束的 Realm-wide `cx.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `cx.circle.audit` + `cx.audit.accessed` 配对路径,且不能获得历史解密 key,除非被正式加入该 Circle。
+Circle 管理类 grant MUST 显式约束到 `allowed_circle_refs` / `circle_id` selector,或由 Circle 自身的 admin cell 派生;不得把无约束的 Realm-wide `cx.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `cx.circle.audit` + `cx.audit.accessed` 配对路径,且不能获得历史解密 key,除非被正式加入该 Circle。
 
 ### 3.6 Membership 拓扑
 
@@ -256,7 +256,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circles` / `circle_id` sele
 1. `Circle.members ⊆ Realm.members`。reducer 在 `cx.circle.member.state -> active` 时,若 target actor 不是父 Realm `active` member,MUST `failed_precondition` `reason="circle_member_must_be_realm_member"`。
 2. 父 Realm `cx.member.state -> left/banned` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `left`,并触发各 Circle 的 MLS `remove` proposal。不需要 actor 显式写。
 3. **Circle 平面化,不允许嵌套**(`parent_circle_ref` 不存在)。需要交叉成员关系时,actor 同时属于多个 Circle 即可;不需要 hierarchy。本约束沿用 [`realm-links.md` §2.1](../zh/models/realm-links.md) "link graph not tree" 的教训。
-4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时,必须通过 `cx.circle.admin` 等 Circle-scoped cell 或带 `circle_id` selector 的 capability grant 表达。
+4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时,必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_refs` selector 的 capability grant 表达;v1 不注册单独的 `cx.circle.admin` action。
 
 Membership transition table:
 

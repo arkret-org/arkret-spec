@@ -216,24 +216,45 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.cursor_opaque.v1",
+      "vector_id": "cx.vector.encoding.cursor_opaque.core.v1",
       "kind": "cursor_opaqueness",
-      "input_cursor": "cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0",
-      "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"purpose\":\"stream\",\"s\":{\"cx:realm:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"cx:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
+      "input_cursor": "cx:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9",
+      "decoded_payload_canonical_bytes_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
       "fixture_freshness_note": "Timestamps are fixed at year 2099 deliberately so the static vector cannot expire during normal spec lifetime. Implementations generating their own conformance cursors MUST use fresh `t`/`x` matching their authority's clock; do NOT reuse this fixture's `t`/`x` on the wire.",
       "client_rules": [
         "MUST treat cursor as an opaque string and round-trip it verbatim",
-        "MUST NOT parse v / purpose / t / s / x / _mac to construct the next page request",
+        "MUST NOT parse v / purpose / t / h / x to construct the next page request",
         "MUST handle cursor decode failure by treating cursor as opaque, not by aborting the protocol"
       ],
       "server_rules": [
-        "MUST validate v, purpose, x, and the full cursor schema before honouring cursor",
-        "MUST validate every event id under s.<realm_id>.p matches cx:event:<uuid> and every s.<realm_id> entry contains p/o/h",
-        "syntax validation failure MUST return invalid_param with reason_code invalid_cursor; TTL failure MUST return cursor_expired; MAC/signature failure MUST return cursor_integrity_invalid"
+        "MUST validate v, purpose, x, the full core cursor schema, and h handle binding before honouring cursor",
+        "syntax validation failure MUST return invalid_param with reason_code invalid_cursor; TTL failure MUST return cursor_expired; handle lookup or binding failure MUST return cursor_integrity_invalid"
+      ],
+      "fail_conditions": [
+        "client parses h/x and rebuilds a request",
+        "core server accepts a cursor body without h"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.cursor_opaque.stateless_profile.v1",
+      "kind": "cursor_opaqueness",
+      "applies_to_profiles": [
+        "cx.profile.stateless_cursor.v1"
+      ],
+      "input_cursor": "cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0",
+      "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"issuer_kid\":\"did:web:sync.example#cursor-2026-05\",\"purpose\":\"stream\",\"s\":{\"cx:realm:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"cx:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
+      "fixture_freshness_note": "Profile-only stateless cursor vector. Core suites MUST skip this vector unless cx.profile.stateless_cursor.v1 is claimed.",
+      "client_rules": [
+        "MUST treat cursor as an opaque string and round-trip it verbatim",
+        "MUST NOT parse s / x / _mac to construct the next page request"
+      ],
+      "server_rules": [
+        "MUST validate the stateless profile overlay, issuer_kid, purpose, x, stream frontier fields, and _mac/_sig transcript",
+        "MUST reject the same body under v1 core schema when cx.profile.stateless_cursor.v1 is not claimed"
       ],
       "fail_conditions": [
         "client parses s/x and rebuilds a request",
-        "server uses non-{v,purpose,t,x,h} or non-{v,purpose,t,s,d?,target?,x,_mac/_sig} cursor payload (alternative shapes MUST be rejected)"
+        "stateless server accepts missing issuer_kid or missing _mac/_sig"
       ]
     },
     {

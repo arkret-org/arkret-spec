@@ -60,7 +60,9 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- | --- | --- |
 | `gates` | yes | `array<Gate>` | 1..16 项；空数组 MUST schema_violation。 | 必须穿越的 gate 列表。 |
 | `combinator` | yes | `enum(all, any)` | 默认 `all`。 | gate 之间的组合语义。 |
-| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `cx.realm.join.review`。 | 审核所需 capability。 |
+| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `cx.realm.join.review`。 | 审核所需 capability。[^review-capability-alias] |
+
+[^review-capability-alias]: v1.1 候选 alias: `review_capability_action` — 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。当前字段名是历史保留（v1 已发布，避免 wire-breaking 重命名），推荐文档与 SDK 在 prose 中使用 `review_capability_action` 描述其语义；wire 字段名保持 `review_capability`。
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, of: did[] }` 表达 N-of-M。 | 审核法定人数。 |
 | `application_ttl` | no | `duration` | 默认 `168h`，最小 `1h`，最大 `8760h`（1y）。 | 申请未决超时即失效。 |
 | `cooldown_after_reject` | no | `duration` | 默认 `72h`。 | 拒绝后同一 actor 重新申请的最短间隔。 |

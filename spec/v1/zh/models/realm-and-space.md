@@ -146,6 +146,8 @@ Server 端实现合规要点：
 - 若 server 内部维护"显式成员索引"（如 in-memory `members` set）用于快速 authz 判断，MUST 在 `cx.realm.create` 的 commit 路径同步更新此索引，且必须在向 actor 返回 `cx.events.submit` 200 之前完成 — 否则后续 facet event 在同批次内会以 `capability_denied` 错误失败，把 spec-合规客户端逼到旁路。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /api/v1/spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
+**Backfill / federation peer 一致性（normative）**：Backfill / federation peer consumer MUST 把 cell snapshot（`cx.component.member.state.v1`）与 event 流并联回放，不得只回放 event 流——否则会看到 `cx.realm.create` 之后由 `created_by` 提交的 facet event 但找不到对应 `cx.member.state{join}` event（spec 不要求显式 emit），产生"无成员合法写入"的误读。
+
 ### 2.6 Realm 终态 (`cx.realm.tombstone` / `cx.realm.destroy`)
 
 Realm 有两个终态 event，语义不同：
@@ -300,6 +302,16 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
 - **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。
 - **强保密升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的密码学子边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；只有需要独立 federation / policy server / capability registry 时才创建新的 Realm。
+
+**三字段速查表（normative）**：Space 上三个 scope 相关字段语义不同，分别由不同主体强制：
+
+| 字段 | 语义 | 谁强制 |
+| --- | --- | --- |
+| `Space.scope_circle_id` | 本 Space 自身的密码学 scope | reducer（写本 Space 时校验） |
+| `Space.default_scope_circle_id` | 在该 Space 内新建子资源时的 *客户端 hint* 默认 scope | 客户端 UI（reducer 不强制） |
+| `Space.child_scope_policy.require_scope_circle_id` | 子资源 scope 的 reducer-enforced 约束 | reducer（写子资源时校验） |
+
+三字段不是冗余：自身 scope ≠ 默认 hint ≠ 子资源约束，实现 MUST 分别消费。
 
 ### 3.4 Lifecycle 与 Cascade 规则
 

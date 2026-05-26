@@ -355,6 +355,7 @@ cx:actor_profile:<uuid>
 cx:event:<uuid>
 cx:view:<uuid>
 cx:policy:<uuid>
+cx:capability:<uuid>     # abstract capability definition reference（非签名 grant；签名 grant 用 cx:grant:）；真源 artifacts/registry/id-kind-registry.json `capability` 条目
 cx:grant:<uuid>
 cx:invite:<uuid>
 cx:applet:<uuid>

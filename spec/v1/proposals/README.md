@@ -83,8 +83,9 @@ discussion: <PR / issue 链接>
 | [CXP-0005](./.deferred/0005-workflow-state-machine.md) | Workflow State Machine | deferred-to-v1.1 | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
 | [CXP-0006](./.deferred/0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `cx:component:` / `cx:version:` 结构性分类对象 |
 | [CXP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | **accepted** (merged 2026-05-25 → [`zh/models/circle.md`](../zh/models/circle.md)) | 引入 `cx:circle:` 作为 Realm 内的密码学子边界(独立 MLS / 子集成员 / 独立 history),**彻底删除** `Flow.discussion_realm_ref`,Flow 永远单一 scope |
-| [CXP-0008](./0008-personal-agent-provisioning.md) | 个人 AI Agent 创建与运行时认证 | draft | 用户创建 native AI agent、runtime key pairing、`proof_kind=agent_key_proof` 换短期 session、权限交集与 act-on-behalf 边界 |
-| [CXP-0009](./0009-agent-sidecar-thread.md) | Agent Sidecar Thread（Agent 旁路私聊线程） | draft | 在 Flow / Message 上下文中为 controller 与自己的 native AI agent 创建私有 sidecar thread,支持 controller-home / context-Realm home,并定义 E2EE / 存在性隐私边界 |
+| [CXP-0008](./0008-personal-agent-provisioning.md) | 个人 AI Agent 创建与运行时认证 | **accepted** (merged 2026-05-26 → identity / agent runtime normative files) | 用户创建 native AI agent、runtime key pairing、`proof_kind=agent_key_proof` 换短期 session、权限交集与 act-on-behalf 边界 |
+| [CXP-0009](./0009-agent-sidecar-thread.md) | Agent Sidecar Thread（Agent 旁路私聊线程） | **accepted** (merged 2026-05-26 → sidecar thread normative files) | 在 Flow / Message 上下文中为 controller 与自己的 native AI agent 创建私有 sidecar thread,支持 controller-home / context-Realm home,并定义 E2EE / 存在性隐私边界 |
+| [CXP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | draft | 把 `cx.realm.media_service` 从单 SFU endpoint 升级为 multi-focus + transport-agnostic backend 抽象;定义统一 token exchange、session focus 持久化、participant binding、E2EE key injection 契约、recording artifact 流转;LiveKit / mediasoup / Janus / MoQ 通过附录绑定接入 |
 
 ## 6. 写作风格
 

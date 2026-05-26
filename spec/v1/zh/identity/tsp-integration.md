@@ -92,6 +92,28 @@ DID Document 或 normalized principal view 中出现 `cx.service.tsp` 只是一�
 
 仅有 DID Document 单向声明不足以授权高风险 service-to-service 操作。反向绑定失败时，TSP transport MUST fail closed；实现 MAY 回退到 v1 core HTTP Message Signature / MLS DM 路径。
 
+### 4.1.1 高风险 protocol surface 清单（normative）
+
+下列 protocol surface 在通过 TSP transport 触发时 MUST 在 transport 层完成 §4.1 反向绑定校验，校验失败 MUST fail closed，不得回退到任何不带反向绑定的传输路径承载该次调用。本节故意把 surface 分成三类；实现不得把 Event kind 或 capability action 误登记为 operation id。
+
+**Operation id**（取自 `operation-registry.json`）：
+
+- 跨 `trust_domain` 的 `cx.events.submit`
+- `cx.identity.submit_did_operation`
+
+**Durable Event kind carried inside `cx.events.submit`**：
+
+- `cx.cross_signing.publish`
+- `cx.cross_signing.reset`
+- 跨 `trust_domain` 的 `cx.member.state`
+- 跨 `trust_domain` 的 `cx.invite.create`
+
+**Capability action**：
+
+- 所有在 [`artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中标记 `risk_tier=high` 的 capability action 通过 TSP 远程触发时。
+
+实现 MAY 通过引用 capability action registry 的 `risk_tier=high` 子集自动扩展第三类清单；新增的 `risk_tier=high` action 默认进入该清单，不需要在本节单独再列。本节列出的 operation/event kind 与 registry 子集冲突时，本节为准（registry 是 capability action 的 superset，不是 operation registry 的替代品）。
+
 ## 5. Contrix over TSP
 
 Contrix operation 可作为 TSP application payload：

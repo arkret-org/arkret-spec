@@ -394,33 +394,49 @@ cx.vector.encoding.hlc_logical_overflow.v1
 向量名称：
 
 ```text
-cx.vector.encoding.cursor_opaque.v1
+cx.vector.encoding.cursor_opaque.core.v1
 ```
 
-输入 cursor（schema-valid v1 wire 形态；示例 `_mac` 是测试占位，真实服务仍必须按 `encoding.md` §8.3.1 验证 MAC / 签名或 stateful handle）：
+输入 cursor（schema-valid v1 core wire 形态；body 是 stateful opaque handle `{v,purpose,t,x,h}`）：
 
 ```text
-cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0
+cx:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9
 ```
 
 cursor base64url 解码后对应 canonical JSON：
 
 ```text
-{"_mac":"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000","issuer_kid":"did:web:sync.example#cursor-2026-05","purpose":"stream","s":{"cx:realm:0196419b-0000-7000-8000-000000000000":{"h":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","o":"01970e589d21-0000-a13f9c2e","p":["cx:event:019640ed-8000-7000-8000-000000000000"]}},"t":"2099-12-30T23:59:59Z","v":"1","x":4102444799000}
+{"h":"abcdefghijklmnopqrstuv","purpose":"stream","t":"2099-12-30T23:59:59Z","v":"1","x":4102444799000}
 ```
 
 期望客户端行为：
 
 - 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 stateful 或 stateless 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
-- 客户端 MUST NOT 依赖 base64url 解码后的 `s.<realm_id>.p/o/h` frontier、`x` 过期字段或 `_mac` 构造下一页请求；这些字段的存在只是为了让服务端可以无状态地恢复同步进度。
+- 客户端 MUST NOT 依赖 base64url 解码后的 `h` handle、`x` 过期字段或其它内部字段构造下一页请求；这些字段只属于 issuing service。
 - 服务端 MAY 改变 cursor 内部编码或字段集合，只要同一 query/session 下 cursor 仍按 API contract 可用。
-- 服务端 MUST 在收到该 cursor 时，按 §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、schema 形态和所有 frontier event 引用；语法失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，完整性失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
+- 服务端 MUST 在收到该 cursor 时，按 §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、core schema 形态和 `h` handle binding；语法失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
 
 失败条件：
 
-- 客户端解析 `s` / `x` 后自行构造下一页请求或修改 cursor 内容。
+- 客户端解析 `h` / `x` 后自行构造下一页请求或修改 cursor 内容。
 - 客户端在 cursor 解码失败时拒绝整个协议，而不是按 opaque token 处理。
-- 服务端使用违反 `{v,purpose,t,x,h}` 或 `{v,purpose,t,s,d?,target?,x,_mac/_sig}` 结构的 cursor 内部 payload（例如旧草稿中出现过的 `{query_digest, last_event_id}` 或 `{v,p}` 形式）。
+- 服务端在 core profile 下接受缺少 `h` 的 stateless cursor body。
+
+Profile-only stateless cursor 向量名称：
+
+```text
+cx.vector.encoding.cursor_opaque.stateless_profile.v1
+```
+
+该向量 **仅** 在实现声明 `cx.profile.stateless_cursor.v1` 时运行；core conformance suite MUST 跳过它，并应通过 `schema-validation-fixture.json` 中的 negative case 验证缺 `h` 的 body 被 core schema 拒绝。
+
+输入 cursor（stateless profile overlay 形态）：
+
+```text
+cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0
+```
+
+stateless profile 服务端 MUST 验证 `issuer_kid`、`s` frontier、`x` 和 `_mac` / `_sig` transcript；客户端仍 MUST 把整个 cursor 当作 opaque string，不得解析 `s.<realm_id>.p/o/h` 构造请求。
 
 ### 1.12 Vector: Encrypted Envelope Digest
 
@@ -467,7 +483,8 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 | `cx.vector.encoding.signature_binding_payload.v1` | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.crypto.ed25519_detached_jws.v1` | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD |
-| `cx.vector.encoding.cursor_opaque.v1` | MUST | MUST | MUST | MAY | SHOULD |
+| `cx.vector.encoding.cursor_opaque.core.v1` | MUST | MUST | MUST | MAY | SHOULD |
+| `cx.vector.encoding.cursor_opaque.stateless_profile.v1` | profile-only (`cx.profile.stateless_cursor.v1`) | profile-only | profile-only | MAY | SHOULD |
 | `cx.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST |
 
 ### 1.14 Crypto Fixture 要求

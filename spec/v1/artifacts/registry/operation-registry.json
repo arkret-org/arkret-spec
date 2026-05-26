@@ -201,6 +201,23 @@
       ]
     },
     {
+      "surface": "agent_runtime",
+      "tier": "extension",
+      "operations": [
+        "cx.account.agent_key_pair",
+        "cx.agent.provision",
+        "cx.agent.list",
+        "cx.agent.get",
+        "cx.agent.pause",
+        "cx.agent.resume",
+        "cx.agent.deactivate",
+        "cx.agent.rotate_key",
+        "cx.agent.grant.attach",
+        "cx.agent.grant.detach",
+        "cx.agent.sidecar_thread.ensure"
+      ]
+    },
+    {
       "surface": "admin_operator",
       "tier": "deployment_local",
       "operations": [
@@ -212,12 +229,6 @@
     }
   ],
   "operations": [
-    {
-      "operation_id": "cx.account.agent_key_pair",
-      "http": "POST /auth/account/agent-key-pair",
-      "grpc": "Account/AgentKeyPair",
-      "mq": "account.agent_key_pair"
-    },
     {
       "operation_id": "cx.account.device_pair",
       "http": "POST /auth/account/device-pair",
@@ -231,16 +242,52 @@
       "mq": "account.issue_session_grant"
     },
     {
-      "operation_id": "cx.agent.deactivate",
-      "http": "POST /agents/{agent_principal_id}/revoke",
-      "grpc": "Agent/Deactivate",
-      "mq": "agent.deactivate"
+      "operation_id": "cx.account.agent_key_pair",
+      "http": "POST /auth/account/agent-key-pair",
+      "grpc": "Account/AgentKeyPair",
+      "mq": "account.agent_key_pair"
+    },
+    {
+      "operation_id": "cx.agent.provision",
+      "http": "POST /agents",
+      "grpc": "Agent/Provision",
+      "mq": "agent.provision"
+    },
+    {
+      "operation_id": "cx.agent.list",
+      "http": "GET /agents",
+      "grpc": "Agent/List",
+      "mq": "agent.list"
     },
     {
       "operation_id": "cx.agent.get",
       "http": "GET /agents/{agent_principal_id}",
       "grpc": "Agent/Get",
       "mq": "agent.get"
+    },
+    {
+      "operation_id": "cx.agent.pause",
+      "http": "POST /agents/{agent_principal_id}/pause",
+      "grpc": "Agent/Pause",
+      "mq": "agent.pause"
+    },
+    {
+      "operation_id": "cx.agent.resume",
+      "http": "POST /agents/{agent_principal_id}/resume",
+      "grpc": "Agent/Resume",
+      "mq": "agent.resume"
+    },
+    {
+      "operation_id": "cx.agent.deactivate",
+      "http": "POST /agents/{agent_principal_id}/revoke",
+      "grpc": "Agent/Deactivate",
+      "mq": "agent.deactivate"
+    },
+    {
+      "operation_id": "cx.agent.rotate_key",
+      "http": "POST /agents/{agent_principal_id}/rotate-key",
+      "grpc": "Agent/RotateKey",
+      "mq": "agent.rotate_key"
     },
     {
       "operation_id": "cx.agent.grant.attach",
@@ -253,36 +300,6 @@
       "http": "DELETE /agents/{agent_principal_id}/grants/{grant_id}",
       "grpc": "Agent/GrantDetach",
       "mq": "agent.grant.detach"
-    },
-    {
-      "operation_id": "cx.agent.list",
-      "http": "GET /agents",
-      "grpc": "Agent/List",
-      "mq": "agent.list"
-    },
-    {
-      "operation_id": "cx.agent.pause",
-      "http": "POST /agents/{agent_principal_id}/pause",
-      "grpc": "Agent/Pause",
-      "mq": "agent.pause"
-    },
-    {
-      "operation_id": "cx.agent.provision",
-      "http": "POST /agents",
-      "grpc": "Agent/Provision",
-      "mq": "agent.provision"
-    },
-    {
-      "operation_id": "cx.agent.resume",
-      "http": "POST /agents/{agent_principal_id}/resume",
-      "grpc": "Agent/Resume",
-      "mq": "agent.resume"
-    },
-    {
-      "operation_id": "cx.agent.rotate_key",
-      "http": "POST /agents/{agent_principal_id}/rotate-key",
-      "grpc": "Agent/RotateKey",
-      "mq": "agent.rotate_key"
     },
     {
       "operation_id": "cx.agent.sidecar_thread.ensure",

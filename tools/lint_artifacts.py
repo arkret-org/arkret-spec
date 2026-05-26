@@ -84,6 +84,19 @@ SECURITY_CLOSURE_VECTOR_IDS = {
     "cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
 }
 
+REGISTRY_LATTICES = {
+    "or_set",
+    "mv_register",
+    "cas_register",
+    "fsm",
+    "counter",
+    "ordered_log",
+    "lww_register",
+    "rga",
+}
+REGISTRY_BOTTOMS = {"reject", "expose"}
+LIFECYCLE_UNSAFE_LATTICES = {"lww_register", "rga"}
+
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     "spec/v1/zh/models/realm-and-space.md": {
         1: "schemas/realm.schema.json",
@@ -923,6 +936,18 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         wire_scope = row.get("wire_scope")
         if wire_scope not in wire_scopes:
             lint.fail(event_path, f"{kind} has unknown wire_scope {wire_scope!r}")
+        lattice = row.get("lattice")
+        if lattice is not None and lattice not in REGISTRY_LATTICES:
+            lint.fail(event_path, f"{kind} has unknown lattice {lattice!r}")
+        bottom = row.get("bottom")
+        if bottom is not None and bottom not in REGISTRY_BOTTOMS:
+            lint.fail(event_path, f"{kind} has unknown bottom {bottom!r}")
+        cell_family = row.get("cell_family")
+        lifecycle_status_cell = (
+            isinstance(cell_family, str) and ".status." in cell_family
+        ) or kind.rsplit(".", 1)[-1] in {"pause", "resume", "deactivate"}
+        if lifecycle_status_cell and lattice in LIFECYCLE_UNSAFE_LATTICES:
+            lint.fail(event_path, f"{kind} lifecycle/status cell must not use {lattice}")
 
     schema_rows = schema_registry.get("schemas", [])
     schema_ids = unique_values(lint, schema_path, schema_rows, "schema_id")
@@ -1043,6 +1068,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 )
     for _, value, _ in walk_json(profile_registry):
         if isinstance(value, str) and value.startswith("cx.profile."):
+            if value in event_kinds:
+                continue
             profiles.add(value)
             if not PROFILE_ID_RE.fullmatch(value):
                 lint.fail(profile_path, f"profile id has invalid format: {value}")
@@ -1088,6 +1115,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             row["event_kind"]
             for row in event_by_kind.values()
             if row.get("status") == "active" and row.get("wire_scope") == "durable_event"
+        },
+        "active_event_wire_scopes": {
+            row["event_kind"]: row.get("wire_scope")
+            for row in event_by_kind.values()
+            if row.get("status") == "active"
         },
         "schema_ids": schema_ids,
         "id_kinds": id_kinds,
@@ -1245,6 +1277,57 @@ def check_event_ref_invariants_in_value(lint: Lint, path: Path, json_path: str, 
             check_event_ref_invariants_in_value(lint, path, f"{json_path}[{index}]", child)
 
 
+def payload_schema_contains_ref(value: Any) -> bool:
+    if isinstance(value, dict):
+        if "$ref" in value:
+            return True
+        return any(payload_schema_contains_ref(child) for child in value.values())
+    if isinstance(value, list):
+        return any(payload_schema_contains_ref(child) for child in value)
+    return False
+
+
+def collect_kind_selector_tokens(value: Any) -> set[str]:
+    if not isinstance(value, dict):
+        return set()
+    tokens: set[str] = set()
+    const_value = value.get("const")
+    if isinstance(const_value, str):
+        tokens.add(const_value)
+    enum_values = value.get("enum")
+    if isinstance(enum_values, list):
+        tokens.update(item for item in enum_values if isinstance(item, str))
+    return tokens
+
+
+def collect_payload_dispatch_kinds(value: Any) -> set[str]:
+    dispatched: set[str] = set()
+    if isinstance(value, dict):
+        if_schema = value.get("if")
+        then_schema = value.get("then")
+        if isinstance(if_schema, dict) and isinstance(then_schema, dict):
+            then_properties = then_schema.get("properties")
+            payload_schema = (
+                then_properties.get("payload")
+                if isinstance(then_properties, dict)
+                else None
+            )
+            if payload_schema_contains_ref(payload_schema):
+                if_properties = if_schema.get("properties")
+                kind_schema = (
+                    if_properties.get("kind")
+                    if isinstance(if_properties, dict)
+                    else None
+                )
+                dispatched.update(collect_kind_selector_tokens(kind_schema))
+        for child in value.values():
+            dispatched.update(collect_payload_dispatch_kinds(child))
+    elif isinstance(value, list):
+        for child in value:
+            dispatched.update(collect_payload_dispatch_kinds(child))
+    return dispatched
+
+
 def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     path = ARTIFACTS / "schemas" / "event-schema.json"
     data = load_json(lint, path)
@@ -1268,6 +1351,20 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     for token in sorted(known["active_durable_event_kinds"] - event_schema_kinds):
         lint.fail(path, f"active Event.kind missing from event-schema enum coverage: {token}")
 
+    active_event_wire_scopes = known.get("active_event_wire_scopes", {})
+    active_envelope_event_kinds = {
+        kind
+        for kind, wire_scope in active_event_wire_scopes.items()
+        if wire_scope in {"durable_event", "actor_private_event"}
+    }
+    payload_dispatch_kinds = {
+        token
+        for token in collect_payload_dispatch_kinds(data)
+        if token.startswith("cx.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
+    }
+    for token in sorted(active_envelope_event_kinds - payload_dispatch_kinds):
+        lint.fail(path, f"active Event.kind missing payload schema dispatch: {token}")
+
 
 def parse_openapi_operation_http_map(text: str) -> tuple[dict[str, str], list[str]]:
     mapping: dict[str, str] = {}
@@ -1284,7 +1381,7 @@ def parse_openapi_operation_http_map(text: str) -> tuple[dict[str, str], list[st
         if line and not line.startswith(" "):
             break
 
-        path_match = re.match(r"^  (/[^:]+):\s*$", line)
+        path_match = re.match(r"^  (/.*):\s*$", line)
         if path_match:
             current_path = path_match.group(1)
             current_method = None
@@ -1335,7 +1432,7 @@ def check_openapi_contract_shape(lint: Lint, path: Path, text: str) -> None:
             finish_operation(line_no)
             break
 
-        path_match = re.match(r"^  (/[^:]+):\s*$", line)
+        path_match = re.match(r"^  (/.*):\s*$", line)
         if path_match:
             finish_operation(line_no)
             current_path = path_match.group(1)

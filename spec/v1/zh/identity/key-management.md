@@ -158,6 +158,7 @@ CXP-0008 定义了一条面向普通用户的 personal native agent 流程,以�
 - **E2EE access**:Agent MUST 作为独立 MLS member 参与,不得伪装成 controller 的 delegated device;agent MLS KeyPackage SHOULD 由 active `cx.agent.key.authorize.verification_method` 签发或绑定,使 key authorization、session proof 与 MLS membership 落在同一审计链。
 - **Sidecar exposure 披露**:pairing approval UI 上,若该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `cx.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(见 CXP-0009 §3 invariant 10)。
 - **Lifecycle**:`cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 是 agent lifecycle 写入。Pause 保留 durable state 但拒绝新 session;Auth Server SHOULD 在 revocation freshness window(≤ session 最大 TTL)内对已签发 session token fail closed。Revoke 是 terminal,fan-out `cx.agent.key.revoke` / `cx.capability.revoke` / runtime endpoint revocation。
+- **Resume 时 sidecar exposure 重新披露(normative)**:`cx.agent.resume` 提交前,实现 MUST 重新执行上一条 "Sidecar exposure 披露" 流程,把 agent 在 pause 期间 controller 在 eligible Realm 中**新建或新加入**的 `cx.profile.agent_sidecar_thread.v1` sidecar Circle 列出;若该集合非空,resume MUST 在 controller 显式再次同意之前拒绝执行(不得 silent resume),并把该确认作为 audit 事件留底。仅当 pause 期间无新 sidecar 进入 agent 的 eligibility 集合时,resume 可不重复披露。该规则关闭"pairing 期完成一次披露后,pause 期新建 sidecar 在 resume 时被 agent 静默继承访问权"的暴露面。
 
 ### 3.7 MLS KeyPackage Key
 

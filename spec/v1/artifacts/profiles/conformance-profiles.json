@@ -223,6 +223,7 @@
     "cx.profile.cross_signing.reset.v1": "admin",
     "cx.profile.mls.minimal_metadata_realm.v1": "admin",
     "cx.profile.key_backup.memory_hard.v1": "admin",
+    "cx.profile.accountable_to.strict_reject.v1": "admin",
     "cx.profile.anchor.single_did.v1": "admin",
     "cx.profile.anchor.threshold.v1": "admin",
     "cx.profile.anchor.open_set.v1": "admin",
@@ -283,7 +284,8 @@
     "cx.profile.disclosed_audit.e2ee.v1",
     "cx.profile.cross_signing.reset.v1",
     "cx.profile.mls.minimal_metadata_realm.v1",
-    "cx.profile.key_backup.memory_hard.v1"
+    "cx.profile.key_backup.memory_hard.v1",
+    "cx.profile.accountable_to.strict_reject.v1"
   ],
   "vector_profiles": [
     "cx.profile.capability_vectors.v1",
@@ -1458,6 +1460,7 @@
         "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
+      "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "pending_runtime_key_status",
@@ -1483,11 +1486,12 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.session_grant.v1"
+        "cx.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json"
       ],
+      "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "agent_key_proof_branch",
@@ -1518,6 +1522,7 @@
       "required_fixtures": [
         "capability-fixture.json"
       ],
+      "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "effective_permission_intersection",
@@ -1557,6 +1562,7 @@
         "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
+      "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "controller_agent_circle_key_derivation",
@@ -2167,9 +2173,37 @@
           "pairwise_actor_id",
           "identity_link_schema",
           "identity_link_eager_invalidation",
-          "principal_disclosure_policy"
+          "principal_disclosure_policy",
+          "minimal_metadata_presign_forbidden"
         ],
         "unsupported_optional": "fail closed before joining minimal-metadata encrypted Realm"
+      }
+    },
+    "cx.profile.accountable_to.strict_reject.v1": {
+      "role": "admin",
+      "description": "Deployment hardening profile for Actor Profile accountability. When declared, any Actor Profile create/update that contains an accountable_to[] entry without an active cx.identity.accountability_grant MUST reject the whole Event with failed_precondition/accountability_grant_missing instead of stripping the unverifiable entry.",
+      "required_endpoints": [
+        "cx.events.submit"
+      ],
+      "required_event_kinds": [
+        "cx.profile.create",
+        "cx.profile.update",
+        "cx.identity.accountability_grant"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.actor_profile.v1",
+        "cx.schema.event.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "accountable_to_strict_reject"
+        ],
+        "unsupported_optional": "default to strip + audit log behavior from models/actor.md §3.3.1"
       }
     },
     "cx.profile.attested_audit.e2ee.v1": {

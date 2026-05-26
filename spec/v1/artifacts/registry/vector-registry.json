@@ -138,9 +138,21 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.cursor_opaque.v1",
+      "vector_id": "cx.vector.encoding.cursor_opaque.core.v1",
       "status": "active",
       "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.cursor_opaque.stateless_profile.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_profiles": [
+        "cx.profile.stateless_cursor.v1"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -421,6 +433,78 @@
       "vector_id": "cx.vector.move_anchor_lattice.signed_compaction_equivalent.v1",
       "status": "active",
       "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.agent.provision.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.agent.pairing_expiry.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.agent.controller_lifecycle.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.agent.act_on_behalf.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.agent.session_grant.replay.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.sidecar.ensure_idempotent.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.sidecar.eligibility_states.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.sidecar.existence_privacy.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.sidecar.multi_agent_publish.v1",
+      "status": "active",
+      "domain": "sidecar",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]

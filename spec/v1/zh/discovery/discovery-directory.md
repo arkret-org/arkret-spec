@@ -536,6 +536,8 @@ v1 core **不**定义 Directory 之间的 replication / federation 协议。每�
 
 ### 8.9 `cx.directory.describe` 扩展
 
+**Schema overlay 关系（normative）**：`cx.directory.describe` 响应是通用 `cx.schema.service_describe.v1` 的 **superset overlay**。Directory describe MUST 在通用 `service_describe` 基础上 extend 以下字段集，作为 directory-specific 字段权威列表：(a) `resource_types[]` 与 `discovery_profiles[]`（资源类别与索引 profile）；(b) `restricted_query_proof`（是否需要 holder-approved proof）；(c) 本节下表列出的 9 个 ingest 字段。`../sync/service-http-binding.md` 中所有 `cx.directory.describe` operation row 引用本节作为字段 superset 的权威定义，不另列重复表；任何 directory-specific 字段调整 MUST 先在本节落地。
+
 Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 
 | 字段 | 类型 | 说明 |

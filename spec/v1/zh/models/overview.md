@@ -52,6 +52,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
 | `cx:policy:` | Policy | access / encryption / retention / federation / moderation 等策略 | [governance-objects.md](./governance-objects.md) |
+| `cx:capability:` | Capability Definition | abstract capability definition reference（非签名 grant；签名 grant 用 `cx:grant:`）。真源见 [`id-kind-registry.json` `capability` 条目](../../artifacts/registry/id-kind-registry.json)。 | [governance-objects.md](./governance-objects.md) |
 | `cx:grant:` | Capability Grant | 授权委派 | [governance-objects.md](./governance-objects.md) |
 | `cx:invite:` | Invite | Realm 加入引导 | [governance-objects.md](./governance-objects.md) |
 | `cx.schema.*` | Schema | 标准对象 / Morph type / facet / event 的结构与约束 | [governance-objects.md](./governance-objects.md) |

@@ -1020,8 +1020,8 @@
       "payload": "Agent lifecycle transition to paused state (CXP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via cx.agent.resume.",
       "cell_family": "cx.component.agent.status.v1",
       "cell_subject": "payload.agent_principal_id",
-      "lattice": "lwwreg",
-      "bottom": "active"
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "cx.agent.resume",
@@ -1032,8 +1032,8 @@
       "payload": "Agent lifecycle transition from paused to active (CXP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
       "cell_family": "cx.component.agent.status.v1",
       "cell_subject": "payload.agent_principal_id",
-      "lattice": "lwwreg",
-      "bottom": "active"
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "cx.agent.deactivate",
@@ -1044,8 +1044,8 @@
       "payload": "Agent lifecycle terminal state (CXP-0008 §4.11). MUST fan-out cx.agent.key.revoke for all active agent keys, cx.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
       "cell_family": "cx.component.agent.status.v1",
       "cell_subject": "payload.agent_principal_id",
-      "lattice": "lwwreg",
-      "bottom": "active"
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "cx.agent.draft.propose",
@@ -1796,7 +1796,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Forced downgrade of audit_assurance from attested_hardware to disclosed_policy when the required cx.audit.epoch_key_destruction attestation is not produced within the deadline; rewrites Realm audit policy and triggers UI banner. Wire schema versioning expressed via `requirements.features`."
+      "payload": "Explicit downgrade of Realm audit_assurance from attested_hardware to disclosed_policy before future audit operations proceed. This event rewrites Realm audit policy and triggers the UI banner, but MUST NOT be accepted as delayed remediation for an Audit Agent remove batch that lacked the same-batch cx.audit.epoch_key_destruction attestation. Wire schema versioning expressed via `requirements.features`."
     }
   ]
 }

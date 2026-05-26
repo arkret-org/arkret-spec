@@ -10,6 +10,8 @@ updated: 2026-05-25
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
+> **Wire schema canonical source（informative）**: 当前 query / projection 请求体的 wire-level canonical schema 内联定义在 [`../../artifacts/openapi/contrix-service-api.openapi.yaml`](../../artifacts/openapi/contrix-service-api.openapi.yaml) line 1450–1537（`QueryRequest` / `ProjectionRequest` 等组件）；本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源。两侧字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` 等）若发生不一致，以 OpenAPI 内联 schema 为准。后续计划将该 schema 抽出为独立 `artifacts/schemas/query.schema.json` 并令 OpenAPI 改 `$ref` 引用,本文届时改引该 JSON Schema。
+
 ## 1. 目标
 
 本文定义 Contrix View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Realm policy、`allowed_tracks` action scope、E2EE 可见性与 capability。

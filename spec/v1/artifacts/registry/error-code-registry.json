@@ -1167,6 +1167,14 @@
       "description": "An approval signature carrying a (approver_did, nonce) tuple that was already consumed for the same grant_id / proposal_id was resubmitted. Approval signatures are single-use per-grant; reusing them is a cross-grant replay attempt. See zh/authz/constraint-schema.md §9.3."
     },
     {
+      "code": "approval_already_consumed",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An agent draft/action approval has already been consumed by a successful publish attempt. Replaying the same approval MUST fail closed instead of publishing twice. See zh/conformance/conformance-vectors.md and proposals/0008-personal-agent-provisioning.md."
+    },
+    {
       "code": "executed_by_missing",
       "applies_to": [
         "event_envelope",
@@ -1250,6 +1258,14 @@
       "description": "An Actor Profile update declares an `accountable_to[]` entry without a corresponding active `cx.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Deployment policy chooses between (a) reducer reject with this reason, or (b) silently strip the unverified entry from the resulting profile + emit audit log. See zh/models/actor.md §3.3.1."
     },
     {
+      "code": "verification_method_principal_mismatch",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "An agent runtime key-pairing request supplied a verification_method whose DID component does not bit-identically match agent_principal_id after stripping fragment/query. The endpoint MUST fail closed. See zh/identity/key-management.md §3.6.1."
+    },
+    {
       "code": "keypackage_welcome_envelope_mismatch",
       "applies_to": [
         "event_envelope",
@@ -1304,6 +1320,14 @@
         "state_resolution"
       ],
       "description": "Conflict-recovery witness's state_root does not contain (or contains a divergent value for) the recovery_capability cell referenced by the grant. See zh/authz/event-auth-state-resolution.md §8.1."
+    },
+    {
+      "code": "recovery_witness_revoke_lagging",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Conflict-recovery witness is older than the permitted freshness window, or local frontier has observed a revoke / supersede for the referenced recovery_capability after the witness frontier. Receivers MUST reject stale witness replay. See zh/authz/event-auth-state-resolution.md §8.1."
     },
     {
       "code": "challenge_proof_invalid",
@@ -1521,6 +1545,23 @@
         "service_call"
       ],
       "description": "Handle resolution returned a subject DID that does not match the expected applicant / member / invite subject. Clients and reducers MUST reject the candidate before building delivery_binding or join material. See zh/identity/identity-handles.md §3.7 and zh/conformance/conformance-vectors.md §8."
+    },
+    {
+      "code": "handle_homograph_forbidden",
+      "applies_to": [
+        "schema_validation",
+        "service_call"
+      ],
+      "description": "Handle registration or issuer conflict check failed wire-level NFC / UTS#39 confusable-skeleton / mixed-script constraints. Registries MUST reject instead of treating homograph variants as distinct identities. See zh/identity/identity-handles.md §17."
+    },
+    {
+      "code": "sidecar_create_denied",
+      "applies_to": [
+        "auth_decision",
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "Agent sidecar Circle creation was denied without revealing whether the derived short_name or target sidecar already exists. Returned as a generic failed_precondition sub-reason to avoid existence side channels. See zh/models/circle.md §11."
     },
     {
       "code": "artifact_rejected",
@@ -1959,6 +2000,14 @@
         "schema_validation"
       ],
       "description": "Sub-reason for schema_violation when actor-side submit payload illegally carries a top-level `effective_scope` field. `effective_scope` is the canonical reducer-output form (tagged {kind:realm|circle}); actors only supply `scope_circle_id` (id:circle | null). Reducer stamps the immutable tagged form on the Event envelope and materialized object cell. See zh/models/circle.md §6.2."
+    },
+    {
+      "code": "actor_kind_reducer_managed",
+      "applies_to": [
+        "schema_validation",
+        "event_envelope"
+      ],
+      "description": "Sub-reason for schema_violation when actor-side submit payload carries `actor_kind`. The reducer derives actor_kind immutably from actor_id's Actor Profile after acceptance; submitters MUST NOT supply it. See zh/models/event-and-patch.md §2.1."
     },
     {
       "code": "metadata_encryption_floor_violation",

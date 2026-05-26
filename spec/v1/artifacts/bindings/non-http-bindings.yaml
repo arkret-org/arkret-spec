@@ -144,8 +144,20 @@ grpc:
       Subscribe: cx.account.subscribe
       CursorRevoke: cx.account.cursor_revoke
       IssueSessionGrant: cx.account.issue_session_grant
+      AgentKeyPair: cx.account.agent_key_pair
       DevicePair: cx.account.device_pair
       OidcCallback: cx.account.oidc_callback
+    Agent:
+      Provision: cx.agent.provision
+      List: cx.agent.list
+      Get: cx.agent.get
+      Pause: cx.agent.pause
+      Resume: cx.agent.resume
+      Deactivate: cx.agent.deactivate
+      RotateKey: cx.agent.rotate_key
+      GrantAttach: cx.agent.grant.attach
+      GrantDetach: cx.agent.grant.detach
+      SidecarThreadEnsure: cx.agent.sidecar_thread.ensure
     Admin:
       GetServerStatus: cx.admin.get_server_status
       UpdateAccountStatus: cx.admin.update_account_status
@@ -180,6 +192,17 @@ mq:
     ephemeral.send: cx.ephemeral.send
     account.subscribe: cx.account.subscribe
     account.cursor_revoke: cx.account.cursor_revoke
+    account.agent_key_pair: cx.account.agent_key_pair
+    agent.provision: cx.agent.provision
+    agent.list: cx.agent.list
+    agent.get: cx.agent.get
+    agent.pause: cx.agent.pause
+    agent.resume: cx.agent.resume
+    agent.deactivate: cx.agent.deactivate
+    agent.rotate_key: cx.agent.rotate_key
+    agent.grant.attach: cx.agent.grant.attach
+    agent.grant.detach: cx.agent.grant.detach
+    agent.sidecar_thread.ensure: cx.agent.sidecar_thread.ensure
     directory.private_contact_discovery: cx.directory.private_contact_discovery
     directory.announce: cx.directory.announce
     directory.withdraw: cx.directory.withdraw

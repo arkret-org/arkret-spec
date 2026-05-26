@@ -88,7 +88,7 @@ DID Document SHOULD 只负责：
 
 常见组合如下。这里的"需要"表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建一个 Principal Server，其余基础设施可使用公共或托管服务。
 
-*Table 2-1. 服务角色与 REST namespace 对照（informative）。*
+*Table 2-1. 服务角色与 REST namespace 对照（informative）。namespace 一栏与 service-http-binding.md §2.1 重合，本表是 informative 视图，canonical 单一来源是 [service-http-binding.md §2.1](./service-http-binding.md)。*
 
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |

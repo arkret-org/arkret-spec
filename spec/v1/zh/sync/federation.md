@@ -418,7 +418,7 @@ Signature: ...
 Probe **MUST** 是 capability-gated：
 
 - 被 Realm service binding 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
-- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_until` 或 `retry_after_ms`，且服务端返回的最小退避窗口 MUST ≥ 60 秒（`cache_until - now >= 60s` 或 `retry_after_ms >= 60000`）；客户端在该时间前不得重复轮询同一 Realm，若收到低于 60 秒的值 MUST 按 60 秒处理。
+- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_until` 或 `retry_after_ms`，且服务端返回的最小退避窗口 MUST ≥ 60 秒（`cache_until - now >= 60s` 或 `retry_after_ms >= 60000`）；客户端在该时间前不得重复轮询同一 Realm，若收到低于 60 秒的值 MUST 按 60 秒处理。**侧信道告知**：`frontier_root` 摘要在多次轮询下可让观察者推断 Realm 活跃度时间序列（同一 hash 不变意味着无写入）。不接受该侧信道的部署 SHOULD 关闭 `peer_role=anonymous_health` 调用面，只保留 federation_peer 已认证路径。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
 
 Probe 响应 payload：
@@ -617,7 +617,7 @@ Authorization: <service_signature>
 跨域参与方查询某 Realm 成员视图时，使用 `cx.events.query` 并过滤 `kind=cx.member.state`：
 
 ```
-GET /api/v1/events?realms=<id>&kinds=cx.member.state&before=<cursor>&limit=<n>
+GET /api/v1/events?realms=<id>&kinds=cx.member.state&after=<cursor>&limit=<n>
 Authorization: <service_signature>
 ```
 
@@ -627,7 +627,8 @@ Authorization: <service_signature>
 | --- | --- | --- | --- | --- |
 | `realms` | query | `id[]` | required | 要查询成员的 Realm。 |
 | `kinds` | query | `string[]` | optional | 事件类型过滤；此处固定 `cx.member.state`。 |
-| `from` | query | `cursor` | optional | 分页 cursor。 |
+| `after` | query | `cursor` | optional | 分页 cursor（forward page）。与 [`api-conventions.md §6`](api-conventions.md) `after` / `before` 对齐；旧 `from=` 命名不在 federation 路径的 grandfather 范围内。 |
+| `before` | query | `cursor` | optional | 分页 cursor（reverse page），与 `after` 互斥。 |
 | `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
 
 响应字段：

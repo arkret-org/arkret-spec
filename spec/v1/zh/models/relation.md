@@ -104,6 +104,8 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 - 公共 Realm 引用私有 Realm 对象时，默认只能展示 opaque ref 或 Lazy Link；除非目标 Realm policy 明确允许 preview，不得泄露目标内容、成员、计数或存在性细节。
 - Sync / projection 层不得因为源 Realm 可见就自动 backfill 目标 Realm；跨 Realm 展开必须重新执行目标 Realm 授权，并在响应 metadata 中标记 `lazy_link`、`locked`、`accessible` 或等价可见性状态。
 
+**Raw Event API 边界（normative）**：源 Realm canonical event store MAY 保存完整 `from_ref` / `to_ref` 字段以维持签名、dedupe 与 reducer determinism，但 `cx.events.query` / `cx.events.subscribe` / backfill / federation fanout 不是无条件 byte dump。若目标 Realm policy 对当前 caller / peer 拒绝 reference disclosure，则这些读取 surface MUST 返回与 §4.5 `locked` projection 等价的 redacted event view（保留 event id、kind、realm_id、payload digest / redaction reason 等可验证 stub，隐藏 envelope payload 内的目标 `realm_id` / `to_ref` / preview 字段），或直接按目标 policy 返回不可区分的 `locked` stub；不得把 canonical bytes 直接 forward 给本地客户端。只有同时满足源 Realm `cx.event.read` 与目标 reference disclosure 的 caller 才可取得完整 canonical payload bytes。
+
 ### 4.3 授权拆分（两端 enforce 责任）
 
 | 授权检查类型 | 在哪一边 enforce | 原因 |
@@ -130,6 +132,8 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 ### 4.5 反枚举（normative）
 
 **存在性反枚举**：`locked` 降级状态与"目标 Realm 不存在 / 未发现"对外 MUST 不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 字段、相同 metadata 集合、相同 timing 类（差距 ≤ 50ms）、相同 error 字符串。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。
+
+读取实现 MUST 对 projection caller、raw event caller、backfill consumer 与 federation peer 使用同一 reference-disclosure 决策。对 peer 传输 canonical bytes 仅在 peer 本身被授权接收完整 payload 且承诺对其本地 caller 继续执行本节 masking 时允许；否则发送方 MUST 只传 redacted event view / locked stub。签名验证工具需要证明原始事件存在时，服务端 MAY 返回 `payload_digest`、inclusion proof 与 redaction reason，但不得返回被 target policy 禁止的 target ref 明文字段。
 
 ## 5. RelationProfile
 

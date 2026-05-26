@@ -81,7 +81,30 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `space_kind_allow` 约�
 
 List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`relation_kind_allow` 或对应 flow move payload 字段。
 
-### 2.2 Flow track 选择
+### 2.2 Circle 选择
+
+Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_refs` constraint 或具体 `circle_id` 限制 Circle-scoped 管理 grant。Circle selector 只表达密码学子边界对象本身；它不会替代 Circle membership、history visibility、MLS epoch eligibility 或 `cx.audit.accessed` 配对要求。
+
+```json
+{
+  "resources": [
+    {
+      "kind": "circle",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "circle_id": "cx:circle:019640d0-0000-7000-8000-000000000000"
+    }
+  ],
+  "constraints": [
+    {
+      "constraint_type": "type_restriction",
+      "effect": "allow",
+      "allowed_circle_refs": ["cx:circle:019640d0-0000-7000-8000-000000000000"]
+    }
+  ]
+}
+```
+
+### 2.3 Flow track 选择
 
 Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用 `allowed_tracks` 限制 track 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
 
@@ -125,6 +148,7 @@ conjunction          ::= selector_term ("+" selector_term)*
 selector_term        ::= wildcard_selector
                       | realm_selector
                       | space_selector
+                      | circle_selector
                       | flow_selector
                       | message_selector
                       | morph_selector
@@ -145,6 +169,8 @@ wildcard_selector    ::= "*"
 realm_selector       ::= "realm" ":" (realm_id | "*")
 
 space_selector       ::= "space" ":" (space_id | "*")
+
+circle_selector      ::= "circle" ":" realm_part ":" (circle_id | "*")
 
 flow_selector        ::= "flow" ":" realm_part ":" (flow_id | "*")
 
@@ -184,6 +210,7 @@ flow_part            ::= flow_id | "*"
 
 - `realm_id`：`cx:realm:` 后接 UUIDv7。
 - `space_id`：`cx:space:` 后接 UUIDv7。
+- `circle_id`：`cx:circle:` 后接 UUIDv7。
 - `flow_id`：`cx:flow:` 后接 UUIDv7。
 - `message_id`：`cx:message:` 后接 UUIDv7。
 - `morph_id`：`cx:morph:` 后接 UUIDv7。
@@ -217,6 +244,7 @@ flow_part            ::= flow_id | "*"
 | `requires_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限。|
 | `requires_claims[].subjects[]` / DID 列表长度 | 16 项 | 任一 claim object 内按 DID / subject 列表约束展开的对象数量。|
 | Constraint object 内嵌套层级 | 4 层 | approval / claim object 内部最多 4 层嵌套。|
+| Selector JSON canonical form 总 byte | 64 KiB | 即便所有单项上限均未触发，整个 JSON canonical form 序列化后的 byte 总长仍 MUST ≤ 64 KiB（与 [`../conformance/encoding.md §8.6`](../conformance/encoding.md) cursor opaque payload 上限一致）；超过即 `selector_too_complex`，防止以 256 × 1024 byte selector_term 合法堆叠为 DoS 面。|
 
 实现 MUST 在解析入口先验证 byte-size 与 token-count 上限，再做语法解析；不得让恶意输入进入 EBNF 递归下降。`selector_too_complex` error 必须独立于 `invalid_param`，以便审计层将疑似 DoS 攻击与普通格式错误区分。
 
