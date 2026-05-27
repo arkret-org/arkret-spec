@@ -149,6 +149,21 @@
         "summary": {
           "type": "object"
         },
+        "members": {
+          "type": "array",
+          "description": "Lightweight roster hint derived from effective cx.member.state plus effective cx.member.identity.update references. Entries MUST NOT carry raw handle or display fields directly.",
+          "items": {
+            "$ref": "#/$defs/member_roster_entry"
+          }
+        },
+        "members_limited": {
+          "type": "boolean",
+          "description": "True when members[] is truncated and MUST NOT be treated as the complete Realm roster."
+        },
+        "members_next_cursor": {
+          "$ref": "#/$defs/cursor_value",
+          "description": "Optional pagination cursor for continuing member roster retrieval."
+        },
         "unread_notifications": {
           "type": "object"
         },
@@ -216,6 +231,48 @@
         }
       },
       "additionalProperties": true
+    },
+    "member_roster_entry": {
+      "type": "object",
+      "required": [
+        "actor_id",
+        "membership"
+      ],
+      "properties": {
+        "actor_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+        },
+        "membership": {
+          "type": "string",
+          "enum": [
+            "join",
+            "invite",
+            "knock"
+          ]
+        },
+        "identity_event_ids": {
+          "type": "array",
+          "description": "Effective cx.member.identity.update event ids for this actor after replacement refs are applied.",
+          "items": {
+            "type": "string",
+            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "uniqueItems": true
+        },
+        "identity_state_digest": {
+          "type": "string",
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+        },
+        "identity_events": {
+          "type": "array",
+          "description": "Optional inline effective cx.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites.",
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "data_or_control_payload_present": {
       "anyOf": [

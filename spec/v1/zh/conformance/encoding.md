@@ -51,7 +51,7 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` �
 | 字段 | NFC（必）| NFKC + case fold（比较时）| Confusable 拒绝 |
 | --- | --- | --- | --- |
 | DID URI | ✓ | ✓ | ✓（method-specific identifier 部分）|
-| Handle（`handle_uri` / display form） | ✓ | ✓ | ✓ |
+| Handle（canonical `handle` / display form） | ✓ | ✓ | ✓ |
 | Connection identifier（email / phone canonical 形态） | ✓ | ✓ | ✓（local part）|
 | Organization name | ✓ | ✓ | ✓ |
 | Display name | ✓ | ✓ | 仅 SHOULD（默认开启 confusable warning，用户 opt-out）|

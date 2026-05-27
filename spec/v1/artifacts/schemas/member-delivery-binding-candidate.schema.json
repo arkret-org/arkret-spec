@@ -6,7 +6,7 @@
   "type": "object",
   "required": [
     "subject_id",
-    "handle_uri",
+    "handle",
     "member_delivery_binding",
     "issuer_service_did",
     "audience",
@@ -22,10 +22,10 @@
       "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in cx.member.state{membership=join}."
     },
-    "handle_uri": {
+    "handle": {
       "type": "string",
-      "pattern": "^contrix://[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?/users/[a-z0-9._+~-]{1,128}$",
-      "description": "Canonical contrix:// handle URI; lowercase localpart. acct:, bare host, or display strings are rejected here."
+      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "description": "Contrix canonical handle string: <localpart>:<domain>. acct: aliases and @ mention spelling are rejected here."
     },
     "handle_aliases": {
       "type": "array",
@@ -124,7 +124,7 @@
         "$ref": "./event-schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "At least one proof binding handle_uri, subject_id, member_delivery_binding.recipient_service_did, audience, issuer_service_did, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
+      "description": "At least one proof binding handle, subject_id, member_delivery_binding.recipient_service_did, audience, issuer_service_did, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
     },
     "claim_digest": {
       "type": "string",

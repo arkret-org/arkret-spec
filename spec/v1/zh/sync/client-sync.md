@@ -196,6 +196,9 @@ Account subscribe `delta` frame 包含以下 stream：
     "invited_member_count": 1,
     "heroes": ["did:webvh:..."]
   },
+  "members": [],
+  "members_limited": true,
+  "members_next_cursor": "cx:cursor:<opaque-valid-stream-cursor>",
   "unread_notifications": {
     "notification_count": 3,
     "highlight_count": 1
@@ -324,8 +327,142 @@ event_id ASC
 当 `lazy_load_members=true`：
 
 - 服务器 SHOULD 只返回 timeline 中 sender、被 mention actor、membership changed actor 和 required_state 指定 actor 的 `cx.member.state`。
-- 客户端遇到未知 actor 时 MAY 调用 profile/directory API 补全。
+- 客户端遇到未知 actor 时 MAY 通过 `cx.events.query` 补拉当前 effective `cx.member.state` / `cx.member.identity.update` events，或按 Directory policy 解析 handle 候选。
 - 如果 `include_redundant_members=false`，服务器 SHOULD 避免重复发送客户端已知且未变化的 member state。
+
+### 8.1 Member Roster and Identity Replacement
+
+`state.events` 中的 `cx.member.state` 是成员资格的权威真相源；它由 reducer 决策，携带完整 `actor_id`、`membership`、`delivery_binding`、proof refs 等字段。客户端按 anchor view + Lattice cell value 解释这些事件。
+
+为给客户端列表视图（成员侧栏、participant 标识、@mention 自动补全初始集）提供一份轻量 roster，服务端 MAY 在每个 Realm 响应里附带 `members[]` 字段。`members[]` 是 `cx.member.state` cell 的派生 hint，不参与 state hash / frontier 计算，也不替代逐事件验证。`members[]` MUST 只表达成员状态和当前有效的成员身份事件引用；它 MUST NOT 把 handle / display name 直接作为 roster 字段回填。
+
+成员展示信息统一来自 `cx.member.identity.update` 事件集合。该 kind 不是 `cx.profile.update` 的字段级 delta；它是 append-only 的 **segment replacement event**：新事件通过 `payload.replaces[]` 明确声明自己替代哪些旧身份事件。旧事件仍然保留在历史中，只是不再进入当前 profile projection。
+
+```json
+{
+  "members": [
+    {
+      "actor_id": "did:key:z6MkRealmPairwise...",
+      "membership": "join",
+      "identity_event_ids": [
+        "cx:event:0196419b-0000-7000-8000-000000000001"
+      ],
+      "identity_state_digest": "sha256:..."
+    }
+  ],
+  "members_limited": false
+}
+```
+
+`members[]` entry 字段规范：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `actor_id` | DID | MUST | 等于当前 effective `cx.member.state` cell subject / `payload.actor_id`。高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；真实 principal 的披露由当前 effective `cx.member.identity.update` events 决定。 |
+| `membership` | enum | MUST | 当前 effective membership，取 `join` / `invite` / `knock`。leave / ban 不进入 roster。 |
+| `identity_event_ids` | event id array | MAY | 当前 effective `cx.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
+| `identity_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序。用于缓存失效和重复响应去重。 |
+| `identity_events` | Event array | MAY | 可选内联的原始 `cx.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。 |
+
+`cx.member.identity.update` payload 形态：
+
+```json
+{
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "actor_id": "did:key:z6MkRealmPairwise...",
+  "segment": "member_identity",
+  "replaces": [
+    {
+      "event_id": "cx:event:0196419a-0000-7000-8000-000000000001",
+      "payload_digest": "sha256:..."
+    }
+  ],
+  "identity_payload": {
+    "encrypted_payload": {
+      "scheme": "mls-rfc9420",
+      "version": "1.0",
+      "group_id": "base64url",
+      "epoch": 12,
+      "content_type": "application/vnd.contrix.member-identity+json",
+      "ciphertext": "base64url",
+      "aad_visibility_event_id": "routing_digest",
+      "aad": {
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "event_kind": "cx.member.identity.update",
+        "event_ref_digest": "sha256:..."
+      },
+      "key_ref": {
+        "algorithm": "MLS",
+        "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
+      },
+      "payload_digest": "sha256:...",
+      "aad_digest": "sha256:..."
+    }
+  },
+  "identity_state_digest": "sha256:...",
+  "expected_state_digest": "sha256:..."
+}
+```
+
+当前 effective 身份事件集合的计算规则：
+
+- 候选集是同一 `(realm_id, actor_id, segment)` 下 accepted 的 `cx.member.identity.update` events。
+- `payload.replaces[].payload_digest` 是被替代事件完整 `payload.identity_payload` carrier wrapper（`{member_identity: ...}` 或 `{encrypted_payload: ...}`）的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest。
+- 若 accepted event `B` 的 `replaces[]` 引用 accepted event `A`，且 `payload_digest` 等于 `A.payload.identity_payload` 的 digest，则 `A` 在当前 projection 中被 `B` 替代。
+- `replaces[]` 引用未知 event、其它 `(realm_id, actor_id, segment)` 的 event，或 digest 不匹配时，该 replacement edge 无效；实现 MUST NOT 因此把被引用 event 从 effective set 移除。
+- 当前 effective set 是候选集中未被有效 replacement edge 指向的事件集合。成员身份查询 / roster hint SHOULD 只返回这个 effective set；历史 backfill / audit 查询 MAY 返回已被替代的旧事件。
+- `expected_state_digest` 是可选 optimistic concurrency guard。若存在，它 MUST 等于 writer 观察到的同一 `(realm_id, actor_id, segment)` 当前 effective set 的 `identity_state_digest`；不匹配时服务端 / reducer MUST reject 或 quarantine，不得把该事件作为有效 replacement 应用。
+
+MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `encrypted_payload.ciphertext` 解密结果）：
+
+```json
+{
+  "schema": "cx.schema.member_identity.v1",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "actor_id": "did:key:z6MkRealmPairwise...",
+  "subject_id": "did:webvh:zQmPr8...",
+  "primary_handle": "alice:acme.example",
+  "handles": [
+    {
+      "handle": "alice:acme.example",
+      "verified": true,
+      "issuer": "did:web:acme.example",
+      "claim_digest": "sha256:...",
+      "issued_at": "2026-05-27T00:00:00Z",
+      "expires_at": "2026-06-27T00:00:00Z"
+    }
+  ],
+  "display_profile": {
+    "display_name": "Alice Zhang",
+    "avatar_ref": "cx:blob:sha256:..."
+  },
+  "asserted_at": "2026-05-27T00:00:00Z",
+  "expires_at": "2026-06-27T00:00:00Z",
+  "proof": {
+    "verification_method": "did:webvh:zQmPr8...#key-1",
+    "signature_algorithm": "Ed25519",
+    "payload_digest": "sha256:...",
+    "signature": "base64url..."
+  }
+}
+```
+
+MemberIdentity replacement 规则：
+
+- v1 core 只定义 `segment="member_identity"`，因此每次替代旧身份事件时，新事件的 `identity_payload` MUST 携带完整 MemberIdentity。用户只修改 display name 时，客户端也必须读取本地当前 effective MemberIdentity，应用本地修改后重新封装完整对象；不得只发送 `{display_name: ...}`。
+- 更窄且互不重叠的 segment（例如 `display_profile` / `handles`）需要后续 schema / profile revision 扩展 `segment` 枚举或定义新的 payload schema；v1 receiver MUST reject unknown segment values。扩展后的每个 segment 内仍然是完整替换：如果一个新事件替代某个旧 segment event，它必须包含该 segment 的所有数据，即使本次只改变其中一个字段。
+- `handles[].handle` 是 canonical handle string，例如 `alice:acme.example`；`@alice:acme.example` 的 `@` 是 mention/UI sigil，不属于 handle。`alice@acme.example` 只可作为输入别名，normalize 后不得进入签名 transcript、claim、cache key 或 MemberIdentity。
+- `primary_handle` 是当前 Realm 上默认展示 handle。一个 `subject_id` MAY 拥有多个 verified handles，但同一 Realm 的默认展示 MUST 选定一个 primary handle 或省略。
+- handle、display name 和 avatar 只用于 UI / mention / member picker，不得用于 grant subject、actor 归因、membership key、delivery 决策或 audit attribution。
+- `cx.profile.update` 继续表示 principal-scoped actor profile 的字段级 delta；`cx.profile.space_override` 继续表示 Realm-scoped profile override。二者 MAY 作为客户端构造 MemberIdentity 的输入，但 roster / participant display 的统一 wire source 是当前 effective `cx.member.identity.update` set。
+- `identity_payload.encrypted_payload` MUST 复用 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)。明文 MemberIdentity 是 `ciphertext` 解密结果；`content_type` SHOULD 使用 `application/vnd.contrix.member-identity+json`。
+- 加密 MemberIdentity MUST 由成员设备或被 Realm policy 授权的身份 issuer 设备生成。Sync / Principal / Federation Service MUST 存储和返回原始 encrypted payload 或其事件引用，不得因客户端查询而重加密、重封包或推进 MLS sender generation。
+- 客户端解密时按 `group_id`、`epoch` 和 `key_ref.group_state_ref` 查找本地 MLS group state；缺少 epoch 时按 §15 标记 `decryption_pending` 并补拉 `cx.mls.*` state / Welcome / winning Commit / 授权 history key material。
+- 客户端 MUST 验证 MemberIdentity 的 `realm_id`、`actor_id`、`subject_id`、`proof.payload_digest`、签名链、handle claim digest / expiry 和 Realm disclosure policy；`proof.payload_digest` MUST 等于移除顶层 `proof` 字段后的 MemberIdentity 对象的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest，签名也 MUST 覆盖同一 canonical bytes。任一失败时不得把该 event 提升为 verified display identity。
+
+`lazy_load_members=true` 时，服务端 MAY 截断 `members[]` 为 timeline 涉及的 actor + `summary.heroes` 子集，但此时 MUST 设置 `members_limited=true`，并 SHOULD 提供 `members_next_cursor` 或等价分页提示。客户端看到 `members_limited=true` MUST NOT 把 `members[]` 当作完整成员列表。`members[]` 的去重键是 `actor_id`；同一 `actor_id` 出现多次时客户端 MUST 保留首条并忽略后续。
+
+`summary` 中的 `heroes` 与本节 `members[]` 互补：`heroes` 是当成员数超过显示阈值时挑选的少量代表性 DID（与 Matrix 行为兼容），`members[]` 是当前响应内可投影的 roster 条目集合；完整性由 `members_limited` / pagination 明确表达。
 
 ## 9. Account Data and Private State
 

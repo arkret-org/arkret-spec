@@ -560,6 +560,25 @@
       "bottom": "reject"
     },
     {
+      "event_kind": "cx.member.identity.update",
+      "category": "membership",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior cx.member.identity.update events via payload.replaces[] without overloading cx.profile.update patch semantics.",
+      "cell_family": "cx.component.member.identity.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.realm_id",
+          "payload.actor_id",
+          "payload.segment"
+        ]
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
+    },
+    {
       "event_kind": "cx.flow.create",
       "category": "flow",
       "status": "active",

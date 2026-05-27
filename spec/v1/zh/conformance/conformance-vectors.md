@@ -1956,15 +1956,13 @@ Directory 返回 verified handle claim：
 {
   "did": "did:webvh:QmAlice:users.acme.example",
   "subject": "did:webvh:QmAlice:users.acme.example",
-  "handle": "@alice:acme.example",
-  "handle_uri": "contrix://acme.example/users/alice",
+  "handle": "alice:acme.example",
   "handle_aliases": ["acct:alice@acme.example"],
   "verified": true,
   "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "claims": [{
     "claim_type": "organization_handle",
-    "handle": "@alice:acme.example",
-    "handle_uri": "contrix://acme.example/users/alice",
+    "handle": "alice:acme.example",
     "handle_aliases": ["acct:alice@acme.example"],
     "subject": "did:webvh:QmAlice:users.acme.example",
     "issuer": "did:web:acme.example",

@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/member-identity.schema.json",
+  "title": "Contrix Member Identity",
+  "description": "Realm-scoped, actor-scoped full member_identity segment. It is carried by cx.member.identity.update in plaintext or inside encrypted-envelope.schema.json. Replacement events that name segment=member_identity MUST carry this complete object.",
+  "type": "object",
+  "required": [
+    "schema",
+    "realm_id",
+    "actor_id",
+    "subject_id",
+    "display_profile",
+    "asserted_at",
+    "proof"
+  ],
+  "properties": {
+    "schema": {
+      "const": "cx.schema.member_identity.v1"
+    },
+    "realm_id": {
+      "$ref": "#/$defs/realm_id"
+    },
+    "actor_id": {
+      "$ref": "#/$defs/did",
+      "description": "Effective member actor DID in this Realm. MAY be a Realm-scoped pairwise DID."
+    },
+    "subject_id": {
+      "$ref": "#/$defs/did",
+      "description": "Principal DID or disclosed holder DID represented by actor_id for display purposes. Authorization and audit continue to use the Event actor and member state."
+    },
+    "primary_handle": {
+      "$ref": "#/$defs/handle"
+    },
+    "handles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/verified_handle"
+      },
+      "uniqueItems": true
+    },
+    "display_profile": {
+      "type": "object",
+      "required": [
+        "display_name"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "avatar_ref": {
+          "type": "string",
+          "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "asserted_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "proof": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signature_algorithm",
+        "payload_digest",
+        "signature"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$"
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ES256",
+            "ES384"
+          ]
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "sha256 over RFC 8785 JCS canonical JSON of this MemberIdentity object with the top-level proof field excluded. The signature MUST cover the same canonical bytes."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "handle": {
+      "type": "string",
+      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "description": "Contrix canonical handle string: <localpart>:<domain>. The @ mention sigil is not part of the handle."
+    },
+    "verified_handle": {
+      "type": "object",
+      "required": [
+        "handle",
+        "verified",
+        "issuer",
+        "claim_digest",
+        "issued_at",
+        "expires_at"
+      ],
+      "properties": {
+        "handle": {
+          "$ref": "#/$defs/handle"
+        },
+        "verified": {
+          "const": true
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "issuer_service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "audience": {
+          "type": "string"
+        },
+        "claim_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the cx.schema.handle_claim.v1 evidence this compact projection refers to."
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "uniqueItems": true
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

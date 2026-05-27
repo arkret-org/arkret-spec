@@ -308,6 +308,7 @@
               "cx.invite.create",
               "cx.invite.revoke",
               "cx.invite.third_party",
+              "cx.member.identity.update",
               "cx.member.state",
               "cx.message.create",
               "cx.message.redact",
@@ -545,6 +546,15 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/membership_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.member.identity.update" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/member_identity_update_payload" } }
       }
     },
     {

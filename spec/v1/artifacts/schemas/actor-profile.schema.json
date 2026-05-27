@@ -45,7 +45,9 @@
       "maxLength": 128
     },
     "handle": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "description": "Contrix canonical handle string: <localpart>:<domain>. The @ mention sigil is not part of the handle."
     },
     "avatar_blob_ref": {
       "type": "string",

@@ -1560,6 +1560,90 @@
         }
       ]
     },
+    "member_identity_update_payload": {
+      "type": "object",
+      "description": "Payload for cx.member.identity.update. Append-only replacement event for one Realm-scoped member identity segment. Service-visible metadata names the segment and the prior events it replaces; the segment body is plaintext or the original encrypted envelope and MUST contain the complete data for that segment.",
+      "required": [
+        "realm_id",
+        "actor_id",
+        "segment",
+        "identity_payload"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "segment": {
+          "type": "string",
+          "enum": [
+            "member_identity"
+          ],
+          "description": "v1 core defines a single full MemberIdentity segment. Narrower segments require a future schema/profile revision that extends this enum or defines a new payload schema; v1 receivers MUST reject unknown segment values."
+        },
+        "replaces": {
+          "type": "array",
+          "description": "Prior cx.member.identity.update events in the same (realm_id, actor_id, segment) that this event supersedes for current profile projection. Referenced events remain immutable history.",
+          "items": {
+            "type": "object",
+            "required": [
+              "event_id",
+              "payload_digest"
+            ],
+            "properties": {
+              "event_id": {
+                "$ref": "#/$defs/event_ref"
+              },
+              "payload_digest": {
+                "$ref": "#/$defs/hash",
+                "description": "sha256 over RFC 8785 JCS canonical JSON of the replaced event's full payload.identity_payload carrier wrapper ({member_identity: ...} or {encrypted_payload: ...}). Prevents replacing a different payload under a reused or confused event id."
+              }
+            },
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "identity_payload": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "member_identity"
+              ],
+              "properties": {
+                "member_identity": {
+                  "$ref": "./member-identity.schema.json"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "encrypted_payload"
+              ],
+              "properties": {
+                "encrypted_payload": {
+                  "$ref": "#/$defs/encrypted_payload"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "identity_state_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "sha256 over RFC 8785 JCS canonical JSON of the exact identity_payload carrier object. It is a cache invalidation key, not a substitute for signature or MLS verification."
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, actor_id, segment). When present, it MUST equal the identity_state_digest of the effective set observed by the writer before applying this event."
+        }
+      },
+      "additionalProperties": false
+    },
     "plaintext_visible_services_payload": {
       "type": "object",
       "required": [

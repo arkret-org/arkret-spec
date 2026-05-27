@@ -214,7 +214,7 @@ Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `resource_kind` | `enum(actor,applet,handle)` | required | 必须与 Event kind 后缀一致。 |
-| `resource_id` | `did` / handle URI / applet id | required | 被发现资源的稳定标识。 |
+| `resource_id` | `did` / canonical handle / applet id | required | 被发现资源的稳定标识。 |
 | `discoverability` | §2 enum | required | `public` / `listed` / `restricted` / `unlisted` / `invite_only` / `secret`。 |
 | `directory_services` | `did[]` | required | 被允许索引该资源的 Directory service DID 列表。 |
 | `profile_visibility` | `object` | optional | 每个预览字段的可见性；未列字段默认不披露。 |
@@ -596,7 +596,7 @@ POST /api/v1/directory/push/register
 | `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
 | `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
 | `cx.directory.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)` | `results: object[]` | mention autocomplete；受共同 Realm / directory policy 限制。结果 MAY 含 handle preview，但不得在未授权时披露 `subject` DID 或 `member_delivery_binding`。`query` 不得进入 URL、Referer 或未脱敏 access log。 |
-| `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `handle_uri: uri`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回。 |
+| `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；响应 `handle` 是 canonical `user:domain`；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回。 |
 | `cx.directory.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `cx.directory.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
 | `cx.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdraw_id: id`; `acked_at: timestamp` | 见 §8.7。 |
@@ -604,14 +604,14 @@ POST /api/v1/directory/push/register
 
 ### 9.0 Handle 解析（normative）
 
-Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`contrix://acme.example/users/alice` 或 `acct:alice@acme.example` 这类 handle 输入。解析结果是**寻址证据**，不是成员资格、grant 或投递授权本身。
+Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 这类 handle 输入。解析结果是**寻址证据**，不是成员资格、grant 或投递授权本身。
 
 当 `intent ∈ {invite, member_add}` 且 Directory 返回 `member_delivery_binding` 时，响应 MUST 满足：
 
 1. `subject` / `did` 是被寻址主体的 principal DID；两者同时出现时 MUST byte-for-byte 相同。
-2. `handle_uri` 是 canonical URI（`contrix://<domain>/users/<localpart>` 主形态）；UI 字符串不得作为验签输入。
+2. `handle` 是 canonical handle（`<localpart>:<domain>` 主形态）；UI 字符串不得作为验签输入。
 3. `member_delivery_binding.recipient_service_did` 是 Principal Server service DID，且 claim issuer 对该 service DID 的使用有可验证授权。
-4. `claims[]` 至少包含一个可验证 handle claim、VC presentation 或 signed directory claim，绑定 `handle_uri`、`subject`、`member_delivery_binding.recipient_service_did`、issuer、`audience`、`created_at`、`expires_at`。
+4. `claims[]` 至少包含一个可验证 handle claim、VC presentation 或 signed directory claim，绑定 `handle`、`subject`、`member_delivery_binding.recipient_service_did`、issuer、`audience`、`created_at`、`expires_at`。
 5. claim `audience` MUST 等于请求中 `realm_id` 或邀请方 service DID 之一；不一致 MUST 返回与"无可披露 claim"不可区分的统一拒绝。
 6. `member_delivery_binding` 只能作为构造 `cx.member.state{membership="join"}.delivery_binding` 的输入；`member_delivery_binding.binding_source` 不得是 `did_document_default`；接收方 reducer 仍 MUST 按 Join Policy 独立验证。
 
@@ -619,7 +619,7 @@ Directory MUST NOT：
 
 - 因为某个 Principal Server 本地存在账号就直接披露 `member_delivery_binding.recipient_service_did`。
 - 向无权请求方泄露组织内部 handle 与 DID / service DID 的映射。
-- 把 handle 解析结果缓存为全局 actor routing；缓存必须绑定 `handle_uri`、claim digest、audience / scope、requester policy 与 expiry。
+- 把 handle 解析结果缓存为全局 actor routing；缓存必须绑定 `handle`、claim digest、audience / scope、requester policy 与 expiry。
 - 执行 join、签发 invite token 或授予 Realm capability；Directory 只返回可验证寻址证据。
 
 ### 9.1 通用结果字段（normative）

@@ -19,12 +19,8 @@
     },
     "handle": {
       "type": "string",
-      "minLength": 3
-    },
-    "handle_uri": {
-      "type": "string",
-      "pattern": "^contrix://[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?/users/[a-z0-9._+~-]{1,128}$",
-      "description": "Contrix-native canonical handle URI. Form is always contrix://<domain>(:<port>)?/users/<localpart>, with lowercase localpart. Self-hosted single-user deployments use the same shape; there is no bare-host or acct: canonical variant."
+      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "description": "Contrix canonical handle string: <localpart>:<domain>. The @ mention sigil and acct: alias are not part of this field."
     },
     "handle_aliases": {
       "type": "array",
@@ -33,7 +29,7 @@
         "pattern": "^acct:[a-z0-9._+~-]{1,128}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?$"
       },
       "uniqueItems": true,
-      "description": "Interop aliases such as RFC 7565 acct:. Aliases are never canonical; verifiers MUST normalize to handle_uri before alsoKnownAs comparison, cache lookup, or delivery_binding construction."
+      "description": "Interop aliases such as RFC 7565 acct:. Aliases are never canonical; verifiers MUST normalize to handle before cache lookup, proof comparison, or delivery_binding construction."
     },
     "subject": {
       "type": "string",
@@ -191,7 +187,7 @@
       },
       "then": {
         "required": [
-          "handle_uri",
+          "handle",
           "expires_at"
         ]
       }
@@ -202,7 +198,7 @@
       },
       "then": {
         "required": [
-          "handle_uri",
+          "handle",
           "audience",
           "expires_at"
         ]

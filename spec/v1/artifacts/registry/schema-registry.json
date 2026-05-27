@@ -163,6 +163,12 @@
       "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain."
     },
     {
+      "schema_id": "cx.schema.member_identity.v1",
+      "file": "schemas/member-identity.schema.json",
+      "status": "active",
+      "description": "Realm-scoped member display identity snapshot carried by cx.member.identity.update."
+    },
+    {
       "schema_id": "cx.schema.handle_claim.v1",
       "file": "schemas/handle-claim.schema.json"
     },

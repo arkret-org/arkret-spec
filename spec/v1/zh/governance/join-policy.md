@@ -243,13 +243,13 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 
 ##### 5.1.2.1 Handle 作为成员添加输入
 
-客户端 MAY 允许邀请方输入 `@alice:acme.example`、`alice@acme.example`、`contrix://acme.example/users/alice` 或 `acct:alice@acme.example` 来添加成员。该字符串只是 builder 输入，不是 membership 主键。
+客户端 MAY 允许邀请方输入 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 来添加成员。该字符串只是 builder 输入，不是 membership 主键。
 
 构造 `cx.member.state{membership="join"}` 前，客户端 / 提交服务 MUST：
 
-1. 按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle_uri`（主形态为 `contrix://<domain>/users/<localpart>`）。
+1. 按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`（主形态为 `<localpart>:<domain>`）。
 2. 调用 `cx.directory.resolve_handle` 或等价 Principal Server / Organization Directory 解析，带上 `intent="member_add"`、目标 `realm_id`、`requester` 和 challenge。
-3. 验证响应中的 handle claim / presentation 绑定 `handle_uri`、`subject` DID、`member_delivery_binding.recipient_service_did`、issuer、`expires_at`、撤销状态，以及 `audience`：claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
+3. 验证响应中的 handle claim / presentation 绑定 `handle`、`subject` DID、`member_delivery_binding.recipient_service_did`、issuer、`expires_at`、撤销状态，以及 `audience`：claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
 4. 生成 member Move 时使用 `payload.actor_id = subject`；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
 5. 若解析结果携带 `member_delivery_binding`，将其物化为 `payload.delivery_binding`，并按 Realm `cx.realm.delivery_binding_policy` 选择 `binding_source`：
    - 若 invite token / signed candidate 内嵌 binding，优先使用 `invite`，并携带 `service_acceptance_ref`；
