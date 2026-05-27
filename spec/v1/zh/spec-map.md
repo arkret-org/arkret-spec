@@ -255,5 +255,5 @@ see_also:
 - 改变身份、DID、handle、claim 的内容，放入身份与隐私组。
 - 改变共享状态有效性的内容，放入授权、治理与状态组。
 - 改变服务 API 或 transport 的内容，放入同步、服务与联邦组。
-- 新业务能力优先做 profile，例如 agent、applet、webrtc。
+- 新业务能力优先做 profile，例如 Agent、Applet、WebRTC。
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。

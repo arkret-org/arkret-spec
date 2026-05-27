@@ -295,7 +295,7 @@ SHOULD 支持：
 - `cx.account.issue_session_grant` 规范化 HTTP binding
 - `cx.policy.check`（v2 PolicyCheckResponse）
 - 多 principal-server delegation target 配置
-- did binding / claim attestation
+- DID binding / claim attestation
 
 Auth Server MUST NOT 声明 `cx.profile.identity_registry.v1`、`cx.profile.principal_server.v1` 或 `cx.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `compat_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
 
