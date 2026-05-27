@@ -16,7 +16,7 @@ Contrix 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不支持某种内容类型的客户端能通过 `fallback_text` 优雅降级
-- E2EE 场景下加密信封只包裹 `content` / `body` / `attachments` 等业务内容，不影响路由元数据
+- E2EE 场景下加密信封 (`encrypted_payload`) 只包裹 Message 顶层的 `content`（即整个 Content Block 对象，包括其内部的 `body` 字段）和 `attachments` 等业务字段，`flow_id` / `created_by` 等路由与归因 metadata 保持明文
 
 ## 2. 设计原则
 
@@ -31,7 +31,33 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 - `body`：人类可读的纯文本摘要 / fallback
 - 类型相关的专有字段
 
-`cx.message.create` / `cx.message.revise` 的未加密 Event payload MUST 将这个对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_payload`。`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
+Message envelope 与 Content Block 的层级关系大致如下（Message 顶层完整 schema 见 [`flow-and-message.md` §9.2](./flow-and-message.md#92-schema-与字段)，本文件后续章节只讨论 `content` 内部结构）：
+
+```json
+{
+  // —— Message 顶层：路由 / 时序 / 归因 metadata，明文，参与权限与同步 ——
+  "id": "cx:message:...",
+  "realm_id": "cx:realm:...",
+  "flow_id": "cx:flow:...",
+  "track": "discussion",
+  "state": "active",
+  "created_by": "did:web:alice.example",
+  "created_at": "2026-04-26T00:00:00Z",
+
+  // —— 业务正文：未加密时 `content` 直接是一个 Content Block ——
+  "content": {
+    "kind": "cx.content.text",
+    "body": "纯文本 fallback",
+    "format": "markdown",
+    "formatted_body": "..."
+  }
+  // E2EE 场景下用顶层 `encrypted_payload` 替换 `content`，envelope 内加密的就是同一个 Content Block 对象。
+}
+```
+
+因此本文档示例里的 `kind` / `body` / `format` 等字段都是 **Content Block 内部字段**，位于 Message `content` 之下；不要与 Message 顶层字段混在一层理解。
+
+`cx.message.create` / `cx.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_payload`。`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
 
 ### 2.3 复合消息使用 `composite` 类型
 
@@ -216,7 +242,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ### 4.9 投票消息 `cx.content.poll`
 
-根据去中心化协作需求（参考 MSC3381），投票也是一种标准内容块：
+根据去中心化协作需求，投票也是一种标准内容块：
 
 ```json
 {
