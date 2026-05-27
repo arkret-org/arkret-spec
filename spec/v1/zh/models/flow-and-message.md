@@ -607,28 +607,32 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 规则处理：源消息可暴露 ref 与最小 metadata，目标对象内容与 preview 必须重新按
 目标 Realm policy 授权。
 
-客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 SHOULD 通过 `cx.directory.resolve_handle(intent="mention")` 解析为 DID，并在结构化 mention 节点中保存 DID / object ref 与当时的 display handle snapshot。消息正文中的 handle 字符串只是展示快照，不参与授权、投递或审计归因。
+客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 通过 `cx.directory.resolve_handle(intent="mention")` 解析为 DID，并在结构化 mention 节点中以 `subject_id` 为权威字段保存解析结果。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_id` 处理。
 
-结构化 mention 节点最小形态：
+结构化 mention 节点形态（与 [`identity/identity-handles.md` §3.8.1](../identity/identity-handles.md) normative shape 对齐）：
 
 ```json
 {
   "kind": "mention",
-  "subject": "did:webvh:QmAlice:users.acme.example",
-  "handle": "alice:acme.example",
-  "display_snapshot": "@alice:acme.example",
+  "subject_id": "did:webvh:QmAlice:users.acme.example",
+  "display_name_at_time": "Alice Zhang",
+  "handle_at_time": "alice:acme.example",
+  "mention_text_original": "@alice:acme.example",
   "resolved_at": "2026-05-19T10:00:00Z"
 }
 ```
 
 字段语义：
 
-- `subject`（必填）：被 mention 主体的 principal DID。授权、通知路由、audit attribution 一律以此为准。
-- `handle`（必填）：canonical `user:domain` handle；发送时的 normalize 结果。
-- `display_snapshot`（必填）：发送时刻的 UI 显示字符串；阅读侧用作历史展示快照，不重新解析。
-- `resolved_at`（必填）：handle 解析时刻；用于判断显示快照与当前 handle 解析结果之间的"重分配"差异。
+- `subject_id`（必填）：被 mention 主体的 principal DID。授权、通知路由、audit attribution、阅读侧渲染查找一律以此为准。
+- `display_name_at_time`（可选）：发送时刻 subject 的 display name 快照；persistent snapshot 语义，写入后不再随 subject 改名而变化（反冒充护栏）。
+- `handle_at_time`（可选）：发送时刻的 canonical handle string；**仅** audit / debug / 全文搜索用途，**MUST NOT** 作为阅读侧主显示路径的当前 handle 来源。
+- `mention_text_original`（可选）：用户键入的原始字符串（例如 `@alice:acme.example`）；audit 与搜索索引用途。
+- `resolved_at`（可选）：handle 解析时刻；audit metadata，标记 `handle_at_time` 与 `display_name_at_time` 快照对应的时间点。
 
-阅读侧渲染时，若当前 `handle` 解析到的 DID **不等于** mention 节点中记录的 `subject`，UI MUST 显式标注 handle 已重分配（见 [`identity/identity-handles.md` §6.1.3](../identity/identity-handles.md)），并以 `subject` 当时的 profile 信息渲染历史 mention，而不是用当前持有者替换。
+阅读侧渲染 MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 流程实时解析 `subject_id` 的当前 primary handle（优先取 Realm-scoped MemberIdentity 投影，回退到 live resolve），**不得**用节点内 `handle_at_time` 作为当前显示值。`handle` 重分配的语义自然结果：旧消息里 `alice:acme.example` 这条 mention 解析到的 `subject_id` 仍是原 Alice，渲染时显示她**当前**的 primary handle；新拿到 `alice` localpart 的人是不同的 `subject_id`，不会被回填进历史 mention。若 renderer 检测到 `handle_at_time` 与当前 primary handle 不一致，MAY 加 "handle changed since" 提示（显示层增强，非 normative）。
+
+DID 暂时无法解析时按 §3.8.2 fallback 序列降级：`display_name_at_time`（若存在）作为 "name only" 兜底；都没有则显示 truncated DID。任何 fallback 渲染 MUST 有视觉降级标识，不得与正常解析无差别显示。
 
 ### 9.5 冲突与收敛规则
 
