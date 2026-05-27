@@ -27,6 +27,8 @@ Move / Anchor / Lattice、cell 模型、authority chain 与 state 收敛细节�
 
 ### 2.1 概念
 
+> **Reducer**（归约器）：按确定性规则把签名后的 Event 序列计算成当前对象状态——Event 是事实日志，reducer 是把日志"播放"成 Flow / Message / Relation 等当前态对象的引擎。本文 §6 给出 reducer MUST 满足的总则；完整协议模型（Move / Anchor / Lattice / cell / state resolution 等术语）见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)，一行术语条目见 [`../overview/glossary.md`](../overview/glossary.md)。
+
 Event 是 reducer 输入和审计事实。所有协作变化最终都落为签名 `event`。Event 是审计根和 reducer 输入；当前态只是 Event 集合在某个 reducer profile 下的物化结果。
 
 Reducer-input event 在顶层带 `preconditions[]` / `effects[]` / `anchor_ref`；非 reducer event 不带这三个字段。
@@ -50,7 +52,7 @@ Schema id: `cx.schema.event.v1`
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Move precondition、Anchor finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<id:event>` | 可为空。仅承载 actor event chain causal predecessors。 | Actor event chain 前序。 |
-| `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`（**替代旧 `auth_refs[]` 字段**）、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
+| `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
 | `requirements` | no | `object` | `requirements.{schema[], reducer, features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / reducer profile / feature / critical extension）。 |
 | `preconditions` | conditional | `array<Predicate>` | 仅 reducer-input event 携带；与 `effects[]` / `anchor_ref` 同步出现。非 reducer event（read cursor / typing 等）MUST 省略。 | Move 多 cell 原子 CAS 的 pre-state 谓词。 |
 | `effects` | conditional | `array<Effect>` | 仅 reducer-input event 携带；存在时 MUST 至少 1 项。 | Move 多 cell 原子 CAS 的 effect 集合。 |

@@ -72,8 +72,8 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.events.submit` | 提交 signed Event Envelope。 |
 | `cx.events.get` | 按 ID 读取单个 Event。 |
 | `cx.events.resolve` | 批量读取 Event。 |
-| `cx.events.query` | 按 actor / Realm / cursor 双向查询 Event（替代旧 `cx.events.list` + `cx.sync.backfill`）。 |
-| `cx.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay（替代旧 `cx.sync.subscribe`）。 |
+| `cx.events.query` | 按 actor / Realm / cursor 双向查询 Event。 |
+| `cx.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
 | `cx.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
 | `cx.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `cx.events.subscribe` 对称)。 |
 | Federation push（复用 `cx.events.submit` + service_signature） | 联邦推送复用 `POST /api/v1/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
