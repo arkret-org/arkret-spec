@@ -399,7 +399,7 @@ GET /api/v1/events/{event_id}
 POST /api/v1/events/resolve
 ```
 
-请求体可携带一组 `event_ids` 或 `event_hashes`。响应按 Realm policy、history visibility、E2EE envelope policy 和 redaction policy 过滤 payload。
+请求体可携带一组 `event_ids` 或 `event_digests`。响应按 Realm policy、history visibility、E2EE envelope policy 和 redaction policy 过滤 payload。
 
 ### 4.5 列出 / 回填 Event
 

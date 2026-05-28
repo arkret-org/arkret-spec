@@ -1954,8 +1954,8 @@ Directory 返回 verified handle claim：
 
 ```json
 {
-  "did": "did:webvh:QmAlice:users.acme.example",
-  "subject": "did:webvh:QmAlice:users.acme.example",
+  "did": "did:webvh:z2dmjA1ice:users.acme.example",
+  "subject": "did:webvh:z2dmjA1ice:users.acme.example",
   "handle": "alice:acme.example",
   "handle_aliases": ["acct:alice@acme.example"],
   "verified": true,
@@ -1964,7 +1964,7 @@ Directory 返回 verified handle claim：
     "claim_type": "organization_handle",
     "handle": "alice:acme.example",
     "handle_aliases": ["acct:alice@acme.example"],
-    "subject": "did:webvh:QmAlice:users.acme.example",
+    "subject": "did:webvh:z2dmjA1ice:users.acme.example",
     "issuer": "did:web:acme.example",
     "binding_state": "verified",
     "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
@@ -2002,7 +2002,7 @@ Directory 返回 verified handle claim：
 
 Expected join Move:
 
-- `payload.actor_id = did:webvh:QmAlice:users.acme.example`。
+- `payload.actor_id = did:webvh:z2dmjA1ice:users.acme.example`。
 - `payload.delivery_binding.recipient_service_did = did:web:principal.acme.example`。
 - `payload.delivery_binding.binding_source = organization_policy`。
 - `payload.delivery_binding.service_acceptance_ref` 与 `policy_event_ref` 来自 verified claim / policy。

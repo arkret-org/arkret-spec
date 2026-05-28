@@ -165,12 +165,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 ## 4. Realm Buckets
 
-`realms` 按当前 membership 分桶：
-
-- `join`
-- `invite`
-- `knock`
-- `leave`
+`realms` 不按 membership 做外层分桶；它始终以 `cx:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `cx.member.state` projection，取值可为 `join`、`invite`、`knock` 或 `leave`，不得把这些值提升为 `realms` 的外层 key。
 
 每个 Realm 响应：
 
@@ -462,7 +457,7 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
   "subject_id": "did:webvh:zQmPr8...",
   "display_profile": {
     "display_name": "Alice Zhang",
-    "avatar_ref": "cx:blob:sha256:..."
+    "avatar_blob_ref": "cx:blob:sha256:..."
   },
   "asserted_at": "2026-05-27T00:00:00Z",
   "expires_at": "2026-06-27T00:00:00Z",
@@ -554,7 +549,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - principal id
 - device id
 - service id
-- filter hash
+- `filter_digest`
 - stream positions
 - expiry
 
@@ -564,7 +559,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 无论 stream 还是 barrier cursor，wire 形态 `cx:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于推进 to-device ack、`/account/subscribe` `after=` resume 起点、`X-Contrix-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。
 
-**v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, t, x, h}`，其中 `h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal_id, device_id, service_id, filter_hash, purpose, positions, target?, expiry)` 映射。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
+**v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, t, x, h}`，其中 `h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry)` 映射。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
 
 > Stateless 自描述 cursor（body 内含 `s` / `d` / `target` / `issuer_kid` 并以 `_mac` / `_sig` 绑定 transcript）不属于 v1 core schema；需要 stateless cursor 的实现 MUST 显式声明 `cx.profile.stateless_cursor.v1` 扩展 profile（参见 [`conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）。Core consumer（sync / federation / snapshot）默认不实现这条路径。
 
@@ -573,7 +568,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 任何 endpoint 在使用客户端回传的 cursor 推进 server-side state 之前，MUST 执行：
 
 1. 解析 `cx:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL (`x` 未过期)。语法/参数失败映射顶层 `invalid_param`（reason `invalid_cursor`）；TTL 失败映射 `cursor_expired`。
-2. **Handle 查表完整性校验**：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal_id, device_id, service_id, filter_hash, purpose)` 与当前 authenticated request 匹配；任一失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
+2. **Handle 查表完整性校验**：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal_id, device_id, service_id, filter_digest, purpose)` 与当前 authenticated request 匹配；任一失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
 3. 校验通过后才可读 handle 解析出的 positions（stream cursors）或 target（barrier cursors），并用于推进同步状态。
 4. 若实现声明 `cx.profile.stateless_cursor.v1`，且收到的 cursor body 缺 `h` 但含 `_mac` / `_sig` / `issuer_kid` / `s` / `d` / `target` 字段，按该 profile 在 [`conformance/conformance-profiles.md` §19c](../conformance/conformance-profiles.md) 的额外校验流程处理；core implementations 收到缺 `h` 的 cursor MUST 返回 `cursor_integrity_invalid`。
 
@@ -603,7 +598,7 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 
 ### 12.3 过期或缺口恢复流程
 
-1. 客户端保留本地 `cursor`、filter hash、未确认写入和最后可验证 frontier。
+1. 客户端保留本地 `cursor`、`filter_digest`、未确认写入和最后可验证 frontier。
 2. 收到 `cursor_expired` / `cursor_integrity_invalid` / `stale_frontier` 后，先调用 `account/describe` 或 `snapshot/head` 获取当前 frontier 与推荐 snapshot。
 3. 若 snapshot 可用，客户端 MUST 验证签名、签名者授权、state hash、frontier 和 chunk digest 后再采用。
 4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `cx.events.query`（`GET /events?after=<cursor>`），补齐 Realm Event 缺口；账号聚合缺口则重新建立 `cx.account.subscribe?after=<cursor>&catchup=true` 重放。

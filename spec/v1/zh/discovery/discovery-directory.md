@@ -204,6 +204,7 @@ Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 
 1. Organization DID 可解析。
 2. discovery policy 或 profile 由组织 DID / governance service 签名。
 3. 如果结果声称包含 official Realm，仍需验证每个 Realm 的 `cx.realm.organization` 背书。
+4. 目录服务 DID 被组织 DID 声明或被本地 trust policy 接受。
 
 ### 4.1 Actor / Applet / Handle Discovery State
 
@@ -221,7 +222,6 @@ Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 
 | `proof` | detached proof | required | 由 resource controller / governance key 签名，覆盖 canonical payload（不含 proof 本身）。 |
 
 Actor discovery MUST NOT 暴露 pairwise/private DID、未披露组织账号或仅因共同 Realm 推断出的关系。Applet discovery MUST 只披露 registration 允许的 public metadata，不得暴露 private namespace、token、webhook secret 或租户内 endpoint。Handle discovery MUST 绑定 handle issuer、subject claim、audience 与过期时间；受限 handle 未满足 presentation / policy gate 时不得返回 subject DID 或 `member_delivery_binding`。
-4. 目录服务 DID 被组织 DID 声明或被本地 trust policy 接受。
 
 ## 5. Actor 与 Handle 可发现性
 
@@ -253,7 +253,7 @@ v1 core `cx.private_contact_discovery.v1` profile 明确限定为 **set-membersh
 实现 MUST 使用基于 OPRF（Oblivious Pseudorandom Function）的两轮协议（推荐 RFC 9497 VOPRF 或 Signal CDSI 风格）：
 
 1. **Round 1 — Blind**：客户端按 RFC 9497 OPRF 流程对每个本地 connection identifier 计算 `blind = OPRF.Blind(identifier_canonical_bytes)`；提交 `{batch_id, blinded[]}` 给 provider。Provider 对每个 `blinded[i]` 用其 OPRF secret key 计算 `evaluation[i] = OPRF.BlindEvaluate(sk, blinded[i])` 并返回。Provider 看不到 raw identifier；客户端 unblind 后得到 `derived[i]`。`batch_size`、dummy padding 与失败延迟由 Provider policy 强制，不由客户端自报决定。
-2. **Round 2 — Match**：客户端在第二个独立请求中提交 `{batch_id, derived_hash_prefix[]}`（每条发送 derived 的固定前缀，长度由 provider 在第一轮响应中声明）。Provider 仅在自己的 OPRF-evaluated 可联系集合中按前缀比较，返回固定基数（dummy padding 到 batch size）的命中位图；无论命中数为 0、部分命中还是全部命中，response frame 数量、字段集合、排序和 padding 形态 MUST 相同。
+2. **Round 2 — Match**：客户端在第二个独立请求中提交 `{batch_id, derived_digest_prefix[]}`（每条发送 derived digest 的固定前缀，长度由 provider 在第一轮响应中声明）。Provider 仅在自己的 OPRF-evaluated 可联系集合中按前缀比较，返回固定基数（dummy padding 到 batch size）的命中位图；无论命中数为 0、部分命中还是全部命中，response frame 数量、字段集合、排序和 padding 形态 MUST 相同。
 3. **披露**：客户端只在 user 在 UI 中显式确认联系或发起邀请时，才向目标 principal 的 provider 披露自己的 DID、pairwise DID、presentation 或 connection identifier 原文。该披露走 §6 / consent-model 的 invite + consent 流程，不在 PSI 协议范围内。
 
 OPRF 选择：
@@ -296,7 +296,7 @@ OPRF 选择：
 - Provider MUST NOT 在第二轮返回 reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。这些声明只能通过后续 invite + consent 流程获得。
 - Private discovery 结果**仅** 证明"在 provider 当前可联系集合中存在 OPRF derived 与某项匹配的条目"——不证明该条目对应的真实身份、handle、活跃度或意愿。客户端 UI MUST 把它表述为"可能可联系"而不是"已确认存在"。
 - 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
-- 实现 MUST NOT 在同一 OPRF key epoch 内允许同一 authenticable principal / device credential 提交超过 `max_psi_queries_per_epoch`（默认 1）次 batch；超过后 provider 返回与其它 policy-denied 情况等形态的 `psi_quota_exhausted`。IP 只能作为辅助限速维度，不能作为唯一 quota key。新 key epoch 自动重置。
+- 实现 MUST NOT 在同一 quota window 内允许同一 authenticable principal / device credential 提交超过 `max_psi_queries_per_window`（默认 1）次 batch；默认 quota window 为 24h，且 MUST 与 OPRF key epoch 解耦。超过后 provider 返回与其它 policy-denied 情况等形态的 `psi_quota_exhausted`。IP 只能作为辅助限速维度，不能作为唯一 quota key。新 OPRF key epoch 不得单独重置 quota；只有 quota window 滚动或 operator 明确的反滥用解封才能重置。
 
 ## 7. Directory Service Role
 
@@ -755,6 +755,7 @@ Directory-capable implementations MUST test：
 - restricted search with valid and invalid claim presentation
 - unlisted exact resolve
 - invite-only indistinguishable not_found
+- `cx.directory.resolve_target` unauthorized / nonexistent / undiscoverable targets return byte-identical `not_found` and do not reveal target kind, Realm id, object id, timing class or preview metadata
 - official Realm verification through `cx.realm.organization`
 - hidden pairwise DID exclusion
 - stale result rejection after discovery policy update

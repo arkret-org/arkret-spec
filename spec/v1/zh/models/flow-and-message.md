@@ -493,7 +493,7 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 当 Flow 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛（不再有"跨两 Realm 双层校验"的特例）：
 
 - Watch cell 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Flow 的 watch 写入 MUST `failed_precondition`。
-- Flow synthesis 与 discussion 通知均按同一 effective scope 派发：Sync Service 用 §3.8 / §9.3 [`circle.md`](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
+- Flow synthesis 与 discussion 通知均按同一 effective scope 派发：Sync Service 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
 - Realm-only 成员（不在 Circle 中）不会看到该 Flow 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
 
 换言之：访问权先于订阅意愿。`scope_circle_id` 决定访问权;watch 只在访问权前提下叠加通知偏好。无访问权 = 没有通知，无论 watch 设了什么。
@@ -614,7 +614,7 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 ```json
 {
   "kind": "mention",
-  "subject_id": "did:webvh:QmAlice:users.acme.example",
+  "subject_id": "did:webvh:z2dmjA1ice:users.acme.example",
   "display_name_at_time": "Alice Zhang",
   "handle_at_time": "alice:acme.example",
   "mention_text_original": "@alice:acme.example",

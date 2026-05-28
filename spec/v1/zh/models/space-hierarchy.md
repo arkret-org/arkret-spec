@@ -79,7 +79,7 @@ effective_default_realm(space):
 
 客户端从某个 Space 创建 Flow / Morph / View 时，MUST 把解析结果显式写入新资源的 `realm_id`。服务端 / reducer 不得在签名后根据当前 tree 状态隐式改写资源 Realm。
 
-Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_realm_id` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_as`、`confidential_extension`、`mirror_of` 或 migration link，也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
+Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_realm_id` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_from`、`confidential_extension_of` 或 migration link（`split_from` / `replaces`），也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
 
 ## 5. Cross-Realm Navigation
 

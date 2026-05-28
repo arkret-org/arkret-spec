@@ -342,6 +342,15 @@
       "notes": "Cache expiry fields use cache_expires_at."
     },
     {
+      "id": "cache_until",
+      "context": "wire_schema_or_payload",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "cache_expires_at",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Anonymous health frontier cache bound uses cache_expires_at."
+    },
+    {
       "id": "signed_by",
       "context": "proof_or_cross_signing_payload",
       "since_revision": "2026-05-24",
@@ -817,6 +826,87 @@
       "replacement": "target_ref",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Generic object_lifecycle_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' or even a target-less {target_state} form; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms."
+    },
+    {
+      "id": "signed_payload_hash",
+      "context": "federation_verification_payload",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "signed_payload_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation verification payloads use the v1 hash vocabulary: digest fields end in _digest and values use <algo>:<lowercase_hex>."
+    },
+    {
+      "id": "avatar_ref",
+      "context": "member_identity.display_profile",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "avatar_blob_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MemberIdentity display_profile reuses the canonical avatar_blob_ref name for Blob references."
+    },
+    {
+      "id": "icon_blob",
+      "context": "applet_protocol_metadata",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "icon_blob_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Applet protocol metadata exposes a Blob reference, so the field carries the _blob_ref suffix."
+    },
+    {
+      "id": "space_bound",
+      "context": "media_metadata.visibility",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_bound",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Media visibility is aligned with Realm / Circle scope; Space is not a security boundary."
+    },
+    {
+      "id": "sha256",
+      "context": "blob_metadata",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "content_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Blob metadata uses content_digest with an algorithm prefix. Content-addressed blob_ref values may still use cx:blob:sha256:<hex>."
+    },
+    {
+      "id": "size",
+      "context": "blob_upload_metadata",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "size_bytes",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Blob upload request and response byte counts use size_bytes; bare size is not a byte-count field name in v1."
+    },
+    {
+      "id": "actor_kind=ghost",
+      "context": "actor_profile.actor_kind",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_kind=integration or actor_kind=agent plus Applet provenance",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Ghost Actor is not a wire actor_kind enum value. External account mirrors should use integration; Applet-managed AI / automation actors may use agent."
+    },
+    {
+      "id": "actor_kind=agent_native",
+      "context": "actor_profile.actor_kind",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_kind=agent plus native agent provisioning state",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Native personal agent is represented by actor_kind=agent and CXP-0008 provisioning/accountability state, not by an expanded actor_kind enum."
+    },
+    {
+      "id": "actor_kind=agent_ghost",
+      "context": "actor_profile.actor_kind",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_kind=integration or actor_kind=agent plus Applet provenance",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Ghost/native distinction is carried by Applet provenance and accountability, not by an expanded actor_kind enum."
     }
   ]
 }

@@ -8,7 +8,7 @@ status: accepted
 created: 2026-05-26
 authors:
   - chris@acroidea.com
-discussion: https://github.com/contrix-dev/contrix-spec/discussions/cxp-0008
+discussion: internal (no public URL)
 merged_into:
   - spec/v1/zh/identity/key-management.md
   - spec/v1/zh/identity/account-lifecycle.md

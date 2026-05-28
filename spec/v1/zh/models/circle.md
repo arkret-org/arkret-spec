@@ -86,7 +86,7 @@ Flow.scope_circle_id          : id:circle | null       # null = Realm-default en
 Message.effective_scope : reducer-stamped,immutable tagged scope
 Event.effective_scope   : reducer-stamped,immutable tagged scope,进入 envelope/AAD/sub-anchor
 Space.scope_circle_id         : id:circle | null       # Space 自身 metadata / scoped structural relation 的可见性 scope
-Space.default_scope_circle_id : id:circle | null       # 在该 Space 新建 Flow 的默认 scope(hint,非强制)
+Space.default_scope_circle_id : id:circle | null       # 在该 Space 新建 Flow 的默认 scope(hint,非强制;属于 effective default_realm_id)
 Space.child_scope_policy: object                  # 子资源 placement/encryption floor,见 §7
 Morph.scope_circle_id         : id:circle | null
 ```
@@ -160,7 +160,7 @@ Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 
 | 字段 | 影响对象 | 强制性 | 说明 |
 | --- | --- | --- | --- |
 | `Space.scope_circle_id` | Space 对象自身的 metadata 与 structural relation facts | reducer-enforced | Space 自身的 title / parent / rank / contains 事实落在该 Circle scope;**不**使 Space 成为安全边界,Space 仍是 authorization-transparent 容器，只是它的 metadata 被某 Circle 加密。 |
-| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Flow / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值,actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。不强制。 |
+| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Flow / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值,actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。该 Circle 必须属于子资源 effective `default_realm_id`，而不是任意 Space metadata home Realm。不强制。 |
 | `Space.child_scope_policy` | 任何 placement / move 进入该 Space 的子对象 | reducer-enforced | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id` 之一，见 §7。是真正的"该 Space 只接受这种 scope 的子对象"硬约束。 |
 
 实现常见错误:把 `default_scope_circle_id` 当成约束，或把 `scope_circle_id` 与 `default_scope_circle_id` 混用。三者各司其职,**不可**互相替代。
@@ -226,7 +226,7 @@ F_private --confidential_discussion_of--> F_public
 - watch cell、stage、生命周期
 - 投影裁剪规则(无 Circle 成员的 Realm 成员只看到 F_public,看不到 F_private 的存在或活动元数据，符合 §9.1 投递不变量)
 
-`confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md)),关系事实 SHOULD 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Flow 回到 public anchor;非 Circle 成员不会在 public Flow 上看到"存在一个私密讨论"的可枚举边。
+`confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md)),关系事实 MUST 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Flow 回到 public anchor;非 Circle 成员不会在 public Flow 上看到"存在一个私密讨论"的可枚举边。
 
 ## 8. Capability 与授权评估
 
@@ -283,6 +283,7 @@ Membership transition table:
 | 场景 | Realm-level / 未 scope 对象 | scope_circle_id 指向该 Circle 的对象 |
 | --- | --- | --- |
 | 父 Realm tombstone | 按 Realm lifecycle 停止 | Circle 全部 tombstone;对象按 Circle lifecycle 停止 |
+| Circle archive | 不受影响 | 新写入 MUST fail closed(`failed_precondition`, `reason=circle_not_active`)；既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `cx.circle.restore` 使 Circle 恢复 active |
 | Circle tombstone | 不受影响 | 对象写入 MUST fail closed,projection 显示 scope unavailable;`scope_circle_id` 不会被自动 rewrite |
 | 父 Realm 收紧 history visibility | 按新 visibility | Effective visibility 重新计算为更严格值;Circle 不得保持比父 Realm 更宽的历史披露 |
 | Circle history visibility 收紧 | 不受影响 | 投影、watch、message read/write 按新状态重新裁剪 |
@@ -351,14 +352,14 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 `cx.profile.agent_sidecar_thread.v1` 把 Circle 作为 controller 与 controller 的 native personal agents 之间的私聊密码学边界。该 profile 对 Circle 形态加了若干 sidecar-specific 约束:
 
 - **Reuse key**:每个 `(realm_id, controller_principal_id)` 在本 profile 下有且仅有一个 sidecar Circle(profile constant `per_realm_controller_agent_pool`)。reducer 以该 tuple 作为 idempotency key,并发 `cx.circle.create` 的 sidecar 路径 MUST 收敛到单一 Circle。
-- **Membership**:active membership 由 `eligible_sidecar_agent(realm, controller, agent)` predicate 派生(详见 CXP-0009 §4.5)。当 agent 因 pause / deactivate / revoke / pairing_expired / accountability grant 失效等任何原因转出 eligible 集合时,reducer / service layer MUST **主动** fan-out 写入 `cx.circle.member.state`(membership: `left` 或 `banned`),不得等被动 reconcile,以消除 stale-membership 窗口。
-- **`display.short_name`** MUST 由 profile 派生(`"AI-" + base32(sha256(canonical("cx.agent_sidecar_circle.v1\n" + realm_id + "\n" + controller_principal_id)))[:12].upper()`),不接受 caller 提供任意字符串。short_name 碰撞且 caller 不是已有 Circle member 时,reducer MUST 返回 generic `failed_precondition` `reason=sidecar_create_denied`(不暴露 `short_name_already_taken` 这类可区分错误),避免存在性侧信道。
+- **Membership**:active membership 由 `eligible_sidecar_agent(realm, controller, agent)` predicate 派生(详见 CXP-0009 §4.5)。当 agent 因 pause / deactivate / revoke / pairing_expired / accountability grant 失效等任何原因转出 eligible 集合时，reducer / service layer MUST **主动** fan-out 写入 `cx.circle.member.state`(membership: `left` 或 `banned`)，不得等被动 reconcile，以消除 stale-membership 窗口。
+- **`display.short_name`** MUST 由 profile 派生(`"AI-" + base32(sha256(canonical("cx.agent_sidecar_circle.v1\n" + realm_id + "\n" + controller_principal_id)))[:12].upper()`)，不接受 caller 提供任意字符串。short_name 碰撞且 caller 不是已有 Circle member 时，reducer MUST 返回 generic `failed_precondition` `reason=sidecar_create_denied`(不暴露 `short_name_already_taken` 这类可区分错误)，避免存在性侧信道。
 - **`directory_visibility="members"`** + `metadata_encryption_floor="full_encrypted"`,non-member 不可见任何 sidecar Circle metadata。
 - **Membership 闭集**:实现 MUST NOT 把其它 human actor、非 accountable agent、Applet Ghost Actor 或外部 service principal 加入 controller-Realm sidecar Circle。
-- **MLS history backfill**:新 eligible agent 加入既有 sidecar Circle 时,MLS 协议本身不允许转移过去 epoch group secrets。controller 显式同意 sidecar history backfill 时,实现 MUST 通过 application-level message resend 完成(controller 设备解密 plaintext 在新 epoch 下重新加密),不得通过共享 MLS exporter secret / past commit secret 或等价手段。该 backfill 是显式 plaintext 披露,与 CXP-0009 §4.10 "目标内容转入" 接受同等 capability / approval / audit 约束。
+- **MLS history backfill**:新 eligible agent 加入既有 sidecar Circle 时,MLS 协议本身不允许转移过去 epoch group secrets。controller 显式同意 sidecar history backfill 时，实现 MUST 通过 application-level message resend 完成(controller 设备解密 plaintext 在新 epoch 下重新加密)，不得通过共享 MLS exporter secret / past commit secret 或等价手段。该 backfill 是显式 plaintext 披露，与 CXP-0009 §4.10 "目标内容转入" 接受同等 capability / approval / audit 约束。
 - **Epoch rotation scope**:同一 sidecar Circle 可承载多个 sidecar private Flow;Circle MLS group 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Flow,不可按 Flow 独立 rotate(任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Flow 的未来 epoch)。
 - **Sidecar Flow projection**:以 sidecar Circle 为 `scope_circle_id` 的 Flow MUST NOT 出现在 Realm-wide navigation / board / list / public search / public relation expansion / 目标 Flow projections。该 invariant 由 sidecar profile-specific reducer rule enforce,而不是给 Flow schema 加 `navigation_visibility` 字段。
-- **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时,客户端 UI MUST 在 CXP-0008 §4.5 pairing approval 流程中显式披露 "该 agent 将自动获得现有 sidecar 私聊访问权"。
+- **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时，客户端 UI MUST 在 CXP-0008 §4.5 pairing approval 流程中显式披露 "该 agent 将自动获得现有 sidecar 私聊访问权"。
 
 ## 12. 与既有概念的区分
 

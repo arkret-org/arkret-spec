@@ -299,7 +299,7 @@
       "category": "identity",
       "status": "active",
       "wire_form": "cx:recovery_session:<uuid>",
-      "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery flow. Referenced by cx.schema.recovery_receipt.v1 and by §14.5 recovery proofs. See crypto-media/device-lifecycle.md §14.5."
+      "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery flow. Referenced by cx.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
     },
     {
       "kind": "attestation",

@@ -17,9 +17,9 @@ updated: 2026-05-25
   "kind": "cx.applet.registration",
   "applet_id": "cx:applet:dd552c17-0000-7000-8000-000000000000",
   "service_did": "did:web:applet.example",
-  "controller_did": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+  "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://applet.example/api/v1/applet",
-  "bot_actor_id": "did:web:applet.example#bot",
+  "bot_actor_id": "did:web:applet.example:bot",
   "protocols": ["slack"],
   "namespaces": {
     "actors": [],
@@ -33,7 +33,7 @@ updated: 2026-05-25
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#controller-key-1",
+    "verification_method": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#controller-key-1",
     "payload_digest": "sha256:<canonical-registration-hash>",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "<detached-jws-signature>"
@@ -53,7 +53,7 @@ updated: 2026-05-25
 ```json
 {
   "exclusive": true,
-  "pattern": "did:web:applet.example#ghost-*"
+  "pattern": "did:web:applet.example:ghost:*"
 }
 ```
 
@@ -116,7 +116,7 @@ GET /api/v1/applet/actors/{actor_id}
 ```json
 {
   "exists": true,
-  "actor_id": "did:web:applet.example#ghost-u123",
+  "actor_id": "did:web:applet.example:ghost:u123",
   "display_name": "Alice",
   "external_ref": {}
 }
@@ -147,7 +147,7 @@ GET /api/v1/applet/realms/{realm_id_or_alias}
 GET /api/v1/applet/protocols/{protocol}
 ```
 
-响应字段：`protocol: string` required；`display_name: string` required；`icon_blob: string` optional；`field_types: object` required；`instances: object[]` optional。
+响应字段：`protocol: string` required；`display_name: string` required；`icon_blob_ref: string` optional；`field_types: object` required；`instances: object[]` optional。
 
 响应示例（非完整 schema）：
 

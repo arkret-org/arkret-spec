@@ -99,7 +99,7 @@ Actor-private state 是独立层，不是“弱 durable Event”。标准规则�
 3. `verify_event()`（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6）在该 event 的 `anchor_ref` 对应 pre-state 下成立。
 4. 写入 Anchor pipeline。
 
-任一步骤失败，整个 event 被 reject 并回退原因（`schema_violation` / `invalid_signature` / `failed_precondition` / `failed_bottom` / etc.）。非 reducer 事件只走步骤 1+2。
+任一步骤失败，整个 event 被 reject 并回退原因（`schema_violation` / `invalid_signature` / `failed_precondition` / `cell_in_bottom_state` / etc.；`failed_bottom` 是 Move/Anchor 的 `event_state`，不是 wire error code）。非 reducer 事件只走步骤 1+2。
 
 ### 2.1.2 Event Store
 
@@ -261,8 +261,8 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
   "witness_attestation": {
     "kind": "federation_witness_attested",
     "witnesses": [
-      {"issuer": "did:web:witness.example",  "verification_method": "did:web:witness.example#range-attest-1",  "controlling_organization": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:witness.example:coop"},
-      {"issuer": "did:web:witness2.example", "verification_method": "did:web:witness2.example#range-attest-3", "controlling_organization": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:audit.example:co"}
+      {"issuer": "did:web:witness.example",  "verification_method": "did:web:witness.example#range-attest-1",  "controlling_organization": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:witness.example:coop"},
+      {"issuer": "did:web:witness2.example", "verification_method": "did:web:witness2.example#range-attest-3", "controlling_organization": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:audit.example:co"}
     ]
   },
   "proofs": [ { "kind": "detached_jws", "alg": "EdDSA", "verification_method": "did:web:witness.example#range-attest-1", "event_digest": "sha256:...", "created_at": "2026-05-18T08:30:00Z", "jws": "..." } ]
@@ -787,18 +787,21 @@ Snapshot manifest MUST 包含：
 - `realm_id`
 - `reducer_profile`
 - `schema_profile_refs`
-- `chunks[]`（每项包含 `chunk_ref`、`sha256`、`size_bytes`）
+- `chunks[]`（每项包含 `chunk_ref`、`digest`、`size_bytes`）
 - `state_digest`
 - `frontier`
 - `event_set_commitment`
 - `verification_hints`（可选，但 high-assurance profile 必须包含 inclusion proof 入口或 witness quorum）
+- `created_by`
+- `created_at`
+- `authority_binding`
 - `signature`
 
 客户端在采用 Snapshot 前 MUST 验证：
 
-1. `signature` 是标准 detached proof，覆盖 `id`、`realm_id`、`state_digest`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
+1. `signature` 是标准 detached proof，覆盖 `id`、`realm_id`、`state_digest`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs`、`verification_hints`、`created_by`、`created_at` 和 `authority_binding` 的 canonical manifest hash。
 2. `signature.verification_method` 对应的 DID 必须是 Realm creator、Realm owner、当前有效 Realm admin、Realm policy 授权的 snapshot issuer 或 witness quorum 成员；该权限 MUST 按 manifest `created_at` 的 as-of auth state 验证，且该 auth state 必须覆盖 snapshot frontier 以及截至 `created_at` 可解析的相关 grant/revoke。若 signer 在 `created_at` 前已被撤销，或 revoke freshness 无法确认，客户端 MUST quarantine / reject snapshot。
-3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
+3. 每个 chunk 的实际 digest 与 manifest 中声明的 `chunks[].digest` 一致。
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
 5. **Inclusion challenge**：`security_class=high_assurance` 的 Realm MUST 在采用 snapshot 前对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要执行 inclusion / omission challenge（wire 形态、抽样规则与失败处理见 [`conformance/snapshot-schema.md` §6](../conformance/snapshot-schema.md)）；其他 profile SHOULD。issuer 无法提供合规证明时，客户端 MUST 返回 `inclusion_proof_failed` 并 quarantine snapshot 或回退到原始 Event 回放。Issuer 在 `created_at` 之前已被 revoke 时 MUST 返回 `snapshot_issuer_revoked`。
 6. 后续 admin / snapshot issuer revoke 不会自动否定此前在有效权限下签名的 snapshot，但客户端在用 snapshot 恢复后 MUST 继续回放 snapshot frontier 之后的 Event，再用当前 auth state 判断新写入。

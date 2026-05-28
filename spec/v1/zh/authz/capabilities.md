@@ -229,6 +229,8 @@ v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机
 
 Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Flow 的 effective scope 判断：`Flow.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
+若 Circle membership cell 在当前 Anchor frontier 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 Move MUST 返回 `failed_precondition` / `reason=cell_in_bottom_state` 或等价 `failed_bottom` 诊断；实现不得把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
+
 Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morph.update` 对应 `cx.flow.read` / `cx.flow.create` / `cx.flow.update`),通过 `morph_type_allow` constraint 进一步限定可创建或操作的 `morph_type`。
 
 ### 5.3 Discussion 与消息动作
@@ -278,7 +280,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.agent.action_reject`(controller-only;target=`cx.agent.action_reject`)
 - `cx.agent.sidecar_thread.ensure`(CXP-0009;aggregate admin action,`target_event_kinds=[cx.circle.create, cx.circle.member.state, cx.flow.create, cx.relation.create]`,migration_group=`cxp_0009_sidecar_ensure`。Controller-private projection 写入(`cx.agent.sidecar_projection.v1`)不属于此 grant 集合)
 - `cx.agent.sidecar_thread.write`(profile action;`target_event_kinds=[cx.message.create]`,resource 必须限定 sidecar private Flow)
-- `cx.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定,至少包括 `cx.message.create`,受 reply-as-agent / act-on-behalf attribution 规则约束)
+- `cx.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `cx.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
 - `cx.policy.manage`
 - `cx.policy.set`
 - `cx.policy.rule`（管理 policy 规则集合，target=`cx.policy.rule`）
@@ -288,7 +290,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.invite.third_party`（签发 3PID 邀请，target=`cx.invite.third_party`）
 - `cx.invite.claim`
 - `cx.invite.revoke`
-- `cx.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。capability-action-registry 中 `profile = "cx.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance。**Candidate / Profile-only**：`cx.realm.join.review` 不是 v1 base conformance 必需 capability；base v1 实现把 review 结果承载为 signed receipt（`review_receipt_hash`），并把 `cx.invite.create.refs[role='join_authorised_by']` 指向该 receipt hash（见 [`../governance/join-policy.md` §6.5](../governance/join-policy.md)）。只有声明 join-policy candidate profile 的部署才需要注册该 capability。）
+- `cx.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。capability-action-registry 中 `profile = "cx.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance。**Candidate / Profile-only**：`cx.realm.join.review` 不是 v1 base conformance 必需 capability；base v1 实现把 review 结果承载为 signed receipt（`review_receipt_digest`），并把 `cx.invite.create.refs[role='join_authorised_by']` 指向该 receipt digest（见 [`../governance/join-policy.md` §6.5](../governance/join-policy.md)）。只有声明 join-policy candidate profile 的部署才需要注册该 capability。）
 - `cx.approval.vote`
 - `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）
@@ -523,6 +525,8 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 `cx.capability.delegate` event 的 `refs[]` 中包含 `role="parent_grant"` 引用作为父 grant id。Reducer **MUST** 把所有已 anchored 的 delegation 关系视为有向图，节点是 `grant_id`,边是 `(parent_grant_id, child_grant_id)`,并按下列算法做 cycle detection:
 
+Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / `auth_frontier`（可放入 `refs[role="auth_frontier"]`、grant audit metadata 或 profile 声明的等价字段）。该记录不替代实时 revoke/freshness 校验，但用于审计 child grant 是基于哪个 parent policy/auth frontier 派生的；缺失时实现仍 MUST 重新按当前 frontier 验证，不得把 child grant 当作不可追溯授权。
+
 1. 收到新的 `cx.capability.delegate(child_grant_id, parent_grant_id)` 时,reducer 沿 parent chain 做 DFS,直到遇到无 parent 的 root grant 或深度 = `max_delegation_depth_observed`。
 2. 若在 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中(即新 grant 会 close 一条循环 path),reducer **MUST** 拒绝整条 delegation chain 上的本 Event,reason=`delegation_cycle`,不接受任何子 grant 即便它们单看 valid。
 3. DFS 深度上限 default 64,与 `actor_seq` causal chain 上限一致(`scalability-constraints.md`);超过深度的 chain 视作病态,reducer MUST 退化为拒绝。
@@ -533,7 +537,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 ### 10.3 Revoke 因果传播
 
-`parent grant` 被 revoke 时，所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。具体行为见 [`event-auth-state-resolution.md` §8](./event-auth-state-resolution.md) 委托链 revocation 传播规则；本节只补充: revoke 与 freshness 不一致期间(receiver 已收到 revoke 但未达到 freshness windows),derived child grant 已发起的 in-flight Events 由 reducer 按 §6 fast-path freshness 表判定(parent freshness `unknown` 时 fail closed 适用于高风险 action)。
+`parent grant` 被 revoke 时，所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。具体行为见 [`event-auth-state-resolution.md` §6](./event-auth-state-resolution.md) 委托链 revocation 传播规则；本节只补充: revoke 与 freshness 不一致期间(receiver 已收到 revoke 但未达到 freshness windows),derived child grant 已发起的 in-flight Events 由 reducer 按 §6 fast-path freshness 表判定(parent freshness `unknown` 时 fail closed 适用于高风险 action)。
 
 上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Move MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或 Anchor frontier 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
@@ -617,7 +621,7 @@ Contrix v1 至少区分：
 
 - 修改 Flow synthesis。
 - 开启或关闭 discussion track。
-- 管理 Realm 成员（`cx.member.state`）或 Circle 成员（`cx.circle.member.state`，见 [`../models/circle.md`](../models/circle.md)）。
+- 管理 Realm 成员（`cx.realm.admin` 管理 `cx.member.state` 写入）或 Circle 成员（`cx.circle.member.manage` / `cx.circle.member.add.others` 管理 `cx.circle.member.state` 写入，见 [`../models/circle.md`](../models/circle.md)）。
 - 普通发送消息。
 - 编辑自己的消息。
 - 编辑任意消息。
@@ -710,14 +714,14 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 | 动作风险等级 | `fresh` | `stale` | `unknown` |
 | --- | --- | --- | --- |
 | 高风险（`cx.realm.destroy`、`cx.capability.revoke`、`cx.realm.admin`、`cx.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
-| 中风险（`cx.flow.update`、`cx.member.state`、`cx.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
+| 中风险（`cx.flow.update`、`cx.circle.member.manage`、`cx.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
 | 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read_cursor.advance`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
 
 设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Move 直接丢弃，无副作用。
 
 实现 MUST：
 
-- 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。任何 high-risk / cross-domain / delegated grant 相关动作的 `freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`；否则本地时钟偏差可覆盖整个 freshness window，receiver MUST 把配置视为 `schema_violation` / deployment misconfiguration。默认值：高风险 `freshness_required_ms = 120_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`；clock_skew_tolerance_ms = 60_000。
+- 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。任何 high-risk / cross-domain / delegated grant 相关动作的 `freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`；否则本地时钟偏差可覆盖整个 freshness window，receiver MUST 把配置视为 `schema_violation` / deployment misconfiguration。默认值：高风险 `freshness_required_ms = 180_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`；clock_skew_tolerance_ms = 60_000。
 - 在 `unknown` / `stale` 拒绝响应中返回 `freshness_state`、`last_known_frontier_age_ms`、`anchorer_status`、`retry_after_ms`，让客户端 UI 区分"被拒绝"和"暂时不能确认"。
 - 客户端在低风险 `unknown` 模式下 MUST 在 UI 中标记本地 pending 写入为 `pending_local`（例如灰色发送中状态），并暴露"分区恢复后可能丢弃"的提示。
 - 不得用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_digest` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。

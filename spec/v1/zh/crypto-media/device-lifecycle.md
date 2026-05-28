@@ -303,11 +303,11 @@ DID-method history → principal_signing_key (PSK)
    - 大于：未来 generation；MUST 视为 `unverified` 并触发 stream re-sync。
 6. 跨 principal 信任（USK 签对方 PSK / device key）按对称流程执行：本端 USK binding 必须签发对方 PSK 的 `(kid, generation)` 元组而不是裸公钥，避免对方静默轮换 PSK 后仍继承信任。
 
-实现 MUST 把"未携带 `cross_signing_binding` 的 `cx.device.authorize`"与"binding 校验失败"区分上报，因为前者属于 bootstrap 例外（仅 §5.0.1 inception 路径允许），后者属于密码学异常。
+实现 MUST 把"未携带 `cross_signing_binding` 的 `cx.device.authorize`"与"binding 校验失败"区分上报，因为前者属于 bootstrap 例外（仅 [`identity/key-management.md` §5.0.1](../identity/key-management.md) inception 路径允许），后者属于密码学异常。
 
 ### 5.3 Bootstrap 例外
 
-§5.0.1 中首台设备由 inception key 自授权时，`cx.device.authorize.payload.cross_signing_binding` MUST 省略 `verification_method` 引用，并改用 `bootstrap_binding`：
+[`identity/key-management.md` §5.0.1](../identity/key-management.md) 中首台设备由 inception key 自授权时，`cx.device.authorize.payload.cross_signing_binding` MUST 省略 `verification_method` 引用，并改用 `bootstrap_binding`：
 
 ```json
 {
@@ -333,7 +333,7 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 
 ### 5a.2 注册与撤销
 
-- 设备 MUST 通过 `cx.device.push_route` actor-private state Event 把 `(recipient_service_did, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 `preconditions` / `effects` / `anchor_ref`，不进入 shared Realm Anchor frontier。目标 actor-private cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_did, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas_register, bottom=reject）。`recipient_service_did` MUST 与 §5.1.1 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_did` 一致；推送注册按 `(recipient_service_did, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
+- 设备 MUST 通过 `cx.device.push_route` actor-private state Event 把 `(recipient_service_did, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 `preconditions` / `effects` / `anchor_ref`，不进入 shared Realm Anchor frontier。目标 actor-private cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_did, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas_register, bottom=reject）。`recipient_service_did` MUST 与 [`governance/join-policy.md` §5.1.1](../governance/join-policy.md) 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_did` 一致；推送注册按 `(recipient_service_did, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
 - 撤销：设备 MUST 在同一 actor-private cell 上写后继 `cx.device.push_route` event 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 actor-private state 收敛后停止接受旧伪名。
 - 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(recipient_service_did, principal, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。短暂保留期 MUST ≤ 24h，或与单条未投递消息 TTL 取较短者；超过该窗口 MUST 物理删除旧 `push_target_id` 与对应索引材料，不得保留任何能把新旧映射回同一 device 的信息。
@@ -750,7 +750,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 ```json
 {
   "backup_id": "cx:backup:01964138-8000-7000-8000-000000000000",
-  "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "mls_history",
   "backup_version": "kb_1",
@@ -781,7 +781,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "auth_data": {
     "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
-    "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
     "signature_alg": "EdDSA",
     "signature": "base64url...",
     "signed_fields": [
@@ -829,7 +829,7 @@ DELETE /api/v1/keys/backups/{backup_id}
 
 `GET /api/v1/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 §7.8 的限速。
 
-`get` 返回完整 encrypted backup object，并受 §7.8 的 fresh device proof 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；删除链尾部 envelope MUST 同时附 §14.5 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）。
+`get` 返回完整 encrypted backup object，并受 §7.8 的 fresh device proof 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）。
 
 ### 12.2 Retention and Erasure
 
@@ -986,7 +986,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 4. **in-flight verification transaction**（§10 状态机里仍在 `request` / `ready` / `start` / `accept` / `key` / `mac` 阶段的）MUST 以 `code=cross_signing_reset` cancel，禁止把基于旧 SSK 的 SAS / QR transcript 用旧 generation 完成。
 5. **To-device 队列隔离**：reset accepted 后，服务端和客户端 MUST drop 或 quarantine 所有已排队但尚未处理的 `cx.key.verification.*` to-device 消息，以及任何未显式绑定 `new_generation` 的 cross-signing / trust bootstrap 消息。隔离窗口内仅允许 `cx.key.verification.cancel(code=cross_signing_reset)`、新的 `cx.cross_signing.publish` 可验证通知和重新发起的、显式绑定 `new_generation` 的验证事务通过；不得让旧 generation 的 `mac` / `done` 消息在 reset 后完成信任升级。
 6. **新的 `cx.cross_signing.publish`** MUST 在 reset 接受后 `cx.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布到 control stream（默认 24h）；超时未发布的 reset 会让该 principal 进入"无可用 SSK / USK"窗口，接收方在此窗口内 MUST 拒绝任何 `cx.device.authorize.cross_signing_binding.ssk_generation == new_generation` 的事件，避免静默接受未公布的 SSK。
-7. **`secret_storage` backup 同步刷新（normative）**：reset accepted 后，所有引用旧 SSK 的 `secret_storage` 类 `cx.schema.key_backup.v1` envelope MUST 在同一 `publish_recovery_window_seconds` 窗口内被新设备签发的后继 envelope 取代——后继 envelope 的 `series_id` 保持不变、`series_seq` 严格递增、`supersedes` 指向旧 envelope；`contents` 中含 `self_signing_key` / `user_signing_key` 的条目 MUST 对应 `new_generation`。窗口过期后，receiver MUST 把任何引用 retired generation 的 `secret_storage` envelope 视为 `backup_post_reset_stale`，并在恢复流程（§14.5 step 4）中拒绝作为主解锁源；服务端 SHOULD 在 list 响应中通过 metadata flag 提示该 envelope 已 stale，但 MUST NOT 自行删除（删除属于 §12.2 retention 流程）。
+7. **`secret_storage` backup 同步刷新（normative）**：reset accepted 后，所有引用旧 SSK 的 `secret_storage` 类 `cx.schema.key_backup.v1` envelope MUST 在同一 `publish_recovery_window_seconds` 窗口内被新设备签发的后继 envelope 取代——后继 envelope 的 `series_id` 保持不变、`series_seq` 严格递增、`supersedes` 指向旧 envelope；`contents` 中含 `self_signing_key` / `user_signing_key` 的条目 MUST 对应 `new_generation`。窗口过期后，receiver MUST 把任何引用 retired generation 的 `secret_storage` envelope 视为 `backup_post_reset_stale`，并在恢复流程（§15 step 4）中拒绝作为主解锁源；服务端 SHOULD 在 list 响应中通过 metadata flag 提示该 envelope 已 stale，但 MUST NOT 自行删除（删除属于 §12.2 retention 流程）。
 
 ### 14.3 Cancel Code
 

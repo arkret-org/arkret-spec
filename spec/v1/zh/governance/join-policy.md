@@ -39,7 +39,7 @@ updated: 2026-05-25
 1. **Gate 是组合的，不是命名的。** 不再以新 enum 区分"附加条件类型"。Realm 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
 2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `cx.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对 `cx.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Sync Service 强制访问控制并审计读取（`cx.audit.accessed`）。
 3. **审核决策必须有稳定审计材料。** 实现声明 `cx.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名的 anchored Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §6](./content-moderation.md)）依赖该 trail。
-4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `cx.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt hash；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
+4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `cx.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
 5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `cx.member.state{membership=join}`，由 reducer 内联校验，无需 application / review Move。这条路径替代既有 `restricted` 入口模式的实质语义。
 6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Move 的 capability。Policy Server `obligations[]`（§11）只能在 capability 之上叠加额外要求（如 challenge），不能凭空创造权限。
 
@@ -164,7 +164,7 @@ applicant 直接提交：
   "kind": "cx.member.state",
   "payload": {
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-    "actor_id": "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
+    "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
     "membership": "join",
     "delivery_status": "routable",
     "delivery_binding": {
@@ -367,14 +367,14 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 ### 6.2 `member.application`
 
-候选申请概念；schema 名 `member.application.v1`。正式进入 v1 registry 前，`member.application` 不得作为 Event envelope 的 `kind` 使用，也不得使用 `cx.*` 标准前缀伪装成 active contract；生产实现若启用本 workflow，必须在自有 profile 中声明唯一承载方式，并输出可引用的 signed application receipt（`application_receipt_hash`），供后续 review / invite / audit 引用。
+候选申请概念；schema 名 `member.application.v1`。正式进入 v1 registry 前，`member.application` 不得作为 Event envelope 的 `kind` 使用，也不得使用 `cx.*` 标准前缀伪装成 active contract；生产实现若启用本 workflow，必须在自有 profile 中声明唯一承载方式，并输出可引用的 signed application receipt（`application_receipt_digest`），供后续 review / invite / audit 引用。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` | 申请目标 Realm。 |
 | `applicant_did` | yes | `did` | 等于 envelope `actor`。 |
 | `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `cx.member.state{knock}` event id。 |
-| `policy_version` | yes | `sha256` | 提交时 `realm.join_policy` cell value 的 canonical hash；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
+| `policy_version_digest` | yes | `hash` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
 | `answers` | conditional | `array<Answer>` | 任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
 | `gate_proofs` | conditional | `array<GateProof>` | 任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
 | `applicant_note` | no | `string` | 1..2000 chars 自由文本备注。 |
@@ -384,17 +384,17 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 ### 6.3 `member.application.review`
 
-签名 review workflow record，需要 `review_capability`。在正式注册为 v1 active Event kind 前，它不是 base profile 的 durable `Event.kind`；实现必须把 review 结果承载为自有 profile 声明的 signed review receipt（`review_receipt_hash`），或承载在该 profile 自己注册的私有 Event kind 中。任何 `cx.invite.create` 对 review 的引用 MUST 指向稳定 receipt hash 或该私有 Event id，不得引用未注册的裸名 kind。
+签名 review workflow record，需要 `review_capability`。在正式注册为 v1 active Event kind 前，它不是 base profile 的 durable `Event.kind`；实现必须把 review 结果承载为自有 profile 声明的 signed review receipt（`review_receipt_digest`），或承载在该 profile 自己注册的私有 Event kind 中。任何 `cx.invite.create` 对 review 的引用 MUST 指向稳定 receipt digest 或该私有 Event id，不得引用未注册的裸名 kind。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` |  |
-| `application_ref` | yes | `receipt_hash` 或 profile-private `event_ref` | 指向 §6.2 的 signed application receipt；若实现 profile 已注册私有 application Event kind，MAY 指向该私有 Event id。不得引用未注册的裸名 `member.application`。 |
+| `application_ref` | yes | `receipt_digest` 或 profile-private `event_ref` | 指向 §6.2 的 signed application receipt；若实现 profile 已注册私有 application Event kind，MAY 指向该私有 Event id。不得引用未注册的裸名 `member.application`。 |
 | `decision` | yes | `enum(accept, reject, request_changes)` | `request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
 | `reason_code` | yes | `string` | 稳定原因码：`ok` / `incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `other`。 |
 | `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
 | `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `cx.audit.*` 风险记录）。 |
-| `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability` 的 grant id 与当时 frontier hash；reducer 必须在写入时再校验一次。 |
+| `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability` 的 grant id 与当时 frontier digest；reducer 必须在写入时再校验一次。 |
 
 `reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。
 
@@ -406,7 +406,7 @@ applicant 可主动撤回；写入 `decision=canceled`，不计 cooldown。
 
 application 进入 `accepted` 状态后：
 
-1. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` 的 signed review receipt hash；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id；
+1. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` 的 signed review receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id；
 2. applicant 提交 `cx.invite.accept`；
 3. reducer 在写入 `cx.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、reviewer 在当前 frontier 仍持有 `review_capability`、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖。
 
@@ -416,11 +416,11 @@ application 进入 `accepted` 状态后：
 
 ### 7.1 非 E2EE Realm
 
-`member.application` 的共享 durable wire payload 即使在非 E2EE Realm 中也只能包含最小化 metadata（application id、applicant DID、policy hash、receipt hash、状态与时间戳）。申请正文、answers、自由文本、3PID、附件和 reviewer-only 诊断 MUST 放入 reviewer encryption envelope 或实现 profile 声明的受保护 private record；不得仅依赖 projection 隐藏来保护隐私。Sync Service / Principal Server MUST：
+`member.application` 的共享 durable wire payload 即使在非 E2EE Realm 中也只能包含最小化 metadata（application id、applicant DID、policy digest、receipt digest、状态与时间戳）。申请正文、answers、自由文本、3PID、附件和 reviewer-only 诊断 MUST 放入 reviewer encryption envelope 或实现 profile 声明的受保护 private record；不得仅依赖 projection 隐藏来保护隐私。Sync Service / Principal Server MUST：
 
 - 仅向 reviewer set（`review_capability` 持有方）与 applicant 自身投影 application 正文；
 - 对其它 Realm 成员投影占位（`{application_pending: true}`）；
-- 对每次 reviewer 读取写一条 `cx.audit.accessed`（payload 包含 application receipt hash 或 profile-private application Event id 与读取者 DID）。
+- 对每次 reviewer 读取写一条 `cx.audit.accessed`（payload 包含 `application_receipt_digest` 或 profile-private application Event id 与读取者 DID）。
 
 `applicant_visibility=members_after_join` 仅在 application 进入 `accepted` 且对应 `cx.invite.accept` 已落入 frontier 后，才允许向 Realm 成员投影正文。
 
@@ -437,8 +437,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
     "scheme": "hpke-base-x25519-aes256gcm",
     "ciphertext": "base64url:...",
     "recipients": [
-      {"reviewer_did": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "cx:device:...", "wrapped_key": "base64url:..."},
-      {"reviewer_did": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "cx:device:...", "wrapped_key": "base64url:..."}
+      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "cx:device:...", "wrapped_key": "base64url:..."},
+      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "cx:device:...", "wrapped_key": "base64url:..."}
     ]
   }
 }
@@ -473,7 +473,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 跨域加入流程在 [`../sync/federation.md` §5.2](../sync/federation.md) 详述。本节仅说明 Join Policy 引入的不变量：
 
 - `member.application` 与 `member.application.review` 都是候选 durable workflow 概念；正式登记前不得作为 v1 base profile 的 durable Event.kind 参与 federation push / pull；
-- `policy_version` 字段使 reviewer 与 applicant 显式承认评估时所用的 policy 快照，避免 reviewer 在不同 policy frontier 下决策导致争议；
+- `policy_version_digest` 字段使 reviewer 与 applicant 显式承认评估时所用的 policy 快照，避免 reviewer 在不同 policy frontier 下决策导致争议；
 - E2EE 场景下 reviewer sub-group MLS commit 通过既有 `cx.mls.*` 联邦机制传播；envelope encryption 由 origin Principal Server 投递到目标 reviewer 的 device list（参见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md)）。
 - `parent_membership` gate 评估需要其它 Realm 的成员 snapshot；origin reducer MAY 通过 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的 verified snapshot 接口或直接 backfill；snapshot 不可达时 fail closed。
 
@@ -493,7 +493,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
       "max_proof_age": "PT5M",
       "must_satisfy_before_resubmit": true,
       "bound_to": {
-        "actor": "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:applicant",
+        "actor": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:applicant",
         "action": "member.application",
         "request_canonical_digest": "sha256:...",
         "device_id": "cx:device:01964137-0000-7000-8000-000000000000"

@@ -38,6 +38,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
 | `cx:realm:` | Realm | security / sync / auth / E2EE 边界 | [realm-and-space.md](./realm-and-space.md) |
+| `cx:circle:` | Circle | Realm 内密码学子边界（独立 MLS group / 子集成员 / 独立 history），对象通过 `scope_circle_id` 引用 | [circle.md](./circle.md) |
 | `cx:space:` | Space | 产品结构容器与导航节点（project / folder / board / list / section ...），通过 `realm_id` / `default_realm_id` 解析安全边界 | [realm-and-space.md](./realm-and-space.md) |
 | `cx:flow:` | Flow | 统一协作主对象（task / decision / incident / channel ...） | [flow-and-message.md](./flow-and-message.md) |
 | `cx:message:` | Message | Flow `discussion` track 时间线消息 | [flow-and-message.md](./flow-and-message.md) |

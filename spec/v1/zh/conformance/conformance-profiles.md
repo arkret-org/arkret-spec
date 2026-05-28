@@ -739,7 +739,7 @@ v1 core 默认 cursor 形态是 stateful opaque handle（参见 [`sync/client-sy
 - 在 cursor body 中除 core 必填字段 `{v, purpose, t, x}` 外，**禁止**携带 `h`，**MUST** 携带 `issuer_kid` 与 `_mac` 或 `_sig` 之一；其余必填字段按 cursor purpose 决定：stream cursor 携带 `s`（per-Realm frontier）与/或 `d`（device-message stream positions）；barrier cursor 携带 `target`。
 - `_mac` 是 HMAC over canonical bytes（除 `_mac` 自身外的所有字段），密钥由 issuing service 持有，算法 MUST 是 HMAC-SHA-256 或更强。
 - `_sig` 是 detached signature over same canonical bytes，密钥使用 issuing service 的 cursor-signing key（按 `issuer_kid` 解析）。
-- transcript 绑定 MUST 覆盖：`purpose`、`principal_id`、`device_id`、`service_id`、`filter_hash`、stream positions（`s` / `d`）、`target`（barrier 时）、`x`、`issuer_kid`。
+- transcript 绑定 MUST 覆盖：`purpose`、`principal_id`、`device_id`、`service_id`、`filter_digest`、stream positions（`s` / `d`）、`target`（barrier 时）、`x`、`issuer_kid`。
 - 收到 cursor 时按 [`sync/client-sync.md` §12.2](../sync/client-sync.md) §第 4 步处理：缺 `h` 但满足上述 transcript 校验则放行；transcript 不匹配返回 `cursor_integrity_invalid`。
 - ServiceDescribe `supported_features[]` MUST 含 `stateless_cursor`，供 client 通过 feature discovery 判断是否可发送 stateless cursor。
 - `cursor.schema.json` core schema 之上 MUST 通过 profile 自带 schema overlay 接受额外字段；core consumer 不实现该 overlay 即正确地拒绝 stateless cursor（fail-closed）。

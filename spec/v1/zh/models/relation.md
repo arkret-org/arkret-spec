@@ -63,7 +63,8 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 ```text
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
 assigned_to, references, derived_from, attached_to, has_default_view,
-summarized_from, promoted_from_discussion, watches, agent_sidecar_of
+summarized_from, promoted_from_discussion, watches, agent_sidecar_of,
+confidential_discussion_of
 ```
 
 > **未注册的 relation_kind 处理规则**：`produced` / `used` / `triggered_by` / `has_log` 这类名字在 v1 没有 schema / profile / fixture 定义 from/to 类型、基数或 capability action，因此在 v1 wire 上视为**未注册的 relation_kind**——实现遇到时 SHOULD 保留为不透明边并在 projection 层标记 `unknown_relation_kind`，**MUST NOT** 据此自动推断容器、依赖或可见性语义。扩展 profile 注册之前 producer 不应使用。
@@ -83,6 +84,7 @@ summarized_from, promoted_from_discussion, watches, agent_sidecar_of
 | `watches`：`actor (did) -> flow` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Flow（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `cx.component.flow.watch.v1`，写入路径是 `cx.flow.watch.set` durable event，不是 `cx.relation.create`**——直接 `cx.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-flow-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `cx.flow.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [flow-and-message.md §8](./flow-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 | `agent_sidecar_of`(CXP-0009) | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 sidecar private Flow,`to_ref` 可为目标 Flow / Message / Relation。该 relation fact MUST 提交 `scope_circle_id` 指向 sidecar Circle,使 `effective_scope = circle`;non-sidecar-member 不能从目标侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**,因为这会泄露 sidecar 存在性。详见 [`circle.md` §6.1](./circle.md) 的 Relation effective_scope invariant 与 CXP-0009 §4.6。 |
+| `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Flow，`to_ref` MUST 是其 public anchor Flow。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Flow 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Flow 回到 public anchor，而 non-member 不能从 public anchor 侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**。 |
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
 

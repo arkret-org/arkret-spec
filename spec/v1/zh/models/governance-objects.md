@@ -135,7 +135,7 @@ Schema id: `cx.schema.capability.v1`
 
 ### 4.3 Capability 派生与 Realm 层级继承
 
-Realm link graph 中的 derived capability grant 通过 `cx.capability.derived` event 表达，必须满足 source grant、target Realm 的 `cx.realm.inheritance_policy`、`max_depth` 等约束，并在 source grant 被 revoke 时按因果传播失效。完整规则见 [`realm-links.md` §6](./realm-links.md) 与 [`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)。
+Realm link graph 中的 derived capability grant 通过 `cx.capability.derived` event 表达，必须满足 source grant、target Realm 的 `cx.realm.inheritance_policy`、`max_depth` 等约束，并在 source grant 被 revoke 时按因果传播失效。完整规则见 [`realm-links.md` §6](./realm-links.md) 与 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
 
 ## 5. Invite
 

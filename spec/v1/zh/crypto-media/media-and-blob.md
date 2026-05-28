@@ -21,7 +21,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "blob_ref": "cx:blob:sha256:...",
   "schema": "cx.schema.blob.v1",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "sha256": "hex...",
+  "content_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
   "created_by": "did:web:alice.example",
@@ -37,7 +37,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `blob_ref` | `string` | required | 内容地址，通常包含强 hash。 |
 | `schema` | `cx.schema.blob.v1` | required | Blob metadata schema discriminator。 |
 | `realm_id` | `id:realm` | conditional | Owning Realm。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Realm 服务 blob（例如 avatar 公共预览）才可省略。 |
-| `sha256` | `string` | required | 服务端计算的内容 hash。 |
+| `content_digest` | `hash` | required | 服务端计算的内容 digest，wire 形态为 `<algo>:<lowercase_hex>`。 |
 | `size_bytes` | `int` | required | 字节大小。 |
 | `media_type` | `string` | optional | 上传声明或服务端校正后的 MIME。缺省为 `application/octet-stream`。 |
 | `created_by` | `did` | required | 上传 Actor 或 service DID。 |
@@ -47,7 +47,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
 | `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |
 
-命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。
+命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob 内容 digest 统一使用 `content_digest`，不得新增裸 `sha256` 字段；内容寻址 `blob_ref` 继续可携带 `cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 这类 typed-id 形态。
 
 上传规则：
 
@@ -165,7 +165,7 @@ GET /api/v1/blob/get?blob_ref=<ref>
 服务 MUST check:
 
 - actor authorization
-- Realm visibility
+- Realm / Circle scope visibility
 - retention / legal hold
 - unsafe media policy
 
@@ -194,7 +194,7 @@ Range: bytes=<start>-<end>
 - 受保护下载 MUST NOT 接受 query string 中的 session、access token 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。
 - `Location` 值不得被服务端或客户端长期缓存；未立即下载时 SHOULD 重新请求 `/api/v1/blob/get` 获取新的授权上下文。
-- 客户端跟随 redirect 后仍 MUST 重新计算内容 hash，并与 `blob_ref` / `sha256` 比对。
+- 客户端跟随 redirect 后仍 MUST 重新计算内容 digest，并与 `blob_ref` / `content_digest` 比对。
 - 如果内容 hash、`Digest` header、`blob_ref` 或 encrypted attachment `ciphertext_digest` 不匹配，客户端 MUST 拒绝该响应、丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。服务端在上传、镜像或代理时发现 digest mismatch MUST 返回 `digest_mismatch`，并不得生成可用 blob metadata。
 - Range / HEAD download MUST 绑定同一授权上下文；服务端不得让 Range probe 或 HEAD response 泄露不可见 blob 的大小、MIME、文件名或存在性。
 - 对不可见 blob，服务端 SHOULD 返回与不存在资源一致的 `not_found`，并避免返回 `Content-Length`、`Content-Type`、`Content-Disposition`、`Accept-Ranges` 等可枚举 header。
@@ -276,6 +276,8 @@ Cache-Control: public, immutable, max-age=31536000
 - 缩略图 descriptor MUST 至少绑定 `source_blob_ref`、`source_ciphertext_digest?`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by_service_did?`、`visibility` 和 `derivation_profile`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，推荐 `purpose="thumbnail"` 并把 `source_blob_ref`、`thumbnail_blob_ref`、尺寸和生成参数纳入 key derivation / AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
 - `media-metadata.schema.json` 的 `preview_blob_ref` 只是 legacy shorthand；新 producer SHOULD 使用 `thumbnails[]` 数组表达上述绑定。Consumer 收到只有 `preview_blob_ref` 的旧 metadata 时，必须按源 blob 的最严格可见性处理，不得因缺少 descriptor 而放宽访问或缓存。
 
+`media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound` / `presigned`。`realm_bound` 表示访问受 owning Realm、Circle scope 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。旧草案的 ~~`space_bound`~~ 不是 v1 wire 值。
+
 ### 5.4 Pre-Signed URL（浏览器原生标签兼容性例外）
 
 §5 与 [`server-threat-model.md` §2.1 #21 URL 凭证泄露](../security/server-threat-model.md) 规定受保护下载 MUST NOT 接受 query string 中的认证材料。该规则的存在原因是 query string 会被 HTTP access log、代理、CDN、浏览器历史、复制链接和 `Referer` 头无差别记录，长期 capability 一旦落入 URL 即等价于失控。
@@ -315,7 +317,7 @@ Cache-Control: public, immutable, max-age=31536000
   "issued_at": "2026-05-18T10:00:00Z",
   "expires_at": "2026-05-18T10:05:00Z",
   "purpose": "media_inline",
-  "audience_hint": "did:webvh:Qm...:alice.example",
+  "audience_hint": "did:webvh:z2dmj...:alice.example",
   "nonce": "base64url:random_16_bytes",
   "access_scope": {
     "method": ["GET", "HEAD"],

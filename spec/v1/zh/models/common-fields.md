@@ -158,7 +158,7 @@ expected_<role>_<kind>_id
 | `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
 | `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
 | `deleted_at` | Lifecycle | O | O | O | O | O | O | O | O | O | — | — | — | — | — |
-| `state` | Lifecycle | Y | Y | Y | Y | Y | Y | O | O | — | — | — | — | — | O (mirrors account status) |
+| `state` | Lifecycle | O | O | O | Y | O | O | O | O | — | — | — | — | — | O (mirrors account status) |
 | `state_changed_at` | Lifecycle | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
 | `stage` | Progress | — | — | Y | — | Y | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | R per `cx.flow.stage.set` | — | R per `cx.morph.stage.set` | — | — | — | — | — | — | — | — | — |
@@ -232,7 +232,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` |
 | `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | — | `archived` | — | `archived` |
 | `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | `redacted` | `redacted` | `tombstone`（合并 deleted+redacted） | — |
-| `deleted` | 不可逆删除：content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | `deleted` | — | `tombstone` | `tombstoned` |
+| `deleted` | 不可逆删除：content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | — | — | `tombstone` | `tombstoned` |
 
 约定：
 
@@ -381,9 +381,9 @@ UUID 部分 SHOULD 使用 UUIDv7（time-ordered），便于审计与排序；con
 {
   "id": "cx:flow:01964137-0000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "created_by": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "created_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "updated_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "updated_at": "2026-04-26T00:00:00Z",
   "schema": "cx.schema.flow.v1"
 }

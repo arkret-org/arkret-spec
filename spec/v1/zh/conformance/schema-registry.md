@@ -225,6 +225,7 @@ sidebar:
 | `cx.agent.endpoint` | Agent protocol endpoint declaration |
 | `cx.agent.protocol_session.start` | Agent protocol session start |
 | `cx.agent.protocol_session.status` | Agent protocol session status |
+| `cx.agent.protocol_session.result` | Agent protocol session result |
 | `cx.applet.bridge_error` | Bridge failure |
 | `cx.applet.registration` | Applet registration |
 | `cx.applet.protocol_session.start` | Applet / agent protocol session start |

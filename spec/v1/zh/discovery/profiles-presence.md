@@ -218,7 +218,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 ```json
 {
   "kind": "cx.presence",
-  "actor": "did:web:alice.example.com",
+  "actor_id": "did:web:alice.example.com",
   "state": "online",
   "last_active_at": "2026-04-26T08:30:00Z",
   "status_message": "On vacation until May 5th 🏖️",
@@ -229,6 +229,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `state` | string | MUST | 状态值 |
+| `actor_id` | did | MUST | 发送 presence 的 actor DID。 |
 | `last_active_at` | string | 可选 | 最后活跃时间；默认 SHOULD 省略或按 policy bucket 化（例如分钟/小时级），只有 presence policy 明确允许精确披露时才发送精确 timestamp。 |
 | `status_message` | string | 可选 | 当前状态消息（来自 Profile） |
 | `ttl_ms` | integer | SHOULD | 存活时间（毫秒），超时后客户端应将该用户视为 offline |
@@ -249,6 +250,8 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 | `contacts_only` | 仅对明确的联系人可见 |
 | `nobody` | 完全隐藏在线状态（对所有人显示为 offline） |
 
+当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `cx.presence`，Sync Service MUST NOT 转发既有或缓存的 `cx.presence`；接收方看到的结果必须与从未收到 presence 一致。
+
 ### 3.5 Typing 指示器
 
 正在输入状态通过 Sync Service 的 Ephemeral Channel 广播，格式极度轻量：
@@ -256,7 +259,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 ```json
 {
   "kind": "cx.typing",
-  "actor": "did:web:alice.example.com",
+  "actor_id": "did:web:alice.example.com",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "typing": true,
@@ -279,16 +282,17 @@ Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能
 ```
 POST /api/v1/directory/search-users
 
-{ "q": "alice", "realm_id": "cx:realm:...", "limit": 10 }
+{ "query": "alice", "realm_id": "cx:realm:...", "limit": 10 }
 ```
 
 请求字段：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `q` | query | `string` | required | 搜索关键词。 |
-| `realm_id` | query | `id` | optional | 限定共同 Realm；mention autocomplete SHOULD 提供。 |
-| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
+| `query` | body | `string` | required | 搜索关键词；不得进入 URL、Referer 或未脱敏 access log。 |
+| `realm_id` | body | `id` | optional | 限定共同 Realm；mention autocomplete SHOULD 提供。 |
+| `limit` | body | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
+| `intent` | body | `enum(mention,invite,member_add)` | optional | 调用意图；影响是否允许返回 `member_delivery_binding`。 |
 
 响应字段：
 

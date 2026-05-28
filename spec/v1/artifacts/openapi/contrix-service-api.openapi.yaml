@@ -774,13 +774,13 @@ components:
 
     EventsResolveRequest:
       type: object
-      description: cx.events.resolve request body. At least one of event_ids or event_hashes MUST be non-empty.
+      description: cx.events.resolve request body. At least one of event_ids or event_digests MUST be non-empty.
       properties:
         event_ids:
           type: array
           items:
             type: string
-        event_hashes:
+        event_digests:
           type: array
           items:
             type: string
@@ -934,7 +934,7 @@ components:
         frontier_root:
           type: string
           description: Opaque hash commitment suitable for liveness / freshness checks.
-        cache_until:
+        cache_expires_at:
           type: string
           format: date-time
           description: Earliest time until which clients SHOULD reuse this anonymous health response. Anonymous health responses MUST impose at least a 60 second cache/backoff window; clients MUST treat shorter values as 60 seconds.

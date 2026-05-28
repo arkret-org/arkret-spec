@@ -6,16 +6,26 @@
   "required": [
     "blob_ref",
     "schema",
-    "sha256",
+    "content_digest",
     "size_bytes",
     "media_type",
     "created_by",
     "created_at"
   ],
-  "not": {
-    "required": ["size"],
-    "$comment": "byte counts use size_bytes"
-  },
+  "allOf": [
+    {
+      "not": {
+        "required": ["size"],
+        "$comment": "byte counts use size_bytes"
+      }
+    },
+    {
+      "not": {
+        "required": ["sha256"],
+        "$comment": "content hashes use content_digest with an algorithm prefix"
+      }
+    }
+  ],
   "properties": {
     "blob_ref": {
       "type": "string",
@@ -29,9 +39,9 @@
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Owning Realm for authorization, asset privacy policy enforcement, retention and GC. MAY be omitted only for global / cross-Realm service blobs (e.g. avatar previews) explicitly authorized by the Blob Service deployment policy."
     },
-    "sha256": {
+    "content_digest": {
       "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "size_bytes": {
       "type": "integer",

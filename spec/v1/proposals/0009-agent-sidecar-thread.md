@@ -9,7 +9,7 @@ created: 2026-05-26
 authors:
   - chris@acroidea.com
 depends_on: [CXP-0007, CXP-0008]
-discussion: https://github.com/contrix-dev/contrix-spec/discussions/cxp-0009
+discussion: internal (no public URL)
 merged_into:
   - spec/v1/zh/models/circle.md
   - spec/v1/zh/models/relation.md

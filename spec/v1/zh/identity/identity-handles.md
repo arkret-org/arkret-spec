@@ -488,7 +488,7 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state`
    按以下顺序 fallback：
    a. 本地 cache 中最近一次 verified primary handle（标记 "cached"）
    b. event 内 display_name_at_time（标记 "name only"）
-   c. truncated DID 形态（例如 "did:webvh:Qm…3kF"，标记 "unresolved"）
+   c. truncated DID 形态（例如 "did:webvh:z2dmj…3kF"，标记 "unresolved"）
 5. 任何 fallback path MUST 在 UI 上有明确的视觉降级标识；
    实现 MUST NOT 把 fallback 显示成与正常解析无差别的形态。
 ```
@@ -593,15 +593,15 @@ Handle 解析示例：
 {
   "schema": "cx.schema.handle_claim.v1",
   "handle": "alice:alice.dev",
-  "subject": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "issuer": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "issuer": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "binding_state": "verified",
   "created_at": "2026-05-19T00:00:00Z",
   "expires_at": "2026-08-19T00:00:00Z",
   "proofs": [{
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#key-1",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#key-1",
     "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "created_at": "2026-05-19T00:00:00Z",
     "jws": "aaa.bbb.ccc"
@@ -616,7 +616,7 @@ Handle 解析示例：
   "schema": "cx.schema.handle_claim.v1",
   "handle": "alice:acme.example",
   "handle_aliases": ["acct:alice@acme.example"],
-  "subject": "did:webvh:QmAlice:users.acme.example",
+  "subject": "did:webvh:z2dmjA1ice:users.acme.example",
   "issuer": "did:web:acme.example",
   "issuer_service_did": "did:web:principal.acme.example",
   "claim_type": "organization_handle",
@@ -1024,7 +1024,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm�
     "credentialSubject.member",
     "credentialSubject.handle_verified"
   ],
-  "presentation_hash": "sha256:...",
+  "presentation_digest": "sha256:...",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -1041,7 +1041,7 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
   "holder_did": "did:key:z6Mkgpairwise...",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
-  "presentation_hash": "sha256:...",
+  "presentation_digest": "sha256:...",
   "proof_profile": "vc_di_bbs_2023",
   "transport": "tsp",
   "tsp_relationship_id": "tsp:rel:...",

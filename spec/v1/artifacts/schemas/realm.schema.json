@@ -403,7 +403,7 @@
       }
     },
     {
-      "$comment": "Principal control Realms are ordinary collaboration Realms, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together.",
+      "$comment": "Principal control Realms are ordinary cx.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together.",
       "if": {
         "properties": {
           "fields": {

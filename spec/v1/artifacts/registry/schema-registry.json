@@ -68,7 +68,11 @@
     },
     {
       "schema_id": "cx.schema.patch.v1",
-      "file": "schemas/patch.schema.json"
+      "file": "schemas/patch.schema.json",
+      "format_aliases": [
+        "cx.patch.v1"
+      ],
+      "description": "Registered schema for the embedded cx.patch.v1 field-patch wire format."
     },
     {
       "schema_id": "cx.schema.range_completeness_attestation.v1",
@@ -128,7 +132,7 @@
       "schema_id": "cx.schema.recovery_receipt.v1",
       "file": "schemas/recovery-receipt.schema.json",
       "status": "active",
-      "description": "Signed completion receipt for a principal recovery flow. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §14.5 step 7."
+      "description": "Signed completion receipt for a principal recovery flow. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
     },
     {
       "schema_id": "cx.schema.notification.v1",

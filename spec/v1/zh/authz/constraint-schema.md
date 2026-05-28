@@ -82,12 +82,12 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | --- | --- | --- | --- |
 | `temporal`（无 subtype、无 `recurrence`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
 | `temporal` 带 `recurrence`、`subtype=session` 或 `applies_to_actions` | `stateless` | TTL ≤ 下一个 recurrence 边界或 window 剩余时间 | 仍是纯函数，但 TTL 必须缩短 |
-| `field_access`（无 `condition`） | `stateless` | (constraint_hash, op_kind) | 仅 allow / deny 列表比较 |
+| `field_access`（无 `condition`） | `stateless` | (constraint_digest, op_kind) | 仅 allow / deny 列表比较 |
 | `field_access` 带 `condition.kind` | `realm_state` | (realm_id, frontier_digest, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
-| `type_restriction` | `stateless` | (constraint_hash, op_target_type) | |
-| `scope_limitation`（普通 scope） | `stateless` | (constraint_hash, op_target) | |
+| `type_restriction` | `stateless` | (constraint_digest, op_target_type) | |
+| `scope_limitation`（普通 scope） | `stateless` | (constraint_digest, op_target) | |
 | `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, frontier_digest, target_container_id) | 看目标 List policy / WIP |
-| `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_classes`） | `stateless` | (constraint_hash, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
+| `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_classes`） | `stateless` | (constraint_digest, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
 | `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `quota` (`subtype=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
 | `quota` (`subtype=resource`，`blob_max_bytes` 单次) | `stateless` | 单次操作的字节计数无需历史 | |

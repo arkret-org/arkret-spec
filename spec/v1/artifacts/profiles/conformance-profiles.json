@@ -1956,7 +1956,7 @@
         "unsupported_optional": "if stateless_cursor is not advertised, the service MUST reject cursors lacking h with cursor_integrity_invalid"
       },
       "additional_requirements": {
-        "transcript_binding_must": "Stateless cursor _mac / _sig MUST bind purpose, principal_id, device_id, service_id, filter_hash, positions (s / d), target (barrier only), x, and issuer_kid. Mismatched transcript MUST be rejected with cursor_integrity_invalid.",
+        "transcript_binding_must": "Stateless cursor _mac / _sig MUST bind purpose, principal_id, device_id, service_id, filter_digest, positions (s / d), target (barrier only), x, and issuer_kid. Mismatched transcript MUST be rejected with cursor_integrity_invalid.",
         "issuer_kid_must": "Stateless cursors MUST carry issuer_kid for cursor-signing key selection; servers MUST support at least one active and one retired key for rotation overlap.",
         "core_compat_must": "Services declaring this profile MUST still accept core-form stateful handle cursors ({v, purpose, t, x, h}); core form is the default and stateless is the extension, never the other way around.",
         "fixture_must": "schema-validation-fixture.json cursor_stateless_body_rejected_by_core_schema documents the core-schema fail-closed; profile-declaring services MUST provide additional fixtures showing successful transcript verification under the profile's schema overlay."

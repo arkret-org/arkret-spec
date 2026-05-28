@@ -104,13 +104,13 @@ https://app.contrix.example/invite/<invite_token>                              �
 
 ## 4. 认领流程 (Claiming)
 
-当 Bob 收到邮件并点击链接，他在客户端完成了注册并获得了自己的 `did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`（v1 core 默认 principal DID method 为 `did:webvh`，见 [identity-did.md §3](../identity/identity-did.md)；`personal_node` profile 的 Bob 可选 `did:web:bob.example.com`，其他 deployment profile 不得使用 `did:web` 作为长期 principal）。接下来他需要认领这个邀请。
+当 Bob 收到邮件并点击链接，他在客户端完成了注册并获得了自己的 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`（v1 core 默认 principal DID method 为 `did:webvh`，见 [identity-did.md §3](../identity/identity-did.md)；`personal_node` profile 的 Bob 可选 `did:web:bob.example.com`，其他 deployment profile 不得使用 `did:web` 作为长期 principal）。接下来他需要认领这个邀请。
 
 ### 4.1 出示 Token 与绑定
 
 Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Realm 提交给 Alice 的身份验证服务。
 身份验证服务验证 token、过期时间、claim 次数和 Realm 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，声明：
-“持有该 Token 的人现在对应的 DID 是 `did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`”。
+“持有该 Token 的人现在对应的 DID 是 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`”。
 
 ### 4.2 提交转换 Event
 
@@ -119,13 +119,13 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
 {
   "invite_id": "cx:invite:0196419b-1000-7000-8000-000000000000",
-  "subject_id": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
+  "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
   "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
   "binding_proof": {
     "verification_service_did": "did:web:identity.alice.example",
     "verification_method": "did:web:identity.alice.example#invite-001",
-    "subject_id": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
+    "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "audience": "contrix.invite.claim",
     "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
@@ -133,8 +133,9 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
     "signature": "c2ln"
   },
   "subject_proof": {
-    "verification_method": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com#device-1",
+    "verification_method": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com#device-1",
     "alg": "EdDSA",
+    "transcript_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "signature": "c2ln"
   }
 }
@@ -145,9 +146,9 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到该 Event 时：
 1. 匹配 `token_commitment` 与未过期、未撤销、未认领的 `cx.invite.third_party`。
 2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_id`、`realm_id`、audience、过期时间和 claim nonce。
-3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。
+3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("cx.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"contrix.invite.claim"})`；只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` 的 subject proof MUST reject。
 4. 原子标记 pending invite 为 `claimed`；同一个 `token_commitment` 的第二次认领 MUST reject。
-5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
+5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
 6. 随后 Bob 按照正常流程发送 `cx.invite.accept` 加入 Realm。
 
 验证服务 / 接收 Sync Service MUST 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`。任一 nonce 一旦进入该 set，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 在进入 reducer 仲裁前拒绝，即使前一次 claim 最终因其它原因未成为 winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
@@ -183,5 +184,7 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 | token 泄漏 / 怀疑泄漏（邀请者或 admin 发起 `cx.invite.revoke`） | `pending → revoked` | 立即拒绝任何 claim；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；客户端 UI MUST 显示"邀请已撤销"。 |
 | claim 成功 | `pending → claimed` | 同一 `token_commitment` 第二次 claim MUST `duplicate_conflict`；claim 接受后 `token_salt` / lookup pepper material MUST 在 24h 内 zeroize，只保留不可枚举 audit receipt。 |
 | OOB lookup 形态失败次数超限（§3） | `pending → invalidated_by_rate_limit` | 强制邀请者重发；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；不暴露具体失败次数给攻击者。 |
+
+Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可以先进入 `claimed` / joined projection，但该成员对加密正文的客户端状态 MUST 走 [`client-sync.md` §15](./client-sync.md) 的 `decryption_pending` / timeout / recovery 机制；不得把 Welcome 缺失解释为 claim 回滚。若 KeyPackage 耗尽、过期或与 required capabilities 不匹配，邀请方或服务端 MUST 触发 `keypackage_refresh_required` 诊断/重试路径，并在新的 Welcome 到达后按普通 MLS governance binding 校验恢复。
 
 **统一不可枚举响应（normative）**：claim 失败响应 MUST 不区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`cx.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。

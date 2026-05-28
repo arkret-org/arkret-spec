@@ -81,21 +81,23 @@ Applet 的主要可见 Actor。Bot Actor 可以加入 Realm、被 mention、发�
 
 ### 3.4 Ghost Actor
 
-外部网络用户在 Contrix 中的镜像 Actor。例如 Slack 用户 `U123` 映射为：
+外部网络用户在 Contrix 中的镜像 Actor。例如 Slack 用户 `U123` 映射为一个独立 Actor DID：
 
 ```text
-did:web:slack-bridge.example#ghost-u123
+did:web:slack-bridge.example:ghost:u123
 ```
 
-或一个由 Applet 托管的独立 DID。
+`#fragment` 只用于 DID URL 形式的 verification method（例如 `did:web:slack-bridge.example:ghost:u123#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。
 
 Ghost Actor MUST 带有 `accountability`，指向 Applet controller 和外部网络来源。
 
 #### 3.4.1 Ghost Actor vs Native Personal Agent(CXP-0008 边界)
 
-`actor_kind="agent"` 下,**native personal AI agent**(由 controller 通过 `cx.agent.provision` 创建,见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))与 **Applet-managed Ghost AI agent**(本节)是两类不同 actor,生命周期与治理路径完全分离:
+`actor_kind` 不定义 `agent_native`、`agent_ghost` 或 `ghost` wire enum。Native personal AI agent 使用 `actor_kind="agent"`；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值：外部人类/账号镜像 SHOULD 使用 `actor_kind="integration"`，Applet 托管的 AI/automation ghost MAY 使用 `actor_kind="agent"`。二者必须通过 Applet provenance、`accountable_to` / `accountability` 和 profile/capability 约束与 native personal agent 区分，不能依赖新增 `actor_kind` 值区分。
 
-| 维度 | Native personal agent | Applet-managed Ghost AI agent |
+Native personal AI agent(由 controller 通过 `cx.agent.provision` 创建,见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))与 Applet-managed Ghost Actor(本节)是两类不同 actor,生命周期与治理路径完全分离:
+
+| 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
 | 创建路径 | `cx.agent.provision` operation,fan-out `cx.profile.create` / `cx.identity.accountability_grant` / `cx.agent.key.authorize` / `cx.capability.grant` | `cx.applet.registration` + Applet bot/ghost actor 注册 |
 | `accountable_to` | 指向 controller principal,显式 `cx.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
@@ -125,9 +127,9 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "kind": "cx.applet.registration",
   "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
   "service_did": "did:web:slack-bridge.example",
-  "controller_did": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+  "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://slack-bridge.example/api/v1/applet",
-  "bot_actor_id": "did:web:slack-bridge.example#bot",
+  "bot_actor_id": "did:web:slack-bridge.example:bot",
   "protocols": [
     "slack"
   ],
@@ -135,7 +137,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     "actors": [
       {
         "exclusive": true,
-        "pattern": "did:web:slack-bridge.example#ghost-*"
+        "pattern": "did:web:slack-bridge.example:ghost:*"
       }
     ],
     "realms": [
@@ -170,7 +172,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#admin-key-1",
+    "verification_method": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#admin-key-1",
     "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
@@ -207,7 +209,7 @@ Actor namespace 适用于 ghost actor 和 bot actor。
 ```json
 {
   "exclusive": true,
-  "pattern": "did:web:slack-bridge.example#ghost-*"
+  "pattern": "did:web:slack-bridge.example:ghost:*"
 }
 ```
 
@@ -241,8 +243,8 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 
 ```json
 {
-  "issuer": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
-  "subject": "did:web:slack-bridge.example#bot",
+  "issuer": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+  "subject": "did:web:slack-bridge.example:bot",
   "claim_scope": {
     "realm_ids": [
       "cx:realm:0196419b-0000-7000-8000-000000000000"
@@ -259,7 +261,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
       "constraint_type": "scope_limitation",
       "effect": "allow",
       "via_applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
-      "allowed_actor_namespace": "did:web:slack-bridge.example#ghost-*"
+      "allowed_actor_namespace": "did:web:slack-bridge.example:ghost:*"
     }
   ],
   "expires_at": "2026-07-26T00:00:00Z"
@@ -284,7 +286,7 @@ Base URL 来自 registration 的 `base_url`。
 | `cx.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
 | `cx.applet.resolve_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
 | `cx.applet.resolve_realm` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
-| `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
+| `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
 | `cx.applet.third_party_users` | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
 | `cx.applet.third_party_locations` | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
 
@@ -377,7 +379,7 @@ GET /api/v1/applet/actors/{actor_id}
 ```json
 {
   "exists": true,
-  "actor_id": "did:web:slack-bridge.example#ghost-u123",
+  "actor_id": "did:web:slack-bridge.example:ghost:u123",
   "display_name": "Alice on Slack",
   "external_ref": {
     "protocol": "slack",
@@ -424,7 +426,7 @@ GET /api/v1/applet/protocols/{protocol}
 {
   "protocol": "slack",
   "display_name": "Slack",
-  "icon_blob": "cx:blob:sha256:...",
+  "icon_blob_ref": "cx:blob:sha256:...",
   "field_types": {
     "team": {
       "label": "Workspace",
@@ -474,7 +476,7 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
-  "actor_id": "did:web:slack-bridge.example#ghost-u123",
+  "actor_id": "did:web:slack-bridge.example:ghost:u123",
   "kind": "cx.message.create",
   "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
   "external_ref": {
@@ -491,7 +493,7 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:web:slack-bridge.example#ghost-u123-key",
+    "verification_method": "did:web:slack-bridge.example:ghost:u123#key-1",
     "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "created_at": "2026-04-26T00:00:01Z",
     "jws": "..."
@@ -507,8 +509,9 @@ Ghost Actor profile SHOULD 包含：
 
 ```json
 {
-  "actor_id": "did:web:slack-bridge.example#ghost-u123",
-  "actor_kind": "ghost",
+  "schema": "cx.schema.actor_profile.v1",
+  "principal_id": "did:web:slack-bridge.example:ghost:u123",
+  "actor_kind": "integration",
   "display_name": "Alice on Slack",
   "managed_by_applet": "cx:applet:21532600-0000-7000-8000-000000000000",
   "external_ref": {
@@ -518,7 +521,7 @@ Ghost Actor profile SHOULD 包含：
   },
   "accountability": {
     "mode": "applet_managed",
-    "responsible_actor_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+    "responsible_actor_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
     "operator_actor_ids": [
       "did:web:slack-bridge.example"
     ]

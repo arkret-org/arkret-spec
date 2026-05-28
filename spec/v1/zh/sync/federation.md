@@ -434,12 +434,12 @@ Signature: ...
 | --- | --- | --- | --- |
 | Public Events API | account holder / SDK client | 用户/服务 access token | 通常仅 `realm_frontier` 或 `actor_seq` 简要视图 |
 | Federation peer probe (本节) | 被 Realm service binding（`sync_endpoints` 或等价 policy facet）授权的 federation peer 服务 DID | §3 节点间认证 + Realm policy 列出的 `federation_peer` 角色 | 完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)` |
-| Anonymous / unauth health check | optional | 无 / 限速 token | 仅 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds；MUST 返回 `cache_until` 或 `retry_after_ms` |
+| Anonymous / unauth health check | optional | 无 / 限速 token | 仅 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds；MUST 返回 `cache_expires_at` 或 `retry_after_ms` |
 
 Probe **MUST** 是 capability-gated：
 
 - 被 Realm service binding 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
-- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_until` 或 `retry_after_ms`，且服务端返回的最小退避窗口 MUST ≥ 60 秒（`cache_until - now >= 60s` 或 `retry_after_ms >= 60000`）；客户端在该时间前不得重复轮询同一 Realm，若收到低于 60 秒的值 MUST 按 60 秒处理。**侧信道告知**：`frontier_root` 摘要在多次轮询下可让观察者推断 Realm 活跃度时间序列（同一 hash 不变意味着无写入）。不接受该侧信道的部署 SHOULD 关闭 `peer_role=anonymous_health` 调用面，只保留 federation_peer 已认证路径。
+- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_expires_at` 或 `retry_after_ms`，且服务端返回的最小退避窗口 MUST ≥ 60 秒（`cache_expires_at - now >= 60s` 或 `retry_after_ms >= 60000`）；客户端在该时间前不得重复轮询同一 Realm，若收到低于 60 秒的值 MUST 按 60 秒处理。**侧信道告知**：`frontier_root` 摘要在多次轮询下可让观察者推断 Realm 活跃度时间序列（同一 hash 不变意味着无写入）。不接受该侧信道的部署 SHOULD 关闭 `peer_role=anonymous_health` 调用面，只保留 federation_peer 已认证路径。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
 
 Probe 响应 payload：
@@ -530,7 +530,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join
 2. Bob 提交 `cx.member.state{membership="knock"}` Move（不携带正文），并提交 profile 声明的 signed `member.application` receipt / private record（携带 answers / claim presentation / challenge proof，E2EE Realm 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）。`member.application` 是候选 workflow 概念，不是 v1 base `Event.kind`。
 3. knock Move 与 application receipt / private record 推送到 Realm S 的 shared anchorer 或管理员 Principal Server；接收方验证签名后扇出至 reviewer 的设备列表
 4. 持有 `cx.realm.join.review` capability 的 reviewer 评估申请，产生 `member.application.review{decision=accept|reject|request_changes}` 候选 workflow 决策（不是 v1 base Event.kind；capability action 自身仍按 `cx.realm.join.review` 注册）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
-5. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` 引用对应 signed review accept receipt hash；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id
+5. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id
 6. Bob 提交 `cx.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
 7. 若 Realm 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
 
@@ -674,13 +674,13 @@ Authorization: <service_signature>
 | `purpose` | body | `enum(event_source,federation_join,device_binding)` | required | 验证目的；服务端 MUST 将目的纳入授权与限流策略。 |
 | `realm_id` | body | `id` | optional；Realm 相关目的为 required | 相关 Realm ID；用于绑定 Realm policy、membership 和 plaintext visibility。 |
 | `challenge` | body | `base64url string` | optional；challenge 验证为 required | 请求方生成的短期随机挑战；服务端 MUST 拒绝过期或重复 challenge。 |
-| `signed_payload_hash` | body | `sha256:<base64url-or-hex>` | optional；验证具体事件/设备绑定时为 required | 被验证 payload 的 canonical hash，MUST 与签名 transcript 绑定。 |
+| `signed_payload_digest` | body | `<algo>:<lowercase_hex>` | optional；验证具体事件/设备绑定时为 required | 被验证 payload 的 canonical digest，MUST 与签名 transcript 绑定。 |
 | `signature` | body | `object` | required | Actor 设备键或授权签名。 |
 | `signature.kid` | body | `did-url` | required | 签名键 ID，MUST 属于 `actor_id` 的当前或可验证历史 key log。 |
 | `signature.alg` | body | `string` | optional | 签名算法；出现时 MUST 与 DID Document/key log 中的 key 类型一致。 |
 | `signature.sig` | body | `base64url string` | required | 对 canonical verification payload 的 detached signature。 |
 
-`signature.sig` 覆盖的 canonical verification payload MUST 至少绑定 `actor_id`、`purpose`、`realm_id`（若存在）、`challenge`（若存在）、`signed_payload_hash`（若存在）、请求方 service DID、目标 service DID 和请求时间窗口，防止跨目的、跨 Realm 或跨服务重放。
+`signature.sig` 覆盖的 canonical verification payload MUST 至少绑定 `actor_id`、`purpose`、`realm_id`（若存在）、`challenge`（若存在）、`signed_payload_digest`（若存在）、请求方 service DID、目标 service DID 和请求时间窗口，防止跨目的、跨 Realm 或跨服务重放。
 
 请求示例（非完整 schema）：
 
@@ -690,7 +690,7 @@ Authorization: <service_signature>
   "purpose": "event_source",
   "realm_id": "cx:realm:...",
   "challenge": "base64url...",
-  "signed_payload_hash": "sha256:...",
+  "signed_payload_digest": "sha256:...",
   "signature": {
     "kid": "did:webvh:...#device-a",
     "alg": "Ed25519",
@@ -773,12 +773,12 @@ Authorization: <service_signature>
 
 仅按 `(origin, destination, Idempotency-Key, canonical_digest)` 建 cache 不足以防御"撤销后重放"——若 origin service key 在 t₀ 签发请求 R，t₁ revoke，t₂ attacker 重放 R，缓存命中后 destination 仍会 accept。本节强制把 service key state 一起进入 cache key：
 
-- Idempotency cache entry MUST 至少携带：`Source-Service-DID`、`origin verification_method`（key id 或 DID URL fragment）、`service_binding_ref`（参见 §4.1）、当时 origin 的 key state frontier（`origin_key_state_digest` = source service 在 origin Realm 上的 service binding state 的 canonical hash）。
+- Idempotency cache entry MUST 至少携带：`Source-Service-DID`、`origin verification_method`（key id 或 DID URL fragment）、`service_binding_ref`（参见 §4.1）、当时 origin 的 key state frontier（`origin_key_state_digest` = source service 在 origin Realm 上的 service binding state 的 canonical hash），以及 destination 本地 peer policy 的版本 / digest（`local_peer_policy_digest`）。
 - **撤销后重放**：destination 接收同一 `Idempotency-Key` 重复请求时 MUST 重新解析 origin 的 service binding：
-  - 若当前 `verification_method` 仍 active 且 `origin_key_state_digest` 与 cache 一致：MAY 返回 cached accepted 响应（真正幂等）。
-  - 若 `verification_method` 已被 revoke / `origin_key_state_digest` 已变：MUST 返回**仅历史诊断**响应（`status="historical_only"`，附原 cache outcome），不得触发任何新副作用（不向下游 Realm reducer 推送、不刷新 frontier）。
+  - 若当前 `verification_method` 仍 active、`origin_key_state_digest` 与 cache 一致，且当前本地 peer policy digest 仍与 `local_peer_policy_digest` 一致并允许该 source：MAY 返回 cached accepted 响应（真正幂等）。
+  - 若 `verification_method` 已被 revoke / `origin_key_state_digest` 已变 / 本地 peer policy digest 已变：MUST 重做完整 key、binding、Realm policy 与本地 peer policy 授权检查；不通过时返回**仅历史诊断**响应（`status="historical_only"`，附原 cache outcome），不得触发任何新副作用（不向下游 Realm reducer 推送、不刷新 frontier）。
   - 若 destination 不能解析当前 service binding（federation peer 不可达）：MUST `temporarily_unavailable`，不允许 fall back to cached accept。
-- **Key revoke 后 cache 入口必须重新校验**：cache hit 不豁免授权检查。每次 hit MUST 重新调用 capability check（destination Realm policy 对 source service 的 `federation_peer` 角色是否仍在）；不通过 MUST 拒绝（`capability_denied`），返回历史诊断而非继续推送。
+- **Key revoke / peer policy 变化后 cache 入口必须重新校验**：cache hit 不豁免授权检查。每次 hit MUST 重新调用 capability check（destination Realm policy 对 source service 的 `federation_peer` 角色是否仍在）并检查部署本地 peer policy 是否仍 allow；不通过 MUST 拒绝（`capability_denied` 或 `policy_denied`），返回历史诊断而非继续推送。
 - **Negative vector** `cx.vector.federation.idempotency_after_key_revoke.v1` 覆盖：(a) origin service key revoke 后同 Idempotency-Key 重放 ⇒ destination 返回 historical_only；(b) origin service binding 被 Realm policy 移除后重放 ⇒ destination 返回 capability_denied；(c) origin_key_state_digest 不一致即使 cache 命中也 MUST 重做完整授权判定。
 
 ### 8.6 威胁映射落地

@@ -1038,6 +1038,19 @@
       "notes": "Cache expiry fields use the domain-prefixed cache_expires_at spelling."
     },
     {
+      "id": "cache_until",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "cache_expires_at",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Anonymous health frontier cache bound uses the domain-prefixed cache_expires_at spelling; cache_until is not a v1 wire alias."
+    },
+    {
       "id": "signed_by",
       "kind_class": "wire_field_name",
       "since_revision": "2026-05-24",
@@ -2107,6 +2120,20 @@
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
+      "id": "event_hashes",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "event_digests",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "cx.events.resolve request selector renamed to the plural event_digests, aligning with the singular event_digest / hash_to_digest_vocabulary rule.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
       "id": "frontier_hash",
       "kind_class": "wire_field_name",
       "since_revision": "2026-05-24",
@@ -2683,6 +2710,186 @@
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Capability action converged to match event kind cx.realm.moderation_policy. See verb_noun_bridge_collapse migration group.",
       "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "signed_payload_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "signed_payload_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Federation verification payload digest field aligned with common hash vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "avatar_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "avatar_blob_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "MemberIdentity display_profile now reuses the canonical avatar_blob_ref field.",
+      "migration_group": "blob_reference_naming"
+    },
+    {
+      "id": "icon_blob",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "icon_blob_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Applet protocol metadata icon field is a Blob reference and therefore carries _blob_ref.",
+      "migration_group": "blob_reference_naming"
+    },
+    {
+      "id": "space_bound",
+      "kind_class": "wire_enum_value",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_bound",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "media_metadata.visibility values are aligned to Realm / Circle scope, not Space.",
+      "migration_group": "realm_space_inversion"
+    },
+    {
+      "id": "sha256",
+      "kind_class": "blob_metadata_field",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "content_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Blob metadata digest field now uses content_digest with an algorithm prefix; cx:blob:sha256:<hex> remains valid as a content-addressed blob_ref.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "size",
+      "kind_class": "blob_upload_field",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "size_bytes",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Blob upload request and response byte counts use size_bytes.",
+      "migration_group": "size_bytes_vocabulary"
+    },
+    {
+      "id": "derived_hash_prefix",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "derived_digest_prefix",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Private contact discovery match request uses digest vocabulary for OPRF-derived prefixes.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "application_receipt_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "application_receipt_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Candidate join-policy receipts use digest vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "review_receipt_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "review_receipt_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Candidate join-policy review receipts use digest vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "receipt_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "receipt_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Receipt commitments use digest vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "pattern_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "pattern_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation content filter pattern commitments use digest vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "media_hash",
+      "kind_class": "wire_enum_value",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "media_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Moderation policy target kinds name digest material as media_digest.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "presentation_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "presentation_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Identity presentation responses and disclosure receipts use digest vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "raw_document_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "raw_document_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Normalized principal view uses digest vocabulary for raw DID document commitments.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "filter_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "filter_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Cursor handle bindings and stateless cursor transcripts use digest vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "signature_over_content_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "signature_over_content_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DeviceMessage device_proof extension examples use digest vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "prev_frontier_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "prev_frontier_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Event sibling-limit grouping names digest material consistently.",
+      "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "constraint_hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "constraint_digest",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Authorization constraint cache keys use digest vocabulary.",
+      "migration_group": "hash_to_digest_vocabulary"
     }
   ]
 }

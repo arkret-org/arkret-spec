@@ -181,7 +181,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 ```json
 {
   "id": "cx:device:01964137-0000-7000-8000-000000000000",
-  "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_label": "Alice MacBook Pro",
   "device_public_key": "z6Mks...",
   "device_key_type": "Multikey",
@@ -203,7 +203,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 - `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意 Collaboration Realm 的 `realm_id`。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
 - `payload.principal_id` / `payload.subject` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
-- control Realm 的 `cx.realm.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Realm MUST 使用 v1 标准 `kind=collaboration`，并通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `cx.profile.principal_control_realm.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走 collaboration kind 的标准路径。
+- control Realm 的 `cx.realm.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Realm 使用标准 `cx.schema.realm.v1`；通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `cx.profile.principal_control_realm.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走标准 Realm 路径。
 - 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、policy server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
 
 `principal_control_realm_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Realm 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
@@ -222,14 +222,14 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
 
 1. **Inception key 生成**：客户端在用户首次注册或自主权恢复时本地生成一个 `inception_keypair`（Ed25519 / ECDSA-P256）。该密钥既是 `did:webvh` 第 0 条 `did.jsonl` entry 的 `updateKeys[0]` / `nextKeyHashes[0]`，也是首台设备的 device key 之一。
 2. **`did:webvh` genesis 写入**：客户端按 `did:webvh` specification 计算 SCID，将 `did.jsonl` entry 0 写入 hosting domain（自有 / Auth Server 托管子域）。Entry 0 的 `versionId`、SCID、controller proof MUST 由 inception key 签发。可选 witness MAY 在 entry 0 之后补签，不阻塞 bootstrap。
-3. **Principal control realm genesis**：客户端构造 `cx.realm.create` Event 创建 principal control realm（`realm_id` 即 `principal_control_realm_id`，绑定到 principal DID）。该 Realm 是 v1 标准 `kind=collaboration` Realm（不引入新的 Realm kind），并通过以下 Realm 字段把它标记为 control stream：
+3. **Principal control realm genesis**：客户端构造 `cx.realm.create` Event 创建 principal control realm（`realm_id` 即 `principal_control_realm_id`，绑定到 principal DID）。该对象是标准 `cx.schema.realm.v1` Realm（不引入新的 Realm kind），并通过以下 Realm 字段把它标记为 control stream：
    - `fields.purpose = "principal_control"`（产品语义；reducer/authz 通过此字段识别 control stream）。
    - `schema_refs` 包含 `cx.profile.principal_control_realm.v1`（profile id；该 profile 收紧 control realm 的允许 event kinds、capability action、E2EE/federation 默认值）。
    - `cx.profile.principal_control_realm.v1` 的机器化要求见 `artifacts/profiles/conformance-profiles.json#profile_requirements`：control Realm MUST 使用 allowlist-only event kind policy；普通 Flow / Message / Space / Relation / View / Morph / Call 协作事件在该 Realm 内 MUST `principal_control_event_kind_forbidden`。
    - `encryption_profile = "none"`，`history_visibility = "joined"`，`anchor_profile = "single_did"`，`anchorer = <principal DID>`。
    - `created_by = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
 
-   Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；缺一即按普通 collaboration Realm 处理（不再具备 control stream 的特殊语义）。
+   Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；缺一即按普通非 PCR Realm 处理（不再具备 control stream 的特殊语义）。
 4. **首台设备自授权**：客户端构造 `cx.device.authorize` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
 5. **Inception key 的归宿**：完成步骤 4 后，inception key 的在线签名角色 MUST 在 `inception_key_max_online_window` 内退出。推荐窗口为 ≤1h；24h 只是协议硬上限，deployment policy MUST NOT 配置更长窗口。`personal_node` / `small_team` profile 在首台 `cx.device.authorize` accepted 后 SHOULD 立即触发 `did:webvh` entry 1 写入或封存流程，不应等待硬上限。退出方式只能是：（a）写入 `did:webvh` entry 1 或等价 DID method operation，把日常 update / device authorization 权限轮换到新的 controller / device key，并从首台设备销毁 inception private key；或（b）把 inception key 封存为 recovery-only key，放入 secret storage / threshold recovery，记录 `sealed_at`、`expires_at?`、allowed recovery method，并禁止在线日常签名。窗口过期后，receiver / Auth Server MUST 拒绝 inception key 继续签发 `cx.device.authorize`、`cx.session.grant`、长期 capability 或 ordinary DID update，并写入安全审计；它只能按已声明 recovery policy 进入恢复流程。它 MUST NOT 长期作为日常 device signing key——暴露面应被限制到 inception bootstrap 与 recovery。
 6. **First-backup gate（normative）**：inception key 退场（步骤 5）之前，客户端 MUST 完成以下二者之一，作为 inception 窗口关闭的硬前置条件：
@@ -261,14 +261,14 @@ Receiver 接受 principal 的首批 control stream Event 时，MUST：
 - 校验首台 `cx.device.authorize` Event 的 `authorized_by` 引用与 inception key 一致；不接受 `authorized_by` 引用任何尚未 anchored 的 device。
 - Inception bootstrap 成功后，receiver MUST 标记该 control realm 已通过 inception；后续 §5.1 的 `cx.device.authorize` Event MUST `authorized_by` 一台已 anchored 的 device，不得再次自授权。
 
-**后续 device authorization 的 control Realm 归属校验（normative）**：reducer 接收非 inception-bootstrap 的 `cx.device.authorize` 时，不能只验证 device signature 与 `authorized_by` 链。它还 MUST 校验 enclosing `realm_id` 指向的 Realm 已 accepted 且满足全部 control-stream 绑定：(a) `fields.purpose == "principal_control"`；(b) `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；(c) `created_by` 等于被授权 device 所属 principal DID，且该 DID 与签发 `authorized_by` device 的 principal 一致。任一不满足时 MUST `failed_precondition`，`reason_code=device_authorized_principal_control_realm_mismatch`；实现不得把该 event 当作普通 collaboration Realm 中的业务事件继续处理，也不得把另一个 principal 的 control Realm 状态复用于当前 principal。
+**后续 device authorization 的 control Realm 归属校验（normative）**：reducer 接收非 inception-bootstrap 的 `cx.device.authorize` 时，不能只验证 device signature 与 `authorized_by` 链。它还 MUST 校验 enclosing `realm_id` 指向的 Realm 已 accepted 且满足全部 control-stream 绑定：(a) `fields.purpose == "principal_control"`；(b) `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；(c) `created_by` 等于被授权 device 所属 principal DID，且该 DID 与签发 `authorized_by` device 的 principal 一致。任一不满足时 MUST `failed_precondition`，`reason_code=device_authorized_principal_control_realm_mismatch`；实现不得把该 event 当作普通非 PCR Realm 中的业务事件继续处理，也不得把另一个 principal 的 control Realm 状态复用于当前 principal。
 
 #### 5.0.4 攻击模型
 
 Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 证据：
 
 - `did:webvh` 提供 SCID + entry hash + controller proof，并可叠加 witness——攻击者需要同时控制 hosting domain 和 ≥1 trusted witness 才能伪造 inception。
-- `did:web` 仅提供"hosting domain 当前内容"——攻击者控制 DNS/TLS 即可静默替换 inception。这正是 `personal_node` profile 之外不允许 `did:web` 作为 principal method 的根本原因（见 [`identity-did.md` §3](./identity-did.md) 与 [`server-threat-model.md` §3.3](../security/server-threat-model.md)）。
+- `did:web` 仅提供"hosting domain 当前内容"——攻击者控制 DNS/TLS 即可静默替换 inception。这正是 `personal_node` profile 之外不允许 `did:web` 作为 principal method 的根本原因（见 [`identity-did.md` §3](./identity-did.md) 与 [`server-threat-model.md` §2](../security/server-threat-model.md)）。
 - `did:key` inception **MUST NOT** 直接作为长期 principal——它必须在 §5.0.1 / §5.0.2 中升级为 `did:webvh` 或 `did:web`。
 
 实现 MUST 在 UI 中向用户清楚展示 inception 路径的密钥学强度（"已 witness 的 did:webvh 链" vs "仅 hosting domain"），不得在 onboarding 中把两者展示为等强度。
@@ -362,7 +362,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 ```json
 {
-  "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "principal_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
@@ -376,7 +376,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "authorized_by": "cx:device:01964136-8000-7000-8000-000000000000",
   "proof": {
     "kind": "detached_jws",
-    "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#device-old",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#device-old",
     "jws": "..."
   }
 }
@@ -405,7 +405,7 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
   "grant_id": "cx:grant:01964198-0000-7000-8000-000000000000",
   "realm_id": "cx:realm:01964198-7000-7000-8000-000000000000",
   "issuer": "did:web:auth-gateway.example.com",
-  "subject": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
   "scopes": [
@@ -476,7 +476,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 ```json
 {
   "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
-  "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "secret_storage",
   "backup_version": "kb_1",
@@ -638,7 +638,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 DEK 通过门限秘密分享拆分；reconstruction 需要 §8 recovery policy 的 `threshold.k` 份 share。
 
 - envelope 的 `encryption` MUST 携带 `recipient_key_ref` 指向当前 accepted `cx.schema.recovery_policy.v1.policy_id`；不一致的 envelope MUST `recovery_policy_mismatch`。
-- 每份 share 的取回 MUST 绑定当前 recovery 流程的 `recovery_session_id`（§14.5）；holder 服务 MUST NOT 把同一 share 多次释放给不同 session 而不经显式授权。
+- 每份 share 的取回 MUST 绑定当前 recovery 流程的 `recovery_session_id`（§15）；holder 服务 MUST NOT 把同一 share 多次释放给不同 session 而不经显式授权。
 - reconstruction 完成的 DEK MUST NOT 写入持久化存储；reconstruction 上下文 MUST 在解密 envelope 后立即销毁。
 - share commitment 校验：reconstruction 前 client / recovery coordinator MUST 验证每份 share 与 `recovery_policy.threshold.shares[].share_commitment` 一致；失败时 MUST `share_commitment_mismatch` 并通知用户特定 holder 提交了 invalid share。
 
@@ -661,7 +661,7 @@ DEK 由本地或托管 HSM / TPM / Secure Enclave wrap。
 - genesis envelope MUST `series_seq == 0`，`supersedes == null`，且 MUST NOT 携带 `supersedes_digest`。
 - `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_seq` / `supersedes`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
 - `frontier_ref` 是 RECOMMENDED 字段；当声明 `cx.profile.key_backup.memory_hard.v1` 或更高 hardening profile 时，`secret_storage` 与 `did_recovery` 类备份的新 envelope MUST 携带 `frontier_ref.frontier_digest`，并 SHOULD 携带 `frontier_ref.anchor_ref` 与 `frontier_ref.ssk_generation`。
-- 客户端发起恢复（device-lifecycle.md §14.5）时 MUST：
+- 客户端发起恢复（device-lifecycle.md §15）时 MUST：
   1. `LIST /api/v1/keys/backups?series_id=<series_id>` 取回**全部** envelope metadata；
   2. 按 `series_seq` 重建链，验证每条 `supersedes` / `supersedes_digest` 正确；任一 envelope 缺失或 hash 不匹配 → MUST `series_chain_broken`；
   3. 用链的**最尾**条进行解密；任何中间条目 MUST NOT 被用作主恢复源；
@@ -689,7 +689,7 @@ DEK 由本地或托管 HSM / TPM / Secure Enclave wrap。
 - **认证降级阻断**：`GET /api/v1/keys/backups/{backup_id}` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_did / principal_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
 - **审计记录**：超出阈值或在异常时间窗内的下载 MUST 写入 `cx.audit.accessed`，`access_kind="key_backup_read"`，并按 `cx.profile.attested_audit.e2ee.v1`（若声明）配对 audit pair。
 - **跨 actor 拒绝**：服务端 MUST 在 envelope `actor_id` 与请求 caller 不一致时返回 `forbidden`，并不得通过 metadata 暴露 envelope 是否存在。
-- **删除验证**：`DELETE` MUST 在尾部 envelope 上额外要求 §14.5 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）。仅持 device proof 的 caller 只能删除**非尾部**或 `expired_at < now` 的 envelope。
+- **删除验证**：`DELETE` MUST 在尾部 envelope 上额外要求 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）。仅持 device proof 的 caller 只能删除**非尾部**或 `expired_at < now` 的 envelope。
 
 实现 MAY 在 deployment policy 中收紧上述阈值；MUST NOT 放宽超过本节默认。
 
@@ -710,7 +710,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 {
   "schema": "cx.schema.recovery_policy.v1",
   "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
-  "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+  "principal_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "version": 1,
   "supersedes": null,
   "trust_domain": "cx:trust_domain:did.webvh.example",
@@ -753,7 +753,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
   "expires_at": null,
   "issued_at": "2026-04-26T00:00:00Z",
   "auth_data": {
-    "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
     "signature_alg": "EdDSA",
     "signature": "base64url...",
     "signed_fields": [
@@ -772,7 +772,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 Recovery policy 是 principal control state；它的发布、轮换、撤销 MUST 通过当前 accepted principal signing key（或满足旧 policy 的 quorum）签名进入 principal control stream：
 
 - **publish**：首次发布或后续无中断更新。新 envelope 的 `version` MUST 严格大于当前 accepted policy 的 `version`，`supersedes` MUST 引用前一份 `policy_id`（首版为 `null`）。
-- **rotate**：用于 `reshare_policy` 触发的 proactive secret sharing 或更换 holder 集合；rotate envelope MUST 在 `signed_fields` 中覆盖 `threshold` 与 `device_quorum`，并 SHOULD 同时附带新 share commitment。轮换期内的 in-flight recovery session（参见 §14.5）MUST 使用其 `issued_at` 时点的 policy；服务端 / coordinator MUST 拒绝跨 policy 版本拼接 share。
+- **rotate**：用于 `reshare_policy` 触发的 proactive secret sharing 或更换 holder 集合；rotate envelope MUST 在 `signed_fields` 中覆盖 `threshold` 与 `device_quorum`，并 SHOULD 同时附带新 share commitment。轮换期内的 in-flight recovery session（参见 §15）MUST 使用其 `issued_at` 时点的 policy；服务端 / coordinator MUST 拒绝跨 policy 版本拼接 share。
 - **revoke share**：当某个 share holder 被怀疑泄露时，policy holder 可发布只更新 `threshold.shares[i].revoked_at` 与 `revocation_reason_code` 的 rotate envelope。recovery coordinator MUST 拒绝任何 `revoked_at != null` 的 share，即便 commitment 仍能通过。`reshare_policy.max_share_age_seconds` 到期后未 reshare 的 share 在 coordinator 侧 MUST 被视为 stale，UI MUST 提醒用户。
 - **revoke policy**：用 `expires_at = now`、`allowed_proof_kinds = []`、或专门的 `policy_id` revoke 进入 principal control stream；revoke 之后只有写入新 policy 才能恢复账号——这是高代价动作，必须配 §7.7 UI 警告。
 
@@ -828,5 +828,5 @@ Contrix v1 对设备、会话和恢复要求如下：
 - Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 仅 `passphrase_kdf` 路径被拒绝、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。
 - Recovery policy grammar 由 `cx.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate / share-revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed_proof_kinds、approval requirement 与 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。
-- Recovery receipt 由 `cx.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；§14.5 step 7 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `proof_summary` / `backup_classes_unlocked` / `welcome_count` / `outcome`。
+- Recovery receipt 由 `cx.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；§15 step 7 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `proof_summary` / `backup_classes_unlocked` / `welcome_count` / `outcome`。
 - Backup series MUST 满足 §7.6：客户端 `LIST` 后重建链 → 验证 `supersedes_digest` → 用尾部 envelope 解密；当 `frontier_ref` 存在时 MUST 用 control stream snapshot 验证 frontier_digest 与 `ssk_generation`。

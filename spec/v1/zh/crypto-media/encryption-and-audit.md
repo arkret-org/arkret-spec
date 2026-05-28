@@ -406,7 +406,7 @@ MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_i
 }
 ```
 
-当 MLS group 绑定到 Flow discussion track 时，`governance_binding` MUST 同时覆盖 `flow_id` 与 `track="discussion"`，并以 Realm membership、history visibility、policy state 和 `allowed_tracks` action scope 作为验证边界。`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
+MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**不存在 per-track MLS group**——整个 Flow 共享单一安全边界（见 [`flow-and-message.md`](../models/flow-and-message.md) §3）。当 `governance_binding` 需要携带 Flow 级上下文时，它 MAY 额外覆盖 `flow_id` 与 `track`，但二者仅作为 application message context / AAD 字段，**不**据此派生独立 membership、history visibility 或 MLS group。验证边界是 Realm/Circle membership、history visibility、policy state 与 `allowed_tracks` action scope；`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
 
 **E2EE Realm MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Realm 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
@@ -482,7 +482,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 为关闭这条 federation 静默降级路径,v1 取消 deployment 私有覆盖。需要更换 codepoint 的部署 MUST 申请新 hardening profile（与对应 `mls_governance_binding.full.v<n>` 配套）并显式声明，使得"使用不同 codepoint"成为可观察的 wire 版本切换而非 codepoint-only 私有约定。
 
-当 MLS group 绑定到 Flow discussion track 时，CBOR map MUST 包含额外键 `"flow_id"` (tstr) 和 `"track"` (tstr, 值为 `"discussion"`)。
+当 `governance_binding` 携带 Flow 级上下文时，CBOR map MAY 包含额外键 `"flow_id"` (tstr) 和 `"track"` (tstr)；这些键仅作为 application message context / AAD，**不**决定 key scope（key scope 由 `effective_scope` 决定）。若出现，它们 MUST 进入 deterministic CBOR canonical bytes 并按 lexicographic key 顺序排列。
 
 规则：
 
@@ -784,6 +784,7 @@ Genesis 接受规则：
 ### 5.3 断网接力与挂起状态 (Takeover)
 如果管理员 A 在发出踢人 Proposal 后瞬间掉线，群组**绝对不会瘫痪**。
 - **挂起态的可用性**：在 Commit 被提交之前，群组处于“有待处理提案”的挂起状态，所有成员依然可以使用现有的 Epoch 密钥继续聊天通信。
+- **Churn 合并**：committer SHOULD 在不超过 `max_mls_commit_delay_ms` 的前提下，把同一 `(scope, mls_group_id, base_epoch)` 上已可见且仍满足授权 / membership / policy freshness 的 pending membership proposals 合并进单个 Commit；实现不得为每个 join/leave 机械地产生独立 Commit。高隐私或大群 profile MAY 声明更严格的 epoch 推进速率上限，但 ban / revoke / device revoke 不得因此超过 §2.4.1 的发送暂停窗口。
 - **无缝接力 (Takeover)**：群组内其他具备足够权限的成员（如管理员 B 或普通成员 C）在侦测到未处理的 Proposal 后，可以主动“接手”。成员 B 的客户端会自动执行重新加密，打包移除 D 的逻辑，并广播出 `cx.mls.commit`。一旦 B 的 Commit 被接受，D 成功被踢出。
 
 ### 5.4 并发 Commit

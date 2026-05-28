@@ -514,6 +514,25 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - [ ] **`discussion_realm_ref` 历史数据 migration**:如果有已部署的 pre-CXP-0007 数据已经使用 `discussion_realm_ref`,如何迁移?方案:迁移工具把"Flow F 带 discussion_realm_ref=R'"拆为"Flow F 与 Flow F' (在 R')"+ Relation。需要工具支持还是 hand-migration?**前提**是 v1 freeze 前接受本提案;若 freeze 后,问题质性升级。
 - [ ] **MLS rotate amplification profile 参数**(配合 §5.9):default profile 的 forward secrecy 窗口具体值、批量 rotate window 大小、单 Realm Circle 数量软上限是否需要写进 protocol-level conformance,还是完全留给 profile 自行声明?倾向**留给 profile 但要求 floor profile 必须显式公开窗口承诺**,避免不透明 SLA。
 
+### 7.1 Post-acceptance status（accepted 后状态归档）
+
+本提案已 `accepted` 并合并入 normative docs。上面 §7 的 open questions 是**历史讨论记录**;其在 v1 的最终归宿如下,读者应以 normative docs 为准,不要把已归档问题误读为 release blocker:
+
+| Open question | 状态 | normative 归宿 / 决定 |
+| --- | --- | --- |
+| Circle 创建权限默认 | **resolved** | `cx.circle.create` 默认**不**在普通成员 bundle 中（[`circle.md`](../zh/models/circle.md) §8）。是否放宽是 deployment profile 决定。 |
+| Display palette 大小 | **deferred-to-profile** | 固定 token 集由 display profile 锁定（[`circle.md`](../zh/models/circle.md) §11),不进 core wire schema。 |
+| `Space.default_scope_circle_id` 强制性 | **resolved** | hint;强制约束用 `child_scope_policy`（[`circle.md`](../zh/models/circle.md) §6.3/§7.1）。 |
+| 跨 Circle Relation | **resolved** | 复用跨 scope Relation 模型（[`relation.md`](../zh/models/relation.md) §4）。 |
+| `confidential_discussion_of` | **resolved** | 已注册为标准 weak-semantic relation kind（[`relation.md`](../zh/models/relation.md) §3.1/§3.2）。 |
+| Circle merge / split | **deferred-to-v1.1** | v1 不引入 `cx.circle.merge` 等 event;MLS 层 merge 非平凡。 |
+| `cx.circle.anchor_commit` 固定节拍参数 | **de-scoped from v1 core → named cadence profile** | v1 core 仅 normative 要求"时间节拍 + 空批次 commitment、禁止 event-count 触发"（[`circle.md`](../zh/models/circle.md) §10.2）。具体 `period_ms` / `max_jitter_ms` / 移动端省电 relaxation 由 named cadence profile 声明并公开,confidential Circle profile MUST NOT 使用会泄露活动频率的 event-count cadence。 |
+| Watch cell 的 Circle 归属 | **resolved** | scope 指向 Circle 的 Flow,其 watch cell 落在 Circle namespace（[`flow-and-message.md`](../zh/models/flow-and-message.md) §8）。 |
+| 历史成员能否看历史消息 | **deferred-to-profile** | 由 MLS welcome 是否携带历史 key 的 profile 选项决定;Circle 创建时锁定。 |
+| `encryption_profile=plaintext_inherit` 保留 | **resolved** | 不保留。 |
+| `discussion_realm_ref` migration | **resolved (pre-freeze)** | §8.1 已删除该字段;迁移工具把带 `discussion_realm_ref` 的 Flow 拆为两 Flow + Relation。 |
+| MLS rotate amplification 参数 | **deferred-to-profile (release-gate)** | 留给 profile,但 floor profile MUST 显式公开 forward secrecy 窗口承诺。 |
+
 ## 8. Migration plan
 
 > accepted 后填,以下为切片次序参考。本提案**必须在 v1 freeze 前完成 §8.1 + §8.4**,否则 `discussion_realm_ref` 删除变为 v2 breaking change。

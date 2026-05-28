@@ -341,7 +341,7 @@
       "code": "cursor_integrity_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Cursor integrity check failed: MAC / signature did not verify, the bound transcript (principal, device, service, filter_hash, purpose, positions, target, x, issuer_kid) did not match the authenticated request, or the stateful handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+      "description": "Cursor integrity check failed: MAC / signature did not verify, the bound transcript (principal, device, service, filter_digest, purpose, positions, target, x, issuer_kid) did not match the authenticated request, or the stateful handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "cursor_revoked",
@@ -404,6 +404,12 @@
       "description": "Caller requested an operation that relies on a Realm-declared profile or feature this service has not declared in cx.server.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation."
     },
     {
+      "code": "unsupported_join_rule",
+      "http_status": 422,
+      "scope": "both",
+      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in cx.directory.describe / cx.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3."
+    },
+    {
       "code": "failed_precondition",
       "http_status": 409,
       "scope": "both",
@@ -444,6 +450,12 @@
       "http_status": 409,
       "scope": "endpoint",
       "description": "Federation sender continued using a previous recipient_service_did after the handover grace window expired; sender MUST resolve the current binding and retry there."
+    },
+    {
+      "code": "delivery_binding_unresolvable",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_did after the bounded retry limit; sender MUST NOT fall back to the DID Document ContrixPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md §5.1.4."
     },
     {
       "code": "historical_only",
@@ -695,7 +707,7 @@
         "client_sync",
         "encoding"
       ],
-      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_hash / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /account/subscribe after= resume, X-Contrix-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_digest / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /account/subscribe after= resume, X-Contrix-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "cursor_revoked",
@@ -1701,14 +1713,14 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A federation delivery-binding handover response carried a proof that does not verify against the Realm Event graph, handover_frontier, actor_id, new_recipient_service_did, or effective delivery binding policy. Sender MUST stop redirection and MUST NOT fall back to DID Document routing. See zh/sync/federation.md §4.2."
+      "description": "A federation delivery-binding handover response carried a proof that does not verify against the Realm Event graph, handover_frontier, actor_id, new_recipient_service_did, or effective delivery binding policy. Sender MUST stop redirection and MUST NOT fall back to DID Document routing. See zh/sync/federation.md §4.1."
     },
     {
       "code": "delivery_binding_handover_rate_limited",
       "applies_to": [
         "service_call"
       ],
-      "description": "Sender has already accepted the maximum number of successful delivery-binding handovers for the same target principal and Realm in the configured rolling window. It MUST enter operator diagnostic instead of following another handover. See zh/sync/federation.md §4.2."
+      "description": "Sender has already accepted the maximum number of successful delivery-binding handovers for the same target principal and Realm in the configured rolling window. It MUST enter operator diagnostic instead of following another handover. See zh/sync/federation.md §4.1."
     },
     {
       "code": "soft_failed",
@@ -1819,6 +1831,14 @@
         "state_resolution"
       ],
       "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a cx.attestation.range_completeness attestation (payload schema cx.schema.range_completeness_attestation.v1) declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §4.2.4 step 6."
+    },
+    {
+      "code": "witness_disagreement",
+      "applies_to": [
+        "state_resolution",
+        "federation_transaction"
+      ],
+      "description": "Two overlapping-scope witness attestations (or peers) disagree on the event_id / event_digest for the same (actor_id, actor_seq), or return irreconcilable frontier_root / range-completeness root for the same range. The verifier MUST quarantine the affected range / peer and fail closed: the attestation MUST NOT be used to display 'history complete', clear an E2EE state mismatch, accept a snapshot, or submit a recovery Move. Recovery requires raw Event replay, a higher quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md §4.2.3 / §4.2.4 step 7 and zh/sync/federation.md §4.5.1."
     },
     {
       "code": "relaxed_window_exceeds_ceiling",
@@ -2158,7 +2178,7 @@
         "device_recovery",
         "state_resolution"
       ],
-      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery flows MUST surface this to the user as 'update recovery policy' rather than silently continuing. See zh/identity/key-management.md §7.5.4 / §7.7 and zh/crypto-media/device-lifecycle.md §14.5."
+      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery flows MUST surface this to the user as 'update recovery policy' rather than silently continuing. See zh/identity/key-management.md §7.5.4 / §7.7 and zh/crypto-media/device-lifecycle.md §15."
     },
     {
       "code": "share_commitment_mismatch",

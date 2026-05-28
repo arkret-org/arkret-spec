@@ -219,7 +219,7 @@ Realm（cx.schema.realm.v1，schema 层统一）
 
 承载多方业务协作。除 PCR 之外的所有 Realm 都属于这一类。
 
-- `fields.purpose` 不为 `"principal_control"`（缺省或显式标记为 `"collaboration"`）。
+- `fields.purpose` 不为 `"principal_control"`；普通 Collaboration Realm SHOULD 省略 `fields.purpose`，不得写入 schema 未注册的 `"collaboration"` marker。
 - 不引用 `cx.profile.principal_control_realm.v1`。
 - 按 `federation_policy` 与实际成员构成进一步分为 Internal / External 两种。
 
@@ -273,8 +273,8 @@ Schema id: `cx.schema.space.v1`
 | `schema` | yes | `cx.schema.space.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | MUST 指向 `cx:realm:`。 | Space metadata 的 home Realm。 |
 | `default_realm_id` | no | `id:realm` | MUST 指向 `cx:realm:`。 | 子资源默认 Realm；省略时继承。 |
-| `scope_circle_id` | no | `id:circle` | MUST 指向同 Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 encryption scope；省略表示 Realm-default。 |
-| `default_scope_circle_id` | no | `id:circle` | MUST 指向同 Realm 的 Circle。 | 在该 Space 下新建子资源的默认 Circle scope；hint，不强制。 |
+| `scope_circle_id` | no | `id:circle` | MUST 指向 Space metadata home Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 encryption scope；省略表示 Realm-default。 |
+| `default_scope_circle_id` | no | `id:circle` | MUST 指向该 Space 子资源 effective `default_realm_id` 所在 Realm 的 Circle。 | 在该 Space 下新建子资源的默认 Circle scope；hint，不强制。若 `default_realm_id` 继承，先解析 effective target Realm 再校验该 Circle。 |
 | `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement / encryption floor 的 reducer-enforced 约束。 |
 | `parent_space_id` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`；profile 可注册新 kind。 | Space 类型。 |
@@ -300,7 +300,7 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 - **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
 - **加密**：Space 没有自己的 MLS group。Space metadata 默认取决于 home Realm 的 `encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing MLS scope。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
-- **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。
+- **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。`default_scope_circle_id` 的 Circle MUST 属于该 effective `default_realm_id`；如果 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源默认 scope。
 - **强保密升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的密码学子边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；只有需要独立 federation / policy server / capability registry 时才创建新的 Realm。
 
 **三字段速查表（normative）**：Space 上三个 scope 相关字段语义不同，分别由不同主体强制：
@@ -308,7 +308,7 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 | 字段 | 语义 | 谁强制 |
 | --- | --- | --- |
 | `Space.scope_circle_id` | 本 Space 自身的密码学 scope | reducer（写本 Space 时校验） |
-| `Space.default_scope_circle_id` | 在该 Space 内新建子资源时的 *客户端 hint* 默认 scope | 客户端 UI（reducer 不强制） |
+| `Space.default_scope_circle_id` | 在该 Space 内新建子资源时的 *客户端 hint* 默认 scope；Circle 属于 effective `default_realm_id` | 客户端 UI（reducer 不强制） |
 | `Space.child_scope_policy.require_scope_circle_id` | 子资源 scope 的 reducer-enforced 约束 | reducer（写子资源时校验） |
 
 三字段不是冗余：自身 scope ≠ 默认 hint ≠ 子资源约束，实现 MUST 分别消费。

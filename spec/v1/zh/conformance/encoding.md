@@ -89,7 +89,7 @@ v1 conformance 锁定的 hash 算法集合：
 
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
-| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt hash 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `cx.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
+| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt digest 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `cx.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
 | `sha512` | 64 bytes（128 hex） | v1 optional；声明 `cx.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Realm 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
 | `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
 | `blake3` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
@@ -104,7 +104,7 @@ v1 conformance 锁定的 hash 算法集合：
 
 ### 3.3 State Root 与 Anchor Hash 编码
 
-`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt hash 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。v1 不存在独立 wire `Move id`；Move 是 reducer-input Event 的协议视图，所有 Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。Realm 内所有后续 Anchor / Event digest / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
+`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt digest 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。v1 不存在独立 wire `Move id`；Move 是 reducer-input Event 的协议视图，所有 Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。Realm 内所有后续 Anchor / Event digest / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
 
 ### 3.4 Multihash 兼容（profile-gated）
 
@@ -180,7 +180,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 }
 ```
 
-`receipt_hash = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`receipt_scope`、`frontier`、`events`、`schema` 和 `type` 必须进入 hash，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
+`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`receipt_scope`、`frontier`、`events`、`schema` 和 `type` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
 
 ## 6. Signature
 
@@ -423,13 +423,13 @@ Barrier 形态：
 
 - `_mac` MUST 是 HMAC over canonical bytes（除 `_mac` 自身外的所有字段，按 §2 RFC 8785 JCS 规则）；算法 MUST 是 HMAC-SHA-256 或更强；密钥由 issuing service 持有并按 `issuer_kid` 标识。
 - `_sig` MUST 是 detached signature over same canonical bytes；签名密钥使用 issuing service 的 cursor-signing key。
-- transcript MUST 绑定：`purpose`、principal id、device id、service DID / service id、filter hash、stream positions（`s` / `d`，如出现）、`target`（barrier 时）、`x`、`issuer_kid`。
-- 服务端 MUST 用当前 cursor key 重算 transcript 并与 `_mac` / `_sig` 比较；任一字段不匹配当前 authenticated request 的 principal / device / service / filter hash / purpose → `cursor_integrity_invalid`。
+- transcript MUST 绑定：`purpose`、principal id、device id、service DID / service id、`filter_digest`、stream positions（`s` / `d`，如出现）、`target`（barrier 时）、`x`、`issuer_kid`。
+- 服务端 MUST 用当前 cursor key 重算 transcript 并与 `_mac` / `_sig` 比较；任一字段不匹配当前 authenticated request 的 principal / device / service / `filter_digest` / purpose → `cursor_integrity_invalid`。
 
 **Stateful 形态（含 `h`）**：
 
 - `h` MUST 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit）。
-- 服务端 MUST 以 `h` 查 issuing service 本地表，记录绑定的 `(principal, device, service, filter_hash, purpose, positions, target?, expiry)` 元组。
+- 服务端 MUST 以 `h` 查 issuing service 本地表，记录绑定的 `(principal, device, service, filter_digest, purpose, positions, target?, expiry)` 元组。
 - handle 不存在、已撤销、已过期，或绑定字段与当前 authenticated request 不匹配 → `cursor_integrity_invalid`。
 - handle 校验本身就是完整性校验 — cursor body 不可加 `_mac` / `_sig`。
 
