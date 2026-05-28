@@ -214,7 +214,7 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
 其中：
 
 - `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme；
-- `semantic_projection(c)` 是从 `cx.schema.handle_claim.v1` 对象 `c` 中**只保留以下规范语义字段**形成的子对象——其它任何字段(包括 `proofs`、`verified_at`、`additionalProperties` 通道引入的 server-attested hint、Directory 缓存元数据、verifier 本地标注等)**MUST 排除**：
+- `semantic_projection(c)` 是从 `cx.schema.handle_claim.v1` 对象 `c` 中**只保留以下规范语义字段**形成的子对象——其它任何字段(包括 `proofs`、`verified_at`、`challenge`、`additionalProperties` 通道引入的 server-attested hint、Directory 缓存元数据、verifier 本地标注等)**MUST 排除**：
 
   | 字段 | 来源 | 数组规范化 |
   | --- | --- | --- |
@@ -228,7 +228,6 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
   | `claim_type` | 可选 | — |
   | `visibility` | 可选 | — |
   | `audience` | 可选,binding 受众 | — |
-  | `challenge` | 可选,绑定 verifier challenge | — |
   | `claim_scope` | 可选,scope object | — |
   | `member_delivery_binding` | 可选,投递绑定 | `delivery_modes`(若存在) MUST 按 lexicographic 排序;详见下方 §3.2.1.1 |
   | `claims` | 可选,VC inner claims | **顺序是语义的一部分**——issuer 控制,中间方 reorder 会破坏原 proof,因此 digest 直接按 issuer 提供顺序 canonicalize |
@@ -239,6 +238,8 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
   其它字段一律 MUST NOT 进入 `semantic_projection(c)`,即使 wire claim 通过 `additionalProperties: true` 通道携带。
 
   **`verified_at` 被显式排除**的原因：§6.0 允许 Directory / Principal Server / 其它中间方做 pre-verification 并把结果写进 directory entry 或 handle claim 作为 hint，`verified_at` 就在 hint 字段之列。若 `verified_at` 进 `semantic_projection`，同一语义 claim 被两家 Directory 预验证后会得到不同 `claim_digest`，破坏 tie-breaker 与缓存键稳定性。`verified_at` 因此规范上是 cache / hint 层 metadata(见 §6.0、§6.1.1)，**不**参与 claim 规范身份。issuer 若需要表达"我自己什么时候验证完",MUST 用 `created_at` 或在 `claims[]` 内嵌入显式 claim,而不是依赖 `verified_at`。
+
+  **`challenge` 被显式排除**的原因：`challenge` 是 verifier / request 级防重放输入，不是 handle claim 的稳定规范身份。proof transcript MAY 继续绑定 challenge、domain 与 verifier，但把 `challenge` 放进 `semantic_projection` 会让同一 handle claim 因不同解析请求得到不同 `claim_digest`，破坏 MemberIdentity `claim_digest` 比对、cache key 与 §3.2.1 tie-breaker 稳定性。
 
   其它字段排除的整体动因把 `claim_digest` 锚定在 §3.4 / §5 定义的 handle_claim 规范 shape 上,与具体 Directory / Principal Server / cache 层附加的 hint 解耦。
 
@@ -421,27 +422,39 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state`
 
 ```
 1. Realm-scoped projection 优先解析：
-   若当前 Realm 内存在 cx.member.identity.update 的 effective MemberIdentity M，
-   且 M.subject_id == mention 的 subject_id：
-   a. 取 M.primary_handle 字符串（若缺则 step 1 失败，落到 step 2）；
-   b. 在 M.handles[] 中查找 entry e 满足 e.handle == M.primary_handle；
-   c. 校验 e.verified == true 且 e.expires_at > resolution_as_of；
-   d. 校验 e.claim_digest 已知或可通过缓存 / 后台 refresh 比对到
+   renderer 先构造本次渲染输入对应的 MemberIdentity snapshot：
+   - 实时渲染使用当前 effective set；
+   - 历史 replay / audit 使用 resolution_as_of 时刻的 as-of effective set；
+   - 若实现无法构造对应 as-of snapshot，step 1 失败。
+   在该 snapshot 中筛选 subject_id == mention.subject_id 的 MemberIdentity 候选。
+   若候选数量不等于 1，step 1 失败（包括并发写入造成同一 actor
+   存在多个 effective MemberIdentity 的情况），进入 step 2。
+   对唯一候选 M：
+   a. 校验 M.asserted_at <= resolution_as_of；
+   b. 若 M.expires_at 存在，校验 M.expires_at > resolution_as_of；
+   c. 取 M.primary_handle 字符串（若缺则 step 1 失败，落到 step 2）；
+   d. 在 M.handles[] 中查找 entry e 满足 e.handle == M.primary_handle；
+   e. 校验 e.verified == true、e.issued_at <= resolution_as_of，
+      且 e.expires_at > resolution_as_of；
+   f. 校验 e.claim_digest 已知或可通过缓存 / 后台 refresh 比对到
       对应 cx.schema.handle_claim.v1 evidence（实现 MAY 异步 refresh，
       命中前以 server-attested hint 形态接受，参见 §6.0）；
-   e. 通过 a-d 即视为 Realm-scoped projection 解析成功，结果是
+   g. 通过 a-f 即视为 Realm-scoped projection 解析成功，结果是
       handle 字符串 e.handle（等价 binding_state == "verified" 的语义投影）。
 2. 否则 / step 1 失败：
-   resolve_primary_handle(subject_id, current_context) → handle_claim
+   resolve_primary_handle(subject_id, current_context, resolution_as_of) → handle_claim
    （按 §3.2.1 选择规则，跨 Realm / live Directory / cache，
-   返回带 binding_state 的完整 handle_claim 对象）。
+   返回带 binding_state 的完整 handle_claim 对象；历史 replay / audit
+   MUST 使用 resolution_as_of 对应的 claim_set_snapshot / policy_snapshot，
+   不得静默 live-resolve 到当前状态）。
 3. 显示判定：
    - step 1 成功 → 显示 "@{localpart}:{domain}"（来自 e.handle）；
    - step 2 成功且 handle_claim.binding_state == "verified"
      （或 §6.0 server-attested verified hint 命中且本地 trust policy TTL 内）
      → 显示 "@{localpart}:{domain}"（来自该 handle_claim 的 canonical handle）。
 4. 解析失败（DID 不可达 / 无 active claim / §3.2.1 选择不唯一 /
-   step 1 校验 b-d 任一失败 / step 2 binding_state ∈ {pending, revoked, expired}）：
+   MemberIdentity snapshot 不可构造或不唯一 / step 1 校验 a-f 任一失败 /
+   step 2 binding_state ∈ {pending, revoked, expired}）：
    按以下顺序 fallback：
    a. 本地 cache 中最近一次 verified primary handle（标记 "cached"）
    b. event 内 display_name_at_time（标记 "name only"）
@@ -450,7 +463,7 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state`
    实现 MUST NOT 把 fallback 显示成与正常解析无差别的形态。
 ```
 
-`resolution_as_of` 是 renderer 解析这一刻的时间戳；与 §3.2.1 的确定性六元组配合使用（`subject_id` / `context` / `claim_set_snapshot` / `policy_snapshot` / `holder_primary_handle_at_as_of` / `resolution_as_of`）。`claim_set_snapshot` 与 `policy_snapshot` 都是 as-of snapshot（详见 §3.2.1 normative 段）。同一 mention 在不同时刻可能因 MemberIdentity churn / cache TTL / claim 生效或过期边界 / DID Document update / Realm policy 调整落入不同分支，这是预期行为而非违反确定性——确定性保证的是六元组等同时输出等同。
+`resolution_as_of` 是本次渲染选择的解析基准时刻：实时渲染通常是 renderer 解析这一刻；历史 replay / audit 是被重放视图声明的 as-of 时刻。它与 §3.2.1 的确定性六元组配合使用（`subject_id` / `context` / `claim_set_snapshot` / `policy_snapshot` / `holder_primary_handle_at_as_of` / `resolution_as_of`）。`claim_set_snapshot` 与 `policy_snapshot` 都是 as-of snapshot（详见 §3.2.1 normative 段）。同一 mention 在不同时刻可能因 MemberIdentity churn / cache TTL / claim 生效或过期边界 / DID Document update / Realm policy 调整落入不同分支，这是预期行为而非违反确定性——确定性保证的是六元组等同时输出等同。
 
 renderer **不得**在主显示路径使用 `handle_at_time`。`handle_at_time` 只允许出现在以下场景：
 

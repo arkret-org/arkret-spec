@@ -411,6 +411,7 @@ event_id ASC
 - 若 accepted event `B` 的 `replaces[]` 引用 accepted event `A`，且 `payload_digest` 等于 `A.payload.identity_payload` 的 digest，则 `A` 在当前 projection 中被 `B` 替代。
 - `replaces[]` 引用未知 event、其它 `(realm_id, actor_id, segment)` 的 event，或 digest 不匹配时，该 replacement edge 无效；实现 MUST NOT 因此把被引用 event 从 effective set 移除。
 - 当前 effective set 是候选集中未被有效 replacement edge 指向的事件集合。成员身份查询 / roster hint SHOULD 只返回这个 effective set；历史 backfill / audit 查询 MAY 返回已被替代的旧事件。
+- effective set MAY 因并发写入或 replacement 冲突包含多个未被替代的事件。查询层 MUST 原样暴露该多值状态，MUST NOT 按本地排序、到达顺序或 last-writer-wins 规则静默收敛为单一 MemberIdentity。需要单一 MemberIdentity 的显示路径（例如 mention renderer）MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 处理：不唯一即 Realm-scoped projection 路径失败，进入 live / as-of resolve 或 fallback。
 - `expected_state_digest` 是可选 optimistic concurrency guard。若存在，它 MUST 等于 writer 观察到的同一 `(realm_id, actor_id, segment)` 当前 effective set 的 `identity_state_digest`；不匹配时服务端 / reducer MUST reject 或 quarantine，不得把该事件作为有效 replacement 应用。
 
 MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `encrypted_payload.ciphertext` 解密结果）：
