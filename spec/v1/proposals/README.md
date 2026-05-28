@@ -3,7 +3,7 @@ title: Contrix Proposals (CXP)
 status: candidate
 normative: false
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-28
 ---
 
 # Contrix Proposals
@@ -86,6 +86,7 @@ discussion: <PR / issue 链接>
 | [CXP-0008](./0008-personal-agent-provisioning.md) | 个人 AI Agent 创建与运行时认证 | **accepted** (merged 2026-05-26 → identity / agent runtime normative files) | 用户创建 native AI agent、runtime key pairing、`proof_kind=agent_key_proof` 换短期 session、权限交集与 act-on-behalf 边界 |
 | [CXP-0009](./0009-agent-sidecar-thread.md) | Agent Sidecar Thread（Agent 旁路私聊线程） | **accepted** (merged 2026-05-26 → sidecar thread normative files) | 在 Flow / Message 上下文中为 controller 与自己的 native AI agent 创建私有 sidecar thread,支持 controller-home / context-Realm home,并定义 E2EE / 存在性隐私边界 |
 | [CXP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | **accepted** (merged 2026-05-27 → [`zh/crypto-media/webrtc-signaling.md`](../zh/crypto-media/webrtc-signaling.md) 及 `bindings/`) | 把 `cx.realm.media_service` 从单 SFU endpoint 升级为 multi-focus + transport-agnostic backend 抽象;定义统一 token exchange、session focus 持久化、participant binding、E2EE key injection 契约、recording artifact 流转;LiveKit / mediasoup / Janus / MoQ 通过附录绑定接入 |
+| [CXP-0011](./0011-shareable-object-addressing.md) | Shareable Object Addressing — web+contrix URI scheme & deep-link resolution | **accepted** (merged 2026-05-28 → [`zh/discovery/object-addressing.md`](../zh/discovery/object-addressing.md)) | 客户端无关的可分享对象地址:`web+contrix:` URI scheme + HTTPS 落地(matrix.to 模型),path 表 containment / query 表路由提示,`reference`/`invite` 两型 link(`preview` 保留),寻址 ≠ 授权,token 绑定 canonical target,新增 `cx.directory.resolve_target` |
 
 ## 6. 写作风格
 

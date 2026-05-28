@@ -5307,6 +5307,28 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
+  /directory/resolve-target:
+    post:
+      operationId: cx.directory.resolve_target
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Authorized object address resolution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
   /directory/search-organizations:
     post:
       operationId: cx.directory.search_organizations

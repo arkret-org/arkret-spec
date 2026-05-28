@@ -42,6 +42,35 @@
 
 ## [Unreleased]
 
+### Shareable object addressing & `resolve_target`(CXP-0011)(2026-05-28)
+
+引入客户端无关的可分享对象地址(Flow / Message / Realm 深链):一套 path-表身份 / query-表提示的 grammar、三种 envelope(逻辑 ID / `web+contrix:` URI scheme / HTTPS fragment 落地),以及对象级解析 operation `cx.directory.resolve_target`。地址层纯寻址,授权由绑定 canonical target 的签名 token 承载,分 `reference` / `invite` 两型(`preview` 保留不实现)。
+
+- **变更类型**: add
+- **影响 artifact**: registry / openapi / non-http binding / prose
+- **canonical 变更**:
+  - `contract-catalog.json#operation_registry`: 注册 1 个新 operation `cx.directory.resolve_target`(`POST /directory/resolve-target` / `Directory/ResolveTarget` / `directory.resolve_target`),加入 `directory_discovery` surface group。
+  - `operations-error-mapping.json`: 为 `cx.directory.resolve_target` 注册 operation-specific `not_found`(镜像 `resolve_realm`)。
+  - 无新 event kind / schema / capability / id kind;不改任何 wire / reducer 行为。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 重新生成 `operation-registry.json` 等视图;`check` 验证 drift clean。`contrix-service-api.openapi.yaml` 增 `/directory/resolve-target` path(通用 `OperationRequest`/`OperationResult`);`non-http-bindings.yaml` gRPC Directory 段增 `ResolveTarget`。
+- **conformance impact**:
+  - 受影响 profile: 无新 profile;`resolve_target` 属 directory discovery extension surface,实现按既有 directory profile 声明。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible(纯新增 operation;`resolve_realm` 保留共存,未 deprecate)。
+  - reader / writer 行为要求: `resolve_target` MUST 在 realm 解析上委托 `resolve_realm`;携带 token 时 MUST 按 target descriptor 逐级校验再走 join-policy;未授权统一 `not_found`;web protocol handler 模板 MUST fragment-only。
+- **fixture / vector 变化**: 无(本次未新增 conformance vector)。
+- **prose 同步**:
+  - `zh/discovery/object-addressing.md`: 新增 normative 文件(grammar / 三 envelope / link 类型 / token target 绑定 / 隐私 / `resolve_target` 契约)。
+  - `zh/discovery/discovery-directory.md` §9: 新增 `resolve_target` operation 行 + 交叉引用。
+  - `zh/sync/service-http-binding.md` §2.3: HTTP endpoint 表 + field-level 表 + POST 列表增 `resolve-target`;operation 计数 100 → 101。
+  - `zh/overview/release-readiness.md`: Service operation 计数 100 → 101。
+  - `zh/spec-map.md`: 新增 `discovery/object-addressing.md` 索引行。
+- **迁移指南**: backward-compatible add;实现按以下顺序采纳即可——
+  1. 升级 `contract-catalog.json` 并 `artifact_pipeline.py generate`。
+  2. Directory 服务实现 `resolve_target`,realm 分支委托既有 `resolve_realm`。
+  3. 客户端实现 `web+contrix:` 注册(web handler 模板 fragment-only)与 HTTPS fragment 落地解析。
+  4. invite token 复用 join-policy `invite_token` / `signed_link` 生命周期,签发时绑定 target descriptor digest。
+
 ### Personal AI Agent provisioning & sidecar threads(CXP-0008 / CXP-0009)(2026-05-26)
 
 引入 native personal AI agent 的端到端创建、运行时认证、capability 委托、生命周期管理路径,以及 controller 与其 native agents 之间的私聊上下文线程(sidecar thread)。Native agent 与 Applet-managed Ghost AI agent 是两类不同 actor,Realm policy 必须能分别控制。

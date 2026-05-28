@@ -1,0 +1,160 @@
+---
+title: Object Addressing & Shareable Links
+status: candidate
+normative: true
+stability: v1
+updated: 2026-05-28
+---
+
+## 0. 规范语言
+
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+
+## 1. 目标
+
+本文定义 Contrix 的**客户端无关可分享对象地址**：用户把一个 Flow（或 Flow 内某条 Message、或 Realm）通过一串链接分享出去，接收方的任意 Contrix 客户端都能解析并在自己 UI 里打开。
+
+它解决的具体问题：`cx:flow:<uuid>` 是全局唯一 UUIDv7，但**不可路由**——光有 flow_id 不知道它属于哪个 Realm、由哪台 server 托管，因此各客户端只能各自拼私有 URL，换个客户端就打不开。
+
+地址层**只负责寻址**。授权不是地址的一部分，而是挂在地址上的、有 expiry、audience-bound、可吊销的签名 token。**寻址 ≠ 授权**：裸地址解析仍受 [`discovery-directory.md` §2/§3](./discovery-directory.md) 的 discoverability / join / history 三 gate 约束，请求方看不见的资源 MUST 解析为与不存在不可区分的 `not_found`。
+
+本文不引入新对象、新 event、新 capability，也不改变任何 wire / reducer 行为；它定义一套地址 grammar、三种 envelope，以及解析 operation `cx.directory.resolve_target`。
+
+## 2. 三个 envelope，一套 grammar
+
+| Envelope | 形态 | 用途 |
+| --- | --- | --- |
+| **逻辑 ID** | `cx:flow:<uuid>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `via` / `action` / token。 |
+| **`web+contrix:` URI scheme** | `web+contrix:realm/…/flow/…?via=…` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+contrix', <https-template>)` 登记（约束见 §5）。 |
+| **HTTPS 落地链接** | `https://<landing>/#realm/…/flow/…?via=…` | 用户复制粘贴的默认形态；`#` 之后整体 = 同一 grammar。`<landing>` 域名由部署方选定，本协议**不**指定中心化落地域名。 |
+
+`web+contrix:` 与 HTTPS 落地形态共用同一 §3 grammar parser，只是外壳不同（裸接 scheme vs 接在 `#` 后）。逻辑 ID grammar（`cx:<kind>:<uuid>`）见 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)，本文不重复定义。
+
+## 3. 地址 grammar
+
+canonical 形态（以 `web+contrix:` envelope 表示）：
+
+```
+web+contrix:realm/<realm>/flow/<flow>/m/<msg>?via=<service_did>&via=<service_did>&action=view
+```
+
+| 部分 | 承载 | 规则 |
+| --- | --- | --- |
+| **path** | containment 链 = 身份 + 解析顺序 | path keyword 携带对象类型，值是**裸 uuid**（剥掉 `cx:<kind>:` sigil）。层级固定 `realm/<r>` ⊃ `flow/<f>` ⊃ `m/<msg>`。 |
+| **query** | 非身份提示 + 授权组件 | `via`、`action`、`lt`、`tok`（见 §3.2 / §4）。 |
+| **fragment** | 隐私敏感位（仅 HTTPS 形态） | 见 §5。 |
+
+合法前缀（短到长均可单独成址）：
+
+```
+web+contrix:realm/<realm>                              # Realm（解析委托给 resolve_realm）
+web+contrix:realm/<realm>/flow/<flow>                  # Flow
+web+contrix:realm/<realm>/flow/<flow>/m/<msg>          # Flow discussion track 内某条 Message
+web+contrix:realm/<realm>/flow/<flow>?via=<did>&lt=invite&tok=<token>   # invite link
+```
+
+### 3.1 Path 规则（normative）
+
+- **realm 是身份，进 path；via 是路由，进 query。** realm 脱离 path 则 flow 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；`via` 是"此刻哪台 server 托管该 Realm"，可增删、过期，不影响身份。
+- **Flow / Message 地址 MUST 携带 `realm/<realm>` + 至少一个 `via`**；两者缺一，解析方 MUST fail-closed（返回 `not_found`），不得做全网 flow_id 猜测。
+- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **alias**（域名样式 / 含 `.` 的人类可读名）。`<flow>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`cx:realm:<uuid>` / `cx:flow:<uuid>` / `cx:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径（必要时用 `via`）规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
+- **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `flow` / `m`，且层级顺序 MUST 为 `realm` ⊃ `flow` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
+- Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/flow-and-message.md#9-message)，而非底层 event envelope）。
+- **Circle-scoped Flow**（`Flow.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。
+
+### 3.2 Query 规则（normative）
+
+- `via=<service_did>`：**多值**，物理路由提示（host Principal Server service DID）；语义与 [`discovery-directory.md` §9.1](./discovery-directory.md) `via_services` 一致。
+- `action=<view|join|reply>`：纯 UI 意图 hint，默认 `view`；解析方 MAY 忽略，**MUST NOT** 据此放大权限。
+- `lt` / `tok`：授权组件，见 §4。
+- `via` / `action` 是"删掉不改变指向什么"的纯提示；`lt` / `tok` 携带授权类别，删除 `tok` 把链接降级为 `reference`。
+
+## 4. Link 类型与授权 token
+
+授权**不做成独立 scheme**，而是同一地址 + 一个分型签名 token 组件（与 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 已有的 `realm_id`（纯）vs `invite_token` / `signed_link`（带授权）输入形状同构）。
+
+v1 定义两种 link 类型：
+
+| 类型 | 携带 | 解析后效果 |
+| --- | --- | --- |
+| `reference`（默认） | 纯地址 | 走正常 discovery + access gate；**不授予任何权限**。请求方本就能发现/读取时返回对应 preview / 内容，否则 `not_found`。 |
+| `invite` | 地址 + `tok`（`invite_token` / `signed_link`） | 兑换后经 [`governance/join-policy.md`](../governance/join-policy.md) 授予 membership / 访问；有 expiry、audience-bound、可吊销。 |
+
+> **`preview` 为保留值，v1 不定义。** 一个"凭 token 取得 stripped preview"的链接，会在 discovery 三 gate（discoverability + allowed_discoverers）之外新开一条 preview 授权旁路，属于新授权原语，超出本文寻址职责。若未来需要，MUST 由独立提案定义其与三 gate 的关系，届时再启用 `lt=preview`。
+
+### 4.1 Token wire syntax（normative）
+
+授权组件**统一**用两个 query 参数，**禁止** `invite_token=` / `signed_link=` 等分叉参数名（否则不同客户端生成互不互通的链接）：
+
+- `lt=<reference|invite>`，省略等价 `reference`。解析方遇到非这两个值（含保留的 `preview`）时 MUST 按最严格的 `reference` 语义处理（不授予任何权限）。
+- `tok=<opaque-token>`，**当且仅当** `lt=invite` 出现；直接映射到 `cx.directory.resolve_target` 的 `token` 输入。
+- token 的内部类别（`invite_token` 风格 vs `signed_link` 风格）由签名 payload 自身表达，**不**靠 URL 参数名区分。
+- token 存在时，**权威 link_type 取自 token 签名 payload**；URL `lt` 仅是解析前的展示 hint，**MUST NOT** 用于放大权限，与 token 内声明矛盾时以 token 为准。
+
+### 4.2 Token 必须绑定 canonical target（normative）
+
+`invite` token 仅有 expiry / audience / 可吊销**不够**——其签名 payload **MUST** 覆盖它授权的具体对象，否则 `resolve_target` 把 `address` 与 `token` 当独立输入时，A 对象的有效 token 可被重放到 B 地址（scope confusion）。
+
+token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段。
+
+**Target descriptor canonical shape（确定性）**：`target_descriptor` 是**恰好**如下字段的对象；缺省的层级字段 **MUST 整键省略**（不得写 `null`——避免 JCS 因 `null` vs 省略产生不同 digest）：
+
+```json
+{
+  "realm_id": "cx:realm:<uuid>",
+  "flow_id": "cx:flow:<uuid>",
+  "message_id": "cx:message:<uuid>",
+  "link_type": "invite"
+}
+```
+
+字段出现规则：`realm_id` 与 `link_type` 必含；`flow_id` 仅 flow / message 目标出现；`message_id` 仅 message 目标出现。
+
+`target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`，其中 `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme。
+
+- `realm_id` / `flow_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`cx:realm:<uuid>` 等），不得使用 path 中的裸 uuid 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
+- **`target_digest` 只覆盖身份元组（`realm` / `flow` / `m`）与 `link_type`**，**MUST NOT** 纳入 `via` / `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Flow / Message 必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
+- 生命周期字段 `aud` / `exp` / `nonce` 在 token payload 内，但**不属于** target descriptor（它们是 token 自身有效性边界，不是被寻址对象的身份）。
+- 签发端与 `resolve_target` 端 MUST 用同一 shape 与省略规则，否则 digest 不可比对。
+
+### 4.3 Token 生命周期
+
+`invite` token 的签发 / 过期 / 吊销复用 [`governance/join-policy.md`](../governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期，本文**不另发明** revocation 机制。`resolve_target` 在 §4.2 target descriptor 校验通过后，仍 MUST 走 join-policy 的 token 有效性 / 吊销检查。
+
+## 5. 隐私：target 与 token 放 fragment
+
+HTTPS 落地链接中，`flow` / `m` / `via` / 尤其 `tok` **MUST** 放在 URL **fragment（`#`）**，不进 path / query。理由：fragment 不发往落地页服务器，服务器日志学不到"谁在打开哪个 Flow / 持有哪个 token"，与 [`discovery-directory.md` §11](./discovery-directory.md) anti-enumeration 立场一致。
+
+`web+contrix:` 的隐私边界按 handler 类型分两支（不可笼统说"不经 web server"）：
+
+- **原生 OS 级 handler**：URI 由操作系统直接派发给本地 app，不经任何第三方 web server，`via` / `tok` 留在 query 无泄露风险。
+- **web `registerProtocolHandler` handler**：浏览器会**导航到注册的 HTTPS handler 模板 URL**，并把原始 `web+contrix:` URI 作为替换值（`%s`）填入。若模板把 `%s` 放在 path / query，则 target 乃至 token 会进入 handler 服务端的请求与日志。因此：
+  - web handler 模板 **MUST** 把 `%s` 放进**自身 fragment**（例如 `https://app.example/open#%s`），使被替换的 URI 永远落在 fragment、不进服务端；**或**
+  - web 客户端**只**走 HTTPS fragment 落地页，把 `web+contrix:` 留给原生 / 本地 handler，不自行注册 web protocol handler。
+
+## 6. 解析 operation：`cx.directory.resolve_target`
+
+`cx.directory.resolve_target` 是 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 的对象级泛化。两者**共存**：`resolve_realm` 保留为 realm-only 入口；`resolve_target` 解析 realm 目标时 MUST 委托给同一 Realm 解析路径（不另发明 realm 解析语义，避免漂移）。
+
+| operation_id | 必填 | 可选 | 响应 | 约束 |
+| --- | --- | --- | --- | --- |
+| `cx.directory.resolve_target` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt=invite` 时） | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
+
+响应约束（normative）：
+
+- 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 通用字段（`as_of`、`source_refs`、`via_services`，可选 `policy_revision` / `stale` / `divergent`），让客户端能回真相源验签并判断 stale / divergent。`via_services` v1 normative。
+- invite / restricted / secret 资源对未授权请求使用与不存在不可区分的统一 `not_found`（复用 `resolve_realm` 的 blinding）。
+- 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, flow_id?, message_id?}` + 生效 link_type **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 join-policy 有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
+- alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时，均返回统一 `not_found`。
+
+客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 `via` + realm path 段解析 Realm 并取得 canonical `realm_id`（委托 `resolve_realm`）→ 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 flow / message → 渲染成本地 UI URL。
+
+## 7. 规范性引用
+
+- 发现 / 目录 / 三 gate / anti-enumeration / `resolve_realm` / `via_services`：[`discovery/discovery-directory.md`](./discovery-directory.md)。
+- Realm 为根的授权 / Circle scope / 存在性隐私：[`models/circle.md`](../models/circle.md)、[`models/flow-and-message.md`](../models/flow-and-message.md)。
+- Invite token / signed_link 生命周期：[`governance/join-policy.md`](../governance/join-policy.md)。
+- Digest 纪律（JCS + 字段白名单）：[`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md)。
+- 逻辑 ID grammar：[`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)。
+- Operation 注册 / HTTP binding：[`artifacts/registry/contract-catalog.json`](../../artifacts/registry/contract-catalog.json)、[`sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)。
+- 设计 rationale（历史）：[`proposals/0011-shareable-object-addressing.md`](../../proposals/0011-shareable-object-addressing.md)。

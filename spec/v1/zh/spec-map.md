@@ -197,6 +197,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `discovery/discovery-directory.md` | Realm / Organization / Actor / Applet discoverability、私密联系人发现与目录服务。 |
+| `discovery/object-addressing.md` | 客户端无关可分享对象地址：`web+contrix:` URI scheme、HTTPS 落地、link 类型与 `resolve_target`。 |
 | `discovery/profiles-presence.md` | Actor profile、presence、typing、用户目录。 |
 | `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist、联系人 / Realm 本地备注。 |
 | `discovery/push-notifications.md` | 推送规则、推送网关、E2EE 脱敏推送。 |

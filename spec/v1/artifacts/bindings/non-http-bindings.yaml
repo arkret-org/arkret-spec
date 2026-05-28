@@ -73,6 +73,7 @@ grpc:
       Describe: cx.directory.describe
       SearchRealms: cx.directory.search_realms
       ResolveRealm: cx.directory.resolve_realm
+      ResolveTarget: cx.directory.resolve_target
       SearchOrganizations: cx.directory.search_organizations
       ResolveOrganization: cx.directory.resolve_organization
       SearchActors: cx.directory.search_actors

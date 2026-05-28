@@ -79,6 +79,7 @@
         "cx.directory.describe",
         "cx.directory.search_realms",
         "cx.directory.resolve_realm",
+        "cx.directory.resolve_target",
         "cx.directory.search_organizations",
         "cx.directory.resolve_organization",
         "cx.directory.search_actors",
@@ -483,6 +484,12 @@
       "http": "POST /directory/resolve-realm",
       "grpc": "Directory/ResolveRealm",
       "mq": "directory.resolve_realm"
+    },
+    {
+      "operation_id": "cx.directory.resolve_target",
+      "http": "POST /directory/resolve-target",
+      "grpc": "Directory/ResolveTarget",
+      "mq": "directory.resolve_target"
     },
     {
       "operation_id": "cx.directory.search_actors",

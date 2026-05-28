@@ -151,6 +151,13 @@
       ]
     },
     {
+      "operation_id": "cx.directory.resolve_target",
+      "http_alias": "POST /api/v1/directory/resolve-target",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
       "operation_id": "cx.directory.resolve_handle",
       "http_alias": "POST /api/v1/directory/resolve-handle",
       "operation_specific": [

@@ -110,6 +110,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `ServiceDescribe`；directory resource / discovery capability 放入 `supported_features` / `limits` / 扩展字段。 |
 | `POST /api/v1/directory/search-realms` | body `{query?: string, organization_did?: did, source_realm_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?, has_more}` |
 | `POST /api/v1/directory/resolve-realm` | body `{realm_id?: id, alias?: string, invite_token?: string, signed_link?: string, requester?: did, proofs?: proof[]}` | invite / restricted / secret Realm 按统一 `not_found` 失败。 | `{realm_preview, stripped_state?, join_rule?, via_services?}` |
+| `POST /api/v1/directory/resolve-target` | body `{address: string, requester?: did, proofs?: proof[], token?: string}` | 对象级地址解析（`resolve_realm` 泛化）；token 必须按 target descriptor 校验；未授权统一 `not_found`。详见 [`../discovery/object-addressing.md` §6](../discovery/object-addressing.md)。 | `{target_kind, realm_preview?, object_preview?, join_rule?, as_of, source_refs, via_services, ...}` |
 | `POST /api/v1/directory/search-organizations` | body `{query?: string, claims?: object, cursor?: cursor, limit?: int}` | 仅返回公开或授权可发现组织。 | `{results[], next_cursor?, has_more}` |
 | `POST /api/v1/directory/resolve-organization` | body `{organization_did?: did, handle?: string, proofs?: proof[]}` | 公开组织 DID 可解析不表示成员或拓扑公开。 | `{organization_preview, did_document_ref?, endorsements?}` |
 | `POST /api/v1/directory/search-actors` | body `{query?: string, realm_id?: id, organization_did?: did, cursor?: cursor, limit?: int}` | 不得泄露 pairwise/private DID 或未披露组织账号。 | `{results[], next_cursor?, has_more}` |
@@ -180,7 +181,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/mimi/report-abuse` | body MIMI abuse report body | `user_session` 或 `service_signature`;同 `cx.moderation.report` 互补。 | `{report_id, routed_to?}` |
 | `POST /api/v1/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用；不接受 user_session。 | `{relayed: true, expires_at?}` |
 
-> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 100 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中；之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
+> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 101 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中；之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
 
 > **错误码映射**: 每个 operation_id 的 operation-specific 错误码集合（在通用 `unauthenticated` / `auth_expired` / `schema_violation` / `rate_limited` / `internal_error` / `service_unavailable` 等通用失败面之外）由 [`artifacts/registry/operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 给出。错误码语义见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。
 
@@ -369,6 +370,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.directory.describe` | 无 | 无 | `ServiceDescribe` | `public_metadata`; 可限流。Directory-specific 字段可作为扩展字段返回；详见 `../discovery/discovery-directory.md` §8.9。 |
 | `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | hidden resource 不泄露存在性；每条 result MUST 含 `as_of`/`source_refs`/`policy_revision`/`stale?`/`divergent?`/`via_services?`（discovery-directory.md §9.1）。 |
 | `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | secret/restricted Realm 使用统一 `not_found`；`via_services` v1 normative，必须给出 host Principal Server service DID。 |
+| `cx.directory.resolve_target` | `address: string` | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; `as_of`/`source_refs`/`via_services` 等 §9.1 通用字段 | `resolve_realm` 的对象级泛化，realm 解析委托 `resolve_realm`；token 按 target descriptor 校验（[`../discovery/object-addressing.md` §4.2](../discovery/object-addressing.md)）；未授权统一 `not_found`。 |
 | `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅公开或授权可发现组织。 |
 | `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员或拓扑。 |
 | `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID。 |
@@ -741,6 +743,7 @@ GET /api/v1/snapshot/head?realm_id=<id>
 ```text
 POST /api/v1/directory/search-realms
 POST /api/v1/directory/resolve-realm
+POST /api/v1/directory/resolve-target
 POST /api/v1/directory/search-organizations
 POST /api/v1/directory/resolve-organization
 POST /api/v1/directory/search-actors
