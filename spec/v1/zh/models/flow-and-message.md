@@ -630,7 +630,7 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 - `mention_text_original`（可选）：用户键入的原始字符串（例如 `@alice:acme.example`）；audit 与搜索索引用途。
 - `resolved_at`（可选）：handle 解析时刻；audit metadata，标记 `handle_at_time` 与 `display_name_at_time` 快照对应的时间点。
 
-阅读侧渲染 MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 流程实时解析 `subject_id` 的当前 primary handle（优先取 Realm-scoped MemberIdentity 投影，回退到 live resolve），**不得**用节点内 `handle_at_time` 作为当前显示值。`handle` 重分配的语义自然结果：旧消息里 `alice:acme.example` 这条 mention 解析到的 `subject_id` 仍是原 Alice，渲染时显示她**当前**的 primary handle；新拿到 `alice` localpart 的人是不同的 `subject_id`，不会被回填进历史 mention。若 renderer 检测到 `handle_at_time` 与当前 primary handle 不一致，MAY 加 "handle changed since" 提示（显示层增强，非 normative）。
+阅读侧渲染 MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 流程实时解析 `subject_id` 的当前 primary handle（优先使用 Realm-scoped MemberIdentity subject disclosure + roster handle-claim snapshot，回退到 live `list_handles_for_subject`），**不得**用节点内 `handle_at_time` 作为当前显示值。`handle` 重分配的语义自然结果：旧消息里 `alice:acme.example` 这条 mention 解析到的 `subject_id` 仍是原 Alice，渲染时显示她**当前**的 primary handle；新拿到 `alice` localpart 的人是不同的 `subject_id`，不会被回填进历史 mention。若 renderer 检测到 `handle_at_time` 与当前 primary handle 不一致，MAY 加 "handle changed since" 提示（显示层增强，非 normative）。
 
 DID 暂时无法解析时按 §3.8.2 fallback 序列降级：`display_name_at_time`（若存在）作为 "name only" 兜底；都没有则显示 truncated DID。任何 fallback 渲染 MUST 有视觉降级标识，不得与正常解析无差别显示。
 

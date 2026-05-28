@@ -34,7 +34,7 @@
     "subject": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s]+$",
-      "description": "Principal DID controlled by the handle holder. This remains the protocol actor / grant subject."
+      "description": "Holder/principal DID for a user/principal handle. This is the stable DID the handle resolves to; it is not a Realm actor_id, server-local account_id, administrative identifier, service DID, or generic resource id."
     },
     "issuer": {
       "type": "string",
@@ -58,8 +58,7 @@
       "type": "string",
       "enum": [
         "handle_binding",
-        "organization_handle",
-        "service_handle"
+        "organization_handle"
       ]
     },
     "visibility": {

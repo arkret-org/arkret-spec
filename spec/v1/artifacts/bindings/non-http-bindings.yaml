@@ -78,6 +78,7 @@ grpc:
       SearchActors: cx.directory.search_actors
       SearchUsers: cx.directory.search_users
       ResolveHandle: cx.directory.resolve_handle
+      ListHandlesForSubject: cx.directory.list_handles_for_subject
       PrivateContactDiscovery: cx.directory.private_contact_discovery
       Announce: cx.directory.announce
       Withdraw: cx.directory.withdraw
@@ -207,6 +208,7 @@ mq:
     agent.grant.detach: cx.agent.grant.detach
     agent.sidecar_thread.ensure: cx.agent.sidecar_thread.ensure
     directory.private_contact_discovery: cx.directory.private_contact_discovery
+    directory.list_handles_for_subject: cx.directory.list_handles_for_subject
     directory.announce: cx.directory.announce
     directory.withdraw: cx.directory.withdraw
     directory.push.register: cx.directory.push.register

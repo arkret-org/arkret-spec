@@ -166,7 +166,7 @@
       "schema_id": "cx.schema.member_identity.v1",
       "file": "schemas/member-identity.schema.json",
       "status": "active",
-      "description": "Realm-scoped member display identity snapshot carried by cx.member.identity.update."
+      "description": "Realm-scoped member display/subject projection carried by cx.member.identity.update; handle lifecycle is carried by cx.schema.handle_claim.v1."
     },
     {
       "schema_id": "cx.schema.handle_claim.v1",

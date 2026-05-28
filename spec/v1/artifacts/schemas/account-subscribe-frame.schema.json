@@ -151,7 +151,7 @@
         },
         "members": {
           "type": "array",
-          "description": "Lightweight roster hint derived from effective cx.member.state plus effective cx.member.identity.update references. Entries MUST NOT carry raw handle or display fields directly.",
+          "description": "Lightweight roster hint derived from effective cx.member.state, effective cx.member.identity.update references, and currently visible handle-claim evidence. Entries MUST NOT carry display fields or naked handle strings directly; handle strings may appear only inside signed cx.schema.handle_claim.v1 objects.",
           "items": {
             "$ref": "#/$defs/member_roster_entry"
           }
@@ -251,6 +251,11 @@
             "knock"
           ]
         },
+        "subject_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+          "description": "Optional disclosed principal / holder DID for this member. Omit when subject disclosure is only available inside encrypted MemberIdentity or not authorized for the caller. Required whenever handle claim evidence or digest hints are included."
+        },
         "identity_event_ids": {
           "type": "array",
           "description": "Effective cx.member.identity.update event ids for this actor after replacement refs are applied.",
@@ -260,9 +265,10 @@
           },
           "uniqueItems": true
         },
-        "identity_state_digest": {
+        "member_display_state_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+          "description": "Digest over the effective identity event references plus the current visible handle claim digest set for this roster entry."
         },
         "identity_events": {
           "type": "array",
@@ -270,7 +276,32 @@
           "items": {
             "$ref": "./event-envelope.schema.json"
           }
+        },
+        "handle_claim_digests": {
+          "type": "array",
+          "description": "Digests of currently visible effective cx.schema.handle_claim.v1 objects for this member in the current Realm context. MUST be omitted unless subject_id is disclosed, because stable claim digests are linkable across contexts. Absence is not proof that the member has no handle.",
+          "items": {
+            "type": "string",
+            "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          },
+          "uniqueItems": true
+        },
+        "handle_claims": {
+          "type": "array",
+          "description": "Optional inline signed handle claim evidence. MUST be omitted unless subject_id is disclosed, and every included claim MUST have claim.subject equal to subject_id. Services may omit this for privacy, size, or freshness; clients can backfill by subject via cx.directory.list_handles_for_subject.",
+          "items": {
+            "$ref": "./handle-claim.schema.json"
+          }
+        },
+        "handle_claims_limited": {
+          "type": "boolean",
+          "description": "True when handle_claims[] is truncated or replaced by digest-only hints. Clients MUST NOT interpret missing claims as no handle."
         }
+      },
+      "dependentRequired": {
+        "handle_claim_digests": ["subject_id"],
+        "handle_claims": ["subject_id"],
+        "handle_claims_limited": ["subject_id"]
       },
       "additionalProperties": false
     },

@@ -679,9 +679,10 @@ Organization directory MUST respect organization discovery policy。公开组织
 POST /api/v1/directory/search-actors
 POST /api/v1/directory/search-users
 POST /api/v1/directory/resolve-handle
+POST /api/v1/directory/list-handles-for-subject
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 Realm intent 验证通过时披露。Directory 返回的 `member_delivery_binding.recipient_service_did` 只是 join builder 输入，不能替代 Realm `delivery_binding` 或 grant 校验。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 Realm intent 验证通过时披露。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_service_did` 只是 join builder 输入，不能替代 Realm `delivery_binding` 或 grant 校验。
 
 ### 8.6 私密联系人发现
 

@@ -35,7 +35,6 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  // —— Message 顶层：路由 / 时序 / 归因 metadata，明文，参与权限与同步 ——
   "id": "cx:message:...",
   "realm_id": "cx:realm:...",
   "flow_id": "cx:flow:...",
@@ -44,14 +43,12 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
 
-  // —— 业务正文：未加密时 `content` 直接是一个 Content Block ——
   "content": {
     "kind": "cx.content.text",
     "body": "纯文本 fallback",
     "format": "markdown",
     "formatted_body": "..."
   }
-  // E2EE 场景下用顶层 `encrypted_payload` 替换 `content`，envelope 内加密的就是同一个 Content Block 对象。
 }
 ```
 

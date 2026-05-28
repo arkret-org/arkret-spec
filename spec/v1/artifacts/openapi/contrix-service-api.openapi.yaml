@@ -4356,6 +4356,29 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
+  /directory/list-handles-for-subject:
+    post:
+      operationId: cx.directory.list_handles_for_subject
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
+      summary: List current visible handle claims for a subject in context.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+      responses:
+        '200':
+          description: Subject handle claims visible to the requester.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
   /directory/private-contact-discovery:
     post:
       operationId: cx.directory.private_contact_discovery

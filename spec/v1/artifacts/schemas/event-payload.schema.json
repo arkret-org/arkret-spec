@@ -1562,7 +1562,7 @@
     },
     "member_identity_update_payload": {
       "type": "object",
-      "description": "Payload for cx.member.identity.update. Append-only replacement event for one Realm-scoped member identity segment. Service-visible metadata names the segment and the prior events it replaces; the segment body is plaintext or the original encrypted envelope and MUST contain the complete data for that segment.",
+      "description": "Payload for cx.member.identity.update. Append-only replacement event for one Realm-scoped member display/subject projection segment. Service-visible metadata names the segment and the prior events it replaces; the segment body is plaintext or the original encrypted envelope and MUST contain the complete data for that segment. Handle lifecycle is excluded from this event and is governed by cx.schema.handle_claim.v1 issuer claims.",
       "required": [
         "realm_id",
         "actor_id",
@@ -1633,13 +1633,13 @@
             }
           ]
         },
-        "identity_state_digest": {
+        "identity_payload_digest": {
           "$ref": "#/$defs/hash",
           "description": "sha256 over RFC 8785 JCS canonical JSON of the exact identity_payload carrier object. It is a cache invalidation key, not a substitute for signature or MLS verification."
         },
         "expected_state_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, actor_id, segment). When present, it MUST equal the identity_state_digest of the effective set observed by the writer before applying this event."
+          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, actor_id, segment). When present, it MUST equal the effective-set digest observed by the writer before applying this event; it is not the identity_payload_digest and not a roster member_display_state_digest."
         }
       },
       "additionalProperties": false

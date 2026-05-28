@@ -84,6 +84,7 @@
         "cx.directory.search_actors",
         "cx.directory.search_users",
         "cx.directory.resolve_handle",
+        "cx.directory.list_handles_for_subject",
         "cx.directory.private_contact_discovery",
         "cx.directory.announce",
         "cx.directory.withdraw",
@@ -464,6 +465,12 @@
       "http": "POST /directory/resolve-handle",
       "grpc": "Directory/ResolveHandle",
       "mq": "directory.resolve_handle"
+    },
+    {
+      "operation_id": "cx.directory.list_handles_for_subject",
+      "http": "POST /directory/list-handles-for-subject",
+      "grpc": "Directory/ListHandlesForSubject",
+      "mq": "directory.list_handles_for_subject"
     },
     {
       "operation_id": "cx.directory.resolve_organization",

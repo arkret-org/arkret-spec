@@ -113,12 +113,16 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含：
 
-- `subject`：被寻址主体的 principal DID。
+- `subject`：被寻址 handle holder 的 principal DID。
 - `handle`：canonical `user:domain` handle（主形态）。
 - `handle_aliases[]`：可选互通别名，例如 `acct:`；不得参与 Contrix 内部权威比对。
 - `issuer`：签发 handle claim 的 DID。详见 §3.4。
 - `proofs`：至少一条可验证签名，绑定 `handle`、`subject`、`issuer`、`created_at`。
 - `created_at` / `expires_at`：claim 时间边界；`expires_at` 缺失等价于 `binding_state=unverified`。
+
+`subject` 使用 claim / credential 领域的命名，但在 v1 user handle 语义中它是**持有该 handle 的 holder / principal DID**，不是 Realm `actor_id`、Principal Server 内部 `account_id`、组织人事系统 identifier、service DID 或通用资源 id。Contrix v1 core 不把本节的 `handle` 泛化为任意资源 handle；如果后续要定义 organization / service / repository / room 等非用户 handle，必须使用独立 schema 或显式 `resource_kind` profile，不能复用 `cx.schema.handle_claim.v1` 的 `subject` 字段来隐式扩展语义。
+
+本节故意不使用 `actor_id` 作为 handle claim 绑定对象：`actor_id` 是 Realm 内 membership / Event actor 标识，在高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；同一 holder / principal 可以在不同 Realm 使用不同 `actor_id`，也可以在加入任何 Realm 前先获得 handle claim。handle claim 因此绑定到 holder / principal DID，并在 Realm 内通过当前 effective MemberIdentity 或授权 roster disclosure 建立 `actor_id -> subject_id` 的显示投影。
 
 Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时，**额外** MUST 包含：
 
@@ -239,14 +243,14 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
 
   **`verified_at` 被显式排除**的原因：§6.0 允许 Directory / Principal Server / 其它中间方做 pre-verification 并把结果写进 directory entry 或 handle claim 作为 hint，`verified_at` 就在 hint 字段之列。若 `verified_at` 进 `semantic_projection`，同一语义 claim 被两家 Directory 预验证后会得到不同 `claim_digest`，破坏 tie-breaker 与缓存键稳定性。`verified_at` 因此规范上是 cache / hint 层 metadata(见 §6.0、§6.1.1)，**不**参与 claim 规范身份。issuer 若需要表达"我自己什么时候验证完",MUST 用 `created_at` 或在 `claims[]` 内嵌入显式 claim,而不是依赖 `verified_at`。
 
-  **`challenge` 被显式排除**的原因：`challenge` 是 verifier / request 级防重放输入，不是 handle claim 的稳定规范身份。proof transcript MAY 继续绑定 challenge、domain 与 verifier，但把 `challenge` 放进 `semantic_projection` 会让同一 handle claim 因不同解析请求得到不同 `claim_digest`，破坏 MemberIdentity `claim_digest` 比对、cache key 与 §3.2.1 tie-breaker 稳定性。
+  **`challenge` 被显式排除**的原因：`challenge` 是 verifier / request 级防重放输入，不是 handle claim 的稳定规范身份。proof transcript MAY 继续绑定 challenge、domain 与 verifier，但把 `challenge` 放进 `semantic_projection` 会让同一 handle claim 因不同解析请求得到不同 `claim_digest`，破坏 roster `handle_claim_digests[]` 比对、cache key 与 §3.2.1 tie-breaker 稳定性。
 
   其它字段排除的整体动因把 `claim_digest` 锚定在 §3.4 / §5 定义的 handle_claim 规范 shape 上,与具体 Directory / Principal Server / cache 层附加的 hint 解耦。
 
 - 输出形态遵循 [`models/common-fields.md` §2](../models/common-fields.md) 的 `<noun>_digest = <alg>:<hex>` 通用 hash 字段命名规则；
 - 与 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json) 的 `claim_digest` 字段(`"sha256 digest of the upstream handle claim canonical JSON"`)一致——本节是其 normative 计算定义,candidate schema 是其 wire 表示。
 
-**Hint 隔离**(normative): §6.0 server-attested hint、Directory 缓存补字段、verifier 本地标注等任何非规范语义字段 MUST 在 wire claim 上以**顶层附加字段**形式存在(而非污染规范字段),并**MUST NOT** 进入 `semantic_projection(c)`。该约束让同一语义 handle claim 被任意数量的 Directory / Principal Server 加 hint 后,`claim_digest` 始终稳定;tie-breaker、MemberIdentity `claim_digest` 比对、缓存键命中都不会因 hint 抖动。
+**Hint 隔离**(normative): §6.0 server-attested hint、Directory 缓存补字段、verifier 本地标注等任何非规范语义字段 MUST 在 wire claim 上以**顶层附加字段**形式存在(而非污染规范字段),并**MUST NOT** 进入 `semantic_projection(c)`。该约束让同一语义 handle claim 被任意数量的 Directory / Principal Server 加 hint 后,`claim_digest` 始终稳定;tie-breaker、roster `handle_claim_digests[]` 比对、缓存键命中都不会因 hint 抖动。
 
 去除 `proofs` 与 server-attested hint 是为了让 `claim_digest` 只覆盖 claim 的**规范语义内容**而非签名包装与中间传输态,让同一 canonical claim 在任意 issuer 重签 / Directory 转发 / cache 层加注后始终产生相同 digest。
 
@@ -280,6 +284,32 @@ Step 2 结束后候选 MUST 唯一；实现 MUST NOT 在仍有 tie 时随意选�
 Step 0 候选集为空时，renderer MUST fallback 到 §3.8.2 定义的"解析失败"路径，**不得**任意取一个 handle 显示，**不得**绕过 issuer trust filter。
 
 primary handle 是显示语义；它**不**影响 actor_id 归因、grant subject 或 audit attribution——这些永远来自 `subject_id` 本身。
+
+### 3.2.2 Handle Claim Lifecycle and Acquisition（normative）
+
+Handle 的权威生命周期属于 issuer，不属于用户 profile 或 Realm MemberIdentity event。`cx.profile.update`、`cx.profile.space_override`、`cx.member.identity.update` 中不得通过任意字段声明、覆盖、撤销或重分配 handle；这些事件最多影响 display name、avatar、subject disclosure 等 UI projection。验证器遇到这些事件中出现的非标准 handle 字段时 MUST 忽略或 schema-reject，不得把它们提升为 verified handle。
+
+Contrix v1 core **不定义**用户注册、handle 申请、邀请审批、管理员通知、管理员审批队列、重签 / 续期、namespace 保留策略、抢注仲裁、多 handle 策略或组织内部身份治理 API。这些流程属于 issuer / coauth / 部署本地治理面；不同 Principal Server、Organization 或自托管 issuer 可以按自己的合规、人事、IDP、邀请和审计要求实现。
+
+协议层只规定 consumption contract：
+
+1. 任何进入 Contrix roster、mention、directory resolve、delivery binding 或 UI verified display 的 handle MUST 来自可验证的 signed `cx.schema.handle_claim.v1`，或该 claim 的 digest / reference。
+2. issuer / coauth / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
+3. 这些外部流程一旦要把结果暴露给 Contrix 客户端或其它服务，MUST 输出 `cx.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
+
+已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `cx.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，继续使用 `cx.directory.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
+
+管理员或 issuer 后期修改 handle 的可见效果由 claim set 变化驱动：issuer 签发新 claim、撤销旧 claim、或改变 binding_state / expiry 后，`cx.directory.list_handles_for_subject` 和 roster hint MUST 反映新的 effective claim set。客户端 MAY 发布新的 `cx.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
+
+### 3.2.3 Registration and Invitation Flows（informative）
+
+常见注册路径都在 Contrix core 之外完成，但进入 Contrix 后遵循同一 claim-led 模型：
+
+- **系统预分配 handle**：用户完成注册 / 首次登录后，coauth / issuer bootstrap MAY 直接把 signed `handle_claims[]` 交给客户端或服务端 roster cache。用户无需发 `set_handle` event。
+- **管理员邀请允许选择 handle**：邀请链接、pre-registration proof、审批通知和人工审核队列属于 coauth / issuer 策略。Contrix 只看到最终签发的 `cx.schema.handle_claim.v1`，或看不到任何 claim。
+- **管理员后期修改现有用户 handle**：issuer 撤销 / 过期旧 claim 并签发新 claim。Realm history 中既有 messages、mentions 和 `cx.member.identity.update` 不被改写；当前渲染按新的 claim set 展示，历史 replay 按 as-of claim snapshot 展示。
+
+因此，"用户注册后是否必须主动发包含 handle 的 profile"的答案是 **否**。用户 MAY 发 profile / MemberIdentity 来设置 display name、avatar 或 subject disclosure；handle 只来自 issuer-signed claim。
 
 ### 3.3 `member_delivery_binding`
 
@@ -401,7 +431,7 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 该规则的根本动因：handle 的 `<domain>` 部分是 issuer 的 authority domain（组织 / holder 自己持有的域名），不是 subject 用户控制的标识。如果把 domain 作为**权威**引用字段持久化进每一个引用点，issuer 的 DNS 治理成本（domain 迁移、authority 重命名）就会转嫁给所有历史事件，并被迫做事件改写。DID 才是稳定标识；handle 是该标识的可读 label，由解析层实时计算；事件内的 handle metadata 只是"当时是什么"的 audit 快照，不是"现在是什么"的真相源。
 
-§17 wire-level 作用域规则配套约束了 handle 字符串作为**权威字段**可以出现的位置；MemberIdentity 等 Realm-scoped projection 是受规则允许的例外（详见 §17）。
+§17 wire-level 作用域规则配套约束了 handle 字符串作为**权威字段**可以出现的位置。MemberIdentity 不再携带 handle 字符串；Realm-scoped roster 若需要加速渲染，只能内联签名 handle claim evidence 或 digest hint（详见 [`sync/client-sync.md` §8.1](../sync/client-sync.md)）。
 
 #### 3.8.1 字段定义
 
@@ -422,7 +452,7 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state`
 
 ```
 1. Realm-scoped projection 优先解析：
-   renderer 先构造本次渲染输入对应的 MemberIdentity snapshot：
+   renderer 先构造本次渲染输入对应的 MemberIdentity + handle-claim snapshot：
    - 实时渲染使用当前 effective set；
    - 历史 replay / audit 使用 resolution_as_of 时刻的 as-of effective set；
    - 若实现无法构造对应 as-of snapshot，step 1 失败。
@@ -432,15 +462,13 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state`
    对唯一候选 M：
    a. 校验 M.asserted_at <= resolution_as_of；
    b. 若 M.expires_at 存在，校验 M.expires_at > resolution_as_of；
-   c. 取 M.primary_handle 字符串（若缺则 step 1 失败，落到 step 2）；
-   d. 在 M.handles[] 中查找 entry e 满足 e.handle == M.primary_handle；
-   e. 校验 e.verified == true、e.issued_at <= resolution_as_of，
-      且 e.expires_at > resolution_as_of；
-   f. 校验 e.claim_digest 已知或可通过缓存 / 后台 refresh 比对到
-      对应 cx.schema.handle_claim.v1 evidence（实现 MAY 异步 refresh，
-      命中前以 server-attested hint 形态接受，参见 §6.0）；
-   g. 通过 a-f 即视为 Realm-scoped projection 解析成功，结果是
-      handle 字符串 e.handle（等价 binding_state == "verified" 的语义投影）。
+   c. 从 roster 内联 `handle_claims[]`、`handle_claim_digests[]` 命中的本地
+      claim cache，或同一 response 的 handle-claim evidence 构造
+      `claim_set_snapshot`；
+   d. 对 `claim_set_snapshot` + 当前 context 运行 §3.2.1 primary handle
+      selection；
+   e. 通过 a-d 即视为 Realm-scoped projection 解析成功，结果是选中
+      handle claim 的 canonical `handle`。
 2. 否则 / step 1 失败：
    resolve_primary_handle(subject_id, current_context, resolution_as_of) → handle_claim
    （按 §3.2.1 选择规则，跨 Realm / live Directory / cache，
@@ -448,12 +476,12 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state`
    MUST 使用 resolution_as_of 对应的 claim_set_snapshot / policy_snapshot，
    不得静默 live-resolve 到当前状态）。
 3. 显示判定：
-   - step 1 成功 → 显示 "@{localpart}:{domain}"（来自 e.handle）；
+   - step 1 成功 → 显示 "@{localpart}:{domain}"（来自选中 handle_claim.handle）；
    - step 2 成功且 handle_claim.binding_state == "verified"
      （或 §6.0 server-attested verified hint 命中且本地 trust policy TTL 内）
      → 显示 "@{localpart}:{domain}"（来自该 handle_claim 的 canonical handle）。
 4. 解析失败（DID 不可达 / 无 active claim / §3.2.1 选择不唯一 /
-   MemberIdentity snapshot 不可构造或不唯一 / step 1 校验 a-f 任一失败 /
+   MemberIdentity snapshot 不可构造或不唯一 / step 1 校验 a-d 任一失败 /
    step 2 binding_state ∈ {pending, revoked, expired}）：
    按以下顺序 fallback：
    a. 本地 cache 中最近一次 verified primary handle（标记 "cached"）
@@ -463,7 +491,7 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（`binding_state`
    实现 MUST NOT 把 fallback 显示成与正常解析无差别的形态。
 ```
 
-`resolution_as_of` 是本次渲染选择的解析基准时刻：实时渲染通常是 renderer 解析这一刻；历史 replay / audit 是被重放视图声明的 as-of 时刻。它与 §3.2.1 的确定性六元组配合使用（`subject_id` / `context` / `claim_set_snapshot` / `policy_snapshot` / `holder_primary_handle_at_as_of` / `resolution_as_of`）。`claim_set_snapshot` 与 `policy_snapshot` 都是 as-of snapshot（详见 §3.2.1 normative 段）。同一 mention 在不同时刻可能因 MemberIdentity churn / cache TTL / claim 生效或过期边界 / DID Document update / Realm policy 调整落入不同分支，这是预期行为而非违反确定性——确定性保证的是六元组等同时输出等同。
+`resolution_as_of` 是本次渲染选择的解析基准时刻：实时渲染通常是 renderer 解析这一刻；历史 replay / audit 是被重放视图声明的 as-of 时刻。它与 §3.2.1 的确定性六元组配合使用（`subject_id` / `context` / `claim_set_snapshot` / `policy_snapshot` / `holder_primary_handle_at_as_of` / `resolution_as_of`）。`claim_set_snapshot` 与 `policy_snapshot` 都是 as-of snapshot（详见 §3.2.1 normative 段）。同一 mention 在不同时刻可能因 handle claim set 变化、cache TTL、claim 生效或过期边界、DID Document update、Realm policy 调整或 MemberIdentity subject disclosure 变化落入不同分支，这是预期行为而非违反确定性——确定性保证的是六元组等同时输出等同。
 
 renderer **不得**在主显示路径使用 `handle_at_time`。`handle_at_time` 只允许出现在以下场景：
 
@@ -493,9 +521,9 @@ renderer 检测到 `handle_at_time` 与当前 primary handle 不一致时，MAY 
 - 旧事件内的 mention / profile reference 权威字段是 `subject_id`，subject 不变；
 - 渲染时按 §3.2.1 解析当前 primary handle，得到新 domain 的 handle 字符串；
 - 历史事件本身**不需要**rewrite、migration script 或 schema upgrade；
-- 唯一需要的 issuer-side 操作是按 §6 批量重发 handle_claim（new domain），随后 Directory withdraw 旧 entry；MemberIdentity（§17 例外项）会随下一次 `cx.member.identity.update` 自然更新到新 handle 投影。
+- 唯一需要的 issuer-side 操作是按 §6 批量重发 handle_claim（new domain），随后 Directory withdraw 旧 entry；当前显示投影随 issuer / coauth 刷新路径、`cx.directory.list_handles_for_subject` 或 roster claim hints 的下一次刷新自然更新，不要求任何 `cx.member.identity.update`。
 
-domain 迁移因此从"全网事件改写工程"降级为"issuer 侧 batch 签名 + MemberIdentity 自然 churn + cache TTL 冷却"。事件内的 `handle_at_time` metadata 让 audit 仍可重建任意历史时刻的 handle 字符串。
+domain 迁移因此从"全网事件改写工程"降级为"issuer 侧 batch 签名 + claim cache TTL 冷却"。事件内的 `handle_at_time` metadata 与 issuer 的 as-of claim ledger 让 audit 仍可重建任意历史时刻的 handle 字符串。
 
 ## 4. Handle 绑定
 
@@ -540,15 +568,22 @@ holder DID Document: subject_id → handle   (列入 alsoKnownAs，holder 单方
 
 ## 5. Handle 解析
 
-Handle 解析输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态）。客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
+Handle 解析分为两个方向：
+
+- **handle → subject**：输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态），使用 `cx.directory.resolve_handle` 或下列 issuer discovery 路径。
+- **subject/context → current handles**：输入是 `subject` DID、当前 Realm / audience / requester context，使用 `cx.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]`。该方向用于 member roster、mention renderer 和管理员后期改 handle 后的显示刷新。
+
+已知 handle 时，客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
 1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/contrix/handle?localpart=<localpart>` 或等价的 `GET https://<domain>/.well-known/contrix-did`（向后兼容旧客户端按整体 handle 拉取）。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Principal Server 部署。
 2. **DNS TXT**：`_contrix.<domain>` 或 `_contrix.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
-3. **Directory / Organization 服务**：`POST /api/v1/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 Organization-specific endpoint。response 仍是签名 `cx.schema.handle_claim.v1`。
+3. **Directory / Organization 服务**：`POST /api/v1/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /api/v1/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `cx.schema.handle_claim.v1`。
 4. **Bridge / 外部 issuer**：当 handle 来自 bridge 或外部体系（例如组织自有 IDP），claim 由该体系签发并通过 §7 VC presentation 出示。
 
 解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 按本地 trust policy 选最严格者；issuer 之间冲突（不同 `subject`）MUST fail closed 并交人工处理。
+
+账号侧 claim 管理不走 Directory 搜索，但 v1 core 也不定义账号侧管理 API：当前登录 principal 如何在注册、换设备、管理员修改或 claim 续期后拿到自己的 claims，是 issuer / coauth / 部署本地 bootstrap 的职责。Directory 只解析已经签发且对调用方可见的 claims；它不得被当作 handle 申请、审批或管理员治理接口。
 
 Handle 解析示例：
 
@@ -1134,16 +1169,16 @@ Verifier MUST：
 
 - Handle 的 canonical wire form 是 `<localpart>:<domain>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证。**Wire-level canonical 比较(normative)**：issuer / registry / resolver 在做 handle 注册、claim 校验、§13 跨 issuer 冲突检测时，MUST 先对 `<localpart>` 与 `<domain>` 应用 Unicode NFC normalization，再应用 [UTS#39](https://www.unicode.org/reports/tr39/) confusable skeleton 折叠；比较与冲突判定 MUST 在折叠后的形态上执行。issuer / registry MUST 拒绝 *script-mixed* handle（同一 label 内同时含 Latin 与 Cyrillic / Greek / Armenian 等不同 script 字符，例如 `аcme.example` U+0430 + Latin 混排），以及 `hyphen-disallowed-position` 形态；违反者注册请求 `failed_precondition` `reason="handle_homograph_forbidden"`。显示层防混淆仍 MUST 实现，但不能替代 wire-level 检测。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
-  1. **Handle assignment 事件**：`cx.schema.handle_claim.v1`、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的事件。
-  2. **Discovery / Directory query 请求与响应**：`/.well-known/contrix/handle?localpart=...`、`POST /api/v1/directory/resolve-handle` 等解析路径的输入与输出。
+  1. **Handle claim lifecycle 对象与 issuer / coauth 本地管理请求**：`cx.schema.handle_claim.v1`、issuer / coauth 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Contrix v1 core，但一旦在 Contrix wire 上作为 claim evidence 被消费，必须产出可验证的 `cx.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
+  2. **Discovery / Directory query 请求与响应**：`/.well-known/contrix/handle?localpart=...`、`POST /api/v1/directory/resolve-handle`、`POST /api/v1/directory/list-handles-for-subject` 等解析路径的输入与输出。
   3. **客户端入口解析瞬间**：用户键入 handle 字符串到客户端 → 客户端解析为 `subject_id` 的临时过程；解析完成后 handle 字符串 MUST NOT 作为权威字段写入持久化事件、Realm history、grant 记录、ACL 表或缓存键以外的存储。
 
-  以下两类位置是**允许的派生投影例外**，handle 字符串在其中是当前 handle_claim 解析结果的固化镜像，不构成权威源：
+  以下位置是**允许的派生投影 / audit 例外**，handle 字符串在其中不构成权威源：
 
-  - **MemberIdentity（Realm-scoped display projection）**：`cx.member.identity.update` 的 `member_identity` payload MAY 携带 `primary_handle`、`handles[].handle`（详见 [`sync/client-sync.md` §8](../sync/client-sync.md)）。这些字段是把当前 handle_claim 解析结果固化到 Realm 内的 display projection，用于 roster / member picker / mention autocomplete，避免每次渲染都做 live Directory 解析。issuer 重新签发 handle_claim 后，新的 `cx.member.identity.update` event 替换旧 effective set，handle 字符串自然更新；reducer 仍按 [`governance/join-policy.md`](../governance/join-policy.md) 与 [`sync/client-sync.md` §8](../sync/client-sync.md) 独立验证。
+  - **Roster 内联 handle claim evidence**：`/account/subscribe` 的 `members[].handle_claims[]` MAY 携带完整签名 `cx.schema.handle_claim.v1`，用于 roster / member picker / mention autocomplete 的本地 claim cache。这里的 handle 字符串属于 claim 本身，不是 roster 自造字段；issuer 重新签发或撤销后，roster digest / claim set 必须随之变化。该 evidence 只能在同一 roster entry 已披露 `subject_id` 时返回；未披露 `subject_id` 时，`handle_claims[]`、`handle_claim_digests[]` 与 `handle_claims_limited` 都必须省略。
   - **Mention reference 的 audit metadata**：§3.8.1 定义的 `handle_at_time`、`display_name_at_time`、`mention_text_original` MAY 出现在 mention / profile reference 等位置，但仅作为 audit / search / fallback 元数据，不参与权威决策（见 §3.8.3）。
 
-  其它任何 wire 位置——reply / quote 的 actor 引用、`cx.member.state{join}.payload` 的 actor 字段、grant subject、audit log entry 的 actor 字段、reaction target、federation peer 事件——MUST 持有 `subject_id` 而不是 handle 字符串。verifier / renderer / policy engine MUST NOT 把 MemberIdentity 中的 handle 字段或 mention metadata 当成当前权威 handle 之外的归因依据使用：信任决策永远从 `subject_id` 出发，handle 字符串只是显示投影。
+  `cx.member.identity.update` / `MemberIdentity` v1 payload MUST NOT 携带 `primary_handle`、`handles[]` 或其它 handle 字符串字段。其它任何 wire 位置——reply / quote 的 actor 引用、`cx.member.state{join}.payload` 的 actor 字段、grant subject、audit log entry 的 actor 字段、reaction target、federation peer 事件——MUST 持有 `subject_id` 而不是 handle 字符串。verifier / renderer / policy engine MUST NOT 把 mention metadata 当成当前权威 handle 或归因依据使用：信任决策永远从 `subject_id` 出发，handle 字符串只是显示 / 搜索 / audit 辅助。
 
   违反该作用域规则的事件 schema 在 conformance 测试中 MUST 失败：把 handle 字符串当作**权威 actor 引用字段**（而非显式声明的派生投影或 audit metadata）的 schema 视为 v1 不合规。
 - DNS TXT record 格式 MUST 绑定 `handle`、`subject`、issuer、`service_did`、`created_at`、`expires_at` 和 signature / hash commitment；过期或不匹配时不得显示 verified。

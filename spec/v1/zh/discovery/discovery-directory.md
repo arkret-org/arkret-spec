@@ -579,6 +579,7 @@ POST /api/v1/directory/resolve-organization
 POST /api/v1/directory/search-actors
 POST /api/v1/directory/search-users
 POST /api/v1/directory/resolve-handle
+POST /api/v1/directory/list-handles-for-subject
 POST /api/v1/directory/private-contact-discovery
 POST /api/v1/directory/announce
 POST /api/v1/directory/withdraw
@@ -597,6 +598,7 @@ POST /api/v1/directory/push/register
 | `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
 | `cx.directory.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)` | `results: object[]` | mention autocomplete；受共同 Realm / directory policy 限制。结果 MAY 含 handle preview，但不得在未授权时披露 `subject` DID 或 `member_delivery_binding`。`query` 不得进入 URL、Referer 或未脱敏 access log。 |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；响应 `handle` 是 canonical `user:domain`；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回。 |
+| `cx.directory.list_handles_for_subject` | `subject: did` | `realm_id: id`; `intent: enum(lookup,mention,invite,member_add)`; `requester: did`; `proof_challenge: string`; `proofs: proof[]`; `as_of: datetime`; `cursor: cursor`; `limit: int` | `subject: did`; `claims: object[]`; `primary_handle: string?`; `as_of: datetime`; `next_cursor: cursor?`; `has_more: boolean` | 已知 holder / principal DID 时列出当前 context 可见 signed handle claims；`subject` 不是 Realm `actor_id`。必须按 disclosure policy、issuer trust、audience 和 Realm intent 过滤。 |
 | `cx.directory.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `cx.directory.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
 | `cx.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdraw_id: id`; `acked_at: timestamp` | 见 §8.7。 |
@@ -604,7 +606,7 @@ POST /api/v1/directory/push/register
 
 ### 9.0 Handle 解析（normative）
 
-Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 这类 handle 输入。解析结果是**寻址证据**，不是成员资格、grant 或投递授权本身。
+Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 这类 handle 输入。解析结果是**寻址证据**，不是成员资格、grant 或投递授权本身。已知 `subject` DID 但不知道当前 handle 时，调用方使用 `list-handles-for-subject`；该接口返回的是当前 context 可见 handle claim set，不是 profile 或 MemberIdentity event。
 
 当 `intent ∈ {invite, member_add}` 且 Directory 返回 `member_delivery_binding` 时，响应 MUST 满足：
 

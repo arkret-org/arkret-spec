@@ -2015,7 +2015,7 @@
         "schema_id": "cx.schema.member_identity.v1",
         "file": "schemas/member-identity.schema.json",
         "status": "active",
-        "description": "Realm-scoped member display identity snapshot carried by cx.member.identity.update."
+        "description": "Realm-scoped member display/subject projection carried by cx.member.identity.update; handle lifecycle is carried by cx.schema.handle_claim.v1."
       },
       {
         "schema_id": "cx.schema.handle_claim.v1",
@@ -2570,6 +2570,7 @@
           "cx.directory.search_actors",
           "cx.directory.search_users",
           "cx.directory.resolve_handle",
+          "cx.directory.list_handles_for_subject",
           "cx.directory.private_contact_discovery",
           "cx.directory.announce",
           "cx.directory.withdraw",
@@ -2950,6 +2951,12 @@
         "http": "POST /directory/resolve-handle",
         "grpc": "Directory/ResolveHandle",
         "mq": "directory.resolve_handle"
+      },
+      {
+        "operation_id": "cx.directory.list_handles_for_subject",
+        "http": "POST /directory/list-handles-for-subject",
+        "grpc": "Directory/ListHandlesForSubject",
+        "mq": "directory.list_handles_for_subject"
       },
       {
         "operation_id": "cx.directory.resolve_organization",
