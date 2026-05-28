@@ -112,6 +112,27 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 - **受限联邦 (Restricted)**：仅接受来自预配置域列表的请求。适合企业内部或联盟场景。
 - **封闭 (Closed)**：不接受任何外部联邦请求。适合纯内部部署。
 
+### 3.4 Federation Peer Policy 与整机级 defederation
+
+服务的联邦准入由三层共同决定，且每层都只能收紧，不能放宽上一层拒绝：
+
+1. **部署本地 peer policy**：operator 配置的 `allow` / `deny` 规则，按 exact service DID、trust domain 或 DNS domain 匹配。该策略是本地部署控制面，不进入 Realm Event history。
+2. **Realm 授权状态**：`sync_endpoints`、member delivery binding、service delegation、`cx.realm.moderation_policy` 中的 server target，以及对应 capability / policy cell。
+3. **请求级认证与完整性**：HTTP Message Signature、`Source-Service-DID` / `Destination-Service-DID`、trust domain、endpoint digest、body digest、event signature、capability 与 reducer pre-state。
+
+部署本地 peer policy 的规则：
+
+- `deny` MUST 先于 `allow` 评估；被 deny 命中的 peer 即使同时命中 allow 也必须拒绝。
+- `domain` 规则只匹配规范化 DNS A-label 的完整 label 边界；`*.example.com` 可以匹配 `a.example.com`，不得匹配 `example.com` 或 `badexample.com`。实现 MUST NOT 只做字符串后缀匹配。
+- service DID 规则优先于 domain 规则；当 DID Document endpoint host 与 service DID 所属域不一致时，接收方 MUST 同时校验 DID、endpoint digest 和 domain/trust-domain policy。
+- 入站被本地 peer policy 拒绝的 service-to-service 请求 MUST 在完成足够的签名与 DID 解析以识别来源后 fail closed，SHOULD 返回 `policy_denied` 或 `capability_denied`，并避免泄露 Realm 是否存在。
+- 出站被本地 peer policy 拒绝的 peer MUST 从 fanout、frontier probe、backfill、push、to-device、key-package 和 media/snapshot fetch 目标集中移除。该状态是 policy-suppressed，不是临时网络失败；发送方不得无限重试，直到 policy version 改变或 operator 解除规则。
+- 若 operator 执行整机级 defederation，入站和出站规则 MUST 同时生效：既拒收该 peer 的联邦写入 / backfill / probe，也不得向该 peer 投递新事件、推送或补发历史。
+
+Realm 级 server ACL 的权威表达是 `cx.realm.moderation_policy` 中的 server target（见 [`../governance/content-moderation.md`](../governance/content-moderation.md) §5.3 与 §6），而不是新的 `cx.realm.server_acl` Event kind。`server_acl` 可以作为本地部署配置名存在，但它不得被实现当作可复制的 Realm 状态对象，也不得绕过 `cx.realm.moderation_policy` 和 capability 检查。
+
+出站解析任意 peer endpoint 前，发送方还 MUST 执行 [`api-conventions.md`](./api-conventions.md) §11.2 的出站网络目标策略；DNS、redirect 或 service discovery 把目标解析到被禁止地址类别时，联邦请求必须 fail closed。
+
 ## 4. Event 交换协议
 
 ### 4.1 推送模式 (Push)

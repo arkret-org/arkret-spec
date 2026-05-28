@@ -115,6 +115,7 @@
           "enum": [
             "action",
             "resource",
+            "server",
             "actor",
             "temporal",
             "rate_limit",
@@ -167,6 +168,14 @@
           },
           "uniqueItems": true
         },
+        "servers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/server_selector"
+          },
+          "uniqueItems": true
+        },
         "conditions": {
           "type": "object",
           "minProperties": 1,
@@ -207,6 +216,15 @@
         },
         {
           "if": {
+            "properties": { "kind": { "const": "server" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["servers"]
+          }
+        },
+        {
+          "if": {
             "properties": { "kind": { "const": "extension" } },
             "required": ["kind"]
           },
@@ -216,6 +234,75 @@
               { "required": ["profile_ref"] }
             ],
             "required": ["params"]
+          }
+        }
+      ]
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+    },
+    "domain_name": {
+      "type": "string",
+      "pattern": "^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$",
+      "description": "Lowercase DNS A-label domain. Matching semantics are label-boundary based and defined by governance/content-moderation.md."
+    },
+    "server_selector": {
+      "type": "object",
+      "description": "Selector for federation server policy rules. Domain rules match normalized DNS labels only; service_did exact rules take precedence in policy evaluation.",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "service_did",
+            "domain",
+            "trust_domain"
+          ]
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "domain": {
+          "$ref": "#/$defs/domain_name"
+        },
+        "match_subdomains": {
+          "type": "boolean",
+          "default": false
+        },
+        "trust_domain": {
+          "$ref": "#/$defs/trust_domain"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "service_did" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["service_did"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "domain" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["domain"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "trust_domain" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["trust_domain"]
           }
         }
       ]

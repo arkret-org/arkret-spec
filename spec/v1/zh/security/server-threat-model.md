@@ -92,6 +92,9 @@ sidebar:
 23. **联邦流量模式旁观（Federation Traffic-Pattern Observer）**
     即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。高隐私部署 SHOULD 使用 OHTTP / relay indirection、批处理 padding、发送延迟抖动、固定大小 federation batch 和 decoy wakeup 流量来降低可关联性；不得把 E2EE 误表述为隐藏 federation traffic metadata。
 
+24. **出站 URL / SSRF（Server-Side Request Forgery）**
+    攻击者通过 DID Document serviceEndpoint、媒体 URL、snapshot chunk、Policy Server endpoint、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
+
 ### 2.2 当前协议中不成立的攻击项
 
 - 回退重试链路细节（如不可控网关转发回路）
@@ -110,6 +113,7 @@ sidebar:
 - **隔离与缓冲**：异常源先走 `quarantine` 与 `review` 决策，再决定 `allow`、`deny` 或 `reject`。
 - **可追溯审计**：拒绝、退避、隔离、降级必须可审计（含 hash / hash chain / 决策签名）。
 - **故障收敛策略**：`rate_limited`、`soft_failed`、`temporarily_unavailable` 与 `closed` 的优先级分层，不以单点服务脆弱性扩散给全域。
+- **出站网络目标策略**：任何由外部输入导向的 URL、endpoint 或 service discovery 结果都必须在连接前执行 CIDR / 地址类别 / redirect / DNS rebind 检查。
 
 ## 3. 对照：协议内映射与处理
 
@@ -137,6 +141,7 @@ sidebar:
 | 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。 |
 | URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`cx.blob.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
+| 出站 URL / SSRF | 是 | [`sync/api-conventions.md`](../sync/api-conventions.md) §11.2 的出站网络目标策略；DID、联邦、媒体、snapshot、Policy Server、Webhook、Applet/Agent endpoint 统一做私网/metadata 地址拒绝、DNS rebind 防护和 redirect 复核。 |
 
 ## 4. 协议规则完善（落地要求）
 
@@ -170,6 +175,7 @@ sidebar:
 - `Idempotency-Key` 与 `canonical hash` 一致后才可幂等接受；单事件级别仍以 `event_id` 去重。
 - 连续失败率升高的来源逐层下调优先级并退避；HTTP response 优先用 `Retry-After`，body 可附带 `retry_after_ms`。
 - fork / frontier 异常进入 `quarantine` 并执行本地再校验，不直接进入主 reducer。
+- 解析 federation peer endpoint、DID Document service entry 或 backfill/snapshot URL 前，必须先执行出站网络目标策略；命中私网、loopback、link-local 或 metadata 地址时 fail closed，不得进入重试风暴。
 
 ### 4.4 Blob / Media
 
@@ -192,7 +198,7 @@ sidebar:
 - `policy-server.md`（风险决策与 `reason_code`）
 - `governance/content-moderation.md`（blocklist / allowlist / quarantine）
 - `federation.md`（联邦放行与签名验证）
-- `api-conventions.md`（统一错误码与重放控制）
+- `api-conventions.md`（统一错误码、重放控制与出站网络目标策略）
 - `discovery-directory.md`（发现防枚举）
 - `identity-did.md`（resolver trust）
 - `snapshot-schema.md`（snapshot integrity）

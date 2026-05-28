@@ -386,6 +386,28 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 服务发现结果 SHOULD 按 HTTP cache header 缓存。未提供显式缓存时间时，客户端 MAY 使用不超过 24 小时的默认 TTL；实现 SHOULD 对正缓存设置上限（建议不超过 48 小时），对失败缓存使用更短 TTL 或指数退避，避免一次临时故障长期破坏联邦。
 
+### 11.2 出站网络目标策略与 SSRF 防护
+
+任何服务在访问由用户、远端 peer、DID Document、Directory、Policy Server、Blob/Media metadata、Snapshot manifest、Applet/Agent endpoint、Webhook 或 service discovery 返回的 URL 之前，MUST 执行出站网络目标策略。该规则覆盖 DID resolution、联邦 push/pull/frontier probe、媒体抓取、thumbnail 生成、policy check、snapshot/chunk fetch、webhook、agent/applet handoff 以及等价的非 HTTP binding。
+
+默认策略 MUST fail closed，并至少拒绝下列地址类别：
+
+- IPv4 loopback、unspecified、private、link-local、carrier-grade NAT、benchmark、multicast、reserved 与 broadcast 地址段，包括 `0.0.0.0/8`、`10.0.0.0/8`、`100.64.0.0/10`、`127.0.0.0/8`、`169.254.0.0/16`、`172.16.0.0/12`、`192.168.0.0/16`、`198.18.0.0/15`、`224.0.0.0/4`、`240.0.0.0/4` 和 `255.255.255.255/32`。
+- IPv6 unspecified、loopback、IPv4-mapped private/loopback、unique-local、link-local、multicast 与 reserved 地址段，包括 `::/128`、`::1/128`、`::ffff:0:0/96` 中映射到上述禁止 IPv4 段的地址、`fc00::/7`、`fe80::/10` 和 `ff00::/8`。
+- 云厂商或容器环境 metadata endpoint，包括 `169.254.169.254`、`169.254.170.2` 以及部署 policy 登记的等价 IPv6 / DNS metadata 名称。
+
+执行规则：
+
+- 服务 MUST 在连接前解析目标 host 的所有候选 A/AAAA 记录，并对实际选用的 IP 执行上述分类；不得只检查原始 URL 字符串或裸域名。
+- DNS 解析结果 MUST 与连接目标绑定。连接建立、重试、HTTP redirect、Alt-Svc、proxy CONNECT 或协议升级改变目标 host/IP 时，MUST 重新执行策略检查。
+- 对返回多个地址的域名，只要某次连接候选命中禁止地址类别，该候选 MUST 被拒绝；实现不得在策略命中后静默切换到另一个地址并把失败隐藏为普通网络波动。
+- HTTP redirect 默认不得跨 trust domain 放宽策略。redirect 目标 MUST 重新校验 scheme、host、port、DID/service binding 和出站网络策略。
+- 明文 HTTP 到公网目标默认 SHOULD 拒绝；仅本地开发、测试网络或 Realm / deployment policy 明确授权的受控内网例外可放行。
+- 允许访问私网或 link-local 的例外 MUST 是显式 policy：绑定用途、service DID、trust domain、CIDR、端口、过期时间和审计要求。`development_mode=true` 的 loopback 例外不得出现在生产 ServiceDescribe 或 verified profile claim 中。
+- 拒绝时 SHOULD 返回 `policy_denied`，并在仅对 operator 可见的审计细节中记录被拦截的地址类别、规范化 URL digest、解析 IP、调用用途和 policy version。公开错误不得泄露内网拓扑。
+
+服务 MAY 在 `ServiceDescribe.egress_network_policy` 暴露粗粒度出站策略，供 peer 和客户端理解是否支持安全的外部 URL 解析。公开 describe 不应暴露敏感私网 allowlist；认证后的 operator describe MAY 返回完整策略。
+
 ## 12. 安全要求
 
 服务实现 MUST：
@@ -398,7 +420,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - 对公开 endpoint 做滥用防护
 - 拒绝 URL query / path 中的认证材料
 - 对未知路径、错误 method、不可见资源和权限失败使用一致的最小披露错误语义
-- 对下载、跳转、服务发现和联邦请求中的外部 URL 做 allowlist / policy 检查
+- 对下载、跳转、服务发现和联邦请求中的外部 URL 做 §11.2 的出站网络目标策略检查
 
 服务实现 SHOULD：
 

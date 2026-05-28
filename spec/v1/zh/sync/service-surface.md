@@ -250,6 +250,7 @@ GET /api/v1/server/describe
   （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `legacy_alias`, `external_interop`, `deprecated_alias`}）。
   这些 surface **不构成** Contrix v1 conformance 的一部分。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
+- `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Policy Server、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
 
 旧版本只暴露 `supported_operations`，把 endpoint 可达性、feature 实现、profile claim 混在一起。
 本次区分要求实现：

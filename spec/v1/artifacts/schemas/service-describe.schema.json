@@ -222,6 +222,117 @@
       "type": "object",
       "additionalProperties": true
     },
+    "egress_network_policy": {
+      "type": "object",
+      "description": "Coarse outbound-network policy for SSRF protection. Public describe MAY omit sensitive allowlist entries; authenticated operator describe MAY return the complete policy. Normative semantics are defined in zh/sync/api-conventions.md §11.2.",
+      "required": [
+        "version",
+        "private_network_default",
+        "protected_purposes",
+        "dns_rebind_protection",
+        "redirect_recheck"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "private_network_default": {
+          "type": "string",
+          "enum": [
+            "deny",
+            "deny_unless_explicit_exception"
+          ]
+        },
+        "protected_purposes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "did_resolution",
+              "federation",
+              "media_fetch",
+              "policy_server",
+              "snapshot_fetch",
+              "webhook",
+              "applet",
+              "agent",
+              "directory",
+              "push"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "deny_cidrs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cidr"
+          },
+          "uniqueItems": true
+        },
+        "allow_cidrs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cidr"
+          },
+          "uniqueItems": true
+        },
+        "allow_private_exceptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "purpose",
+              "cidrs",
+              "expires_at"
+            ],
+            "properties": {
+              "purpose": {
+                "type": "string",
+                "minLength": 1
+              },
+              "service_did": {
+                "$ref": "#/$defs/did"
+              },
+              "trust_domain": {
+                "$ref": "#/$defs/trust_domain"
+              },
+              "cidrs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/cidr"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "ports": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                },
+                "uniqueItems": true
+              },
+              "development_mode_only": {
+                "type": "boolean"
+              },
+              "expires_at": {
+                "$ref": "#/$defs/timestamp"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "dns_rebind_protection": {
+          "type": "boolean"
+        },
+        "redirect_recheck": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "implemented_features": {
       "type": "array",
       "description": "feature_ids the service has implementation code for but does NOT necessarily claim conformance for. Tooling that builds a conformance matrix MUST treat this strictly weaker than `claimed_profiles`.",
@@ -421,6 +532,17 @@
     "trust_domain": {
       "type": "string",
       "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "cidr": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 64,
+      "description": "IPv4 or IPv6 CIDR string. Parsability and address-family semantics are enforced by the egress policy evaluator."
     },
     "plaintext_data_class": {
       "type": "string",

@@ -435,6 +435,59 @@ components:
         rate_limit_policy:
           type: object
           additionalProperties: true
+        egress_network_policy:
+          type: object
+          description: |
+            Coarse outbound-network policy for SSRF protection. Public describe
+            MAY omit sensitive allowlist entries; authenticated operator
+            describe MAY return the complete policy. Normative semantics are
+            defined in `zh/sync/api-conventions.md` §11.2.
+          required:
+          - version
+          - private_network_default
+          - protected_purposes
+          - dns_rebind_protection
+          - redirect_recheck
+          properties:
+            version:
+              type: integer
+              minimum: 1
+            private_network_default:
+              type: string
+              enum:
+              - deny
+              - deny_unless_explicit_exception
+            protected_purposes:
+              type: array
+              items:
+                type: string
+                enum:
+                - did_resolution
+                - federation
+                - media_fetch
+                - policy_server
+                - snapshot_fetch
+                - webhook
+                - applet
+                - agent
+                - directory
+                - push
+            deny_cidrs:
+              type: array
+              items:
+                type: string
+            allow_cidrs:
+              type: array
+              items:
+                type: string
+            allow_private_exceptions:
+              type: array
+              items:
+                type: object
+            dns_rebind_protection:
+              type: boolean
+            redirect_recheck:
+              type: boolean
         implemented_features:
           type: array
           description: |

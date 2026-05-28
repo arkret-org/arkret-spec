@@ -408,10 +408,29 @@ Realm MAY 使用 `cx.realm.moderation_policy` state event 声明黑名单、允�
 - `deny_join`
 - `deny_invite`
 - `deny_write`
+- `deny_federation`
 - `quarantine_message`
 - `require_review`
 - `redact_on_accept`
 - `shadow_collapse`
+
+`target.kind` 取值至少包括：
+
+| kind | 标识字段 | 语义 |
+| --- | --- | --- |
+| `actor` | `did` | 单个 Actor / Principal。 |
+| `device` | `device_id` 或 `did` | 单个设备身份。 |
+| `service_did` | `did` | 单个 Principal Server、Sync Service、Federation peer 或其他 service DID。 |
+| `domain` | `domain`，可选 `match_subdomains` | 规范化 DNS A-label domain；只按 label 边界匹配。 |
+| `trust_domain` | `trust_domain` | 部署级 trust domain。 |
+| `organization` | `did` | Organization DID 或其签发的治理链。 |
+| `claim_selector` | `claim_type` / `issuer` | 由声明、VC 或组织关系选择一组主体。 |
+| `media_hash` | `digest` | 媒体或 blob 内容 hash。 |
+| `content_label` | `label` | 分类器或审核标签。 |
+
+Realm 级 server ACL 等价规则 MUST 使用 `service_did`、`domain` 或 `trust_domain` target 表达。`deny_write` / `deny_federation` 命中这些 target 时，接收方 MUST 拒绝该 peer 后续 service-to-service 写入、backfill push、完整 frontier probe 和默认 fanout；`quarantine_message` 命中时，事件不得进入普通用户可见视图，直到 anchored moderation decision 解除。`deny_join` 命中 server target 时，MUST 拒绝通过该 service DID 或 domain 发起的新 join / invite acceptance，但不会自动清扫已经 accepted 的成员；清扫既有成员必须通过 `cx.member.state{membership="ban"}`、grant revoke、MLS epoch rotation 或明确的 moderation decision 完成。
+
+Domain target 的匹配必须基于已验证 service DID / DID Document endpoint / member delivery binding 的规范化结果。实现 MUST NOT 对未经验证的裸字符串、display name、handle 后缀或用户输入 URL 做后缀封禁推断。
 
 规则：
 
@@ -493,9 +512,9 @@ Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/mod
 
 ## 6. 服务器级访问控制
 
-### 6.1 Server ACL
+### 6.1 本地部署 ACL 与 Realm ACL 的边界
 
-Principal Server 可以配置服务器级别的 ACL，控制哪些域的联邦请求被接受或拒绝：
+Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联邦请求被接受、拒绝或停止 fanout：
 
 ```json
 {
@@ -509,11 +528,57 @@ Principal Server 可以配置服务器级别的 ACL，控制哪些域的联邦�
 }
 ```
 
-规则评估顺序：先检查 `deny` 列表，再检查 `allow` 列表。支持 glob 通配符。
+该 `server_acl` 是部署本地 policy 名称，不是标准 Event kind，不进入 `event-kind-registry.json`，也不是可复制的 Realm 状态。实现 MUST NOT 接受 `cx.realm.server_acl`、`cx.server.acl` 或等价未注册 kind 作为 Realm 权威状态。
 
-### 6.2 与联邦协议的关系
+规则评估顺序：先检查 `deny` 列表，再检查 `allow` 列表。支持 glob 通配符时，通配符只允许覆盖完整 DNS label；`*.example.com` 不得匹配 `example.com` 或 `badexample.com`。推荐实现同时支持 exact `service_did`、`trust_domain` 与 DNS domain 规则，并优先使用已验证 service DID。
 
-Server ACL 在联邦层（参见 `federation.md`）起作用。当 Principal Server 收到来自被 deny 的域的 `cx.events.submit`（service-to-service 形态，`Source-Service-DID` 落在 deny list 中）请求时，SHOULD 立即返回 `403 capability_denied`。
+### 6.2 Realm 级 server ACL 的权威路径
+
+需要让参与该 Realm 的 peer 以可验证、可复制方式看到 server ACL 时，MUST 使用已注册的 `cx.realm.moderation_policy`：
+
+```json
+{
+  "kind": "cx.realm.moderation_policy",
+  "payload": {
+    "value": {
+      "version": 1,
+      "targets": [
+        {
+          "target": {
+            "kind": "service_did",
+            "did": "did:web:spam-node.example"
+          },
+          "action": "deny_federation",
+          "reason_code": "abuse_network"
+        },
+        {
+          "target": {
+            "kind": "domain",
+            "domain": "malicious.example.net",
+            "match_subdomains": true
+          },
+          "action": "deny_write",
+          "reason_code": "abuse_network"
+        }
+      ]
+    }
+  }
+}
+```
+
+`cx.realm.moderation_policy` server target 的生效规则：
+
+- 接收方在完成请求签名、DID、trust domain 和 endpoint digest 识别后，MUST 在接受 Event 进入普通 reducer 前评估 Realm policy。
+- 命中 `deny_federation` 或 `deny_write` 的入站 service-to-service 写入 MUST fail closed；批量请求中可逐项拒绝，也可在请求级拒绝，取决于被拒绝规则是否影响整批认证上下文。
+- 命中出站 deny 的 peer MUST 从该 Realm 的 fanout 目标集中移除；该抑制不是临时网络失败，不应进入无限重试队列。
+- 命中 `quarantine_message` 的 Event MUST 进入 quarantine，不得作为 accepted state 推进普通用户可见 frontier。
+- 这些规则只影响未来接收、投递和呈现。它们 MUST NOT 静默改写、删除或重新解释已经 accepted 的密码学历史。
+
+### 6.3 与联邦协议的关系
+
+Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `cx.events.submit`（service-to-service 形态，`Source-Service-DID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
+
+整机级 defederation 需要入站与出站同时配置：拒收该 peer 的 push / pull / frontier probe，并停止向其 fanout 新 Event、push、to-device、key-package、backfill 和媒体 / snapshot fetch。
 
 ## 7. 组织级审核策略
 
