@@ -6,7 +6,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "a9c3c4a195b8060342bf7d1829d1108c2e5ae6e393c054205930a41ef6e21f54"
+      "sha256": "e76254b2604e715862354b00795e5be9333a6b1457f5d1601f92275f911740c5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",

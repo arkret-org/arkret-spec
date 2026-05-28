@@ -1,8 +1,8 @@
 {
   "suite": "circle_scope",
   "profile": "cx.profile.circle_conformance.v1",
-  "version": "2026-05-26",
-  "description": "Machine-contract fixture for Circle effective_scope semantics. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers None->None, same-scope->same-scope, None->Some, Some->None, Some(A)->Some(B) rebind transitions plus negative cases. See spec/v1/zh/models/circle.md §6.1 / §6.2.",
+  "version": "2026-05-29",
+  "description": "Machine-contract fixture for Circle effective_scope semantics. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers None->None, same-scope->same-scope, None->Some, Some->None, Some(A)->Some(B) rebind transitions plus negative cases. negative_cases also pin the accepted-Event / materialized-object closure: accepted Circle-scoped events MUST carry effective_scope, effective_scope MUST agree with scope_circle_id, the Anchor frontier leaf transitively binds effective_scope via event_digest, and content_encryption_floor=e2ee_required rejects plaintext content. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §10.2.",
   "submit_payload_shape": {
     "description": "Actor-supplied input on cx.flow.create / cx.message.create / cx.morph.create / cx.relation.create / cx.space.* writes. MUST carry only scope_circle_id (id:circle | null). MUST NOT carry effective_scope.",
     "schema": {
@@ -196,6 +196,53 @@
       "circle_realm_id_at_evaluation": "cx:realm:01964200-0000-7000-8000-000000000000",
       "expect_reducer_result": "schema_violation",
       "reason": "circle_realm_mismatch"
+    },
+    {
+      "name": "accepted_event_missing_effective_scope",
+      "description": "An accepted durable Circle-scoped Event (e.g. cx.message.create whose Flow scope_circle_id is set) MUST carry the reducer-stamped effective_scope on its envelope. An offline validator / cotest MUST reject an accepted event whose object is Circle-scoped but whose effective_scope is absent, otherwise the §9.3 'Circle scoped event not delivered to non-members' invariant cannot be deterministically replayed. event-schema.json carries effective_scope as a reducer-stamped field; this vector pins that accepted (post-reducer) Circle events MUST populate it.",
+      "event_kind": "cx.message.create",
+      "object_scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000",
+      "accepted_event_effective_scope": null,
+      "expect_validation_result": "reject",
+      "invariant": "accepted_circle_event_requires_effective_scope"
+    },
+    {
+      "name": "effective_scope_mismatches_scope_circle_id",
+      "description": "The reducer-stamped effective_scope MUST be derived from the object's scope_circle_id: scope_circle_id=null -> {kind:realm}; scope_circle_id=C -> {kind:circle, circle_id:C}. A materialized object / accepted event whose effective_scope.circle_id disagrees with its scope_circle_id is corrupt; reducer MUST schema_violation (effective_scope_reducer_managed) on write and a validator MUST reject on read.",
+      "event_kind": "cx.message.create",
+      "object_scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000",
+      "stamped_effective_scope": {
+        "kind": "circle",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "cx:circle:0196419d-0000-7000-8000-000000000000"
+      },
+      "expect_reducer_result": "schema_violation",
+      "reason": "effective_scope_reducer_managed"
+    },
+    {
+      "name": "anchor_leaf_effective_scope_tamper",
+      "description": "effective_scope is part of an Event's canonical bytes, so the Anchor frontier leaf (event_digest = H(canonical bytes)) transitively binds it: an auditor proving a leaf is anchored also proves which effective_scope that event belonged to. Mutating effective_scope after signing changes event_digest, so the recomputed digest no longer matches the Anchor frontier entry. Receivers MUST reject with digest_mismatch; this forbids silently re-scoping an already-anchored event and is why no separate scope field is added to anchor.schema.json (the binding is the digest).",
+      "event_kind": "cx.message.create",
+      "original_effective_scope": {
+        "kind": "circle",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+      },
+      "tampered_effective_scope": {
+        "kind": "realm",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+      },
+      "expect_verification_result": "reject",
+      "reason": "digest_mismatch"
+    },
+    {
+      "name": "content_plaintext_under_e2ee_required",
+      "description": "Realm.content_encryption_floor=e2ee_required requires every Flow/Message/Morph/Blob content effective_scope to be MLS-backed (Realm-default MLS or Circle MLS). A cx.message.create carrying plaintext content (or whose effective_scope resolves to a plaintext Circle with encryption_profile=none) MUST be rejected with failed_precondition reason=content_encryption_floor_violation.",
+      "realm_content_encryption_floor": "e2ee_required",
+      "event_kind": "cx.message.create",
+      "content_form": "plaintext",
+      "expect_reducer_result": "failed_precondition",
+      "reason": "content_encryption_floor_violation"
     }
   ]
 }
