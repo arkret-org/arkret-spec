@@ -1639,7 +1639,7 @@
         },
         "expected_state_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, actor_id, segment). When present, it MUST equal the effective-set digest observed by the writer before applying this event; it is not the identity_payload_digest and not a roster member_display_state_digest."
+          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, actor_id, segment). When present, it MUST equal the writer-observed effective-set digest before applying this event: sha256 over RFC 8785 JCS canonical JSON {realm_id, actor_id, segment, effective_events:[{event_id, segment, payload_digest}]}, with effective_events sorted by (segment,event_id). It is not the identity_payload_digest and not a roster member_display_state_digest."
         }
       },
       "additionalProperties": false

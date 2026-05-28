@@ -27,13 +27,15 @@ updated: 2026-05-25
 | Registry | 计数 | Canonical 文件 |
 | --- | --- | --- |
 | Event kind（active） | 167 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 57 | `artifacts/registry/schema-registry.json` |
+| Schema | 58 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 44 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 100 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 67 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 88 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 当前另有 58 个 raw JSON Schema artifact file；其中 `event-schema.json` 是 `cx.schema.event.v1` 的 internal `$ref` target，由已注册的 `event-envelope.schema.json` 引入。发布站点仍然 MUST raw 发布这些同目录 `$ref` 目标文件，registry consumer 也必须递归解析同目录 `$ref`，不能只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 当前另有 59 个 raw JSON Schema artifact file；其中 `event-schema.json` 是 `cx.schema.event.v1` 的 internal `$ref` target，由已注册的 `event-envelope.schema.json` 引入。发布站点仍然 MUST raw 发布这些同目录 `$ref` 目标文件，registry consumer 也必须递归解析同目录 `$ref`，不能只下载 registry 直接列出的文件后停止。
+
+当前候选基线包含两个 wire-breaking cleanup：`cx.schema.handle_claim.v1.claim_type` 不再允许 draft-era `service_handle`（服务 / 资源可读名必须迁移到独立服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`），并且 `cx.member.identity.update` payload 中旧草案字段 `identity_state_digest` 已更名为 `identity_payload_digest`，以避免与 roster `member_display_state_digest` 混淆。实现者不得同时接受旧名和新名作为等价字段，除非在本地迁移层先把旧草案数据正规化后再进入 v1 validator。
 
 当前 `conformance-profiles.json` 另含 77 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `cx.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 

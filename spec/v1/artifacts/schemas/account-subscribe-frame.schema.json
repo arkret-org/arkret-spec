@@ -272,7 +272,7 @@
         },
         "identity_events": {
           "type": "array",
-          "description": "Optional inline effective cx.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites.",
+          "description": "Optional inline effective cx.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites. MUST be omitted unless subject_id is disclosed, because plaintext or decryptable identity events can disclose the same member subject.",
           "items": {
             "$ref": "./event-envelope.schema.json"
           }
@@ -299,6 +299,7 @@
         }
       },
       "dependentRequired": {
+        "identity_events": ["subject_id"],
         "handle_claim_digests": ["subject_id"],
         "handle_claims": ["subject_id"],
         "handle_claims_limited": ["subject_id"]

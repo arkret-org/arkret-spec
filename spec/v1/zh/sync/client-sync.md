@@ -389,15 +389,17 @@ event_id ASC
 | --- | --- | --- | --- |
 | `actor_id` | DID | MUST | 等于当前 effective `cx.member.state` cell subject / `payload.actor_id`。高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；真实 principal 的披露由当前 effective `cx.member.identity.update` events 决定。 |
 | `membership` | enum | MUST | 当前 effective membership，取 `join` / `invite` / `knock`。leave / ban 不进入 roster。 |
-| `subject_id` | DID | MAY | handle claim 的 `subject` 对应的 holder / principal DID，不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder DID 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `cx.directory.list_handles_for_subject`。返回 `handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
+| `subject_id` | DID | MAY | handle claim 的 `subject` 对应的 holder / principal DID，不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder DID 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `cx.directory.list_handles_for_subject`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
 | `identity_event_ids` | event id array | MAY | 当前 effective `cx.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
 | `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_id` 未披露时返回。 |
 | `handle_claims` | handle claim array | MAY | 可选内联的完整 `cx.schema.handle_claim.v1` objects。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 claim 的 `subject` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略，客户端可用 `subject_id` 调 `cx.directory.list_handles_for_subject` 补拉。 |
 | `handle_claims_limited` | boolean | MAY | `true` 表示 `handle_claims[]` 被截断或仅含 digest hints；客户端 MUST NOT 把缺失 claim 解释为该 subject 没有 handle。该字段只在 `subject_id` 已披露且 handle claim set 对调用方可见时返回。 |
 | `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,binding_state,expires_at}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于 `cx.member.identity.update` 事件内的 `identity_payload_digest`。 |
-| `identity_events` | Event array | MAY | 可选内联的原始 `cx.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。 |
+| `identity_events` | Event array | MAY | 可选内联的原始 `cx.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。该字段可能明文或可解密地披露同一 member `subject_id`，因此 `subject_id` 未披露时 MUST 省略。 |
 
-`handle_claim_digests[]` 是跨上下文稳定的 claim identifier；完整 `handle_claims[]` 又直接携带 claim `subject`。因此，当 `subject_id` 因 Realm disclosure policy 未披露时，服务端 MUST 同时省略 `handle_claim_digests`、`handle_claims` 和 `handle_claims_limited`，不得把 digest hint 当作隐私安全的替代披露。返回完整 `handle_claims[]` 时，服务端 MUST 确保每个 claim 的 `subject` 等于同一 roster entry 的 `subject_id`；不匹配的 claim MUST 被丢弃或导致该 roster entry 失败 closed。
+`handle_claim_digests[]` 是跨上下文稳定的 claim identifier；完整 `handle_claims[]` 又直接携带 claim `subject`，`identity_events[]` 也可能披露 `MemberIdentity.subject_id`。因此，当 `subject_id` 因 Realm disclosure policy 未披露时，服务端 MUST 同时省略 `identity_events`、`handle_claim_digests`、`handle_claims` 和 `handle_claims_limited`，不得把 digest hint 或原始 identity event 当作隐私安全的替代披露。返回完整 `handle_claims[]` 时，服务端 MUST 确保每个 claim 的 `subject` 等于同一 roster entry 的 `subject_id`；不匹配的 claim MUST 被丢弃或导致该 roster entry 失败 closed。
+
+`member_display_state_digest` 只覆盖影响 roster display selection 的 stable 输入：effective identity event references 与当前可见 handle claim 的 `claim_digest` / `binding_state` / `expires_at`。Issuer 仅刷新 `verified_at`、签名打包顺序或其它非语义 freshness hint 时，该 digest MAY 保持不变；需要强制刷新证据新鲜度的服务应使用 claim cache TTL、`as_of` 或重新拉取 claim evidence，而不是通过 digest churn 表达 freshness。
 
 `cx.member.identity.update` payload 形态：
 

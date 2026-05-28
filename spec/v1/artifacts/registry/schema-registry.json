@@ -173,6 +173,12 @@
       "file": "schemas/handle-claim.schema.json"
     },
     {
+      "schema_id": "cx.schema.list_handles_for_subject_response.v1",
+      "file": "schemas/list-handles-for-subject-response.schema.json",
+      "status": "active",
+      "description": "Directory response listing currently visible handle claims for a disclosed subject DID."
+    },
+    {
       "schema_id": "cx.schema.member_delivery_binding_candidate.v1",
       "file": "schemas/member-delivery-binding-candidate.schema.json",
       "status": "active",

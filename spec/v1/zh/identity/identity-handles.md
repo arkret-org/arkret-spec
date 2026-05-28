@@ -156,6 +156,8 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 **`holder_primary_handle_at_as_of` 的求值规则**（normative）：取 `subject_id` 在 `resolution_as_of` 时刻通过 DID resolver 解析得到的 DID Document(含 historical version 解析能力的 DID method，例如 `did:webvh`，MUST 取 as_of 对应的历史 version；不带 history 的 method，verifier MUST 把当前 resolver 返回的 version 作为 snapshot)；从该 Document 提取 `metadata.primary_handle` 字段的字符串值。缺失或字段类型不是字符串时，取 `null`。算法在 §3.2.1 Step 1 "holder-flagged" 层只检查每个候选 `c.handle == holder_primary_handle_at_as_of`，**不**重新读 DID Document——这使 holder flag 成为算法的纯函数输入而不是副作用读取。
 
+`metadata.primary_handle` 是 holder 偏好指针，不是 handle 声明通道。Verifier MUST 先从 signed `cx.schema.handle_claim.v1` 构造 `claim_set_snapshot`；若 DID Document 中的 `metadata.primary_handle` 不在该 snapshot 的 verified candidates 中，MUST 忽略该值。该字段不得创建新 claim、绕过 issuer / audience / trust 过滤，也不得覆盖 §3.2.2 对 profile / identity event 的 handle 声明禁令。
+
 **审计材料**（informative）：实现 SHOULD 在选择结果旁附带 `did_document_snapshot_digest = "sha256:" || hex(sha256(JCS(DID Document at as_of)))` 与 `resolution_as_of`，供下游复算时验证 `holder_primary_handle_at_as_of` 来自正确的 DID Document version。该 digest 是审计校验材料，不是算法输入。
 
 **实现 MAY 进一步内联**：把 `holder_primary_handle_at_as_of` 在 `claim_set_snapshot` 构造阶段就物化为每个 claim 上的派生 `holder_flagged: boolean`(`c.holder_flagged := (c.handle == holder_primary_handle_at_as_of)`)；之后算法只读 `c.holder_flagged`，不再需要单独的 `holder_primary_handle_at_as_of` 输入。这种实现 MUST 保证物化产生的 boolean 在同 as_of 同 DID Document version 下是确定的(即等价 transform)。
@@ -571,7 +573,7 @@ holder DID Document: subject_id → handle   (列入 alsoKnownAs，holder 单方
 Handle 解析分为两个方向：
 
 - **handle → subject**：输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态），使用 `cx.directory.resolve_handle` 或下列 issuer discovery 路径。
-- **subject/context → current handles**：输入是 `subject` DID、当前 Realm / audience / requester context，使用 `cx.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]`。该方向用于 member roster、mention renderer 和管理员后期改 handle 后的显示刷新。
+- **subject/context → current handles**：输入是 `subject` DID、当前 Realm / audience / requester context，使用 `cx.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]`。该方向用于 member roster、mention renderer 和 issuer 重签 / 撤销 claim 后的显示刷新。
 
 已知 handle 时，客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 

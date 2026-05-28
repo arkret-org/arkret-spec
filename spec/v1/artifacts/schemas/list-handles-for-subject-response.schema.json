@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/list-handles-for-subject-response.schema.json",
+  "title": "Contrix List Handles For Subject Response",
+  "description": "Response for cx.directory.list_handles_for_subject. It lists currently visible handle claims for a disclosed holder/principal subject DID in the caller's context. Every claim in claims[] MUST have claim.subject byte-for-byte equal to this response subject.",
+  "type": "object",
+  "required": [
+    "subject",
+    "claims",
+    "as_of",
+    "has_more"
+  ],
+  "properties": {
+    "subject": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "description": "Holder/principal DID used as the reverse lookup key. This is not a Realm actor_id."
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "./handle-claim.schema.json"
+      },
+      "description": "Current context-visible signed handle claims. Each item MUST have subject equal to the top-level subject; mismatches MUST be dropped or fail the response closed."
+    },
+    "primary_handle": {
+      "type": "string",
+      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "description": "Optional canonical primary handle selected from claims[] by identity-handles.md section 3.2.1 for the same context/as_of. The @ mention sigil is not part of this field."
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "As-of timestamp used to build the visible claim set and primary handle selection."
+    },
+    "next_cursor": {
+      "type": "string"
+    },
+    "has_more": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}
