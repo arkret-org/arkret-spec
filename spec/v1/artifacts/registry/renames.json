@@ -162,7 +162,7 @@
       "rejection_level": "hard_reject",
       "replacement": "scope_circle_id",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow / Space / Morph encryption scope fields point at one concrete Circle object, so the field carries the explicit Circle kind."
+      "notes": "Flow / Space / Morph effective scope fields point at one concrete Circle object, so the field carries the explicit Circle kind."
     },
     {
       "id": "default_scope_ref",

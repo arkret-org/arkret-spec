@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/space.schema.json",
   "title": "Contrix Space",
-  "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; its metadata may be placed in an existing Realm/Circle encryption scope via scope_circle_id.",
+  "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; its metadata may be placed in an existing Realm/Circle effective scope via scope_circle_id.",
   "type": "object",
   "required": [
     "id",
@@ -33,7 +33,7 @@
     },
     "scope_circle_id": {
       "$ref": "#/$defs/circle_id",
-      "description": "Optional Circle scope for this Space object's own metadata and scoped structural relation facts. Space still does not own a security boundary; it only places its metadata into an existing Circle. Omitted means Realm-default encryption scope."
+      "description": "Optional Circle scope for this Space object's own metadata and scoped structural relation facts. Space still does not own a security boundary; it only places its metadata into an existing Circle scope. Omitted means Realm-default scope."
     },
     "default_scope_circle_id": {
       "$ref": "#/$defs/circle_id",

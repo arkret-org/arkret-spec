@@ -543,7 +543,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.reorder`
 - `cx.flow.watch.set`
 
-`cx.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `cx.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md) 与 [`../models/circle.md`](../models/circle.md)）。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas_register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
+`cx.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `cx.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / 投递裁剪或 E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md) 与 [`../models/circle.md`](../models/circle.md)）。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas_register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
 
 ### 7.3 Space
 
@@ -656,7 +656,7 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 规则：
 
 - 开 / 关 track 不改变 Flow identity。
-- 开 `discussion` track 时，access 完全继承 Flow 的 effective scope（与 synthesis 同 scope）。需要让 Flow 拥有独立 membership / history visibility / E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)——`cx.flow.tracks.update` payload 不支持 `access` 子对象，也不修改 `scope_circle_id`。
+- 开 `discussion` track 时，access 完全继承 Flow 的 effective scope（与 synthesis 同 scope）。需要让 Flow 拥有独立 membership / history visibility / 投递裁剪或 E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)——`cx.flow.tracks.update` payload 不支持 `access` 子对象，也不修改 `scope_circle_id`。
 - Flow synthesis 与 discussion 共享同一 effective scope，可见性同源：`scope_circle_id=null` 时按 Realm-default history visibility；`scope_circle_id` 指向 Circle 时按该 Circle 自身 policy 判断。projection 必须按 effective scope 裁剪。
 - Reducer MUST 保证同一 Flow 至多一个 active track 设置 `is_primary=true`。若没有显式 primary，且 `synthesis` 与 `discussion` 同时存在，默认入口 MUST 派生为 `synthesis`。
 - 发送 `cx.message.*` 到未启用的 discussion track MUST 返回 `discussion_track_disabled` 或等价 fail-closed 结果。

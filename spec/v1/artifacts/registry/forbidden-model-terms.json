@@ -24,7 +24,7 @@
       "rejection_level": "hard_reject",
       "replacement": "Realm",
       "allowed_contexts": ["changelog", "interop_module", "negative_test"],
-      "notes": "Room is not the v1 core model. Use Realm (federation / identity / replication boundary), Circle (intra-Realm cryptographic sub-boundary; see zh/models/circle.md), Flow, or Space as applicable. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
+      "notes": "Room is not the v1 core model. Use Realm (federation / identity / replication boundary), Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md), Flow, or Space as applicable. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
     },
     {
       "id": "Realm(kind=list)",

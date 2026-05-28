@@ -56,13 +56,13 @@ Realm 与 MLS group 不是同义词：
 - 非 E2EE Realm 可以没有 MLS group。
 - E2EE Realm 通常拥有一个 primary MLS group。
 - Realm 还包含 policy、membership、history、sync frontier、federation、retention 和 capability 等语义；MLS group 只承载加密成员、epoch 和密钥演进。
-- 实现把 Realm 内的"辅助 MLS group"形式化为一等对象 [Circle](./circle.md)（`cx:circle:`）：独立 MLS group、独立 history visibility、`Circle.members ⊆ Realm.members`，但 federation identity / policy server / capability registry 仍在父 Realm。
+- 实现把 Realm 内的子事件 / 子消息边界形式化为一等对象 [Circle](./circle.md)（`cx:circle:`）：独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪，且 `Circle.members ⊆ Realm.members`；当父 Realm 或 policy 要求 E2EE 时，Circle 还必须拥有独立 MLS group。federation identity / policy server / capability registry 仍在父 Realm。
 
 规范性规则：
 
 - `encryption_profile` 是 Realm 的 create-locked 基线。
-- 同一 Realm 内不允许把普通 Flow 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_profile` 声明（详见 [`circle.md` §7](./circle.md)）。
-- 若某个 Flow / artifact 需要 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history），创建一个 [Circle](./circle.md) 并把对象的 `scope_circle_id` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `cx.realm.link` 显式引用连接。
+- 同一 Realm 内不允许把普通 Flow 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_profile` 声明，Circle 不得放宽父 Realm floor（详见 [`circle.md` §7](./circle.md)）。
+- 若某个 Flow / artifact 需要 Realm 内的子事件 / 子消息边界（子集成员、独立 history、投递 / 查询裁剪，必要时独立 MLS group），创建一个 [Circle](./circle.md) 并把对象的 `scope_circle_id` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `cx.realm.link` 显式引用连接。
 
 ### 2.3 Schema id 与字段
 
@@ -273,7 +273,7 @@ Schema id: `cx.schema.space.v1`
 | `schema` | yes | `cx.schema.space.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | MUST 指向 `cx:realm:`。 | Space metadata 的 home Realm。 |
 | `default_realm_id` | no | `id:realm` | MUST 指向 `cx:realm:`。 | 子资源默认 Realm；省略时继承。 |
-| `scope_circle_id` | no | `id:circle` | MUST 指向 Space metadata home Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 encryption scope；省略表示 Realm-default。 |
+| `scope_circle_id` | no | `id:circle` | MUST 指向 Space metadata home Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 effective scope；省略表示 Realm-default。 |
 | `default_scope_circle_id` | no | `id:circle` | MUST 指向该 Space 子资源 effective `default_realm_id` 所在 Realm 的 Circle。 | 在该 Space 下新建子资源的默认 Circle scope；hint，不强制。若 `default_realm_id` 继承，先解析 effective target Realm 再校验该 Circle。 |
 | `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement / encryption floor 的 reducer-enforced 约束。 |
 | `parent_space_id` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |
@@ -298,16 +298,16 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 - **授权**：任何对 Space 的写入（`cx.space.create` / `cx.space.update` / `cx.space.archive` / `cx.space.restore` / `cx.space.tombstone` / `cx.space.parent`）都在 `realm_id` 指向的 home Realm 内授权。
 - **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
-- **加密**：Space 没有自己的 MLS group。Space metadata 默认取决于 home Realm 的 `encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing MLS scope。
+- **加密 / scope**：Space 没有自己的 membership、policy server 或 MLS group。Space metadata 默认取决于 home Realm 的 scope、`encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与 encryption profile。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
 - **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。`default_scope_circle_id` 的 Circle MUST 属于该 effective `default_realm_id`；如果 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源默认 scope。
-- **强保密升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的密码学子边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；只有需要独立 federation / policy server / capability registry 时才创建新的 Realm。
+- **子边界升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的子事件 / 子消息边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / policy server / capability registry 时才创建新的 Realm。
 
 **三字段速查表（normative）**：Space 上三个 scope 相关字段语义不同，分别由不同主体强制：
 
 | 字段 | 语义 | 谁强制 |
 | --- | --- | --- |
-| `Space.scope_circle_id` | 本 Space 自身的密码学 scope | reducer（写本 Space 时校验） |
+| `Space.scope_circle_id` | 本 Space 自身的 effective scope | reducer（写本 Space 时校验） |
 | `Space.default_scope_circle_id` | 在该 Space 内新建子资源时的 *客户端 hint* 默认 scope；Circle 属于 effective `default_realm_id` | 客户端 UI（reducer 不强制） |
 | `Space.child_scope_policy.require_scope_circle_id` | 子资源 scope 的 reducer-enforced 约束 | reducer（写子资源时校验） |
 

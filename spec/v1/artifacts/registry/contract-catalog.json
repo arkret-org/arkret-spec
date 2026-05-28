@@ -372,7 +372,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle create (intra-Realm cryptographic sub-boundary). Initializes the independent MLS group and epoch-0 governance binding. See zh/models/circle.md §3, §5.",
+        "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
         "cell_family": "cx.component.circle.create.v1",
         "cell_subject": null,
         "lattice": "ordered_log",
@@ -1868,7 +1868,7 @@
       {
         "schema_id": "cx.schema.circle.v1",
         "file": "schemas/circle.schema.json",
-        "description": "Circle — intra-Realm cryptographic sub-boundary. Independent MLS group, subset membership, independent history visibility. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
+        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
       },
       {
         "schema_id": "cx.schema.flow.v1",
@@ -2282,7 +2282,7 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "cx:circle:<uuid>",
-        "description": "Circle object ID — intra-Realm cryptographic sub-boundary. Hosts its own MLS group, its own membership (strict subset of parent Realm.members), and its own history visibility. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
+        "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
       },
       {
         "kind": "flow",
@@ -3445,7 +3445,7 @@
           "cx.circle.create"
         ],
         "profile": null,
-        "notes": "Creates an intra-Realm Circle (cryptographic sub-boundary). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
+        "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
       },
       {
         "action": "cx.circle.manage",

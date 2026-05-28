@@ -38,7 +38,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
 | `cx:realm:` | Realm | security / sync / auth / E2EE 边界 | [realm-and-space.md](./realm-and-space.md) |
-| `cx:circle:` | Circle | Realm 内密码学子边界（独立 MLS group / 子集成员 / 独立 history），对象通过 `scope_circle_id` 引用 | [circle.md](./circle.md) |
+| `cx:circle:` | Circle | Realm 内子事件 / 子消息边界（子集成员 / 独立 history / 投递裁剪；可选独立 MLS group），对象通过 `scope_circle_id` 引用 | [circle.md](./circle.md) |
 | `cx:space:` | Space | 产品结构容器与导航节点（project / folder / board / list / section ...），通过 `realm_id` / `default_realm_id` 解析安全边界 | [realm-and-space.md](./realm-and-space.md) |
 | `cx:flow:` | Flow | 统一协作主对象（task / decision / incident / channel ...） | [flow-and-message.md](./flow-and-message.md) |
 | `cx:message:` | Message | Flow `discussion` track 时间线消息 | [flow-and-message.md](./flow-and-message.md) |
@@ -108,8 +108,8 @@ flowchart TB
         Rel -. "from_ref / to_ref" .-> Space
     end
 
-    Circle["cx:circle:<br/>(Realm 内密码学子边界)"]
-    Flow -. "scope_circle_id<br/>（窄化加密 scope）" .-> Circle
+    Circle["cx:circle:<br/>(Realm 内子事件边界)"]
+    Flow -. "scope_circle_id<br/>（窄化 effective scope）" .-> Circle
 
     View["cx:view:<br/>投影定义（不持有真相）"]
     View -. "投影" .-> Flow
@@ -124,10 +124,10 @@ flowchart TB
 
 - 实线箭头是结构归属或容纳关系；虚线是引用 / 投影 / scope 窄化。
 - `cx:realm:` 是 federation/identity 硬边界——federation、policy、capability registry、Realm-default MLS 都以它为根。`cx:space:` 永远不是边界，Space metadata 由 `realm_id` 指向的 home Realm 授权。
-- `cx:circle:` 是 Realm 内的密码学子边界——独立 MLS group / 子集成员 / 独立 history。`Flow.scope_circle_id` 指向 Circle 表示整个 Flow（所有 track）落在该 Circle scope。
+- `cx:circle:` 是 Realm 内的子事件 / 子消息边界——子集成员 / 独立 history / 投递裁剪；在 E2EE Realm 或 policy 要求下还拥有独立 MLS group。`Flow.scope_circle_id` 指向 Circle 表示整个 Flow（所有 track）落在该 Circle scope。
 - `cx:relation:` 是一等对象，跨对象语义 MUST 通过 Relation 表达，不藏在字段里。
 - `cx:view:` 拥有投影定义的真相，但不持有被投影对象的协作事实。
-- Discussion 想要独立 membership / E2EE / history visibility 时，整个 Flow 通过 `scope_circle_id` 落在一个 [Circle](./circle.md)；不再有 per-track 安全边界。
+- Discussion 想要独立 membership / history visibility / 投递裁剪或 E2EE 时，整个 Flow 通过 `scope_circle_id` 落在一个 [Circle](./circle.md)；不再有 per-track 安全边界。
 
 ## 3. 设计原则
 

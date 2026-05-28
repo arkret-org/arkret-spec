@@ -68,7 +68,7 @@ sidebar:
 | `cx.schema.realm.v1` | Realm |
 | `cx.schema.space.v1` | Space |
 | `cx.schema.actor_profile.v1` | Actor Profile |
-| `cx.schema.circle.v1` | Circle (intra-Realm cryptographic sub-boundary; see [`../models/circle.md`](../models/circle.md)) |
+| `cx.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
 | `cx.schema.flow.v1` | Flow |
 | `cx.schema.message.v1` | Message |
 | `cx.schema.morph.v1` | Morph |

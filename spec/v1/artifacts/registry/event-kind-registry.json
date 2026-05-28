@@ -340,7 +340,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle create (intra-Realm cryptographic sub-boundary). Initializes the independent MLS group and epoch-0 governance binding. See zh/models/circle.md §3, §5.",
+      "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
       "cell_family": "cx.component.circle.create.v1",
       "cell_subject": null,
       "lattice": "ordered_log",

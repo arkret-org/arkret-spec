@@ -159,7 +159,7 @@
       "category": "core_object",
       "status": "active",
       "wire_form": "cx:circle:<uuid>",
-      "description": "Circle object ID — intra-Realm cryptographic sub-boundary. Hosts its own MLS group, its own membership (strict subset of parent Realm.members), and its own history visibility. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
+      "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
     },
     {
       "kind": "flow",

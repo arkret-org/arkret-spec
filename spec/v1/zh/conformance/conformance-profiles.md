@@ -617,9 +617,9 @@ MUST 支持:
 - 派生 `controller_agent_circle_key`(canonical realm_id + canonical DID + UTF-8 + SHA-256 + base32 + 24 字符小写)
 - Sidecar Circle `display.short_name = "AI-" + controller_agent_circle_key[:12].upper()`,short_name 碰撞且 caller 非 member 时 generic `failed_precondition` `reason=sidecar_create_denied`
 - `eligible_sidecar_agent(realm, controller, agent)` predicate;Circle membership 主动 fan-out `cx.circle.member.state`(不被动 reconcile)
-- Eligibility / MLS membership 三态(eligible+active / pending join / not eligible)
+- Eligibility / Circle membership / encryption-readiness 三态(eligible+active / pending join 或 pending key material / not eligible)
 - `addressed_agent_principal_ids[]` per-ensure ephemeral(服务端不持久化);MUST 不包含 controller 自身
-- 历史 backfill 经由 application-level resend(显式 plaintext 披露)而非 MLS exporter secret
+- 历史 backfill 经由 application-level resend(显式 plaintext 披露)；MLS-backed Circle 中不得使用 MLS exporter secret / past commit secret
 - Cross-Realm fan-out:agent deactivate 只影响该 agent 实际所在的 sidecar Circles
 - `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`
 - Sidecar private Flow 不出现在 Realm-wide navigation / board / list / public search(profile-specific reducer rule:`scope_circle_id` 指向 sidecar Circle 的 Flow 过滤)

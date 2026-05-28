@@ -97,7 +97,7 @@
         "cx.circle.create"
       ],
       "profile": null,
-      "notes": "Creates an intra-Realm Circle (cryptographic sub-boundary). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
+      "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
     },
     {
       "action": "cx.circle.manage",

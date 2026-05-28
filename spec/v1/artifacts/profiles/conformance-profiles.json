@@ -1573,6 +1573,7 @@
         "required": [
           "controller_agent_circle_key_derivation",
           "eligible_sidecar_agent_predicate",
+          "circle_encryption_profile_floor_check",
           "pending_member_reconciliation",
           "addressed_agents_not_a_boundary",
           "agent_sidecar_of_relation",
@@ -3056,7 +3057,7 @@
     "cx.profile.circle_conformance.v1": {
       "role": "interop",
       "inherits": [],
-      "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm cryptographic sub-boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Flow / Message / Morph / Relation / Space objects.",
+      "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Flow / Message / Morph / Relation / Space objects.",
       "required_endpoints": [
         "cx.events.submit",
         "cx.events.query"
@@ -3096,6 +3097,7 @@
         "required": [
           "circle_submit_payload_shape",
           "circle_canonical_effective_scope_shape",
+          "circle_encryption_profile_floor_check",
           "circle_scope_rebind_default_reject",
           "circle_member_state_transition_table"
         ],
@@ -3105,6 +3107,7 @@
         "submit_payload_must": "Submit payload for cx.flow.create / cx.message.create / cx.morph.create / cx.relation.create / cx.space.create / cx.space.parent MUST carry only scope_circle_id (id:circle | null). Reducer MUST reject any submit payload that also carries effective_scope (reason=effective_scope_reducer_managed).",
         "canonical_reducer_output_must": "Reducer MUST stamp tagged effective_scope on accepted Event envelope and materialized object cell. effective_scope is immutable per-event; later scope_circle_id rebinds MUST NOT re-interpret historical events.",
         "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit cx.audit.accessed pairing.",
+        "circle_encryption_profile_floor_must": "Circle.encryption_profile may be none or mls_rfc9420. Reducer MUST reject plaintext Circle creation or update when the parent Realm encryption_profile is mls_rfc9420 or the effective content_encryption_floor is e2ee_required (reason=circle_encryption_below_realm_floor).",
         "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject cx.circle.member.state -> active when the target actor is not a Realm active member (reason=circle_member_must_be_realm_member).",
         "scope_invariant_must": "Sync Service MUST NOT deliver events with effective_scope.kind=circle to actors not in that Circle's member frontier at the event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }

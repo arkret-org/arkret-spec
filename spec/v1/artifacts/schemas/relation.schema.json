@@ -25,6 +25,15 @@
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "scope_circle_id": {
+      "type": "string",
+      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For weak-semantic privacy edges (confidential_discussion_of, agent_sidecar_of) the relation fact MUST be submitted with scope_circle_id pointing to the private Flow's Circle, so effective_scope=circle and non-members cannot enumerate the edge from the public endpoint (relation.md §3.2). For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1)."
+    },
+    "effective_scope": {
+      "$ref": "#/$defs/effective_scope",
+      "description": "Reducer-stamped immutable effective scope of this Relation fact, materialized from scope_circle_id at create time (circle.md §6.1-§6.2). For structural relations it MUST NOT be wider than the narrowest participating endpoint scope. Immutable across any later scope rebind. MUST NOT appear in actor-supplied submit payload (reducer-managed, reason=effective_scope_reducer_managed); the reducer stamps it on accept."
+    },
     "relation_kind": {
       "type": "string",
       "description": "Relation semantic. Cross-Realm constraint: structural relations 'contains' and 'belongs_to' MUST NOT cross Realm (resolved from_ref and to_ref MUST share the same realm_id). Reducer-enforced — see models/relation.md §3 cardinality table and §4 cross-Realm rules. Weak-semantic kinds (references, mentions, derived_from, summarized_from, depends_on, blocks, assigned_to, has_default_view) MAY cross Realm subject to two-sided authorization."
@@ -93,6 +102,38 @@
     }
   ],
   "$defs": {
+    "effective_scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "realm_id"],
+          "properties": {
+            "kind": { "const": "realm" },
+            "realm_id": {
+              "type": "string",
+              "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "realm_id", "circle_id"],
+          "properties": {
+            "kind": { "const": "circle" },
+            "realm_id": {
+              "type": "string",
+              "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "circle_id": {
+              "type": "string",
+              "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "ref": {
       "type": "string",
       "pattern": "^(cx:(realm|space|actor_profile|flow|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:(sha256|sha3_256|blake3):[0-9a-f]{64}|cx:blob:sha512:[0-9a-f]{128}|did:.+)$",

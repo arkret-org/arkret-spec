@@ -62,19 +62,19 @@ Realm membership、Flow 更新权限与 discussion access 使用统一授权模�
 
 - `cx.member.state` 控制 Realm membership
 - `cx.flow.*` 控制 Flow 自身与工作流位置
-- Track 不携带独立 access；整 Flow 共享单一加密 scope（`Flow.scope_circle_id`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
-- 需要让 Flow 拥有独立 membership / history visibility / E2EE 时，把 `Flow.scope_circle_id` 指向一个 Circle；`cx.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
+- Track 不携带独立 access；整 Flow 共享单一 effective scope（`Flow.scope_circle_id`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
+- 需要让 Flow 拥有独立 membership / history visibility / 投递裁剪或 E2EE 时，把 `Flow.scope_circle_id` 指向一个 Circle；`cx.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
 - Flow 可见性按整 Flow 单一 scope 判定：`scope_circle_id=null` 按 Realm-default policy；`scope_circle_id` 指向 Circle 时按该 Circle 自身 history visibility 与 membership 独立判断。
 - Flow 可读不代表 Flow synthesis 可写——授权评估始终是 capability ∧ scope membership 两层 AND（详见 [`../models/circle.md` §8](../models/circle.md)）。
 
 ## 7. E2EE 边界
 
-MLS 加密绑定到 Realm 或 Realm 内的 Circle:
+MLS 加密可绑定到 Realm 或 Realm 内的 MLS-backed Circle:
 
-- 默认（`Flow.scope_circle_id=null`）：Flow 落在 Realm-default MLS group；该 Realm 全员可解。
-- 独立 Flow access：`Flow.scope_circle_id` 指向某 Circle 时，整个 Flow 落在该 Circle 的独立 MLS group / 独立成员 / 独立 history sharing。Circle key MUST NOT 从 Realm-default key 派生。
-- MLS group 的 scope 绑定 `(realm_id, circle_id?)`：`scope=realm` 时承担 Realm-default 加密；`scope=circle` 时承担 Circle 加密。不存在 "track-internal MLS group"。
-- 详见 [`../models/circle.md` §10](../models/circle.md)（含 Realm-member-removal 触发的 N+1 rotate amplification 与缓解策略）。
+- 默认（`Flow.scope_circle_id=null`）：Flow 落在 Realm-default scope；若 Realm 为 MLS-backed，则该 Realm-default MLS group 覆盖此 Flow。
+- 独立 Flow access：`Flow.scope_circle_id` 指向某 Circle 时，整个 Flow 落在该 Circle 的独立成员 / 独立 history sharing / 投递裁剪；若 Circle 为 `mls_rfc9420`，则使用该 Circle 的独立 MLS group，Circle key MUST NOT 从 Realm-default key 派生。
+- MLS group 的 scope 绑定 `(realm_id, circle_id?)`：`scope=realm` 时承担 Realm-default 加密；`scope=circle` 时承担 MLS-backed Circle 加密。不存在 "track-internal MLS group"。
+- 详见 [`../models/circle.md` §10](../models/circle.md)（含 Realm-member-removal 触发的 MLS rotate amplification 与缓解策略）。
 
 ## 8. Agent 结果落点
 

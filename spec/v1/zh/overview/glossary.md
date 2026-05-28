@@ -49,9 +49,9 @@ see_also:
 | ~~Room~~ | _deprecated_ | 历史用语；v1 core model 不使用 `Room` 名词，请使用 `Flow discussion track` / `discussion track view`。`Room` 仅在 MIMI / Matrix interop 模块的明确互操作上下文中允许出现（参见 [`forbidden-model-terms.json`](../../artifacts/registry/forbidden-model-terms.json) `Room` 条目的 `allowed_contexts`）。 |
 | synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。完整字段、profile、适用场景以 [`../models/flow-and-message.md` §4.2](../models/flow-and-message.md) 为准。 |
 | discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 由 Flow 整体的 `scope_circle_id` 决定（`null`=Realm-default scope，否则=该 [Circle](../models/circle.md) scope）。Flow 单一 scope，不存在 per-track 安全边界。完整 profile 集合与适用场景以 [`../models/flow-and-message.md` §4.3](../models/flow-and-message.md) 为准。 |
-| Circle | 信任圈 / 密码学子边界 | `cx:circle:` 对象，Realm 内的独立 MLS group + 子集成员 + 独立 history visibility 边界。**不**持有 federation identity 或 policy server（这些仍在父 Realm）。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的加密可见性圈"。详见 [`../models/circle.md`](../models/circle.md)。 |
-| Circle scope / `scope_circle_id` | 对象加密 scope 引用 | 对象（Flow / Message / Morph / Space）的 `scope_circle_id` 字段；`null` = Realm-default encryption scope，否则指向同 Realm 的 Circle。Reducer 把它物化为 immutable tagged `effective_scope`，进入 Event envelope / E2EE AAD / Anchor leaf。 |
-| effective_scope | 事件 immutable scope tag | Reducer 在每个 Event 接受时固化的 tagged scope（`{kind:"realm",realm_id}` 或 `{kind:"circle",realm_id,circle_id}`）。进入 envelope / AAD / sub-anchor leaf；后续 `scope_circle_id` 改绑不得重解释旧 event。 |
+| Circle | 信任圈 / 子事件边界 | `cx:circle:` 对象，Realm 内的子集成员 + 独立 history visibility + 投递 / 查询 / projection 裁剪边界。**不**持有 federation identity 或 policy server（这些仍在父 Realm）。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的协作圈"；可按父 Realm floor 启用独立 MLS group。详见 [`../models/circle.md`](../models/circle.md)。 |
+| Circle scope / `scope_circle_id` | 对象 effective scope 引用 | 对象（Flow / Message / Morph / Space）的 `scope_circle_id` 字段；`null` = Realm-default scope，否则指向同 Realm 的 Circle。Reducer 把它物化为 immutable tagged `effective_scope`，进入 Event envelope / Anchor leaf；MLS-backed scope 中也进入 E2EE AAD。 |
+| effective_scope | 事件 immutable scope tag | Reducer 在每个 Event 接受时固化的 tagged scope（`{kind:"realm",realm_id}` 或 `{kind:"circle",realm_id,circle_id}`）。进入 envelope / sub-anchor leaf；在 MLS-backed scope 中也进入 AAD；后续 `scope_circle_id` 改绑不得重解释旧 event。 |
 | Board | 看板 | `cx:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
 | List | 列 / 泳道 | `cx:space: kind=list`，挂到 Board Space 下、承载 Flow 位置关系的列容器。 |
 | Message | 消息对象 | 发生在 Flow discussion 轨道中的即时沟通与补充记录。 |

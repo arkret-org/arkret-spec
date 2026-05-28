@@ -32,7 +32,7 @@
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
-      "description": "Reducer-stamped immutable encryption scope for this Event. scope_circle_id=null materializes as {kind:'realm', realm_id}; Circle-scoped objects materialize as {kind:'circle', realm_id, circle_id}. This value enters canonical event bytes, E2EE AAD, MLS governance binding input, and Anchor/sub-anchor leaves."
+      "description": "Reducer-stamped immutable effective scope for this Event. scope_circle_id=null materializes as {kind:'realm', realm_id}; Circle-scoped objects materialize as {kind:'circle', realm_id, circle_id}. This value enters canonical event bytes and Anchor/sub-anchor leaves; in MLS-backed scopes it also enters E2EE AAD and MLS governance binding input."
     },
     "actor_id": {
       "$ref": "#/$defs/did"

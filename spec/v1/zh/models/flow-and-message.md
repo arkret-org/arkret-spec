@@ -17,9 +17,9 @@ updated: 2026-05-25
 - **Flow**（`cx:flow:`）：Realm 内统一的协作主对象，承载"这件事本身"。
 - **Message**（`cx:message:`）：Flow `discussion` track 时间线中的原子消息。
 
-Flow 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Flow 落在 Realm 内的某个 [Circle](./circle.md)（独立 MLS 子边界）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
+Flow 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Flow 落在 Realm 内的某个 [Circle](./circle.md)（子事件 / 子消息边界；可按父 Realm floor 启用独立 MLS）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
 
-Flow 永远只有**一个**加密 scope —— 整个 Flow(所有 track)共享同一安全边界。需要"宽 synthesis + 窄 discussion"的场景 MUST 用**两个 Flow + Relation**(`confidential_discussion_of`)表达，详见 [`circle.md` §7.2](./circle.md)。
+Flow 永远只有**一个** effective scope —— 整个 Flow(所有 track)共享同一事件 / 投递 / history 边界。需要"宽 synthesis + 窄 discussion"的场景 MUST 用**两个 Flow + Relation**(`confidential_discussion_of`)表达，详见 [`circle.md` §7.2](./circle.md)。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -52,7 +52,7 @@ Schema id: `cx.schema.flow.v1`
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
-| `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的加密 scope（含所有 track）。未设置时 Flow 落在 Realm-default encryption scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 MLS group 与 membership 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
+| `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的 effective scope（含所有 track）。未设置时 Flow 落在 Realm-default scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`cx.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`cx.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。**Flow 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Flow 的 `cx.redaction` 表达，见 [common-fields.md §5.1](./common-fields.md)。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
@@ -286,11 +286,11 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
 
 ## 5. Flow Scope（`scope_circle_id`）
 
-Flow 永远只有**一个**加密 scope。整个 Flow（含所有 track：synthesis、discussion 等）共享同一安全边界，要么落在 Realm-default encryption scope，要么落在 Realm 内的某个 [Circle](./circle.md)。Flow 不允许跨两个安全边界。
+Flow 永远只有**一个** effective scope。整个 Flow（含所有 track：synthesis、discussion 等）共享同一事件 / 投递 / history 边界，要么落在 Realm-default scope，要么落在 Realm 内的某个 [Circle](./circle.md)。Flow 不允许跨两个 effective scope。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `scope_circle_id` | no | `id:circle` | 引用的 Circle MUST `realm_id` 与 Flow.realm_id 一致（否则 `schema_violation` `reason=circle_realm_mismatch`）；引用的 Circle MUST `state=active`（否则 `failed_precondition` `reason=circle_not_active`）。 | 整个 Flow 的加密 scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 MLS group / membership / history visibility 内。 |
+| `scope_circle_id` | no | `id:circle` | 引用的 Circle MUST `realm_id` 与 Flow.realm_id 一致（否则 `schema_violation` `reason=circle_realm_mismatch`）；引用的 Circle MUST `state=active`（否则 `failed_precondition` `reason=circle_not_active`）。 | 整个 Flow 的 effective scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 membership / history visibility / delivery / query / encryption profile 内。 |
 
 ```json
 {
@@ -304,16 +304,16 @@ Flow 永远只有**一个**加密 scope。整个 Flow（含所有 track：synthe
 
 规则（详尽 normative 见 [`circle.md` §6](./circle.md)）：
 
-- `scope_circle_id=null` 时，Flow 与所有 track 的事件落在父 Realm 的 Realm-default MLS group / membership / history visibility；reducer 把 `effective_scope` 物化为 `{kind:"realm", realm_id}`。
-- `scope_circle_id` 指向 Circle 时，整个 Flow 与所有 track 的事件落在该 Circle 的独立 MLS group / membership / history；reducer 把 `effective_scope` 物化为 `{kind:"circle", realm_id, circle_id}`。
-- `effective_scope` 是 reducer 在每个 event 接受时**immutable stamped**，进入 Event envelope / E2EE AAD / MLS governance binding / Anchor leaf。后续 `scope_circle_id` 改绑不得重解释旧 event。
+- `scope_circle_id=null` 时，Flow 与所有 track 的事件落在父 Realm 的 Realm-default scope；reducer 把 `effective_scope` 物化为 `{kind:"realm", realm_id}`。
+- `scope_circle_id` 指向 Circle 时，整个 Flow 与所有 track 的事件落在该 Circle 的 membership / history / delivery / query / encryption profile scope；reducer 把 `effective_scope` 物化为 `{kind:"circle", realm_id, circle_id}`。
+- `effective_scope` 是 reducer 在每个 event 接受时**immutable stamped**，进入 Event envelope / Anchor leaf；在 MLS-backed scope 中还进入 E2EE AAD / MLS governance binding。后续 `scope_circle_id` 改绑不得重解释旧 event。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝（`failed_precondition` `reason=scope_rebind_forbidden`）；profile MAY 允许，但 MUST audit-paired high-risk update，且既有历史保留在原 scope，新内容才进新 scope。
 - 跨 Flow 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Flow + `confidential_discussion_of` Relation。
 - Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述，不再在本文件单独发明特例。
 
 ### 5.1 Track 与 scope 关系图
 
-Flow 只有一份 identity；`tracks` map 的 key 决定可用协作面；`scope_circle_id` 决定**整个** Flow 的加密 scope（不是 per-track）。
+Flow 只有一份 identity；`tracks` map 的 key 决定可用协作面；`scope_circle_id` 决定**整个** Flow 的 effective scope（不是 per-track）。
 
 ```mermaid
 flowchart LR
@@ -321,14 +321,14 @@ flowchart LR
         direction TB
         FlowA["cx:flow: F_A<br/>scope_circle_id = null"]
         FlowB["cx:flow: F_B<br/>scope_circle_id = cx:circle:0196419c-0000-7000-8000-000000000000"]
-        RealmMLS["Realm-default MLS group<br/>+ Realm membership"]
-        subgraph Circle ["cx:circle: C — 密码学子边界"]
+        RealmScope["Realm-default scope<br/>+ Realm membership"]
+        subgraph Circle ["cx:circle: C — 子事件边界"]
             direction TB
-            CircleMLS["独立 MLS group<br/>+ Circle membership（⊆ Realm.members）<br/>+ 独立 history visibility"]
+            CircleScope["Circle membership（⊆ Realm.members）<br/>+ 独立 history visibility<br/>+ 投递 / 查询裁剪<br/>+ 可选独立 MLS group"]
         end
 
-        FlowA -. "effective_scope = realm" .-> RealmMLS
-        FlowB -. "effective_scope = circle" .-> CircleMLS
+        FlowA -. "effective_scope = realm" .-> RealmScope
+        FlowB -. "effective_scope = circle" .-> CircleScope
     end
 ```
 
@@ -336,7 +336,7 @@ flowchart LR
 
 - Track 是纯展示 / 时间线分段标识，本身不携带 access；synthesis 与 discussion 在 F_A 上都继承 Realm-default scope，在 F_B 上都继承 Circle scope。
 - `cx.flow.tracks.update` 不修改 `scope_circle_id`；scope 的生命周期事件由 [`circle.md` §5](./circle.md) 的 `cx.circle.*` 系列承担。
-- 想让 discussion 独立 membership / E2EE / history 时，**正确的做法**是给整个 Flow 设置 `scope_circle_id`，或按 [`circle.md` §7.2](./circle.md) 拆为两个 Flow（一个公开 anchor Flow + 一个 Circle 内 private Flow）+ `confidential_discussion_of` Relation。
+- 想让 discussion 独立 membership / history / delivery 裁剪或 E2EE 时，**正确的做法**是给整个 Flow 设置 `scope_circle_id`，或按 [`circle.md` §7.2](./circle.md) 拆为两个 Flow（一个公开 anchor Flow + 一个 Circle 内 private Flow）+ `confidential_discussion_of` Relation。
 - 能看 Flow 的 effective scope 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 capability + scope membership 的两层 AND 判断（见 [`circle.md` §8](./circle.md)）。
 
 ## 6. Flow 行为规则

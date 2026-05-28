@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/circle.schema.json",
   "title": "Contrix Circle",
-  "description": "Circle — intra-Realm cryptographic sub-boundary. Hosts its own MLS group, its own membership (strict subset of parent Realm.members), and its own history visibility. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. Circle is NOT an access-filter or ACL segment; access-only narrowing belongs on Group / capability constraint / resource selector. See spec/v1/zh/models/circle.md.",
+  "description": "Circle — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, and delivery/query/projection boundary. It may be plaintext delivery-only or MLS-backed depending on encryption_profile and parent Realm policy floor. It does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. Circle is NOT a principal Group; principal-set capability narrowing belongs on Group / capability constraint / resource selector. See spec/v1/zh/models/circle.md.",
   "type": "object",
   "required": [
     "id",
@@ -83,14 +83,15 @@
     "encryption_profile": {
       "type": "string",
       "enum": [
+        "none",
         "mls_rfc9420"
       ],
-      "description": "Cryptographic profile. v1 only allows 'mls_rfc9420'; enum form reserves room for future MLS versions / PQ-MLS. create-locked. Circle MUST own an independent MLS group and MUST NOT derive its keys from the Realm-default MLS group."
+      "description": "Circle content encryption profile. create-locked. 'none' means plaintext delivery/query/projection isolation only and is allowed only when the parent Realm policy floor allows plaintext. 'mls_rfc9420' means the Circle owns an independent MLS group and MUST NOT derive its keys from the Realm-default MLS group."
     },
     "mls_group_ref": {
       "type": "string",
       "pattern": "^cx:mls:[a-z0-9_]+:.+$",
-      "description": "Reducer-derived reference to the independent MLS group bound to (realm_id, circle_id). Populated by cx.circle.create reducer; not actor-supplied on wire."
+      "description": "Reducer-derived reference to the independent MLS group bound to (realm_id, circle_id). Present only when encryption_profile='mls_rfc9420'. Populated by cx.circle.create reducer; not actor-supplied on wire."
     },
     "state": {
       "type": "string",
@@ -135,6 +136,25 @@
         "required": [
           "state_changed_at"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "encryption_profile": {
+            "const": "none"
+          }
+        },
+        "required": [
+          "encryption_profile"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "mls_group_ref"
+          ]
+        }
       }
     }
   ],

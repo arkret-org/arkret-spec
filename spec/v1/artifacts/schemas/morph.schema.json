@@ -33,7 +33,7 @@
     },
     "scope_circle_id": {
       "$ref": "#/$defs/circle_id",
-      "description": "Optional reference to an intra-Realm Circle that defines this Morph's encryption scope. Omitted means Realm-default encryption scope. Reducer enforces scope_circle_id.realm_id == Morph.realm_id and stamps immutable effective_scope onto emitted events."
+      "description": "Optional reference to an intra-Realm Circle that defines this Morph's effective scope. Omitted means Realm-default scope. Reducer enforces scope_circle_id.realm_id == Morph.realm_id and stamps immutable effective_scope onto emitted events."
     },
     "schema_refs": {
       "type": "array",

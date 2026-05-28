@@ -2118,6 +2118,20 @@
       "description": "Sub-reason for failed_precondition on cx.circle.member.state -> active when target actor is not yet an active member of the parent Realm. Circle.members ⊆ Realm.members is a hard invariant. See zh/models/circle.md §9.1."
     },
     {
+      "code": "circle_encryption_below_realm_floor",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when cx.circle.create or an effective Circle policy update would set Circle.encryption_profile below the parent Realm encryption_profile or content_encryption_floor. E2EE Realm / e2ee_required floor requires MLS-backed Circle. See zh/models/circle.md §7."
+    },
+    {
+      "code": "content_encryption_floor_violation",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a Realm declares content_encryption_floor=e2ee_required but a Flow / Message / Morph / Blob content write would land in a non-MLS-backed effective_scope (plaintext). The content effective_scope MUST be Realm-default MLS or Circle MLS. See zh/models/circle.md §7 (Realm.content_encryption_floor)."
+    },
+    {
       "code": "scope_rebind_forbidden",
       "applies_to": [
         "state_resolution"

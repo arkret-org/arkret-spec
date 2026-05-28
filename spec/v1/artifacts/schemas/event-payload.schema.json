@@ -554,7 +554,7 @@
     },
     "circle_create_payload": {
       "type": "object",
-      "description": "Create payload uses the Circle object schema for wire validation. Reducer validation MUST require payload.object.created_by to match top-level actor_id and payload.object.created_at to match top-level created_at, then derive the independent MLS group binding for (realm_id, circle_id). payload.object.mls_group_ref is reducer-derived and MUST NOT be actor supplied.",
+      "description": "Create payload uses the Circle object schema for wire validation. Reducer validation MUST require payload.object.created_by to match top-level actor_id and payload.object.created_at to match top-level created_at, then enforce parent Realm encryption floor. When payload.object.encryption_profile='mls_rfc9420', the reducer derives the independent MLS group binding for (realm_id, circle_id). payload.object.mls_group_ref is reducer-derived and MUST NOT be actor supplied.",
       "required": [
         "object"
       ],
