@@ -317,7 +317,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "subtype": "rate",
   "effect": "allow",
   "max_operations": 100,
-  "period": "1h",
+  "period": "PT1H",
   "burst": 10,
   "constraint_scope": "per_space|global"
 }
@@ -334,7 +334,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "resource_type": "object",
   "blob_presign_max_ttl_seconds": 300,
   "max_artifact_bytes": 10485760,
-  "period": "24h",
+  "period": "PT24H",
   "constraint_scope": "per_space"
 }
 ```
@@ -356,7 +356,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
     "did:web:manager.example.com"
   ],
   "approval_relation": "controller",
-  "timeout": "72h",
+  "timeout": "PT72H",
   "auto_reject_on_timeout": true
 }
 ```
@@ -422,7 +422,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
     "did:web:acme.com"
   ],
   "claim_refresh_required": true,
-  "claim_max_age": "24h"
+  "claim_max_age": "PT24H"
 }
 ```
 
@@ -495,8 +495,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "confidentiality",
   "subtype": "encryption",
   "effect": "allow",
-  "key_rotation_period": "7d",
-  "max_key_age": "30d",
+  "key_rotation_period": "P7D",
+  "max_key_age": "P30D",
   "require_key_backup": true,
   "approved_key_issuers": [
     "did:web:keys.example.com"
@@ -545,8 +545,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "subtype": "edit_window",
   "applies_to_actions": ["cx.message.revise"],
   "effect": "allow",
-  "message_edit_window": "15m",
-  "message_redact_window": "24h",
+  "message_edit_window": "PT15M",
+  "message_redact_window": "PT24H",
   "allow_redact_after_window": false
 }
 ```

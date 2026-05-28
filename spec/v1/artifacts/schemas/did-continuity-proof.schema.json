@@ -92,15 +92,16 @@
       "items": {
         "type": "object",
         "required": [
-          "by",
+          "principal_id",
           "verification_method",
           "algorithm",
           "payload_digest",
           "signature"
         ],
         "properties": {
-          "by": {
-            "$ref": "#/$defs/did"
+          "principal_id": {
+            "$ref": "#/$defs/did",
+            "description": "DID of the principal that produced this signature-chain link. The signing key is named by verification_method; this is the responsibility subject."
           },
           "verification_method": {
             "type": "string",

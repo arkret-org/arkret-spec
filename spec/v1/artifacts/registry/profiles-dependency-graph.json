@@ -54,7 +54,7 @@
     "cx.profile.cross_signing.reset.v1",
     "cx.profile.mls.minimal_metadata_realm.v1",
     "cx.profile.key_backup.memory_hard.v1",
-    "cx.profile.accountable_to.strict_reject.v1",
+    "cx.profile.accountable_principals.strict_reject.v1",
     "cx.profile.anchor.single_did.v1",
     "cx.profile.anchor.threshold.v1",
     "cx.profile.anchor.open_set.v1",

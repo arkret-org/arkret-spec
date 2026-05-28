@@ -63,7 +63,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `cx.realm.join.review`。 | 审核所需 capability。[^review-capability-alias] |
 
 [^review-capability-alias]: v1.1 候选 alias: `review_capability_action` — 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。当前字段名是历史保留（v1 已发布，避免 wire-breaking 重命名），推荐文档与 SDK 在 prose 中使用 `review_capability_action` 描述其语义；wire 字段名保持 `review_capability`。
-| `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, of: did[] }` 表达 N-of-M。 | 审核法定人数。 |
+| `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
 | `application_ttl` | no | `duration` | 默认 `168h`，最小 `1h`，最大 `8760h`（1y）。 | 申请未决超时即失效。 |
 | `cooldown_after_reject` | no | `duration` | 默认 `72h`。 | 拒绝后同一 actor 重新申请的最短间隔。 |
 | `max_open_applications_per_actor` | no | `integer` | 默认 `1`，最大 `5`。 | 同一 actor 在本 Realm 同时未决申请上限。 |
@@ -567,8 +567,8 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
       ],
       "review_capability": "cx.realm.join.review",
       "reviewer_quorum": "any",
-      "application_ttl": "168h",
-      "cooldown_after_reject": "168h",
+      "application_ttl": "PT168H",
+      "cooldown_after_reject": "PT168H",
       "max_open_applications_per_actor": 1,
       "applicant_visibility": "reviewer_only",
       "directory_hint": {

@@ -109,7 +109,7 @@
     },
     "inactivity_timeout": {
       "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "expires_after": {
       "type": "string",
@@ -484,11 +484,11 @@
     },
     "message_edit_window": {
       "type": "string",
-      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "message_redact_window": {
       "type": "string",
-      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "allow_redact_after_window": {
       "type": "boolean"
@@ -527,7 +527,7 @@
     },
     "period": {
       "type": "string",
-      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "burst": {
       "type": "integer",
@@ -573,7 +573,7 @@
     },
     "timeout": {
       "type": "string",
-      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "auto_reject_on_timeout": {
       "type": "boolean"
@@ -611,11 +611,11 @@
     },
     "key_rotation_period": {
       "type": "string",
-      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "max_key_age": {
       "type": "string",
-      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "require_key_backup": {
       "type": "boolean"
@@ -694,7 +694,7 @@
     },
     "claim_max_age": {
       "type": "string",
-      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
     "depends_on_moderation_state": {
       "type": "boolean",

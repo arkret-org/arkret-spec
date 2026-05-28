@@ -311,8 +311,8 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
     "user_oob_confirmation_method": "offline_paper|physical_meet|independent_channel"
   },
   "signature_chain": [
-    { "alg": "...", "by": "<inception key>", "over": "transfer_envelope_canonical" },
-    { "alg": "...", "by": "<did:webvh entry-0 controller key>", "over": "transfer_envelope_canonical" }
+    { "alg": "...", "verification_method": "<inception key DID URL>", "over": "transfer_envelope_canonical" },
+    { "alg": "...", "verification_method": "<did:webvh entry-0 controller key DID URL>", "over": "transfer_envelope_canonical" }
   ]
 }
 ```

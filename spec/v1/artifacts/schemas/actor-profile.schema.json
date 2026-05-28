@@ -65,7 +65,7 @@
       ],
       "description": "Public projection of the account lifecycle status values defined in zh/identity/account-lifecycle.md §3. Implementations MAY hide or coarsen this field in projection views, but the wire enum mirrors cx.account.status."
     },
-    "accountable_to": {
+    "accountable_principal_ids": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did"

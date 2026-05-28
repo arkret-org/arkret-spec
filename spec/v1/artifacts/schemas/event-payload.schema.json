@@ -1515,7 +1515,7 @@
         "delivery_binding": {
           "$ref": "#/$defs/member_delivery_binding"
         },
-        "via": {
+        "via_service_dids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did"
@@ -1788,14 +1788,14 @@
               "type": "object",
               "required": [
                 "threshold",
-                "of"
+                "reviewers"
               ],
               "properties": {
                 "threshold": {
                   "type": "integer",
                   "minimum": 1
                 },
-                "of": {
+                "reviewers": {
                   "type": "array",
                   "items": {
                     "$ref": "#/$defs/did"
@@ -1809,13 +1809,13 @@
         },
         "application_ttl": {
           "type": "string",
-          "pattern": "^[0-9]+(ms|s|m|h|d)$",
-          "description": "Join application pending lifetime as a v1 compact duration string, e.g. 168h."
+          "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+          "description": "Join application pending lifetime as an ISO 8601 duration, e.g. PT168H."
         },
         "cooldown_after_reject": {
           "type": "string",
-          "pattern": "^[0-9]+(ms|s|m|h|d)$",
-          "description": "Minimum interval before the same actor may reapply after rejection, as a v1 compact duration string, e.g. 72h."
+          "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+          "description": "Minimum interval before the same actor may reapply after rejection, as an ISO 8601 duration, e.g. PT72H."
         },
         "max_open_applications_per_actor": {
           "type": "integer",

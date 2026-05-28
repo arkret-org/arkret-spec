@@ -34,6 +34,7 @@
     "full_word_field_names": "Protocol wire fields use full nouns for signature/public_key/base64url material rather than sig/pubkey/b64 abbreviations.",
     "status_axis_timestamp": "Status-axis transition timestamps use status_changed_at instead of a bare changed_at.",
     "claim_kind_discriminator": "Closed protocol-level claim discriminators use claim_kind; external credential taxonomy selectors may continue to use claim_type.",
+    "duration_iso8601": "Human-readable policy duration wire strings use ISO 8601 (^P...) as the single v1 format; the self-invented compact ^[0-9]+(ms|s|m|h|d)$ mini-DSL is forbidden. Machine timing fields keep integer _ms / _seconds. See common-fields.md §3.0.2.",
     "frank_to_franking_proof_noun": "Moderation franking objects use the full franking_proof noun (4 entries).",
     "verb_noun_bridge_collapse": "Capability actions converged back to noun form matching their target event kind. The earlier verb-form action names (.manage / .modify / create_*) are forbidden; new IAM tools can use the event kind string verbatim as the action token. 6 entries; v3 (2026-05-24). See authz/capabilities.md §5.0a."
   },
@@ -3007,6 +3008,69 @@
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Recovery share commitments use base64url characters and therefore carry the _b64u suffix.",
       "migration_group": "full_word_field_names"
+    },
+    {
+      "id": "accountable_to",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "accountable_principal_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Actor Profile accountability targets are responsibility-subject principal DIDs; the list field uses _ids (plural of the scalar accountable_principal_id). The _to preposition suffix is dropped.",
+      "migration_group": "did_id_suffix"
+    },
+    {
+      "id": "cx.profile.accountable_to.strict_reject.v1",
+      "kind_class": "profile_id",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.profile.accountable_principals.strict_reject.v1",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Hardening profile id follows the accountable_to -> accountable_principal_ids field rename.",
+      "migration_group": "did_id_suffix"
+    },
+    {
+      "id": "of#reviewer_quorum",
+      "wire_id": "of",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "reviewers",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "The {threshold, of} reviewer quorum object names its DID list reviewers, matching approvers / recovery_members.",
+      "migration_group": "full_word_field_names"
+    },
+    {
+      "id": "via#membership_payload",
+      "wire_id": "via",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "via_service_dids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Membership delivery routing list carries service DIDs; the field name states the value category.",
+      "migration_group": "full_word_field_names"
+    },
+    {
+      "id": "by#did_continuity_signature_chain",
+      "wire_id": "by",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "principal_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DID continuity signature-chain link names the signing principal as principal_id; the key remains verification_method.",
+      "migration_group": "full_word_field_names"
+    },
+    {
+      "id": "duration_compact_mini_dsl",
+      "kind_class": "wire_value_format",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "ISO 8601 duration",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "All human-readable policy duration strings (message_edit_window, message_redact_window, period, timeout, key_rotation_period, max_key_age, claim_max_age, application_ttl, cooldown_after_reject) converged from the compact ^[0-9]+(ms|s|m|h|d)$ form to ISO 8601 (^P...). Single duration string format in v1; machine timing fields keep integer _ms / _seconds. See common-fields.md §3.0.2.",
+      "migration_group": "duration_iso8601"
     }
   ]
 }

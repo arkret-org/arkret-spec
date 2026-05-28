@@ -202,7 +202,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 ## 9.1 Personal agent principal lifecycle(CXP-0008)
 
-Native personal agent(`actor_kind="agent"`,`accountable_to` 指向 controller principal)的 lifecycle 是 controller 账户 lifecycle 的从属体:
+Native personal agent(`actor_kind="agent"`,`accountable_principal_ids` 指向 controller principal)的 lifecycle 是 controller 账户 lifecycle 的从属体:
 
 - **Provisioning** 由 controller 通过 `cx.agent.provision` operation 发起,fan-out 写入 Actor Profile、`cx.identity.accountability_grant`、初始 `cx.capability.grant`(带 `effective_after_first_authorized_key=true` flag)。Agent provisioning status 投影闭合枚举:`pending_runtime_key` → `active`(pairing 完成) / `pairing_expired`(pairing 窗口过期) → `paused` / `deactivated`。
 - **Pause**(`cx.agent.pause`):保留 agent identity、`accountability_grant`、`agent_key_authorize`、capability grants 的 durable state。Auth Server MUST 拒绝新 agent session grant;已签发 session token SHOULD 在 revocation freshness window(默认 ≤ session TTL,即 15 分钟)内 fail closed,实现可选同步 revocation 或自然过期 + status 重查。Pending action requests SHOULD 标 `awaiting_resume`。

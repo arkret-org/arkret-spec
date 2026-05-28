@@ -1006,6 +1006,51 @@
       "replacement": "actor_kind=integration or actor_kind=agent plus Applet provenance",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Ghost/native distinction is carried by Applet provenance and accountability, not by an expanded actor_kind enum."
+    },
+    {
+      "id": "accountable_to",
+      "context": "actor_profile",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "accountable_principal_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Actor Profile accountability targets are a list of responsibility-subject principal DIDs; the field uses the _ids suffix (plural of the scalar accountable_principal_id). The _to preposition suffix is outside the _id/_ref/_did taxonomy and is removed."
+    },
+    {
+      "id": "of",
+      "context": "reviewer_quorum",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "reviewers",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "The {threshold, of} reviewer quorum object names the DID list reviewers (mirrors approvers / recovery_members). The two-letter of is not a valid wire field name."
+    },
+    {
+      "id": "via",
+      "context": "membership_payload",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "via_service_dids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "The membership delivery routing list carries service DIDs; the field names the value category explicitly as via_service_dids. Bare via is removed."
+    },
+    {
+      "id": "by",
+      "context": "did_continuity_proof.signature_chain",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "principal_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Each signature-chain link names the signing principal as principal_id (DID-as-id responsibility subject); the signing key remains verification_method. The two-letter by is removed."
+    },
+    {
+      "id": "duration_compact_mini_dsl",
+      "context": "wire_duration_string",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "ISO 8601 duration (^P...)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Human-readable policy duration wire values use ISO 8601 (PT24H, P30D, P1Y). The self-invented compact form ^[0-9]+(ms|s|m|h|d)$ (e.g. 24h, 7d, 15m) MUST NOT appear on the wire; see common-fields.md §3.0.2 and constraint-schema.md §3. Machine timing fields continue to use integer _ms / _seconds."
     }
   ]
 }

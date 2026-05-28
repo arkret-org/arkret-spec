@@ -141,7 +141,7 @@ expected_<role>_<kind>_id
 
 表示机器处理时长的新增 wire 字段 SHOULD 使用整数加显式单位后缀，优先选择 `_ms` 或 `_seconds`，例如 `retry_after_ms`、`ttl_seconds`、`refresh_lead_seconds`。字段名不得只靠 description 表达单位。
 
-需要 profile author 直接书写的人类可读策略时长 MAY 使用字符串，但 schema MUST 明确声明一种格式：ISO 8601 duration（如 `PT24H`）或 v1 compact duration（`^[0-9]+(ms|s|m|h|d)$`）。同一字段族内不得混用两种格式；新增字段不应再引入无 pattern 的裸 duration string。
+需要 profile author 直接书写的人类可读策略时长 MUST 使用 ISO 8601 duration 字符串（如 `PT24H`、`P30D`、`P1Y`），并以统一 pattern `^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$` 约束。v1 内**只有这一种 duration 字符串格式**：自造的 compact duration mini-DSL（如 `^[0-9]+(ms|s|m|h|d)$`）与无 pattern 的裸 duration string MUST NOT 出现在新增 wire 字段中；既有 compact-form 字段（`message_edit_window`、`message_redact_window`、`period`、`timeout`、`key_rotation_period`、`max_key_age`、`claim_max_age`、`application_ttl`、`cooldown_after_reject` 等）已全部映射为 ISO 8601，见 `renames.json`。
 
 时长名词按语义区分：`ttl` 表示对象或凭据存活期；`timeout` 表示等待无响应后的放弃；`window` 表示允许动作发生的相对窗口；`period` 表示周期性轮换/复发；`cooldown` 表示拒绝或关闭后的最短重试间隔；`age` / `staleness` 表示已存在材料相对当前时间的新鲜度上限。
 
@@ -218,7 +218,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `subject` | Capability Grant | 被授权 DID 或 selector condition。 |
 | `subject_id` | Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic / raw handle claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
 | `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
-| `accountable_to` | Actor Profile | 已登记的关系短语字段，表示该 Actor Profile 声明可问责到的一组 DID；它是数组关系边，不是新增 scalar 责任主体字段。新增 scalar accountability 字段 MUST 使用 `accountable_principal_id` / `controller_principal_id` 等 `_id` 形态。 |
+| `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal DID（每个条目须有对应 active `cx.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
 | `agent_principal_id` / `audit_agent_principal_id` | Agent key payload、Audit evidence | agent / audit agent 作为协议责任主体时使用 DID-as-id；承载运行或托管服务身份时另用 `service_did`。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。

@@ -525,7 +525,7 @@ SHOULD 支持：
 - 导入导出审查
 - 外部服务与 applet allowlist
 
-`cx.profile.accountable_to.strict_reject.v1` 是 deployment hardening profile。声明该 profile 的 Realm / deployment MUST 在 `Actor Profile.accountable_to[]` 中任一 DID 缺少 active `cx.identity.accountability_grant` 时拒绝整个 `cx.profile.create` / `cx.profile.update` Event（`failed_precondition`, reason=`accountability_grant_missing`），不得使用默认的"strip unverifiable entry + audit log"路径。未声明该 profile 时，默认行为仍是 [`models/actor.md` §3.3.1](../models/actor.md) 的剔除 + audit log。
+`cx.profile.accountable_principals.strict_reject.v1` 是 deployment hardening profile。声明该 profile 的 Realm / deployment MUST 在 `Actor Profile.accountable_principal_ids[]` 中任一 DID 缺少 active `cx.identity.accountability_grant` 时拒绝整个 `cx.profile.create` / `cx.profile.update` Event（`failed_precondition`, reason=`accountability_grant_missing`），不得使用默认的"strip unverifiable entry + audit log"路径。未声明该 profile 时，默认行为仍是 [`models/actor.md` §3.3.1](../models/actor.md) 的剔除 + audit log。
 
 ## 18. Agent Runtime
 

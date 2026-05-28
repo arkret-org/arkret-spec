@@ -58,7 +58,7 @@ updated: 2026-05-25
 | `handle` | string | 可选 | 本地或目录展示 handle。 |
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
 | `status` | enum | 可选 | `active`、`suspended`、`deactivated` 或 `deleted`。 |
-| `accountable_to` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
+| `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
 | `profile_fields` | object | 可选 | 代词、时区、locale、状态消息、组织自定义字段等扩展展示字段。 |
 | `created_at` | timestamp | MUST | 创建时间。 |
 | `updated_by` | did | 可选 | 最近更新者；由 profile update Event actor 派生。 |

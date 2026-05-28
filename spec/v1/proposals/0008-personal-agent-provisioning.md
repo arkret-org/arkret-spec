@@ -114,7 +114,7 @@ Agent principal 不是 Ghost Actor。它可以按 DID 与 account policy 独立�
 `did:webvh` 部署 SHOULD 为 personal agent 分配独立 SCID,并 MAY 在 `did:webvh:<scid>:<host-and-path>` 的 `<host-and-path>` 部分使用 `agents/<slug>` 这类可读路径约定,例如 `did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant`。该路径只是 DID history 托管位置的可读约定,规范性硬性要求只有两条:
 
 1. Agent DID MUST 有独立 DID document、独立 verification method 与独立 key rotation 日志;不得只是 controller DID 的虚拟子身份或路径别名。
-2. `accountable_to[]` 对应的 `cx.identity.accountability_grant` MUST 由 controller 的 primary DID 显式签发,不能从 DID path 形态推导信任。
+2. `accountable_principal_ids[]` 对应的 `cx.identity.accountability_grant` MUST 由 controller 的 primary DID 显式签发,不能从 DID path 形态推导信任。
 
 其它 DID method 的 agent DID 形态由 method-specific deployment policy 决定,但同样必须满足"独立 DID document + 显式 accountability grant"。
 
@@ -265,7 +265,7 @@ Provisioning 完成后,controller 侧应看到管理信息:
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "display_name": "Summary Assistant",
   "status": "pending_runtime_key",
-  "accountable_to": ["did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice"],
+  "accountable_principal_ids": ["did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice"],
   "grants": [
     {
       "grant_id": "cx:grant:01970000-0000-7000-8000-000000000012",

@@ -93,14 +93,14 @@ Ghost Actor MUST 带有 `accountability`，指向 Applet controller 和外部网
 
 #### 3.4.1 Ghost Actor vs Native Personal Agent(CXP-0008 边界)
 
-`actor_kind` 不定义 `agent_native`、`agent_ghost` 或 `ghost` wire enum。Native personal AI agent 使用 `actor_kind="agent"`；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值：外部人类/账号镜像 SHOULD 使用 `actor_kind="integration"`，Applet 托管的 AI/automation ghost MAY 使用 `actor_kind="agent"`。二者必须通过 Applet provenance、`accountable_to` / `accountability` 和 profile/capability 约束与 native personal agent 区分，不能依赖新增 `actor_kind` 值区分。
+`actor_kind` 不定义 `agent_native`、`agent_ghost` 或 `ghost` wire enum。Native personal AI agent 使用 `actor_kind="agent"`；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值：外部人类/账号镜像 SHOULD 使用 `actor_kind="integration"`，Applet 托管的 AI/automation ghost MAY 使用 `actor_kind="agent"`。二者必须通过 Applet provenance、`accountable_principal_ids` / `accountability` 和 profile/capability 约束与 native personal agent 区分，不能依赖新增 `actor_kind` 值区分。
 
 Native personal AI agent(由 controller 通过 `cx.agent.provision` 创建,见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))与 Applet-managed Ghost Actor(本节)是两类不同 actor,生命周期与治理路径完全分离:
 
 | 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
 | 创建路径 | `cx.agent.provision` operation,fan-out `cx.profile.create` / `cx.identity.accountability_grant` / `cx.agent.key.authorize` / `cx.capability.grant` | `cx.applet.registration` + Applet bot/ghost actor 注册 |
-| `accountable_to` | 指向 controller principal,显式 `cx.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
+| `accountable_principal_ids` | 指向 controller principal,显式 `cx.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
 | Runtime credential | 通过 `POST /auth/account/agent-key-pair` pairing 得到 `cx.agent.key.authorize` 绑定的 key | Applet 管辖,通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /auth/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `cx.applet.transaction` 与 Applet 的 delegated session |
 | 撤销 | `cx.agent.pause` / `cx.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;ghost actor 跟随 Applet 生命周期 |
