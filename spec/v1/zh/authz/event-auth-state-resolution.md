@@ -30,7 +30,7 @@ Contrix v1 的 canonical history 由 signed Move、Anchor DAG 与 per-cell Latti
 | 术语 | 定义 |
 | --- | --- |
 | Move | 一个 actor / service DID 签名的事务意图，包含 `preconditions[]`、`effects[]`、`anchor_ref` 与语义依赖 `refs[]`。 |
-| Anchor | ordering authority 对一组 Move frontier 的承诺，包含 `predecessor_refs[]`、`frontier[]`、`state_root` 与 `anchorer_sig`。 |
+| Anchor | ordering authority 对一组 Move frontier 的承诺，包含 `predecessor_refs[]`、`frontier[]`、`state_root` 与 `anchorer_signature`。 |
 | Anchor DAG | 某个 Realm 内所有已接受 Anchor 的有向无环图。Genesis Anchor 没有 predecessor。 |
 | Cell | 可被 Lattice 合并的最小协议状态单元，标识为 `cx:cell:<component>:<subject>` 或等价 canonical tuple。 |
 | Lattice | Realm schema 为每个 cell family 选择的封闭核心代数类型。`join()` 返回值或 bottom (`⊥`)。 |
@@ -52,7 +52,7 @@ flowchart LR
     subgraph A ["Anchor DAG（ordering / finality）"]
         direction TB
         A1["Anchor N-1<br/>frontier / state_root"]
-        A2["Anchor N<br/>frontier ⊇ N-1<br/>state_root = H(per-cell join)<br/>anchorer_sig"]
+        A2["Anchor N<br/>frontier ⊇ N-1<br/>state_root = H(per-cell join)<br/>anchorer_signature"]
         A1 --> A2
     end
 
@@ -152,7 +152,7 @@ Anchor {
   predecessor_refs    [Anchor.id]
   frontier            [event_digest]              // hash of each covered reducer-input Event's canonical bytes
   state_root          hash
-  anchorer_sig        sig | multi_sig | threshold_sig    // signature over anchor_canonical_bytes
+  anchorer_signature        sig | multi_sig | threshold_sig    // signature over anchor_canonical_bytes
   anchored_at         RFC3339 UTC timestamp signed by anchorer
   hlc                 advisory timestamp
 }
@@ -161,10 +161,10 @@ Anchor {
 身份与去自引用模型（normative）：
 
 - `id` 是 Anchor 的 wire-stable typed reference，形态为 `cx:anchor:<algo>:<hex>`。它的 hex 部分等于 `H(anchor_canonical_bytes)`，hash algo 跟 Realm `digest_algorithm`。`id` **不**进入 `anchor_canonical_bytes`——它在 wire 上是 H 的输出而不是输入，所以不会形成 `id = H(... id ...)` 自引用。
-- `anchorer_sig` **不**进入 `anchor_canonical_bytes`：anchor 签名覆盖 canonical bytes，本身不是 canonical bytes 的成员。
-- canonical bytes 由下表"transcript fields"列出的字段按 canonical JSON 编码（[`conformance/encoding.md`](../conformance/encoding.md) §2）形成，**不含** `id` 与 `anchorer_sig`，**包含** `realm_id` / `predecessor_refs` / `frontier` / `state_root` / `anchored_at` / `hlc` 与所有其它 signed 顶层字段（如 hash transition 下的 `previous_state_root` / `previous_digest_algorithm`）。
+- `anchorer_signature` **不**进入 `anchor_canonical_bytes`：anchor 签名覆盖 canonical bytes，本身不是 canonical bytes 的成员。
+- canonical bytes 由下表"transcript fields"列出的字段按 canonical JSON 编码（[`conformance/encoding.md`](../conformance/encoding.md) §2）形成，**不含** `id` 与 `anchorer_signature`，**包含** `realm_id` / `predecessor_refs` / `frontier` / `state_root` / `anchored_at` / `hlc` 与所有其它 signed 顶层字段（如 hash transition 下的 `previous_state_root` / `previous_digest_algorithm`）。
 
-| 字段 | 进入 canonical bytes？ | 进入 anchorer_sig transcript？ | 来源 |
+| 字段 | 进入 canonical bytes？ | 进入 anchorer_signature transcript？ | 来源 |
 | --- | --- | --- | --- |
 | `id` | ❌（是 H 的输出） | ❌ | wire-derived |
 | `realm_id` | ✅ | ✅ | anchor body |
@@ -175,24 +175,24 @@ Anchor {
 | `previous_digest_algorithm` (transition only) | ✅ | ✅ | anchor body |
 | `anchored_at` | ✅ | ✅ | anchor body |
 | `hlc` | ✅ | ✅ | anchor body |
-| `anchorer_sig` | ❌（覆盖 canonical bytes） | ❌（不签自己） | wire signature |
+| `anchorer_signature` | ❌（覆盖 canonical bytes） | ❌（不签自己） | wire signature |
 
 接收方 verifier MUST：
 
 a. 从 wire 收到的 Anchor 中提取 `anchor_canonical_bytes`（按上表）。
 b. 重新计算 `H(anchor_canonical_bytes)` 并校验 `id` 的 hex 部分逐字节相等；不一致 `digest_mismatch`。
-c. 用 `anchorer_sig` 的公钥验证签名覆盖的是 `anchor_canonical_bytes`（不是 `id`、不是其它派生形态）；不一致 `invalid_signature`。
-d. 同一 wire bytes 在重排键顺序、注入额外 proof 字段或更换 `anchorer_sig` 后 hash 不变是 attack；canonical JSON + `additionalProperties=false` + 上表显式排除清单确保 attack 必然在 (b) 或 (c) 失败。
+c. 用 `anchorer_signature` 的公钥验证签名覆盖的是 `anchor_canonical_bytes`（不是 `id`、不是其它派生形态）；不一致 `invalid_signature`。
+d. 同一 wire bytes 在重排键顺序、注入额外 proof 字段或更换 `anchorer_signature` 后 hash 不变是 attack；canonical JSON + `additionalProperties=false` + 上表显式排除清单确保 attack 必然在 (b) 或 (c) 失败。
 
 规则：
 
 1. `predecessor_refs=[]` 仅允许 genesis Anchor。
 2. 单调性：`A.frontier` MUST 是所有 predecessor frontier 的 superset。
 3. Anchor 是持久承诺；它不修改 cell。Cell 变化只来自 frontier 内 Move 的 effects。
-4. `anchorer_sig` 的合法签发者由 anchorer cell 在 predecessor joined view 下的 effective value 决定。
+4. `anchorer_signature` 的合法签发者由 anchorer cell 在 predecessor joined view 下的 effective value 决定。
 5. `state_root` MUST 是该 Anchor view 下所有 cell 当前 Lattice value / bottom diagnostics 的 canonical Merkle root。
-6. `anchored_at` MUST 由 anchorer 写入并被 `anchorer_sig` 覆盖。它只用于 freshness 诊断和 `state_changed_at` 等 reducer-derived 投影时间，不得参与 Lattice winner 选择。
-7. 负向：任何尝试把 `id` 或 `anchorer_sig` 放进 canonical bytes 的实现 MUST 失败（test 见 §4 Anchor canonical 负向向量条目）；frontier 中含非 `<algo>:<hex>` 形态（例如 `cx:event:<uuid>`）的 Anchor MUST `schema_violation`。
+6. `anchored_at` MUST 由 anchorer 写入并被 `anchorer_signature` 覆盖。它只用于 freshness 诊断和 `state_changed_at` 等 reducer-derived 投影时间，不得参与 Lattice winner 选择。
+7. 负向：任何尝试把 `id` 或 `anchorer_signature` 放进 canonical bytes 的实现 MUST 失败（test 见 §4 Anchor canonical 负向向量条目）；frontier 中含非 `<algo>:<hex>` 形态（例如 `cx:event:<uuid>`）的 Anchor MUST `schema_violation`。
 
 ### 4.1 Anchor View 与 Signed Compaction
 
@@ -205,7 +205,7 @@ effective_anchor_view(leaves):
   state_root       = recompute(frontier)
 ```
 
-该 view 是本地纯函数，不需要签名，也不是新的 Anchor object。只有当 anchorer / committee 想压缩 Anchor DAG 时，才签发一个持久 compaction Anchor。Compaction Anchor 的 `frontier` 与 deterministic view 等价，并带有效 `anchorer_sig`。
+该 view 是本地纯函数，不需要签名，也不是新的 Anchor object。只有当 anchorer / committee 想压缩 Anchor DAG 时，才签发一个持久 compaction Anchor。Compaction Anchor 的 `frontier` 与 deterministic view 等价，并带有效 `anchorer_signature`。
 
 ### 4.2 `state_root` Canonical Merkle 编码
 
@@ -724,7 +724,7 @@ Capability cache 的 key MUST 包含 Anchor view / state root；当相关 grant/
 apply_anchor(A):
   1. 校验 predecessor_refs 均已知且属于同一 Realm。
   2. 校验 A.frontier 覆盖所有 predecessor frontier。
-  3. 在 predecessor joined view 下读取 anchorer cell 并校验 A.anchorer_sig。
+  3. 在 predecessor joined view 下读取 anchorer cell 并校验 A.anchorer_signature。
   4. 以 predecessor joined state 批量 verify 所有 new_moves。
   5. 原子应用 new_moves effects，重算 state_root。
   6. state_root 匹配则接受 Anchor；否则拒绝 Anchor 并生成 anchor_fault 诊断。

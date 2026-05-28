@@ -231,7 +231,7 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
   | `issuer` | 必填,签发方 DID | — |
   | `issuer_service_did` | 可选,实际签名 service DID | — |
   | `binding_state` | 必填 | — |
-  | `claim_type` | 可选 | — |
+  | `claim_kind` | 可选 | — |
   | `visibility` | 可选 | — |
   | `audience` | 可选,binding 受众 | — |
   | `claim_scope` | 可选,scope object | — |
@@ -619,7 +619,7 @@ Handle 解析示例：
   "subject": "did:webvh:z2dmjA1ice:users.acme.example",
   "issuer": "did:web:acme.example",
   "issuer_service_did": "did:web:principal.acme.example",
-  "claim_type": "organization_handle",
+  "claim_kind": "organization_handle",
   "visibility": "restricted",
   "binding_state": "verified",
   "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",

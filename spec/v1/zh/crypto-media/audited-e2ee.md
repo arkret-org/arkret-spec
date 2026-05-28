@@ -104,13 +104,13 @@ Audit Agent profile MUST 满足：
 1. 在对应 enclave / HSM 内部对**其在群成员期间持有的所有历史 epoch secret 与 exporter secret**(从其 join epoch 到 remove epoch 之间所有 epoch)执行密码学销毁(zeroize + secure erase 或等价硬件操作)。
 2. 由 enclave / HSM 签发一条 **`cx.audit.epoch_key_destruction`** attestation event,内容覆盖被销毁的 epoch 范围、销毁完成 timestamp、enclave measurement、Audit Agent DID、remove commit ref。该 event 作为 reducer-input Event 提交给该 Realm,actor 是 Audit Agent service DID,proof 由 enclave / HSM 的 attestation key 签发(不接受普通 service signing key — 必须是被远程 attestation 绑定的 enclave-internal key)。
 3. attestation event 与 Audit Agent 被 Remove 的 `cx.mls.commit` **MUST 同一 anchor batch** 提交;reducer 拒绝单独 anchor 的 remove(reason `audit_agent_remove_requires_paired_destruction_attestation`)。
-4. attestation effect MUST 写入 `cx.component.audit.epoch_key_destruction.v1` audit state cell，cell subject 为 `(mls_group_id, audit_agent_did, epoch_range)`；后续 `cx.mls.commit` 的 `governance_binding.policy_root` / `capability_root` MUST 覆盖该 audit state，证明新 epoch 已见到销毁事实。
+4. attestation effect MUST 写入 `cx.component.audit.epoch_key_destruction.v1` audit state cell，cell subject 为 `(mls_group_id, audit_agent_principal_id, epoch_range)`；后续 `cx.mls.commit` 的 `governance_binding.policy_root` / `capability_root` MUST 覆盖该 audit state，证明新 epoch 已见到销毁事实。
 
 ##### 3.1.1.2 `cx.audit.epoch_key_destruction` 必填字段
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `audit_agent_did` | did | 被移除的 Audit Agent service DID。 |
+| `audit_agent_principal_id` | did | 被移除的 Audit Agent service DID。 |
 | `mls_group_id` | string | 该 Audit Agent 服务的 MLS group。 |
 | `epoch_range` | object | `{first_epoch, last_epoch}`,两端 inclusive,覆盖该 Agent 持有 epoch secret 的全部 epoch。 |
 | `destroyed_at` | timestamp | enclave 内时钟标记的销毁完成时刻。 |

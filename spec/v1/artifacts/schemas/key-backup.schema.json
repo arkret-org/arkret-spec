@@ -389,7 +389,7 @@
       "required": [
         "device_id",
         "verification_method",
-        "signature_alg",
+        "signature_algorithm",
         "signature",
         "signed_fields"
       ],
@@ -402,7 +402,7 @@
           "type": "string",
           "description": "DID URL identifying the device signing key."
         },
-        "signature_alg": {
+        "signature_algorithm": {
           "type": "string",
           "enum": [
             "EdDSA",

@@ -882,6 +882,105 @@
       "notes": "Blob upload request and response byte counts use size_bytes; bare size is not a byte-count field name in v1."
     },
     {
+      "id": "signature_alg",
+      "context": "key_backup_recovery_auth_data",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "signature_algorithm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Custom signature algorithm selector fields use the full _algorithm suffix."
+    },
+    {
+      "id": "device_key_alg",
+      "context": "device_authorize_payload",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "device_key_algorithm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Custom device key algorithm selector fields use the full _algorithm suffix."
+    },
+    {
+      "id": "agent_did",
+      "context": "agent_key_payload",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "agent_principal_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent key payloads name the agent as a protocol responsibility principal, not raw DID ecosystem material."
+    },
+    {
+      "id": "audit_agent_did",
+      "context": "attestation_evidence",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "audit_agent_principal_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Audit Agent evidence names the attested agent principal with _id; service_did remains the hosting service DID."
+    },
+    {
+      "id": "accountable_actor",
+      "context": "agent_key_payload",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "accountable_principal_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Accountability in agent key payloads points at a DID-as-principal and therefore uses _id."
+    },
+    {
+      "id": "thumbnail_ref",
+      "context": "blob_metadata",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "thumbnail_blob_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Blob metadata thumbnail references use _blob_ref."
+    },
+    {
+      "id": "changed_at",
+      "context": "agent_lifecycle_payload",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "status_changed_at",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent lifecycle payloads mutate the status axis; the transition timestamp must name that axis."
+    },
+    {
+      "id": "claim_type",
+      "context": "handle_claim_top_level",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "claim_kind",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Handle Claim's closed protocol discriminator uses claim_kind. claim_type remains valid in external credential selector contexts."
+    },
+    {
+      "id": "anchorer_sig",
+      "context": "anchor",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "anchorer_signature",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Anchor signatures use the full signature noun."
+    },
+    {
+      "id": "inception_pubkey_fingerprint",
+      "context": "did_continuity_proof.transfer_evidence",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "inception_public_key_fingerprint",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DID continuity evidence uses public_key rather than pubkey."
+    },
+    {
+      "id": "commitment_b64",
+      "context": "recovery_policy.share_commitment",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "commitment_b64u",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Recovery share commitments use base64url characters and therefore carry _b64u."
+    },
+    {
       "id": "actor_kind=ghost",
       "context": "actor_profile.actor_kind",
       "since_revision": "2026-05-29",

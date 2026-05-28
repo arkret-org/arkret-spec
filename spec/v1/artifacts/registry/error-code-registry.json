@@ -881,7 +881,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade evidence `inception_pubkey_fingerprint` does not match the fingerprint derived from `verificationMethod[0]` of the canonicalised old DID Document (key-management.md §5.0.5)."
+      "description": "Cross-method principal upgrade evidence `inception_public_key_fingerprint` does not match the fingerprint derived from `verificationMethod[0]` of the canonicalised old DID Document (key-management.md §5.0.5)."
     },
     {
       "code": "audit_agent_key_destruction_attestation_missing",
@@ -2200,7 +2200,7 @@
         "crypto",
         "device_recovery"
       ],
-      "description": "A threshold-recovery share submitted during reconstruction does not match the `share_commitment{algorithm, commitment_b64}` declared in the active recovery policy. Coordinator MUST notify the user which holder submitted an invalid share. See zh/identity/key-management.md §7.5.4 / §8."
+      "description": "A threshold-recovery share submitted during reconstruction does not match the `share_commitment{algorithm, commitment_b64u}` declared in the active recovery policy. Coordinator MUST notify the user which holder submitted an invalid share. See zh/identity/key-management.md §7.5.4 / §8."
     },
     {
       "code": "backup_frontier_stale",

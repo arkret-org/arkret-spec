@@ -193,7 +193,7 @@
       "type": "object",
       "required": [
         "verification_method",
-        "signature_alg",
+        "signature_algorithm",
         "signature",
         "signed_fields"
       ],
@@ -201,7 +201,7 @@
         "verification_method": {
           "type": "string"
         },
-        "signature_alg": {
+        "signature_algorithm": {
           "type": "string",
           "enum": [
             "EdDSA",

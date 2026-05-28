@@ -29,6 +29,11 @@
     "device_imperative_verbs": "Same rule as agent_key_imperative_verbs but for device key events (2 entries).",
     "crdt_lattice_snake_case": "CRDT lattice enum values use snake_case (5 entries).",
     "hash_to_digest_vocabulary": "Wire fields carrying hash output bytes use _digest with self-describing <alg>:<hex>; algorithm selectors use _algorithm; tree roots use _root. _hash is forbidden as wire field-name suffix (~50 entries).",
+    "signature_algorithm_vocabulary": "Signature and key algorithm selector fields use the full _algorithm suffix; JOSE/JWK nested headers may still use standard alg.",
+    "blob_reference_naming": "Blob references use <noun>_blob_ref when the role noun is not already blob.",
+    "full_word_field_names": "Protocol wire fields use full nouns for signature/public_key/base64url material rather than sig/pubkey/b64 abbreviations.",
+    "status_axis_timestamp": "Status-axis transition timestamps use status_changed_at instead of a bare changed_at.",
+    "claim_kind_discriminator": "Closed protocol-level claim discriminators use claim_kind; external credential taxonomy selectors may continue to use claim_type.",
     "frank_to_franking_proof_noun": "Moderation franking objects use the full franking_proof noun (4 entries).",
     "verb_noun_bridge_collapse": "Capability actions converged back to noun form matching their target event kind. The earlier verb-form action names (.manage / .modify / create_*) are forbidden; new IAM tools can use the event kind string verbatim as the action token. 6 entries; v3 (2026-05-24). See authz/capabilities.md §5.0a."
   },
@@ -2890,6 +2895,118 @@
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Authorization constraint cache keys use digest vocabulary.",
       "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "signature_alg",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "signature_algorithm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Signature algorithm selector fields use the full _algorithm suffix.",
+      "migration_group": "signature_algorithm_vocabulary"
+    },
+    {
+      "id": "device_key_alg",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "device_key_algorithm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Device key algorithm selector fields use the full _algorithm suffix.",
+      "migration_group": "signature_algorithm_vocabulary"
+    },
+    {
+      "id": "agent_did",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "agent_principal_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent key payloads name the agent as a protocol responsibility principal, not raw DID ecosystem material.",
+      "migration_group": "did_id_suffix"
+    },
+    {
+      "id": "audit_agent_did",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "audit_agent_principal_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Audit Agent evidence names the attested agent as a protocol responsibility principal; hosting service identity remains service_did.",
+      "migration_group": "did_id_suffix"
+    },
+    {
+      "id": "accountable_actor",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "accountable_principal_id",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent key accountability fields name a DID-as-principal with the _id suffix.",
+      "migration_group": "did_id_suffix"
+    },
+    {
+      "id": "thumbnail_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "thumbnail_blob_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Thumbnail fields reference Blob material and therefore carry _blob_ref.",
+      "migration_group": "blob_reference_naming"
+    },
+    {
+      "id": "changed_at#agent_lifecycle",
+      "wire_id": "changed_at",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "status_changed_at",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Agent lifecycle payloads mutate the status axis, so the transition timestamp names that axis explicitly.",
+      "migration_group": "status_axis_timestamp"
+    },
+    {
+      "id": "claim_type#handle_claim",
+      "wire_id": "claim_type",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "claim_kind",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Handle Claim's closed protocol discriminator uses claim_kind. claim_type remains available for external credential taxonomy selectors such as grant constraints.",
+      "migration_group": "claim_kind_discriminator"
+    },
+    {
+      "id": "anchorer_sig",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "anchorer_signature",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Anchor signatures use the full signature noun.",
+      "migration_group": "full_word_field_names"
+    },
+    {
+      "id": "inception_pubkey_fingerprint",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "inception_public_key_fingerprint",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "DID continuity evidence uses public_key rather than the pubkey abbreviation.",
+      "migration_group": "full_word_field_names"
+    },
+    {
+      "id": "commitment_b64",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-29",
+      "rejection_level": "hard_reject",
+      "replacement": "commitment_b64u",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Recovery share commitments use base64url characters and therefore carry the _b64u suffix.",
+      "migration_group": "full_word_field_names"
     }
   ]
 }

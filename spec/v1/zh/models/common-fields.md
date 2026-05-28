@@ -3,7 +3,7 @@ title: Common Fields
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-26
+updated: 2026-05-29
 ---
 
 ## 0. 规范语言
@@ -47,12 +47,12 @@ updated: 2026-05-26
 - `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Flow 等 canonical object 的显示名。
 - Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），不得另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
 - `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；原始 DID ecosystem material 使用 `_did`。字段后缀表达 wire value category，不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
-- `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。
+- `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。Morph 的 `morph_type` 是 Realm schema-defined 的开放领域分类，不参与 reducer event routing，故使用 `type`；Relation/View 等协议 registry 分类使用 `kind`。MLS `proposal_type` 属于外部 MLS taxonomy，保留 `type`。Handle Claim 自身的封闭协议分类使用 `claim_kind`；authorization/VC selector 中选择外部 credential taxonomy 的字段可继续使用 `claim_type`。
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。
 - `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Flow / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只用于外部协议或加密 transcript 自身的创建者 tuple（例如 MLS group creator），不得作为 object 创建主体字段的别名。
 - 哈希字段命名三词词汇表：算法/函数族选择器使用 `<noun>_algorithm`（枚举字符串，例如 `digest_algorithm: "sha256"`）；任意字节的不透明哈希输出使用 `<noun>_digest`（wire 形态必须是自描述 `<alg>:<hex>`）；树状 / Merkle / 累加器的根使用 `<noun>_root`（同样是 `<alg>:<hex>`，区别在于单独验证还需配套包含证明）。**新增 wire 字段名 MUST NOT 以"hash"结尾（不论是 `_hash` 后缀还是 `hash_profile`、`hash_algorithm` 等同义形态）**；含义重叠的算法选择器 MUST 收敛到 `<noun>_algorithm`，含义重叠的字节输出 MUST 收敛到 `<noun>_digest`。遗留 `_hash` 字段在 v1 内全部按上述规则映射，典型映射见 `renames.json`（例如 `payload_hash → payload_digest`、`hash_profile → digest_algorithm`、`state_hash → state_digest`）。复合 commitment 对象（例如 `event_set_commitment`）的外层名描述语义，内部以 `algorithm` + `root` 或 `digest` 表达字节材料；外层 MUST NOT 再追加 `_digest` 后缀。Event proof 绑定 canonical Event bytes 的字段名是 `event_digest`；非 Event 通用 detached proof 使用 `payload_digest`，其说明必须写明被 digest 覆盖的 canonical payload。
-- 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
+- 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。协议级密钥标识使用 `key_id`；JOSE/JWK 结构可保留标准 `kid` / `alg`。若 schema 显式定义紧凑 detached signature tuple `{alg,kid,sig}`，短字段 `sig` 只允许出现在该 tuple 内；协议对象的普通签名字段使用 `signature` 或带角色的 `<role>_signature`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
 - `recipient_service_did` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_service_did`；反之亦然。
 - `scope` 命名约定：wire schema 中不得新增裸 `scope` 字段；必须用领域前缀说明形态与用途，例如 `read_scope`、`receipt_scope`、`event_range`、`match_scope`、`claim_scope`、`erasure_scope`、`agent_key_scope`、`consent_scope`、`realm_key_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
 - 诊断命名约定：机器可枚举的失败 / 恢复 / reset 原因使用 `reason_code` 或带领域前缀的 `*_reason_code`；人类可读自由文本使用 `reason` 或 `description`。受控枚举不得命名为 `reason`。
@@ -95,7 +95,7 @@ expected_<role>_<kind>_id
 `_ref` / `_refs` 只用于 reference material，而不是单一具体 object kind 字段。允许类别：
 
 - Event / Anchor / Cell / Snapshot / Receipt 等因果、finality、state 或证明引用：`prev_refs`、`anchor_ref`、`cell_ref`、`snapshot_ref`。
-- Blob 或 content-addressed 引用：`blob_ref`、`avatar_blob_ref`、`thumbnail_ref`。
+- Blob 或 content-addressed 引用：`blob_ref`、`avatar_blob_ref`、`thumbnail_blob_ref`。
 - Schema / Profile / Feature 引用：`schema_refs`、`profile_ref`、`feature_ref`。
 - Proof / evidence / transcript 引用：`evidence_ref`、`proof_ref`、`service_acceptance_ref`、`policy_event_ref`。
 - Profile-scoped typed reference 或 profile-defined 非 UUID form：例如 `mls_group_ref` 使用 `cx:mls:<profile>:<profile_id>`，由 E2EE profile 校验。它故意不同于 MLS 标准 payload 内的原始 `mls_group_id`。
@@ -105,9 +105,9 @@ expected_<role>_<kind>_id
 
 #### 2.1.3 `_did`
 
-`_did` 只用于必须强调原始 DID ecosystem material 的字段，例如 service endpoint DID、pairwise DID、DID continuity proof 或外部验证服务 DID。例：`service_did`、`recipient_service_did`、`pairwise_did`、`old_did`、`new_did`、`verification_service_did`、`agent_did`。
+`_did` 只用于必须强调原始 DID ecosystem material 的字段，例如 service endpoint DID、pairwise DID、DID continuity proof 或外部验证服务 DID。例：`service_did`、`recipient_service_did`、`pairwise_did`、`old_did`、`new_did`、`verification_service_did`、`operator_did`、`push_gateway_did`。
 
-普通协议责任主体不得使用 `_did`；使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id` 等 `_id` 字段。
+普通协议责任主体不得使用 `_did`；使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_principal_id`、`audit_agent_principal_id` 等 `_id` 字段。
 
 `verification_method` 保留 W3C DID 规范字段名，承载 DID URL，不改名为 `_id` 或 `_did`。
 
@@ -136,6 +136,14 @@ expected_<role>_<kind>_id
 ### 3.0.1 Size 字段命名
 
 表示字节数的字段 MUST 使用 `_bytes` 后缀，例如 `size_bytes`、`max_total_blob_bytes`、`canonical_payload_bytes`。不得新增裸 `size` 表示字节数；Blob metadata、Media metadata、Content Block descriptor 与 Snapshot chunk descriptor 均使用 `size_bytes`。
+
+### 3.0.2 Duration 字段命名
+
+表示机器处理时长的新增 wire 字段 SHOULD 使用整数加显式单位后缀，优先选择 `_ms` 或 `_seconds`，例如 `retry_after_ms`、`ttl_seconds`、`refresh_lead_seconds`。字段名不得只靠 description 表达单位。
+
+需要 profile author 直接书写的人类可读策略时长 MAY 使用字符串，但 schema MUST 明确声明一种格式：ISO 8601 duration（如 `PT24H`）或 v1 compact duration（`^[0-9]+(ms|s|m|h|d)$`）。同一字段族内不得混用两种格式；新增字段不应再引入无 pattern 的裸 duration string。
+
+时长名词按语义区分：`ttl` 表示对象或凭据存活期；`timeout` 表示等待无响应后的放弃；`window` 表示允许动作发生的相对窗口；`period` 表示周期性轮换/复发；`cooldown` 表示拒绝或关闭后的最短重试间隔；`age` / `staleness` 表示已存在材料相对当前时间的新鲜度上限。
 
 ### 3.1 字段 × 对象适用性矩阵（normative reference）
 
@@ -210,8 +218,15 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `subject` | Capability Grant | 被授权 DID 或 selector condition。 |
 | `subject_id` | Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic / raw handle claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
 | `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
+| `accountable_to` | Actor Profile | 已登记的关系短语字段，表示该 Actor Profile 声明可问责到的一组 DID；它是数组关系边，不是新增 scalar 责任主体字段。新增 scalar accountability 字段 MUST 使用 `accountable_principal_id` / `controller_principal_id` 等 `_id` 形态。 |
+| `agent_principal_id` / `audit_agent_principal_id` | Agent key payload、Audit evidence | agent / audit agent 作为协议责任主体时使用 DID-as-id；承载运行或托管服务身份时另用 `service_did`。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
+
+主体字段新增策略：
+
+- 既定 crypto / governance 角色名词（如 `issuer`、`inviter`、`holder`、`anchorer`）可保留并应在本表或对象专属章节登记。新增的普通作者 / 操作者归属字段默认使用 `<verb>_by`（例如 `approved_by`、`revoked_by`），时间点使用 `<verb>_at`。
+- 过程结果词汇按对象族固定：receipt 使用 `outcome` / `outcome_reason_code`，执行或 session 使用 `result`，moderation / appeal 裁决使用 `verdict`。新增相邻对象不得随机换用近义词。
 
 ## 5. State 枚举对齐
 

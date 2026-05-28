@@ -46,7 +46,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -110,7 +110,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -168,7 +168,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -224,7 +224,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -280,7 +280,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -337,7 +337,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -393,7 +393,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -450,7 +450,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -509,7 +509,7 @@
         "auth_data": {
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -550,7 +550,7 @@
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman-vss-sha256",
-                "commitment_b64": "commitment1"
+                "commitment_b64u": "commitment1"
               }
             },
             {
@@ -559,7 +559,7 @@
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman-vss-sha256",
-                "commitment_b64": "commitment2"
+                "commitment_b64u": "commitment2"
               }
             }
           ]
@@ -567,7 +567,7 @@
         "issued_at": "2026-04-26T00:00:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "policy_id",
@@ -606,7 +606,7 @@
         "issued_at": "2026-04-27T00:00:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "policy_id",
@@ -637,7 +637,7 @@
         "issued_at": "2026-04-27T00:00:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "policy_id",
@@ -688,7 +688,7 @@
         "completed_at": "2026-04-27T00:05:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964139",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "receipt_id",
@@ -744,7 +744,7 @@
         "completed_at": "2026-04-27T00:05:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964139",
-          "signature_alg": "EdDSA",
+          "signature_algorithm": "EdDSA",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "receipt_id",

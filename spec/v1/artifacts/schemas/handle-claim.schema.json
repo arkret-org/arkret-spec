@@ -54,9 +54,9 @@
         "expired"
       ]
     },
-    "claim_type": {
+    "claim_kind": {
       "type": "string",
-      "description": "Type of holder/principal handle claim. v1 intentionally does not allow the earlier draft service_handle value: service-readable names or resource labels need their own service/resource schema, while organization-assigned user/principal handles use organization_handle.",
+      "description": "Protocol-level kind of holder/principal handle claim. v1 intentionally does not allow the earlier draft service_handle value: service-readable names or resource labels need their own service/resource schema, while organization-assigned user/principal handles use organization_handle.",
       "enum": [
         "handle_binding",
         "organization_handle"

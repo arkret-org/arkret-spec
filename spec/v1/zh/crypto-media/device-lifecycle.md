@@ -782,7 +782,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "auth_data": {
     "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-    "signature_alg": "EdDSA",
+    "signature_algorithm": "EdDSA",
     "signature": "base64url...",
     "signed_fields": [
       "backup_id",

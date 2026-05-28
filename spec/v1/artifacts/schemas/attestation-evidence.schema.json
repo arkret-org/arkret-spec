@@ -7,7 +7,7 @@
   "required": [
     "evidence_id",
     "realm_id",
-    "audit_agent_did",
+    "audit_agent_principal_id",
     "service_did",
     "platform",
     "measurement",
@@ -31,7 +31,7 @@
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable."
     },
-    "audit_agent_did": {
+    "audit_agent_principal_id": {
       "$ref": "#/$defs/did",
       "description": "DID of the Audit Agent service this evidence attests. MUST equal the join Welcome's leaf credential DID."
     },
@@ -111,7 +111,7 @@
     "verification_method": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$",
-      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_agent_did's DID Document. Fragment characters are constrained to RFC 3986 unreserved + `:` for stable key ids. DID method-name normalized to lowercase per W3C DID 1.0."
+      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_agent_principal_id's DID Document. Fragment characters are constrained to RFC 3986 unreserved + `:` for stable key ids. DID method-name normalized to lowercase per W3C DID 1.0."
     },
     "validity": {
       "type": "object",

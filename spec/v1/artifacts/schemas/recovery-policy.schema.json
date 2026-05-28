@@ -230,7 +230,7 @@
       "type": "object",
       "required": [
         "verification_method",
-        "signature_alg",
+        "signature_algorithm",
         "signature",
         "signed_fields"
       ],
@@ -239,7 +239,7 @@
           "type": "string",
           "description": "DID URL identifying the principal signing key (or quorum coordinator) that issued the policy."
         },
-        "signature_alg": {
+        "signature_algorithm": {
           "type": "string",
           "enum": [
             "EdDSA",
@@ -541,7 +541,7 @@
           "type": "object",
           "required": [
             "algorithm",
-            "commitment_b64"
+            "commitment_b64u"
           ],
           "properties": {
             "algorithm": {
@@ -553,7 +553,7 @@
                 "share-hash-blake3"
               ]
             },
-            "commitment_b64": {
+            "commitment_b64u": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$"
             }

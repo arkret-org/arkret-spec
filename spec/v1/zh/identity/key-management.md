@@ -139,9 +139,9 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 
 | 事件 | 用途 | 必要授权 |
 | --- | --- | --- |
-| `cx.agent.key.authorize` | Payload MUST validate as `event-payload.schema.json#/$defs/agent_key_authorize_payload`，绑定 `agent_did` / `key_id` / `verification_method` / `accountable_actor` / `agent_key_scope` / `audience` / `issued_at` / `expires_at` / `approval_evidence`。 | `cx.agent.key.authorize` |
+| `cx.agent.key.authorize` | Payload MUST validate as `event-payload.schema.json#/$defs/agent_key_authorize_payload`，绑定 `agent_principal_id` / `key_id` / `verification_method` / `accountable_principal_id` / `agent_key_scope` / `audience` / `issued_at` / `expires_at` / `approval_evidence`。 | `cx.agent.key.authorize` |
 | `cx.agent.key.rotate` | Payload MUST validate as `agent_key_rotate_payload`；`key_id` 是被替换 key，`replacement_key_id` 是新 key，二者必须在同一 accountable actor 下，agent_key_scope 不得扩大，TTL 不得长于被替换 key。 | `cx.agent.key.rotate` |
-| `cx.agent.key.revoke` | Payload MUST validate as `agent_key_revoke_payload`，绑定 `agent_did` / `key_id` / `revoked_at` / `revoked_by` / `revocation_frontier`，并使后续 session / protocol action proof fail closed。 | `cx.agent.key.revoke` |
+| `cx.agent.key.revoke` | Payload MUST validate as `agent_key_revoke_payload`，绑定 `agent_principal_id` / `key_id` / `revoked_at` / `revoked_by` / `revocation_frontier`，并使后续 session / protocol action proof fail closed。 | `cx.agent.key.revoke` |
 
 高风险 agent key（能写入、调用外部工具、管理 capability、读取审计材料或代表用户发起 service-call）的 grant MUST 同时有 `expires_at`、resource selector、accountable actor、approval/proposal evidence 和 revocation freshness check。只声明 API token 或本地环境变量而没有上述事件链的 agent key 不得用于 v1 standard operation。
 
@@ -306,7 +306,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "transfer_evidence": {
     "old_did_document_canonical_digest": "sha256:<64-hex>",
     "old_did_document_fetched_at": "<RFC 3339 UTC>",
-    "inception_pubkey_fingerprint": "sha256:<64-hex>",
+    "inception_public_key_fingerprint": "sha256:<64-hex>",
     "user_oob_confirmation_id": "<opaque user-side confirmation token>",
     "user_oob_confirmation_method": "offline_paper|physical_meet|independent_channel"
   },
@@ -319,7 +319,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 关键 normative 规则:
 - `signature_chain` **必须**同时含两段签名:**inception key**(原 `did:web` 主体)+ `did:webvh` entry-0 controller key(新 method 主体)。任一缺失或签名失效 → reject `inception_upgrade_signature_chain_invalid`。
-- `inception_pubkey_fingerprint` 必须 byte-for-byte 等于 `did:web` DID Document 当前 `verificationMethod[0]` 的派生 fingerprint;同时必须在 `transfer_evidence` 中以 user-readable 形式呈现给 receiver(便于 receiver 二次校验)。
+- `inception_public_key_fingerprint` 必须 byte-for-byte 等于 `did:web` DID Document 当前 `verificationMethod[0]` 的派生 fingerprint;同时必须在 `transfer_evidence` 中以 user-readable 形式呈现给 receiver(便于 receiver 二次校验)。
 - `user_oob_confirmation_id` 是 user-side 不透明 token——客户端 SHOULD 把 OOB 确认结果写入 user-private secret storage,服务端 / receiver 不 trust 该字段为真实人类确认证据，但**保留**以便审计回放与 UI 重现。`user_oob_confirmation_method` 是枚举 hint,receiver MAY 用它把"通过弱通道(independent_channel)确认的迁移"打上额外的低信任标记。
 - 整个 transfer envelope MUST 在签名 transcript 中包含 `old_did_document_canonical_digest`——这一字段 freezes 攻击者对 hosting domain 在升级时刻**之后**继续替换 DID Document 的可能性(任何替换都会让 hash 不再匹配 receiver 拉取的新 document)。
 
@@ -330,13 +330,13 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 1. 拉取 `old_did` 的当前 DID Document,canonicalize 后 hash 比对 `transfer_evidence.old_did_document_canonical_digest`;不一致 → reject `inception_upgrade_old_document_hash_mismatch`。
 2. 校验 `transfer_evidence.old_did_document_fetched_at` 是 RFC 3339 UTC，且 receiver 当前时间与该值的差值不得超过 168h（7 天，与 `did:webvh` 单 entry cache evidence age 上限对齐）；超过窗口 → reject `inception_upgrade_evidence_stale`。Receiver MAY 使用更短 deployment policy，但 MUST NOT 接受超过 168h 的 transfer evidence。
 3. 校验 `signature_chain` 两段签名:inception key 签名(`verification_method` 必须出现在被 hash 的 old document `verificationMethod[]` 内)+ `did:webvh` entry-0 controller key 签名(必须能在 `did:webvh` `did.jsonl` entry 0 找到)。任一失败 → reject `inception_upgrade_signature_chain_invalid`。
-4. 校验 `inception_pubkey_fingerprint`,确认它等于步骤 1 拉取到的 old document `verificationMethod[0]` 派生 fingerprint;失败 → reject `inception_upgrade_fingerprint_mismatch`。
+4. 校验 `inception_public_key_fingerprint`,确认它等于步骤 1 拉取到的 old document `verificationMethod[0]` 派生 fingerprint;失败 → reject `inception_upgrade_fingerprint_mismatch`。
 5. 校验 `did:webvh` `entry 0` 的 SCID / entry hash / controller proof(标准 `did:webvh` inception 验证)——这一段独立于 `did:web` 阶段。
 6. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记；后续 Event 的 `actor_id` MAY 是 `did:web:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
 
 ##### 5.0.5.4 不允许的简化
 
-- ❌ "用户点 OK 即升级"(无 OOB confirmation_method / 无 inception_pubkey_fingerprint 二次确认) — receiver MUST reject `inception_upgrade_evidence_insufficient`。
+- ❌ "用户点 OK 即升级"(无 OOB confirmation_method / 无 inception_public_key_fingerprint 二次确认) — receiver MUST reject `inception_upgrade_evidence_insufficient`。
 - ❌ inception key 单签升级(仅 inception key 签 transfer envelope) — receiver MUST reject `inception_upgrade_signature_chain_invalid`(缺 entry-0 controller key 那一段)。
 - ❌ DNS / hosting domain 内嵌"确认页"作为 OOB(同源攻击窗口未脱离)。
 - ❌ 升级后继续接受用 `did:web` inception key 签发的新 Event(必须在升级落盘后立即把该 key 标 retired / archived;之前已签发并 anchored 的历史 Event 保留)。
@@ -725,7 +725,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
         "transport": "hpke_x25519",
         "share_commitment": {
           "algorithm": "feldman-vss-sha256",
-          "commitment_b64": "base64url..."
+          "commitment_b64u": "base64url..."
         },
         "not_before": "2026-04-26T00:00:00Z",
         "expires_at": null,
@@ -754,7 +754,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
   "issued_at": "2026-04-26T00:00:00Z",
   "auth_data": {
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
-    "signature_alg": "EdDSA",
+    "signature_algorithm": "EdDSA",
     "signature": "base64url...",
     "signed_fields": [
       "policy_id", "principal_id", "version", "trust_domain",
@@ -765,7 +765,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 }
 ```
 
-恢复 share holder 只能帮助恢复控制权，不自动获得读取内容或代表主体操作的 capability。Recovery policy MUST 为每个门限 share 记录 `share_commitment{algorithm, commitment_b64}`（如 Feldman VSS commitment 或 share hash commitment）；恢复时客户端 / recovery coordinator MUST 校验提交的 share 与 commitment 一致，避免 holder 或中间服务替换 share 后仍通过 policy 语法检查。
+恢复 share holder 只能帮助恢复控制权，不自动获得读取内容或代表主体操作的 capability。Recovery policy MUST 为每个门限 share 记录 `share_commitment{algorithm, commitment_b64u}`（如 Feldman VSS commitment 或 share hash commitment）；恢复时客户端 / recovery coordinator MUST 校验提交的 share 与 commitment 一致，避免 holder 或中间服务替换 share 后仍通过 policy 语法检查。
 
 ### 8.1 Policy 生命周期
 

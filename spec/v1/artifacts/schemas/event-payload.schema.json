@@ -1808,10 +1808,14 @@
           ]
         },
         "application_ttl": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9]+(ms|s|m|h|d)$",
+          "description": "Join application pending lifetime as a v1 compact duration string, e.g. 168h."
         },
         "cooldown_after_reject": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9]+(ms|s|m|h|d)$",
+          "description": "Minimum interval before the same actor may reapply after rejection, as a v1 compact duration string, e.g. 72h."
         },
         "max_open_applications_per_actor": {
           "type": "integer",
@@ -2491,12 +2495,12 @@
     },
     "agent_key_authorize_payload": {
       "type": "object",
-      "description": "Payload for cx.agent.key.authorize. Binds one concrete agent signing key to an accountable actor, explicit agent_key_scope, audience, validity window, and approval evidence.",
+      "description": "Payload for cx.agent.key.authorize. Binds one concrete agent signing key to an accountable principal, explicit agent_key_scope, audience, validity window, and approval evidence.",
       "required": [
-        "agent_did",
+        "agent_principal_id",
         "key_id",
         "verification_method",
-        "accountable_actor",
+        "accountable_principal_id",
         "agent_key_scope",
         "audience",
         "issued_at",
@@ -2504,7 +2508,7 @@
         "approval_evidence"
       ],
       "properties": {
-        "agent_did": {
+        "agent_principal_id": {
           "$ref": "#/$defs/did"
         },
         "key_id": {
@@ -2517,7 +2521,7 @@
           "$ref": "#/$defs/hash",
           "description": "Digest of the public key material behind verification_method. Required by high-assurance profiles when DID resolution is not pinned in the same anchor batch."
         },
-        "accountable_actor": {
+        "accountable_principal_id": {
           "$ref": "#/$defs/did"
         },
         "agent_key_scope": {
@@ -2573,16 +2577,16 @@
     },
     "agent_key_revoke_payload": {
       "type": "object",
-      "description": "Payload for cx.agent.key.revoke. The or_set cell subject is (agent_did, key_id); future protocol proofs from this key fail closed once this event is accepted.",
+      "description": "Payload for cx.agent.key.revoke. The or_set cell subject is (agent_principal_id, key_id); future protocol proofs from this key fail closed once this event is accepted.",
       "required": [
-        "agent_did",
+        "agent_principal_id",
         "key_id",
         "revoked_at",
         "revoked_by",
         "revocation_frontier"
       ],
       "properties": {
-        "agent_did": {
+        "agent_principal_id": {
           "$ref": "#/$defs/did"
         },
         "key_id": {
@@ -2608,13 +2612,13 @@
     },
     "agent_key_rotate_payload": {
       "type": "object",
-      "description": "Payload for cx.agent.key.rotate. key_id names the retiring key used as the cell subject; replacement_key_id names the new key. Reducers MUST verify the accountable_actor is unchanged, agent_key_scope is equivalent or narrower, and expires_at does not extend the retiring key's effective TTL.",
+      "description": "Payload for cx.agent.key.rotate. key_id names the retiring key used as the cell subject; replacement_key_id names the new key. Reducers MUST verify the accountable_principal_id is unchanged, agent_key_scope is equivalent or narrower, and expires_at does not extend the retiring key's effective TTL.",
       "required": [
-        "agent_did",
+        "agent_principal_id",
         "key_id",
         "replacement_key_id",
         "replacement_verification_method",
-        "accountable_actor",
+        "accountable_principal_id",
         "agent_key_scope",
         "audience",
         "issued_at",
@@ -2622,7 +2626,7 @@
         "approval_evidence"
       ],
       "properties": {
-        "agent_did": {
+        "agent_principal_id": {
           "$ref": "#/$defs/did"
         },
         "key_id": {
@@ -2637,7 +2641,7 @@
         "replacement_public_key_digest": {
           "$ref": "#/$defs/hash"
         },
-        "accountable_actor": {
+        "accountable_principal_id": {
           "$ref": "#/$defs/did"
         },
         "agent_key_scope": {
@@ -2701,7 +2705,7 @@
         "controller_principal_id",
         "transition",
         "previous_status",
-        "changed_at",
+        "status_changed_at",
         "freshness_frontier"
       ],
       "properties": {
@@ -2717,7 +2721,7 @@
         "previous_status": {
           "const": "active"
         },
-        "changed_at": {
+        "status_changed_at": {
           "$ref": "#/$defs/timestamp"
         },
         "freshness_frontier": {
@@ -2738,7 +2742,7 @@
         "controller_principal_id",
         "transition",
         "previous_status",
-        "changed_at",
+        "status_changed_at",
         "freshness_frontier"
       ],
       "properties": {
@@ -2754,7 +2758,7 @@
         "previous_status": {
           "const": "paused"
         },
-        "changed_at": {
+        "status_changed_at": {
           "$ref": "#/$defs/timestamp"
         },
         "freshness_frontier": {
@@ -2778,7 +2782,7 @@
         "controller_principal_id",
         "transition",
         "previous_status",
-        "changed_at",
+        "status_changed_at",
         "revocation_frontier"
       ],
       "properties": {
@@ -2800,7 +2804,7 @@
             "pairing_expired"
           ]
         },
-        "changed_at": {
+        "status_changed_at": {
           "$ref": "#/$defs/timestamp"
         },
         "revocation_frontier": {
@@ -3406,7 +3410,7 @@
         "device_public_key": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "device_key_alg": {
+        "device_key_algorithm": {
           "$ref": "#/$defs/non_empty_string"
         },
         "authorized_by": {

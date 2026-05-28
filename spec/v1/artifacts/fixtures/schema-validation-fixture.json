@@ -344,7 +344,7 @@
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ],
         "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "anchorer_sig": {
+        "anchorer_signature": {
           "alg": "EdDSA",
           "verification_method": "did:web:anchorer.example#key-1",
           "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
@@ -443,10 +443,10 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorize_payload",
       "expect_valid": true,
       "instance": {
-        "agent_did": "did:web:agent.example",
+        "agent_principal_id": "did:web:agent.example",
         "key_id": "did:web:agent.example#key-1",
         "verification_method": "did:web:agent.example#key-1",
-        "accountable_actor": "did:web:alice.example",
+        "accountable_principal_id": "did:web:alice.example",
         "agent_key_scope": {
           "actions": [
             "cx.flow.update"
@@ -545,7 +545,7 @@
       "instance": {
         "evidence_id": "cx:attestation:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
-        "audit_agent_did": "did:web:audit.example",
+        "audit_agent_principal_id": "did:web:audit.example",
         "service_did": "did:web:audit.example",
         "platform": {
           "family": "software_test_only",
@@ -595,7 +595,7 @@
       "instance": {
         "evidence_id": "cx:attestation:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
-        "audit_agent_did": "did:web:audit.example",
+        "audit_agent_principal_id": "did:web:audit.example",
         "service_did": "did:web:audit.example",
         "platform": {
           "family": "software_test_only",

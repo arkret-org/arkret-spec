@@ -57,7 +57,7 @@
       "required": [
         "old_did_document_canonical_digest",
         "old_did_document_fetched_at",
-        "inception_pubkey_fingerprint",
+        "inception_public_key_fingerprint",
         "user_oob_confirmation_id",
         "user_oob_confirmation_method"
       ],
@@ -68,7 +68,7 @@
         "old_did_document_fetched_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "inception_pubkey_fingerprint": {
+        "inception_public_key_fingerprint": {
           "$ref": "#/$defs/hash"
         },
         "user_oob_confirmation_id": {

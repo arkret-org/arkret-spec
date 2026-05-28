@@ -685,9 +685,9 @@ cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
 
 输入与期望（多 case 矩阵）：
 
-1. **Base case**：构造 Anchor body fields `{realm_id, predecessor_refs, frontier, state_root, anchored_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `anchor_canonical_bytes`；`id = "cx:anchor:sha256:" || hex(H(anchor_canonical_bytes))`；`anchorer_sig.payload_digest == H(anchor_canonical_bytes)`。Verifier MUST accept。
+1. **Base case**：构造 Anchor body fields `{realm_id, predecessor_refs, frontier, state_root, anchored_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `anchor_canonical_bytes`；`id = "cx:anchor:sha256:" || hex(H(anchor_canonical_bytes))`；`anchorer_signature.payload_digest == H(anchor_canonical_bytes)`。Verifier MUST accept。
 2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `anchor_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
-3. **sig-in-canonical-bytes attack**：若 producer 把 `anchorer_sig` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
+3. **sig-in-canonical-bytes attack**：若 producer 把 `anchorer_signature` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
 4. **key reorder attack**：取 valid Anchor，把 canonical JSON key 顺序打乱（例如 `frontier` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
 5. **proof injection attack**：取 valid Anchor，注入未定义字段 `extra_proof`。`additionalProperties=false` 的 schema 在 (b) 校验阶段就 reject；若实现错误地 allow 之，hash 会变 → `digest_mismatch`。
 6. **frontier typed-id attack**：构造 `frontier=["cx:event:<uuid>"]`；schema `frontier[]` items 必须匹配 `event_digest` (`<algo>:<hex>`)，typed id 形态 MUST `schema_violation` 立即被拒（早于 hash 校验）。
@@ -1961,7 +1961,7 @@ Directory 返回 verified handle claim：
   "verified": true,
   "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "claims": [{
-    "claim_type": "organization_handle",
+    "claim_kind": "organization_handle",
     "handle": "alice:acme.example",
     "handle_aliases": ["acct:alice@acme.example"],
     "subject": "did:webvh:z2dmjA1ice:users.acme.example",
