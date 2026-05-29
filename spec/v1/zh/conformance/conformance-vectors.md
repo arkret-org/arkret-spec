@@ -2395,7 +2395,7 @@ Steps:
 Expected:
 
 - 第 3 步 verification_method 与 agent_principal_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
-- 在第 4 步之前,任何 `agent_key_proof` session grant 请求 MUST fail closed;以该 grant 为基础的 capability check 也 MUST fail closed。
+- 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed;以该 grant 为基础的 capability check 也 MUST fail closed。
 - 第 4 步后 grant 进入正常 effective window 评估;agent runtime 可签发 session grant 并执行 capability action。
 
 ### 11.2 Vector: Pairing Expiry Auto-Revoke
@@ -2405,7 +2405,7 @@ Expected:
 Steps:
 
 1. Controller 调用 `cx.agent.provision`,pairing 窗口 12 小时,grant TTL 30 天。
-2. Pairing 12 小时窗口过期,未提交 `cx.account.agent_key_pair`。
+2. Pairing 12 小时窗口过期，未提交 `cx.account.agent_key_pair`。
 
 Expected:
 
@@ -2426,10 +2426,10 @@ Steps:
 
 Expected:
 
-- 第 1 步 MUST 成功,服务端把 challenge 进入 replay table。
+- 第 1 步 MUST 成功，服务端把 challenge 进入 replay table。
 - 第 2 步 MUST fail closed(challenge 已使用)。
 - 第 3 步 MUST fail closed(audience mismatch)。
-- 第 4 步 MUST fail closed(signature 不验,且 challenge 仍 burnt)。
+- 第 4 步 MUST fail closed(signature 不验，且 challenge 仍 burnt)。
 
 ### 11.4 Vector: Controller Deactivate → Agent Session Cascade
 
@@ -2459,10 +2459,10 @@ Steps:
 
 Expected:
 
-- 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `cx.message.create` + Flow F + 未过期;通过则接受。
+- 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `cx.message.create` + Flow F + 未过期；通过则接受。
 - Reducer 写入 `actor_kind="agent"` projection(注意是 reducer-stamped,actor 提交侧不携带)。
 - 第 4 步 MUST fail closed(`reason=approval_already_consumed`)。
-- 客户端渲染 "Controller via Agent" 双重署名;不显示为纯 controller 行为。
+- 客户端渲染 "Controller via Agent" 双重署名；不显示为纯 controller 行为。
 
 ### 11.6 Vector: Sidecar Circle Idempotent Ensure
 
@@ -2498,7 +2498,7 @@ Expected:
 - 第 2 步看不到 `agent_sidecar_of` 边。
 - 第 3 步 zero hits for sidecar Circle title / display / short_name / member_count。
 - 第 4 步 sidecar 内 `cx.message.create` 不触发任何 target Flow member 的 notification。
-- 第 5 步 sidecar `effective_scope=circle` event 不出现在 default anchor leaf 明文中;只能作为 opaque commitment。
+- 第 5 步 sidecar `effective_scope=circle` event 不出现在 default anchor leaf 明文中；只能作为 opaque commitment。
 
 ### 11.8 Vector: Eligibility 三态 + Revocation 闭环
 
@@ -2514,7 +2514,7 @@ Steps:
 Expected:
 
 - 第 2 步 ensure SHOULD succeed。MLS-backed sidecar Circle 的 response 携带 `pending_member_reconciliation: [{agent_principal_id: R, reason: missing_mls_keypackage}]`；plaintext sidecar Circle 不需要 KeyPackage，但仍必须等待 Circle membership active。
-- 第 3 步在 MLS-backed sidecar Circle 中，R 通过 MLS Welcome 加入,得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)；plaintext sidecar Circle 中，R 只获得从 membership active frontier 之后的投递 / 查询资格。
+- 第 3 步在 MLS-backed sidecar Circle 中，R 通过 MLS Welcome 加入，得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)；plaintext sidecar Circle 中，R 只获得从 membership active frontier 之后的投递 / 查询资格。
 - 第 4 步 reducer 主动 fan-out `cx.circle.member.state` 把 R 标记 left；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
 
 ### 11.9 Vector: Multi-Agent Publish Attribution
@@ -2530,7 +2530,7 @@ Steps:
 Expected:
 
 - 第 2 步 `actor_id` / `executed_by` MUST 是 S 单一 DID,而非 "agent group"。
-- 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布,但 attribution 仍是 R 单一 DID;不得复合 S+R。
+- 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布，但 attribution 仍是 R 单一 DID;不得复合 S+R。
 
 ## 12. Media Service Binding Vectors（CXP-0010）
 

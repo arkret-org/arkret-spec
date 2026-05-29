@@ -147,18 +147,18 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 
 #### 3.6.1 Personal agent runtime pairing 与 session(normative)
 
-CXP-0008 定义了一条面向普通用户的 personal native agent 流程,以现有 agent key 原语为基础:
+CXP-0008 定义了一条面向普通用户的 personal native agent 流程，以现有 agent key 原语为基础:
 
 - **Provisioning** (`POST /api/v1/agents`, operation `cx.agent.provision`):service operation 编排 Actor Profile 创建、`cx.identity.accountability_grant`、初始 `cx.capability.grant`(标 `effective_after_first_authorized_key=true`),并返回一次性 `pairing_request_id` + `pairing_code`。不写入独立 `cx.agent.provision` event。
 - **Runtime key pairing** (`POST /auth/account/agent-key-pair`, operation `cx.account.agent_key_pair`):agent runtime 本地生成 key pair、提交 public key + proof-of-possession + 可选 `runtime_attestation`(v1 baseline `kind="self_asserted"`)。Pairing endpoint MUST 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与请求体中 `agent_principal_id` bit-identical;不匹配 fail closed(`reason="verification_method_principal_mismatch"`)。批准后写入 `cx.agent.key.authorize`,reducer 清除该 agent principal 名下所有 `effective_after_first_authorized_key=true` flag。
-- **Pairing 失败清理**:`pairing.expires_at` 到达且未完成 pairing 时,服务 MUST 自动 `cx.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
+- **Pairing 失败清理**:`pairing.expires_at` 到达且未完成 pairing 时，服务 MUST 自动 `cx.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
 - **Agent runtime authentication**:复用 `POST /auth/account/session-grants`(operation `cx.account.issue_session_grant`),通过 `proof.proof_kind="agent_key_proof"` 分支区分。Auth Server MUST 维护独立 schema branch、独立 proof validator;不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。请求侧 `agent_scope_request` 是 `cx.profile.agent_auth.v1` overlay,签发后的 scope MUST 物化为 capabilities.md 已注册的 `allowed_tracks` / `allowed_flow_refs` / `allowed_data_classes` / `allowed_endpoints` 等 typed constraints。
-- **Session TTL**:Agent session grant 默认最大 TTL SHOULD 为 15 分钟;若 deployment profile 显式声明更长,不应超过 60 分钟。Controller 进入 `deactivated` / `suspended` 后,其 accountable agent 的 active sessions MUST 通过 account lifecycle / revocation 链失效。
-- **High-risk approval**:Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面;需要人类批准时返回 structured error `code=claim_required`、`reason_code=human_approval_required`、`approval_request_id=<opaque>`。Controller 在带外 UI 完成批准,产生 capability / delegation / approval event,agent retry 时引用该 event。
-- **E2EE access**:Agent MUST 作为独立 MLS member 参与,不得伪装成 controller 的 delegated device;agent MLS KeyPackage SHOULD 由 active `cx.agent.key.authorize.verification_method` 签发或绑定,使 key authorization、session proof 与 MLS membership 落在同一审计链。
-- **Sidecar exposure 披露**:pairing approval UI 上,若该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `cx.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(见 CXP-0009 §3 invariant 10)。
+- **Session TTL**:Agent session grant 默认最大 TTL SHOULD 为 15 分钟；若 deployment profile 显式声明更长，不应超过 60 分钟。Controller 进入 `deactivated` / `suspended` 后，其 accountable agent 的 active sessions MUST 通过 account lifecycle / revocation 链失效。
+- **High-risk approval**:Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面；需要人类批准时返回 structured error `code=claim_required`、`reason_code=human_approval_required`、`approval_request_id=<opaque>`。Controller 在带外 UI 完成批准，产生 capability / delegation / approval event,agent retry 时引用该 event。
+- **E2EE access**:Agent MUST 作为独立 MLS member 参与，不得伪装成 controller 的 delegated device;agent MLS KeyPackage SHOULD 由 active `cx.agent.key.authorize.verification_method` 签发或绑定，使 key authorization、session proof 与 MLS membership 落在同一审计链。
+- **Sidecar exposure 披露**:pairing approval UI 上，若该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `cx.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(见 CXP-0009 §3 invariant 10)。
 - **Lifecycle**:`cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 是 agent lifecycle 写入。Pause 保留 durable state 但拒绝新 session;Auth Server SHOULD 在 revocation freshness window(≤ session 最大 TTL)内对已签发 session token fail closed。Revoke 是 terminal,fan-out `cx.agent.key.revoke` / `cx.capability.revoke` / runtime endpoint revocation。
-- **Resume 时 sidecar exposure 重新披露(normative)**:`cx.agent.resume` 提交前,实现 MUST 重新执行上一条 "Sidecar exposure 披露" 流程,把 agent 在 pause 期间 controller 在 eligible Realm 中**新建或新加入**的 `cx.profile.agent_sidecar_thread.v1` sidecar Circle 列出;若该集合非空,resume MUST 在 controller 显式再次同意之前拒绝执行(不得 silent resume),并把该确认作为 audit 事件留底。仅当 pause 期间无新 sidecar 进入 agent 的 eligibility 集合时,resume 可不重复披露。该规则关闭"pairing 期完成一次披露后,pause 期新建 sidecar 在 resume 时被 agent 静默继承访问权"的暴露面。
+- **Resume 时 sidecar exposure 重新披露(normative)**:`cx.agent.resume` 提交前，实现 MUST 重新执行上一条 "Sidecar exposure 披露" 流程，把 agent 在 pause 期间 controller 在 eligible Realm 中**新建或新加入**的 `cx.profile.agent_sidecar_thread.v1` sidecar Circle 列出；若该集合非空,resume MUST 在 controller 显式再次同意之前拒绝执行(不得 silent resume),并把该确认作为 audit 事件留底。仅当 pause 期间无新 sidecar 进入 agent 的 eligibility 集合时,resume 可不重复披露。该规则关闭"pairing 期完成一次披露后,pause 期新建 sidecar 在 resume 时被 agent 静默继承访问权"的暴露面。
 
 ### 3.7 MLS KeyPackage Key
 

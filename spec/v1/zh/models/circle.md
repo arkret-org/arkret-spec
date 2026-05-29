@@ -25,7 +25,7 @@ Circle 可以是 plaintext delivery-only scope，也可以是 MLS-backed cryptog
 1. **平面化，不嵌套**:Circle 不允许 `parent_circle_ref`。需要交叉成员关系时,actor 同时属于多个 Circle 即可；不需要 hierarchy。这条沿用 [`realm-links.md` §2.1](./realm-links.md) "link graph not tree" 的教训。
 2. **真子集 membership**:`Circle.members ⊆ Realm.members`,reducer 硬约束。
 3. **加密不降级父 Realm floor**:Circle 的 `encryption_profile` 可为 `none` 或 `mls_rfc9420`，但不得低于父 Realm / policy 的内容加密下限；E2EE Realm 或 `content_encryption_floor=e2ee_required` 下 MUST 为 `mls_rfc9420`。
-4. **MLS 独立,不可派生**:当 Circle 为 `mls_rfc9420` 时，其 MLS group 是独立 epoch 链,**禁止**从 Realm-default MLS group key 派生 Circle key。
+4. **MLS 独立，不可派生**:当 Circle 为 `mls_rfc9420` 时，其 MLS group 是独立 epoch 链,**禁止**从 Realm-default MLS group key 派生 Circle key。
 5. **不放宽父 Realm policy**:Circle 的 history visibility / metadata encryption floor **只能收紧，不能放宽**父 Realm policy floor。
 6. **Circle ≠ Group**:[`realm-and-space.md` §4](./realm-and-space.md) 的 **Group** 表达 principal/actor 集合(capability subject)。Circle 表达资源 / 事件 scope。两个概念正交，不可混淆。
 
@@ -89,7 +89,7 @@ Flow.scope_circle_id          : id:circle | null       # null = Realm-default sc
 Message.effective_scope : reducer-stamped,immutable tagged scope
 Event.effective_scope   : reducer-stamped,immutable tagged scope,进入 envelope/sub-anchor；MLS-backed scope 中也进入 AAD/governance binding
 Space.scope_circle_id         : id:circle | null       # Space 自身 metadata / scoped structural relation 的可见性 scope
-Space.default_scope_circle_id : id:circle | null       # 在该 Space 新建 Flow 的默认 scope(hint,非强制;属于 effective default_realm_id)
+Space.default_scope_circle_id : id:circle | null       # 在该 Space 新建 Flow 的默认 scope(hint,非强制；属于 effective default_realm_id)
 Space.child_scope_policy: object                  # 子资源 placement/encryption floor,见 §7
 Morph.scope_circle_id         : id:circle | null
 ```

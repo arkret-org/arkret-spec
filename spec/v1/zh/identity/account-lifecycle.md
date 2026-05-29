@@ -208,8 +208,8 @@ Native personal agent(`actor_kind="agent"`,`accountable_principal_ids` 指向 co
 - **Pause**(`cx.agent.pause`):保留 agent identity、`accountability_grant`、`agent_key_authorize`、capability grants 的 durable state。Auth Server MUST 拒绝新 agent session grant;已签发 session token SHOULD 在 revocation freshness window(默认 ≤ session TTL,即 15 分钟)内 fail closed,实现可选同步 revocation 或自然过期 + status 重查。Pending action requests SHOULD 标 `awaiting_resume`。
 - **Resume**(`cx.agent.resume`):前 MUST 重新校验 controller、agent、key、capability、Realm policy 与 `accountability_grant` freshness;任一不通过则拒绝 resume,agent 保持 `paused`。
 - **Deactivate**(`cx.agent.deactivate`):terminal state,fan-out `cx.agent.key.revoke`、`cx.capability.revoke` / delegation revoke、runtime endpoint revoke、pending action request 失效。Sidecar Circle 同步移除该 agent；若该 Circle 为 MLS-backed，则执行 MLS remove 与 epoch rotation(见 CXP-0009 §4.9)。
-- **Controller lifecycle 传播**:Controller 进入 `deactivated` / `suspended` 时,其 accountable native agents 的 active sessions MUST 通过本节 revocation 链失效,后续 agent session grant MUST fail closed。Accountability grant 失效同样使 agent 进入 ineligible 状态。
-- **Pairing expiry**:`pairing.expires_at` 到达且未完成 pairing 时,服务 MUST 自动 `cx.capability.revoke` 撤销 pending grant,agent status 转 `pairing_expired`;controller 可重新发起 pairing 或显式 revoke 进入 `deactivated`。
+- **Controller lifecycle 传播**:Controller 进入 `deactivated` / `suspended` 时，其 accountable native agents 的 active sessions MUST 通过本节 revocation 链失效，后续 agent session grant MUST fail closed。Accountability grant 失效同样使 agent 进入 ineligible 状态。
+- **Pairing expiry**:`pairing.expires_at` 到达且未完成 pairing 时，服务 MUST 自动 `cx.capability.revoke` 撤销 pending grant,agent status 转 `pairing_expired`;controller 可重新发起 pairing 或显式 revoke 进入 `deactivated`。
 
 具体 wire 与 conformance 规则见 [`key-management.md` §3.6.1](./key-management.md) 与 CXP-0008。
 

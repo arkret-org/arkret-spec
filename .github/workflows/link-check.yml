@@ -14,9 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: lycheeverse/lychee-action@v2
-        with:
-          args: >-
+      - run: >-
+          docker run --rm
+          -v "$PWD:/workspace"
+          -w /workspace
+          lycheeverse/lychee:0.24.2
             --config lychee.toml
             README.md CHANGELOG.md _contrix-spec_todos.md "spec/v1/**/*.md"
-          fail: true

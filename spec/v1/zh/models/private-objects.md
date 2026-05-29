@@ -100,7 +100,7 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 - 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm Move / Anchor history。
 - 目标 Realm 的 `cx.events.subscribe` / `cx.events.query` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft 或 sidecar projection 内容。
 - `cx.account.subscribe` 只能把 controller-owned approval draft / sidecar projection 返回给 controller principal 的授权 session,以及 scope 明确包含该 account-data 访问权的 agent runtime。
-- 若服务端存储明文,该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露;默认语义 SHOULD 是服务端只保存 encrypted account data。
+- 若服务端存储明文，该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露；默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 发布到目标 Flow 时,shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest,但明文 draft id、private metadata、scratchpad、private prompt 或历史版本 MUST NOT 泄露到共享历史。
 - Sidecar 发布到目标 Flow 时,MUST NOT 泄露 sidecar `private_flow_id`、`private_circle_id`、private messages、scratchpad 或 draft history。
 

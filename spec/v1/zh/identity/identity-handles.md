@@ -147,7 +147,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
   policy_snapshot,                  // Realm policy 在 as_of 时刻的 accepted_issuers 顺序与 trust 级别
                                     // 详见下文"policy_snapshot 的 as-of 语义"
   holder_primary_handle_at_as_of,   // 从 subject DID Document(as_of version)
-                                    // 提取的 metadata.primary_handle 字段值,字符串或 null
+                                    // 提取的 metadata.primary_handle 字段值，字符串或 null
   resolution_as_of                  // RFC 3339 Z 求值时刻
 )
 ```
@@ -193,7 +193,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 候选集 = `{ c | c ∈ claim_set_snapshot 且 c.binding_state == "verified" 且 c.created_at <= resolution_as_of 且 c.expires_at > resolution_as_of }`（`binding_state` 取 snapshot 中的 as-of 值），再施加：
 
-- **生效时间下界**：`c.created_at <= resolution_as_of` MUST 成立——即在求值时刻该 claim 已被签发；这保证 audit / replay 用历史 `as_of` 时未来才签发的 claim 不会回到候选集，也不会通过 most-recent 抢占展示。`created_at` 是 handle_claim 的签发时刻（见 §5 example），不使用 forbidden 同义别名 `valid_from` / `issued_at`（handle claim 自身命名沿用 `created_at`；候选 schema 内的 `issued_at` 是另一对象,不在此层）。
+- **生效时间下界**：`c.created_at <= resolution_as_of` MUST 成立——即在求值时刻该 claim 已被签发；这保证 audit / replay 用历史 `as_of` 时未来才签发的 claim 不会回到候选集，也不会通过 most-recent 抢占展示。`created_at` 是 handle_claim 的签发时刻（见 §5 example），不使用 forbidden 同义别名 `valid_from` / `issued_at`（handle claim 自身命名沿用 `created_at`；候选 schema 内的 `issued_at` 是另一对象，不在此层）。
 - **失效时间上界**：`c.expires_at > resolution_as_of` MUST 成立——过期 claim 不参与展示选择。
 - **issuer trust filter**：丢弃 `c.issuer` ∉ 当前 Realm / 调用上下文 policy `accepted_issuers` 的 claim。该步是**强制前置**——任何后续优先级匹配都只在受信 issuer 候选集合内进行，避免未受信 issuer 的 audience-matched claim 抢占展示。
 - **audience scope filter**：丢弃 `c.audience` 存在且与当前 context 互斥（例如 audience 限定为另一 Realm 或另一 service DID）的 claim。`c.audience` 缺失视为"无 audience 限制"，保留在候选集。
@@ -228,18 +228,18 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
   | `handle` | 必填,canonical `<localpart>:<domain>` | — |
   | `handle_aliases` | 可选,`acct:` 互通别名 | MUST 按数组元素 lexicographic 排序后参与 canonicalization |
   | `subject` | 必填,holder principal DID | — |
-  | `issuer` | 必填,签发方 DID | — |
-  | `issuer_service_did` | 可选,实际签名 service DID | — |
+  | `issuer` | 必填，签发方 DID | — |
+  | `issuer_service_did` | 可选，实际签名 service DID | — |
   | `binding_state` | 必填 | — |
   | `claim_kind` | 可选 | — |
   | `visibility` | 可选 | — |
   | `audience` | 可选,binding 受众 | — |
   | `claim_scope` | 可选,scope object | — |
-  | `member_delivery_binding` | 可选,投递绑定 | `delivery_modes`(若存在) MUST 按 lexicographic 排序;详见下方 §3.2.1.1 |
-  | `claims` | 可选,VC inner claims | **顺序是语义的一部分**——issuer 控制,中间方 reorder 会破坏原 proof,因此 digest 直接按 issuer 提供顺序 canonicalize |
-  | `created_at` | 必填,签发时刻 | — |
+  | `member_delivery_binding` | 可选，投递绑定 | `delivery_modes`(若存在) MUST 按 lexicographic 排序；详见下方 §3.2.1.1 |
+  | `claims` | 可选,VC inner claims | **顺序是语义的一部分**——issuer 控制，中间方 reorder 会破坏原 proof,因此 digest 直接按 issuer 提供顺序 canonicalize |
+  | `created_at` | 必填，签发时刻 | — |
   | `expires_at` | 可选/条件必填 | — |
-  | `source_refs` | 可选,上游真相源 event 引用 | MUST 按 event_ref 字符串 lexicographic 排序后参与 canonicalization(UUIDv7 字典序对应签发时序，排序结果对 audit 也友好) |
+  | `source_refs` | 可选，上游真相源 event 引用 | MUST 按 event_ref 字符串 lexicographic 排序后参与 canonicalization(UUIDv7 字典序对应签发时序，排序结果对 audit 也友好) |
 
   其它字段一律 MUST NOT 进入 `semantic_projection(c)`,即使 wire claim 通过 `additionalProperties: true` 通道携带。
 
@@ -247,20 +247,20 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
 
   **`challenge` 被显式排除**的原因：`challenge` 是 verifier / request 级防重放输入，不是 handle claim 的稳定规范身份。proof transcript MAY 继续绑定 challenge、domain 与 verifier，但把 `challenge` 放进 `semantic_projection` 会让同一 handle claim 因不同解析请求得到不同 `claim_digest`，破坏 roster `handle_claim_digests[]` 比对、cache key 与 §3.2.1 tie-breaker 稳定性。
 
-  其它字段排除的整体动因把 `claim_digest` 锚定在 §3.4 / §5 定义的 handle_claim 规范 shape 上,与具体 Directory / Principal Server / cache 层附加的 hint 解耦。
+  其它字段排除的整体动因把 `claim_digest` 锚定在 §3.4 / §5 定义的 handle_claim 规范 shape 上，与具体 Directory / Principal Server / cache 层附加的 hint 解耦。
 
 - 输出形态遵循 [`models/common-fields.md` §2](../models/common-fields.md) 的 `<noun>_digest = <alg>:<hex>` 通用 hash 字段命名规则；
 - 与 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json) 的 `claim_digest` 字段(`"sha256 digest of the upstream handle claim canonical JSON"`)一致——本节是其 normative 计算定义,candidate schema 是其 wire 表示。
 
 **Hint 隔离**(normative): §6.0 server-attested hint、Directory 缓存补字段、verifier 本地标注等任何非规范语义字段 MUST 在 wire claim 上以**顶层附加字段**形式存在(而非污染规范字段),并**MUST NOT** 进入 `semantic_projection(c)`。该约束让同一语义 handle claim 被任意数量的 Directory / Principal Server 加 hint 后,`claim_digest` 始终稳定;tie-breaker、roster `handle_claim_digests[]` 比对、缓存键命中都不会因 hint 抖动。
 
-去除 `proofs` 与 server-attested hint 是为了让 `claim_digest` 只覆盖 claim 的**规范语义内容**而非签名包装与中间传输态,让同一 canonical claim 在任意 issuer 重签 / Directory 转发 / cache 层加注后始终产生相同 digest。
+去除 `proofs` 与 server-attested hint 是为了让 `claim_digest` 只覆盖 claim 的**规范语义内容**而非签名包装与中间传输态，让同一 canonical claim 在任意 issuer 重签 / Directory 转发 / cache 层加注后始终产生相同 digest。
 
-**Forward-compat**: 未来 spec revision 在 handle_claim.v1 中加入新规范字段时,该字段名 MUST 同步加入上表;实现 MUST 拒绝白名单外字段进入 digest 计算,即便它出现在新 schema 里——直到 spec 显式扩表。同时新字段若是数组,MUST 在加入表的同时声明数组规范化策略(sorted / order-is-semantic 二选一);未声明的数组字段 MUST 不进入 digest。这保证不同 spec patch 版本之间 `claim_digest` 不会悄悄漂移。
+**Forward-compat**: 未来 spec revision 在 handle_claim.v1 中加入新规范字段时，该字段名 MUST 同步加入上表；实现 MUST 拒绝白名单外字段进入 digest 计算，即便它出现在新 schema 里——直到 spec 显式扩表。同时新字段若是数组,MUST 在加入表的同时声明数组规范化策略(sorted / order-is-semantic 二选一);未声明的数组字段 MUST 不进入 digest。这保证不同 spec patch 版本之间 `claim_digest` 不会悄悄漂移。
 
 #### 3.2.1.1 数组规范化规则（normative）
 
-JCS（RFC 8785）按 issuer 提供顺序保留数组元素，不做重排。`semantic_projection(c)` 中任何**无序集合语义**的数组若让 JCS 直接吃,不同 producer / Directory 输出顺序差异会让 `claim_digest` 抖动。因此 §3.2.1 表中显式标 "sorted" 的数组字段 MUST 在送入 JCS 之前按以下规则排序：
+JCS（RFC 8785）按 issuer 提供顺序保留数组元素，不做重排。`semantic_projection(c)` 中任何**无序集合语义**的数组若让 JCS 直接吃，不同 producer / Directory 输出顺序差异会让 `claim_digest` 抖动。因此 §3.2.1 表中显式标 "sorted" 的数组字段 MUST 在送入 JCS 之前按以下规则排序：
 
 | 数组字段 | 排序规则 | 排序粒度 |
 | --- | --- | --- |
