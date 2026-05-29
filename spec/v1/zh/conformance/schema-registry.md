@@ -14,9 +14,9 @@ sidebar:
 
 ## 1. 目标与真源
 
-> **本文是 generated documentation view,不是 schema/event 真源。**
-> 下方的 schema id 表与 event kind 表由 `artifacts/registry/*.json` 渲染得到；两者不一致时 **JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。
-> 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 各 `*-registry.json` 与本文表格一并刷新；不得只手工编辑本文表格。
+> **本文是 documentation view,不是 schema/event 真源。**
+> 下方 §2 schema id 表与 §4 event kind 表是**人工维护的阅读节选**，并非穷尽清单；两者与机器 registry 不一致时一律 **以 JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。穷尽且 canonical 的清单是 `artifacts/registry/*.json`（站点经 MDX 组件 `<EventKindTable/>` / `<SchemaViewer/>` 等直接渲染这些 JSON）。
+> 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 刷新各 `*-registry.json`（pipeline **不再**改写本文 md 表）。新增 / 改名概念时如需在本节节选表体现，MUST 手工同步对应行；但本节表的滞后**不**改变「JSON registry 为唯一真源」这一结论。
 
 字段级结构定义见 `../models/common-fields.md` 及各对象专属文件（`realm-and-space.md` / `flow-and-message.md` / `morph.md` / `relation.md` / `actor.md` / `governance-objects.md` / `private-objects.md` / `event-and-patch.md`）。
 

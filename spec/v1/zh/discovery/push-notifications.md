@@ -341,8 +341,8 @@ POST /api/v1/push/notify
 |------|------|------|------|
 | `notification` | object | required | 推送通知对象。 |
 | `notification.push_target_id` | string | required | per-(recipient_service_did, principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Realm / Principal Server 上下文关联的稳定 ID。 |
-| `notification.wakeup_kind` | string | required | 唤醒类别（如 `message`、`incoming_call`、`mention`）；只是粗粒度提示，不带 Realm / sender 信息。 |
-| `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示；只能是封闭枚举或 `l10n_key` token；不得包含正文、sender DID / handle、Realm id / 名称、Flow / Message id、reaction 实际值或 stable correlation key。 |
+| `notification.wakeup_kind` | string | required | 粗粒度唤醒类别，封闭枚举 `message` / `mention` / `reaction` / `call_invite`（与 §2.2 一致）；只是粗粒度提示，不带 Realm / sender 信息。 |
+| `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或 `l10n_key` token；不得包含正文、sender DID / handle、Realm id / 名称、Flow / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。 |
 | `notification.devices` | object[] | required | 目标设备数组。 |
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |

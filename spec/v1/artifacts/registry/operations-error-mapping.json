@@ -15,7 +15,7 @@
       "operation_id": "cx.events.submit",
       "http_alias": "POST /api/v1/events",
       "operation_specific": [
-        "duplicate_event",
+        "duplicate_conflict",
         "failed_precondition",
         "schema_violation",
         "actor_seq_invalid",

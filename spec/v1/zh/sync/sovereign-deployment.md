@@ -137,6 +137,7 @@ Sovereign client SHOULD:
 
 - 禁止公共 federation。
 - 禁止公共 directory listing。
+- 默认关闭匿名 frontier 探测（`peer_role=anonymous_health`，见 [`federation.md` §4.5.1](federation.md)）：sovereign profile 下 MUST-off，避免 `frontier_root` 摘要被多次轮询推断 Realm 活跃度时间序列；frontier 交换只对 allowlist peer 开放。
 - Realm 默认 `discoverability=secret` 或 `invite_only`。
 - Realm 默认 `join_rule=invite` 或 `restricted`。
 - Policy Server 默认 `closed` 或 `quarantine` fail mode。

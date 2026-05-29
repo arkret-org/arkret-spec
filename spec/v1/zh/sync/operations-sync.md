@@ -791,7 +791,8 @@ Snapshot manifest MUST 包含：
 - `state_digest`
 - `frontier`
 - `event_set_commitment`
-- `verification_hints`（可选，但 high-assurance profile 必须包含 inclusion proof 入口或 witness quorum）
+- `security_class`（**必填**，`standard` 或 `high_assurance`，无静默默认；需要高保障的 Realm MUST 设为 `high_assurance`，该取值经 `snapshot.schema.json` 的 `allOf` 联动强制下面的 `verification_hints`，并被签名覆盖，故不能在不破坏签名的前提下从 `high_assurance` 降级为 `standard`）
+- `verification_hints`（当 `security_class="high_assurance"` 时 MUST 包含 inclusion proof 入口或 witness quorum；`standard` 下可选）
 - `created_by`
 - `created_at`
 - `authority_binding`
@@ -799,7 +800,7 @@ Snapshot manifest MUST 包含：
 
 客户端在采用 Snapshot 前 MUST 验证：
 
-1. `signature` 是标准 detached proof，覆盖 `id`、`realm_id`、`state_digest`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs`、`verification_hints`、`created_by`、`created_at` 和 `authority_binding` 的 canonical manifest hash。
+1. `signature` 是标准 detached proof，覆盖 `id`、`realm_id`、`state_digest`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs`、`security_class`、`verification_hints`、`created_by`、`created_at` 和 `authority_binding` 的 canonical manifest hash（即整份 manifest 去掉 `signature` 后的 JCS bytes，故 `security_class` 不可被降级而不破坏签名）。
 2. `signature.verification_method` 对应的 DID 必须是 Realm creator、Realm owner、当前有效 Realm admin、Realm policy 授权的 snapshot issuer 或 witness quorum 成员；该权限 MUST 按 manifest `created_at` 的 as-of auth state 验证，且该 auth state 必须覆盖 snapshot frontier 以及截至 `created_at` 可解析的相关 grant/revoke。若 signer 在 `created_at` 前已被撤销，或 revoke freshness 无法确认，客户端 MUST quarantine / reject snapshot。
 3. 每个 chunk 的实际 digest 与 manifest 中声明的 `chunks[].digest` 一致。
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。

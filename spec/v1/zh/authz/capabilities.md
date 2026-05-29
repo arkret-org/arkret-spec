@@ -256,6 +256,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.circle.member.add.others`（high risk；代他人写入 Circle membership，MUST 与 `cx.audit.accessed` 配对）
 - `cx.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `cx.audit.accessed` 配对）
 - `cx.realm.admin`
+- `cx.realm.audit_policy_downgrade`（high risk；把 Realm 从 `attested_hardware` 降级到 `disclosed_policy` 等审计降级，MUST 与 `cx.audit.accessed` 配对；**不**被 `cx.realm.admin` 自动覆盖，必须在 grant `actions[]` 中显式列出，target=`cx.realm.audit_policy_downgrade`）
 - `cx.realm.link`（管理 Realm 间关系图，target=`cx.realm.link`）
 - `cx.realm.upgrade`
 - `cx.realm.moderation_policy`（管理 Realm 审核策略，target=`cx.realm.moderation_policy`）
@@ -715,7 +716,9 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 | --- | --- | --- | --- |
 | 高风险（`cx.realm.destroy`、`cx.capability.revoke`、`cx.realm.admin`、`cx.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
 | 中风险（`cx.flow.update`、`cx.circle.member.manage`、`cx.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
-| 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read_cursor.advance`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
+| 高频写入 / 本地 pending tier（按本表显式枚举：`cx.message.create`、`cx.reaction.add`、`cx.read_cursor.advance`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
+
+> **本表行归属（normative）**：上表三行是 **freshness 分区降级策略**，其成员按本表**显式枚举**确定，与 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 是两个正交轴。`risk_tier` 在本节只治理两件事：(i) **未登记动作**的 freshness fail-closed 默认（registry 缺失该动作 ⇒ 视为 high ⇒ `unknown` 时 fail closed，见 registry_rules）；(ii) 禁止 grant author 通过 grant-side 标签把高风险动作降级（下方 MUST 列表）。因此 `cx.message.create` / `cx.flow.move` / `cx.flow.reorder` 虽在 registry 中为 `risk_tier=medium`，在分区 `unknown` 下仍按本行「本地 pending」处理——这是有意的离线可用性取舍，**不**构成与 `risk_tier` 的冲突；它们不会被静默放行给其他成员，因此不违反 medium 行的「不污染他人」目标。
 
 设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Move 直接丢弃，无副作用。
 

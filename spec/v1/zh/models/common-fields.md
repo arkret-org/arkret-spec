@@ -165,13 +165,13 @@ expected_<role>_<kind>_id
 | `created_by` | Authorship | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
 | `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
 | `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
-| `deleted_at` | Lifecycle | O | O | O | O | O | O | O | O | O | — | — | — | — | — |
-| `state` | Lifecycle | O | O | O | Y | O | O | O | O | — | — | — | — | — | O (mirrors account status) |
+| `deleted_at` | Lifecycle | O | O | O | O | O | O | — | O | O | — | — | — | — | — |
+| `state` | Lifecycle | O | O | O | Y | O | O | — | O | — | — | — | — | — | — (see `status`，mirrors account status) |
 | `state_changed_at` | Lifecycle | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
 | `stage` | Progress | — | — | Y | — | Y | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | R per `cx.flow.stage.set` | — | R per `cx.morph.stage.set` | — | — | — | — | — | — | — | — | — |
 | `labels` | Universal | O | O | O | O | O | O | O | — | O | — | — | — | — | O |
-| `fields` | Universal | O | O | O | — (see Message content blocks) | Y (主要载荷) | O | O | O | O | — | O | — | — | O (see `profile_fields`) |
+| `fields` | Universal | O | O | O | — (see Message content blocks) | Y (主要载荷) | O | O | O | O | — | O | — | — | — (see `profile_fields`) |
 
 附注：
 
@@ -182,6 +182,7 @@ expected_<role>_<kind>_id
 - `stage_changed_at` 仅 Flow / Morph 适用，且仅当真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
 - `labels` 对 Policy / Capability Grant / Invite / Read Cursor / Notification 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
 - `fields` 是协作对象的扩展容器；Message 的扩展走 content blocks，不走 `fields`；Capability Grant / Read Cursor / Notification 不暴露开放扩展容器。
+- **View 无 durable 终态**：v1 的 View 只有 `cx.view.create` / `cx.view.update` / `cx.view.reconcile`，`view.schema.json` 不含 `state` / `deleted_at`，registry 也无 `cx.view.tombstone`；故本表 View 的 `state` / `deleted_at` 为 "—"。共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。这是有意取舍，待未来若出现"可治理删除"的需求再单独引入 lifecycle event。
 
 ## 4. 主体引用字段交叉对照
 

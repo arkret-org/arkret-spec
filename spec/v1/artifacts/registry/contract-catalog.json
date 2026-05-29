@@ -1905,7 +1905,7 @@
       },
       {
         "schema_id": "cx.schema.event.v1",
-        "file": "schemas/event-envelope.schema.json"
+        "file": "schemas/event-schema.json"
       },
       {
         "schema_id": "cx.schema.event_payload.v1",
@@ -4000,11 +4000,9 @@
           "cx.realm.asset_privacy_policy",
           "cx.realm.read_receipt_policy",
           "cx.realm.moderation_policy",
-          "cx.realm.plaintext_visible_services",
           "cx.realm.media_service",
           "cx.realm.schema",
-          "cx.realm.inheritance_policy",
-          "cx.realm.audit_policy_downgrade"
+          "cx.realm.inheritance_policy"
         ],
         "profile": null
       },
@@ -4045,6 +4043,19 @@
         "required_constraints": [],
         "target_event_kinds": [
           "cx.realm.plaintext_visible_services"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.realm.audit_policy_downgrade",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "audit_pair_required"
+        ],
+        "target_event_kinds": [
+          "cx.realm.audit_policy_downgrade"
         ],
         "profile": null
       },
@@ -4360,8 +4371,7 @@
           "cx.realm.asset_privacy_policy",
           "cx.realm.read_receipt_policy",
           "cx.realm.history_sharing_policy",
-          "cx.realm.moderation_policy",
-          "cx.realm.audit_policy_downgrade"
+          "cx.realm.moderation_policy"
         ],
         "profile": null
       },

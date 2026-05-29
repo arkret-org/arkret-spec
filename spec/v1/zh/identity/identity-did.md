@@ -393,6 +393,7 @@ Auth Server 在以下情况下 MUST NOT 接受 DID proof：
 - 验证方法当前未被授权用于身份认证或所声明的 device/session 路径
 - 签名未覆盖完整的 challenge payload
 - challenge 已过期、已使用、audience 不匹配或 origin 不匹配
+- `issued_at` 相对 Auth Server 时钟的偏移超过 skew 容忍（SHOULD ≤ 300s），或 `expires_at - issued_at` 超过最大新鲜度窗口（SHOULD ≤ 300s）——否则签发方可任意拉宽重放窗口
 - DID 已停用或 method history 无效
 
 service account 绑定是组织本地状态。它不会把 DID 所有权转移给组织，也不会允许组织轮换、恢复或停用用户 DID，除非 DID 自身控制状态或 recovery policy 授权该动作。

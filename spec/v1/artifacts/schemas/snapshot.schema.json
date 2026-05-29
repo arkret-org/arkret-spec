@@ -12,6 +12,7 @@
     "frontier",
     "event_set_commitment",
     "chunks",
+    "security_class",
     "created_by",
     "created_at",
     "authority_binding",
@@ -272,7 +273,7 @@
     },
     "signature": {
       "$ref": "./event-schema.json#/$defs/proof",
-      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds id, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), verification_hints, created_by, created_at, and authority_binding.",
+      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds id, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (chunk_ref / digest / size_bytes), security_class, verification_hints, created_by, created_at, and authority_binding. Because security_class is signed (and required), a high_assurance -> standard downgrade cannot be performed without invalidating the signature.",
       "x-canonical-bytes-include": [
         "id",
         "realm_id",
@@ -282,6 +283,7 @@
         "frontier",
         "event_set_commitment",
         "chunks",
+        "security_class",
         "verification_hints",
         "created_by",
         "created_at",

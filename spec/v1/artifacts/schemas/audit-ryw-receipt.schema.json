@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/audit-ryw-receipt.schema.json",
   "title": "Contrix Audit RYW Receipt",
-  "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a cx.audit.accessed envelope has reached accepted state. Required by cx.profile.attested_audit.e2ee.v1 and cx.profile.disclosed_audit.e2ee.v1 before the Audit Agent is allowed to release plaintext (see zh/crypto-media/encryption-and-audit.md §3.3.1). The audit_assurance_class field MUST match the Realm-declared audit_assurance value; mismatch fail closed.",
+  "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a cx.audit.accessed envelope has reached accepted state. Required by cx.profile.attested_audit.e2ee.v1 and cx.profile.disclosed_audit.e2ee.v1 before the Audit Agent is allowed to release plaintext (see zh/crypto-media/audited-e2ee.md §4.1). The audit_assurance_class field MUST match the Realm-declared audit_assurance value; mismatch fail closed.",
   "type": "object",
   "required": [
     "receipt_id",
@@ -177,7 +177,7 @@
       "enum": [
         "late_key_arrival"
       ],
-      "description": "Optional machine-readable code, set only when this RYW receipt covers a cx.audit.accessed Event emitted via the Late Key Recovery path (see zh/crypto-media/encryption-and-audit.md §2.3.5 / §3.3.1 footnote). Payload value, not an error-code-registry reason_code. Used by audit projections to distinguish late-key-triggered accesses from first-access reads. When absent, the receipt covers a normal (first-access) cx.audit.accessed Event."
+      "description": "Optional machine-readable code, set only when this RYW receipt covers a cx.audit.accessed Event emitted via the Late Key Recovery path (see zh/crypto-media/encryption-and-audit.md §2.3.5 and zh/crypto-media/audited-e2ee.md §4.1). Payload value, not an error-code-registry reason_code. Used by audit projections to distinguish late-key-triggered accesses from first-access reads. When absent, the receipt covers a normal (first-access) cx.audit.accessed Event."
     }
   },
   "allOf": [

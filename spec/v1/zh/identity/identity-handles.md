@@ -577,7 +577,7 @@ Handle 解析分为两个方向：
 
 已知 handle 时，客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
-1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/contrix/handle?localpart=<localpart>` 或等价的 `GET https://<domain>/.well-known/contrix-did`（向后兼容旧客户端按整体 handle 拉取）。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
+1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/contrix/handle?localpart=<localpart>`。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Principal Server 部署。
 2. **DNS TXT**：`_contrix.<domain>` 或 `_contrix.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
 3. **Directory / Organization 服务**：`POST /api/v1/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /api/v1/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `cx.schema.handle_claim.v1`。

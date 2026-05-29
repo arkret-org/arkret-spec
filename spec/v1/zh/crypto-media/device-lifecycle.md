@@ -939,7 +939,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 | `new_generation` | required | 后续 publish 将使用的 `generation`；MUST = `previous_generation + 1`。 |
 | `reset_reason_code` | required | 机器可读枚举：`rotation` / `compromise` / `device_loss` / `policy_required`。 |
 | `proof` | required | 四类高风险证明之一，详见 §14；接收方 MUST 拒绝缺失 / 无效的 proof。 |
-| `recovery_session_id` | required | 引用 §15 device recovery state machine 的 session id（已存在于 §15 step 2）。把 session id 进 transcript 使 `recovery_unlock` proof 自身携带 freshness binding，不依赖外部 state machine。 |
+| `proof.recovery_session_id` | `recovery_unlock` 时 required | 当 `proof.kind = recovery_unlock` 时，proof body MUST 携带 §15 device recovery state machine 的 `recovery_session_id`（§15 step 2）。它随 `proof_body` 进入下方 §14.1 canonical transcript，使 `recovery_unlock` proof 自身携带 freshness binding，不依赖外部 state machine；receiver MUST 拒绝 `recovery_session_id` 与 `principal_id` 在 `issued_at` 时无活跃 recovery session 匹配的 reset。其余三类 proof 不携带此字段。 |
 
 所有 proof 签名的 canonical input MUST 是：
 

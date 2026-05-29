@@ -341,7 +341,7 @@
       "code": "cursor_integrity_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Cursor integrity check failed: MAC / signature did not verify, the bound transcript (principal, device, service, filter_digest, purpose, positions, target, x, issuer_kid) did not match the authenticated request, or the stateful handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+      "description": "Cursor integrity check failed. For the v1-core stateful opaque handle (client-sync §12.1, canonical body `{v, purpose, t, x, h}`, no `issuer_kid`): the `h` handle is unknown / revoked / cross-bound. For the optional `cx.profile.stateless_cursor.v1` self-describing cursor: the `_mac` / `_sig` did not verify, or the stateless transcript (principal, device, service, filter_digest, purpose, positions, target, x, issuer_kid) did not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "cursor_revoked",
@@ -881,7 +881,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade evidence `inception_public_key_fingerprint` does not match the fingerprint derived from `verificationMethod[0]` of the canonicalised old DID Document (key-management.md §5.0.5)."
+      "description": "Cross-method principal upgrade evidence `inception_public_key_fingerprint` does not match the fingerprint derived from the matched inception `verificationMethod[]` entry of the canonicalised old DID Document — i.e. the entry whose signature verified in §5.0.5.3 step 3 (not necessarily index 0). See key-management.md §5.0.5."
     },
     {
       "code": "audit_agent_key_destruction_attestation_missing",
@@ -906,6 +906,21 @@
         "auth_decision"
       ],
       "description": "cx.audit.epoch_key_destruction `epoch_range` does not cover the full range of epochs the removed Audit Agent is known to have held secrets for."
+    },
+    {
+      "code": "audit_agent_destruction_not_covered_by_commit",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A later MLS Commit failed to cover an already-accepted Audit Agent `cx.audit.epoch_key_destruction` state, so the destruction is not cryptographically carried forward in the governance frontier. Reducer rejects per zh/crypto-media/audited-e2ee.md §3.1.1.3."
+    },
+    {
+      "code": "audit_agent_destroyed_epoch_accessed",
+      "applies_to": [
+        "audit_decision"
+      ],
+      "description": "Fraud-detection flag: after a destruction attestation is anchored, the same Audit Agent / enclave measurement issued a cx.audit.accessed, RYW receipt, or external export proof for an epoch whose keys were already destroyed. Verifier MUST flag, quarantine the access chain, and trigger Realm audit_assurance downgrade or operator incident. See zh/crypto-media/audited-e2ee.md §3.1.1.4."
     },
     {
       "code": "audit_agent_destruction_proof_not_enclave_signed",
@@ -1074,6 +1089,14 @@
         "auth_decision"
       ],
       "description": "A `cx.cross_signing.reset` proof signature failed verification: `principal_signing.signature` does not verify under the resolved principal-grade DID control key, `recovery_unlock` / `trusted_recovery_service` signature does not verify under the bound key, or any `device_quorum.signatures[i]` does not verify under the named device key. Key-class or authority failures use `cross_signing_reset_proof_authority_invalid`. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_recovery_service_attestation_domain_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A `cx.cross_signing.reset` `trusted_recovery_service` proof referenced an `attestation_ref` whose trust domain does not equal the reset payload `trust_domain`. Cross-trust-domain attestations MUST NOT serve as recovery-service authorization. See zh/crypto-media/device-lifecycle.md §14.4 and cross-signing-reset.schema.json."
     },
     {
       "code": "cross_signing_reset_generation_mismatch",
@@ -1484,6 +1507,29 @@
         "state_resolution"
       ],
       "description": "The account status frontier contains a deactivation for the principal acting as actor, subject, issuer, recipient, or device owner. New device/session grants, KeyPackage operations, capability delegation, delivery binding writes, push routes, and to-device enqueue MUST fail closed. See zh/identity/account-lifecycle.md §7.1 and zh/sync/federation.md §4.4.1."
+    },
+    {
+      "code": "actor_signature_revoked",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An event was signed with a device key that the deactivation/lock fanout has marked revoked. Subsequent cx.events.submit signed by that device MUST be rejected. See zh/identity/account-lifecycle.md §7.1."
+    },
+    {
+      "code": "delegation_revoked",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "An applet/service call used a delegated device session that the deactivation/lock fanout revoked (cx.applet.registration delegated devices). The call MUST fail closed. See zh/identity/account-lifecycle.md §7.1."
+    },
+    {
+      "code": "recipient_unavailable",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "A to-device delivery targeted a deactivated principal whose pending queue was dropped by the deactivation fanout; further delivery MUST fail closed rather than enqueue. See zh/identity/account-lifecycle.md §7.1."
     },
     {
       "code": "moderation_state_conflict",
@@ -2006,6 +2052,13 @@
         "audit_decision"
       ],
       "description": "A late-arriving key tried to upgrade a decryption_failed event to late_recovered, but the receiver was not a member of the Realm at the original causal time T₀ (or has since been banned/removed). Client MUST NOT admit the recovered plaintext to verified timeline; audit log records this code. See zh/crypto-media/encryption-and-audit.md §2.3.5."
+    },
+    {
+      "code": "late_recovery_share_not_authorized",
+      "applies_to": [
+        "audit_decision"
+      ],
+      "description": "A key backup / archive node / peer share refused to deliver late key material because, on re-running the T₀ membership + policy check before sending, the current share policy no longer permits delivery to the requesting device (distinct from late_recovery_rejected_membership, which is the receiver-side T₀ non-membership case). See zh/crypto-media/encryption-and-audit.md §2.3.5."
     },
     {
       "code": "prev_refs_too_large",

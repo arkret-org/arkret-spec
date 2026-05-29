@@ -93,9 +93,14 @@
     "recovery_unlock_proof": {
       "type": "object",
       "description": "Recovery-key unlock proof. The cryptographic strength comes entirely from `signature` — possession of the recovery private key is proven by verifying `signature` over the §14.1 canonical input under the public key bound to `recovery_secret_ref` in the DID Document recovery section / `recovery_policy`. `unlock_commitment` is a wire-integrity / debug binding only: it is a deterministic public hash that the receiver re-computes from material already in the event. See zh/crypto-media/device-lifecycle.md §14.4: (a) recovery_secret_ref MUST resolve to a recovery key entry that was authoritative at issued_at; (b) signature MUST verify against that entry's public key; (c) unlock_commitment MUST equal SHA-256(utf8('cx-cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes), where unlock_binding_input_bytes is the §14.1 canonical input with proof_body excluding both signature fields and unlock_commitment. Receivers MUST reject the reset if any of (a)-(c) fails.",
-      "required": ["kind", "recovery_secret_ref", "unlock_commitment", "alg", "signature"],
+      "required": ["kind", "recovery_session_id", "recovery_secret_ref", "unlock_commitment", "alg", "signature"],
       "properties": {
         "kind": { "const": "recovery_unlock" },
+        "recovery_session_id": {
+          "type": "string",
+          "pattern": "^cx:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Recovery session id from the §15 device recovery state machine (step 2). Carried inside the recovery_unlock proof body so it enters the §14.1 canonical transcript via proof_body, giving the proof a self-contained freshness binding that does not depend on external recovery state. Receivers MUST reject a recovery_unlock reset whose recovery_session_id does not match an active recovery session for principal_id at issued_at. See zh/crypto-media/device-lifecycle.md §14.1 / §15."
+        },
         "recovery_secret_ref": {
           "type": "string",
           "minLength": 1,

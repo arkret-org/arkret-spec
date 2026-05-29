@@ -29,7 +29,7 @@ sidebar:
 | `sub` | `participant_identity` | LiveKit participant identity；MUST 与响应顶层 `participant_identity` 一致 |
 | `nbf` / `iat` | token 签发时刻 | — |
 | `exp` | `expires_at` Unix epoch | MUST ≤ 600s after `iat`（§6.4 TTL 上限） |
-| `name` | optional display label | MUST NOT 携带可关联 actor 身份信息（与 §6.6 pairwise pseudonym 对齐）；推荐留空或使用 `participant_identity` |
+| `name` | optional display label | MUST NOT 携带可关联 actor 身份信息（与 [`../webrtc-signaling.md` §6.2](../webrtc-signaling.md) pairwise pseudonym 对齐）；推荐留空或使用 `participant_identity` |
 | `video.room` | `call_id` | MUST 等于请求的 `call_id`；LiveKit room name 由 issuer 派生（建议 `cx_call_<call_id_short_hash>`，不暴露 raw Realm/call id 到 LiveKit logs） |
 | `video.roomJoin` | `true` | join 权限 |
 | `video.canPublish` | `desired_media.audio ∨ video ∨ screen` | issuer 按 capability 派生 |
