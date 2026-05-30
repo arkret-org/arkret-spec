@@ -18,7 +18,7 @@ updated: 2026-05-28
 
 地址层**只负责寻址**。授权不是地址的一部分，而是挂在地址上的、有 expiry、audience-bound、可吊销的签名 token。**寻址 ≠ 授权**：裸地址解析仍受 [`discovery-directory.md` §2/§3](./discovery-directory.md) 的 discoverability / join / history 三 gate 约束，请求方看不见的资源 MUST 解析为与不存在不可区分的 `not_found`。
 
-本文不引入新对象、新 event、新 capability，也不改变任何 wire / reducer 行为；它定义一套地址 grammar、三种 envelope，以及解析 operation `cx.directory.resolve_target`。
+本文定义一套地址 grammar、三种 envelope，以及解析 operation `cx.directory.resolve_target`。v1 的 preview link type 依赖 Realm 侧 `cx.realm.preview_policy`，但地址层本身仍不授予 membership 或写权限。
 
 ## 2. 三个 envelope，一套 grammar
 
@@ -72,27 +72,28 @@ web+contrix:realm/<realm>/flow/<flow>?lt=invite&tok=<token>   # invite link
 
 授权**不做成独立 scheme**，而是同一地址 + 一个分型签名 token 组件（与 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 已有的 `realm_id`（纯）vs `invite_token` / `signed_link`（带授权）输入形状同构）。
 
-v1 定义两种 link 类型：
+v1 定义三种 link 类型：
 
 | 类型 | 携带 | 解析后效果 |
 | --- | --- | --- |
 | `reference`（默认） | 纯地址 | 走正常 discovery + access gate；**不授予任何权限**。请求方本就能发现/读取时返回对应 preview / 内容，否则 `not_found`。 |
 | `invite` | 地址 + `tok`（`invite_token` / `signed_link`） | 兑换后经 [`governance/join-policy.md`](../governance/join-policy.md) 授予 membership / 访问；有 expiry、audience-bound、可吊销。 |
+| `preview` | 地址 + `tok`（signed preview token），或 requester proof 满足 `cx.realm.preview_policy` | 只授予 policy 限定的 stripped preview / history stub / plaintext Realm snippet；**不授予 membership、write、join routing 或完整历史读取**。 |
 
-> **`preview` 为保留值，v1 不定义。** 一个"凭 token 取得 stripped preview"的链接，会在 discovery 三 gate（discoverability + allowed_discoverers）之外新开一条 preview 授权旁路，属于新授权原语，超出本文寻址职责。若未来需要，MUST 由独立提案定义其与三 gate 的关系，届时再启用 `lt=preview`。
+`preview` link type 的授权语义由 [`../governance/history-visibility.md`](../governance/history-visibility.md) §4 与 Realm 的 effective `cx.realm.preview_policy` 定义。解析方遇到 preview token 但 Realm 未声明有效 preview policy 时 MUST 按未授权处理并返回统一 `not_found`。Preview token 只扩大到 policy 指定的 preview projection，不得被解释成 invite、membership、`cx.event.read` 或 E2EE key share grant。
 
 ### 4.1 Token wire syntax（normative）
 
 授权组件**统一**用两个 query 参数，**禁止** `invite_token=` / `signed_link=` 等分叉参数名（否则不同客户端生成互不互通的链接）：
 
-- `lt=<reference|invite>`，省略等价 `reference`。解析方遇到非这两个值（含保留的 `preview`）时 MUST 按最严格的 `reference` 语义处理（不授予任何权限）。
-- `tok=<opaque-token>`，**当且仅当** `lt=invite` 出现；直接映射到 `cx.directory.resolve_target` 的 `token` 输入。
+- `lt=<reference|invite|preview>`，省略等价 `reference`。解析方遇到其它值时 MUST 按最严格的 `reference` 语义处理（不授予任何权限）。
+- `tok=<opaque-token>`，**当且仅当** `lt ∈ {invite, preview}` 出现；直接映射到 `cx.directory.resolve_target` 的 `token` 输入。
 - token 的内部类别（`invite_token` 风格 vs `signed_link` 风格）由签名 payload 自身表达，**不**靠 URL 参数名区分。
 - token 存在时，**权威 link_type 取自 token 签名 payload**；URL `lt` 仅是解析前的展示 hint，**MUST NOT** 用于放大权限，与 token 内声明矛盾时以 token 为准。
 
 ### 4.2 Token 必须绑定 canonical target（normative）
 
-`invite` token 仅有 expiry / audience / 可吊销**不够**——其签名 payload **MUST** 覆盖它授权的具体对象，否则 `resolve_target` 把 `address` 与 `token` 当独立输入时，A 对象的有效 token 可被重放到 B 地址（scope confusion）。
+`invite` / `preview` token 仅有 expiry / audience / 可吊销**不够**——其签名 payload **MUST** 覆盖它授权的具体对象，否则 `resolve_target` 把 `address` 与 `token` 当独立输入时，A 对象的有效 token 可被重放到 B 地址（scope confusion）。
 
 token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段。
 
@@ -107,18 +108,20 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 }
 ```
 
-字段出现规则：`realm_id` 与 `link_type` 必含；`flow_id` 仅 flow / message 目标出现；`message_id` 仅 message 目标出现。
+字段出现规则：`realm_id` 与 `link_type` 必含；`link_type` MUST 是 token 签名 payload 声明的 effective type（`invite` 或 `preview`）；`flow_id` 仅 flow / message 目标出现；`message_id` 仅 message 目标出现。
 
 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`，其中 `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme。
 
 - `realm_id` / `flow_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`cx:realm:<uuid>` 等），不得使用 path 中的裸 uuid 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
-- **`target_digest` 只覆盖身份元组（`realm` / `flow` / `m`）与 `link_type`**，**MUST NOT** 纳入 `via` / `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Flow / Message 必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
+- **`target_digest` 只覆盖身份元组（`realm` / `flow` / `m`）与 `link_type`**，**MUST NOT** 纳入 `via` / `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Flow / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
 - 生命周期字段 `aud` / `exp` / `nonce` 在 token payload 内，但**不属于** target descriptor（它们是 token 自身有效性边界，不是被寻址对象的身份）。
 - 签发端与 `resolve_target` 端 MUST 用同一 shape 与省略规则，否则 digest 不可比对。
 
 ### 4.3 Token 生命周期
 
 `invite` token 的签发 / 过期 / 吊销复用 [`governance/join-policy.md`](../governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期，本文**不另发明** revocation 机制。`resolve_target` 在 §4.2 target descriptor 校验通过后，仍 MUST 走 join-policy 的 token 有效性 / 吊销检查。
+
+`preview` token 使用同一 target descriptor discipline，但生命周期由 `cx.realm.preview_policy` 约束。签名 payload MUST 至少包含 `aud`、`exp`、`nonce`、`target_digest`、`link_type="preview"`、`preview_policy_digest`，并 SHOULD 包含允许的 preview mode / max events 摘要。解析方 MUST 校验 `preview_policy_digest` 指向当前 effective preview policy，或指向 policy 允许的 still-valid previous digest；否则返回统一 `not_found`。
 
 ## 5. 隐私：target 与 token 放 fragment
 
@@ -137,13 +140,14 @@ HTTPS 落地链接中，`flow` / `m` / `via` / 尤其 `tok` **MUST** 放在 URL 
 
 | operation_id | 必填 | 可选 | 响应 | 约束 |
 | --- | --- | --- | --- | --- |
-| `cx.directory.resolve_target` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt=invite` 时） | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
+| `cx.directory.resolve_target` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt ∈ {invite, preview}` 时） | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
 
 响应约束（normative）：
 
 - 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 通用字段（`as_of`、`source_refs`，可选 `policy_revision` / `stale` / `divergent`）；realm target 在调用方有权得到 join 路由时 MUST 同时返回 `join_candidates[]`。
 - invite / restricted / secret 资源对未授权请求使用与不存在不可区分的统一 `not_found`（复用 `resolve_realm` 的 blinding）。
-- 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, flow_id?, message_id?}` + 生效 link_type **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 join-policy 有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
+- 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, flow_id?, message_id?}` + 生效 link_type **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 invite 或 preview 的有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
+- `preview` token 校验通过时，响应 MUST 只包含 effective `cx.realm.preview_policy` 允许的 `realm_preview` / `object_preview` / stripped `history_preview` 字段。除非 caller 另行满足 join routing disclosure gate，响应 MUST 省略 `join_candidates[]`。
 - alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时，均返回统一 `not_found`。
 
 客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 realm path 段解析 Realm 并取得 canonical `realm_id` 与可披露的 `join_candidates[]`（委托 `resolve_realm`）→ 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 flow / message → 渲染成本地 UI URL。若随后要 join / invite-accept / knock，客户端从 `join_candidates[]` 选择一个未过期候选，而不是假定邀请者服务就是唯一入口。

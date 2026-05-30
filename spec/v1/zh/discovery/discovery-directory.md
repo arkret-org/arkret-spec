@@ -4,6 +4,8 @@ status: candidate
 normative: true
 stability: v1
 updated: 2026-05-25
+see_also:
+  - ../governance/history-visibility.md
 ---
 
 ## 0. 规范语言
@@ -108,7 +110,8 @@ Realm discovery policy SHOULD 由 `cx.realm.discovery` state event 表达：
 
 `join_rule` 只控制加入流程。公开可发现的 Realm MAY 仍要求 invite、knock 或 restricted join。不可发现的 Realm MAY 对持有私有链接的成员保持 `join_rule=public`，但除非配套强反垃圾策略，否则不推荐。
 
-`history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT 隐含 `history_visibility=world_readable`。
+`history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT 隐含 `history_visibility=world_readable`。五个 history level 的 reader class、invite / join 时点、removal 后 backfill 和 E2EE key share 语义以
+[`../governance/history-visibility.md`](../governance/history-visibility.md) 为准；本文件只定义 discovery / join / history 三 gate 的组合关系。
 
 ### 3.0 三个独立 Gate（先于矩阵理解）
 
@@ -144,7 +147,7 @@ flowchart TB
 
 - **Discoverability** 只控制资源是否能在搜索 / Directory / preview 里出现；不决定加入资格，也不决定历史读取范围。
 - **Join Rule** 只控制加入流程；不可发现的 Realm 也可以是 `join_rule=public`（持有私链接即可加入），公开 Realm 也可以是 `join_rule=invite`。
-- **History Visibility** 只控制加入后能看多少历史；与前两者完全正交。
+- **History Visibility** 只控制 reader 对历史 Event range 的读取资格；与前两者完全正交。E2EE Realm 中它不自动授予旧 epoch key。
 - 任何把 `discoverability` 当作 `join_rule` 或 `history_visibility` 简写的实现都是错误——下表 §3.1 锁定了允许的组合。
 
 ### 3.1 `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
@@ -165,9 +168,20 @@ flowchart TB
 - `world_readable` MUST NOT 与 `discoverability ∈ {invite_only, secret}` 同时声明（拒绝）。
 - `world_readable` 与 `discoverability ∈ {unlisted, restricted}` 同时声明 MUST 在 join warning 显式告知（"任何持有 link 的方都可读取全部历史"）。
 - `shared` / `invited` / `joined` 与所有 discoverability 组合兼容。
-- `restricted` 历史可见性 MUST 与显式 history-sharing policy 一致；与 `discoverability=public` 组合时仍 SHOULD 限制 lazy member preview 防止枚举。
+- `restricted` 历史可见性 MUST 与有效 `cx.realm.history_sharing_policy` 一致；缺少该 policy 时 reducer MUST 拒绝该 effective state。与 `discoverability=public` 组合时仍 SHOULD 限制 lazy member preview 防止枚举。
 
 实现 MUST 在 `cx.realm.policy_components` reducer 接受前用本表校验当前 effective 状态；变更任一字段使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留旧值。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
+
+### 3.2 Preview / Peek 与 History Visibility 的关系
+
+Directory preview 不是历史读取的快捷方式。`cx.realm.discovery.preview` 只声明目录结果或 exact resolve 可以返回哪些最小 metadata（例如 `title`、`summary`、`join_rule`、bucketed member count、`stripped_state`），不得单独授权正文历史、成员列表、policy 原文、隐藏 edge 或 E2EE 明文。
+
+当实现要支持 Matrix-style "peek before join"、invitee 进入前历史片段、或带 token 的 object preview 时，Realm MUST 同时声明有效 `cx.realm.preview_policy`，并按
+[`../governance/history-visibility.md`](../governance/history-visibility.md) §4 执行 preview audience、字段、历史范围、E2EE 和 anti-enumeration 规则。没有 `cx.realm.preview_policy` 时：
+
+- Directory MAY 返回 directory card / stripped state，但 MUST NOT 返回 history stub 或 history snippet。
+- `resolve_realm` / `resolve_target` 对未授权 preview MUST 返回与不存在不可区分的 `not_found`。
+- `history_visibility=world_readable` 仍不允许 Directory 自动扩展 preview 字段；完整历史读取必须走 Events / backfill surface，并继续执行 capability、retention、redaction 和 plaintext-visible service 检查。
 
 ## 4. Organization 可发现性
 

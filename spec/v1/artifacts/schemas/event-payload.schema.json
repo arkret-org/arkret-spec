@@ -1164,6 +1164,243 @@
       },
       "additionalProperties": true
     },
+    "history_visibility_value": {
+      "type": "string",
+      "enum": [
+        "world_readable",
+        "shared",
+        "invited",
+        "joined",
+        "restricted"
+      ]
+    },
+    "history_visibility_payload": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/history_visibility_value"
+        },
+        "restricted_policy_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Required when value=restricted. Digest of the effective cx.realm.history_sharing_policy value that defines restricted history visibility."
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "value": { "const": "restricted" } },
+            "required": ["value"]
+          },
+          "then": {
+            "required": ["restricted_policy_digest"]
+          }
+        }
+      ]
+    },
+    "history_sharing_policy_payload": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "object",
+          "required": [
+            "version",
+            "default_key_share",
+            "allowed_key_sources",
+            "audit"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "default_key_share": {
+              "type": "string",
+              "enum": [
+                "deny",
+                "event_time_visibility"
+              ],
+              "description": "Baseline key-share rule before restricted_rules are evaluated. event_time_visibility still requires T0 history visibility, current safety policy, and receiver device checks."
+            },
+            "pre_join_history": {
+              "type": "string",
+              "enum": [
+                "deny",
+                "allow_if_visibility_allows",
+                "rule_only"
+              ],
+              "default": "deny"
+            },
+            "post_removal_recovery": {
+              "type": "string",
+              "enum": [
+                "deny",
+                "allow_t0_visible_with_current_policy"
+              ],
+              "default": "deny"
+            },
+            "allowed_key_sources": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "own_device",
+                  "verified_member_device",
+                  "key_backup",
+                  "archive_node",
+                  "recovery_service"
+                ]
+              }
+            },
+            "allowed_receiver_states": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "active_member",
+                  "invited",
+                  "removed_t0_visible",
+                  "world_readable_requester"
+                ]
+              },
+              "default": [
+                "active_member"
+              ]
+            },
+            "audit": {
+              "type": "object",
+              "required": [
+                "share_audit_event_required",
+                "access_audit_required"
+              ],
+              "properties": {
+                "share_audit_event_required": {
+                  "type": "boolean"
+                },
+                "access_audit_required": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "restricted_rules": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/history_sharing_restricted_rule"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "history_sharing_restricted_rule": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "receiver_classes",
+        "visibility_allow",
+        "range",
+        "key_sources"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "scope": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "realm",
+                "circle"
+              ]
+            },
+            "circle_id": {
+              "$ref": "#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "receiver_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "active_member",
+              "invited",
+              "removed_t0_visible",
+              "world_readable_requester",
+              "preview_token_holder"
+            ]
+          }
+        },
+        "visibility_allow": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/history_visibility_value"
+          }
+        },
+        "range": {
+          "type": "string",
+          "enum": [
+            "all_visible_at_t0",
+            "since_invite",
+            "since_join",
+            "bounded_epoch_range"
+          ]
+        },
+        "max_epoch_span": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "key_sources": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "own_device",
+              "verified_member_device",
+              "key_backup",
+              "archive_node",
+              "recovery_service"
+            ]
+          }
+        },
+        "audit_required": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
     "account_status_payload": {
       "type": "object",
       "required": [
@@ -1716,11 +1953,167 @@
         "embedding",
         "notification_summary",
         "inbox_preview",
+        "history_preview",
+        "public_history_export",
         "media_plaintext",
         "derived_plaintext",
         "account_private_state",
         "profile_private_field"
       ]
+    },
+    "preview_policy_payload": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "object",
+          "required": [
+            "mode",
+            "audiences",
+            "fields"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "none",
+                "directory_card",
+                "stripped_state",
+                "history_stub",
+                "history_snippet"
+              ]
+            },
+            "audiences": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "anonymous",
+                  "authenticated",
+                  "invited",
+                  "knock_applicant",
+                  "restricted_claim_holder",
+                  "link_token_holder",
+                  "realm_member"
+                ]
+              }
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "title",
+                  "avatar_blob_ref",
+                  "summary",
+                  "owning_organizations",
+                  "join_rule",
+                  "history_visibility",
+                  "member_count_bucket",
+                  "topic",
+                  "preview_ref",
+                  "server_hints"
+                ]
+              }
+            },
+            "history": {
+              "type": "object",
+              "required": [
+                "range",
+                "content"
+              ],
+              "properties": {
+                "range": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "event_stubs",
+                    "last_n_events",
+                    "since_invite"
+                  ]
+                },
+                "content": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "redacted",
+                    "plaintext_if_unencrypted",
+                    "encrypted_payload_only"
+                  ]
+                },
+                "max_events": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 50
+                },
+                "include_member_events": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "sender_profile": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "display_name_only",
+                    "full_if_authorized"
+                  ],
+                  "default": "none"
+                }
+              },
+              "additionalProperties": false
+            },
+            "token": {
+              "type": "object",
+              "properties": {
+                "required": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "ttl_seconds": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 604800
+                },
+                "bind_target_digest": {
+                  "type": "boolean",
+                  "const": true,
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "mode": {
+                    "enum": [
+                      "history_stub",
+                      "history_snippet"
+                    ]
+                  }
+                },
+                "required": ["mode"]
+              },
+              "then": {
+                "required": ["history"]
+              }
+            }
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
     },
     "join_policy_payload": {
       "$comment": "Value-shape schema for the realm.join_policy.v1 cell (written as a sub-component of cx.realm.policy_components). Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/lint_artifacts.py check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
@@ -4041,8 +4434,7 @@
           "minimum": 0
         },
         "history_visibility": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/history_visibility_value"
         }
       },
       "additionalProperties": true

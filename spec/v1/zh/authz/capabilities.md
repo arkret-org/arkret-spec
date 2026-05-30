@@ -261,6 +261,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.realm.upgrade`
 - `cx.realm.moderation_policy`（管理 Realm 审核策略，target=`cx.realm.moderation_policy`）
 - `cx.realm.plaintext_visible_services`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`cx.realm.plaintext_visible_services`）
+- `cx.realm.preview_policy`（high risk；修改加入前 / token-scoped preview 可披露字段、历史 stub 或明文 snippet 的策略，target=`cx.realm.preview_policy`）
 - `cx.flow.admin`
 - `cx.realm.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `cx.audit.accessed` 同时持有，详见 [`../models/flow-and-message.md` §8.5](../models/flow-and-message.md)）
 - `cx.schema.define`

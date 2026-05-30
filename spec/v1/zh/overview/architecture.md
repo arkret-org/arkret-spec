@@ -122,6 +122,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 - `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，不得单独作为明文授权依据。
 - 修改 `plaintext_visible_services` 的事件必须经 `cx.realm.plaintext_visible_services` 授权；普通 `cx.realm.update` 或服务自声明不得隐式扩大明文可见边界。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
+- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项不得自动推导其它项。history snippet / public export 还必须受 `cx.realm.preview_policy` 或等价 export policy 约束。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.4 Client Query / Projection

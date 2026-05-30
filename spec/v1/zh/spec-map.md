@@ -71,7 +71,8 @@ see_also:
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`：理解身份、handle、设备/备份密钥和隐私披露（progressive disclosure 在 `identity-handles.md` §16）。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Realm 状态机。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
-8. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
+8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm 和 E2EE history key share 的共同边界。
+9. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
 ### 2.1 快速收敛链路（先读）
 
@@ -174,6 +175,7 @@ see_also:
 | `authz/event-auth-state-resolution.md` | Move、Anchor、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered frontier。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
+| `governance/history-visibility.md` | `world_readable` / `shared` / `invited` / `joined` / `restricted` 的精确定义、preview / peek policy、public plaintext Realm 与 E2EE history key share。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
 | `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |

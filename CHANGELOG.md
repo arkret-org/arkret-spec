@@ -42,6 +42,30 @@
 
 ## [Unreleased]
 
+### History visibility / preview policy hardening(2026-05-30)
+
+补齐 Realm 历史可见性、加入前 preview / peek、public plaintext Realm 与 E2EE history key share 的规范边界，并把关键 policy surface 机器化。
+
+- **变更类型**: add + modify
+- **影响 artifact**: event registry / capability registry / event payload schema / event envelope schema / realm schema / error-code registry / vector registry / conformance profiles / prose
+- **canonical 变更**:
+  - `contract-catalog.json#event_kind_registry`: 新增 active reducer-input event kind `cx.realm.preview_policy`，cell family 为 `cx.component.realm.preview_policy.v1`。
+  - `contract-catalog.json#capability_action_registry`: 新增 high-risk action `cx.realm.preview_policy`，并把 `cx.realm.preview_policy` 纳入 policy management surface。
+  - `event-payload.schema.json`: 新增 `history_visibility_payload`、`history_sharing_policy_payload`、`preview_policy_payload`、`history_visibility_value` 与 `history_sharing_restricted_rule`；`realm_key_scope.history_visibility` 改为封闭枚举；`plaintext_data_class` 增加 `history_preview` / `public_history_export`。
+  - `event-envelope.schema.json`: 为 `cx.realm.preview_policy`、`cx.realm.history_visibility`、`cx.realm.history_sharing_policy` 增加具体 payload dispatch。
+  - `realm.schema.json`: 增加 materialized `preview_policy_id` 指针。
+  - `error-code-registry.json`: 新增 `history_sharing_policy_missing`、`history_not_visible`、`preview_policy_denied`。
+  - `vector-registry.json`: 新增 `cx.vector.history_visibility.joined_prejoin_denied.v1`、`cx.vector.preview.token_scoped_stripped_state.v1`、`cx.vector.history_sharing.e2ee_prejoin_key_share_policy.v1`。
+- **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`；`event-kind-registry.json` / `capability-action-registry.json` 等派生视图同步；`python tools/artifact_pipeline.py check` 通过，registry diff clean。
+- **conformance impact**:
+  - 受影响 profile: Directory / resolve_target preview、E2EE client history key share、core event payload validation、privacy hardening。
+  - profile tier 变化: 无；`privacy_hardening` 列表增加 `preview_policy`。
+  - wire 兼容性: backward-compatible for readers that already fail closed on unsupported event kinds；writers that emit `history_visibility=restricted` MUST also provide effective `cx.realm.history_sharing_policy`。
+  - reader / writer 行为要求: `history_visibility` MUST use T0 semantics；`preview` token MUST bind target descriptor + link type + preview policy digest；E2EE old epoch key share MUST require both history visibility and history sharing policy.
+- **fixture / vector 变化**: `conformance-vectors.md` 增加三条 history / preview / history sharing 向量，并注册到 `vector-registry.json`。
+- **prose 同步**: 新增 `zh/governance/history-visibility.md`；同步 `discovery-directory.md`、`object-addressing.md`、`realm-and-space.md`、`circle.md`、`encryption-and-audit.md`、`device-lifecycle.md`、`service-surface.md`、`capabilities.md`、`spec-map.md`、`release-readiness.md`、`schema-registry.md`、`operations-sync.md`、`architecture.md`。
+- **迁移指南**: 实现不得再把 `history_visibility` enum 当作粗略 UI hint；必须按 T0 + current safety policy + key-share policy 评估。支持加入前 preview 的实现必须写 `cx.realm.preview_policy`，旧的裸 `lt=preview` 或未绑定 token 一律按 `reference` / `not_found` fail closed。
+
 ### Subscribe stream reconnect backoff(2026-05-30)
 
 为 `cx.events.subscribe` / `cx.account.subscribe` 的 200 NDJSON control frame 增加 `reconnect_after_ms`，用于服务端在 `dropped` / `resync_required` 后显式约束下一次订阅重连时间，避免故障或负载压力下的重连放大。

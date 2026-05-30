@@ -148,6 +148,18 @@
       "bottom": "reject"
     },
     {
+      "event_kind": "cx.realm.preview_policy",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm preview / peek policy for directory card, stripped state, history stub, and plaintext history snippet projections",
+      "cell_family": "cx.component.realm.preview_policy.v1",
+      "cell_subject": null,
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
       "event_kind": "cx.realm.policy_server",
       "category": "realm",
       "status": "active",

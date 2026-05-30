@@ -375,6 +375,7 @@
               "cx.realm.moderation_policy",
               "cx.realm.organization",
               "cx.realm.plaintext_visible_services",
+              "cx.realm.preview_policy",
               "cx.realm.policy",
               "cx.realm.policy_components",
               "cx.realm.policy_server",
@@ -564,6 +565,33 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.realm.preview_policy" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.realm.history_visibility" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/history_visibility_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.realm.history_sharing_policy" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/history_sharing_policy_payload" } }
       }
     },
     {

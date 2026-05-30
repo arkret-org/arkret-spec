@@ -645,6 +645,7 @@
         "cx.realm.join_rule",
         "cx.realm.history_visibility",
         "cx.realm.discovery",
+        "cx.realm.preview_policy",
         "cx.realm.policy_server",
         "cx.realm.policy_components",
         "cx.realm.history_sharing_policy",
@@ -695,6 +696,16 @@
       "required_constraints": [],
       "target_event_kinds": [
         "cx.realm.plaintext_visible_services"
+      ],
+      "profile": null
+    },
+    {
+      "action": "cx.realm.preview_policy",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.realm.preview_policy"
       ],
       "profile": null
     },
@@ -1023,6 +1034,7 @@
         "cx.realm.asset_privacy_policy",
         "cx.realm.read_receipt_policy",
         "cx.realm.history_sharing_policy",
+        "cx.realm.preview_policy",
         "cx.realm.moderation_policy"
       ],
       "profile": null

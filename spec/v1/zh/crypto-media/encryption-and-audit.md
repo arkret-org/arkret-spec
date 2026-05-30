@@ -261,6 +261,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 - 客户端缺少 epoch 时 MUST 标记 `decryption_pending`，不得静默丢弃或重排事件。
 - backfill 历史事件时，客户端 SHOULD 同步对应 epoch 区间的 MLS state，而不是逐条向成员请求密钥。
 - 被移除成员不得获取移除后 epoch 的 group secret；客户端必须 fail closed。
+- `history_visibility` 只授予历史读取资格，不自动授予旧 epoch key。客户端 / key source 在交付历史 key 前 MUST 同时执行 [`../governance/history-visibility.md`](../governance/history-visibility.md) §3 的 Event-time visibility 判定与 effective `cx.realm.history_sharing_policy` 判定。
 
 服务端和 Sync Service 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
 
@@ -269,7 +270,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
 
 - 会影响 E2EE 可见性的 `cx.member.state`（Realm-level）或 MLS-backed `cx.circle.member.state`（Circle-level）accepted 后（track 不携带独立 membership；Realm 内的子事件边界由 [Circle](../models/circle.md) 通过 `Flow.scope_circle_id` 表达，并由 `cx.circle.member.state` 管理 Circle 成员），相应 MLS-backed scope（Realm-default 或 Circle）进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。Plaintext Circle 只执行 membership / delivery / query 裁剪，不进入 MLS epoch 状态机。
-- 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
+- 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history visibility、history sharing policy 和 key share event 均明确授权。`history_visibility=shared` 只表示 joined 后具备读取 join 前历史的资格；旧 epoch key 仍必须通过 `cx.realm_key.share` 或等价 policy-authorized recovery path 交付。`history_visibility=joined` 下，join 前正文和旧 epoch key MUST 被拒绝。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
 - 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新 application messages 并标记 `encryption_transition_pending`,直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Realm,无论 `security_class`——忽略 governance frontier 的发送会让 ban / revoke 在新消息上失效，正是引入 MLS Governance Binding 要消除的风险。
 

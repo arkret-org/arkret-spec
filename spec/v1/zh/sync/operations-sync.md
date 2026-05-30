@@ -524,7 +524,9 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.realm.policy_server`
 - `cx.realm.policy_components`
 - `cx.realm.plaintext_visible_services`
+- `cx.realm.preview_policy`
 - `cx.realm.history_visibility`
+- `cx.realm.history_sharing_policy`
 - `cx.realm.join_rule`
 - `cx.realm.discovery`
 - `cx.organization.discovery`

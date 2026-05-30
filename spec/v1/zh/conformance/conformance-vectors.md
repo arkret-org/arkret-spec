@@ -2658,3 +2658,56 @@ Expected:
 
 - Client MUST 检测 Egress destination 不是 Contrix media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
 - 合法路径：Egress → Contrix blob upload → `cx.call.state` lifecycle `state="recording_ready"` + blob hash。
+
+## 13. History Visibility / Preview / History Sharing
+
+### 13.1 Joined Visibility Denies Pre-Join History
+
+`vector_id`: `cx.vector.history_visibility.joined_prejoin_denied.v1`
+
+Setup:
+
+1. Realm R 在 `T0` 的 effective `cx.realm.history_visibility.value = "joined"`。
+2. Alice 是 active member 并提交 message `E_before`。
+3. Bob 在后续 Anchor `J` 才通过 `cx.member.state{membership=join}` 加入。
+4. Bob 调用 backfill，范围覆盖 `E_before`。
+
+Expected:
+
+- Events / Sync service MUST NOT 返回 `E_before` 的正文 payload 给 Bob；可以返回 redacted / locked stub 或 `history_not_visible`。
+- E2EE Realm 中，任何 `cx.realm_key.share` 覆盖 `E_before` epoch 且 recipient=Bob MUST 被拒绝或对应 `cx.realm_key.withheld{withheld_reason_code="history_not_visible"}`。
+- 如果 Realm 后续把 current visibility 改成 `shared`，该变化不 retroactively 重解释 `E_before` 的 `T0` 可见性；除非新 policy 明确声明受审计的 historical reclassification profile，否则 Bob 仍不能把 `E_before` 作为 verified timeline 明文展示。
+
+### 13.2 Preview Token Is Stripped-State Only Unless Policy Allows More
+
+`vector_id`: `cx.vector.preview.token_scoped_stripped_state.v1`
+
+Setup:
+
+1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`link_type="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
+2. Effective `cx.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
+3. Bob 调用 `cx.directory.resolve_target`，携带 address 与 token。
+4. 攻击者 Mallory 把同一 token 放到另一个 Flow address，或把 URL `lt` 改为 `invite`。
+
+Expected:
+
+- Bob MAY 收到 `realm_preview` / `object_preview` 中 policy 允许的 stripped fields。
+- 响应 MUST NOT 包含正文历史、成员列表、policy 原文、`join_candidates[]` 或任何 write / membership grant。
+- Mallory 的 scope-confused request MUST 返回与不存在不可区分的 `not_found`；resolver MUST 比对 token 内 `target_digest` 与 effective `link_type`，不得只校验 token 签名。
+
+### 13.3 E2EE Pre-Join Key Share Requires History Sharing Policy
+
+`vector_id`: `cx.vector.history_sharing.e2ee_prejoin_key_share_policy.v1`
+
+Setup:
+
+1. Realm R 为 `encryption_profile="mls_rfc9420"`，`history_visibility.value = "shared"`。
+2. Alice 在 epoch 7 发送 `E_before`。
+3. Bob 在 epoch 9 加入并成功处理 Welcome。
+4. Key source S 尝试向 Bob 发送覆盖 epoch 7 的 `cx.realm_key.share`。
+
+Expected:
+
+- 若 effective `cx.realm.history_sharing_policy` 缺失，或 `pre_join_history="deny"` / `rule_only` 且无匹配 rule，S MUST withhold，reason SHOULD 为 `history_not_visible` 或 `policy_denied`。
+- 若 policy 明确允许 `pre_join_history="allow_if_visibility_allows"`、`allowed_key_sources` 包含 S 的来源类型、receiver state 合法且 audit 要求满足，S MAY 发送 key share；payload `key_scope.policy_digest` MUST 覆盖该 policy root，`membership_frontier_digest` SHOULD 覆盖 Bob join frontier。
+- Bob 客户端 MUST NOT 因 `history_visibility=shared` 自行推断 epoch 7 key；没有合法 key share 时，`E_before` 保持 `decryption_pending` / `decryption_failed`。

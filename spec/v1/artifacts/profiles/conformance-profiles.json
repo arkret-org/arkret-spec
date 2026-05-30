@@ -270,7 +270,8 @@
     "asset_download_privacy_policy",
     "private_contact_discovery",
     "connection_identifier_separation",
-    "history_sharing_policy"
+    "history_sharing_policy",
+    "preview_policy"
   ],
   "mimi_interop": [
     "provider_directory_draft_pinning",

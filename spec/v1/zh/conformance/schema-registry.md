@@ -136,7 +136,9 @@ sidebar:
 | `cx.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
 | `cx.realm.join_rule` | Join rule state |
 | `cx.realm.history_visibility` | History visibility state |
+| `cx.realm.history_sharing_policy` | E2EE history key share policy |
 | `cx.realm.discovery` | Discoverability state |
+| `cx.realm.preview_policy` | Preview / peek policy state |
 | `cx.realm.policy` | Realm policy state |
 | `cx.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
 | `cx.realm.tombstone` | Terminal Realm tombstone or replacement marker |

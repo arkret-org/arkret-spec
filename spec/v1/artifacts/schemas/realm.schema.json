@@ -158,6 +158,11 @@
       "type": "string",
       "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "preview_policy_id": {
+      "type": "string",
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use cx.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
+    },
     "default_discoverability": {
       "type": "string",
       "enum": [

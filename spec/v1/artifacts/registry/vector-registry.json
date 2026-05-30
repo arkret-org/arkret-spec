@@ -274,6 +274,22 @@
       ]
     },
     {
+      "vector_id": "cx.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
+      "status": "active",
+      "domain": "history_sharing",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.history_visibility.joined_prejoin_denied.v1",
+      "status": "active",
+      "domain": "history_visibility",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "cx.vector.invite.failure_indistinguishable.v1",
       "status": "active",
       "domain": "invite",
@@ -621,6 +637,14 @@
       "vector_id": "cx.vector.projection.pagination_shape.v1",
       "status": "active",
       "domain": "projection",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.preview.token_scoped_stripped_state.v1",
+      "status": "active",
+      "domain": "preview",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]

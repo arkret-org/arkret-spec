@@ -386,6 +386,24 @@
       "description": "The submitted Realm policy combination (discoverability × join_rule × history_visibility) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.1. Reducer keeps the prior accepted state."
     },
     {
+      "code": "history_sharing_policy_missing",
+      "http_status": 422,
+      "scope": "both",
+      "description": "A Realm or Circle attempted to use history_visibility=restricted, or to authorize a restricted history/key-share range, without an effective cx.realm.history_sharing_policy covering the target scope. Reducers and key sources MUST fail closed. See zh/governance/history-visibility.md."
+    },
+    {
+      "code": "history_not_visible",
+      "http_status": 403,
+      "scope": "both",
+      "description": "The requested Event range, backfill window, preview field, or E2EE history key share is not visible to the caller under the target Event's T0 history_visibility and the current safety policy. Non-enumerating surfaces MAY map this to not_found. See zh/governance/history-visibility.md."
+    },
+    {
+      "code": "preview_policy_denied",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "A directory/resolve/search/projection request attempted to obtain a stripped preview, history stub, history snippet, or token-scoped preview that is not allowed by the effective cx.realm.preview_policy. External responses that must be non-enumerating MAY map this to not_found. See zh/governance/history-visibility.md §4."
+    },
+    {
       "code": "anchorer_recovery_missing",
       "http_status": 422,
       "scope": "both",
