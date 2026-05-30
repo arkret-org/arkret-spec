@@ -5,8 +5,8 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/) 与
 [Semantic Versioning](https://semver.org/)。
 
-本仓库当前发布 `v1.0.0` 规范稳定基线。下方条目描述的是该基线相对内部候选稿的收敛内容，
-而不是相对任何先前公开稳定版本的差异。
+本仓库当前处于 `v1.0.0-rc1` 发布候选状态，尚未发布 `v1.0.0` 稳定基线。下方条目描述的是该候选线相对内部草案的收敛内容，
+而不是相对任何先前公开稳定版本的差异；在 release-readiness gate、public catalog 快照和远端 CI 证据闭合前，不得把当前 HEAD 描述为 stable。
 
 ## 变更登记模板
 
@@ -41,6 +41,108 @@
 满足发布门槛 — 这与 `spec/v1/zh/overview/release-readiness.md` §5.1 保持一致。
 
 ## [Unreleased]
+
+### MLS effective scope and public catalog gate(2026-05-31)
+
+收紧 MLS Realm/Circle key scope 的机器契约，并把当前候选站点元数据与 public catalog 快照对齐。
+
+- **变更类型**: modify
+- **影响 artifact**: event payload schema / prose / site metadata / artifact pipeline
+- **canonical 变更**: `realm_key_scope` 与 `mls_genesis_payload` 改用 tagged `effective_scope`；`mls_governance_binding` 封闭字段集并显式绑定 `effective_scope`、`realm_id` 与可选 `circle_id`；旧草案 `flow_id` / `track` 不再是 MLS key scope 形状。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 会刷新所有现有 `site/public/v1/contract-catalog-*.json`；`check` 比较 public snapshot 与 canonical catalog 的 hash/bytes/counts/Circle presence。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.mls_governance_binding.full.v1`、E2EE client、Circle MLS。
+  - profile tier 变化: 无。
+  - wire 兼容性: breaking；实现必须写 `effective_scope`，不得继续把 Flow `track` 或 `flow_id` 当 key scope。
+  - reader / writer 行为要求: Commit / Welcome / Genesis 的 governance binding scope mismatch MUST fail closed。
+- **fixture / vector 变化**: 无新增 fixture；现有 Circle effective-scope vectors 继续覆盖 accepted-event / anchor binding，不再允许 MLS scope 使用旧字段。
+- **prose 同步**: `crypto-media/encryption-and-audit.md`、`models/circle.md`、`overview/release-readiness.md`。
+- **迁移指南**: 迁移写入端先由 `scope_circle_id` 派生 reducer-stamped `effective_scope`，再把同一 tagged value 放入 MLS genesis/governance binding；历史 key share 使用 `key_scope.effective_scope`。
+
+### Grant constraint identifier suffix cleanup(2026-05-31)
+
+把 grant constraint 中单一 kind 的 identifier 字段统一从 `_refs` 改为 `_ids`，关闭 schema 与命名规范之间的漂移。
+
+- **变更类型**: modify
+- **影响 artifact**: grant constraint schema / capability registry / forbidden wire field registry / rename registry / prose
+- **canonical 变更**: `allowed_view_refs`、`allowed_flow_refs`、`allowed_circle_refs`、`denied_flow_refs`、`allowed_space_refs`、`denied_space_refs`、`realm_refs`、`approval_actor_refs` 改名为对应 `_ids`；`allowed_from_container_refs` / `allowed_to_container_refs` 保持 `_refs`，因为它们是 Space/Flow/Morph polymorphic container reference。
+- **派生 artifact 同步**: `contract-catalog.json#capability_action_registry` 及 generated capability action registry 通过 pipeline 刷新；旧名进入 `forbidden-wire-fields.json` 与 `renames.json`。
+- **conformance impact**:
+  - 受影响 profile: capability / policy / agent auth / Circle management。
+  - profile tier 变化: 无。
+  - wire 兼容性: breaking；current parser MUST hard reject 旧 `_refs` 字段。
+  - reader / writer 行为要求: Writer MUST emit `_ids`；reader MUST NOT treat old names as aliases on live wire。
+- **fixture / vector 变化**: 无新增；drift lint 会拒绝旧字段在当前 schema/prose 示例中重新出现。
+- **prose 同步**: `authz/capabilities.md`、`authz/constraint-schema.md`、`authz/resource-selector-grammar.md`、`models/circle.md`、`identity/key-management.md`。
+- **迁移指南**: 离线迁移工具可机械替换旧字段名；实时 sync/federation/reducer parser 不得内联 rewrite。
+
+### Media participant typed ID prefix cleanup(2026-05-31)
+
+将 WebRTC/SFU participant handle 的 typed ID 前缀从缩写 `cx:rtcpart:` 收敛为 `cx:rtc_participant:`。
+
+- **变更类型**: modify
+- **影响 artifact**: id kind registry / OpenAPI / forbidden wire field registry / rename registry / prose
+- **canonical 变更**: `contract-catalog.json#id_kind_registry` 中 `kind=rtcpart` 改为 `kind=rtc_participant`，wire form 改为 `cx:rtc_participant:<uuid>`。
+- **派生 artifact 同步**: `id-kind-registry.json` 与 public catalog 由 pipeline 刷新。
+- **conformance impact**:
+  - 受影响 profile: realtime media / WebRTC signaling。
+  - profile tier 变化: 无。
+  - wire 兼容性: breaking；current parser MUST hard reject `cx:rtcpart:<uuid>`。
+  - reader / writer 行为要求: Writer MUST emit `cx:rtc_participant:<uuid>` in `participant_identity` and participant binding surfaces。
+- **fixture / vector 变化**: WebRTC conformance vector prose updated; no signed fixture digest changed.
+- **prose 同步**: `crypto-media/webrtc-signaling.md`、`crypto-media/bindings/contrix-native.md`、`conformance/conformance-vectors.md`。
+- **迁移指南**: 离线迁移工具可机械替换 prefix；实时 media token / signaling validator 不得接受旧缩写。
+
+### Directory anti-enumeration vector closure(2026-05-31)
+
+把 Directory / PSI 的反枚举要求纳入 machine-readable conformance vector 闭包。
+
+- **变更类型**: add
+- **影响 artifact**: vector registry / privacy-security fixture / prose
+- **canonical 变更**: `vector-registry.json` 新增 `cx.vector.directory.*` 与 `cx.vector.psi.*` cluster，覆盖 public/listed/restricted/unlisted 查询、resolve blinding、ingest 双向 opt-in、withdraw/takedown、PSI OPRF 两轮、padding/cardinality 和 quota blinded denial。
+- **派生 artifact 同步**: 无派生 registry；`python tools/artifact_pipeline.py check` 校验 vector id source_refs 闭包。
+- **conformance impact**:
+  - 受影响 profile: directory discovery、private contact discovery、privacy hardening。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible；测试闭包增强。
+  - reader / writer 行为要求: Directory-capable implementations MUST run these vectors before claiming profile support。
+- **fixture / vector 变化**: `privacy-security-fixture.json` 增加 vector cluster 与 closure case。
+- **prose 同步**: `discovery/discovery-directory.md` §12。
+- **迁移指南**: 无 wire migration；实现应把未授权/不存在/策略拒绝路径统一到 blinded response class。
+
+### Relation tombstoned state spelling(2026-05-31)
+
+将 Relation 物化对象的终态拼写从 `tombstone` 收敛为 `tombstoned`，与 Realm / Space / Circle 等对象 state 命名一致。
+
+- **变更类型**: modify
+- **影响 artifact**: relation schema / prose
+- **canonical 变更**: `relation.schema.json#/properties/state` enum 改为 `active | tombstoned`；`cx.relation.tombstone` event kind 不改名。
+- **派生 artifact 同步**: 无派生 registry。
+- **conformance impact**:
+  - 受影响 profile: core object model / relation projection。
+  - profile tier 变化: 无。
+  - wire 兼容性: breaking；materialized Relation state MUST NOT emit `tombstone`。
+  - reader / writer 行为要求: Reducer stamps `tombstoned`; readers reject old materialized state in current v1 snapshots。
+- **fixture / vector 变化**: 无新增。
+- **prose 同步**: `models/relation.md`、`models/common-fields.md`。
+- **迁移指南**: 离线 snapshot/materialized-state migration 可机械替换 state value；event kind 与 audit reason 保持原样。
+
+### Release candidate closure hardening(2026-05-31)
+
+关闭 v1 候选复审中仍带 TBD 或命名歧义的安全 surface。
+
+- **变更类型**: modify + add
+- **影响 artifact**: key backup schema / vector registry / conformance profiles / forbidden wire field registry / rename registry / prose
+- **canonical 变更**: `key_backup.encryption.kdf.params.hash` 改为 `digest_algorithm`；LiveKit recording key 固定 MLS exporter label `"cx-rtc-recording-key/v1"` 与 recording transcript Context；新增 `cx.vector.identity.did_proof_replay_window.v1`、`cx.vector.media_binding.recording_exporter_label.v1`；新增 `cx.profile.circle_anchor_cadence.fixed_5m.v1`。
+- **派生 artifact 同步**: public contract catalog 由 `python tools/artifact_pipeline.py generate` 刷新；`check` 校验 schema/vector/profile reference closure。
+- **conformance impact**:
+  - 受影响 profile: key backup memory-hard、media service binding、LiveKit binding、auth server / identity proof、Circle conformance。
+  - profile tier 变化: 新增 hardening profile `cx.profile.circle_anchor_cadence.fixed_5m.v1`。
+  - wire 兼容性: breaking for key-backup PBKDF2 params；current parser MUST reject old `params.hash`。
+  - reader / writer 行为要求: Recording exporter label/context mismatch、DID proof replay/freshness violation、event-count Circle anchor cadence all MUST fail closed or omit the profile claim。
+- **fixture / vector 变化**: 更新 `key-backup-fixture.json`；新增 DID proof replay 与 recording exporter label vectors。
+- **prose 同步**: `identity/key-management.md`、`identity/identity-did.md`、`crypto-media/webrtc-signaling.md`、`crypto-media/bindings/livekit.md`、`models/circle.md`、`proposals/0007-circle-primitive.md`、`proposals/0010-media-service-binding-framework.md`。
+- **迁移指南**: 离线迁移工具可把 key-backup PBKDF2 `params.hash` 改为 `params.digest_algorithm`；实时 key-backup validator、media adapter、Auth Server 与 Circle anchor scheduler 不得接受旧形态或活动触发 cadence。
 
 ### History visibility / preview policy hardening(2026-05-30)
 

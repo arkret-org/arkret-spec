@@ -6,7 +6,9 @@
  * - The canonical GitHub repo URL — used by every catalog detail page that
  *   wants to deep-link to the registry row that backs it.
  * - The current spec release tag shown in the homepage hero eyebrow and
- *   marketing footer.
+ *   marketing footer. `tools/artifact_pipeline.py check` requires the
+ *   matching public catalog snapshot to be byte-identical to the canonical
+ *   registry catalog.
  *
  * Anything that lives inside `contract-catalog.json` (catalog version,
  * registry counts, ...) stays in `lib/artifacts.ts`; this file is for
@@ -23,10 +25,10 @@ export function specFileUrl(relPath: string): string {
 }
 
 /**
- * The currently published spec baseline.
+ * The current release candidate shown by the site.
  *
- * Bump this together with the git tag, the CHANGELOG entry, and the value
- * referenced by `MarketingLayout.astro` / `index.astro`.
+ * Bump this together with the git tag/candidate, the CHANGELOG entry, and the
+ * matching `site/public/v1/contract-catalog-<version>.json` snapshot.
  */
-export const specReleaseTag = "v1.0.0";
-export const specReleaseLabel = "stable baseline";
+export const specReleaseTag = "v1.0.0-rc1";
+export const specReleaseLabel = "release candidate";

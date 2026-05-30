@@ -289,6 +289,15 @@ def markdown_files() -> list[Path]:
     return [path for path in roots if path.is_file()]
 
 
+def text_contract_files() -> list[Path]:
+    files: set[Path] = set(markdown_files())
+    files.update(raw_artifact_files())
+    files.update(sorted((SPEC_ROOT / "en").rglob("*.md")))
+    files.add(ROOT / "CHANGELOG.md")
+    files.add(ROOT / "site" / "src" / "lib" / "site-meta.ts")
+    return sorted(path for path in files if path.is_file())
+
+
 # Wire field names that were renamed during v1 schema evolution.
 # Each entry maps the legacy field name to:
 #   - replacement: human-readable description of the new shape
@@ -365,6 +374,14 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "disclosure_policy_ref": "disclosure_policy_id",
     "rate_limit_policy_ref": "rate_limit_policy_id",
     "policy_ref": "policy_id for Policy objects, or policy_event_ref for policy-revision Event references",
+    "allowed_view_refs": "allowed_view_ids",
+    "allowed_flow_refs": "allowed_flow_ids",
+    "allowed_circle_refs": "allowed_circle_ids",
+    "denied_flow_refs": "denied_flow_ids",
+    "allowed_space_refs": "allowed_space_ids",
+    "denied_space_refs": "denied_space_ids",
+    "realm_refs": "realm_ids",
+    "approval_actor_refs": "approval_actor_ids",
     # Hash → digest vocabulary unification (common-fields.md §2):
     # algorithm selectors use _algorithm; hash output bytes use _digest; tree roots use _root.
     "hash_profile": "digest_algorithm",
@@ -444,6 +461,7 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "cx:req:": "cx:request:",
     "cx:txn:": "cx:transaction:",
     "cx:frank:": "cx:franking_proof:",
+    "cx:rtcpart:": "cx:rtc_participant:",
     "cx.agent.key.authorized": "cx.agent.key.authorize",
     "cx.agent.key.revoked": "cx.agent.key.revoke",
     "cx.agent.key.rotated": "cx.agent.key.rotate",
@@ -2940,6 +2958,53 @@ def check_error_code_registry_uniqueness(lint: Lint) -> None:
             seen[code] = index
 
 
+def check_operations_error_mapping_closure(lint: Lint) -> None:
+    """Every operations-error-mapping code must be in the error registry."""
+    registry_path = ARTIFACTS / "registry" / "error-code-registry.json"
+    mapping_path = ARTIFACTS / "registry" / "operations-error-mapping.json"
+    registry = load_json(lint, registry_path)
+    mapping = load_json(lint, mapping_path)
+    if not isinstance(registry, dict) or not isinstance(mapping, dict):
+        return
+
+    known_codes = {
+        row.get("code")
+        for section in ("codes", "reason_codes")
+        for row in registry.get(section, [])
+        if isinstance(row, dict) and isinstance(row.get("code"), str)
+    }
+    unresolved: set[str] = set()
+
+    rules = mapping.get("rules")
+    if isinstance(rules, dict):
+        universal = rules.get("universal_codes")
+        if isinstance(universal, str):
+            match = re.search(r"any of:\s*(?P<codes>.*?)(?:\.|$)", universal)
+            code_text = match.group("codes") if match else universal
+            for raw_code in code_text.split(","):
+                code = raw_code.strip().strip(".")
+                if not re.fullmatch(r"[a-z][a-z0-9_]+", code):
+                    continue
+                if code not in known_codes:
+                    unresolved.add(code)
+
+    operations = mapping.get("operations")
+    if isinstance(operations, list):
+        for index, row in enumerate(operations):
+            if not isinstance(row, dict):
+                lint.fail(mapping_path, f"operations[{index}] must be an object")
+                continue
+            for code in row.get("operation_specific", []):
+                if not isinstance(code, str):
+                    lint.fail(mapping_path, f"operations[{index}].operation_specific contains non-string code")
+                    continue
+                if code not in known_codes:
+                    unresolved.add(code)
+
+    for code in sorted(unresolved):
+        lint.fail(mapping_path, f"error code referenced but not in error-code-registry.json: {code!r}")
+
+
 def check_cross_doc_anchors(lint: Lint) -> None:
     """T4-4: cross-doc anchor check.
 
@@ -3120,11 +3185,35 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                         fixture_path,
                         f"digest mismatch: {input_key!r} canonical bytes produce "
                         f"{recomputed} but {digest_key!r}={expected}",
-                    )
+    )
+
+
+def check_text_files_utf8_no_nul(lint: Lint) -> None:
+    """Reject binary-corrupted text contract files.
+
+    NUL bytes in Markdown or machine artifacts are usually editor or merge
+    corruption. They can render invisible in review but break site builds,
+    artifact consumption, and generated SDK input.
+    """
+    for path in text_contract_files():
+        raw = path.read_bytes()
+        if b"\x00" in raw:
+            lint.fail(path, "text contract file contains NUL byte(s)")
+        try:
+            raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            lint.fail(path, f"text contract file is not valid UTF-8: {exc}")
 
 
 def main() -> int:
     lint = Lint()
+    check_text_files_utf8_no_nul(lint)
+    if lint.errors:
+        print("Artifact registry lint failed:", file=sys.stderr)
+        for error in lint.errors:
+            print(f"- {error}", file=sys.stderr)
+        return 1
+
     check_registry_manifest(lint)
     known = check_registries(lint)
     check_schema_refs(lint, known)
@@ -3152,6 +3241,7 @@ def main() -> int:
     check_content_composite_uses_parts(lint)
     check_release_readiness_counts(lint, known)
     check_error_code_registry_uniqueness(lint)
+    check_operations_error_mapping_closure(lint)
     check_error_code_closure(lint)
     check_cross_doc_anchors(lint)
     check_openapi_no_floating_number(lint)

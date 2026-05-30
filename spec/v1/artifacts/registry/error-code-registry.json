@@ -350,6 +350,216 @@
       "description": "Cursor integrity is valid but the issuing service has explicitly revoked this cursor authority before TTL expiry. Endpoint MUST NOT advance to-device ack, subscription position, barrier wait, or dropped recovery state; caller MUST restart from a fresh cursor."
     },
     {
+      "code": "actor_seq_invalid",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Event submission rejected an actor chain sequence number that is duplicate, skipped without allowed repair evidence, or inconsistent with the actor frontier."
+    },
+    {
+      "code": "anchor_ref_stale",
+      "http_status": 409,
+      "scope": "both",
+      "description": "The supplied anchor_ref or frontier token is older than the freshness window required for this operation or policy tier."
+    },
+    {
+      "code": "anchor_ref_unknown",
+      "http_status": 404,
+      "scope": "both",
+      "description": "The supplied anchor_ref does not identify an anchor known to the receiving service for the target Realm."
+    },
+    {
+      "code": "audience_unknown",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "A token, invite, notification, or delivery request names an audience that is unknown or not visible to the caller."
+    },
+    {
+      "code": "blob_digest_mismatch",
+      "http_status": 422,
+      "scope": "endpoint",
+      "description": "Blob upload, head, download, or presign verification found that the transferred content digest does not match the declared digest."
+    },
+    {
+      "code": "blob_expired",
+      "http_status": 410,
+      "scope": "endpoint",
+      "description": "The referenced blob, upload slot, or presigned blob authority has expired."
+    },
+    {
+      "code": "blob_presign_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "A blob presign request or presigned URL token is malformed, out of policy, expired, or fails integrity checks."
+    },
+    {
+      "code": "blob_quota_exceeded",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "The blob operation exceeds actor, Realm, organization, or deployment storage/bandwidth quota."
+    },
+    {
+      "code": "cursor_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The supplied cursor fails syntax, schema, purpose, binding, or integrity validation before the operation can advance state."
+    },
+    {
+      "code": "device_unknown",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "The referenced device id is unknown, not visible, or no longer active for the target principal."
+    },
+    {
+      "code": "did_already_exists",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A DID operation attempted to create or register a DID that already exists under the registry's uniqueness rules."
+    },
+    {
+      "code": "did_not_found",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "The requested DID cannot be found under the active identity registry and anti-enumeration policy."
+    },
+    {
+      "code": "did_revoked",
+      "http_status": 410,
+      "scope": "endpoint",
+      "description": "The requested DID exists in historical registry state but has been deactivated, revoked, or superseded."
+    },
+    {
+      "code": "frontier_unavailable",
+      "http_status": 503,
+      "scope": "endpoint",
+      "description": "The service cannot currently produce the requested frontier because required anchor, reducer, or witness state is unavailable."
+    },
+    {
+      "code": "handle_unverified",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "A handle or alias exists but lacks a verifiable current claim binding for the requested operation."
+    },
+    {
+      "code": "key_replay",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A key upload, claim, consume, or device-message operation reuses one-time key material or a claim nonce outside the allowed single-use window."
+    },
+    {
+      "code": "keypackage_already_consumed",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "An MLS KeyPackage claim/consume/revoke operation targeted a KeyPackage that has already been consumed by a Welcome."
+    },
+    {
+      "code": "keypackage_unknown",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "The referenced MLS KeyPackage is unknown, expired, revoked, or not visible to the caller under the active claim policy."
+    },
+    {
+      "code": "one_time_keys_exhausted",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "No suitable one-time key or KeyPackage remains available for the requested device, principal, cipher suite, or profile."
+    },
+    {
+      "code": "policy_stale",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The request depends on policy state older than the freshness window required for this operation or risk tier."
+    },
+    {
+      "code": "policy_unavailable",
+      "http_status": 503,
+      "scope": "endpoint",
+      "description": "The policy service, policy frontier, or policy proof required for this operation is temporarily unavailable."
+    },
+    {
+      "code": "principal_unknown",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "The referenced principal DID or account principal is unknown or not visible to the caller."
+    },
+    {
+      "code": "push_gateway_unreachable",
+      "http_status": 503,
+      "scope": "endpoint",
+      "description": "The push gateway or downstream push provider could not be reached or is unavailable for this route."
+    },
+    {
+      "code": "push_payload_too_large",
+      "http_status": 413,
+      "scope": "endpoint",
+      "description": "The notification payload exceeds the push profile, provider, or deployment size limit."
+    },
+    {
+      "code": "push_target_unknown",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "The requested push target, device route, or notification subscription is unknown or no longer visible."
+    },
+    {
+      "code": "push_token_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The supplied push token is malformed, fails provider validation, or is not bound to the authenticated principal/device."
+    },
+    {
+      "code": "push_token_unknown",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "The push token or registration id is unknown, revoked, expired, or already unregistered."
+    },
+    {
+      "code": "quarantine",
+      "http_status": 409,
+      "scope": "both",
+      "description": "The submitted item or operation result was quarantined by moderation, abuse, fork, policy, or risk handling and is not accepted as ordinary visible state."
+    },
+    {
+      "code": "snapshot_authority_unverified",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "The snapshot issuer, witness quorum, or signing authority cannot be verified for the requested Realm and manifest time."
+    },
+    {
+      "code": "snapshot_unavailable",
+      "http_status": 503,
+      "scope": "endpoint",
+      "description": "The requested snapshot head or snapshot artifact is not currently available from this service."
+    },
+    {
+      "code": "stream_dropped",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A subscription stream dropped events or account updates and the client must follow the server-directed recovery path."
+    },
+    {
+      "code": "stream_resync_required",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "A subscription stream cannot safely continue from the supplied cursor; the client must resync from a fresh cursor or snapshot."
+    },
+    {
+      "code": "too_large",
+      "http_status": 413,
+      "scope": "both",
+      "description": "Generic request, query, batch, or envelope size limit exceeded. More specific blob/push/payload variants may be used when available."
+    },
+    {
+      "code": "unsupported_did_method",
+      "http_status": 422,
+      "scope": "endpoint",
+      "description": "The DID method is syntactically valid but not supported by the active identity registry or resolver policy."
+    },
+    {
+      "code": "unsupported_media_policy",
+      "http_status": 422,
+      "scope": "endpoint",
+      "description": "The requested media, call, recording, or SFU policy is not supported by the service or negotiated media profile."
+    },
+    {
       "code": "unsupported_feature",
       "http_status": 501,
       "scope": "both",
@@ -360,6 +570,12 @@
       "http_status": 501,
       "scope": "both",
       "description": "The service does not accept the requested active standard Event kind."
+    },
+    {
+      "code": "not_implemented",
+      "http_status": 501,
+      "scope": "both",
+      "description": "The operation is registered but this deployment has not implemented the endpoint or binding."
     },
     {
       "code": "projection_incomplete",
@@ -378,6 +594,12 @@
       "http_status": 503,
       "scope": "endpoint",
       "description": "The service is temporarily unavailable or cannot currently satisfy the request."
+    },
+    {
+      "code": "service_unavailable",
+      "http_status": 503,
+      "scope": "both",
+      "description": "The service or a required upstream dependency is unavailable; callers MAY retry according to Retry-After / next_retry_at when provided."
     },
     {
       "code": "policy_combination_invalid",

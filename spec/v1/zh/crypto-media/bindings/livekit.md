@@ -78,7 +78,7 @@ LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 fram
 Contrix-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoint MUST 是 Contrix-side proxy；录制 artifact 流向严格按 [`../webrtc-signaling.md` §13](../webrtc-signaling.md) 与 [CXP-0010 §4.7](../../../proposals/0010-media-service-binding-framework.md)：
 
 - Egress destination MUST 是 Contrix media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
-- 录制加密 key 来自 MLS exporter（label 与 SFrame key 区分，TBD 在后续 vector 中固定）；LiveKit 不持久化明文。
+- 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"cx-rtc-recording-key/v1"`（与 SFrame `"cx-rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
 - 录制完成后通过 `cx.call.state` 发布 `state="recording_ready"` + blob hash。
 - 客户端检测到 LiveKit Egress 配置指向非 Contrix endpoint → fail closed `recording_artifact_pipeline_bypassed`。
 
@@ -112,7 +112,8 @@ LiveKit Cloud SFU mesh 是 backend-internal 概念；Contrix 通过 `foci[].casc
 - `cx.vector.media_binding.e2ee_key_source.v1`
 - `cx.vector.media_binding.participant_identity_unrecognised.v1`
 - `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1`
+- `cx.vector.media_binding.recording_exporter_label.v1`
 
-LiveKit-specific vectors (JWT claim shape conformance、SFrame key injection cross-check) 在 v1 cycle 内非 normative；如有需要，可作为 candidate vector 在后续提案中补登记。
+LiveKit-specific vectors (JWT claim shape conformance、SFrame key injection cross-check) 在 v1 cycle 内非 normative；录制 exporter label 已由 `cx.vector.media_binding.recording_exporter_label.v1` 固定，任何 label/context 变更都必须开新 profile。
 
 具体向量 fixture 与脚本由 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json) 编排。

@@ -279,14 +279,14 @@
       },
       "uniqueItems": true
     },
-    "allowed_view_refs": {
+    "allowed_view_ids": {
       "type": "array",
       "items": {
         "type": "string",
         "pattern": "^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
-    "allowed_flow_refs": {
+    "allowed_flow_ids": {
       "type": "array",
       "items": {
         "type": "string",
@@ -294,7 +294,7 @@
       },
       "uniqueItems": true
     },
-    "allowed_circle_refs": {
+    "allowed_circle_ids": {
       "type": "array",
       "description": "Limits Circle-scoped capability actions to the listed Circle ids. Used by cx.circle.manage / cx.circle.member.manage style grants; unconstrained Realm-wide Circle management grants are not a normal permission shape.",
       "items": {
@@ -303,7 +303,7 @@
       },
       "uniqueItems": true
     },
-    "denied_flow_refs": {
+    "denied_flow_ids": {
       "type": "array",
       "items": {
         "type": "string",
@@ -311,7 +311,7 @@
       },
       "uniqueItems": true
     },
-    "allowed_space_refs": {
+    "allowed_space_ids": {
       "type": "array",
       "items": {
         "type": "string",
@@ -319,7 +319,7 @@
       },
       "uniqueItems": true
     },
-    "denied_space_refs": {
+    "denied_space_ids": {
       "type": "array",
       "items": {
         "type": "string",
@@ -442,7 +442,7 @@
         "blob_ref_pattern": {
           "type": "string"
         },
-        "realm_refs": {
+        "realm_ids": {
           "type": "array",
           "items": {
             "type": "string",
@@ -554,7 +554,7 @@
         "after_commit_review"
       ]
     },
-    "approval_actor_refs": {
+    "approval_actor_ids": {
       "type": "array",
       "items": {
         "type": "string",

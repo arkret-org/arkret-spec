@@ -596,7 +596,7 @@ MUST NOT:
 
 MUST 支持:
 - Effective permission rule:`controller-approved grant AND controller's own delegable authority AND Realm policy AND resource selector / constraints AND agent key scope AND requested session scope AND current revocation / freshness state`,默认拒绝 wildcard
-- Canonical constraint vocabulary:`allowed_tracks` / `allowed_flow_refs` / `allowed_data_classes` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
+- Canonical constraint vocabulary:`allowed_tracks` / `allowed_flow_ids` / `allowed_data_classes` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
 - Reply-as-agent 与 act-on-behalf wire(`actor_id` / `executed_by` / `authorization_ref`)与双重署名渲染
 - act-on-behalf 默认 fresh approval 粒度 `(action, target_flow)` + 短期 temporal window
 - Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor

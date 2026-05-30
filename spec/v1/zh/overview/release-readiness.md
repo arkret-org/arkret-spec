@@ -20,7 +20,7 @@ updated: 2026-05-25
 - 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry
 - OpenAPI、非 HTTP binding、fixture 与中文规范均可回指这些 registry
 
-当前仓库处于 `v1.0.0` stable promotion 候选状态：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。CXP-0007 机器契约、版本化 public catalog 快照、站点依赖审计与远端 CI 证据关闭前，不得把当前 HEAD 描述为已发布的 stable 包；历史候选标签也不得用于描述当前正式发布包。
+当前仓库处于 `v1.0.0-rc1` release candidate 状态，目标是 `v1.0.0` stable promotion：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + public catalog snapshot hash/count gate + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。CXP-0007 机器契约、版本化 public catalog 快照、站点依赖审计与远端 CI 证据关闭前，不得把当前 HEAD 描述为已发布的 stable 包；历史候选标签也不得用于描述当前正式发布包。
 
 `v1.0.0` 基线下，机器 registry 的当前覆盖范围为：
 
@@ -30,14 +30,14 @@ updated: 2026-05-25
 | Schema | 59 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 44 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 101 | `artifacts/registry/operation-registry.json` |
-| Claimable conformance profile | 67 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | 88 | `artifacts/profiles/conformance-profiles.json` |
+| Claimable conformance profile | 68 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 89 | `artifacts/profiles/conformance-profiles.json` |
 
 上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 当前有 59 个 raw JSON Schema artifact file；其中 `cx.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，不能只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含两个 wire-breaking cleanup：`cx.schema.handle_claim.v1.claim_kind` 不再允许 draft-era `service_handle`（服务 / 资源可读名必须迁移到独立服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`），并且 `cx.member.identity.update` payload 中旧草案字段 `identity_state_digest` 已更名为 `identity_payload_digest`，以避免与 roster `member_display_state_digest` 混淆。实现者不得同时接受旧名和新名作为等价字段，除非在本地迁移层先把旧草案数据正规化后再进入 v1 validator。
 
-当前 `conformance-profiles.json` 另含 77 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `cx.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+当前 `conformance-profiles.json` 另含 78 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `cx.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
 > `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `cx.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
@@ -94,7 +94,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 - OpenAPI 不得包含未发布生成器报告、占位 body 说明或 operation-level 非法字段
 - fixture 与 Markdown JSON 示例不得使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，不能被更早的 schema 错误掩盖。
 - 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；不得让 schema `$id` 解析到 HTML 文档。
-- 版本化 public catalog 快照 MUST 与发布说明中的语义一致：若 `contract-catalog-<version>.json` 是冻结 baseline，当前 release 必须发布新的 versioned snapshot；若同名快照代表当前 release，则必须由 CI 用 count/hash gate 证明它与 canonical catalog 一致。
+- 版本化 public catalog 快照 MUST 与发布说明中的语义一致：`site/src/lib/site-meta.ts#specReleaseTag` 指向当前候选 `v1.0.0-rc1`；同时，仓库中已存在的 `site/public/v1/contract-catalog-*.json` 均 MUST 与 `artifacts/registry/contract-catalog.json` byte-identical，并由 `python tools/artifact_pipeline.py check` 的 hash/count/Circle-presence gate 校验。稳定发布前不得让任一 public snapshot 继续暴露缺少 Circle contract 的旧 catalog。
 - CXP-0007 stable gate MUST 闭合 `effective_scope` submit-input / reducer-output schema 角色、Message / Anchor output shape、Anchor leaf canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle/effective-scope conformance vector cluster；否则 release notes 必须明确 de-scope，且不得把这些项当作 v1.0 wire contract 宣布。
 - 英文 mirror 完成前，`/en/v1/...` fallback 页面不得作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。
 - 站点生产依赖不得存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。

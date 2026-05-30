@@ -250,9 +250,9 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 ### 5.4 管理动作
 
 - `cx.circle.create`（创建 Circle；默认不进入普通成员 bundle）
-- `cx.circle.manage`（管理 Circle lifecycle / metadata；MUST 通过 `allowed_circle_refs` 或 `kind="circle"` selector 收窄）
+- `cx.circle.manage`（管理 Circle lifecycle / metadata；MUST 通过 `allowed_circle_ids` 或 `kind="circle"` selector 收窄）
 - `cx.circle.member.add`（自助加入 / 接受邀请 / 自助离开，受 Circle join_rule 与父 Realm membership gate 约束）
-- `cx.circle.member.manage`（邀请、移除或 ban 他人；MUST 通过 `allowed_circle_refs` 或 `kind="circle"` selector 收窄）
+- `cx.circle.member.manage`（邀请、移除或 ban 他人；MUST 通过 `allowed_circle_ids` 或 `kind="circle"` selector 收窄）
 - `cx.circle.member.add.others`（high risk；代他人写入 Circle membership，MUST 与 `cx.audit.accessed` 配对）
 - `cx.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `cx.audit.accessed` 配对）
 - `cx.realm.admin`
@@ -344,9 +344,9 @@ Contrix v1 支持：
 - `space_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
-- `allowed_flow_refs`
-- `allowed_space_refs`
-- `allowed_view_refs`
+- `allowed_flow_ids`
+- `allowed_space_ids`
+- `allowed_view_ids`
 - `allowed_tracks`
 - `relation_kind_allow`
 - `allowed_from_container_refs`
@@ -364,7 +364,7 @@ Contrix v1 支持：
 - `rate_limit`
 - `approval_required`
 - `approval_mode`
-- `approval_actor_refs`
+- `approval_actor_ids`
 - `approval_relation`
 - `accountability_required`
 - `guardian_approval_required`
@@ -403,9 +403,9 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `space_kind_allow` | `type_restriction` | — | `space_kind_allow`（限定 Space 的 kind，例如 board / list / swimlane）|
 | `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
 | `facet_allow` | `type_restriction` | — | `facet_allow` |
-| `allowed_flow_refs` | `scope_limitation` | — | `allowed_flow_refs` |
-| `allowed_space_refs` | `scope_limitation` | — | `allowed_space_refs` |
-| `allowed_view_refs` | `scope_limitation` | — | `allowed_view_refs` |
+| `allowed_flow_ids` | `scope_limitation` | — | `allowed_flow_ids` |
+| `allowed_space_ids` | `scope_limitation` | — | `allowed_space_ids` |
+| `allowed_view_ids` | `scope_limitation` | — | `allowed_view_ids` |
 | `allowed_tracks` | `scope_limitation` | — | `allowed_tracks` |
 | `relation_kind_allow` | `scope_limitation` | — | `relation_kind_allow` |
 | `allowed_from_container_refs` | `scope_limitation` | — | `allowed_from_container_refs` |
@@ -423,7 +423,7 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `rate_limit` | `quota` | `rate` | `max_operations`, `period` |
 | `approval_required` | `claim_based` | `approval` | `approval_required` |
 | `approval_mode` | `claim_based` | `approval` | `approval_mode` |
-| `approval_actor_refs` | `claim_based` | `approval` | `approval_actor_refs` |
+| `approval_actor_ids` | `claim_based` | `approval` | `approval_actor_ids` |
 | `approval_relation` | `claim_based` | `approval` | `approval_relation` |
 | `accountability_required` | `claim_based` | `accountability` | `accountability_required` |
 | `guardian_approval_required` | `claim_based` | `accountability` | `guardian_approval_required` |

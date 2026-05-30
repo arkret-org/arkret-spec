@@ -229,6 +229,7 @@
     "cx.profile.cross_signing.reset.v1": "admin",
     "cx.profile.mls.minimal_metadata_realm.v1": "admin",
     "cx.profile.key_backup.memory_hard.v1": "admin",
+    "cx.profile.circle_anchor_cadence.fixed_5m.v1": "admin",
     "cx.profile.accountable_principals.strict_reject.v1": "admin",
     "cx.profile.anchor.single_did.v1": "admin",
     "cx.profile.anchor.threshold.v1": "admin",
@@ -292,6 +293,7 @@
     "cx.profile.cross_signing.reset.v1",
     "cx.profile.mls.minimal_metadata_realm.v1",
     "cx.profile.key_backup.memory_hard.v1",
+    "cx.profile.circle_anchor_cadence.fixed_5m.v1",
     "cx.profile.accountable_principals.strict_reject.v1"
   ],
   "vector_profiles": [
@@ -1848,7 +1850,8 @@
           "focus_token_exchange_ttl",
           "participant_binding_scheme",
           "session_focus_persistence",
-          "mls_exporter_label_cx_rtc_frame_key_v1"
+          "mls_exporter_label_cx_rtc_frame_key_v1",
+          "recording_exporter_label_cx_rtc_recording_key_v1"
         ],
         "unsupported_optional": "MUST fail closed with unknown_focus_type for unsupported foci[].type values; MUST NOT silently fall back to legacy single-endpoint shape"
       },
@@ -1858,7 +1861,8 @@
         "session_focus_must": "cx.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
         "participant_binding_must": "cx.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
         "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Contrix MLS-Exporter with label cx-rtc-frame-key/v1 (length=19 bytes, Context=\"\", KDF.Nh=32 bytes). MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
-        "recording_pipeline_must": "Backend-generated recording artifacts MUST flow through Contrix authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed)."
+        "recording_pipeline_must": "Backend-generated recording artifacts MUST flow through Contrix authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
+        "recording_key_source_must": "Recording artifact encryption keys MUST derive from Contrix MLS-Exporter label cx-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label cx-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
       }
     },
     "cx.profile.media_service_binding.livekit.v1": {
@@ -3008,6 +3012,52 @@
           "recovery_receipt_emission"
         ],
         "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"
+      }
+    },
+    "cx.profile.circle_anchor_cadence.fixed_5m.v1": {
+      "inherits": [],
+      "description": "Named cadence profile for confidential Circle sub-anchor commitments. Implementations claiming this profile MUST emit cx.circle.anchor_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-anchor upload, but MUST NOT relax the public Realm anchor cadence.",
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.events.subscribe"
+      ],
+      "required_event_kinds": [
+        "cx.circle.anchor_commit"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "circle-scope-fixture.json"
+      ],
+      "optional_extensions": [],
+      "parameters": {
+        "period_ms": {
+          "default": 300000,
+          "min": 300000,
+          "max": 300000,
+          "rationale": "Public Realm anchor commitment cadence is fixed at 5 minutes for this profile."
+        },
+        "max_jitter_ms": {
+          "default": 30000,
+          "min": 0,
+          "max": 30000,
+          "rationale": "Bounded scheduling jitter; implementations MUST NOT encode activity by delaying beyond this window."
+        },
+        "empty_batch_commitments": {
+          "required": true,
+          "rationale": "No-activity intervals still emit commitments to avoid leaking activity frequency."
+        }
+      },
+      "feature_discovery": {
+        "required": [
+          "circle_anchor_cadence_fixed_5m",
+          "circle_anchor_empty_batch_commitments",
+          "circle_anchor_activity_independent_schedule"
+        ],
+        "unsupported_optional": "omit profile claim; confidential Circle deployments MUST NOT claim an event-count cadence as equivalent"
       }
     },
     "cx.profile.cross_signing.reset.v1": {

@@ -376,7 +376,7 @@
             "salt": "saltsaltsaltsaltsalt",
             "params": {
               "iterations": 600000,
-              "hash": "sha256"
+              "digest_algorithm": "sha256"
             }
           },
           "aead": {

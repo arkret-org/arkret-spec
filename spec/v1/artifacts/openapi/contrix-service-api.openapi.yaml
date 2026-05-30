@@ -4018,8 +4018,8 @@ paths:
                     minLength: 1
                   participant_identity:
                     type: string
-                    description: SFU-local short handle, scope `(call_id, focus_id, sfu_did)`. UUIDv7-form rtcpart typed ID.
-                    pattern: ^cx:rtcpart:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                    description: SFU-local short handle, scope `(call_id, focus_id, sfu_did)`. UUIDv7-form rtc_participant typed ID.
+                    pattern: ^cx:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                   participant_binding:
                     type: object
                     additionalProperties: false
@@ -4056,7 +4056,7 @@ paths:
                         pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                       participant_identity:
                         type: string
-                        pattern: ^cx:rtcpart:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        pattern: ^cx:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                       issued_at:
                         type: string
                         format: date-time

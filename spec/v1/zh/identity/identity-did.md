@@ -396,6 +396,8 @@ Auth Server 在以下情况下 MUST NOT 接受 DID proof：
 - `issued_at` 相对 Auth Server 时钟的偏移超过 skew 容忍（SHOULD ≤ 300s），或 `expires_at - issued_at` 超过最大新鲜度窗口（SHOULD ≤ 300s）——否则签发方可任意拉宽重放窗口
 - DID 已停用或 method history 无效
 
+Conformance vector `cx.vector.identity.did_proof_replay_window.v1` 固定该 replay 边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 DID proof。
+
 service account 绑定是组织本地状态。它不会把 DID 所有权转移给组织，也不会允许组织轮换、恢复或停用用户 DID，除非 DID 自身控制状态或 recovery policy 授权该动作。
 
 ## 6. DID Document 与 Normalized View

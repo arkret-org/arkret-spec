@@ -394,6 +394,10 @@ MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_i
     "binding_version": 1,
     "encoding_profile": "cbor-deterministic-rfc8949-v1",
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "effective_scope": {
+      "kind": "realm",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+    },
     "mls_group_id": "base64url...",
     "previous_epoch": 41,
     "next_epoch": 42,
@@ -407,7 +411,7 @@ MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_i
 }
 ```
 
-MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**不存在 per-track MLS group**——整个 Flow 共享单一安全边界（见 [`flow-and-message.md`](../models/flow-and-message.md) §3）。当 `governance_binding` 需要携带 Flow 级上下文时，它 MAY 额外覆盖 `flow_id` 与 `track`，但二者仅作为 application message context / AAD 字段，**不**据此派生独立 membership、history visibility 或 MLS group。验证边界是 Realm/Circle membership、history visibility、policy state 与 `allowed_tracks` action scope；`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
+MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**不存在 per-track MLS group**——整个 Flow 共享单一安全边界（见 [`flow-and-message.md`](../models/flow-and-message.md) §3）。`governance_binding` 是封闭对象，不携带 `flow_id` 或 `track`；Flow 级上下文只能出现在 application message AAD 或外层 payload 中，且不得据此派生独立 membership、history visibility 或 MLS group。验证边界是 Realm/Circle membership、history visibility、policy state 与 `allowed_tracks` action scope；`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
 
 **E2EE Realm MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Realm 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
@@ -454,7 +458,9 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
   "binding_profile":     tstr,
   "binding_version":     uint,    ; v1 = 1
   "capability_root":     bstr,    ; optional, full profile only
+  "circle_id":           tstr,    ; optional, only when effective_scope.kind="circle"
   "discussion_metadata_digest": bstr, ; optional, full profile only
+  "effective_scope":     { "kind": tstr, "realm_id": tstr, "circle_id": tstr? },
   "encoding_profile":    tstr,    ; "cbor-deterministic-rfc8949-v1"
   "membership_frontier": [+ bstr],
   "mls_group_id":        bstr,
@@ -473,7 +479,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 | `binding_version` / `encoding_profile` | 否 | **必须**：把 codepoint 之外的 wire version 与 canonical encoding 锁入 signed bytes，避免未来 codepoint 或 CBOR profile 变化时不同实现对同一 governance binding 得出不同 canonical 形态。 |
 | `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
 | `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_frontier_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
-| `realm_id` | **否**（Contrix-specific，MLS 不知道 Realm 概念） | **必须**：realm_id 是把 MLS group 锚定到 Contrix governance state 的核心绑定；缺失则 governance_binding 可能被错误重绑定到不同 Realm 的 commit。 |
+| `effective_scope` / `realm_id` / `circle_id` | **否**（Contrix-specific，MLS 不知道 Realm / Circle 概念） | **必须**：`effective_scope` 是把 MLS group 锚定到 Contrix governance state 的核心绑定；Realm-default group 使用 `{kind:"realm", realm_id}`，Circle group 使用 `{kind:"circle", realm_id, circle_id}`。`realm_id` 与可选 `circle_id` 是离线审计冗余字段，MUST 与 `effective_scope` 一致；缺失或不一致会使 governance_binding 可能被错误重绑定到不同 Realm/Circle 的 commit。 |
 | `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_digest` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
 | `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
 
@@ -483,7 +489,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 为关闭这条 federation 静默降级路径,v1 取消 deployment 私有覆盖。需要更换 codepoint 的部署 MUST 申请新 hardening profile（与对应 `mls_governance_binding.full.v<n>` 配套）并显式声明，使得"使用不同 codepoint"成为可观察的 wire 版本切换而非 codepoint-only 私有约定。
 
-当 `governance_binding` 携带 Flow 级上下文时，CBOR map MAY 包含额外键 `"flow_id"` (tstr) 和 `"track"` (tstr)；这些键仅作为 application message context / AAD，**不**决定 key scope（key scope 由 `effective_scope` 决定）。若出现，它们 MUST 进入 deterministic CBOR canonical bytes 并按 lexicographic key 顺序排列。
+`governance_binding` 是封闭对象；不得携带 `"flow_id"`、`"track"` 或其它 profile 未登记字段。Flow / Message 上下文只可作为 application message context / AAD 出现，**不**决定 key scope；key scope 只能由 `effective_scope` 决定，并且必须进入 deterministic CBOR canonical bytes。
 
 规则：
 
@@ -759,7 +765,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 `cx.mls.genesis.payload` MUST 至少包含：
 
 - `mls_group_id`
-- `scope`：tagged `effective_scope` —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 Realm 内 MLS-backed [Circle](../models/circle.md) 的独立 MLS group。MLS group 的 scope 绑定到 `(realm_id, circle_id?)` 复合 key。
+- `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 Realm 内 MLS-backed [Circle](../models/circle.md) 的独立 MLS group。MLS group 的 scope 绑定到 `(realm_id, circle_id?)` 复合 key；旧草案中的 `realm_key_scope`、`flow_id` 或 `track` 不能作为 genesis scope。
 - `epoch`：MUST 为 `0`。
 - `creator_principal_id`
 - `creator_device_id`
@@ -773,7 +779,7 @@ Genesis 接受规则：
 
 1. 创建者必须在 `governance_binding.membership_frontier` 和 `policy_root` 覆盖的状态下有创建该 MLS group 的权限；通常需要 `cx.mls.genesis` 或包含该动作的管理 grant。
 2. `governance_binding.next_epoch` MUST 为 `0`；若包含 `previous_epoch`，也 MUST 为 `0`。
-3. 同一 `(scope, mls_group_id)` 的 genesis cell 使用 `cas_register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Move 必须 fail closed，直到 recovery Move 修复。
+3. 同一 `(effective_scope, mls_group_id)` 的 genesis cell 使用 `cas_register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Move 必须 fail closed，直到 recovery Move 修复。
 4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `cx.mls.commit` Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `cx.mls.genesis`、`next_epoch=1`。
 5. 新加入成员的 `cx.mls.welcome` MUST 引用 effective genesis 或后续 effective commit 派生出的 epoch state；客户端不得从未被 Anchor 覆盖的 welcome / ratchet tree 本地推断 group authority。
 

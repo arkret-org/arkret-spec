@@ -306,7 +306,7 @@ Membership transition table:
 **Anchor stream**:
 
 - Circle 内事件维护 Circle sub-anchor(只对 Circle 成员可读,记录完整 envelope + payload digest)。
-- Circle 按 profile 固定节拍触发 `cx.circle.anchor_commit`,向 Realm Anchor stream 提交 `sub_anchor_head_digest`(不透明 SHA-256)。默认 profile MUST 使用时间节拍 + 空批次 commitment,不得按"每 N 个真实 event"触发,否则会泄露活动频率。低隐私部署若声明 event-count profile,必须显式标为不满足 confidential Circle profile。
+- Circle 按 profile 固定节拍触发 `cx.circle.anchor_commit`,向 Realm Anchor stream 提交 `sub_anchor_head_digest`(不透明 SHA-256)。默认命名 profile 为 `cx.profile.circle_anchor_cadence.fixed_5m.v1`：`period_ms=300000`、`max_jitter_ms=30000`、必须提交空批次 commitment、不得因为没有真实事件而跳过 public anchor tick。低隐私部署若声明 event-count profile,必须显式标为不满足 confidential Circle profile。
 - 验证链:Circle member 验证时 `Circle sub-anchor head ↔ Realm anchor commitment ↔ Realm anchor head`,三段闭合。非 Circle 成员只能验证 Realm anchor 完整性。
 
 ### 3.10 删除 `Flow.discussion_realm_ref`
@@ -507,7 +507,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - [x] **跨 Circle Relation**:统一为"跨 scope Relation",直接复用 [`relation.md` §4](../zh/models/relation.md) 跨 Realm ref 的 two-sided authorization / locked projection / anti-enumeration 模型。§4.2 已列出 `relation.md` 修改项,§8.1 第 10 步落地。无遗留决策点。
 - [x] **新 relation_kind `confidential_discussion_of`**:§3.4.3 "两 Flow + Relation" 模式需要协议级 relation_kind 来标识"这个 Circle Flow 是那个 anchor Flow 的机密讨论延伸"。关系事实 SHOULD 存在 private Flow 的 Circle scope 内,避免 public anchor 反向泄露私密讨论存在性。
 - [ ] **Circle merge / split**:运维场景"两个 Circle 合并"或"Circle 拆分"是否需要协议级 event(如 `cx.circle.merge`),还是纯客户端流程?MLS 层 merge 不平凡,倾向 v1 不做,留 v1.1。
-- [ ] **`cx.circle.anchor_commit` 固定节拍参数**:§3.9 已规定默认 profile 必须用时间节拍 + 空批次 commitment;仍需定具体默认周期、最大抖动和移动端省电 profile。
+- [x] **`cx.circle.anchor_commit` 固定节拍参数**:§3.9 固定默认命名 profile `cx.profile.circle_anchor_cadence.fixed_5m.v1`，周期 5 分钟、最大抖动 30 秒；移动端省电不得改变公开 Realm anchor cadence，只能影响客户端上传私有 sub-anchor entries 的批处理。
 - [ ] **Watch cell 的 Circle 归属**:scope_circle_id 指向 Circle 的 Flow,其 watch cell 应落在父 Realm namespace 还是 Circle namespace?倾向 **Circle namespace**(单源,且 watch 见解直接受 Circle membership 约束,不需要单独投影裁剪规则)。这与原 §8.3 watch cell 在 source Realm 的设计相反,需要在 [`flow-and-message.md` §8](../zh/models/flow-and-message.md) 重写。
 - [ ] **历史成员 / "前成员能否看历史消息"**:与 MLS welcome 包是否携带历史 key 的 profile 选项有关,是否在 Circle 创建时就锁定?
 - [x] **`encryption_profile=plaintext_inherit` 是否保留**:不保留。Circle v1 只表示独立 MLS 密码学边界;授权窄化继续使用 Group / capability constraint / selector。
@@ -526,7 +526,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 | 跨 Circle Relation | **resolved** | 复用跨 scope Relation 模型（[`relation.md`](../zh/models/relation.md) §4）。 |
 | `confidential_discussion_of` | **resolved** | 已注册为标准 weak-semantic relation kind（[`relation.md`](../zh/models/relation.md) §3.1/§3.2）。 |
 | Circle merge / split | **deferred-to-v1.1** | v1 不引入 `cx.circle.merge` 等 event;MLS 层 merge 非平凡。 |
-| `cx.circle.anchor_commit` 固定节拍参数 | **de-scoped from v1 core → named cadence profile** | v1 core 仅 normative 要求"时间节拍 + 空批次 commitment、禁止 event-count 触发"（[`circle.md`](../zh/models/circle.md) §10.2）。具体 `period_ms` / `max_jitter_ms` / 移动端省电 relaxation 由 named cadence profile 声明并公开,confidential Circle profile MUST NOT 使用会泄露活动频率的 event-count cadence。 |
+| `cx.circle.anchor_commit` 固定节拍参数 | **resolved → named cadence profile** | `cx.profile.circle_anchor_cadence.fixed_5m.v1` 固定 `period_ms=300000`、`max_jitter_ms=30000`、空批次 commitment 与移动端省电边界（[`circle.md`](../zh/models/circle.md) §10.2）。confidential Circle profile MUST NOT 使用会泄露活动频率的 event-count cadence。 |
 | Watch cell 的 Circle 归属 | **resolved** | scope 指向 Circle 的 Flow,其 watch cell 落在 Circle namespace（[`flow-and-message.md`](../zh/models/flow-and-message.md) §8）。 |
 | 历史成员能否看历史消息 | **deferred-to-profile** | 由 MLS welcome 是否携带历史 key 的 profile 选项决定;Circle 创建时锁定。 |
 | `encryption_profile=plaintext_inherit` 保留 | **resolved** | 不保留。 |

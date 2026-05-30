@@ -201,7 +201,7 @@ Content-Type: application/json
   "type": "livekit",
   "connect_url": "wss://livekit-fra.example.com",
   "backend_token": "<opaque to Contrix protocol — type-specific>",
-  "participant_identity": "cx:rtcpart:0198c2f4-0000-7000-8000-000000000000",
+  "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
     "scheme": "cx.media.participant_binding.v1",
     "realm_id": "cx:realm:...",
@@ -209,7 +209,7 @@ Content-Type: application/json
     "focus_id": "fra-1",
     "actor_id": "did:web:alice.example.com",
     "device_id": "cx:device:...",
-    "participant_identity": "cx:rtcpart:0198c2f4-0000-7000-8000-000000000000",
+    "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
     "issuer_kid": "did:web:media.example#key-1",
@@ -566,6 +566,7 @@ Conformance vectors for the full media binding framework：
 - `cx.vector.media_binding.unknown_type_fail_closed.v1` — §6.1 未知 `foci[].type` MUST fail closed。
 - `cx.vector.media_binding.participant_identity_unrecognised.v1` — §10.4 backend 通知的 participant 不在 `cx.call.state` 时拒绝该流。
 - `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1` — §13 backend-generated recording 必须经 Contrix blob pipeline。
+- `cx.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"cx-rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
 
 #### 10.5.1 治理绑定（normative）
 
@@ -600,7 +601,7 @@ Conformance vectors for the full media binding framework：
         "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
         "foci_preferred": ["fra-1", "us-east-1"],
-        "participant_identity": "cx:rtcpart:0198c2f4-0000-7000-8000-000000000000",
+        "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
           "scheme": "cx.media.participant_binding.v1",
           "realm_id": "cx:realm:...",
@@ -608,7 +609,7 @@ Conformance vectors for the full media binding framework：
           "focus_id": "fra-1",
           "actor_id": "did:web:alice.example.com",
           "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
-          "participant_identity": "cx:rtcpart:0198c2f4-0000-7000-8000-000000000000",
+          "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:05:00Z",
           "issuer_kid": "did:web:media.example#key-1",
@@ -689,7 +690,7 @@ Conformance vectors for the full media binding framework：
 - **Backend-generated recording 必经 Contrix blob pipeline**（参见 [CXP-0010 §4.7](../../proposals/0010-media-service-binding-framework.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
   1. 作为加密 blob 上传到 Contrix media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
   2. 上传请求携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `cx.call.record` 的 actor 发起。
-  3. 加密 key MUST 由 Contrix 协议层提供（与 §10.5.0 同源，从 MLS exporter 派生），backend 不持久化明文。
+  3. 加密 key MUST 由 Contrix 协议层提供（与 §10.5.0 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"cx-rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"cx-rtc-frame-key/v1"` 或空 Context。
   4. 入库后通过 `cx.call.state` 发布 lifecycle state，引用 blob hash、duration、media type、retention policy 与 `recording_start_event_id`。
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
 - 录制结果 MUST 通过已注册的 `cx.call.state` 写入 call lifecycle state（例如 `state="recording_ready"` / `state="recording_failed"`），并在 payload 中引用 blob hash、duration、media type、retention policy 和 `recording_start_event_id`。v1 不注册独立的 `cx.call.recording.result` event kind；实现不得把该裸名写入 Event Envelope。

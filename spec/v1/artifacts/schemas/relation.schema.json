@@ -61,9 +61,9 @@
       "type": "string",
       "enum": [
         "active",
-        "tombstone"
+        "tombstoned"
       ],
-      "description": "Relation state. 'tombstone' covers both deletion and redaction; the originating reason is preserved on the cx.relation.tombstone / cx.redaction event, not on the materialized object."
+      "description": "Relation state. 'tombstoned' covers both deletion and redaction; the originating reason is preserved on the cx.relation.tombstone / cx.redaction event, not on the materialized object."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
@@ -87,7 +87,7 @@
       "if": {
         "properties": {
           "state": {
-            "const": "tombstone"
+            "const": "tombstoned"
           }
         },
         "required": [

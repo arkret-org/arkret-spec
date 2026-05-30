@@ -801,29 +801,35 @@ Directory-capable implementations MUST test：
 
 **Query 面**
 
-- public Realm search
-- listed organization directory search
-- restricted search with valid and invalid claim presentation
-- unlisted exact resolve
-- invite-only indistinguishable not_found
-- `cx.directory.resolve_target` unauthorized / nonexistent / undiscoverable targets return byte-identical `not_found` and do not reveal target kind, Realm id, object id, timing class or preview metadata
-- official Realm verification through `cx.realm.organization`
-- hidden pairwise DID exclusion
-- stale result rejection after discovery policy update
-- private contact discovery does not disclose raw connection identifiers
-- search / resolve result MUST carry §9.1 normative 字段（`as_of`、`source_refs`、`policy_revision`；支持结构化 candidate 且可披露 join 路由的 resolve 必含 `join_candidates[]`）
+- `cx.vector.directory.public_realm_search.v1`：public Realm search。
+- `cx.vector.directory.organization_search.v1`：listed organization directory search。
+- `cx.vector.directory.restricted_claim_presentation.v1`：restricted search with valid and invalid claim presentation。
+- `cx.vector.directory.unlisted_exact_resolve.v1`：unlisted exact resolve。
+- `cx.vector.directory.invite_not_found_blinding.v1`：invite-only indistinguishable not_found。
+- `cx.vector.directory.resolve_target_blinding.v1`：`cx.directory.resolve_target` unauthorized / nonexistent / undiscoverable targets return byte-identical `not_found` and do not reveal target kind, Realm id, object id, timing class or preview metadata。
+- `cx.vector.directory.organization_badge_verification.v1`：official Realm verification through `cx.realm.organization`。
+- `cx.vector.directory.pairwise_did_exclusion.v1`：hidden pairwise DID exclusion。
+- `cx.vector.directory.stale_result_rejection.v1`：stale result rejection after discovery policy update。
+- `cx.vector.psi.no_reachability_metadata.v1`：private contact discovery does not disclose raw connection identifiers、reachability proof、profile、成员列表或关系图谱。
+- `cx.vector.directory.result_common_fields.v1`：search / resolve result MUST carry §9.1 normative 字段（`as_of`、`source_refs`、`policy_revision`；支持结构化 candidate 且可披露 join 路由的 resolve 必含 `join_candidates[]`）。
 
 **Ingest 面**
 
-- announce accepted when directory DID listed in `directory_services` and signature valid
-- announce rejected with `directory_not_authorized` when directory DID NOT listed
-- announce rejected with `invalid_signature` on bad `discovery_state.proof`
-- announce rejected with `signature_stale` when `as_of` skew > 5 min
-- announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry
-- announce rejected with `accept_policy_denied` when resource outside policy
-- re-announce idempotent on `(resource_id, as_of)`，TTL 正确续约
-- pull-mode ingest verifies signed discovery state on every refresh
-- TTL expiry marks entries `stale=true`，after grace + 24h removed
-- withdraw stops disclosure within ≤ 1h，subsequent resolve returns indistinguishable `not_found`
-- operator takedown writes audit log with `operator_takedown` marker and notifies governance contact
-- subsequent announce after takedown rejected with `takedown_in_force`
+- `cx.vector.directory.announce_bidirectional_opt_in.v1`：announce accepted when directory DID listed in `directory_services` and signature valid。
+- `cx.vector.directory.announce_directory_not_authorized.v1`：announce rejected with `directory_not_authorized` when directory DID NOT listed。
+- `cx.vector.directory.announce_bad_signature.v1`：announce rejected with `invalid_signature` on bad `discovery_state.proof`。
+- `cx.vector.directory.announce_signature_stale.v1`：announce rejected with `signature_stale` when `as_of` skew > 5 min。
+- `cx.vector.directory.policy_revision_rollback.v1`：announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry。
+- `cx.vector.directory.accept_policy_denied.v1`：announce rejected with `accept_policy_denied` when resource outside policy。
+- `cx.vector.directory.reannounce_idempotent_ttl.v1`：re-announce idempotent on `(resource_id, as_of)`，TTL 正确续约。
+- `cx.vector.directory.pull_mode_refresh_verification.v1`：pull-mode ingest verifies signed discovery state on every refresh。
+- `cx.vector.directory.ttl_expiry_removal.v1`：TTL expiry marks entries `stale=true`，after grace + 24h removed。
+- `cx.vector.directory.withdraw_blinded_not_found.v1`：withdraw stops disclosure within ≤ 1h，subsequent resolve returns indistinguishable `not_found`。
+- `cx.vector.directory.operator_takedown_audit.v1`：operator takedown writes audit log with `operator_takedown` marker and notifies governance contact。
+- `cx.vector.directory.takedown_reannounce_rejected.v1`：subsequent announce after takedown rejected with `takedown_in_force`。
+
+**PSI 面**
+
+- `cx.vector.psi.oprf_two_round_shape.v1`：private contact discovery MUST use the §6.2 two-round OPRF set-membership flow。
+- `cx.vector.psi.padding_and_cardinality.v1`：batch size、dummy padding、result cardinality、failure response shape and timing do not reveal match count。
+- `cx.vector.psi.quota_blinded_denial.v1`：`max_psi_queries_per_window` denial has the same wire shape / delay class as policy-denied or no-match cases。

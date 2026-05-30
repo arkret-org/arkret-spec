@@ -2282,10 +2282,10 @@
         "description": "Call/session ID"
       },
       {
-        "kind": "rtcpart",
+        "kind": "rtc_participant",
         "category": "media",
         "status": "active",
-        "wire_form": "cx:rtcpart:<uuid>",
+        "wire_form": "cx:rtc_participant:<uuid>",
         "description": "SFU-local participant handle (CXP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `cx.call.state.participants[].participant_identity` and in `participant_binding`. Implementations MAY render the derivation output as UUIDv7 (preferred) or any 16-byte token serialized in the canonical UUID hex form."
       },
       {
@@ -3471,7 +3471,7 @@
         "category": "general",
         "risk_tier": "medium",
         "required_constraints": [
-          "allowed_circle_refs"
+          "allowed_circle_ids"
         ],
         "target_event_kinds": [
           "cx.circle.update",
@@ -3498,7 +3498,7 @@
         "category": "general",
         "risk_tier": "medium",
         "required_constraints": [
-          "allowed_circle_refs"
+          "allowed_circle_ids"
         ],
         "target_event_kinds": [
           "cx.circle.member.state"
@@ -3511,7 +3511,7 @@
         "category": "audit",
         "risk_tier": "high",
         "required_constraints": [
-          "allowed_circle_refs"
+          "allowed_circle_ids"
         ],
         "required_evaluator_checks": [
           "audit_pair_required"
@@ -4299,7 +4299,7 @@
         "category": "general",
         "risk_tier": "low",
         "required_constraints": [
-          "allowed_flow_refs"
+          "allowed_flow_ids"
         ],
         "target_event_kinds": [
           "cx.message.create"

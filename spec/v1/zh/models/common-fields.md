@@ -247,8 +247,8 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` |
 | `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | — | `archived` | — | `archived` |
-| `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | `redacted` | `redacted` | `tombstone`（合并 deleted+redacted） | — |
-| `deleted` | 不可逆删除：content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | — | — | `tombstone` | `tombstoned` |
+| `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | `redacted` | `redacted` | `tombstoned`（合并 deleted+redacted） | — |
+| `deleted` | 不可逆删除：content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | — | — | `tombstoned` | `tombstoned` |
 
 约定：
 
@@ -299,8 +299,8 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 - **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表，不在各对象文档重复说明转换矩阵。
 - "Space 没有 redacted"：Space 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `cx.space.tombstone` 或 `cx.redaction` 一并完成。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
-- "Relation 用 `tombstone` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故合并为单一 `tombstone`；具体 reason 在对应 `cx.relation.tombstone` / `cx.redaction` event 中保留。
-- Reducer 与 projection MUST 把 `tombstoned` / `tombstone` / `deleted` 视为语义等价的"不可逆删除"状态；Flow / Morph 不使用 `deleted`，其不可逆内容清除状态是 `redacted`。UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。
+- "Relation 用 `tombstoned` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故物化 state 合并为单一 `tombstoned`；具体 reason 在对应 `cx.relation.tombstone` / `cx.redaction` event 中保留。
+- Reducer 与 projection MUST 把 `tombstoned` 视为不可逆删除状态；Flow / Morph 不使用 `deleted`，其不可逆内容清除状态是 `redacted`。UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。
 
 ### 5.3 Stage 轴（业务进度，与 state 正交）
 

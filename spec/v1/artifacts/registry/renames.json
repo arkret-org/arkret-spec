@@ -36,7 +36,9 @@
     "claim_kind_discriminator": "Closed protocol-level claim discriminators use claim_kind; external credential taxonomy selectors may continue to use claim_type.",
     "duration_iso8601": "Human-readable policy duration wire strings use ISO 8601 (^P...) as the single v1 format; the self-invented compact ^[0-9]+(ms|s|m|h|d)$ mini-DSL is forbidden. Machine timing fields keep integer _ms / _seconds. See common-fields.md §3.0.2.",
     "frank_to_franking_proof_noun": "Moderation franking objects use the full franking_proof noun (4 entries).",
-    "verb_noun_bridge_collapse": "Capability actions converged back to noun form matching their target event kind. The earlier verb-form action names (.manage / .modify / create_*) are forbidden; new IAM tools can use the event kind string verbatim as the action token. 6 entries; v3 (2026-05-24). See authz/capabilities.md §5.0a."
+    "verb_noun_bridge_collapse": "Capability actions converged back to noun form matching their target event kind. The earlier verb-form action names (.manage / .modify / create_*) are forbidden; new IAM tools can use the event kind string verbatim as the action token. 6 entries; v3 (2026-05-24). See authz/capabilities.md §5.0a.",
+    "grant_constraint_single_kind_ids": "Grant constraint fields that carry one concrete protocol identifier kind use `_ids`; `_refs` remains reserved for causal/proof/schema/content-addressed or polymorphic reference material.",
+    "key_backup_kdf_hash_to_digest_algorithm": "Key backup KDF parameter algorithm selectors use digest_algorithm; hash is reserved for actual digest material and internal JSON Schema defs."
   },
   "entries": [
     {
@@ -178,6 +180,97 @@
       "replacement": "default_scope_circle_id",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Space default child scope points at one concrete Circle object."
+    },
+    {
+      "id": "allowed_view_refs",
+      "kind_class": "wire_field_name",
+      "migration_group": "grant_constraint_single_kind_ids",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_view_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Grant constraint field contains concrete cx:view ids, not reference material."
+    },
+    {
+      "id": "allowed_flow_refs",
+      "kind_class": "wire_field_name",
+      "migration_group": "grant_constraint_single_kind_ids",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_flow_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Grant constraint field contains concrete cx:flow ids, not reference material."
+    },
+    {
+      "id": "allowed_circle_refs",
+      "kind_class": "wire_field_name",
+      "migration_group": "grant_constraint_single_kind_ids",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_circle_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Grant constraint field contains concrete cx:circle ids, not reference material."
+    },
+    {
+      "id": "denied_flow_refs",
+      "kind_class": "wire_field_name",
+      "migration_group": "grant_constraint_single_kind_ids",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "denied_flow_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Grant constraint field contains concrete cx:flow ids, not reference material."
+    },
+    {
+      "id": "allowed_space_refs",
+      "kind_class": "wire_field_name",
+      "migration_group": "grant_constraint_single_kind_ids",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_space_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Grant constraint field contains concrete cx:space ids, not reference material."
+    },
+    {
+      "id": "denied_space_refs",
+      "kind_class": "wire_field_name",
+      "migration_group": "grant_constraint_single_kind_ids",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "denied_space_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Grant constraint field contains concrete cx:space ids, not reference material."
+    },
+    {
+      "id": "realm_refs#grant_constraint",
+      "wire_id": "realm_refs",
+      "kind_class": "wire_field_name",
+      "migration_group": "grant_constraint_single_kind_ids",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Grant blob-presign scope contains concrete cx:realm ids, not reference material."
+    },
+    {
+      "id": "approval_actor_refs",
+      "kind_class": "wire_field_name",
+      "migration_group": "grant_constraint_single_kind_ids",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "approval_actor_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Approval actor constraints carry concrete actor DID identifiers. DID-valued subject fields use `_id` in v1."
+    },
+    {
+      "id": "cx:rtcpart:",
+      "kind_class": "typed_id_prefix",
+      "migration_group": "typed_id_prefix_unabbreviation",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "cx:rtc_participant:",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Media participant typed ID prefix expanded from the abbreviated `rtcpart` form to the full snake_case `rtc_participant` kind."
     },
     {
       "id": "policy_ref#policy_object",
@@ -1886,6 +1979,21 @@
       ],
       "notes": "Hash vocabulary unification (common-fields.md §2): algorithm/function-family selectors use <noun>_algorithm. Realm-level hash algorithm declaration is now digest_algorithm. The previous_hash_profile field on Transition Anchors is renamed previous_digest_algorithm in lockstep.",
       "migration_group": "hash_to_digest_vocabulary"
+    },
+    {
+      "id": "hash#key_backup_kdf_params",
+      "wire_id": "hash",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "digest_algorithm",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Key backup KDF params previously used params.hash for the PBKDF2 digest selector. Current v1 uses params.digest_algorithm because this value selects an algorithm, not digest bytes.",
+      "migration_group": "key_backup_kdf_hash_to_digest_algorithm"
     },
     {
       "id": "previous_hash_profile",

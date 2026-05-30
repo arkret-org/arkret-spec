@@ -137,7 +137,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm access policy reference (policy_ref)",
+        "payload": "Realm access policy reference (policy_id)",
         "cell_family": "cx.component.realm.policy.v1",
         "cell_subject": null,
         "lattice": "cas_register",
@@ -175,6 +175,18 @@
         "reducer_input": true,
         "payload": "Realm discoverability state",
         "cell_family": "cx.component.realm.discovery.v1",
+        "cell_subject": null,
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.realm.preview_policy",
+        "category": "realm",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm preview / peek policy for directory card, stripped state, history stub, and plaintext history snippet projections",
+        "cell_family": "cx.component.realm.preview_policy.v1",
         "cell_subject": null,
         "lattice": "cas_register",
         "bottom": "reject"
@@ -367,6 +379,81 @@
         "bottom": "reject"
       },
       {
+        "event_kind": "cx.circle.create",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
+        "cell_family": "cx.component.circle.create.v1",
+        "cell_subject": null,
+        "lattice": "ordered_log",
+        "bottom": "expose"
+      },
+      {
+        "event_kind": "cx.circle.update",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle patch (cx.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
+      },
+      {
+        "event_kind": "cx.circle.archive",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle archive lifecycle facet (active -> archived)."
+      },
+      {
+        "event_kind": "cx.circle.restore",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle restore lifecycle facet (archived -> active)."
+      },
+      {
+        "event_kind": "cx.circle.tombstone",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
+        "lifecycle_modality": "terminal",
+        "cell_family": "cx.component.circle.tombstone.v1",
+        "cell_subject": null,
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.circle.member.state",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Circle membership state (parallel to cx.member.state). Reducer MUST first validate the target actor is parent Realm active member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+        "cell_family": "cx.component.circle.member.v1",
+        "cell_subject": {
+          "type": "actor_in_circle",
+          "fields": [
+            "payload.circle_id",
+            "payload.actor_id"
+          ]
+        },
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.circle.anchor_commit",
+        "category": "circle",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": false,
+        "payload": "Reducer-derived: Circle sub-anchor commits opaque sub_anchor_head_digest to the Realm Anchor stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2."
+      },
+      {
         "event_kind": "cx.organization.discovery",
         "category": "organization",
         "status": "active",
@@ -452,7 +539,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_to the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_to[]` entries; reducer strips unverified DIDs from accountable_to. See zh/models/actor.md §3.3.1."
+        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_principal_ids[]` entries; reducer strips unverified DIDs from accountable_principal_ids. See zh/models/actor.md §3.3.1."
       },
       {
         "event_kind": "cx.schema.define",
@@ -515,6 +602,25 @@
         },
         "lattice": "fsm",
         "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.member.identity.update",
+        "category": "membership",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior cx.member.identity.update events via payload.replaces[] without overloading cx.profile.update patch semantics.",
+        "cell_family": "cx.component.member.identity.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "payload.realm_id",
+            "payload.actor_id",
+            "payload.segment"
+          ]
+        },
+        "lattice": "ordered_log",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.flow.create",
@@ -920,12 +1026,12 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_did, key_id, verification_method, accountable_actor, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
+        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_principal_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
           "components": [
-            "payload.agent_did",
+            "payload.agent_principal_id",
             "payload.key_id"
           ]
         },
@@ -938,12 +1044,12 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_did, key_id, revoked_at, revoked_by, and revocation_frontier.",
+        "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_principal_id, key_id, revoked_at, revoked_by, and revocation_frontier.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
           "components": [
-            "payload.agent_did",
+            "payload.agent_principal_id",
             "payload.key_id"
           ]
         },
@@ -956,17 +1062,85 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key rotation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_rotate_payload; key_id names the retiring key and replacement_key_id names the new key under the same accountable_actor with equivalent or narrower agent_key_scope.",
+        "payload": "Agent signing key rotation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_rotate_payload; key_id names the retiring key and replacement_key_id names the new key under the same accountable_principal_id with equivalent or narrower agent_key_scope.",
         "cell_family": "cx.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
           "components": [
-            "payload.agent_did",
+            "payload.agent_principal_id",
             "payload.key_id"
           ]
         },
         "lattice": "or_set",
         "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.agent.pause",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent lifecycle transition to paused state (CXP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via cx.agent.resume.",
+        "cell_family": "cx.component.agent.status.v1",
+        "cell_subject": "payload.agent_principal_id",
+        "lattice": "fsm",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.agent.resume",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent lifecycle transition from paused to active (CXP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+        "cell_family": "cx.component.agent.status.v1",
+        "cell_subject": "payload.agent_principal_id",
+        "lattice": "fsm",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.agent.deactivate",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent lifecycle terminal state (CXP-0008 §4.11). MUST fan-out cx.agent.key.revoke for all active agent keys, cx.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
+        "cell_family": "cx.component.agent.status.v1",
+        "cell_subject": "payload.agent_principal_id",
+        "lattice": "fsm",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.agent.draft.propose",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "actor_private_event",
+        "reducer_input": false,
+        "payload": "Agent-initiated draft proposal (CXP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned cx.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
+      },
+      {
+        "event_kind": "cx.agent.action_request",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "actor_private_event",
+        "reducer_input": false,
+        "payload": "Agent-initiated action request (CXP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
+      },
+      {
+        "event_kind": "cx.agent.action_approve",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "actor_private_event",
+        "reducer_input": false,
+        "payload": "Controller approval of a draft / action request (CXP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
+      },
+      {
+        "event_kind": "cx.agent.action_reject",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "actor_private_event",
+        "reducer_input": false,
+        "payload": "Controller rejection of a draft / action request (CXP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
       },
       {
         "event_kind": "cx.agent.protocol_session.start",
@@ -1685,7 +1859,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Forced downgrade of audit_assurance from attested_hardware to disclosed_policy when the required cx.audit.epoch_key_destruction attestation is not produced within the deadline; rewrites Realm audit policy and triggers UI banner. Wire schema versioning expressed via `requirements.features`."
+        "payload": "Explicit downgrade of Realm audit_assurance from attested_hardware to disclosed_policy before future audit operations proceed. This event rewrites Realm audit policy and triggers the UI banner, but MUST NOT be accepted as delayed remediation for an Audit Agent remove batch that lacked the same-batch cx.audit.epoch_key_destruction attestation. Wire schema versioning expressed via `requirements.features`."
       }
     ]
   },
@@ -1702,6 +1876,11 @@
       {
         "schema_id": "cx.schema.actor_profile.v1",
         "file": "schemas/actor-profile.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.circle.v1",
+        "file": "schemas/circle.schema.json",
+        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
       },
       {
         "schema_id": "cx.schema.flow.v1",
@@ -1750,7 +1929,11 @@
       },
       {
         "schema_id": "cx.schema.patch.v1",
-        "file": "schemas/patch.schema.json"
+        "file": "schemas/patch.schema.json",
+        "format_aliases": [
+          "cx.patch.v1"
+        ],
+        "description": "Registered schema for the embedded cx.patch.v1 field-patch wire format."
       },
       {
         "schema_id": "cx.schema.range_completeness_attestation.v1",
@@ -1801,6 +1984,18 @@
         "file": "schemas/key-backup.schema.json"
       },
       {
+        "schema_id": "cx.schema.recovery_policy.v1",
+        "file": "schemas/recovery-policy.schema.json",
+        "status": "active",
+        "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / cx.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
+      },
+      {
+        "schema_id": "cx.schema.recovery_receipt.v1",
+        "file": "schemas/recovery-receipt.schema.json",
+        "status": "active",
+        "description": "Signed completion receipt for a principal recovery flow. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
+      },
+      {
         "schema_id": "cx.schema.notification.v1",
         "file": "schemas/notification.schema.json"
       },
@@ -1833,14 +2028,32 @@
         "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain."
       },
       {
+        "schema_id": "cx.schema.member_identity.v1",
+        "file": "schemas/member-identity.schema.json",
+        "status": "active",
+        "description": "Realm-scoped member display/subject projection carried by cx.member.identity.update; handle lifecycle is carried by cx.schema.handle_claim.v1."
+      },
+      {
         "schema_id": "cx.schema.handle_claim.v1",
         "file": "schemas/handle-claim.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.list_handles_for_subject_response.v1",
+        "file": "schemas/list-handles-for-subject-response.schema.json",
+        "status": "active",
+        "description": "Directory response listing currently visible handle claims for a disclosed subject DID."
       },
       {
         "schema_id": "cx.schema.member_delivery_binding_candidate.v1",
         "file": "schemas/member-delivery-binding-candidate.schema.json",
         "status": "active",
         "description": "Builder-side candidate object for Handle resolution intent=member_add | invite (identity-handles.md §3.7); produces a Realm-scoped member_delivery_binding only after Join Policy re-validation."
+      },
+      {
+        "schema_id": "cx.schema.realm_join_candidate.v1",
+        "file": "schemas/realm-join-candidate.schema.json",
+        "status": "active",
+        "description": "Time-bounded routing hint returned by Realm discovery / resolve paths for selecting a qualified service to receive join, invite-accept, knock, or restricted-join submissions. Not an authorization grant and not a member_delivery_binding."
       },
       {
         "schema_id": "cx.schema.grant_constraint.v1",
@@ -2034,6 +2247,13 @@
         "description": "Encrypted backup object ID"
       },
       {
+        "kind": "backup_series",
+        "category": "identity",
+        "status": "active",
+        "wire_form": "cx:backup_series:<uuid>",
+        "description": "Stable identifier for a chain of encrypted backup envelopes belonging to the same (actor_id, backup_class) over time. Used by cx.schema.key_backup.v1.series_id and by recovery flows to detect rollback. See identity/key-management.md §7.6."
+      },
+      {
         "kind": "batch",
         "category": "discovery",
         "status": "active",
@@ -2062,11 +2282,25 @@
         "description": "Call/session ID"
       },
       {
+        "kind": "rtc_participant",
+        "category": "media",
+        "status": "active",
+        "wire_form": "cx:rtc_participant:<uuid>",
+        "description": "SFU-local participant handle (CXP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `cx.call.state.participants[].participant_identity` and in `participant_binding`. Implementations MAY render the derivation output as UUIDv7 (preferred) or any 16-byte token serialized in the canonical UUID hex form."
+      },
+      {
         "kind": "capability",
         "category": "authz",
         "status": "active",
         "wire_form": "cx:capability:<uuid>",
         "description": "Abstract capability definition reference ID; signed grant objects use cx:grant:<uuid>."
+      },
+      {
+        "kind": "circle",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:circle:<uuid>",
+        "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
       },
       {
         "kind": "flow",
@@ -2200,6 +2434,13 @@
         "status": "active",
         "wire_form": "cx:receipt:<uuid>",
         "description": "Receipt object ID"
+      },
+      {
+        "kind": "recovery_session",
+        "category": "identity",
+        "status": "active",
+        "wire_form": "cx:recovery_session:<uuid>",
+        "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery flow. Referenced by cx.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
       },
       {
         "kind": "attestation",
@@ -2341,7 +2582,8 @@
           "cx.account.subscribe",
           "cx.account.cursor_revoke",
           "cx.ephemeral.send",
-          "cx.snapshot.head"
+          "cx.snapshot.head",
+          "cx.call.media.token_exchange"
         ]
       },
       {
@@ -2351,11 +2593,13 @@
           "cx.directory.describe",
           "cx.directory.search_realms",
           "cx.directory.resolve_realm",
+          "cx.directory.resolve_target",
           "cx.directory.search_organizations",
           "cx.directory.resolve_organization",
           "cx.directory.search_actors",
           "cx.directory.search_users",
           "cx.directory.resolve_handle",
+          "cx.directory.list_handles_for_subject",
           "cx.directory.private_contact_discovery",
           "cx.directory.announce",
           "cx.directory.withdraw",
@@ -2474,6 +2718,23 @@
         ]
       },
       {
+        "surface": "agent_runtime",
+        "tier": "extension",
+        "operations": [
+          "cx.account.agent_key_pair",
+          "cx.agent.provision",
+          "cx.agent.list",
+          "cx.agent.get",
+          "cx.agent.pause",
+          "cx.agent.resume",
+          "cx.agent.deactivate",
+          "cx.agent.rotate_key",
+          "cx.agent.grant.attach",
+          "cx.agent.grant.detach",
+          "cx.agent.sidecar_thread.ensure"
+        ]
+      },
+      {
         "surface": "admin_operator",
         "tier": "deployment_local",
         "operations": [
@@ -2496,6 +2757,72 @@
         "http": "POST /auth/account/session-grants",
         "grpc": "Account/IssueSessionGrant",
         "mq": "account.issue_session_grant"
+      },
+      {
+        "operation_id": "cx.account.agent_key_pair",
+        "http": "POST /auth/account/agent-key-pair",
+        "grpc": "Account/AgentKeyPair",
+        "mq": "account.agent_key_pair"
+      },
+      {
+        "operation_id": "cx.agent.provision",
+        "http": "POST /agents",
+        "grpc": "Agent/Provision",
+        "mq": "agent.provision"
+      },
+      {
+        "operation_id": "cx.agent.list",
+        "http": "GET /agents",
+        "grpc": "Agent/List",
+        "mq": "agent.list"
+      },
+      {
+        "operation_id": "cx.agent.get",
+        "http": "GET /agents/{agent_principal_id}",
+        "grpc": "Agent/Get",
+        "mq": "agent.get"
+      },
+      {
+        "operation_id": "cx.agent.pause",
+        "http": "POST /agents/{agent_principal_id}/pause",
+        "grpc": "Agent/Pause",
+        "mq": "agent.pause"
+      },
+      {
+        "operation_id": "cx.agent.resume",
+        "http": "POST /agents/{agent_principal_id}/resume",
+        "grpc": "Agent/Resume",
+        "mq": "agent.resume"
+      },
+      {
+        "operation_id": "cx.agent.deactivate",
+        "http": "POST /agents/{agent_principal_id}/deactivate",
+        "grpc": "Agent/Deactivate",
+        "mq": "agent.deactivate"
+      },
+      {
+        "operation_id": "cx.agent.rotate_key",
+        "http": "POST /agents/{agent_principal_id}/rotate-key",
+        "grpc": "Agent/RotateKey",
+        "mq": "agent.rotate_key"
+      },
+      {
+        "operation_id": "cx.agent.grant.attach",
+        "http": "POST /agents/{agent_principal_id}/grants",
+        "grpc": "Agent/GrantAttach",
+        "mq": "agent.grant.attach"
+      },
+      {
+        "operation_id": "cx.agent.grant.detach",
+        "http": "DELETE /agents/{agent_principal_id}/grants/{grant_id}",
+        "grpc": "Agent/GrantDetach",
+        "mq": "agent.grant.detach"
+      },
+      {
+        "operation_id": "cx.agent.sidecar_thread.ensure",
+        "http": "POST /agent-sidecar-threads:ensure",
+        "grpc": "Agent/SidecarThreadEnsure",
+        "mq": "agent.sidecar_thread.ensure"
       },
       {
         "operation_id": "cx.account.oidc_callback",
@@ -2655,6 +2982,12 @@
         "mq": "directory.resolve_handle"
       },
       {
+        "operation_id": "cx.directory.list_handles_for_subject",
+        "http": "POST /directory/list-handles-for-subject",
+        "grpc": "Directory/ListHandlesForSubject",
+        "mq": "directory.list_handles_for_subject"
+      },
+      {
         "operation_id": "cx.directory.resolve_organization",
         "http": "POST /directory/resolve-organization",
         "grpc": "Directory/ResolveOrganization",
@@ -2665,6 +2998,12 @@
         "http": "POST /directory/resolve-realm",
         "grpc": "Directory/ResolveRealm",
         "mq": "directory.resolve_realm"
+      },
+      {
+        "operation_id": "cx.directory.resolve_target",
+        "http": "POST /directory/resolve-target",
+        "grpc": "Directory/ResolveTarget",
+        "mq": "directory.resolve_target"
       },
       {
         "operation_id": "cx.directory.search_actors",
@@ -2745,7 +3084,8 @@
         "operation_id": "cx.events.subscribe",
         "http": "GET /events/subscribe",
         "grpc": "Events/Subscribe",
-        "mq": "events.subscribe"
+        "mq": "events.subscribe",
+        "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After."
       },
       {
         "operation_id": "cx.events.submit",
@@ -2759,6 +3099,13 @@
         "grpc": "Ephemeral/Send",
         "mq": "ephemeral.send",
         "notes": "Canonical broadcast ephemeral send operation for cx.schema.ephemeral_envelope.v1. Carries cx.presence, cx.typing, cx.receipt.read, and cx.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier."
+      },
+      {
+        "operation_id": "cx.call.media.token_exchange",
+        "http": "POST /rtc/token",
+        "grpc": "CallMedia/TokenExchange",
+        "mq": "call.media.token_exchange",
+        "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in cx.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / contrix-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/webrtc-signaling.md §6.4."
       },
       {
         "operation_id": "cx.identity.describe_registry",
@@ -3005,7 +3352,7 @@
         "http": "GET /account/subscribe",
         "grpc": "Account/Subscribe",
         "mq": "account.subscribe",
-        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync."
+        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync."
       },
       {
         "operation_id": "cx.account.cursor_revoke",
@@ -3107,6 +3454,85 @@
           "cx.realm.destroy"
         ],
         "profile": null
+      },
+      {
+        "action": "cx.circle.create",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.circle.create"
+        ],
+        "profile": null,
+        "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
+      },
+      {
+        "action": "cx.circle.manage",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "allowed_circle_ids"
+        ],
+        "target_event_kinds": [
+          "cx.circle.update",
+          "cx.circle.archive",
+          "cx.circle.restore",
+          "cx.circle.tombstone"
+        ],
+        "profile": null,
+        "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission."
+      },
+      {
+        "action": "cx.circle.member.add",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.circle.member.state"
+        ],
+        "profile": null,
+        "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed."
+      },
+      {
+        "action": "cx.circle.member.manage",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "allowed_circle_ids"
+        ],
+        "target_event_kinds": [
+          "cx.circle.member.state"
+        ],
+        "profile": null,
+        "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id."
+      },
+      {
+        "action": "cx.circle.member.add.others",
+        "category": "audit",
+        "risk_tier": "high",
+        "required_constraints": [
+          "allowed_circle_ids"
+        ],
+        "required_evaluator_checks": [
+          "audit_pair_required"
+        ],
+        "target_event_kinds": [
+          "cx.circle.member.state"
+        ],
+        "profile": null,
+        "notes": "Cross-actor write (rare). MUST carry cx.audit.accessed pair (same model as cx.flow.watch.set.others)."
+      },
+      {
+        "action": "cx.circle.audit",
+        "category": "audit",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "audit_pair_required"
+        ],
+        "target_event_kinds": [],
+        "profile": null,
+        "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with cx.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle."
       },
       {
         "action": "cx.object.read",
@@ -3586,6 +4012,7 @@
           "cx.realm.join_rule",
           "cx.realm.history_visibility",
           "cx.realm.discovery",
+          "cx.realm.preview_policy",
           "cx.realm.policy_server",
           "cx.realm.policy_components",
           "cx.realm.history_sharing_policy",
@@ -3593,11 +4020,9 @@
           "cx.realm.asset_privacy_policy",
           "cx.realm.read_receipt_policy",
           "cx.realm.moderation_policy",
-          "cx.realm.plaintext_visible_services",
           "cx.realm.media_service",
           "cx.realm.schema",
-          "cx.realm.inheritance_policy",
-          "cx.realm.audit_policy_downgrade"
+          "cx.realm.inheritance_policy"
         ],
         "profile": null
       },
@@ -3638,6 +4063,29 @@
         "required_constraints": [],
         "target_event_kinds": [
           "cx.realm.plaintext_visible_services"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.realm.preview_policy",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.realm.preview_policy"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.realm.audit_policy_downgrade",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "audit_pair_required"
+        ],
+        "target_event_kinds": [
+          "cx.realm.audit_policy_downgrade"
         ],
         "profile": null
       },
@@ -3742,6 +4190,136 @@
         "profile": null
       },
       {
+        "action": "cx.agent.provision",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [
+          "expires_at",
+          "controller_approval_required"
+        ],
+        "target_event_kinds": [
+          "cx.profile.create",
+          "cx.identity.accountability_grant",
+          "cx.agent.key.authorize",
+          "cx.capability.grant"
+        ],
+        "profile": "cx.profile.personal_agent_provisioning.v1",
+        "migration_group": "cxp_0008_agent_provisioning"
+      },
+      {
+        "action": "cx.agent.pause",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.agent.pause"
+        ],
+        "profile": "cx.profile.personal_agent_provisioning.v1"
+      },
+      {
+        "action": "cx.agent.resume",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.agent.resume"
+        ],
+        "profile": "cx.profile.personal_agent_provisioning.v1"
+      },
+      {
+        "action": "cx.agent.deactivate",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.agent.deactivate"
+        ],
+        "profile": "cx.profile.personal_agent_provisioning.v1"
+      },
+      {
+        "action": "cx.agent.draft.propose",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [
+          "expires_at"
+        ],
+        "target_event_kinds": [
+          "cx.agent.draft.propose"
+        ],
+        "profile": "cx.profile.personal_agent_provisioning.v1"
+      },
+      {
+        "action": "cx.agent.action_request",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [
+          "expires_at"
+        ],
+        "target_event_kinds": [
+          "cx.agent.action_request"
+        ],
+        "profile": "cx.profile.personal_agent_provisioning.v1"
+      },
+      {
+        "action": "cx.agent.action_approve",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.agent.action_approve"
+        ],
+        "profile": "cx.profile.personal_agent_provisioning.v1"
+      },
+      {
+        "action": "cx.agent.action_reject",
+        "category": "management",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.agent.action_reject"
+        ],
+        "profile": "cx.profile.personal_agent_provisioning.v1"
+      },
+      {
+        "action": "cx.agent.sidecar_thread.ensure",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.circle.create",
+          "cx.circle.member.state",
+          "cx.flow.create",
+          "cx.relation.create"
+        ],
+        "profile": "cx.profile.agent_sidecar_thread.v1",
+        "migration_group": "cxp_0009_sidecar_ensure"
+      },
+      {
+        "action": "cx.agent.sidecar_thread.write",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [
+          "allowed_flow_ids"
+        ],
+        "target_event_kinds": [
+          "cx.message.create"
+        ],
+        "profile": "cx.profile.agent_sidecar_thread.v1"
+      },
+      {
+        "action": "cx.agent.sidecar_thread.publish",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [
+          "expires_at",
+          "approval_required"
+        ],
+        "target_event_kinds": [
+          "cx.message.create"
+        ],
+        "profile": "cx.profile.agent_sidecar_thread.v1"
+      },
+      {
         "action": "cx.agent.protocol.discover",
         "category": "general",
         "risk_tier": "low",
@@ -3823,8 +4401,8 @@
           "cx.realm.asset_privacy_policy",
           "cx.realm.read_receipt_policy",
           "cx.realm.history_sharing_policy",
-          "cx.realm.moderation_policy",
-          "cx.realm.audit_policy_downgrade"
+          "cx.realm.preview_policy",
+          "cx.realm.moderation_policy"
         ],
         "profile": null
       },
@@ -4160,6 +4738,57 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.call.join",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.state"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.call.screen_share",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.state"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.call.record",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.recording.start",
+          "cx.call.state"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.call.transcribe",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.state"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.call.moderate",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.call.state"
+        ],
         "profile": null
       },
       {

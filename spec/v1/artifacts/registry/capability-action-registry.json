@@ -104,7 +104,7 @@
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
-        "allowed_circle_refs"
+        "allowed_circle_ids"
       ],
       "target_event_kinds": [
         "cx.circle.update",
@@ -131,7 +131,7 @@
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
-        "allowed_circle_refs"
+        "allowed_circle_ids"
       ],
       "target_event_kinds": [
         "cx.circle.member.state"
@@ -144,7 +144,7 @@
       "category": "audit",
       "risk_tier": "high",
       "required_constraints": [
-        "allowed_circle_refs"
+        "allowed_circle_ids"
       ],
       "required_evaluator_checks": [
         "audit_pair_required"
@@ -932,7 +932,7 @@
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
-        "allowed_flow_refs"
+        "allowed_flow_ids"
       ],
       "target_event_kinds": [
         "cx.message.create"

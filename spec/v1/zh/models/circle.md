@@ -263,7 +263,7 @@ authorized(actor, action, object) ⇔
 
 其中 `effective_scope(object)` 对 durable Event 使用 immutable `effective_scope`,对 materialized object 使用当前 `scope_circle_id` 派生出的 tagged scope。capability 决定"能不能做",Circle membership 决定"够不够近"。任一不满足都拒绝。
 
-Circle 管理类 grant MUST 显式约束到 `allowed_circle_refs` / `circle_id` selector,或由 Circle 自身的 admin cell 派生；不得把无约束的 Realm-wide `cx.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `cx.circle.audit` + `cx.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key,除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
+Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` selector,或由 Circle 自身的 admin cell 派生；不得把无约束的 Realm-wide `cx.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `cx.circle.audit` + `cx.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key,除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
 
 ## 9. Membership 与 Lifecycle
 
@@ -274,7 +274,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_refs` / `circle_id` 
 1. `Circle.members ⊆ Realm.members`。reducer 在 `cx.circle.member.state -> active` 时，若 target actor 不是父 Realm `active` member,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
 2. 父 Realm `cx.member.state -> left/banned` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `left`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时,actor 同时属于多个 Circle 即可。
-4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_refs` selector 的 capability grant 表达；v1 不注册单独的 `cx.circle.admin` action。
+4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `cx.circle.admin` action。
 
 Membership transition table:
 
@@ -319,12 +319,12 @@ Membership transition table:
 - `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group,独立 epoch,独立 key tree。**禁止**从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
 - Realm 移除某 actor MUST 触发该 actor 所在所有 Circle 的 membership cascade；对 MLS-backed Circle 还 MUST 触发对应 MLS `remove` proposal,并在 Realm-default 也是 MLS-backed 时触发 Realm-default rotate。这是必要的密码学卫生,reducer-enforced。已知运维代价见 §10.3。
 - Circle MLS handshake (commit/welcome/proposal) 投递严格限于 Circle 成员，不进入 Realm-default sync 流。
-- MLS governance binding 的 scope 从单 `realm_id` 扩展为 `(realm_id, circle_id?)`。Circle commit / welcome / genesis MUST 绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier;接收端验证时任一不匹配 MUST fail closed。
+- MLS governance binding 的 scope 从单 `realm_id` 扩展为 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；旧草案中的 Flow `track` 或 `flow_id` 不得参与 MLS key scope 判定。
 
 ### 10.2 Anchor stream
 
 - Circle 内事件维护 Circle sub-anchor(只对 Circle 成员可读，记录完整 envelope + payload digest)。
-- Circle 按 profile 固定节拍触发 `cx.circle.anchor_commit`,向 Realm Anchor stream 提交 `sub_anchor_head_digest`(不透明 SHA-256)。默认 profile MUST 使用时间节拍 + 空批次 commitment,不得按"每 N 个真实 event"触发，否则会泄露活动频率。低隐私部署若声明 event-count profile,必须显式标为不满足 confidential Circle profile。
+- Circle 按 profile 固定节拍触发 `cx.circle.anchor_commit`,向 Realm Anchor stream 提交 `sub_anchor_head_digest`(不透明 SHA-256)。默认命名 profile 是 `cx.profile.circle_anchor_cadence.fixed_5m.v1`：`period_ms=300000`、`max_jitter_ms=30000`、MUST emit empty-batch commitment、MUST NOT skip public anchor ticks when the Circle has no new private events。移动端省电只能延迟客户端上传 private sub-anchor entries；服务端/anchor service 仍必须按公开 cadence 补空 commitment。不得按"每 N 个真实 event"触发，否则会泄露活动频率。低隐私部署若声明 event-count profile,必须显式标为不满足 confidential Circle profile。
 - 验证链:Circle member 验证时 `Circle sub-anchor head ↔ Realm anchor commitment ↔ Realm anchor head`,三段闭合。非 Circle 成员只能验证 Realm anchor 完整性。
 
 ### 10.3 Realm-member-removal MLS rotate amplification

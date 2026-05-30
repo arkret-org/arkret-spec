@@ -63,6 +63,33 @@
       "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. The old fields parent_ref, default_realm_ref, scope_ref, default_scope_ref, retention_policy_ref, disclosure_policy_ref, rate_limit_policy_ref, and Policy-object policy_ref MUST NOT appear on current v1 wire."
     },
     {
+      "id": "grant_constraint_single_kind_refs_to_ids",
+      "context": "grant_constraint",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_view_ids / allowed_flow_ids / allowed_circle_ids / denied_flow_ids / allowed_space_ids / denied_space_ids / realm_ids / approval_actor_ids",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_flow_refs, allowed_circle_refs, denied_flow_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Flow, or Morph containers."
+    },
+    {
+      "id": "cx:rtcpart:",
+      "context": "typed_id_prefix",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "cx:rtc_participant:",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "The abbreviated media participant typed ID prefix was expanded to the full snake_case kind. Current v1 wire MUST use cx:rtc_participant:<uuid>; cx:rtcpart:<uuid> is rejected."
+    },
+    {
+      "id": "hash#key_backup_kdf_params",
+      "context": "key_backup.encryption.kdf.params",
+      "since_revision": "2026-05-31",
+      "rejection_level": "hard_reject",
+      "replacement": "digest_algorithm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Key backup KDF params use digest_algorithm for PBKDF2/derived digest selection. The old params.hash selector is ambiguous with digest bytes and MUST NOT appear on current v1 wire."
+    },
+    {
       "id": "policy_ref#member_delivery_binding",
       "context": "member_delivery_binding",
       "since_revision": "2026-05-25",

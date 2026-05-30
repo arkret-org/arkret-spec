@@ -36,7 +36,7 @@ sidebar:
   "payload": {
     "call_id": "cx:call:...",
     "focus_id": "fra-1",
-    "participant_identity": "cx:rtcpart:...",
+    "participant_identity": "cx:rtc_participant:...",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
     "media": { "audio": true, "video": true, "screen": false }
@@ -72,7 +72,7 @@ SFU response：
 
 ```json
 {
-  "participant_identity": "cx:rtcpart:0198c2f4-0000-7000-8000-000000000000",
+  "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "transport": "webrtc",
   "offer": {
     "type": "offer",

@@ -148,7 +148,7 @@ Content-Type: application/json
   "type": "livekit",
   "connect_url": "wss://livekit-fra.example.com",
   "backend_token": "<opaque to Contrix protocol — type-specific>",
-  "participant_identity": "cx:rtcpart:0198c2f4-0000-7000-8000-000000000000",
+  "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
     "scheme": "cx.media.participant_binding.v1",
     "realm_id": "cx:realm:...",
@@ -156,7 +156,7 @@ Content-Type: application/json
     "focus_id": "fra-1",
     "actor_id": "did:web:alice.example.com",
     "device_id": "cx:device:...",
-    "participant_identity": "cx:rtcpart:0198c2f4-0000-7000-8000-000000000000",
+    "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
     "issuer_kid": "did:web:media.example#key-1",
@@ -192,7 +192,7 @@ Content-Type: application/json
         "actor_id": "did:web:alice.example.com",
         "device_id": "cx:device:...",
         "foci_preferred": ["fra-1", "us-east-1"],
-        "participant_identity": "cx:rtcpart:0198c2f4-0000-7000-8000-000000000000",
+        "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": { "scheme": "cx.media.participant_binding.v1", "...": "..." },
         "joined_at": "2026-05-27T10:00:00.123Z"
       }
@@ -284,7 +284,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 
 1. Backend recording component 把录制结果作为加密 blob **上传到 Contrix media service**（通过 [`media-and-blob.md`](../zh/crypto-media/media-and-blob.md) 的 authenticated upload 端点），不得自行托管。
 2. 上传请求 MUST 携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `call.record` 的 actor 发起。
-3. 录制 artifact 加密 key MUST 由 Contrix 协议层提供（与 §4.5.1 同源），backend 不持久化明文。
+3. 录制 artifact 加密 key MUST 由 Contrix 协议层提供（与 §4.5.1 同源），backend 不持久化明文。Artifact encryption key MUST come from MLS exporter label `"cx-rtc-recording-key/v1"` with `Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`; it MUST NOT reuse SFrame label `"cx-rtc-frame-key/v1"` or an empty Context。
 4. 入库后通过已注册的 `cx.call.state` 写入 call lifecycle state（例如 `state="recording_ready"` / `state="recording_failed"`），并在 payload 中引用 blob hash、duration、media type、retention policy 和 `recording_start_event_id`。v1 不新增 `cx.call.recording.artifact` event kind。
 
 这保证 backend 是"录制执行单元"而非"录制档案库"，audit 链与生命周期管控不被 backend 实现细节绕过。
@@ -302,6 +302,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 - `cx.vector.media_binding.e2ee_key_source.v1` — backend 即使支持自家 E2EE，密钥源 MUST 来自 Contrix MLS exporter；backend 自生成 key 时客户端拒绝。
 - `cx.vector.media_binding.participant_identity_unrecognised.v1` — backend 通知 join 的 participant 不在 `cx.call.state` 时客户端拒绝该流。
 - `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1` — backend-generated recording 必须通过 Contrix blob pipeline 入库，并用 `cx.call.state` 发布结果；绕过路径拒绝。
+- `cx.vector.media_binding.recording_exporter_label.v1` — recording key 必须使用 `"cx-rtc-recording-key/v1"` 与 recording transcript Context；复用 SFrame label 或空 Context 必须拒绝。
 
 ## 5. Interactions with normative spec
 
@@ -348,7 +349,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 - **遗留单 endpoint 形态**：v1 cycle 内 SHOULD 接受并 normalize 为 `foci=[{type:"contrix-native",...}]`；v1.1 起 `failed_precondition` `reason="legacy_single_endpoint_media_service"`（§5）。
 - **Participant identity 交叉校验**：客户端 MUST 校验 backend 通知的 participant 与 `cx.call.state` 中的 signed `participant_binding` 一致（§4.5.2）。
 - **MoQ 保留位**：v1 schema 接受 `type: "moq-relay"`，但 v1 周期内不提供 normative binding（§4.1）。
-- **Recording artifact**：backend 可执行录制，但 artifact MUST 经 Contrix blob pipeline 入库，加密 key 来自协议层，结果通过 `cx.call.state` 发布，不新增 `cx.call.recording.artifact` event（§4.7）。
+- **Recording artifact**：backend 可执行录制，但 artifact MUST 经 Contrix blob pipeline 入库，加密 key 来自协议层 MLS exporter label `"cx-rtc-recording-key/v1"`，结果通过 `cx.call.state` 发布，不新增 `cx.call.recording.artifact` event（§4.7）。
 - **Focus migration**：v1 不提供在线 focus 切换；session 持续到所有人离开（§4.3）。
 
 ## 9. Migration plan（accepted 后填）

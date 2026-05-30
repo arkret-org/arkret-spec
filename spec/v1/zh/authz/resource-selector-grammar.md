@@ -83,7 +83,7 @@ List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowe
 
 ### 2.2 Circle 选择
 
-Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_refs` constraint 或具体 `circle_id` 限制 Circle-scoped 管理 grant。Circle selector 只表达子事件 / 子消息边界对象本身；它不会替代 Circle membership、history visibility、delivery/query eligibility、MLS-backed Circle 的 epoch eligibility 或 `cx.audit.accessed` 配对要求。
+Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint 或具体 `circle_id` 限制 Circle-scoped 管理 grant。Circle selector 只表达子事件 / 子消息边界对象本身；它不会替代 Circle membership、history visibility、delivery/query eligibility、MLS-backed Circle 的 epoch eligibility 或 `cx.audit.accessed` 配对要求。
 
 ```json
 {
@@ -98,7 +98,7 @@ Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_refs` constrain
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "allowed_circle_refs": ["cx:circle:019640d0-0000-7000-8000-000000000000"]
+      "allowed_circle_ids": ["cx:circle:019640d0-0000-7000-8000-000000000000"]
     }
   ]
 }

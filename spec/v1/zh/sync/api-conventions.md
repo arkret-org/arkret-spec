@@ -185,7 +185,7 @@ API 调用 SHOULD 使用以下方式之一：
 - `conflict` / 409 是抽象 base code；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `discussion_track_disabled` / `duplicate_conflict` / `epoch_mismatch` / `key_unavailable` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `audit_receipt_invalidated`）。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 
-CI（`tools/artifact_pipeline.py check`）SHOULD 校验仓库内所有出现的字面 error code 字符串都登记在 registry 中。
+CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字面 error code 字符串都登记在 registry 中，并 MUST 校验 `operations-error-mapping.json` 的 `universal_codes` 与 `operation_specific[]` 不引用 registry 外的 code。
 
 ### 5.2 未知路径与错误方法
 

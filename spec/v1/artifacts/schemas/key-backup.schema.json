@@ -164,7 +164,7 @@
                   "type": "integer",
                   "minimum": 1
                 },
-                "hash": {
+                "digest_algorithm": {
                   "type": "string",
                   "enum": [
                     "sha256",
@@ -172,6 +172,11 @@
                     "sha512"
                   ]
                 }
+              },
+              "not": {
+                "required": [
+                  "hash"
+                ]
               },
               "additionalProperties": true
             },
@@ -236,14 +241,14 @@
                   "params": {
                     "required": [
                       "iterations",
-                      "hash"
+                      "digest_algorithm"
                     ],
                     "properties": {
                       "iterations": {
                         "type": "integer",
                         "minimum": 600000
                       },
-                      "hash": {
+                      "digest_algorithm": {
                         "type": "string",
                         "enum": [
                           "sha256",

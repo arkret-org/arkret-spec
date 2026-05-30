@@ -37,16 +37,14 @@
 
 ## Stable-promotion Blockers
 
-1. Decide and document versioned public catalog semantics. Either keep `site/public/v1/contract-catalog-1.0.0.json` as a frozen historical baseline and publish a new versioned snapshot for the current canonical catalog, or intentionally regenerate the `1.0.0` snapshot and add a CI hash/count gate. Do not publish a normative site that points implementers at a snapshot with stale 152/53/40 counts and no Circle contract.
-2. Close CXP-0007 machine-contract gaps:
+1. Close CXP-0007 machine-contract gaps:
    - split or normativize submit input vs accepted/reducer-output event shapes for `effective_scope`;
    - define Message and Anchor output shapes that bind `effective_scope`, including anchor canonical bytes;
    - make `content_encryption_floor` a machine-checkable contract, not only prose;
    - register and validate the standard `confidential_discussion_of` Relation shape if it remains the migration path;
    - add Circle/effective-scope conformance vectors, fixtures, and profile matrix requirements.
-3. Resolve or explicitly exception the site dependency audit findings before public stable publication.
-4. Refresh `CHANGELOG.md` and release notes after the blockers above close so they no longer describe CXP-0007 fixture/vector/profile work as future or ambiguous.
-5. Push the candidate branch/PR and retain GitHub Actions evidence for artifact lint, docs lint, fixture digest, link-check, and site build.
+2. Resolve or explicitly exception the site dependency audit findings before public stable publication.
+3. Push the candidate branch/PR and retain GitHub Actions evidence for artifact lint, docs lint, fixture digest, link-check, and site build.
 
 ## Versioned Public Artifact Policy
 
@@ -55,7 +53,7 @@ The canonical live source remains `spec/v1/artifacts/registry/contract-catalog.j
 - Frozen-baseline route: leave old snapshots unchanged and publish the current contract under a new versioned filename.
 - Current-release route: regenerate the existing versioned snapshot only as an intentional replacement, and gate it with count/hash checks against the canonical catalog.
 
-Both routes require release-readiness notes to state which snapshot a stable site serves.
+Current HEAD uses the current-release route for every versioned public snapshot in this repository: `site/src/lib/site-meta.ts#specReleaseTag` points at `v1.0.0-rc1`, and both `site/public/v1/contract-catalog-1.0.0.json` and `site/public/v1/contract-catalog-1.0.0-rc1.json` MUST be byte-identical to the canonical catalog. `python tools/artifact_pipeline.py check` enforces hash/count/Circle-presence gates for all existing `contract-catalog-*.json` snapshots.
 
 ## Release Notes Seed
 

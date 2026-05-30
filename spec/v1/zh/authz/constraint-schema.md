@@ -106,7 +106,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 
 ### 2.4 字段扁平化与未来嵌套化（normative for new fields）
 
-v1 constraint object 上 approval / accountability / claim 相关字段是扁平结构（`approval_required` / `approval_mode` / `approval_actor_refs` / `approval_relation` / `accountability_required` / `guardian_approval_required` / `controller_approval_required` 等），简化 schema 验证。
+v1 constraint object 上 approval / accountability / claim 相关字段是扁平结构（`approval_required` / `approval_mode` / `approval_actor_ids` / `approval_relation` / `accountability_required` / `guardian_approval_required` / `controller_approval_required` 等），简化 schema 验证。
 
 **新字段命名规则（normative，对扩展 profile 适用）**：扩展 profile 引入新的 approval / claim / accountability 子字段时，应避免展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
 
@@ -217,11 +217,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "scope_limitation",
   "effect": "allow",
-  "allowed_flow_refs": [
+  "allowed_flow_ids": [
     "cx:flow:01964180-0280-7000-8000-000000000000"
   ],
   "allowed_tracks": ["discussion"],
-  "denied_flow_refs": [
+  "denied_flow_ids": [
     "cx:flow:01964180-0289-7a52-94a5-294a5294a400"
   ]
 }
@@ -253,7 +253,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
-  "allowed_view_refs": ["cx:view:019641be-0000-7000-8000-000000000000"],
+  "allowed_view_ids": ["cx:view:019641be-0000-7000-8000-000000000000"],
   "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
   "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
@@ -262,7 +262,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
 
-`allowed_space_refs` / `denied_space_refs` MUST 使用 `cx:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `cx:space:`（或 profile 明确声明的 `cx:flow:` / `cx:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `cx:realm:` 塞进 Space 或 container 字段。
+`allowed_space_ids` / `denied_space_ids` MUST 使用 `cx:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `cx:space:`（或 profile 明确声明的 `cx:flow:` / `cx:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `cx:realm:` 塞进 Space 或 container 字段。
 
 ### 6.4 服务出口与 presign 范围
 
@@ -272,7 +272,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "blob_presign_scope": {
     "purpose_allow": ["media_inline", "thumbnail"],
-    "realm_refs": ["cx:realm:0196419b-0000-7000-8000-000000000000"]
+    "realm_ids": ["cx:realm:0196419b-0000-7000-8000-000000000000"]
   },
   "allowed_endpoints": ["https://api.trusted.example"],
   "allowed_data_classes": ["public", "internal"]
@@ -352,7 +352,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "require_review",
   "approval_required": true,
   "approval_mode": "before_commit",
-  "approval_actor_refs": [
+  "approval_actor_ids": [
     "did:web:manager.example.com"
   ],
   "approval_relation": "controller",
@@ -879,7 +879,7 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
-  "allowed_view_refs": ["cx:view:019641be-0000-7000-8000-000000000000"],
+  "allowed_view_ids": ["cx:view:019641be-0000-7000-8000-000000000000"],
   "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
   "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
@@ -892,7 +892,7 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   `depends_on` 和 `contains` 被同一宽泛授权混用。
 - `allowed_from_container_refs` 与 `allowed_to_container_refs` 分别限制可移出
   和可移入的列 / collection。
-- `allowed_view_refs` 限定授权适用的 View；同一个 Flow item 出现在多个 View
+- `allowed_view_ids` 限定授权适用的 View；同一个 Flow item 出现在多个 View
   时不得自动继承移动权。
 - `wip_limit_override=false` 时，若目标列 `wip_limit_enforcement` 为 `reject`
   或 `require_review`，移动必须失败或进入审批路径。

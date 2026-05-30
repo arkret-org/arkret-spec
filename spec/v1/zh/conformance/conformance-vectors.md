@@ -2267,6 +2267,25 @@ Expected：
 - 第 2 步 MUST 返回 `did_proof_required`，不得签发 active session grant。
 - 第 3 步的 proof MUST 覆盖 principal、device、audience、challenge、request canonical hash 和 expiry；验证成功后才可恢复为 `active`。
 
+### 10.4.1 Vector: DID Proof Replay Window
+
+`vector_id`: `cx.vector.identity.did_proof_replay_window.v1`
+
+Steps：
+
+1. Auth Server 发出 DID proof challenge，绑定 `purpose="account_binding"`、`audience=did:web:auth.example`、`origin=https://auth.example`、随机 nonce、`issued_at=T0`、`expires_at=T0+300s`。
+2. Client 提交签名正确的 proof，服务器接受并 burn challenge。
+3. 攻击者第二次提交同一 proof。
+4. 攻击者把相同签名 transcript 用到另一 audience/origin，或提交 `expires_at - issued_at = 3600s` 的 proof。
+5. 攻击者提交 `issued_at` 超出接收端 skew 窗口的 proof。
+
+Expected：
+
+- 第 2 步 MUST 成功并把 challenge 进入 replay table。
+- 第 3 步 MUST fail closed，即使签名仍正确。
+- 第 4 步 MUST 因 audience/origin mismatch 或 freshness window 超限拒绝；服务端不得裁剪有效期后继续接受同一 proof。
+- 第 5 步 MUST 拒绝；默认 skew 上限 SHOULD ≤ 300s。
+
 ### 10.5 Vector: Session Grant Audience Binding
 
 `vector_id`: `cx.vector.auth.session_grant_audience_binding.v1`
@@ -2639,7 +2658,7 @@ Expected:
 
 Steps:
 
-1. Backend signal `ParticipantConnected` with `participant_identity=cx:rtcpart:<unknown>`，无对应 `cx.call.state.participants[]` 项。
+1. Backend signal `ParticipantConnected` with `participant_identity=cx:rtc_participant:<unknown>`，无对应 `cx.call.state.participants[]` 项。
 
 Expected:
 
@@ -2658,6 +2677,21 @@ Expected:
 
 - Client MUST 检测 Egress destination 不是 Contrix media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
 - 合法路径：Egress → Contrix blob upload → `cx.call.state` lifecycle `state="recording_ready"` + blob hash。
+
+### 12.9.1 Recording Exporter Label — Dedicated Recording Context
+
+`vector_id`: `cx.vector.media_binding.recording_exporter_label.v1`
+
+Steps:
+
+1. LiveKit Egress 通过 Contrix proxy 上传合法 recording artifact。
+2. Artifact encryption metadata 声称 key 来自 MLS exporter，但使用 SFrame label `"cx-rtc-frame-key/v1"` 或空 Context。
+3. Producer 重新上传同一 artifact，使用 label `"cx-rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}`。
+
+Expected:
+
+- 第 2 步 MUST 拒绝；SFrame key 和 recording key 不得 label/Context 复用。
+- 第 3 步 MAY accepted，前提是 Contrix blob pipeline、capability proof 与 `cx.call.state` lifecycle 绑定同时通过。
 
 ## 13. History Visibility / Preview / History Sharing
 
