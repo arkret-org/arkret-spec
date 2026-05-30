@@ -570,7 +570,8 @@
       "operation_id": "cx.events.subscribe",
       "http": "GET /events/subscribe",
       "grpc": "Events/Subscribe",
-      "mq": "events.subscribe"
+      "mq": "events.subscribe",
+      "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After."
     },
     {
       "operation_id": "cx.events.submit",
@@ -837,7 +838,7 @@
       "http": "GET /account/subscribe",
       "grpc": "Account/Subscribe",
       "mq": "account.subscribe",
-      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync."
+      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync."
     },
     {
       "operation_id": "cx.account.cursor_revoke",

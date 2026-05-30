@@ -412,6 +412,25 @@
       }
     },
     {
+      "name": "account_subscribe_dropped_reconnect_after_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "dropped",
+        "cursor": "cx:cursor:opaque",
+        "reconnect_after_ms": 5000
+      }
+    },
+    {
+      "name": "account_subscribe_resync_reconnect_after_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "resync_required",
+        "reconnect_after_ms": 10000
+      }
+    },
+    {
       "name": "did_key_log_entry_seq_requires_previous_hash_valid",
       "schema_ref": "schemas/did-key-log-entry.schema.json",
       "expect_valid": true,

@@ -331,7 +331,7 @@ paths:
 | `cx.events.submit` | `POST /events` | gRPC `Events/Submit` / 队列 `events.submit` |
 | `cx.events.get` / `cx.events.resolve` / `cx.events.query` / `cx.events.frontier` | `GET /events/{event_id}`, `POST /events/resolve`, `GET /events`, `GET /events/frontier` | gRPC `Events/Get` / `Events/Resolve` / `Events/Query` / `Events/Frontier` |
 | `cx.events.subscribe` | `GET /events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
-| `cx.account.subscribe` | `GET /account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`) |
+| `cx.account.subscribe` | `GET /account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
 | `cx.account.cursor_revoke` | `POST /account/cursor/revoke` | gRPC `Account/CursorRevoke` / MQ `account.cursor_revoke` |
 | `cx.ephemeral.send` | `POST /ephemeral` | gRPC `Ephemeral/Send` / MQ `ephemeral.send`；承载 `cx.schema.ephemeral_envelope.v1`，不写 durable Event |
 | `cx.snapshot.head` | `GET /snapshot/head` | snapshot pointer |

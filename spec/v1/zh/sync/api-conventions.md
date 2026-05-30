@@ -45,6 +45,7 @@ Contrix canonical JSON 字段名 MUST 使用小写字母与下划线连接，例
 - `service_endpoint`
 - `verification_method`
 - `retry_after_ms`
+- `reconnect_after_ms`
 
 Raw 外部标准文档 MUST 保留外部标准字段名，例如 W3C DID Core 的 `verificationMethod` / `alsoKnownAs` / `serviceEndpoint` 和 VC 的 `credentialSubject`。Contrix normalized view、索引、policy input 和 reducer input MAY 使用 snake_case 派生字段，但这些派生字段不得作为 raw DID / VC 文档重新输出。
 
@@ -149,7 +150,7 @@ API 调用 SHOULD 使用以下方式之一：
 
 `{ok: true}` 与 `{deleted: true}` / `{accepted: true}` 等单 boolean 标记**等价**（历史命名差异），新设计统一使用 `ok`。
 
-流式 endpoint MAY 使用 newline-delimited JSON、SSE 或 WebSocket frame，但每个 frame 仍 SHOULD 是独立 JSON 对象。`request_id` 字段（若返回）SHOULD 与请求侧的 idempotency / tracing id 对齐，但不作为 success/failure discriminator。
+流式 endpoint MAY 使用 newline-delimited JSON、SSE 或 WebSocket frame，但每个 frame 仍 SHOULD 是独立 JSON 对象。`request_id` 字段（若返回）SHOULD 与请求侧的 idempotency / tracing id 对齐，但不作为 success/failure discriminator。成功建立的 subscribe stream 若需要指示客户端延迟重连，MUST 使用 control frame 上的 `reconnect_after_ms`；`retry_after_ms` 保留给错误响应、非 HTTP binding 的失败诊断或显式 retry 语义。
 
 ## 5. 标准错误响应
 

@@ -861,6 +861,10 @@ components:
           description: Stream cursor. REQUIRED when kind=dropped.
         payload:
           type: object
+        reconnect_after_ms:
+          type: integer
+          minimum: 1
+          description: Optional server-directed minimum delay before opening another cx.events.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
       allOf:
       - if:
           properties:
@@ -872,6 +876,22 @@ components:
           required:
           - realm_id
           - cursor
+      - if:
+          properties:
+            kind:
+              enum:
+              - event
+              - frontier
+              - heartbeat
+              - catchup_complete
+              - epoch_rotation
+              - unauthorized
+          required:
+          - kind
+        then:
+          not:
+            required:
+            - reconnect_after_ms
       additionalProperties: false
 
     EventsFrontierResponse:
@@ -4108,8 +4128,10 @@ paths:
         both share resume semantics (`after=<cursor>` exclusive start).
         `dropped` requires account-aggregate catch-up by reconnecting with
         `after=<cursor>&catchup=true`; `resync_required` requires local
-        rebuild / initial account sync. Replaces the prior Matrix-derived
-        long-poll cx.account.sync.
+        rebuild / initial account sync. `dropped` / `resync_required` may
+        carry `reconnect_after_ms`, a minimum server-directed delay before
+        opening another subscription for the same principal/device/filter
+        scope. Replaces the prior Matrix-derived long-poll cx.account.sync.
       parameters:
       - in: header
         name: X-Contrix-Wait-For

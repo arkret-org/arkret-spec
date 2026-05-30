@@ -80,8 +80,8 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `catchup_complete` | required | catch-up replay 或 initial baseline 完成，后续 frame 是实时推送。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
 | `frontier` | required | 仅推进 cursor,不带数据；用于服务端在 quiescent 期周期性确认订阅仍连通。 |
 | `heartbeat` | absent | 防中间层断流的 keepalive。 |
-| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。客户端 MUST 重新建立 `cx.account.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `cx.events.query` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。 |
-| `resync_required` | absent | 服务端无法定位任何可用 catch-up 起点(本地状态彻底失效)。客户端 MUST 清空本地 cursor 缓存，从零重新建立订阅。 |
+| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。客户端 MUST 重新建立 `cx.account.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `cx.events.query` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
+| `resync_required` | absent | 服务端无法定位任何可用 catch-up 起点(本地状态彻底失效)。客户端 MUST 清空本地 cursor 缓存，从零重新建立订阅。MAY 携带 `reconnect_after_ms`。 |
 | `unauthorized` | absent | 当前 session 不再有权限消费该流；客户端 MUST 重新认证或退出。 |
 
 frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json)(`cx.schema.account_subscribe_frame.v1`)。
@@ -116,8 +116,8 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "catchup_complete", "cursor": "cx:cursor:..."}
 {"kind": "frontier", "cursor": "cx:cursor:..."}
 {"kind": "heartbeat"}
-{"kind": "dropped", "cursor": "cx:cursor:..."}
-{"kind": "resync_required"}
+{"kind": "dropped", "cursor": "cx:cursor:...", "reconnect_after_ms": 5000}
+{"kind": "resync_required", "reconnect_after_ms": 10000}
 {"kind": "unauthorized"}
 ```
 
@@ -134,11 +134,13 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 客户端 MUST 维护一个长期存在的 `/account/subscribe` 连接，并:
 
 1. **持久化最近收到的 `cursor`**(任何带 cursor 的 frame 都更新本地高水位)。
-2. **网络断开**: 立即用最近 `cursor` 作为 `after=` 重连，并设置 `catchup=true`,确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。
-3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta。不得只用 `cx.events.query` 恢复，因为 `to_device`、`account_data`、`device_lists`、presence 与 notifications 不属于裸 Realm Event 查询面。
-4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;大型 Realm 的当前态可走 snapshot bootstrap,见 §13。
+2. **网络断开**: 若没有服务端 `reconnect_after_ms` 或 HTTP `Retry-After` 指令，立即用最近 `cursor` 作为 `after=` 重连，并设置 `catchup=true`,确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。
+3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `cx.events.query` 恢复，因为 `to_device`、`account_data`、`device_lists`、presence 与 notifications 不属于裸 Realm Event 查询面。
+4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。大型 Realm 的当前态可走 snapshot bootstrap,见 §13。
 5. **`unauthorized` frame**: 关闭连接，触发 session 刷新或退出登录。
-6. **建议 reconnect 退避**: 指数退避，起始 1s,最大 60s;`dropped` / `resync_required` 后立即重连(不退避)以缩短数据不一致窗口。
+6. **建议 reconnect 退避**: 指数退避，起始 1s,最大 60s;`dropped` / `resync_required` 未携带 `reconnect_after_ms` 时可立即重连以缩短数据不一致窗口。客户端收到 `reconnect_after_ms`、HTTP `Retry-After` 或错误 body `retry_after_ms` 时，MUST 优先遵守服务端指令，并 SHOULD 加 jitter 避免同批客户端同步重连。
+
+`reconnect_after_ms` 是 200 stream control frame 内的重连保持时间，不是错误响应字段。服务端发送后 MUST 按至少 `(principal_id, device_id, operation_id, filter_digest)` 维度强制执行；在保持时间内的同 scope `/account/subscribe` 请求 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 to-device ack、account subscribe position、barrier wait 或 dropped recovery state。服务端 MAY 在实现中加入 source IP / session id / trust domain 等更细维度，但不得把该限制扩大到无关 API。
 
 ## 3. Stream Classes
 

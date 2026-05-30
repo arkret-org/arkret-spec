@@ -42,6 +42,26 @@
 
 ## [Unreleased]
 
+### Subscribe stream reconnect backoff(2026-05-30)
+
+为 `cx.events.subscribe` / `cx.account.subscribe` 的 200 NDJSON control frame 增加 `reconnect_after_ms`，用于服务端在 `dropped` / `resync_required` 后显式约束下一次订阅重连时间，避免故障或负载压力下的重连放大。
+
+- **变更类型**: add
+- **影响 artifact**: schema / openapi / registry notes / fixtures / prose
+- **canonical 变更**:
+  - `schemas/account-subscribe-frame.schema.json`: `dropped` / `resync_required` frame 可携带 `reconnect_after_ms`；其它 account subscribe frame kind 不得携带该字段。
+  - `contract-catalog.json#operation_registry`: `cx.events.subscribe` / `cx.account.subscribe` notes 记录 server-directed reconnect holdoff 语义。
+  - `openapi/contrix-service-api.openapi.yaml`: `EventsSubscribeFrame` 增加 `reconnect_after_ms`，并限制为 `dropped` / `resync_required` 使用；account subscribe 通过 schema `$ref` 同步。
+- **派生 artifact 同步**: `operation-registry.json` 由 `contract-catalog.json` 重新生成；`python tools/artifact_pipeline.py check` 验证。
+- **conformance impact**:
+  - 受影响 profile: `principal_server.v1` / `core_event_store.v1` / full client 与 E2EE client 的 subscribe 恢复行为。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible；reader MUST tolerate absent `reconnect_after_ms`，收到时 MUST 延迟同 scope 重连；server 发送后 MUST 对过早重连返回 `429 rate_limited` + `Retry-After`。
+  - reader / writer 行为要求: `reconnect_after_ms` 只约束同一 subscribe operation + principal/device/filter 或 caller/selector scope 的重连，不约束无关 API；不得推进 cursor、ack 或 dropped recovery state。
+- **fixture / vector 变化**: `schema-validation-fixture.json` 新增 account subscribe control frame 正例。
+- **prose 同步**: `zh/sync/client-sync.md`、`zh/sync/service-http-binding.md`、`zh/sync/api-conventions.md`、`zh/sync/service-api-schema.mdx`。
+- **迁移指南**: 服务端在过载、buffer pressure 或无法立即恢复时优先在 stream control frame 下发 `reconnect_after_ms`；客户端把该字段作为订阅重连前的最小等待时间，并在等待窗口内避免重复建立同 scope stream。
+
 ### Event envelope schema filename normalization(2026-05-30)
 
 统一 Event Envelope schema 文件命名，移除 pre-release 草案中的 `event-schema.json` / `event-envelope.schema.json` 双名状态。

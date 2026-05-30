@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/account-subscribe-frame.schema.json",
   "title": "Contrix Account Subscribe Frame",
-  "description": "Single NDJSON frame on the cx.account.subscribe streaming channel (GET /api/v1/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (cross-Realm frontier, to_device, account_data, device_lists, presence, notifications, unread counts); the other kinds are control frames that mirror cx.events.subscribe (`catchup_complete`, `frontier`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`).",
+  "description": "Single NDJSON frame on the cx.account.subscribe streaming channel (GET /api/v1/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (cross-Realm frontier, to_device, account_data, device_lists, presence, notifications, unread counts); the other kinds are control frames that mirror cx.events.subscribe (`catchup_complete`, `frontier`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
   "type": "object",
   "required": [
     "kind"
@@ -61,6 +61,11 @@
     "priority": {
       "type": "string",
       "description": "Optional server-side priority hint for the frame (UX scheduling)."
+    },
+    "reconnect_after_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Optional server-directed minimum delay, in milliseconds, before opening another `cx.account.subscribe` stream for the same principal/device/filter scope. MAY appear only on `dropped` and `resync_required` frames. This is a stream reconnect hint, not a generic error retry field; it does not apply to unrelated API calls. Clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with `429 rate_limited` plus `Retry-After`."
     }
   },
   "$defs": {
@@ -318,10 +323,20 @@
         { "required": ["priority"] }
       ]
     },
-    "cursor_or_data_or_control_payload_present": {
+    "reconnect_after_present": {
+      "required": ["reconnect_after_ms"]
+    },
+    "cursor_or_data_payload_present": {
       "anyOf": [
         { "required": ["cursor"] },
         { "$ref": "#/$defs/data_or_control_payload_present" }
+      ]
+    },
+    "cursor_or_data_or_control_payload_present": {
+      "anyOf": [
+        { "required": ["cursor"] },
+        { "$ref": "#/$defs/data_or_control_payload_present" },
+        { "$ref": "#/$defs/reconnect_after_present" }
       ]
     }
   },
@@ -336,7 +351,10 @@
       "required": [
         "kind",
         "cursor"
-      ]
+      ],
+      "not": {
+        "$ref": "#/$defs/reconnect_after_present"
+      }
     },
     {
       "description": "Catch-up replay or initial baseline completed; no data fields are allowed.",
@@ -350,7 +368,10 @@
         "cursor"
       ],
       "not": {
-        "$ref": "#/$defs/data_or_control_payload_present"
+        "anyOf": [
+          { "$ref": "#/$defs/data_or_control_payload_present" },
+          { "$ref": "#/$defs/reconnect_after_present" }
+        ]
       }
     },
     {
@@ -365,11 +386,14 @@
         "cursor"
       ],
       "not": {
-        "$ref": "#/$defs/data_or_control_payload_present"
+        "anyOf": [
+          { "$ref": "#/$defs/data_or_control_payload_present" },
+          { "$ref": "#/$defs/reconnect_after_present" }
+        ]
       }
     },
     {
-      "description": "Account stream gap signal; cursor is the account catch-up start. No data fields are allowed.",
+      "description": "Account stream gap signal; cursor is the account catch-up start. No data fields are allowed. `reconnect_after_ms` MAY be present to enforce a server-directed reconnect holdoff.",
       "properties": {
         "kind": {
           "const": "dropped"
@@ -398,7 +422,7 @@
       }
     },
     {
-      "description": "Hard reset signal; cursor and data fields are forbidden.",
+      "description": "Hard reset signal; cursor and data fields are forbidden. `reconnect_after_ms` MAY be present to enforce a server-directed reconnect holdoff.",
       "properties": {
         "kind": {
           "const": "resync_required"
@@ -408,7 +432,7 @@
         "kind"
       ],
       "not": {
-        "$ref": "#/$defs/cursor_or_data_or_control_payload_present"
+        "$ref": "#/$defs/cursor_or_data_payload_present"
       }
     },
     {
