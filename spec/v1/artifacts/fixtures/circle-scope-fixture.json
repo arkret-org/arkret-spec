@@ -199,7 +199,7 @@
     },
     {
       "name": "accepted_event_missing_effective_scope",
-      "description": "An accepted durable Circle-scoped Event (e.g. cx.message.create whose Flow scope_circle_id is set) MUST carry the reducer-stamped effective_scope on its envelope. An offline validator / cotest MUST reject an accepted event whose object is Circle-scoped but whose effective_scope is absent, otherwise the §9.3 'Circle scoped event not delivered to non-members' invariant cannot be deterministically replayed. event-schema.json carries effective_scope as a reducer-stamped field; this vector pins that accepted (post-reducer) Circle events MUST populate it.",
+      "description": "An accepted durable Circle-scoped Event (e.g. cx.message.create whose Flow scope_circle_id is set) MUST carry the reducer-stamped effective_scope on its envelope. An offline validator / cotest MUST reject an accepted event whose object is Circle-scoped but whose effective_scope is absent, otherwise the §9.3 'Circle scoped event not delivered to non-members' invariant cannot be deterministically replayed. event-envelope.schema.json carries effective_scope as a reducer-stamped field; this vector pins that accepted (post-reducer) Circle events MUST populate it.",
       "event_kind": "cx.message.create",
       "object_scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000",
       "accepted_event_effective_scope": null,

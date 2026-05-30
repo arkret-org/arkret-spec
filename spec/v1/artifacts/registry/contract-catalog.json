@@ -1905,7 +1905,7 @@
       },
       {
         "schema_id": "cx.schema.event.v1",
-        "file": "schemas/event-schema.json"
+        "file": "schemas/event-envelope.schema.json"
       },
       {
         "schema_id": "cx.schema.event_payload.v1",

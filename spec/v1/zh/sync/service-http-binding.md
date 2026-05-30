@@ -187,11 +187,11 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 #### 2.3.1 Wire-level JSON 示例
 
-以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-schema.json expect=valid`(canonical `cx.schema.event.v1` artifact),与 [`event-and-patch.md` §2.3](../models/event-and-patch.md) 的 canonical Event Envelope shape 一致。每条 envelope 均为 reducer-input event,因此携带顶层 `preconditions[]` / `effects[]` / `anchor_ref` 三件套(详见 [`event-and-patch.md` §2.2](../models/event-and-patch.md))。
+以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-envelope.schema.json expect=valid`(canonical `cx.schema.event.v1` artifact),与 [`event-and-patch.md` §2.3](../models/event-and-patch.md) 的 canonical Event Envelope shape 一致。每条 envelope 均为 reducer-input event,因此携带顶层 `preconditions[]` / `effects[]` / `anchor_ref` 三件套(详见 [`event-and-patch.md` §2.2](../models/event-and-patch.md))。
 
 **示例 A — `POST /api/v1/events`(单事件提交,`cx.message.create`)**:
 
-```json schema=schemas/event-schema.json expect=valid
+```json schema=schemas/event-envelope.schema.json expect=valid
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
@@ -237,7 +237,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 **示例 B — `GET /api/v1/events?realms=...&after=...&limit=2`(分页响应,`events[]` 中的一条 `cx.message.create`)**:
 
-```json schema=schemas/event-schema.json expect=valid
+```json schema=schemas/event-envelope.schema.json expect=valid
 {
   "event_id": "cx:event:019640ed-9000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
@@ -287,7 +287,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 每一帧为一行 JSON;`event` kind frame 携带完整 envelope:
 
-```json schema=schemas/event-schema.json expect=valid
+```json schema=schemas/event-envelope.schema.json expect=valid
 {
   "event_id": "cx:event:019640ee-0000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",

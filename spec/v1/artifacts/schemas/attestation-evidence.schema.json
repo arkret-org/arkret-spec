@@ -156,7 +156,7 @@
       "minItems": 1,
       "description": "Detached signature(s) over the canonical evidence bytes (all fields except `proofs`), signed by operator-controlled keys distinct from the enclave attestation key. Two-key separation: the enclave attests its own measurement; the operator separately attests that this enclave is the one they intend to deploy.",
       "items": {
-        "$ref": "./event-schema.json#/$defs/proof"
+        "$ref": "./event-envelope.schema.json#/$defs/proof"
       }
     }
   },

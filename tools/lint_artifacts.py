@@ -113,7 +113,7 @@ FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
         1: "schemas/relation.schema.json",
     },
     "spec/v1/zh/models/event-and-patch.md": {
-        1: "schemas/event-schema.json",
+        1: "schemas/event-envelope.schema.json",
     },
     "spec/v1/zh/authz/capabilities.md": {
         1: "schemas/capability-grant.schema.json",
@@ -610,7 +610,7 @@ def check_forbidden_naming_aliases(lint: Lint) -> None:
 def check_event_proof_digest_shape(lint: Lint) -> None:
     """Event proofs must use event_digest, not generic payload_hash."""
 
-    path = ARTIFACTS / "schemas" / "event-schema.json"
+    path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
@@ -1506,7 +1506,7 @@ def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
 
 
 def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
-    path = ARTIFACTS / "schemas" / "event-schema.json"
+    path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
     data = load_json(lint, path)
     if data is None:
         return
@@ -2662,7 +2662,7 @@ def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int,
             + ", ".join(missing),
         )
 
-    if schema_ref not in {"schemas/event-schema.json", "schemas/capability-grant.schema.json"}:
+    if schema_ref not in {"schemas/event-envelope.schema.json", "schemas/capability-grant.schema.json"}:
         return
 
     proofs = data.get("proofs")
@@ -2671,9 +2671,9 @@ def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int,
         return
 
     proof_required: list[str] = []
-    event_schema = load_json(lint, ARTIFACTS / "schemas/event-schema.json")
+    event_schema = load_json(lint, ARTIFACTS / "schemas/event-envelope.schema.json")
     if isinstance(event_schema, dict):
-        proof_def_name = "event_proof" if schema_ref == "schemas/event-schema.json" else "proof"
+        proof_def_name = "event_proof" if schema_ref == "schemas/event-envelope.schema.json" else "proof"
         proof_schema = event_schema.get("$defs", {}).get(proof_def_name, {})
         required = proof_schema.get("required", []) if isinstance(proof_schema, dict) else []
         proof_required = [field for field in required if isinstance(field, str)]

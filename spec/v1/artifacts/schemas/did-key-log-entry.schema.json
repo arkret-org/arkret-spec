@@ -55,7 +55,7 @@
     "proofs": {
       "type": "array",
       "items": {
-        "$ref": "./event-schema.json#/$defs/proof"
+        "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1
     }

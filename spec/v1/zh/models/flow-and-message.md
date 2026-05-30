@@ -400,7 +400,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
               | null
 ```
 
-`cx.flow.watch.set` payload（详见 [`artifacts/schemas/event-schema.json`](../../artifacts/schemas/event-schema.json) 的 `flow_watch_set_payload`）：
+`cx.flow.watch.set` payload（详见 [`artifacts/schemas/event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) 的 `flow_watch_set_payload`）：
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |

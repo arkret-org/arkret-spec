@@ -3,7 +3,7 @@ import type { JsonSchema } from "./types";
 /**
  * Resolve a JSON Pointer against a root schema document. Supports the
  * subset Contrix actually uses: same-doc fragments (`#/$defs/Foo`) and
- * sibling-file fragments (`./event-schema.json`, `./event-schema.json#/...`).
+ * sibling-file fragments (`./event-envelope.schema.json`, `./event-envelope.schema.json#/...`).
  *
  * Cross-file resolution requires the caller to provide a `loadFile` callback
  * because the loader differs between build-time (artifacts.ts) and any future

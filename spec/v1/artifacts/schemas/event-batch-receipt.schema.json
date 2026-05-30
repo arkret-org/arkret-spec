@@ -22,20 +22,20 @@
       "const": "cx.schema.event_batch_receipt.v1"
     },
     "issuer": {
-      "$ref": "./event-schema.json#/$defs/did"
+      "$ref": "./event-envelope.schema.json#/$defs/did"
     },
     "receipt_scope": {
       "type": "object",
       "properties": {
         "actor_id": {
-          "$ref": "./event-schema.json#/$defs/did"
+          "$ref": "./event-envelope.schema.json#/$defs/did"
         },
         "realm_id": {
           "type": "string",
           "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "query_digest": {
-          "$ref": "./event-schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/hash"
         }
       },
       "minProperties": 1,
@@ -49,10 +49,10 @@
           "minimum": 0
         },
         "event_id": {
-          "$ref": "./event-schema.json#/$defs/event_ref"
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         },
         "event_digest": {
-          "$ref": "./event-schema.json#/$defs/hash"
+          "$ref": "./event-envelope.schema.json#/$defs/hash"
         },
         "hlc": {
           "type": "string",
@@ -67,22 +67,22 @@
       "items": {
         "oneOf": [
           {
-            "$ref": "./event-schema.json#/$defs/event_ref"
+            "$ref": "./event-envelope.schema.json#/$defs/event_ref"
           },
           {
-            "$ref": "./event-schema.json#/$defs/hash"
+            "$ref": "./event-envelope.schema.json#/$defs/hash"
           }
         ]
       },
       "minItems": 1
     },
     "created_at": {
-      "$ref": "./event-schema.json#/$defs/timestamp"
+      "$ref": "./event-envelope.schema.json#/$defs/timestamp"
     },
     "proofs": {
       "type": "array",
       "items": {
-        "$ref": "./event-schema.json#/$defs/proof"
+        "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1
     }

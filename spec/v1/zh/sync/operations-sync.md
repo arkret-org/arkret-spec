@@ -45,7 +45,7 @@ Contrix v1 区分：
 
 ### 2.1 Event Store 与 reducer-input Event
 
-Contrix v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read cursor、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
+Contrix v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read cursor、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
 
 Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3）：
 
@@ -75,18 +75,18 @@ Actor-private state 是独立层，不是“弱 durable Event”。标准规则�
 
 ### 2.1.1 Wire-Scope 边界（normative）
 
-为避免 ephemeral 信号意外进入持久 Event 流，event-schema.json 与 cx.events.submit MUST 按下表 fail-closed：
+为避免 ephemeral 信号意外进入持久 Event 流，event-envelope.schema.json 与 cx.events.submit MUST 按下表 fail-closed：
 
 | `wire_scope`（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)） | 允许使用的 envelope schema | 允许的提交路径 |
 | --- | --- | --- |
-| `durable_event` | `cx.schema.event.v1`（[`event-schema.json`](../../artifacts/schemas/event-schema.json)） | `cx.events.submit` |
+| `durable_event` | `cx.schema.event.v1`（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)） | `cx.events.submit` |
 | `actor_private_event` | `cx.schema.event.v1`（同上；不携带 `preconditions/effects/anchor_ref`，payload 仍按 kind-specific schema 校验） | `cx.events.submit`（actor 私有，写入 actor 私有 store 或 registry 声明的 actor-private state cell；不进 Realm frontier） |
 | `ephemeral_event`（`cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`） | `cx.schema.ephemeral_envelope.v1`（[`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)） | `cx.ephemeral.send`（HTTP `POST /api/v1/ephemeral`）或等价已声明 binding；fanout 通过 sync subscribe 实时流、presence/typing fanout、call signaling channel；**MUST NOT** 出现在 `cx.events.submit` |
 | `ephemeral_event`（`cx.key.verification.*` — 点对点 to-device） | `cx.schema.device_message.v1`（[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)） | to-device 队列（不广播）；**MUST NOT** 出现在 `cx.events.submit` |
 
 规则：
 
-1. `cx.events.submit` MUST 对 `kind` 的 `wire_scope=ephemeral_event` 立即 `schema_violation`，不进 reducer / anchor pipeline。event-schema.json 已用 `not` 分支静态强制 cx.call.signal / cx.presence / cx.typing / cx.receipt.read / cx.key.verification.* MUST NOT 出现在 durable Event Envelope。
+1. `cx.events.submit` MUST 对 `kind` 的 `wire_scope=ephemeral_event` 立即 `schema_violation`，不进 reducer / anchor pipeline。event-envelope.schema.json 已用 `not` 分支静态强制 cx.call.signal / cx.presence / cx.typing / cx.receipt.read / cx.key.verification.* MUST NOT 出现在 durable Event Envelope。
 2. ephemeral 广播信号 MUST 通过 `cx.ephemeral.send` 或等价已声明 binding 发送，MUST 携带 `expires_at` 并由接收方按 schema 中 5 分钟硬上限丢弃；不得作为 backfill / sync replay 入口。
 3. 接收方 MUST NOT 把 ephemeral envelope 解释为 reducer 输入：它们不写 cell、不推 anchor frontier、不消耗 actor_seq。`actor_private_event` 可消耗 actor-private stream seq，但不得推进 shared Realm `actor_seq` / Anchor frontier。
 4. 部署若希望"高频信号但仍可审计"，MUST 选择 sample / digest 后单独 emit 一条 durable event（例如 `cx.call.state` / `cx.notification.read`），而不是把 ephemeral envelope 当 durable Event 提交。
@@ -325,7 +325,7 @@ issuer / verifier 应根据需求选取；混用以补强各自边界。
 
 ## 5. Wire Event
 
-v1 的规范性 wire fact 只有 **Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。Reducer-input event 是单层 Event，无外层 Envelope 包裹。
+v1 的规范性 wire fact 只有 **Event**（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。Reducer-input event 是单层 Event，无外层 Envelope 包裹。
 
 Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event。SDK 可以定义本地 builder / draft 对象作为生成 Event 前的中间结构，但这种 builder 不进入协议 wire format，也不出现在 registry / schema 中——它属于 SDK 实现细节，不是 protocol normative 对象。
 
@@ -987,7 +987,7 @@ ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。
 
 字段可见性分级：
 
-- Event Envelope 顶层可路由 / 因果元数据：`event_id`、`realm_id`、`kind`、`prev_refs`、`refs[]`、`actor_id`、`actor_seq`、`hlc`、`anchor_ref`。历史草案中的顶层 `type` / `target_ref` 已被 `event-schema.json` 拒绝；操作目标等路由 hint MUST 放在 payload 的领域字段（例如 `payload.target_ref`）或 `unsigned` 中，不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
+- Event Envelope 顶层可路由 / 因果元数据：`event_id`、`realm_id`、`kind`、`prev_refs`、`refs[]`、`actor_id`、`actor_seq`、`hlc`、`anchor_ref`。历史草案中的顶层 `type` / `target_ref` 已被 `event-envelope.schema.json` 拒绝；操作目标等路由 hint MUST 放在 payload 的领域字段（例如 `payload.target_ref`）或 `unsigned` 中，不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
 - 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，接收它们的受托 search / projection 服务必须列入 `plaintext_visible_services`。
 - 不透明加密负载：message body、附件内容等。
 

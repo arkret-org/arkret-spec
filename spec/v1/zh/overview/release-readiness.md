@@ -33,7 +33,7 @@ updated: 2026-05-25
 | Claimable conformance profile | 67 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 88 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 当前另有 60 个 raw JSON Schema artifact file；其中 `cx.schema.event.v1` 现直接登记到 `event-schema.json`（schema body 所在文件）；同目录的 `event-envelope.schema.json` 是指向它的单字段 `$ref` alias（便于人工搜索，非 registry 真源）。发布站点仍然 MUST raw 发布这些同目录 `$ref` 目标 / alias 文件，registry consumer 也必须递归解析同目录 `$ref`，不能只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 当前有 59 个 raw JSON Schema artifact file；其中 `cx.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，不能只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含两个 wire-breaking cleanup：`cx.schema.handle_claim.v1.claim_kind` 不再允许 draft-era `service_handle`（服务 / 资源可读名必须迁移到独立服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`），并且 `cx.member.identity.update` payload 中旧草案字段 `identity_state_digest` 已更名为 `identity_payload_digest`，以避免与 roster `member_display_state_digest` 混淆。实现者不得同时接受旧名和新名作为等价字段，除非在本地迁移层先把旧草案数据正规化后再进入 v1 validator。
 
@@ -65,7 +65,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 | 主题 | 对应工件 | 当前要求 |
 | --- | --- | --- |
-| 唯一事实 envelope | `zh/sync/operations-sync.md`, `artifacts/schemas/event-schema.json`, `artifacts/schemas/event-payload.schema.json` | Event Envelope 是唯一共享 wire fact；Operation 只用于服务 operation 或 SDK 内部构造路径。 |
+| 唯一事实 envelope | `zh/sync/operations-sync.md`, `artifacts/schemas/event-envelope.schema.json`, `artifacts/schemas/event-payload.schema.json` | Event Envelope 是唯一共享 wire fact；Operation 只用于服务 operation 或 SDK 内部构造路径。 |
 | Event kind 与 payload | `artifacts/registry/event-kind-registry.json`, `artifacts/schemas/event-payload.schema.json` | active 标准 kind 必须选择对应 payload class，失败即 `schema_violation`。 |
 | 服务 operation 映射 | `artifacts/registry/contract-catalog.json`, `artifacts/registry/operation-registry.json`, `artifacts/openapi/contrix-service-api.openapi.yaml`, `artifacts/bindings/non-http-bindings.yaml` | `contract-catalog.json#operation_registry` 是 operation 的 canonical source。 |
 | Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 对象、Event、snapshot、moderation、MIMI 等 schema 已注册。 |

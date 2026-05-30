@@ -37,7 +37,7 @@ sidebar:
 
 | schema id | canonical 文件 | 说明 |
 | --- | --- | --- |
-| `cx.schema.event.v1` | `schemas/event-schema.json` | 历史命名；同目录提供 `event-envelope.schema.json` 作为单字段 `$ref` alias，便于人工搜索，但**registry 真源**只登记 `event-schema.json`。 |
+| `cx.schema.event.v1` | `schemas/event-envelope.schema.json` | schema id 用 `event` 保持协议对象名，文件名用 `event-envelope` 对齐 wire envelope 术语；不得机械推导为 `event.schema.json`。 |
 | `cx.schema.capability.v1` | `schemas/capability-grant.schema.json` | id 简化为 `capability`，文件保留 `capability-grant` 以区别于其他 capability 相关 schema（grant-constraint、resource-selector 等）。 |
 | `cx.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
 

@@ -77,7 +77,7 @@ flowchart LR
 
 ## 3. Move（Reducer-input Event 的协议视图）
 
-"Move" 是 reducer-input Event 在 Lattice/Anchor 层的协议视图，不是独立 wire 对象。Wire schema 只有 signed Event（见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)），下表给出 Event 与 Move 的字段对应关系：
+"Move" 是 reducer-input Event 在 Lattice/Anchor 层的协议视图，不是独立 wire 对象。Wire schema 只有 signed Event（见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)），下表给出 Event 与 Move 的字段对应关系：
 
 ```text
 Move (reducer view of signed Event) {
@@ -112,7 +112,7 @@ Move (reducer view of signed Event) {
 
 ### 3.1 Predicate
 
-核心 predicate（wire 字段 `{op, value?, values?, predicate_id?}`，schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) `predicate`）：
+核心 predicate（wire 字段 `{op, value?, values?, predicate_id?}`，schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) `predicate`）：
 
 | `op` | 必填字段 | 语义 |
 | --- | --- | --- |
@@ -125,7 +125,7 @@ Predicate 不得读取本地数据库顺序、HTTP 到达时间、未签名服�
 
 ### 3.2 Effect
 
-Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容。`lattice_op` 的 wire 字段为 `{kind, tag?, value?, from?, to?, reason?, issuer_seq?}`（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) `lattice_op`）：
+Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容。`lattice_op` 的 wire 字段为 `{kind, tag?, value?, from?, to?, reason?, issuer_seq?}`（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) `lattice_op`）：
 
 | Lattice type | `op.kind` | 必填字段 | 可选字段 |
 | --- | --- | --- | --- |

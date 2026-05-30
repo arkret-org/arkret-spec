@@ -121,7 +121,7 @@
     "proofs": {
       "type": "array",
       "items": {
-        "$ref": "./event-schema.json#/$defs/proof"
+        "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
       "description": "At least one proof binding handle, subject_id, member_delivery_binding.recipient_service_did, audience, issuer_service_did, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."

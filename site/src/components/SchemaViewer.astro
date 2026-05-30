@@ -17,7 +17,7 @@ const { schema: schemaRef, showHeader = true, expand = 1 } = Astro.props;
 const doc = loadSchemaDocument(schemaRef);
 const file = getSchemaEntry(schemaRef)?.file ?? schemaRef;
 
-// loadFile resolves sibling references like `./event-schema.json`.
+// loadFile resolves sibling references like `./event-envelope.schema.json`.
 const root = walkSchema(doc as JsonSchema, {
   doc: doc as JsonSchema,
   docId: file,

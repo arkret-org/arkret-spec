@@ -66,7 +66,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
 
 ### 2.3 最小 reducer-input event 示例
 
-```json schema=schemas/event-schema.json
+```json schema=schemas/event-envelope.schema.json
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
@@ -277,7 +277,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 完整 event 中的位置示例：
 
-```json schema=schemas/event-schema.json expect=valid
+```json schema=schemas/event-envelope.schema.json expect=valid
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
@@ -384,4 +384,4 @@ Reducer MUST：
 - Canonical JSON、HLC、cursor：[`../conformance/encoding.md`](../conformance/encoding.md)。
 - Conformance vector：[`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md)。
 - Schema / event registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
-- Schemas：`artifacts/schemas/event-schema.json`（含 `$defs.proof` — Proof 是 event-schema 内嵌定义，不再发布为独立 `proof.schema.json` 文件）、`artifacts/schemas/event-batch-receipt.schema.json`。
+- Schemas：`artifacts/schemas/event-envelope.schema.json`（含 `$defs.proof` — Proof 是 Event Envelope schema 内嵌定义，不再发布为独立 `proof.schema.json` 文件）、`artifacts/schemas/event-batch-receipt.schema.json`。

@@ -42,6 +42,26 @@
 
 ## [Unreleased]
 
+### Event envelope schema filename normalization(2026-05-30)
+
+统一 Event Envelope schema 文件命名，移除 pre-release 草案中的 `event-schema.json` / `event-envelope.schema.json` 双名状态。
+
+- **变更类型**: modify
+- **影响 artifact**: schema / registry / prose / tooling / fixtures
+- **canonical 变更**:
+  - `contract-catalog.json#schema_registry`: `cx.schema.event.v1` 的 canonical file 从 `schemas/event-schema.json` 改为 `schemas/event-envelope.schema.json`。
+  - `event-envelope.schema.json` 变为完整 schema body；删除旧 `event-schema.json` 文件与 `$ref` alias 形态。
+  - 全部 sibling `$ref`、Markdown schema fence、fixture schema ref 与 lint 工具硬编码路径同步到 `event-envelope.schema.json`。
+- **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`；`schema-registry.json` 同步新路径；`python tools/artifact_pipeline.py check` 验证 registry diff clean。
+- **conformance impact**:
+  - 受影响 profile: 使用 `cx.schema.event.v1` 的全部 Event writer / reader；无新 profile。
+  - profile tier 变化: 无。
+  - wire 兼容性: pre-release cleanup；schema id 与 wire object shape 不变，仅 canonical artifact 文件名变化。
+  - reader / writer 行为要求: schema consumers MUST 继续通过 `schema-registry.json` 查 `{schema_id,file}`，不得机械推导文件名。
+- **fixture / vector 变化**: schema-validation fixture 的 Event schema ref 同步改名；无新增 vector。
+- **prose 同步**: `zh/conformance/schema-registry.md`、`zh/overview/release-readiness.md`、`zh/sync/operations-sync.md`、`zh/models/event-and-patch.md` 等文档链接同步。
+- **迁移指南**: pre-release consumers 删除本地 `event-schema.json` 路径假设，改读 `cx.schema.event.v1 -> schemas/event-envelope.schema.json`。
+
 ### Realm join candidate routing(2026-05-30)
 
 为跨 Principal Server 加入 Realm 增加结构化 candidate ingress service 列表，避免 join / invite-accept / knock 隐式绑定到邀请者 Principal Server 或任何 URL 路由 hint。

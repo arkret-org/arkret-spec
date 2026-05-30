@@ -122,7 +122,7 @@
     "proofs": {
       "type": "array",
       "items": {
-        "$ref": "./event-schema.json#/$defs/proof"
+        "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
       "description": "Optional proof set binding realm_id, service_did, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside a freshly resolved Directory response."

@@ -37,7 +37,7 @@ merged_into:
 > - [`spec/v1/zh/conformance/conformance-profiles.md`](../zh/conformance/conformance-profiles.md) §18.1–18.3。
 > - [`spec/v1/zh/conformance/conformance-vectors.md`](../zh/conformance/conformance-vectors.md) §11.1–11.5。
 >
-> Schema / registry artifacts: `event-schema.json`、`event-payload.schema.json`、`event-kind-registry.json`、`operation-registry.json`、`capability-action-registry.json`、`account-data-type-registry.json`、`profiles/conformance-profiles.json`。CHANGELOG entry under 2026-05-26 "Personal AI Agent provisioning & sidecar threads"。
+> Schema / registry artifacts: `event-envelope.schema.json`、`event-payload.schema.json`、`event-kind-registry.json`、`operation-registry.json`、`capability-action-registry.json`、`account-data-type-registry.json`、`profiles/conformance-profiles.json`。CHANGELOG entry under 2026-05-26 "Personal AI Agent provisioning & sidecar threads"。
 >
 > Accepted 阶段所有 review-stage 决议均已闭合(见 §7.1);§7.2 当前为空。`cx.agent.pause` / `cx.agent.resume` / `cx.agent.deactivate` 三独立 event kind 已注册为 v1 形态;如果未来引入通用 `cx.principal.status.set` lifecycle event,会通过 `renames.json` migration_group 收敛,而不会回到本文件再讨论。
 >
