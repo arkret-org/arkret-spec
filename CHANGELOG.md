@@ -42,6 +42,29 @@
 
 ## [Unreleased]
 
+### Realm join candidate routing(2026-05-30)
+
+为跨 Principal Server 加入 Realm 增加结构化 candidate ingress service 列表，避免 join / invite-accept / knock 隐式绑定到邀请者 Principal Server 或任何 URL 路由 hint。
+
+- **变更类型**: add
+- **影响 artifact**: schema / registry / prose
+- **canonical 变更**:
+  - `contract-catalog.json#schema_registry`: 注册新 schema `cx.schema.realm_join_candidate.v1`，文件为 `schemas/realm-join-candidate.schema.json`。
+  - 新增 `realm-join-candidate.schema.json`，定义 `realm_id`、`service_did`、`service_type`、`role`、`operations`、`join_methods`、`source`、`as_of`、`expires_at` 等字段；candidate 是 time-bounded routing hint，不是授权 grant，也不是 `member_delivery_binding`。
+- **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`；`schema-registry.json` 已同步新增 schema；`python tools/artifact_pipeline.py check` 通过，registry diff clean。
+- **conformance impact**:
+  - 受影响 profile: directory discovery / federation join 行为；无新 profile。
+  - profile tier 变化: 无。
+  - wire 兼容性: pre-release cleanup；协议尚未发布，不保留 `via_services` 兼容字段，Realm join routing 只使用 `join_candidates[]`。
+  - reader / writer 行为要求: `resolve_realm` / realm-target `resolve_target` 在调用方有权取得 join 路由时 MUST 返回 `join_candidates[]`；客户端 MAY 通过任一未过期 candidate 提交 join-side material，但最终授权仍由 Realm policy / invite / review / reducer 校验决定。
+- **fixture / vector 变化**: 无新增 fixture；本次仅新增 schema 与 prose contract。
+- **prose 同步**:
+  - `zh/discovery/discovery-directory.md` §7 / §9.1 / §9.1.1：定义 `join_candidates[]`、candidate 选择和 retry 规则。
+  - `zh/sync/federation.md` §5：跨域 invite / knock / restricted join 流程改为通过 candidate ingress service。
+  - `zh/sync/service-http-binding.md`、`zh/discovery/object-addressing.md`：同步 directory response 字段。
+  - `zh/governance/join-policy.md`：明确 join candidate 与 member delivery binding 不得互相推导。
+- **迁移指南**: Directory / Principal Server 在 `resolve_realm` 输出 `join_candidates[]`；客户端在提交 join material 前必须先取得未过期 candidate，不从 URL、邀请者服务 DID 或成员投递绑定推导 ingress。
+
 ### Shareable object addressing & `resolve_target`(CXP-0011)(2026-05-28)
 
 引入客户端无关的可分享对象地址(Flow / Message / Realm 深链):一套 path-表身份 / query-表提示的 grammar、三种 envelope(逻辑 ID / `web+contrix:` URI scheme / HTTPS fragment 落地),以及对象级解析 operation `cx.directory.resolve_target`。地址层纯寻址,授权由绑定 canonical target 的签名 token 承载,分 `reference` / `invite` 两型(`preview` 保留不实现)。

@@ -326,13 +326,13 @@ Directory MUST NOT 索引任何**未通过 §8 ingest protocol opt-in 的**资�
 | --- | --- |
 | 真相源 | 资源各自的 Principal Server 上的签名 state event |
 | 授权决策点 | Realm policy / Organization governance / capability evaluator |
-| Join 执行点 | host Principal Server 按 `join_rule` + Realm policy |
+| Join 执行点 | `join_candidates[]` 中的 Realm ingress service 按 `join_rule` + Realm policy 接收 / 转发；最终由 reducer 收敛 |
 | 身份解析器 | DID resolver / identity registry / witness |
 | 消息或历史镜像 | Events API / Sync stream |
 | Service topology 权威 | DID Document `service` entry + `cx.organization.service_binding` |
 | 全网爬虫 | 不存在；ingest 仅按 §8 双向 opt-in |
 
-特别地：**Directory 不执行 join、不签发 invite token、不签发 capability grant**。Directory 的 join-side 责任到"产出 `realm_id + via_services` 让客户端能向正确的 Principal Server 发起 `cx.realm.join`"为止。能否实际加入由 Realm 的 `join_rule` 与 policy 决定（见 §3.0 三个独立 gate）。
+特别地：**Directory 不执行 join、不签发 invite token、不签发 capability grant**。Directory 的 join-side 责任到"产出 `realm_id + join_candidates[]` 让客户端能选择合格的 Realm ingress service 发起 join / invite-accept / knock"为止。能否实际加入由 Realm 的 `join_rule` 与 policy 决定（见 §3.0 三个独立 gate）。
 
 ### 7.3 不变量（normative）
 
@@ -592,8 +592,8 @@ POST /api/v1/directory/push/register
 | --- | --- | --- | --- | --- |
 | `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
 | `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
-| `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | `via_services` 在 v1 normative，MUST 给出 host Principal Server service DID 让客户端能发起 join；invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
-| `cx.directory.resolve_target` | `address: string`（object-addressing grammar） | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; §9.1 全部通用字段 | `resolve_realm` 的对象级泛化（分享 Flow / Message / Realm 的深链解析）；realm 解析 MUST 委托同一 `resolve_realm` 路径；携带 `token` 时 MUST 按 target descriptor 逐级校验再走 join-policy；未授权统一 `not_found`。完整 grammar / token 绑定 / 隐私规则见 [`object-addressing.md`](./object-addressing.md)。 |
+| `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `join_candidates?: cx.schema.realm_join_candidate.v1[]` | `join_candidates[]` 是 v1 join 路由的规范字段；当 resolver 支持结构化 candidate 且调用方有权得到 join 路由时 MUST 给出调用方可用且经过 policy 过滤的候选 ingress service。若隐私策略不能披露 candidate，响应 MUST 省略 `join_candidates[]`；客户端在取得候选列表前不得提交 join material。invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
+| `cx.directory.resolve_target` | `address: string`（object-addressing grammar） | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; §9.1 全部通用字段 | `resolve_realm` 的对象级泛化（分享 Flow / Message / Realm 的深链解析）；realm 解析 MUST 委托同一 `resolve_realm` 路径，并继承 `join_candidates[]` 语义；携带 `token` 时 MUST 按 target descriptor 逐级校验再走 join-policy；未授权统一 `not_found`。完整 grammar / token 绑定 / 隐私规则见 [`object-addressing.md`](./object-addressing.md)。 |
 | `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回公开或授权可发现组织。 |
 | `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
 | `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
@@ -636,7 +636,23 @@ Directory MUST NOT：
 | `policy_revision` | `string?` | discovery state 的 effective revision；便于跨 Directory 对账。 |
 | `stale` | `boolean?` | TTL 过期且未续约时为 `true`，客户端 SHOULD 仅作参考。 |
 | `divergent` | `boolean?` | 与同一资源的另一 Directory 视图不一致时为 `true`（实现可选检测）。 |
-| `via_services` | `did[]?` | 资源对应 Principal Server / 真相源 service DID 列表。Realm / Organization 结果 MUST 给出；handle / actor 可选。 |
+| `join_candidates` | `cx.schema.realm_join_candidate.v1[]?` | Realm join / invite-accept / knock 的候选 ingress service 列表。`resolve_realm` 与 realm-target `resolve_target` 在 resolver 支持结构化 candidate 且调用方有权得到 join 路由时 MUST 给出；search 结果 MAY 省略，客户端 join 前再 resolve。没有 `join_candidates[]` 的响应不能直接用于提交 join material。 |
+
+#### 9.1.1 Realm Join Candidate（normative）
+
+`join_candidates[]` 是 Contrix 对 Matrix `via` / candidate resident servers 模式的 Realm 级对应物：它是路由提示，不是授权证明。客户端 MAY 通过列表中任一合格候选提交 `cx.invite.accept`、`cx.member.state{membership="join"}`、`cx.member.state{membership="knock"}` 或 profile 声明的 application receipt；协议不要求必须经邀请者所在 Principal Server 加入。
+
+每个 candidate MUST 符合 [`cx.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json)，并满足：
+
+1. `realm_id` MUST 等于解析结果的 canonical Realm ID。
+2. `service_did` MUST 是 service DID，不是用户 / 成员 principal DID；调用方在传输前 MUST 重新解析 DID Document，并确认 endpoint 支持 candidate 声明的 `operations`。
+3. `operations` MUST 包含 `cx.events.submit`；缺失时不得用于 join-side submit。
+4. `expires_at` 过期、`stale=true`、或 `policy_revision` / `source_refs` 与真相源不一致时，客户端 MUST 重新 `resolve_realm`，不得继续使用缓存 candidate。
+5. Candidate 只决定"把 join material 交给哪一个服务"；最终是否接受仍由 Realm auth state、Join Policy、capability、invite / review 链、event signature 和 reducer 校验决定。
+6. `member_delivery_binding.recipient_service_did` 与 `join_candidates[].service_did` 是两个不同方向：前者是成员加入后自己的投递服务，后者是本次加入 Realm 的 ingress service。实现 MUST NOT 从一个字段推导另一个字段。
+7. Directory / invite link MAY 按 requester、join_rule、discoverability、anti-enumeration policy 裁剪 candidate 数量；不得因 candidate 列表泄露完整成员 Principal Server 拓扑。
+
+客户端选择算法 SHOULD 按 `priority` 升序，再按本地可达性与 `service_did` 稳定排序。候选不可达、返回 `not_found`、`policy_denied`、过期 / stale 诊断或等价 fail-closed 错误时，客户端 MAY 尝试下一个未过期候选；收到新的 `join_candidates[]` 诊断时 MUST 用新列表替换旧列表。所有重试 MUST 使用同一 canonical `realm_id`，不得把失败重试重定向到另一个 Realm。
 
 客户端在以下情况 MUST 回真相源验签后再 act：
 
@@ -680,8 +696,29 @@ Result：
         "did:web:acme.example"
       ],
       "preview_ref": "cx:event:<uuid>",
-      "via_services": [
-        "did:web:principal.acme.example"
+      "join_candidates": [
+        {
+          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+          "service_did": "did:web:principal.acme.example",
+          "service_type": "principal_server",
+          "role": "primary",
+          "endpoint": "https://principal.acme.example/api/v1",
+          "operations": [
+            "cx.events.submit",
+            "cx.events.query"
+          ],
+          "join_methods": [
+            "knock",
+            "restricted_join"
+          ],
+          "priority": 0,
+          "source": "directory_ingest",
+          "source_refs": [
+            "cx:event:36531ccc-395a-7455-9880-000000000000"
+          ],
+          "as_of": "2026-05-10T07:55:12Z",
+          "expires_at": "2026-05-10T08:05:12Z"
+        }
       ],
       "as_of": "2026-05-10T07:55:12Z",
       "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
@@ -760,7 +797,7 @@ Directory-capable implementations MUST test：
 - hidden pairwise DID exclusion
 - stale result rejection after discovery policy update
 - private contact discovery does not disclose raw connection identifiers
-- search / resolve result MUST carry §9.1 normative 字段（`as_of`、`source_refs`、`policy_revision`、Realm/Org 必含 `via_services`）
+- search / resolve result MUST carry §9.1 normative 字段（`as_of`、`source_refs`、`policy_revision`；支持结构化 candidate 且可披露 join 路由的 resolve 必含 `join_candidates[]`）
 
 **Ingest 面**
 

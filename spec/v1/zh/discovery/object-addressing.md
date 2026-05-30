@@ -25,7 +25,7 @@ updated: 2026-05-28
 | Envelope | 形态 | 用途 |
 | --- | --- | --- |
 | **逻辑 ID** | `cx:flow:<uuid>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `via` / `action` / token。 |
-| **`web+contrix:` URI scheme** | `web+contrix:realm/…/flow/…?via=…` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+contrix', <https-template>)` 登记（约束见 §5）。 |
+| **`web+contrix:` URI scheme** | `web+contrix:realm/…/flow/…?action=view` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+contrix', <https-template>)` 登记（约束见 §5）。 |
 | **HTTPS 落地链接** | `https://<landing>/#realm/…/flow/…?via=…` | 用户复制粘贴的默认形态；`#` 之后整体 = 同一 grammar。`<landing>` 域名由部署方选定，本协议**不**指定中心化落地域名。 |
 
 `web+contrix:` 与 HTTPS 落地形态共用同一 §3 grammar parser，只是外壳不同（裸接 scheme vs 接在 `#` 后）。逻辑 ID grammar（`cx:<kind>:<uuid>`）见 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)，本文不重复定义。
@@ -35,13 +35,13 @@ updated: 2026-05-28
 canonical 形态（以 `web+contrix:` envelope 表示）：
 
 ```
-web+contrix:realm/<realm>/flow/<flow>/m/<msg>?via=<service_did>&via=<service_did>&action=view
+web+contrix:realm/<realm>/flow/<flow>/m/<msg>?action=view
 ```
 
 | 部分 | 承载 | 规则 |
 | --- | --- | --- |
 | **path** | containment 链 = 身份 + 解析顺序 | path keyword 携带对象类型，值是**裸 uuid**（剥掉 `cx:<kind>:` sigil）。层级固定 `realm/<r>` ⊃ `flow/<f>` ⊃ `m/<msg>`。 |
-| **query** | 非身份提示 + 授权组件 | `via`、`action`、`lt`、`tok`（见 §3.2 / §4）。 |
+| **query** | 非身份提示 + 授权组件 | `action`、`lt`、`tok`（见 §3.2 / §4）。 |
 | **fragment** | 隐私敏感位（仅 HTTPS 形态） | 见 §5。 |
 
 合法前缀（短到长均可单独成址）：
@@ -50,24 +50,23 @@ web+contrix:realm/<realm>/flow/<flow>/m/<msg>?via=<service_did>&via=<service_did
 web+contrix:realm/<realm>                              # Realm（解析委托给 resolve_realm）
 web+contrix:realm/<realm>/flow/<flow>                  # Flow
 web+contrix:realm/<realm>/flow/<flow>/m/<msg>          # Flow discussion track 内某条 Message
-web+contrix:realm/<realm>/flow/<flow>?via=<did>&lt=invite&tok=<token>   # invite link
+web+contrix:realm/<realm>/flow/<flow>?lt=invite&tok=<token>   # invite link
 ```
 
 ### 3.1 Path 规则（normative）
 
-- **realm 是身份，进 path；via 是路由，进 query。** realm 脱离 path 则 flow 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；`via` 是"此刻哪台 server 托管该 Realm"，可增删、过期，不影响身份。
-- **Flow / Message 地址 MUST 携带 `realm/<realm>` + 至少一个 `via`**；两者缺一，解析方 MUST fail-closed（返回 `not_found`），不得做全网 flow_id 猜测。
-- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **alias**（域名样式 / 含 `.` 的人类可读名）。`<flow>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`cx:realm:<uuid>` / `cx:flow:<uuid>` / `cx:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径（必要时用 `via`）规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
+- **realm 是身份，进 path；join routing 不进 URL query。** realm 脱离 path 则 flow 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；加入时可用的 Realm ingress service 由 `resolve_realm` / `resolve_target` 返回的 `join_candidates[]` 给出，不写入地址本体。
+- **Flow / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail-closed（返回 `not_found`），不得做全网 flow_id 猜测。
+- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **alias**（域名样式 / 含 `.` 的人类可读名）。`<flow>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`cx:realm:<uuid>` / `cx:flow:<uuid>` / `cx:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
 - **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `flow` / `m`，且层级顺序 MUST 为 `realm` ⊃ `flow` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
 - Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/flow-and-message.md#9-message)，而非底层 event envelope）。
 - **Circle-scoped Flow**（`Flow.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。
 
 ### 3.2 Query 规则（normative）
 
-- `via=<service_did>`：**多值**，物理路由提示（host Principal Server service DID）；语义与 [`discovery-directory.md` §9.1](./discovery-directory.md) `via_services` 一致。
 - `action=<view|join|reply>`：纯 UI 意图 hint，默认 `view`；解析方 MAY 忽略，**MUST NOT** 据此放大权限。
 - `lt` / `tok`：授权组件，见 §4。
-- `via` / `action` 是"删掉不改变指向什么"的纯提示；`lt` / `tok` 携带授权类别，删除 `tok` 把链接降级为 `reference`。
+- `action` 是"删掉不改变指向什么"的纯提示；`lt` / `tok` 携带授权类别，删除 `tok` 把链接降级为 `reference`。
 
 ## 4. Link 类型与授权 token
 
@@ -142,16 +141,16 @@ HTTPS 落地链接中，`flow` / `m` / `via` / 尤其 `tok` **MUST** 放在 URL 
 
 响应约束（normative）：
 
-- 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 通用字段（`as_of`、`source_refs`、`via_services`，可选 `policy_revision` / `stale` / `divergent`），让客户端能回真相源验签并判断 stale / divergent。`via_services` v1 normative。
+- 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 通用字段（`as_of`、`source_refs`，可选 `policy_revision` / `stale` / `divergent`）；realm target 在调用方有权得到 join 路由时 MUST 同时返回 `join_candidates[]`。
 - invite / restricted / secret 资源对未授权请求使用与不存在不可区分的统一 `not_found`（复用 `resolve_realm` 的 blinding）。
 - 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, flow_id?, message_id?}` + 生效 link_type **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 join-policy 有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
 - alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时，均返回统一 `not_found`。
 
-客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 `via` + realm path 段解析 Realm 并取得 canonical `realm_id`（委托 `resolve_realm`）→ 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 flow / message → 渲染成本地 UI URL。
+客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 realm path 段解析 Realm 并取得 canonical `realm_id` 与可披露的 `join_candidates[]`（委托 `resolve_realm`）→ 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 flow / message → 渲染成本地 UI URL。若随后要 join / invite-accept / knock，客户端从 `join_candidates[]` 选择一个未过期候选，而不是假定邀请者服务就是唯一入口。
 
 ## 7. 规范性引用
 
-- 发现 / 目录 / 三 gate / anti-enumeration / `resolve_realm` / `via_services`：[`discovery/discovery-directory.md`](./discovery-directory.md)。
+- 发现 / 目录 / 三 gate / anti-enumeration / `resolve_realm` / `join_candidates`：[`discovery/discovery-directory.md`](./discovery-directory.md)。
 - Realm 为根的授权 / Circle scope / 存在性隐私：[`models/circle.md`](../models/circle.md)、[`models/flow-and-message.md`](../models/flow-and-message.md)。
 - Invite token / signed_link 生命周期：[`governance/join-policy.md`](../governance/join-policy.md)。
 - Digest 纪律（JCS + 字段白名单）：[`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md)。

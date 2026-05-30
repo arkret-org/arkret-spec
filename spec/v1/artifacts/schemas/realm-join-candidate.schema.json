@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/realm-join-candidate.schema.json",
+  "title": "Contrix Realm Join Candidate",
+  "description": "Time-bounded routing hint for submitting Realm join, invite-accept, knock, or restricted-join material through a qualified Realm service. This object is not membership authorization and is distinct from member_delivery_binding.",
+  "type": "object",
+  "required": [
+    "realm_id",
+    "service_did",
+    "service_type",
+    "role",
+    "operations",
+    "join_methods",
+    "source",
+    "as_of",
+    "expires_at"
+  ],
+  "properties": {
+    "realm_id": {
+      "$ref": "#/$defs/realm_id",
+      "description": "Realm this candidate is bound to. Verifiers MUST reject a candidate used for any other Realm."
+    },
+    "service_did": {
+      "$ref": "#/$defs/did",
+      "description": "Service DID that can receive or relay join-side submissions for this Realm."
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "principal_server",
+        "sync_node",
+        "anchorer"
+      ],
+      "description": "Service class. principal_server is the normal candidate; sync_node and anchorer are allowed only when Realm policy authorizes them to receive join-side submissions."
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "mirror",
+        "anchorer",
+        "sync",
+        "federation_peer",
+        "invite_origin",
+        "reviewer_ingress"
+      ],
+      "description": "Routing role within the Realm candidate set. This is a hint for ordering and diagnostics, not an authorization grant."
+    },
+    "endpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional endpoint hint. Callers MUST re-resolve the service DID document before transport and MUST NOT treat this field as authority."
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^cx\\.[a-z0-9][a-z0-9_.-]*$"
+      },
+      "contains": {
+        "const": "cx.events.submit"
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "description": "Endpoint-callable operation ids available at this candidate. Join-side routing requires cx.events.submit."
+    },
+    "join_methods": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "invite_accept",
+          "member_join",
+          "knock",
+          "application",
+          "restricted_join"
+        ]
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "description": "Join-side flows this candidate claims to support for this requester and Realm."
+    },
+    "priority": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000,
+      "description": "Lower values are preferred. Ties are broken deterministically by service_did."
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "realm_sync_endpoint",
+        "directory_ingest",
+        "invite_hint",
+        "signed_link_hint",
+        "federation_redirect",
+        "local_cache"
+      ],
+      "description": "Where this routing hint came from. Receivers still validate against current Realm policy and service DID documents."
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event_id"
+      },
+      "uniqueItems": true,
+      "description": "Realm or directory source events that justify this candidate, such as discovery, service-binding, or sync endpoint state."
+    },
+    "frontier_ref": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Optional digest of the candidate service's advertised Realm frontier at as_of; used only to detect stale hints."
+    },
+    "as_of": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Time when the issuer observed or refreshed this candidate."
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Time after which clients MUST NOT use this candidate without re-resolving the Realm."
+    },
+    "proofs": {
+      "type": "array",
+      "items": {
+        "$ref": "./event-schema.json#/$defs/proof"
+      },
+      "minItems": 1,
+      "description": "Optional proof set binding realm_id, service_did, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside a freshly resolved Directory response."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "enum": [
+              "invite_hint",
+              "signed_link_hint",
+              "federation_redirect",
+              "local_cache"
+            ]
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "then": {
+        "required": [
+          "proofs"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  }
+}

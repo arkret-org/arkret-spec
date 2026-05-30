@@ -91,6 +91,7 @@ sidebar:
 | `cx.schema.identity_receipt.v1` | Identity Receipt |
 | `cx.schema.identity_link.v1` | Minimal-metadata E2EE identity link |
 | `cx.schema.handle_claim.v1` | Handle Claim |
+| `cx.schema.realm_join_candidate.v1` | Realm join candidate routing hint |
 | `cx.schema.media_metadata.v1` | Media Metadata |
 | `cx.schema.read_receipt.v1` | Read Receipt |
 | `cx.schema.blob.v1` | Blob Metadata |

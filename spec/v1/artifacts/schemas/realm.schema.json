@@ -226,7 +226,7 @@
     },
     "sync_endpoints": {
       "type": "array",
-      "description": "Realm-level service binding list for shared anchorer / sync / mirror / federation peer surfaces. Member-level delivery_binding remains on cx.member.state and MUST NOT be inferred from this list.",
+      "description": "Realm-level service binding list for shared anchorer / sync / mirror / federation peer surfaces. Directory resolve responses expose a requester-filtered join_candidates projection for join-side ingress; raw sync_endpoints are not a public candidate list. Member-level delivery_binding remains on cx.member.state and MUST NOT be inferred from this list.",
       "items": {
         "$ref": "#/$defs/sync_endpoint"
       },

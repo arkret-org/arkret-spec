@@ -27,13 +27,13 @@ updated: 2026-05-25
 | Registry | 计数 | Canonical 文件 |
 | --- | --- | --- |
 | Event kind（active） | 167 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 58 | `artifacts/registry/schema-registry.json` |
+| Schema | 59 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 44 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 101 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 67 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 88 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 当前另有 59 个 raw JSON Schema artifact file；其中 `cx.schema.event.v1` 现直接登记到 `event-schema.json`（schema body 所在文件）；同目录的 `event-envelope.schema.json` 是指向它的单字段 `$ref` alias（便于人工搜索，非 registry 真源）。发布站点仍然 MUST raw 发布这些同目录 `$ref` 目标 / alias 文件，registry consumer 也必须递归解析同目录 `$ref`，不能只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 当前另有 60 个 raw JSON Schema artifact file；其中 `cx.schema.event.v1` 现直接登记到 `event-schema.json`（schema body 所在文件）；同目录的 `event-envelope.schema.json` 是指向它的单字段 `$ref` alias（便于人工搜索，非 registry 真源）。发布站点仍然 MUST raw 发布这些同目录 `$ref` 目标 / alias 文件，registry consumer 也必须递归解析同目录 `$ref`，不能只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含两个 wire-breaking cleanup：`cx.schema.handle_claim.v1.claim_kind` 不再允许 draft-era `service_handle`（服务 / 资源可读名必须迁移到独立服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`），并且 `cx.member.identity.update` payload 中旧草案字段 `identity_state_digest` 已更名为 `identity_payload_digest`，以避免与 roster `member_display_state_digest` 混淆。实现者不得同时接受旧名和新名作为等价字段，除非在本地迁移层先把旧草案数据正规化后再进入 v1 validator。
 

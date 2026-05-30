@@ -20,7 +20,7 @@ updated: 2026-05-25
 
 由于外部的邮箱或手机号无法自己生成非对称密钥对和 DID，邀请流程 MUST 借助一个**身份验证服务 (Identity Verification Service)** 来充当代理。
 
-这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。
+这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。该验证服务 DID 只负责 3PID claim；Bob 后续向哪台 Realm service 提交 invite-accept 由 `cx.directory.resolve_realm` 返回的 `join_candidates[]` 决定，二者不得混用。
 
 ## 3. 邀请流程
 
@@ -149,7 +149,7 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("cx.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"contrix.invite.claim"})`；只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` 的 subject proof MUST reject。
 4. 原子标记 pending invite 为 `claimed`；同一个 `token_commitment` 的第二次认领 MUST reject。
 5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
-6. 随后 Bob 按照正常流程发送 `cx.invite.accept` 加入 Realm。
+6. 随后 Bob 刷新 Realm 的 `join_candidates[]`，选择一个未过期候选并按照正常流程发送 `cx.invite.accept` 加入 Realm。
 
 验证服务 / 接收 Sync Service MUST 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`。任一 nonce 一旦进入该 set，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 在进入 reducer 仲裁前拒绝，即使前一次 claim 最终因其它原因未成为 winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
 

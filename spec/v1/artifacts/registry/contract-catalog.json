@@ -2038,6 +2038,12 @@
         "description": "Builder-side candidate object for Handle resolution intent=member_add | invite (identity-handles.md §3.7); produces a Realm-scoped member_delivery_binding only after Join Policy re-validation."
       },
       {
+        "schema_id": "cx.schema.realm_join_candidate.v1",
+        "file": "schemas/realm-join-candidate.schema.json",
+        "status": "active",
+        "description": "Time-bounded routing hint returned by Realm discovery / resolve paths for selecting a qualified service to receive join, invite-accept, knock, or restricted-join submissions. Not an authorization grant and not a member_delivery_binding."
+      },
+      {
         "schema_id": "cx.schema.grant_constraint.v1",
         "file": "schemas/grant-constraint.schema.json"
       },

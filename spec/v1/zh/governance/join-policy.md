@@ -228,6 +228,8 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Move�
 
 reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_binding_invalid`，**不得**降级为部分接受。
 
+注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_did` 描述的是成员加入后接收 events、sync、to-device、push、key package 的目标 Principal Server；`join_candidates[]` 描述的是本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service。两者方向不同、生命周期不同、授权来源不同。Join builder 和 reducer MUST NOT 从 `join_candidates[].service_did` 推导成员 `delivery_binding`，也 MUST NOT 从成员 `delivery_binding.recipient_service_did` 推导 Realm ingress candidate。
+
 #### 5.1.2 `binding_source` 与责任方
 
 | `binding_source` | 谁负责填 | 何时使用 | 补充必填 |

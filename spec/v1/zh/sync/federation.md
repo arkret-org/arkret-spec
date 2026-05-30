@@ -500,15 +500,27 @@ Probe 响应 payload：
 
 ## 5. 跨域加入 Realm
 
+### 5.0 Join Candidate Routing
+
+跨域加入 Realm 时，"向哪台服务提交 join material"由 Realm 解析结果中的 `join_candidates[]` 决定，而不是由 Realm ID、邀请者所在 Principal Server、被邀请者 Principal Server 或 URL 路由提示隐式决定。`join_candidates[]` 是 time-bounded routing hint，结构见 [`cx.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json) 与 [`discovery-directory.md` §9.1.1](../discovery/discovery-directory.md)。
+
+规范约束：
+
+1. 客户端 / 提交服务在提交 `cx.invite.accept`、`cx.member.state{membership="join"}`、`cx.member.state{membership="knock"}` 或 application receipt 前，MUST 通过 `cx.directory.resolve_realm` / `cx.directory.resolve_target` / signed invite metadata 取得 canonical `realm_id` 与 `join_candidates[]`。
+2. 提交方 MAY 选择任一未过期 candidate；协议不要求通过邀请者 Principal Server，也不要求通过被邀请者自己的 Principal Server 加入。被邀请者自己的 Principal Server 仍负责其本地账号视角、device / to-device / key package 等投递，但这不等于 Realm ingress。
+3. Candidate 服务接收 join-side submission 时，MUST 独立验证 `realm_id`、Event signature、candidate 是否仍被当前 Realm auth state / `sync_endpoints` / service delegation / peer policy 授权，以及 Join Policy / invite / review 链是否允许该提交。Candidate 本身不是 authorization grant。
+4. `join_candidates[]` 是唯一标准 Realm join ingress 列表；客户端不得从 URL hint、邀请者 service DID、被邀请者 Principal Server 或成员 delivery binding 推导候选。
+5. 候选不可达、过期、frontier / policy stale、或返回 fail-closed redirect diagnostics 时，客户端 MAY 按 candidate 列表尝试下一个候选；新的诊断如果携带 `join_candidates[]`，MUST 替换旧列表。所有重试 MUST 绑定同一 canonical `realm_id`，不得跨 Realm 重定向。
+
 ### 5.1 邀请流程
 
 当 Realm S 的管理员邀请外部用户 Bob（Principal Server 在 `server-beta.com`）时：
 
-1. 管理员提交 `cx.invite.create` Event，`subject_id` 指向 Bob 的 DID
-2. 该 Event 通过联邦推送到达 Bob 的 Principal Server
-3. Bob 的客户端发现 Invite，决定接受
-4. Bob 的客户端提交 `cx.invite.accept` Event 到自己的 Events API
-5. Bob 的 Principal Server 将该 Event 推送给 Realm S 的其他参与方 Principal Server
+1. 管理员提交 `cx.invite.create` Event，`subject_id` 指向 Bob 的 DID；邀请的私有 metadata MAY 携带裁剪后的 `join_candidates[]`，但不得把该列表当作授权本身。
+2. 该 Event 通过联邦推送到达 Bob 的 Principal Server；Bob 的客户端也 MAY 用 invite token / signed link 调用 `cx.directory.resolve_realm` 刷新 candidate 列表。
+3. Bob 的客户端发现 Invite，决定接受，并选择一个未过期 join candidate。
+4. Bob 的客户端提交 `cx.invite.accept` Event 到所选 candidate 的 Events API；该 candidate 可以是邀请者 Principal Server、Realm shared anchorer / sync service、或其他被 Realm policy 授权的参与方服务。
+5. 接收 candidate 验证 invite / membership / service binding 后，将该 Event 扇出给 Realm S 的其他参与方 Principal Server / federation peer。
 6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
 7. 若 Realm 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
 
@@ -518,17 +530,17 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join
 
 **自动解析路径**（`join_rule ∈ {restricted, knock_restricted}`，且 Bob 拟使用的 gate 子集均 `auto_resolve=true`）：
 
-1. Bob 发现 Realm S 的元数据（通过公开的 Realm Directory、链接或 `directory_hint`）
+1. Bob 发现 Realm S 的元数据（通过公开的 Realm Directory、链接或 `directory_hint`），并取得 `join_candidates[]`
 2. Bob 直接提交 `cx.member.state{membership="join", gate_proofs=[...]}` Move，附带 claim presentation / challenge proof
-3. Bob 的 Principal Server 推送至 Realm S 的 shared anchorer 或参与方 Principal Server
+3. Bob 的客户端 / Principal Server 将 join Move 推送至所选未过期 candidate；candidate MUST 是 Realm policy / service delegation 授权的 shared anchorer、sync service、federation peer 或参与方 Principal Server
 4. 各参与方 reducer 加载当前 `cx.component.realm.join_policy.v1` cell value，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
 5. 若 Realm 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
 
 **申请-审核路径**（`join_rule ∈ {knock, knock_restricted}`，且至少一个 gate `auto_resolve=false`）：
 
-1. Bob 发现 Realm S 的元数据
+1. Bob 发现 Realm S 的元数据，并取得 `join_candidates[]`
 2. Bob 提交 `cx.member.state{membership="knock"}` Move（不携带正文），并提交 profile 声明的 signed `member.application` receipt / private record（携带 answers / claim presentation / challenge proof，E2EE Realm 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）。`member.application` 是候选 workflow 概念，不是 v1 base `Event.kind`。
-3. knock Move 与 application receipt / private record 推送到 Realm S 的 shared anchorer 或管理员 Principal Server；接收方验证签名后扇出至 reviewer 的设备列表
+3. knock Move 与 application receipt / private record 推送到所选 join candidate；接收方验证签名和 candidate 授权后扇出至 reviewer 的设备列表
 4. 持有 `cx.realm.join.review` capability 的 reviewer 评估申请，产生 `member.application.review{decision=accept|reject|request_changes}` 候选 workflow 决策（不是 v1 base Event.kind；capability action 自身仍按 `cx.realm.join.review` 注册）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
 5. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id
 6. Bob 提交 `cx.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
@@ -540,7 +552,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join
 
 ### 6.1 Anchorer / Sync Endpoint 列表
 
-每个 Realm 的 metadata MAY 包含一个 `sync_endpoints` 列表（schema: `cx.schema.realm.v1#/properties/sync_endpoints`），用于列出被 Realm policy 明确委托的 shared anchorer、sync service、federation peer 或组织 Principal Server。该列表不是公开分发节点列表；列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
+每个 Realm 的 metadata MAY 包含一个 `sync_endpoints` 列表（schema: `cx.schema.realm.v1#/properties/sync_endpoints`），用于列出被 Realm policy 明确委托的 shared anchorer、sync service、federation peer 或组织 Principal Server。该列表不是公开分发节点列表；Directory / invite link 暴露给外部 joiner 的 `join_candidates[]` 是从 `sync_endpoints`、service delegation、peer policy 和 requester policy 中裁剪出的 join ingress 投影，不能直接等同于完整 `sync_endpoints`。列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
 
 ```json
 {
