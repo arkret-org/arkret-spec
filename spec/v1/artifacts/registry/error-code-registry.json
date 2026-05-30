@@ -146,6 +146,12 @@
       "description": "A realm-level policy refuses the requested write or fanout (read-receipts §2.5: cx.receipt.read drops when disclosure='disabled'; retry_after_ms is null because retry will not change the outcome)."
     },
     {
+      "code": "policy_denied",
+      "http_status": 403,
+      "scope": "both",
+      "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies."
+    },
+    {
       "code": "read_receipt_compliance_floor_violated",
       "http_status": 422,
       "scope": "both",
@@ -348,6 +354,12 @@
       "http_status": 410,
       "scope": "endpoint",
       "description": "Cursor integrity is valid but the issuing service has explicitly revoked this cursor authority before TTL expiry. Endpoint MUST NOT advance to-device ack, subscription position, barrier wait, or dropped recovery state; caller MUST restart from a fresh cursor."
+    },
+    {
+      "code": "cursor_unrecognized",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The cursor decoded successfully but cannot be translated by this service because it is a stateful handle issued by another service or the receiver does not support stateless cursor reparse. Caller MUST restart sync from a fresh cursor."
     },
     {
       "code": "actor_seq_invalid",

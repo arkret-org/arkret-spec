@@ -14,7 +14,7 @@
     },
     "agent_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "Stable agent runtime identifier. v1 uses a DID here; cx:agent:* is not a registered typed-id kind. Agent session object ids use cx:agent_session:* in their own fields."
     },
     "endpoint_url": {
@@ -81,7 +81,7 @@
         },
         "actor_id": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
         "signature": {
           "type": "string"

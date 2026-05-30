@@ -30,7 +30,7 @@
     },
     "actor_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "Actor that may use this ICE configuration. Bound into the signature."
     },
     "device_id": {
@@ -176,7 +176,7 @@
         },
         "kid": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
           "description": "Verification method id, typically <media_service_did>#<key-id>. Bare DID is accepted (resolves to the controller's current key); DID URLs with key fragment are RECOMMENDED. Pattern normalized to canonical DID form; the previous `(#.+)?$` was redundant under greedy `[^\\s]+`."
         },
         "sig": {

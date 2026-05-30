@@ -404,8 +404,8 @@
       "payload": "Circle membership state (parallel to cx.member.state). Reducer MUST first validate the target actor is parent Realm active member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
       "cell_family": "cx.component.circle.member.v1",
       "cell_subject": {
-        "type": "actor_in_circle",
-        "fields": [
+        "type": "composite",
+        "components": [
           "payload.circle_id",
           "payload.actor_id"
         ]
@@ -1050,7 +1050,10 @@
       "reducer_input": true,
       "payload": "Agent lifecycle transition to paused state (CXP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via cx.agent.resume.",
       "cell_family": "cx.component.agent.status.v1",
-      "cell_subject": "payload.agent_principal_id",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.agent_principal_id"
+      },
       "lattice": "fsm",
       "bottom": "reject"
     },
@@ -1062,7 +1065,10 @@
       "reducer_input": true,
       "payload": "Agent lifecycle transition from paused to active (CXP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
       "cell_family": "cx.component.agent.status.v1",
-      "cell_subject": "payload.agent_principal_id",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.agent_principal_id"
+      },
       "lattice": "fsm",
       "bottom": "reject"
     },
@@ -1074,7 +1080,10 @@
       "reducer_input": true,
       "payload": "Agent lifecycle terminal state (CXP-0008 §4.11). MUST fan-out cx.agent.key.revoke for all active agent keys, cx.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
       "cell_family": "cx.component.agent.status.v1",
-      "cell_subject": "payload.agent_principal_id",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.agent_principal_id"
+      },
       "lattice": "fsm",
       "bottom": "reject"
     },

@@ -161,7 +161,7 @@
             "type": "boolean",
             "default": false
           },
-          "scope": {
+          "recovery_action_scope": {
             "type": "array",
             "items": {
               "type": "string",
@@ -494,7 +494,7 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "timestamp": {
       "type": "string",

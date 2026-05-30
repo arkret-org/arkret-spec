@@ -17,7 +17,7 @@
       "oneOf": [
         {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
         {
           "type": "string",
@@ -27,7 +27,7 @@
     },
     "service_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "DID of the service that hosts the applet runtime (used by registration / discovery)."
     },
     "session_id": {

@@ -1521,7 +1521,7 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "timestamp": {
       "type": "string",
@@ -1832,8 +1832,8 @@
         },
         "verification_method": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$",
-          "description": "DID or DID URL of the Event-signing key. Verifier MUST resolve to the actor_id's DID Document. The optional fragment in the regex is matched by the greedy method-specific segment; the pattern is the canonical DID form."
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the Event-signing key. Verifier MUST strip fragment/query only for controller comparison and MUST compare that controller DID bit-identically to actor_id or executed_by according to the accountability rules."
         },
         "event_digest": { "$ref": "#/$defs/hash" },
         "created_at": { "$ref": "#/$defs/timestamp" },
@@ -1874,8 +1874,8 @@
         },
         "verification_method": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$",
-          "description": "DID or DID URL of the signing key for this non-Event detached proof. Same pattern as $defs/event_proof.verification_method; semantics are decoupled from Event proof (see $defs/event_proof for the Event-only shape)."
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the signing key for this non-Event detached proof. Same pattern as $defs/event_proof.verification_method; semantics are decoupled from Event proof (see $defs/event_proof for the Event-only shape)."
         },
         "payload_digest": {
           "$ref": "#/$defs/hash",

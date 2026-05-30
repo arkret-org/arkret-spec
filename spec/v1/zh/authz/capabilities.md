@@ -146,7 +146,7 @@ Contrix v1 支持以下 `kind`：
 
 动作名称与标准 event kind / operation id 的语义对齐，使用 `cx.<domain>.<action>` 点分记法。Wire 层 `actions[]` 字段 MUST 是具体动作字符串；**不接受任何 wildcard / segment 通配**（含 `*`、`cx.<domain>.*`、`cx.<domain>.<sub>.*`）。`capability-grant.schema.json` 已用 pattern 静态拒绝 wildcard。
 
-机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`required_evaluator_checks`、`target_event_kinds`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
+机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`required_evaluator_checks`、`target_event_kinds`、`event_mapping_kind`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
 
 裸名动作（例如 `realm.upgrade` 或 `realm.link.manage`）一律不接受。`cx.realm.admin` 覆盖普通 Realm 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者必须在 grant `actions[]` 中显式列出对应 high-risk 动作。
 
@@ -159,11 +159,11 @@ Contrix v1 支持以下 `kind`：
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `cx.realm.admin` → registry 中声明的 Realm policy facet events；`cx.policy.manage` → `cx.policy.*` 与 `cx.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Flow / Morph / Space 等同语义 event | `cx.object.archive` → `{cx.flow.archive, cx.morph.archive}`；`cx.object.restore` → `{cx.flow.restore, cx.morph.restore, cx.space.restore}`；`cx.object.stage.set` → `{cx.flow.stage.set, cx.morph.stage.set}` |
 | **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `cx.message.revise.own` → `cx.message.revise`；`cx.message.redact.own` → `cx.message.redact`；`cx.flow.watch.set.others` → `cx.flow.watch.set` |
-| **保留旧 wire 命名（migration_group: wire_compat_grandfather）** | action 用收敛后命名、event kind 因已发布的 wire bytes 不可改名而保留旧前缀 / 旧 punctuation。本类**冻结**，**不允许新增条目**：所有现存条目都是 2026-05-24 之前已存在的 wire kinds | `cx.agent.session.*` → `cx.agent.protocol_session.*`（5 pair，namespace 折叠）；`cx.morph.schema.migrate` → `cx.morph.schema_migrate`（separator 差异）；`cx.flow.tracks.manage` → `cx.flow.tracks.update`（umbrella verb vs 具体 verb）；`cx.call.configure_media_service` → `cx.realm.media_service`（跨 namespace 语义） |
+| **保留旧 wire 命名（`event_mapping_kind="wire_compat_grandfather"`）** | action 用收敛后命名、event kind 因已发布的 wire bytes 不可改名而保留旧前缀 / 旧 punctuation。本类**冻结**，**不允许新增条目**：所有现存条目都必须在 registry 中声明 `grandfathered_since` | `cx.agent.session.*` → `cx.agent.protocol_session.*`（namespace 折叠）；`cx.morph.schema.migrate` → `cx.morph.schema_migrate`（separator 差异）；`cx.flow.tracks.manage` → `cx.flow.tracks.update`（umbrella verb vs 具体 verb）；`cx.call.configure_media_service` → `cx.realm.media_service`（跨 namespace 语义） |
 
 `cx.mls.commit` action → `{cx.mls.commit, cx.mls.commit_failed}`、`cx.message.redact` → `{cx.message.redact, cx.redaction}`、`cx.moderation.appeal.review` → `{cx.moderation.appeal.review, cx.moderation.appeal.decision, cx.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
 
-新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；不得通过 lint 例外或注释方式悄悄引入新桥**。
+新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；不得通过 lint 例外或注释方式悄悄引入新桥**。
 
 #### 5.0a verb-noun 桥的废除（normative，2026-05-24）
 

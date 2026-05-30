@@ -35,7 +35,7 @@
     },
     "actor_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "DID of the reader. Aligned with the rest of the spec; older drafts used 'reader' / 'actor'."
     },
     "event_id": {

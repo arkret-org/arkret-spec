@@ -436,8 +436,8 @@
         "payload": "Circle membership state (parallel to cx.member.state). Reducer MUST first validate the target actor is parent Realm active member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
         "cell_family": "cx.component.circle.member.v1",
         "cell_subject": {
-          "type": "actor_in_circle",
-          "fields": [
+          "type": "composite",
+          "components": [
             "payload.circle_id",
             "payload.actor_id"
           ]
@@ -1082,7 +1082,10 @@
         "reducer_input": true,
         "payload": "Agent lifecycle transition to paused state (CXP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via cx.agent.resume.",
         "cell_family": "cx.component.agent.status.v1",
-        "cell_subject": "payload.agent_principal_id",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.agent_principal_id"
+        },
         "lattice": "fsm",
         "bottom": "reject"
       },
@@ -1094,7 +1097,10 @@
         "reducer_input": true,
         "payload": "Agent lifecycle transition from paused to active (CXP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
         "cell_family": "cx.component.agent.status.v1",
-        "cell_subject": "payload.agent_principal_id",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.agent_principal_id"
+        },
         "lattice": "fsm",
         "bottom": "reject"
       },
@@ -1106,7 +1112,10 @@
         "reducer_input": true,
         "payload": "Agent lifecycle terminal state (CXP-0008 §4.11). MUST fan-out cx.agent.key.revoke for all active agent keys, cx.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
         "cell_family": "cx.component.agent.status.v1",
-        "cell_subject": "payload.agent_principal_id",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.agent_principal_id"
+        },
         "lattice": "fsm",
         "bottom": "reject"
       },
@@ -2538,7 +2547,9 @@
       "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
       "Supporting Contrix core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
       "Each surface_groups entry carries a tier (see capability_tiers); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
-      "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint."
+      "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
+      "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
+      "Operations that still bind OpenAPI request/response bodies to OperationRequest or OperationResult MUST declare generic_binding with request/response booleans, reason, profile_gate, and migration_plan; core-tier operations MUST NOT use generic bindings."
     ],
     "capability_tiers": {
       "core": "Base interoperable surfaces implied by claiming Contrix v1 protocol support (service discovery, identity registry, events/account aggregate).",
@@ -2750,320 +2761,669 @@
         "operation_id": "cx.account.device_pair",
         "http": "POST /auth/account/device-pair",
         "grpc": "Account/DevicePair",
-        "mq": "account.device_pair"
+        "mq": "account.device_pair",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "deployment_local_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "account_auth"
+        }
       },
       {
         "operation_id": "cx.account.issue_session_grant",
         "http": "POST /auth/account/session-grants",
         "grpc": "Account/IssueSessionGrant",
-        "mq": "account.issue_session_grant"
+        "mq": "account.issue_session_grant",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.account.agent_key_pair",
         "http": "POST /auth/account/agent-key-pair",
         "grpc": "Account/AgentKeyPair",
-        "mq": "account.agent_key_pair"
+        "mq": "account.agent_key_pair",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.provision",
         "http": "POST /agents",
         "grpc": "Agent/Provision",
-        "mq": "agent.provision"
+        "mq": "agent.provision",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.list",
         "http": "GET /agents",
         "grpc": "Agent/List",
-        "mq": "agent.list"
+        "mq": "agent.list",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.get",
         "http": "GET /agents/{agent_principal_id}",
         "grpc": "Agent/Get",
-        "mq": "agent.get"
+        "mq": "agent.get",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.pause",
         "http": "POST /agents/{agent_principal_id}/pause",
         "grpc": "Agent/Pause",
-        "mq": "agent.pause"
+        "mq": "agent.pause",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.resume",
         "http": "POST /agents/{agent_principal_id}/resume",
         "grpc": "Agent/Resume",
-        "mq": "agent.resume"
+        "mq": "agent.resume",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.deactivate",
         "http": "POST /agents/{agent_principal_id}/deactivate",
         "grpc": "Agent/Deactivate",
-        "mq": "agent.deactivate"
+        "mq": "agent.deactivate",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.rotate_key",
         "http": "POST /agents/{agent_principal_id}/rotate-key",
         "grpc": "Agent/RotateKey",
-        "mq": "agent.rotate_key"
+        "mq": "agent.rotate_key",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.grant.attach",
         "http": "POST /agents/{agent_principal_id}/grants",
         "grpc": "Agent/GrantAttach",
-        "mq": "agent.grant.attach"
+        "mq": "agent.grant.attach",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.grant.detach",
         "http": "DELETE /agents/{agent_principal_id}/grants/{grant_id}",
         "grpc": "Agent/GrantDetach",
-        "mq": "agent.grant.detach"
+        "mq": "agent.grant.detach",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.agent.sidecar_thread.ensure",
         "http": "POST /agent-sidecar-threads:ensure",
         "grpc": "Agent/SidecarThreadEnsure",
-        "mq": "agent.sidecar_thread.ensure"
+        "mq": "agent.sidecar_thread.ensure",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "agent_runtime"
+        }
       },
       {
         "operation_id": "cx.account.oidc_callback",
         "http": "POST /auth/account/oidc/callback",
         "grpc": "Account/OidcCallback",
-        "mq": "account.oidc_callback"
+        "mq": "account.oidc_callback",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.admin.get_moderation_queue",
         "http": "GET /admin/moderation/queue",
         "grpc": "Admin/GetModerationQueue",
-        "mq": "admin.get_moderation_queue"
+        "mq": "admin.get_moderation_queue",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.admin.get_server_status",
         "http": "GET /admin/server/status",
         "grpc": "Admin/GetServerStatus",
-        "mq": "admin.get_server_status"
+        "mq": "admin.get_server_status",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "deployment_local_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "admin_operator"
+        }
       },
       {
         "operation_id": "cx.admin.revoke_device",
         "http": "POST /admin/devices/{device_id}/revoke",
         "grpc": "Admin/RevokeDevice",
-        "mq": "admin.revoke_device"
+        "mq": "admin.revoke_device",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "deployment_local_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "admin_operator"
+        }
       },
       {
         "operation_id": "cx.admin.update_account_status",
         "http": "POST /admin/accounts/{account_id}/status",
         "grpc": "Admin/UpdateAccountStatus",
-        "mq": "admin.update_account_status"
+        "mq": "admin.update_account_status",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "deployment_local_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "admin_operator"
+        }
       },
       {
         "operation_id": "cx.applet.describe",
         "http": "GET /applet/describe",
         "grpc": "Applet/Describe",
-        "mq": "applet.describe"
+        "mq": "applet.describe",
+        "success_shape_kind": "service_describe"
       },
       {
         "operation_id": "cx.applet.ping",
         "http": "GET /applet/ping",
         "grpc": "Applet/Ping",
-        "mq": "applet.ping"
+        "mq": "applet.ping",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "applet"
+        }
       },
       {
         "operation_id": "cx.applet.protocol_metadata",
         "http": "GET /applet/protocols/{protocol}",
         "grpc": "Applet/ProtocolMetadata",
-        "mq": "applet.protocol_metadata"
+        "mq": "applet.protocol_metadata",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "applet"
+        }
       },
       {
         "operation_id": "cx.applet.resolve_actor",
         "http": "GET /applet/actors/{actor_id}",
         "grpc": "Applet/ResolveActor",
-        "mq": "applet.resolve_actor"
+        "mq": "applet.resolve_actor",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "applet"
+        }
       },
       {
         "operation_id": "cx.applet.resolve_realm",
         "http": "GET /applet/realms/{realm_id_or_alias}",
         "grpc": "Applet/ResolveRealm",
-        "mq": "applet.resolve_realm"
+        "mq": "applet.resolve_realm",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "applet"
+        }
       },
       {
         "operation_id": "cx.applet.third_party_locations",
         "http": "GET /applet/third_party/locations",
         "grpc": "Applet/ThirdPartyLocations",
-        "mq": "applet.third_party_locations"
+        "mq": "applet.third_party_locations",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "applet"
+        }
       },
       {
         "operation_id": "cx.applet.third_party_users",
         "http": "GET /applet/third_party/users",
         "grpc": "Applet/ThirdPartyUsers",
-        "mq": "applet.third_party_users"
+        "mq": "applet.third_party_users",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "applet"
+        }
       },
       {
         "operation_id": "cx.applet.transaction",
         "http": "POST /applet/transactions",
         "grpc": "Applet/Transaction",
-        "mq": "applet.transaction"
+        "mq": "applet.transaction",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "applet"
+        }
       },
       {
         "operation_id": "cx.authz.check",
         "http": "POST /authz/check",
         "grpc": "Authz/Check",
-        "mq": "authz.check"
+        "mq": "authz.check",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.authz.get_effective_grants",
         "http": "GET /authz/effective-grants",
         "grpc": "Authz/GetEffectiveGrants",
-        "mq": "authz.get_effective_grants"
+        "mq": "authz.get_effective_grants",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.authz.get_invites",
         "http": "GET /authz/invites",
         "grpc": "Authz/GetInvites",
-        "mq": "authz.get_invites"
+        "mq": "authz.get_invites",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "authz_policy"
+        }
       },
       {
         "operation_id": "cx.blob.get",
         "http": "GET /blob/get",
         "grpc": "Blob/Get",
-        "mq": "blob.get"
+        "mq": "blob.get",
+        "success_shape_kind": "binary_stream"
       },
       {
         "operation_id": "cx.blob.head",
         "http": "HEAD /blob/get",
         "grpc": "Blob/Head",
-        "mq": "blob.head"
+        "mq": "blob.head",
+        "success_shape_kind": "metadata_headers"
       },
       {
         "operation_id": "cx.blob.upload",
         "http": "POST /blob/upload",
         "grpc": "Blob/Upload",
-        "mq": "blob.upload"
+        "mq": "blob.upload",
+        "success_shape_kind": "schema_resource",
+        "generic_binding": {
+          "request": true,
+          "response": false,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "blob_storage"
+        }
       },
       {
         "operation_id": "cx.blob.presign",
         "http": "POST /blob/presign",
         "grpc": "Blob/Presign",
         "mq": "blob.presign",
-        "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4."
+        "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4.",
+        "success_shape_kind": "inline_response"
       },
       {
         "operation_id": "cx.device_messages.get",
         "http": "GET /device_messages",
         "grpc": "DeviceMessages/Get",
-        "mq": "device_messages.get"
+        "mq": "device_messages.get",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.device_messages.put",
         "http": "POST /device_messages",
         "grpc": "DeviceMessages/Put",
-        "mq": "device_messages.put"
+        "mq": "device_messages.put",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.directory.announce",
         "http": "POST /directory/announce",
         "grpc": "Directory/Announce",
-        "mq": "directory.announce"
+        "mq": "directory.announce",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.describe",
         "http": "GET /directory/describe",
         "grpc": "Directory/Describe",
-        "mq": "directory.describe"
+        "mq": "directory.describe",
+        "success_shape_kind": "service_describe"
       },
       {
         "operation_id": "cx.directory.private_contact_discovery",
         "http": "POST /directory/private-contact-discovery",
         "grpc": "Directory/PrivateContactDiscovery",
-        "mq": "directory.private_contact_discovery"
+        "mq": "directory.private_contact_discovery",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.resolve_handle",
         "http": "POST /directory/resolve-handle",
         "grpc": "Directory/ResolveHandle",
-        "mq": "directory.resolve_handle"
+        "mq": "directory.resolve_handle",
+        "success_shape_kind": "schema_resource",
+        "generic_binding": {
+          "request": true,
+          "response": false,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.list_handles_for_subject",
         "http": "POST /directory/list-handles-for-subject",
         "grpc": "Directory/ListHandlesForSubject",
-        "mq": "directory.list_handles_for_subject"
+        "mq": "directory.list_handles_for_subject",
+        "success_shape_kind": "schema_resource",
+        "generic_binding": {
+          "request": true,
+          "response": false,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.resolve_organization",
         "http": "POST /directory/resolve-organization",
         "grpc": "Directory/ResolveOrganization",
-        "mq": "directory.resolve_organization"
+        "mq": "directory.resolve_organization",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.resolve_realm",
         "http": "POST /directory/resolve-realm",
         "grpc": "Directory/ResolveRealm",
-        "mq": "directory.resolve_realm"
+        "mq": "directory.resolve_realm",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.resolve_target",
         "http": "POST /directory/resolve-target",
         "grpc": "Directory/ResolveTarget",
-        "mq": "directory.resolve_target"
+        "mq": "directory.resolve_target",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.search_actors",
         "http": "POST /directory/search-actors",
         "grpc": "Directory/SearchActors",
-        "mq": "directory.search_actors"
+        "mq": "directory.search_actors",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.search_organizations",
         "http": "POST /directory/search-organizations",
         "grpc": "Directory/SearchOrganizations",
-        "mq": "directory.search_organizations"
+        "mq": "directory.search_organizations",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.search_realms",
         "http": "POST /directory/search-realms",
         "grpc": "Directory/SearchRealms",
-        "mq": "directory.search_realms"
+        "mq": "directory.search_realms",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.search_users",
         "http": "POST /directory/search-users",
         "grpc": "Directory/SearchUsers",
-        "mq": "directory.search_users"
+        "mq": "directory.search_users",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.push.register",
         "http": "POST /directory/push/register",
         "grpc": "Directory/PushRegister",
-        "mq": "directory.push.register"
+        "mq": "directory.push.register",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.directory.withdraw",
         "http": "POST /directory/withdraw",
         "grpc": "Directory/Withdraw",
-        "mq": "directory.withdraw"
+        "mq": "directory.withdraw",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "directory_discovery"
+        }
       },
       {
         "operation_id": "cx.events.describe",
         "http": "GET /events/describe",
         "grpc": "Events/Describe",
-        "mq": "events.describe"
+        "mq": "events.describe",
+        "success_shape_kind": "service_describe"
       },
       {
         "operation_id": "cx.events.frontier",
         "http": "GET /events/frontier",
         "grpc": "Events/Frontier",
-        "mq": "events.frontier"
+        "mq": "events.frontier",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.events.get",
         "http": "GET /events/{event_id}",
         "grpc": "Events/Get",
-        "mq": "events.get"
+        "mq": "events.get",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.events.query",
         "http": "GET /events",
         "grpc": "Events/Query",
-        "mq": "events.query"
+        "mq": "events.query",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.events.query_post",
@@ -3071,303 +3431,554 @@
         "http": "POST /events/query",
         "grpc": "Events/Query",
         "mq": "events.query",
-        "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. gRPC / MQ bindings reuse the canonical Events/Query — request body uses the same shape across all transports."
+        "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. gRPC / MQ bindings reuse the canonical Events/Query — request body uses the same shape across all transports.",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.events.resolve",
         "http": "POST /events/resolve",
         "grpc": "Events/Resolve",
         "mq": "events.resolve",
-        "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use cx.events.query for selector-based reads."
+        "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use cx.events.query for selector-based reads.",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.events.subscribe",
         "http": "GET /events/subscribe",
         "grpc": "Events/Subscribe",
         "mq": "events.subscribe",
-        "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After."
+        "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After.",
+        "success_shape_kind": "event_stream"
       },
       {
         "operation_id": "cx.events.submit",
         "http": "POST /events",
         "grpc": "Events/Submit",
-        "mq": "events.submit"
+        "mq": "events.submit",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.ephemeral.send",
         "http": "POST /ephemeral",
         "grpc": "Ephemeral/Send",
         "mq": "ephemeral.send",
-        "notes": "Canonical broadcast ephemeral send operation for cx.schema.ephemeral_envelope.v1. Carries cx.presence, cx.typing, cx.receipt.read, and cx.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier."
+        "notes": "Canonical broadcast ephemeral send operation for cx.schema.ephemeral_envelope.v1. Carries cx.presence, cx.typing, cx.receipt.read, and cx.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.call.media.token_exchange",
         "http": "POST /rtc/token",
         "grpc": "CallMedia/TokenExchange",
         "mq": "call.media.token_exchange",
-        "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in cx.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / contrix-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/webrtc-signaling.md §6.4."
+        "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in cx.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / contrix-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/webrtc-signaling.md §6.4.",
+        "success_shape_kind": "inline_response"
       },
       {
         "operation_id": "cx.identity.describe_registry",
         "http": "GET /identity/describe",
         "grpc": "Identity/DescribeRegistry",
-        "mq": "identity.describe_registry"
+        "mq": "identity.describe_registry",
+        "success_shape_kind": "service_describe"
       },
       {
         "operation_id": "cx.identity.get_document",
         "http": "GET /identity/document",
         "grpc": "Identity/GetDocument",
-        "mq": "identity.get_document"
+        "mq": "identity.get_document",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.identity.get_log",
         "http": "GET /identity/log",
         "grpc": "Identity/GetLog",
-        "mq": "identity.get_log"
+        "mq": "identity.get_log",
+        "success_shape_kind": "inline_response"
       },
       {
         "operation_id": "cx.identity.get_receipts",
         "http": "GET /identity/receipts",
         "grpc": "Identity/GetReceipts",
-        "mq": "identity.get_receipts"
+        "mq": "identity.get_receipts",
+        "success_shape_kind": "inline_response"
       },
       {
         "operation_id": "cx.identity.resolve",
         "http": "POST /identity/resolve",
         "grpc": "Identity/Resolve",
-        "mq": "identity.resolve"
+        "mq": "identity.resolve",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.identity.submit_did_operation",
         "http": "POST /identity/submit-did-operation",
         "grpc": "Identity/SubmitDidOperation",
-        "mq": "identity.submit_did_operation"
+        "mq": "identity.submit_did_operation",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.keys.claim",
         "http": "POST /keys/claim",
         "grpc": "Keys/Claim",
-        "mq": "keys.claim"
+        "mq": "keys.claim",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.backups.delete",
         "http": "DELETE /keys/backups/{backup_id}",
         "grpc": "Keys/BackupsDelete",
-        "mq": "keys.backups.delete"
+        "mq": "keys.backups.delete",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.backups.get",
         "http": "GET /keys/backups/{backup_id}",
         "grpc": "Keys/BackupsGet",
-        "mq": "keys.backups.get"
+        "mq": "keys.backups.get",
+        "success_shape_kind": "schema_resource"
       },
       {
         "operation_id": "cx.keys.backups.list",
         "http": "GET /keys/backups",
         "grpc": "Keys/BackupsList",
-        "mq": "keys.backups.list"
+        "mq": "keys.backups.list",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.backups.put",
         "http": "PUT /keys/backups/{backup_id}",
         "grpc": "Keys/BackupsPut",
-        "mq": "keys.backups.put"
+        "mq": "keys.backups.put",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.keypackages.claim",
         "http": "POST /keys/keypackages/claim",
         "grpc": "Keys/KeyPackagesClaim",
-        "mq": "keys.keypackages.claim"
+        "mq": "keys.keypackages.claim",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.keypackages.consume",
         "http": "POST /keys/keypackages/consume",
         "grpc": "Keys/KeyPackagesConsume",
-        "mq": "keys.keypackages.consume"
+        "mq": "keys.keypackages.consume",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.keypackages.revoke",
         "http": "POST /keys/keypackages/revoke",
         "grpc": "Keys/KeyPackagesRevoke",
-        "mq": "keys.keypackages.revoke"
+        "mq": "keys.keypackages.revoke",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.keypackages.upload",
         "http": "POST /keys/keypackages/upload",
         "grpc": "Keys/KeyPackagesUpload",
-        "mq": "keys.keypackages.upload"
+        "mq": "keys.keypackages.upload",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.query",
         "http": "POST /keys/query",
         "grpc": "Keys/Query",
-        "mq": "keys.query"
+        "mq": "keys.query",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.keys.upload",
         "http": "POST /keys/upload",
         "grpc": "Keys/Upload",
-        "mq": "keys.upload"
+        "mq": "keys.upload",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "device_and_keys"
+        }
       },
       {
         "operation_id": "cx.media.ice_config",
         "http": "POST /contrix/v1/ice-config",
         "grpc": "Media/IceConfig",
-        "mq": "media.ice_config"
+        "mq": "media.ice_config",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "realtime_media"
+        }
       },
       {
         "operation_id": "cx.mimi.group_info",
         "http": "GET /mimi/flows/{flow_id}/group-info",
         "grpc": "Mimi/GroupInfo",
-        "mq": "mimi.group_info"
+        "mq": "mimi.group_info",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": false,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.identifier_query",
         "http": "POST /mimi/identifiers/query",
         "grpc": "Mimi/IdentifierQuery",
-        "mq": "mimi.identifier_query"
+        "mq": "mimi.identifier_query",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.key_material",
         "http": "POST /mimi/key-material",
         "grpc": "Mimi/KeyMaterial",
-        "mq": "mimi.key_material"
+        "mq": "mimi.key_material",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.notify",
         "http": "POST /mimi/flows/{flow_id}/notify",
         "grpc": "Mimi/Notify",
-        "mq": "mimi.notify"
+        "mq": "mimi.notify",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.provider_directory",
         "http": "GET /mimi/provider-directory",
         "grpc": "Mimi/ProviderDirectory",
-        "mq": "mimi.provider_directory"
+        "mq": "mimi.provider_directory",
+        "success_shape_kind": "schema_resource"
       },
       {
         "operation_id": "cx.mimi.proxy_download",
         "http": "POST /mimi/proxy-download",
         "grpc": "Mimi/ProxyDownload",
         "mq": "mimi.proxy_download",
-        "bridges_to": "cx.blob.get"
+        "bridges_to": "cx.blob.get",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.report_abuse",
         "http": "POST /mimi/report-abuse",
         "grpc": "Mimi/ReportAbuse",
         "mq": "mimi.report_abuse",
-        "bridges_to": "cx.moderation.report"
+        "bridges_to": "cx.moderation.report",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.request_consent",
         "http": "POST /mimi/consent/request",
         "grpc": "Mimi/RequestConsent",
-        "mq": "mimi.request_consent"
+        "mq": "mimi.request_consent",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.room_update",
         "http": "PUT /mimi/flows/{flow_id}/update",
         "grpc": "Mimi/RoomUpdate",
-        "mq": "mimi.room_update"
+        "mq": "mimi.room_update",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.submit_message",
         "http": "POST /mimi/flows/{flow_id}/messages",
         "grpc": "Mimi/SubmitMessage",
-        "mq": "mimi.submit_message"
+        "mq": "mimi.submit_message",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.mimi.update_consent",
         "http": "POST /mimi/consent/update",
         "grpc": "Mimi/UpdateConsent",
-        "mq": "mimi.update_consent"
+        "mq": "mimi.update_consent",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "interop_bridge_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "mimi_interop"
+        }
       },
       {
         "operation_id": "cx.moderation.report",
         "http": "POST /moderation/report",
         "grpc": "Moderation/Report",
-        "mq": "moderation.report"
+        "mq": "moderation.report",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.policy.check",
         "http": "POST /policy/check",
         "grpc": "Policy/Check",
         "mq": "policy.check",
-        "notes": "Canonical HTTP binding is POST /api/v1/policy/check (bare path inheriting the global /api/v1 prefix)."
+        "notes": "Canonical HTTP binding is POST /api/v1/policy/check (bare path inheriting the global /api/v1 prefix).",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.projection.flows",
         "http": "GET /projection/flows",
         "grpc": "Projection/Flows",
         "mq": "projection.flows",
-        "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source."
+        "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.projection.morphs",
         "http": "GET /projection/morphs",
         "grpc": "Projection/Morphs",
         "mq": "projection.morphs",
-        "notes": "Extension read surface for reducer-maintained Morph lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source."
+        "notes": "Extension read surface for reducer-maintained Morph lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.projection.spaces",
         "http": "GET /projection/spaces",
         "grpc": "Projection/Spaces",
         "mq": "projection.spaces",
-        "notes": "Extension read surface for reducer-maintained Space lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source."
+        "notes": "Extension read surface for reducer-maintained Space lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.push.notify",
         "http": "POST /push/notify",
         "grpc": "Push/Notify",
-        "mq": "push.notify"
+        "mq": "push.notify",
+        "success_shape_kind": "inline_response",
+        "generic_binding": {
+          "request": true,
+          "response": false,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "push"
+        }
       },
       {
         "operation_id": "cx.push.register_device",
         "http": "POST /push/register-device",
         "grpc": "Push/RegisterDevice",
-        "mq": "push.register_device"
+        "mq": "push.register_device",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "push"
+        }
       },
       {
         "operation_id": "cx.push.unregister_device",
         "http": "POST /push/unregister-device",
         "grpc": "Push/UnregisterDevice",
-        "mq": "push.unregister_device"
+        "mq": "push.unregister_device",
+        "success_shape_kind": "operation_result",
+        "generic_binding": {
+          "request": true,
+          "response": true,
+          "reason": "extension_profile_surface",
+          "profile_gate": true,
+          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
+          "surface": "push"
+        }
       },
       {
         "operation_id": "cx.server.describe",
         "http": "GET /server/describe",
         "grpc": "Server/Describe",
-        "mq": "server.describe"
+        "mq": "server.describe",
+        "success_shape_kind": "service_describe"
       },
       {
         "operation_id": "cx.account.describe",
         "http": "GET /account/describe",
         "grpc": "Account/Describe",
-        "mq": "account.describe"
+        "mq": "account.describe",
+        "success_shape_kind": "service_describe"
       },
       {
         "operation_id": "cx.account.subscribe",
         "http": "GET /account/subscribe",
         "grpc": "Account/Subscribe",
         "mq": "account.subscribe",
-        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync."
+        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync.",
+        "success_shape_kind": "event_stream"
       },
       {
         "operation_id": "cx.account.cursor_revoke",
         "http": "POST /account/cursor/revoke",
         "grpc": "Account/CursorRevoke",
         "mq": "account.cursor_revoke",
-        "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance to-device ack, account subscribe position, barrier wait, or dropped recovery state."
+        "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance to-device ack, account subscribe position, barrier wait, or dropped recovery state.",
+        "success_shape_kind": "inline_response"
       },
       {
         "operation_id": "cx.snapshot.head",
         "http": "GET /snapshot/head",
         "grpc": "Snapshot/Head",
-        "mq": "snapshot.head"
+        "mq": "snapshot.head",
+        "success_shape_kind": "typed_response"
       }
-    ]
+    ],
+    "success_shape_kind_definitions": {
+      "service_describe": "ServiceDescribe object returned by a describe endpoint.",
+      "typed_response": "Dedicated OpenAPI component response schema.",
+      "schema_resource": "Response body is a canonical artifact JSON Schema resource.",
+      "inline_response": "Endpoint-specific inline object schema in OpenAPI.",
+      "operation_result": "Legacy generic OperationResult envelope; operation row MUST carry generic_binding.",
+      "event_stream": "Long-lived event stream rather than a single JSON success body.",
+      "binary_stream": "Binary or octet-stream response body.",
+      "metadata_headers": "Metadata-only success expressed through HTTP headers.",
+      "empty_response": "No success body is defined."
+    }
   },
   "capability_action_registry": {
     "action_pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3382,7 +3993,8 @@
       "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
       "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
       "target_event_kinds links the action to one or more cx.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
-      "profile is null for v1 core actions, or a cx.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)."
+      "profile is null for v1 core actions, or a cx.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
+      "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories. wire_compat_grandfather entries MUST declare grandfathered_since."
     ],
     "actions": [
       {
@@ -3391,7 +4003,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.realm.create",
@@ -3401,7 +4014,8 @@
         "target_event_kinds": [
           "cx.realm.create"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.update",
@@ -3413,7 +4027,8 @@
         "target_event_kinds": [
           "cx.realm.update"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.archive",
@@ -3423,7 +4038,8 @@
         "target_event_kinds": [
           "cx.realm.archive"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.freeze",
@@ -3433,7 +4049,8 @@
         "target_event_kinds": [
           "cx.realm.freeze"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.tombstone",
@@ -3443,7 +4060,8 @@
         "target_event_kinds": [
           "cx.realm.tombstone"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.destroy",
@@ -3453,7 +4071,8 @@
         "target_event_kinds": [
           "cx.realm.destroy"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.circle.create",
@@ -3464,7 +4083,8 @@
           "cx.circle.create"
         ],
         "profile": null,
-        "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
+        "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.circle.manage",
@@ -3480,7 +4100,8 @@
           "cx.circle.tombstone"
         ],
         "profile": null,
-        "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission."
+        "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission.",
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "cx.circle.member.add",
@@ -3491,7 +4112,8 @@
           "cx.circle.member.state"
         ],
         "profile": null,
-        "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed."
+        "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed.",
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.circle.member.manage",
@@ -3504,7 +4126,8 @@
           "cx.circle.member.state"
         ],
         "profile": null,
-        "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id."
+        "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id.",
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.circle.member.add.others",
@@ -3520,7 +4143,8 @@
           "cx.circle.member.state"
         ],
         "profile": null,
-        "notes": "Cross-actor write (rare). MUST carry cx.audit.accessed pair (same model as cx.flow.watch.set.others)."
+        "notes": "Cross-actor write (rare). MUST carry cx.audit.accessed pair (same model as cx.flow.watch.set.others).",
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.circle.audit",
@@ -3532,7 +4156,8 @@
         ],
         "target_event_kinds": [],
         "profile": null,
-        "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with cx.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle."
+        "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with cx.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.object.read",
@@ -3540,7 +4165,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.object.read_metadata",
@@ -3548,7 +4174,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.object.read_content",
@@ -3556,7 +4183,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.object.archive",
@@ -3567,7 +4195,8 @@
           "cx.flow.archive",
           "cx.morph.archive"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "polymorphic_object"
       },
       {
         "action": "cx.object.restore",
@@ -3579,7 +4208,8 @@
           "cx.morph.restore",
           "cx.space.restore"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "polymorphic_object"
       },
       {
         "action": "cx.flow.create",
@@ -3589,7 +4219,8 @@
         "target_event_kinds": [
           "cx.flow.create"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.flow.read",
@@ -3597,7 +4228,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.flow.update",
@@ -3609,7 +4241,8 @@
         "target_event_kinds": [
           "cx.flow.update"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.morph.read",
@@ -3617,7 +4250,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.morph.create",
@@ -3629,7 +4263,8 @@
         "target_event_kinds": [
           "cx.morph.create"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.morph.update",
@@ -3641,7 +4276,8 @@
         "target_event_kinds": [
           "cx.morph.update"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.morph.schema.migrate",
@@ -3651,7 +4287,9 @@
         "target_event_kinds": [
           "cx.morph.schema_migrate"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.flow.archive",
@@ -3661,7 +4299,8 @@
         "target_event_kinds": [
           "cx.flow.archive"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.flow.restore",
@@ -3671,7 +4310,8 @@
         "target_event_kinds": [
           "cx.flow.restore"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.flow.move",
@@ -3681,7 +4321,8 @@
         "target_event_kinds": [
           "cx.flow.move"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.flow.reorder",
@@ -3691,7 +4332,8 @@
         "target_event_kinds": [
           "cx.flow.reorder"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.flow.tracks.manage",
@@ -3701,7 +4343,9 @@
         "target_event_kinds": [
           "cx.flow.tracks.update"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.flow.stage.set",
@@ -3711,7 +4355,8 @@
         "target_event_kinds": [
           "cx.flow.stage.set"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.morph.stage.set",
@@ -3721,7 +4366,8 @@
         "target_event_kinds": [
           "cx.morph.stage.set"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.object.stage.set",
@@ -3732,7 +4378,8 @@
           "cx.flow.stage.set",
           "cx.morph.stage.set"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "polymorphic_object"
       },
       {
         "action": "cx.relation.create",
@@ -3742,7 +4389,8 @@
         "target_event_kinds": [
           "cx.relation.create"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.relation.update",
@@ -3752,7 +4400,8 @@
         "target_event_kinds": [
           "cx.relation.update"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.relation.tombstone",
@@ -3762,7 +4411,8 @@
         "target_event_kinds": [
           "cx.relation.tombstone"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.flow.watch.set",
@@ -3772,7 +4422,8 @@
         "target_event_kinds": [
           "cx.flow.watch.set"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.flow.watch.set.others",
@@ -3786,7 +4437,8 @@
         "target_event_kinds": [
           "cx.flow.watch.set"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.realm.notification.audit",
@@ -3794,7 +4446,8 @@
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.space.create",
@@ -3806,7 +4459,8 @@
         "target_event_kinds": [
           "cx.space.create"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.space.update",
@@ -3818,7 +4472,8 @@
         "target_event_kinds": [
           "cx.space.update"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.space.parent",
@@ -3828,7 +4483,8 @@
         "target_event_kinds": [
           "cx.space.parent"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.space.archive",
@@ -3838,7 +4494,8 @@
         "target_event_kinds": [
           "cx.space.archive"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.space.restore",
@@ -3848,7 +4505,8 @@
         "target_event_kinds": [
           "cx.space.restore"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.space.tombstone",
@@ -3858,7 +4516,8 @@
         "target_event_kinds": [
           "cx.space.tombstone"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.container.move_item",
@@ -3868,7 +4527,8 @@
         "target_event_kinds": [
           "cx.container.move_item"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.container.rebalance",
@@ -3878,7 +4538,8 @@
         "target_event_kinds": [
           "cx.container.rebalance"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.view.create",
@@ -3888,7 +4549,8 @@
         "target_event_kinds": [
           "cx.view.create"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.view.update",
@@ -3898,7 +4560,8 @@
         "target_event_kinds": [
           "cx.view.update"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.view.reconcile",
@@ -3908,7 +4571,8 @@
         "target_event_kinds": [
           "cx.view.reconcile"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.event.read",
@@ -3916,7 +4580,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.message.create",
@@ -3926,7 +4591,8 @@
         "target_event_kinds": [
           "cx.message.create"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.message.revise",
@@ -3938,7 +4604,8 @@
         "target_event_kinds": [
           "cx.message.revise"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.message.revise.own",
@@ -3953,7 +4620,8 @@
         "target_event_kinds": [
           "cx.message.revise"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.message.redact",
@@ -3964,7 +4632,9 @@
           "cx.message.redact",
           "cx.redaction"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.message.redact.own",
@@ -3978,7 +4648,9 @@
           "cx.message.redact",
           "cx.redaction"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.reaction.add",
@@ -3988,7 +4660,8 @@
         "target_event_kinds": [
           "cx.reaction.add"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.reaction.remove",
@@ -3998,7 +4671,8 @@
         "target_event_kinds": [
           "cx.reaction.remove"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.admin",
@@ -4024,7 +4698,8 @@
           "cx.realm.schema",
           "cx.realm.inheritance_policy"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "cx.realm.link",
@@ -4034,7 +4709,8 @@
         "target_event_kinds": [
           "cx.realm.link"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.upgrade",
@@ -4044,7 +4720,8 @@
         "target_event_kinds": [
           "cx.realm.upgrade"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.moderation_policy",
@@ -4054,7 +4731,8 @@
         "target_event_kinds": [
           "cx.realm.moderation_policy"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.plaintext_visible_services",
@@ -4064,7 +4742,8 @@
         "target_event_kinds": [
           "cx.realm.plaintext_visible_services"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.preview_policy",
@@ -4074,7 +4753,8 @@
         "target_event_kinds": [
           "cx.realm.preview_policy"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.audit_policy_downgrade",
@@ -4087,7 +4767,8 @@
         "target_event_kinds": [
           "cx.realm.audit_policy_downgrade"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.flow.admin",
@@ -4095,7 +4776,8 @@
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.schema.define",
@@ -4105,7 +4787,8 @@
         "target_event_kinds": [
           "cx.schema.define"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.schema.update",
@@ -4115,7 +4798,8 @@
         "target_event_kinds": [
           "cx.schema.update"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.capability.grant",
@@ -4125,7 +4809,8 @@
         "target_event_kinds": [
           "cx.capability.grant"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.capability.delegate",
@@ -4137,7 +4822,8 @@
         "target_event_kinds": [
           "cx.capability.delegate"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.capability.derived",
@@ -4147,7 +4833,8 @@
         "target_event_kinds": [
           "cx.capability.derived"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.capability.revoke",
@@ -4157,7 +4844,8 @@
         "target_event_kinds": [
           "cx.capability.revoke"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.key.authorize",
@@ -4167,7 +4855,8 @@
         "target_event_kinds": [
           "cx.agent.key.authorize"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.key.revoke",
@@ -4177,7 +4866,8 @@
         "target_event_kinds": [
           "cx.agent.key.revoke"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.key.rotate",
@@ -4187,7 +4877,8 @@
         "target_event_kinds": [
           "cx.agent.key.rotate"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.provision",
@@ -4204,7 +4895,8 @@
           "cx.capability.grant"
         ],
         "profile": "cx.profile.personal_agent_provisioning.v1",
-        "migration_group": "cxp_0008_agent_provisioning"
+        "migration_group": "cxp_0008_agent_provisioning",
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "cx.agent.pause",
@@ -4214,7 +4906,8 @@
         "target_event_kinds": [
           "cx.agent.pause"
         ],
-        "profile": "cx.profile.personal_agent_provisioning.v1"
+        "profile": "cx.profile.personal_agent_provisioning.v1",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.resume",
@@ -4224,7 +4917,8 @@
         "target_event_kinds": [
           "cx.agent.resume"
         ],
-        "profile": "cx.profile.personal_agent_provisioning.v1"
+        "profile": "cx.profile.personal_agent_provisioning.v1",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.deactivate",
@@ -4234,7 +4928,8 @@
         "target_event_kinds": [
           "cx.agent.deactivate"
         ],
-        "profile": "cx.profile.personal_agent_provisioning.v1"
+        "profile": "cx.profile.personal_agent_provisioning.v1",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.draft.propose",
@@ -4246,7 +4941,8 @@
         "target_event_kinds": [
           "cx.agent.draft.propose"
         ],
-        "profile": "cx.profile.personal_agent_provisioning.v1"
+        "profile": "cx.profile.personal_agent_provisioning.v1",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.action_request",
@@ -4258,7 +4954,8 @@
         "target_event_kinds": [
           "cx.agent.action_request"
         ],
-        "profile": "cx.profile.personal_agent_provisioning.v1"
+        "profile": "cx.profile.personal_agent_provisioning.v1",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.action_approve",
@@ -4268,7 +4965,8 @@
         "target_event_kinds": [
           "cx.agent.action_approve"
         ],
-        "profile": "cx.profile.personal_agent_provisioning.v1"
+        "profile": "cx.profile.personal_agent_provisioning.v1",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.action_reject",
@@ -4278,7 +4976,8 @@
         "target_event_kinds": [
           "cx.agent.action_reject"
         ],
-        "profile": "cx.profile.personal_agent_provisioning.v1"
+        "profile": "cx.profile.personal_agent_provisioning.v1",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.agent.sidecar_thread.ensure",
@@ -4292,7 +4991,8 @@
           "cx.relation.create"
         ],
         "profile": "cx.profile.agent_sidecar_thread.v1",
-        "migration_group": "cxp_0009_sidecar_ensure"
+        "migration_group": "cxp_0009_sidecar_ensure",
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "cx.agent.sidecar_thread.write",
@@ -4304,7 +5004,8 @@
         "target_event_kinds": [
           "cx.message.create"
         ],
-        "profile": "cx.profile.agent_sidecar_thread.v1"
+        "profile": "cx.profile.agent_sidecar_thread.v1",
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.agent.sidecar_thread.publish",
@@ -4317,7 +5018,8 @@
         "target_event_kinds": [
           "cx.message.create"
         ],
-        "profile": "cx.profile.agent_sidecar_thread.v1"
+        "profile": "cx.profile.agent_sidecar_thread.v1",
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.agent.protocol.discover",
@@ -4325,7 +5027,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": "cx.profile.agent_runtime.v1"
+        "profile": "cx.profile.agent_runtime.v1",
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.agent.session.start",
@@ -4338,7 +5041,9 @@
         "target_event_kinds": [
           "cx.agent.protocol_session.start"
         ],
-        "profile": "cx.profile.agent_runtime.v1"
+        "profile": "cx.profile.agent_runtime.v1",
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.agent.session.cancel",
@@ -4349,7 +5054,9 @@
           "cx.agent.protocol_session.status",
           "cx.agent.protocol_session.result"
         ],
-        "profile": "cx.profile.agent_runtime.v1"
+        "profile": "cx.profile.agent_runtime.v1",
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.agent.session.stream_status",
@@ -4359,7 +5066,9 @@
         "target_event_kinds": [
           "cx.agent.protocol_session.status"
         ],
-        "profile": "cx.profile.agent_runtime.v1"
+        "profile": "cx.profile.agent_runtime.v1",
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.agent.session.attach_artifact",
@@ -4373,7 +5082,9 @@
           "cx.agent.protocol_session.status",
           "cx.agent.protocol_session.result"
         ],
-        "profile": "cx.profile.agent_runtime.v1"
+        "profile": "cx.profile.agent_runtime.v1",
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.agent.session.read_transcript",
@@ -4383,7 +5094,8 @@
           "allowed_data_classes"
         ],
         "target_event_kinds": [],
-        "profile": "cx.profile.agent_runtime.v1"
+        "profile": "cx.profile.agent_runtime.v1",
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.policy.manage",
@@ -4404,7 +5116,8 @@
           "cx.realm.preview_policy",
           "cx.realm.moderation_policy"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "cx.policy.set",
@@ -4414,7 +5127,8 @@
         "target_event_kinds": [
           "cx.policy.set"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.policy.rule",
@@ -4424,7 +5138,8 @@
         "target_event_kinds": [
           "cx.policy.rule"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.policy.action",
@@ -4434,7 +5149,8 @@
         "target_event_kinds": [
           "cx.policy.action"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.invite.create",
@@ -4444,7 +5160,8 @@
         "target_event_kinds": [
           "cx.invite.create"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.realm.join.review",
@@ -4452,7 +5169,8 @@
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": "cx.profile.candidate.join_policy.v1"
+        "profile": "cx.profile.candidate.join_policy.v1",
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.invite.cancel",
@@ -4462,7 +5180,8 @@
         "target_event_kinds": [
           "cx.invite.cancel"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.invite.third_party",
@@ -4472,7 +5191,8 @@
         "target_event_kinds": [
           "cx.invite.third_party"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.invite.claim",
@@ -4482,7 +5202,8 @@
         "target_event_kinds": [
           "cx.invite.claim"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.invite.revoke",
@@ -4492,7 +5213,8 @@
         "target_event_kinds": [
           "cx.invite.revoke"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.approval.vote",
@@ -4500,7 +5222,8 @@
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.moderation.decision",
@@ -4510,7 +5233,8 @@
         "target_event_kinds": [
           "cx.moderation.decision"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.moderation.decision.lift",
@@ -4520,7 +5244,8 @@
         "target_event_kinds": [
           "cx.moderation.decision.lift"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.moderation.appeal.submit",
@@ -4530,7 +5255,8 @@
         "target_event_kinds": [
           "cx.moderation.appeal.submit"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.moderation.appeal.review",
@@ -4542,7 +5268,8 @@
           "cx.moderation.appeal.decision",
           "cx.moderation.appeal.close"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "cx.events.query",
@@ -4550,7 +5277,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.events.subscribe",
@@ -4558,7 +5286,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.account.subscribe",
@@ -4566,7 +5295,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.account.describe",
@@ -4574,7 +5304,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.snapshot.head",
@@ -4582,7 +5313,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.blob.upload",
@@ -4592,7 +5324,8 @@
           "blob_max_bytes"
         ],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.blob.get",
@@ -4600,7 +5333,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.blob.head",
@@ -4608,7 +5342,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.blob.presign",
@@ -4619,7 +5354,8 @@
           "blob_presign_scope"
         ],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.call.configure_media_service",
@@ -4629,7 +5365,9 @@
         "target_event_kinds": [
           "cx.realm.media_service"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "wire_compat_grandfather",
+        "grandfathered_since": "2026-05-08"
       },
       {
         "action": "cx.mls.genesis",
@@ -4639,7 +5377,8 @@
         "target_event_kinds": [
           "cx.mls.genesis"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.mls.proposal",
@@ -4649,7 +5388,8 @@
         "target_event_kinds": [
           "cx.mls.proposal"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.mls.commit",
@@ -4660,7 +5400,8 @@
           "cx.mls.commit",
           "cx.mls.commit_failed"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "cx.mls.welcome",
@@ -4670,7 +5411,8 @@
         "target_event_kinds": [
           "cx.mls.welcome"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.mls.keypackage",
@@ -4680,7 +5422,8 @@
         "target_event_kinds": [
           "cx.mls.keypackage"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.audit.accessed",
@@ -4690,7 +5433,8 @@
         "target_event_kinds": [
           "cx.audit.accessed"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.audit.query",
@@ -4698,7 +5442,8 @@
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.audit.export",
@@ -4706,7 +5451,8 @@
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.presence.broadcast",
@@ -4714,7 +5460,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.typing.broadcast",
@@ -4722,7 +5469,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.receipt.broadcast",
@@ -4730,7 +5478,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.call.signal.send",
@@ -4738,7 +5487,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.call.join",
@@ -4748,7 +5498,8 @@
         "target_event_kinds": [
           "cx.call.state"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.call.screen_share",
@@ -4758,7 +5509,8 @@
         "target_event_kinds": [
           "cx.call.state"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.call.record",
@@ -4769,7 +5521,8 @@
           "cx.call.recording.start",
           "cx.call.state"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "cx.call.transcribe",
@@ -4779,7 +5532,8 @@
         "target_event_kinds": [
           "cx.call.state"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.call.moderate",
@@ -4789,7 +5543,8 @@
         "target_event_kinds": [
           "cx.call.state"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "scope_suffix_variant"
       },
       {
         "action": "cx.read_cursor.advance",
@@ -4799,7 +5554,8 @@
         "target_event_kinds": [
           "cx.read_cursor.advance"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "cx.notification.read",
@@ -4807,7 +5563,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.notification.ack",
@@ -4815,7 +5572,8 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "cx.invite.accept",
@@ -4825,8 +5583,17 @@
         "target_event_kinds": [
           "cx.invite.accept"
         ],
-        "profile": null
+        "profile": null,
+        "event_mapping_kind": "same_name"
       }
-    ]
+    ],
+    "event_mapping_kind_definitions": {
+      "same_name": "Action maps one-to-one to an identically named durable event kind.",
+      "non_event_surface": "Action authorizes read/projection/signaling behavior that does not emit a durable reducer event.",
+      "aggregate_admin": "Action intentionally covers a bounded administrative family of event kinds.",
+      "polymorphic_object": "Action covers the same object-lifecycle verb across multiple object event kinds.",
+      "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
+      "wire_compat_grandfather": "Legacy action/event naming divergence retained for wire compatibility; new entries are forbidden."
+    }
   }
 }

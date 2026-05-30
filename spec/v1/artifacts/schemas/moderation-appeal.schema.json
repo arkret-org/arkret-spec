@@ -27,7 +27,7 @@
     },
     "actor_ref": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "target_ref": {
       "type": "string",

@@ -31,7 +31,7 @@ CXP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 ## 3. 状态转移汇总
 
 ```
-draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec; frontmatter merged_into=<path>)
+draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec; frontmatter merged_into=<path> 或 merged_to=[...])
    │           │            │
    ├──►  deferred-to-v1.1
    └──►  withdrawn   └──►  rejected
@@ -68,7 +68,7 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 
 1. 解析 frontmatter `cxp` / `status` / `discussion`。
 2. 当 `status == "review"` 且 `discussion` 缺失时,emit warning code `CXP001` (`review status MUST carry a discussion: frontmatter link`)。
-3. 当 `status == "accepted"` 但缺 `merged_into:` 时,emit warning code `CXP002` (`accepted proposal MUST declare merged_into: target path`)。
+3. 当 `status == "accepted"` 但缺 `merged_into:` / `merged_to:` 时,emit warning code `CXP002` (`accepted proposal MUST declare merged_into: target path or merged_to: target paths`)。
 4. 当 `cxp:` 编号与文件名不一致时,emit error code `CXP003`。
 
 以上规则与本表配合,作为 v1.0 release-readiness gate 的一部分。
@@ -76,7 +76,7 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 ## 6. 维护节奏
 
 - 每次合并新 CXP 或推进既有 CXP 状态时,**必须**同步更新本表与 §4 计数。
-- 进入 `accepted` 的提案合并后,本表保留历史条目;`merged_into` 列指向 normative spec 路径。
+- 进入 `accepted` 的提案合并后,本表保留历史条目;单目标落地使用 `merged_into`，多目标落地使用 `merged_to` 列出 normative spec 路径。
 - 当本表与 README §5 索引不一致时,以本表为 status canonical source;README §5 仅作目录入口。
 
 ## 7. 规范性引用

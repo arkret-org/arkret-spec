@@ -135,7 +135,7 @@ API 调用 SHOULD 使用以下方式之一：
 
 ## 4. 标准响应 envelope
 
-**v1 现状（normative）**：成功响应 MUST 直接返回 endpoint-specific JSON 对象（字段集由对应 endpoint 在 `service-http-binding.md` §2.3 / §2.4 与 `contract-catalog.json` 定义）；**不存在跨 endpoint 强制的统一 success envelope**。错误响应 MUST 使用 §5 的统一错误 envelope (`{"ok": false, "error": {...}}`)，但成功响应没有等价的"包裹后再返回"模式。
+**v1 现状（normative）**：成功响应 MUST 直接返回 endpoint-specific JSON 对象（字段集由对应 endpoint 在 `service-http-binding.md` §2.3 / §2.4 与 `contract-catalog.json` 定义）；每个 operation MUST 在 `contract-catalog.json#operation_registry.operations[].success_shape_kind` 声明机器可读成功形态，供 SDK / conformance 工具判定。**不存在跨 endpoint 强制的统一 success envelope**。错误响应 MUST 使用 §5 的统一错误 envelope (`{"ok": false, "error": {...}}`)，但成功响应没有等价的"包裹后再返回"模式。
 
 各 endpoint 当前实际使用的成功标记形态可分为三类，调用方应直接按 endpoint 文档判定：
 
@@ -317,7 +317,7 @@ X-Contrix-Wait-For: <cursor>
 - 重试提示：`retry_after_ms`、`backoff_hint` 或 `next_retry_at` 的语义。
 - `effective_at` / `expires_at` 或缓存 TTL；未知时客户端 MUST 按保守策略重试。
 
-公开 describe MAY 只返回 coarse policy，避免暴露内部防滥用细节；认证后的 describe SHOULD 返回调用方当前可见的精确有效策略。服务若省略 `rate_limit_policy` 和 `rate_limit_policy_id`，表示除了通用滥用防护外没有可预期的端点级限流；一旦可能返回 `rate_limited`，就 MUST 暴露足够的策略信息供对端调度。
+公开 describe MAY 只返回 coarse policy，避免暴露内部防滥用细节；认证后的 describe SHOULD 返回调用方当前可见的精确有效策略。ServiceDescribe MUST 携带 `rate_limit_policy` 或 `rate_limit_policy_id`；若服务除了通用滥用防护外没有可预期的端点级限流，也必须返回显式空策略（例如 `rate_limit_policy.entries=[]`），不得同时省略二者。一旦可能返回 `rate_limited`，就 MUST 暴露足够的策略信息供对端调度。
 
 触发限流时 MUST 返回 `rate_limited`，并 SHOULD 附带：
 

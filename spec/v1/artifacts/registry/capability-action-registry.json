@@ -15,7 +15,8 @@
     "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
     "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
     "target_event_kinds links the action to one or more cx.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
-    "profile is null for v1 core actions, or a cx.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)."
+    "profile is null for v1 core actions, or a cx.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
+    "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories. wire_compat_grandfather entries MUST declare grandfathered_since."
   ],
   "actions": [
     {
@@ -24,7 +25,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.realm.create",
@@ -34,7 +36,8 @@
       "target_event_kinds": [
         "cx.realm.create"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.update",
@@ -46,7 +49,8 @@
       "target_event_kinds": [
         "cx.realm.update"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.archive",
@@ -56,7 +60,8 @@
       "target_event_kinds": [
         "cx.realm.archive"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.freeze",
@@ -66,7 +71,8 @@
       "target_event_kinds": [
         "cx.realm.freeze"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.tombstone",
@@ -76,7 +82,8 @@
       "target_event_kinds": [
         "cx.realm.tombstone"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.destroy",
@@ -86,7 +93,8 @@
       "target_event_kinds": [
         "cx.realm.destroy"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.circle.create",
@@ -97,7 +105,8 @@
         "cx.circle.create"
       ],
       "profile": null,
-      "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8."
+      "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.circle.manage",
@@ -113,7 +122,8 @@
         "cx.circle.tombstone"
       ],
       "profile": null,
-      "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission."
+      "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission.",
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "cx.circle.member.add",
@@ -124,7 +134,8 @@
         "cx.circle.member.state"
       ],
       "profile": null,
-      "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed."
+      "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed.",
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.circle.member.manage",
@@ -137,7 +148,8 @@
         "cx.circle.member.state"
       ],
       "profile": null,
-      "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id."
+      "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id.",
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.circle.member.add.others",
@@ -153,7 +165,8 @@
         "cx.circle.member.state"
       ],
       "profile": null,
-      "notes": "Cross-actor write (rare). MUST carry cx.audit.accessed pair (same model as cx.flow.watch.set.others)."
+      "notes": "Cross-actor write (rare). MUST carry cx.audit.accessed pair (same model as cx.flow.watch.set.others).",
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.circle.audit",
@@ -165,7 +178,8 @@
       ],
       "target_event_kinds": [],
       "profile": null,
-      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with cx.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle."
+      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with cx.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.object.read",
@@ -173,7 +187,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.object.read_metadata",
@@ -181,7 +196,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.object.read_content",
@@ -189,7 +205,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.object.archive",
@@ -200,7 +217,8 @@
         "cx.flow.archive",
         "cx.morph.archive"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "polymorphic_object"
     },
     {
       "action": "cx.object.restore",
@@ -212,7 +230,8 @@
         "cx.morph.restore",
         "cx.space.restore"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "polymorphic_object"
     },
     {
       "action": "cx.flow.create",
@@ -222,7 +241,8 @@
       "target_event_kinds": [
         "cx.flow.create"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.flow.read",
@@ -230,7 +250,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.flow.update",
@@ -242,7 +263,8 @@
       "target_event_kinds": [
         "cx.flow.update"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.morph.read",
@@ -250,7 +272,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.morph.create",
@@ -262,7 +285,8 @@
       "target_event_kinds": [
         "cx.morph.create"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.morph.update",
@@ -274,7 +298,8 @@
       "target_event_kinds": [
         "cx.morph.update"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.morph.schema.migrate",
@@ -284,7 +309,9 @@
       "target_event_kinds": [
         "cx.morph.schema_migrate"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.flow.archive",
@@ -294,7 +321,8 @@
       "target_event_kinds": [
         "cx.flow.archive"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.flow.restore",
@@ -304,7 +332,8 @@
       "target_event_kinds": [
         "cx.flow.restore"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.flow.move",
@@ -314,7 +343,8 @@
       "target_event_kinds": [
         "cx.flow.move"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.flow.reorder",
@@ -324,7 +354,8 @@
       "target_event_kinds": [
         "cx.flow.reorder"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.flow.tracks.manage",
@@ -334,7 +365,9 @@
       "target_event_kinds": [
         "cx.flow.tracks.update"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.flow.stage.set",
@@ -344,7 +377,8 @@
       "target_event_kinds": [
         "cx.flow.stage.set"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.morph.stage.set",
@@ -354,7 +388,8 @@
       "target_event_kinds": [
         "cx.morph.stage.set"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.object.stage.set",
@@ -365,7 +400,8 @@
         "cx.flow.stage.set",
         "cx.morph.stage.set"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "polymorphic_object"
     },
     {
       "action": "cx.relation.create",
@@ -375,7 +411,8 @@
       "target_event_kinds": [
         "cx.relation.create"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.relation.update",
@@ -385,7 +422,8 @@
       "target_event_kinds": [
         "cx.relation.update"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.relation.tombstone",
@@ -395,7 +433,8 @@
       "target_event_kinds": [
         "cx.relation.tombstone"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.flow.watch.set",
@@ -405,7 +444,8 @@
       "target_event_kinds": [
         "cx.flow.watch.set"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.flow.watch.set.others",
@@ -419,7 +459,8 @@
       "target_event_kinds": [
         "cx.flow.watch.set"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.realm.notification.audit",
@@ -427,7 +468,8 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.space.create",
@@ -439,7 +481,8 @@
       "target_event_kinds": [
         "cx.space.create"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.space.update",
@@ -451,7 +494,8 @@
       "target_event_kinds": [
         "cx.space.update"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.space.parent",
@@ -461,7 +505,8 @@
       "target_event_kinds": [
         "cx.space.parent"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.space.archive",
@@ -471,7 +516,8 @@
       "target_event_kinds": [
         "cx.space.archive"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.space.restore",
@@ -481,7 +527,8 @@
       "target_event_kinds": [
         "cx.space.restore"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.space.tombstone",
@@ -491,7 +538,8 @@
       "target_event_kinds": [
         "cx.space.tombstone"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.container.move_item",
@@ -501,7 +549,8 @@
       "target_event_kinds": [
         "cx.container.move_item"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.container.rebalance",
@@ -511,7 +560,8 @@
       "target_event_kinds": [
         "cx.container.rebalance"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.view.create",
@@ -521,7 +571,8 @@
       "target_event_kinds": [
         "cx.view.create"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.view.update",
@@ -531,7 +582,8 @@
       "target_event_kinds": [
         "cx.view.update"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.view.reconcile",
@@ -541,7 +593,8 @@
       "target_event_kinds": [
         "cx.view.reconcile"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.event.read",
@@ -549,7 +602,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.message.create",
@@ -559,7 +613,8 @@
       "target_event_kinds": [
         "cx.message.create"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.message.revise",
@@ -571,7 +626,8 @@
       "target_event_kinds": [
         "cx.message.revise"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.message.revise.own",
@@ -586,7 +642,8 @@
       "target_event_kinds": [
         "cx.message.revise"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.message.redact",
@@ -597,7 +654,9 @@
         "cx.message.redact",
         "cx.redaction"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.message.redact.own",
@@ -611,7 +670,9 @@
         "cx.message.redact",
         "cx.redaction"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.reaction.add",
@@ -621,7 +682,8 @@
       "target_event_kinds": [
         "cx.reaction.add"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.reaction.remove",
@@ -631,7 +693,8 @@
       "target_event_kinds": [
         "cx.reaction.remove"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.admin",
@@ -657,7 +720,8 @@
         "cx.realm.schema",
         "cx.realm.inheritance_policy"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "cx.realm.link",
@@ -667,7 +731,8 @@
       "target_event_kinds": [
         "cx.realm.link"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.upgrade",
@@ -677,7 +742,8 @@
       "target_event_kinds": [
         "cx.realm.upgrade"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.moderation_policy",
@@ -687,7 +753,8 @@
       "target_event_kinds": [
         "cx.realm.moderation_policy"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.plaintext_visible_services",
@@ -697,7 +764,8 @@
       "target_event_kinds": [
         "cx.realm.plaintext_visible_services"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.preview_policy",
@@ -707,7 +775,8 @@
       "target_event_kinds": [
         "cx.realm.preview_policy"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.audit_policy_downgrade",
@@ -720,7 +789,8 @@
       "target_event_kinds": [
         "cx.realm.audit_policy_downgrade"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.flow.admin",
@@ -728,7 +798,8 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.schema.define",
@@ -738,7 +809,8 @@
       "target_event_kinds": [
         "cx.schema.define"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.schema.update",
@@ -748,7 +820,8 @@
       "target_event_kinds": [
         "cx.schema.update"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.capability.grant",
@@ -758,7 +831,8 @@
       "target_event_kinds": [
         "cx.capability.grant"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.capability.delegate",
@@ -770,7 +844,8 @@
       "target_event_kinds": [
         "cx.capability.delegate"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.capability.derived",
@@ -780,7 +855,8 @@
       "target_event_kinds": [
         "cx.capability.derived"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.capability.revoke",
@@ -790,7 +866,8 @@
       "target_event_kinds": [
         "cx.capability.revoke"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.key.authorize",
@@ -800,7 +877,8 @@
       "target_event_kinds": [
         "cx.agent.key.authorize"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.key.revoke",
@@ -810,7 +888,8 @@
       "target_event_kinds": [
         "cx.agent.key.revoke"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.key.rotate",
@@ -820,7 +899,8 @@
       "target_event_kinds": [
         "cx.agent.key.rotate"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.provision",
@@ -837,7 +917,8 @@
         "cx.capability.grant"
       ],
       "profile": "cx.profile.personal_agent_provisioning.v1",
-      "migration_group": "cxp_0008_agent_provisioning"
+      "migration_group": "cxp_0008_agent_provisioning",
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "cx.agent.pause",
@@ -847,7 +928,8 @@
       "target_event_kinds": [
         "cx.agent.pause"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1"
+      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.resume",
@@ -857,7 +939,8 @@
       "target_event_kinds": [
         "cx.agent.resume"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1"
+      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.deactivate",
@@ -867,7 +950,8 @@
       "target_event_kinds": [
         "cx.agent.deactivate"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1"
+      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.draft.propose",
@@ -879,7 +963,8 @@
       "target_event_kinds": [
         "cx.agent.draft.propose"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1"
+      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.action_request",
@@ -891,7 +976,8 @@
       "target_event_kinds": [
         "cx.agent.action_request"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1"
+      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.action_approve",
@@ -901,7 +987,8 @@
       "target_event_kinds": [
         "cx.agent.action_approve"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1"
+      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.action_reject",
@@ -911,7 +998,8 @@
       "target_event_kinds": [
         "cx.agent.action_reject"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1"
+      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.agent.sidecar_thread.ensure",
@@ -925,7 +1013,8 @@
         "cx.relation.create"
       ],
       "profile": "cx.profile.agent_sidecar_thread.v1",
-      "migration_group": "cxp_0009_sidecar_ensure"
+      "migration_group": "cxp_0009_sidecar_ensure",
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "cx.agent.sidecar_thread.write",
@@ -937,7 +1026,8 @@
       "target_event_kinds": [
         "cx.message.create"
       ],
-      "profile": "cx.profile.agent_sidecar_thread.v1"
+      "profile": "cx.profile.agent_sidecar_thread.v1",
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.agent.sidecar_thread.publish",
@@ -950,7 +1040,8 @@
       "target_event_kinds": [
         "cx.message.create"
       ],
-      "profile": "cx.profile.agent_sidecar_thread.v1"
+      "profile": "cx.profile.agent_sidecar_thread.v1",
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.agent.protocol.discover",
@@ -958,7 +1049,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": "cx.profile.agent_runtime.v1"
+      "profile": "cx.profile.agent_runtime.v1",
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.agent.session.start",
@@ -971,7 +1063,9 @@
       "target_event_kinds": [
         "cx.agent.protocol_session.start"
       ],
-      "profile": "cx.profile.agent_runtime.v1"
+      "profile": "cx.profile.agent_runtime.v1",
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.agent.session.cancel",
@@ -982,7 +1076,9 @@
         "cx.agent.protocol_session.status",
         "cx.agent.protocol_session.result"
       ],
-      "profile": "cx.profile.agent_runtime.v1"
+      "profile": "cx.profile.agent_runtime.v1",
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.agent.session.stream_status",
@@ -992,7 +1088,9 @@
       "target_event_kinds": [
         "cx.agent.protocol_session.status"
       ],
-      "profile": "cx.profile.agent_runtime.v1"
+      "profile": "cx.profile.agent_runtime.v1",
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.agent.session.attach_artifact",
@@ -1006,7 +1104,9 @@
         "cx.agent.protocol_session.status",
         "cx.agent.protocol_session.result"
       ],
-      "profile": "cx.profile.agent_runtime.v1"
+      "profile": "cx.profile.agent_runtime.v1",
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.agent.session.read_transcript",
@@ -1016,7 +1116,8 @@
         "allowed_data_classes"
       ],
       "target_event_kinds": [],
-      "profile": "cx.profile.agent_runtime.v1"
+      "profile": "cx.profile.agent_runtime.v1",
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.policy.manage",
@@ -1037,7 +1138,8 @@
         "cx.realm.preview_policy",
         "cx.realm.moderation_policy"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "cx.policy.set",
@@ -1047,7 +1149,8 @@
       "target_event_kinds": [
         "cx.policy.set"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.policy.rule",
@@ -1057,7 +1160,8 @@
       "target_event_kinds": [
         "cx.policy.rule"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.policy.action",
@@ -1067,7 +1171,8 @@
       "target_event_kinds": [
         "cx.policy.action"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.invite.create",
@@ -1077,7 +1182,8 @@
       "target_event_kinds": [
         "cx.invite.create"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.realm.join.review",
@@ -1085,7 +1191,8 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": "cx.profile.candidate.join_policy.v1"
+      "profile": "cx.profile.candidate.join_policy.v1",
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.invite.cancel",
@@ -1095,7 +1202,8 @@
       "target_event_kinds": [
         "cx.invite.cancel"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.invite.third_party",
@@ -1105,7 +1213,8 @@
       "target_event_kinds": [
         "cx.invite.third_party"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.invite.claim",
@@ -1115,7 +1224,8 @@
       "target_event_kinds": [
         "cx.invite.claim"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.invite.revoke",
@@ -1125,7 +1235,8 @@
       "target_event_kinds": [
         "cx.invite.revoke"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.approval.vote",
@@ -1133,7 +1244,8 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.moderation.decision",
@@ -1143,7 +1255,8 @@
       "target_event_kinds": [
         "cx.moderation.decision"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.moderation.decision.lift",
@@ -1153,7 +1266,8 @@
       "target_event_kinds": [
         "cx.moderation.decision.lift"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.moderation.appeal.submit",
@@ -1163,7 +1277,8 @@
       "target_event_kinds": [
         "cx.moderation.appeal.submit"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.moderation.appeal.review",
@@ -1175,7 +1290,8 @@
         "cx.moderation.appeal.decision",
         "cx.moderation.appeal.close"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "cx.events.query",
@@ -1183,7 +1299,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.events.subscribe",
@@ -1191,7 +1308,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.account.subscribe",
@@ -1199,7 +1317,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.account.describe",
@@ -1207,7 +1326,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.snapshot.head",
@@ -1215,7 +1335,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.blob.upload",
@@ -1225,7 +1346,8 @@
         "blob_max_bytes"
       ],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.blob.get",
@@ -1233,7 +1355,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.blob.head",
@@ -1241,7 +1364,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.blob.presign",
@@ -1252,7 +1376,8 @@
         "blob_presign_scope"
       ],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.call.configure_media_service",
@@ -1262,7 +1387,9 @@
       "target_event_kinds": [
         "cx.realm.media_service"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "wire_compat_grandfather",
+      "grandfathered_since": "2026-05-08"
     },
     {
       "action": "cx.mls.genesis",
@@ -1272,7 +1399,8 @@
       "target_event_kinds": [
         "cx.mls.genesis"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.mls.proposal",
@@ -1282,7 +1410,8 @@
       "target_event_kinds": [
         "cx.mls.proposal"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.mls.commit",
@@ -1293,7 +1422,8 @@
         "cx.mls.commit",
         "cx.mls.commit_failed"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "cx.mls.welcome",
@@ -1303,7 +1433,8 @@
       "target_event_kinds": [
         "cx.mls.welcome"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.mls.keypackage",
@@ -1313,7 +1444,8 @@
       "target_event_kinds": [
         "cx.mls.keypackage"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.audit.accessed",
@@ -1323,7 +1455,8 @@
       "target_event_kinds": [
         "cx.audit.accessed"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.audit.query",
@@ -1331,7 +1464,8 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.audit.export",
@@ -1339,7 +1473,8 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.presence.broadcast",
@@ -1347,7 +1482,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.typing.broadcast",
@@ -1355,7 +1491,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.receipt.broadcast",
@@ -1363,7 +1500,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.call.signal.send",
@@ -1371,7 +1509,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.call.join",
@@ -1381,7 +1520,8 @@
       "target_event_kinds": [
         "cx.call.state"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.call.screen_share",
@@ -1391,7 +1531,8 @@
       "target_event_kinds": [
         "cx.call.state"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.call.record",
@@ -1402,7 +1543,8 @@
         "cx.call.recording.start",
         "cx.call.state"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "cx.call.transcribe",
@@ -1412,7 +1554,8 @@
       "target_event_kinds": [
         "cx.call.state"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.call.moderate",
@@ -1422,7 +1565,8 @@
       "target_event_kinds": [
         "cx.call.state"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "cx.read_cursor.advance",
@@ -1432,7 +1576,8 @@
       "target_event_kinds": [
         "cx.read_cursor.advance"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "cx.notification.read",
@@ -1440,7 +1585,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.notification.ack",
@@ -1448,7 +1594,8 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "cx.invite.accept",
@@ -1458,7 +1605,16 @@
       "target_event_kinds": [
         "cx.invite.accept"
       ],
-      "profile": null
+      "profile": null,
+      "event_mapping_kind": "same_name"
     }
-  ]
+  ],
+  "event_mapping_kind_definitions": {
+    "same_name": "Action maps one-to-one to an identically named durable event kind.",
+    "non_event_surface": "Action authorizes read/projection/signaling behavior that does not emit a durable reducer event.",
+    "aggregate_admin": "Action intentionally covers a bounded administrative family of event kinds.",
+    "polymorphic_object": "Action covers the same object-lifecycle verb across multiple object event kinds.",
+    "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
+    "wire_compat_grandfather": "Legacy action/event naming divergence retained for wire compatibility; new entries are forbidden."
+  }
 }

@@ -40,9 +40,19 @@ except ImportError:  # pragma: no cover - CI installs the dependency.
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ZH = ROOT / "spec" / "v1" / "zh"
+PROPOSALS = ROOT / "spec" / "v1" / "proposals"
 
 REQUIRED_FRONTMATTER = {"title", "status", "normative", "stability", "updated"}
 ALLOWED_STATUS = {"draft", "candidate", "stable", "deprecated"}
+ALLOWED_PROPOSAL_STATUS = {
+    "draft",
+    "review",
+    "accepted",
+    "rejected",
+    "withdrawn",
+    "superseded",
+    "deferred-to-v1.1",
+}
 
 SECOND_PERSON_RE = re.compile(r"[你您]的?|我们")
 
@@ -62,6 +72,7 @@ CASUAL_HEADING_RE = re.compile(r"^#{1,6}\s.*(" + "|".join(CASUAL_HEADING_PATTERN
 MIXED_PUNCT_RE = re.compile(r"[一-鿿][,;][一-鿿]")
 
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
+PROPOSAL_FILE_RE = re.compile(r"^(?P<num>[0-9]{4})-[A-Za-z0-9_.-]+\.md$")
 
 
 @dataclass
@@ -211,6 +222,78 @@ def lint_file(path: Path) -> list[Finding]:
     return findings
 
 
+def is_relative_to(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def is_proposal_file(path: Path) -> bool:
+    return is_relative_to(path, PROPOSALS) and PROPOSAL_FILE_RE.match(path.name) is not None
+
+
+def lint_proposal_file(path: Path) -> list[Finding]:
+    findings: list[Finding] = []
+    text = path.read_text(encoding="utf-8")
+    fm, _body_offset = parse_frontmatter(text)
+
+    if fm is None:
+        findings.append(Finding(path, 1, "CXP004", "proposal missing frontmatter", "error"))
+        fm = {}
+
+    status = fm.get("status")
+    if status is not None and status not in ALLOWED_PROPOSAL_STATUS:
+        findings.append(
+            Finding(
+                path,
+                1,
+                "CXP005",
+                f"proposal status '{status}' not in {sorted(ALLOWED_PROPOSAL_STATUS)}",
+                "error",
+            )
+        )
+
+    match = PROPOSAL_FILE_RE.match(path.name)
+    expected_cxp = f"CXP-{match.group('num')}" if match else None
+    actual_cxp = fm.get("cxp")
+    if expected_cxp is not None and actual_cxp != expected_cxp:
+        findings.append(
+            Finding(
+                path,
+                1,
+                "CXP003",
+                f"proposal cxp '{actual_cxp}' does not match filename '{expected_cxp}'",
+                "error",
+            )
+        )
+
+    if status == "review" and not fm.get("discussion"):
+        findings.append(
+            Finding(
+                path,
+                1,
+                "CXP001",
+                "review status MUST carry a discussion: frontmatter link",
+                "warn",
+            )
+        )
+
+    if status == "accepted" and not (fm.get("merged_into") or fm.get("merged_to")):
+        findings.append(
+            Finding(
+                path,
+                1,
+                "CXP002",
+                "accepted proposal MUST declare merged_into: target path or merged_to: target paths",
+                "warn",
+            )
+        )
+
+    return findings
+
+
 def iter_targets(paths: Iterable[Path]) -> Iterable[Path]:
     for entry in paths:
         if entry.is_dir():
@@ -225,8 +308,8 @@ def main(argv: list[str]) -> int:
         "paths",
         nargs="*",
         type=Path,
-        default=[SPEC_ZH],
-        help="Files or directories to lint (default: spec/v1/zh).",
+        default=[SPEC_ZH, PROPOSALS],
+        help="Files or directories to lint (default: spec/v1/zh and spec/v1/proposals).",
     )
     parser.add_argument(
         "--strict",
@@ -237,7 +320,12 @@ def main(argv: list[str]) -> int:
 
     all_findings: list[Finding] = []
     for target in iter_targets(args.paths):
-        all_findings.extend(lint_file(target))
+        if is_proposal_file(target):
+            all_findings.extend(lint_proposal_file(target))
+        elif is_relative_to(target, PROPOSALS):
+            continue
+        else:
+            all_findings.extend(lint_file(target))
 
     for finding in all_findings:
         print(finding.format(ROOT))

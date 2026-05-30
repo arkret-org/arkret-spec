@@ -40,7 +40,7 @@
     },
     "reporter": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "evidence_refs": {
       "type": "array",
@@ -99,7 +99,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+        "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
       }
     }
   },
@@ -129,7 +129,7 @@
     },
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "timestamp": {
       "type": "string",

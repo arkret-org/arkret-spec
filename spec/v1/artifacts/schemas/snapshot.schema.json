@@ -119,7 +119,7 @@
             "properties": {
               "actor_id": {
                 "type": "string",
-                "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+                "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
               },
               "from_seq": {
                 "type": "integer",
@@ -208,7 +208,7 @@
     },
     "created_by": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "DID of the snapshot issuer (server / Realm anchorer / federation witness). Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
     },
     "created_at": {
@@ -230,7 +230,7 @@
       "properties": {
         "issuer": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
           "description": "MUST equal top-level created_by. Aligns with the canonical 'issuer' DID field used by audit-ryw-receipt, range-completeness-attestation, capability-grant, etc. (see common-fields.md §4.2)."
         },
         "authority_kind": {

@@ -88,7 +88,7 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "realm_id": {
       "type": "string",

@@ -1948,6 +1948,305 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
             lint.fail(openapi_path, f"{component_name}.properties must include next_cursor")
 
 
+DEVICE_ID_PATTERN = r"^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+DID_LEGACY_PREFIX_PATTERN = r"^did:"
+DID_LEGACY_GREEDY_PATTERN = r"^did:[a-z0-9]+:[^\s]+$"
+DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+$"
+GENERIC_OPERATION_REQUEST_REF = "#/components/schemas/OperationRequest"
+GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
+
+
+def check_openapi_error_enum_alignment(lint: Lint) -> None:
+    """ErrorEnvelope.error.code must be generated from the canonical error registry."""
+    registry_path = ARTIFACTS / "registry" / "error-code-registry.json"
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    registry = load_json(lint, registry_path)
+    openapi = load_yaml(lint, openapi_path)
+    if not isinstance(registry, dict) or not isinstance(openapi, dict):
+        return
+
+    expected = [
+        row.get("code")
+        for row in registry.get("codes", [])
+        if isinstance(row, dict) and row.get("scope") in {"both", "endpoint"}
+    ]
+    enum = (
+        openapi.get("components", {})
+        .get("schemas", {})
+        .get("ErrorEnvelope", {})
+        .get("properties", {})
+        .get("error", {})
+        .get("properties", {})
+        .get("code", {})
+        .get("enum")
+    )
+    if not isinstance(enum, list):
+        lint.fail(openapi_path, "ErrorEnvelope.error.code.enum missing")
+        return
+
+    if enum != expected:
+        missing = sorted(set(expected) - set(enum))
+        extra = sorted(set(enum) - set(expected))
+        order_note = "" if missing or extra else "; same values but registry order differs"
+        lint.fail(
+            openapi_path,
+            "ErrorEnvelope.error.code.enum must match error-code-registry codes with "
+            f"scope endpoint/both: missing={missing}, extra={extra}{order_note}",
+        )
+
+
+def check_wire_schema_no_bare_scope(lint: Lint) -> None:
+    """Wire schemas must use domain-prefixed scope field names."""
+    for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+        data = load_json(lint, path)
+        if not isinstance(data, dict):
+            continue
+        for json_path, value, key in walk_json(data):
+            if key == "properties" and isinstance(value, dict) and "scope" in value:
+                lint.fail(path, f"{json_path}.scope uses bare wire field `scope`; use a domain-prefixed name")
+
+
+def check_reducer_payload_closure(lint: Lint) -> None:
+    """Standard reducer-input payloads must reject undeclared top-level fields."""
+    event_envelope_path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
+    payload_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    event_envelope = load_json(lint, event_envelope_path)
+    payload_schema = load_json(lint, payload_path)
+    if not isinstance(event_envelope, dict) or not isinstance(payload_schema, dict):
+        return
+
+    referenced_defs: set[str] = set()
+    for _json_path, value, key in walk_json(event_envelope):
+        if key == "$ref" and isinstance(value, str) and value.startswith("./event-payload.schema.json#/$defs/"):
+            referenced_defs.add(value.rsplit("/", 1)[-1])
+
+    explicitly_open = {"generic_standard_payload"}
+    defs = payload_schema.get("$defs", {})
+    if not isinstance(defs, dict):
+        lint.fail(payload_path, "event payload schema missing $defs")
+        return
+
+    for def_name in sorted(referenced_defs - explicitly_open):
+        definition = defs.get(def_name)
+        if not isinstance(definition, dict):
+            lint.fail(payload_path, f"Event Envelope references missing payload $defs/{def_name}")
+            continue
+        if definition.get("type") == "object" and definition.get("additionalProperties") is not False:
+            lint.fail(
+                payload_path,
+                f"$defs.{def_name} is a standard reducer-input payload and must set additionalProperties=false",
+            )
+
+
+def check_did_and_device_constraints(lint: Lint) -> None:
+    """Reject ambiguous DID/DID URL and device_id constraints in machine artifacts."""
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+
+    for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+        data = load_json(lint, path)
+        if not isinstance(data, dict):
+            continue
+        for json_path, value, key in walk_json(data):
+            if key == "pattern" and value == DID_LEGACY_GREEDY_PATTERN:
+                lint.fail(path, f"{json_path} uses legacy greedy DID pattern; use bare DID or DID URL pattern")
+            if key == "properties" and isinstance(value, dict):
+                vm_schema = value.get("verification_method")
+                if isinstance(vm_schema, dict) and vm_schema.get("pattern") in {DID_LEGACY_GREEDY_PATTERN, DID_BARE_PATTERN}:
+                    lint.fail(path, f"{json_path}.verification_method must use a DID URL pattern with a key fragment")
+
+    openapi = load_yaml(lint, openapi_path)
+    if not isinstance(openapi, dict):
+        return
+
+    for json_path, value, key in walk_json(openapi):
+        if key == "pattern" and value in {DID_LEGACY_PREFIX_PATTERN, DID_LEGACY_GREEDY_PATTERN}:
+            lint.fail(openapi_path, f"{json_path} uses legacy DID pattern {value!r}")
+
+        if key == "properties" and isinstance(value, dict):
+            device_schema = value.get("device_id")
+            if isinstance(device_schema, dict) and not (
+                device_schema.get("$ref") or device_schema.get("pattern") == DEVICE_ID_PATTERN
+            ):
+                lint.fail(openapi_path, f"{json_path}.device_id must use the canonical cx:device UUIDv7 pattern")
+
+            vm_schema = value.get("verification_method")
+            if isinstance(vm_schema, dict) and not (
+                vm_schema.get("$ref") or "#" in str(vm_schema.get("pattern", ""))
+            ):
+                lint.fail(openapi_path, f"{json_path}.verification_method must use a DID URL pattern with a key fragment")
+
+        if isinstance(value, dict) and value.get("name") == "device_id":
+            schema = value.get("schema", {})
+            if isinstance(schema, dict) and not (
+                schema.get("$ref") or schema.get("pattern") == DEVICE_ID_PATTERN
+            ):
+                lint.fail(openapi_path, f"{json_path}.schema must use the canonical cx:device UUIDv7 pattern")
+
+
+def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> str:
+    if schema is None:
+        if method == "head":
+            return "metadata_headers"
+        if operation_id in {"cx.events.subscribe", "cx.account.subscribe"}:
+            return "event_stream"
+        if operation_id == "cx.blob.get":
+            return "binary_stream"
+        return "empty_response"
+    if isinstance(schema, dict):
+        ref = schema.get("$ref")
+        if ref == GENERIC_OPERATION_RESULT_REF:
+            return "operation_result"
+        if ref == "#/components/schemas/ServiceDescribe":
+            return "service_describe"
+        if isinstance(ref, str) and ref.startswith("#/components/schemas/"):
+            return "typed_response"
+        if isinstance(ref, str) and ref.startswith("../schemas/"):
+            return "schema_resource"
+        return "inline_response"
+    return "empty_response"
+
+
+def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str, dict[str, Any]]:
+    openapi = load_yaml(lint, openapi_path)
+    if not isinstance(openapi, dict):
+        return {}
+    paths = openapi.get("paths")
+    if not isinstance(paths, dict):
+        lint.fail(openapi_path, "OpenAPI paths missing")
+        return {}
+
+    facts: dict[str, dict[str, Any]] = {}
+    for path_item in paths.values():
+        if not isinstance(path_item, dict):
+            continue
+        for method in ("get", "post", "put", "patch", "delete", "head"):
+            operation = path_item.get(method)
+            if not isinstance(operation, dict):
+                continue
+            operation_id = operation.get("operationId")
+            if not isinstance(operation_id, str) or not operation_id:
+                continue
+            request_schema = (
+                operation.get("requestBody", {})
+                .get("content", {})
+                .get("application/json", {})
+                .get("schema")
+            )
+            response_schema = (
+                operation.get("responses", {})
+                .get("200", {})
+                .get("content", {})
+                .get("application/json", {})
+                .get("schema")
+            )
+            facts[operation_id] = {
+                "generic_request": isinstance(request_schema, dict)
+                and request_schema.get("$ref") == GENERIC_OPERATION_REQUEST_REF,
+                "generic_response": isinstance(response_schema, dict)
+                and response_schema.get("$ref") == GENERIC_OPERATION_RESULT_REF,
+                "success_shape_kind": infer_openapi_success_shape(operation_id, method, response_schema),
+            }
+    return facts
+
+
+def check_operation_binding_metadata(lint: Lint) -> None:
+    """Operation registry must machine-declare success shape and governed generic bindings."""
+    operation_path = ARTIFACTS / "registry" / "operation-registry.json"
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    operation_registry = load_json(lint, operation_path)
+    if not isinstance(operation_registry, dict):
+        return
+
+    allowed_success_shapes = set((operation_registry.get("success_shape_kind_definitions") or {}).keys())
+    if not allowed_success_shapes:
+        lint.fail(operation_path, "operation registry missing success_shape_kind_definitions")
+
+    tier_by_operation: dict[str, str] = {}
+    for group in operation_registry.get("surface_groups", []) if isinstance(operation_registry.get("surface_groups"), list) else []:
+        if not isinstance(group, dict):
+            continue
+        tier = group.get("tier")
+        for operation_id in group.get("operations", []) or []:
+            if isinstance(operation_id, str) and isinstance(tier, str):
+                tier_by_operation[operation_id] = tier
+
+    openapi_facts = collect_openapi_operation_facts(lint, openapi_path)
+    for row in operation_registry.get("operations", []) if isinstance(operation_registry.get("operations"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        operation_id = row.get("operation_id")
+        if not isinstance(operation_id, str):
+            continue
+        facts = openapi_facts.get(operation_id)
+        if facts is None:
+            lint.fail(operation_path, f"{operation_id} missing from OpenAPI facts")
+            continue
+
+        success_shape_kind = row.get("success_shape_kind")
+        if success_shape_kind not in allowed_success_shapes:
+            lint.fail(operation_path, f"{operation_id} has invalid success_shape_kind {success_shape_kind!r}")
+        elif success_shape_kind != facts["success_shape_kind"]:
+            lint.fail(
+                operation_path,
+                f"{operation_id} success_shape_kind={success_shape_kind!r} "
+                f"but OpenAPI implies {facts['success_shape_kind']!r}",
+            )
+
+        uses_generic = facts["generic_request"] or facts["generic_response"]
+        generic_binding = row.get("generic_binding")
+        if uses_generic:
+            if tier_by_operation.get(operation_id) == "core":
+                lint.fail(operation_path, f"{operation_id} is core tier and must not use generic OpenAPI bindings")
+            if not isinstance(generic_binding, dict):
+                lint.fail(operation_path, f"{operation_id} uses OperationRequest/OperationResult and must declare generic_binding")
+                continue
+            if generic_binding.get("request") is not facts["generic_request"]:
+                lint.fail(operation_path, f"{operation_id} generic_binding.request does not match OpenAPI")
+            if generic_binding.get("response") is not facts["generic_response"]:
+                lint.fail(operation_path, f"{operation_id} generic_binding.response does not match OpenAPI")
+            if generic_binding.get("profile_gate") is not True:
+                lint.fail(operation_path, f"{operation_id} generic_binding.profile_gate must be true")
+            for field in ("reason", "migration_plan", "surface"):
+                if not isinstance(generic_binding.get(field), str) or not generic_binding.get(field):
+                    lint.fail(operation_path, f"{operation_id} generic_binding.{field} must be a non-empty string")
+        elif generic_binding is not None:
+            lint.fail(operation_path, f"{operation_id} declares generic_binding but OpenAPI uses dedicated schemas")
+
+
+def check_capability_action_event_mapping(lint: Lint) -> None:
+    """Machine-check allowed action ↔ event-kind mapping deviations."""
+    action_path = ARTIFACTS / "registry" / "capability-action-registry.json"
+    action_registry = load_json(lint, action_path)
+    if not isinstance(action_registry, dict):
+        return
+
+    allowed = set((action_registry.get("event_mapping_kind_definitions") or {}).keys())
+    if not allowed:
+        lint.fail(action_path, "capability action registry missing event_mapping_kind_definitions")
+    for row in action_registry.get("actions", []) if isinstance(action_registry.get("actions"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        action = row.get("action")
+        targets = row.get("target_event_kinds") or []
+        mapping_kind = row.get("event_mapping_kind")
+        if not isinstance(action, str):
+            continue
+        if mapping_kind not in allowed:
+            lint.fail(action_path, f"{action} has invalid event_mapping_kind {mapping_kind!r}")
+            continue
+        if not targets and mapping_kind != "non_event_surface":
+            lint.fail(action_path, f"{action} has no target_event_kinds and must use event_mapping_kind=non_event_surface")
+        elif targets == [action] and mapping_kind != "same_name":
+            lint.fail(action_path, f"{action} maps to the same event kind and must use event_mapping_kind=same_name")
+        elif targets and targets != [action] and mapping_kind in {"same_name", "non_event_surface"}:
+            lint.fail(action_path, f"{action} deviates from target_event_kinds and must declare an explicit deviation kind")
+        if mapping_kind == "wire_compat_grandfather":
+            if not isinstance(row.get("grandfathered_since"), str) or not row.get("grandfathered_since"):
+                lint.fail(action_path, f"{action} uses wire_compat_grandfather and must declare grandfathered_since")
+        elif "grandfathered_since" in row:
+            lint.fail(action_path, f"{action} must not declare grandfathered_since unless event_mapping_kind=wire_compat_grandfather")
+
+
 def check_text_reference_targets(lint: Lint) -> None:
     for path in raw_artifact_files():
         try:
@@ -3223,6 +3522,12 @@ def main() -> int:
     check_service_describe_alignment(lint)
     check_policy_check_alignment(lint)
     check_openapi_dedicated_operation_schemas(lint)
+    check_openapi_error_enum_alignment(lint)
+    check_wire_schema_no_bare_scope(lint)
+    check_reducer_payload_closure(lint)
+    check_did_and_device_constraints(lint)
+    check_operation_binding_metadata(lint)
+    check_capability_action_event_mapping(lint)
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
     check_account_data_type_registry(lint, known)

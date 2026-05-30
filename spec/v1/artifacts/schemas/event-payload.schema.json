@@ -7,7 +7,7 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "device_id": {
       "type": "string",
@@ -124,47 +124,91 @@
       "allOf": [
         {
           "if": {
-            "properties": { "binding_source": { "const": "did_document_default" } },
-            "required": ["binding_source"]
+            "properties": {
+              "binding_source": {
+                "const": "did_document_default"
+              }
+            },
+            "required": [
+              "binding_source"
+            ]
           },
           "then": {
-            "required": ["did_document_digest"]
+            "required": [
+              "did_document_digest"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "binding_source": { "const": "explicit" } },
-            "required": ["binding_source"]
+            "properties": {
+              "binding_source": {
+                "const": "explicit"
+              }
+            },
+            "required": [
+              "binding_source"
+            ]
           },
           "then": {
-            "required": ["service_acceptance_ref"]
+            "required": [
+              "service_acceptance_ref"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "binding_source": { "const": "organization_policy" } },
-            "required": ["binding_source"]
+            "properties": {
+              "binding_source": {
+                "const": "organization_policy"
+              }
+            },
+            "required": [
+              "binding_source"
+            ]
           },
           "then": {
-            "required": ["service_acceptance_ref", "policy_event_ref"]
+            "required": [
+              "service_acceptance_ref",
+              "policy_event_ref"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "binding_source": { "enum": ["join_policy", "realm_policy"] } },
-            "required": ["binding_source"]
+            "properties": {
+              "binding_source": {
+                "enum": [
+                  "join_policy",
+                  "realm_policy"
+                ]
+              }
+            },
+            "required": [
+              "binding_source"
+            ]
           },
           "then": {
-            "required": ["policy_event_ref"]
+            "required": [
+              "policy_event_ref"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "binding_source": { "const": "invite" } },
-            "required": ["binding_source"]
+            "properties": {
+              "binding_source": {
+                "const": "invite"
+              }
+            },
+            "required": [
+              "binding_source"
+            ]
           },
           "then": {
-            "required": ["service_acceptance_ref"]
+            "required": [
+              "service_acceptance_ref"
+            ]
           }
         }
       ]
@@ -316,25 +360,52 @@
             }
           },
           "additionalProperties": true,
-          "not": { "required": ["type"] }
+          "not": {
+            "required": [
+              "type"
+            ]
+          }
         }
       },
       "additionalProperties": true,
       "not": {
         "$comment": "Reject legacy discriminator field name `type`, legacy composite child array name `blocks`, and byte-count field `size`. The discriminator is `kind`, the composite child array is `parts`, and byte counts use `size_bytes` (see schemas/message.schema.json and forbidden-wire-fields.json `blocks/content_block_composite`).",
         "anyOf": [
-          { "required": ["type"] },
-          { "required": ["blocks"] },
-          { "required": ["size"], "$comment": "byte counts use size_bytes" }
+          {
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "required": [
+              "blocks"
+            ]
+          },
+          {
+            "required": [
+              "size"
+            ],
+            "$comment": "byte counts use size_bytes"
+          }
         ]
       },
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "cx.content.composite" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "cx.content.composite"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
-          "then": { "required": ["parts"] }
+          "then": {
+            "required": [
+              "parts"
+            ]
+          }
         }
       ]
     },
@@ -505,7 +576,9 @@
       "additionalProperties": true,
       "not": {
         "$comment": "Object kind is derived from the typed-id prefix on `id`; `type` is a banned legacy alias.",
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "description": "Embedded object snapshot inside an Event payload. Object kind is derived from the typed-id prefix on `id`; there is no separate `type` field."
     },
@@ -514,7 +587,9 @@
       "additionalProperties": true,
       "not": {
         "$comment": "Standard cx.* event payloads use kind (envelope) + payload schema discriminators. `type` is a banned legacy alias here to keep schema validation aligned with reducer behavior.",
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       }
     },
     "object_create_payload": {
@@ -552,7 +627,7 @@
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "space_create_payload": {
       "type": "object",
@@ -571,7 +646,7 @@
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "flow_create_payload": {
       "type": "object",
@@ -590,7 +665,7 @@
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "circle_create_payload": {
       "type": "object",
@@ -615,7 +690,7 @@
           "object"
         ]
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "morph_create_payload": {
       "type": "object",
@@ -634,7 +709,7 @@
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "object_stage_set_payload": {
       "type": "object",
@@ -674,12 +749,36 @@
       "not": {
         "$comment": "Reason / note / explanation fields are intentionally rejected. Stage transitions audit through the event log; human-readable rationale belongs in a Message on the discussion track that references this event.",
         "anyOf": [
-          { "required": ["stage_reason"] },
-          { "required": ["stage_note"] },
-          { "required": ["stage_explanation"] },
-          { "required": ["stage_comment"] },
-          { "required": ["reason"] },
-          { "required": ["note"] }
+          {
+            "required": [
+              "stage_reason"
+            ]
+          },
+          {
+            "required": [
+              "stage_note"
+            ]
+          },
+          {
+            "required": [
+              "stage_explanation"
+            ]
+          },
+          {
+            "required": [
+              "stage_comment"
+            ]
+          },
+          {
+            "required": [
+              "reason"
+            ]
+          },
+          {
+            "required": [
+              "note"
+            ]
+          }
         ]
       },
       "additionalProperties": true
@@ -725,15 +824,39 @@
       "not": {
         "$comment": "Mirror of object_stage_set_payload guard. Reason-style fields are forbidden; rationale belongs in a discussion-track Message.",
         "anyOf": [
-          { "required": ["stage_reason"] },
-          { "required": ["stage_note"] },
-          { "required": ["stage_explanation"] },
-          { "required": ["stage_comment"] },
-          { "required": ["reason"] },
-          { "required": ["note"] }
+          {
+            "required": [
+              "stage_reason"
+            ]
+          },
+          {
+            "required": [
+              "stage_note"
+            ]
+          },
+          {
+            "required": [
+              "stage_explanation"
+            ]
+          },
+          {
+            "required": [
+              "stage_comment"
+            ]
+          },
+          {
+            "required": [
+              "reason"
+            ]
+          },
+          {
+            "required": [
+              "note"
+            ]
+          }
         ]
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "morph_stage_set_payload": {
       "type": "object",
@@ -777,15 +900,39 @@
       "not": {
         "$comment": "Mirror of object_stage_set_payload guard.",
         "anyOf": [
-          { "required": ["stage_reason"] },
-          { "required": ["stage_note"] },
-          { "required": ["stage_explanation"] },
-          { "required": ["stage_comment"] },
-          { "required": ["reason"] },
-          { "required": ["note"] }
+          {
+            "required": [
+              "stage_reason"
+            ]
+          },
+          {
+            "required": [
+              "stage_note"
+            ]
+          },
+          {
+            "required": [
+              "stage_explanation"
+            ]
+          },
+          {
+            "required": [
+              "stage_comment"
+            ]
+          },
+          {
+            "required": [
+              "reason"
+            ]
+          },
+          {
+            "required": [
+              "note"
+            ]
+          }
         ]
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "morph_schema_migrate_payload": {
       "type": "object",
@@ -842,7 +989,7 @@
           "additionalProperties": true
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "actor_profile_create_payload": {
       "type": "object",
@@ -855,7 +1002,7 @@
           "$ref": "./actor-profile.schema.json"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "account_data_set_payload": {
       "type": "object",
@@ -864,9 +1011,21 @@
         "key"
       ],
       "anyOf": [
-        { "required": ["body"] },
-        { "required": ["encrypted_payload"] },
-        { "required": ["tombstone"] }
+        {
+          "required": [
+            "body"
+          ]
+        },
+        {
+          "required": [
+            "encrypted_payload"
+          ]
+        },
+        {
+          "required": [
+            "tombstone"
+          ]
+        }
       ],
       "properties": {
         "key": {
@@ -959,9 +1118,21 @@
                   }
                 },
                 "anyOf": [
-                  { "required": ["did"] },
-                  { "required": ["ref"] },
-                  { "required": ["value"] }
+                  {
+                    "required": [
+                      "did"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "ref"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "value"
+                    ]
+                  }
                 ],
                 "additionalProperties": false
               },
@@ -1027,7 +1198,7 @@
           "$ref": "#/$defs/hash"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "profile_realm_override_payload": {
       "type": "object",
@@ -1052,7 +1223,7 @@
           "$ref": "#/$defs/hash"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "flow_patch_payload": {
       "type": "object",
@@ -1071,7 +1242,7 @@
           "$ref": "#/$defs/hash"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "circle_patch_payload": {
       "type": "object",
@@ -1091,7 +1262,7 @@
           "$ref": "#/$defs/hash"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "object_lifecycle_payload": {
       "type": "object",
@@ -1114,7 +1285,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "circle_member_state_payload": {
       "type": "object",
@@ -1160,7 +1331,7 @@
           ]
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "circle_anchor_commit_payload": {
       "type": "object",
@@ -1188,7 +1359,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "state_payload": {
       "type": "object",
@@ -1202,7 +1373,7 @@
           "type": "string"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "history_visibility_value": {
       "type": "string",
@@ -1231,15 +1402,23 @@
           "type": "string"
         }
       },
-      "additionalProperties": true,
+      "additionalProperties": false,
       "allOf": [
         {
           "if": {
-            "properties": { "value": { "const": "restricted" } },
-            "required": ["value"]
+            "properties": {
+              "value": {
+                "const": "restricted"
+              }
+            },
+            "required": [
+              "value"
+            ]
           },
           "then": {
-            "required": ["restricted_policy_digest"]
+            "required": [
+              "restricted_policy_digest"
+            ]
           }
         }
       ]
@@ -1348,7 +1527,7 @@
           "type": "string"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "history_sharing_restricted_rule": {
       "type": "object",
@@ -1364,7 +1543,7 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
-        "scope": {
+        "history_scope": {
           "type": "object",
           "required": [
             "kind"
@@ -1481,7 +1660,7 @@
           "$ref": "#/$defs/signature_material"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "hierarchy_link_status": {
       "type": "string",
@@ -1563,14 +1742,22 @@
         },
         "parent_space_id": {
           "oneOf": [
-            { "$ref": "#/$defs/space_id" },
-            { "type": "null" }
+            {
+              "$ref": "#/$defs/space_id"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "expected_parent_space_id": {
           "oneOf": [
-            { "$ref": "#/$defs/space_id" },
-            { "type": "null" }
+            {
+              "$ref": "#/$defs/space_id"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       },
@@ -1812,27 +1999,45 @@
           ]
         }
       },
-      "additionalProperties": true,
+      "additionalProperties": false,
       "allOf": [
         {
           "if": {
-            "properties": { "membership": { "const": "join" } },
-            "required": ["membership"]
+            "properties": {
+              "membership": {
+                "const": "join"
+              }
+            },
+            "required": [
+              "membership"
+            ]
           },
           "then": {
-            "required": ["actor_id", "delivery_status"]
+            "required": [
+              "actor_id",
+              "delivery_status"
+            ]
           }
         },
         {
           "if": {
             "properties": {
-              "membership": { "const": "join" },
-              "delivery_status": { "const": "routable" }
+              "membership": {
+                "const": "join"
+              },
+              "delivery_status": {
+                "const": "routable"
+              }
             },
-            "required": ["membership", "delivery_status"]
+            "required": [
+              "membership",
+              "delivery_status"
+            ]
           },
           "then": {
-            "required": ["delivery_binding"]
+            "required": [
+              "delivery_binding"
+            ]
           }
         }
       ]
@@ -1978,7 +2183,7 @@
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "plaintext_data_class": {
       "type": "string",
@@ -2141,10 +2346,14 @@
                     ]
                   }
                 },
-                "required": ["mode"]
+                "required": [
+                  "mode"
+                ]
               },
               "then": {
-                "required": ["history"]
+                "required": [
+                  "history"
+                ]
               }
             }
           ]
@@ -2153,7 +2362,7 @@
           "type": "string"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "join_policy_payload": {
       "$comment": "Value-shape schema for the realm.join_policy.v1 cell (written as a sub-component of cx.realm.policy_components). Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/lint_artifacts.py check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
@@ -2366,7 +2575,7 @@
           "$ref": "#/$defs/message_id"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "message_revise_payload": {
       "type": "object",
@@ -2439,7 +2648,7 @@
           "type": "string"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "message_redact_payload": {
       "type": "object",
@@ -2458,6 +2667,11 @@
           "required": [
             "event_id"
           ]
+        },
+        {
+          "required": [
+            "target_event_id"
+          ]
         }
       ],
       "properties": {
@@ -2468,6 +2682,9 @@
           "$ref": "#/$defs/object_ref"
         },
         "event_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "target_event_id": {
           "$ref": "#/$defs/event_ref"
         },
         "track": {
@@ -2484,7 +2701,7 @@
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "reaction_payload": {
       "type": "object",
@@ -2524,7 +2741,7 @@
           "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE realms. When present, plaintext `key` (if any) MUST be a routing hash and `annotation` MUST be omitted; OR-Set convergence runs after client-side decryption."
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "list_reorder_payload": {
       "type": "object",
@@ -2592,7 +2809,7 @@
           "$ref": "#/$defs/rank"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "relation_update_payload": {
       "type": "object",
@@ -2630,7 +2847,7 @@
           "type": "string"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "container_position_payload": {
       "type": "object",
@@ -2657,7 +2874,7 @@
           "$ref": "#/$defs/rank"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "view_payload": {
       "type": "object",
@@ -2694,7 +2911,7 @@
           "$ref": "#/$defs/patch"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "agent_endpoint_payload": {
       "type": "object",
@@ -2714,7 +2931,7 @@
           "minItems": 1
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "agent_session_start_payload": {
       "type": "object",
@@ -2767,7 +2984,7 @@
           ]
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "agent_session_status_payload": {
       "type": "object",
@@ -2803,7 +3020,7 @@
           "type": "string"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "agent_session_result_payload": {
       "type": "object",
@@ -2837,7 +3054,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "agent_key_scope": {
       "type": "object",
@@ -2979,11 +3196,15 @@
         "runtime_attestation": {
           "type": "object",
           "description": "Optional runtime / workload attestation captured at pairing approval time (CXP-0008 §4.5). v1 enum includes self_asserted as baseline; future profiles MAY register TEE / SLSA / SPIFFE attestation kinds. Implementations encountering an unknown kind MUST fail closed.",
-          "required": ["kind"],
+          "required": [
+            "kind"
+          ],
           "properties": {
             "kind": {
               "type": "string",
-              "enum": ["self_asserted"],
+              "enum": [
+                "self_asserted"
+              ],
               "description": "v1 enum. Future profiles MAY extend via accepted attestation taxonomy."
             },
             "software": {
@@ -3257,10 +3478,26 @@
         "kind"
       ],
       "anyOf": [
-        { "required": ["realm_id"] },
-        { "required": ["ref"] },
-        { "required": ["operation_id"] },
-        { "required": ["account_data_key"] }
+        {
+          "required": [
+            "realm_id"
+          ]
+        },
+        {
+          "required": [
+            "ref"
+          ]
+        },
+        {
+          "required": [
+            "operation_id"
+          ]
+        },
+        {
+          "required": [
+            "account_data_key"
+          ]
+        }
       ],
       "properties": {
         "kind": {
@@ -3517,7 +3754,7 @@
           "minItems": 1
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "consent_grant_payload": {
       "type": "object",
@@ -3663,7 +3900,7 @@
           ]
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "capability_revoke_payload": {
       "type": "object",
@@ -3696,7 +3933,7 @@
           "type": "object"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "invite_payload": {
       "type": "object",
@@ -3865,7 +4102,7 @@
           "$ref": "#/$defs/signature_material"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "device_revoke_payload": {
       "type": "object",
@@ -3902,7 +4139,7 @@
           "$ref": "#/$defs/signature_material"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "device_push_route_payload": {
       "type": "object",
@@ -3949,7 +4186,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "device_list_update_payload": {
       "type": "object",
@@ -4003,7 +4240,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "cross_signing_publish_payload": {
       "type": "object",
@@ -4019,19 +4256,35 @@
         "issued_at"
       ],
       "properties": {
-        "principal_id": { "$ref": "#/$defs/did" },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
         "trust_domain": {
           "type": "string",
           "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
         },
-        "principal_signing_key": { "type": "object" },
-        "self_signing_key": { "type": "object" },
-        "user_signing_key": { "type": "object" },
-        "expected_previous_generation": { "type": "integer", "minimum": 0 },
-        "generation": { "type": "integer", "minimum": 1 },
-        "issued_at": { "$ref": "#/$defs/timestamp" }
+        "principal_signing_key": {
+          "type": "object"
+        },
+        "self_signing_key": {
+          "type": "object"
+        },
+        "user_signing_key": {
+          "type": "object"
+        },
+        "expected_previous_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "cross_signing_reset_payload": {
       "description": "Payload for cx.cross_signing.reset. Schema cx.schema.cross_signing_reset.v1 (cross-signing-reset.schema.json) carries the authoritative shape; this payload entry mirrors the required-field set so the kind-specific payload class is wired into event-payload.schema.json dispatch. See device-lifecycle.md §14.1.",
@@ -4055,16 +4308,31 @@
           "type": "string",
           "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "principal_id": { "$ref": "#/$defs/did" },
-        "previous_generation": { "type": "integer", "minimum": 1 },
-        "new_generation": { "type": "integer", "minimum": 2 },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "previous_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_generation": {
+          "type": "integer",
+          "minimum": 2
+        },
         "reset_reason_code": {
           "type": "string",
-          "enum": ["rotation", "compromise", "device_loss", "policy_required"]
+          "enum": [
+            "rotation",
+            "compromise",
+            "device_loss",
+            "policy_required"
+          ]
         },
         "proof": {
           "type": "object",
-          "required": ["kind"],
+          "required": [
+            "kind"
+          ],
           "properties": {
             "kind": {
               "type": "string",
@@ -4078,9 +4346,11 @@
           },
           "additionalProperties": true
         },
-        "issued_at": { "$ref": "#/$defs/timestamp" }
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "mls_proposal_payload": {
       "type": "object",
@@ -4137,7 +4407,7 @@
           "$ref": "#/$defs/mls_governance_binding"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "mls_welcome_payload": {
       "type": "object",
@@ -4245,7 +4515,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "mls_keypackage_payload": {
       "type": "object",
@@ -4305,7 +4575,7 @@
           "$ref": "#/$defs/signature_material"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "realm_key_share_payload": {
       "type": "object",
@@ -4362,7 +4632,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "realm_key_withheld_payload": {
       "type": "object",
@@ -4399,7 +4669,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "realm_key_share_audit_payload": {
       "type": "object",
@@ -4436,7 +4706,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "realm_key_scope": {
       "type": "object",
@@ -4738,7 +5008,7 @@
           "$ref": "#/$defs/mls_governance_binding"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "mls_commit_failed_payload": {
       "type": "object",
@@ -4792,7 +5062,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "moderation_report_payload": {
       "type": "object",
@@ -4840,7 +5110,7 @@
           "type": "object"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "erasure_receipt_payload": {
       "$ref": "./erasure-receipt.schema.json"
@@ -4862,7 +5132,7 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "audit_accessed_payload": {
       "type": "object",
@@ -4913,14 +5183,22 @@
         },
         "cell_head_before": {
           "oneOf": [
-            { "$ref": "#/$defs/hash" },
-            { "type": "null" }
+            {
+              "$ref": "#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "cell_head_after": {
           "oneOf": [
-            { "$ref": "#/$defs/hash" },
-            { "type": "null" }
+            {
+              "$ref": "#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "purpose": {
@@ -4940,9 +5218,13 @@
         {
           "if": {
             "properties": {
-              "access_kind": { "const": "watch_set_others" }
+              "access_kind": {
+                "const": "watch_set_others"
+              }
             },
-            "required": ["access_kind"]
+            "required": [
+              "access_kind"
+            ]
           },
           "then": {
             "required": [
@@ -4958,9 +5240,13 @@
         {
           "if": {
             "properties": {
-              "access_kind": { "const": "watch_audit_read" }
+              "access_kind": {
+                "const": "watch_audit_read"
+              }
             },
-            "required": ["access_kind"]
+            "required": [
+              "access_kind"
+            ]
           },
           "then": {
             "required": [
@@ -4972,9 +5258,13 @@
         {
           "if": {
             "properties": {
-              "access_kind": { "const": "e2ee_late_recovery" }
+              "access_kind": {
+                "const": "e2ee_late_recovery"
+              }
             },
-            "required": ["access_kind"]
+            "required": [
+              "access_kind"
+            ]
           },
           "then": {
             "required": [
@@ -5003,7 +5293,7 @@
           "type": "object"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "flow_move_payload": {
       "type": "object",
@@ -5096,10 +5386,17 @@
         "level"
       ],
       "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "watcher_actor_id": { "$ref": "#/$defs/did" },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "watcher_actor_id": {
+          "$ref": "#/$defs/did"
+        },
         "level": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "enum": [
             "mentions_only",
             "participating",
@@ -5116,10 +5413,14 @@
         "expected_value": {
           "description": "Compiles to cas_register head_eq precondition. Whole-value compare against the cell pre-state: either null (assert no prior record) or { level, level_public? } matching the prior cell value exactly. When omitted, reducers MUST treat it as head_eq null: only the initial write may pass; an existing cell MUST fail_precondition. Omission MUST NOT disable CAS or imply last-write-wins.",
           "oneOf": [
-            { "type": "null" },
+            {
+              "type": "null"
+            },
             {
               "type": "object",
-              "required": ["level"],
+              "required": [
+                "level"
+              ],
               "properties": {
                 "level": {
                   "type": "string",
@@ -5130,7 +5431,9 @@
                     "muted"
                   ]
                 },
-                "level_public": { "type": "boolean" }
+                "level_public": {
+                  "type": "boolean"
+                }
               },
               "additionalProperties": false
             }
@@ -5142,11 +5445,21 @@
         {
           "description": "level_public MUST be omitted when level is null (clearing a cell does not carry a public-level setting).",
           "if": {
-            "properties": { "level": { "type": "null" } },
-            "required": ["level"]
+            "properties": {
+              "level": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "level"
+            ]
           },
           "then": {
-            "not": { "required": ["level_public"] }
+            "not": {
+              "required": [
+                "level_public"
+              ]
+            }
           }
         }
       ]

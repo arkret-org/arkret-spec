@@ -33,16 +33,16 @@
     },
     "subject": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "Holder/principal DID for a user/principal handle. This is the stable DID the handle resolves to; it is not a Realm actor_id, server-local account_id, administrative identifier, service DID, or generic resource id."
     },
     "issuer": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$|^[a-z0-9.-]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$|^[a-z0-9.-]+$"
     },
     "issuer_service_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "Service DID that signed, served, or vouched for this handle claim when distinct from issuer."
     },
     "binding_state": {
@@ -93,7 +93,7 @@
       "properties": {
         "recipient_service_did": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
         "recipient_service_type": {
           "const": "principal_server"

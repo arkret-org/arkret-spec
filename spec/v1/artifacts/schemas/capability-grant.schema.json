@@ -26,13 +26,13 @@
     },
     "issuer": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "subject": {
       "oneOf": [
         {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
         {
           "type": "object",
@@ -93,7 +93,7 @@
     },
     "updated_by": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "Reducer-derived actor that produced the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
     },
     "updated_at": {
@@ -104,7 +104,7 @@
     },
     "revoked_by": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "revoked_at": {
       "type": "string",

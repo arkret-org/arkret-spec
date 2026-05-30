@@ -35,7 +35,7 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 | `draft` | 正在写,作者还在改自己的初稿,**不要**基于它讨论细节。 |
 | `deferred-to-v1.1` | 不进入 v1.0 freeze;保留讨论材料,v1.1+ 再决定是否 review / accepted。实现 MUST NOT 当作 v1.0 wire contract。 |
 | `review` | 作者认为可以讨论了;PR / issue / 会议 review 阶段。 |
-| `accepted` | 已被采纳,等待 / 正在迁入 normative。迁入完成后本文件保持原状,frontmatter 加 `merged_into: <spec path>` 留作历史。 |
+| `accepted` | 已被采纳,等待 / 正在迁入 normative。迁入完成后本文件保持原状,frontmatter 加 `merged_into: <spec path>`；若一次 CXP 落地到多个文件，使用 `merged_to: [<spec path>, ...]` 留作历史。 |
 | `rejected` | 经讨论后决定不做。frontmatter `rejected_reason: ...` 说明原因。**不要删除文件**,以免后人重复提出。 |
 | `withdrawn` | 作者主动撤回(还没走到 review 决议),不留 reason 也可以。 |
 | `superseded` | 被另一份 CXP 取代;frontmatter `superseded_by: CXP-NNNN`。 |
@@ -54,7 +54,7 @@ authors:
 depends_on: [CXP-MMMM]
 supersedes: [CXP-MMMM]
 superseded_by: CXP-MMMM
-merged_into: spec/v1/zh/models/<file>.md
+merged_into: spec/v1/zh/models/<file>.md  # 或 merged_to: [spec/v1/zh/models/<file>.md, ...]
 rejected_reason: <一句话>
 discussion: <PR / issue 链接>
 ---

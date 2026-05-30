@@ -107,7 +107,7 @@
     },
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "hlc": {
       "type": "string",
@@ -138,8 +138,8 @@
         },
         "verification_method": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$",
-          "description": "DID or DID URL of the signing key. Bare DID is accepted (resolves to the controller's current key); DID URLs with key fragment are RECOMMENDED. The previous regex pattern `(#.+)?$` was redundant under greedy `[^\\s]+` and has been normalized to the canonical DID pattern; semantics are unchanged."
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the signing key. Bare DID is not valid for signatures because verifiers need a stable verification method, not only a controller DID."
         },
         "payload_digest": {
           "$ref": "#/$defs/hash",

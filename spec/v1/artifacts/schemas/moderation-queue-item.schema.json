@@ -52,7 +52,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+        "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
       }
     },
     "evidence_policy": {

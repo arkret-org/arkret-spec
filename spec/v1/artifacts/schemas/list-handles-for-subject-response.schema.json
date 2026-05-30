@@ -13,7 +13,7 @@
   "properties": {
     "subject": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "Holder/principal DID used as the reverse lookup key. This is not a Realm actor_id."
     },
     "claims": {

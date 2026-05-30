@@ -246,7 +246,7 @@
       "properties": {
         "actor_id": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
         "membership": {
           "type": "string",
@@ -258,7 +258,7 @@
         },
         "subject_id": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
           "description": "Optional disclosed principal / holder DID for this member. Omit when subject disclosure is only available inside encrypted MemberIdentity or not authorized for the caller. Required whenever handle claim evidence or digest hints are included."
         },
         "identity_event_ids": {
