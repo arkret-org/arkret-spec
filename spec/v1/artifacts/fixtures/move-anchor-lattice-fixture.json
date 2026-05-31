@@ -5,7 +5,7 @@
     "Move objects in these vectors describe protocol-level semantics. Wire-required Move fields realm_id, hlc, and sig are elided for readability; conformance runners that re-emit these vectors as wire bytes MUST fill them in (any valid realm_id/hlc/sig that does not change the precondition-effect-anchor_ref triple).",
     "Anchor objects similarly elide hlc, anchorer_signature, and (when not material) state_root.",
     "Cell ids follow cx:cell:<component>:<subject>; subject in fixtures uses safe placeholder ULIDs and dotted DID forms (did.web.alice.example) rather than colon-bearing DIDs to keep cell ids unambiguous.",
-    "Anchor.frontier[] entries are content-addressed event_digest values matching anchor.schema.json#/$defs/event_digest (`<algo>:<hex>`; sha256 64 hex chars). Earlier drafts wrongly used typed `cx:event:<uuid>` here; that form has been removed and is forbidden in v1 (see authz/event-auth-state-resolution.md §3 — Anchor frontier directly references event_digest)."
+    "Anchor.frontier[] entries are content-addressed event_digest values matching anchor.schema.json#/$defs/event_digest (`<algo>:<hex>`; sha256 64 hex chars). This fixture uses digest-form frontier entries because Anchor frontier directly references event_digest (see authz/event-auth-state-resolution.md §3)."
   ],
   "vectors": [
     {

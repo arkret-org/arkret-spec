@@ -690,7 +690,7 @@ cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
 3. **sig-in-canonical-bytes attack**：若 producer 把 `anchorer_signature` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
 4. **key reorder attack**：取 valid Anchor，把 canonical JSON key 顺序打乱（例如 `frontier` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
 5. **proof injection attack**：取 valid Anchor，注入未定义字段 `extra_proof`。`additionalProperties=false` 的 schema 在 (b) 校验阶段就 reject；若实现错误地 allow 之，hash 会变 → `digest_mismatch`。
-6. **frontier typed-id attack**：构造 `frontier=["cx:event:<uuid>"]`；schema `frontier[]` items 必须匹配 `event_digest` (`<algo>:<hex>`)，typed id 形态 MUST `schema_violation` 立即被拒（早于 hash 校验）。
+6. **non-digest frontier value attack**：构造 `frontier=["not-a-digest"]`；schema `frontier[]` items 必须匹配 `event_digest` (`<algo>:<hex>`)，非 digest 形态 MUST `schema_violation` 立即被拒（早于 hash 校验）。
 
 期望：
 

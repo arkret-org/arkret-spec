@@ -99,7 +99,7 @@ Move (reducer view of signed Event) {
 身份与去重模型（normative）：
 
 - `event_id` 是 producer 在签名前分配的 typed UUIDv7（`cx:event:<uuidv7>`），是 actor chain 与 dedup 的稳定 wire id。它进入 canonical bytes 并被 `proof.event_digest` 覆盖。
-- `event_digest` 是 canonical event bytes（不含 `proofs` 与 `unsigned`，包含 `hlc` 与所有其它顶层字段）的哈希，编码为 `<algo>:<hex>`，等价于 `proof.event_digest`。它是 Event 的内容指纹，Anchor `frontier[]` 直接引用 `event_digest`（v1 不存在独立 typed-id 形态的 Move identifier；早期草案中派生出的 Move-typed id 已 dropped，dot/lattice/hash profile 在 v1 均改以 `event_id` 与 `event_digest` 表达）。
+- `event_digest` 是 canonical event bytes（不含 `proofs` 与 `unsigned`，包含 `hlc` 与所有其它顶层字段）的哈希，编码为 `<algo>:<hex>`，等价于 `proof.event_digest`。它是 Event 的内容指纹；Anchor `frontier[]` 直接引用 `event_digest`，dot / lattice / hash profile 的引用字段使用 `event_id` 或 `event_digest`。
 - 同一 `event_id` 的两次提交若 `event_digest` 不同，节点 MUST 拒绝并记为冲突（见 [`operations-sync.md`](../sync/operations-sync.md) §15）。`event_id` 在签名前由 producer 分配，因此节点不能仅凭 digest 区分 actor 意图；正确实现 MUST 把 (event_id, event_digest) 都纳入 dedup key。
 
 规则：
