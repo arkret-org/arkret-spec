@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-31
 see_also:
   - index.md
   - overview/architecture.md
@@ -60,6 +60,8 @@ see_also:
 | Relation | 关系边 | 对象间有向关系定义，如 `contains`、`mentions`、`depends_on`。 |
 | Event | 协议事件 | 协议传播和验证的基础事实单元（Envelope 的内容承载形式）。 |
 | Event Envelope | 事件外壳 | `event_id`、`actor_id`、`kind`、`payload`、`proofs` 等字段的签名封包。 |
+| Wire Event | 线路事件 | 在协议 wire format 上实际传输、存储、同步、联邦并进入 reducer / 审计验证的 signed Event Envelope（schema `cx.schema.event.v1`，artifact [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。它是 v1 共享状态的唯一 wire fact；字段语义见 [`../models/event-and-patch.md` §2](../models/event-and-patch.md)。 |
+| Wire fact | 线路事实 | 在协议线上以 canonical bytes + proof 承诺、可被接收方验证并作为 reducer / audit truth source 的规范事实。v1 不定义独立的 `wire_fact` 对象；除 Wire Event / Event Envelope 外，Operation、SDK builder / draft、receipt object 与 projection 都不是共享 wire fact，除非它们以 registered Event kind 的 payload 进入 Event Envelope。 |
 | Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
 | Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象（payload schema `cx.schema.event_batch_receipt.v1`），**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。详见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md) 与 [`../sync/operations-sync.md` §4.1](../sync/operations-sync.md)。 |
 | Integrity (data) | 数据完整性 | 给定数据未被中间人或第三方篡改。集合上的 Merkle / set commitment 提供 integrity，但不保证集合本身已覆盖给定范围。 |

@@ -3,7 +3,7 @@ title: Operations And Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-26
+updated: 2026-05-31
 see_also:
   - sync/service-surface.md
   - sync/client-sync.md
@@ -325,9 +325,11 @@ issuer / verifier 应根据需求选取；混用以补强各自边界。
 
 ## 5. Wire Event
 
-v1 的规范性 wire fact 只有 **Event**（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。Reducer-input event 是单层 Event，无外层 Envelope 包裹。
+本节的 **Wire Event** 指术语表中的 [Wire Event / Wire fact](../overview/glossary.md#2-核心术语)：在协议 wire format 中以 canonical bytes + proof 承诺、实际传输 / 存储 / 同步 / 联邦并可进入 reducer 或审计验证的 signed Event Envelope。详细字段与 reducer 语义见 [`event-and-patch.md` §2](../models/event-and-patch.md)。
 
-Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event。SDK 可以定义本地 builder / draft 对象作为生成 Event 前的中间结构，但这种 builder 不进入协议 wire format，也不出现在 registry / schema 中——它属于 SDK 实现细节，不是 protocol normative 对象。
+v1 的规范性共享 wire fact 只有 **Event Envelope / Wire Event**（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。Reducer-input event 是这个单层 Event 对象；`Event Envelope` 是 schema / artifact 名称，不表示另有一层 envelope wrapper。
+
+Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event Envelope / Wire Event。SDK 可以定义本地 builder / draft 对象作为生成 Event 前的中间结构，但这种 builder 不进入协议 wire format，也不出现在 registry / schema 中——它属于 SDK 实现细节，不是 protocol normative 对象。
 
 Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs` 表示 actor event chain 前序，`refs[]` 表示语义依赖（含授权 `role="authorized_by"`）。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `payload.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `payload` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
 
