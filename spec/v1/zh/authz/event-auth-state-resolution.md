@@ -3,7 +3,7 @@ title: Event Auth、Move/Anchor/Lattice 与状态收敛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-05-31
 sidebar:
   label: Event Auth & State
 ---
@@ -31,6 +31,7 @@ Contrix v1 的 canonical history 由 signed Move、Anchor DAG 与 per-cell Latti
 | --- | --- |
 | Move | 一个 actor / service DID 签名的事务意图，包含 `preconditions[]`、`effects[]`、`anchor_ref` 与语义依赖 `refs[]`。 |
 | Anchor | ordering authority 对一组 Move frontier 的承诺，包含 `predecessor_refs[]`、`frontier[]`、`state_root` 与 `anchorer_signature`。 |
+| Genesis Anchor | 某个 Realm 的 Anchor DAG 根 Anchor。它是唯一允许 `predecessor_refs=[]` 的 Anchor，且 v1 要求 `frontier=[]`；它给该 Realm 的首个 reducer-input Event 提供 `anchor_ref` 基线，本身不是 Event，也不写 cell。 |
 | Anchor DAG | 某个 Realm 内所有已接受 Anchor 的有向无环图。Genesis Anchor 没有 predecessor。 |
 | Cell | 可被 Lattice 合并的最小协议状态单元，标识为 `cx:cell:<component>:<subject>` 或等价 canonical tuple。 |
 | Lattice | Realm schema 为每个 cell family 选择的封闭核心代数类型。`join()` 返回值或 bottom (`⊥`)。 |
@@ -186,7 +187,7 @@ d. 同一 wire bytes 在重排键顺序、注入额外 proof 字段或更换 `an
 
 规则：
 
-1. `predecessor_refs=[]` 仅允许 genesis Anchor。
+1. `predecessor_refs=[]` 仅允许 Genesis Anchor。Genesis Anchor MUST 同时满足 `frontier=[]`；它表示该 Realm Anchor DAG 的根基线，不覆盖任何 Move。任何 `predecessor_refs=[]` 但 `frontier` 非空的 Anchor MUST `schema_violation` / reject。
 2. 单调性：`A.frontier` MUST 是所有 predecessor frontier 的 superset。
 3. Anchor 是持久承诺；它不修改 cell。Cell 变化只来自 frontier 内 Move 的 effects。
 4. `anchorer_signature` 的合法签发者由 anchorer cell 在 predecessor joined view 下的 effective value 决定。

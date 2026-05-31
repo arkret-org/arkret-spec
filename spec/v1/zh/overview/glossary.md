@@ -91,6 +91,7 @@ see_also:
 | Rejected | 已拒绝 | Move / Anchor 在格式、签名、schema、precondition、授权或 state_root 校验上确定失败。 |
 | Move | 动作 | 多 cell 原子条件写；包含 `preconditions[]`、`effects[]`、`anchor_ref`、`refs[]` 与 issuer 签名。 |
 | Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。 |
+| Genesis Anchor | 创世锚点 | 某个 Realm 的 Anchor DAG 根 Anchor；它是唯一允许 `predecessor_refs=[]` 的 Anchor，且 v1 要求 `frontier=[]`。它给该 Realm 的首个 reducer-input Event（通常是 `cx.realm.create`）提供 `anchor_ref` 基线，本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md` §4](../authz/event-auth-state-resolution.md)。 |
 | Anchor DAG | 锚点图 | 某个 Realm 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `cx:cell:<component>:<subject>`。 |
 | Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`、`lww_register`（仅可用于 profile 明确标记 `client_projection_only=true` 的 UI affordance，不得作为授权或 Anchor 关键路径）、`rga`（协作文本与有序列表）。 |
