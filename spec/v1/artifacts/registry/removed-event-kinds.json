@@ -360,7 +360,7 @@
     {
       "id": "cx.flow.discussion_realm_ref",
       "since_revision": "2026-05-25",
-      "rejection_level": "migration_only",
+      "rejection_level": "hard_reject",
       "replacement": "Flow.scope_circle_id (see zh/models/circle.md)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "migration_window_until": "2026-12-31",
@@ -369,7 +369,7 @@
     {
       "id": "cx.member.application.legacy",
       "since_revision": "2026-05-26",
-      "rejection_level": "migration_only",
+      "rejection_level": "hard_reject",
       "replacement": "candidate cx.profile.candidate.join_policy.v1 surface (still unregistered as wire Event.kind)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "migration_window_until": "2026-12-31",

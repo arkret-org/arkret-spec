@@ -58,13 +58,13 @@
         ],
         "properties": {
           "source_blob_ref": {
-            "$ref": "#/properties/blob_ref"
+            "$ref": "#/$defs/blob_ref"
           },
           "source_ciphertext_digest": {
             "$ref": "#/$defs/hash"
           },
           "thumbnail_blob_ref": {
-            "$ref": "#/properties/blob_ref"
+            "$ref": "#/$defs/blob_ref"
           },
           "thumbnail_ciphertext_digest": {
             "$ref": "#/$defs/hash"
@@ -131,6 +131,10 @@
   },
   "additionalProperties": true,
   "$defs": {
+    "blob_ref": {
+      "type": "string",
+      "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+    },
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
