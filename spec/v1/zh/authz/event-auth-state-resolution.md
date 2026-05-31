@@ -3,9 +3,9 @@ title: Event Auth、Move/Anchor/Lattice 与状态收敛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-31
+updated: 2026-06-01
 sidebar:
-  label: Event Auth & State
+  label: Event Auth & State Resolution
 ---
 
 ## 0. 规范语言
@@ -75,6 +75,14 @@ flowchart LR
 - Anchor 是持久承诺，**不修改 cell**——cell 变化只来自 frontier 内 Move 的 effects 经 Lattice join 后产生。
 - Pending Move（已签名但 anchor_ref 未被覆盖）不进 effective state；超出 `max_anchor_staleness_ms` 后必须 rebase 重签。
 - ⊥ 不是错误终态：`bottom=expose` 的 cell 可由带 `state_witness` + `inclusion_proof` 的 conflict-recovery Move 收回。
+
+### 2.2 Event、Move、Anchor、Lattice 的分层
+
+Contrix v1 在线路上只有 signed Event Envelope；**Move 不是第二种 wire object**。当一个 Event 同时携带 `preconditions[]`、`effects[]` 与 `anchor_ref` 时，reducer / verifier 把这个 Event 按 Move 语义解释：`preconditions[]` 描述提交者认为的 pre-state，`effects[]` 描述要写入哪些 cell，`anchor_ref` 描述这次写入基于哪个 Anchor view。没有这三个字段的 durable Event 仍可作为审计、通知或账户私有状态事实存在，但不是共享 Realm 的 reducer-input Move。
+
+Anchor 也不是 Event。Anchor 是 ordering authority 对一组 reducer-input Event digest 的签名承诺：`frontier[]` 引用的是这些 Event 的 `event_digest`，`state_root` 承诺的是同一 Anchor view 下所有 cell 经过 Lattice join 后的结果。因此，Event 提供签名事实，Move 是 reducer 对 reducer-input Event 的视图，Anchor 决定哪些 Move 进入 effective set，Lattice 决定这些 Move effects 在每个 cell 上收敛为 value 还是 `⊥`。
+
+状态收敛不由某台服务器的当前数据库决定。任何实现者、客户端、Principal Server、Sync Service 或 federation peer，只要拿到相同的 verified Event bytes、相同的 Anchor DAG / effective anchor view、相同的 Realm schema 与 reducer profile，就 MUST 重算出相同的 effective state、bottom diagnostics 与 `state_root`。服务端可以缓存和加速这个计算，但缓存结果不是协议真相源。
 
 ## 3. Move（Reducer-input Event 的协议视图）
 
@@ -207,6 +215,8 @@ effective_anchor_view(leaves):
 ```
 
 该 view 是本地纯函数，不需要签名，也不是新的 Anchor object。只有当 anchorer / committee 想压缩 Anchor DAG 时，才签发一个持久 compaction Anchor。Compaction Anchor 的 `frontier` 与 deterministic view 等价，并带有效 `anchorer_signature`。
+
+Anchor view 的计算者可以是任何 verifier。`single_did` profile 下，单一 anchorer 负责签发通常的线性 Anchor；`threshold` / `open_set` profile 下，多个服务或 peer 可以产生 leaf Anchor。无论拓扑如何，接收方都不能直接相信远端声称的物化状态：它必须拉取 Anchor frontier 覆盖的 Event bytes，按 §6 验证 Move，再按 §5 Lattice 规则重算 `state_root`。若本地缺少 frontier 中的 Event 或重算 root 与 Anchor `state_root` 不一致，该 Anchor 不得进入 effective state，只能 backfill、quarantine 或 reject。
 
 ### 4.2 `state_root` Canonical Merkle 编码
 
@@ -343,6 +353,10 @@ v1 封闭核心集（core）：
 | `ordered_log` | append-only log；按 issuer chain 与 entry id 去重。 | 审计、消息历史、不可变操作日志。 | — |
 
 依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均不得进入协议授权根。
+
+Lattice 的作用不是让并发冲突消失，而是让同一输入集合的结果确定。对可合并类型（如 `or_set`、`counter`、`ordered_log`），所有 verifier 会得到同一个合并值；对不可安全自动选择的类型（如关键 `cas_register`、部分 `fsm`），并发或非法状态会收敛为同一个 `⊥`，而不是由某台服务器、HLC、actor id 或接收顺序挑一个 winner。依赖 `bottom=reject` cell 的后续 Move 必须 fail closed，直到 §8 的 conflict-recovery Move 把该 cell 恢复到明确 value。
+
+例如两个客户端基于同一旧 Anchor 同时把同一个 Flow 移到不同 List，二者都生成合法 signed Event / Move。如果这两个 Move 进入同一 effective Anchor view，`cx.component.flow.position.v1` 的 `cas_register` join 会在所有 verifier 上返回同一个 conflict bottom；正确实现不得在 server A 显示 List-1、server B 显示 List-2 作为最终协议状态。它们可以在 projection 层展示冲突诊断或本地 pending UI，但共享 effective state 必须是同一个 `⊥`，并要求后续 recovery Move 修复。
 
 #### 5.0.1 扩展 Lattice：`lww_register` / `rga`
 

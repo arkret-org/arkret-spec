@@ -282,7 +282,7 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 
 #### 4.3.3 Audience mention fanout
 
-Audience mention（例如 `@all`）的规范性节点形态、允许的 audience 集合和授权规则定义在 [`../models/flow-and-message.md` §9.4.2-§9.4.3](../models/flow-and-message.md)。Push rule 引擎只看到 receiver-side 结果：若当前 receiver 是该 audience mention 在 source event causal frontier 下展开后的合法接收者，则 `mentions_actor` 为 true；否则为 false。
+Audience mention（例如 `@all` / `@here`）的规范性节点形态、允许的 audience 集合和授权规则定义在 [`../models/flow-and-message.md` §9.4.2-§9.4.3](../models/flow-and-message.md)。Push rule 引擎只看到 receiver-side 结果：若当前 receiver 是该 audience mention 在 source event causal frontier 下展开后的合法接收者，则 `mentions_actor` 为 true；否则为 false。
 
 Dispatcher 在把 audience mention 转换为 notification / push 前 MUST 先完成以下 gate，且任一失败都不得产生 push wakeup：
 
@@ -291,9 +291,11 @@ Dispatcher 在把 audience mention 转换为 notification / push 前 MUST 先完
 - 展开后的 receiver 通过 Message effective scope、history visibility、Circle membership 和 target policy；
 - receiver 的 `level=muted`、个人 blocklist、DND 或更高优先级 `dont_notify` rule 没有抑制该通知。
 
-Audience expansion 是 dispatcher 内部计算结果，MUST NOT 进入 push payload、provider custom data、公开日志导出或可被发送者枚举的 delivery response。默认 `blind_wakeup` 下，即使 wakeup kind 是 `mention`，payload 也不得包含 `@all`、audience 名称、recipient count、成员列表或 source Event / Realm / Flow 识别字段。
+`@here` 在 v1 中映射为 `audience="flow_engaged"`，即当前 Flow discussion 的历史参与者与当前有效 watchers 的并集；它不使用 presence / online 状态。`flow_watchers` 和 `flow_engaged` 的 watch 命中原因只在 receiver-side dispatcher 内部可见，MUST NOT 反向暴露给 sender 或普通 Realm 成员。
 
-E2EE Realm 中，server 默认不能读取 audience mention AST。若 Realm policy 未显式允许 audience mention routing hint，Sync Service MUST 按 §4.5 的 client-side rule fallback 处理，不得从消息大小、发送者文本 hint 或客户端上传的未授权字段推断 `@all`。若 policy 允许 routing hint，hint 也只能表达固定枚举的 audience kind 与 policy revision digest，不得携带展开后的 DID 列表；minimal-metadata 与 audited E2EE Realm SHOULD 关闭该能力。
+Audience expansion 是 dispatcher 内部计算结果，MUST NOT 进入 push payload、provider custom data、公开日志导出或可被发送者枚举的 delivery response。默认 `blind_wakeup` 下，即使 wakeup kind 是 `mention`，payload 也不得包含 `@all` / `@here`、audience 名称、recipient count、成员列表、watch level、watcher 列表或 source Event / Realm / Flow 识别字段。
+
+E2EE Realm 中，server 默认不能读取 audience mention AST。若 Realm policy 未显式允许 audience mention routing hint，Sync Service MUST 按 §4.5 的 client-side rule fallback 处理，不得从消息大小、发送者文本 hint 或客户端上传的未授权字段推断 `@all` / `@here`。若 policy 允许 routing hint，hint 也只能表达固定枚举的 audience kind 与 policy revision digest，不得携带展开后的 DID 列表、watcher 列表或 participant count；minimal-metadata 与 audited E2EE Realm SHOULD 关闭该能力。
 
 ### 4.4 动作类型 (Actions)
 

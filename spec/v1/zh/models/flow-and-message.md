@@ -438,8 +438,8 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 | Cell value | 自己（`requester == cell.watcher_actor_id`） | Realm 其他成员 | `cx.realm.notification.audit` 持有方 | Sync Service / 通知 dispatcher |
 | --- | --- | --- | --- | --- |
 | 无记录 / `level=mentions_only` | "未订阅" | **不出现**在 watcher 列表 | 完整可见 | 走 `mentions_only` 路径 |
-| `level=participating` | 完整 `{actor, level}` | 仅 `{actor}`（**脱去 level**） | 完整可见 | 完整 level |
-| `level=all` | 完整 `{actor, level}` | 仅 `{actor}`（**脱去 level**） | 完整可见 | 完整 level |
+| `level=participating` | 完整 `{actor, level}` | 默认**不出现**；`level_public=true` 时见下方 opt-in 规则 | 完整可见 | 完整 level |
+| `level=all` | 完整 `{actor, level}` | 默认**不出现**；`level_public=true` 时见下方 opt-in 规则 | 完整可见 | 完整 level |
 | `level=muted` | "已静音" | **不出现**在 watcher 列表（投影上与"无记录"不可区分） | 完整可见 | 一律不推送 |
 
 `cx.realm.notification.audit` 是纯 READ capability（target_event_kinds 为空），授予"读取完整 watch 状态（含 `muted`）"的权限。审计写入闭环要求读取方**同时**持有 `cx.audit.accessed` capability，并在每次 audit 读取前提交一条 accepted durable event（payload 使用 `access_kind="watch_audit_read"`，包含 `writer_actor_id`、`target_actor_id`、`target_cell_id`、`target_ref`、`purpose`、`accessed_at`），或在同一投影事务中提交并等待 RYW receipt 后再释放完整 watch 结果。该流程与 [`../crypto-media/audited-e2ee.md` §4](../crypto-media/audited-e2ee.md) "先写后解密"模型同构。
@@ -450,9 +450,9 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 - 默认 admin 角色 bundle SHOULD 同时包含两者；profile SHOULD 把它们作为不可拆分的 bundle 授予。
 - 被读取的当事人通过 `cx.audit.accessed` event 链获得事后审计权；缺失对应 audit event 或 RYW receipt 的 watch 读取 MUST 在投影 / sync 层 fail closed。
 
-**Opt-in 暴露**：actor 在自写 watch cell 时 MAY 设置 `level_public = true`。该 flag 为 true 时，projection 在向 Realm 其他成员投影该 actor 的 watch 时**不脱级别**（即区分 `participating` vs `all`）。`muted` **永远**不投影给非自己 / 非 audit 持有方，即使 `level_public=true`（防止社交核弹）。默认 `level_public = false`。
+**Opt-in 暴露**：actor 在自写 watch cell 时 MAY 设置 `level_public = true`。该 flag 为 true 时，projection 在向 Realm 其他成员投影该 actor 的 watch 时返回 `{actor, level}`（即区分 `participating` vs `all`）。`muted` **永远**不投影给非自己 / 非 audit 持有方，即使 `level_public=true`（防止社交核弹）。默认 `level_public = false`，此时 human actor 的 watch 不出现在其他成员可见的 watcher 列表中。
 
-> v1 不定义共享可见的"全局隐身（hide_watching）"wire 位。默认客户端 SHOULD 把 watch 状态保存在 actor-private state；只有用户显式 opt-in 展示参与/关注状态时才写共享 watch cell。actor 想完全隐身的简单做法是不写显式共享 watch cell（行为退化为 `mentions_only`，投影上不出现）。如后续需要跨设备同步的 opt-out，将通过独立 actor profile 字段扩展，本版本不预留共享 wire 位。
+> v1 不定义共享可见的"全局隐身（hide_watching）"wire 位。默认语义是 watch 不公开：`cx.flow.watch.set` 是通知路由 truth source，projection executor 只向本人、通知 dispatcher、完成审计配对的 audit reader 暴露完整值。`level_public=true` 是显式展示关注状态的 opt-in；不设置该 flag 不得被他人从 watcher 列表、`@here` 投递结果或 delivery response 中反推出来。
 
 ### 8.6 Agent / Bot watcher
 
@@ -474,6 +474,15 @@ Sync Service 在计算"是否应该通知 X"时 MUST 取以下集合的并集：
 并应用 X 的 `muted` 覆盖：若 X 显式 `level=muted`，则**所有**隐含订阅与定向 mention 一律抑制。
 
 显式 `watches` cell 优先于隐含订阅；用户可通过显式写 `muted` 屏蔽被 assigned 后的通知。
+
+#### 8.7.1 Watch 与 audience mention
+
+Audience mention 可以把 watch state 用作 receiver-side fanout 条件，但不得把 watch 列表公开给发送者。具体规则：
+
+- `flow_watchers` audience 只包含在 source event causal frontier 下对该 Flow 有读取权、且 effective watch level 为 `participating` 或 `all` 的 actor；`mentions_only` 与无记录不算 watcher，`muted` 必须排除。
+- `flow_engaged` audience 是 `flow_participants ∪ flow_watchers`。其中 `flow_participants` 由该 Flow discussion track 中至少一条 active Message 的 `created_by` 派生；被 redacted 后不再可见的消息不得单独使作者进入参与者集合。
+- Dispatcher MAY 使用完整 watch cell、actor-private watch state 或受托通知服务状态计算 receiver 是否命中 audience mention；但它 MUST NOT 把命中原因、watch level、watcher 列表或 recipient count 暴露给 sender、普通 Realm 成员、push gateway 或公开日志。
+- `level_public=true` 只影响普通 projection 是否展示该 actor 正在 watch；不影响该 actor 是否被 `flow_watchers` / `flow_engaged` audience 命中。通知命中仍由完整 effective watch level 计算。
 
 ### 8.8 与 push-notification rule 引擎的关系
 
@@ -665,11 +674,11 @@ v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有
 
 字段语义：
 
-- `audience`（必填）：v1 core 允许 `effective_scope_members`、`flow_participants`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Flow 绑定 Circle 时只包含该 Circle scope 的可见成员。`flow_participants` 使用 §8.7 的隐含订阅来源（自己发过消息 / assigned_to）派生。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
+- `audience`（必填）：v1 core 允许 `effective_scope_members`、`flow_participants`、`flow_watchers`、`flow_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Flow 绑定 Circle 时只包含该 Circle scope 的可见成员。`flow_participants` 表示该 Flow discussion track 中至少发过一条 active Message 的 actors。`flow_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`flow_engaged` 是 `flow_participants ∪ flow_watchers`，是 Contrix v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
 - `mention_text_original`（可选）：用户键入的原始 token，例如 `@all`、`@participants` 或本地化显示文本；仅用于 audit / debug / 搜索。
 - `resolved_at`（可选）：客户端形成该节点的时间。最终收件人集合仍由 dispatcher 在 source event causal frontier 下计算，不能信任客户端填入的计数或列表。
 
-v1 core **不定义** presence-filtered `@here`，也不定义面向 `watchers` 的 audience mention。Presence 不能成为第三方 push timing oracle；watch state 是个人通知偏好，默认对他人脱敏。实现若通过 extension 提供 `@here` 或 `@watchers`，MUST 声明独立 profile，并证明不泄露 presence / watch 隐私；未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
+`@here` 在 Contrix v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="flow_engaged"`，即“曾经参与当前 Flow discussion 或当前有效 watch 该 Flow 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile，并证明不泄露 presence 隐私。未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
 
 Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST 不收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
 

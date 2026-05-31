@@ -635,7 +635,7 @@
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant",
-      "notes": "Authorizes adding an audience_mention node such as @all to a Message create/revise. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
+      "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"flow_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
     },
     {
       "action": "cx.message.revise",

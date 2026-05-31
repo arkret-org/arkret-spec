@@ -2418,6 +2418,24 @@ Expected：
 - `level=muted` 与 target policy 抑制的 receiver MUST 不收到 notification stub 或 push wakeup，且发送者不能通过 delivery response 区分原因。
 - 第 5 步 MUST 返回 `rate_limited` / `quota_exceeded` 或等价 policy denial；push payload 不得包含 audience 名称、recipient count、成员列表、Realm / Flow / Event 标识。
 
+### 10.12 Vector: Flow Engaged Audience Mention
+
+`vector_id`: `cx.vector.push.flow_engaged_mention.v1`
+
+Steps：
+
+1. Flow `F` 中 Alice 准备发送 Message，Message effective scope 包含 Bob、Carol、Dave、Erin、Frank，但不包含 Grace。
+2. Bob 在 `F` 的 discussion track 中有一条 active Message；Carol 的 effective watch level 为 `all`；Dave 为 `mentions_only`；Erin 为 `muted`；Frank 只有 active assignment；Grace 无读取权。
+3. Realm / Circle policy 允许 `audience="flow_engaged"`，声明有限 `max_recipients` 与 quota；Alice 同时持有 `cx.message.create` 与带 `max_operations` + `period` 的 `cx.message.mention.broadcast`。
+4. Alice 发送 `audience_mention{audience="flow_engaged", mention_text_original="@here"}`。另一次测试中，Bob / Carol 的 presence 状态分别在 online / offline 间切换，但其他输入不变。
+
+Expected：
+
+- `@here` MUST 按 `flow_engaged = flow_participants ∪ flow_watchers` 展开：Bob 因 active discussion participation 命中，Carol 因 effective watch level `all` 命中。
+- Dave（`mentions_only`）、Erin（`muted`）、Frank（仅 assignment）、Grace（无读取权）MUST 不因该 audience mention 收到 notification stub 或 push wakeup。
+- Presence / online 状态 MUST 不影响 `flow_engaged` 的 receiver set；实现不得把 `@here` 解释成 presence-filtered audience。
+- Sender、普通 Realm 成员、push gateway、公开日志与 delivery response MUST NOT 暴露 recipient count、watcher 列表、watch level、命中原因，且不得区分 Bob 是参与者命中还是 Carol 是 watcher 命中。
+
 ## 11. Personal Agent & Sidecar Vectors(CXP-0008 / CXP-0009)
 
 ### 11.1 Vector: Provisioning + Pairing + Effective Grant

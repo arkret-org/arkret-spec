@@ -2511,7 +2511,7 @@
     },
     "message_create_payload": {
       "type": "object",
-      "description": "Payload for cx.message.create. If content/encrypted_payload contains an audience_mention AST node, reducer admission and notification dispatch MUST additionally enforce cx.message.mention.broadcast plus the audience policy / max_recipient / rate-limit rules in zh/models/flow-and-message.md §9.4.3.",
+      "description": "Payload for cx.message.create. If content/encrypted_payload contains an audience_mention AST node (for example @all or @here), reducer admission and notification dispatch MUST additionally enforce cx.message.mention.broadcast plus the audience policy / max_recipient / rate-limit rules in zh/models/flow-and-message.md §9.4.3. @here maps to audience=\"flow_engaged\" and is not presence-filtered.",
       "required": [
         "flow_id",
         "track"
@@ -2580,7 +2580,7 @@
     },
     "message_revise_payload": {
       "type": "object",
-      "description": "Payload for cx.message.revise. Revisions that introduce new direct mentions MAY generate mention notifications only when the implementation can compare against the previous accepted visible revision. Revisions that introduce an audience_mention AST node MUST satisfy the same cx.message.mention.broadcast and policy gates as create.",
+      "description": "Payload for cx.message.revise. Revisions that introduce new direct mentions MAY generate mention notifications only when the implementation can compare against the previous accepted visible revision. Revisions that introduce an audience_mention AST node (including @all / @here mappings) MUST satisfy the same cx.message.mention.broadcast and policy gates as create.",
       "allOf": [
         {
           "anyOf": [
