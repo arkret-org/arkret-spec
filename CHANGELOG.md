@@ -5,8 +5,8 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/) 与
 [Semantic Versioning](https://semver.org/)。
 
-本仓库当前处于 `v1.0.0-rc1` 发布候选状态，尚未发布 `v1.0.0` 稳定基线。下方条目描述的是该候选线相对内部草案的收敛内容，
-而不是相对任何先前公开稳定版本的差异；在 release-readiness gate、public catalog 快照和远端 CI 证据闭合前，不得把当前 HEAD 描述为 stable。
+本仓库当前维护单一 `v1.0.0` 规范线；下方条目描述的是 v1 相对内部草案的收敛内容，
+而不是相对任何先前公开稳定版本的差异。任何更新都落在 `spec/v1/` 与对应的唯一 public v1 catalog snapshot 上。
 
 ## 变更登记模板
 
@@ -49,7 +49,7 @@
 - **变更类型**: modify
 - **影响 artifact**: event payload schema / prose / site metadata / artifact pipeline
 - **canonical 变更**: `realm_key_scope` 与 `mls_genesis_payload` 改用 tagged `effective_scope`；`mls_governance_binding` 封闭字段集并显式绑定 `effective_scope`、`realm_id` 与可选 `circle_id`；旧草案 `flow_id` / `track` 不再是 MLS key scope 形状。
-- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 会刷新所有现有 `site/public/v1/contract-catalog-*.json`；`check` 比较 public snapshot 与 canonical catalog 的 hash/bytes/counts/Circle presence。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 会刷新当前唯一 `site/public/v1/contract-catalog-1.0.0.json`；`check` 比较 public snapshot 与 canonical catalog 的 hash/bytes/counts/Circle presence。
 - **conformance impact**:
   - 受影响 profile: `cx.profile.mls_governance_binding.full.v1`、E2EE client、Circle MLS。
   - profile tier 变化: 无。

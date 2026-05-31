@@ -80,9 +80,7 @@ def current_public_catalog_path() -> Path:
 
 
 def public_catalog_paths() -> list[Path]:
-    current = current_public_catalog_path()
-    existing = list(PUBLIC_V1.glob("contract-catalog-*.json")) if PUBLIC_V1.exists() else []
-    return sorted({current, *existing})
+    return [current_public_catalog_path()]
 
 
 def sha256_bytes(data: bytes) -> str:

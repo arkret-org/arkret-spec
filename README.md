@@ -54,21 +54,12 @@ tools/
 
 任何 `spec/v1/zh/` 与 canonical artifact 的漂移都是规范 bug。对 event / schema / id / operation / error / profile wire contract，实现 MUST 跟随 active 机器 registry / schema；对 reducer、authorization、privacy、security、deployment 语义，实现 MUST 跟随中文 normative 文本。
 
-## Versioned public artifacts
+## Public v1 artifact
 
 `spec/v1/artifacts/registry/contract-catalog.json` 是当前工作树的 canonical catalog。
-`site/public/v1/contract-catalog-<version>.json` 是对外发布的版本化快照，不能在语义上
-含糊地同时表示"历史冻结 baseline"和"总是跟随 HEAD"。
-
-正式发布前必须选择并记录其中一种策略：
-
-- **冻结快照**：保留既有 `contract-catalog-1.0.0.json`，为当前 canonical catalog 发布新的
-  versioned snapshot（例如后续 patch / minor 版本）。
-- **替换快照**：明确把同名 `contract-catalog-1.0.0.json` 作为当前 release snapshot 重生成，
-  并在 CI 中用 count/hash gate 证明它与 canonical catalog 一致。
-
-无论采用哪条路线，公开站点不得同时声明当前规范文本为最新 stable，却让实现者下载到
-event/schema/id/capability 计数或 Circle contract 与 canonical catalog 不一致的版本化快照。
+`site/public/v1/contract-catalog-1.0.0.json` 是 v1 当前唯一 public catalog snapshot。
+仓库不同时维护 rc / stable 两套 public catalog；`tools/artifact_pipeline.py generate`
+只刷新这个当前 v1 snapshot，`check` 用 count/hash gate 证明它与 canonical catalog 一致。
 
 ## Maintenance pipeline
 

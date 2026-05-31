@@ -80,6 +80,16 @@ Schema id: `cx.schema.notification.v1`
 - E2EE Realm 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
 - `notification_type=applet` / `agent` / `policy` / `moderation` 等扩展类型的语义见 [`../extensions/applet-integration.md`](../extensions/applet-integration.md)、[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)、[`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../governance/content-moderation.md`](../governance/content-moderation.md)。
 
+### 3.4 Mention notification 派生
+
+`notification_type=mention` 覆盖普通 direct mention 与 audience mention（例如 `@all`）。派生器 MUST 遵守 [`flow-and-message.md` §9.4](./flow-and-message.md)：
+
+- Direct mention 以结构化节点的 `subject_id` 为目标；audience mention 先按 source event causal frontier、Message effective scope、Realm / Circle policy 与可见性规则展开 receiver set。
+- 对同一 `(actor_id, source_event_id, notification_type)` MUST 去重。一个 Message 中重复 direct mention、direct mention 与 audience mention 同时命中、或 watch / reply / assignment 叠加命中，都不得在同一 push delivery window 内产生多次 wakeup。
+- `actor_id` MUST 是接收 notification 的 actor，而不是发送者。默认发送者自 mention 不产生 notification，除非该 actor 的私有 push rule 显式 opt-in。
+- 派生器 MUST 在生成 notification 前应用 access check、history visibility、`level=muted`、blocklist、DND 与 push rule 覆盖；无访问权或被静音时不得留下可查询的 notification stub。
+- `preview` 在 E2EE / redaction / history-limited 场景下 MUST 为空或使用已授权的脱敏摘要；不得因为 notification projection 需要展示而扩大源 Message 的明文可见性。
+
 ## 4. 与 Account Data 的关系
 
 Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠等本地状态都属于 **actor-private account data** 类别。完整 account data 模型、私有标签、个人 blocklist 见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)。

@@ -237,6 +237,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 
 - `cx.event.read`
 - `cx.message.create`
+- `cx.message.mention.broadcast`（high risk；允许在 `cx.message.create` / `cx.message.revise` 中新增 audience mention，例如 `@all`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operations` + `period`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；详见 [`../models/flow-and-message.md` §9.4.3](../models/flow-and-message.md)）
 - `cx.message.revise`
 - `cx.message.revise.own`
 - `cx.message.redact`

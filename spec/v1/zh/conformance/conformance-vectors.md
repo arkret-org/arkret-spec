@@ -2398,6 +2398,26 @@ Expected：
 - 第 2 步 MUST 按更保守策略处理，不得猜测规则内容。
 - 第 3 步 MUST 合并为 batch wakeup，仍携带 `evaluation_locus_unresolved=true`。
 
+### 10.11 Vector: Audience Mention Controls
+
+`vector_id`: `cx.vector.push.broadcast_mention_controls.v1`
+
+Steps：
+
+1. 普通成员只持有 `cx.message.create`，在 Message content AST 中加入 `audience_mention{audience="effective_scope_members"}`。
+2. Realm policy 未声明 audience mention 策略；另一次提交中 sender 持有 `cx.message.mention.broadcast` 但 policy 仍缺失。
+3. Realm policy 允许 `effective_scope_members`，设置 `max_recipients=25` 和 rate window；sender 持有带 `rate_limit` 的 `cx.message.mention.broadcast`。
+4. 当前 effective scope 有 30 个可见成员；其中 1 个 receiver 显式 `level=muted`，1 个 receiver 被个人 blocklist / target policy 抑制。
+5. sender 在 rate window 内再次发送 audience mention。
+
+Expected：
+
+- 第 1 步不得产生 audience mention notification；实现 MAY 拒绝整条 message 或接受消息但把 audience mention 降级为普通文本 / 不通知，取决于 Realm policy 声明。
+- 第 2 步 MUST fail closed：缺少 effective audience mention policy 时，持有 `cx.message.mention.broadcast` 本身不足以 fanout。
+- 第 3-4 步 recipient count 超过 `max_recipients` 时 MUST 在 fanout 前拒绝或进入 policy-declared review/quarantine；不得先发 push 再撤回。
+- `level=muted` 与 target policy 抑制的 receiver MUST 不收到 notification stub 或 push wakeup，且发送者不能通过 delivery response 区分原因。
+- 第 5 步 MUST 返回 `rate_limited` / `quota_exceeded` 或等价 policy denial；push payload 不得包含 audience 名称、recipient count、成员列表、Realm / Flow / Event 标识。
+
 ## 11. Personal Agent & Sidecar Vectors(CXP-0008 / CXP-0009)
 
 ### 11.1 Vector: Provisioning + Pairing + Effective Grant

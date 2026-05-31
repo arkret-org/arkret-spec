@@ -4595,6 +4595,27 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "cx.message.mention.broadcast",
+        "category": "discussion",
+        "risk_tier": "high",
+        "required_constraints": [
+          "max_operations",
+          "period"
+        ],
+        "required_evaluator_checks": [
+          "message_create_or_revise_authorized",
+          "audience_mention_policy_allows_audience",
+          "audience_mention_recipient_count_within_limit"
+        ],
+        "target_event_kinds": [
+          "cx.message.create",
+          "cx.message.revise"
+        ],
+        "profile": null,
+        "event_mapping_kind": "scope_suffix_variant",
+        "notes": "Authorizes adding an audience_mention node such as @all to a Message create/revise. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
+      },
+      {
         "action": "cx.message.revise",
         "category": "discussion",
         "risk_tier": "medium",

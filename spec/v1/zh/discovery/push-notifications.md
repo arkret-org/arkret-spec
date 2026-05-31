@@ -174,7 +174,7 @@ POST /api/v1/push/unregister-device
 |---------------|---------|------|
 | `field_match` | server-side | Event 明文元数据或授权可见 payload 字段匹配给定 pattern（支持 glob） |
 | `contains_keyword` | client-side（E2EE）/ server-side（cleartext Realm）| 消息 `body` 中包含指定关键词。E2EE Realm 中 server 不能解密正文 → 必须降级，见 §4.5 |
-| `mentions_actor` | client-side（E2EE）/ server-side（cleartext Realm）| 消息中提及当前 Actor。E2EE Realm 中 mention relation 通常嵌入密文 → 见 §4.5 |
+| `mentions_actor` | client-side（E2EE）/ server-side（cleartext Realm）| 消息 direct mention 当前 Actor，或授权 audience mention 展开后包含当前 Actor。E2EE Realm 中 mention relation / audience node 通常嵌入密文 → 见 §4.5 |
 | `is_direct_message` | server-side | 来自 1 对 1 私聊 Realm（可由 Realm metadata 或成员数判断，不需要解密）|
 | `member_count` | server-side | Realm 成员数满足条件（如 `<= 5`），可由 metadata 判断 |
 | `flow_track` | server-side | Event 关联的 Flow track 名匹配给定 pattern（如 `synthesis`、`discussion`，支持 glob）。Track 名是 Flow 的公开配置 metadata，不属于 E2EE 正文 → server 端可在不解密内容的前提下评估 |
@@ -280,6 +280,21 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 
 `override.respect-mute` 在实现走 (a) / (b) 路径时是冗余声明（引擎前已短路 / 已被系统规则匹配），但 wire 上合法，用于让 dispatch trace 在审计视图中显式记录 `matched_rule="override.respect-mute"`。两种写法 dispatcher 输出一致。
 
+#### 4.3.3 Audience mention fanout
+
+Audience mention（例如 `@all`）的规范性节点形态、允许的 audience 集合和授权规则定义在 [`../models/flow-and-message.md` §9.4.2-§9.4.3](../models/flow-and-message.md)。Push rule 引擎只看到 receiver-side 结果：若当前 receiver 是该 audience mention 在 source event causal frontier 下展开后的合法接收者，则 `mentions_actor` 为 true；否则为 false。
+
+Dispatcher 在把 audience mention 转换为 notification / push 前 MUST 先完成以下 gate，且任一失败都不得产生 push wakeup：
+
+- sender 同时持有普通消息写入授权和 `cx.message.mention.broadcast` 授权；
+- effective Realm / Circle policy 允许该 `audience`，并声明有限 `max_recipients` 与 quota；
+- 展开后的 receiver 通过 Message effective scope、history visibility、Circle membership 和 target policy；
+- receiver 的 `level=muted`、个人 blocklist、DND 或更高优先级 `dont_notify` rule 没有抑制该通知。
+
+Audience expansion 是 dispatcher 内部计算结果，MUST NOT 进入 push payload、provider custom data、公开日志导出或可被发送者枚举的 delivery response。默认 `blind_wakeup` 下，即使 wakeup kind 是 `mention`，payload 也不得包含 `@all`、audience 名称、recipient count、成员列表或 source Event / Realm / Flow 识别字段。
+
+E2EE Realm 中，server 默认不能读取 audience mention AST。若 Realm policy 未显式允许 audience mention routing hint，Sync Service MUST 按 §4.5 的 client-side rule fallback 处理，不得从消息大小、发送者文本 hint 或客户端上传的未授权字段推断 `@all`。若 policy 允许 routing hint，hint 也只能表达固定枚举的 audience kind 与 policy revision digest，不得携带展开后的 DID 列表；minimal-metadata 与 audited E2EE Realm SHOULD 关闭该能力。
+
 ### 4.4 动作类型 (Actions)
 
 | Action | 说明 |
@@ -292,7 +307,7 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 
 ### 4.5 E2EE Realm 中的规则降级
 
-E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估 `contains_keyword` 或基于 mention 文本 / mention relation 嵌入密文时的 `mentions_actor`。**实现 MUST NOT** 在 E2EE Realm 静默把这类规则视为不匹配（这会让被 mention 的人收不到推送，造成 UX 退化），也 MUST NOT 把它视为匹配（这会变成无差别推送，泄露元数据）。降级路径如下：
+E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估 `contains_keyword`、基于 mention 文本 / mention relation 嵌入密文时的 `mentions_actor`，或未授权明文 routing hint 的 audience mention。**实现 MUST NOT** 在 E2EE Realm 静默把这类规则视为不匹配（这会让被 mention 的人收不到推送，造成 UX 退化），也 MUST NOT 把它视为匹配（这会变成无差别推送，泄露元数据）。降级路径如下：
 
 1. **明确分类**：每条 push rule 在创建时 MUST 通过 `evaluation_locus ∈ {server, client}` 声明评估位置。client-side rule 在 E2EE Realm 中由本机已解密 Event 的 client 评估，并在本地决定是否触发本机通知通道（系统 banner、桌面提示、声音）。Sync Service 不参与 client-side rule 的匹配。
 2. **Server fallback notify**：E2EE Realm 中，针对 client-side rule，Sync Service MUST 走 Realm policy 声明的保守 wakeup 策略。`wakeup_default` 取值为 `wakeup_for_all_messages` / `batch_wakeup` / `no_notification`，缺省为 `batch_wakeup`；高隐私、minimal-metadata 与 audited Realm SHOULD 使用 `no_notification` 或 `batch_wakeup`。客户端被唤醒后本地解密、本地评估 client-side rule，再决定显示哪个通知 surface（普通 banner / 高亮 banner / 静默处理）。若 `wakeup_default=no_notification`，server 不得因为无法解密 client-side rule 而单独唤醒，只能等待客户端下次 sync 或命中 server-side opaque routing token。

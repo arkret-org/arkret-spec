@@ -25,10 +25,10 @@ export function specFileUrl(relPath: string): string {
 }
 
 /**
- * The current release candidate shown by the site.
+ * The current v1 release shown by the site.
  *
- * Bump this together with the git tag/candidate, the CHANGELOG entry, and the
+ * Bump this together with the git tag, the CHANGELOG entry, and the
  * matching `site/public/v1/contract-catalog-<version>.json` snapshot.
  */
-export const specReleaseTag = "v1.0.0-rc1";
-export const specReleaseLabel = "release candidate";
+export const specReleaseTag = "v1.0.0";
+export const specReleaseLabel = "v1";

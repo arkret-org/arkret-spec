@@ -875,6 +875,14 @@
       ]
     },
     {
+      "vector_id": "cx.vector.push.broadcast_mention_controls.v1",
+      "status": "active",
+      "domain": "push",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "cx.vector.push.wakeup_policy.v1",
       "status": "active",
       "domain": "push",

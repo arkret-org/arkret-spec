@@ -20,7 +20,7 @@ updated: 2026-05-25
 - 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry
 - OpenAPI、非 HTTP binding、fixture 与中文规范均可回指这些 registry
 
-当前仓库处于 `v1.0.0-rc1` release candidate 状态，目标是 `v1.0.0` stable promotion：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + public catalog snapshot hash/count gate + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。CXP-0007 机器契约、版本化 public catalog 快照、站点依赖审计与远端 CI 证据关闭前，不得把当前 HEAD 描述为已发布的 stable 包；历史候选标签也不得用于描述当前正式发布包。
+当前仓库维护单一 `v1.0.0` 规范线：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + public catalog snapshot hash/count gate + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式 v1 发布契约。仓库不同时维护 rc / stable 两套 public catalog；任何更新都只落在当前 v1 canonical catalog 与唯一 public v1 snapshot 上。
 
 `v1.0.0` 基线下，机器 registry 的当前覆盖范围为：
 
@@ -94,7 +94,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 - OpenAPI 不得包含未发布生成器报告、占位 body 说明或 operation-level 非法字段
 - fixture 与 Markdown JSON 示例不得使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，不能被更早的 schema 错误掩盖。
 - 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；不得让 schema `$id` 解析到 HTML 文档。
-- 版本化 public catalog 快照 MUST 与发布说明中的语义一致：`site/src/lib/site-meta.ts#specReleaseTag` 指向当前候选 `v1.0.0-rc1`；同时，仓库中已存在的 `site/public/v1/contract-catalog-*.json` 均 MUST 与 `artifacts/registry/contract-catalog.json` byte-identical，并由 `python tools/artifact_pipeline.py check` 的 hash/count/Circle-presence gate 校验。稳定发布前不得让任一 public snapshot 继续暴露缺少 Circle contract 的旧 catalog。
+- Public catalog snapshot MUST 与发布说明中的语义一致：`site/src/lib/site-meta.ts#specReleaseTag` 指向当前 `v1.0.0`；仓库只保留 `site/public/v1/contract-catalog-1.0.0.json` 这一个当前 v1 snapshot，并由 `python tools/artifact_pipeline.py check` 的 hash/count/Circle-presence gate 校验它与 `artifacts/registry/contract-catalog.json` byte-identical。
 - CXP-0007 stable gate MUST 闭合 `effective_scope` submit-input / reducer-output schema 角色、Message / Anchor output shape、Anchor leaf canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle/effective-scope conformance vector cluster；否则 release notes 必须明确 de-scope，且不得把这些项当作 v1.0 wire contract 宣布。
 - 英文 mirror 完成前，`/en/v1/...` fallback 页面不得作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。
 - 站点生产依赖不得存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。

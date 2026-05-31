@@ -634,6 +634,54 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 
 DID 暂时无法解析时按 §3.8.2 fallback 序列降级：`display_name_at_time`（若存在）作为 "name only" 兜底；都没有则显示 truncated DID。任何 fallback 渲染 MUST 有视觉降级标识，不得与正常解析无差别显示。
 
+#### 9.4.1 普通 mention 的通知派生
+
+普通 mention 是面向单个主体的定向引用。Notification dispatcher 在从 Message 派生 `notification_type=mention` 时 MUST 使用下列规则：
+
+- 目标 actor MUST 等于结构化 mention 节点的 `subject_id`，并且在 source event 的 causal frontier 下拥有该 Message 所在 effective scope 的读取权；否则不得产生通知，也不得把目标对象内容或 preview 泄露给该 actor。
+- 同一 Message / revision 中重复出现同一 `subject_id` MUST 去重；同一 `(actor_id, source_event_id, notification_type=mention)` 最多产生一个 notification projection。
+- 默认情况下，发送者自己的 direct mention 不产生通知；用户可通过 actor-private push rule 显式 opt-in，但该 opt-in 不改变 shared history 或他人投影。
+- `level=muted`、个人 blocklist、DND 与更高优先级 `dont_notify` push rule MUST 覆盖 direct mention。
+- `cx.message.create` 可以产生 mention notification。`cx.message.revise` 只有在实现能证明某个 target 相比前一条 accepted visible revision 是**新增** mention 时，才 MAY 为该 revise event 派生新的 mention notification；无法证明差异时 MUST 不通知，避免通过反复编辑制造重复提醒。
+- `cx.message.redact` 不产生新的 mention notification。既有 notification 的 preview MUST 按 redaction / history visibility 重新裁剪；不得继续展示已撤回正文。
+
+当 reply、assignment、reaction、watch 与 mention 同时命中同一 actor / device 时，dispatcher SHOULD 合并为单个 inbox row 或单个 push wakeup，并保留内部 reason set；若实现返回多条 inbox projection，也 MUST 在 push 出口按 [`push-notifications.md` §2.4](../discovery/push-notifications.md) 去重。
+
+#### 9.4.2 Audience mention (`@all`)
+
+v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有成员展开成多个普通 `mention` 节点，也不在共享 history 中持久化展开后的收件人列表。典型 UI token `@all` 映射为 `audience="effective_scope_members"`：
+
+```json
+{
+  "kind": "audience_mention",
+  "audience": "effective_scope_members",
+  "mention_text_original": "@all",
+  "resolved_at": "2026-05-31T10:00:00Z"
+}
+```
+
+字段语义：
+
+- `audience`（必填）：v1 core 允许 `effective_scope_members`、`flow_participants`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Flow 绑定 Circle 时只包含该 Circle scope 的可见成员。`flow_participants` 使用 §8.7 的隐含订阅来源（自己发过消息 / assigned_to）派生。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
+- `mention_text_original`（可选）：用户键入的原始 token，例如 `@all`、`@participants` 或本地化显示文本；仅用于 audit / debug / 搜索。
+- `resolved_at`（可选）：客户端形成该节点的时间。最终收件人集合仍由 dispatcher 在 source event causal frontier 下计算，不能信任客户端填入的计数或列表。
+
+v1 core **不定义** presence-filtered `@here`，也不定义面向 `watchers` 的 audience mention。Presence 不能成为第三方 push timing oracle；watch state 是个人通知偏好，默认对他人脱敏。实现若通过 extension 提供 `@here` 或 `@watchers`，MUST 声明独立 profile，并证明不泄露 presence / watch 隐私；未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
+
+Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST 不收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
+
+#### 9.4.3 Audience mention 授权与防滥用
+
+包含 `audience_mention` 节点的 `cx.message.create` 或会新增 audience mention 的 `cx.message.revise`，MUST 同时满足：
+
+- 普通消息写入授权：actor 持有 `cx.message.create` / `cx.message.revise` 对目标 Flow discussion scope 的有效授权。
+- 广播 mention 授权：actor 额外持有 `cx.message.mention.broadcast`。该 action 是 high risk，MUST 带有限期 grant、resource selector narrowing 与 rate-limit quota（`max_operations` + `period`）；持有该 action 本身不授权发送消息。
+- Realm / Circle policy 明确允许对应 `audience`，并声明有限 `max_recipients`、时间窗口 quota 和超过阈值时的处理（deny / require_review / quarantine）。若 effective policy 未声明 audience mention 策略，dispatcher 与 reducer admission MUST 按禁用处理。
+- Dispatcher MUST 在 fanout 前计算 `recipient_count`，并在超过 effective `max_recipients`、rate limit 或 review gate 时拒绝通知派发；不得先推送再异步撤回。
+- 自动化 actor / agent 使用 audience mention 时，Realm policy SHOULD 要求 `accountability_required` 或等价负责主体约束，并 SHOULD 采用更低 quota。
+
+Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接受消息但把 audience mention 降级为普通文本 / 不通知，或按 Realm policy 拒绝整条 message event；无论选择哪种模式，都 MUST 在 Realm policy 中声明并对同一 scope 内所有成员一致执行。若选择拒绝整条 event，错误语义 SHOULD 使用 `failed_precondition`、`rate_limited` 或 `quota_exceeded` 中的既有 code，不得发明只对发送者可见、对接收者造成状态分叉的本地结果。
+
 ### 9.5 冲突与收敛规则
 
 Message timeline 的同步与 reducer 行为：

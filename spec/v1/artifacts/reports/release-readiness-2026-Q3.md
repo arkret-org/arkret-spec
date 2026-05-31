@@ -53,7 +53,7 @@ The canonical live source remains `spec/v1/artifacts/registry/contract-catalog.j
 - Frozen-baseline route: leave old snapshots unchanged and publish the current contract under a new versioned filename.
 - Current-release route: regenerate the existing versioned snapshot only as an intentional replacement, and gate it with count/hash checks against the canonical catalog.
 
-Current HEAD uses the current-release route for every versioned public snapshot in this repository: `site/src/lib/site-meta.ts#specReleaseTag` points at `v1.0.0-rc1`, and both `site/public/v1/contract-catalog-1.0.0.json` and `site/public/v1/contract-catalog-1.0.0-rc1.json` MUST be byte-identical to the canonical catalog. `python tools/artifact_pipeline.py check` enforces hash/count/Circle-presence gates for all existing `contract-catalog-*.json` snapshots.
+Current HEAD uses a single current-v1 public snapshot: `site/src/lib/site-meta.ts#specReleaseTag` points at `v1.0.0`, and `site/public/v1/contract-catalog-1.0.0.json` MUST be byte-identical to the canonical catalog. The repository does not maintain separate rc/stable catalog snapshots. `python tools/artifact_pipeline.py check` enforces hash/count/Circle-presence gates for the current v1 snapshot.
 
 ## Release Notes Seed
 
