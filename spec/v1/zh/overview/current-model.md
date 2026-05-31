@@ -3,7 +3,7 @@ title: 当前模型说明
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-01
 ---
 
 ## 0. 规范语言
@@ -14,6 +14,19 @@ updated: 2026-05-25
 
 本文给出 Contrix v1 的统一对象模型读法，确保实现、文档和交互层对同一套协作语义采用一致解释。
 
+### 1.1 从常见产品概念理解 Contrix
+
+Contrix 不是把某个产品的对象名搬进协议，而是把常见协作产品拆成更稳定的协议边界：
+
+| 产品 / 场景概念 | Contrix 中的落点 | 不应误读为 |
+| --- | --- | --- |
+| 聊天群、WeChat 群、频道 | `Realm` 提供成员与历史边界；一个或多个 `Flow(tracks.discussion)` 承载对话 | `Message` 本身不是房间；`discussion` track 也不是独立 ACL。 |
+| Matrix Room | 通常拆为 `Realm`（room state / membership / history 边界）+ `Flow/Message`（协作主题与消息）+ `View`（timeline / thread 投影） | v1 core 不使用 `Room` 作为通用对象根。 |
+| Trello Board / List / Card | `Space(kind=board)` / `Space(kind=list)` / `Flow`，位置由 `cx.flow.move` 与派生 `contains` Relation 表达 | View renderer 不是对象真相；拖拽不能只改 View。 |
+| Jira issue / workflow status / issue links | `Flow` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`，也不应塞进 `fields.status` 作为互操作真相。 |
+| Watchers、订阅、勿扰 | `cx.flow.watch.set` cell + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
+| 小程序 / Bot / 集成服务 | Applet、Agent、Ghost Actor、Morph / Relation 扩展 | 安装一个客户端或插件不等于创建 protocol principal。 |
+
 ## 2. Flow 是统一协作对象
 
 `Flow` 承载同一事项的正式表达与讨论过程：
@@ -23,12 +36,14 @@ updated: 2026-05-25
 - `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，必填）= 业务进度。两者正交，分别由 `cx.flow.archive` 家族与 `cx.flow.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
 - 业务语义通过 Realm schema/profile、`fields`、Relation、labels、Morph type 或 facet 表达
 
+Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review、Ready for release）不是新的协议字段。跨实现互操作只依赖 `stage` 的 8 个粗粒度值；细粒度状态应由 Realm workflow profile、`fields` 或 Morph schema 声明，并映射回 `stage` 以便跨 Realm dashboard 聚合。
+
 ## 3. Flow 的标准 Track
 
 `Flow.tracks` 是 track 定义 map（key 是 track 稳定名）。v1 标准化两个 track name：
 
 - `synthesis`：正式表达、结构化字段、状态推进、标题、摘要、正文
-- `discussion`：成员、消息、历史可见性、通知与可选 E2EE
+- `discussion`：消息时间线、通知入口与讨论 UI；成员、历史可见性和 E2EE 由整个 Flow 的 effective scope 决定，不由 track 自己持有
 
 轨道规则：
 
@@ -58,7 +73,7 @@ Flow 在 `Board Space` / `List Space` 中的位置通过 `contains` relation 与
 
 ## 6. 权限与成员边界
 
-Realm membership、Flow 更新权限与 discussion access 使用统一授权模型裁剪：
+Realm membership、Flow 更新权限与 discussion timeline 可见性使用统一授权模型裁剪：
 
 - `cx.member.state` 控制 Realm membership
 - `cx.flow.*` 控制 Flow 自身与工作流位置
@@ -95,3 +110,15 @@ Contrix v1 的统一读法是：
 3. `synthesis` / `discussion` 是 Flow 的两个标准 track。
 4. `Space` 是产品结构与工作流容器；`Board Space` / `List Space` 是其中两种形态。
 5. `View` 只做投影，不持有真实对象语义。
+
+## 10. 常见功能落点
+
+下列能力在同类产品中常见，但 v1 core 不都固化为新的顶层对象；实现应按互操作强度选择落点：
+
+| 功能 | 推荐落点 | 说明 |
+| --- | --- | --- |
+| Checklist / subtask | 需要独立负责人、截止时间、评论或审计时用子 `Flow` + `Relation(contains / depends_on / blocks)`；仅作为正文清单时用 content / profile-defined Morph | 不新增通用 `ChecklistItem` core 对象，避免与 Flow/Morph 重叠。 |
+| 自定义字段 | `fields` + Realm schema/profile | 字段名、类型、必填性与迁移必须由 schema 声明；facet 只做 UI hint。 |
+| 自动化 / Butler / Jira automation | Applet / Agent / policy-bound automation profile | 自动化触发的共享变化仍必须落成 signed Event，不能只写投影缓存。 |
+| Saved filter / personal board view | 共享视图用 `View`；个人列宽、折叠、临时 filter 用 actor-private account data | View 是共享投影定义；个人偏好不进入 Realm 共享历史。 |
+| Watchers / assignment / mention | `cx.flow.watch.set`、`Relation(assigned_to)`、结构化 mention node | 访问权先由 Realm/Circle scope 判断，再叠加通知偏好。 |

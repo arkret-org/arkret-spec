@@ -3,7 +3,7 @@ title: Spec Map
 status: candidate
 normative: false
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-01
 see_also:
   - index.md
   - conformance/normative-language.md
@@ -80,6 +80,16 @@ see_also:
 2. `models/overview.md` + `models/realm-and-space.md` + `models/flow-and-message.md`
 3. `authz/event-auth-state-resolution.md` + `crypto-media/encryption-and-audit.md`
 4. `sync/client-sync.md` + `sync/operations-sync.md`（含 snapshot、fork、decryption_pending）
+
+### 2.2 从产品概念找章节
+
+| 产品概念 | Contrix 读法 | 先读 |
+| --- | --- | --- |
+| 群聊 / 频道 / Matrix Room | Realm 负责成员和历史边界；Flow + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/flow-and-message.md`、`governance/history-visibility.md` |
+| Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Flow；拖拽位置是 `cx.flow.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
+| Jira issue / workflow / issue links | Issue 对应 Flow；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/flow-and-message.md`、`models/relation.md`、`models/common-fields.md` |
+| Watchers / 通知规则 / 勿扰 | Watch cell 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/flow-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
+| 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Flow、Message、Morph 或 Relation。 | `extensions/applet-integration.md`、`extensions/agent-protocol-interop.md`、`models/extension-objects.md` |
 
 ## 3. 核心概念边界
 

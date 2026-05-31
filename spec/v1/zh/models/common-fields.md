@@ -3,7 +3,7 @@ title: Common Fields
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-29
+updated: 2026-06-01
 ---
 
 ## 0. 规范语言
@@ -232,6 +232,13 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 ## 5. State 枚举对齐
 
 `state`、`stage`、`status`、`runtime_status` 和 `binding_state` 分属不同状态轴，不是同一字段的别名：
+
+速记规则：
+
+- `state` 回答“这个对象在物理生命周期上还能不能作为活对象使用”。
+- `stage` 回答“这件事在业务推进上走到哪里”，用于跨 Realm / 跨产品聚合。
+- `status` 只留给账号、session、delivery、moderation workflow、registry entry 等过程型对象。
+- Jira-style workflow status、Trello 自定义列表名、审核节点名等细粒度业务状态 MUST 由 Realm workflow profile 或 schema 字段声明，并映射到 `stage`；不得把它们当作 `state` 或新的协议级 `stage` 枚举。
 
 | 字段 | 使用场景 | 语义轴 |
 | --- | --- | --- |

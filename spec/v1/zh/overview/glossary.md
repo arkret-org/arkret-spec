@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-31
+updated: 2026-06-01
 see_also:
   - index.md
   - overview/architecture.md
@@ -19,6 +19,13 @@ see_also:
 本文集中定义 Contrix 规范中的核心术语。若其他文档使用同一术语，除非所在章节另有说明，以下定义优先于扩展实现约定。
 
 本文中的英文术语保留为规范关键字；中文解释用于阅读，不能替代字段名、对象名或事件名。
+
+术语表维护规则：
+
+- 同一个 canonical 术语只定义一次；不要再添加“见上文”式重复行。
+- 非规范别名可以保留为单独条目，但必须明确写出 canonical 术语，并说明新增 normative 文本应使用哪个术语。
+- 禁用词、历史词和互操作上下文词应标注适用范围；不能把迁移期词汇重新引入 v1 core model。
+- 局部上下文词（例如 SFU `participant_id`、Mermaid sequence `participant`）只在对应章节内有效，不升级为全局主体术语。
 
 ## 2. 核心术语
 
@@ -119,8 +126,6 @@ see_also:
 | Ghost Actor | 幽灵 actor | Applet-managed actor，通常是外部网络用户、账号或 automation 在 Contrix 中的镜像。Ghost Actor 必须使用可审计的独立 Actor DID（`actor_id` 不带 DID URL fragment）；wire `actor_kind` 仍取 `user / org / team / agent / service / device / integration` 之一，外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`。Ghost/native 差异由 Applet provenance、`accountable_principal_ids` / `accountability` 与 profile/capability 约束表达，不新增 `agent_ghost` 或 `ghost` enum。 |
 | Member | 成员 | 已加入某 Realm 或 Circle 的 actor；具体由 membership cell `cx.component.member.state.v1` 中 `state=active` 的条目定义。Member 是 actor 在某个 security boundary 内的 membership 状态，不是独立主体类型。 |
 | Subject | 授权对象 | Capability grant 的授予对象；`subject` 字段值是 DID（具体 principal）或 condition selector（如 role / actor_kind / federated trust scope）。具体使用约束见 [`common-fields.md` §4.1](../models/common-fields.md#41-did-适用边界)。 |
-| Principal | _见 §2 顶部_ | 已在本表锁定语义：协议中的稳定行为者身份；不重复定义。Principal 与 Actor 的区别——前者是身份根（DID），后者是 principal 在 Realm 内的行为身份。 |
-| Actor | _见 §2 顶部_ | 已在本表锁定语义：Principal 在 Realm 内的行为身份；不重复定义。术语 `participant` 仅在 SFU / Mermaid 等局部上下文允许，prose 中应使用 actor / member / participant_id 视语义选用，不作为通用术语。 |
 | participant | _local-context only_ | 不是通用术语。仅允许在 SFU stream binding、Mermaid sequence 图、call participant_id 等明确局部上下文出现；prose normative 段落 MUST 使用 actor / member / subject 视语义选用，不得用 `participant` 表达通用主体语义。 |
 | Operation | 操作（canonical operation_id） | API wire-binding 抽象单元，由 canonical `operation_id` 标识；定义见 [`api-conventions.md` §2.4](../sync/api-conventions.md)。Operation 不等同于 wire event kind——前者是 RPC / sync 单元，后者是 reducer-input event family；MUST NOT 互换。 |
 | Patch | 字段增量（`cx.patch.v1`） | `cx.patch.v1` field 增量 payload 格式，统一表达 canonical object 字段级更新；路径与 op 规则见 [`event-and-patch.md` §4](../models/event-and-patch.md)。新对象的字段更新槽 SHOULD 通过 Patch 表达，不再造单字段 update event。 |

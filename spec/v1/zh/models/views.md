@@ -3,7 +3,7 @@ title: View Model
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-01
 ---
 
 ## 0. 规范语言
@@ -72,13 +72,14 @@ View 查询 SHOULD 优先使用标准对象类型：
 
 Board Space / List Space 作为容器由 `space.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
 
-### 2.5 权限必须逐对象、按 track action scope 裁剪
+### 2.5 权限必须逐对象、按 effective scope 与 action scope 裁剪
 
-View 展示 Flow 讨论时，必须分别执行授权裁剪：
+View 展示 Flow、Message 或跨 Realm Relation 时，必须先按对象 home Realm / Circle effective scope 判断可见性，再按 capability action scope 裁剪可执行操作。Renderer、track name、View filter 都不能授予读取或写入权限。
 
-- 用户能看 Flow synthesis，只有在有效 access policy 继承或授予 discussion 读取时，才可看 discussion。
-- 用户能看 discussion，不自动能改 Flow synthesis。
-- Board projection MAY 显示 discussion locked link，但不得泄露 discussion 标题、成员、消息摘要或统计，除非 policy 明确允许。
+- 用户能看某个 Flow，仍不代表能执行 `cx.flow.update`、`cx.flow.stage.set`、`cx.flow.move` 或 `cx.message.create`；每个交互写入都要按对应 action 重新鉴权。
+- Message timeline 的可见性来自 Flow 的 single effective scope（Realm-default 或 Circle），不是 `discussion` track 自己的 ACL。
+- `allowed_tracks` / `flow_track` 这类 action 或通知 scope 只能缩小已授权动作和通知匹配范围，不能创造新的读权。
+- Board projection MAY 显示 discussion locked link，但不得泄露未授权 discussion 的消息摘要、成员、统计、最后活动时间或存在性细节，除非 policy 明确允许。
 
 ### 2.6 交互写入必须落回真实对象
 

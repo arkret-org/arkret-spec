@@ -3,7 +3,7 @@ title: Flow & Message
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-01
 ---
 
 ## 0. 规范语言
@@ -351,6 +351,7 @@ flowchart LR
 ## 7. Flow 常见关系
 
 - `List Space --contains--> flow`
+- `flow --contains--> flow`（profile-declared subtask / checklist item 语义）
 - `flow --assigned_to--> actor`
 - `actor --watches--> flow`
 - `flow --depends_on--> flow`
@@ -360,13 +361,15 @@ flowchart LR
 - `flow --summarized_from--> message`
 - `flow --promoted_from_discussion--> message`
 
+Checklist / subtask 不在 v1 core 中新增独立顶层对象。需要独立负责人、截止时间、评论、stage 或审计的子项 SHOULD 表达为子 `Flow`，并由 Realm schema/profile 声明 `contains` / `depends_on` / `blocks` 等 RelationProfile；只服务于正文展示的清单项 MAY 留在 `content` 或 profile-defined Morph 内，但不得被当作跨实现可调度对象。
+
 `assigned_to` 与 `contains` 的基数和跨 Realm 规则见 [relation.md](./relation.md) §3-§4。
 
 ## 8. Watch 与通知订阅
 
 ### 8.1 概念与边界
 
-Watch 是个人通知订阅模型：actor 声明自己对某个 Flow（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由所属 Realm 的 capability 决定，与本节完全正交（参见 §4.4）。
+Watch 是个人通知订阅模型：actor 声明自己对某个 Flow（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由对象 effective scope（Realm-default 或 Circle）与 capability 共同决定，与本节完全正交（参见 §4.4 与 §5）。
 
 Wire 形态：`cx.flow.watch.set` durable event 写入下文 §8.3 描述的 cas_register cell（cell 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> flow`，见 [relation.md §3](./relation.md)）供查询，但 **`cx.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Flow position 派生 `contains` Relation 的双源约束同模式。
 

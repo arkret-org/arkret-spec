@@ -3,7 +3,7 @@ title: Contrix Protocol
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-01
 see_also:
   - spec-map.md
   - overview/architecture.md
@@ -25,6 +25,21 @@ see_also:
 - 权限主语：capability
 - 呈现主语：views / projection
 - 扩展承载：Morph + schema / profile-defined facets
+
+### 1.1 5 分钟读法
+
+先按下表理解对象边界，再进入字段和 event 细节：
+
+| 问题 | Contrix 对象 | 一句话边界 |
+| --- | --- | --- |
+| 谁在做事？ | Principal / Actor | Principal 是 DID 身份根；Actor 是该 Principal 在 Realm 内产生 Event 的参与身份。 |
+| 这批协作事实归谁管？ | Realm | 权限、成员、历史可见性、E2EE、同步和联邦都以 Realm 为根。 |
+| 用户界面怎么组织项目、看板和列表？ | Space | Space 是导航 / 容器，不拥有成员、policy 或加密组。 |
+| 一件事、一个任务、一个话题或一个决策放哪里？ | Flow | Flow 是统一协作主对象；正式内容在 synthesis，讨论在 discussion。 |
+| 聊天消息是什么？ | Message | Message 只属于某个 Flow 的 discussion track。 |
+| 对象之间如何表达包含、依赖、回复、指派？ | Relation | 跨对象语义用 Relation；不能把关系藏在自由字段里。 |
+| 怎么看成看板、表格、聊天、时间线、图？ | View | View 只定义投影和交互入口，不持有被投影对象的真相。 |
+| 非标准业务对象放哪里？ | Morph | Morph 是扩展缓冲层；schema/profile 决定字段与能力，facet 只做 UI / 查询提示。 |
 
 ## 2. 非目标（Non-Goals）
 
