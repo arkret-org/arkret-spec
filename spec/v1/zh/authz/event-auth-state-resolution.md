@@ -119,6 +119,32 @@ Move (reducer view of signed Event) {
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
 6. Event 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Event issuer 层表达。
 
+**Anchor staleness window（normative）**：Realm 字段 `max_anchor_staleness_ms` 是 reducer-input Event `anchor_ref` 相对 receiver 当前 Anchor view 的 Realm 级硬上限。`realm.schema.json` 的默认值 86,400,000 ms（24h）只用于低风险离线写入 / 兼容性兜底；实现和部署 MUST NOT 把该默认值理解为所有写入的推荐 freshness window。接收方计算某个 Move 的有效 staleness window 时 MUST 取下列约束的最小值：
+
+```text
+effective_anchor_staleness_ms =
+  min(
+    Realm.max_anchor_staleness_ms,
+    action / capability freshness window if declared,
+    cell-family or cell-role freshness window if declared,
+    deployment / profile override if declared
+  )
+```
+
+若 `M.anchor_ref` 超过该有效窗口，receiver MUST 以 `anchor_ref_stale`（或等价 `failed_precondition` reason）拒绝或 quarantine 该 Move；producer SHOULD rebase 到最新可验证 Anchor view 并重新签名，而不是把过旧 Move 继续推入 Anchor pipeline。
+
+推荐窗口（informative defaults）：
+
+| 写入类别 | 推荐有效窗口 |
+| --- | --- |
+| 高频协作 UI（`cx.flow.move` / `cx.flow.reorder` / reaction 等） | 30s–5min |
+| 普通内容写入（message / comment / non-critical field patch） | 5–30min |
+| 弱网 / 移动端离线队列（低风险，提交前可自动 rebase） | 30min–2h |
+| 低频审计 / sovereign backfill / regulated diagnostic write | 6–24h |
+| 高风险或安全根 cell（`anchorer_root` / authorization / policy / membership / lifecycle） | 不得只依赖 24h 上限；必须按 capability freshness / policy freshness / profile gate 使用更短窗口，通常为分钟级或要求 current frontier fresh |
+
+`max_anchor_staleness_ms` 不是恶意多 anchorer / 多 leaf 冲突放大的完整防线。`open_set` / `threshold` / federation profile 还 MUST 依赖 peer health、stale-peer quarantine、range completeness / witness、rate limit、compaction cadence 与 capability revocation 来限制攻击者用旧 basis Move 反复制造 `⊥`。缩短 staleness window 只能降低旧状态 Move 被接受的时间窗口，不能替代 signer 治理与 abuse control。
+
 ### 3.1 Predicate
 
 核心 predicate（wire 字段 `{op, value?, values?, predicate_id?}`，schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) `predicate`）：
@@ -391,6 +417,20 @@ Bottom {
 `bottom=reject` 不是可被普通 CAS 写入直接覆盖的临时值。只要当前 effective view 下 cell value 为 `⊥`，任何普通 Move（包括携带 `head_eq` 的 cas_register set）读取或写入该 cell 时都 MUST `failed_bottom` / `failed_precondition`，`reason_code=cell_in_bottom_state`；实现不得把 `⊥` 当作 `null`、空 head 或任一候选 head。修复只能通过 §8 的 conflict-recovery Move 完成：该 Move MUST 引用冲突前 `state_witness`、`inclusion_proof` 与被授权的 recovery capability，并在新的 Anchor view 中把 cell 收敛到明确 value。若某 cell family 需要更专门的 recovery 事件，profile 可以在自己的 event kind 上定义 payload，但不能绕过本段的 witness 与 capability 要求。
 
 `anchorer_split` 是特殊 kind：当 anchorer cell（cas_register, bottom=reject）出现并发 set 时该诊断生效；它对应 §13 的 `anchorer_paused` Realm 状态，仅 recovery anchorer / emergency quorum 签发的 Anchor 可恢复推进。
+
+#### 5.1.1 Bottom 影响范围
+
+`⊥` 是 cell state，不是默认的 Realm state。实现 MUST 按依赖闭包决定影响范围，不得因为任意业务 cell 进入 `⊥` 而停止整个 Realm 的 Anchor 推进。
+
+| 范围 | 触发 | 结果 |
+| --- | --- | --- |
+| Cell-local bottom | 普通业务 cell 在当前 effective view 下为 `⊥`，例如 `cx.component.flow.position.v1:<board_space_id>:<flow_id>`。 | 读取或写入该 cell 的普通 Move MUST fail closed；同一对象的其他独立 cell、其他对象和 Realm Anchor 推进不受直接影响。Projection MAY 把该字段显示为 conflict。 |
+| Dependency bottom | 授权、policy、membership、capability、lifecycle 等治理 cell 为 `⊥`，并且某个 Move 的 precondition / authz check / reducer invariant 需要读取它。 | 依赖该 cell 的 Move MUST fail closed。这可能阻塞大量业务写入，但它仍是依赖链阻塞，不等同于 Anchor 层 Realm-wide pause。 |
+| Realm-wide Anchor pause | `cx:cell:cx.component.anchorer.v1:<realm_id>` 为 `⊥`（`anchorer_split`）。 | 普通 Anchor MUST 停止推进；只有 genesis 声明的 recovery anchorer / emergency quorum MAY 签发恢复 Anchor。 |
+
+Flow position 冲突的影响是第一类：该 Flow 的 canonical placement 未决，后续普通 position Move 不能继续；Flow 的 title / content / comments / watch 等独立 cell 仍可按各自 Lattice 和授权规则继续更新，其他 Flow 的更新也不得被阻塞。只有当某个后续 Move 显式读取该 position cell（例如“只允许移动当前位于 List-X 的 Flow”）时，才因 `cell_in_bottom_state` fail closed。
+
+`bottom_escalation_after_ms` 只改变告警和 recovery 提示，不会把普通业务 cell 的 `⊥` 自动升级成 Realm-wide pause。Realm lifecycle 的 terminal state（例如 tombstoned / destroyed）属于 lifecycle reducer 语义，见 [`realm-and-space.md`](../models/realm-and-space.md)，不是本节定义的 Lattice bottom pause。
 
 **Lattice type 与 bottom 行为对照**：
 

@@ -93,7 +93,7 @@ Schema id: `cx.schema.realm.v1`
 | `anchor_profile` | no | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Anchor finality profile。 |
 | `digest_algorithm` | no | `enum(sha256, sha512, sha3_256, blake3)` | create-locked，默认 `sha256`。 | Hash 算法 profile。 |
 | `anchorer` | conditional | `object` | Genesis anchorer cell 初值。 | 当前 Anchor 授权规则。 |
-| `max_anchor_staleness_ms` | no | `integer` | 默认 24h。 | Event freshness 窗口。 |
+| `max_anchor_staleness_ms` | no | `integer` | 默认 24h；这是 Realm 级兼容性硬上限，不是所有写入的推荐窗口。高风险 / 高频冲突写入 MUST 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的 action / cell / profile 有效窗口进一步收紧。 | Move `anchor_ref` freshness 上限。 |
 | `cell_lattices` | no | `array<CellLattice>` |  | Realm-specific 扩展 cell family。 |
 | `co_write_policy` | no | `array<array<component>>` |  | Move 原子写约束。 |
 | `retention_policy_id` | no | `id:policy` |  | 保留策略。 |

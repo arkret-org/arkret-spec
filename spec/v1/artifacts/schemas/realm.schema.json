@@ -317,7 +317,7 @@
       "type": "integer",
       "minimum": 0,
       "default": 86400000,
-      "description": "Maximum age of a Move.anchor_ref relative to the current Anchor view. Offline clients exceeding this window must rebase and re-sign."
+      "description": "Realm-level hard maximum age of a reducer-input Event/Move anchor_ref relative to the receiver's current Anchor view. Default 86400000 ms (24h) is a compatibility ceiling for low-risk offline/recovery paths, not the recommended freshness window for all writes. Receivers MUST enforce the effective window as the minimum of this value and any action/capability, cell-role, deployment, or profile-specific freshness override; stale submissions fail closed with anchor_ref_stale / failed_precondition. High-risk security-root cells and high-conflict UI moves SHOULD declare much shorter windows and require rebase before signing."
     },
     "bottom_escalation_after_ms": {
       "type": "integer",
