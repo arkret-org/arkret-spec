@@ -16,13 +16,13 @@ Contrix 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不支持某种内容类型的客户端能通过 `fallback_text` 优雅降级
-- E2EE 场景下加密信封 (`encrypted_payload`) 只包裹 Message 顶层的 `content`（即整个 Content Block 对象，包括其内部的 `body` 字段）和 `attachments` 等业务字段，`flow_id` / `created_by` 等路由与归因 metadata 保持明文
+- E2EE 场景下加密信封 (`encrypted_content`) 只包裹 Message 顶层的 `content`（即整个 Content Block 对象，包括其内部的 `body` 字段）和 `attachments` 等业务字段，`flow_id` / `created_by` 等路由与归因 metadata 保持明文
 
 ## 2. 设计原则
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_payload` 字段、Flow 的 `content` / `encrypted_payload` 字段、Flow discussion 摘要以及 Morph 的 `content` / `encrypted_payload` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
+Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Flow 的 `content` / `encrypted_content` 字段、Flow discussion 摘要以及 Morph 的 `content` / `encrypted_payload` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 
@@ -54,7 +54,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 因此本文档示例里的 `kind` / `body` / `format` 等字段都是 **Content Block 内部字段**，位于 Message `content` 之下；不要与 Message 顶层字段混在一层理解。
 
-`cx.message.create` / `cx.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_payload`。`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
+`cx.message.create` / `cx.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
 
 ### 2.3 复合消息使用 `composite` 类型
 
@@ -358,8 +358,8 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 ## 8. 与 E2EE 的交互
 
 在端到端加密场景下：
-- `content` 字段的完整 JSON 对象被加密为 `encrypted_payload`
-- `encrypted_payload` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`cx.message.create` / `cx.message.revise`、Flow synthesis `content` 和 Morph `content` 使用同一 canonical envelope
+- `content` 字段的完整 JSON 对象被加密为 `encrypted_content`
+- `encrypted_content` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`cx.message.create` / `cx.message.revise` 和 Flow synthesis `content` 使用同一 canonical envelope；没有 `content` 明文对偶的 payload surface MAY 继续使用通用 `encrypted_payload`
 - `body` 字段在密文信封中**不保留明文副本**（防止元数据泄露）
 - 用于推送通知的脱敏摘要由发送者的客户端单独生成并附在明文元数据中（参见 `push-notifications.md`）
 

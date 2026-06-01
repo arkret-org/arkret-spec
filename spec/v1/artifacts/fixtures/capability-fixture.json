@@ -107,12 +107,19 @@
           "kind": "cx.flow.update",
           "hlc": "01970e589d23-0001-a13f9c2e",
           "refs": [
-          { "id": "cx:event:019640e8-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
-        ],
+            {
+              "id": "cx:event:019640e8-0000-7000-8000-000000000000",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
           "payload": {
             "target_ref": "cx:flow:019640c5-0000-7000-8000-000000000000",
             "patch": {
-              "title": "After revoke"
+              "metadata.title": {
+                "$op": "set",
+                "value": "After revoke"
+              }
             }
           }
         }

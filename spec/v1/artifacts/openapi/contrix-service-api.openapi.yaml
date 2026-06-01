@@ -3266,10 +3266,12 @@ components:
           type:
           - string
           - 'null'
+          description: Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile.
         summary:
           type:
           - string
           - 'null'
+          description: Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile.
         board_space_id:
           type:
           - string

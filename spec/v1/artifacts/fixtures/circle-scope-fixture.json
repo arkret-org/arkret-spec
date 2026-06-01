@@ -10,7 +10,9 @@
       "properties": {
         "scope_circle_id": {
           "oneOf": [
-            { "type": "null" },
+            {
+              "type": "null"
+            },
             {
               "type": "string",
               "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -18,9 +20,13 @@
           ]
         }
       },
-      "required": ["scope_circle_id"],
+      "required": [
+        "scope_circle_id"
+      ],
       "not": {
-        "required": ["effective_scope"]
+        "required": [
+          "effective_scope"
+        ]
       }
     }
   },
@@ -31,9 +37,14 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["kind", "realm_id"],
+          "required": [
+            "kind",
+            "realm_id"
+          ],
           "properties": {
-            "kind": { "const": "realm" },
+            "kind": {
+              "const": "realm"
+            },
             "realm_id": {
               "type": "string",
               "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -43,9 +54,15 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["kind", "realm_id", "circle_id"],
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
           "properties": {
-            "kind": { "const": "circle" },
+            "kind": {
+              "const": "circle"
+            },
             "realm_id": {
               "type": "string",
               "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -63,8 +80,12 @@
     {
       "name": "none_to_none_noop",
       "description": "scope_circle_id=null -> scope_circle_id=null. No-op rebind; reducer MUST accept (idempotent same-scope), effective_scope stays {kind:realm}.",
-      "from_submit_payload": { "scope_circle_id": null },
-      "to_submit_payload": { "scope_circle_id": null },
+      "from_submit_payload": {
+        "scope_circle_id": null
+      },
+      "to_submit_payload": {
+        "scope_circle_id": null
+      },
       "from_canonical_effective_scope": {
         "kind": "realm",
         "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
@@ -101,7 +122,9 @@
     {
       "name": "none_to_circle_default_reject",
       "description": "scope_circle_id=null -> scope_circle_id=Some(A). True rebind; default reducer MUST reject with failed_precondition reason=scope_rebind_forbidden. Profile MAY enable audit-paired high-risk update.",
-      "from_submit_payload": { "scope_circle_id": null },
+      "from_submit_payload": {
+        "scope_circle_id": null
+      },
       "to_submit_payload": {
         "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
       },
@@ -124,7 +147,9 @@
       "from_submit_payload": {
         "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
       },
-      "to_submit_payload": { "scope_circle_id": null },
+      "to_submit_payload": {
+        "scope_circle_id": null
+      },
       "from_canonical_effective_scope": {
         "kind": "circle",
         "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",

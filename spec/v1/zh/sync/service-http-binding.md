@@ -105,7 +105,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
 | `GET /api/v1/snapshot/head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`、`created_by`、`created_at`、`authority_binding`（与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）。high-assurance profile MUST 校验 `authority_binding` 证明 `created_by` 在 `created_at` 时被 Realm policy / witness quorum 授权。 | `{snapshot_ref, state_digest, frontier, event_set_commitment, created_by, created_at, authority_binding, verification_hints?, signature}` |
 | `GET /api/v1/projection/spaces` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | `user_session` 或服务签名；调用方必须满足该 Realm 的 metadata/read 可见性。 | `{realm_id, spaces[], total, next_cursor?, has_more}`；`spaces[]` 行含 `space_id, realm_id, kind, title, parent_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
-| `GET /api/v1/projection/flows` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, flows[], total, next_cursor?, has_more}`；`flows[]` 行含 `flow_id, realm_id, title?, summary?, board_space_id?, list_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。`board_space_id/list_space_id/rank` 是从 `cx.component.flow.position.v1` cell 派生的只读 view 字段，不是 Flow object 的 canonical truth。 |
+| `GET /api/v1/projection/flows` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, flows[], total, next_cursor?, has_more}`；`flows[]` 行可含从 plaintext-visible `metadata.title` / `metadata.summary` 派生的 `title?` / `summary?`，以及 `flow_id, realm_id, board_space_id?, list_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。`board_space_id/list_space_id/rank` 是从 `cx.component.flow.position.v1` cell 派生的只读 view 字段，不是 Flow object 的 canonical truth；当 metadata 加密且服务端不可见时 `title` / `summary` MUST 省略或为 `null`。 |
 | `GET /api/v1/projection/morphs` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, morphs[], total, next_cursor?, has_more}`；`morphs[]` 行含 `morph_id, realm_id, morph_type, title?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
 | `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `ServiceDescribe`；directory resource / discovery capability 放入 `supported_features` / `limits` / 扩展字段。 |
 | `POST /api/v1/directory/search-realms` | body `{query?: string, organization_did?: did, source_realm_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?, has_more}` |
@@ -219,7 +219,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
-    "track": "discussion",
+    "track_name": "discussion",
     "content": { "kind": "cx.content.text", "body": "Sample message" }
   },
   "proofs": [
@@ -265,7 +265,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
-    "track": "discussion",
+    "track_name": "discussion",
     "content": { "kind": "cx.content.text", "body": "Reply" }
   },
   "proofs": [
@@ -468,7 +468,7 @@ POST /api/v1/events
       "op": {
         "kind": "set",
         "value": {
-          "fields.review_status": "approved"
+          "metadata.fields.review_status": "approved"
         }
       }
     }
@@ -476,7 +476,7 @@ POST /api/v1/events
   "anchor_ref": "cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
-    "patch": { "fields.review_status": "approved" }
+    "patch": { "metadata.fields.review_status": "approved" }
   },
   "proofs": [
     {

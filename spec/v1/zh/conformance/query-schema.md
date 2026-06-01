@@ -66,7 +66,7 @@ updated: 2026-05-25
 
 ```json
 {
-  "field": "fields.review_status",
+  "field": "metadata.fields.review_status",
   "op": "eq",
   "value": "in_review"
 }
@@ -130,7 +130,7 @@ Relation Query 字段：
 - `direction`: REQUIRED，`out` / `in` / `both`。
 - `source_ref`: OPTIONAL，限制 relation 起点对象、Actor 或 Realm。
 - `target_ref`: OPTIONAL，限制 relation 终点对象、Actor 或 Realm。
-- `source_type`: OPTIONAL，限制起点类型，例如 `flow`、`actor`、`realm`。业务分类应通过 Realm schema/profile、`fields`、Relation、labels 或 Morph type 表达；不要把 `card` / `room` 当作 canonical source type。
+- `source_type`: OPTIONAL，限制起点类型，例如 `flow`、`actor`、`realm`。业务分类应通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph type 表达；不要把 `card` / `room` 当作 canonical source type。
 - `target_type`: OPTIONAL，限制终点类型。
 - `depth`: OPTIONAL，关系展开深度；跨 Realm 规则见 `views.md` Lazy Link。
 
@@ -161,9 +161,9 @@ Flow synthesis 与 discussion 的 relation 查询必须遵守有效 access 授�
 [
   "id",
   "schema",
-  "title",
+  "metadata.title",
   "stage",
-  "fields.review_status"
+  "metadata.fields.review_status"
 ]
 ```
 

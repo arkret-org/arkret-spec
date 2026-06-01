@@ -121,14 +121,14 @@ profile: cx.profile.agent_sidecar_thread.v1
 }
 ```
 
-`context_ref` 是本 profile 定义的 polymorphic reference descriptor:它可以锚定 Flow、Message、Relation 或 profile-defined cursor 位置,不是单一具体 object id,所以使用 `_ref` 后缀。descriptor 内部字段仍按自身 value category 命名:`realm_id` / `flow_id` / `message_id` / `relation_id` 是具体 object IDs;`track` 是 FlowTrack key;若未来加入 cursor,字段名应使用 `cursor`,值为 `cx:cursor:<base64url>`。
+`context_ref` 是本 profile 定义的 polymorphic reference descriptor:它可以锚定 Flow、Message、Relation 或 profile-defined cursor 位置,不是单一具体 object id,所以使用 `_ref` 后缀。descriptor 内部字段仍按自身 value category 命名:`realm_id` / `flow_id` / `message_id` / `relation_id` 是具体 object IDs;`track_name` 是 FlowTrack key;若未来加入 cursor,字段名应使用 `cursor`,值为 `cx:cursor:<base64url>`。
 
 `context_ref.realm_id` REQUIRED。`context_ref` MUST 解析到唯一 target endpoint,且仅满足以下两种形态之一:
 
 - `relation_id`(单独);或
-- `flow_id`,可选附加 `track`,可选附加至多一个 terminal anchor(`message_id` 或 future `cursor`)。
+- `flow_id`,可选附加 `track_name`,可选附加至多一个 terminal anchor(`message_id` 或 future `cursor`)。
 
-若携带 `message_id`,该 Message MUST 属于 `flow_id`;`track` 只是上下文定位 / audit hint,不是独立 access scope。`normalized_context_ref` 是校验通过后的 `context_ref` canonical JSON form,用于幂等复用 key,不得包含未注册字段。
+若携带 `message_id`,该 Message MUST 属于 `flow_id`;`track_name` 只是上下文定位 / audit hint,不是独立 access scope。`normalized_context_ref` 是校验通过后的 `context_ref` canonical JSON form,用于幂等复用 key,不得包含未注册字段。
 
 `ensure` request 不携带目标内容复制字段。默认不复制目标 message body;任何 target content transfer 都必须通过后续显式、单独授权的 sidecar action 表达(见 §4.10)。
 
@@ -373,17 +373,25 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
 {
   "kind": "cx.flow.create",
   "payload": {
-    "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
-    "flow_id": "cx:flow:01970000-0000-7000-8000-000000000081",
-    "title": "Agent sidecar",
-    "tracks": {
-      "discussion": {
-        "enabled": true,
-        "is_primary": true,
-        "profile": "agent_sidecar"
-      }
-    },
-    "scope_circle_id": "cx:circle:01970000-0000-7000-8000-000000000080"
+    "object": {
+      "id": "cx:flow:01970000-0000-7000-8000-000000000081",
+      "schema": "cx.schema.flow.v1",
+      "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
+      "metadata": {
+        "title": "Agent sidecar"
+      },
+      "tracks": {
+        "discussion": {
+          "enabled": true,
+          "is_primary": true,
+          "profile": "agent_sidecar"
+        }
+      },
+      "scope_circle_id": "cx:circle:01970000-0000-7000-8000-000000000080",
+      "stage": "in_progress",
+      "created_by": "did:web:controller.example",
+      "created_at": "2026-04-26T00:00:00Z"
+    }
   }
 }
 ```
@@ -404,14 +412,14 @@ Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普�
     "from_ref": "cx:flow:01970000-0000-7000-8000-000000000081",
     "to_ref": "cx:message:01970000-0000-7000-8000-000000000071",
     "fields": {
-      "context_track": "discussion"
+      "context_track_name": "discussion"
     },
     "scope_circle_id": "cx:circle:01970000-0000-7000-8000-000000000080"
   }
 }
 ```
 
-`to_ref` 可以是目标 Flow、Message 或 Relation;若 `context_ref` 包含 `relation_id`,则 `to_ref` 指向该 Relation;若包含 `message_id`,则 `to_ref` 指向该 Message;若只给出 `flow_id`,则 `to_ref` 指向该 Flow。`fields.context_track` 是 sidecar-local audit hint。
+`to_ref` 可以是目标 Flow、Message 或 Relation;若 `context_ref` 包含 `relation_id`,则 `to_ref` 指向该 Relation;若包含 `message_id`,则 `to_ref` 指向该 Message;若只给出 `flow_id`,则 `to_ref` 指向该 Flow。`fields.context_track_name` 是 sidecar-local audit hint。
 
 不在 `fields` 中重复 `target_realm_id`:本 CXP §3.4 / §4.4 已经保证 sidecar Realm = context Realm,Relation 自身 `realm_id` 与 `to_ref` 解析出的 Realm 必然相等;重复字段只会诱导实现误把它当作跨 Realm hint。
 

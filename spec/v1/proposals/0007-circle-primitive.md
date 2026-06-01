@@ -179,8 +179,8 @@ Realm **不会**自动创建默认 Circle。Realm-default encryption scope 是 R
 
 | value | 明文允许范围 | 必须加密范围 |
 | --- | --- | --- |
-| `content_only` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow title / summary / fields、Space parent / rank 等结构 metadata | Message / Morph / Flow content、附件正文、明确标注 encrypted 的字段 |
-| `minimal_encrypted` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs | 用户可读 title / summary / fields、mention / reply excerpt、search token、关系预览、附件文件名 |
+| `content_only` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow / Message metadata、Space parent / rank 等结构 metadata | Message / Morph / Flow content、附件正文、明确标注 encrypted 的字段 |
+| `minimal_encrypted` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs、Flow `tracks`、`stage` / `state` | 用户可读 `metadata.title` / `metadata.summary` / `metadata.fields`、Message `metadata.fields`、mention / reply excerpt、search token、关系预览、附件文件名 |
 | `full_encrypted` | 仅 envelope routing stub、opaque refs、policy/audit 必需的不可逆 commitment | 绝大多数应用 metadata、可逆索引材料、展示标签、结构标题、关系摘要 |
 
 Effective metadata profile = max(parent Realm `metadata_encryption_profile`, Circle `metadata_encryption_floor` if present, Space `child_scope_policy.metadata_encryption_floor` if in placement context, object profile requirement)。比较顺序为 `content_only < minimal_encrypted < full_encrypted`;任何写入若低于 effective profile MUST `failed_precondition`(`reason="metadata_encryption_floor_violation"`)。
@@ -209,7 +209,7 @@ Reducer MUST 在 `cx.flow.create`、`cx.flow.move`、`cx.space.parent`、structu
 旧 `discussion_realm_ref` 服务的核心场景是"Flow 公开可见,但讨论只对小圈可见"。本提案下统一用 **两个 Flow + Relation** 表达,不再有 per-track 安全边界:
 
 ```
-Flow F_public  (scope_circle_id = null)              ← 公开 anchor Flow,承载 title/summary/stage/fields
+Flow F_public  (scope_circle_id = null)              ← 公开 anchor Flow,承载 metadata.title / metadata.summary / stage / metadata.fields
 Flow F_private (scope_circle_id = cx:circle:HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```

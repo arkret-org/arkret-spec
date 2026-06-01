@@ -44,7 +44,7 @@ updated: 2026-06-01
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `cx:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<uuid>`，不得写成局部别名如 `dev_a` 或 `a`。
-- `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Flow 等 canonical object 的显示名。
+- `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；Flow 的用户可读短摘要放在 `metadata.summary` 或 `encrypted_metadata`，不得作为顶层 `summary`。原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`；Flow 使用 `metadata.title` 或 `encrypted_metadata`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Flow 等 canonical object 的显示名。
 - Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），不得另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
 - `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；原始 DID ecosystem material 使用 `_did`。字段后缀表达 wire value category，不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
 - `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。Morph 的 `morph_type` 是 Realm schema-defined 的开放领域分类，不参与 reducer event routing，故使用 `type`；Relation/View 等协议 registry 分类使用 `kind`。MLS `proposal_type` 属于外部 MLS taxonomy，保留 `type`。Handle Claim 自身的封闭协议分类使用 `claim_kind`；authorization/VC selector 中选择外部 credential taxonomy 的字段可继续使用 `claim_type`。
@@ -126,7 +126,7 @@ expected_<role>_<kind>_id
 | `updated_at` | no | `timestamp` | MUST 不早于 `created_at`。 | 最近更新时间。 |
 | `deleted_at` | no | `timestamp` | durable tombstone 可用。 | 逻辑删除时间。 |
 | `state_changed_at` | conditional | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Flow / Space / Message / Morph / Relation）当 `state != active` 时 MUST 写入;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 anchor 的 `anchored_at`,以两者中较晚者为准)覆盖写入。MUST 不早于 `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
-| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时必填（v1 适用对象 = Flow / Morph，详见 §5.3）；取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
+| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时必填（v1 适用对象 = Flow / Morph，详见 §5.3）；取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Flow 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `cx.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST 不早于 `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
@@ -171,7 +171,7 @@ expected_<role>_<kind>_id
 | `stage` | Progress | — | — | Y | — | Y | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | R per `cx.flow.stage.set` | — | R per `cx.morph.stage.set` | — | — | — | — | — | — | — | — | — |
 | `labels` | Universal | O | O | O | O | O | O | O | — | O | — | — | — | — | O |
-| `fields` | Universal | O | O | O | — (see Message content blocks) | Y (主要载荷) | O | O | O | O | — | O | — | — | — (see `profile_fields`) |
+| `fields` / `metadata.fields` | Universal | O | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | O | O | O | — | O | — | — | — (see `profile_fields`) |
 
 附注：
 
@@ -181,7 +181,7 @@ expected_<role>_<kind>_id
 - 任何 `state != active` 的对象 MUST 写入 `state_changed_at`；该字段被 reducer 强制覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。
 - `stage_changed_at` 仅 Flow / Morph 适用，且仅当真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
 - `labels` 对 Policy / Capability Grant / Invite / Read Cursor / Notification 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
-- `fields` 是协作对象的扩展容器；Message 的扩展走 content blocks，不走 `fields`；Capability Grant / Read Cursor / Notification 不暴露开放扩展容器。
+- `fields` 是协作对象的扩展容器；Flow / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；Capability Grant / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 无 durable 终态**：v1 的 View 只有 `cx.view.create` / `cx.view.update` / `cx.view.reconcile`，`view.schema.json` 不含 `state` / `deleted_at`，registry 也无 `cx.view.tombstone`；故本表 View 的 `state` / `deleted_at` 为 "—"。共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。这是有意取舍，待未来若出现"可治理删除"的需求再单独引入 lifecycle event。
 
 ## 4. 主体引用字段交叉对照
@@ -255,7 +255,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` |
 | `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | — | `archived` | — | `archived` |
 | `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | `redacted` | `redacted` | `tombstoned`（合并 deleted+redacted） | — |
-| `deleted` | 不可逆删除：content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | — | — | `tombstoned` | `tombstoned` |
+| `deleted` | 不可逆删除：content / encrypted_content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | — | — | `tombstoned` | `tombstoned` |
 
 约定：
 

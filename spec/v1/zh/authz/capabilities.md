@@ -97,7 +97,7 @@ ID 语义：
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "fields_write_allow": ["title", "summary", "content", "fields.review_status"]
+      "fields_write_allow": ["metadata.title", "metadata.summary", "content", "metadata.fields.review_status"]
     }
   ],
   "proofs": [
@@ -140,7 +140,7 @@ Contrix v1 支持以下 `kind`：
 - `read_cursor`
 - `blob`
 
-资源选择器应把 Space（`kind=board/list/...`）、Flow track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
+资源选择器应把 Space（`kind=board/list/...`）、Flow track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
 
 ## 5. 动作集合
 

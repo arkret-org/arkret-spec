@@ -218,7 +218,7 @@
         "minimal_encrypted",
         "full_encrypted"
       ],
-      "description": "Realm-wide metadata encryption floor (models/circle.md §7). Comparison order content_only < minimal_encrypted < full_encrypted. Effective profile = max(parent Realm value, Circle metadata floor, Space child_scope_policy floor, object profile requirement); any write below the effective profile MUST failed_precondition (reason=metadata_encryption_floor_violation). MUST NOT be relaxed by Circle, Space, or object profile. Defaults to content_only when absent."
+      "description": "Realm-wide metadata encryption floor (models/circle.md §7). Comparison order content_only < minimal_encrypted < full_encrypted. Effective profile = max(parent Realm value, Circle metadata floor, Space child_scope_policy floor, object profile requirement); any write below the effective profile MUST failed_precondition (reason=metadata_encryption_floor_violation). MUST NOT be relaxed by Circle, Space, or object profile. When absent, reducers default to minimal_encrypted for mls_rfc9420 or content_encryption_floor=e2ee_required Realms, otherwise content_only."
     },
     "federation_policy": {
       "type": "string",

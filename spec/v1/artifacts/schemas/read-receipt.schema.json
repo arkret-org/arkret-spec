@@ -60,7 +60,7 @@
           "pattern": "^cx:(realm|flow|message|morph|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Required when kind is anything other than 'realm'. Thread read scopes reference the root message."
         },
-        "track": {
+        "track_name": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
           "description": "Required when kind='flow' and the receipt scopes a single track."
@@ -83,7 +83,7 @@
             "not": {
               "anyOf": [
                 { "required": ["ref"] },
-                { "required": ["track"] },
+                { "required": ["track_name"] },
                 { "required": ["track_scope"] }
               ]
             }
@@ -107,7 +107,7 @@
             },
             "oneOf": [
               {
-                "required": ["track"],
+                "required": ["track_name"],
                 "not": { "required": ["track_scope"] }
               },
               {
@@ -115,14 +115,14 @@
                 "properties": {
                   "track_scope": { "const": "all" }
                 },
-                "not": { "required": ["track"] }
+                "not": { "required": ["track_name"] }
               }
             ]
           },
           "else": {
             "not": {
               "anyOf": [
-                { "required": ["track"] },
+                { "required": ["track_name"] },
                 { "required": ["track_scope"] }
               ]
             }

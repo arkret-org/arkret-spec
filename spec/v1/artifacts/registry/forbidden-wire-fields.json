@@ -22,9 +22,54 @@
       "context": "timeline_event_top_level",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "track",
+      "replacement": "track_name",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Legacy Matrix-style 'branch' top-level field on timeline / Flow events is replaced by the v1 'track' concept (a display-only timeline segment identifier). See current-model 'Track 是纯展示 / 时间线分段标识'. The string 'branch' MUST NOT appear as a top-level Event Envelope or payload field name."
+    },
+    {
+      "id": "track",
+      "context": "flow_track_key_field",
+      "since_revision": "2026-06-01",
+      "rejection_level": "hard_reject",
+      "replacement": "track_name",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Wire fields that carry one concrete Flow.tracks map key use `track_name`. The plural `tracks` map and `allowed_tracks` capability constraint remain valid collection names."
+    },
+    {
+      "id": "encrypted_payload",
+      "context": "flow_or_message_content_carrier",
+      "since_revision": "2026-06-01",
+      "rejection_level": "hard_reject",
+      "replacement": "encrypted_content",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "When the plaintext counterpart is `content`, the encrypted counterpart is `encrypted_content`. Generic `encrypted_payload` remains valid for non-content carriers such as identity and reaction payloads."
+    },
+    {
+      "id": "title",
+      "context": "flow_payload_top_level",
+      "since_revision": "2026-06-01",
+      "rejection_level": "hard_reject",
+      "replacement": "metadata.title or encrypted_metadata",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Flow user-readable title is metadata. It MUST NOT be a top-level Flow wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
+    },
+    {
+      "id": "summary",
+      "context": "flow_payload_top_level",
+      "since_revision": "2026-06-01",
+      "rejection_level": "hard_reject",
+      "replacement": "metadata.summary or encrypted_metadata",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Flow user-readable summary is metadata. It MUST NOT be a top-level Flow wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
+    },
+    {
+      "id": "fields",
+      "context": "flow_or_message_payload_top_level",
+      "since_revision": "2026-06-01",
+      "rejection_level": "hard_reject",
+      "replacement": "metadata.fields or encrypted_metadata",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Extensible user metadata fields live under metadata.fields, or inside encrypted_metadata when the effective metadata profile requires encryption."
     },
     {
       "id": "room_kind",
@@ -207,58 +252,58 @@
       "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare cleartext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form (e.g. the sender_commitment HMAC profile in content-moderation.md §3.4.2)."
     },
     {
-      "id": "fields.stage",
+      "id": "metadata.fields.stage",
       "context": "flow_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Flow field)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow MUST carry stage at the top level (required field). The dual-source (top-level stage vs fields.stage) ambiguity is closed: writers MUST emit top-level stage only, and readers MUST reject fields.stage with schema_violation. Same constraint as fields.rank in relation_payload / space_payload. See zh/models/flow-and-message.md §3.2 and zh/models/common-fields.md §5.3."
+      "notes": "Flow MUST carry stage at the top level (required field). The dual-source (top-level stage vs metadata.fields.stage) ambiguity is closed: writers MUST emit top-level stage only, and readers MUST reject metadata.fields.stage with schema_violation. Same constraint as fields.rank in relation_payload / space_payload. See zh/models/flow-and-message.md §3.2 and zh/models/common-fields.md §5.3."
     },
     {
-      "id": "fields.stage_changed_at",
+      "id": "metadata.fields.stage_changed_at",
       "context": "flow_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage_changed_at (top-level Flow field, reducer-derived)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering cx.flow.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
+      "notes": "Flow stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering cx.flow.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
     },
     {
-      "id": "fields.stage_reason",
+      "id": "metadata.fields.stage_reason",
       "context": "flow_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "Message on the Flow's discussion track that references the cx.flow.stage.set event",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Reserved-name guard. Flow stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the cx.flow.stage.set payload, nor under fields.*. Human-readable rationale belongs in a Message on the Flow's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
+      "notes": "Reserved-name guard. Flow stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the cx.flow.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Flow's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
     },
     {
-      "id": "fields.stage_note",
+      "id": "metadata.fields.stage_note",
       "context": "flow_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "Message on the Flow's discussion track that references the cx.flow.stage.set event",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Reserved-name sister-guard for fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via fields.*. Same canonical channel: a Message on the discussion track that references the cx.flow.stage.set event."
+      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the cx.flow.stage.set event."
     },
     {
-      "id": "fields.lifecycle",
+      "id": "metadata.fields.lifecycle",
       "context": "flow_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Flow field) or state (physical lifecycle)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (cx.<kind>.archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a fields.* key on Flow. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5."
+      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (cx.<kind>.archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a metadata.fields.* key on Flow. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5."
     },
     {
-      "id": "fields.progress_state",
+      "id": "metadata.fields.progress_state",
       "context": "flow_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Flow field)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Reserved-name guard: 'progress_state' is a sister name for the stage concept and MUST NOT appear under fields.*. Implementations expressing business progression MUST use the canonical top-level 'stage' field."
+      "notes": "Reserved-name guard: 'progress_state' is a sister name for the stage concept and MUST NOT appear under metadata.fields.*. Implementations expressing business progression MUST use the canonical top-level 'stage' field."
     },
     {
       "id": "fields.stage",
@@ -744,7 +789,7 @@
       "rejection_level": "hard_reject",
       "replacement": "notification.realm_title / notification.flow_title",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or the Flow (flow_title); both remain forbidden in the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
+      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Flow metadata.title (flow_title); both remain forbidden in the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
     },
     {
       "id": "frank_only",

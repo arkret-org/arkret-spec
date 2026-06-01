@@ -13,6 +13,10 @@
     "state",
     "created_at"
   ],
+  "not": {
+    "required": ["track"],
+    "$comment": "Flow track keys use track_name on current wire."
+  },
   "properties": {
     "id": {
       "type": "string",
@@ -43,10 +47,10 @@
       "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional Flow context for routing the notification."
     },
-    "track": {
+    "track_name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Optional track on the source Flow."
+      "description": "Optional Flow track key on the source Flow."
     },
     "notification_type": {
       "type": "string",

@@ -263,7 +263,7 @@
           "read_scope": {
             "kind": "flow",
             "ref": "cx:flow:019a6aa0-3000-7000-8000-000000000000",
-            "track": "discussion"
+            "track_name": "discussion"
           },
           "position": {
             "event_id": "cx:event:019a6aa0-4000-7000-8000-000000000000",

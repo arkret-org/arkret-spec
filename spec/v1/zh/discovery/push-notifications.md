@@ -427,7 +427,7 @@ Matrix 互通部署 MAY 声明 `cx.profile.push_gateway.matrix_passthrough.v1` �
 
 ### 6.2 安全约束
 
-- Sync Service MUST NOT 在推送中包含 `encrypted_payload` 的任何部分
+- Sync Service MUST NOT 在推送中包含 `encrypted_content` / `encrypted_metadata` / `encrypted_payload` 的任何部分
 - `push_hint` 是发送方自愿提供的可选字段，接收方不应完全信任其内容
 - 推送网关应被视为不可信第三方，推送内容应尽量最小化
 

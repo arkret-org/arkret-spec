@@ -83,21 +83,21 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   ],
   "preconditions": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
-      "predicate": { "op": "head_eq", "value": { "fields.review_status": "in_review" } }
+      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "predicate": { "op": "head_eq", "value": { "metadata.fields.review_status": "in_review" } }
     }
   ],
   "effects": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "fields.review_status": "approved" } }
+      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved" } }
     }
   ],
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
-      "fields.review_status": "approved"
+      "metadata.fields.review_status": "approved"
     }
   },
   "proofs": [
@@ -244,8 +244,8 @@ reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、
 
 `cx.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
 
-- Message: `content`、`encrypted_payload`、`body`
-- Flow: `summary`、`encrypted_payload`、用户可写的长文本 fields
+- Message: `content`、`encrypted_content`、`body`
+- Flow: `metadata.summary`、`encrypted_content`、`encrypted_metadata`、用户可写的长文本 `metadata.fields`
 - Morph: `content`、`encrypted_payload`、`fields.<text-content-shape>` (由 morph profile 声明)
 - 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
@@ -264,13 +264,13 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 
 Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
 
-下面是一个 `cx.flow.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`fields.review_status` 标量字段）、对象形态 `set`（`fields.due_date`）、`unset`（`fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
+下面是一个 `cx.flow.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）、`unset`（`metadata.fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
 
 ```json schema=schemas/patch.schema.json expect=valid
 {
-  "fields.review_status": "approved",
-  "fields.due_date": { "$op": "set", "value": "2026-06-01" },
-  "fields.dropped_field": { "$op": "unset" },
+  "metadata.fields.review_status": "approved",
+  "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },
+  "metadata.fields.dropped_field": { "$op": "unset" },
   "labels.security": { "$op": "add", "value": "confidential" }
 }
 ```
@@ -292,23 +292,23 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   ],
   "preconditions": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
-      "predicate": { "op": "head_eq", "value": { "fields.review_status": "in_review" } }
+      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "predicate": { "op": "head_eq", "value": { "metadata.fields.review_status": "in_review" } }
     }
   ],
   "effects": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "fields.review_status": "approved", "fields.due_date": "2026-06-01", "labels.security": "confidential" } }
+      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved", "metadata.fields.due_date": "2026-06-01", "labels.security": "confidential" } }
     }
   ],
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
-      "fields.review_status": "approved",
-      "fields.due_date": { "$op": "set", "value": "2026-06-01" },
-      "fields.dropped_field": { "$op": "unset" },
+      "metadata.fields.review_status": "approved",
+      "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },
+      "metadata.fields.dropped_field": { "$op": "unset" },
       "labels.security": { "$op": "add", "value": "confidential" }
     }
   },

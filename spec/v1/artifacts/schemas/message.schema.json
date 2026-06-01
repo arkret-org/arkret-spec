@@ -8,11 +8,20 @@
     "schema",
     "realm_id",
     "flow_id",
-    "track",
+    "track_name",
     "state",
     "created_by",
     "created_at"
   ],
+  "not": {
+    "anyOf": [
+      { "required": ["metadata", "encrypted_metadata"] },
+      { "required": ["content", "encrypted_content"] },
+      { "required": ["encrypted_payload"], "$comment": "legacy encrypted content carrier; canonical name is encrypted_content" },
+      { "required": ["track"], "$comment": "legacy Flow track key; canonical name is track_name" },
+      { "required": ["fields"], "$comment": "legacy Message extension metadata; canonical path is metadata.fields or encrypted_metadata" }
+    ]
+  },
   "oneOf": [
     {
       "properties": {
@@ -27,13 +36,13 @@
           ],
           "not": {
             "required": [
-              "encrypted_payload"
+              "encrypted_content"
             ]
           }
         },
         {
           "required": [
-            "encrypted_payload"
+            "encrypted_content"
           ],
           "not": {
             "required": [
@@ -62,7 +71,7 @@
           },
           {
             "required": [
-              "encrypted_payload"
+              "encrypted_content"
             ]
           }
         ]
@@ -85,10 +94,10 @@
       "type": "string",
       "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "track": {
+    "track_name": {
       "type": "string",
       "const": "discussion",
-      "description": "Message timeline track. v1 Message objects are restricted to the Flow discussion track. Profiles that need another timeline kind MUST register a separate object/event profile instead of overloading Message.track."
+      "description": "Flow track key for this Message. v1 Message objects are restricted to the Flow discussion track. Profiles that need another timeline kind MUST register a separate object/event profile instead of overloading Message.track_name."
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
@@ -97,8 +106,16 @@
     "content": {
       "$ref": "#/$defs/content_block"
     },
-    "encrypted_payload": {
-      "$ref": "./encrypted-envelope.schema.json"
+    "encrypted_content": {
+      "$ref": "./encrypted-envelope.schema.json",
+      "description": "Encrypted envelope whose plaintext is the Message ContentBlock."
+    },
+    "metadata": {
+      "$ref": "#/$defs/message_metadata"
+    },
+    "encrypted_metadata": {
+      "$ref": "./encrypted-envelope.schema.json",
+      "description": "Encrypted envelope whose plaintext is a message_metadata object."
     },
     "state": {
       "type": "string",
@@ -124,39 +141,6 @@
       "type": "string",
       "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Required when state=redacted; references the cx.message.redact event that produced this state. MUST be absent for other states."
-    },
-    "fields": {
-      "type": "object",
-      "description": "Client metadata, reaction summaries, etc. MUST NOT contain revision_root, visible_state, redacted, edited_at or redaction_ref — those moved to top-level fields in v1.",
-      "not": {
-        "anyOf": [
-          {
-            "required": [
-              "revision_root"
-            ]
-          },
-          {
-            "required": [
-              "visible_state"
-            ]
-          },
-          {
-            "required": [
-              "redacted"
-            ]
-          },
-          {
-            "required": [
-              "edited_at"
-            ]
-          },
-          {
-            "required": [
-              "redaction_ref"
-            ]
-          }
-        ]
-      }
     },
     "created_by": {
       "$ref": "#/$defs/did"
@@ -282,6 +266,57 @@
           "then": { "required": ["parts"] }
         }
       ]
+    },
+    "message_metadata": {
+      "type": "object",
+      "description": "Extensible user-readable Message metadata. In MLS / E2EE realms this object is encrypted as encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
+      "properties": {
+        "fields": {
+          "$ref": "#/$defs/metadata_fields"
+        }
+      },
+      "not": {
+        "$comment": "Reducer-owned fields stay top-level and MUST NOT be mirrored inside metadata.",
+        "anyOf": [
+          { "required": ["id"] },
+          { "required": ["schema"] },
+          { "required": ["realm_id"] },
+          { "required": ["flow_id"] },
+          { "required": ["track"] },
+          { "required": ["track_name"] },
+          { "required": ["state"] },
+          { "required": ["state_changed_at"] },
+          { "required": ["revision_root"] },
+          { "required": ["edited_at"] },
+          { "required": ["redaction_ref"] },
+          { "required": ["created_by"] },
+          { "required": ["created_at"] },
+          { "required": ["updated_by"] },
+          { "required": ["updated_at"] },
+          { "required": ["content"] },
+          { "required": ["encrypted_content"] },
+          { "required": ["encrypted_payload"] }
+        ]
+      },
+      "additionalProperties": true
+    },
+    "metadata_fields": {
+      "type": "object",
+      "description": "Profile-defined Message metadata fields. Reducer-owned lifecycle and revision fields are forbidden here to avoid dual sources of truth.",
+      "not": {
+        "anyOf": [
+          { "required": ["revision_root"] },
+          { "required": ["visible_state"] },
+          { "required": ["redacted"] },
+          { "required": ["edited_at"] },
+          { "required": ["redaction_ref"] },
+          { "required": ["state"] },
+          { "required": ["state_changed_at"] },
+          { "required": ["track"] },
+          { "required": ["track_name"] }
+        ]
+      },
+      "additionalProperties": true
     },
     "did": {
       "type": "string",

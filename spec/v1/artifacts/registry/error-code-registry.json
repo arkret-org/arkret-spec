@@ -1504,7 +1504,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "A `cx.patch.v1` `$op=\"unset\"` was used on a redactable content field (e.g. message.content, flow.summary, encrypted_payload). Redaction MUST go through `cx.<kind>.redact` or `cx.redaction` events to enforce redaction-specific capability checks and audit. See zh/models/event-and-patch.md §4.2.4."
+      "description": "A `cx.patch.v1` `$op=\"unset\"` was used on a redactable content field (e.g. message.content, flow.metadata.summary, encrypted_content / encrypted_metadata). Redaction MUST go through `cx.<kind>.redact` or `cx.redaction` events to enforce redaction-specific capability checks and audit. See zh/models/event-and-patch.md §4.2.4."
     },
     {
       "code": "patch_selector_no_match",

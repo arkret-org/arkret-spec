@@ -770,7 +770,7 @@ Authorization: <service_signature>
 
 ### 8.4 元数据泄露防护
 
-在联邦推送 E2EE Realm 的 Event 时，密文信封 `encrypted_payload` 对联邦中间节点同样不可见。联邦协议传输的只有明文路由元数据和不透明的密文块。
+在联邦推送 E2EE Realm 的 Event 时，密文信封 `encrypted_content` / `encrypted_metadata`（以及非 content surface 的 `encrypted_payload`）对联邦中间节点同样不可见。联邦协议传输的只有明文路由元数据和不透明的密文块。
 
 ### 8.5 重放与异常模式防护
 

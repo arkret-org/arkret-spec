@@ -354,21 +354,21 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
   ],
   "preconditions": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
-      "predicate": { "op": "head_eq", "value": { "fields.status": "in_progress" } }
+      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "predicate": { "op": "head_eq", "value": { "metadata.fields.status": "in_progress" } }
     }
   ],
   "effects": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "fields.status": "review" } }
+      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "set", "value": { "metadata.fields.status": "review" } }
     }
   ],
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
-      "fields.status": "review"
+      "metadata.fields.status": "review"
     }
   },
   "proofs": [
@@ -936,9 +936,9 @@ Reducer 输出：
 
 例如：
 
-- `flow.title`
-- `flow.fields.status`
-- `flow.summary`
+- `flow.metadata.title`
+- `flow.metadata.fields.status`
+- `flow.metadata.summary`
 - `morph.fields.severity`
 
 建议使用基于 deterministic event order 的 LWW。

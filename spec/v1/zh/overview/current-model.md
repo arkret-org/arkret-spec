@@ -23,7 +23,7 @@ Contrix 不是把某个产品的对象名搬进协议，而是把常见协作产
 | 聊天群、WeChat 群、频道 | `Realm` 提供成员与历史边界；一个或多个 `Flow(tracks.discussion)` 承载对话 | `Message` 本身不是房间；`discussion` track 也不是独立 ACL。 |
 | Matrix Room | 通常拆为 `Realm`（room state / membership / history 边界）+ `Flow/Message`（协作主题与消息）+ `View`（timeline / thread 投影） | v1 core 不使用 `Room` 作为通用对象根。 |
 | Trello Board / List / Card | `Space(kind=board)` / `Space(kind=list)` / `Flow`，位置由 `cx.flow.move` 与派生 `contains` Relation 表达 | View renderer 不是对象真相；拖拽不能只改 View。 |
-| Jira issue / workflow status / issue links | `Flow` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`，也不应塞进 `fields.status` 作为互操作真相。 |
+| Jira issue / workflow status / issue links | `Flow` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`，也不应塞进 `metadata.fields.status` 作为互操作真相。 |
 | Watchers、订阅、勿扰 | `cx.flow.watch.set` cell + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
 | 小程序 / Bot / 集成服务 | Applet、Agent、Ghost Actor、Morph / Relation 扩展 | 安装一个客户端或插件不等于创建 protocol principal。 |
 
@@ -34,9 +34,9 @@ Contrix 不是把某个产品的对象名搬进协议，而是把常见协作产
 - `tracks` 的 key：定义 Flow 当前启用的能力轨道（key 是 track 稳定名）
 - `tracks.<name>.is_primary=true`：可显式定义默认主入口；若未显式设置且存在 key `synthesis`，默认主入口派生为 `synthesis`
 - `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，必填）= 业务进度。两者正交，分别由 `cx.flow.archive` 家族与 `cx.flow.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
-- 业务语义通过 Realm schema/profile、`fields`、Relation、labels、Morph type 或 facet 表达
+- 业务语义通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达
 
-Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review、Ready for release）不是新的协议字段。跨实现互操作只依赖 `stage` 的 8 个粗粒度值；细粒度状态应由 Realm workflow profile、`fields` 或 Morph schema 声明，并映射回 `stage` 以便跨 Realm dashboard 聚合。
+Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review、Ready for release）不是新的协议字段。跨实现互操作只依赖 `stage` 的 8 个粗粒度值；细粒度状态应由 Realm workflow profile、`metadata.fields` 或 Morph schema 声明，并映射回 `stage` 以便跨 Realm dashboard 聚合。
 
 ## 3. Flow 的标准 Track
 
@@ -99,7 +99,7 @@ Agent 的标准落点为：
 - `Message`：discussion 中的即时沟通或补充结论
 - `Morph` / `Blob`：长报告、代码包、外部 transcript 或二进制成果
 
-推荐做法是先将 agent 结果沉淀到带有明确 Realm schema/profile 或业务 `fields` 的 Flow，再按需要附加 Message / Morph / Blob 引用。
+推荐做法是先将 agent 结果沉淀到带有明确 Realm schema/profile 或业务 `metadata.fields` 的 Flow，再按需要附加 Message / Morph / Blob 引用。
 
 ## 9. 统一读法
 

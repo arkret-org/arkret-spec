@@ -38,8 +38,14 @@
           "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" },
-          { "item_type": "user_signing_key", "secret_id": "user_signing_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          },
+          {
+            "item_type": "user_signing_key",
+            "secret_id": "user_signing_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -102,8 +108,14 @@
           "key_commitment": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" },
-          { "item_type": "user_signing_key", "secret_id": "user_signing_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          },
+          {
+            "item_type": "user_signing_key",
+            "secret_id": "user_signing_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
@@ -161,7 +173,10 @@
           }
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -217,7 +232,10 @@
           }
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -273,7 +291,10 @@
           }
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -330,7 +351,10 @@
           }
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -386,7 +410,10 @@
           }
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -443,7 +470,10 @@
           }
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
@@ -501,8 +531,14 @@
           }
         },
         "contents": [
-          { "item_type": "self_signing_key", "secret_id": "self_signing_key" },
-          { "item_type": "mls_group_secrets_backup_key", "secret_id": "mls_group_secrets_backup_key" }
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key"
+          },
+          {
+            "item_type": "mls_group_secrets_backup_key",
+            "secret_id": "mls_group_secrets_backup_key"
+          }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",

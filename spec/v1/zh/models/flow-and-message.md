@@ -37,7 +37,7 @@ Flow 适合：
 - 外部资产或业务对象的协作锚点
 - 会话主导的协作线程
 
-Flow 不再定义额外的顶层模式或分类字段；默认入口由 track primary 解析规则决定，业务语义由 Realm schema、profile、`fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Realm schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
+Flow 不再定义额外的顶层模式或分类字段；默认入口由 track primary 解析规则决定，业务语义由 Realm schema、profile、`metadata.fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
 
 ## 3. Flow Schema 与字段
 
@@ -47,16 +47,15 @@ Schema id: `cx.schema.flow.v1`
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:flow` | 以 `cx:flow:` 开头。 | Flow ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `title` | yes | `string` | 1..512 chars。 | 标题。 |
-| `summary` | no | `string` | SHOULD <= 2048 chars。 | 一句话/一段话简介。 |
+| `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Flow metadata；MLS / E2EE 下按 `metadata_encryption_profile` 决定是否必须放入 `encrypted_metadata`。 |
+| `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Flow metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
-| `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
+| `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的 effective scope（含所有 track）。未设置时 Flow 落在 Realm-default scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
-| `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`cx.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`cx.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。**Flow 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Flow 的 `cx.redaction` 表达，见 [common-fields.md §5.1](./common-fields.md)。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | **yes** | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `cx.flow.create` 时 actor 必填（无默认值）。语义与转换规则见 [common-fields.md §5.3](./common-fields.md)。变更只能通过 `cx.flow.stage.set`（详见 §3.2）；`cx.flow.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `cx.flow.stage.set` event。 | 业务进度阶段（与 `state` 正交）。 |
+| `stage` | **yes** | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `cx.flow.create` 时 actor 必填（无默认值）。语义与转换规则见 [common-fields.md §5.3](./common-fields.md)。变更只能通过 `cx.flow.stage.set`（详见 §3.2）；`cx.flow.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `cx.flow.stage.set` event。 | 业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -70,18 +69,20 @@ Schema id: `cx.schema.flow.v1`
   "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
   "schema": "cx.schema.flow.v1",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "title": "支付重构",
-  "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
+  "metadata": {
+    "title": "支付重构",
+    "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
+    "fields": {
+      "status": "review",
+      "priority": "high",
+      "due_at": "2026-05-01T00:00:00Z"
+    }
+  },
   "content": {
     "kind": "cx.content.text",
     "body": "Please finish the final review.",
     "format": "markdown",
     "formatted_body": "Please finish the final review."
-  },
-  "fields": {
-    "status": "review",
-    "priority": "high",
-    "due_at": "2026-05-01T00:00:00Z"
   },
   "tracks": {
     "synthesis": { "is_primary": true },
@@ -135,7 +136,7 @@ Schema id: `cx.schema.flow.v1`
 - 该 Message 受 `discussion` track 的权限、E2EE、redaction、editing 规则约束（与所有其他讨论同级），可以被引用、回应、撤回。
 - 审计归属由 `cx.flow.stage.set` event 自身的 `actor_id` / `created_at` 提供——事件日志就是真源，不需要在对象上再开一个 256-char 黑盒字段。
 
-**Capability**：`cx.flow.stage.set`（low risk_tier）—— 允许把推进 Flow 进度的权限授予 reporter / assignee / participant，而不必给完整 `cx.flow.update`（后者可改 title / content / fields）。
+**Capability**：`cx.flow.stage.set`（low risk_tier）—— 允许把推进 Flow 进度的权限授予 reporter / assignee / participant，而不必给完整 `cx.flow.update`（后者可改 metadata / content）。
 
 **Reducer 硬约束**（来自 [common-fields.md §5.3.3](./common-fields.md)）：
 
@@ -144,11 +145,11 @@ Schema id: `cx.schema.flow.v1`
 3. `stage_changed_at` reducer-derived，忽略 wire 上 actor-supplied 值
 4. same-value self-transition → reducer 接受但不更新 `stage_changed_at`、不产生审计变更
 5. `cx.flow.update` patch path 出现 `stage` / `stage_changed_at` → `schema_violation`
-6. `flow.fields.stage` / `flow.fields.stage_reason` / `flow.fields.lifecycle` / `flow.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
+6. `flow.metadata.fields.stage` / `flow.metadata.fields.stage_reason` / `flow.metadata.fields.lifecycle` / `flow.metadata.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
 
 **与 workflow profile 的关系**：未启用自定义 workflow 时，actor 直接调用 `cx.flow.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— stage 始终是 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
 
-**与 `fields.status` 的关系**：`fields.status` 是自由扩展字段（profile 自管），可与 `stage` 共存表达 fine-grained 业务子状态；但 stage 本身**不允许**藏在 `fields` 下。
+**与 `metadata.fields.status` 的关系**：`metadata.fields.status` 是自由扩展字段（profile 自管），可与 `stage` 共存表达 fine-grained 业务子状态；但 stage 本身**不允许**藏在 `metadata.fields` 下。
 
 ## 4. Tracks 模型
 
@@ -170,7 +171,7 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 | `is_primary` | no | `boolean` | 同一 Flow 至多一个 track 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
 | `profile` | no | `string` | 由 Realm schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | track 交互 profile（pure UI hint）。 |
 | `template` | no | `string` | track profile 可声明结构模板。 | 模板引用。 |
-| `fields` | no | `object` |  | track-local 扩展字段（pure UI hint，不影响访问）。 |
+| `metadata` | no | `object` |  | track-local UI metadata（pure UI hint，不影响访问）。 |
 
 ### 4.2 `synthesis` track
 
@@ -178,14 +179,14 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 
 适合放入：
 
-- `title`
-- `summary`
+- `metadata.title`
+- `metadata.summary`
 - `content`
-- `fields`
+- `metadata.fields`
 - 状态推进字段
 - 结构化业务字段
 
-`content` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `fields`，不要把可归约状态只藏在富文本正文中。
+`content` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `metadata.fields`，不要把可归约状态只藏在富文本正文中。
 
 `synthesis` 是可选 track：`tracks` map 不要求声明它。「只聊天不归纳」的 Flow（仅 `discussion`）是合法形态，见 §9.4 与 [`overview/current-model.md` §3](../overview/current-model.md)。若 Flow 同时声明了 `synthesis` 与 `discussion` 且未显式标 primary，`synthesis` 按 §4.5 第 2 条派生为 primary。关闭已存在的 `synthesis` track 与关闭任何 track 同形：在 `cx.flow.tracks.update` 同一 patch 中写 `tracks.synthesis.enabled: set false`；若当前 primary 是 `synthesis`，同一 patch 必须把 primary 转给另一个 active track（§4.6 / §4.7 / §4.8）。
 
@@ -197,7 +198,7 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 
 - Message timeline
 - timeline / notification profile
-- 讨论相关 track-local UI hint fields
+- 讨论相关 track-local UI metadata
 
 `profile` 初版建议支持：
 
@@ -246,7 +247,7 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 
 - 转换不改变 `flow_id`。
 - 转换不复制或迁移消息历史。
-- 切换到 `track="discussion"` 时，若 `discussion` track 尚不存在，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`；写入仅含 `is_primary` 而 track 未 enabled 时 MUST `failed_precondition`，不得隐式创建 track。
+- 切换到 `discussion` track 时，若 `discussion` track 尚不存在，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`；写入仅含 `is_primary` 而 track 未 enabled 时 MUST `failed_precondition`，不得隐式创建 track。
 - 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须在同一或后续 `cx.flow.tracks.update` patch 中显式 `tracks.discussion.enabled: set false`（或按 profile 声明的 archive 语义）。
 - 转换不自动移除 Board Space / List Space 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
 - `cx.flow.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 Circle 或修改 Flow 的 `scope_circle_id`；Circle 的生命周期由独立 `cx.circle.*` event 管理（见 [`circle.md`](./circle.md)），Flow 的 scope 改绑默认禁止。
@@ -259,7 +260,7 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 
 ### 4.8 Track 写入: `cx.flow.tracks.update`
 
-Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名称用复数 `tracks`),通过 `cx.patch.v1` 表达对 `Flow.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / fields 都走同一条 event。
+Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名称用复数 `tracks`),通过 `cx.patch.v1` 表达对 `Flow.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / metadata 都走同一条 event。
 
 **典型 patch 示例**:
 
@@ -344,7 +345,7 @@ flowchart LR
 - Flow identity 只保存一份，resolved primary track 只决定默认视角，不创建新的对象副本。
 - `tracks` 是 map，key 唯一性由结构保证；至多一个 active track MAY 设置 `is_primary=true`。
 - 多个显式 primary MUST 被 reducer 拒绝。
-- `synthesis` track 与 `discussion` track 共享同一标题和基础字段；track 不存在独立 access 域。
+- `synthesis` track 与 `discussion` track 共享同一 `metadata`、`content` 和基础 reducer 字段；track 不存在独立 access 域。
 - `synthesis` track 字段级限制使用 capability constraints；不为 `synthesis` 单独创建成员表或 access 域。
 - `is_primary` 只是默认入口标记，不授予读取、写入或管理权限。
 
@@ -373,7 +374,7 @@ Watch 是个人通知订阅模型：actor 声明自己对某个 Flow（或 profi
 
 Wire 形态：`cx.flow.watch.set` durable event 写入下文 §8.3 描述的 cas_register cell（cell 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> flow`，见 [relation.md §3](./relation.md)）供查询，但 **`cx.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Flow position 派生 `contains` Relation 的双源约束同模式。
 
-在 Flow 顶层或 `fields` 中携带 `participants` / `watchers` 列表等价物 MUST 被 reducer 拒绝（`schema_violation`），避免与 watch cell 双源并存。
+在 Flow 顶层或 `metadata.fields` 中携带 `participants` / `watchers` 列表等价物 MUST 被 reducer 拒绝（`schema_violation`），避免与 watch cell 双源并存。
 
 ### 8.2 Watch 级别枚举
 
@@ -518,7 +519,7 @@ Message 是 Flow `discussion` track 时间线中的原子消息对象。
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。E2EE 消息使用 `payload.encrypted_payload` 承载同一 Content Block 的 canonical encrypted envelope；`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。
+未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。E2EE 消息使用 `payload.encrypted_content` 承载同一 Content Block 的 canonical encrypted envelope；`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`，不再使用顶层 `fields`。
 
 Message MAY reply to another Message, mention Actor or object, reference Flow / Morph / Realm, or be redacted.
 
@@ -531,22 +532,23 @@ Schema id: `cx.schema.message.v1`
 | `id` | yes | `id:message` | 以 `cx:message:` 开头。 | Message ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
-| `track` | yes | `const("discussion")` | v1 Message 只属于目标 Flow 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track 扩展出第二类消息时间线。 | 所属 Flow 轨道。 |
+| `track_name` | yes | `const("discussion")` | v1 Message 只属于目标 Flow 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track_name 扩展出第二类消息时间线。 | 所属 Flow track key。 |
 | `content` | conditional | `object` | 富文本/parts 见 `content-types.md`；`state=active` 且未加密时必填。 | 消息正文。 |
-| `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
-| `state` | yes | `enum(active, redacted)` | 默认 `active`。`redacted` 由 `cx.message.redact` reducer 设置（content / encrypted_payload 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段，不再用 `fields.visible_state` 表达可见性。 | 消息生命周期状态。 |
+| `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
+| `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_profile` 决定是否必须放入 `encrypted_metadata`。 |
+| `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Message metadata object。 | E2EE 场景下包裹 Message metadata。 |
+| `state` | yes | `enum(active, redacted)` | 默认 `active`。`redacted` 由 `cx.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段，不再用 `metadata.fields.visible_state` 表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `revision_root` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root` 下的 revision 形成有序 chain，由 `cx.message.revise` reducer 维护。**`cx.message.create` 的 payload MUST NOT 携带 `revision_root` 字段**（即使值与 `id` 相同）——首次创建时 reducer 自行初始化 `revision_root = id`；只有 `cx.message.revise` 与后续 revise event 才允许携带 `revision_root`，且其值 MUST 等于 chain 起点 message 的 `id`。create payload 出现 `revision_root` MUST 触发 `schema_violation`（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | revision chain 起点（顶层 schema-validated）。 |
 | `edited_at` | no | `timestamp` | revision chain 中 latest revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST 不早于 `created_at`。 | 最近一次编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `cx.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
 | `attachments` | no | `array` | 按 profile 声明，通常通过 Relation `attached_to` 表达。 | 附件 hint。 |
-| `fields` | no | `object` | 客户端 metadata、reaction summary 等扩展字段；不再承载 revision / visibility 状态。 | 扩展字段。 |
 | `created_by` | yes | `did` |  | 发送者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-> `revision_root` / `visible_state` 字段位于对象顶层，**不**藏在 `fields` 黑盒中。`state` 顶层枚举表达对象生命周期状态。`fields.revision_root` / `fields.visible_state` / `fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
+> `revision_root` / `visible_state` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中。`state` 顶层枚举表达对象生命周期状态。`metadata.fields.revision_root` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 
 ### 9.3 最小示例
 
@@ -556,7 +558,7 @@ Schema id: `cx.schema.message.v1`
   "schema": "cx.schema.message.v1",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
-  "track": "discussion",
+  "track_name": "discussion",
   "created_by": "did:web:alice.example",
   "content": {
     "kind": "cx.content.text",
@@ -585,7 +587,9 @@ Schema id: `cx.schema.message.v1`
         "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
         "schema": "cx.schema.flow.v1",
         "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-        "title": "项目同步",
+        "metadata": {
+          "title": "项目同步"
+        },
         "tracks": {
           "discussion": { "is_primary": true }
         },
@@ -599,7 +603,7 @@ Schema id: `cx.schema.message.v1`
     "kind": "cx.message.create",
     "payload": {
       "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
-      "track": "discussion",
+      "track_name": "discussion",
       "content": {
         "kind": "cx.content.text",
         "body": "@bob 请确认这个 flow 的 legal 风险。",

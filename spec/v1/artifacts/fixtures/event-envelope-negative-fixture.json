@@ -47,8 +47,12 @@
             "cx:event:019a6aa0-0000-7000-8000-000000000000"
           ],
           "refs": [
-          { "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269", "role": "authorized_by", "critical": true }
-        ],
+            {
+              "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
           "payload": {
             "flow_id": "cx:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
@@ -92,8 +96,12 @@
             "cx:event:019a6ab0-0000-7000-8000-000000000000"
           ],
           "refs": [
-          { "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269", "role": "authorized_by", "critical": true }
-        ],
+            {
+              "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
           "payload": {
             "flow_id": "cx:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
@@ -140,8 +148,12 @@
             "cx:event:019a6af0-0000-7000-8000-000000000000"
           ],
           "refs": [
-          { "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269", "role": "authorized_by", "critical": true }
-        ],
+            {
+              "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
           "payload": {
             "flow_id": "cx:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
@@ -301,8 +313,12 @@
             "cx:event:019a6c10-0000-7000-8000-000000000080"
           ],
           "refs": [
-          { "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269", "role": "authorized_by", "critical": true }
-        ],
+            {
+              "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
           "payload": {
             "flow_id": "cx:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
@@ -364,8 +380,12 @@
             "cx:event:019a6bd0-0000-7000-8000-000000000000"
           ],
           "refs": [
-          { "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269", "role": "authorized_by", "critical": true }
-        ],
+            {
+              "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
           "payload": {
             "flow_id": "cx:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
@@ -416,8 +436,12 @@
             "cx:event:019a6ae0-0000-7000-8000-000000000000"
           ],
           "refs": [
-          { "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269", "role": "authorized_by", "critical": true }
-        ],
+            {
+              "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
           "payload": {
             "event_id": "cx:event:019a6aa0-0000-7000-8000-000000000000"
           },
@@ -446,8 +470,12 @@
             "cx:event:019a6ae0-0000-7000-8000-000000000000"
           ],
           "refs": [
-          { "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269", "role": "authorized_by", "critical": true }
-        ],
+            {
+              "id": "cx:event:5139099c-b114-7e4c-8149-a8048971a269",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
           "payload": {
             "flow_id": "cx:flow:019a7140-0000-7000-8000-000000000000",
             "typing": true

@@ -7,7 +7,6 @@
     "id",
     "schema",
     "realm_id",
-    "title",
     "tracks",
     "stage",
     "created_by",
@@ -16,7 +15,12 @@
   "not": {
     "anyOf": [
       { "required": ["body"], "$comment": "legacy Flow top-level field; canonical name is content" },
-      { "required": ["content", "encrypted_payload"] }
+      { "required": ["title"], "$comment": "legacy Flow top-level metadata; canonical path is metadata.title or encrypted_metadata" },
+      { "required": ["summary"], "$comment": "legacy Flow top-level metadata; canonical path is metadata.summary or encrypted_metadata" },
+      { "required": ["fields"], "$comment": "legacy Flow top-level extension metadata; canonical path is metadata.fields or encrypted_metadata" },
+      { "required": ["encrypted_payload"], "$comment": "legacy encrypted content carrier; canonical name is encrypted_content" },
+      { "required": ["content", "encrypted_content"] },
+      { "required": ["metadata", "encrypted_metadata"] }
     ]
   },
   "properties": {
@@ -31,23 +35,19 @@
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "title": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 512
+    "metadata": {
+      "$ref": "#/$defs/flow_metadata"
     },
-    "summary": {
-      "type": "string",
-      "maxLength": 2048
+    "encrypted_metadata": {
+      "$ref": "./encrypted-envelope.schema.json",
+      "description": "Encrypted envelope whose plaintext is a flow_metadata object. Required instead of plaintext metadata when the effective metadata_encryption_profile is minimal_encrypted or stronger."
     },
     "content": {
       "$ref": "#/$defs/content_block"
     },
-    "encrypted_payload": {
-      "$ref": "./encrypted-envelope.schema.json"
-    },
-    "fields": {
-      "type": "object"
+    "encrypted_content": {
+      "$ref": "./encrypted-envelope.schema.json",
+      "description": "Encrypted envelope whose plaintext is a ContentBlock for Flow synthesis content."
     },
     "state": {
       "type": "string",
@@ -193,6 +193,65 @@
         }
       ]
     },
+    "flow_metadata": {
+      "type": "object",
+      "description": "Extensible user-readable Flow metadata. In MLS / E2EE realms this object is encrypted as encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "fields": {
+          "$ref": "#/$defs/metadata_fields"
+        }
+      },
+      "not": {
+        "$comment": "Reducer-owned fields stay top-level and MUST NOT be mirrored inside metadata.",
+        "anyOf": [
+          { "required": ["id"] },
+          { "required": ["schema"] },
+          { "required": ["realm_id"] },
+          { "required": ["stage"] },
+          { "required": ["stage_changed_at"] },
+          { "required": ["state"] },
+          { "required": ["state_changed_at"] },
+          { "required": ["tracks"] },
+          { "required": ["scope_circle_id"] },
+          { "required": ["created_by"] },
+          { "required": ["created_at"] },
+          { "required": ["updated_by"] },
+          { "required": ["updated_at"] },
+          { "required": ["content"] },
+          { "required": ["encrypted_content"] },
+          { "required": ["encrypted_payload"] }
+        ]
+      },
+      "additionalProperties": true
+    },
+    "metadata_fields": {
+      "type": "object",
+      "description": "Profile-defined Flow metadata fields. Reducer-owned fields are forbidden here to avoid dual sources of truth.",
+      "not": {
+        "anyOf": [
+          { "required": ["stage"] },
+          { "required": ["stage_changed_at"] },
+          { "required": ["stage_reason"] },
+          { "required": ["stage_note"] },
+          { "required": ["lifecycle"] },
+          { "required": ["progress_state"] },
+          { "required": ["state"] },
+          { "required": ["state_changed_at"] },
+          { "required": ["tracks"] },
+          { "required": ["scope_circle_id"] }
+        ]
+      },
+      "additionalProperties": true
+    },
     "track_name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$"
@@ -216,9 +275,15 @@
         "template": {
           "type": "string"
         },
-        "fields": {
-          "type": "object"
+        "metadata": {
+          "type": "object",
+          "description": "Track-local UI metadata. It does not create membership, history visibility, or E2EE scope.",
+          "additionalProperties": true
         }
+      },
+      "not": {
+        "required": ["fields"],
+        "$comment": "Legacy track-local extension field; canonical name is metadata."
       },
       "additionalProperties": false
     },

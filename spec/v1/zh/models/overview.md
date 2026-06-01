@@ -147,7 +147,7 @@ Space 层级通过 Space 自己的 `parent_space_id` + `cx.space.parent` 表达�
 
 标准对象本身表达主语义：
 
-- `flow`：统一协作主对象。它承载 `title` / `summary` / `content` 等基础字段，并通过 track primary 解析规则决定默认进入哪个 track。
+- `flow`：统一协作主对象。它承载 `metadata.title` / `metadata.summary` / `content` 等基础字段，并通过 track primary 解析规则决定默认进入哪个 track。
 - `message`：Flow `discussion` track 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
 - `space`：Realm 内部的结构容器（`kind=board` / `kind=list` / 其他 profile 注册的形态）。

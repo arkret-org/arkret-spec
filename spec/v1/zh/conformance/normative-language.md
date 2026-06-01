@@ -50,7 +50,7 @@ see_also:
 
 ## 7. 命名约定：单复数
 
-Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs`、`proofs`、`schema_refs`、`prev_refs`、`owning_organizations`）；单值 scalar 字段使用单数（`track`、`actor_id`、`realm_id`、`schema`）。
+Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs`、`proofs`、`schema_refs`、`prev_refs`、`owning_organizations`）；单值 scalar 字段使用单数，并显式标明 value category（例如 `track_name`、`actor_id`、`realm_id`、`schema`）。
 
 - 复数 ↔ 单数不互改；现有字段保留既定形态（即使个别历史命名看起来与本规则不完全对齐，也不在 v1 内改名）。
 - 新增 wire 字段 MUST 按 cardinality 选用单 / 复数形式；不得使用 `*_list` / `*_array` / `*_set` 后缀替代复数。

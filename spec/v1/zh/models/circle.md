@@ -182,7 +182,7 @@ Realm **不会**自动创建默认 Circle。Realm-default scope 是 Realm 自身
 | policy field | enum | 说明 |
 | --- | --- | --- |
 | `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | 取值为 `e2ee_required` 时,Flow / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed:Realm-default MLS 或 Circle MLS；这些写入不得落在 plaintext Circle。 |
-| `metadata_encryption_profile` | `content_only` / `minimal_encrypted` / `full_encrypted` | Realm-wide metadata 加密下限；不得被 Circle、Space 或对象 profile 放宽。 |
+| `metadata_encryption_profile` | `content_only` / `minimal_encrypted` / `full_encrypted` | Realm-wide metadata 加密下限；不得被 Circle、Space 或对象 profile 放宽。缺省规则：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `minimal_encrypted`，其他 Realm 为 `content_only`。 |
 
 Circle encryption compatibility rules:
 
@@ -196,8 +196,8 @@ Circle encryption compatibility rules:
 
 | value | 明文允许范围 | 必须加密范围 |
 | --- | --- | --- |
-| `content_only` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow title / summary / fields、Space parent / rank 等结构 metadata | Message / Morph / Flow content、附件正文、明确标注 encrypted 的字段 |
-| `minimal_encrypted` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs | 用户可读 title / summary / fields、mention / reply excerpt、search token、关系预览、附件文件名 |
+| `content_only` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow / Message metadata、Space parent / rank 等结构 metadata | Message / Morph / Flow content、附件正文、明确标注 encrypted 的字段 |
+| `minimal_encrypted` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs、Flow `tracks`、`stage` / `state` | 用户可读 `metadata.title` / `metadata.summary` / `metadata.fields`、Message `metadata.fields`、mention / reply excerpt、search token、关系预览、附件文件名 |
 | `full_encrypted` | 仅 envelope routing stub、opaque refs、policy/audit 必需的不可逆 commitment | 绝大多数应用 metadata、可逆索引材料、展示标签、结构标题、关系摘要 |
 
 Effective metadata profile = max(parent Realm `metadata_encryption_profile`, Circle `metadata_encryption_floor` if present, Space `child_scope_policy.metadata_encryption_floor` if in placement context, object profile requirement)。比较顺序为 `content_only < minimal_encrypted < full_encrypted`;任何写入若低于 effective profile MUST `failed_precondition`(`reason=metadata_encryption_floor_violation`)。
@@ -226,7 +226,7 @@ Reducer MUST 在 `cx.flow.create`、`cx.flow.move`、`cx.space.parent`、structu
 需要"公开锚 + 私密讨论"组合时,MUST 用 **两个 Flow + Relation** 表达;Flow 永远单一 scope,不存在 per-track 安全边界:
 
 ```
-Flow F_public  (scope_circle_id = null)              ← 公开 anchor Flow,承载 title/summary/stage/fields
+Flow F_public  (scope_circle_id = null)              ← 公开 anchor Flow,承载 metadata.title / metadata.summary / stage / metadata.fields
 Flow F_private (scope_circle_id = cx:circle:0196419c-0000-7000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
@@ -319,7 +319,7 @@ Membership transition table:
 - `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group,独立 epoch,独立 key tree。**禁止**从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
 - Realm 移除某 actor MUST 触发该 actor 所在所有 Circle 的 membership cascade；对 MLS-backed Circle 还 MUST 触发对应 MLS `remove` proposal,并在 Realm-default 也是 MLS-backed 时触发 Realm-default rotate。这是必要的密码学卫生,reducer-enforced。已知运维代价见 §10.3。
 - Circle MLS handshake (commit/welcome/proposal) 投递严格限于 Circle 成员，不进入 Realm-default sync 流。
-- MLS governance binding 的 scope 从单 `realm_id` 扩展为 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；旧草案中的 Flow `track` 或 `flow_id` 不得参与 MLS key scope 判定。
+- MLS governance binding 的 scope 从单 `realm_id` 扩展为 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；旧草案中的 Flow `track_name` 或 `flow_id` 不得参与 MLS key scope 判定。
 
 ### 10.2 Anchor stream
 

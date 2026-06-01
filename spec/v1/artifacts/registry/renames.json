@@ -111,13 +111,26 @@
       "kind_class": "wire_field_name",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "track",
+      "replacement": "track_name",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track'. Track is display-only and inherits access from the Flow's Realm."
+      "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track_name'. Track names are Flow-local map keys and inherit access from the Flow's effective scope."
+    },
+    {
+      "id": "track",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-01",
+      "rejection_level": "hard_reject",
+      "replacement": "track_name",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Concrete Flow track-key fields use track_name. The plural tracks map and allowed_tracks grant constraint remain canonical because they name collections."
     },
     {
       "id": "Place",
@@ -1542,7 +1555,20 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Contrix Encrypted Payload Envelope'. The wire field name 'encrypted_payload' remains unchanged on Message / Flow / Morph / event payloads."
+      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Contrix Encrypted Payload Envelope'. Flow and Message content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
+    },
+    {
+      "id": "encrypted_payload",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-01",
+      "rejection_level": "hard_reject",
+      "replacement": "encrypted_content",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Flow.content and Message.content use encrypted_content as their encrypted counterpart. Generic encrypted_payload remains valid for non-content carriers such as identity payloads and reaction payloads."
     },
     {
       "id": "authority_binding.signer_did",
@@ -1785,7 +1811,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Push-notification payload field 'space_name' was a pre-inversion alias whose value source could be either a Realm or a Flow title. After the inversion the two are distinct objects: notification.realm_title comes from Realm.title and notification.flow_title from Flow.title. Both remain forbidden under the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3."
+      "notes": "Push-notification payload field 'space_name' was a pre-inversion alias whose value source could be either a Realm or a Flow title. After the inversion the two are distinct objects: notification.realm_title comes from Realm.title and notification.flow_title is derived from Flow metadata.title when that metadata is plaintext-visible to the notification profile. Both remain forbidden under the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3."
     },
     {
       "id": "space_scoped_tightening",

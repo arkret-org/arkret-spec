@@ -72,31 +72,31 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
 
 ### 2.3 载荷加密 (Application Data)
 日常的 Message、Flow synthesis 或 Morph 内容负载在写入 Event 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
-- **可路由元数据分离**：密文信封 `encrypted_payload` 仅包裹实际的业务内容 (`content`, `attachments`)。
+- **可路由元数据分离**：有 `content` 明文对偶的对象使用 `encrypted_content` 包裹实际业务内容 (`content`, `attachments`)；没有 `content` 对偶的载荷仍可使用通用 `encrypted_payload`。
 - **明文元数据保留**：用于网络路由和客户端本地 projection 的 `realm_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
 - Sync Service 可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。客户端在解密后 MAY 建立本地搜索索引；受托 search / projection 服务只有在 `plaintext_visible_services` 授权下才能接收明文或可逆摘要。
 
 #### 2.3.0 E2EE Profile：plaintext metadata 边界
 
-v1 基线 E2EE profile 是 **content-only E2EE**，不得在 UI、营销材料或 service describe 中简称为“完整 E2EE”：`encrypted_payload` 加密 Message / Morph / Flow content 与 attachment，其余字段保持明文 wire schema。Space 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Space `parent_space_id` 等结构化 metadata 在未声明 minimal-metadata profile 时 **MUST** 以明文形式存在于 wire schema 中，即便所属 Realm 声明 `encryption_profile="mls_rfc9420"`。高隐私或 audited Realm 若要求 metadata 机密性，MUST 声明 minimal-metadata / encrypted-field profile，而不是仅依赖 content-only E2EE。
+v1 支持 **content-only E2EE**，但它不再是 MLS / E2EE Realm 的默认隐私形态。启用 `encryption_profile="mls_rfc9420"` 或 `content_encryption_floor="e2ee_required"` 且未显式声明 `metadata_encryption_profile` 时，effective metadata profile MUST 默认为 `minimal_encrypted`。此时 Flow / Message 的用户可读 metadata（例如 Flow `metadata.title`、`metadata.summary`、`metadata.fields`，以及 Message `metadata.fields`）MUST 进入 `encrypted_metadata`，wire 上只保留 reducer / routing 必需字段。`content_only` 仅作为显式低隐私 / 高服务端 projection 能力的 opt-in profile；选择该 profile 的 Realm 不得在 UI、营销材料或 service describe 中简称为“完整 E2EE”。
 
 理由与影响：
 
-- Space / Flow metadata 参与 routing、view projection、搜索、排序和 cross-realm ref；让 Sync Service 与服务端 reducer 能在不解密 content 的前提下计算 frontier、permission、ordering、notification gating。
-- 这意味着 **E2EE Realm 中 Space / Flow 标题、摘要、状态等 metadata 对所有 Realm 成员（以及任何接收 wire bytes 的中继 / Sync Service）都是可见的**。希望避免标题泄漏敏感信息的部署 MUST 在客户端 UX 层提示用户 "title 不被 E2EE 覆盖"。
-- 受托 search / projection 服务接收这些明文 metadata **不**需要 `plaintext_visible_services` 列入授权——它们本来就是 wire 明文；该 capability 仅约束 content / attachment 的解密结果与客户端本地索引产物。
+- routing、reducer、ordering、notification gating 所需字段（例如 `realm_id`、event kind、object id、Flow `tracks` map、`stage` / `state`、必要 causal refs）可保持明文，因为它们是同步和收敛边界。
+- 用户可读 metadata（标题、摘要、字段描述、reply/mention 摘要、可逆搜索 tokens）默认不得因为 MLS 开启而留在 wire 明文；若 Realm 显式选择 `content_only`，实现 MUST 向用户和 service describe 披露 metadata 不受 E2EE 覆盖。
+- 受托 search / projection 服务只有在 metadata 为明文 profile 时才可直接接收这些字段；若 metadata 进入 `encrypted_metadata`，服务端 projection 能力必须降级，或通过 `plaintext_visible_services` / 本地客户端索引等受控机制取得明文。
 
-**minimal-metadata E2EE profile** 是 v1 的可声明 profile；启用时标题 / 摘要 / 部分字段按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。未声明该 profile 的 Realm 不得对 `title` / `summary` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
+**minimal-metadata E2EE profile** 是 v1 的 MLS / E2EE 默认 profile；启用时 Flow / Message metadata 按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。`content_only` Realm 不得对 `metadata.title` / `metadata.summary` / `metadata.fields` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
 
 Realm policy MUST 通过 `cx.realm.policy_components.metadata_encryption_profile` 显式声明 metadata 加密级别，取值为：
 
 | profile | wire 明文 | encrypted_metadata | 说明 |
 | --- | --- | --- | --- |
-| `content_only` | routing / reducer / projection 所需 metadata；Space / Flow title、summary、state、rank、tracks 默认明文 | 无或仅 profile 特定字段 | v1 默认。不得宣传为完整 metadata E2EE。 |
-| `minimal_encrypted` | `realm_id`、kind、epoch、routing hash、必要 cell subject、必要 causal refs | title、summary、部分 fields、mention/reply 摘要、client search tokens | 对应 minimal-metadata profile；服务端 projection 能力受限。 |
+| `content_only` | routing / reducer / projection 所需 metadata；Flow / Message metadata 可明文 | 无或仅 profile 特定字段 | 显式 opt-in。不得宣传为完整 metadata E2EE。 |
+| `minimal_encrypted` | `realm_id`、kind、epoch、routing hash、必要 cell subject、必要 causal refs、Flow `tracks`、`stage` / `state` | Flow / Message `metadata.title` / `metadata.summary` / `metadata.fields`、mention/reply 摘要、client search tokens | MLS / E2EE 默认；服务端 projection 能力受限。 |
 | `full_encrypted` | 仅 envelope routing、policy-required subject、hash、opaque refs | 绝大多数用户可读 metadata 与可逆索引材料 | extension profile；需要客户端本地 projection 或受信 plaintext-visible service。 |
 
-`metadata_encryption_profile` 必须纳入 MLS governance binding `policy_root`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省即 `content_only`。
+`metadata_encryption_profile` 必须纳入 MLS governance binding `policy_root`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省规则是：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `minimal_encrypted`，其他 Realm 为 `content_only`。
 
 #### 2.3.1 Envelope Wire 结构
 
@@ -411,7 +411,7 @@ MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_i
 }
 ```
 
-MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**不存在 per-track MLS group**——整个 Flow 共享单一安全边界（见 [`flow-and-message.md`](../models/flow-and-message.md) §3）。`governance_binding` 是封闭对象，不携带 `flow_id` 或 `track`；Flow 级上下文只能出现在 application message AAD 或外层 payload 中，且不得据此派生独立 membership、history visibility 或 MLS group。验证边界是 Realm/Circle membership、history visibility、policy state 与 `allowed_tracks` action scope；`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
+MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**不存在 per-track MLS group**——整个 Flow 共享单一安全边界（见 [`flow-and-message.md`](../models/flow-and-message.md) §3）。`governance_binding` 是封闭对象，不携带 `flow_id` 或 `track_name`；Flow 级上下文只能出现在 application message AAD 或外层 payload 中，且不得据此派生独立 membership、history visibility 或 MLS group。验证边界是 Realm/Circle membership、history visibility、policy state 与 `allowed_tracks` action scope；`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
 
 **E2EE Realm MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Realm 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
@@ -765,7 +765,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 `cx.mls.genesis.payload` MUST 至少包含：
 
 - `mls_group_id`
-- `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 Realm 内 MLS-backed [Circle](../models/circle.md) 的独立 MLS group。MLS group 的 scope 绑定到 `(realm_id, circle_id?)` 复合 key；旧草案中的 `realm_key_scope`、`flow_id` 或 `track` 不能作为 genesis scope。
+- `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 Realm 内 MLS-backed [Circle](../models/circle.md) 的独立 MLS group。MLS group 的 scope 绑定到 `(realm_id, circle_id?)` 复合 key；旧草案中的 `realm_key_scope`、`flow_id` 或 `track_name` 不能作为 genesis scope。
 - `epoch`：MUST 为 `0`。
 - `creator_principal_id`
 - `creator_device_id`

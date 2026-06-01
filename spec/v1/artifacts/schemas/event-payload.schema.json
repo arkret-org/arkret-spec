@@ -300,10 +300,10 @@
       "type": "string",
       "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "track": {
+    "track_name": {
       "type": "string",
       "const": "discussion",
-      "description": "Message timeline track. Mirrors message.schema.json#/properties/track: v1 Message payloads are restricted to 'discussion'."
+      "description": "Flow track key for Message payloads. Mirrors message.schema.json#/properties/track_name: v1 Message payloads are restricted to 'discussion'."
     },
     "content_kind": {
       "type": "string",
@@ -411,6 +411,62 @@
     },
     "encrypted_payload": {
       "$ref": "./encrypted-envelope.schema.json"
+    },
+    "encrypted_content": {
+      "$ref": "./encrypted-envelope.schema.json"
+    },
+    "encrypted_metadata": {
+      "$ref": "./encrypted-envelope.schema.json"
+    },
+    "message_metadata": {
+      "type": "object",
+      "description": "Extensible user-readable Message metadata. In MLS / E2EE realms this object is encrypted as encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
+      "properties": {
+        "fields": {
+          "$ref": "#/$defs/message_metadata_fields"
+        }
+      },
+      "not": {
+        "$comment": "Reducer-owned fields stay top-level and MUST NOT be mirrored inside metadata.",
+        "anyOf": [
+          { "required": ["id"] },
+          { "required": ["schema"] },
+          { "required": ["realm_id"] },
+          { "required": ["flow_id"] },
+          { "required": ["track"] },
+          { "required": ["track_name"] },
+          { "required": ["state"] },
+          { "required": ["state_changed_at"] },
+          { "required": ["revision_root"] },
+          { "required": ["edited_at"] },
+          { "required": ["redaction_ref"] },
+          { "required": ["created_by"] },
+          { "required": ["created_at"] },
+          { "required": ["updated_by"] },
+          { "required": ["updated_at"] },
+          { "required": ["content"] },
+          { "required": ["encrypted_content"] },
+          { "required": ["encrypted_payload"] }
+        ]
+      },
+      "additionalProperties": true
+    },
+    "message_metadata_fields": {
+      "type": "object",
+      "not": {
+        "anyOf": [
+          { "required": ["revision_root"] },
+          { "required": ["visible_state"] },
+          { "required": ["redacted"] },
+          { "required": ["edited_at"] },
+          { "required": ["redaction_ref"] },
+          { "required": ["state"] },
+          { "required": ["state_changed_at"] },
+          { "required": ["track"] },
+          { "required": ["track_name"] }
+        ]
+      },
+      "additionalProperties": true
     },
     "relation_id": {
       "type": "string",
@@ -2511,10 +2567,13 @@
     },
     "message_create_payload": {
       "type": "object",
-      "description": "Payload for cx.message.create. If content/encrypted_payload contains an audience_mention AST node (for example @all or @here), reducer admission and notification dispatch MUST additionally enforce cx.message.mention.broadcast plus the audience policy / max_recipient / rate-limit rules in zh/models/flow-and-message.md §9.4.3. @here maps to audience=\"flow_engaged\" and is not presence-filtered.",
+      "not": {
+        "required": ["metadata", "encrypted_metadata"]
+      },
+      "description": "Payload for cx.message.create. If content/encrypted_content contains an audience_mention AST node (for example @all or @here), reducer admission and notification dispatch MUST additionally enforce cx.message.mention.broadcast plus the audience policy / max_recipient / rate-limit rules in zh/models/flow-and-message.md §9.4.3. @here maps to audience=\"flow_engaged\" and is not presence-filtered.",
       "required": [
         "flow_id",
-        "track"
+        "track_name"
       ],
       "allOf": [
         {
@@ -2525,13 +2584,13 @@
               ],
               "not": {
                 "required": [
-                  "encrypted_payload"
+                  "encrypted_content"
                 ]
               }
             },
             {
               "required": [
-                "encrypted_payload"
+                "encrypted_content"
               ],
               "not": {
                 "required": [
@@ -2557,14 +2616,20 @@
         "message_id": {
           "$ref": "#/$defs/message_id"
         },
-        "track": {
-          "$ref": "#/$defs/track"
+        "track_name": {
+          "$ref": "#/$defs/track_name"
         },
         "content": {
           "$ref": "#/$defs/content_block"
         },
-        "encrypted_payload": {
-          "$ref": "#/$defs/encrypted_payload"
+        "encrypted_content": {
+          "$ref": "#/$defs/encrypted_content"
+        },
+        "metadata": {
+          "$ref": "#/$defs/message_metadata"
+        },
+        "encrypted_metadata": {
+          "$ref": "#/$defs/encrypted_metadata"
         },
         "blob_refs": {
           "type": "array",
@@ -2580,6 +2645,9 @@
     },
     "message_revise_payload": {
       "type": "object",
+      "not": {
+        "required": ["metadata", "encrypted_metadata"]
+      },
       "description": "Payload for cx.message.revise. Revisions that introduce new direct mentions MAY generate mention notifications only when the implementation can compare against the previous accepted visible revision. Revisions that introduce an audience_mention AST node (including @all / @here mappings) MUST satisfy the same cx.message.mention.broadcast and policy gates as create.",
       "allOf": [
         {
@@ -2609,13 +2677,13 @@
               ],
               "not": {
                 "required": [
-                  "encrypted_payload"
+                  "encrypted_content"
                 ]
               }
             },
             {
               "required": [
-                "encrypted_payload"
+                "encrypted_content"
               ],
               "not": {
                 "required": [
@@ -2636,15 +2704,21 @@
         "revision_of": {
           "$ref": "#/$defs/message_id"
         },
-        "track": {
-          "$ref": "#/$defs/track",
-          "description": "Active track of the target Flow. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id / target_ref / revision_of. When present, MUST equal that resolved track."
+        "track_name": {
+          "$ref": "#/$defs/track_name",
+          "description": "Active track_name of the target Flow. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id / target_ref / revision_of. When present, MUST equal that resolved track_name."
         },
         "content": {
           "$ref": "#/$defs/content_block"
         },
-        "encrypted_payload": {
-          "$ref": "#/$defs/encrypted_payload"
+        "encrypted_content": {
+          "$ref": "#/$defs/encrypted_content"
+        },
+        "metadata": {
+          "$ref": "#/$defs/message_metadata"
+        },
+        "encrypted_metadata": {
+          "$ref": "#/$defs/encrypted_metadata"
         },
         "reason": {
           "type": "string"
@@ -2689,9 +2763,9 @@
         "target_event_id": {
           "$ref": "#/$defs/event_ref"
         },
-        "track": {
-          "$ref": "#/$defs/track",
-          "description": "Active track of the redacted message's parent Flow. Optional: when omitted, reducers MUST resolve from the existing message. When present, MUST equal that resolved track."
+        "track_name": {
+          "$ref": "#/$defs/track_name",
+          "description": "Active track_name of the redacted message's parent Flow. Optional: when omitted, reducers MUST resolve from the existing message. When present, MUST equal that resolved track_name."
         },
         "reason": {
           "type": "string"

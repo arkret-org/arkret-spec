@@ -605,7 +605,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Flow patch",
-      "cell_family": "cx.component.flow.fields.v1",
+      "cell_family": "cx.component.flow.metadata.v1",
       "cell_subject": {
         "type": "id:flow",
         "field": "payload.flow_id"
@@ -650,7 +650,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Unified Flow tracks patch. payload.patch uses cx.patch.v1 against the Flow.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / fields on a track entry. Atomic across multiple tracks.",
+      "payload": "Unified Flow tracks patch. payload.patch uses cx.patch.v1 against the Flow.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
       "cell_family": "cx.component.flow.tracks.v1",
       "cell_subject": {
         "type": "id:flow",

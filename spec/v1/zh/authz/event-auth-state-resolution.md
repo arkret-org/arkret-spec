@@ -390,7 +390,7 @@ Lattice 的作用不是让并发冲突消失，而是让同一输入集合的结
 
 | Type | Join 语义 | 用途 | 授权层禁用 |
 | --- | --- | --- | --- |
-| `lww_register` | 按 anchor-derived order 选最近 set；同 anchor batch 并发用 deterministic tiebreaker。 | UI affordance：Flow.title / summary、Morph 非关键字段、 emoji shortcuts、cosmetic preferences。 | **MUST NOT 作授权、policy、membership、anchorer、capability cell**。schema 静态拒绝。|
+| `lww_register` | 按 anchor-derived order 选最近 set；同 anchor batch 并发用 deterministic tiebreaker。 | UI affordance：Flow `metadata.title` / `metadata.summary`、Morph 非关键字段、 emoji shortcuts、cosmetic preferences。 | **MUST NOT 作授权、policy、membership、anchorer、capability cell**。schema 静态拒绝。|
 | `rga` | Replicated Growable Array：插入 op 携带 `(predecessor_id, element_id=issuer:seq)`，删除 op 写 tombstone；按 (anchor index, issuer, seq) 全序确定性合并。 | 协作文本编辑（Flow.content 富文本、Morph 文档段、Markdown 块的字符级编辑）、可插入的有序列表。 | **MUST NOT 作授权根**；只用于 content cell。|
 
 `lww_register` 与 `rga` 的"时间"由 Anchor 批次索引与批次内确定性 tiebreaker 提供，**不**读取 actor 自报 HLC 或外部 wall clock。这是它们被允许出现在 conformance core 之外但仍是封闭代数的前提。
@@ -428,7 +428,7 @@ Bottom {
 | Dependency bottom | 授权、policy、membership、capability、lifecycle 等治理 cell 为 `⊥`，并且某个 Move 的 precondition / authz check / reducer invariant 需要读取它。 | 依赖该 cell 的 Move MUST fail closed。这可能阻塞大量业务写入，但它仍是依赖链阻塞，不等同于 Anchor 层 Realm-wide pause。 |
 | Realm-wide Anchor pause | `cx:cell:cx.component.anchorer.v1:<realm_id>` 为 `⊥`（`anchorer_split`）。 | 普通 Anchor MUST 停止推进；只有 genesis 声明的 recovery anchorer / emergency quorum MAY 签发恢复 Anchor。 |
 
-Flow position 冲突的影响是第一类：该 Flow 的 canonical placement 未决，后续普通 position Move 不能继续；Flow 的 title / content / comments / watch 等独立 cell 仍可按各自 Lattice 和授权规则继续更新，其他 Flow 的更新也不得被阻塞。只有当某个后续 Move 显式读取该 position cell（例如“只允许移动当前位于 List-X 的 Flow”）时，才因 `cell_in_bottom_state` fail closed。
+Flow position 冲突的影响是第一类：该 Flow 的 canonical placement 未决，后续普通 position Move 不能继续；Flow 的 `metadata.title` / content / comments / watch 等独立 cell 仍可按各自 Lattice 和授权规则继续更新，其他 Flow 的更新也不得被阻塞。只有当某个后续 Move 显式读取该 position cell（例如“只允许移动当前位于 List-X 的 Flow”）时，才因 `cell_in_bottom_state` fail closed。
 
 `bottom_escalation_after_ms` 只改变告警和 recovery 提示，不会把普通业务 cell 的 `⊥` 自动升级成 Realm-wide pause。Realm lifecycle 的 terminal state（例如 tombstoned / destroyed）属于 lifecycle reducer 语义，见 [`realm-and-space.md`](../models/realm-and-space.md)，不是本节定义的 Lattice bottom pause。
 

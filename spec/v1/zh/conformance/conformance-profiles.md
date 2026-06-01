@@ -611,7 +611,7 @@ MUST NOT:
 
 MUST 支持:
 - `POST /api/v1/agent-sidecar-threads:ensure` (`cx.agent.sidecar_thread.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliation?}`
-- `context_ref` polymorphic descriptor(`relation_id` 单独 / `flow_id` 加可选 `track` + 可选 anchor)
+- `context_ref` polymorphic descriptor(`relation_id` 单独 / `flow_id` 加可选 `track_name` + 可选 anchor)
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse:Flow `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
 - 派生 `controller_agent_circle_key`(canonical realm_id + canonical DID + UTF-8 + SHA-256 + base32 + 24 字符小写)

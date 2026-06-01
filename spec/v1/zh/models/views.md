@@ -201,9 +201,9 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
     }
   },
   "visible_fields": [
-    "title",
-    "fields.priority",
-    "fields.due_at"
+    "metadata.title",
+    "metadata.fields.priority",
+    "metadata.fields.due_at"
   ]
 }
 ```
@@ -231,7 +231,7 @@ View 应通过结构化 query 表达对象范围。
   "object_types": ["flow", "morph"],
   "facets": ["reviewable"],
   "filters": [
-    { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] }
+    { "field": "metadata.fields.status", "op": "in", "value": ["todo", "in_progress"] }
   ],
   "relation": {
     "kind": "depends_on",
@@ -251,7 +251,7 @@ View 应通过结构化 query 表达对象范围。
 {
     "object_types": ["flow"],
     "filters": [
-    { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] },
+    { "field": "metadata.fields.status", "op": "in", "value": ["todo", "in_progress"] },
     { "field": "state", "op": "eq", "value": "active" }
   ],
   "relation": {
