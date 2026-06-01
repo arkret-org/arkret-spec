@@ -65,6 +65,8 @@ Content-Type: application/json
 
 Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，但 metadata response 仍应使用 JSON。
 
+注意：OpenAPI `content:` map 与 HTTP `Content-Type` 只表示 media type / body 编码，不是 Contrix Content Block 字段。协议正文内容仍按对象或 Event payload schema 使用 `content` / `encrypted_content`。
+
 ### 2.4 Operation ID 动词 taxonomy
 
 标准 `operation_id` 的最后一个动词段 MUST 与以下 taxonomy 对齐；新增 operation 若不匹配，必须在 `contract-catalog.json` 的 operation notes 中说明理由。

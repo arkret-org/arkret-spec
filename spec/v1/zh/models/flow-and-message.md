@@ -519,7 +519,7 @@ Message 是 Flow `discussion` track 时间线中的原子消息对象。
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。E2EE 消息使用 `payload.encrypted_content` 承载同一 Content Block 的 canonical encrypted envelope；`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`，不再使用顶层 `fields`。
+未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`cx.message.create` / `cx.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`，不再使用顶层 `fields`。
 
 Message MAY reply to another Message, mention Actor or object, reference Flow / Morph / Realm, or be redacted.
 

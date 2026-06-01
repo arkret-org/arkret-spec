@@ -56,6 +56,8 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 `cx.message.create` / `cx.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
 
+这里的 `payload` 指 Event Envelope 的 kind-specific 业务载荷容器；`content` 指该 payload 内部写入 Message / Flow / Morph 正文字段的 Content Block，不是 `payload` 的同义词。
+
 ### 2.3 复合消息使用 `composite` 类型
 
 当一条消息需要同时包含文本和图片（例如带说明文字的截图），使用 `composite` 类型将多个 Content Block 组合。
