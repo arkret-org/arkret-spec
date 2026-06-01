@@ -365,7 +365,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 ## 6. 通用对象 ID 约定
 
-Protocol typed identifier / reference 的 wire value SHOULD 使用带类型前缀的稳定字符串：
+Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀的稳定字符串：
 
 ```text
 cx:realm:<uuid>
@@ -386,7 +386,7 @@ cx:blob:<hash>
 cx:receipt:<uuid>
 ```
 
-UUID 部分 SHOULD 使用 UUIDv7（time-ordered），便于审计与排序；content-addressed form 使用对应 digest。上表只说明 wire value 形态，不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。完整 ID kind 注册表见 `artifacts/registry/id-kind-registry.json`。
+UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；content-addressed form 使用对应 digest。上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
 
 ### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 

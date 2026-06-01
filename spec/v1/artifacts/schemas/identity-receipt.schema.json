@@ -61,5 +61,5 @@
       "$ref": "./event-envelope.schema.json#/$defs/proof"
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

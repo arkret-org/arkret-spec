@@ -2295,7 +2295,7 @@
         "category": "media",
         "status": "active",
         "wire_form": "cx:rtc_participant:<uuid>",
-        "description": "SFU-local participant handle (CXP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `cx.call.state.participants[].participant_identity` and in `participant_binding`. Implementations MAY render the derivation output as UUIDv7 (preferred) or any 16-byte token serialized in the canonical UUID hex form."
+        "description": "SFU-local participant handle (CXP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `cx.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `cx:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
       },
       {
         "kind": "capability",
@@ -2963,45 +2963,21 @@
         "http": "GET /admin/server/status",
         "grpc": "Admin/GetServerStatus",
         "mq": "admin.get_server_status",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": false,
-          "response": true,
-          "reason": "deployment_local_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "admin_operator"
-        }
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.admin.revoke_device",
         "http": "POST /admin/devices/{device_id}/revoke",
         "grpc": "Admin/RevokeDevice",
         "mq": "admin.revoke_device",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "deployment_local_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "admin_operator"
-        }
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.admin.update_account_status",
         "http": "POST /admin/accounts/{account_id}/status",
         "grpc": "Admin/UpdateAccountStatus",
         "mq": "admin.update_account_status",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "deployment_local_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "admin_operator"
-        }
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.applet.describe",
@@ -3200,15 +3176,7 @@
         "http": "POST /directory/announce",
         "grpc": "Directory/Announce",
         "mq": "directory.announce",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "extension_profile_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "directory_discovery"
-        }
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.directory.describe",
@@ -3387,15 +3355,7 @@
         "http": "POST /directory/withdraw",
         "grpc": "Directory/Withdraw",
         "mq": "directory.withdraw",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "extension_profile_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "directory_discovery"
-        }
+        "success_shape_kind": "typed_response"
       },
       {
         "operation_id": "cx.events.describe",
@@ -3428,10 +3388,9 @@
       {
         "operation_id": "cx.events.query_post",
         "binding_variant_of": "cx.events.query",
+        "http_only_variant": true,
         "http": "POST /events/query",
-        "grpc": "Events/Query",
-        "mq": "events.query",
-        "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. gRPC / MQ bindings reuse the canonical Events/Query — request body uses the same shape across all transports.",
+        "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical cx.events.query binding (Events/Query / events.query), not expose this variant as a separate gRPC or MQ operation.",
         "success_shape_kind": "typed_response"
       },
       {

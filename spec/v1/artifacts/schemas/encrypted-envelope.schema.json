@@ -100,7 +100,7 @@
           "event_ref_digest"
         ]
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "key_ref": {
       "type": "object",
@@ -194,5 +194,5 @@
       }
     }
   ],
-  "additionalProperties": true
+  "additionalProperties": false
 }

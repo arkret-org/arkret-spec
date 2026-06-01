@@ -52,9 +52,12 @@ updated: 2026-05-25
     "receipt_type": "read",
     "schema": "cx.schema.read_receipt.v1",
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-    "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
-    "track": "discussion",
     "actor_id": "did:web:alice.example",
+    "read_scope": {
+      "kind": "flow",
+      "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
+      "track": "discussion"
+    },
     "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e",
     "created_at": "2026-04-26T10:00:00Z"
@@ -70,7 +73,7 @@ updated: 2026-05-25
 
 ### 2.3 防雪崩与合并
 
-Read Receipt 是高频信号，发送方和 Sync Service 都 MUST 支持合并。客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(realm_id, flow_id, track/thread, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
+Read Receipt 是高频信号，发送方和 Sync Service 都 MUST 支持合并。客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(realm_id, read_scope, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
 
 Sync Service MAY 丢弃同一 read_scope 下较旧的 receipt，只向订阅方广播单调前进的最新位置；不得把每一次滚动增量都 fanout 成独立推送。公开或共享 receipt 的服务端限流维度至少应包含 actor、device、Realm 和 Flow。超过频率时 SHOULD 返回或广播 `rate_limited` / `retry_after_ms` 语义，客户端 MUST 按退避合并后重试。
 
@@ -187,6 +190,7 @@ Read Cursor 是 actor-private 状态。最小结构示例：
 ```json
 {
   "actor_id": "did:web:alice.example",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
     "kind": "flow",
@@ -212,9 +216,12 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`cx.schema.rea
   "receipt_type": "read",
   "schema": "cx.schema.read_receipt.v1",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
-  "track": "discussion",
   "actor_id": "did:web:alice.example",
+  "read_scope": {
+    "kind": "flow",
+    "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
+    "track": "discussion"
+  },
   "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }

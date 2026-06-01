@@ -58,9 +58,8 @@ grpc:
       Get: cx.events.get
       Resolve: cx.events.resolve
       Query: cx.events.query
-      # cx.events.query_post reuses the canonical Events/Query gRPC binding;
-      # it is a HTTP-specific alias for the body-form transport (see
-      # operation-registry notes).
+      # The HTTP POST/body query variant reuses the canonical Events/Query
+      # gRPC binding and is not exposed as a separate non-HTTP operation.
       Subscribe: cx.events.subscribe
       Frontier: cx.events.frontier
     Ephemeral:

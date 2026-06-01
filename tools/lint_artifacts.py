@@ -1047,18 +1047,25 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         http = row.get("http")
         grpc = row.get("grpc")
         mq = row.get("mq")
+        http_only_variant = row.get("http_only_variant") is True
         if not isinstance(http, str) or not http:
             lint.fail(operation_path, f"{operation_id} missing http binding")
         else:
             operation_http_map[operation_id] = http
-        if not isinstance(grpc, str) or not grpc:
-            lint.fail(operation_path, f"{operation_id} missing grpc binding")
+        if http_only_variant:
+            if grpc is not None:
+                lint.fail(operation_path, f"{operation_id} is http_only_variant and must not declare grpc binding")
+            if mq is not None:
+                lint.fail(operation_path, f"{operation_id} is http_only_variant and must not declare mq binding")
         else:
-            operation_grpc_map[operation_id] = grpc
-        if not isinstance(mq, str) or not mq:
-            lint.fail(operation_path, f"{operation_id} missing mq binding")
-        else:
-            operation_mq_map[operation_id] = mq
+            if not isinstance(grpc, str) or not grpc:
+                lint.fail(operation_path, f"{operation_id} missing grpc binding")
+            else:
+                operation_grpc_map[operation_id] = grpc
+            if not isinstance(mq, str) or not mq:
+                lint.fail(operation_path, f"{operation_id} missing mq binding")
+            else:
+                operation_mq_map[operation_id] = mq
 
     capability_tiers = operation_registry.get("capability_tiers")
     surface_groups = operation_registry.get("surface_groups")
@@ -1171,6 +1178,13 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "id_kinds": id_kinds,
         "special_id_kinds": special_id_kinds,
         "operation_ids": operation_ids,
+        "http_only_operation_ids": {
+            row["operation_id"]
+            for row in operation_rows
+            if isinstance(row, dict)
+            and isinstance(row.get("operation_id"), str)
+            and row.get("http_only_variant") is True
+        },
         "operation_http_map": operation_http_map,
         "operation_grpc_map": operation_grpc_map,
         "operation_mq_map": operation_mq_map,
@@ -1726,9 +1740,12 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
     binding_path = ARTIFACTS / "bindings" / "non-http-bindings.yaml"
     binding_text = binding_path.read_text(encoding="utf-8")
     binding_operation_ids = set(EVENT_KIND_TOKEN_RE.findall(binding_text))
+    http_only_operation_ids = known.get("http_only_operation_ids", set())
     for operation_id in sorted(binding_operation_ids - known["operation_ids"]):
         lint.fail(binding_path, f"non-HTTP binding references unregistered operation_id: {operation_id}")
-    for operation_id in sorted(known["operation_ids"] - binding_operation_ids):
+    for operation_id in sorted(binding_operation_ids & http_only_operation_ids):
+        lint.fail(binding_path, f"http-only operation_id must not appear in non-HTTP bindings: {operation_id}")
+    for operation_id in sorted(known["operation_ids"] - binding_operation_ids - http_only_operation_ids):
         lint.fail(binding_path, f"registered operation_id missing from non-HTTP bindings: {operation_id}")
 
 
@@ -1836,6 +1853,50 @@ def check_policy_check_alignment(lint: Lint) -> None:
         lint.fail(openapi_path, "PolicyCheckResponse.required must include bound_to")
 
 
+def openapi_operations_by_id(openapi: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    paths = openapi.get("paths")
+    if not isinstance(paths, dict):
+        return {}
+    operations: dict[str, dict[str, Any]] = {}
+    for path_item in paths.values():
+        if not isinstance(path_item, dict):
+            continue
+        for method in ("get", "post", "put", "patch", "delete", "head"):
+            operation = path_item.get(method)
+            if not isinstance(operation, dict):
+                continue
+            operation_id = operation.get("operationId")
+            if isinstance(operation_id, str) and operation_id:
+                operations[operation_id] = operation
+    return operations
+
+
+def openapi_parameter_schema(operation: dict[str, Any], name: str) -> Any:
+    for parameter in operation.get("parameters", []) or []:
+        if isinstance(parameter, dict) and parameter.get("name") == name:
+            return parameter.get("schema")
+    return None
+
+
+def openapi_request_schema(operation: dict[str, Any]) -> Any:
+    return (
+        operation.get("requestBody", {})
+        .get("content", {})
+        .get("application/json", {})
+        .get("schema")
+    )
+
+
+def openapi_response_schema(operation: dict[str, Any]) -> Any:
+    return (
+        operation.get("responses", {})
+        .get("200", {})
+        .get("content", {})
+        .get("application/json", {})
+        .get("schema")
+    )
+
+
 def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
     """Prevent security-sensitive operations from drifting back to generic schemas."""
     openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
@@ -1879,12 +1940,22 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         "cx.identity.submit_did_operation": ("DidOperationSubmitRequest", "DidOperationSubmitResponse"),
         "cx.account.issue_session_grant": ("SessionGrantRequest", "SessionGrantResponse"),
         "cx.account.oidc_callback": ("AccountOidcCallbackRequest", "AccountOidcCallbackResponse"),
+        "cx.directory.announce": ("DirectoryAnnounceRequest", "DirectoryAnnounceResponse"),
+        "cx.directory.withdraw": ("DirectoryWithdrawRequest", "DirectoryWithdrawResponse"),
+        "cx.admin.update_account_status": (
+            "AdminUpdateAccountStatusRequest",
+            "AdminUpdateAccountStatusResponse",
+        ),
+        "cx.admin.revoke_device": ("AdminRevokeDeviceRequest", "AdminRevokeDeviceResponse"),
+    }
+    expected_response_only = {
+        "cx.admin.get_server_status": "AdminServerStatusResponse",
     }
     dedicated_schema_refs = {
         f"#/components/schemas/{name}"
         for pair in expected.values()
         for name in pair
-    }
+    } | {f"#/components/schemas/{name}" for name in expected_response_only.values()}
     for operation_id, (request_name, response_name) in expected.items():
         operation = find_operation(operation_id)
         if operation is None:
@@ -1892,6 +1963,16 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
             continue
         if request_schema(operation) != {"$ref": f"#/components/schemas/{request_name}"}:
             lint.fail(openapi_path, f"{operation_id} requestBody must reference {request_name}")
+        if response_schema(operation) != {"$ref": f"#/components/schemas/{response_name}"}:
+            lint.fail(openapi_path, f"{operation_id} 200 response must reference {response_name}")
+
+    for operation_id, response_name in expected_response_only.items():
+        operation = find_operation(operation_id)
+        if operation is None:
+            lint.fail(openapi_path, f"{operation_id} operation missing")
+            continue
+        if request_schema(operation) is not None:
+            lint.fail(openapi_path, f"{operation_id} must not define a JSON requestBody")
         if response_schema(operation) != {"$ref": f"#/components/schemas/{response_name}"}:
             lint.fail(openapi_path, f"{operation_id} 200 response must reference {response_name}")
 
@@ -1903,7 +1984,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
             if not isinstance(operation, dict):
                 continue
             operation_id = operation.get("operationId")
-            if operation_id in expected:
+            if operation_id in expected or operation_id in expected_response_only:
                 continue
             for label, schema in (("requestBody", request_schema(operation)), ("200 response", response_schema(operation))):
                 if isinstance(schema, dict) and schema.get("$ref") in dedicated_schema_refs:
@@ -1946,6 +2027,298 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
             lint.fail(openapi_path, f"{component_name}.required must include has_more")
         if "next_cursor" not in properties:
             lint.fail(openapi_path, f"{component_name}.properties must include next_cursor")
+
+
+def check_openapi_core_selector_constraints(lint: Lint) -> None:
+    """Core event read operations must machine-declare selector and typed-id rules."""
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi = load_yaml(lint, openapi_path)
+    if not isinstance(openapi, dict):
+        return
+    operations = openapi_operations_by_id(openapi)
+
+    def op(operation_id: str) -> dict[str, Any] | None:
+        operation = operations.get(operation_id)
+        if not isinstance(operation, dict):
+            lint.fail(openapi_path, f"{operation_id} operation missing")
+            return None
+        return operation
+
+    def expect_any_of(operation_id: str, expected: list[list[str]]) -> None:
+        operation = op(operation_id)
+        if operation is None:
+            return
+        actual = operation.get("x-contrix-required-any-of")
+        if actual != expected:
+            lint.fail(openapi_path, f"{operation_id} x-contrix-required-any-of must be {expected!r}")
+
+    def expect_array_param(operation_id: str, name: str, ref: str) -> None:
+        operation = op(operation_id)
+        if operation is None:
+            return
+        schema = openapi_parameter_schema(operation, name)
+        if not isinstance(schema, dict):
+            lint.fail(openapi_path, f"{operation_id}.{name} parameter schema missing")
+            return
+        if schema.get("type") != "array":
+            lint.fail(openapi_path, f"{operation_id}.{name} must be an array parameter")
+        if schema.get("minItems") != 1:
+            lint.fail(openapi_path, f"{operation_id}.{name} must require minItems=1")
+        items = schema.get("items")
+        if not isinstance(items, dict) or items.get("$ref") != ref:
+            lint.fail(openapi_path, f"{operation_id}.{name}.items must reference {ref}")
+
+    def expect_param_ref(operation_id: str, name: str, ref: str) -> None:
+        operation = op(operation_id)
+        if operation is None:
+            return
+        schema = openapi_parameter_schema(operation, name)
+        if not isinstance(schema, dict) or schema.get("$ref") != ref:
+            lint.fail(openapi_path, f"{operation_id}.{name} parameter must reference {ref}")
+
+    expect_any_of("cx.events.query", [["realms"], ["actors"]])
+    expect_any_of("cx.events.subscribe", [["realms"], ["actors"]])
+    expect_any_of("cx.events.frontier", [["actor_id"], ["realm_id"]])
+    for operation_id in ("cx.events.query", "cx.events.subscribe"):
+        expect_array_param(operation_id, "realms", "#/components/schemas/RealmId")
+        expect_array_param(operation_id, "actors", "#/components/schemas/ActorDid")
+    for name in ("before", "after"):
+        expect_param_ref("cx.events.query", name, "#/components/schemas/Cursor")
+    expect_param_ref("cx.events.subscribe", "after", "#/components/schemas/Cursor")
+    expect_param_ref("cx.events.get", "event_id", "#/components/schemas/EventId")
+    expect_param_ref("cx.events.frontier", "actor_id", "#/components/schemas/ActorDid")
+    expect_param_ref("cx.events.frontier", "realm_id", "#/components/schemas/RealmId")
+    expect_param_ref("cx.snapshot.head", "realm_id", "#/components/schemas/RealmId")
+
+    query_post = op("cx.events.query_post")
+    if query_post is not None:
+        schema = openapi_request_schema(query_post)
+        if not isinstance(schema, dict):
+            lint.fail(openapi_path, "cx.events.query_post requestBody schema missing")
+        else:
+            expected_any_of = [{"required": ["realms"]}, {"required": ["actors"]}]
+            if schema.get("anyOf") != expected_any_of:
+                lint.fail(openapi_path, "cx.events.query_post requestBody must require realms or actors")
+            properties = schema.get("properties")
+            if not isinstance(properties, dict):
+                lint.fail(openapi_path, "cx.events.query_post requestBody properties missing")
+            else:
+                for name, ref in (
+                    ("realms", "#/components/schemas/RealmId"),
+                    ("actors", "#/components/schemas/ActorDid"),
+                ):
+                    property_schema = properties.get(name)
+                    if not isinstance(property_schema, dict):
+                        lint.fail(openapi_path, f"cx.events.query_post.{name} property missing")
+                        continue
+                    if property_schema.get("type") != "array" or property_schema.get("minItems") != 1:
+                        lint.fail(openapi_path, f"cx.events.query_post.{name} must be a non-empty array")
+                    items = property_schema.get("items")
+                    if not isinstance(items, dict) or items.get("$ref") != ref:
+                        lint.fail(openapi_path, f"cx.events.query_post.{name}.items must reference {ref}")
+                for name in ("before", "after"):
+                    property_schema = properties.get(name)
+                    if not isinstance(property_schema, dict) or property_schema.get("$ref") != "#/components/schemas/Cursor":
+                        lint.fail(openapi_path, f"cx.events.query_post.{name} must reference Cursor")
+
+
+def check_openapi_auth_semantics(lint: Lint) -> None:
+    """Distinguish public metadata, proof-in-body auth, user tokens, and admin tokens."""
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi = load_yaml(lint, openapi_path)
+    if not isinstance(openapi, dict):
+        return
+    operations = openapi_operations_by_id(openapi)
+    public_metadata_operations = {
+        "cx.server.describe",
+        "cx.events.describe",
+        "cx.mimi.provider_directory",
+        "cx.identity.describe_registry",
+        "cx.account.describe",
+        "cx.directory.describe",
+        "cx.applet.describe",
+        "cx.applet.protocol_metadata",
+    }
+    proof_in_body_operations = {
+        "cx.account.issue_session_grant",
+        "cx.account.oidc_callback",
+    }
+
+    for operation_id, operation in operations.items():
+        security = operation.get("security")
+        if security == []:
+            auth = operation.get("x-contrix-auth")
+            proof_in_body = (
+                operation_id in proof_in_body_operations
+                and isinstance(auth, dict)
+                and auth.get("public_metadata") is False
+                and auth.get("proof_in_body") is True
+            )
+            if operation_id not in public_metadata_operations and not proof_in_body:
+                lint.fail(
+                    openapi_path,
+                    f"{operation_id} has security: [] but is neither public metadata nor proof-in-body auth",
+                )
+
+    for operation_id in proof_in_body_operations:
+        operation = operations.get(operation_id)
+        if not isinstance(operation, dict):
+            lint.fail(openapi_path, f"{operation_id} operation missing")
+            continue
+        auth = operation.get("x-contrix-auth")
+        if not isinstance(auth, dict) or auth.get("public_metadata") is not False or auth.get("proof_in_body") is not True:
+            lint.fail(openapi_path, f"{operation_id} must declare x-contrix-auth proof_in_body/public_metadata=false")
+
+    def security_groups(operation: dict[str, Any]) -> list[dict[str, Any]]:
+        groups = operation.get("security")
+        return [group for group in groups if isinstance(group, dict)] if isinstance(groups, list) else []
+
+    for operation_id, operation in operations.items():
+        if not operation_id.startswith("cx.admin."):
+            continue
+        groups = security_groups(operation)
+        if any("bearerAuth" in group for group in groups):
+            lint.fail(openapi_path, f"{operation_id} must not use ordinary bearerAuth on admin surface")
+        if operation_id == "cx.admin.get_moderation_queue":
+            if not any({"adminBearer", "moderatorCapability"}.issubset(group.keys()) for group in groups):
+                lint.fail(openapi_path, "cx.admin.get_moderation_queue must require adminBearer and moderatorCapability")
+        elif not any(set(group.keys()) == {"adminBearer"} for group in groups):
+            lint.fail(openapi_path, f"{operation_id} must require adminBearer")
+
+
+def check_read_scope_schema_closure(lint: Lint) -> None:
+    cursor_path = ARTIFACTS / "schemas" / "read-cursor.schema.json"
+    receipt_path = ARTIFACTS / "schemas" / "read-receipt.schema.json"
+    cursor = load_json(lint, cursor_path)
+    receipt = load_json(lint, receipt_path)
+
+    if isinstance(cursor, dict):
+        if "device_id" not in set(cursor.get("required") or []):
+            lint.fail(cursor_path, "read cursor required must include device_id")
+        if cursor.get("additionalProperties") is not False:
+            lint.fail(cursor_path, "read cursor root additionalProperties must be false")
+        read_scope = (cursor.get("properties") or {}).get("read_scope")
+        if not isinstance(read_scope, dict):
+            lint.fail(cursor_path, "read_cursor.read_scope schema missing")
+        else:
+            properties = read_scope.get("properties") or {}
+            if "track_scope" not in properties:
+                lint.fail(cursor_path, "read_cursor.read_scope must define track_scope for whole-flow cursors")
+            if not isinstance(read_scope.get("allOf"), list) or not read_scope.get("allOf"):
+                lint.fail(cursor_path, "read_cursor.read_scope must define conditional scope constraints")
+
+    if isinstance(receipt, dict):
+        if "read_scope" not in set(receipt.get("required") or []):
+            lint.fail(receipt_path, "read receipt required must include read_scope")
+        if receipt.get("additionalProperties") is not False:
+            lint.fail(receipt_path, "read receipt root additionalProperties must be false")
+        read_scope = (receipt.get("properties") or {}).get("read_scope")
+        if not isinstance(read_scope, dict) or read_scope.get("type") != "object":
+            lint.fail(receipt_path, "read_receipt.read_scope must be an object schema")
+        properties = receipt.get("properties") or {}
+        if "flow_id" in properties or "track" in properties:
+            lint.fail(receipt_path, "read receipt must not reintroduce top-level flow_id/track aliases")
+
+
+def check_signed_object_closure(lint: Lint) -> None:
+    envelope_path = ARTIFACTS / "schemas" / "encrypted-envelope.schema.json"
+    identity_path = ARTIFACTS / "schemas" / "identity-receipt.schema.json"
+    batch_path = ARTIFACTS / "schemas" / "event-batch-receipt.schema.json"
+
+    envelope = load_json(lint, envelope_path)
+    if isinstance(envelope, dict):
+        if envelope.get("additionalProperties") is not False:
+            lint.fail(envelope_path, "encrypted envelope root additionalProperties must be false")
+        aad = (envelope.get("properties") or {}).get("aad")
+        if not isinstance(aad, dict) or aad.get("additionalProperties") is not False:
+            lint.fail(envelope_path, "encrypted envelope aad additionalProperties must be false")
+
+    identity = load_json(lint, identity_path)
+    if isinstance(identity, dict) and identity.get("additionalProperties") is not False:
+        lint.fail(identity_path, "identity receipt root additionalProperties must be false")
+
+    batch = load_json(lint, batch_path)
+    if isinstance(batch, dict):
+        if batch.get("additionalProperties") is not False:
+            lint.fail(batch_path, "event batch receipt root additionalProperties must be false")
+        properties = batch.get("properties") or {}
+        for name in ("receipt_scope", "frontier"):
+            schema = properties.get(name)
+            if not isinstance(schema, dict) or schema.get("additionalProperties") is not False:
+                lint.fail(batch_path, f"event batch receipt {name} additionalProperties must be false")
+
+
+def check_directory_field_drift(lint: Lint) -> None:
+    """Directory announce/withdraw prose must not regress to old field names."""
+    banned = ("announcement_id", "withdraw_id")
+    for path in markdown_files():
+        if SPEC_ROOT / "zh" not in path.parents:
+            continue
+        text = path.read_text(encoding="utf-8")
+        for token in banned:
+            if token in text:
+                lint.fail(path, f"legacy Directory field name present: {token}")
+
+
+def check_typed_id_prose_consistency(lint: Lint) -> None:
+    common_fields = SPEC_ROOT / "zh" / "models" / "common-fields.md"
+    encoding = SPEC_ROOT / "zh" / "conformance" / "encoding.md"
+    id_registry = ARTIFACTS / "registry" / "id-kind-registry.json"
+
+    common_text = common_fields.read_text(encoding="utf-8")
+    if "wire value SHOULD 使用" in common_text:
+        lint.fail(common_fields, "typed identifier wire value must be MUST, not SHOULD")
+    if "UUID 部分 SHOULD" in common_text:
+        lint.fail(common_fields, "typed identifier UUIDv7 rule must be MUST, not SHOULD")
+
+    encoding_text = encoding.read_text(encoding="utf-8")
+    if "`txn`" in encoding_text:
+        lint.fail(encoding, "typed ID kind prose must use `transaction`, not `txn`")
+    if "principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI" in encoding_text:
+        lint.fail(encoding, "principal_id/device_id subject rule must distinguish DID from device typed ID")
+
+    registry_text = id_registry.read_text(encoding="utf-8")
+    if "any 16-byte token" in registry_text:
+        lint.fail(id_registry, "rtc_participant must not permit non-UUIDv7 16-byte tokens")
+
+    allowed_legacy_paths = {
+        (ARTIFACTS / "registry" / "renames.json").resolve(),
+        (ARTIFACTS / "registry" / "forbidden-wire-fields.json").resolve(),
+    }
+    for path in [*markdown_files(), *all_json_files()]:
+        if path.resolve() in allowed_legacy_paths:
+            continue
+        if "cx:txn:" in path.read_text(encoding="utf-8"):
+            lint.fail(path, "legacy cx:txn: prefix present outside migration/forbidden registries")
+
+
+def check_binding_variant_non_http(lint: Lint) -> None:
+    operation_path = ARTIFACTS / "registry" / "operation-registry.json"
+    binding_path = ARTIFACTS / "bindings" / "non-http-bindings.yaml"
+    registry = load_json(lint, operation_path)
+    if not isinstance(registry, dict):
+        return
+    binding_text = binding_path.read_text(encoding="utf-8")
+    binding_operation_ids = set(EVENT_KIND_TOKEN_RE.findall(binding_text))
+
+    for row in registry.get("operations", []) if isinstance(registry.get("operations"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        operation_id = row.get("operation_id")
+        if not isinstance(operation_id, str):
+            continue
+        if not row.get("binding_variant_of"):
+            continue
+        if row.get("shares_non_http_binding") is True:
+            if not isinstance(row.get("notes"), str) or "non-HTTP" not in row.get("notes", ""):
+                lint.fail(operation_path, f"{operation_id} shares_non_http_binding must explain non-HTTP exposure in notes")
+            continue
+        if row.get("http_only_variant") is not True:
+            lint.fail(operation_path, f"{operation_id} binding_variant_of must declare http_only_variant=true")
+        if row.get("grpc") is not None or row.get("mq") is not None:
+            lint.fail(operation_path, f"{operation_id} http-only binding variant must not declare grpc/mq")
+        if operation_id in binding_operation_ids:
+            lint.fail(binding_path, f"{operation_id} http-only binding variant must not appear in non-HTTP bindings")
 
 
 DEVICE_ID_PATTERN = r"^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -3522,11 +3895,16 @@ def main() -> int:
     check_service_describe_alignment(lint)
     check_policy_check_alignment(lint)
     check_openapi_dedicated_operation_schemas(lint)
+    check_openapi_core_selector_constraints(lint)
+    check_openapi_auth_semantics(lint)
     check_openapi_error_enum_alignment(lint)
     check_wire_schema_no_bare_scope(lint)
+    check_read_scope_schema_closure(lint)
+    check_signed_object_closure(lint)
     check_reducer_payload_closure(lint)
     check_did_and_device_constraints(lint)
     check_operation_binding_metadata(lint)
+    check_binding_variant_non_http(lint)
     check_capability_action_event_mapping(lint)
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
@@ -3542,6 +3920,8 @@ def main() -> int:
     check_forbidden_naming_aliases(lint)
     check_event_proof_digest_shape(lint)
     check_legacy_announce_id_form(lint)
+    check_directory_field_drift(lint)
+    check_typed_id_prose_consistency(lint)
     check_join_policy_gate_id_uniqueness(lint)
     check_content_composite_uses_parts(lint)
     check_release_readiness_counts(lint, known)

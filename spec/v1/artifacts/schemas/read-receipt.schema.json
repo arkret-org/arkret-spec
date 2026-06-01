@@ -9,6 +9,7 @@
     "schema",
     "realm_id",
     "actor_id",
+    "read_scope",
     "event_id",
     "created_at"
   ],
@@ -22,16 +23,6 @@
     "realm_id": {
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "flow_id": {
-      "type": "string",
-      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Required when receipt scopes to a Flow timeline (the common case). Omitted only for whole-Realm receipt forms when explicitly allowed by Realm policy."
-    },
-    "track": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Active track on the target Flow. Defaults to 'discussion' when omitted. Threads / synthesis tracks MUST set explicitly."
     },
     "actor_id": {
       "type": "string",
@@ -49,12 +40,156 @@
       "description": "Optional. HLC of the read position; required when Sync Service must compare receipts under merge / debounce rules across devices for the same actor."
     },
     "read_scope": {
-      "type": "string",
-      "enum": [
-        "realm",
-        "flow",
-        "thread"
-      ]
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "realm",
+            "flow",
+            "thread",
+            "view",
+            "message",
+            "morph"
+          ],
+          "description": "Same read-scope discriminator used by read-cursor.schema.json."
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^cx:(realm|flow|message|morph|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Required when kind is anything other than 'realm'. Thread read scopes reference the root message."
+        },
+        "track": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Required when kind='flow' and the receipt scopes a single track."
+        },
+        "track_scope": {
+          "type": "string",
+          "enum": ["all"],
+          "description": "Only valid when kind='flow'. Use track_scope='all' for an entire Flow regardless of track."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "realm" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                { "required": ["ref"] },
+                { "required": ["track"] },
+                { "required": ["track_scope"] }
+              ]
+            }
+          },
+          "else": {
+            "required": ["ref"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "flow" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "oneOf": [
+              {
+                "required": ["track"],
+                "not": { "required": ["track_scope"] }
+              },
+              {
+                "required": ["track_scope"],
+                "properties": {
+                  "track_scope": { "const": "all" }
+                },
+                "not": { "required": ["track"] }
+              }
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                { "required": ["track"] },
+                { "required": ["track_scope"] }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "thread" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "message" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "morph" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "view" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
     },
     "created_at": {
       "type": "string",
@@ -62,5 +197,5 @@
       "pattern": "Z$"
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

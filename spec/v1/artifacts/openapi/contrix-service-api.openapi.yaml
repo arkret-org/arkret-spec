@@ -115,6 +115,21 @@ components:
         auth material for S2S federation / inter-service calls — those MUST
         also satisfy the httpMessageSignature + sourceServiceDid +
         destinationServiceDid AND group (see service-http-binding.md §2.2).
+    adminBearer:
+      type: http
+      scheme: bearer
+      description: |
+        Deployment-local administrator bearer token. This is distinct from
+        ordinary bearerAuth: the token MUST bind an admin role and the target
+        operator surface before the request reaches business logic.
+    moderatorCapability:
+      type: apiKey
+      in: header
+      name: X-Contrix-Moderator-Capability
+      description: |
+        Capability proof for moderation queue reads. Deployments may encode
+        this as a grant reference, signed presentation, or equivalent local
+        proof, but it MUST be evaluated in addition to adminBearer.
     httpMessageSignature:
       type: apiKey
       in: header
@@ -218,6 +233,36 @@ components:
       schema:
         type: string
   schemas:
+    ActorDid:
+      type: string
+      pattern: ^did:[a-z0-9]+:[^\s#?]+$
+      description: Bare DID used as a Contrix actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id.
+    ServiceDid:
+      type: string
+      pattern: ^did:[a-z0-9]+:[^\s#?]+$
+      description: Bare DID identifying a service endpoint.
+    RealmId:
+      type: string
+      pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    FlowId:
+      type: string
+      pattern: ^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    EventId:
+      type: string
+      pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    DeviceId:
+      type: string
+      pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    GrantId:
+      type: string
+      pattern: ^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    Cursor:
+      type: string
+      pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+    AccountId:
+      type: string
+      pattern: ^[A-Za-z0-9._:-]{1,128}$
+      description: Deployment-local account identifier. It is not a Contrix principal DID and not a protocol object typed ID.
     ErrorEnvelope:
       type: object
       required:
@@ -3386,6 +3431,191 @@ components:
           type: string
           format: date-time
       additionalProperties: false
+    DirectoryAnnounceRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - resource_kind
+      - resource_id
+      - discovery_state
+      - source_refs
+      - as_of
+      - principal_server_did
+      properties:
+        resource_kind:
+          type: string
+          enum:
+          - realm
+          - organization
+          - actor
+          - applet
+          - handle
+        resource_id:
+          oneOf:
+          - type: string
+            pattern: ^cx:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          - $ref: '#/components/schemas/ActorDid'
+          - type: string
+            pattern: ^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$
+        discovery_state:
+          type: object
+          description: Signed cx.{kind}.discovery payload, including its proof.
+          additionalProperties: true
+        source_refs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/EventId'
+        as_of:
+          type: string
+          format: date-time
+        principal_server_did:
+          $ref: '#/components/schemas/ServiceDid'
+        ttl_seconds:
+          type: integer
+          minimum: 1
+        supersedes_announce_id:
+          type: string
+          pattern: ^cx:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    DirectoryAnnounceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - announce_id
+      - indexed_at
+      - effective_ttl_seconds
+      - next_revalidation_after
+      properties:
+        announce_id:
+          type: string
+          pattern: ^cx:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        indexed_at:
+          type: string
+          format: date-time
+        effective_ttl_seconds:
+          type: integer
+          minimum: 1
+        next_revalidation_after:
+          type: string
+          format: date-time
+        warnings:
+          type: array
+          items:
+            type: string
+    DirectoryWithdrawRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - resource_id
+      - governance_proof
+      properties:
+        resource_id:
+          oneOf:
+          - type: string
+            pattern: ^cx:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          - $ref: '#/components/schemas/ActorDid'
+          - type: string
+            pattern: ^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$
+        reason:
+          type: string
+          maxLength: 512
+        governance_proof:
+          type: object
+          description: Signature proof by the resource governance key, equivalent strength to announce.discovery_state.proof.
+          additionalProperties: true
+        effective_at:
+          type: string
+          format: date-time
+    DirectoryWithdrawResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - withdrawal_ref
+      - acked_at
+      properties:
+        withdrawal_ref:
+          type: string
+          description: Directory-local audit reference for the withdrawal; not a registered cx:<kind> typed ID.
+          pattern: ^withdrawal:[A-Za-z0-9._:-]{1,128}$
+        acked_at:
+          type: string
+          format: date-time
+    AdminServerStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - service_did
+      - build
+      - uptime_seconds
+      - registry_versions
+      properties:
+        service_did:
+          $ref: '#/components/schemas/ServiceDid'
+        build:
+          type: object
+          additionalProperties: true
+        uptime_seconds:
+          type: integer
+          minimum: 0
+        registry_versions:
+          type: object
+          additionalProperties:
+            type: string
+        queues:
+          type: object
+          additionalProperties: true
+    AdminUpdateAccountStatusRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          enum:
+          - suspend
+          - restore
+          - lock
+          - unlock
+          - soft_logout
+          - erase
+        reason:
+          type: string
+          maxLength: 512
+    AdminUpdateAccountStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - ok
+      - status
+      - applied_at
+      properties:
+        ok:
+          const: true
+        status:
+          type: string
+        applied_at:
+          type: string
+          format: date-time
+    AdminRevokeDeviceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        reason:
+          type: string
+          maxLength: 512
+    AdminRevokeDeviceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - ok
+      - revoked_at
+      properties:
+        ok:
+          const: true
+        revoked_at:
+          type: string
+          format: date-time
     OperationRequest:
       type: object
       description: Operation-specific JSON request object. Required fields and profile gates are defined by the operation
@@ -3608,6 +3838,9 @@ paths:
                 $ref: '#/components/schemas/EventsSubmitResponse'
     get:
       operationId: cx.events.query
+      x-contrix-required-any-of:
+      - - realms
+      - - actors
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3643,7 +3876,8 @@ paths:
         schema:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/RealmId'
+          minItems: 1
         style: form
         explode: true
       - name: actors
@@ -3652,19 +3886,20 @@ paths:
         schema:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/ActorDid'
+          minItems: 1
         style: form
         explode: true
       - name: before
         in: query
         description: Return events strictly older than this cursor position. Pair with response `prev_cursor` to walk further backward.
         schema:
-          type: string
+          $ref: '#/components/schemas/Cursor'
       - name: after
         in: query
         description: Return events strictly newer than this cursor position. Pair with response `next_cursor` to walk further forward.
         schema:
-          type: string
+          $ref: '#/components/schemas/Cursor'
       - name: order
         in: query
         description: |
@@ -3741,22 +3976,29 @@ paths:
             schema:
               type: object
               additionalProperties: false
+              anyOf:
+              - required:
+                - realms
+              - required:
+                - actors
               properties:
                 realms:
                   type: array
                   items:
-                    type: string
+                    $ref: '#/components/schemas/RealmId'
+                  minItems: 1
                   description: Filter by Realm IDs. UNION within, intersection with `actors[]`.
                 actors:
                   type: array
                   items:
-                    type: string
+                    $ref: '#/components/schemas/ActorDid'
+                  minItems: 1
                   description: Filter by Actor DIDs. UNION within, intersection with `realms[]`.
                 before:
-                  type: string
+                  $ref: '#/components/schemas/Cursor'
                   description: Return events strictly older than this cursor position (exclusive).
                 after:
-                  type: string
+                  $ref: '#/components/schemas/Cursor'
                   description: Return events strictly newer than this cursor position (exclusive).
                 order:
                   type: string
@@ -3785,6 +4027,9 @@ paths:
   /events/subscribe:
     get:
       operationId: cx.events.subscribe
+      x-contrix-required-any-of:
+      - - realms
+      - - actors
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3812,7 +4057,8 @@ paths:
         schema:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/RealmId'
+          minItems: 1
         style: form
         explode: true
       - name: actors
@@ -3821,14 +4067,15 @@ paths:
         schema:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/ActorDid'
+          minItems: 1
         style: form
         explode: true
       - name: after
         in: query
         description: Subscription start cursor (exclusive). Same semantics as cx.events.query's `after=` parameter.
         schema:
-          type: string
+          $ref: '#/components/schemas/Cursor'
       - name: catchup
         in: query
         description: When true and `after` is present, the server first replays the bounded catch-up range from `after=` to the current frontier, then transitions to live. This is not full-history retrieval.
@@ -3866,7 +4113,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
+          $ref: '#/components/schemas/EventId'
       - name: include_payload
         in: query
         schema:
@@ -3904,6 +4151,9 @@ paths:
   /events/frontier:
     get:
       operationId: cx.events.frontier
+      x-contrix-required-any-of:
+      - - actor_id
+      - - realm_id
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3917,11 +4167,11 @@ paths:
       - name: actor_id
         in: query
         schema:
-          type: string
+          $ref: '#/components/schemas/ActorDid'
       - name: realm_id
         in: query
         schema:
-          type: string
+          $ref: '#/components/schemas/RealmId'
       - name: peer_role
         in: query
         schema:
@@ -4319,7 +4569,7 @@ paths:
         in: query
         required: true
         schema:
-          type: string
+          $ref: '#/components/schemas/RealmId'
       responses:
         '200':
           description: |
@@ -5375,13 +5625,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectoryAnnounceResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryAnnounceRequest'
   /directory/withdraw:
     post:
       operationId: cx.directory.withdraw
@@ -5397,13 +5647,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectoryWithdrawResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryWithdrawRequest'
   /directory/search-realms:
     post:
       operationId: cx.directory.search_realms
@@ -5787,6 +6037,11 @@ paths:
     post:
       operationId: cx.account.issue_session_grant
       security: []
+      x-contrix-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: proof
+        notes: Request is unauthenticated at the transport bearer layer, but the body MUST carry passkey/OIDC/device/agent proof bound to the request canonical digest and audience.
       responses:
         '200':
           description: Session grant issued from passkey/OIDC/device proof
@@ -6086,6 +6341,11 @@ paths:
     post:
       operationId: cx.account.oidc_callback
       security: []
+      x-contrix-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: code
+        notes: OIDC callback is not public metadata; state/code/nonce are validated as an OAuth proof exchange before any session material is issued.
       responses:
         '200':
           description: OIDC callback handled
@@ -6108,14 +6368,14 @@ paths:
     get:
       operationId: cx.admin.get_server_status
       security:
-      - bearerAuth: []
+      - adminBearer: []
       responses:
         '200':
           description: Server admin status
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AdminServerStatusResponse'
   /admin/accounts/{account_id}/status:
     servers:
     - url: https://{host}
@@ -6125,26 +6385,26 @@ paths:
     post:
       operationId: cx.admin.update_account_status
       security:
-      - bearerAuth: []
+      - adminBearer: []
       parameters:
       - in: path
         name: account_id
         required: true
         schema:
-          type: string
+          $ref: '#/components/schemas/AccountId'
       responses:
         '200':
           description: Account lifecycle state updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AdminUpdateAccountStatusResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AdminUpdateAccountStatusRequest'
   /admin/devices/{device_id}/revoke:
     servers:
     - url: https://{host}
@@ -6154,27 +6414,26 @@ paths:
     post:
       operationId: cx.admin.revoke_device
       security:
-      - bearerAuth: []
+      - adminBearer: []
       parameters:
       - in: path
         name: device_id
         required: true
         schema:
-          type: string
-          pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: '#/components/schemas/DeviceId'
       responses:
         '200':
           description: Device revoked
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AdminRevokeDeviceResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AdminRevokeDeviceRequest'
   /admin/moderation/queue:
     servers:
     - url: https://{host}
@@ -6184,7 +6443,8 @@ paths:
     get:
       operationId: cx.admin.get_moderation_queue
       security:
-      - bearerAuth: []
+      - adminBearer: []
+        moderatorCapability: []
       responses:
         '200':
           description: Moderation queue

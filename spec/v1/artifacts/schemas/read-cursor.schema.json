@@ -8,6 +8,7 @@
     "id",
     "schema",
     "actor_id",
+    "device_id",
     "realm_id",
     "read_scope",
     "position",
@@ -58,9 +59,133 @@
         "track": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Required when kind='flow' AND the cursor scopes a single track (e.g. 'discussion', 'synthesis', or any profile-registered track name). Omit when the cursor tracks the entire Flow regardless of track. Track names MUST match the Flow's registered tracks; unknown tracks MUST be rejected with schema_violation."
+          "description": "Required when kind='flow' AND the cursor scopes a single track (e.g. 'discussion', 'synthesis', or any profile-registered track name). Track names MUST match the Flow's registered tracks; unknown tracks MUST be rejected with schema_violation."
+        },
+        "track_scope": {
+          "type": "string",
+          "enum": ["all"],
+          "description": "Only valid when kind='flow'. Use track_scope='all' instead of omitting track when the cursor covers the entire Flow regardless of track."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "realm" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                { "required": ["ref"] },
+                { "required": ["track"] },
+                { "required": ["track_scope"] }
+              ]
+            }
+          },
+          "else": {
+            "required": ["ref"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "flow" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "oneOf": [
+              {
+                "required": ["track"],
+                "not": { "required": ["track_scope"] }
+              },
+              {
+                "required": ["track_scope"],
+                "properties": {
+                  "track_scope": { "const": "all" }
+                },
+                "not": { "required": ["track"] }
+              }
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                { "required": ["track"] },
+                { "required": ["track_scope"] }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "thread" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "description": "Thread read scopes reference the root message of the thread."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "message" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "morph" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "view" }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "position": {
@@ -84,5 +209,5 @@
       "pattern": "Z$"
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }
