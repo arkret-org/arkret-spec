@@ -37,30 +37,30 @@
     },
     {
       "id": "encrypted_payload",
-      "context": "flow_or_message_content_carrier",
+      "context": "content_carrier_with_content_counterpart",
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "encrypted_content",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "When the plaintext counterpart is `content`, the encrypted counterpart is `encrypted_content`. Generic `encrypted_payload` remains valid for non-content carriers such as identity and reaction payloads."
+      "notes": "When the plaintext counterpart is `content`, the encrypted counterpart is `encrypted_content` (Flow, Message, Morph). Generic `encrypted_payload` remains valid for non-content carriers such as identity and reaction payloads."
     },
     {
       "id": "title",
-      "context": "flow_payload_top_level",
+      "context": "flow_or_morph_payload_top_level",
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "metadata.title or encrypted_metadata",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow user-readable title is metadata. It MUST NOT be a top-level Flow wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
+      "notes": "Flow and Morph user-readable title is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
     },
     {
       "id": "summary",
-      "context": "flow_payload_top_level",
+      "context": "flow_or_morph_payload_top_level",
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "metadata.summary or encrypted_metadata",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow user-readable summary is metadata. It MUST NOT be a top-level Flow wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
+      "notes": "Flow and Morph user-readable summary is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
     },
     {
       "id": "fields",

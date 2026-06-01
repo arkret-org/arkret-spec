@@ -1555,7 +1555,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Contrix Encrypted Payload Envelope'. Flow and Message content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
+      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Contrix Encrypted Payload Envelope'. Flow, Message, and Morph content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
     },
     {
       "id": "encrypted_payload",
@@ -1568,7 +1568,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Flow.content and Message.content use encrypted_content as their encrypted counterpart. Generic encrypted_payload remains valid for non-content carriers such as identity payloads and reaction payloads."
+      "notes": "Flow.content, Message.content, and Morph.content use encrypted_content as their encrypted counterpart. Generic encrypted_payload remains valid for non-content carriers such as identity payloads and reaction payloads."
     },
     {
       "id": "authority_binding.signer_did",

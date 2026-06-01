@@ -22,7 +22,7 @@ Contrix 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Flow 的 `content` / `encrypted_content` 字段、Flow discussion 摘要以及 Morph 的 `content` / `encrypted_payload` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
+Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Flow 的 `content` / `encrypted_content` 字段、Flow discussion 摘要以及 Morph 的 `content` / `encrypted_content` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 

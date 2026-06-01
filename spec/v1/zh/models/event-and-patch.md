@@ -246,7 +246,7 @@ reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、
 
 - Message: `content`、`encrypted_content`、`body`
 - Flow: `metadata.summary`、`encrypted_content`、`encrypted_metadata`、用户可写的长文本 `metadata.fields`
-- Morph: `content`、`encrypted_payload`、`fields.<text-content-shape>` (由 morph profile 声明)
+- Morph: `content`、`encrypted_content`、`metadata.summary`、`encrypted_metadata`、`fields.<text-content-shape>` (由 morph profile 声明)
 - 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
 理由: 这些字段的清除必须走 `cx.<kind>.redact` 或 `cx.redaction` event,以触发 redaction-specific capability check + audit anchor + retention policy;允许用 `cx.patch.v1` 直接 `unset` 等价于让任何持有 `cx.<kind>.update` 的 actor 绕过 `cx.<kind>.redact` 的高 tier capability 完成 redaction (redaction escape)。

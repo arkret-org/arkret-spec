@@ -14,9 +14,12 @@
     "created_at"
   ],
   "not": {
-    "required": [
-      "content",
-      "encrypted_payload"
+    "anyOf": [
+      { "required": ["title"], "$comment": "legacy Morph top-level metadata; canonical path is metadata.title or encrypted_metadata" },
+      { "required": ["summary"], "$comment": "legacy Morph top-level metadata; canonical path is metadata.summary or encrypted_metadata" },
+      { "required": ["encrypted_payload"], "$comment": "legacy encrypted content carrier; canonical name is encrypted_content" },
+      { "required": ["content", "encrypted_content"] },
+      { "required": ["metadata", "encrypted_metadata"] }
     ]
   },
   "properties": {
@@ -59,17 +62,19 @@
         "$ref": "#/$defs/facet_config"
       }
     },
-    "title": {
-      "type": "string"
+    "metadata": {
+      "$ref": "#/$defs/morph_metadata"
     },
-    "summary": {
-      "type": "string"
+    "encrypted_metadata": {
+      "$ref": "./encrypted-envelope.schema.json",
+      "description": "Encrypted envelope whose plaintext is a morph_metadata object. Required instead of plaintext metadata when the effective metadata_encryption_profile is minimal_encrypted or stronger."
     },
     "content": {
       "$ref": "#/$defs/content_block"
     },
-    "encrypted_payload": {
-      "$ref": "./encrypted-envelope.schema.json"
+    "encrypted_content": {
+      "$ref": "./encrypted-envelope.schema.json",
+      "description": "Encrypted envelope whose plaintext is a ContentBlock for Morph content."
     },
     "fields": {
       "type": "object"
@@ -147,6 +152,46 @@
     },
     "facet_config": {
       "type": "object",
+      "additionalProperties": true
+    },
+    "morph_metadata": {
+      "type": "object",
+      "description": "Extensible user-readable Morph metadata. Morph business fields stay in the top-level fields object; metadata carries display-oriented fields such as title and summary. In MLS / E2EE realms this object is encrypted as encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2048
+        }
+      },
+      "not": {
+        "$comment": "Reducer-owned fields and Morph business fields stay top-level and MUST NOT be mirrored inside metadata.",
+        "anyOf": [
+          { "required": ["id"] },
+          { "required": ["schema"] },
+          { "required": ["realm_id"] },
+          { "required": ["scope_circle_id"] },
+          { "required": ["schema_refs"] },
+          { "required": ["morph_type"] },
+          { "required": ["facets"] },
+          { "required": ["fields"] },
+          { "required": ["stage"] },
+          { "required": ["stage_changed_at"] },
+          { "required": ["state"] },
+          { "required": ["state_changed_at"] },
+          { "required": ["created_by"] },
+          { "required": ["created_at"] },
+          { "required": ["updated_by"] },
+          { "required": ["updated_at"] },
+          { "required": ["content"] },
+          { "required": ["encrypted_content"] },
+          { "required": ["encrypted_payload"] }
+        ]
+      },
       "additionalProperties": true
     },
     "content_kind": {
