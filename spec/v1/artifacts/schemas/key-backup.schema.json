@@ -550,6 +550,32 @@
     {
       "if": {
         "properties": {
+          "backup_class": {
+            "const": "did_recovery"
+          }
+        },
+        "required": ["backup_class"]
+      },
+      "then": {
+        "properties": {
+          "encryption": {
+            "properties": {
+              "recipient_method": {
+                "enum": [
+                  "recovery_public_key",
+                  "threshold_recovery",
+                  "hardware_wrapped_key"
+                ]
+              }
+            }
+          }
+        },
+        "description": "did_recovery backups MUST use recovery_public_key / threshold_recovery / hardware_wrapped_key (key-management.md §5.0.1 first-backup gate); passphrase_kdf alone is forbidden — a single passphrase must not control DID recovery."
+      }
+    },
+    {
+      "if": {
+        "properties": {
           "mixed_secret_storage": {
             "const": true
           },

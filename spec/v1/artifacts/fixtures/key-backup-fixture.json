@@ -335,6 +335,67 @@
       }
     },
     {
+      "name": "did_recovery_passphrase_kdf_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.encryption.recipient_method: 'passphrase_kdf' is not one of ['recovery_public_key', 'threshold_recovery', 'hardware_wrapped_key']",
+      "instance": {
+        "backup_id": "cx:backup:01964138-0000-7000-8000-000000000015",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "did_recovery",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000015",
+        "series_seq": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
+          },
+          "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "contents": [
+          {
+            "item_type": "recovery_key_share",
+            "secret_id": "yougen_did_recovery_share"
+          }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_algorithm": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_seq",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
       "name": "successor_envelope_valid",
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": true,

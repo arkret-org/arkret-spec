@@ -182,7 +182,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 {
   "id": "cx:device:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_label": "Alice MacBook Pro",
+  "display_name": "Alice MacBook Pro",
   "device_public_key": "z6Mks...",
   "device_key_type": "Multikey",
   "created_at": "2026-04-26T00:00:00Z",
