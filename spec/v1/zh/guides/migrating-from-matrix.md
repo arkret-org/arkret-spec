@@ -141,7 +141,7 @@ Contrix 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lif
 | Matrix | Contrix | 说明 |
 | --- | --- | --- |
 | Secure Secret Storage（SSSS）统一保管 cross-signing / megolm backup 等 | `cx.secret_storage.v1`（**client-local only**）+ wire 上传走 `cx.schema.key_backup.v1` | Contrix v1 不再把 secret storage envelope 作为 wire 格式；服务端只接受 `cx.schema.key_backup.v1`，每条 backup MUST 声明 `backup_class`。 |
-| 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`did_recovery` / `secret_storage` / `mls_history` / `external` 四类 `backup_class`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"。`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 必须分到不同 envelope 或不同 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
+| 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`did_recovery` / `secret_storage` / `mls_history` 三类 `backup_class`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"。`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 必须分到不同 envelope 或不同 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
 | 一把 recovery key 解锁 SSSS | recovery key + 门限 / 社交恢复 share | Contrix 把 recovery 表达为 `recovery_policy`，可声明 threshold、share holder、有效期、approval 条件；share holder 不自动获得读取内容能力。 |
 | (Matrix 未明确约束) | "能解密某段历史" MUST NOT 单独作为账号所有权证明 | Contrix 显式禁止把解密 oracle 当成 DID 控制证明，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
 

@@ -744,9 +744,17 @@ Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../art
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `target_ref` | yes | `ref:object` | 见 §9.8.2 target 范围。 | 被表态的对象。 |
-| `key` | conditional | `string` | 1..128 chars。非 E2EE：单 Unicode emoji cluster（NFC 归一化）或 profile 注册的短 tag；E2EE：MUST 为 §2.9 的 keyed-HMAC routing tag，真实 emoji 在 `encrypted_payload`。 | 表情键 / 路由键；OR-Set 成员键之一。 |
+| `key` | yes | `string` | 1..128 chars。非 E2EE：单 Unicode emoji cluster（NFC 归一化）或 profile 注册的短 tag；E2EE：MUST 为 §2.9 的 keyed-HMAC routing tag，真实 emoji 在 `encrypted_payload`。 | 表情键 / 路由键；OR-Set 成员键之一。 |
 | `annotation` | no | `string` | E2EE 下 MUST 省略（随 `encrypted_payload` 一同加密）。 | 可选附注。 |
-| `encrypted_payload` | conditional | `EncryptedPayload` | E2EE Realm 下必填，承载真实 emoji 与 annotation；存在时明文 `key` MUST 为 routing tag、`annotation` MUST 省略。 | E2EE 载体。 |
+| `encrypted_payload` | conditional | `EncryptedPayload` | E2EE Realm 下必填，承载真实 emoji 与 annotation；存在时外层明文 `key` MUST 为 routing tag、`annotation` MUST 省略。 | E2EE 载体。 |
+
+`encrypted_payload` 解密后的 plaintext JSON MUST validate as [`event-payload.schema.json#/$defs/reaction_encrypted_payload_plaintext`](../../artifacts/schemas/event-payload.schema.json)：
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `key` | yes | `string` | 单 NFC Unicode emoji cluster 或 profile 注册短 tag；MUST NOT 是外层 HMAC routing tag。 | 真实 reaction key。 |
+| `annotation` | no | `string` | 最大 2048 chars。 | 加密附注。 |
+| `remove_add_event_ids` | conditional | `array<id:event>` | 仅 `cx.reaction.remove` MAY 携带；`cx.reaction.add` MUST 省略。 | 客户端收敛加速 hint；服务端仍按外层 actor / target_ref / key / causal frontier 收敛。 |
 
 #### 9.8.2 Target 范围（v1 决策）
 

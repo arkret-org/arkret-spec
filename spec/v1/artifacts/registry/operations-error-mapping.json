@@ -297,6 +297,8 @@
       "operation_specific": [
         "legacy_secret_storage_wire_form",
         "series_chain_broken",
+        "series_seq_not_monotonic",
+        "series_predecessor_not_found",
         "schema_violation"
       ]
     },

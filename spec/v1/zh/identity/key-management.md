@@ -669,13 +669,14 @@ DEK 由本地或托管 HSM / TPM / Secure Enclave wrap。
 
 要求：
 
-- `series_id` 是 `cx:backup_series:<uuid>` typed-id，每对 `(actor_id, backup_class)` 一条。新建系列 MUST 生成新 `series_id`，并在 §11 conformance 中绑定到 actor 的 control stream。
+- `series_id` 是 `cx:backup_series:<uuid>` typed-id。每个 `series_id` MUST 只属于一个 `(actor_id, backup_class)`，但同一 `(actor_id, backup_class)` MAY 在密钥泄露轮换或迁移过渡期拥有多个 series。常规状态下只能有一个 active series；当前 active series MUST 由下方 signed active-series record 选择，不得由服务端返回顺序推断。
 - 新 envelope MUST 满足 `series_seq == prev.series_seq + 1`；`supersedes` MUST 是同 `series_id` 中上一条 envelope 的 `backup_id`，且 `supersedes_digest` MUST 等于上一条 envelope 排除 `auth_data.signature` 后 canonical_json 的哈希。
 - genesis envelope MUST `series_seq == 0`，`supersedes == null`，且 MUST NOT 携带 `supersedes_digest`。
 - `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_seq` / `supersedes`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
 - `frontier_ref` 是 RECOMMENDED 字段；当声明 `cx.profile.key_backup.memory_hard.v1` 或更高 hardening profile 时，`secret_storage` 与 `did_recovery` 类备份的新 envelope MUST 携带 `frontier_ref.frontier_digest`，并 SHOULD 携带 `frontier_ref.anchor_ref` 与 `frontier_ref.ssk_generation`。
+- **Active-series record**：当某 `(actor_id, backup_class)` 存在多个 series，或实现需要向新设备声明 canonical series 时，principal control stream MUST 暴露一条 signed active-series record。该 record MUST 至少绑定 `actor_id`、`backup_class`、`active_series_id`、`issued_at`、`previous_series_ids[]`、`frontier_ref{frontier_digest, anchor_ref?, ssk_generation?}` 与签名 `auth_data`；`auth_data.signed_fields` MUST 覆盖这些字段。`active_series_id` MUST 指向同 `(actor_id, backup_class)` 下的 genesis 或 successor series；`previous_series_ids[]` 只用于 retention / read-old-data 过渡，不得作为 primary recovery source。Receiver MUST 先验证该 record 链接到当前 principal control stream 与当前 accepted self-signing generation，再使用其 `active_series_id` 拉取备份链。Envelope 自身的 `frontier_ref` 只证明该 envelope 创建时的 control-stream 位置，不能替代 active-series record。
 - 客户端发起恢复（device-lifecycle.md §15）时 MUST：
-  1. `LIST /api/v1/keys/backups?series_id=<series_id>` 取回**全部** envelope metadata；
+  1. 若恢复方未持有已验证的 `series_id`，先从 principal control stream 解析并验证 active-series record，取得 `active_series_id`；然后 `LIST /api/v1/keys/backups?series_id=<active_series_id>` 取回**全部** envelope metadata；
   2. 按 `series_seq` 重建链，验证每条 `supersedes` / `supersedes_digest` 正确；任一 envelope 缺失或 hash 不匹配 → MUST `series_chain_broken`；
   3. 用链的**最尾**条进行解密；任何中间条目 MUST NOT 被用作主恢复源；
   4. 当存在 `frontier_ref` 时 MUST 用 control stream snapshot 验证 frontier_digest 落入当前 principal control stream，且 `ssk_generation` 不低于当前 accepted generation；否则 MUST `backup_frontier_stale`。
@@ -823,7 +824,7 @@ share holder（无论是个人 DID、托管服务 DID，还是 hardware module�
 
 **不可挽回边界（MUST 在 UI 明示）**：上述流程只缩小**后续**暴露面；攻击者在泄露窗口内**已经下载**的旧密文用旧密钥永远可解，轮换/删除无法撤销。
 
-**Active series 指针**：当一个 `(actor_id, backup_class)` 存在多个 `series_id`（轮换后新旧并存的过渡期）时，恢复方 MUST 能确定当前 canonical series。实现 MUST 通过 principal control stream 的 `frontier_ref`（§7.6）或后续标准化的 active-series 指示来选择最新 series，并对旧 series 仅在 retention 删除前用于读取既有内容；MUST NOT 仅凭服务端返回顺序选择 series。
+**Active series 指针**：当一个 `(actor_id, backup_class)` 存在多个 `series_id`（轮换后新旧并存的过渡期）时，恢复方 MUST 通过 §7.6 的 signed active-series record 确定当前 canonical series。`frontier_ref` 是 envelope / record 的 control-stream 锚，不是 series 选择器；服务端返回顺序、最大 `series_seq`、最新 `created_at` 或单个 envelope 的 `frontier_ref` 都不能单独决定 active series。旧 series 仅在 retention 删除前用于读取既有内容，MUST NOT 作为 primary recovery source。
 
 ## 10. 实现要求
 

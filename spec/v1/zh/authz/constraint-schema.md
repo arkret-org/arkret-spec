@@ -56,8 +56,8 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | 约束 family | subtype（可选） | 类别 | 说明 | 启用 profile |
 |-------------|---------------|------|------|------|
 | `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
-| `temporal` | `edit_window` | extension | `applies_to_actions=["cx.message.revise"]` + `message_edit_window` 限定编辑窗口。 | `cx.profile.chat_mvp.v1` |
-| `temporal` | `redact_window` | extension | `applies_to_actions=["cx.message.redact"]` + `message_redact_window` 限定撤回窗口。 | `cx.profile.chat_mvp.v1` |
+| `temporal` | `edit_window` | extension | `applies_to_actions=["cx.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `cx.profile.chat_mvp.v1` |
+| `temporal` | `redact_window` | extension | `applies_to_actions=["cx.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `cx.profile.chat_mvp.v1` |
 | `field_access` | （省略 = 列表比较） | core | `fields_write_allow` / `fields_write_deny` 等。 | core |
 | `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Flow / View / track 范围。 | core |
@@ -546,7 +546,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   {
     "constraint_type": "temporal",
     "subtype": "edit_window",
-    "applies_to_actions": ["cx.message.revise"],
+    "applies_to_actions": ["cx.message.revise.own"],
     "effect": "allow",
     "message_edit_window": "PT15M",
     "allow_redact_after_window": true
@@ -554,7 +554,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   {
     "constraint_type": "temporal",
     "subtype": "redact_window",
-    "applies_to_actions": ["cx.message.redact"],
+    "applies_to_actions": ["cx.message.redact.own"],
     "effect": "allow",
     "message_redact_window": "PT24H"
   }
@@ -570,13 +570,13 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   - `true`：编辑窗口过期后仍允许撤回（典型"消息可删但不可改"产品语义）；此时撤回判定回退到 `message_redact_window`（若声明）或无上限（若未声明）。
   - 当 `message_redact_window` 已显式声明时，它对撤回具有权威性，`allow_redact_after_window` 不再改变撤回判定（上例中 `PT24H` 是权威撤回窗，`allow_redact_after_window=true` 仅显式表达"撤回不被 15 分钟编辑窗连带锁死"）。
 
-**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器按字段各自对应的 action enforce（`message_edit_window` → `cx.message.revise[.own]`；`message_redact_window` → `cx.message.redact[.own]`），与 `subtype` 标签本身无关。等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
+**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器按字段各自对应的 action enforce（`message_edit_window` → `cx.message.revise.own`；`message_redact_window` → `cx.message.redact.own`），与 `subtype` 标签本身无关。等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
 
 **超时行为**：窗口超时后 `cx.message.revise.own` 或 `cx.message.redact.own` MUST 被拒绝（`failed_precondition`），**除非** actor 持有更高权限的 `cx.message.revise` 或 `cx.message.redact`（不带 `.own` 后缀，典型是 moderator / admin）——后者不受 `.own` 时窗约束，使管理员可在窗口外撤回。
 
 **无时限（unbounded）**：不在任何生效 grant 上声明 `message_redact_window`（且无 `allow_redact_after_window=false` 把撤回连带锁进编辑窗）即等价"撤回无时限"——`cx.message.redact.own` 仅受 capability 本身约束，不受时间限制。Realm 管理员据此可在"设最大撤回时限"（声明 `message_redact_window`）与"无时限"（省略）之间选择；编辑窗口同理。该约束族为 `extension` 类（profile `cx.profile.chat_mvp.v1`），未启用该 profile 的实现遇到这些字段 MUST fail closed（见 §2.2）。
 
-求值器对这些字段的 enforce 义务由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中对应 action 的 `required_constraints` 声明（`cx.message.revise[.own]` → `message_edit_window`；`cx.message.redact[.own]` → `message_redact_window`）。
+求值器对这些字段的 enforce 义务由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中对应 action 的 `required_constraints` 声明（`cx.message.revise.own` → `message_edit_window`；`cx.message.redact.own` → `message_redact_window`）。非 `.own` 的 `cx.message.revise` / `cx.message.redact` 可由 Realm policy 或 grant 自行声明更窄 temporal constraint，但 v1 core 不把自助窗口作为管理员 / moderator action 的 mandatory constraint。
 
 ## 15. 约束求值
 

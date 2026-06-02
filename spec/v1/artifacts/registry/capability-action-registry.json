@@ -641,9 +641,7 @@
       "action": "cx.message.revise",
       "category": "discussion",
       "risk_tier": "medium",
-      "required_constraints": [
-        "message_edit_window"
-      ],
+      "required_constraints": [],
       "target_event_kinds": [
         "cx.message.revise"
       ],
@@ -670,9 +668,7 @@
       "action": "cx.message.redact",
       "category": "discussion",
       "risk_tier": "medium",
-      "required_constraints": [
-        "message_redact_window"
-      ],
+      "required_constraints": [],
       "target_event_kinds": [
         "cx.message.redact",
         "cx.redaction"

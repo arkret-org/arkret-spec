@@ -816,7 +816,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
-- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
+- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 先用 signed active-series record 确认 canonical `series_id`（当同一 `(actor_id, backup_class)` 存在多个 series 时），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
 
 ### 12.1 Backup API
 
@@ -833,7 +833,7 @@ DELETE /api/v1/keys/backups/{backup_id}
 
 `PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
 
-`GET /api/v1/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 §7.8 的限速。
+`GET /api/v1/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 §7.8 的限速。
 
 `get` 返回完整 encrypted backup object，并受 §7.8 的 fresh device proof 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）。
 

@@ -128,7 +128,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/keys/query` | body `{device_keys: {principal_id: string[]}, timeout_ms?: int}` | `user_session`; 查询范围可按关系 / Realm 限制。 | `{device_keys, failures?}` |
 | `POST /api/v1/keys/claim` | body `{one_time_keys: {principal_id: {device_id: algorithm}}}` | `user_session`; one-time key MUST 原子消费。 | `{one_time_keys, failures?}` |
 | `PUT /api/v1/keys/backups/{backup_id}` | path `{backup_id}` body `cx.schema.key_backup.v1` | current device proof / DID proof / recovery proof；path 与 body backup id 必须一致。 | `{status, backup_id, ciphertext_digest}` |
-| `GET /api/v1/keys/backups` | query `{backup_class?: string, cursor?: cursor, limit?: int}` | `user_session` bound to current principal/device 或 recovery proof。 | `{backups[], next_cursor?, has_more}` |
+| `GET /api/v1/keys/backups` | query `{series_id?: id, backup_class?: string, cursor?: cursor, limit?: int}` | `user_session` bound to current principal/device 或 recovery proof。 | `{backups[], next_cursor?, has_more}` |
 | `GET /api/v1/keys/backups/{backup_id}` | path `{backup_id}` | 同 principal 当前授权 device、recovery policy 或授权组织恢复服务。 | `cx.schema.key_backup.v1` |
 | `DELETE /api/v1/keys/backups/{backup_id}` | path `{backup_id}` | 高风险 device proof、DID proof 或 recovery policy proof。 | `{deleted: true}` |
 | `GET /api/v1/authz/effective-grants` | query `{realm_id: id, subject: did, at?: string}` | subject 本人、Realm admin、authorized service；不得枚举无关 subject。 | `{grants[], state_digest?, evaluated_at}` |
@@ -398,7 +398,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.keys.keypackages.consume` | `key_package_refs: id[]`; `consumer_device_id: id`; `signature: signature` | `flow_id: id`; `epoch: int` | `consumed: id[]`; `failures: object?` | consume MUST 校验 claim holder、epoch 和 package freshness。 |
 | `cx.keys.keypackages.revoke` | `key_package_refs: id[]`; `device_id: id`; `signature: signature` | `reason: string` | `revoked: id[]`; `failures: object?` | 只能由 owning device、principal 或授权 admin 撤销。 |
 | `cx.keys.backups.put` | `path.backup_id: id`; `backup: object` | `idempotency_key: string` | `status: enum(accepted,duplicate)`; `backup_id: id`; `ciphertext_digest: string` | body MUST validate `cx.schema.key_backup.v1`；path/body backup id 必须一致；服务端不得解密。 |
-| `cx.keys.backups.list` | 无 | `query.backup_class: enum(did_recovery,secret_storage,mls_history)`; `query.cursor: cursor`; `query.limit: int` | `backups: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回调用方可见的最小 metadata；不得泄露无关 Realm / group membership。 |
+| `cx.keys.backups.list` | 无 | `query.series_id: id?`; `query.backup_class: enum(cx.schema.key_backup.v1.backup_class)`; `query.cursor: cursor`; `query.limit: int` | `backups: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回调用方可见的最小 metadata；不得泄露无关 Realm / group membership。 |
 | `cx.keys.backups.get` | `path.backup_id: id` | 无 | `backup: object` | 只返回同 principal 授权 device、recovery policy 或授权恢复服务可见的 encrypted backup object。 |
 | `cx.keys.backups.delete` | `path.backup_id: id`; `proof: proof` | `reason: string` | `deleted: boolean` | 高风险删除；不等于 device revoke、DID recovery 或 MLS epoch rotation。 |
 | `cx.authz.get_effective_grants` | `query.realm_id: id`; `query.subject: did` | `query.at: string` | `grants: object[]`; `state_digest: string?`; `evaluated_at: datetime` | subject 本人、Realm admin 或授权服务。 |

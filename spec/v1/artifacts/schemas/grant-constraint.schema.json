@@ -720,7 +720,7 @@
     },
     "applies_to_actions": {
       "type": "array",
-      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['cx.message.revise', 'cx.message.redact']). Replaces what used to be the dedicated edit_window constraint type.",
+      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['cx.message.revise.own', 'cx.message.redact.own']). Replaces what used to be the dedicated edit_window constraint type.",
       "items": {
         "type": "string",
         "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"

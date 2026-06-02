@@ -2539,6 +2539,24 @@
       "description": "A `secret_storage` backup envelope references a `self_signing_key` / `user_signing_key` whose generation was retired by a cross-signing reset, and the publish-recovery window elapsed without a successor envelope. Receivers MUST refuse it as the primary recovery source. See zh/crypto-media/device-lifecycle.md §14.2 step 7."
     },
     {
+      "code": "stale_backup_trust_generation",
+      "applies_to": [
+        "device_recovery",
+        "cross_signing",
+        "state_resolution"
+      ],
+      "description": "A key-backup envelope's auth_data verification method is bound to a self-signing generation older than the current accepted generation and outside the rotation grace window. Receivers MUST reject the envelope for recovery or read paths. See zh/identity/key-management.md §7.4.1."
+    },
+    {
+      "code": "untrusted_backup_signature",
+      "applies_to": [
+        "crypto",
+        "device_recovery",
+        "state_resolution"
+      ],
+      "description": "A key-backup envelope signature verifies cryptographically but the signer device key cannot be linked to the current actor cross-signing trust root, or the signer is revoked, unauthorized, or generation-mismatched. Receivers MUST reject it even if the series chain and ciphertext_digest are self-consistent. See zh/identity/key-management.md §7.4.1."
+    },
+    {
       "code": "legacy_secret_storage_wire_form",
       "applies_to": [
         "schema_validation"

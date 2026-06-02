@@ -118,8 +118,7 @@
             "enum": [
               "did_recovery",
               "secret_storage",
-              "mls_history",
-              "external"
+              "mls_history"
             ]
           },
           "backup_id": {

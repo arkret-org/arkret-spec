@@ -5315,7 +5315,6 @@ paths:
           - did_recovery
           - secret_storage
           - mls_history
-          - external
       responses:
         '200':
           description: Encrypted key backup metadata list

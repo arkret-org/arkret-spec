@@ -2783,18 +2783,23 @@
       "type": "object",
       "description": "Reducer input for cx.reaction.add and cx.reaction.remove. OR-Set membership is keyed on (actor_id, target_ref, key); a remove tombstones every prior add from the same actor with the same key in the causal past. See zh/models/flow-and-message.md §9.8 for the authoritative Reaction model (target scope, OR-Set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
       "required": [
-        "target_ref"
+        "target_ref",
+        "key"
       ],
-      "anyOf": [
+      "allOf": [
         {
-          "required": [
-            "key"
-          ]
-        },
-        {
-          "required": [
-            "encrypted_payload"
-          ]
+          "if": {
+            "required": [
+              "encrypted_payload"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "annotation"
+              ]
+            }
+          }
         }
       ],
       "properties": {
@@ -2805,7 +2810,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "description": "Reaction key. Plaintext realms SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted realms with `aad_visibility != opaque_id` SHOULD carry the v2 keyed-HMAC routing tag here (`HMAC-SHA256(key = MLS-Exporter(\"contrix-reaction-routing-v2\", context = realm_id), data = NFC(canonical_emoji))`), naturally bound to the current MLS group + epoch via the exporter secret; see zh/crypto-media/encryption-and-audit.md §2.9 for the authoritative construction. This lets OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
+          "description": "Reaction key. Plaintext realms SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted realms with `aad_visibility != opaque_id` MUST carry the v2 keyed-HMAC routing tag here (`HMAC-SHA256(key = MLS-Exporter(\"contrix-reaction-routing-v2\", context = realm_id), data = NFC(canonical_emoji))`), naturally bound to the current MLS group + epoch via the exporter secret; see zh/crypto-media/encryption-and-audit.md §2.9 for the authoritative construction. This lets OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
         },
         "annotation": {
           "type": "string",
@@ -2814,7 +2819,36 @@
         },
         "encrypted_payload": {
           "$ref": "#/$defs/encrypted_payload",
-          "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE realms. When present, plaintext `key` (if any) MUST be a routing hash and `annotation` MUST be omitted; OR-Set convergence runs after client-side decryption."
+          "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE realms. The decrypted plaintext JSON MUST validate as #/$defs/reaction_encrypted_payload_plaintext. When present, outer plaintext `key` MUST be the routing tag and `annotation` MUST be omitted; service-side OR-Set convergence still uses the outer routing key."
+        }
+      },
+      "additionalProperties": false
+    },
+    "reaction_encrypted_payload_plaintext": {
+      "type": "object",
+      "description": "Plaintext JSON encrypted into reaction_payload.encrypted_payload.ciphertext for cx.reaction.add / cx.reaction.remove in E2EE realms. The outer reaction_payload.key remains required and carries the service-visible routing tag; this plaintext carries the real reaction key and optional user content.",
+      "required": [
+        "key"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Canonical reaction key after client-side normalization: a single NFC Unicode emoji cluster or profile-registered short tag. This is the real reaction key, not the outer HMAC routing tag."
+        },
+        "annotation": {
+          "type": "string",
+          "maxLength": 2048,
+          "description": "Optional user-visible annotation associated with the reaction."
+        },
+        "remove_add_event_ids": {
+          "type": "array",
+          "description": "Optional client-side convergence accelerator for cx.reaction.remove: add event ids that this remove intends to tombstone. MUST be omitted on cx.reaction.add. Service-side reducers still rely on the outer event actor_id, target_ref, key, and causal frontier.",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "uniqueItems": true
         }
       },
       "additionalProperties": false
