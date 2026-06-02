@@ -2810,7 +2810,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "description": "Reaction key. Plaintext realms SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted realms with `aad_visibility != opaque_id` MUST carry the v2 keyed-HMAC routing tag here (`HMAC-SHA256(key = MLS-Exporter(\"contrix-reaction-routing-v2\", context = realm_id), data = NFC(canonical_emoji))`), naturally bound to the current MLS group + epoch via the exporter secret; see zh/crypto-media/encryption-and-audit.md §2.9 for the authoritative construction. This lets OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
+          "description": "Reaction key. Plaintext realms SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted realms with `aad_visibility != opaque_id` MUST carry the v1 keyed-HMAC routing tag here (`HMAC-SHA256(key = MLS-Exporter(\"contrix-reaction-routing-v1\", context = realm_id), data = NFC(canonical_emoji))`), naturally bound to the current MLS group + epoch via the exporter secret; see zh/crypto-media/encryption-and-audit.md §2.9 for the authoritative construction. This lets OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
         },
         "annotation": {
           "type": "string",

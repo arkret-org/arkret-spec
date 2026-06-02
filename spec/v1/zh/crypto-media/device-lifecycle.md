@@ -737,7 +737,7 @@ Secret storage 用于保存：
 | DID 恢复材料 | `did_recovery` |
 | `self_signing_key`、`user_signing_key`、recovery secret 等账户级 secret | `secret_storage` |
 | MLS epoch / Realm history secret | `mls_history` |
-| 外部托管或 profile 自定义 secret | `external` |
+| 外部托管或 profile 自定义 account secret | `secret_storage` |
 
 每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `contrix-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
 

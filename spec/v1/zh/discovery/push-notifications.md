@@ -319,9 +319,9 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
 6. **`mentions_actor` 通过 mention sidecar 提示**（可选，使用 keyed HMAC 形态）：严格 E2EE 默认走第 1-5 步 blind / batch wakeup。若 Realm policy 允许 `mention_routing_hint="recipient_registered_token"`，且被提及接收方已经为当前 `(realm_id, mls_group_id, epoch, pairwise_or_principal_id)` 向 Sync Service 注册 opaque routing token，发送者的客户端 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上，定义为:
 
     ```text
-    mention_routing_hmac_v2 =
+    mention_routing_hmac_v1 =
         HMAC-SHA256(
-            key   = MLS-Exporter("contrix-mention-routing-v2", context = realm_id, length = 32),
+            key   = MLS-Exporter("contrix-mention-routing-v1", context = realm_id, length = 32),
             data  = utf8(mentioned_did)
         )
     ```

@@ -88,7 +88,8 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - `destination-service-endpoint-digest`（自定义 header `Destination-Service-Endpoint-Digest`；shared ingress / 多租户 / allowlist endpoint 场景必填）
 - `source-trust-domain`（自定义 header `Source-Trust-Domain`）
 - `destination-trust-domain`（自定义 header `Destination-Trust-Domain`）
-- `request-canonical-hash`（自定义 header `Request-Canonical-Digest`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /api/v1/events` MUST 携带）
+- `request-canonical-digest`（自定义 header `Request-Canonical-Digest`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /api/v1/events` MUST 携带）
+- `idempotency-key`（自定义 header `Idempotency-Key`；当该 header 参与幂等或 replay key 时必填并进入签名 transcript）
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` header 替代）
 
 签名验证规则：
@@ -157,7 +158,8 @@ Source-Trust-Domain: cx:trust_domain:did.webvh.alpha.example
 Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
 Content-Digest: sha256=:<base64>:
 Request-Canonical-Digest: sha256:<hex>
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
+Idempotency-Key: <opaque-key>
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest" "idempotency-key");created=...;expires=...
 Signature: sig1=:base64...:
 ```
 
@@ -171,7 +173,8 @@ Signature: sig1=:base64...:
 | `Source-Trust-Domain` | header | `id:trust_domain` | required | 来源 deployment trust domain；与签名 transcript 绑定，用于 receiver trust policy、审计与跨域 replay 隔离。 |
 | `Destination-Trust-Domain` | header | `id:trust_domain` | required | 目标 deployment trust domain；MUST 等于接收方 `ServiceDescribe.trust_domain` 与目标 Realm `trust_domain`。 |
 | `Request-Canonical-Digest` | header | `sha256:<hash>` | required | canonical request body 的 SHA-256 digest；MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。 |
-| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`、`request-canonical-hash`，以及 `created` / `expires` 参数；出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`。 |
+| `Idempotency-Key` | header | `string` | conditional | 当发送方希望请求级幂等、批次 replay key 或 partial retry 去重时 required；该 header MUST 进入 HTTP Message Signature transcript。 |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`、`request-canonical-digest`，以及 `created` / `expires` 参数；出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`；出现 `Idempotency-Key` 时也 MUST 绑定 `idempotency-key`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `string` | required | 请求体摘要，MUST 覆盖 canonical request body；接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
@@ -250,6 +253,7 @@ Signature: sig1=:base64...:
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `accepted` | `id[]` | required | 已接受 Event ID。 |
+| `duplicate` | `id[]` | optional | 与既有 accepted Event 完全相同的幂等重复项；不得当作 rejected。 |
 | `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。 |
 | `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Event ID。 |
 
@@ -342,7 +346,7 @@ Contrix v1 联邦推送 **复用** `POST /api/v1/events`（`cx.events.submit`）
 
 - 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 返回 `accepted[]` 而非报错，内容不一致 MUST 拒绝（参见 §4.3）。
 - 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Digest` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
-- `quarantine[]` 项 SHOULD 放入 `rejected[]` 并附 `reason_code=quarantined`，或由实现扩展响应 schema。
+- `quarantine[]` 是 `EventsSubmitResponse` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`，除非调用方明确使用不支持 `quarantine[]` 的旧本地 adapter，且该 adapter 不得声明 v1 wire conformance。
 - 持续同步、批量重试和 frontier 交换通过组合 `cx.events.submit`（推送，本节）、`cx.events.query`（拉取 / backfill，§4.2）与 frontier exchange（§4.5）完成；无需额外的有状态事务 endpoint。
 
 ### 4.2 拉取模式 (Pull / Backfill)
@@ -631,7 +635,8 @@ Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: cx:trust_domain:did.webvh.acme.example
 Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
 Request-Canonical-Digest: sha256:...
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
+Idempotency-Key: <opaque-key>
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest" "idempotency-key");created=...;expires=...
 ```
 
 字段、签名 transcript、绑定与重放保护按 §3.2、§4.1 与 [`api-conventions.md` §3](./api-conventions.md) 与 [`service-http-binding.md` §3](./service-http-binding.md) 执行。事件以普通 reducer-input event 提交（preconditions / effects / anchor_ref 在顶层），与单域 client write 共享同一 schema（`cx.schema.event.v1`）。
@@ -774,7 +779,7 @@ Authorization: <service_signature>
 
 ### 8.5 重放与异常模式防护
 
-节点 MUST 将 `Idempotency-Key` 与请求 canonical hash 绑定后执行幂等和重放检查：
+节点 MUST 将 `Idempotency-Key` 与请求 canonical hash 绑定后执行幂等和重放检查。任何参与该检查的 `Idempotency-Key` MUST 被 HTTP Message Signature 覆盖；未签名的 `Idempotency-Key` MUST NOT 用作幂等或 replay key：
 
 - 相同 `(origin, destination, Idempotency-Key)` 但 canonical hash 不同 MUST 拒绝；
 - 相同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同 MAY 幂等接受；

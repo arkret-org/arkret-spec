@@ -177,7 +177,7 @@ components:
         Federation companion to httpMessageSignature. Identifies the receiver
         deployment trust domain (`cx:trust_domain:<scope>`) and MUST match the
         destination service / Realm receive context before reducer logic runs.
-    requestCanonicalHash:
+    requestCanonicalDigest:
       type: apiKey
       in: header
       name: Request-Canonical-Digest
@@ -777,6 +777,22 @@ components:
           pattern: ^sha256:[0-9a-f]{64}$
       additionalProperties: false
 
+    EventSubmitEnvelope:
+      allOf:
+      - $ref: ../schemas/event-envelope.schema.json
+      - type: object
+        not:
+          anyOf:
+          - required:
+            - actor_kind
+          - required:
+            - effective_scope
+        description: |
+          Actor-supplied cx.events.submit input envelope. It reuses the base Event
+          shape for actor intent fields but forbids reducer-managed accepted-output
+          projections such as actor_kind and effective_scope. Services stamp those
+          fields only after accept and expose them on read/query/sync envelopes.
+
     EventsSubmitBatchRequest:
       type: object
       description: Batch cx.events.submit request used by account clients.
@@ -787,7 +803,7 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: ../schemas/event-envelope.schema.json
+            $ref: '#/components/schemas/EventSubmitEnvelope'
       additionalProperties: false
 
     EventsSubmitFederationRequest:
@@ -803,7 +819,7 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: ../schemas/event-envelope.schema.json
+            $ref: '#/components/schemas/EventSubmitEnvelope'
       additionalProperties: false
 
     EventsSubmitResponse:
@@ -3694,7 +3710,7 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
         contentDigest: []
       requestBody:
         required: true
@@ -3815,7 +3831,7 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
         contentDigest: []
       requestBody:
         required: true
@@ -3823,7 +3839,7 @@ paths:
           application/json:
             schema:
               oneOf:
-              - $ref: ../schemas/event-envelope.schema.json
+              - $ref: '#/components/schemas/EventSubmitEnvelope'
               - $ref: '#/components/schemas/EventsSubmitBatchRequest'
               - $ref: '#/components/schemas/EventsSubmitFederationRequest'
       responses:
@@ -3850,7 +3866,7 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
       summary: Query / backfill events with cursor pagination.
       description: |
         Returns a page of events according to `before` / `after` cursor anchors.
@@ -3948,7 +3964,7 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
         contentDigest: []
       summary: cx.events.query in HTTP POST body form (for long/complex queries).
       description: |
@@ -4039,7 +4055,7 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
       summary: Streaming event subscription with optional catch-up replay.
       description: |
         Opens a streaming subscription scoped by `realms[]` / `actors[]`. Returns
@@ -4163,7 +4179,7 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
       - {}
       parameters:
       - name: actor_id
@@ -4590,7 +4606,7 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
       summary: List Space lifecycle projection rows for a Realm.
       description: |
         Extension read surface over reducer-maintained Space lifecycle
@@ -4639,7 +4655,7 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
       summary: List Flow lifecycle projection rows for a Realm.
       description: |
         Extension read surface over reducer-maintained Flow lifecycle
@@ -4687,7 +4703,7 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
-        requestCanonicalHash: []
+        requestCanonicalDigest: []
       summary: List Morph lifecycle projection rows for a Realm.
       description: |
         Extension read surface over reducer-maintained Morph lifecycle

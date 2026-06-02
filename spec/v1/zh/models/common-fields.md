@@ -40,7 +40,7 @@ updated: 2026-06-01
 
 - 未标记 optional 的字段为 required。
 - `null` 只有在类型中明确写出时才允许。
-- 实现 MUST 保留未知字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。
+- Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*` 或 profile 声明的 payload 字段。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的未知 non-critical payload 字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。未知 critical extension MUST fail closed。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `cx:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<uuid>`，不得写成局部别名如 `dev_a` 或 `a`。

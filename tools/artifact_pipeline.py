@@ -15,7 +15,7 @@ Layout (post-restructure):
 This pipeline owns two responsibilities only:
 
   generate   regenerate derived registry views from contract-catalog.json
-  check      verify no drift, then run lint_artifacts.py
+  check      verify no drift, fixture digests, then run lint_artifacts.py
 
 The legacy "sync canonical files into zh/ mirrors" and "rewrite generated
 markdown tables inside zh/sync/service-api-schema.{md,mdx}" responsibilities
@@ -42,6 +42,7 @@ REGISTRY = ARTIFACTS / "registry"
 CONTRACT_CATALOG_PATH = REGISTRY / "contract-catalog.json"
 PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
 LINT_SCRIPT = Path(__file__).with_name("lint_artifacts.py")
+FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 
@@ -246,6 +247,11 @@ def run_lint() -> int:
     return result.returncode
 
 
+def run_fixture_digest_check() -> int:
+    result = subprocess.run([sys.executable, str(FIXTURE_DIGEST_SCRIPT)], cwd=ROOT)
+    return result.returncode
+
+
 def cmd_generate(_: argparse.Namespace) -> int:
     write_generated_registries()
     write_public_catalog_snapshot()
@@ -264,7 +270,9 @@ def cmd_check(_: argparse.Namespace) -> int:
         print(f"registry diff: {len(errors)} pre-lint pipeline error(s)")
         return 1
     print_contract_status()
-    return run_lint()
+    fixture_status = run_fixture_digest_check()
+    lint_status = run_lint()
+    return fixture_status or lint_status
 
 
 def build_parser() -> argparse.ArgumentParser:

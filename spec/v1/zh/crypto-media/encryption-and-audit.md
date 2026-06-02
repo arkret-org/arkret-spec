@@ -670,9 +670,9 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
   - 明文 `reaction_payload.key` MUST 为 **keyed HMAC routing tag**:
 
     ```text
-    reaction_routing_hmac_v2 =
+    reaction_routing_hmac_v1 =
         HMAC-SHA256(
-            key   = MLS-Exporter("contrix-reaction-routing-v2", context = realm_id, length = 32),
+            key   = MLS-Exporter("contrix-reaction-routing-v1", context = realm_id, length = 32),
             data  = utf8(canonical_emoji)
         )
     ```

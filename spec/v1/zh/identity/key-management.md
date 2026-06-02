@@ -311,8 +311,20 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
     "user_oob_confirmation_method": "offline_paper|physical_meet|independent_channel"
   },
   "signature_chain": [
-    { "alg": "...", "verification_method": "<inception key DID URL>", "over": "transfer_envelope_canonical" },
-    { "alg": "...", "verification_method": "<did:webvh entry-0 controller key DID URL>", "over": "transfer_envelope_canonical" }
+    {
+      "principal_id": "did:web:<host>",
+      "verification_method": "did:web:<host>#<inception-key>",
+      "algorithm": "Ed25519",
+      "payload_digest": "sha256:<64-hex>",
+      "signature": "<base64url-signature>"
+    },
+    {
+      "principal_id": "did:webvh:<scid>:<host>",
+      "verification_method": "did:webvh:<scid>:<host>#<entry-0-controller-key>",
+      "algorithm": "Ed25519",
+      "payload_digest": "sha256:<64-hex>",
+      "signature": "<base64url-signature>"
+    }
   ]
 }
 ```
@@ -440,7 +452,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 
 - `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `cx.device.authorize` 等操作。
 - `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。
-- `mls_history`：保存用户已有权读取的 Realm / Flow track 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
+- `mls_history`：保存用户已有权读取的 Realm / MLS-backed Circle 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
 
 域隔离规则：
 
