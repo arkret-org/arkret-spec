@@ -57,10 +57,10 @@ Board Space 与 List Space 是 `Space` 的 `kind`（详见 [realm-and-space.md](
 
 看板和列表投影应表达为：
 
-- `kind=”collection” + renderer=”board”`
-- `kind=”collection” + renderer=”list”`
+- `kind="collection" + renderer="board"`
+- `kind="collection" + renderer="list"`
 
-View 负责”如何看”，Board Space / List Space 负责”对象如何被组织”。
+View 负责"如何看"，Board Space / List Space 负责"对象如何被组织"。
 
 ### 2.4 Query SHOULD 优先面向 Flow / Message / Morph
 

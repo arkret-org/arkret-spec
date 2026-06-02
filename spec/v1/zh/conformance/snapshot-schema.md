@@ -56,6 +56,13 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
   },
   "created_by": "did:web:server.example",
   "created_at": "2026-04-26T00:00:00Z",
+  "authority_binding": {
+    "issuer": "did:web:server.example",
+    "authority_kind": "realm_policy_snapshot_issuer",
+    "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "auth_frontier": ["cx:event:019640ed-8000-7000-8000-000000000000"],
+    "checked_at": "2026-04-26T00:00:00Z"
+  },
   "signature": {
     "kind": "detached_jws",
     "alg": "EdDSA",

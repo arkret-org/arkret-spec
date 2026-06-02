@@ -178,7 +178,7 @@ Projection 只减少返回字段，不提升权限。
   "has_more": true,
   "frontier": {
     "barrier_cursor": "cx:cursor:...",
-    "max_hlc": "01JS0KE000000000000000000"
+    "max_hlc": "01970e589d21-0004-a13f9c2e"
   }
 }
 ```

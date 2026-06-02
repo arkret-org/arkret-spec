@@ -56,9 +56,9 @@ Issuer MUST NOT 注入：
 
 LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 frame-level E2EE。Contrix-LiveKit binding 的 key 注入按 §10.5.0 通用契约：
 
-1. 客户端 binding adapter 从 Contrix MLS exporter 派生 `key_bytes`（label `"cx-rtc-frame-key/v1"`，`Context=""`，`KDF.Nh=32`）。
+1. 客户端 binding adapter 从 Contrix MLS exporter 为每个 sender 派生 `key_bytes`（label `"cx-rtc-frame-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`，`KDF.Nh=32`）。
 2. 调 LiveKit SDK 的 `Room.setE2EEEnabled(true)` 并通过 `keyProvider` 注入 `key_bytes`。
-3. MLS epoch 变化 → 调 `keyProvider.setKey(keyBytes, keyIndex=epoch_id % 256)` 触发 LiveKit SFrame ratchet。
+3. MLS epoch 或 participant set 变化 → 调 `keyProvider.setKey(keyBytes, keyIndex=<sender-bound-key-index>)` 触发 LiveKit SFrame ratchet。`keyIndex` MUST 是当前 active `(epoch_id, participant_identity)` 集合内无冲突的 adapter-local 映射；MUST NOT 仅用 `epoch_id % 256`。
 4. backend SDK 若试图通过 LiveKit Cloud 的 internal key distribution（如 LiveKit Cloud E2EE Token Service）注入 key，客户端 MUST 拒绝，错误码 `e2ee_key_source_unauthorised`。
 
 `media_service_decrypts=true` 时（少数合规部署）：客户端按 [`../webrtc-signaling.md` §10.5.1](../webrtc-signaling.md) 完成三层校验，且 MUST 通过 Contrix-controlled keying path 把 `key_bytes` 提交给 LiveKit decryption oracle；不得使用 LiveKit Cloud 自动 key escrow。

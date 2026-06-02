@@ -191,6 +191,13 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `cx.agent.sess
       }
     ],
     "external_transcript_digest": "sha256:...",
+    "artifact_retention": "retain_by_policy",
+    "external_artifact_stub": {
+      "hash": "sha256:...",
+      "remote_id_digest": "sha256:...",
+      "retention_reason": "realm_policy",
+      "cleanup_retry_policy": "not_applicable"
+    },
     "completed_at": "2026-04-26T00:10:00Z"
   }
 }

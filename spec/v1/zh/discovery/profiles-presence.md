@@ -220,8 +220,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
   "kind": "cx.presence",
   "actor_id": "did:web:alice.example.com",
   "state": "online",
-  "last_active_at": "2026-04-26T08:30:00Z",
-  "status_message": "On vacation until May 5th 🏖️",
+  "status_message": "On vacation until May 5",
   "ttl_ms": 60000
 }
 ```

@@ -546,14 +546,18 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 ```text
 inject_frame_key(key_bytes: 32-byte secret,
                  epoch_id: u64,
+                 sender_binding: canonical_json{
+                   realm_id, call_id, focus_id,
+                   participant_identity, device_id
+                 },
                  rotation_trigger: enum{member_join, member_leave, manual, scheduled})
 ```
 
 约束：
 
-- `key_bytes` MUST 由 Contrix MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`Context = ""`，`KDF.Nh` 长度 32 bytes）。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking，必须开新 profile。
+- `key_bytes` MUST 由 Contrix MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `cx.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
-- backend SDK / adapter 内部如何把该 key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §10.5.1 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
+- backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §10.5.1 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
 - Conformance negative vector `cx.vector.media_binding.e2ee_key_source.v1`：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
 
 Conformance vectors for the full media binding framework：
@@ -567,6 +571,7 @@ Conformance vectors for the full media binding framework：
 - `cx.vector.media_binding.participant_identity_unrecognised.v1` — §10.4 backend 通知的 participant 不在 `cx.call.state` 时拒绝该流。
 - `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1` — §13 backend-generated recording 必须经 Contrix blob pipeline。
 - `cx.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"cx-rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
+- `cx.vector.media_binding.sender_bound_frame_key.v1` — 同一 epoch 内两个 sender 使用不同 `participant_identity` / `device_id` 时必须派生不同 frame key；空 Context 或 epoch-only Context MUST 拒绝。
 
 #### 10.5.1 治理绑定（normative）
 
@@ -675,6 +680,7 @@ Conformance vectors for the full media binding framework：
   "realm_id": "cx:realm:...",
   "payload": {
     "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
+    "recording_id": "cx:recording:0196441d-0000-7000-8000-000000000000",
     "recording_agent": "did:web:recorder.example",
     "mode": "audio_video",
     "visible_notice": true
@@ -686,6 +692,7 @@ Conformance vectors for the full media binding framework：
 
 - 需要 `cx.call.record` capability。
 - 客户端 MUST 对所有参会者显示录制中。
+- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 id，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
 - **Backend-generated recording 必经 Contrix blob pipeline**（参见 [CXP-0010 §4.7](../../proposals/0010-media-service-binding-framework.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
   1. 作为加密 blob 上传到 Contrix media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。

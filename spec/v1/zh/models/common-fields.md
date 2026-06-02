@@ -156,22 +156,22 @@ expected_<role>_<kind>_id
 - **Lifecycle**：物理生命周期（active / archived / tombstoned / ...），与 `cx.<kind>.archive` / `restore` / `tombstone` 系列 event 配对。
 - **Progress**：业务进度（v1 仅 Flow / Morph），与 `cx.<kind>.stage.set` event 配对。
 
-| 字段 | 组 | Realm | Space | Flow | Message | Morph | Relation | View | Policy | Blob meta | Capability Grant | Invite | Read Cursor | Notification | Actor Profile |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
-| `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
-| `realm_id` | Universal | — (self) | Y | Y | Y | Y | Y | Y | Y | O | Y | Y | O | O | O |
-| `created_at` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
-| `created_by` | Authorship | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
-| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
-| `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
-| `deleted_at` | Lifecycle | O | O | O | O | O | O | — | O | O | — | — | — | — | — |
-| `state` | Lifecycle | O | O | O | Y | O | O | — | O | — | — | — | — | — | — (see `status`，mirrors account status) |
-| `state_changed_at` | Lifecycle | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
-| `stage` | Progress | — | — | Y | — | Y | — | — | — | — | — | — | — | — | — |
-| `stage_changed_at` | Progress | — | — | R per `cx.flow.stage.set` | — | R per `cx.morph.stage.set` | — | — | — | — | — | — | — | — | — |
-| `labels` | Universal | O | O | O | O | O | O | O | — | O | — | — | — | — | O |
-| `fields` / `metadata.fields` | Universal | O | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | O | O | O | — | O | — | — | — (see `profile_fields`) |
+| 字段 | 组 | Realm | Circle | Space | Flow | Message | Morph | Relation | View | Policy | Blob meta | Capability Grant | Invite | Read Cursor | Notification | Actor Profile |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `realm_id` | Universal | — (self) | Y | Y | Y | Y | Y | Y | Y | Y | O | Y | Y | O | O | O |
+| `created_at` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `created_by` | Authorship | Y | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
+| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
+| `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
+| `deleted_at` | Lifecycle | O | — | O | O | O | O | O | — | O | O | — | — | — | — | — |
+| `state` | Lifecycle | O | Y | O | O | Y | O | O | — | O | — | — | — | — | — | — (see `status`，mirrors account status) |
+| `state_changed_at` | Lifecycle | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
+| `stage` | Progress | — | — | — | Y | — | Y | — | — | — | — | — | — | — | — | — |
+| `stage_changed_at` | Progress | — | — | — | R per `cx.flow.stage.set` | — | R per `cx.morph.stage.set` | — | — | — | — | — | — | — | — | — |
+| `labels` | Universal | O | — | O | O | O | O | O | O | — | O | — | — | — | — | O |
+| `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | O | O | O | — | O | — | — | — (see `profile_fields`) |
 
 附注：
 
@@ -188,7 +188,7 @@ expected_<role>_<kind>_id
 
 ### 4.1 DID 适用边界
 
-DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Space / Flow / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `cx:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / device / controller / accountable party 时，才使用 DID 或 DID URL。
+DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Flow / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `cx:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / device / controller / accountable party 时，才使用 DID 或 DID URL。
 
 因此，"需要有 DID"的对象与结构按下表理解：
 
@@ -198,7 +198,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | Actor Profile (`cx:actor_profile:`) | `principal_id` | Profile 只是展示镜像；`principal_id` 才是授权、签名和审计归属的主体 DID。 |
 | Event Envelope (`cx:event:`) | `actor_id`; Proof 中的 `verification_method` 为 DID URL | `actor_id` 是签署并提交事件的 actor DID，MUST 匹配 proof 控制链。 |
 | Realm (`cx:realm:`) | `created_by` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |
-| Space / Flow / Message / Morph / Relation / View / Policy / Blob metadata | `created_by`; 更新时可有 `updated_by` | 这些对象自身不使用 DID 做 `id`；DID 只记录创建 / 更新主体。协作图对象的创建 / 更新主体由 reducer 从对应 Event 的 `actor_id` 派生；Blob metadata 的 `created_by` 来自 authenticated media 写入主体。 |
+| Circle / Space / Flow / Message / Morph / Relation / View / Policy / Blob metadata | `created_by`; 更新时可有 `updated_by` | 这些对象自身不使用 DID 做 `id`；DID 只记录创建 / 更新主体。协作图对象的创建 / 更新主体由 reducer 从对应 Event 的 `actor_id` 派生；Blob metadata 的 `created_by` 来自 authenticated media 写入主体。 |
 | Capability Grant (`cx:grant:`) | `issuer`; `subject` 为具体主体时必须是 DID | `subject` 也可以是条件 selector；handle、邮箱、域名用户名等不得作为权限主体主键。 |
 | Invite (`cx:invite:`) | `inviter`; `invitee` 在直接 DID 邀请时使用 DID | 3PID 邀请可没有 `invitee`，但认领后必须绑定可验证主体。 |
 | Read Cursor / Notification | `actor_id` | actor-private 或派生对象，`actor_id` 表示该私有状态所属主体。 |
@@ -242,7 +242,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 | 字段 | 使用场景 | 语义轴 |
 | --- | --- | --- |
-| `state` | Realm / Space / Flow / Message / Morph / Relation 等 canonical object | 物理生命周期：active、archived、redacted、tombstoned / deleted 等。 |
+| `state` | Realm / Circle / Space / Flow / Message / Morph / Relation 等 canonical object | 物理生命周期：active、archived、redacted、tombstoned / deleted 等。 |
 | `stage` | Flow / Morph | 业务进度：draft、planned、in_progress、done、cancelled 等；与物理生命周期正交。 |
 | `status` | Account、agent session、delivery、moderation workflow、registry entry 等过程型对象 | 外部过程或会话状态；不得替代 object lifecycle。 |
 | `runtime_status` | Applet bridge / runtime metadata | 跨协议 runtime 可用性或执行态，避免与 canonical object `status` / `state` 混淆。 |
@@ -250,12 +250,12 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 各对象的 `state` 字段值不完全相同（部分名字承载了已稳定的 `cx.*.tombstone` event 命名约定），但在 reducer / projection 语义层等价于以下规范状态机：
 
-| 规范状态 | 语义 | Flow | Space | Message | Morph | Relation | Realm |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` |
-| `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | — | `archived` | — | `archived` |
-| `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | `redacted` | `redacted` | `tombstoned`（合并 deleted+redacted） | — |
-| `deleted` | 不可逆删除：content / encrypted_content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | — | — | `tombstoned` | `tombstoned` |
+| 规范状态 | 语义 | Flow | Circle | Space | Message | Morph | Relation | Realm |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` | `active` |
+| `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | `archived` | — | `archived` | — | `archived` |
+| `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | — | `redacted` | `redacted` | `tombstoned`（合并 deleted+redacted） | — |
+| `deleted` | 不可逆删除：content / encrypted_content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | `tombstoned` | — | — | `tombstoned` | `tombstoned` |
 
 约定：
 
@@ -273,7 +273,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `cx.<kind>.tombstone` | `active`、`archived` | `tombstoned` / `deleted`(各对象 schema 自命名) | `<kind>_already_terminal` |
 | `cx.<kind>.redact` 或 cross-object `cx.redaction` 指向该对象 | `active`、`archived` | `redacted`(如对象支持),或合并到 `tombstoned` | `<kind>_already_terminal` |
 
-`<kind>` 是 schema 类型短名(`flow`、`space`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
+`<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active` / `circle_not_archived` / `circle_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
 
 附加规则:
 

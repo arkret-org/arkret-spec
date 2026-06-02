@@ -406,6 +406,7 @@ Realm MAY 使用 `cx.realm.moderation_policy` state event 声明黑名单、允�
 `action` 取值：
 
 - `deny_join`
+- `deny_restricted_join`
 - `deny_invite`
 - `deny_write`
 - `deny_federation`
@@ -428,7 +429,7 @@ Realm MAY 使用 `cx.realm.moderation_policy` state event 声明黑名单、允�
 | `media_digest` | `digest` | 媒体或 blob 内容 digest。 |
 | `content_label` | `label` | 分类器或审核标签。 |
 
-Realm 级 server ACL 等价规则 MUST 使用 `service_did`、`domain` 或 `trust_domain` target 表达。`deny_write` / `deny_federation` 命中这些 target 时，接收方 MUST 拒绝该 peer 后续 service-to-service 写入、backfill push、完整 frontier probe 和默认 fanout；`quarantine_message` 命中时，事件不得进入普通用户可见视图，直到 anchored moderation decision 解除。`deny_join` 命中 server target 时，MUST 拒绝通过该 service DID 或 domain 发起的新 join / invite acceptance，但不会自动清扫已经 accepted 的成员；清扫既有成员必须通过 `cx.member.state{membership="ban"}`、grant revoke、MLS epoch rotation 或明确的 moderation decision 完成。
+Realm 级 server ACL 等价规则 MUST 使用 `service_did`、`domain` 或 `trust_domain` target 表达。`deny_write` / `deny_federation` 命中这些 target 时，接收方 MUST 拒绝该 peer 后续 service-to-service 写入、backfill push、完整 frontier probe 和默认 fanout；`quarantine_message` 命中时，事件不得进入普通用户可见视图，直到 anchored moderation decision 解除。`deny_join` 命中 server target 时，MUST 拒绝通过该 service DID 或 domain 发起的新 join / invite acceptance，但不会自动清扫已经 accepted 的成员；`deny_restricted_join` 只作用于 `join_rule=restricted` / `history_visibility=restricted` 或等价 restricted admission profile 的申请、knock、invite acceptance，命中时 MUST fail closed，不得回退到普通 `deny_join` 之外的宽松路径。清扫既有成员必须通过 `cx.member.state{membership="ban"}`、grant revoke、MLS epoch rotation 或明确的 moderation decision 完成。
 
 Domain target 的匹配必须基于已验证 service DID / DID Document endpoint / member delivery binding 的规范化结果。实现 MUST NOT 对未经验证的裸字符串、display name、handle 后缀或用户输入 URL 做后缀封禁推断。
 

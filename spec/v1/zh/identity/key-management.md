@@ -671,7 +671,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 DEK 通过门限秘密分享拆分；reconstruction 需要 §8 recovery policy 的 `threshold.k` 份 share。
 
 - `backup_class="did_recovery"` 的 threshold envelope MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}`，并且该 tuple MUST 等于当前 accepted `cx.schema.recovery_policy.v1`；不一致的 envelope MUST `recovery_policy_mismatch`。`recipient_key_ref` MAY 标识 policy 内的 threshold 配置 / share set，但不得作为唯一 policy 绑定字段。
-- 每份 share 的取回 MUST 绑定当前 recovery 流程的 `recovery_session_id`（§15）；holder 服务 MUST NOT 把同一 share 多次释放给不同 session 而不经显式授权。
+- 每份 share 的取回 MUST 绑定当前 recovery 流程的 `recovery_session_id`（见 [`../crypto-media/device-lifecycle.md` §15](../crypto-media/device-lifecycle.md)）；holder 服务 MUST NOT 把同一 share 多次释放给不同 session 而不经显式授权。
 - reconstruction 完成的 DEK MUST NOT 写入持久化存储；reconstruction 上下文 MUST 在解密 envelope 后立即销毁。
 - share commitment 校验：reconstruction 前 client / recovery coordinator MUST 验证每份 share 与 `recovery_policy.threshold.shares[].share_commitment` 一致；失败时 MUST `share_commitment_mismatch` 并通知用户特定 holder 提交了 invalid share。
 

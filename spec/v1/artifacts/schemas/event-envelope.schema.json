@@ -42,8 +42,11 @@
       "description": "Optional. Present only when an agent acts on behalf of the controller actor. actor_id is the principal of record (controller), executed_by is the agent principal that actually issued the wire write. MUST be a registered native personal agent principal accountable to actor_id (CXP-0008 §4.10). When present, MUST appear together with authorization_ref. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) when this field is present."
     },
     "authorization_ref": {
-      "$ref": "#/$defs/event_ref",
-      "description": "Optional. Required when executed_by is present. References the cx.capability.grant or cx.capability.delegate event that authorizes the agent to act on behalf of actor_id for this action/resource. Reducer MUST validate the referenced grant covers the event kind and target resource and is within its effective validity window."
+      "oneOf": [
+        { "$ref": "#/$defs/grant_ref" },
+        { "$ref": "#/$defs/event_ref" }
+      ],
+      "description": "Optional. Required when executed_by is present. Prefer a materialized cx:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization. Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window."
     },
     "actor_kind": {
       "type": "string",
@@ -1661,6 +1664,10 @@
     "event_ref": {
       "type": "string",
       "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "grant_ref": {
+      "type": "string",
+      "pattern": "^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "anchor_ref": {
       "type": "string",
