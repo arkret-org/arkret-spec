@@ -731,6 +731,59 @@ receipt / read cursor 的具体规则见 [`../discovery/read-receipts.md`](../di
 - `message --mentions--> actor / flow / morph`
 - `message --references--> flow / morph / blob`
 
+### 9.8 表情回复（Reaction）
+
+Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `cx.reaction.add` / `cx.reaction.remove` 两个 durable event 维护一个 per-target 的 OR-Set。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`artifacts/fixtures/reaction-fixture.json`](../../artifacts/fixtures/reaction-fixture.json)。
+
+#### 9.8.1 事件与 payload
+
+写入路径只有 `cx.reaction.add` / `cx.reaction.remove`（均 `durable_event` / `reducer_input`，见 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)）。Reaction **不**定义 `revise` / `redact` 形态——改变表态用 remove + add，移除表态用 remove。
+
+Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../artifacts/schemas/event-payload.schema.json)。
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `target_ref` | yes | `ref:object` | 见 §9.8.2 target 范围。 | 被表态的对象。 |
+| `key` | conditional | `string` | 1..128 chars。非 E2EE：单 Unicode emoji cluster（NFC 归一化）或 profile 注册的短 tag；E2EE：MUST 为 §2.9 的 keyed-HMAC routing tag，真实 emoji 在 `encrypted_payload`。 | 表情键 / 路由键；OR-Set 成员键之一。 |
+| `annotation` | no | `string` | E2EE 下 MUST 省略（随 `encrypted_payload` 一同加密）。 | 可选附注。 |
+| `encrypted_payload` | conditional | `EncryptedPayload` | E2EE Realm 下必填，承载真实 emoji 与 annotation；存在时明文 `key` MUST 为 routing tag、`annotation` MUST 省略。 | E2EE 载体。 |
+
+#### 9.8.2 Target 范围（v1 决策）
+
+v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `cx:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `cx:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Flow synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
+
+跨 effective scope 表态不允许：`target_ref` 必须落在 reaction event 自身 stamped 的 effective scope 内，否则 `failed_precondition`（`reason="reaction_scope_mismatch"`）。
+
+#### 9.8.3 OR-Set 收敛（authoritative）
+
+成员身份键为 `(actor_id, target_ref, key)`；本节为权威定义，[§9.5](#95-冲突与收敛规则) 表中的一行是其摘要：
+
+- **去重**：同一 actor 对同一 `(target_ref, key)` 的多次 `add` 收敛为一个成员条目（`count` 不重复累加）；per-event 审计日志保留全部 add event。
+- **add / remove**：`cx.reaction.remove` 对该 actor 在其因果过去内、同 `(target_ref, key)` 的所有 add 打 tombstone。并发（无因果序）的 (add, remove) 在默认视图按 remove 收敛（OR-Set 选择 remove-wins）；审计视图保留双方。
+- **dangling**：`target_ref` 尚未观测到时，reducer MUST 把该 reaction 挂起（pending，`reason="dependency_missing"`），目标 Message 物化后再落 OR-Set 条目。
+- **target redacted**：目标 Message 被 redact 后，默认视图 summary MUST NOT 暴露 reaction 成员；审计视图保留 reaction event 于 redaction stub 之下（与 [§9.5](#95-冲突与收敛规则) 撤回语义一致）。
+- **E2EE epoch**：routing tag 绑定当前 MLS epoch；同一真实 emoji 在不同 epoch 派生不同 tag，因此跨 epoch 不去重（见 §2.9 与 fixture `e2ee_epoch_rotation_breaks_dedup`）。
+
+读侧投影暴露 `(target_ref, key, members[], count)` summary；E2EE 路由模式下 `key` 为 routing tag，客户端解密后替换为真实 emoji 再渲染。
+
+#### 9.8.4 授权与防滥用
+
+- Capability：`cx.reaction.add` / `cx.reaction.remove`（均 low risk_tier，admin 默认 bundle 给成员）。capability 撤销后，因果上位于 revoke frontier 之后的 add MUST 在 reducer 改状态前被拒（`capability_denied`）；revoke frontier 之前已接受的 reaction 保留在 OR-Set（见 fixture `capability_revoked_blocks_subsequent_add`）。
+- **Self-scoped**：actor 的 add/remove 只影响**它自己**的 OR-Set 成员；`cx.reaction.remove` 按 `(actor_id, target_ref, key)` 仅 tombstone 该 actor 自己的 add。v1 **不**定义"移除他人 reaction"的标准 action；清除他人滥用表态走 §9.8.5 的治理路径。
+- **限流**：Server MAY 对 `cx.reaction.add` 按 actor 限流；reducer MUST 把被限流事件归为 `rate_limited` / `quota_exceeded` / `quarantine` 之一，绝不可"接受后静默丢弃"（见 fixture `rate_limit_high_rate_reaction_burst`）。频率约束通过 `quota`(`subtype=rate`) constraint 表达。
+- **允许的 key 集合**：非 E2EE Realm MAY 通过 profile 把允许的 `key` 限定为注册 emoji 集合 / 短 tag 白名单；未命中白名单的 add 按 profile 声明 `deny` / `quarantine` 处理。E2EE Realm 下 server 看不到真实 emoji，key 集合策略只能在客户端 / 解密后 enforce。
+- **每 target / 每 actor 的去重 key 上限**：Realm/profile MAY 通过 `quota`(`subtype=resource`) 约束单 target 的 distinct key 数与单 actor 的 distinct key 数，防止表态轰炸。
+
+#### 9.8.5 与 redaction / moderation 的关系
+
+- **annotation 是用户内容**：admission 时 MUST 受 `cx.realm.moderation_policy` 的 `content_filters` 约束（命中可 `quarantine` / `require_review`），与 Message content 同级（见 [`../governance/content-moderation.md` §5.3](../governance/content-moderation.md)）。
+- **目标撤回级联**：目标 Message redact 后其 reaction 一并从默认视图消失（§9.8.3）；不需要逐条 remove。
+- **清除他人滥用表态**：v1 无跨 actor reaction 删除 action。可用手段是（a）moderator redact 目标 Message（级联清除其全部 reaction），（b）`cx.capability.revoke` 撤销滥用者的 `cx.reaction.add` 阻止后续表态，（c）profile 注册的 moderation action。跨 actor 的细粒度 reaction 治理是已知 extension point，v1 core 不发明新 action。
+
+#### 9.8.6 通知
+
+Reaction 不是 mention。`cx.reaction.add` / `cx.reaction.remove` 仅对 effective watch `level=all` 的订阅者产生通知（见 [§8.2](#82-watch-级别枚举)）；`participating` / `mentions_only` 不因他人对自己消息的 reaction 收到推送，除非 push rule 引擎另有显式规则。目标对象被 redact 后既有 reaction 通知的 preview MUST 按 redaction 重新裁剪。
+
 ## 10. 规范性引用
 
 - 公共字段、stage 轴（§5.3）：[common-fields.md](./common-fields.md)。
@@ -743,3 +796,5 @@ receipt / read cursor 的具体规则见 [`../discovery/read-receipts.md`](../di
 - Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/flow_stage_set_payload`。
 - Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。
 - Stage 字段 forbidden-wire 规则：`artifacts/registry/forbidden-wire-fields.json`。
+- Reaction payload / 收敛向量：`artifacts/schemas/event-payload.schema.json#/$defs/reaction_payload`、`artifacts/fixtures/reaction-fixture.json`；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md)。
+- 编辑窗口 / 撤回窗口约束：[`../authz/constraint-schema.md` §14.2](../authz/constraint-schema.md)（`message_edit_window` / `message_redact_window` / `allow_redact_after_window`）。

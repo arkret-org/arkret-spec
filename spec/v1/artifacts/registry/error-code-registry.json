@@ -224,6 +224,21 @@
       "description": "The target Flow discussion track is disabled."
     },
     {
+      "code": "reaction_target_unsupported",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for schema_violation when a cx.reaction.add / cx.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows cx:message: targets; profiles MAY register additional target kinds. See zh/models/flow-and-message.md §9.8.2."
+    },
+    {
+      "code": "reaction_scope_mismatch",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a cx.reaction.* target_ref resolves to an object outside the reaction event's stamped effective scope. Reactions MUST target an object within their own effective scope. See zh/models/flow-and-message.md §9.8.2."
+    },
+    {
       "code": "epoch_mismatch",
       "http_status": 409,
       "scope": "both",

@@ -2781,7 +2781,7 @@
     },
     "reaction_payload": {
       "type": "object",
-      "description": "Reducer input for cx.reaction.add and cx.reaction.remove. OR-Set membership is keyed on (actor_id, target_ref, key); a remove tombstones every prior add from the same actor with the same key in the causal past. See zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
+      "description": "Reducer input for cx.reaction.add and cx.reaction.remove. OR-Set membership is keyed on (actor_id, target_ref, key); a remove tombstones every prior add from the same actor with the same key in the causal past. See zh/models/flow-and-message.md §9.8 for the authoritative Reaction model (target scope, OR-Set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
       "required": [
         "target_ref"
       ],
@@ -2805,7 +2805,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "description": "Reaction key. Plaintext realms SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted realms with `aad_visibility != opaque_id` SHOULD carry a deterministic routing hash here (`sha256(\"cx-reaction-key-v1\" || mls_group_id || epoch || canonical_emoji)`) so that OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
+          "description": "Reaction key. Plaintext realms SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted realms with `aad_visibility != opaque_id` SHOULD carry the v2 keyed-HMAC routing tag here (`HMAC-SHA256(key = MLS-Exporter(\"contrix-reaction-routing-v2\", context = realm_id), data = NFC(canonical_emoji))`), naturally bound to the current MLS group + epoch via the exporter secret; see zh/crypto-media/encryption-and-audit.md §2.9 for the authoritative construction. This lets OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
         },
         "annotation": {
           "type": "string",

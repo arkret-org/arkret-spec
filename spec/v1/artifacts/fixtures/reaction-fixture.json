@@ -2,7 +2,7 @@
   "suite": "reaction",
   "profile": "cx.profile.reaction_vectors.v1",
   "version": "2026-05-08",
-  "notes": "Reducer-level vectors for cx.reaction.add / cx.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/flow-and-message.md §8.5 and zh/crypto-media/encryption-and-audit.md §2.9.",
+  "notes": "Reducer-level vectors for cx.reaction.add / cx.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/flow-and-message.md §9.8 (Reaction model + authoritative OR-Set semantics) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
   "cases": [
     {
       "name": "or_set_basic_add_then_remove",
@@ -206,7 +206,7 @@
     },
     {
       "name": "e2ee_routing_digest_dedup",
-      "notes": "In an E2EE realm the plaintext key is sha256(\"cx-reaction-key-v1\" || realm_id || mls_group_id || epoch || canonical_emoji). Two adds with the same routing hash from the same actor in the same epoch collapse to one OR-Set membership; routing hash differs in a different epoch and so does not dedup across epochs. The realm_id binding (added in v1) provides defense-in-depth even if mls_group_id is reused across deployments.",
+      "notes": "In an E2EE realm the plaintext key is the v2 keyed-HMAC routing tag: HMAC-SHA256(key = MLS-Exporter(\"contrix-reaction-routing-v2\", context = realm_id), data = NFC(canonical_emoji)); see zh/crypto-media/encryption-and-audit.md §2.9. The 32-byte tag is carried in `key` as a 256-bit hex digest (the sha256: prefix below denotes the digest wire-encoding, not the derivation). Two adds with the same routing tag from the same actor in the same epoch collapse to one OR-Set membership; the tag differs in a different epoch because the MLS exporter secret rotates on every commit, so it does not dedup across epochs. realm_id is bound via the exporter context, providing defense-in-depth even if mls_group_id is reused across deployments.",
       "context": {
         "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
         "aad_visibility": "hidden",
