@@ -523,6 +523,51 @@
         }
       ]
     },
+    "device_cross_signing_binding": {
+      "type": "object",
+      "description": "SSK signature binding a cx.device.authorize payload's device_public_key to the principal's accepted cross-signing generation. Canonical signing input is defined in zh/crypto-media/device-lifecycle.md §5.2.",
+      "required": [
+        "verification_method",
+        "alg",
+        "ssk_generation",
+        "signature"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "#/$defs/verification_method",
+          "description": "DID URL of the self-signing key that signed the device trust binding."
+        },
+        "alg": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_bootstrap_binding": {
+      "type": "object",
+      "description": "Bootstrap-only binding for the first cx.device.authorize event signed by the DID inception key before any cx.cross_signing.publish exists. Receivers MUST accept this only under the inception bootstrap rules in zh/identity/key-management.md §5.0.1 and zh/crypto-media/device-lifecycle.md §5.3.",
+      "required": [
+        "kind",
+        "did_method_evidence_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "inception_self_authorized"
+        },
+        "did_method_evidence_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
     "rank": {
       "type": "string",
       "pattern": "^[0-9A-Za-z]{1,128}$"
@@ -4180,6 +4225,18 @@
           ]
         }
       ],
+      "oneOf": [
+        {
+          "required": [
+            "cross_signing_binding"
+          ]
+        },
+        {
+          "required": [
+            "bootstrap_binding"
+          ]
+        }
+      ],
       "properties": {
         "principal_id": {
           "$ref": "#/$defs/did"
@@ -4210,6 +4267,12 @@
         },
         "proof": {
           "$ref": "#/$defs/signature_material"
+        },
+        "cross_signing_binding": {
+          "$ref": "#/$defs/device_cross_signing_binding"
+        },
+        "bootstrap_binding": {
+          "$ref": "#/$defs/device_bootstrap_binding"
         }
       },
       "additionalProperties": false

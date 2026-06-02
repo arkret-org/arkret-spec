@@ -696,6 +696,51 @@
       }
     },
     {
+      "name": "device_authorize_cross_signing_binding_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
+      "expect_valid": true,
+      "instance": {
+        "principal_id": "did:web:alice.example",
+        "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
+        "device_public_key": "z6MkDevicePublicKey",
+        "authorized_by": "cx:device:019a6aa0-1000-7000-8000-000000000000",
+        "not_before": "2026-05-20T00:00:00Z",
+        "expires_at": null,
+        "cross_signing_binding": {
+          "verification_method": "did:web:alice.example#cx_self_signing_v1",
+          "alg": "EdDSA",
+          "ssk_generation": 1,
+          "signature": "c2ln"
+        },
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:web:alice.example#device-old",
+          "jws": "..."
+        }
+      }
+    },
+    {
+      "name": "device_authorize_bootstrap_binding_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
+      "expect_valid": true,
+      "instance": {
+        "principal_id": "did:web:alice.example",
+        "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
+        "device_public_key": "z6MkDevicePublicKey",
+        "authorized_by": "did:web:alice.example",
+        "not_before": "2026-05-20T00:00:00Z",
+        "bootstrap_binding": {
+          "kind": "inception_self_authorized",
+          "did_method_evidence_ref": "did:web:alice.example/entry-0"
+        },
+        "device_signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:web:alice.example#inception",
+          "jws": "..."
+        }
+      }
+    },
+    {
       "name": "call_signal_missing_proof_rejected",
       "schema_ref": "schemas/ephemeral-envelope.schema.json",
       "expect_valid": false,

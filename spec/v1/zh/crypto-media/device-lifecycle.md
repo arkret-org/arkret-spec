@@ -813,7 +813,8 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 规则：
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名；`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
+- `backup_class="did_recovery"` 的 wire envelope MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}`，并与当前 accepted recovery policy 一致；不一致 MUST `recovery_policy_mismatch`。`mls_history` 与 `secret_storage` envelope MAY 携带 `recovery_policy_ref` 作为恢复流程 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得用它替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
+- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名；`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
@@ -1029,13 +1030,34 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
 设备恢复是一个端到端状态机，不能只靠单个 reset proof 或 key backup 下载完成。合规实现 MUST 按以下顺序闭环：
 
-1. **Recovery policy 触发**：新设备声明恢复意图，引用 principal DID 当前 `recovery_policy`、目标 `principal_id`、新 `device_id`、当前 `ssk_generation` 和 trust domain。恢复请求必须带 challenge，防止把旧恢复 proof 复制到新设备。
-2. **新设备认证**：按 recovery policy 选择 `principal_signing`、`recovery_unlock`、`device_quorum` 或 `trusted_recovery_service` proof。proof transcript MUST 绑定 `(principal_id, device_id, trust_domain, recovery_session_id, ssk_generation, created_at)`。
+`cx.schema.recovery_session.v1`（[`recovery-session.schema.json`](../../artifacts/schemas/recovery-session.schema.json)）规范化 recovery-session wire contract。状态机值固定为 `pending -> verified -> completed`，旁路终态为 `rejected` / `expired`；终态不得回到 `pending` 或 `verified`。Create/get/proofs/complete 的请求响应 shape、`principal_signing` proof 形态和 transcript fixture 均由该 schema 的 `$defs` 固定。
+
+1. **Recovery policy 触发**：新设备声明恢复意图，引用 principal DID 当前 `recovery_policy`、目标 `principal_id`、新 `device_id`、当前 `ssk_generation` 和 trust domain。服务端 / coordinator MUST 在创建 session 时 snapshot 当前 accepted `(policy_id, policy_version, ssk_generation)`，签发 256-bit CSPRNG `challenge`（base64url no padding, exactly 43 chars），并设置 `expires_at`。默认 TTL 为 900s；deployment MAY 配置更短 TTL，MUST NOT 配置更长 TTL，除非后续 recovery policy 字段显式授权覆盖。challenge MUST 单 session 单次使用；proof 失败或成功消费后不得在其它 session 复用。
+2. **新设备认证**：按 recovery policy 选择 `principal_signing`、`recovery_unlock`、`device_quorum` 或 `trusted_recovery_service` proof。`principal_signing` proof 的 canonical transcript MUST 是 `canonical_json` of exactly:
+
+   ```json
+   {
+     "type": "cx.identity.recovery_proof.v1",
+     "kind": "principal_signing",
+     "principal_id": "<principal DID>",
+     "requesting_device_id": "<new device id>",
+     "trust_domain": "<current trust domain>",
+     "policy_id": "<active recovery policy id snapshotted by the session>",
+     "policy_version": 1,
+     "recovery_session_id": "cx:recovery_session:<uuidv7>",
+     "ssk_generation": 1,
+     "challenge": "<256-bit base64url session challenge>",
+     "created_at": "<session created_at>",
+     "expires_at": "<session expires_at>"
+   }
+   ```
+
+   `created_at` 是 recovery session 创建/签发时间，不是客户端 proof 创建时间。`expires_at` 是同一 session 的过期时间。Receiver MUST reconstruct this transcript from stored session state, not from client-supplied copies of policy/session metadata except the echoed `challenge`; any mismatch fails closed (`recovery_evidence_unbound`, `recovery_policy_mismatch`, `recovery_session_challenge_mismatch`, or `invalid_signature` as applicable). Other proof kinds MUST bind the same session tuple and add kind-specific material when their schemas are introduced.
 3. **设备授权与列表更新**：成功后发布 `cx.device.authorize`，并在 principal control stream 发布 `cx.device.list_update`。若当前 accepted `cx.cross_signing.publish.generation` 与请求中的 `ssk_generation` 不一致，reducer MUST 拒绝，reason=`device_recovery_ssk_generation_mismatch`。
 4. **Key backup / Secret storage unlock**：新设备只能拉取 policy 允许的 backup class（`did_recovery` / `secret_storage` / `mls_history`），每个 backup decrypt proof MUST 绑定 `recovery_session_id` 和新设备 key。服务端不得把恢复 proof 当作长期 bearer token。
 5. **MLS Welcome replay**：对每个可恢复 Realm，授权 peer / key service 重新发 Welcome 或 history key share；Welcome 的 `claim_ref.ssk_generation` MUST 等于当前 accepted cross-signing generation。旧 generation 的 Welcome MUST `claim_generation_mismatch`。
 6. **Secret storage ready**：客户端在本地 secret storage 解锁、device list 同步、关键 Realm Welcome 完成前，只能进入 `recovery_pending`；不得把设备显示为 fully verified。
-7. **Finalize / audit**：恢复完成后 MUST 按 `cx.schema.recovery_receipt.v1`（[`recovery-receipt.schema.json`](../../artifacts/schemas/recovery-receipt.schema.json)）写入恢复 receipt（可为 actor-private 或 audit Event，取决于 profile）。receipt MUST 绑定 `recovery_session_id`、`policy_id`、`policy_version`、`trust_domain`、`new_device_id`、`proof_summary`（含 proof_digest）、`backup_classes_unlocked[]`（每条记录 `backup_class` / `backup_id` / `series_id` / `ciphertext_digest`）、`welcome_count` / `welcome_realm_summary?`、`outcome` 与 `started_at` / `completed_at`；`outcome != completed` 时 MUST 携带 `outcome_reason_code`。`auth_data.signed_fields` MUST 覆盖上述全部 normative 字段（schema 在 `signed_fields.allOf.contains` 中强制）。同一 `recovery_session_id` 上的重复 receipt MUST 被 receiver 拒绝。
+7. **Finalize / audit**：`cx.device.authorize` accepted 之后，新设备 key 才成为 principal 控制下的签名者。恢复完成后 MUST 按 `cx.schema.recovery_receipt.v1`（[`recovery-receipt.schema.json`](../../artifacts/schemas/recovery-receipt.schema.json)）写入恢复 receipt（可为 actor-private 或 audit Event，取决于 profile），且 `auth_data.verification_method` MUST 解析到 `new_device_id` 对应的 accepted device key；服务端 key 或尚未授权的新设备 key MUST NOT 签正式 recovery receipt。receipt MUST 绑定 `recovery_session_id`、`policy_id`、`policy_version`、`trust_domain`、`new_device_id`、`proof_summary`（含 proof_digest）、`backup_classes_unlocked[]`（每条记录 `backup_class` / `backup_id` / `series_id` / `ciphertext_digest`）、`welcome_count` / `welcome_realm_summary?`、`outcome` 与 `started_at` / `completed_at`；`outcome != completed` 时 MUST 携带 `outcome_reason_code`。`auth_data.signed_fields` MUST 覆盖上述全部 normative 字段（schema 在 `signed_fields.allOf.contains` 中强制）。同一 `recovery_session_id` 上的重复 receipt MUST 被 receiver 拒绝。若流程在设备授权 accepted 前失败、中止或过期，实现 MUST 写服务端 outcome / audit evidence，并用 `recovery_session_id` 对账；不得让服务端或未授权设备伪造正式 `cx.schema.recovery_receipt.v1`。
 
 KeyPackage low-water refresh：claim 失败后 KeyPackage 不得自动放回；服务端响应 SHOULD 返回 `available_count`、`low_watermark` 和 `suggested_publish_count`。当 `available_count < low_watermark` 时，设备 SHOULD 发布新的 KeyPackage；若低水位持续低于 Realm policy 的最小值，发送方 MAY 延迟新设备 Welcome 并返回 `keypackage_refresh_required`。同一 device 多个 KeyPackage 的选择 MUST 使用服务端返回的最早 unclaimed package 或 deterministic order，不得按本地随机重试导致重复 claim。
 

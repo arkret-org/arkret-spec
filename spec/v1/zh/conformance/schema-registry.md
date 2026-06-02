@@ -97,6 +97,9 @@ sidebar:
 | `cx.schema.blob.v1` | Blob Metadata |
 | `cx.schema.encrypted_envelope.v1` | MLS Encrypted Payload Envelope |
 | `cx.schema.key_backup.v1` | Encrypted Key Backup |
+| `cx.schema.recovery_policy.v1` | Principal Recovery Policy |
+| `cx.schema.recovery_session.v1` | Device Recovery Session |
+| `cx.schema.recovery_receipt.v1` | Recovery Receipt |
 | `cx.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
 | `cx.schema.device_message.v1` | To-device Message Envelope |
 | `cx.schema.mimi_interop.v1` | MIMI Provider Directory / MIMI Room Binding (interop; see [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)) / Mapping Receipt |

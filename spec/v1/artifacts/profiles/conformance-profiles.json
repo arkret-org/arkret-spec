@@ -2991,6 +2991,7 @@
       "required_schemas": [
         "cx.schema.key_backup.v1",
         "cx.schema.recovery_policy.v1",
+        "cx.schema.recovery_session.v1",
         "cx.schema.recovery_receipt.v1"
       ],
       "required_fixtures": [
@@ -3009,6 +3010,7 @@
           "key_backup_recipient_method_profiles",
           "key_backup_server_rate_limit",
           "recovery_policy_binding",
+          "recovery_session_lifecycle",
           "recovery_receipt_emission"
         ],
         "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"

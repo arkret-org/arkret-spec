@@ -1,0 +1,422 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/recovery-session.schema.json",
+  "title": "Contrix Recovery Session",
+  "description": "Wire contract for the device recovery session state machine. The root object is the create/get response shape; request/response helper shapes and the principal_signing proof transcript live in $defs. See zh/crypto-media/device-lifecycle.md §15.",
+  "$ref": "#/$defs/session",
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "recovery_session_id": {
+      "type": "string",
+      "pattern": "^cx:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
+    },
+    "challenge": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "base64url(no padding) encoding of 256 bits from a CSPRNG. The value is single-use and bound to one recovery_session_id."
+    },
+    "recovery_policy_ref": {
+      "type": "object",
+      "required": [
+        "policy_id",
+        "policy_version"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/policy_id"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "session_state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "completed",
+        "rejected",
+        "expired"
+      ]
+    },
+    "proof_kind": {
+      "type": "string",
+      "enum": [
+        "principal_signing",
+        "recovery_unlock",
+        "device_quorum",
+        "trusted_recovery_service",
+        "threshold_recovery"
+      ]
+    },
+    "proof_summary": {
+      "type": "object",
+      "required": [
+        "kind",
+        "proof_digest"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/proof_kind"
+        },
+        "proof_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the canonical recovery proof transcript that satisfied this session."
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        }
+      },
+      "additionalProperties": false
+    },
+    "session": {
+      "type": "object",
+      "required": [
+        "schema",
+        "recovery_session_id",
+        "principal_id",
+        "requesting_device_id",
+        "trust_domain",
+        "policy_id",
+        "policy_version",
+        "ssk_generation",
+        "challenge",
+        "state",
+        "created_at",
+        "updated_at",
+        "expires_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "cx.schema.recovery_session.v1"
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "requesting_device_id": {
+          "$ref": "#/$defs/device_id",
+          "description": "New device being recovered/authorized."
+        },
+        "trust_domain": {
+          "$ref": "#/$defs/trust_domain"
+        },
+        "policy_id": {
+          "$ref": "#/$defs/policy_id"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Accepted cross-signing generation snapshotted when the session is created. Reducers MUST reject completion if the current accepted generation no longer equals this value."
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "state": {
+          "$ref": "#/$defs/session_state"
+        },
+        "proof_summary": {
+          "$ref": "#/$defs/proof_summary"
+        },
+        "rejection_reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Recovery session creation/signing time. This is the created_at value used in the recovery proof transcript."
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Session expiration. Default TTL is 900 seconds; deployments MAY shorten it and MUST NOT lengthen it unless a future recovery_policy field explicitly permits the override."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "verified",
+                  "completed"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "proof_summary"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "rejected"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "rejection_reason_code"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "create_request": {
+      "type": "object",
+      "required": [
+        "principal_id",
+        "requesting_device_id",
+        "trust_domain",
+        "ssk_generation"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "requesting_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "trust_domain": {
+          "$ref": "#/$defs/trust_domain"
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expected_recovery_policy_ref": {
+          "$ref": "#/$defs/recovery_policy_ref",
+          "description": "Optional client CAS hint. Servers MUST snapshot the currently accepted policy; if this hint is present and differs, the request fails with recovery_policy_mismatch."
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_signing_proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "challenge",
+        "verification_method",
+        "alg",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "const": "principal_signing"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge",
+          "description": "Echo of the server-issued session challenge. Mismatch fails as recovery_session_challenge_mismatch."
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url",
+          "description": "Principal-grade DID control verification method authorized by the active recovery policy."
+        },
+        "alg": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proof_submit_request": {
+      "type": "object",
+      "required": [
+        "proof"
+      ],
+      "properties": {
+        "proof": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/principal_signing_proof"
+            }
+          ],
+          "description": "v1 schema defines principal_signing now. Other proof kinds reuse the session binding rules and receive kind-specific schemas when implemented."
+        }
+      },
+      "additionalProperties": false
+    },
+    "proof_submit_response": {
+      "type": "object",
+      "required": [
+        "recovery_session_id",
+        "state",
+        "verification"
+      ],
+      "properties": {
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "state": {
+          "const": "verified"
+        },
+        "verification": {
+          "const": "verified"
+        },
+        "proof_summary": {
+          "$ref": "#/$defs/proof_summary"
+        }
+      },
+      "additionalProperties": false
+    },
+    "complete_request": {
+      "type": "object",
+      "properties": {
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "complete_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "recovery_session_id",
+        "state",
+        "device_id",
+        "authorization_event_id",
+        "device_list_update_event_id"
+      ],
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "state": {
+          "const": "completed"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "authorization_event_id": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Accepted cx.device.authorize event emitted to the principal control stream."
+        },
+        "device_list_update_event_id": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Accepted cx.device.list_update event emitted to the principal control stream."
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_signing_transcript": {
+      "type": "object",
+      "required": [
+        "type",
+        "kind",
+        "principal_id",
+        "requesting_device_id",
+        "trust_domain",
+        "policy_id",
+        "policy_version",
+        "recovery_session_id",
+        "ssk_generation",
+        "challenge",
+        "created_at",
+        "expires_at"
+      ],
+      "properties": {
+        "type": {
+          "const": "cx.identity.recovery_proof.v1"
+        },
+        "kind": {
+          "const": "principal_signing"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "requesting_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "trust_domain": {
+          "$ref": "#/$defs/trust_domain"
+        },
+        "policy_id": {
+          "$ref": "#/$defs/policy_id"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Session creation/signing time, not client proof creation time."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

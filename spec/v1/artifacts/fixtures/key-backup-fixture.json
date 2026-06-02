@@ -82,6 +82,10 @@
         "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000010",
         "series_seq": 0,
         "supersedes": null,
+        "recovery_policy_ref": {
+          "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+          "policy_version": 1
+        },
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "secret_storage_key",
@@ -113,6 +117,7 @@
             "series_id",
             "series_seq",
             "supersedes",
+            "recovery_policy_ref",
             "encryption",
             "contents",
             "ciphertext_digest"
@@ -134,6 +139,10 @@
         "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000011",
         "series_seq": 0,
         "supersedes": null,
+        "recovery_policy_ref": {
+          "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+          "policy_version": 1
+        },
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -174,6 +183,7 @@
             "series_id",
             "series_seq",
             "supersedes",
+            "recovery_policy_ref",
             "encryption",
             "contents",
             "ciphertext_digest"
@@ -195,6 +205,10 @@
         "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000012",
         "series_seq": 0,
         "supersedes": null,
+        "recovery_policy_ref": {
+          "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+          "policy_version": 1
+        },
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "device_snapshot_secret",
@@ -225,6 +239,7 @@
             "series_id",
             "series_seq",
             "supersedes",
+            "recovery_policy_ref",
             "encryption",
             "contents",
             "ciphertext_digest"
@@ -245,6 +260,10 @@
         "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000013",
         "series_seq": 0,
         "supersedes": null,
+        "recovery_policy_ref": {
+          "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+          "policy_version": 1
+        },
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "recovery_public_key",
@@ -276,6 +295,7 @@
             "series_id",
             "series_seq",
             "supersedes",
+            "recovery_policy_ref",
             "encryption",
             "contents",
             "ciphertext_digest"
@@ -297,6 +317,10 @@
         "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000014",
         "series_seq": 0,
         "supersedes": null,
+        "recovery_policy_ref": {
+          "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+          "policy_version": 1
+        },
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "recovery_public_key",
@@ -327,6 +351,7 @@
             "series_id",
             "series_seq",
             "supersedes",
+            "recovery_policy_ref",
             "encryption",
             "contents",
             "ciphertext_digest"
@@ -348,6 +373,10 @@
         "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000015",
         "series_seq": 0,
         "supersedes": null,
+        "recovery_policy_ref": {
+          "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+          "policy_version": 1
+        },
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -388,6 +417,7 @@
             "series_id",
             "series_seq",
             "supersedes",
+            "recovery_policy_ref",
             "encryption",
             "contents",
             "ciphertext_digest"
@@ -1012,6 +1042,45 @@
             "issued_at"
           ]
         }
+      }
+    },
+    {
+      "name": "recovery_session_pending_valid",
+      "schema_ref": "schemas/recovery-session.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "cx.schema.recovery_session.v1",
+        "recovery_session_id": "cx:recovery_session:01964142-0000-7000-8000-000000000000",
+        "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "requesting_device_id": "cx:device:01964139-0000-7000-8000-000000000000",
+        "trust_domain": "cx:trust_domain:did.webvh.example",
+        "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+        "policy_version": 1,
+        "ssk_generation": 2,
+        "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "state": "pending",
+        "created_at": "2026-04-27T00:00:00Z",
+        "updated_at": "2026-04-27T00:00:00Z",
+        "expires_at": "2026-04-27T00:15:00Z"
+      }
+    },
+    {
+      "name": "recovery_principal_signing_transcript_valid",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_transcript",
+      "expect_valid": true,
+      "instance": {
+        "type": "cx.identity.recovery_proof.v1",
+        "kind": "principal_signing",
+        "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "requesting_device_id": "cx:device:01964139-0000-7000-8000-000000000000",
+        "trust_domain": "cx:trust_domain:did.webvh.example",
+        "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+        "policy_version": 1,
+        "recovery_session_id": "cx:recovery_session:01964142-0000-7000-8000-000000000000",
+        "ssk_generation": 2,
+        "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "created_at": "2026-04-27T00:00:00Z",
+        "expires_at": "2026-04-27T00:15:00Z"
       }
     },
     {

@@ -92,6 +92,25 @@
       },
       "additionalProperties": false
     },
+    "recovery_policy_ref": {
+      "type": "object",
+      "description": "Required for backup_class=did_recovery and optional as a signed recovery-flow hint for other backup classes. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using a did_recovery envelope; when present on other classes, mismatch fails as recovery_policy_mismatch but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref and ssk_generation: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
+      "required": [
+        "policy_id",
+        "policy_version"
+      ],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
     "created_at": {
       "type": "string",
       "format": "date-time",
@@ -492,10 +511,10 @@
             { "contains": { "const": "series_seq" } },
             { "contains": { "const": "supersedes" } },
             { "contains": { "const": "encryption" } },
-            { "contains": { "const": "contents" } },
-            { "contains": { "const": "ciphertext_digest" } }
-          ],
-          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest and frontier_ref."
+          { "contains": { "const": "contents" } },
+          { "contains": { "const": "ciphertext_digest" } }
+        ],
+          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest, frontier_ref, and recovery_policy_ref."
         }
       },
       "patternProperties": {
@@ -544,7 +563,7 @@
             }
           }
         },
-        "description": "mls_history backups MUST use secret_storage_key or recovery_public_key (key-management.md §7.5.3 / device-lifecycle.md §12); passphrase_kdf and the removed device_snapshot_secret are rejected."
+        "description": "mls_history backups MUST use secret_storage_key or recovery_public_key (key-management.md §7.5.2 / §7.5.3 and device-lifecycle.md §12); passphrase_kdf and the removed device_snapshot_secret are rejected. recovery_policy_ref MAY appear as a signed hint, but is not required for mls_history."
       }
     },
     {
@@ -557,6 +576,9 @@
         "required": ["backup_class"]
       },
       "then": {
+        "required": [
+          "recovery_policy_ref"
+        ],
         "properties": {
           "encryption": {
             "properties": {
@@ -568,9 +590,18 @@
                 ]
               }
             }
+          },
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "recovery_policy_ref" } }
+                ]
+              }
+            }
           }
         },
-        "description": "did_recovery backups MUST use recovery_public_key / threshold_recovery / hardware_wrapped_key (key-management.md §5.0.1 first-backup gate); passphrase_kdf alone is forbidden — a single passphrase must not control DID recovery."
+        "description": "did_recovery backups MUST use recovery_public_key / threshold_recovery / hardware_wrapped_key (key-management.md §5.0.1 first-backup gate), MUST carry recovery_policy_ref matching the active recovery policy, and MUST cover that field in auth_data.signed_fields. passphrase_kdf is forbidden for did_recovery — a single passphrase must not control DID recovery."
       }
     },
     {
@@ -691,6 +722,24 @@
               "signed_fields": {
                 "allOf": [
                   { "contains": { "const": "frontier_ref" } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [ "recovery_policy_ref" ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  { "contains": { "const": "recovery_policy_ref" } }
                 ]
               }
             }
