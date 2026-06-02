@@ -361,6 +361,8 @@ Contrix v1 支持：
 - `allowed_endpoints`
 - `encryption_required`
 - `message_edit_window`
+- `message_redact_window`
+- `allow_redact_after_window`
 - `max_delegation_depth`
 - `rate_limit`
 - `approval_required`
@@ -420,6 +422,8 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `allowed_endpoints` | `scope_limitation` | — | `allowed_endpoints` |
 | `encryption_required` | `confidentiality` | `encryption` | `encryption_required` |
 | `message_edit_window` | `temporal` | `edit_window` | `message_edit_window` |
+| `message_redact_window` | `temporal` | `redact_window` | `message_redact_window` |
+| `allow_redact_after_window` | `temporal` | `edit_window` / `redact_window` | `allow_redact_after_window`（窗口修饰符，见 [`constraint-schema.md` §14.2](./constraint-schema.md)） |
 | `max_delegation_depth` | `delegation_control` | — | `max_delegation_depth` |
 | `rate_limit` | `quota` | `rate` | `max_operations`, `period` |
 | `approval_required` | `claim_based` | `approval` | `approval_required` |

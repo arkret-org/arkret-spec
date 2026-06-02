@@ -4607,7 +4607,9 @@
         "action": "cx.message.redact",
         "category": "discussion",
         "risk_tier": "medium",
-        "required_constraints": [],
+        "required_constraints": [
+          "message_redact_window"
+        ],
         "target_event_kinds": [
           "cx.message.redact",
           "cx.redaction"
@@ -4620,7 +4622,9 @@
         "action": "cx.message.redact.own",
         "category": "discussion",
         "risk_tier": "low",
-        "required_constraints": [],
+        "required_constraints": [
+          "message_redact_window"
+        ],
         "required_evaluator_checks": [
           "actor_eq_target_author"
         ],

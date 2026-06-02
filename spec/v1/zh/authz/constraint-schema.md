@@ -537,21 +537,46 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `blob_max_bytes` 限制单次上传 blob 的最大字节数。`max_total_blob_bytes` 限制 `constraint_scope` 内的累计 blob 大小。
 
-### 14.2 消息编辑窗口
+### 14.2 消息编辑窗口与撤回窗口
+
+规范形是两条独立约束（各自 `subtype` + `applies_to_actions`，与 §2.2 表一致）：
 
 ```json
-{
-  "constraint_type": "temporal",
-  "subtype": "edit_window",
-  "applies_to_actions": ["cx.message.revise"],
-  "effect": "allow",
-  "message_edit_window": "PT15M",
-  "message_redact_window": "PT24H",
-  "allow_redact_after_window": false
-}
+[
+  {
+    "constraint_type": "temporal",
+    "subtype": "edit_window",
+    "applies_to_actions": ["cx.message.revise"],
+    "effect": "allow",
+    "message_edit_window": "PT15M",
+    "allow_redact_after_window": true
+  },
+  {
+    "constraint_type": "temporal",
+    "subtype": "redact_window",
+    "applies_to_actions": ["cx.message.redact"],
+    "effect": "allow",
+    "message_redact_window": "PT24H"
+  }
+]
 ```
 
-`message_edit_window` 限制发送后可编辑消息的时间窗口。`message_redact_window` 限制可撤回消息的时间窗口。超时后 `cx.message.revise.own` 或 `cx.message.redact.own` MUST 被拒绝，除非 actor 持有更高权限的 `cx.message.revise` 或 `cx.message.redact`。
+**字段语义**：
+
+- `message_edit_window`：发送后可编辑消息（`cx.message.revise.own`）的时间窗口，从被编辑 Message 的 `created_at` 起算。
+- `message_redact_window`：发送后可撤回消息（`cx.message.redact.own`）的时间窗口，从被撤回 Message 的 `created_at` 起算。
+- `allow_redact_after_window`（默认 `false`）：控制**编辑窗口关闭后撤回是否仍被允许**。它只在约束声明了 `message_edit_window` 时有意义：
+  - `false`（默认）：未单独声明 `message_redact_window` 时，撤回与编辑共享同一时窗——编辑窗口过期后 `cx.message.redact.own` 一并被拒。
+  - `true`：编辑窗口过期后仍允许撤回（典型"消息可删但不可改"产品语义）；此时撤回判定回退到 `message_redact_window`（若声明）或无上限（若未声明）。
+  - 当 `message_redact_window` 已显式声明时，它对撤回具有权威性，`allow_redact_after_window` 不再改变撤回判定（上例中 `PT24H` 是权威撤回窗，`allow_redact_after_window=true` 仅显式表达"撤回不被 15 分钟编辑窗连带锁死"）。
+
+**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器按字段各自对应的 action enforce（`message_edit_window` → `cx.message.revise[.own]`；`message_redact_window` → `cx.message.redact[.own]`），与 `subtype` 标签本身无关。等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
+
+**超时行为**：窗口超时后 `cx.message.revise.own` 或 `cx.message.redact.own` MUST 被拒绝（`failed_precondition`），**除非** actor 持有更高权限的 `cx.message.revise` 或 `cx.message.redact`（不带 `.own` 后缀，典型是 moderator / admin）——后者不受 `.own` 时窗约束，使管理员可在窗口外撤回。
+
+**无时限（unbounded）**：不在任何生效 grant 上声明 `message_redact_window`（且无 `allow_redact_after_window=false` 把撤回连带锁进编辑窗）即等价"撤回无时限"——`cx.message.redact.own` 仅受 capability 本身约束，不受时间限制。Realm 管理员据此可在"设最大撤回时限"（声明 `message_redact_window`）与"无时限"（省略）之间选择；编辑窗口同理。该约束族为 `extension` 类（profile `cx.profile.chat_mvp.v1`），未启用该 profile 的实现遇到这些字段 MUST fail closed（见 §2.2）。
+
+求值器对这些字段的 enforce 义务由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中对应 action 的 `required_constraints` 声明（`cx.message.revise[.own]` → `message_edit_window`；`cx.message.redact[.own]` → `message_redact_window`）。
 
 ## 15. 约束求值
 
