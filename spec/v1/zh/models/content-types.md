@@ -38,7 +38,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "id": "cx:message:...",
   "realm_id": "cx:realm:...",
   "flow_id": "cx:flow:...",
-  "track": "discussion",
+  "track_name": "discussion",
   "state": "active",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z",

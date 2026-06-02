@@ -144,10 +144,10 @@ cx.vector.encoding.reject_noncanonical_numbers.v1
 
 - NaN / Infinity / -Infinity MUST reject。
 - `-0` MUST reject。
-- 若 JSON parser 接收 `1.0` 或 `1e0`，canonicalizer MUST 将其归一到 RFC 8785 / JCS 等价的唯一 number 表示；无法保证精确往返或唯一 decimal serialization 时 MUST reject。
+- v1 签名对象的 number 字段 MUST 是 JSON integer；`1.0`、`1e0`、任何 fractional / exponent decimal spelling 以及无法证明为整数的 number MUST reject，而不是归一化后继续验签。
 - 签名验证 MUST 在 canonicalization 成功后才执行。
 
-实现报告 MUST 明确其 number profile。声明任何包含 `confidence`、`progress` 或其他 JSON number 字段的 profile 时，必须支持 `decimal_canonical`；否则只能声明不支持这些 profile 或拒绝相关事件。
+实现报告 MUST 明确其 number profile。声明任何包含 `confidence`、`progress` 或其他比例 / 置信度 / 进度语义的 profile 时，wire 字段 MUST 使用整数 + 显式 scale（如 `_basis_points`、`_x1000`），不得要求或声明 `decimal_canonical`。
 
 #### 1.5.1 Vector: Reject Malformed JSON
 
@@ -201,7 +201,7 @@ cx.vector.encoding.event_digest.v1
         "value": {
           "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
           "message_id": "cx:message:019640ed-8000-7000-8000-000000000000",
-          "track": "discussion"
+          "track_name": "discussion"
         }
       }
     }
@@ -209,7 +209,7 @@ cx.vector.encoding.event_digest.v1
   "anchor_ref": "cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "payload": {
     "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
-    "track": "discussion",
+    "track_name": "discussion",
     "message_id": "cx:message:019640ed-8000-7000-8000-000000000000",
     "content": {
       "kind": "cx.content.text",
@@ -222,13 +222,13 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"anchor_ref":"cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222","created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"cx:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000","message_id":"cx:message:019640ed-8000-7000-8000-000000000000","track":"discussion"}}}],"event_id":"cx:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000","message_id":"cx:message:019640ed-8000-7000-8000-000000000000","track":"discussion"},"preconditions":[],"prev_refs":[],"realm_id":"cx:realm:01964137-0000-7000-8000-000000000000","refs":[]}
+{"actor_id":"did:web:alice.example","actor_seq":1,"anchor_ref":"cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222","created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"cx:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000","message_id":"cx:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"cx:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000","message_id":"cx:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"preconditions":[],"prev_refs":[],"realm_id":"cx:realm:01964137-0000-7000-8000-000000000000","refs":[]}
 ```
 
 期望 digest：
 
 ```text
-sha256:90b6a9bdacba4a32b49a560b1fca484a15e858b298f21755110517d3d96b349c
+sha256:297487d820da12ad42ffffbbb82b53dd01ddf48911b650c38f5b19a127c587a4
 ```
 
 判定规则：
@@ -1527,7 +1527,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 ```json
 {
   "flow_id": "cx:flow:01964195-8400-7000-8000-000000000000",
-  "track": "discussion",
+  "track_name": "discussion",
   "viewer_grants": ["cx.flow.read"],
   "viewer_track_membership": "none"
 }

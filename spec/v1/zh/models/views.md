@@ -271,7 +271,7 @@ View 应通过结构化 query 表达对象范围。
   "filters": [
     { "field": "state", "op": "eq", "value": "active" },
     { "field": "flow_id", "op": "eq", "value": "cx:flow:01964200-0000-7000-8000-000000000000" },
-    { "field": "track", "op": "eq", "value": "discussion" }
+    { "field": "track_name", "op": "eq", "value": "discussion" }
   ],
   "order_by": [
     { "field": "created_at", "direction": "asc" }
@@ -361,7 +361,7 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Flow。实现 MUST 按
 
 ## 7. Timeline / Chat Projection
 
-Discussion chat projection 以 `flow_id + track=discussion` 为时间线根，主要返回 Message。
+Discussion chat projection 以 `flow_id + track_name=discussion` 为时间线根，主要返回 Message。
 
 Flow context timeline 可以混合：
 

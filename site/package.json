@@ -16,10 +16,14 @@
     "@astrojs/check": "^0.9.9",
     "@astrojs/mdx": "^5.0.4",
     "@astrojs/starlight": "^0.39.2",
-    "astro": "^6.3.1",
+    "astro": "^6.4.3",
     "typescript": "^6.0.3"
   },
-  "devDependencies": {},
+  "pnpm": {
+    "overrides": {
+      "yaml": "^2.8.4"
+    }
+  },
   "engines": {
     "node": ">=20"
   }

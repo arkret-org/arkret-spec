@@ -56,7 +56,7 @@ updated: 2026-05-25
     "read_scope": {
       "kind": "flow",
       "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
-      "track": "discussion"
+      "track_name": "discussion"
     },
     "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e",
@@ -146,7 +146,7 @@ Read cursor schema：`cx.schema.read_cursor.v1`。Read Cursor 是 actor-private 
   "read_scope": {
     "kind": "flow",
     "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
-    "track": "discussion"
+    "track_name": "discussion"
   },
   "position": {
     "event_id": "cx:event:01964386-8000-7000-8000-000000000000",
@@ -195,7 +195,7 @@ Read Cursor 是 actor-private 状态。最小结构示例：
   "read_scope": {
     "kind": "flow",
     "ref": "cx:flow:01964180-0280-7000-8000-000000000000",
-    "track": "discussion"
+    "track_name": "discussion"
   },
   "position": {
     "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
@@ -220,7 +220,7 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`cx.schema.rea
   "read_scope": {
     "kind": "flow",
     "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
-    "track": "discussion"
+    "track_name": "discussion"
   },
   "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
@@ -238,7 +238,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`cx.schema
   "actor_id": "did:web:alice.example",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
-  "track": "discussion",
+  "track_name": "discussion",
   "source_event_id": "cx:event:0196434a-8000-7000-8000-000000000000",
   "source_ref": "cx:message:0196434c-c000-7000-8000-000000000000",
   "notification_type": "mention",

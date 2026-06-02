@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "641970974def4c4e23fb16df7cef731f0a410faf162a2edd76aacff00b0ded17"
+      "sha256": "60f4d0bed04ad63fce507145b04bf71f3c0987c124fd7d420dbefa25e3a71562"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
@@ -46,7 +46,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
-      "sha256": "e3a53d67d213dc007dce5b8a487d55db6a2209d107bc087eb2c6563dd69ad399"
+      "sha256": "94d1c2b6be0cf6dd498d7ab007d33f2b6cd36035e814b6327f1108afe0536be6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",

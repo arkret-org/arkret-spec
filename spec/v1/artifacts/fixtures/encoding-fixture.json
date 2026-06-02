@@ -60,7 +60,7 @@
       "rules": [
         "NaN / Infinity / -Infinity MUST reject",
         "-0 MUST reject",
-        "1.0 / 1e0 MUST be canonicalised to a unique decimal serialisation; reject when canonicaliser cannot guarantee a unique form",
+        "v1 signed JSON numbers MUST be integers; 1.0 / 1e0 / fractional or exponent decimal spellings MUST reject instead of being canonicalised",
         "signature verification MUST run only after canonicalisation succeeds"
       ],
       "rejection_reason_codes": [
@@ -77,7 +77,7 @@
         "duplicate JSON object keys at the same level",
         "lone surrogate or ambiguous escape sequence",
         "non-standard literals (NaN, Infinity)",
-        "numbers parser accepts but canonicaliser cannot uniquely serialise"
+        "non-integer JSON numbers or parser-accepted numbers that cannot be proven to be integers"
       ],
       "rules": [
         "duplicate keys MUST NOT be silently overwritten by parser default",
