@@ -608,6 +608,18 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 DID method history、key log、`recover`、`rotate`、`cx.device.authorize` 或等价 signed event。
 
+#### 7.4.1 备份签名的交叉签名信任根锚定（normative，CXP-0013）
+
+`auth_data.signature` 由上传设备的 device signing key 产生（`auth_data.verification_method` 指向该 device key）。仅设备签名只能证明“某个持有该 device key 的实体写了它”，无法独立抵御**恶意服务器联合一个被攻破 / 已撤销的旧 device key 注入或替换备份 envelope**。因此 receiver 在信任并使用一条 backup envelope（恢复或读取）前 MUST 把该签名锚定到 actor 的交叉签名信任根：
+
+- receiver MUST 验证 `auth_data.verification_method` 指向的 device key 在 envelope `created_at` 时点属于该 actor 的有效设备集，即存在由当前 self-signing key（§见 cross-signing publish）签发、链接到当前 published 交叉签名代际的 `cx.device.authorize`；
+- envelope SHOULD 携带对签发该设备授权的 self-signing key 代际的绑定（在 `auth_data` 中以 `x_ssk_generation` 扩展字段，或后续 schema 版本的专用 `ssk_generation` 字段）。receiver MUST 拒绝代际早于当前 published generation 且超出 rotation grace window 的 envelope（`stale_backup_trust_generation`）；
+- 无法链接到当前交叉签名信任根的 envelope（设备未授权 / 已撤销 / 代际不符）MUST 被视为 `untrusted_backup_signature` 并拒绝用于恢复，即使其 series 链与 `ciphertext_digest` 自洽。
+
+这样 envelope 的真实性锚定在 actor 的交叉签名树，而不是“碰巧持有某个 device key”，与 series 链（§7.6，防回滚 / 扣留）正交：前者保证 authenticity，后者保证 freshness / 单调性。
+
+> Schema 影响：`cx.schema.key_backup.v1` 的 `auth_data` SHOULD 在后续版本新增可选 `ssk_generation`（绑定 `cross-signing-publish` 的 `generation`）。在该字段标准化前，实现 MAY 使用 `auth_data.x_ssk_generation` 扩展槽承载同等绑定。
+
 ### 7.5 Recipient Method Profiles
 
 `cx.schema.key_backup.v1.encryption.recipient_method` 枚举 5 种解锁方式。每种方式 MUST 按下列 normative 约束实现；服务端遇到本节未定义的 `recipient_method` MUST fail closed。
@@ -624,6 +636,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 - KEM MUST 是 `X25519` 或 `P-256`，KDF MUST 是 `HKDF-SHA256`，AEAD MUST 与 envelope 的 `aead.name` 一致。
 - HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_seq, actor_id, backup_class, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
 - 受 DID 轮换影响：recovery key 轮换后产生的新 envelope MUST 引用新 verification_method；旧 envelope 在轮换 grace window 之后 receiver MUST 拒绝用旧 key 完成的解锁证明。
+- **备份接收密钥即恢复密钥（normative，CXP-0014）**：v1 NOT 引入独立于 recovery key 之外的"专用 backup keypair"。`recovery_public_key` 的 HPKE 接收方就是 recovery policy / DID Document 声明的 recovery 公钥；其私钥经 §8 recovery policy 解锁（passphrase / threshold / hardware）。实现 MUST NOT 假定存在一个单独存储在 `secret_storage` 中的 backup 私钥项；跨设备的 fresh-device 恢复统一通过解锁 recovery 私钥后 HPKE-open 完成。
 
 #### 7.5.3 `secret_storage_key`
 
@@ -799,6 +812,18 @@ share holder（无论是个人 DID、托管服务 DID，还是 hardware module�
 
 如果 principal signing key 泄露但 recovery key 安全，MUST 通过 recovery policy 重建当前控制密钥。  
 如果 recovery key 也泄露，SHOULD deactivate 原 DID 并执行身份重建。
+
+### 9.1 备份子系统泄露的组合恢复流程（normative，CXP-0015）
+
+设备/身份泄露的步骤(上)与备份子系统的轮换/删除/PCS 之前是分散定义的。当怀疑**备份接收密钥（recovery key / `mls_group_secrets_backup_key`）或某个 backup envelope 的解锁材料泄露**时，实现 MUST 把以下三件事作为**一个组合流程**执行，而不是各自孤立：
+
+1. **轮换 backup series**：按 §7.6 为受影响 `backup_class` 开启**新 `series_id`**（不是在旧 series 上追加），用轮换后的接收密钥重新加密当前需要保留的内容并上传新 series。新设备发现 canonical series 的方式见下方“active series 指针”。
+2. **推进受影响 MLS 群组 epoch（PCS）**：轮换备份密钥本身**不**提供 post-compromise security——它只更换“备份包装”。要使后续消息密钥与被泄状态解耦，MUST 对受影响 Realm 触发 MLS Remove / Update 推进 epoch（与 §9 step 3 同一动作），并按 `crypto-media/encryption-and-audit.md` 绑定 governance frontier。
+3. **删除旧 series**：在新 series 确认可恢复**之后**，按 §12.2 retention 流程删除旧 `series` 的服务端密文。删除 MUST 在确认新备份可用之后进行，且 MUST 整组迁移而非删除链中间节点。
+
+**不可挽回边界（MUST 在 UI 明示）**：上述流程只缩小**后续**暴露面；攻击者在泄露窗口内**已经下载**的旧密文用旧密钥永远可解，轮换/删除无法撤销。
+
+**Active series 指针**：当一个 `(actor_id, backup_class)` 存在多个 `series_id`（轮换后新旧并存的过渡期）时，恢复方 MUST 能确定当前 canonical series。实现 MUST 通过 principal control stream 的 `frontier_ref`（§7.6）或后续标准化的 active-series 指示来选择最新 series，并对旧 series 仅在 retention 删除前用于读取既有内容；MUST NOT 仅凭服务端返回顺序选择 series。
 
 ## 10. 实现要求
 
