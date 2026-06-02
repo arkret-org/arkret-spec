@@ -150,7 +150,7 @@ Realm policy MUST 通过 `cx.realm.policy_components.metadata_encryption_profile
 | `key_ref.group_state_ref` | id:event 或 hash | 是 | 指向 accepted `cx.mls.genesis` / winning `cx.mls.commit` event / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes \|\| encrypted_payload_bytes)`；输入定义见 §2.3.3。 |
 | `aad_digest` | hash | 是 | canonical AAD 的 SHA-256。 |
-| `cleartext_commitment` | hash | 禁止 | v1 E2EE producer **MUST NOT emit** 裸明文哈希；receiver **MUST reject** 携带该字段的 envelope（`schema_violation`）。低熵 plaintext 会被离线字典攻击。需要明文承诺时必须使用带 profile 的 keyed / salted 机制，例如 [`../governance/content-moderation.md`](../governance/content-moderation.md) §3.4.2 的 sender commitment。 |
+| `cleartext_commitment` | hash | no | v1 E2EE producer **MUST NOT emit** 裸明文哈希；receiver **MUST reject** 携带该字段的 envelope（`schema_violation`）。低熵 plaintext 会被离线字典攻击。需要明文承诺时必须使用带 profile 的 keyed / salted 机制，例如 [`../governance/content-moderation.md`](../governance/content-moderation.md) §3.4.2 的 sender commitment。 |
 
 Ratchet tree MUST 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 管理，不得在每条消息的 envelope 中重复传输。
 

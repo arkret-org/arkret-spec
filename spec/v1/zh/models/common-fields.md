@@ -273,7 +273,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `cx.<kind>.tombstone` | `active`、`archived` | `tombstoned` / `deleted`(各对象 schema 自命名) | `<kind>_already_terminal` |
 | `cx.<kind>.redact` 或 cross-object `cx.redaction` 指向该对象 | `active`、`archived` | `redacted`(如对象支持),或合并到 `tombstoned` | `<kind>_already_terminal` |
 
-`<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active` / `circle_not_archived` / `circle_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
+`<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active`（Circle 的其它 lifecycle 诊断 MUST 先进入 error-code registry 再被规范文本点名）,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
 
 附加规则:
 

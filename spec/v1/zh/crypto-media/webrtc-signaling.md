@@ -571,7 +571,6 @@ Conformance vectors for the full media binding framework：
 - `cx.vector.media_binding.participant_identity_unrecognised.v1` — §10.4 backend 通知的 participant 不在 `cx.call.state` 时拒绝该流。
 - `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1` — §13 backend-generated recording 必须经 Contrix blob pipeline。
 - `cx.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"cx-rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
-- `cx.vector.media_binding.sender_bound_frame_key.v1` — 同一 epoch 内两个 sender 使用不同 `participant_identity` / `device_id` 时必须派生不同 frame key；空 Context 或 epoch-only Context MUST 拒绝。
 
 #### 10.5.1 治理绑定（normative）
 
@@ -680,7 +679,7 @@ Conformance vectors for the full media binding framework：
   "realm_id": "cx:realm:...",
   "payload": {
     "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
-    "recording_id": "cx:recording:0196441d-0000-7000-8000-000000000000",
+    "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
     "recording_agent": "did:web:recorder.example",
     "mode": "audio_video",
     "visible_notice": true
@@ -692,7 +691,7 @@ Conformance vectors for the full media binding framework：
 
 - 需要 `cx.call.record` capability。
 - 客户端 MUST 对所有参会者显示录制中。
-- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 id，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。
+- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `cx:*` typed ID；最终持久化产物仍通过 Contrix blob / Morph / artifact 引用暴露。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
 - **Backend-generated recording 必经 Contrix blob pipeline**（参见 [CXP-0010 §4.7](../../proposals/0010-media-service-binding-framework.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
   1. 作为加密 blob 上传到 Contrix media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
