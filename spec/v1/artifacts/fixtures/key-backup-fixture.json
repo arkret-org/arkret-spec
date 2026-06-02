@@ -70,6 +70,271 @@
       }
     },
     {
+      "name": "mls_history_secret_storage_key_valid",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "backup_id": "cx:backup:01964138-0000-7000-8000-000000000010",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "mls_history",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000010",
+        "series_seq": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "secret_storage_key",
+          "recipient_key_ref": "mls_group_secrets_backup_key",
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "aead_profile": "cx.aead.xchacha20_poly1305.v1",
+            "nonce": "nonce-base64url-placeholder"
+          }
+        },
+        "contents": [
+          {
+            "item_type": "mls_group_state",
+            "secret_id": "yougen_mls_snapshot"
+          }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_algorithm": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_seq",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "mls_history_passphrase_kdf_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.encryption.recipient_method: 'passphrase_kdf' is not one of ['secret_storage_key', 'recovery_public_key']",
+      "instance": {
+        "backup_id": "cx:backup:01964138-0000-7000-8000-000000000011",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "mls_history",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000011",
+        "series_seq": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "saltsaltsaltsaltsalt",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder",
+            "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
+          },
+          "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "contents": [
+          {
+            "item_type": "mls_group_state",
+            "secret_id": "yougen_mls_snapshot"
+          }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_algorithm": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_seq",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "device_snapshot_secret_method_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.encryption.recipient_method: 'device_snapshot_secret' is not one of ['passphrase_kdf', 'recovery_public_key', 'secret_storage_key', 'threshold_recovery', 'hardware_wrapped_key']",
+      "instance": {
+        "backup_id": "cx:backup:01964138-0000-7000-8000-000000000012",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "mls_history",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000012",
+        "series_seq": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "device_snapshot_secret",
+          "recipient_key_ref": "cx:device:01964137-0000-7000-8000-000000000000",
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "nonce-base64url-placeholder"
+          }
+        },
+        "contents": [
+          {
+            "item_type": "mls_group_state",
+            "secret_id": "yougen_mls_snapshot"
+          }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_algorithm": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_seq",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_public_key_hpke_valid",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "backup_id": "cx:backup:01964138-0000-7000-8000-000000000013",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "mls_history",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000013",
+        "series_seq": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "recovery_public_key",
+          "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery",
+          "aead": {
+            "name": "chacha20_poly1305",
+            "aead_profile": "cx.aead.chacha20_poly1305.v1",
+            "enc": "hpke-enc-base64url-placeholder"
+          }
+        },
+        "contents": [
+          {
+            "item_type": "mls_group_state",
+            "secret_id": "yougen_mls_snapshot"
+          }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_algorithm": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_seq",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_public_key_missing_enc_rejected",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.encryption.aead: 'enc' is a required property",
+      "instance": {
+        "backup_id": "cx:backup:01964138-0000-7000-8000-000000000014",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "mls_history",
+        "backup_version": "kb_1",
+        "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000014",
+        "series_seq": 0,
+        "supersedes": null,
+        "created_at": "2026-04-26T00:00:00Z",
+        "encryption": {
+          "recipient_method": "recovery_public_key",
+          "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery",
+          "aead": {
+            "name": "chacha20_poly1305",
+            "aead_profile": "cx.aead.chacha20_poly1305.v1"
+          }
+        },
+        "contents": [
+          {
+            "item_type": "mls_group_state",
+            "secret_id": "yougen_mls_snapshot"
+          }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "auth_data": {
+          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_algorithm": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_seq",
+            "supersedes",
+            "encryption",
+            "contents",
+            "ciphertext_digest"
+          ]
+        }
+      }
+    },
+    {
       "name": "successor_envelope_valid",
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": true,

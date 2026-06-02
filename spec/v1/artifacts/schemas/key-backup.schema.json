@@ -266,15 +266,15 @@
         "aead": {
           "type": "object",
           "required": [
-            "name",
-            "nonce"
+            "name"
           ],
           "properties": {
             "name": {
               "type": "string",
               "enum": [
                 "xchacha20_poly1305",
-                "aes_256_gcm"
+                "aes_256_gcm",
+                "chacha20_poly1305"
               ]
             },
             "aead_profile": {
@@ -285,12 +285,17 @@
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url AEAD nonce. For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='contrix-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches."
+              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='contrix-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
             },
             "nonce_salt": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{16,128}$",
               "description": "Producer-generated base64url random salt (at least 128 bits before encoding) included in the passphrase_kdf nonce derivation transcript. Required when recipient_method=passphrase_kdf; not secret, signed as envelope metadata, and prevents nonce reuse from duplicate business metadata tuples."
+            },
+            "enc": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "description": "base64url HPKE KEM encapsulated key. Required for recipient_method=recovery_public_key (HPKE base mode, DHKEM(X25519,HKDF-SHA256)); absent for the symmetric methods."
             }
           },
           "additionalProperties": true
@@ -316,7 +321,60 @@
             "properties": {
               "aead": {
                 "required": [
+                  "nonce",
                   "nonce_salt"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recipient_method": {
+                "const": "secret_storage_key"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "kdf"
+              ]
+            },
+            "required": [
+              "recipient_key_ref"
+            ],
+            "properties": {
+              "aead": {
+                "required": [
+                  "nonce"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recipient_method": {
+                "const": "recovery_public_key"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "kdf"
+              ]
+            },
+            "required": [
+              "recipient_key_ref"
+            ],
+            "properties": {
+              "aead": {
+                "required": [
+                  "enc"
                 ]
               }
             }
@@ -464,6 +522,31 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "backup_class": {
+            "const": "mls_history"
+          }
+        },
+        "required": ["backup_class"]
+      },
+      "then": {
+        "properties": {
+          "encryption": {
+            "properties": {
+              "recipient_method": {
+                "enum": [
+                  "secret_storage_key",
+                  "recovery_public_key"
+                ]
+              }
+            }
+          }
+        },
+        "description": "mls_history backups MUST use secret_storage_key or recovery_public_key (key-management.md §7.5.3 / device-lifecycle.md §12); passphrase_kdf and the removed device_snapshot_secret are rejected."
+      }
+    },
     {
       "if": {
         "properties": {
