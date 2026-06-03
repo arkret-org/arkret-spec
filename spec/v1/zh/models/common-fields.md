@@ -184,6 +184,37 @@ expected_<role>_<kind>_id
 - `fields` 是协作对象的扩展容器；Flow / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；Capability Grant / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 无 durable 终态**：v1 的 View 只有 `cx.view.create` / `cx.view.update` / `cx.view.reconcile`，`view.schema.json` 不含 `state` / `deleted_at`，registry 也无 `cx.view.tombstone`；故本表 View 的 `state` / `deleted_at` 为 "—"。共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。这是有意取舍，待未来若出现"可治理删除"的需求再单独引入 lifecycle event。
 
+### 3.2 字段声明 / 展示顺序约定（normative reference）
+
+本表是 §3 / §3.1 之外的**顺序**约定：它不改变任何字段的必填性，只规定 schema `properties` 的声明顺序与 SDK / 文档生成器的展示顺序，使不同对象族呈现统一字段簇。本表为各 schema 的 canonical property ordering 真源；§3.1 的概念性字段表不应被当作顺序真源。
+
+按结构角色把对象分三类，各自的顺序如下：
+
+1. **canonical materialized object**（Realm / Circle / Space / Flow / Message / Morph / Relation / View / Policy / Actor Profile 等）字段簇顺序 MUST 为：
+   1. identity：`id`、`schema`
+   2. scope / container：`realm_id`、`space_id`、`flow_id`、其它 parent refs（如 `parent_space_id`、`scope_circle_id`）
+   3. object discriminator / 引用：`kind`、`rank`、`schema_refs`
+   4. content / config：`title`、`metadata`、`fields`、policy / config 字段
+   5. lifecycle：`state`、`state_changed_at`、`stage`、`stage_changed_at`
+   6. audit：`created_by`、`created_at`、`updated_by`、`updated_at`、`deleted_at`
+   7. extension / profile 容器（若未在第 4 组出现）
+2. **protocol artifact / proof**（Blob meta、attestation、receipt 等）：`schema`、`<artifact>_id`、scope refs、issuer / subject、artifact body、validity（`not_before`、`expires_at`）、签发 / 审计字段。这类对象 MAY 不含顶层 `id`（使用 `<artifact>_id`），不视为遗漏。
+3. **private projection / process artifact**（Read Cursor、Capability Grant、Notification 等）：projection id / scope、grant / body、validity、lifecycle update（`updated_by`、`updated_at`）、revocation（`revoked_by`、`revoked_at`）。
+
+排序硬规则（对全部三类生效，可被 lint 机器校验）：
+
+- `created_at` MUST 排在 `updated_at` 之前；`created_by` MUST 排在 `created_at` 之前；`updated_by` MUST 排在 `updated_at` 之前。
+- `state_changed_at` MUST 紧跟 `state`；`stage_changed_at` MUST 紧跟 `stage`。
+- 开放扩展容器（`fields` / `metadata`）MUST 落在 content / config 区，紧邻对象内容字段，MUST NOT 混入 audit 字段簇。对 Realm 这类把 `fields` 置于审计字段之前的配置根对象，按本节"对象族例外"声明即可。
+
+**过程型 / private object 例外（FDC-05 / FO-05）**：第 3 类对象不套用 canonical materialized object 的 audit 字段簇规则——
+
+- **Read Cursor** 是仅更新态 projection，必填 `updated_at` 而**无** `created_at`；这是有意设计，不是字段遗漏。读者 / 生成器 MUST NOT 据 §3.1 推断它缺 `created_at`。
+- **Capability Grant** 使用 grant 语义字段（签发 / 撤销相关）表达生命周期；其"创建时间"语义由 `issued_at`（而非通用 `created_at`）承载，retention / audit / 排序查询 MUST 使用 grant 自身的 `issued_at` / `expires_at` / `revoked_at`，不要回退到通用 `created_at`。
+- **Notification** 同属 actor-private projection，不暴露开放扩展容器（见 §3.1 附注）。
+
+> 说明：v1 暂未把上述顺序纳入 `lint_artifacts.py` 自动校验（仅校验 schema 语法与 registry 完整性）；本节作为 canonical ordering 规则先行确立，后续可由 schema formatter / lint 固化（详见审核项 FO-06 / ALT-08）。
+
 ## 4. 主体引用字段交叉对照
 
 ### 4.1 DID 适用边界
@@ -279,10 +310,10 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 - **未知对象容忍**:reducer 若收到的 event 指向尚未在本地物化的对象(create event 尚未通过 causal / backfill 到达),MUST 不返回 `failed_precondition` 也不改写任何状态——直接 `Ok` 跳过本次副作用。这是 causal-order 安全性，与"对已知对象的 state 校验"不冲突:校验只在物化对象存在时执行。Conformance 实现 MAY 把这种 event 标记为 `pending_causal_apply` 等内部 hint。
 - **终态等价**:`tombstoned` / `deleted` 在 state-machine 中等价，都属于"不可逆终态";`redacted` 单独占一格但对 archive / restore / tombstone 而言同样是"不可逆终态"(MUST NOT 被这些 event 修改)。
-- **不允许 same-state self-transition**:`cx.<kind>.archive` 在 `state == "archived"` 时 MUST 返回 `<kind>_not_active`,**不能**当作 idempotent no-op。这保证 reducer 路径上每个 state transition 都对应一次 audit-able 状态变化；客户端如果想"重新 archive"应当先 restore 再 archive,或确认目标对象 state 后跳过事件提交。
+- **不允许 same-state self-transition**:`cx.<kind>.archive` 在 `state == "archived"` 时 MUST 返回 `<kind>_not_active`,**MUST NOT** 当作 idempotent no-op。这保证 reducer 路径上每个 state transition 都对应一次 audit-able 状态变化；客户端如果想"重新 archive"应当先 restore 再 archive,或确认目标对象 state 后跳过事件提交。
 - **`state_changed_at` reducer-derived(normative)**:reducer **MUST** 忽略 wire payload 中任何 actor-supplied 的 `state_changed_at` 值。该字段的权威值是触发本次 state transition 的 Event 的 `created_at`,或 cell update 时该 Event 落在 anchor frontier 上的 `anchored_at`(两者较晚者),与 §3 字段表一致。客户端不得依赖 wire 上的 `state_changed_at` 做时序判断；若 wire 值与 reducer 派生值不一致,SDK SHOULD 报警并以 reducer 派生值为准。该规则防止 actor 通过填错时间戳干扰 retention、audit timeline、conflict tie-break(虽然 §6 已禁止 HLC / event id / actor_seq 作为 cell winner 选边，但 retention 与 audit query 仍可能 group by `state_changed_at`)。
 
-`*.create` 与 `*.update` 永远 set state 为 `active`(或保持当前 active);对一个非 active 对象提交 update MUST 失败(`failed_precondition`,reason 同 `archive_not_active` 家族),否则编辑会偷偷复活已 archive/tombstone 的对象——这与 `*.restore` 的语义冲突。Conformance 实现 MUST 把"update on non-active object"视为 invariant 违反。
+`*.create` 与 `*.update` 永远 set state 为 `active`(或保持当前 active);对一个非 active 对象提交 update MUST 失败(`failed_precondition`,reason 同 `archive_not_active` 家族),否则编辑会隐式复活已 archive/tombstone 的对象——这与 `*.restore` 的语义冲突。Conformance 实现 MUST 把"update on non-active object"视为 invariant 违反。
 
 #### 5.2 Unified lifecycle event template（doc-only canonical）
 

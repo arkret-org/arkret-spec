@@ -1365,6 +1365,26 @@
       },
       "additionalProperties": false
     },
+    "space_patch_payload": {
+      "type": "object",
+      "description": "Payload class for cx.space.update. Patches Space metadata (title, rank, kind-specific fields) on the Space identified by space_id. Per operations-sync.md §7.3 / §9.3 and realm-and-space.md §3.3, cx.space.update only mutates the Space's own metadata; it MUST NOT PATCH top-level state (archive/restore go through cx.space.archive / cx.space.restore) and MUST NOT move Flows (cx.flow.move / cx.flow.reorder). Reducer rejects update on a non-active Space (reason=space_not_active) — see conformance-vectors.md §6.7.",
+      "required": [
+        "space_id",
+        "patch"
+      ],
+      "properties": {
+        "space_id": {
+          "$ref": "#/$defs/space_id"
+        },
+        "patch": {
+          "$ref": "#/$defs/patch"
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
     "object_lifecycle_payload": {
       "type": "object",
       "description": "Generic lifecycle payload for Flow / Circle / Morph archive-restore-tombstone style events. The target object is single-sourced by target_ref; target_state may describe the intended lifecycle result but cannot replace the target object reference.",
@@ -4273,6 +4293,11 @@
         },
         "bootstrap_binding": {
           "$ref": "#/$defs/device_bootstrap_binding"
+        },
+        "recovery_session_id": {
+          "type": "string",
+          "pattern": "^cx:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Present when this authorization was produced by a device recovery flow (crypto-media/device-lifecycle.md §15). Binds the event to the recovery_session_id used by the proof transcript, backup-decrypt proofs, and the recovery_receipt, so an auditor reading only the control stream can correlate authorization to receipt. Omitted for ordinary pairing-based authorizations. Not part of the cross_signing_binding signing input (§5.2)."
         }
       },
       "additionalProperties": false
@@ -5237,6 +5262,313 @@
       },
       "additionalProperties": false
     },
+    "applet_registration_payload": {
+      "type": "object",
+      "description": "Payload for cx.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / authorized registry-authz service; a self-signed registration alone MUST NOT write to a Realm (reason=applet_registration_unauthorized). registration MUST be signed by the controller DID (proof per models/event-and-patch.md §3).",
+      "required": [
+        "applet_id",
+        "service_did",
+        "controller_did"
+      ],
+      "properties": {
+        "applet_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "type": "string",
+              "pattern": "^cx:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          ],
+          "description": "Stable applet identifier: a DID or the typed-id form cx:applet:<uuidv7>."
+        },
+        "service_did": {
+          "$ref": "#/$defs/did",
+          "description": "DID of the service hosting the applet runtime."
+        },
+        "controller_did": {
+          "$ref": "#/$defs/did",
+          "description": "DID of the Applet controller / external system; signs the registration."
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "bot_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "protocols": {
+          "$ref": "#/$defs/string_list"
+        },
+        "namespaces": {
+          "type": "object",
+          "description": "Applet namespace claims (actors / realms / handles patterns). Namespace match alone never grants write capability.",
+          "additionalProperties": true
+        },
+        "receive_events": {
+          "type": "boolean"
+        },
+        "receive_ephemeral": {
+          "type": "boolean"
+        },
+        "rate_limited": {
+          "type": "boolean"
+        },
+        "requested_scopes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true
+        },
+        "registration_epoch": {
+          "$ref": "#/$defs/hash"
+        },
+        "webhook_auth": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "manifest": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Applet manifest snapshot (capability requirements, supported intents, etc.)."
+        },
+        "proof": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Controller-DID detached signature over the canonical registration object (excluding proof). An empty proof object MUST be rejected as schema_violation; required proof fields per models/event-and-patch.md §3."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_bridge_error_payload": {
+      "type": "object",
+      "description": "Payload for cx.applet.bridge_error. Durable Realm-history Event recording a bridge / external-network failure. Field table: zh/extensions/applet-schema.md §7. MUST bind realm_id, failed_transaction_ref, retriable, and visibility_scope; missing any required field MUST be rejected as schema_violation. MUST NOT inline unauthorized external plaintext.",
+      "required": [
+        "applet_id",
+        "realm_id",
+        "failed_transaction_ref",
+        "error_class",
+        "error_code",
+        "retriable",
+        "visibility_scope"
+      ],
+      "properties": {
+        "applet_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "type": "string",
+              "pattern": "^cx:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          ]
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "failed_transaction_ref": {
+          "$ref": "#/$defs/object_ref",
+          "description": "Reference to the failed transaction / source Event. MUST NOT inline unauthorized external plaintext."
+        },
+        "error_class": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Error category for aggregation / alerting (e.g. external_network / auth / schema / rate_limit / policy)."
+        },
+        "error_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Specific error code (e.g. external_rate_limited)."
+        },
+        "retriable": {
+          "type": "boolean"
+        },
+        "visibility_scope": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Visibility scope enum for the error event (e.g. realm_admins / applet_controller / realm_members). Clients MUST honor it and MUST NOT expose bridge-internal detail to unrelated members."
+        },
+        "external_ref": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "External network reference (protocol / network id). MUST NOT contain unauthorized external plaintext."
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable summary. MUST NOT leak unauthorized external plaintext."
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Suggested retry delay; meaningful only when retriable=true."
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_session_start_payload": {
+      "type": "object",
+      "description": "Payload for cx.applet.protocol_session.start. Parallel to cx.agent.protocol_session.start but applet-scoped. Field vocabulary: applet.schema.json (session_id correlates start/status; params are caller-supplied, opaque to soland and interpreted per applet manifest). Unlike cx.agent.* there is NO canonical applet session state machine in v1.",
+      "required": [
+        "applet_id",
+        "session_id"
+      ],
+      "properties": {
+        "applet_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "type": "string",
+              "pattern": "^cx:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Per-invocation correlation id pairing start with the matching status event."
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Caller-supplied parameters. Opaque to soland; bridge interprets per applet manifest."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_session_status_payload": {
+      "type": "object",
+      "description": "Payload for cx.applet.protocol_session.status. Parallel to cx.agent.protocol_session.status but applet-scoped. runtime_status is the bridge-implementation-defined status (applet.schema.json) — v1 does NOT mandate a canonical applet session state machine; the field is named runtime_status (not status) to keep applet snapshots distinguishable from the canonical agent session state machine. detail is a free-form bridge-side surface.",
+      "required": [
+        "applet_id",
+        "session_id",
+        "runtime_status"
+      ],
+      "properties": {
+        "applet_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "type": "string",
+              "pattern": "^cx:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "runtime_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "running",
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "description": "Bridge-implementation-defined runtime status. Bridges MAY restrict the set further in their applet manifest."
+        },
+        "detail": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Bridge-side detail surface (echo response, error context, bridge identifier, etc.). Bridges document their own schema."
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mimi_room_binding_payload": {
+      "type": "object",
+      "description": "Payload for cx.mimi.room_binding. Writes the cx.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of a Contrix Realm/Flow discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold cx.policy.manage, cx.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the MLS Governance Binding covered_frontier_cell precondition.",
+      "required": [
+        "mimi_room_uri",
+        "binding_scope"
+      ],
+      "properties": {
+        "profile": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Interop profile id, e.g. cx.profile.mimi_interop.v1."
+        },
+        "mimi_room_uri": {
+          "type": "string",
+          "pattern": "^mimi://[^\\s]+$",
+          "description": "MIMI room URI. Cell subject for cx.component.mimi.room_binding.v1."
+        },
+        "binding_scope": {
+          "type": "object",
+          "description": "Contrix Realm + Flow scope this MIMI room projects. flow_id MUST point at an accepted Flow with discussion track enabled inside realm_id; the MIMI room timeline only projects that Flow's discussion track.",
+          "required": [
+            "realm_id",
+            "flow_id"
+          ],
+          "properties": {
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            },
+            "flow_id": {
+              "$ref": "#/$defs/flow_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "hub_provider": {
+          "$ref": "#/$defs/did",
+          "description": "Service DID explicitly delegated by Realm policy, Organization DID, or participant DID to host the hub role."
+        },
+        "local_provider_role": {
+          "type": "string",
+          "enum": [
+            "hub",
+            "follower",
+            "bridge_only"
+          ]
+        },
+        "follower_providers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "MLS group id. MUST be present for E2EE MIMI rooms."
+        },
+        "content_profile": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "MIMI content profile, e.g. application/mimi-content."
+        },
+        "policy_component_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "revoked"
+          ],
+          "description": "Lifecycle state of the binding. accepted bindings authorize projection; revoked bindings stop new MIMI writes (only backfill / tombstone / report / legal hold / migration proof maintenance remains)."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
     "moderation_report_payload": {
       "type": "object",
       "required": [
@@ -5281,6 +5613,97 @@
         },
         "franking_proof": {
           "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_decision_payload": {
+      "type": "object",
+      "description": "Payload for cx.moderation.decision. An anchored moderation decision that writes an or_set add effect onto the cx.component.moderation_state.v1 cell whose subject is target_ref (the moderated target_event_id / target_object_id canonical string). See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §2.6 / §8.1. The decision verb is the runtime result set hard_deny / soft_deny / quarantine / require_review (all lower snake_case; allow is never anchored and soft_deny does not itself write the cell). The optional action carries the finer-grained §5.3 moderation_policy action family. The actor MUST independently hold cx.realm.moderation_policy or cx.policy.manage; refs[role=authorized_by] SHOULD reference the policy server signed decision for audit (not a capability source).",
+      "required": [
+        "target_ref",
+        "decision"
+      ],
+      "properties": {
+        "target_ref": {
+          "$ref": "#/$defs/object_ref",
+          "description": "The moderated target (event / object). Canonical string of this ref is the cx.component.moderation_state.v1 cell subject."
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "hard_deny",
+            "soft_deny",
+            "quarantine",
+            "require_review"
+          ],
+          "description": "Runtime decision verb (content-moderation.md §2.5 / §8.1). Lower snake_case; implementations MUST NOT introduce uppercase or camelCase variants."
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "deny_join",
+            "deny_restricted_join",
+            "deny_invite",
+            "deny_write",
+            "deny_federation",
+            "quarantine_message",
+            "require_review",
+            "redact_on_accept",
+            "shadow_collapse"
+          ],
+          "description": "Optional finer-grained §5.3 moderation_policy action family entry that the decision verb maps to (content-moderation.md §8.1)."
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Machine-readable diagnostic. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes."
+        },
+        "reason": {
+          "type": "string"
+        },
+        "policy_decision_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Reference to the policy server signed decision used as risk evidence. Audit / replay only; not a capability source."
+        },
+        "modify_decision_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Set when this decision is the new decision emitted atomically by an appeal verdict=modify (content-moderation.md §5.5.2); reducer verifies it matches the same-batch appeal event id."
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_decision_lift_payload": {
+      "type": "object",
+      "description": "Payload for cx.moderation.decision.lift. Writes an or_set remove effect on the same cx.component.moderation_state.v1 cell, removing the tag previously added by the decision identified by decision_ref. See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §5.5.2 (appeal verdict=overturn MUST pair a lift whose target equals decision_ref in the same Anchor batch).",
+      "required": [
+        "target_ref",
+        "decision_ref"
+      ],
+      "properties": {
+        "target_ref": {
+          "$ref": "#/$defs/object_ref",
+          "description": "The moderated target whose cx.component.moderation_state.v1 cell the lift mutates. Same cell subject as the original cx.moderation.decision."
+        },
+        "decision_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Reference to the prior cx.moderation.decision Event whose anchored tag is being removed."
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false

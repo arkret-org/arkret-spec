@@ -116,9 +116,9 @@ flowchart TB
 Sovereign client MUST:
 
 - pin organization trust anchors：Organization DID、governance DID、registry DID、witness DID、service DID allowlist。
-- 使用组织配置的 DID resolver policy，不得默认查询公共 registry / public directory。
+- 使用组织配置的 DID resolver policy，MUST NOT 默认查询公共 registry / public directory。
 - 验证服务 DID 委派、证书、HTTP message signature 和 feature profile。
-- 禁止用户手动添加未批准 Sync Service / Directory / Blob / Applet endpoint。
+- MUST NOT 允许用户手动添加未批准 Sync Service / Directory / Blob / Applet endpoint。
 - 默认关闭公共 federation、公共搜索、外部 Applet 和外部 Agent handoff。
 - 对每个 Realm 显示 classification、E2EE、auditable E2EE、export、external member policy。
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。

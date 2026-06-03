@@ -126,7 +126,7 @@ gRPC、WebSocket / SSE、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / 
 
 未声明对应 binding profile 的实现 MUST NOT 接受非 HTTP/JSON 流量，也不得要求对端支持。
 v1.0 conformance suite 不测试任何非 HTTP binding；gRPC / WS / MQ / libp2p 等
-transport 必须各自通过 binding profile 单独 normative 化。
+transport MUST 各自通过 binding profile 单独 normative 化。
 
 ## 7. Binding Discovery
 

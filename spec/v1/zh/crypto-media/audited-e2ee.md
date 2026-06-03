@@ -144,6 +144,8 @@ Audit Agent profile MUST 满足：
 
 不需要常驻审计解密能力的 Realm SHOULD 使用 franking / moderation proof profile（例如 `cx.moderation.franking_proof` 或 profile 注册的等价 token）来证明消息可审计性，并在真正审计时由发送方、持钥成员或受控服务按 policy 解密；不得把 standing Audit Agent 作为唯一合规模式。
 
+> _Informative — 交叉引用。_ 相对于在群内常驻一个持钥的 Audit Agent，franking / moderation-proof 是暴露面更小的替代方向：它把"举报可验证性"建立在密文层的投递证明与按需承诺上，无需任何一方持续持有解密能力，因而避免了常驻审计代理带来的历史 epoch 永久可解风险。franking 的外部参考方案、承诺放置位置与归因暴露范围的取舍，见 [`../governance/content-moderation.md`](../governance/content-moderation.md) §3.4 的 franking 参考注记。本句仅为背景指引，不改变上文关于 Audit Agent profile 的任何约束。
+
 ## 4. 强制留痕机制 (Audit Record Mandatory)
 
 获得密钥并不意味着可以合规地随意查看。协议要求 Audit Agent 按声明的 audit profile 执行以下工作流；`cx.profile.attested_audit.e2ee.v1` 下该实现必须依托 TEE / enclave 或等价硬件隔离环境，并保证 MLS key、exporter secret 或解密明文不会在审计确认前离开受控边界：

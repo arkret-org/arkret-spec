@@ -30,7 +30,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 
 - 作为 bot 参与 Realm
 - 桥接外部网络（IRC / Slack / Discord / GitHub 等）
-- 创建和管理 ghost actor
+- 创建和管理 Ghost Actor
 - 管理 portal realm
 - 接收 Contrix 事件交易
 - 把外部事件转换为 Contrix event
@@ -53,12 +53,12 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - Applet **不**自动拥有全网权限。
 - Applet 的每个写入仍需签名和 capability。
 - Applet namespace 只表示"该 Applet 可声明或接收这些对象"，不等于权限通过。
-- Ghost actor 必须是可审计 Actor，不应伪装成人类 DID。
+- Ghost Actor 必须是可审计 Actor，不应伪装成人类 DID。
 - Applet 对 Portal Realm 写入仍需显式 Realm link、目标 Realm 的 explicit capability、目标 Realm 的 policy server / moderation 检查、E2EE 边界提示（如 bridge 到非 E2EE 外部系统）。详见 [`realm-links.md`](./realm-links.md)。
 
 ### 2.4 详细规范
 
-- 整体架构、namespace 模型、事件交易、ghost actor / portal realm 设计：[`../extensions/applet-integration.md`](../extensions/applet-integration.md)。
+- 整体架构、namespace 模型、事件交易、Ghost Actor / portal realm 设计：[`../extensions/applet-integration.md`](../extensions/applet-integration.md)。
 - Applet schema 与 OpenAPI binding：[`../extensions/applet-schema.md`](../extensions/applet-schema.md)。
 - MIMI Provider Facade（外部协议互通）：[`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)。
 - Applet policy（`policy_type=applet`）：[governance-objects.md §3](./governance-objects.md)。

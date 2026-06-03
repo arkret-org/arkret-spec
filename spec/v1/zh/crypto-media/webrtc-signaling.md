@@ -167,7 +167,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `cx.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
 - `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议——每个 backend 自行实现 mesh，详见 [CXP-0010 §4.6](../../proposals/0010-media-service-binding-framework.md)。
 
-兼容性：v1 cycle 内服务端 SHOULD 接受遗留单 `sfu_endpoint` 形态并 normalize 为 `foci=[{focus_id:"legacy", type:"contrix-native", connect_url:<sfu_endpoint>, ...}]`，同时打 audit log；v1.1 起单 endpoint 形态升级为 `failed_precondition` `reason="legacy_single_endpoint_media_service"`。
+兼容性（v1 当前行为）：服务端 SHOULD 接受遗留单 `sfu_endpoint` 形态并 normalize 为 `foci=[{focus_id:"legacy", type:"contrix-native", connect_url:<sfu_endpoint>, ...}]`，同时打 audit log。_Informative：未来 hardening 版本可将单 endpoint 形态升级为 `failed_precondition` `reason="legacy_single_endpoint_media_service"`；该收紧属迁移建议，不是 v1 规范要求。_
 
 修改该 state event 需要 `cx.call.configure_media_service` 或 `cx.policy.manage` capability。
 

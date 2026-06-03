@@ -1,0 +1,24 @@
+{
+  "version": "2026-06-03",
+  "source_of_truth": true,
+  "description": "Canonical registry of Contrix-defined MLS (RFC 9420) GroupContext extensions occupying the MLS private-use ExtensionType range 0xF000-0xFFFF. Maintained so SDKs and conformance tooling have a single machine-readable entry for each Contrix MLS extension codepoint, preventing collisions between future Contrix extensions in the private-use range and recording any future migration to an IANA standard codepoint.",
+  "private_use_range": {
+    "low": "0xF000",
+    "high": "0xFFFF",
+    "reference": "RFC 9420 §17.6; IANA MLS Extension Types registry (private-use range)"
+  },
+  "extensions": [
+    {
+      "name": "mls_governance_binding",
+      "codepoint": "0xF1C0",
+      "status": "active",
+      "profile_id": "cx.profile.mls_governance_binding.full.v1",
+      "carries": "Contrix Realm/Circle governance binding inside the MLS GroupContext",
+      "iana_codepoint": null,
+      "migration": "If a network-wide registration is ever required, request a standard codepoint via the IETF MLS extensions registry (specification-required) and declare it in a new hardening profile as a separate wire version; do not override this binding with another codepoint inside v1.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    }
+  ]
+}

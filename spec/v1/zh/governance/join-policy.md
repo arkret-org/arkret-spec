@@ -14,6 +14,15 @@ updated: 2026-05-25
 
 本文档定义 Realm 的 **Join Policy** 模型，覆盖 gate 组合、自动解析路径、申请-审核路径、加密语义、联邦传播、反滥用与 MIMI 映射。原本作为 `realm-and-space.md §3` 的子节存在；v1 拆出独立文件以便 governance / membership 相关讨论集中维护。`realm-and-space.md` 现在只承担 Realm 对象模型与 Space / hierarchy 部分。
 
+术语层级（normative，消歧）——本文反复出现的四个相近名词分属不同层级，MUST NOT 互换：
+
+| 术语 | 层级 | 说明 |
+| --- | --- | --- |
+| **Join Policy** | 章节 / 策略域总称 | 本文定义的 gate 组合、解析顺序、加密语义与反滥用约束的统称；不是单一 wire `Event.kind`。 |
+| `cx.realm.join_rule` | wire event / cell（active） | `default_join_rule` 入口模式策略事件，写入 `cx.component.realm.join_rule.v1` cell。 |
+| `cx.realm.delivery_binding_policy` | wire event / cell（active） | 成员投递绑定策略事件，写入 `cx.component.realm.delivery_binding_policy.v1` cell（§6.3）；约束成员 `delivery_binding.binding_source`，与 join gate 正交。 |
+| `RealmJoinCandidate`（`realm-join-candidate.schema.json`） | 候选请求 / 评估对象 | 描述本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service；方向与 `delivery_binding` 相反（见 §6.2）。 |
+
 当前 v1 的 active 与 candidate surface 分层如下，base v1 实现只需要实现 active surface；application / review workflow 只在实现声明 `cx.profile.candidate.join_policy.v1` 时成为该实现的自愿承诺。
 
 | Surface | v1 状态 | Wire 形态 | 实现要求 |
@@ -41,7 +50,7 @@ updated: 2026-05-25
 3. **审核决策必须有稳定审计材料。** 实现声明 `cx.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名的 anchored Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §6](./content-moderation.md)）依赖该 trail。
 4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `cx.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
 5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `cx.member.state{membership=join}`，由 reducer 内联校验，无需 application / review Move。这条路径替代既有 `restricted` 入口模式的实质语义。
-6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Move 的 capability。Policy Server `obligations[]`（§11）只能在 capability 之上叠加额外要求（如 challenge），不能凭空创造权限。
+6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Move 的 capability。Policy Server `obligations[]`（§12）只能在 capability 之上叠加额外要求（如 challenge），不能凭空创造权限。
 
 ## 3. Cell Family 与 State Event
 
@@ -60,7 +69,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- | --- | --- |
 | `gates` | yes | `array<Gate>` | 1..16 项；空数组 MUST schema_violation。 | 必须穿越的 gate 列表。 |
 | `combinator` | yes | `enum(all, any)` | 默认 `all`。 | gate 之间的组合语义。 |
-| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `cx.realm.join.review`。 | 审核所需 capability，取 **capability action token** 形态（如 `cx.realm.join.review`），不是 grant id 引用；与 §6.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
+| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `cx.realm.join.review`。 | 审核所需 capability，取 **capability action token** 形态（如 `cx.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
 
 [^review-capability-alias]: v1.1 候选 alias: `review_capability_action` — 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。当前字段名是历史保留（v1 已发布，避免 wire-breaking 重命名），推荐文档与 SDK 在 prose 中使用 `review_capability_action` 描述其语义；wire 字段名保持 `review_capability`。
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
@@ -93,7 +102,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- | --- |
 | `claim_required` | `requires_claims[]`（见 [`../authz/constraint-schema.md` §10](../authz/constraint-schema.md)） | applicant MUST 提交满足声明集合的 VC / claim presentation。 | `true` |
 | `parent_membership` | `membership_source_realm_ids: id:realm[]`、`require_min_membership: enum(invite, join)` | applicant MUST 已是任一 source Realm 的指定成员；该字段只是 membership gate 的验证来源，不表达 Realm 树形父子关系。reducer 在 join Move 校验时必须能够独立验证（snapshot 或 backfill）。等价于 Matrix MSC3083 `m.room_membership` 条件。 | `true` |
-| `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §11。 | `true` |
+| `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §12。 | `true` |
 | `application_form` | `questions[]`（见 §3.3） | applicant MUST 在 `member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
 | `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
 | `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `cx.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估）。此 gate 的语义是 **leave-cooldown**（按上次主动 leave 计时），prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
@@ -211,16 +220,16 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Move�
 - 反之，同批中"先发 grant，后用 grant 满足 gate" 也不会被 reducer 当作满足——授权与 Move 的可见性以 Anchor 边界为单位。
 - 与本规范 §3.1 中 `combinator` 的"deny gate（如 cooldown）独立评估"规则共存：cooldown 等 pre-evaluation deny gate 同样基于 pre-state 触发，且不参与 combinator。
 
-### 5.1 成员投递绑定
+## 6. 成员投递绑定
 
-`cx.member.state{membership="join"}` 表达的是某个 DID 在该 Realm 中成为成员；它**不等价于**"按该 DID 的全局 home Principal Server 投递"。Realm-scoped events / account aggregate / to-device / push / key-package 的实际投递目标由该成员的 **effective delivery binding** 决定。本 §5.1 是 v1 normative。
+`cx.member.state{membership="join"}` 表达的是某个 DID 在该 Realm 中成为成员；它**不等价于**"按该 DID 的全局 home Principal Server 投递"。Realm-scoped events / account aggregate / to-device / push / key-package 的实际投递目标由该成员的 **effective delivery binding** 决定。本 §6 是 v1 normative。
 
-#### 5.1.1 接受准则（normative）
+### 6.1 接受准则（normative）
 
 任一 `cx.member.state{membership="join"}` Move 被 reducer 接受前 MUST 满足：
 
 1. `payload.delivery_status ∈ {routable, unroutable}` 显式声明。
-2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `cx.component.realm.delivery_binding_policy.v1`（§5.1.3）的 `allow_binding_sources` 集合内。
+2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `cx.component.realm.delivery_binding_policy.v1`（§6.3）的 `allow_binding_sources` 集合内。
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`allow_unroutable_membership=true`），且该成员的客户端理解"该 Realm 仅向本地可见、不接收服务端推送 / 同步 / to-device / push / key-package 投递"。
 4. `delivery_binding.recipient_service_did` 出现在 Realm policy 的 `allowed_recipient_services`（若声明），否则 MUST 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。
 5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
@@ -230,7 +239,7 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 
 注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_did` 描述的是成员加入后接收 events、sync、to-device、push、key package 的目标 Principal Server；`join_candidates[]` 描述的是本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service。两者方向不同、生命周期不同、授权来源不同。Join builder 和 reducer MUST NOT 从 `join_candidates[].service_did` 推导成员 `delivery_binding`，也 MUST NOT 从成员 `delivery_binding.recipient_service_did` 推导 Realm ingress candidate。
 
-#### 5.1.2 `binding_source` 与责任方
+### 6.2 `binding_source` 与责任方
 
 | `binding_source` | 谁负责填 | 何时使用 | 补充必填 |
 | --- | --- | --- | --- |
@@ -243,7 +252,7 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 
 所有六类来源都要求 `resolved_at`；任何 `binding_source` 进入 canonical Event 时，**结果 MUST 已在客户端 / 提交服务侧解析完成**，不得留"运行时再 resolve"的隐含状态。
 
-##### 5.1.2.1 Handle 作为成员添加输入
+#### 6.2.1 Handle 作为成员添加输入
 
 客户端 MAY 允许邀请方输入 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 来添加成员。该字符串只是 builder 输入，不是 membership 主键。
 
@@ -267,7 +276,7 @@ Reducer MUST 在 gate proof 通过前先校验 applicant 是否具备提交 `cx.
 
 Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Move 可引用 handle claim / service acceptance Event 的 `event_id`，或在私有 review / invite 流程中保存最小披露记录；公开成员状态只需要 DID 与 `delivery_binding`。
 
-#### 5.1.3 Policy 事件：`cx.realm.delivery_binding_policy`
+### 6.3 Policy 事件：`cx.realm.delivery_binding_policy`
 
 Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员投递绑定的强约束。该事件写入 `cx.component.realm.delivery_binding_policy.v1` cell（cas_register, cell_subject=null, bottom=reject），与 `cx.realm.join_rule` / `cx.realm.history_visibility` 等其它 realm policy 事件并列。Realm 在 `cx.realm.policy_components` 中将该 component 列入 active set 后，reducer 强制其约束。
 
@@ -304,12 +313,12 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
 | `allowed_recipient_services` | `did[]` | `[]`（不限） | 允许出现在 `recipient_service_did` 的封闭集合。空数组等价于"不限"。 |
 | `required_endorsers` | `did[]` | `[]` | 当 `allowed_recipient_services` 非空时，`recipient_service_did` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；否则空数组表示无强制背书要求。 |
 | `allow_unroutable_membership` | `boolean` | `false` | 是否允许 `delivery_status="unroutable"` 成员。 |
-| `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Move 的合法签名 / 背书集合（见 §5.1.5）。 |
+| `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Move 的合法签名 / 背书集合（见 §6.5）。 |
 | `expires_after_seconds` | `int?` | unset = 不过期 | 该 Realm 中所有 binding 的最大有效期；reducer MUST 在物化时把 `delivery_binding.expires_at = resolved_at + expires_after_seconds`，除非 binding 显式声明更短的 `expires_at`。 |
 
 `cx.component.realm.delivery_binding_policy.v1` 是 cas_register cell（`cell_subject=null`，每 Realm 一个）。变更走 [`models/realm-and-space.md`](../models/realm-and-space.md) 的 `cx.realm.policy_components` 通用路径。
 
-#### 5.1.4 路由不可降级（normative）
+### 6.4 路由不可降级（normative）
 
 `delivery_binding` 一旦进入 accepted member cell，**任何 sender** 在向该 Realm 投递面向该成员的事件 / sync delta / to-device 消息 / push 唤醒 / MLS KeyPackage 请求时：
 
@@ -317,9 +326,9 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
 - MUST NOT 退路到该 actor 的 DID Document `ContrixPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_did` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（默认重试上限见 [`sync/federation.md` §4.1](../sync/federation.md)），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
 - MUST NOT 把"recipient_service_did 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
 
-`expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并提示该成员客户端通过 §5.1.5 rebind 流程提交新 binding。**未提供 fallback path**——这是设计约束。
+`expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并提示该成员客户端通过 §6.5 rebind 流程提交新 binding。**未提供 fallback path**——这是设计约束。
 
-#### 5.1.5 Rebind 过渡（normative）
+### 6.5 Rebind 过渡（normative）
 
 成员保持 `membership="join"` 但迁移 `recipient_service_did`（个人 PS → 组织 PS、组织换集群、灾备切换等）通过同一 `cx.member.state{membership="join"}` 的同状态 self-transition 完成：
 
@@ -340,23 +349,23 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
 
 未满足 rebind 授权或 precondition 的 Move **MUST fail closed**；服务不得仅因 DID Document 更新、本地 service account 切换、SSO subject 变更或员工目录调整自动迁移既有 Realm membership 的投递路径。
 
-#### 5.1.6 单 binding 约束 + 多设备策略
+### 6.6 单 binding 约束 + 多设备策略
 
 同一 `(realm_id, actor_id)` 在任一时刻**有且仅有**一个 active `membership="join"` cell；该 cell 持有唯一 effective `delivery_binding`。**不允许**同一 DID 通过两个不同 `recipient_service_did` 同时持有两条 join membership——这种诉求应通过下列正确机制表达：
 
 - **同一 binding 下多设备**：member 的多台设备各自向 `recipient_service_did` 上传 KeyPackage、注册 push、维护 to-device 队列。同一 binding 下的设备共享 sync state。
 - **Realm-level mirror / shared sync**：Realm 自身需要多服务承载（HA / 灾备 / 跨区域）时，使用 Realm metadata 的 [`sync_endpoints`](../sync/federation.md) 表达 Realm-level service binding，与 member-level `delivery_binding` 正交。
-- **同一物理用户的多个上下文** (e.g. Alice 既参与 personal Realm P 也参与 work Realm S)：每个 Realm 各自有独立 membership 与独立 binding；同一 DID 在 P 中 `recipient_service_did = personal PS`，在 S 中 `recipient_service_did = org PS`。这就是 §5.1 整套机制要解决的核心场景。
+- **同一物理用户的多个上下文** (e.g. Alice 既参与 personal Realm P 也参与 work Realm S)：每个 Realm 各自有独立 membership 与独立 binding；同一 DID 在 P 中 `recipient_service_did = personal PS`，在 S 中 `recipient_service_did = org PS`。这就是 §6 整套机制要解决的核心场景。
 
-#### 5.1.7 关联性与隐私边界
+### 6.7 关联性与隐私边界
 
 `delivery_binding` 解决的是**投递路由 / 设备隔离 / push 隔离 / 合规审计边界**，**不解决跨上下文 unlinkability**：外部观察者仍能看到同一 `actor_id` 在不同 Realm 的 membership。需要 unlinkability 的部署应使用 pairwise / private DID（[`../identity/identity-did.md` §3](../identity/identity-did.md)），与 `delivery_binding` 正交。
 
-## 6. 申请-审核路径
+## 7. 申请-审核路径
 
 适用条件：`default_join_rule ∈ {knock, knock_restricted}` 且至少一个 gate `auto_resolve=false`。
 
-### 6.1 阶段
+### 7.1 阶段
 
 | 阶段 | Move | 写入方 |
 | --- | --- | --- |
@@ -367,7 +376,7 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
 
 reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOULD 把它们打包到同一 Anchor request 以减少 round trip。
 
-### 6.2 `member.application`
+### 7.2 `member.application`
 
 候选申请概念；schema 名 `member.application.v1`。正式进入 v1 registry 前，`member.application` 不得作为 Event envelope 的 `kind` 使用，也不得使用 `cx.*` 标准前缀伪装成 active contract；生产实现若启用本 workflow，必须在自有 profile 中声明唯一承载方式，并输出可引用的 signed application receipt（`application_receipt_digest`），供后续 review / invite / audit 引用。
 
@@ -380,18 +389,18 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | `answers` | conditional | `array<Answer>` | 任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
 | `gate_proofs` | conditional | `array<GateProof>` | 任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
 | `applicant_note` | no | `string` | 1..2000 chars 自由文本备注。 |
-| `encryption_envelope` | conditional | `object` | E2EE Realm 必填；见 §7。 |
+| `encryption_envelope` | conditional | `object` | E2EE Realm 必填；见 §8。 |
 
 `Answer` 形态：`{question_id, value: string|string[]|boolean}`；reducer 仅做存在性 / shape 校验，语义评估留给 reviewer。
 
-### 6.3 `member.application.review`
+### 7.3 `member.application.review`
 
 签名 review workflow record，需要 `review_capability`。在正式注册为 v1 active Event kind 前，它不是 base profile 的 durable `Event.kind`；实现必须把 review 结果承载为自有 profile 声明的 signed review receipt（`review_receipt_digest`），或承载在该 profile 自己注册的私有 Event kind 中。任何 `cx.invite.create` 对 review 的引用 MUST 指向稳定 receipt digest 或该私有 Event id，不得引用未注册的裸名 kind。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` |  |
-| `application_ref` | yes | `receipt_digest` 或 profile-private `event_ref` | 指向 §6.2 的 signed application receipt；若实现 profile 已注册私有 application Event kind，MAY 指向该私有 Event id。不得引用未注册的裸名 `member.application`。 |
+| `application_ref` | yes | `receipt_digest` 或 profile-private `event_ref` | 指向 §7.2 的 signed application receipt；若实现 profile 已注册私有 application Event kind，MAY 指向该私有 Event id。不得引用未注册的裸名 `member.application`。 |
 | `decision` | yes | `enum(accept, reject, request_changes)` | `request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
 | `reason_code` | yes | `string` | 稳定原因码：`ok` / `incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `other`。 |
 | `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
@@ -400,13 +409,13 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 `reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。
 
-**review reason_code / reason_text 可见性（normative）**：§6.3 的细粒度 `reason_code` 与 `reason_text` 只在 applicant **已提交 stage 1 `cx.member.state{knock}`**（即进入半信任的申请-审核状态机）后，才 MAY 对该 applicant 自身可见。这与 §5 自动解析路径"外部 applicant 失败不可枚举"不冲突：尚未 knock 的外部探测者仍只能看到统一不可枚举错误，细粒度 review 原因 MUST NOT 出现在 directory hint、discovery surface、push / notification payload 或任何未经 knock 的 caller 可见响应中。换言之，半信任边界由"是否已 knock"划定——knock 之前等同自动路径的不可枚举约束，knock 之后才解锁面向本人的 review reason。
+**review reason_code / reason_text 可见性（normative）**：§7.3 的细粒度 `reason_code` 与 `reason_text` 只在 applicant **已提交 stage 1 `cx.member.state{knock}`**（即进入半信任的申请-审核状态机）后，才 MAY 对该 applicant 自身可见。这与 §5 自动解析路径"外部 applicant 失败不可枚举"不冲突：尚未 knock 的外部探测者仍只能看到统一不可枚举错误，细粒度 review 原因 MUST NOT 出现在 directory hint、discovery surface、push / notification payload 或任何未经 knock 的 caller 可见响应中。换言之，半信任边界由"是否已 knock"划定——knock 之前等同自动路径的不可枚举约束，knock 之后才解锁面向本人的 review reason。
 
-### 6.4 `member.application.cancel`
+### 7.4 `member.application.cancel`
 
 applicant 可主动撤回；写入 `decision=canceled`，不计 cooldown。
 
-### 6.5 接受后的 invite
+### 7.5 接受后的 invite
 
 application 进入 `accepted` 状态后：
 
@@ -416,9 +425,9 @@ application 进入 `accepted` 状态后：
 
 校验失败 `failed_precondition`，`reason_code="join_authorisation_invalid"`。
 
-## 7. 加密与隐私
+## 8. 加密与隐私
 
-### 7.1 非 E2EE Realm
+### 8.1 非 E2EE Realm
 
 `member.application` 的共享 durable wire payload 即使在非 E2EE Realm 中也只能包含最小化 metadata（application id、applicant DID、policy digest、receipt digest、状态与时间戳）。申请正文、answers、自由文本、3PID、附件和 reviewer-only 诊断 MUST 放入 reviewer encryption envelope 或实现 profile 声明的受保护 private record；不得仅依赖 projection 隐藏来保护隐私。Sync Service / Principal Server MUST：
 
@@ -428,7 +437,7 @@ application 进入 `accepted` 状态后：
 
 `applicant_visibility=members_after_join` 仅在 application 进入 `accepted` 且对应 `cx.invite.accept` 已落入 frontier 后，才允许向 Realm 成员投影正文。
 
-### 7.2 E2EE Realm（`encryption_profile=mls_rfc9420`）
+### 8.2 E2EE Realm（`encryption_profile=mls_rfc9420`）
 
 Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不能直接走 Realm MLS group。MUST 使用以下机制之一：
 
@@ -450,11 +459,11 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
 
 reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applicant 重提。
 
-**Envelope recipient capability 绑定（normative）**：`encryption_envelope.recipients[]` 中列出的每个 reviewer device，applicant / 提交服务在构造 envelope 时 MUST 校验其对应 reviewer DID 在该 Anchor pre-state 下仍持有有效 `review_capability`，且该 device 仍是该 reviewer 当前有效 device；MUST NOT 向已撤销 capability 或已退役 device 封装 `wrapped_key`。reducer / 投递服务在投递**新** envelope 时 SHOULD 拒绝向已失去 `review_capability` 的 device 投递，reason `reviewer_capability_revoked`。注意这是 best-effort 前向控制：**reviewer 退职前已经解密的历史 application 正文无法被协议回收**——一旦某 device 在持有有效 capability 期间收到并解出 `wrapped_key`，撤销 capability 只能阻止后续新 envelope 投递，不能撤销既有明文副本。需要严格前向保密的部署 SHOULD 改用 §7.2(1) Reviewer Sub-Group MLS 并在 reviewer 退职时 rotate epoch。
+**Envelope recipient capability 绑定（normative）**：`encryption_envelope.recipients[]` 中列出的每个 reviewer device，applicant / 提交服务在构造 envelope 时 MUST 校验其对应 reviewer DID 在该 Anchor pre-state 下仍持有有效 `review_capability`，且该 device 仍是该 reviewer 当前有效 device；MUST NOT 向已撤销 capability 或已退役 device 封装 `wrapped_key`。reducer / 投递服务在投递**新** envelope 时 SHOULD 拒绝向已失去 `review_capability` 的 device 投递，reason `reviewer_capability_revoked`。注意这是 best-effort 前向控制：**reviewer 退职前已经解密的历史 application 正文无法被协议回收**——一旦某 device 在持有有效 capability 期间收到并解出 `wrapped_key`，撤销 capability 只能阻止后续新 envelope 投递，不能撤销既有明文副本。需要严格前向保密的部署 SHOULD 改用 §8.2(1) Reviewer Sub-Group MLS 并在 reviewer 退职时 rotate epoch。
 
 申请正文 MUST NOT 进入 `cx.member.state{knock}` Move（该 Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Contrix 通过结构上禁止 knock Move 携带正文规避该缺陷。
 
-## 8. Membership 状态机扩展
+## 9. Membership 状态机扩展
 
 复用既有 `cx.member.state` 枚举（`invite / join / leave / knock / ban`），不引入新值。状态转换补充：
 
@@ -474,7 +483,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 - `accepted_pending_invite`: 审核通过但 `cx.invite.create` 尚未签发；
 - `recently_decided`: 7 日内的 accept/reject 决策。
 
-## 9. 联邦语义
+## 10. 联邦语义
 
 跨域加入流程在 [`../sync/federation.md` §5.2](../sync/federation.md) 详述。本节仅说明 Join Policy 引入的不变量：
 
@@ -483,7 +492,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 - E2EE 场景下 reviewer sub-group MLS commit 通过既有 `cx.mls.*` 联邦机制传播；envelope encryption 由 origin Principal Server 投递到目标 reviewer 的 device list（参见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md)）。
 - `parent_membership` gate 评估需要其它 Realm 的成员 snapshot；origin reducer MAY 通过 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的 verified snapshot 接口或直接 backfill；snapshot 不可达时 fail closed。
 
-## 10. Policy Server 运行时挑战
+## 11. Policy Server 运行时挑战
 
 Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `cx.member.state{join}` Move 以及 `member.application` signed receipt / private record 调用 OpenAPI canonical path `/policy/check`。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
@@ -515,7 +524,7 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 
 `obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `cx.message.create`）若使用 `challenge` 必须遵循同一 envelope。
 
-## 11. 反滥用约束
+## 12. 反滥用约束
 
 | 控制项 | 默认 | 强制要求 |
 | --- | --- | --- |
@@ -525,11 +534,11 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 | Quota constraint | 由 Realm `cx.realm.policy_components` 声明 | 推荐对 `cx.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
 | Policy Server `challenge` | 高风险 Realm 推荐 | Sync Service 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
 
-## 12. 与 MIMI 的映射
+## 13. 与 MIMI 的映射
 
 [`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 SHOULD 由 facade 在 Contrix `realm.join_policy` component 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Contrix 专属 component 标记 `application/vnd.contrix.component+json`。MIMI facade 接收外部 join 请求时 SHOULD 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Contrix 原生客户端完成。
 
-## 13. 完整示例
+## 14. 完整示例
 
 公开知识社群，凭证持有者直通、否则走 5 道问卷 + CAPTCHA：
 
@@ -590,7 +599,7 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 
 对应 `cx.realm.join_rule.value="knock_restricted"`：凭 VC 自动通过的走自动解析路径，其余走申请-审核路径。
 
-## 14. 规范性引用
+## 15. 规范性引用
 
 - Realm 对象模型：[`../models/realm-and-space.md`](../models/realm-and-space.md)
 - Capability 与 `cx.realm.join.review` 等 action：[`../authz/capabilities.md`](../authz/capabilities.md)

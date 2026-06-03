@@ -313,9 +313,77 @@
       },
       "additionalProperties": false
     },
+    "device_authorize_material": {
+      "type": "object",
+      "description": "A complete, client-signed cx.device.authorize payload submitted at recovery completion. It MUST also validate against event-payload.schema.json#/$defs/device_authorize_payload. The recovering client unlocks the self-signing key (SSK) from the did_recovery backup during the proof/verify phase, signs the new device's cross_signing_binding with it, and submits the result here. The server MUST verify, before accepting it to the principal control stream: (a) device_id == session.requesting_device_id; (b) recovery_session_id == this session's id; (c) principal_id == session.principal_id; (d) cross_signing_binding.ssk_generation == session.ssk_generation (else device_recovery_ssk_generation_mismatch). Recovery is never a bootstrap-first-device case, so cross_signing_binding (not bootstrap_binding) is required.",
+      "required": [
+        "principal_id",
+        "device_id",
+        "device_public_key",
+        "authorized_by",
+        "not_before",
+        "recovery_session_id",
+        "cross_signing_binding"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "device_public_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authorized_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "cross_signing_binding": {
+          "type": "object",
+          "required": [
+            "verification_method",
+            "alg",
+            "ssk_generation",
+            "signature"
+          ],
+          "properties": {
+            "verification_method": {
+              "$ref": "#/$defs/did_url"
+            },
+            "alg": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ssk_generation": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "signature": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
     "complete_request": {
       "type": "object",
+      "required": [
+        "device_authorize"
+      ],
       "properties": {
+        "device_authorize": {
+          "$ref": "#/$defs/device_authorize_material"
+        },
         "idempotency_key": {
           "type": "string",
           "minLength": 1

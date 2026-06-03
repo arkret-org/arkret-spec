@@ -50,7 +50,7 @@ Contrix Applet 的差异不是简单“更强”，而是粒度不同：
 - Applet 不因 namespace 自动获得权限；每次写入仍需 capability。
 - 同一个 Applet 可以被不同 Realm 用不同 capability、不同可见性、不同对象范围启用。
 - 不同用户或组织可以在自己控制的 Realm 中启用不同 Applet，但必须受 Realm policy 和授权约束。
-- Applet 可作为 bot、bridge、ghost actor controller、portal Realm manager、delegated agent / device 参与审计链。
+- Applet 可作为 bot、bridge、Ghost Actor controller、portal Realm manager、delegated agent / device 参与审计链。
 
 因此 Contrix 的优势是 **Realm / principal / capability 级别的可组合授权与审计**，不是无条件允许任何用户随意给任何 Realm 安装 Applet。
 
@@ -161,7 +161,7 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 
 - **Session key（`cx.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。MUST 绑定 audience / origin / service / scope / 过期时间；不得签发长期 device grant、不得访问 E2EE 历史密钥。资源服务器仍 MUST 重新验证 DID control state，而不是把 OIDC 成功视为 DID 控制证明。
 - **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，MUST 有 scope、`expires_at`、accountable actor 绑定，SHOULD 用 proposal / approval 约束高风险动作。Matrix bot 复用 user / appservice token，没有这一层 scope/审计要求。
-- **Applet delegated device key**：Applet 代表 ghost actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` MUST 标记 `applet_id`，capability MUST 限定 Realm / 协议 / 动作 / 有效期，**且 delegated device 不得签发新的人类 device**。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
+- **Applet delegated device key**：Applet 代表 Ghost Actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` MUST 标记 `applet_id`，capability MUST 限定 Realm / 协议 / 动作 / 有效期，**且 delegated device 不得签发新的人类 device**。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
 - **Inception key**：DID method 层的初始控制密钥，是 principal control realm genesis 与首台 `cx.device.authorize` 的信任根。使用后 SHOULD 立即写入 DID method 轮换链中并从首台设备销毁，或作为 recovery share 存入 secret storage；MUST NOT 长期作为日常 device signing key。
 
 #### 4.5.8 验证 / 登录 / 设备授权的语义解耦

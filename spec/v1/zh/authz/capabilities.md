@@ -274,7 +274,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.invite.third_party`（签发 3PID 邀请，target=`cx.invite.third_party`）
 - `cx.invite.claim`
 - `cx.invite.revoke`
-- `cx.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。capability-action-registry 中 `profile = "cx.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance。**Candidate / Profile-only**：`cx.realm.join.review` 不是 v1 base conformance 必需 capability；base v1 实现把 review 结果承载为 signed receipt（`review_receipt_digest`），并把 `cx.invite.create.refs[role='join_authorised_by']` 指向该 receipt digest（见 [`../governance/join-policy.md` §6.5](../governance/join-policy.md)）。只有声明 join-policy candidate profile 的部署才需要注册该 capability。）
+- `cx.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §7](../governance/join-policy.md)。capability-action-registry 中 `profile = "cx.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance。**Candidate / Profile-only**：`cx.realm.join.review` 不是 v1 base conformance 必需 capability；base v1 实现把 review 结果承载为 signed receipt（`review_receipt_digest`），并把 `cx.invite.create.refs[role='join_authorised_by']` 指向该 receipt digest（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）。只有声明 join-policy candidate profile 的部署才需要注册该 capability。）
 - `cx.approval.vote`
 - `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）
@@ -758,11 +758,11 @@ Contrix v1 固定：
 
 > 本附录为 informative 迁移历史记录，不构成 normative 约束。当前 normative 规则是：action↔event 以 registry `target_event_kinds` 为准（见 §5、§5.0）。
 
-#### verb-noun 桥的废除（normative，2026-05-24）
+#### verb-noun 桥的废除（历史迁移记录，2026-05-24）
 
 历史上 v1 早期为 action 名加上动词后缀（`.manage` / `.modify` / `create_` 前缀等）以保持"action 为动词"惯例，导致与 event kind 产生 6 处 verb-noun 桥；这些桥强迫每个 IAM 工具维护一张翻译表。
 
-v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机械收敛回 event kind 形态（见 `renames.json.migration_group: verb_noun_bridge_collapse`）：
+**当前 v1 canonical 规则：action 名 MUST 与其 target event kind 同名。** 早期草案曾存在 6 处 verb-noun 桥，已机械收敛回 event kind 形态（历史迁移见 `renames.json.migration_group: verb_noun_bridge_collapse`）：
 
 | 旧 action（已禁止，hard_reject） | 现行 canonical action | target event kind |
 | --- | --- | --- |

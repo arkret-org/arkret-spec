@@ -335,7 +335,7 @@ Cache-Control: public, immutable, max-age=31536000
 | `issuer_service_did` | yes | 签发该 presign 的 blob service DID；MUST 是被部署 trust 的 service DID |
 | `issued_at` / `expires_at` | yes | TTL 硬上限 1h；deployment SHOULD 默认 ≤ 5 min |
 | `purpose` | yes | `media_inline` / `thumbnail` / `download`；服务端按 purpose 决定 `Content-Disposition`、限流强度等 |
-| `audience_hint` | optional | 期望使用者 DID（**仅诊断 hint，不构成访问控制**；浏览器原生标签无法证明调用者身份，详见 §5.4.4.1）。 |
+| `audience_hint` | optional | 期望使用者 DID（**仅诊断 hint，不构成访问控制**；浏览器原生标签无法证明调用者身份，详见 §5.4.4.1）。（注意：`audience_hint` 仅为路由/下载体验提示，**不构成授权，也不是密码学意义上的 audience 绑定**。） |
 | `nonce` | yes | 16+ bytes 随机；作为 presign envelope id、audit key 与撤销列表 key。除非显式声明 single-use profile，服务端不得因同一 nonce 被浏览器重复 GET / HEAD / Range 拉取而拒绝正常媒体加载。 |
 | `access_scope.method` | yes | 仅允许 `GET` / `HEAD` 中的子集；MUST NOT 包含写方法 |
 | `access_scope.byte_range` | optional | 可限制可访问字节区间（如 `[0, 65536]` 仅头部） |
@@ -395,7 +395,7 @@ Cache-Control: public, immutable, max-age=31536000
   - **private attachment 私有附件**（`visibility=actor_private` 或附 `cx.actor_private` policy 标签）— MUST NOT 走 presign 路径（`private_attachment`）。该类 blob 只允许 issuing actor 本人通过 header auth fetch。
   - **minimal-metadata Realm-owned blob** — blob metadata 绑定的 Realm 声明 `cx.profile.mls.minimal_metadata_realm.v1`，或 Realm asset policy 声明 `routing_unlinkability_required=true` 时，服务端 MUST NOT 签发 bearer presign URL（`minimal_metadata_presign_forbidden`）。该类 Realm 的下载必须走 header auth、`provider_proxy`、`ohttp_relay` 或等价的不把 `blob_ref` / bearer envelope 暴露到可转发 URL 的路径。只有 deployment-public/global blob（无 Realm 绑定，且 policy 明确允许 public direct download）可继续使用 presign。
   - **`direct_download_allowed=false` Realm-owned blob** — blob metadata 绑定的 Realm 在 `cx.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false` 时，服务端 MUST NOT 签发 bearer presign URL（`direct_download_disallowed_presign_forbidden`），即便该 Realm 不是 minimal-metadata Realm、即便申请方持有 `cx.blob.presign` capability。presign 产出的就是一个可转发的 bearer download URL，与 §6 "`direct_download_allowed=false` 时客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL"是同一条禁令的两侧；放行 presign 等于用 presign 通道绕过该 Realm 的强制代理边界。该类 Realm 的媒体必须走 `download_mode` 声明的 `provider_proxy` / `ohttp_relay` / `client_mirror` 路径。只有 `direct_download_allowed=true`（或无 asset privacy policy 且 deployment policy 允许 direct）的 Realm-owned blob 与 deployment-public/global blob 才可继续使用 presign。
-- **future audience-bound 机制**（v2 评估）：若未来需要真正绑定 audience，方案有 (a) 把 presign 升级为 cookie-bound URL（依赖 `__Host-` cookie + SameSite=Strict + presign 校验 cookie binding），(b) 通过 session-bound token 把 presign 换给 client 后只在该 session 内可用。两条都需要客户端配合，不属于 v1 范围。
+- **future audience-bound 机制**（未来评估方向，不属于 v1）：若未来需要真正绑定 audience，方案有 (a) 把 presign 升级为 cookie-bound URL（依赖 `__Host-` cookie + SameSite=Strict + presign 校验 cookie binding），(b) 通过 session-bound token 把 presign 换给 client 后只在该 session 内可用。两条都需要客户端配合，不属于 v1 范围。
 
 #### 5.4.4.2 Bearer URL 泄漏面控制（normative）
 

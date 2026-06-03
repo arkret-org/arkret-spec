@@ -1403,6 +1403,7 @@ PAYLOAD_DISPATCH_REF_RE = re.compile(
 KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
     "cx.member.state": "membership_payload",
     "cx.circle.update": "circle_patch_payload",
+    "cx.space.update": "space_patch_payload",
     "cx.profile.space_override": "profile_realm_override_payload",
 }
 
@@ -1415,11 +1416,7 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 # rule MUST add the pair here, forcing reviewer awareness of the rename.
 LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("cx.actor.discovery", "state_payload"),
-    ("cx.applet.bridge_error", "generic_standard_payload"),
     ("cx.applet.discovery", "state_payload"),
-    ("cx.applet.protocol_session.start", "generic_standard_payload"),
-    ("cx.applet.protocol_session.status", "generic_standard_payload"),
-    ("cx.applet.registration", "generic_standard_payload"),
     ("cx.attestation.range_completeness", "audit_payload"),
     ("cx.audit.epoch_key_destruction", "audit_payload"),
     ("cx.audit.ryw_receipt", "audit_payload"),
@@ -1449,9 +1446,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("cx.invite.create", "invite_payload"),
     ("cx.invite.revoke", "invite_payload"),
     ("cx.invite.third_party", "invite_payload"),
-    ("cx.mimi.room_binding", "generic_standard_payload"),
-    ("cx.moderation.decision", "generic_standard_payload"),
-    ("cx.moderation.decision.lift", "generic_standard_payload"),
     ("cx.moderation.franking_proof", "audit_payload"),
     ("cx.morph.archive", "object_lifecycle_payload"),
     ("cx.morph.restore", "object_lifecycle_payload"),
@@ -1494,7 +1488,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("cx.space.restore", "generic_standard_payload"),
     ("cx.space.restore", "space_state_transition_payload"),
     ("cx.space.tombstone", "generic_standard_payload"),
-    ("cx.space.update", "generic_standard_payload"),
     ("cx.view.create", "view_payload"),
     ("cx.view.reconcile", "view_payload"),
     ("cx.view.update", "view_payload"),

@@ -486,7 +486,6 @@
           "kind": {
             "enum": [
               "cx.space.create",
-              "cx.space.update",
               "cx.space.parent",
               "cx.space.archive",
               "cx.space.restore",
@@ -498,6 +497,15 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.space.update" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_patch_payload" } }
       }
     },
     {
@@ -1430,18 +1438,20 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "cx.moderation.decision",
-              "cx.moderation.decision.lift"
-            ]
-          }
-        },
+        "properties": { "kind": { "const": "cx.moderation.decision" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/moderation_decision_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.moderation.decision.lift" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/moderation_decision_lift_payload" } }
       }
     },
     {
@@ -1492,21 +1502,47 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "cx.applet.bridge_error",
-              "cx.applet.registration",
-              "cx.applet.protocol_session.start",
-              "cx.applet.protocol_session.status",
-              "cx.mimi.room_binding"
-            ]
-          }
-        },
+        "properties": { "kind": { "const": "cx.mimi.room_binding" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.applet.bridge_error" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/applet_bridge_error_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.applet.registration" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/applet_registration_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.applet.protocol_session.start" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/applet_session_start_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.applet.protocol_session.status" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/applet_session_status_payload" } }
       }
     },
     {

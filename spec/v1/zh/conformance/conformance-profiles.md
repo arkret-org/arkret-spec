@@ -293,7 +293,7 @@ SHOULD 支持：
 
 - session-grant introspection 与 revocation
 - `cx.account.issue_session_grant` 规范化 HTTP binding
-- `cx.policy.check`（v2 PolicyCheckResponse）
+- `cx.policy.check`（`PolicyCheckResponse`）
 - 多 principal-server delegation target 配置
 - DID binding / claim attestation
 
@@ -631,7 +631,7 @@ MUST NOT:
 - 在目标公开 Flow 写 target-side reverse `agent_sidecar_of` relation
 - 修改目标 Flow `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
 - 接受 `participant_model` 等替代 reuse 字段;invariant 9 是 v1 取舍
-- 为单个 sidecar 偷偷创建第二个 Circle 以绕开 invariant 9
+- 为单个 sidecar 静默创建第二个 Circle 以绕开 invariant 9
 
 ## 19. Applet Service / Bridge
 
@@ -647,7 +647,7 @@ MUST 支持：
 - resolve actor endpoint
 - resolve realm endpoint
 - protocol metadata endpoint
-- ghost actor accountability metadata
+- Ghost Actor accountability metadata
 - portal Realm metadata
 - capability enforcement
 - HTTP message signature verification
@@ -823,7 +823,7 @@ Applet Service / Bridge profile MUST 额外提供：
 - registration signature vector
 - namespace conflict vector
 - duplicate transaction vector
-- ghost actor mapping vector
+- Ghost Actor mapping vector
 - portal Realm mapping vector
 - unauthorized write rejection vector
 

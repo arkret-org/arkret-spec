@@ -116,7 +116,7 @@
     "validity": {
       "type": "object",
       "required": ["not_before", "expires_at"],
-      "description": "Validity window of THIS evidence. Verifier MUST reject evidence outside the window. expires_at - not_before SHOULD be ≤ 90 days; long-lived evidence is a red flag.",
+      "description": "Validity window of THIS evidence. Verifier MUST reject evidence outside the window. For evidence presented under audit_assurance_class=attested_hardware (cx.profile.attested_audit.e2ee.v1), the verifier MUST reject evidence whose window (expires_at - not_before) exceeds 90 days; Realm/service policy MAY cap it lower. Evidence with a longer window MUST be treated as an elevated-risk signal and rejected by profile policy rather than silently accepted.",
       "properties": {
         "not_before": { "$ref": "#/$defs/timestamp" },
         "expires_at": { "$ref": "#/$defs/timestamp" }

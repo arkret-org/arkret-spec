@@ -129,7 +129,7 @@
       "additionalProperties": true
     }
   },
-  "additionalProperties": true,
+  "unevaluatedProperties": false,
   "$defs": {
     "blob_ref": {
       "type": "string",

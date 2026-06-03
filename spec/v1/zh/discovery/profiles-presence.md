@@ -230,7 +230,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 | `state` | string | MUST | 状态值 |
 | `actor_id` | did | MUST | 发送 presence 的 actor DID。 |
 | `last_active_at` | string | 可选 | 最后活跃时间。默认 MUST 省略，或按 policy bucket 化为粗粒度（例如分钟 / 小时级）；**仅当** presence policy 显式允许精确披露时才发送精确（秒级）timestamp。精确秒级值会成为活动 timing 侧信道，因此不得作为默认行为。 |
-| `status_message` | string | 可选 | 当前状态消息（来自 Profile） |
+| `status_message` | string | 可选 | 当前状态消息（来自 Profile）。MUST ≤ 256 字符（Unicode code point 计），按 [`conformance/encoding.md` §2.1](../conformance/encoding.md) NFC 规范化，MUST NOT 含除 `U+0009`/`U+000A` 外的 C0/C1 控制字符。presence 广播的 `status_message` MAY 与 Profile 的 `profile_fields.status_message` 不同（presence 可为临时覆盖值），但两者受同一长度与规范化约束。 |
 | `ttl_ms` | integer | SHOULD | 存活时间（毫秒），超时后客户端应将该用户视为 offline |
 
 ### 3.4 隐私控制

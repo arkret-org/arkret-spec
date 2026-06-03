@@ -274,7 +274,7 @@ v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
 | 路径 | 投递对象 | 解析来源 | 谁是 destination |
 | --- | --- | --- | --- |
 | **Member-level delivery** | 面向某个 Realm 成员的 events / account aggregate / to_device / push / key_packages | 该成员的 effective `cx.member.state{membership="join"}.delivery_binding.recipient_service_did` | 该 binding 指定的 Principal Server |
-| **Realm-level fanout** | Realm 共享的 shared anchorer / sync service / 受托 search-projection 等服务面 | Realm metadata 的 `sync_endpoints`（受 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 与 [`models/realm-and-space.md`](../models/realm-and-space.md) 约束） | sync_endpoints 中列出的 service DID |
+| **Realm-level fanout** | Realm 共享的 shared anchorer / sync service / 受托 search-projection 等服务面 | Realm metadata 的 `sync_endpoints`（受 [`governance/join-policy.md` §6](../governance/join-policy.md) 与 [`models/realm-and-space.md`](../models/realm-and-space.md) 约束） | sync_endpoints 中列出的 service DID |
 
 两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Realm-level fanout 不走 member binding。
 
@@ -554,7 +554,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join
 6. Bob 提交 `cx.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
 7. 若 Realm 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
 
-> 申请正文 MUST NOT 出现在公开可见的 `cx.member.state{knock}` payload 中（参见 [`../governance/join-policy.md` §7](../governance/join-policy.md)）；只能进入受加密保护的 `member.application`。这避免 Matrix `m.room.member{knock}.reason` 因默认可见而成为外部 spam 通道的设计缺陷。
+> 申请正文 MUST NOT 出现在公开可见的 `cx.member.state{knock}` payload 中（参见 [`../governance/join-policy.md` §8](../governance/join-policy.md)）；只能进入受加密保护的 `member.application`。这避免 Matrix `m.room.member{knock}.reason` 因默认可见而成为外部 spam 通道的设计缺陷。
 
 ## 6. 联邦级服务发现
 
@@ -595,7 +595,7 @@ DID Document 的 `service[type=ContrixPrincipalServer]` 是该 Actor DID 的**�
 | 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `DID Document -> service[type=ContrixPrincipalServer] -> serviceEndpoint` |
 | Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上 |
 | Realm policy 显式允许 `did_document_default` 且 join 时已物化进 `delivery_binding` 的来源 | 同上（仅作为 join 时的 source；join 之后**仍**走 member binding） |
-| 已加入 Realm 的成员的 events / account aggregate / to_device / push / key_packages 投递 | **MUST** 走 [`governance/join-policy.md` §5.1.4](../governance/join-policy.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
+| 已加入 Realm 的成员的 events / account aggregate / to_device / push / key_packages 投递 | **MUST** 走 [`governance/join-policy.md` §6.4](../governance/join-policy.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
 
 任何把 DID Document service entry 当作 "Realm 投递 fallback" 的实现都违反 §4.1。本路径仅用于 actor event source、首次发现 hint，以及 join 时（Realm policy 允许时）的 `did_document_default` 物化来源——一旦 binding 被 join Move 接受写入 cell，后续投递再也不读 DID Document。
 

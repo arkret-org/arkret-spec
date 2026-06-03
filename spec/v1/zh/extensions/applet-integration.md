@@ -26,22 +26,22 @@ Applet 是一个受注册、受授权、可审计的集成服务。它可以：
 
 - 作为 bot 参与 Realm
 - 桥接外部网络
-- 创建和管理 ghost actor
+- 创建和管理 Ghost Actor
 - 管理 portal realm
 - 接收 Contrix 事件交易
 - 把外部事件转换为 Contrix event
 - 在获得明确授权时以受托 agent / device 方式执行操作
 
-Applet / Agent / Morph / Ghost actor 的选择边界如下，实现 MUST 按最窄概念建模：
+Applet / Agent / Morph / Ghost Actor 的选择边界如下，实现 MUST 按最窄概念建模：
 
 | 场景 | 首选模型 | 不应使用 |
 | --- | --- | --- |
-| 高频外部事件桥接、多用户镜像、需要 namespace / capability 撤销 / portal Realm | Applet + ghost actor | Morph 直接表示外部用户；Agent session 长期常驻 |
-| 单次或低频外部对象导入、内容不可信、只需保留原文与映射证据 | Morph / Relation | Ghost actor 写入协作历史 |
+| 高频外部事件桥接、多用户镜像、需要 namespace / capability 撤销 / portal Realm | Applet + Ghost Actor | Morph 直接表示外部用户；Agent session 长期常驻 |
+| 单次或低频外部对象导入、内容不可信、只需保留原文与映射证据 | Morph / Relation | Ghost Actor 写入协作历史 |
 | AI / 自动化长任务、需要状态回流、产物归档、可取消会话 | Agent protocol session | Applet masquerading 成人类 actor |
-| 外部人类用户在 Contrix 内可被 mention / 授权 / 审计 | Ghost actor（标记 managed_by_applet） | 伪装为 native principal DID |
+| 外部人类用户在 Contrix 内可被 mention / 授权 / 审计 | Ghost Actor（标记 managed_by_applet） | 伪装为 native principal DID |
 
-同一外部实体可以在不同上下文下产生 Morph 记录和 Ghost actor，但二者 MUST 通过显式 Relation / provenance 字段连接，不能让 projection 自由猜测它们是同一主体。
+同一外部实体可以在不同上下文下产生 Morph 记录和 Ghost Actor，但二者 MUST 通过显式 Relation / provenance 字段连接，不能让 projection 自由猜测它们是同一主体。
 
 ## 2. 与 Matrix Appservice 的对应关系
 
@@ -56,14 +56,14 @@ Applet / Agent / Morph / Ghost actor 的选择边界如下，实现 MUST 按最�
 | `/users/{user_id}` | `/api/v1/applet/actors/{actor_id}` |
 | `/rooms/{room_alias}` | `/api/v1/applet/realms/{realm_id_or_alias}` |
 | third-party protocols | external protocol metadata |
-| appservice masquerading | delegated agent / ghost actor capability |
+| appservice masquerading | delegated agent / Ghost Actor capability |
 
 关键差异：
 
 - Applet 不自动拥有全网权限。
 - Applet 的每个写入仍需签名和 capability。
 - Applet namespace 只表示“该 Applet 可声明或接收这些对象”，不等于权限通过。
-- Ghost actor 必须是可审计 Actor，不应伪装成人类 DID。
+- Ghost Actor 必须是可审计 Actor，不应伪装成人类 DID。
 
 ## 3. 角色
 
@@ -99,16 +99,16 @@ Native personal AI agent(由 controller 通过 `cx.agent.provision` 创建，见
 
 | 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
-| 创建路径 | `cx.agent.provision` operation,fan-out `cx.profile.create` / `cx.identity.accountability_grant` / `cx.agent.key.authorize` / `cx.capability.grant` | `cx.applet.registration` + Applet bot/ghost actor 注册 |
+| 创建路径 | `cx.agent.provision` operation,fan-out `cx.profile.create` / `cx.identity.accountability_grant` / `cx.agent.key.authorize` / `cx.capability.grant` | `cx.applet.registration` + Applet bot/Ghost Actor 注册 |
 | `accountable_principal_ids` | 指向 controller principal,显式 `cx.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
 | Runtime credential | 通过 `POST /auth/account/agent-key-pair` pairing 得到 `cx.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /auth/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `cx.applet.transaction` 与 Applet 的 delegated session |
-| 撤销 | `cx.agent.pause` / `cx.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;ghost actor 跟随 Applet 生命周期 |
+| 撤销 | `cx.agent.pause` / `cx.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;Ghost Actor 跟随 Applet 生命周期 |
 | Realm policy | Realm policy MUST 单独允许 native personal agent(`cx.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet + Ghost Actor(`cx.profile.applet_service.v1`) |
 
 **Realm policy MUST 至少能分别控制 native personal agent 与 Applet / Ghost Actor**:部署可以禁止普通用户创建或使用 personal agents 同时允许管理员安装的 Applet + Ghost Actor,也可以反向配置;**二者不得被合并为一个不可区分的 "automation allowed" 开关**。
 
-CXP-0008 / CXP-0009 只覆盖 native personal agent 路径;Ghost Actor / Applet bot actor 不走 CXP-0008 provisioning 或 CXP-0009 sidecar thread profile。
+CXP-0008 / CXP-0009 只覆盖 native personal agent 路径;Ghost Actor / Applet Bot Actor 不走 CXP-0008 provisioning 或 CXP-0009 sidecar thread profile。
 
 ### 3.5 Portal Realm
 
@@ -197,14 +197,14 @@ Namespace 用于决定：
 - 哪些未知 actor 可以向 Applet 查询
 - 哪些 Realm / portal alias 属于 Applet
 - 哪些事件应推送给 Applet
-- Applet 可以为哪些 ghost actor 申请或声明身份
+- Applet 可以为哪些 Ghost Actor 申请或声明身份
 
 Namespace 不等于 capability。  
 Namespace 命中只表示“这个 Applet 是该名称空间的处理方”。
 
 ### 5.1 Actor Namespace
 
-Actor namespace 适用于 ghost actor 和 bot actor。
+Actor namespace 适用于 Ghost Actor 和 Bot Actor。
 
 ```json
 {
@@ -379,7 +379,7 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
 GET /api/v1/applet/actors/{actor_id}
 ```
 
-用于 Contrix 节点发现 namespace 内的未知 ghost actor 是否存在。
+用于 Contrix 节点发现 namespace 内的未知 Ghost Actor 是否存在。
 
 返回：
 
@@ -605,13 +605,13 @@ Applet 参与 E2EE Realm 时有三种模式：
 
 - Applet 没有加入 MLS group 时 MUST NOT 获得明文。
 - Bridge 到不支持 E2EE 的外部网络时，客户端 MUST 明确提示加密边界在 bridge 处终止。
-- Applet 托管 ghost actor MLS state 时，必须将其视为高敏感密钥材料。
+- Applet 托管 Ghost Actor MLS state 时，必须将其视为高敏感密钥材料。
 
-**E2EE 加入授权（normative）**：Bot actor 或 Applet-managed ghost actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `cx.flow.create` / `cx.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
+**E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `cx.flow.create` / `cx.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
 
 - 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 authz service 签发（参照 §4 的 `applet_registration_unauthorized` 门槛），并落为可审计的 Contrix Event（如 `cx.member.state` 加入 effect 携带 applet provenance），不得仅凭 Applet 自身 Welcome 入组。
 - 缺少该独立 E2EE 加入授权时，Contrix 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。
-- 成员加入后，客户端在 MLS group 的成员 roster（成员列表 UI 与 audit 视图）中 MUST 显式标注该成员为 **applet-managed**（区别于 native 人类成员），不得让 applet / ghost 成员在 roster 中表现为普通 native 成员。该标注与 §9 的 ghost actor 协议层可区分要求一致。
+- 成员加入后，客户端在 MLS group 的成员 roster（成员列表 UI 与 audit 视图）中 MUST 显式标注该成员为 **applet-managed**（区别于 native 人类成员），不得让 applet / ghost 成员在 roster 中表现为普通 native 成员。该标注与 §9 的 Ghost Actor 协议层可区分要求一致。
 
 ## 13. 安全要求
 
@@ -656,7 +656,7 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 - resolve actor
 - resolve realm
 - protocol metadata
-- ghost actor accountability
+- Ghost Actor accountability
 - capability enforcement
 - duplicate external event handling
 - E2EE boundary warning metadata

@@ -171,6 +171,12 @@ POST /api/v1/moderation/report
 - 审核方验证时 MUST 检查：`franking_proof` 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
 - `franking_proof` 只证明服务接收过对应密文事件，不单独证明明文含义。审核决定仍必须落成 signed moderation decision，并受 Realm policy、capability 和 appeal 规则约束。
 
+> _Informative — 外部参考与设计取舍。_ 本注记仅为实现者提供背景，不引入新约束；规范级要求以本节上文 normative 段（以及 §3.4.1 / §3.4.2）为准。
+>
+> E2EE message franking 的公开研究为本节设计提供了参照系。Grubbs、Lu 与 Ristenpart 在 "Message Franking via Committing Authenticated Encryption"（CRYPTO 2017）中提出 committing AEAD 思路：让加密同时输出一个对明文与 AAD 的承诺，使收件人能向第三方举报方证明"被举报明文确实是发件人加密发送的那条"，而无需把消息内容预先暴露给中转服务。Facebook Message Franking 是该思路的早期工程化部署，其核心是把"举报可验证性"建立在密文层的承诺上，而非依赖服务端读取明文。后续 asymmetric message franking 一类工作进一步针对 metadata-private 传输与第三方举报场景，把承诺/举报凭据从对称设置推广到收发双方与举报受理方身份分离的设置。
+>
+> 与上述方案相比，Contrix 当前 franking 设计的取舍是：core `franking_proof`（本节主体）只承担 service-side delivery proof，即证明某条密文 envelope 在接收服务处被投递，而刻意不在 wire 上强制 committing AEAD 式的明文承诺——明文级 sender attribution 被隔离到 opt-in 的 `cx.profile.franking.sender_commitment.v1`（§3.4.2），由 per-device-per-epoch 的 sender commitment 单独提供，且只在 audit-gated verifier 与发件人之间生效。这样未启用该 profile 的部署仍保留 MLS 群外 deniability，而需要更强举报可验证性的部署可以在不改动 core envelope 形态的前提下叠加承诺层。实现者在评估自身威胁模型时，可把上述外部方案作为"承诺放在何处、归因暴露给谁"这一权衡的背景读物。
+
 #### 3.4.1 `franking_proof` 不证明的事实 (Normative Non-Properties)
 
 `franking_proof` 是 service-side delivery proof for ciphertext，**不是**明文归因凭据。为防止 moderation pipeline 误把 `franking_proof` 当作明文级证据，本节明确列出它不证明的事实：
@@ -588,7 +594,7 @@ Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md
 
 ## 7. 组织级审核策略
 
-Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核策略。该策略仅通过显式引用生效，不会通过任何全局魔法自动适用。
+Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核策略。该策略仅通过显式引用生效，不会隐式继承、自动级联或作为全局默认策略适用。
 
 推荐对象：
 

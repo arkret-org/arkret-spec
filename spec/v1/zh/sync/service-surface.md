@@ -101,7 +101,7 @@ DID Document SHOULD 只负责：
 | Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/keys/keypackages`, `/keys/backups`, `/server` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
 | Authz / Policy Server | 个人可内置；共享 Realm 和组织治理建议独立 | `/authz`, `/policy/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
-| Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Realm、third-party lookup。 |
+| Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
 | MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、anchorer service 或 Applet Bridge 承载 | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |

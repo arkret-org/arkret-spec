@@ -265,5 +265,5 @@
       "pattern": "Z$"
     }
   },
-  "additionalProperties": true
+  "unevaluatedProperties": false
 }

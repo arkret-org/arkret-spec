@@ -229,7 +229,7 @@ see_also:
 
 | 文档 | 内容 |
 | --- | --- |
-| `extensions/applet-integration.md` | Applet / bridge / bot / ghost actor / portal Realm。 |
+| `extensions/applet-integration.md` | Applet / bridge / bot / Ghost Actor / portal Realm。 |
 | `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
 | `extensions/agent-protocol-interop.md` | A2A / ACP / external agent protocol handoff。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |

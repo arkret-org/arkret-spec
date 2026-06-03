@@ -262,7 +262,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 **`<items_field>` 命名约定** (normative)：
 - 优先使用资源复数名（`realms[]` / `flows[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时（mixed entity 搜索、private contact discovery 等），使用 `results[]`；
-- **不得**使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `cx.device_messages.get` 与 `cx.account.subscribe`）。
+- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `cx.device_messages.get` 与 `cx.account.subscribe`）。
 
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。

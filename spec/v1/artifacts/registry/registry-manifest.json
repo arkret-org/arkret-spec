@@ -27,6 +27,14 @@
       "description": "Canonical Account Data key-pattern registry for actor/private account state."
     },
     {
+      "name": "mls_extensions",
+      "file": "registry/mls-extension-registry.json",
+      "kind": "mls_extension_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical registry of Contrix-defined MLS GroupContext extension codepoints in the private-use range."
+    },
+    {
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
       "kind": "event_kind_registry",

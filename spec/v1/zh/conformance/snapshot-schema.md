@@ -168,10 +168,10 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 | 能力 | 可证明? | 说明 |
 | --- | --- | --- |
-| issuer 是否对**它声明覆盖的集合**保持内部一致 | ✅ | challenge 抽样命中即可重算 commitment root,确认 issuer 没有偷偷重写它声明过的某个 event 内容。 |
-| issuer 是否漏掉了**新客户端不知道的** actor 或 event 分支 | ❌ | bootstrap 客户端只能用 issuer-provided frontier 或 issuer-listed active actor 集合抽样；它**不知道**该追问 issuer 未列出的 actor。issuer 可以构造一个自洽但缺失若干 actor 的 snapshot，新客户端拿不出对照。 |
-| issuer 是否对**客户端已知的** event_id / actor_seq range 区间漏掉了事件 | ⚠️ 部分 | 客户端 SHOULD 用自己已 cache 的 event_id / actor_seq range 抽样；命中 0 个 `kind="event_id"` 样本时挑战形同虚设。`security_class=high_assurance` 部署 SHOULD 在 challenge `samples[]` 中混入**至少一个**客户端自有的 sample anchor。 |
-| issuer 是否同时签发了多版本不一致的 snapshot(split-view) | ❌ | inclusion challenge 是 issuer-side 单向 query;两份 issuer 给不同 client 的不同 snapshot 互相不知道。Split-view 检测必须依赖 federation §4.5 frontier exchange 或 §8 fork-detection。 |
+| issuer 是否对**它声明覆盖的集合**保持内部一致 | 可证明 | challenge 抽样命中即可重算 commitment root,确认 issuer 未声明地重写它声明过的某个 event 内容。 |
+| issuer 是否漏掉了**新客户端不知道的** actor 或 event 分支 | 不可证明 | bootstrap 客户端只能用 issuer-provided frontier 或 issuer-listed active actor 集合抽样；它**不知道**该追问 issuer 未列出的 actor。issuer 可以构造一个自洽但缺失若干 actor 的 snapshot，新客户端拿不出对照。 |
+| issuer 是否对**客户端已知的** event_id / actor_seq range 区间漏掉了事件 | 仅在附加条件下可证明 | 客户端 SHOULD 用自己已 cache 的 event_id / actor_seq range 抽样；命中 0 个 `kind="event_id"` 样本时挑战形同虚设。`security_class=high_assurance` 部署 SHOULD 在 challenge `samples[]` 中混入**至少一个**客户端自有的 sample anchor。 |
+| issuer 是否同时签发了多版本不一致的 snapshot(split-view) | 不可证明 | inclusion challenge 是 issuer-side 单向 query;两份 issuer 给不同 client 的不同 snapshot 互相不知道。Split-view 检测必须依赖 federation §4.5 frontier exchange 或 §8 fork-detection。 |
 
 简言之: **`event_set_commitment` + inclusion challenge 是"已知集合包含性 + 内容一致性"检查，不是 omission 完整性证明**。任何 spec 措辞、UI 文案、安全审计声明 MUST NOT 把 inclusion challenge 描述为"防止 issuer 漏发任何事件"。
 

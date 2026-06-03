@@ -95,5 +95,5 @@
       "pattern": "Z$"
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }
