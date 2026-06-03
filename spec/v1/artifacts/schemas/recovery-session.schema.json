@@ -323,7 +323,8 @@
         "authorized_by",
         "not_before",
         "recovery_session_id",
-        "cross_signing_binding"
+        "cross_signing_binding",
+        "device_signature"
       ],
       "properties": {
         "principal_id": {
@@ -342,6 +343,11 @@
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
+        },
+        "device_signature": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New-device self-signature proving possession of device_public_key. Satisfies event-payload.schema.json device_authorize_payload's proof/device_signature anyOf."
         },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
