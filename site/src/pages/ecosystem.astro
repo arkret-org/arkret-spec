@@ -29,10 +29,10 @@ const tiers: Tier[] = [
     id: "protocol",
     title: "协议与 SDK",
     blurb:
-      "互操作的 wire 与对象语义在 contrix-spec 收敛；rust-sdk 把它转成可复用的数据结构与算法，供其他实现直接依赖。",
+      "互操作的 wire 与对象语义在 cokret-spec 收敛；rust-sdk 把它转成可复用的数据结构与算法，供其他实现直接依赖。",
     projects: [
       {
-        name: "contrix-spec",
+        name: "cokret-spec",
         tag: "protocol · this site",
         status: "stable",
         body:
@@ -40,7 +40,7 @@ const tiers: Tier[] = [
         href: "/zh/v1/spec-map/",
       },
       {
-        name: "contrix-rust-sdk",
+        name: "cokret-rust-sdk",
         tag: "sdk · rust",
         status: "wip",
         body:
@@ -66,7 +66,7 @@ const tiers: Tier[] = [
         tag: "server · auth-bridge",
         status: "wip",
         body:
-          "组织部署 principal server 时的内部账号桥。把企业 OIDC / SSO 与 Contrix DID 绑定，统一管理账号、密钥轮换、内部权限策略。",
+          "组织部署 principal server 时的内部账号桥。把企业 OIDC / SSO 与 Cokret DID 绑定，统一管理账号、密钥轮换、内部权限策略。",
       },
       {
         name: "sodmin",
@@ -80,7 +80,7 @@ const tiers: Tier[] = [
         tag: "server · push-gateway",
         status: "wip",
         body:
-          "Contrix push gateway 的实现。把客户端订阅的事件流分发到 APNs / FCM / WebPush，并保留 audited E2EE 所要求的最小元数据约束。",
+          "Cokret push gateway 的实现。把客户端订阅的事件流分发到 APNs / FCM / WebPush，并保留 audited E2EE 所要求的最小元数据约束。",
       },
     ],
   },
@@ -95,7 +95,7 @@ const tiers: Tier[] = [
         tag: "client · cross-platform",
         status: "wip",
         body:
-          "跨平台参考客户端。同一份 Contrix 协议核心，运行在 macOS / Windows / Linux / iOS / Android。",
+          "跨平台参考客户端。同一份 Cokret 协议核心，运行在 macOS / Windows / Linux / iOS / Android。",
       },
       {
         name: "chime",
@@ -140,8 +140,8 @@ const tiers: Tier[] = [
 ---
 
 <MarketingLayout
-  title="Contrix 生态 · Ecosystem"
-  description="Contrix 协议生态：spec、SDK、principal server、客户端、push gateway、conformance 测试套件等参考实现的总览。"
+  title="Cokret 生态 · Ecosystem"
+  description="Cokret 协议生态：spec、SDK、principal server、客户端、push gateway、conformance 测试套件等参考实现的总览。"
 >
   {
     tiers.map((tier) => (

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/device-message.schema.json",
-  "title": "Contrix Device Message Envelope",
+  "$id": "https://cokret.io/artifacts/schemas/device-message.schema.json",
+  "title": "Cokret Device Message Envelope",
   "type": "object",
   "required": [
     "kind",
@@ -252,7 +252,7 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
       "type": "string",

@@ -1,6 +1,6 @@
 # Changelog
 
-本文件记录 Contrix 协议规范在主要发布之间的变化。
+本文件记录 Cokret 协议规范在主要发布之间的变化。
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/) 与
 [Semantic Versioning](https://semver.org/)。
@@ -78,19 +78,19 @@
 
 ### Media participant typed ID prefix cleanup(2026-05-31)
 
-将 WebRTC/SFU participant handle 的 typed ID 前缀从缩写 `cx:rtcpart:` 收敛为 `cx:rtc_participant:`。
+将 WebRTC/SFU participant handle 的 typed ID 前缀从缩写 `ck:rtcpart:` 收敛为 `ck:rtc_participant:`。
 
 - **变更类型**: modify
 - **影响 artifact**: id kind registry / OpenAPI / forbidden wire field registry / rename registry / prose
-- **canonical 变更**: `contract-catalog.json#id_kind_registry` 中 `kind=rtcpart` 改为 `kind=rtc_participant`，wire form 改为 `cx:rtc_participant:<uuid>`。
+- **canonical 变更**: `contract-catalog.json#id_kind_registry` 中 `kind=rtcpart` 改为 `kind=rtc_participant`，wire form 改为 `ck:rtc_participant:<uuid>`。
 - **派生 artifact 同步**: `id-kind-registry.json` 与 public catalog 由 pipeline 刷新。
 - **conformance impact**:
   - 受影响 profile: realtime media / WebRTC signaling。
   - profile tier 变化: 无。
-  - wire 兼容性: breaking；current parser MUST hard reject `cx:rtcpart:<uuid>`。
-  - reader / writer 行为要求: Writer MUST emit `cx:rtc_participant:<uuid>` in `participant_identity` and participant binding surfaces。
+  - wire 兼容性: breaking；current parser MUST hard reject `ck:rtcpart:<uuid>`。
+  - reader / writer 行为要求: Writer MUST emit `ck:rtc_participant:<uuid>` in `participant_identity` and participant binding surfaces。
 - **fixture / vector 变化**: WebRTC conformance vector prose updated; no signed fixture digest changed.
-- **prose 同步**: `crypto-media/webrtc-signaling.md`、`crypto-media/bindings/contrix-native.md`、`conformance/conformance-vectors.md`。
+- **prose 同步**: `crypto-media/webrtc-signaling.md`、`crypto-media/bindings/cokret-native.md`、`conformance/conformance-vectors.md`。
 - **迁移指南**: 离线迁移工具可机械替换 prefix；实时 media token / signaling validator 不得接受旧缩写。
 
 ### Directory anti-enumeration vector closure(2026-05-31)
@@ -177,7 +177,7 @@
 - **canonical 变更**:
   - `schemas/account-subscribe-frame.schema.json`: `dropped` / `resync_required` frame 可携带 `reconnect_after_ms`；其它 account subscribe frame kind 不得携带该字段。
   - `contract-catalog.json#operation_registry`: `cx.events.subscribe` / `cx.account.subscribe` notes 记录 server-directed reconnect holdoff 语义。
-  - `openapi/contrix-service-api.openapi.yaml`: `EventsSubscribeFrame` 增加 `reconnect_after_ms`，并限制为 `dropped` / `resync_required` 使用；account subscribe 通过 schema `$ref` 同步。
+  - `openapi/cokret-service-api.openapi.yaml`: `EventsSubscribeFrame` 增加 `reconnect_after_ms`，并限制为 `dropped` / `resync_required` 使用；account subscribe 通过 schema `$ref` 同步。
 - **派生 artifact 同步**: `operation-registry.json` 由 `contract-catalog.json` 重新生成；`python tools/artifact_pipeline.py check` 验证。
 - **conformance impact**:
   - 受影响 profile: `principal_server.v1` / `core_event_store.v1` / full client 与 E2EE client 的 subscribe 恢复行为。
@@ -233,7 +233,7 @@
 
 ### Shareable object addressing & `resolve_target`(CXP-0011)(2026-05-28)
 
-引入客户端无关的可分享对象地址(Flow / Message / Realm 深链):一套 path-表身份 / query-表提示的 grammar、三种 envelope(逻辑 ID / `web+contrix:` URI scheme / HTTPS fragment 落地),以及对象级解析 operation `cx.directory.resolve_target`。地址层纯寻址,授权由绑定 canonical target 的签名 token 承载,分 `reference` / `invite` 两型(`preview` 保留不实现)。
+引入客户端无关的可分享对象地址(Flow / Message / Realm 深链):一套 path-表身份 / query-表提示的 grammar、三种 envelope(逻辑 ID / `web+cokret:` URI scheme / HTTPS fragment 落地),以及对象级解析 operation `cx.directory.resolve_target`。地址层纯寻址,授权由绑定 canonical target 的签名 token 承载,分 `reference` / `invite` 两型(`preview` 保留不实现)。
 
 - **变更类型**: add
 - **影响 artifact**: registry / openapi / non-http binding / prose
@@ -241,7 +241,7 @@
   - `contract-catalog.json#operation_registry`: 注册 1 个新 operation `cx.directory.resolve_target`(`POST /directory/resolve-target` / `Directory/ResolveTarget` / `directory.resolve_target`),加入 `directory_discovery` surface group。
   - `operations-error-mapping.json`: 为 `cx.directory.resolve_target` 注册 operation-specific `not_found`(镜像 `resolve_realm`)。
   - 无新 event kind / schema / capability / id kind;不改任何 wire / reducer 行为。
-- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 重新生成 `operation-registry.json` 等视图;`check` 验证 drift clean。`contrix-service-api.openapi.yaml` 增 `/directory/resolve-target` path(通用 `OperationRequest`/`OperationResult`);`non-http-bindings.yaml` gRPC Directory 段增 `ResolveTarget`。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 重新生成 `operation-registry.json` 等视图;`check` 验证 drift clean。`cokret-service-api.openapi.yaml` 增 `/directory/resolve-target` path(通用 `OperationRequest`/`OperationResult`);`non-http-bindings.yaml` gRPC Directory 段增 `ResolveTarget`。
 - **conformance impact**:
   - 受影响 profile: 无新 profile;`resolve_target` 属 directory discovery extension surface,实现按既有 directory profile 声明。
   - profile tier 变化: 无。
@@ -257,7 +257,7 @@
 - **迁移指南**: backward-compatible add;实现按以下顺序采纳即可——
   1. 升级 `contract-catalog.json` 并 `artifact_pipeline.py generate`。
   2. Directory 服务实现 `resolve_target`,realm 分支委托既有 `resolve_realm`。
-  3. 客户端实现 `web+contrix:` 注册(web handler 模板 fragment-only)与 HTTPS fragment 落地解析。
+  3. 客户端实现 `web+cokret:` 注册(web handler 模板 fragment-only)与 HTTPS fragment 落地解析。
   4. invite token 复用 join-policy `invite_token` / `signed_link` 生命周期,签发时绑定 target descriptor digest。
 
 ### Personal AI Agent provisioning & sidecar threads(CXP-0008 / CXP-0009)(2026-05-26)
@@ -347,7 +347,7 @@
 - **影响 artifact**:
   - 新增 `schemas/recovery-policy.schema.json`（`cx.schema.recovery_policy.v1`）、`schemas/recovery-receipt.schema.json`（`cx.schema.recovery_receipt.v1`）。
   - 修改 `schemas/key-backup.schema.json`：required 集合追加 `series_id` / `series_seq`；新增 `supersedes` / `supersedes_digest` / `frontier_ref` 字段；signed_fields 必须覆盖 series & supersedes，并在 `series_seq >= 1` 与 `frontier_ref` 存在时按条件分支扩展；新增 genesis vs successor 的 `allOf` 互斥约束。
-  - 修改 `openapi/contrix-service-api.openapi.yaml`：`cx.keys.backups.list` 新增 `?series_id=` 与 `?backup_class=` 查询参数。
+  - 修改 `openapi/cokret-service-api.openapi.yaml`：`cx.keys.backups.list` 新增 `?series_id=` 与 `?backup_class=` 查询参数。
   - 修改 `profiles/conformance-profiles.json#cx.profile.key_backup.memory_hard.v1`：endpoints 扩展至 put/list/get/delete；required_schemas 增加两个新 schema；required_fixtures 加 `key-backup-fixture.json`；feature_discovery 增加 series chain / freshness anchor / recipient method profiles / server rate limit / recovery policy & receipt 6 项。
   - 新增 `fixtures/key-backup-fixture.json`：9 个 `schema_validation_cases`（正/负向）。
   - 修改 registries：
@@ -398,7 +398,7 @@
 
 ### CXP-0007: introduce Circle primitive; remove Flow.discussion_realm_ref（2026-05-25）
 
-引入 **Circle**（`cx:circle:`）作为 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history visibility），同时**彻底删除** `Flow.discussion_realm_ref` 字段及其全部补丁规则（§5.0.1 跨 Realm lifecycle 级联表、§8.9 watch 跨 Realm 投影、改绑禁令等）。Flow 永远只有一个 effective encryption scope —— "一对象一安全边界"成为协议级硬不变量。
+引入 **Circle**（`ck:circle:`）作为 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history visibility），同时**彻底删除** `Flow.discussion_realm_ref` 字段及其全部补丁规则（§5.0.1 跨 Realm lifecycle 级联表、§8.9 watch 跨 Realm 投影、改绑禁令等）。Flow 永远只有一个 effective encryption scope —— "一对象一安全边界"成为协议级硬不变量。
 
 - **变更类型**: add（Circle 原语 + `Flow.scope_ref` / `Space.scope_ref` / `Space.default_scope_ref` / `Space.child_scope_policy` / `Morph.scope_ref`）+ remove（`Flow.discussion_realm_ref` 与 §5 整节 / §5.0.1 / §5.1 / §8.9 旧形态）。
 - **影响 artifact**:
@@ -465,7 +465,7 @@
 
 - **变更类型**: remove（enum 值移除，breaking for any stored data that used the two collapsed values）
 - **影响 artifact**: `schemas/read-cursor.schema.json`; `fixtures/schema-validation-fixture.json`; `zh/discovery/read-receipts.md`; `zh/sync/operations-sync.md`
-- **canonical 变更**: `read_scope.kind` enum 从 8 项减为 6 项（移除 `flow_discussion` / `flow_synthesis`）；track-scoped read cursor 必须改用 `{kind: "flow", ref: cx:flow:…, track: "discussion" | "synthesis" | <profile-registered>}`。`kind` / `track` 字段 description 同步更新，阐明 track 名集合可由 profile 扩展。
+- **canonical 变更**: `read_scope.kind` enum 从 8 项减为 6 项（移除 `flow_discussion` / `flow_synthesis`）；track-scoped read cursor 必须改用 `{kind: "flow", ref: ck:flow:…, track: "discussion" | "synthesis" | <profile-registered>}`。`kind` / `track` 字段 description 同步更新，阐明 track 名集合可由 profile 扩展。
 - **派生 artifact 同步**: 无 catalog 派生影响；`python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (152 event kinds, 53 schemas, 40 typed ID kinds, 87 operations, 58 claimable profiles, 79 profile id references)` 与 `registry diff: clean`.
 - **conformance impact**:
   - 受影响 profile: read receipt / read cursor 实现。
@@ -482,7 +482,7 @@
 
 - **变更类型**: rename + remove（breaking for old wire names）
 - **影响 artifact**: `renames.json`; `forbidden-wire-fields.json`; `removed-event-kinds.json`; `event-kind-registry.json`; `id-kind-registry.json`; `schema-registry.json`; `capability-action-registry.json`; `contract-catalog.json`; schemas (`capability-grant`, `policy`, `attestation-evidence`, `event-schema`, `event-payload`, `realm`, `read-cursor`, `handle-claim`, moderation / delivery / receipt schemas); fixtures (`encoding`, `crypto-signature`, validation fixtures); OpenAPI; `zh/**` prose.
-- **canonical 变更**: ID prefix 缩写全部展开（`cx:notif:` / `cx:devmsg:` / `cx:keyevt:` / `cx:modq:` / `cx:req:` / `cx:txn:` / `cx:frank:` → full snake_case）；agent/device event kind 改为 imperative（`authorize` / `revoke` / `rotate`）；`cx.relation.delete` → `cx.relation.tombstone`; `read-marker` → `read-cursor`; 时间字段统一为 `not_before` / `expires_at`; `signed_by` → `verification_method`; `sender` → `sender_actor_id`; Event proof 使用 `event_digest`; CRDT lattice 字段 / enum 统一为 `lattice` + snake_case; Directory / projection alias 回归 canonical 字段名; `_did` 主体别名改为 `_id`; handle claim delivery routing single-source 到 `member_delivery_binding.recipient_service_did`.
+- **canonical 变更**: ID prefix 缩写全部展开（`ck:notif:` / `ck:devmsg:` / `ck:keyevt:` / `ck:modq:` / `ck:req:` / `ck:txn:` / `ck:frank:` → full snake_case）；agent/device event kind 改为 imperative（`authorize` / `revoke` / `rotate`）；`cx.relation.delete` → `cx.relation.tombstone`; `read-marker` → `read-cursor`; 时间字段统一为 `not_before` / `expires_at`; `signed_by` → `verification_method`; `sender` → `sender_actor_id`; Event proof 使用 `event_digest`; CRDT lattice 字段 / enum 统一为 `lattice` + snake_case; Directory / projection alias 回归 canonical 字段名; `_did` 主体别名改为 `_id`; handle claim delivery routing single-source 到 `member_delivery_binding.recipient_service_did`.
 - **派生 artifact 同步**: registry、schema、fixture、OpenAPI 与 prose 已同步；本条要求 `python tools\lint_artifacts.py` 通过，并要求旧 wire alias 由 `renames.json` / `forbidden-wire-fields.json` / `removed-event-kinds.json` 提供 fail-closed 依据。
 - **conformance impact**:
   - 受影响 profile: core event envelope validation、identity handles、directory discovery、read receipts/cursors、device lifecycle、agent key authorization、moderation/franking、capability authorization。
@@ -498,17 +498,17 @@
 合并 `_codex_report.md` 与 `_claude_report.md` 中经复核成立、且不需要重塑现有概念的闭环修订。
 
 - **变更类型**: add + edit（reason code closure、typed ID registry、authz freshness diagnostics、normative prose hardening）
-- **影响 artifact**: `error-code-registry.json`; `contract-catalog.json` id_kind_registry + 派生 `id-kind-registry.json`; `event-payload.schema.json`; `resource-selector.schema.json`; `openapi/contrix-service-api.openapi.yaml`; `tools/lint_artifacts.py`; `zh/{authz,crypto-media,discovery,extensions,guides,identity,overview,sync}`；`proposals/0002..0006` 外部参考链接。
-- **canonical 变更**: 新增 `cx:announce:<uuid>` typed ID kind；新增 `revocation_freshness_unknown`、`realm_already_exists`、`out_of_order_bootstrap`、`policy_revision_gap`、`moderation_anchor_lifted`、`e2ee_relaxed_federation_policy_unsupported`、`deactivation_federation_incomplete`、`selector_actor_wildcard_forbidden` reason codes；清理 `reason_codes` 内部重复的 `audit_agent_attestation_mismatch`；`AuthzCheckResponse` 增补 freshness 诊断字段；`actor:*` selector 明确禁止。
+- **影响 artifact**: `error-code-registry.json`; `contract-catalog.json` id_kind_registry + 派生 `id-kind-registry.json`; `event-payload.schema.json`; `resource-selector.schema.json`; `openapi/cokret-service-api.openapi.yaml`; `tools/lint_artifacts.py`; `zh/{authz,crypto-media,discovery,extensions,guides,identity,overview,sync}`；`proposals/0002..0006` 外部参考链接。
+- **canonical 变更**: 新增 `ck:announce:<uuid>` typed ID kind；新增 `revocation_freshness_unknown`、`realm_already_exists`、`out_of_order_bootstrap`、`policy_revision_gap`、`moderation_anchor_lifted`、`e2ee_relaxed_federation_policy_unsupported`、`deactivation_federation_incomplete`、`selector_actor_wildcard_forbidden` reason codes；清理 `reason_codes` 内部重复的 `audit_agent_attestation_mismatch`；`AuthzCheckResponse` 增补 freshness 诊断字段；`actor:*` selector 明确禁止。
 - **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`；`python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (152 event kinds, 53 schemas, 40 typed ID kinds, 87 operations, 57 claimable profiles, 78 profile id references)` 与 `registry diff: clean`; `node site/scripts/crossref-check.mjs` 输出 `crossref ok (152 event kinds, 253 errors, 87 operations, 53 schemas, 57 profiles)`。
 - **conformance impact**:
   - 受影响 profile: core authz/federation freshness、account deactivation federation、Directory ingest、E2EE relaxed profile guard、resource selector validation。
   - profile tier 变化: 无。
   - wire 兼容性: backward-compatible add + breaking for invalid inputs only（`actor:*`、未登记的 announce id 形态、缺 freshness fail-closed reason 的响应）。
-  - reader / writer 行为要求: writers MUST use `cx:announce:<uuidv7>` for Directory announce records; authz/federation receivers MUST use `revocation_freshness_unknown` for high-risk unknown/stale revocation freshness; resource selector parsers MUST reject `actor:*`.
+  - reader / writer 行为要求: writers MUST use `ck:announce:<uuidv7>` for Directory announce records; authz/federation receivers MUST use `revocation_freshness_unknown` for high-risk unknown/stale revocation freshness; resource selector parsers MUST reject `actor:*`.
 - **fixture / vector 变化**: 本轮不新增 vector fixture；新增 lint 覆盖 `_unknown` / `_incomplete` reason-code closure、error registry section 内重复 code，以及旧 `ann_*` Directory announce id 形态回归。
 - **prose 同步**: 已更新 authz selector grammar、capability freshness diagnostics、federation probe/deactivation fanout、service HTTP binding、release readiness/schema consumption、operations sync、Directory announce、MIMI candidate join-policy guard 与 cross-signing reset audit pairing。
-- **迁移指南**: 下游 SDK / validator 需要重新生成 typed ID 常量并接受 `cx:announce:<uuidv7>`；若旧实现返回 `revoke_freshness_unknown` 或 `ann_*`，应迁移到本条 canonical 名称和 typed ID 形态。若旧 grant 或 fixture 中存在 `actor:*`，writer MUST 改为具体 DID 集合或 claim-based subject condition；reducer / importer 在加载既有 `actor:*` grant 时 MUST fail closed（`schema_violation` + `selector_actor_wildcard_forbidden`）并使相关授权缓存失效。
+- **迁移指南**: 下游 SDK / validator 需要重新生成 typed ID 常量并接受 `ck:announce:<uuidv7>`；若旧实现返回 `revoke_freshness_unknown` 或 `ann_*`，应迁移到本条 canonical 名称和 typed ID 形态。若旧 grant 或 fixture 中存在 `actor:*`，writer MUST 改为具体 DID 集合或 claim-based subject condition；reducer / importer 在加载既有 `actor:*` grant 时 MUST fail closed（`schema_violation` + `selector_actor_wildcard_forbidden`）并使相关授权缓存失效。
 
 ### Review closure pass for `_claude_report.md`（2026-05-24）
 
@@ -532,7 +532,7 @@
 把 `cx.schema.ephemeral_envelope.v1` 的广播发送入口从 prose-only "ephemeral channel" 落到规范 HTTP / gRPC / MQ operation。
 
 - **变更类型**: add
-- **影响 artifact**: `contract-catalog.json` operation_registry;派生 `operation-registry.json`;`openapi/contrix-service-api.openapi.yaml`;`bindings/non-http-bindings.yaml`;`zh/sync/{operations-sync,service-http-binding,service-api-schema.mdx}`;`zh/discovery/read-receipts.md`;`zh/overview/release-readiness.md`。
+- **影响 artifact**: `contract-catalog.json` operation_registry;派生 `operation-registry.json`;`openapi/cokret-service-api.openapi.yaml`;`bindings/non-http-bindings.yaml`;`zh/sync/{operations-sync,service-http-binding,service-api-schema.mdx}`;`zh/discovery/read-receipts.md`;`zh/overview/release-readiness.md`。
 - **canonical 变更**: 在 `events_sync` surface group 注册 `cx.ephemeral.send`，HTTP binding 为 `POST /ephemeral`（部署路径 `/api/v1/ephemeral`），gRPC `Ephemeral/Send`，MQ `ephemeral.send`。请求体为 `cx.schema.ephemeral_envelope.v1`，只承载 `cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`，不得写入 durable Event history 或推进 actor_seq / Realm frontier。
 - **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`；operation 计数更新为 86。
 - **conformance impact**:
@@ -549,7 +549,7 @@
 把 Space / Flow / Morph lifecycle projection 读端从实现私有路径提升为规范 extension surface。
 
 - **变更类型**: add
-- **影响 artifact**: `contract-catalog.json` operation_registry;派生 `operation-registry.json`;`openapi/contrix-service-api.openapi.yaml`;`bindings/non-http-bindings.yaml`;`zh/sync/{service-http-binding,service-api-schema.mdx}`;`zh/overview/release-readiness.md`。
+- **影响 artifact**: `contract-catalog.json` operation_registry;派生 `operation-registry.json`;`openapi/cokret-service-api.openapi.yaml`;`bindings/non-http-bindings.yaml`;`zh/sync/{service-http-binding,service-api-schema.mdx}`;`zh/overview/release-readiness.md`。
 - **canonical 变更**: 新增 `projection_lifecycle` surface group，注册 `cx.projection.spaces` / `cx.projection.flows` / `cx.projection.morphs`，HTTP binding 分别为 `GET /projection/spaces` / `GET /projection/flows` / `GET /projection/morphs`。该 surface 是 extension tier，返回 reducer 派生 read model，不是真相源。
 - **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`，并通过 `python tools/artifact_pipeline.py check`；operation 计数更新为 85。
 - **conformance impact**:
@@ -572,7 +572,7 @@
 `POST /events`(submit) 与 `GET /events?…`(query) 路径形态保持不变。
 
 - **变更类型**: rename + delivery-model change (both breaking)
-- **影响 artifact**: `contract-catalog.json` operation_registry + capability_action_registry + schema_registry;派生 `operation-registry.json` + `capability-action-registry.json` + `schema-registry.json`;`openapi/contrix-service-api.openapi.yaml`(路径、operationId、method、schema 名、Content-Type、frame description);`bindings/non-http-bindings.yaml`(gRPC service + mq topic);`profiles/conformance-profiles.json`(operation_id + schema_id 引用,matrix_compat 描述);`registry/error-code-registry.json`(error description 中的路径文本);`schemas/{cursor,bottom,account-subscribe-frame}.schema.json`(新建 account-subscribe-frame,删除 client-sync-response);`fixtures/sync-fixture.json`(recovery `call` 字段);`tools/{apply_pd6_security.py,lint_artifacts.py}`(operation_id 映射 + describe path 列表)。
+- **影响 artifact**: `contract-catalog.json` operation_registry + capability_action_registry + schema_registry;派生 `operation-registry.json` + `capability-action-registry.json` + `schema-registry.json`;`openapi/cokret-service-api.openapi.yaml`(路径、operationId、method、schema 名、Content-Type、frame description);`bindings/non-http-bindings.yaml`(gRPC service + mq topic);`profiles/conformance-profiles.json`(operation_id + schema_id 引用,matrix_compat 描述);`registry/error-code-registry.json`(error description 中的路径文本);`schemas/{cursor,bottom,account-subscribe-frame}.schema.json`(新建 account-subscribe-frame,删除 client-sync-response);`fixtures/sync-fixture.json`(recovery `call` 字段);`tools/{apply_pd6_security.py,lint_artifacts.py}`(operation_id 映射 + describe path 列表)。
 - **canonical 变更**: `contract-catalog.json` 中 5 个 operation 重命名(`cx.sync.account` → `cx.account.subscribe`(同时 wire 形态从 POST 改为 GET streaming)、`cx.sync.describe` → `cx.account.describe`、`cx.sync.get_snapshot_head` → `cx.snapshot.head`、`cx.events.batch_get` → `cx.events.resolve`),以及对应 http / grpc / mq 绑定路径全部更新;schema_registry 中 `cx.schema.client_sync_response.v1` 重命名为 `cx.schema.account_subscribe_frame.v1`,对应 schema 文件从 `client-sync-response.schema.json` 重写为 `account-subscribe-frame.schema.json`(新增 `kind` 字段及 7 种 frame 变体: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`,delta 变体的 body 字段与旧 schema 一致);surface_groups[`events_sync`].operations 同步更新;`cx.events.query_post` HTTP wire alias 维持现状不变。
 - **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`;registry 视图、OpenAPI、non-http bindings、conformance profiles 已与 catalog 对齐。
 - **conformance impact**:
@@ -589,7 +589,7 @@
 撤销 agent workspace extension profile 及其所有派生工件。"用户本地 agent 协作上下文"被重新归位为部署本地关切，不再属于协议层。一般性的 agent 参与（agent 加入 Realm、capability、A2A/ACP 协议会话）通过既有的 `cx.member.state` / `cx.capability.grant` / `cx.agent.*` 表面继续支持。
 
 - **变更类型**: remove
-- **影响 artifact**: 整体删除 `spec/v1/zh/extensions/agent-workspace-profile.md`、`spec/v1/artifacts/fixtures/agent-workspace-fixture.json`、`spec/v1/artifacts/conformance/agent-workspace/`（44 个向量）、`spec/v1/artifacts/schemas/agent-task.schema.json`、`spec/v1/artifacts/schemas/agent-authority.schema.json`、`spec/v1/artifacts/schemas/content-mention-redirect.schema.json`、`spec/v1/artifacts/schemas/content-import-attestation.schema.json`、`spec/v1/artifacts/schemas/content-source-export-policy-attestation.schema.json`。从 `contract-catalog.json` 及派生的 event-kind / schema / id-kind / capability-action / operation 视图中删除全部 `cx.agent_task.*`、`cx.agent_workspace.*`、`cx.capability.agent_workspace.*`、`cx.schema.agent_task.v1`、`cx.schema.agent_authority.v1`、`cx.schema.content.{mention_redirect,import_attestation,source_export_policy_attestation}.v1`、`cx:agent_task:` typed ID、`cx.feature.{mention_redirect,import_attestation,governed_import,agent_workspace_lite}.v1`、`cx.capability.agent_workspace.{reserve,recover,cleanup}`、`mention_respond_only` / `import_to_external_space` 约束、`agent_membership_change` 通知类型、`mirror_of` realm link kind、`ContrixAgentWorkspaceService` DID service 类型以及与之绑定的全部 error code（`source_export_*`、`reservation_cell_already_set`、`conflicting_agent_workspace_profiles`、`lite_profile_writes_disallowed_event_kind`、`invalid_task_fsm_transition`）。OpenAPI / non-http bindings / `tools/apply_pd6_security.py` 中的相关 endpoint 与绑定一并删除。
+- **影响 artifact**: 整体删除 `spec/v1/zh/extensions/agent-workspace-profile.md`、`spec/v1/artifacts/fixtures/agent-workspace-fixture.json`、`spec/v1/artifacts/conformance/agent-workspace/`（44 个向量）、`spec/v1/artifacts/schemas/agent-task.schema.json`、`spec/v1/artifacts/schemas/agent-authority.schema.json`、`spec/v1/artifacts/schemas/content-mention-redirect.schema.json`、`spec/v1/artifacts/schemas/content-import-attestation.schema.json`、`spec/v1/artifacts/schemas/content-source-export-policy-attestation.schema.json`。从 `contract-catalog.json` 及派生的 event-kind / schema / id-kind / capability-action / operation 视图中删除全部 `cx.agent_task.*`、`cx.agent_workspace.*`、`cx.capability.agent_workspace.*`、`cx.schema.agent_task.v1`、`cx.schema.agent_authority.v1`、`cx.schema.content.{mention_redirect,import_attestation,source_export_policy_attestation}.v1`、`ck:agent_task:` typed ID、`cx.feature.{mention_redirect,import_attestation,governed_import,agent_workspace_lite}.v1`、`cx.capability.agent_workspace.{reserve,recover,cleanup}`、`mention_respond_only` / `import_to_external_space` 约束、`agent_membership_change` 通知类型、`mirror_of` realm link kind、`CokretAgentWorkspaceService` DID service 类型以及与之绑定的全部 error code（`source_export_*`、`reservation_cell_already_set`、`conflicting_agent_workspace_profiles`、`lite_profile_writes_disallowed_event_kind`、`invalid_task_fsm_transition`）。OpenAPI / non-http bindings / `tools/apply_pd6_security.py` 中的相关 endpoint 与绑定一并删除。
 - **canonical 变更**: `contract-catalog.json` 删除 ~120 条 entry；`profiles/conformance-profiles.json` 删除 4 个 profile id（`cx.profile.agent_workspace.v1` / `.lite.v1` / `.governed.v1` / `.strict.v1`）。
 - **派生 artifact 同步**: registry 视图、OpenAPI、non-http bindings 已与 catalog 同步；conformance 目录在本次提交后为空。
 - **conformance impact**:
@@ -609,7 +609,7 @@
 - **影响 artifact**: schemas (`event-schema`, `cursor`, `anchor`, `flow`, `ephemeral-envelope` [新增], `moderation-appeal` [新增], `attestation-evidence` [新增])、registries (`contract-catalog` → 派生 event-kind / schema / id-kind / capability-action / operation registries、`error-code-registry` 新增 9 条)；`profiles/conformance-profiles.json`；以及 `spec/v1/zh/**` 多个 prose 文件（`identity/account-lifecycle.md`、`identity/consent-model.md`、`models/realm-and-space.md`、`models/event-and-patch.md`、`sync/operations-sync.md`、`sync/federation.md`、`sync/third-party-invites.md`、`governance/content-moderation.md`、`crypto-media/encryption-and-audit.md`、`crypto-media/audited-e2ee.md`、`crypto-media/media-and-blob.md`、`crypto-media/webrtc-signaling.md`、`overview/release-readiness.md`）。
 - **canonical 变更**:
   - **T02 (Durable/ephemeral envelope 拆分)**：`event-schema.json` 加 `not` allOf 分支显式拒绝 12 个 `wire_scope=ephemeral_event` kind 出现在 durable Event Envelope（cx.call.signal / cx.presence / cx.typing / cx.receipt.read / cx.key.verification.*）；从 if/then 非 reducer 枚举中移除 ephemeral 项，保留 actor_private 项。新增 `ephemeral-envelope.schema.json` (schema id `cx.schema.ephemeral_envelope.v1`) 定义广播 ephemeral 信号的独立 envelope（kind + realm_id + actor_id + sent_at + expires_at + payload + optional proof，expires_at 硬上限 5 分钟）；点对点 to-device 仍用 `device-message.schema.json`。`operations-sync.md` 加 §3.6 wire-scope 边界规范表 + 5 条 reject 规则。
-  - **T06 (Moderation appeal wire 闭环)**：新增 4 个 active event kind：`cx.moderation.appeal.submit` / `.review` / `.decision` / `.close`，统一指向 schema `cx.schema.moderation_appeal.v1`（[`moderation-appeal.schema.json`](spec/v1/artifacts/schemas/moderation-appeal.schema.json) 单 schema oneOf 出四种 payload）。新增 typed ID kind `cx:appeal:<uuid>`。新增 2 个 capability action：`cx.moderation.appeal.submit`（low risk, 任何成员）+ `cx.moderation.appeal.review`（medium risk, moderator）。`content-moderation.md` 新增 §5.5 完整描述事件链、cell state machine (none → submitted → under_review → decided → closed)、separation of duties (reviewer ≠ original decision issuer)、overturn 与 lift 原子绑定、modify 与新 decision 原子绑定、cool-off / auto close、evidence_visibility 4 档枚举。新增 2 个错误码 `appeal_overturn_missing_lift` / `appeal_self_review_forbidden`。
+  - **T06 (Moderation appeal wire 闭环)**：新增 4 个 active event kind：`cx.moderation.appeal.submit` / `.review` / `.decision` / `.close`，统一指向 schema `cx.schema.moderation_appeal.v1`（[`moderation-appeal.schema.json`](spec/v1/artifacts/schemas/moderation-appeal.schema.json) 单 schema oneOf 出四种 payload）。新增 typed ID kind `ck:appeal:<uuid>`。新增 2 个 capability action：`cx.moderation.appeal.submit`（low risk, 任何成员）+ `cx.moderation.appeal.review`（medium risk, moderator）。`content-moderation.md` 新增 §5.5 完整描述事件链、cell state machine (none → submitted → under_review → decided → closed)、separation of duties (reviewer ≠ original decision issuer)、overturn 与 lift 原子绑定、modify 与新 decision 原子绑定、cool-off / auto close、evidence_visibility 4 档枚举。新增 2 个错误码 `appeal_overturn_missing_lift` / `appeal_self_review_forbidden`。
   - **T07 (Lifecycle 级联)**：`account-lifecycle.md` 新增 §7.1 Deactivation Fanout 7 域表（session / device / applet / KeyPackage / push / to-device queue / capability cache）+ MLS deactivation grace window + partial fanout 状态。`realm-and-space.md` 新增 §2.5 Realm 终态：明确 `cx.realm.tombstone`（successor）vs `cx.realm.destroy`（永久退役）区分；§2.5.1 destroy 后 5 条 normative 规则（拒后续普通写、snapshot/backfill/GC、no successor、erasure receipt 与 legal hold 优先级、federation fanout 30 天）；§2.5.2 跨 Principal Server erasure receipt fanout（issuing → receiving、partial 状态 → `outcome=partially_completed`、未回执 7 天后 fanout_status=incomplete、hash chain stub 保留 + projection 显示 `[erased]`）。新增错误码 `realm_terminal_state`。
   - **T10 (Attested audit evidence schema)**：新增 `attestation-evidence.schema.json` (schema id `cx.schema.attestation_evidence.v1`) 把 attestation 证据结构化：platform (family/vendor/model/firmware) + measurement (code_hash/policy_version/report_data) + attestation_chain (多种 quote format) + attestation_key (与 epoch_key_destruction 共享 root of trust) + verification_method + validity 窗口 ≤90 天 + revocation 检查 + operator_did + audit_purpose + audit_policy_version_hash + proofs (operator 与 enclave 双密钥分离)。`audited-e2ee.md` §2 表把 `attested_hardware` 描述对接到此 schema，去掉"prose 自报"形态。新增 2 个错误码 `audit_agent_attestation_mismatch` / `audit_purpose_mismatch`。
   - **T11 (Presign blob audience 边界)**：`media-and-blob.md` `audience_hint` 字段说明从 "仅 hint" 升级为 "**诊断 hint，不构成访问控制**"；新增 §5.4.4.1 normative：实现 MUST NOT 把 audience_hint 当访问控制；E2EE ciphertext / legal hold / redacted / actor_private blob MUST 走 fail-closed (拒绝发 presign)；future audience-bound 机制（cookie-bound / session-bound）超出 v1 范围。新增 §5.4.4.2 bearer URL 泄漏面控制（Cache-Control private no-store / Referrer-Policy no-referrer / 不记录 presign query 原文）。新增 2 个错误码 `legal_hold_active` / `blob_redacted`。
@@ -629,7 +629,7 @@
 - **不在本轮范围**: T29（markdown/fixture schema lint 工具化 — 是 tools/ Python 改动，标 `evaluate_only`）；T31（Directory member count side-channel 降噪 — 设计决策，需团队评估 k-anonymity / bucket rounding）；T32（MLS governance binding codepoint IANA 申请 / 迁移策略 — 公开联邦发布前的设计决策）。三项均在 `_todos.md` 标 `evaluate_only`。
 - **迁移指南**:
   - SDK / yougen / soland：(i) ephemeral signal 路由切换到 `cx.schema.ephemeral_envelope.v1` 或 `cx.schema.device_message.v1`，不再走 `cx.events.submit`；(ii) 实现 `cx.moderation.appeal.*` 4 events + capability gate + separation of duties；(iii) deactivation fanout 7 域；(iv) Realm destroy → only audit-class accept；(v) Audit Agent join 走 attestation-evidence；(vi) presign blob 4 类必拒；(vii) federation idempotency cache 加 `Source-Service-DID` / `origin_key_state_hash`；(viii) OOB code 满足熵约束；(ix) late_recovered 4 条 accept 条件 + audit marker；(x) consent revoke 缓存失效 5 类。
-  - cotest / drift validator：把 9 个新增错误码（`realm_terminal_state`、`audit_agent_attestation_mismatch`、`audit_purpose_mismatch`、`legal_hold_active`、`blob_redacted`、`media_plaintext_service_not_authorised`、`mls_governance_binding_stale`、`expired_invite_token`、`late_recovery_rejected_membership`、`appeal_overturn_missing_lift`、`appeal_self_review_forbidden`）纳入错误码白名单；4 个新 event kind（`cx.moderation.appeal.{submit,review,decision,close}`）纳入 active event kind 白名单；3 个新 schema（`cx.schema.moderation_appeal.v1`、`cx.schema.ephemeral_envelope.v1`、`cx.schema.attestation_evidence.v1`）纳入 schema 白名单；1 个新 typed ID kind `cx:appeal:<uuid>` 纳入 id kind 白名单。
+  - cotest / drift validator：把 9 个新增错误码（`realm_terminal_state`、`audit_agent_attestation_mismatch`、`audit_purpose_mismatch`、`legal_hold_active`、`blob_redacted`、`media_plaintext_service_not_authorised`、`mls_governance_binding_stale`、`expired_invite_token`、`late_recovery_rejected_membership`、`appeal_overturn_missing_lift`、`appeal_self_review_forbidden`）纳入错误码白名单；4 个新 event kind（`cx.moderation.appeal.{submit,review,decision,close}`）纳入 active event kind 白名单；3 个新 schema（`cx.schema.moderation_appeal.v1`、`cx.schema.ephemeral_envelope.v1`、`cx.schema.attestation_evidence.v1`）纳入 schema 白名单；1 个新 typed ID kind `ck:appeal:<uuid>` 纳入 id kind 白名单。
   - 文档作者：检索 `cx.realm.destroy` / `cx.moderation.appeal` / `late_recovered` / `attestation_evidence` / `audience_hint` / `idempotency cache` / OOB code，引用更新到新 normative 段。
 
 ### Round 2 cleanup pass on `_todos.md`（2026-05-20）
@@ -639,24 +639,24 @@
 - **变更类型**: edit + add（schema 新字段、registry 新 typed ID kind、error-code-registry 新条目、新 conformance vector 段落）
 - **影响 artifact**: schemas (`anchor`, `cursor`, `cross-signing-reset`)、fixtures (`move-anchor-lattice-fixture`, `encoding-fixture`)、registries (`contract-catalog` → `id-kind-registry` 派生、`error-code-registry`)、`profiles/conformance-profiles.json`；以及 `spec/v1/zh/**` 多个 prose 文件（`authz/event-auth-state-resolution.md`、`conformance/conformance-vectors.md`、`crypto-media/audited-e2ee.md`、`crypto-media/device-lifecycle.md`、`crypto-media/encryption-and-audit.md`、`identity/identity-did.md`、`models/event-and-patch.md`）。
 - **canonical 变更**:
-  - **T01 (Anchor 内容寻址去自引用)**：`event-auth-state-resolution.md` §4 明确列出 Anchor canonical bytes transcript fields 表（`id` 与 `anchorer_sig` 显式排除）；`anchor.schema.json` 的 schema description、`id`、`anchorer_sig` 字段加 description 描述 `id = "cx:anchor:" || H(anchor_canonical_bytes)` 不自引用、signature 不签自己；新增 receiver verification 三步流程 (a) recompute H 校验 `id`；(b) 验证 `anchorer_sig` 覆盖 canonical bytes；(c) attack 必然在 (b) 或 (c) 失败。`conformance-vectors.md` 新增 §2.8.1 `cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1`，覆盖 6 种 case：base + id-in-canonical-bytes attack + sig-in-canonical-bytes attack + key reorder + proof injection + non-digest frontier value。
-  - **T03 (Cursor fixture/schema)**：`encoding-fixture.json` cursor vector 修正 (a) `cx:space:` → `cx:realm:`（同时 base64url 与解码后 canonical bytes）；(b) `t/x` 时间戳搬到 2099-12-30 ~ 2099-12-31（24h TTL，远早于 stream cursor 7 天上限），加 `fixture_freshness_note` 提醒"不要把固定 fixture 时间戳搬到 wire"。`cursor.schema.json` (a) `h.minLength: 16 → 22` 把 ≥128-bit base64url entropy 强制成 schema 检查（128/6 ≈ 21.33）；(b) 新增 `_mac` 类型属性（pattern `^hmac-(?:sha256|sha384|sha512):[0-9a-f]{64,128}$`）与 `_sig` 类型属性（pattern compact-JWS `<protected>.<payload?>.<signature>`），各自约束 wire 形态；(c) `patternProperties` 中辅助 `_*` 字段的 regex 改为 `^_(?!mac$|sig$)[A-Za-z0-9_]*$`——禁止用 `_mac_foo` / `_sig_bar` 冒充 integrity 字段，只有精确字段名 `_mac` / `_sig` 被典型化为整性字段。
+  - **T01 (Anchor 内容寻址去自引用)**：`event-auth-state-resolution.md` §4 明确列出 Anchor canonical bytes transcript fields 表（`id` 与 `anchorer_sig` 显式排除）；`anchor.schema.json` 的 schema description、`id`、`anchorer_sig` 字段加 description 描述 `id = "ck:anchor:" || H(anchor_canonical_bytes)` 不自引用、signature 不签自己；新增 receiver verification 三步流程 (a) recompute H 校验 `id`；(b) 验证 `anchorer_sig` 覆盖 canonical bytes；(c) attack 必然在 (b) 或 (c) 失败。`conformance-vectors.md` 新增 §2.8.1 `cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1`，覆盖 6 种 case：base + id-in-canonical-bytes attack + sig-in-canonical-bytes attack + key reorder + proof injection + non-digest frontier value。
+  - **T03 (Cursor fixture/schema)**：`encoding-fixture.json` cursor vector 修正 (a) `ck:space:` → `ck:realm:`（同时 base64url 与解码后 canonical bytes）；(b) `t/x` 时间戳搬到 2099-12-30 ~ 2099-12-31（24h TTL，远早于 stream cursor 7 天上限），加 `fixture_freshness_note` 提醒"不要把固定 fixture 时间戳搬到 wire"。`cursor.schema.json` (a) `h.minLength: 16 → 22` 把 ≥128-bit base64url entropy 强制成 schema 检查（128/6 ≈ 21.33）；(b) 新增 `_mac` 类型属性（pattern `^hmac-(?:sha256|sha384|sha512):[0-9a-f]{64,128}$`）与 `_sig` 类型属性（pattern compact-JWS `<protected>.<payload?>.<signature>`），各自约束 wire 形态；(c) `patternProperties` 中辅助 `_*` 字段的 regex 改为 `^_(?!mac$|sig$)[A-Za-z0-9_]*$`——禁止用 `_mac_foo` / `_sig_bar` 冒充 integrity 字段，只有精确字段名 `_mac` / `_sig` 被典型化为整性字段。
   - **T04 (Anchor frontier event_digest)**：`move-anchor-lattice-fixture.json` 的 frontier entries 与 anchor schema `frontier[]` items 对齐为 `sha256:<hex>` 形态；fixture notes 明确 frontier 直接引用 content-addressed `event_digest`。
-  - **T08 (Cross-signing reset 跨域 replay 防御)**：`device-lifecycle.md` §14.1 canonical input 在 transcript 顶部新增 `trust_domain` + `reset_event_id`（紧接 `cx-cross-signing-reset-v1\n` magic header）；新增 normative 段说明 deployment A 签发的 proof bytes 无法被 deployment B 重放（trust_domain mismatch ⇒ transcript fail）、新 Event shell 重放也会失败（reset_event_id mismatch ⇒ transcript fail）。`cross-signing-reset.schema.json` payload required 字段加 `trust_domain` (`cx:trust_domain:<scope>`) 与 `reset_event_id` (`cx:event:<uuidv7>`)；receiver 验证顺序 (a) `cross_domain_replay_rejected` (b) `reset_event_id_mismatch` (c) `invalid_signature`。`identity-did.md` 新增 §3.6 Trust Domain 节正式定义 `cx:trust_domain:` 字段与三处暴露位置（server describe / Realm policy / proof transcript），并把 trust_domain 注册进 `contract-catalog.json` → `id-kind-registry.json` 派生（新增 1 个 typed ID kind `cx:trust_domain:`）。`error-code-registry.json` 新增 `cross_domain_replay_rejected` + `reset_event_id_mismatch` 两条错误码。
+  - **T08 (Cross-signing reset 跨域 replay 防御)**：`device-lifecycle.md` §14.1 canonical input 在 transcript 顶部新增 `trust_domain` + `reset_event_id`（紧接 `cx-cross-signing-reset-v1\n` magic header）；新增 normative 段说明 deployment A 签发的 proof bytes 无法被 deployment B 重放（trust_domain mismatch ⇒ transcript fail）、新 Event shell 重放也会失败（reset_event_id mismatch ⇒ transcript fail）。`cross-signing-reset.schema.json` payload required 字段加 `trust_domain` (`ck:trust_domain:<scope>`) 与 `reset_event_id` (`ck:event:<uuidv7>`)；receiver 验证顺序 (a) `cross_domain_replay_rejected` (b) `reset_event_id_mismatch` (c) `invalid_signature`。`identity-did.md` 新增 §3.6 Trust Domain 节正式定义 `ck:trust_domain:` 字段与三处暴露位置（server describe / Realm policy / proof transcript），并把 trust_domain 注册进 `contract-catalog.json` → `id-kind-registry.json` 派生（新增 1 个 typed ID kind `ck:trust_domain:`）。`error-code-registry.json` 新增 `cross_domain_replay_rejected` + `reset_event_id_mismatch` 两条错误码。
   - **T09 (e2ee_relaxed 硬上限 + receiver fail-close)**：`conformance-profiles.json` 的 `cx.profile.e2ee_relaxed.v1.downgrade_window_constraint` 加 `absolute_hard_ceiling_ms: 300000`、`receiver_enforcement`（receiver MUST 独立 enforce 硬上限，不得静默 clamp；reducer reject policy write `> 300000 ms` 用 `relaxed_window_exceeds_ceiling`）与 `compliance_profile_disabled`（声明 `cx.profile.attested_audit.e2ee.v1` / `disclosed_audit.e2ee.v1` 或 `audit_assurance >= disclosed_policy` 时 MUST 拒绝 relaxed profile，用 `e2ee_relaxed_disallowed_in_compliance_profile`）。`error-code-registry.json` 新增对应两条错误码。`encryption-and-audit.md` §2.4.1 prose 同步说明硬上限与合规互斥；新增 negative vector 引用 `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1`。
   - **T13 (Identity Link 缓存 policy tightening)**：`encryption-and-audit.md` §2.7 把缓存 value 增加 `policy_frontier_hash`（推荐 `sha256(canonical_json({policy_revision, disclosure_policy, history_visibility, identity_disclosure_profile, metadata_encryption_profile, minimal_metadata_mode}))`），并新增 policy tightening eager invalidation 规则覆盖 (a) `cx.identity.disclosure_policy` strictness 升级；(b) `cx.realm.policy_components` 中 `metadata_encryption_profile` / `minimal_metadata_mode` / `identity_disclosure_profile` 变化；(c) `cx.realm.history_visibility` 收紧；(d) linked Realm (`Flow.discussion_realm_ref` / `Realm.linked_realms[]`) membership / history visibility 收紧。比较时用 constant-time 比 `policy_frontier_hash`；任一不一致即失效。新增 conformance vector reference `cx.vector.identity_link.policy_tightening_invalidation.v1`。
   - **T23 (`cx.event_batch_receipt` / `cx.audit.ryw_receipt` 概念分层)**：`event-and-patch.md` §5.1 加 normative 段：`cx.event_batch_receipt` 是 receipt object（schema id prefix），不出现在 event-kind-registry，不会作为 `Event.kind` 提交；任何把它当 event kind 提交的实现 MUST `schema_violation`。同段对照说明 `cx.audit.ryw_receipt` 既是 receipt object 也是 active durable event kind（仅在 `cx.profile.attested_audit.e2ee.v1` 下作 durable Event）。`audited-e2ee.md` §4.1 加 normative 段说明 `cx.audit.ryw_receipt` 的 object 与 durable Event 两种形态触发条件。
-- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 更新 `event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`（含新 `cx:trust_domain:`）、`operation-registry.json`、`capability-action-registry.json`；`check` 输出 `Artifact registry lint passed (151 event kinds, 54 schemas, 39 typed ID kinds, 84 operations, 80 profiles)` 与 `registry diff: clean`；`npm run crossref` clean；`cd site && npm run build` 555 pages 0 warning。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 更新 `event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`（含新 `ck:trust_domain:`）、`operation-registry.json`、`capability-action-registry.json`；`check` 输出 `Artifact registry lint passed (151 event kinds, 54 schemas, 39 typed ID kinds, 84 operations, 80 profiles)` 与 `registry diff: clean`；`npm run crossref` clean；`cd site && npm run build` 555 pages 0 warning。
 - **conformance impact**:
   - 受影响 profile: `cx.profile.e2ee_relaxed.v1` 新增 `absolute_hard_ceiling_ms` / `receiver_enforcement` / `compliance_profile_disabled` 字段；其余 profile 无变化。
   - profile tier 变化: 无。
   - wire 兼容性: **wire-breaking** — (a) `cx.cross_signing.reset` payload 新增 required `trust_domain` + `reset_event_id` 字段；既有 reset payload 缺这两字段时 MUST `schema_violation`。 (b) cursor `h` 字段 minLength 由 16 升到 22；旧实现若发出 16~21 chars 的 handle MUST 失效。(c) `relaxed_window_max_ms > 300000` 的 Realm policy MUST 被 reducer 拒；合规 profile 同时启用 relaxed profile 也 MUST 被拒。(d) Anchor frontier 必须是 `event_digest` 形态；本轮把 fixture 对齐到 schema。
   - reader / writer 行为要求: SDK MUST 更新 (i) cursor handle 生成长度 ≥22 chars；(ii) cross-signing reset payload 写入 / 校验路径加 `trust_domain` / `reset_event_id`；(iii) e2ee_relaxed policy 不允许写超过 300000 ms，receiver 路径独立 enforce 该硬上限；(iv) identity_link 缓存 value 增加 `policy_frontier_hash` 字段并在每次 disclosure policy / history visibility / linked Realm 收紧时 eager 失效；(v) cotest scanner / drift validator 把 `cx.event_batch_receipt` 当 receipt object（不在 event kind allowlist）、`cx.audit.ryw_receipt` 按当前 profile 判定。
-- **fixture / vector 变化**: `move-anchor-lattice-fixture.json` frontier 改 event_digest；`encoding-fixture.json` cursor vector 改 `cx:realm:` + 2099 timestamps；新增 `cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1`（6 case）；prose 引用 `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1`、`cx.vector.identity_link.policy_tightening_invalidation.v1`（待补可执行 fixture）。
+- **fixture / vector 变化**: `move-anchor-lattice-fixture.json` frontier 改 event_digest；`encoding-fixture.json` cursor vector 改 `ck:realm:` + 2099 timestamps；新增 `cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1`（6 case）；prose 引用 `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1`、`cx.vector.identity_link.policy_tightening_invalidation.v1`（待补可执行 fixture）。
 - **prose 同步**: 每项都同步修改对应中文 normative prose；`identity-did.md` 新增 §3.6 Trust Domain。
 - **迁移指南**:
   - SDK：必填字段 `trust_domain` / `reset_event_id` 必须先填到 reset payload 才能写入；cursor handle 生成至少 22 chars base64url；relaxed_window_max_ms 写入前先按硬上限校验。
-  - 部署：deployment 初始化时声明 `cx:trust_domain:<scope>`；server describe / Realm policy 同步暴露。
+  - 部署：deployment 初始化时声明 `ck:trust_domain:<scope>`；server describe / Realm policy 同步暴露。
   - cotest / drift validator：`cx.event_batch_receipt` 排除出 active event-kind allowlist；`cx.audit.ryw_receipt` 按 profile 判定 object vs durable Event；新增的 5 个错误码（`cross_domain_replay_rejected`、`reset_event_id_mismatch`、`relaxed_window_exceeds_ceiling`、`e2ee_relaxed_disallowed_in_compliance_profile`）纳入错误码白名单。
 
 ### Round 1 cleanup pass on `_todos.md`（2026-05-20）
@@ -664,7 +664,7 @@
 承接 `_codex_report.md` / `_claude_report.md` 的 P0–P2 待办，本轮一次性 close 12 项（T05、T18、T19、T20、T21、T22、T24、T25、T26、T27、T28、T30）。全部为 spec-internal 一致性、命名、cross-reference、drift artifact 与构建产物清理，不引入新协议语义。
 
 - **变更类型**: edit + add（drift artifact / schema 字段）
-- **影响 artifact**: schemas (`range-completeness-attestation`, `audit-ryw-receipt`, `event-payload`, `event-schema`, `flow`, `identity-link`, `client-sync-response`)、registries (`removed-event-kinds`, `forbidden-wire-fields`, `renames`, `operation-registry`, `contract-catalog`, `id-kind-registry`, `error-code-registry`)、`profiles/conformance-profiles.json`、`fixtures/privacy-security-fixture.json`、`bindings/non-http-bindings.yaml`、`openapi/contrix-service-api.openapi.yaml`、以及 `spec/v1/zh/**` 多个 prose 文件；site 侧 `astro.config.mjs` 与新增 `src/pages/404.astro`。
+- **影响 artifact**: schemas (`range-completeness-attestation`, `audit-ryw-receipt`, `event-payload`, `event-schema`, `flow`, `identity-link`, `client-sync-response`)、registries (`removed-event-kinds`, `forbidden-wire-fields`, `renames`, `operation-registry`, `contract-catalog`, `id-kind-registry`, `error-code-registry`)、`profiles/conformance-profiles.json`、`fixtures/privacy-security-fixture.json`、`bindings/non-http-bindings.yaml`、`openapi/cokret-service-api.openapi.yaml`、以及 `spec/v1/zh/**` 多个 prose 文件；site 侧 `astro.config.mjs` 与新增 `src/pages/404.astro`。
 - **canonical 变更**:
   - **T05 (did:webvh outage)**：`zh/identity/identity-did.md` resolver policy 示例字段 `fallback_to_did_web` 改为 `outage_mode` + `outage_max_duration_ms`；增加 rationale 段落，明确 `fallback_to_did_web` 这种字段名 MUST `schema_violation`，避免与 §3.4 cache-only outage 语义矛盾。
   - **T18 (OR-Set dot event_id 规范化)**：`zh/authz/event-auth-state-resolution.md` OR-Set dot 语义统一使用 `event_id`（dot 形态 `<event_id>:<effect_index>`）；dot / lattice / hash 引用均以 `event_id` + `event_digest` 表达。
@@ -755,7 +755,7 @@ Handle → `delivery_binding_hint` → member delivery binding → Space-scoped 
 - **变更类型**: add
 - **影响 artifact**: `schemas/member-delivery-binding-candidate.schema.json`、`registry/contract-catalog.json`、`registry/schema-registry.json`、`zh/identity/identity-handles.md`、`zh/spec-map.md`、`zh/overview/release-readiness.md`
 - **canonical 变更**:
-  - 新增 schema id `cx.schema.member_delivery_binding_candidate.v1`，绑定 `schemas/member-delivery-binding-candidate.schema.json`；MUST 字段 `subject_did` / `handle_uri` / `recipient_service_did` / `delivery_binding_hint` / `issuer_service_did` / `audience` / `expires_at` / `source_refs` / `proofs` / `intent`；`additionalProperties: false`；`handle_uri` 复用 handle-claim canonical 形态约束（`contrix://<domain>/users/<localpart>`，lowercase localpart）；`delivery_binding_hint.binding_source` 排除 `did_document_default`。
+  - 新增 schema id `cx.schema.member_delivery_binding_candidate.v1`，绑定 `schemas/member-delivery-binding-candidate.schema.json`；MUST 字段 `subject_did` / `handle_uri` / `recipient_service_did` / `delivery_binding_hint` / `issuer_service_did` / `audience` / `expires_at` / `source_refs` / `proofs` / `intent`；`additionalProperties: false`；`handle_uri` 复用 handle-claim canonical 形态约束（`cokret://<domain>/users/<localpart>`，lowercase localpart）；`delivery_binding_hint.binding_source` 排除 `did_document_default`。
   - `zh/identity/identity-handles.md` 新增 §3.7 章节，定义字段、来源（Directory `intent="member_add"` / 受信 issuer 直接签发）、validator MUST 规则（schema 合规 / canonical handle_uri / audience match / expiry / proof binding transcript / subject 一致性 / `binding_source` 合法值 / `recipient_service_did` 内外一致），以及 display / mention / member_add 三种 intent 解析返回字段的差异。
   - `spec-map.md` §4.2 在 `identity-handles.md` 条目补注 §3.7 入口。
   - `release-readiness.md` Registry 表 `Schema` 计数 52 → 53。
@@ -823,7 +823,7 @@ Handle → `delivery_binding_hint` → member delivery binding → Space-scoped 
 
 Realm membership 显式承载成员的投递服务绑定，DID 是协议主键、签名与审计归因的根；Realm-scoped 投递的唯一权威路由源是该成员 `cx.member.state{join}.delivery_binding` 中固化的 `recipient_service_did`。
 
-Handle 是统一概念：协议层只有一种 handle canonical URI（`contrix://<domain>/users/<localpart>`，lowercase localpart）、一套解析与验证规则。`acct:<localpart>@<domain>` 只能作为 `handle_aliases[]` 互通别名。Holder 自托管个人 handle（自有域名）与组织内部账号地址在结构上是同一类——区别只在 issuer（domain owner 自己 vs Organization / Principal Server / Directory），不在 URI 形态。显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`；其它字面形态在 schema 层被拒绝。
+Handle 是统一概念：协议层只有一种 handle canonical URI（`cokret://<domain>/users/<localpart>`，lowercase localpart）、一套解析与验证规则。`acct:<localpart>@<domain>` 只能作为 `handle_aliases[]` 互通别名。Holder 自托管个人 handle（自有域名）与组织内部账号地址在结构上是同一类——区别只在 issuer（domain owner 自己 vs Organization / Principal Server / Directory），不在 URI 形态。显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`；其它字面形态在 schema 层被拒绝。
 
 - **新增 Event.kind**：
   - `cx.realm.delivery_binding_policy`（state event；`cell_family=cx.component.realm.delivery_binding_policy.v1`, `cas-register`, `bottom=reject`, `cell_subject=null`）。
@@ -832,12 +832,12 @@ Handle 是统一概念：协议层只有一种 handle canonical URI（`contrix:/
   - `event-payload.schema.json#/$defs/member_delivery_binding`：严格 schema。`recipient_service_type=const "principal_server"`、`binding_scope=const "realm"`；`delivery_modes` / `resolved_at` 必填；按 `binding_source` 的 conditional required（`did_document_default` → `did_document_hash`；`explicit` / `invite` / `organization_policy` → `service_acceptance_ref`；`join_policy` / `space_policy` / `organization_policy` → `policy_ref`）。
   - `event-payload.schema.json#/$defs/membership_payload`：`membership=join` 时 `actor_id` / `delivery_status` 必填；`delivery_status=routable` 时 `delivery_binding` 必填。
   - `event-schema.json`：`cx.realm.delivery_binding_policy` 进入 wire-level `kind` enum 与 state_payload 分支。
-  - `handle-claim.schema.json`：`handle_uri` 仅允许 `contrix://<host>(:<port>)?/users/<lowercase-localpart>`；`acct:<localpart>@<host>(:<port>)?` 移入 `handle_aliases[]`，不得作为 canonical；裸 `contrix://<host>`、`user:domain`、bare host 一律拒绝。`binding_state=verified` 必填 `handle_uri` / `expires_at`；出现 `recipient_service_did` 或 `delivery_binding_hint` 时必填 `handle_uri` / `audience` / `expires_at`，且 `delivery_binding_hint.binding_source` 不允许 `did_document_default`。
+  - `handle-claim.schema.json`：`handle_uri` 仅允许 `cokret://<host>(:<port>)?/users/<lowercase-localpart>`；`acct:<localpart>@<host>(:<port>)?` 移入 `handle_aliases[]`，不得作为 canonical；裸 `cokret://<host>`、`user:domain`、bare host 一律拒绝。`binding_state=verified` 必填 `handle_uri` / `expires_at`；出现 `recipient_service_did` 或 `delivery_binding_hint` 时必填 `handle_uri` / `audience` / `expires_at`，且 `delivery_binding_hint.binding_source` 不允许 `did_document_default`。
 - **Prose normative**：
   - `identity/identity-handles.md`：Handle 单一模型，§3.1 显示形态与 canonical URI、§3.2 解析结果必含字段、§3.3 `delivery_binding_hint` 约束、§3.4 Issuer 类型（holder self-issued / Organization / Principal Server / Directory）与 holder 自托管路径、§3.5 公开 vs 受限、§3.6 与 pairwise DID 正交；§5 解析 issuer 优先级；§6 双向验证按公开 / 受限分流；§6.1.2 撤销路径（TTL + Directory withdrawal + DID Document 变化）；§6.1.3 重分配与历史归因。
   - `governance/join-policy.md` §5.1：接受准则、`binding_source` 与责任方表、`cx.realm.delivery_binding_policy` 字段、路由不可降级、rebind handover via causal frontier、单 binding 约束、unlinkability 边界；§5.1.2.1 Handle 作为 member_add 输入的 6 步构造法（含 `audience` 校验）。
   - `sync/federation.md` §4.1：接收方服务绑定规则切分 member-level vs Realm-level 两条互不重叠路径；fail-closed 解析算法；handover stale 协议；`service_binding_ref.delivery_binding_frontier` 必填；`delivery_binding_diagnostics` 仅作诊断。§6.2 Actor Event Source 发现用途表。
-  - `identity/identity-did.md` §3.2：DID Document `ContrixPrincipalServer` service entry 是默认服务发现入口，不作为 Realm-scoped delivery 路径；Handle 属 Handle 层，不属 DID method。
+  - `identity/identity-did.md` §3.2：DID Document `CokretPrincipalServer` service entry 是默认服务发现入口，不作为 Realm-scoped delivery 路径；Handle 属 Handle 层，不属 DID method。
   - `discovery/discovery-directory.md` §9.0：Handle 解析 normative 准则（6 条），含 audience 与 invocation 上下文一致性校验。
   - `sync/client-sync.md` §2.x：Delivery Binding UX 指引（4 条 SHOULD）。
   - `crypto-media/device-lifecycle.md` §5a：`push_target_id` 作用域 `(recipient_service_did, principal, device, push_route)`；`cx.device.push_route` cell_subject 与 binding 一致性。
@@ -851,7 +851,7 @@ Handle 是统一概念：协议层只有一种 handle canonical URI（`contrix:/
   - sender 在 Realm-scoped 投递时 MUST 解析当前 effective member `delivery_binding.recipient_service_did`；解析失败、过期、撤销时 MUST quarantine + retry，MUST NOT 退回 DID Document。
   - `delivery_binding_frontier` 落后于接收方接受的 handover frontier 时，接收方 MUST 返回 `delivery_binding_stale` + 新目标；sender MUST 重定向，不得退回 DID Document。
   - "actor DID 在某 Principal Server 上有本地账号 / OIDC subject / 员工记录 / 设备 session" 不构成 Realm-scoped 投递授权；授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_ref` 链建立。
-  - Handle 字符串仅是 builder 输入；canonical URI 比对、`alsoKnownAs` 一致性校验、Directory 缓存键一律 MUST 使用 `contrix://` 形态，`acct:` 仅为互通别名。
+  - Handle 字符串仅是 builder 输入；canonical URI 比对、`alsoKnownAs` 一致性校验、Directory 缓存键一律 MUST 使用 `cokret://` 形态，`acct:` 仅为互通别名。
 - **隐私边界**：本机制解决路由 / 设备 / push / 审计边界。跨上下文 unlinkability 通过 pairwise / private DID（`identity-did.md` §3）实现，与本机制正交：同一 DID 在不同 Realm 的 membership 仍可被外部观察者关联。
 - **Registry 计数**：active event kind 152，schema 52，typed ID kind 39，operation 84，profile 77。
 
@@ -990,7 +990,7 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
 
 ### Operation registry tier 分类与 surface 错位整理（2026-05-08）
 
-把 `operation_registry.capability_tiers` 从三档（core / extension / deployment_local）扩到四档,新增 `interop_bridge` tier 用来标记"对外部协议（MIMI、Applet 等）的 adapter surface",并修复几处 surface 错位分组。动机:此前 `mimi_interop`、`applet` 与 `directory_discovery`、`blob_media` 等同被打上 `extension`,把"协议内可选 surface"与"对外部协议的桥接"压成同一类,导致 30% 操作看着像 extension —— 实际上前者属于 Contrix 规范本体的可选项,后者是独立外部规范的 adapter,生命周期/治理/profile 语义都不一样。本次只动 metadata,无 wire 变化、无 op 增删。
+把 `operation_registry.capability_tiers` 从三档（core / extension / deployment_local）扩到四档,新增 `interop_bridge` tier 用来标记"对外部协议（MIMI、Applet 等）的 adapter surface",并修复几处 surface 错位分组。动机:此前 `mimi_interop`、`applet` 与 `directory_discovery`、`blob_media` 等同被打上 `extension`,把"协议内可选 surface"与"对外部协议的桥接"压成同一类,导致 30% 操作看着像 extension —— 实际上前者属于 Cokret 规范本体的可选项,后者是独立外部规范的 adapter,生命周期/治理/profile 语义都不一样。本次只动 metadata,无 wire 变化、无 op 增删。
 
 - **变更类型**: modify(metadata-only:tier rename + surface split + 新字段 `bridges_to`)
 - **影响 artifact**: `contract_catalog`(operation_registry 段)、`operation_registry`(generated view)
@@ -1022,7 +1022,7 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
 
 - **变更类型**: modify（重命名 + 合并 — wire breaking）
 - **影响 artifact**: `operation_registry`、`capability_action_registry`、
-  `contrix-service-api.openapi.yaml`、`non-http-bindings.yaml`、
+  `cokret-service-api.openapi.yaml`、`non-http-bindings.yaml`、
   `conformance-profiles.json`
 - **canonical 变更**（`contract-catalog.json`）:
   - **新增** `cx.events.query`（HTTP `GET /events`、gRPC `Events/Query`、mq
@@ -1092,7 +1092,7 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
 
 ### `branches[]` → `tracks[]`（2026-05-08，Flow 能力面命名重构）
 
-把 Flow 的能力面字段从 `branch` 改名为 `track`。原命名暗含 git 风格的"版本派生"心智模型，与 Contrix
+把 Flow 的能力面字段从 `branch` 改名为 `track`。原命名暗含 git 风格的"版本派生"心智模型，与 Cokret
 中 Flow 多面共同推进的语义不符；`track`（多轨录音 / PM workstream tracks）更准确地表达"同一议题
 沿多条并行轨道演进"的设计意图。Synthesis 与 discussion 仍是 v1 标准 track name，profile 仍可声明
 更多 track name；只是承载它们的字段、event kind、schema $defs、constraint key 全部统一改名。
@@ -1101,7 +1101,7 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
 - **影响 artifact**: `event_kind_registry`、`capability_action_registry`、`schema_registry`、
   `error_code_registry`、`flow.schema.json`、`message.schema.json`、`event-schema.json`、
   `event-payload.schema.json`、`grant-constraint.schema.json`、`notification.schema.json`、
-  `read-receipt.schema.json`、`read-marker.schema.json`、`contrix-service-api.openapi.yaml`、
+  `read-receipt.schema.json`、`read-marker.schema.json`、`cokret-service-api.openapi.yaml`、
   `conformance-profiles.json`、`capability-fixture.json`
 - **canonical 变更**:
   - 字段重命名：`branches` → `tracks`、`branch` → `track`（在 Flow / Message / ReadReceipt /
@@ -1208,7 +1208,7 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
   kinds，之后 actor_profile 评审新增 `cx.profile.create` 把总数加回 110，参见下方 "actor_profile +
   gatekeeper 收尾" 一节）；`event-schema.json` 移除对应 if/then 分支与 `flow_convert_payload` $def；
   prose 全部改为 `cx.flow.track.set_primary` + `cx.flow.track.enable` 组合。
-- `cx:operation:` typed-id：从 `id_kind_registry` 删除（37 → 36）；`cx.schema.operation.v1` 从 schema_registry
+- `ck:operation:` typed-id：从 `id_kind_registry` 删除（37 → 36）；`cx.schema.operation.v1` 从 schema_registry
   删除（35 → 34）；`operation.schema.json` 与 zh 镜像完全删除；data-structures.md §18（Canonical
   Operation Object）删除，§19 Field Patch 重新编号为 §18。
 - `constraint.priority`：从 `grant-constraint.schema.json` properties 删除；§2.1 base schema 不再列
@@ -1258,13 +1258,13 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
 
 #### actor_profile + gatekeeper 收尾（2026-05-06，v1.0.0 release 锁定前）
 
-- **actor_profile object & `cx.profile.create`**：新增 `cx:actor_profile:` typed-id 和 `cx.profile.create`
+- **actor_profile object & `cx.profile.create`**：新增 `ck:actor_profile:` typed-id 和 `cx.profile.create`
   / `cx.profile.update` / `cx.profile.space_override` 三个 event kind；event_kind_registry 由 109 回到
   110 active kinds（id_kind_registry 仍保持 36，因为这次未删除其他 typed id，而 actor_profile 以独立
   kind 进入）。create payload 不再共享 `object_create_payload`：`cx.realm.create` / `cx.flow.create`
   / `cx.morph.create` 各自指向完整对象 schema，wire 校验直接走对象 schema。
 - **state_key 形态**：`cx.realm.policy.set` 的 `state_key=inheritance` 由常量改为
-  `inheritance:cx:realm:<ulid>` 模式（每个父 realm 一条），并把 `plaintext_visible_services` 显式纳入
+  `inheritance:ck:realm:<ulid>` 模式（每个父 realm 一条），并把 `plaintext_visible_services` 显式纳入
   state_payload enum 以保留 schema 强校验。
 - **encrypted_payload mutual exclusion**：message / flow / morph schemas 增加 `encrypted_payload` 字段，
   与 `content` / `body` 互斥；`message_create_payload` / `message_redact_payload` 由 anyOf 收紧到
@@ -1301,7 +1301,7 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
 
 #### 已废弃条目的 deprecation-only 过渡说明
 
-- `cx.flow.convert`、`cx.schema.operation.v1` / `cx:operation:`、`constraint.priority` 最初以
+- `cx.flow.convert`、`cx.schema.operation.v1` / `ck:operation:`、`constraint.priority` 最初以
   deprecation-only 方式标记；后续条目已经完成 wire contract 真删。
 - 正式 v1.0.0 以当前 `artifacts/registry/contract-catalog.json`、schema 与对应中文规范为准，不再把
   这些字段或注册表项声明为 active 兼容项。

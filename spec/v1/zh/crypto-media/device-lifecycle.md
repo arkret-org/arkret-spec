@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. Login & Authorization Boundaries
 
-去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Contrix 把以下三件事分开处理：
+去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Cokret 把以下三件事分开处理：
 
 - **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
@@ -20,7 +20,7 @@ updated: 2026-05-25
 
 ### 1.1 认证服务器验证什么
 
-Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根。它验证的是“某个登录会话是否可以被绑定到某个 DID principal / device”，而不是用用户名、密码、邮箱或 OIDC subject 直接定义主体所有权。
+Cokret 可以部署 Auth Service / Auth Gateway，但它不是协议身份根。它验证的是“某个登录会话是否可以被绑定到某个 DID principal / device”，而不是用用户名、密码、邮箱或 OIDC subject 直接定义主体所有权。
 
 实现 MAY 支持以下登录因子：
 
@@ -42,7 +42,7 @@ Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根�
 
 ### 1.2 登录、设备授权与设备验证的边界
 
-Contrix v1 把三件事分开处理：
+Cokret v1 把三件事分开处理：
 
 - **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
@@ -53,7 +53,7 @@ Contrix v1 把三件事分开处理：
 
 ## 2. 多设备配对 (Device Pairing)
 
-在 Contrix 中，用户的每个物理/逻辑设备都应该拥有本地独立生成的设备级密钥对 (Device Key)。
+在 Cokret 中，用户的每个物理/逻辑设备都应该拥有本地独立生成的设备级密钥对 (Device Key)。
 多设备登录的过程，本质上是“已授权设备将新设备加入身份控制网”的密码学授权过程。
 
 ### 2.1 配对流程 (无密码登录)
@@ -93,11 +93,11 @@ Contrix v1 把三件事分开处理：
 
 ## 4. Device Identity
 
-每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `cx:device:<uuid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
+每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `ck:device:<uuid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
 
 ```json
 {
-  "device_id": "cx:device:019640dd-8000-7000-8000-000000000000",
+  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
   "principal_id": "did:webvh:...",
   "display_name": "Alice iPhone",
   "algorithms": ["cx.mls.v1", "cx.hpke_x25519_aead_xchacha20poly1305.v1"],
@@ -121,7 +121,7 @@ Contrix v1 把三件事分开处理：
 
 ## 5. Signing Hierarchy
 
-Contrix 使用三层签名链：
+Cokret 使用三层签名链：
 
 - `principal_signing_key`：DID 控制层，负责发布和轮换账户级签名根。
 - `self_signing_key`：签名本 principal 的设备。
@@ -142,7 +142,7 @@ Schema id：`cx.schema.cross_signing_publish.v1`
   "actor_id": "did:webvh:...",
   "payload": {
     "principal_id": "did:webvh:...",
-    "trust_domain": "cx:trust_domain:did.webvh.example",
+    "trust_domain": "ck:trust_domain:did.webvh.example",
     "principal_signing_key": {
       "kid": "did:webvh:...#cx_principal_signing_v1",
       "alg": "EdDSA",
@@ -183,7 +183,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 ```json schema=schemas/cross-signing-publish.schema.json
 {
   "principal_id": "did:web:alice.example",
-  "trust_domain": "cx:trust_domain:did.webvh.example",
+  "trust_domain": "ck:trust_domain:did.webvh.example",
   "principal_signing_key": {
     "kid": "did:web:alice.example#cx_principal_signing_v1",
     "alg": "EdDSA",
@@ -223,7 +223,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `principal_signing_key` | required | PSK 当前公钥引用。`kid` MUST 出现在该 principal 当前 DID document 或 key-log head 的 verification methods 中；服务端不接受 `kid` 不在当前控制集中的 publish。 |
-| `trust_domain` | required | 部署级 trust domain（`cx:trust_domain:<scope>`）。Receiver MUST 在验证任一 binding 签名前先检查该值与当前接收上下文一致；不一致 MUST `cross_domain_replay_rejected`。 |
+| `trust_domain` | required | 部署级 trust domain（`ck:trust_domain:<scope>`）。Receiver MUST 在验证任一 binding 签名前先检查该值与当前接收上下文一致；不一致 MUST `cross_domain_replay_rejected`。 |
 | `self_signing_key` | required | SSK 公钥 + 由 PSK 对 canonical SSK record 的签名。`binding.verification_method` MUST 与 `principal_signing_key.kid` 相同 DID 控制集。 |
 | `user_signing_key` | required | USK 公钥 + 由 PSK 对 canonical USK record 的签名；MUST 与 `self_signing_key` 不同 `public_key`。 |
 | `expected_previous_generation` | required | CAS precondition。首次 publish 使用 `0`；后续 publish MUST 等于 receiver 当前 accepted generation。 |
@@ -266,7 +266,7 @@ DID-method history → principal_signing_key (PSK)
   "kind": "cx.device.authorize",
   "payload": {
     "principal_id": "did:webvh:...",
-    "device_id": "cx:device:...",
+    "device_id": "ck:device:...",
     "device_public_key": "z6Mk...",
     "cross_signing_binding": {
       "verification_method": "did:webvh:...#cx_self_signing_v1",
@@ -324,14 +324,14 @@ receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream
 
 ## 5a. Privacy-Preserving Push
 
-Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 Sync Service、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。
+Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sync Service、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。
 
 ### 5a.1 `push_target_id` 派生与作用域
 
 - 作用域：`per (recipient_service_did, principal_id, device_id, push_route)`。`recipient_service_did` 是当前 Realm membership delivery binding 指向的 Principal Server service DID；同一 DID 在个人 Principal Server 与组织 Principal Server 上注册同一物理设备时，MUST 使用互相不可链接的 `push_target_id`。`push_route` 标识同一设备上不同 push 通道（如 `apns_main`, `fcm_voip`, `webpush_default`），允许同一设备针对不同通道发布相互不可链接的伪名。
 - 长度：`push_target_id` MUST 至少 128 bit 熵，编码为 base64url（最少 22 字符）；推荐 256 bit。
 - 不可推导性：`push_target_id` MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码可推导。生成方式 SHOULD 是 device-local 随机；设备 MAY 用本地 secret 与 `push_route` 派生，前提是源 secret 不可被服务端取回。
-- 标识形态：典型 wire 形态为 typed ID `cx:pseudonym:push:<base64url>`，由 `id-kind-registry.json` 中 `pseudonym` 项授权使用；也可作为 raw base64url 字符串出现在 `cx.device.push_route` 等 actor-private state event payload 中。
+- 标识形态：典型 wire 形态为 typed ID `ck:pseudonym:push:<base64url>`，由 `id-kind-registry.json` 中 `pseudonym` 项授权使用；也可作为 raw base64url 字符串出现在 `cx.device.push_route` 等 actor-private state event payload 中。
 
 ### 5a.2 注册与撤销
 
@@ -367,10 +367,10 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
   "payload": {
     "principal_id": "did:webvh:...",
     "changed": [
-      "cx:device:01964137-0000-7000-8000-000000000000"
+      "ck:device:01964137-0000-7000-8000-000000000000"
     ],
     "left": [
-      "cx:device:01964138-0000-7000-8000-000000000000"
+      "ck:device:01964138-0000-7000-8000-000000000000"
     ],
     "stream_id": "devstream_42"
   }
@@ -439,12 +439,12 @@ Content-Type: application/json
 {
   "messages": {
     "did:web:alice.example.com": {
-      "cx:device:01964137-0000-7000-8000-000000000000": {
+      "ck:device:01964137-0000-7000-8000-000000000000": {
         "kind": "cx.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
           "transaction_id": "ver_123",
-          "from_device": "cx:device:01964137-8000-7000-8000-000000000000",
+          "from_device": "ck:device:01964137-8000-7000-8000-000000000000",
           "timestamp": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:10:00Z",
           "methods": [
@@ -599,7 +599,7 @@ POST /api/v1/keys/keypackages/revoke
 
 ### 10.1 标准消息类型
 
-Contrix 标准验证消息通过 to-device 通道发送：
+Cokret 标准验证消息通过 to-device 通道发送：
 
 - `cx.key.verification.request`
 - `cx.key.verification.ready`
@@ -739,7 +739,7 @@ Secret storage 用于保存：
 | MLS epoch / Realm history secret | `mls_history` |
 | 外部托管或 profile 自定义 account secret | `secret_storage` |
 
-每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `contrix-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
+每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `cokret-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
 
 Client-local secret storage 的存储格式仍可使用本节的 `cx.secret_storage.v1` envelope，但其字段不进入任何 wire / hash / 签名输入；服务端不接受该 envelope。
 
@@ -751,12 +751,12 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 
 ```json
 {
-  "backup_id": "cx:backup:01964138-8000-7000-8000-000000000000",
+  "backup_id": "ck:backup:01964138-8000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "mls_history",
   "backup_version": "kb_1",
-  "series_id": "cx:backup_series:01964138-1000-7000-8000-000000000000",
+  "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000000",
   "series_seq": 0,
   "supersedes": null,
   "created_at": "2026-04-26T00:00:00Z",
@@ -772,17 +772,17 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "contents": [
     {
       "item_type": "mls_epoch_secret",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "mls_group_id": "base64url",
       "epoch": 42,
-      "first_event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-      "last_event_id": "cx:event:019640ee-0000-7000-8000-000000000000"
+      "first_event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+      "last_event_id": "ck:event:019640ee-0000-7000-8000-000000000000"
     }
   ],
   "ciphertext": "base64url...",
   "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "auth_data": {
-    "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+    "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
     "signature_algorithm": "EdDSA",
     "signature": "base64url...",
@@ -845,7 +845,7 @@ DELETE /api/v1/keys/backups/{backup_id}
 | Profile | `delete_after` 默认 | `legal_hold` 行为 |
 | --- | --- | --- |
 | `cx.profile.personal_node.v1` | `null`（无自动过期） | clients-only flag；服务端不强制 |
-| `cx.profile.small_team.v1` | `null` | 仅在组织声明 `cx:policy:<id>` 允许时可置 `true` |
+| `cx.profile.small_team.v1` | `null` | 仅在组织声明 `ck:policy:<id>` 允许时可置 `true` |
 | `cx.profile.organization.v1` | 365d（可被 Realm policy 覆盖） | 服务端 MUST 在 `legal_hold=true` 时阻塞 user-initiated delete |
 | `cx.profile.high_security_organization.v1` | 90d | 服务端 MUST 强制 `legal_hold` 与审计配对 |
 | `cx.profile.sovereign_deployment.v1` | deployment-defined | 与本地法务合规框架对齐 |
@@ -860,7 +860,7 @@ DELETE /api/v1/keys/backups/{backup_id}
 
 ## 13. Realm Key Share and Withholding
 
-Contrix 使用 `cx.realm_key.share` 共享历史解密材料。共享前发送设备 MUST 检查：
+Cokret 使用 `cx.realm_key.share` 共享历史解密材料。共享前发送设备 MUST 检查：
 
 - 接收设备属于目标 principal。
 - 设备未撤销。
@@ -906,8 +906,8 @@ Schema id：`cx.schema.cross_signing_reset.v1`
   "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
   "payload": {
-    "trust_domain": "cx:trust_domain:did.webvh.example",
-    "reset_event_id": "cx:event:0196414c-5000-7000-8000-000000000000",
+    "trust_domain": "ck:trust_domain:did.webvh.example",
+    "reset_event_id": "ck:event:0196414c-5000-7000-8000-000000000000",
     "principal_id": "did:webvh:...",
     "previous_generation": 1,
     "new_generation": 2,
@@ -927,8 +927,8 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 
 ```json schema=schemas/cross-signing-reset.schema.json
 {
-  "trust_domain": "cx:trust_domain:did.webvh.example",
-  "reset_event_id": "cx:event:0196414c-5000-7000-8000-000000000000",
+  "trust_domain": "ck:trust_domain:did.webvh.example",
+  "reset_event_id": "ck:event:0196414c-5000-7000-8000-000000000000",
   "principal_id": "did:web:alice.example",
   "previous_generation": 1,
   "new_generation": 2,
@@ -972,8 +972,8 @@ canonical_json({
 
 **`trust_domain` 与 `reset_event_id` 绑定（normative）**：
 
-- `trust_domain` 是部署级的 trust 域标识，typed string，形如 `cx:trust_domain:<scope>`。它在每个 deployment 的 `ServiceDescribe.trust_domain` 与 Realm create object 的 `trust_domain` 中声明（详见 [`identity-did.md` §3.6 Trust Domain](../identity/identity-did.md)）。canonical input MUST 把当前 receive context 的 `trust_domain` 嵌入 proof transcript，使同一 principal DID 在 deployment A 签发的 reset proof 无法被 deployment B 重放——B 的 `trust_domain` 字符串不同，proof signature transcript 校验立即失败 (`invalid_signature`)。
-- `reset_event_id` 是承载该 reset 的 Event Envelope 的 `event_id`（typed `cx:event:<uuidv7>`），由 producer 在签名前分配。把它纳入 transcript 确保同一 reset proof 不能复用到另一个 Event shell（不同 `event_id` ⇒ 不同 transcript ⇒ 签名失败）。这关闭了"复制 reset proof bytes，包到新 Event 里重放"的攻击面。
+- `trust_domain` 是部署级的 trust 域标识，typed string，形如 `ck:trust_domain:<scope>`。它在每个 deployment 的 `ServiceDescribe.trust_domain` 与 Realm create object 的 `trust_domain` 中声明（详见 [`identity-did.md` §3.6 Trust Domain](../identity/identity-did.md)）。canonical input MUST 把当前 receive context 的 `trust_domain` 嵌入 proof transcript，使同一 principal DID 在 deployment A 签发的 reset proof 无法被 deployment B 重放——B 的 `trust_domain` 字符串不同，proof signature transcript 校验立即失败 (`invalid_signature`)。
+- `reset_event_id` 是承载该 reset 的 Event Envelope 的 `event_id`（typed `ck:event:<uuidv7>`），由 producer 在签名前分配。把它纳入 transcript 确保同一 reset proof 不能复用到另一个 Event shell（不同 `event_id` ⇒ 不同 transcript ⇒ 签名失败）。这关闭了"复制 reset proof bytes，包到新 Event 里重放"的攻击面。
 - 这两个字段同时是 `cx.cross_signing.reset` payload 的必填字段（[`cross-signing-reset.schema.json`](../../artifacts/schemas/cross-signing-reset.schema.json) `trust_domain` / `reset_event_id`）。
 - 接收方验证顺序：(a) 检查 `trust_domain` 与本 receiver 当前 trust 域一致；不一致直接 `cross_domain_replay_rejected`，不进入签名校验。(b) 检查 `reset_event_id == enclosing Event.event_id`；不一致 `reset_event_id_mismatch`。(c) 按上面 canonical input 重算 transcript 并验证每个 proof 的签名；任一不匹配 `invalid_signature`。
 - 多 deployment 部署、sovereign trust domain、recovery service 跨域复用、device quorum 跨 trust domain 都受这两个字段保护——任一变化都会让 transcript 失配。
@@ -1044,7 +1044,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
      "trust_domain": "<current trust domain>",
      "policy_id": "<active recovery policy id snapshotted by the session>",
      "policy_version": 1,
-     "recovery_session_id": "cx:recovery_session:<uuidv7>",
+     "recovery_session_id": "ck:recovery_session:<uuidv7>",
      "ssk_generation": 1,
      "challenge": "<256-bit base64url session challenge>",
      "created_at": "<session created_at>",

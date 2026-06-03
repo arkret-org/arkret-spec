@@ -13,7 +13,7 @@ updated: 2026-05-28
 ## 1. 目标
 
 Handle 是人类可读入口，不是权限主键。
-Contrix 使用 DID 作为稳定主体，用可验证 claim / attestation 表达 handle、组织成员、邮箱控制权和其他动态属性。
+Cokret 使用 DID 作为稳定主体，用可验证 claim / attestation 表达 handle、组织成员、邮箱控制权和其他动态属性。
 
 本文定义：
 
@@ -105,7 +105,7 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 | `<localpart>:<domain>` | **主形态** | DID Document `alsoKnownAs` 比对、claim proof 输入、Directory 缓存键、`handle` 字段 |
 | `acct:<localpart>@<domain>(:<port>)?` | 互通别名（RFC 7565） | 跨 Fediverse / WebFinger 边界对接；只能出现在 `handle_aliases[]`，不作为本协议内部 canonical 比对 |
 
-每个 handle 都有唯一的 `user:domain` 形态。`acct:` MAY 在 claim 的 `handle_aliases[]` 中作为附加字段出现，但 **alsoKnownAs 比对、Directory 缓存键、Realm `delivery_binding` 物化** 一律 MUST 使用 `user:domain` 形态。verifier 收到只含 `acct:` 而无对应 `user:domain` 的 claim 时，MUST 把它视为外部互通别名，不得用它作 Contrix 内部权威 binding。
+每个 handle 都有唯一的 `user:domain` 形态。`acct:` MAY 在 claim 的 `handle_aliases[]` 中作为附加字段出现，但 **alsoKnownAs 比对、Directory 缓存键、Realm `delivery_binding` 物化** 一律 MUST 使用 `user:domain` 形态。verifier 收到只含 `acct:` 而无对应 `user:domain` 的 claim 时，MUST 把它视为外部互通别名，不得用它作 Cokret 内部权威 binding。
 
 `handle` 的 wire 形态由 [`artifacts/schemas/handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 强制：必须匹配 `<localpart>:<domain>`，且 `<localpart>` 已 canonicalize 为小写。`@<localpart>:<domain>`、`<localpart>@<domain>`、`acct:`、裸 host 等其它形态在 `handle` 中被 schema 拒绝；客户端 MAY 接受这种字符串作为输入捷径，但 normalize 前 MUST 不出现在签名 transcript、`alsoKnownAs`、缓存键或 Directory query 中。`acct:` 互通别名只能进入 `handle_aliases[]`。
 
@@ -115,12 +115,12 @@ Handle 解析结果（无论来自 Directory、Principal Server、Organization c
 
 - `subject`：被寻址 handle holder 的 principal DID。
 - `handle`：canonical `user:domain` handle（主形态）。
-- `handle_aliases[]`：可选互通别名，例如 `acct:`；不得参与 Contrix 内部权威比对。
+- `handle_aliases[]`：可选互通别名，例如 `acct:`；不得参与 Cokret 内部权威比对。
 - `issuer`：签发 handle claim 的 DID。详见 §3.4。
 - `proofs`：至少一条可验证签名，绑定 `handle`、`subject`、`issuer`、`created_at`。
 - `created_at` / `expires_at`：claim 时间边界；`expires_at` 缺失等价于 `binding_state=unverified`。
 
-`subject` 使用 claim / credential 领域的命名，但在 v1 user handle 语义中它是**持有该 handle 的 holder / principal DID**，不是 Realm `actor_id`、Principal Server 内部 `account_id`、组织人事系统 identifier、service DID 或通用资源 id。Contrix v1 core 不把本节的 `handle` 泛化为任意资源 handle；如果后续要定义 organization / service / repository / room 等非用户 handle，必须使用独立 schema 或显式 `resource_kind` profile，不能复用 `cx.schema.handle_claim.v1` 的 `subject` 字段来隐式扩展语义。
+`subject` 使用 claim / credential 领域的命名，但在 v1 user handle 语义中它是**持有该 handle 的 holder / principal DID**，不是 Realm `actor_id`、Principal Server 内部 `account_id`、组织人事系统 identifier、service DID 或通用资源 id。Cokret v1 core 不把本节的 `handle` 泛化为任意资源 handle；如果后续要定义 organization / service / repository / room 等非用户 handle，必须使用独立 schema 或显式 `resource_kind` profile，不能复用 `cx.schema.handle_claim.v1` 的 `subject` 字段来隐式扩展语义。
 
 本节故意不使用 `actor_id` 作为 handle claim 绑定对象：`actor_id` 是 Realm 内 membership / Event actor 标识，在高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；同一 holder / principal 可以在不同 Realm 使用不同 `actor_id`，也可以在加入任何 Realm 前先获得 handle claim。handle claim 因此绑定到 holder / principal DID，并在 Realm 内通过当前 effective MemberIdentity 或授权 roster disclosure 建立 `actor_id -> subject_id` 的显示投影。
 
@@ -187,7 +187,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 实现 SHOULD 通过 Realm policy event 的 append-only 链支撑 as-of policy 重建；缺少历史的实现 MUST NOT 用"当前 policy + 历史 as_of"组合复算，与 `claim_set_snapshot` 同款约束。无法构造 as-of policy snapshot 时,replay MUST fail closed。
 
-主动 replay 调用方 MAY 显式传入目标 policy version（例如 `policy_version_ref: "cx:event:..."`）覆盖默认行为，前提是该 version 在 as_of 时刻确实是当时 effective 的 policy；实现 MUST 验证传入 version 与 as_of 一致，不一致 MUST 拒绝。
+主动 replay 调用方 MAY 显式传入目标 policy version（例如 `policy_version_ref: "ck:event:..."`）覆盖默认行为，前提是该 version 在 as_of 时刻确实是当时 effective 的 policy；实现 MUST 验证传入 version 与 as_of 一致，不一致 MUST 拒绝。
 
 **Step 0 — 候选集预过滤**（normative）：
 
@@ -291,13 +291,13 @@ primary handle 是显示语义；它**不**影响 actor_id 归因、grant subjec
 
 Handle 的权威生命周期属于 issuer，不属于用户 profile 或 Realm MemberIdentity event。`cx.profile.update`、`cx.profile.space_override`、`cx.member.identity.update` 中不得通过任意字段声明、覆盖、撤销或重分配 handle；这些事件最多影响 display name、avatar、subject disclosure 等 UI projection。验证器遇到这些事件中出现的非标准 handle 字段时 MUST 忽略或 schema-reject，不得把它们提升为 verified handle。
 
-Contrix v1 core **不定义**用户注册、handle 申请、邀请审批、管理员通知、管理员审批队列、重签 / 续期、namespace 保留策略、抢注仲裁、多 handle 策略或组织内部身份治理 API。这些流程属于 issuer / coauth / 部署本地治理面；不同 Principal Server、Organization 或自托管 issuer 可以按自己的合规、人事、IDP、邀请和审计要求实现。
+Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理员通知、管理员审批队列、重签 / 续期、namespace 保留策略、抢注仲裁、多 handle 策略或组织内部身份治理 API。这些流程属于 issuer / coauth / 部署本地治理面；不同 Principal Server、Organization 或自托管 issuer 可以按自己的合规、人事、IDP、邀请和审计要求实现。
 
 协议层只规定 consumption contract：
 
-1. 任何进入 Contrix roster、mention、directory resolve、delivery binding 或 UI verified display 的 handle MUST 来自可验证的 signed `cx.schema.handle_claim.v1`，或该 claim 的 digest / reference。
+1. 任何进入 Cokret roster、mention、directory resolve、delivery binding 或 UI verified display 的 handle MUST 来自可验证的 signed `cx.schema.handle_claim.v1`，或该 claim 的 digest / reference。
 2. issuer / coauth / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
-3. 这些外部流程一旦要把结果暴露给 Contrix 客户端或其它服务，MUST 输出 `cx.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
+3. 这些外部流程一旦要把结果暴露给 Cokret 客户端或其它服务，MUST 输出 `cx.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
 
 已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `cx.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，继续使用 `cx.directory.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
 
@@ -305,10 +305,10 @@ Contrix v1 core **不定义**用户注册、handle 申请、邀请审批、管�
 
 ### 3.2.3 Registration and Invitation Flows（informative）
 
-常见注册路径都在 Contrix core 之外完成，但进入 Contrix 后遵循同一 claim-led 模型：
+常见注册路径都在 Cokret core 之外完成，但进入 Cokret 后遵循同一 claim-led 模型：
 
 - **系统预分配 handle**：用户完成注册 / 首次登录后，coauth / issuer bootstrap MAY 直接把 signed `handle_claims[]` 交给客户端或服务端 roster cache。用户无需发 `set_handle` event。
-- **管理员邀请允许选择 handle**：邀请链接、pre-registration proof、审批通知和人工审核队列属于 coauth / issuer 策略。Contrix 只看到最终签发的 `cx.schema.handle_claim.v1`，或看不到任何 claim。
+- **管理员邀请允许选择 handle**：邀请链接、pre-registration proof、审批通知和人工审核队列属于 coauth / issuer 策略。Cokret 只看到最终签发的 `cx.schema.handle_claim.v1`，或看不到任何 claim。
 - **管理员后期修改现有用户 handle**：issuer 撤销 / 过期旧 claim 并签发新 claim。Realm history 中既有 messages、mentions 和 `cx.member.identity.update` 不被改写；当前渲染按新的 claim set 展示，历史 replay 按 as-of claim snapshot 展示。
 
 因此，"用户注册后是否必须主动发包含 handle 的 profile"的答案是 **否**。用户 MAY 发 profile / MemberIdentity 来设置 display name、avatar 或 subject disclosure；handle 只来自 issuer-signed claim。
@@ -327,7 +327,7 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical handle 形态可�
 
 | Issuer 类型 | 典型场景 | 验证锚点 |
 | --- | --- | --- |
-| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/contrix/handle?localpart=<localpart>` 或 DNS TXT `_contrix.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `<localpart>:<domain>`；两侧均验签通过。 |
+| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/cokret/handle?localpart=<localpart>` 或 DNS TXT `_contrix.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `<localpart>:<domain>`；两侧均验签通过。 |
 | **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:web:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
 | **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:web:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
 | **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；Directory 是镜像层，不是真相源。 |
@@ -367,7 +367,7 @@ Handle 按 holder 披露意图分两类：
 | `audience` | string | MUST | 目标 Realm ID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。 |
 | `issued_at` | timestamp | MUST | RFC 3339 `Z` 形式；issuer 签发该 candidate 的时刻。MUST ≤ `expires_at`；与 `expires_at` 一起界定 candidate 的有效窗口并阻止 MITM 把 `issued_at` 改写以扩大重放窗口。 |
 | `expires_at` | timestamp | MUST | RFC 3339 `Z` 形式；过期 candidate MUST 被视为不可用。 |
-| `source_refs[]` | event id 数组 | MUST | 至少一条 `cx:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |
+| `source_refs[]` | event id 数组 | MUST | 至少一条 `ck:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |
 | `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_did`、`audience`、`issuer_service_did`、`issued_at` 与 `expires_at`。`issued_at` MUST 进入 canonical transcript；缺失即视为重放窗口可篡改并拒绝。 |
 | `claim_digest` | `sha256:<hex>` | SHOULD | candidate 上游 handle claim 的 canonical JSON digest，用于缓存键与 audit chain。 |
 | `intent` | enum | MUST | `member_add` / `invite`，区分 candidate 的 builder 入口；reducer 不依赖该字段，仅用于审计与遥测。 |
@@ -544,7 +544,7 @@ Pairwise DID、临时 DID、设备 DID、agent 执行 DID 和隐私敏感关系 
 
 ### 4.1 `alsoKnownAs` 的窄用途
 
-`alsoKnownAs` 在 Contrix v1 协议层**只承担一件事**：为 §3.4 issuer claim 提供 holder 侧的反向背书，使公开 handle 的双向验证（§6）可独立于任何 issuer / Directory 完成。完整链路是：
+`alsoKnownAs` 在 Cokret v1 协议层**只承担一件事**：为 §3.4 issuer claim 提供 holder 侧的反向背书，使公开 handle 的双向验证（§6）可独立于任何 issuer / Directory 完成。完整链路是：
 
 ```text
 issuer claim:        handle → subject_id   (issuer 单方面签名声明)
@@ -577,7 +577,7 @@ Handle 解析分为两个方向：
 
 已知 handle 时，客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
-1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/contrix/handle?localpart=<localpart>`。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
+1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/cokret/handle?localpart=<localpart>`。响应是 `cx.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Principal Server 部署。
 2. **DNS TXT**：`_contrix.<domain>` 或 `_contrix.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
 3. **Directory / Organization 服务**：`POST /api/v1/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /api/v1/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `cx.schema.handle_claim.v1`。
@@ -622,14 +622,14 @@ Handle 解析示例：
   "claim_kind": "organization_handle",
   "visibility": "restricted",
   "binding_state": "verified",
-  "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "member_delivery_binding": {
     "recipient_service_did": "did:web:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-    "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001",
-    "policy_event_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
+    "service_acceptance_ref": "ck:event:0196419b-0000-7000-8000-000000000001",
+    "policy_event_ref": "ck:event:0196419b-0000-7000-8000-000000000002"
   },
   "created_at": "2026-05-19T00:00:00Z",
   "expires_at": "2026-08-19T00:00:00Z",
@@ -639,7 +639,7 @@ Handle 解析示例：
     "verification_method": "did:web:principal.acme.example#key-1",
     "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "created_at": "2026-05-19T00:00:00Z",
-    "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "jws": "aaa.bbb.ccc"
   }]
 }
@@ -778,7 +778,7 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 1. Alice 为 Google 关系使用 `did:key:z6Mkgpairwise...`
 2. Alice 为 Facebook 关系使用 `did:key:z6Mkfpairwise...`
 3. 两个 DID MUST NOT 复用相同 verification method、专用 service endpoint、endpoint 用户名、`alsoKnownAs` 或公开 profile URL
-4. Google 或受信 issuer 给 `did:key:z6Mkgpairwise...` 签发 `ContrixOrgMembershipCredential`
+4. Google 或受信 issuer 给 `did:key:z6Mkgpairwise...` 签发 `CokretOrgMembershipCredential`
 5. Facebook 或受信 issuer 给 `did:key:z6Mkfpairwise...` 签发独立 credential
 6. 面向 Google verifier 时，wallet 只生成 Google 相关 presentation
 7. Google verifier MUST NOT 要求披露 Facebook credential、Facebook DID 或跨域 subject identifier
@@ -856,7 +856,7 @@ Wallet SHOULD 拒绝或警告请求无关 handle、global subject identifier、c
 
 ## 13. Proof Profile
 
-Contrix SHOULD 支持：
+Cokret SHOULD 支持：
 
 - `sd_jwt_vc`：适合广泛 JOSE 互操作和 claim 级选择性披露
 - `vc_di_bbs_2023`：适合需要不可链接 derived proof 的高隐私场景
@@ -903,7 +903,7 @@ grant subject = alice@google.com
 
 ## 16. Progressive Disclosure（渐进披露）
 
-本节定义 Contrix 隐私信息渐进披露的端到端实现方案。渐进披露用于让 holder 只向特定 verifier / organization 披露完成某项验证所需的最小身份信息，例如：
+本节定义 Cokret 隐私信息渐进披露的端到端实现方案。渐进披露用于让 holder 只向特定 verifier / organization 披露完成某项验证所需的最小身份信息，例如：
 
 - 对 Google 披露 `alice@google.com`
 - 对 Facebook 披露 `alice@facebook.com`
@@ -936,7 +936,7 @@ grant subject = alice@google.com
 ```json
 {
   "kind": "cx.identity.presentation_request",
-  "request_id": "cx:request:d8764019-0000-7000-8000-000000000000",
+  "request_id": "ck:request:d8764019-0000-7000-8000-000000000000",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
   "domain": "google.example",
@@ -978,7 +978,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 ```json
 {
   "kind": "cx.identity.disclosure_policy",
-  "policy_id": "cx:policy:a1cb0019-0000-7000-8000-000000000000",
+  "policy_id": "ck:policy:a1cb0019-0000-7000-8000-000000000000",
   "holder_did": "did:web:holder.example.com",
   "audience": {
     "org_did": "did:web:google.example",
@@ -1015,7 +1015,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm�
 ```json
 {
   "kind": "cx.identity.presentation_response",
-  "request_id": "cx:request:d8764019-0000-7000-8000-000000000000",
+  "request_id": "ck:request:d8764019-0000-7000-8000-000000000000",
   "holder_subject": "did:key:z6Mkgpairwise...",
   "proof_profile": "vc_di_bbs_2023",
   "presentation": {},
@@ -1036,8 +1036,8 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 ```json
 {
   "kind": "cx.identity.disclosure_receipt",
-  "receipt_id": "cx:receipt:a1cb0019-0000-7000-8000-000000000000",
-  "request_id": "cx:request:d8764019-0000-7000-8000-000000000000",
+  "receipt_id": "ck:receipt:a1cb0019-0000-7000-8000-000000000000",
+  "request_id": "ck:request:d8764019-0000-7000-8000-000000000000",
   "holder_did": "did:key:z6Mkgpairwise...",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
@@ -1116,7 +1116,7 @@ Sync Service 与服务运营方 MUST NOT 获得原始 credential 内容、base p
 1. 双方都支持且 policy 要求元数据隐私时使用 `tsp`。
 2. 使用 verifier DID / 服务密钥的 `http_jwe`。
 3. 双方都支持时使用 `didcomm_like` envelope。
-4. verifier 是已知 Contrix 设备 / 服务端点时使用 `to_device`。
+4. verifier 是已知 Cokret 设备 / 服务端点时使用 `to_device`。
 5. holder 与 verifier 共享加密 DM Realm 时使用 `mls_dm`。
 
 若 policy 要求嵌套 / 路由级元数据隐私，而 verifier 不支持 TSP 或等价能力，wallet MUST 拒绝或请求用户显式覆盖。
@@ -1171,8 +1171,8 @@ Verifier MUST：
 
 - Handle 的 canonical wire form 是 `<localpart>:<domain>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证。**Wire-level canonical 比较(normative)**：issuer / registry / resolver 在做 handle 注册、claim 校验、§13 跨 issuer 冲突检测时，MUST 先对 `<localpart>` 与 `<domain>` 应用 Unicode NFC normalization，再应用 [UTS#39](https://www.unicode.org/reports/tr39/) confusable skeleton 折叠；比较与冲突判定 MUST 在折叠后的形态上执行。issuer / registry MUST 拒绝 *script-mixed* handle（同一 label 内同时含 Latin 与 Cyrillic / Greek / Armenian 等不同 script 字符，例如 `аcme.example` U+0430 + Latin 混排），以及 `hyphen-disallowed-position` 形态；违反者注册请求 `failed_precondition` `reason="handle_homograph_forbidden"`。显示层防混淆仍 MUST 实现，但不能替代 wire-level 检测。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
-  1. **Handle claim lifecycle 对象与 issuer / coauth 本地管理请求**：`cx.schema.handle_claim.v1`、issuer / coauth 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Contrix v1 core，但一旦在 Contrix wire 上作为 claim evidence 被消费，必须产出可验证的 `cx.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
-  2. **Discovery / Directory query 请求与响应**：`/.well-known/contrix/handle?localpart=...`、`POST /api/v1/directory/resolve-handle`、`POST /api/v1/directory/list-handles-for-subject` 等解析路径的输入与输出。
+  1. **Handle claim lifecycle 对象与 issuer / coauth 本地管理请求**：`cx.schema.handle_claim.v1`、issuer / coauth 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Cokret v1 core，但一旦在 Cokret wire 上作为 claim evidence 被消费，必须产出可验证的 `cx.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
+  2. **Discovery / Directory query 请求与响应**：`/.well-known/cokret/handle?localpart=...`、`POST /api/v1/directory/resolve-handle`、`POST /api/v1/directory/list-handles-for-subject` 等解析路径的输入与输出。
   3. **客户端入口解析瞬间**：用户键入 handle 字符串到客户端 → 客户端解析为 `subject_id` 的临时过程；解析完成后 handle 字符串 MUST NOT 作为权威字段写入持久化事件、Realm history、grant 记录、ACL 表或缓存键以外的存储。
 
   以下位置是**允许的派生投影 / audit 例外**，handle 字符串在其中不构成权威源：

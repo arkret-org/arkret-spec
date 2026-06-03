@@ -4,7 +4,7 @@
   "implementation": {
     "name": "teabay",
     "version": "0.1.0",
-    "role": "Contrix v1 Directory Service",
+    "role": "Cokret v1 Directory Service",
     "repository_hint": "../teabay"
   },
   "generated_at": "2026-05-10T18:10:58+08:00",

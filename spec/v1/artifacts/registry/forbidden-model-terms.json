@@ -1,5 +1,5 @@
 {
-  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "forbidden_model_terms",
   "source_of_truth": true,

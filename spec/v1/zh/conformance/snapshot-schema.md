@@ -16,31 +16,31 @@ sidebar:
 
 Snapshot 用于快速 bootstrap Realm 当前态。Snapshot 不是真相源；真相源仍然是 signed Event Envelope 和可验证 Event history。
 
-Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `cx:snapshot:*` typed identifier。其他对象、chunk payload、challenge 请求或 API hint 指向该 manifest 时使用 `snapshot_ref`；`_ref` 不用于 manifest 自身 primary identity。
+Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `ck:snapshot:*` typed identifier。其他对象、chunk payload、challenge 请求或 API hint 指向该 manifest 时使用 `snapshot_ref`；`_ref` 不用于 manifest 自身 primary identity。
 
 ## 2. Snapshot Manifest
 
 ```json
 {
-  "id": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "id": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "reducer_profile": "cx.reducer.v1",
   "security_class": "high_assurance",
   "schema_profile_refs": ["cx.profile.core_event_store.v1"],
   "frontier": {
-    "event_ids": ["cx:event:019640ed-8000-7000-8000-000000000000"],
+    "event_ids": ["ck:event:019640ed-8000-7000-8000-000000000000"],
     "timeline_hlc": "01970e589d21-0004-a13f9c2e"
   },
   "event_set_commitment": {
     "algorithm": "merkle_event_set_v1",
     "root": "sha256:...",
     "covered_event_count": 42000,
-    "covered_frontier": ["cx:event:019640ed-8000-7000-8000-000000000000"]
+    "covered_frontier": ["ck:event:019640ed-8000-7000-8000-000000000000"]
   },
   "state_digest": "sha256:...",
   "chunks": [
     {
-      "chunk_ref": "cx:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "chunk_ref": "ck:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "size_bytes": 524288
     }
@@ -60,7 +60,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
     "issuer": "did:web:server.example",
     "authority_kind": "realm_policy_snapshot_issuer",
     "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "auth_frontier": ["cx:event:019640ed-8000-7000-8000-000000000000"],
+    "auth_frontier": ["ck:event:019640ed-8000-7000-8000-000000000000"],
     "checked_at": "2026-04-26T00:00:00Z"
   },
   "signature": {
@@ -78,7 +78,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
 
 ```json
 {
-  "chunk_ref": "cx:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "chunk_ref": "ck:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   "size_bytes": 524288
 }
@@ -89,19 +89,19 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 ```json
 {
   "type": "snapshot_chunk",
-  "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
+  "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
   "index": 0,
   "reducer_profile": "cx.reducer.v1",
   "items": [
     {
       "kind": "flow",
-      "id": "cx:flow:019640c5-0000-7000-8000-000000000000",
+      "id": "ck:flow:019640c5-0000-7000-8000-000000000000",
       "object": {
-        "id": "cx:flow:019640c5-0000-7000-8000-000000000000",
+        "id": "ck:flow:019640c5-0000-7000-8000-000000000000",
         "kind": "flow",
         "schema": "cx.schema.flow.v1"
       },
-      "source_event_id": "cx:event:019640ed-8000-7000-8000-000000000000"
+      "source_event_id": "ck:event:019640ed-8000-7000-8000-000000000000"
     }
   ],
   "conflict_records": [],
@@ -191,12 +191,12 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ```json
 {
-  "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
-  "challenge_id": "cx:transaction:019640c8-8000-7000-8000-000000000000",
+  "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
+  "challenge_id": "ck:transaction:019640c8-8000-7000-8000-000000000000",
   "samples": [
     {
       "kind": "event_id",
-      "event_ids": ["cx:event:019640ed-8000-7000-8000-000000000000", "cx:event:019640ed-8000-7000-8000-000000000001"]
+      "event_ids": ["ck:event:019640ed-8000-7000-8000-000000000000", "ck:event:019640ed-8000-7000-8000-000000000001"]
     },
     {
       "kind": "actor_seq_range",
@@ -213,17 +213,17 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ```json
 {
-  "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
-  "challenge_id": "cx:transaction:019640c8-8000-7000-8000-000000000000",
+  "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
+  "challenge_id": "ck:transaction:019640c8-8000-7000-8000-000000000000",
   "commitment_algorithm": "merkle_event_set_v1",
   "commitment_root": "sha256:...",
   "proofs": [
     {
       "kind": "event_id",
-      "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+      "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
       "merkle_branch": ["sha256:...", "sha256:..."],
       "leaf_canonical_entry": {
-        "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+        "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
         "event_digest": "sha256:...",
         "actor_id": "did:webvh:...:alice.example",
         "actor_seq": 100,
@@ -236,7 +236,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
       "from_seq": 100,
       "to_seq": 199,
       "ordered_set_slice": [
-        {"event_id": "cx:event:...", "event_digest": "sha256:...", "actor_seq": 100, "hlc": "..."},
+        {"event_id": "ck:event:...", "event_digest": "sha256:...", "actor_seq": 100, "hlc": "..."},
         "..."
       ],
       "gap_attribution": [
@@ -275,10 +275,10 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 {
   "type": "encrypted_envelope",
   "encryption_profile": "mls_rfc9420",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "epoch": 42,
   "cleartext_metadata": {
-    "object_ref": "cx:message:...",
+    "object_ref": "ck:message:...",
     "event_kind": "cx.message.create"
   },
   "ciphertext": "base64url...",

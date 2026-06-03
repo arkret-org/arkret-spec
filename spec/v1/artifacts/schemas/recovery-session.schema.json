@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/recovery-session.schema.json",
-  "title": "Contrix Recovery Session",
+  "$id": "https://cokret.io/artifacts/schemas/recovery-session.schema.json",
+  "title": "Cokret Recovery Session",
   "description": "Wire contract for the device recovery session state machine. The root object is the create/get response shape; request/response helper shapes and the principal_signing proof transcript live in $defs. See zh/crypto-media/device-lifecycle.md §15.",
   "$ref": "#/$defs/session",
   "$defs": {
@@ -24,19 +24,19 @@
     },
     "policy_id": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "device_id": {
       "type": "string",
-      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "recovery_session_id": {
       "type": "string",
-      "pattern": "^cx:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "trust_domain": {
       "type": "string",
-      "pattern": "^cx:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
+      "pattern": "^ck:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
     },
     "challenge": {
       "type": "string",
@@ -383,7 +383,7 @@
     },
     "event_id": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "complete_request": {
       "type": "object",
@@ -433,12 +433,12 @@
         },
         "authorization_event_id": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Accepted cx.device.authorize event emitted to the principal control stream."
         },
         "device_list_update_event_id": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Accepted cx.device.list_update event emitted to the principal control stream."
         }
       },

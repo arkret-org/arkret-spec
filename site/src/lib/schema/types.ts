@@ -1,6 +1,6 @@
 /**
  * Lightweight JSON Schema types restricted to the subset used by the
- * Contrix artifact corpus. We do not aim to be a full JSON Schema 2020-12
+ * Cokret artifact corpus. We do not aim to be a full JSON Schema 2020-12
  * implementation — only what we actually render.
  */
 export interface JsonSchema {

@@ -4,28 +4,28 @@
   "collection_projection": {
     "projection": "collection",
     "renderer": "board",
-    "view_id": "cx:view:019641be-0000-7000-8000-000000000000",
+    "view_id": "ck:view:019641be-0000-7000-8000-000000000000",
     "frontier": {
       "state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "event_ids": [
-        "cx:event:019640ed-8000-7000-8000-000000000000"
+        "ck:event:019640ed-8000-7000-8000-000000000000"
       ]
     },
     "groups": [
       {
-        "id": "cx:space:01964010-8400-7000-8000-000000000000",
+        "id": "ck:space:01964010-8400-7000-8000-000000000000",
         "title": "Todo",
         "items": [
           {
             "object": {
-              "id": "cx:flow:019640c5-0400-7000-8000-000000000000",
+              "id": "ck:flow:019640c5-0400-7000-8000-000000000000",
               "title": "Legal review"
             },
             "item_render": "card",
             "position": {
               "model": "relation",
-              "container_id": "cx:space:01964010-8400-7000-8000-000000000000",
-              "relation_id": "cx:relation:01964187-0400-7000-8000-000000000000",
+              "container_id": "ck:space:01964010-8400-7000-8000-000000000000",
+              "relation_id": "ck:relation:01964187-0400-7000-8000-000000000000",
               "rank": "U"
             },
             "permissions": [
@@ -41,7 +41,7 @@
     ]
   },
   "flow_discussion_timeline": {
-    "flow_id": "cx:flow:01964180-0000-7000-8000-000000000000",
+    "flow_id": "ck:flow:01964180-0000-7000-8000-000000000000",
     "ordering": [
       "causal_depth",
       "hlc",
@@ -51,21 +51,21 @@
     ],
     "entries": [
       {
-        "event_id": "cx:event:01964147-0000-7000-8000-000000000000",
-        "message_id": "cx:message:01964147-0000-7000-8000-000000000000",
-        "flow_id": "cx:flow:01964180-0000-7000-8000-000000000000",
+        "event_id": "ck:event:01964147-0000-7000-8000-000000000000",
+        "message_id": "ck:message:01964147-0000-7000-8000-000000000000",
+        "flow_id": "ck:flow:01964180-0000-7000-8000-000000000000",
         "decryption_state": "cleartext"
       }
     ],
-    "next_cursor": "cx:cursor:eyJoIjoiYjNCaGNYVmxMWE4wY21WaGJTMW9ZVzVrYkdVIiwicHVycG9zZSI6InN0cmVhbSIsInQiOiIyMDI2LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6MTc5ODc2MTU5OTAwMH0",
+    "next_cursor": "ck:cursor:eyJoIjoiYjNCaGNYVmxMWE4wY21WaGJTMW9ZVzVrYkdVIiwicHVycG9zZSI6InN0cmVhbSIsInQiOiIyMDI2LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6MTc5ODc2MTU5OTAwMH0",
     "limited": false
   },
   "cursor_gap_recovery": {
     "request": {
-      "after": "cx:cursor:eyJoIjoiWlhod2FYSmxaQzF6ZEhKbFlXMHRhR0Z1Wkd4bCIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE3NjcyMjU2MDAwMDB9",
+      "after": "ck:cursor:eyJoIjoiWlhod2FYSmxaQzF6ZEhKbFlXMHRhR0Z1Wkd4bCIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE3NjcyMjU2MDAwMDB9",
       "filter": {
         "realm_ids": [
-          "cx:realm:0196419b-0000-7000-8000-000000000000"
+          "ck:realm:0196419b-0000-7000-8000-000000000000"
         ]
       }
     },
@@ -74,16 +74,16 @@
       "http_status": 410,
       "recovery": {
         "call": "cx.snapshot.head",
-        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
       }
     }
   },
   "snapshot_frontier_recovery": {
-    "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
+    "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
     "state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "frontier": {
       "event_ids": [
-        "cx:event:019640ed-8000-7000-8000-000000000000"
+        "ck:event:019640ed-8000-7000-8000-000000000000"
       ],
       "timeline_hlc": "01970e589d21-0001-a13f9c2e"
     },
@@ -92,20 +92,20 @@
       "root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "covered_event_count": 1,
       "covered_frontier": [
-        "cx:event:019640ed-8000-7000-8000-000000000000"
+        "ck:event:019640ed-8000-7000-8000-000000000000"
       ]
     },
     "expected": {
       "verify_signature": true,
       "verify_event_set_commitment": true,
       "backfill_after": [
-        "cx:event:019640ed-8000-7000-8000-000000000000"
+        "ck:event:019640ed-8000-7000-8000-000000000000"
       ]
     }
   },
   "e2ee_decryption_pending": {
-    "event_id": "cx:event:01964140-8000-7000-8000-000000000000",
-    "flow_id": "cx:flow:01964180-0000-7000-8000-000000000000",
+    "event_id": "ck:event:01964140-8000-7000-8000-000000000000",
+    "flow_id": "ck:flow:01964180-0000-7000-8000-000000000000",
     "mls_epoch": 7,
     "client_missing": [
       "welcome",

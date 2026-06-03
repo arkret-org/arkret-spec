@@ -2,7 +2,7 @@
 """Bulk-rename ULID terminology to UUIDv7 in all prose / schema text.
 
 Replacements:
-  - `<ulid>`   → `<uuid>`        (placeholder in cx:<kind>:<ulid> templates)
+  - `<ulid>`   → `<uuid>`        (placeholder in ck:<kind>:<ulid> templates)
   - `typed ULID` / `typed-ULID` / `typed-ULID pattern` → `typed UUIDv7` / `typed-UUIDv7`
   - 全角 ULID variants → UUIDv7
   - "26 字符" / "26 char" / "26-character" → "36 字符" / "36 char" / "36-character"

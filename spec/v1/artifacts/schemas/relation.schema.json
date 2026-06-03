@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/relation.schema.json",
-  "title": "Contrix Relation",
+  "$id": "https://cokret.io/artifacts/schemas/relation.schema.json",
+  "title": "Cokret Relation",
   "type": "object",
   "required": [
     "id",
@@ -16,18 +16,18 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.relation.v1"
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "scope_circle_id": {
       "type": "string",
-      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For weak-semantic privacy edges (confidential_discussion_of, agent_sidecar_of) the relation fact MUST be submitted with scope_circle_id pointing to the private Flow's Circle, so effective_scope=circle and non-members cannot enumerate the edge from the public endpoint (relation.md §3.2). For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1)."
     },
     "effective_scope": {
@@ -111,7 +111,7 @@
             "kind": { "const": "realm" },
             "realm_id": {
               "type": "string",
-              "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           },
           "additionalProperties": false
@@ -123,11 +123,11 @@
             "kind": { "const": "circle" },
             "realm_id": {
               "type": "string",
-              "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "circle_id": {
               "type": "string",
-              "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           },
           "additionalProperties": false
@@ -136,7 +136,7 @@
     },
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(realm|space|actor_profile|flow|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:(sha256|sha3_256|blake3):[0-9a-f]{64}|cx:blob:sha512:[0-9a-f]{128}|did:.+)$",
+      "pattern": "^(ck:(realm|space|actor_profile|flow|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:(sha256|sha3_256|blake3):[0-9a-f]{64}|ck:blob:sha512:[0-9a-f]{128}|did:.+)$",
       "description": "Typed canonical reference. Allowed kinds: realm, space, actor_profile, flow, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (sha256 / sha3_256 / blake3 / sha512), or DID. Space is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The sha512 form is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
     },
     "did": {

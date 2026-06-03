@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lint Contrix prose specification (`spec/v1/zh/**/*.md`).
+"""Lint Cokret prose specification (`spec/v1/zh/**/*.md`).
 
 P0/P1 checks aligned with `_improve.md`:
 
@@ -303,7 +303,7 @@ def iter_targets(paths: Iterable[Path]) -> Iterable[Path]:
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Lint Contrix prose spec.")
+    parser = argparse.ArgumentParser(description="Lint Cokret prose spec.")
     parser.add_argument(
         "paths",
         nargs="*",

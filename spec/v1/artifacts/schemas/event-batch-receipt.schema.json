@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/event-batch-receipt.schema.json",
-  "title": "Contrix Event Batch Receipt",
+  "$id": "https://cokret.io/artifacts/schemas/event-batch-receipt.schema.json",
+  "title": "Cokret Event Batch Receipt",
   "type": "object",
   "required": [
     "receipt_id",
@@ -16,7 +16,7 @@
   "properties": {
     "receipt_id": {
       "type": "string",
-      "pattern": "^cx:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.event_batch_receipt.v1"
@@ -32,7 +32,7 @@
         },
         "realm_id": {
           "type": "string",
-          "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "query_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/hash"

@@ -26,9 +26,9 @@ updated: 2026-05-25
 
 ### 1.1 目标
 
-本文定义 Contrix canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 与 encrypted envelope digest 的一致性测试向量。
+本文定义 Cokret canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 与 encrypted envelope digest 的一致性测试向量。
 
-这些向量是 `encoding.md` 的测试化补充。实现只要在 hash 输入、字段排序、签名绑定或时间排序上产生差异，就不能声称与 Contrix v1 编码 profile 互操作。
+这些向量是 `encoding.md` 的测试化补充。实现只要在 hash 输入、字段排序、签名绑定或时间排序上产生差异，就不能声称与 Cokret v1 编码 profile 互操作。
 
 ### 1.2 通用规则
 
@@ -182,7 +182,7 @@ cx.vector.encoding.reject_duplicate_key.v1
 输入 bytes（UTF-8 文本，未经 parser 去重；同一层出现两个 `event_id`）：
 
 ```text
-{"event_id":"cx:event:019640ed-8000-7000-8000-000000000000","event_id":"cx:event:019640ed-8000-7000-8000-000000000001"}
+{"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","event_id":"ck:event:019640ed-8000-7000-8000-000000000001"}
 ```
 
 期望：
@@ -263,9 +263,9 @@ cx.vector.encoding.event_digest.v1
 
 ```json
 {
-  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "kind": "cx.message.create",
-  "realm_id": "cx:realm:01964137-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -275,22 +275,22 @@ cx.vector.encoding.event_digest.v1
   "preconditions": [],
   "effects": [
     {
-      "cell": "cx:cell:message:019640ed-8000-7000-8000-000000000000",
+      "cell": "ck:cell:message:019640ed-8000-7000-8000-000000000000",
       "op": {
         "kind": "append",
         "value": {
-          "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
-          "message_id": "cx:message:019640ed-8000-7000-8000-000000000000",
+          "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
+          "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
           "track_name": "discussion"
         }
       }
     }
   ],
-  "anchor_ref": "cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "anchor_ref": "ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "payload": {
-    "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
+    "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
     "track_name": "discussion",
-    "message_id": "cx:message:019640ed-8000-7000-8000-000000000000",
+    "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
     "content": {
       "kind": "cx.content.text",
       "body": "hello"
@@ -302,7 +302,7 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"anchor_ref":"cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222","created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"cx:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000","message_id":"cx:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"cx:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000","message_id":"cx:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"preconditions":[],"prev_refs":[],"realm_id":"cx:realm:01964137-0000-7000-8000-000000000000","refs":[]}
+{"actor_id":"did:web:alice.example","actor_seq":1,"anchor_ref":"ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222","created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"preconditions":[],"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[]}
 ```
 
 期望 digest：
@@ -313,7 +313,7 @@ sha256:297487d820da12ad42ffffbbb82b53dd01ddf48911b650c38f5b19a127c587a4
 
 判定规则：
 
-- event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `cx:event:*` typed ID，必须进入 digest，但不替代 digest。
+- event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `ck:event:*` typed ID，必须进入 digest，但不替代 digest。
 - 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
 - 同一事件在不同 Events API 或 Sync Service 上 MUST 得到相同 digest。
 
@@ -330,7 +330,7 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 ```json
 {
   "schema": "cx.schema.event_batch_receipt.v1",
-  "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
+  "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
   "receipt_scope": {
     "actor_id": "did:web:alice.example"
@@ -349,7 +349,7 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01964186-0000-7000-8000-000000000000","receipt_scope":{"actor_id":"did:web:alice.example"},"schema":"cx.schema.event_batch_receipt.v1"}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"ck:receipt:01964186-0000-7000-8000-000000000000","receipt_scope":{"actor_id":"did:web:alice.example"},"schema":"cx.schema.event_batch_receipt.v1"}
 ```
 
 期望 digest：
@@ -510,7 +510,7 @@ cx.vector.encoding.cursor_opaque.core.v1
 输入 cursor（schema-valid v1 core wire 形态；body 是 stateful opaque handle `{v,purpose,t,x,h}`）：
 
 ```text
-cx:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9
+ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9
 ```
 
 cursor base64url 解码后对应 canonical JSON：
@@ -543,7 +543,7 @@ cx.vector.encoding.cursor_opaque.stateless_profile.v1
 输入 cursor（stateless profile overlay 形态）：
 
 ```text
-cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0
+ck:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0
 ```
 
 stateless profile 服务端 MUST 验证 `issuer_kid`、`s` frontier、`x` 和 `_mac` / `_sig` transcript；客户端仍 MUST 把整个 cursor 当作 opaque string，不得解析 `s.<realm_id>.p/o/h` 构造请求。
@@ -799,7 +799,7 @@ cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
 
 输入与期望（多 case 矩阵）：
 
-1. **Base case**：构造 Anchor body fields `{realm_id, predecessor_refs, frontier, state_root, anchored_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `anchor_canonical_bytes`；`id = "cx:anchor:sha256:" || hex(H(anchor_canonical_bytes))`；`anchorer_signature.payload_digest == H(anchor_canonical_bytes)`。Verifier MUST accept。
+1. **Base case**：构造 Anchor body fields `{realm_id, predecessor_refs, frontier, state_root, anchored_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `anchor_canonical_bytes`；`id = "ck:anchor:sha256:" || hex(H(anchor_canonical_bytes))`；`anchorer_signature.payload_digest == H(anchor_canonical_bytes)`。Verifier MUST accept。
 2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `anchor_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
 3. **sig-in-canonical-bytes attack**：若 producer 把 `anchorer_signature` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
 4. **key reorder attack**：取 valid Anchor，把 canonical JSON key 顺序打乱（例如 `frontier` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
@@ -873,7 +873,7 @@ cx.vector.flow_tracks_update.atomic.v1
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`（`tracks` 是 map，不是 unique-key 数组）。
-- `cx.flow.tracks.update` 写入的 cell 是 `cx:cell:cx.component.flow.tracks.v1:<flow_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
+- `cx.flow.tracks.update` 写入的 cell 是 `ck:cell:cx.component.flow.tracks.v1:<flow_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
 
 失败条件：
 
@@ -909,16 +909,16 @@ cx.vector.redaction.preserve_fields.v1
 ```json
 {
   "target_event": {
-    "event_id": "cx:event:0196414c-3000-7000-8000-000000000000",
+    "event_id": "ck:event:0196414c-3000-7000-8000-000000000000",
     "kind": "cx.message.create",
-    "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:00Z",
     "hlc": "01970e589d24-0001-aaaaaaaa",
     "prev_refs": [],
     "refs": [],
     "payload": {
-      "flow_id": "cx:flow:0196414c-3400-7000-8000-000000000000",
+      "flow_id": "ck:flow:0196414c-3400-7000-8000-000000000000",
       "content": {
         "kind": "cx.content.text",
         "body": "private notes"
@@ -940,20 +940,20 @@ cx.vector.redaction.preserve_fields.v1
     }
   },
   "redaction_event": {
-    "event_id": "cx:event:0196418a-0360-7000-8000-000000000000",
+    "event_id": "ck:event:0196418a-0360-7000-8000-000000000000",
     "kind": "cx.redaction",
-    "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:02Z",
     "hlc": "01970e589d24-0002-bbbbbbbb",
     "prev_refs": [
-      "cx:event:0196414c-3000-7000-8000-000000000000"
+      "ck:event:0196414c-3000-7000-8000-000000000000"
     ],
     "refs": [
-      { "id": "cx:event:019640c5-5800-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ck:event:019640c5-5800-7000-8000-000000000000", "role": "authorized_by", "critical": true }
     ],
     "payload": {
-      "redacts": "cx:event:0196414c-3000-7000-8000-000000000000",
+      "redacts": "ck:event:0196414c-3000-7000-8000-000000000000",
       "reason_code": "policy_recall"
     }
   }
@@ -964,7 +964,7 @@ cx.vector.redaction.preserve_fields.v1
 
 ```json
 {
-  "event_id": "cx:event:0196414c-3000-7000-8000-000000000000",
+  "event_id": "ck:event:0196414c-3000-7000-8000-000000000000",
   "state": "redacted",
   "kept_envelope_fields": [
     "event_id",
@@ -1013,14 +1013,14 @@ cx.vector.redaction.space_target_ref_schema.v1
 
 ```json schema=schemas/event-payload.schema.json#/$defs/object_lifecycle_payload
 {
-  "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
+  "target_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
   "reason": "privacy_cleanup"
 }
 ```
 
 期望结果：
 
-- Payload schema MUST 接受 `cx:space:*` 作为 `cx.redaction` 的 `target_ref` / `object_ref`。
+- Payload schema MUST 接受 `ck:space:*` 作为 `cx.redaction` 的 `target_ref` / `object_ref`。
 - Reducer 语义仍按 Space 生命周期规则执行：Space 没有独立 `redacted` state，内容清理合并到 Space metadata cleanup / terminal transition；不得因 schema 漏洞把 Space cleanup 路径降级为实现私有扩展。
 
 ### 3.3 Vector: redaction 与 policy scope
@@ -1042,13 +1042,13 @@ cx.vector.redaction.policy_scope.v1
 {
   "timeline": [
     {
-      "event_id": "cx:event:0196417d-8400-7000-8000-000000000000",
+      "event_id": "ck:event:0196417d-8400-7000-8000-000000000000",
       "kind": "cx.message.create",
-      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "payload": {
-        "flow_id": "cx:flow:0196417d-8400-7000-8000-000000000000",
+        "flow_id": "ck:flow:0196417d-8400-7000-8000-000000000000",
         "content": {
           "kind": "cx.content.text",
           "body": "bad link: spam.example/phish"
@@ -1056,25 +1056,25 @@ cx.vector.redaction.policy_scope.v1
       }
     },
     {
-      "event_id": "cx:event:0196417d-8980-7000-8000-000000000000",
+      "event_id": "ck:event:0196417d-8980-7000-8000-000000000000",
       "kind": "cx.policy.action",
-      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
       "actor_id": "did:web:policy-bot.example.com",
       "payload": {
-        "target_id": "cx:event:0196417d-8400-7000-8000-000000000000",
+        "target_id": "ck:event:0196417d-8400-7000-8000-000000000000",
         "policy_scope": "public",
         "decision": "quarantine"
       }
     },
     {
-      "event_id": "cx:event:0196417d-8f00-7000-8000-000000000000",
+      "event_id": "ck:event:0196417d-8f00-7000-8000-000000000000",
       "kind": "cx.redaction",
-      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:policy-admin.example",
       "payload": {
-        "redacts": "cx:event:0196417d-8400-7000-8000-000000000000",
+        "redacts": "ck:event:0196417d-8400-7000-8000-000000000000",
         "reason_code": "policy_recall"
       }
     }
@@ -1197,17 +1197,17 @@ cx.vector.capability.delegate_chain.v1
   },
   "delegations": [
     {
-      "event_id": "cx:event:019640d0-c000-7000-8000-000000000000",
+      "event_id": "ck:event:019640d0-c000-7000-8000-000000000000",
       "kind": "cx.capability.delegate",
-      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:root-admin.example.com",
       "payload": {
-        "parent_grant_id": "cx:grant:019640d0-b800-7000-8000-000000000000",
+        "parent_grant_id": "ck:grant:019640d0-b800-7000-8000-000000000000",
         "subject": "did:web:ops.example.com",
         "resources": [
           {
             "kind": "realm",
-            "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+            "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
             "match_scope": "realm_wide"
           }
         ],
@@ -1231,21 +1231,21 @@ cx.vector.capability.delegate_chain.v1
         ]
       },
       "refs": [
-      { "id": "cx:event:01964180-0350-72ab-a000-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ck:event:01964180-0350-72ab-a000-000000000000", "role": "authorized_by", "critical": true }
     ]
     },
     {
-      "event_id": "cx:event:019640d0-c400-7000-8000-000000000000",
+      "event_id": "ck:event:019640d0-c400-7000-8000-000000000000",
       "kind": "cx.capability.delegate",
-      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:ops.example.com",
       "payload": {
-        "parent_grant_id": "cx:grant:019640d0-c000-7000-8000-000000000000",
+        "parent_grant_id": "ck:grant:019640d0-c000-7000-8000-000000000000",
         "subject": "did:web:intern.example.com",
         "resources": [
           {
             "kind": "realm",
-            "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+            "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
             "match_scope": "realm_wide"
           }
         ],
@@ -1270,14 +1270,14 @@ cx.vector.capability.delegate_chain.v1
         ]
       },
       "refs": [
-      { "id": "cx:event:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ck:event:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
     ]
     }
   ],
   "action_query": {
     "actor_id": "did:web:intern.example.com",
     "action": "cx.invite.create",
-    "resource": "cx:realm:0196414c-8000-7000-8000-000000000000",
+    "resource": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "request_time": "2026-04-26T01:00:00Z",
     "request_audience": "did:web:vendor.example"
   }
@@ -1290,9 +1290,9 @@ cx.vector.capability.delegate_chain.v1
 {
   "authorized": true,
   "valid_chain": [
-    "cx:event:01964180-0350-72ab-a000-000000000000",
-    "cx:event:019640d0-c000-7000-8000-000000000000",
-    "cx:event:019640d0-c400-7000-8000-000000000000"
+    "ck:event:01964180-0350-72ab-a000-000000000000",
+    "ck:event:019640d0-c000-7000-8000-000000000000",
+    "ck:event:019640d0-c400-7000-8000-000000000000"
   ],
   "constraints_checked": {
     "time": true,
@@ -1323,10 +1323,10 @@ cx.vector.capability.revoke_rollback.v1
 {
   "events": [
     {
-      "event_id": "cx:event:01964101-2800-7000-8000-000000000000",
+      "event_id": "ck:event:01964101-2800-7000-8000-000000000000",
       "kind": "cx.capability.grant",
       "payload": {
-        "grant_id": "cx:grant:01964101-2800-7000-8000-000000000000",
+        "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000",
         "subject": "did:web:alice.example.com",
         "actions": [
           "cx.message.create"
@@ -1335,15 +1335,15 @@ cx.vector.capability.revoke_rollback.v1
       "created_at": "2026-04-26T00:00:00Z"
     },
     {
-      "event_id": "cx:event:01964181-2800-7000-8000-000000000000",
+      "event_id": "ck:event:01964181-2800-7000-8000-000000000000",
       "kind": "cx.capability.revoke",
       "payload": {
-        "grant_id": "cx:grant:01964101-2800-7000-8000-000000000000"
+        "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000"
       },
       "created_at": "2026-04-26T00:00:01Z"
     },
     {
-      "event_id": "cx:event:019641d1-2800-7000-8000-000000000000",
+      "event_id": "ck:event:019641d1-2800-7000-8000-000000000000",
       "kind": "cx.member.state",
       "payload": {
         "actor_id": "did:web:alice.example.com",
@@ -1352,24 +1352,24 @@ cx.vector.capability.revoke_rollback.v1
       "created_at": "2026-04-26T00:00:02Z"
     },
     {
-      "event_id": "cx:event:0196414c-c04a-7000-8000-000000000000",
+      "event_id": "ck:event:0196414c-c04a-7000-8000-000000000000",
       "kind": "cx.message.create",
       "actor_id": "did:web:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
       "payload": {
-        "flow_id": "cx:flow:0196418d-cc00-7000-8000-000000000000",
+        "flow_id": "ck:flow:0196418d-cc00-7000-8000-000000000000",
         "content": {
           "kind": "cx.content.text",
           "body": "should_fail_if_revoke_applies"
         }
       },
       "prev_refs": [
-        "cx:event:019641d1-2800-7000-8000-000000000000"
+        "ck:event:019641d1-2800-7000-8000-000000000000"
       ]
     }
   ],
   "rollback": {
-    "target_event_id": "cx:event:01964181-2800-7000-8000-000000000000",
+    "target_event_id": "ck:event:01964181-2800-7000-8000-000000000000",
     "reason": "revoke_undo_invalid_signature"
   }
 }
@@ -1377,7 +1377,7 @@ cx.vector.capability.revoke_rollback.v1
 
 期望输出：
 
-- 初始解析：`cx:event:0196414c-c04a-7000-8000-000000000000` 因 revoke 生效应拒绝或标记 soft-fail/rejected（取决于实现策略）。
+- 初始解析：`ck:event:0196414c-c04a-7000-8000-000000000000` 因 revoke 生效应拒绝或标记 soft-fail/rejected（取决于实现策略）。
 - 回滚 revoke 后重算：同一事件在回滚前瞻分析中应变为 authorized。
 - 回滚必须产生独立可审计结果，不可直接修改历史事件链的 event_id。
 
@@ -1399,10 +1399,10 @@ cx.vector.capability.approval_constraint.v1
 ```json
 {
   "event": {
-    "event_id": "cx:event:01964148-a800-7000-8000-000000000000",
+    "event_id": "ck:event:01964148-a800-7000-8000-000000000000",
     "kind": "cx.policy.action",
     "actor_id": "did:web:contractor.example",
-    "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
       "action": "cx.realm.admin",
@@ -1411,7 +1411,7 @@ cx.vector.capability.approval_constraint.v1
       "policy_scope": "realm:01js0ms000000000000000000"
     },
     "refs": [
-      { "id": "cx:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ck:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
     ]
   },
   "capabilities": [
@@ -1472,7 +1472,7 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "actor_id": "did:web:actor-a.example.com",
   "actor_seq": 1,
   "hlc": "019b76daa800-0000-a0000000",
@@ -1480,7 +1480,7 @@ cx.vector.capability.approval_constraint.v1
   "refs": [],
   "kind": "cx.flow.update",
   "unsigned": {
-    "target_ref_hint": "cx:flow:019640c5-0000-7000-8000-000000000000"
+    "target_ref_hint": "ck:flow:019640c5-0000-7000-8000-000000000000"
   },
   "content_digest": "sha256:..."
 }
@@ -1521,18 +1521,18 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
       "kind": "cx.space.create",
       "unsigned": {
-        "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+        "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+          "id": "ck:space:019640b6-8000-7000-8000-000000000000",
           "schema": "cx.schema.space.v1",
-          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
           "created_by": "did:web:alice.example.com",
@@ -1543,14 +1543,14 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     {
       "kind": "cx.space.create",
       "unsigned": {
-        "target_ref_hint": "cx:space:01964010-8400-7000-8000-000000000000"
+        "target_ref_hint": "ck:space:01964010-8400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "cx:space:01964010-8400-7000-8000-000000000000",
+          "id": "ck:space:01964010-8400-7000-8000-000000000000",
           "schema": "cx.schema.space.v1",
-          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-          "parent_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "parent_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
           "kind": "list",
           "title": "Todo",
           "rank": "U",
@@ -1562,13 +1562,13 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     {
       "kind": "cx.flow.create",
       "unsigned": {
-        "target_ref_hint": "cx:flow:019640c5-0400-7000-8000-000000000000"
+        "target_ref_hint": "ck:flow:019640c5-0400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "cx:flow:019640c5-0400-7000-8000-000000000000",
+          "id": "ck:flow:019640c5-0400-7000-8000-000000000000",
           "schema": "cx.schema.flow.v1",
-          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "metadata": {
             "title": "Release checklist"
           },
@@ -1584,10 +1584,10 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
         "initial_relations": [
           {
             "relation_kind": "contains",
-            "from_ref": "cx:space:01964010-8400-7000-8000-000000000000",
-            "to_ref": "cx:flow:019640c5-0400-7000-8000-000000000000",
+            "from_ref": "ck:space:01964010-8400-7000-8000-000000000000",
+            "to_ref": "ck:flow:019640c5-0400-7000-8000-000000000000",
             "fields": {
-              "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
+              "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
               "rank": "U"
             }
           }
@@ -1600,8 +1600,8 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 期望：
 
-- Collection projection MUST 返回 `object.id = cx:flow:019640c5-0400-7000-8000-000000000000`。
-- 返回项 MUST 位于 `cx:space:01964010-8400-7000-8000-000000000000`。
+- Collection projection MUST 返回 `object.id = ck:flow:019640c5-0400-7000-8000-000000000000`。
+- 返回项 MUST 位于 `ck:space:01964010-8400-7000-8000-000000000000`。
 - View cursor MUST 绑定 projection、view、frontier 与权限上下文。
 
 ### 5.4 Vector: Flow Card Move Read-Your-Writes
@@ -1613,13 +1613,13 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   "write": {
     "kind": "cx.flow.move",
     "unsigned": {
-      "target_ref_hint": "cx:flow:019640c5-0400-7000-8000-000000000000"
+      "target_ref_hint": "ck:flow:019640c5-0400-7000-8000-000000000000"
     },
     "payload": {
-      "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
-      "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000",
-      "from_space_id": "cx:space:01964010-8400-7000-8000-000000000000",
-      "target_space_id": "cx:space:01964010-8800-7000-8000-000000000000",
+      "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000",
+      "from_space_id": "ck:space:01964010-8400-7000-8000-000000000000",
+      "target_space_id": "ck:space:01964010-8800-7000-8000-000000000000",
       "rank": "U"
     }
   },
@@ -1637,7 +1637,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 期望：
 
 - Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
-- 查询结果中该 Flow item 的 `list_id` MUST 为 `cx:space:01964010-8800-7000-8000-000000000000`。
+- 查询结果中该 Flow item 的 `list_id` MUST 为 `ck:space:01964010-8800-7000-8000-000000000000`。
 
 ### 5.5 Vector: Flow Discussion Track Visibility
 
@@ -1645,7 +1645,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000",
+  "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000",
   "viewer": "did:web:viewer.example.com",
   "viewer_can_read_flow": true,
   "viewer_is_track_member": false
@@ -1664,7 +1664,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "flow_id": "cx:flow:01964195-8400-7000-8000-000000000000",
+  "flow_id": "ck:flow:01964195-8400-7000-8000-000000000000",
   "track_name": "discussion",
   "viewer_grants": ["cx.flow.read"],
   "viewer_track_membership": "none"
@@ -1683,15 +1683,15 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "flow_id": "cx:flow:01964180-0400-7000-8000-000000000000",
+  "flow_id": "ck:flow:01964180-0400-7000-8000-000000000000",
   "events": [
     {
       "kind": "cx.message.create",
       "unsigned": {
-        "target_ref_hint": "cx:message:01964147-0400-7000-8000-000000000000"
+        "target_ref_hint": "ck:message:01964147-0400-7000-8000-000000000000"
       },
       "payload": {
-        "flow_id": "cx:flow:01964180-0400-7000-8000-000000000000",
+        "flow_id": "ck:flow:01964180-0400-7000-8000-000000000000",
         "content": {
           "kind": "cx.content.text",
           "body": "discussion message"
@@ -1725,18 +1725,18 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
       "kind": "cx.space.create",
       "unsigned": {
-        "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+        "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+          "id": "ck:space:019640b6-8000-7000-8000-000000000000",
           "schema": "cx.schema.space.v1",
-          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
           "created_by": "did:web:alice.example.com",
@@ -1747,22 +1747,22 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     {
       "kind": "cx.space.archive",
       "unsigned": {
-        "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+        "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
       },
       "created_at": "2026-05-15T10:05:00Z",
       "payload": {
-        "space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
+        "space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
         "reason": "release_cycle_complete"
       }
     },
     {
       "kind": "cx.space.restore",
       "unsigned": {
-        "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+        "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
       },
       "created_at": "2026-05-15T10:10:00Z",
       "payload": {
-        "space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
+        "space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
         "reason": "release_reopened"
       }
     }
@@ -1783,21 +1783,21 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
       "state": "active"
     }
   },
   "event": {
     "kind": "cx.space.restore",
     "unsigned": {
-      "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T11:00:00Z",
     "payload": {
-      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -1815,10 +1815,10 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
       "state": "tombstoned",
       "state_changed_at": "2026-05-15T09:00:00Z"
     }
@@ -1826,11 +1826,11 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   "event": {
     "kind": "cx.space.restore",
     "unsigned": {
-      "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T12:00:00Z",
     "payload": {
-      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -1848,10 +1848,10 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
       "state": "archived",
       "state_changed_at": "2026-05-15T10:05:00Z"
     }
@@ -1859,11 +1859,11 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   "event": {
     "kind": "cx.space.archive",
     "unsigned": {
-      "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T11:30:00Z",
     "payload": {
-      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -1882,10 +1882,10 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
       "state": "tombstoned",
       "state_changed_at": "2026-05-15T09:00:00Z"
     }
@@ -1893,11 +1893,11 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   "event": {
     "kind": "cx.space.tombstone",
     "unsigned": {
-      "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T12:00:00Z",
     "payload": {
-      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -1915,10 +1915,10 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
       "state": "archived",
       "state_changed_at": "2026-05-15T10:05:00Z",
       "title": "Release Board"
@@ -1927,11 +1927,11 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   "event": {
     "kind": "cx.space.update",
     "unsigned": {
-      "target_ref_hint": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T11:45:00Z",
     "payload": {
-      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
       "patch": {
         "title": "Renamed while archived"
       }
@@ -1958,7 +1958,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 - rebind 通过 causal frontier handover；
 - 撤销后投递立即停止。
 
-下列向量假设 Realm `cx:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位。本节是 normative vector description；机器可执行 fixture 位于 [`../../artifacts/fixtures/membership-delivery-binding-fixture.json`](../../artifacts/fixtures/membership-delivery-binding-fixture.json)，runner MUST 同时消费该 fixture 与本文 prose，不得再依赖未落地的目录约定。
+下列向量假设 Realm `ck:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位。本节是 normative vector description；机器可执行 fixture 位于 [`../../artifacts/fixtures/membership-delivery-binding-fixture.json`](../../artifacts/fixtures/membership-delivery-binding-fixture.json)，runner MUST 同时消费该 fixture 与本文 prose，不得再依赖未落地的目录约定。
 
 ### 7.2 Vector: `explicit` Binding 接受
 
@@ -1966,7 +1966,7 @@ Input — `cx.member.state{membership="join"}` Move payload：
 
 ```json
 {
-  "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "routable",
@@ -1977,7 +1977,7 @@ Input — `cx.member.state{membership="join"}` Move payload：
     "binding_source": "explicit",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
     "resolved_at": "2026-05-19T10:00:00Z",
-    "service_acceptance_ref": "cx:event:7d000001-0000-7000-8000-000000000000"
+    "service_acceptance_ref": "ck:event:7d000001-0000-7000-8000-000000000000"
   },
   "gate_proofs": [ "..." ]
 }
@@ -1991,13 +1991,13 @@ Input — `cx.member.state{membership="join"}` Move payload：
 
 ### 7.3 Vector: `did_document_default` Fallback 物化
 
-Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `ContrixPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
+Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `CokretPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
 
 客户端构造 join Move 时 MUST 先解析 DID Document 并物化进 binding：
 
 ```json
 {
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "routable",
@@ -2025,7 +2025,7 @@ Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_unroutab
 
 ```json
 {
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "unroutable"
@@ -2085,7 +2085,7 @@ Input — 邀请方在 Acme 组织 Realm 中添加 `@alice:acme.example`。客�
 {
   "handle": "@alice:acme.example",
   "intent": "member_add",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "requester": "did:web:bob.example",
   "proof_challenge": "cx-challenge-001"
 }
@@ -2100,7 +2100,7 @@ Directory 返回 verified handle claim：
   "handle": "alice:acme.example",
   "handle_aliases": ["acct:alice@acme.example"],
   "verified": true,
-  "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "claims": [{
     "claim_kind": "organization_handle",
     "handle": "alice:acme.example",
@@ -2108,14 +2108,14 @@ Directory 返回 verified handle claim：
     "subject": "did:webvh:z2dmjA1ice:users.acme.example",
     "issuer": "did:web:acme.example",
     "binding_state": "verified",
-    "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "member_delivery_binding": {
       "recipient_service_did": "did:web:principal.acme.example",
       "recipient_service_type": "principal_server",
       "binding_source": "organization_policy",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-      "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001",
-      "policy_event_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
+      "service_acceptance_ref": "ck:event:0196419b-0000-7000-8000-000000000001",
+      "policy_event_ref": "ck:event:0196419b-0000-7000-8000-000000000002"
     },
     "created_at": "2026-05-19T00:00:00Z",
     "expires_at": "2026-08-19T00:00:00Z",
@@ -2125,7 +2125,7 @@ Directory 返回 verified handle claim：
       "verification_method": "did:web:principal.acme.example#key-1",
       "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-05-19T00:00:00Z",
-      "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "jws": "aaa.bbb.ccc"
     }]
   }],
@@ -2134,8 +2134,8 @@ Directory 返回 verified handle claim：
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-    "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001",
-    "policy_event_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
+    "service_acceptance_ref": "ck:event:0196419b-0000-7000-8000-000000000001",
+    "policy_event_ref": "ck:event:0196419b-0000-7000-8000-000000000002"
   },
   "expires_at": "2026-08-19T00:00:00Z"
 }
@@ -2373,7 +2373,7 @@ Steps：
 
 Expected：
 
-- 每个响应 MUST 带 `has_more`；有后续页时 MUST 带合法 `cx:cursor:*`。
+- 每个响应 MUST 带 `has_more`；有后续页时 MUST 带合法 `ck:cursor:*`。
 - Cursor MUST 绑定调用者、selector 和 projection purpose，不得跨 service / Realm 复用。
 - 缺失分页闭包字段时上游 MUST 归类为 `invalid_response`。
 
@@ -2837,25 +2837,25 @@ Expected:
 
 Steps:
 
-1. Backend signal `ParticipantConnected` with `participant_identity=cx:rtc_participant:<unknown>`，无对应 `cx.call.state.participants[]` 项。
+1. Backend signal `ParticipantConnected` with `participant_identity=ck:rtc_participant:<unknown>`，无对应 `cx.call.state.participants[]` 项。
 
 Expected:
 
 - Client MUST 拒绝为该 participant 建立媒体流（不收音、不订阅 video），报 `participant_identity_unrecognised`。
 
-### 12.9 Recording Artifact — Via Contrix Blob Pipeline
+### 12.9 Recording Artifact — Via Cokret Blob Pipeline
 
 `vector_id`: `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1`
 
 Steps:
 
-1. LiveKit Egress 配置指向非 Contrix endpoint（如 `s3://livekit-cloud-recordings/...`）。
+1. LiveKit Egress 配置指向非 Cokret endpoint（如 `s3://livekit-cloud-recordings/...`）。
 2. Recording 完成。
 
 Expected:
 
-- Client MUST 检测 Egress destination 不是 Contrix media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
-- 合法路径：Egress → Contrix blob upload → `cx.call.state` lifecycle `state="recording_ready"` + blob hash。
+- Client MUST 检测 Egress destination 不是 Cokret media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
+- 合法路径：Egress → Cokret blob upload → `cx.call.state` lifecycle `state="recording_ready"` + blob hash。
 
 ### 12.9.1 Recording Exporter Label — Dedicated Recording Context
 
@@ -2863,14 +2863,14 @@ Expected:
 
 Steps:
 
-1. LiveKit Egress 通过 Contrix proxy 上传合法 recording artifact。
+1. LiveKit Egress 通过 Cokret proxy 上传合法 recording artifact。
 2. Artifact encryption metadata 声称 key 来自 MLS exporter，但使用 SFrame label `"cx-rtc-frame-key/v1"` 或空 Context。
 3. Producer 重新上传同一 artifact，使用 label `"cx-rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}`。
 
 Expected:
 
 - 第 2 步 MUST 拒绝；SFrame key 和 recording key 不得 label/Context 复用。
-- 第 3 步 MAY accepted，前提是 Contrix blob pipeline、capability proof 与 `cx.call.state` lifecycle 绑定同时通过。
+- 第 3 步 MAY accepted，前提是 Cokret blob pipeline、capability proof 与 `cx.call.state` lifecycle 绑定同时通过。
 
 ## 13. History Visibility / Preview / History Sharing
 

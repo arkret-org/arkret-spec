@@ -70,7 +70,7 @@ POST /api/v1/push/register-device
   "push_gateway": "https://push.example.com/api/v1/push/notify",
   "push_key": "fcm:eJx9k2...",
   "platform": "android",
-  "app_id": "com.contrix.client",
+  "app_id": "com.cokret.client",
   "display_name": "Alice's Pixel 9"
 }
 ```
@@ -131,7 +131,7 @@ POST /api/v1/push/unregister-device
       "kind": "override",
       "enabled": true,
       "conditions": [
-        { "kind": "field_match", "field": "realm_id", "pattern": "cx:realm:9bd39a00-0000-7000-8000-000000000000..." }
+        { "kind": "field_match", "field": "realm_id", "pattern": "ck:realm:9bd39a00-0000-7000-8000-000000000000..." }
       ],
       "actions": ["dont_notify"]
     },
@@ -328,7 +328,7 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
     ```text
     mention_routing_hmac_v1 =
         HMAC-SHA256(
-            key   = MLS-Exporter("contrix-mention-routing-v1", context = realm_id, length = 32),
+            key   = MLS-Exporter("cokret-mention-routing-v1", context = realm_id, length = 32),
             data  = utf8(mentioned_did)
         )
     ```
@@ -406,7 +406,7 @@ Matrix 互通部署 MAY 声明 `cx.profile.push_gateway.matrix_passthrough.v1` �
     "devices": [
       {
         "push_key": "fcm:eJx9k2...",
-        "app_id": "com.contrix.client"
+        "app_id": "com.cokret.client"
       }
     ]
   }

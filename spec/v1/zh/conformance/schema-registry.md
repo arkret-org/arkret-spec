@@ -55,7 +55,7 @@ sidebar:
 
 | 保留名（wire） | 当前语义 | 保留理由 | 防护参考 |
 | --- | --- | --- | --- |
-| event kind `cx.profile.space_override` | Realm-scoped Actor Profile override（`payload.target_realm_id` 是目标 Realm，不指向 `cx:space:` 容器，也不创建任何 Space 级访问边界） | 该 event 在反转前已经发布到 wire 并被多个客户端消费；强行重命名会破坏现存事件审计链与历史 query。新对象类型用 `cx.profile.realm_override` 命名。 | `event-payload.schema.json` `$defs/profile_realm_override_payload`；`contract-catalog.json` 中 payload description 显式说明语义；`zh/discovery/profiles-presence.md §3` 散文兼容声明 |
+| event kind `cx.profile.space_override` | Realm-scoped Actor Profile override（`payload.target_realm_id` 是目标 Realm，不指向 `ck:space:` 容器，也不创建任何 Space 级访问边界） | 该 event 在反转前已经发布到 wire 并被多个客户端消费；强行重命名会破坏现存事件审计链与历史 query。新对象类型用 `cx.profile.realm_override` 命名。 | `event-payload.schema.json` `$defs/profile_realm_override_payload`；`contract-catalog.json` 中 payload description 显式说明语义；`zh/discovery/profiles-presence.md §3` 散文兼容声明 |
 | HTTP path segment `/mimi/rooms/...` → `/mimi/flows/...` | （已重命名，仅作对照说明）当前 wire 是 `/mimi/flows/{flow_id}/...`；旧路径已 hard reject。 | 不再保留 | 见 `renames.json` `/mimi/rooms/{flow_id}/...` |
 | operation id `cx.mimi.room_update` / `cx.mimi.notify` / `cx.mimi.submit_message` / `cx.mimi.group_info` | MIMI interop 命名空间内的标准操作；`room` 出现是为了与上游 MIMI 规范对齐 | MIMI interop 模块对外语义就是 "MIMI room"；仅在 interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
 

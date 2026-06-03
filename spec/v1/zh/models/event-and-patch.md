@@ -12,12 +12,12 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-本文集中定义 Contrix 协作图中的**事件 / 签名 / 增量 / 审计 receipt 对象**：
+本文集中定义 Cokret 协作图中的**事件 / 签名 / 增量 / 审计 receipt 对象**：
 
-- **Event Envelope**（`cx:event:`）：reducer 输入与审计事实的 wire 表示。
+- **Event Envelope**（`ck:event:`）：reducer 输入与审计事实的 wire 表示。
 - **Proof**：签名证明 envelope。
 - **Field Patch (`cx.patch.v1`)**：非 create 类更新的标准字段增量格式。
-- **Event Batch Receipt**（`cx:receipt:`）：可选审计 / 同步加速对象。
+- **Event Batch Receipt**（`ck:receipt:`）：可选审计 / 同步加速对象。
 
 Move / Anchor / Lattice、cell 模型、authority chain 与 state 收敛细节由 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 承担；本文聚焦对象级 schema、字段、reducer 总则与 patch 语义。
 
@@ -46,7 +46,7 @@ Schema id: `cx.schema.event.v1`
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
 | `executed_by` | conditional | `did` | 仅 agent 代用户执行时出现(CXP-0008 §4.10)。必须是 accountable to `actor_id` 的 native personal agent principal。出现时 MUST 与 `authorization_ref` 同时出现。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的 agent。 |
-| `authorization_ref` | conditional | `id:grant` 或 `id:event` | 仅 `executed_by` 存在时必填。优先引用已物化的 `cx:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf grant / delegation 引用。 |
+| `authorization_ref` | conditional | `id:grant` 或 `id:event` | 仅 `executed_by` 存在时必填。优先引用已物化的 `ck:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf grant / delegation 引用。 |
 | `actor_kind` | reducer-stamped | `enum(user, org, team, agent, service, device, integration)` | Reducer 在接受时从 `actor_id` 的 Actor Profile 解析并 immutable 写入(CXP-0008 §5.1)。**Actor-supplied submit payload MUST NOT 携带**,reducer MUST `schema_violation` (`reason=actor_kind_reducer_managed`)。 | 审计 / 离线读取的 actor 类型 projection。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
@@ -68,34 +68,34 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
 
 ```json schema=schemas/event-envelope.schema.json
 {
-  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 4,
   "kind": "cx.flow.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
-    "cx:event:019640ed-0000-7000-8000-000000000000"
+    "ck:event:019640ed-0000-7000-8000-000000000000"
   ],
   "refs": [
-    { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "preconditions": [
     {
-      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:cx.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "predicate": { "op": "head_eq", "value": { "metadata.fields.review_status": "in_review" } }
     }
   ],
   "effects": [
     {
-      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:cx.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved" } }
     }
   ],
-  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "anchor_ref": "ck:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
-    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
+    "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": "approved"
     }
@@ -120,7 +120,7 @@ Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability
 Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 不再从 envelope 推导 state slot；Move effect 必须显式给出 cell id 与 lattice op。
 
 - `payload.type` 不得重复写入 `cx.*` Event kind。
-- Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。
+- Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ck:flow:` 等）即对象种类，不写单独的 `payload.object.type`。
 - `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(CXP-0008 act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 controller principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation、以及 active `cx.agent.key.authorize` 之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 Move refs 校验。
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
 - 启用 `cx.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Flow track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.schema.identity_link.v1` payload（`cx.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
@@ -279,32 +279,32 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 5,
   "kind": "cx.flow.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": ["cx:event:019640ed-7000-7000-8000-000000000000"],
+  "prev_refs": ["ck:event:019640ed-7000-7000-8000-000000000000"],
   "refs": [
-    { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "preconditions": [
     {
-      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:cx.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "predicate": { "op": "head_eq", "value": { "metadata.fields.review_status": "in_review" } }
     }
   ],
   "effects": [
     {
-      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:cx.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved", "metadata.fields.due_date": "2026-06-01", "labels.security": "confidential" } }
     }
   ],
-  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "anchor_ref": "ck:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
-    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
+    "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": "approved",
       "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/circle.schema.json",
-  "title": "Contrix Circle",
+  "$id": "https://cokret.io/artifacts/schemas/circle.schema.json",
+  "title": "Cokret Circle",
   "description": "Circle — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, and delivery/query/projection boundary. It may be plaintext delivery-only or MLS-backed depending on encryption_profile and parent Realm policy floor. It does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. Circle is NOT a principal Group; principal-set capability narrowing belongs on Group / capability constraint / resource selector. See spec/v1/zh/models/circle.md.",
   "type": "object",
   "required": [
@@ -21,14 +21,14 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.circle.v1"
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Parent Realm. create-locked; Circle never re-binds to another Realm."
     },
     "title": {
@@ -90,7 +90,7 @@
     },
     "mls_group_ref": {
       "type": "string",
-      "pattern": "^cx:mls:[a-z0-9_]+:.+$",
+      "pattern": "^ck:mls:[a-z0-9_]+:.+$",
       "description": "Reducer-derived reference to the independent MLS group bound to (realm_id, circle_id). Present only when encryption_profile='mls_rfc9420'. Populated by cx.circle.create reducer; not actor-supplied on wire."
     },
     "state": {

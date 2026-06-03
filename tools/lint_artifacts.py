@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lint Contrix artifact/registry consistency.
+"""Lint Cokret artifact/registry consistency.
 
 Canonical registries plus generated registry views under
 ``spec/v1/artifacts/registry`` define the machine-readable wire contract.
@@ -454,14 +454,14 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
 }
 
 FORBIDDEN_NAMING_STRING_ALIASES = {
-    "cx:notif:": "cx:notification:",
-    "cx:devmsg:": "cx:device_message:",
-    "cx:keyevt:": "cx:key_event:",
-    "cx:modq:": "cx:moderation_queue_item:",
-    "cx:req:": "cx:request:",
-    "cx:txn:": "cx:transaction:",
-    "cx:frank:": "cx:franking_proof:",
-    "cx:rtcpart:": "cx:rtc_participant:",
+    "ck:notif:": "ck:notification:",
+    "ck:devmsg:": "ck:device_message:",
+    "ck:keyevt:": "ck:key_event:",
+    "ck:modq:": "ck:moderation_queue_item:",
+    "ck:req:": "ck:request:",
+    "ck:txn:": "ck:transaction:",
+    "ck:frank:": "ck:franking_proof:",
+    "ck:rtcpart:": "ck:rtc_participant:",
     "cx.agent.key.authorized": "cx.agent.key.authorize",
     "cx.agent.key.revoked": "cx.agent.key.revoke",
     "cx.agent.key.rotated": "cx.agent.key.rotate",
@@ -658,7 +658,7 @@ def check_legacy_announce_id_form(lint: Lint) -> None:
 
     ``ann_<hex>`` appeared in prose before Directory announce records were
     registered as typed IDs. The canonical v1 wire form is now
-    ``cx:announce:<uuidv7>``; keeping this guard prevents examples or fixtures
+    ``ck:announce:<uuidv7>``; keeping this guard prevents examples or fixtures
     from reintroducing the unregistered local prefix.
     """
     scan_paths = sorted(SPEC_ROOT.rglob("*.md"))
@@ -673,7 +673,7 @@ def check_legacy_announce_id_form(lint: Lint) -> None:
                 lint.fail(
                     path,
                     f"line {line_no}: legacy Directory announce id form `ann_*` is forbidden; "
-                    "use `cx:announce:<uuidv7>`.",
+                    "use `ck:announce:<uuidv7>`.",
                 )
 
 
@@ -1025,8 +1025,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         wire_form = row.get("wire_form")
         if isinstance(kind, str) and not re.fullmatch(r"[a-z0-9_]+", kind):
             lint.fail(id_path, f"id kind has invalid format: {kind}")
-        if isinstance(kind, str) and isinstance(wire_form, str) and not wire_form.startswith(f"cx:{kind}:"):
-            lint.fail(id_path, f"{kind} wire_form must start with cx:{kind}:")
+        if isinstance(kind, str) and isinstance(wire_form, str) and not wire_form.startswith(f"ck:{kind}:"):
+            lint.fail(id_path, f"{kind} wire_form must start with ck:{kind}:")
 
     special_id_kinds = unique_values(lint, id_path, id_registry.get("special_forms", []), "kind")
 
@@ -1701,7 +1701,7 @@ def check_openapi_contract_shape(lint: Lint, path: Path, text: str) -> None:
 
 
 def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     openapi_text = openapi_path.read_text(encoding="utf-8")
     check_openapi_contract_shape(lint, openapi_path, openapi_text)
     openapi_operation_ids = OPENAPI_OPERATION_ID_RE.findall(openapi_text)
@@ -1743,7 +1743,7 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
 
 
 def check_service_describe_alignment(lint: Lint) -> None:
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     schema_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
     openapi = load_yaml(lint, openapi_path)
     service_schema = load_json(lint, schema_path)
@@ -1804,7 +1804,7 @@ def check_service_describe_alignment(lint: Lint) -> None:
 
 
 def check_policy_check_alignment(lint: Lint) -> None:
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -1812,8 +1812,8 @@ def check_policy_check_alignment(lint: Lint) -> None:
     components = openapi.get("components", {}).get("schemas", {})
     if not isinstance(paths, dict) or not isinstance(components, dict):
         return
-    if "/contrix/v1/check" in paths:
-        lint.fail(openapi_path, "legacy /contrix/v1/check policy path must not be present; use /policy/check")
+    if "/cokret/v1/check" in paths:
+        lint.fail(openapi_path, "legacy /cokret/v1/check policy path must not be present; use /policy/check")
 
     policy_path = paths.get("/policy/check", {}).get("post", {})
     request_schema = (
@@ -1892,7 +1892,7 @@ def openapi_response_schema(operation: dict[str, Any]) -> Any:
 
 def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
     """Prevent security-sensitive operations from drifting back to generic schemas."""
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -2024,7 +2024,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
 
 def check_openapi_core_selector_constraints(lint: Lint) -> None:
     """Core event read operations must machine-declare selector and typed-id rules."""
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -2041,9 +2041,9 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         operation = op(operation_id)
         if operation is None:
             return
-        actual = operation.get("x-contrix-required-any-of")
+        actual = operation.get("x-cokret-required-any-of")
         if actual != expected:
-            lint.fail(openapi_path, f"{operation_id} x-contrix-required-any-of must be {expected!r}")
+            lint.fail(openapi_path, f"{operation_id} x-cokret-required-any-of must be {expected!r}")
 
     def expect_array_param(operation_id: str, name: str, ref: str) -> None:
         operation = op(operation_id)
@@ -2117,7 +2117,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
 
 def check_openapi_auth_semantics(lint: Lint) -> None:
     """Distinguish public metadata, proof-in-body auth, user tokens, and admin tokens."""
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -2140,7 +2140,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     for operation_id, operation in operations.items():
         security = operation.get("security")
         if security == []:
-            auth = operation.get("x-contrix-auth")
+            auth = operation.get("x-cokret-auth")
             proof_in_body = (
                 operation_id in proof_in_body_operations
                 and isinstance(auth, dict)
@@ -2158,9 +2158,9 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         if not isinstance(operation, dict):
             lint.fail(openapi_path, f"{operation_id} operation missing")
             continue
-        auth = operation.get("x-contrix-auth")
+        auth = operation.get("x-cokret-auth")
         if not isinstance(auth, dict) or auth.get("public_metadata") is not False or auth.get("proof_in_body") is not True:
-            lint.fail(openapi_path, f"{operation_id} must declare x-contrix-auth proof_in_body/public_metadata=false")
+            lint.fail(openapi_path, f"{operation_id} must declare x-cokret-auth proof_in_body/public_metadata=false")
 
     def security_groups(operation: dict[str, Any]) -> list[dict[str, Any]]:
         groups = operation.get("security")
@@ -2281,8 +2281,8 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
     for path in [*markdown_files(), *all_json_files()]:
         if path.resolve() in allowed_legacy_paths:
             continue
-        if "cx:txn:" in path.read_text(encoding="utf-8"):
-            lint.fail(path, "legacy cx:txn: prefix present outside migration/forbidden registries")
+        if "ck:txn:" in path.read_text(encoding="utf-8"):
+            lint.fail(path, "legacy ck:txn: prefix present outside migration/forbidden registries")
 
 
 def check_binding_variant_non_http(lint: Lint) -> None:
@@ -2314,7 +2314,7 @@ def check_binding_variant_non_http(lint: Lint) -> None:
             lint.fail(binding_path, f"{operation_id} http-only binding variant must not appear in non-HTTP bindings")
 
 
-DEVICE_ID_PATTERN = r"^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+DEVICE_ID_PATTERN = r"^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 DID_LEGACY_PREFIX_PATTERN = r"^did:"
 DID_LEGACY_GREEDY_PATTERN = r"^did:[a-z0-9]+:[^\s]+$"
 DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+$"
@@ -2325,7 +2325,7 @@ GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 def check_openapi_error_enum_alignment(lint: Lint) -> None:
     """ErrorEnvelope.error.code must be generated from the canonical error registry."""
     registry_path = ARTIFACTS / "registry" / "error-code-registry.json"
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     registry = load_json(lint, registry_path)
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(registry, dict) or not isinstance(openapi, dict):
@@ -2406,7 +2406,7 @@ def check_reducer_payload_closure(lint: Lint) -> None:
 
 def check_did_and_device_constraints(lint: Lint) -> None:
     """Reject ambiguous DID/DID URL and device_id constraints in machine artifacts."""
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
 
     for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
         data = load_json(lint, path)
@@ -2433,7 +2433,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             if isinstance(device_schema, dict) and not (
                 device_schema.get("$ref") or device_schema.get("pattern") == DEVICE_ID_PATTERN
             ):
-                lint.fail(openapi_path, f"{json_path}.device_id must use the canonical cx:device UUIDv7 pattern")
+                lint.fail(openapi_path, f"{json_path}.device_id must use the canonical ck:device UUIDv7 pattern")
 
             vm_schema = value.get("verification_method")
             if isinstance(vm_schema, dict) and not (
@@ -2446,7 +2446,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             if isinstance(schema, dict) and not (
                 schema.get("$ref") or schema.get("pattern") == DEVICE_ID_PATTERN
             ):
-                lint.fail(openapi_path, f"{json_path}.schema must use the canonical cx:device UUIDv7 pattern")
+                lint.fail(openapi_path, f"{json_path}.schema must use the canonical ck:device UUIDv7 pattern")
 
 
 def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> str:
@@ -2518,7 +2518,7 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
 def check_operation_binding_metadata(lint: Lint) -> None:
     """Operation registry must machine-declare success shape and governed generic bindings."""
     operation_path = ARTIFACTS / "registry" / "operation-registry.json"
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     operation_registry = load_json(lint, operation_path)
     if not isinstance(operation_registry, dict):
         return
@@ -2657,11 +2657,11 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
             if STABLE_SECTION_PLACEHOLDER_RE.search(line):
                 lint.fail(path, f"line {line_no}: placeholder section reference must be replaced with a stable heading or real section number")
 
-            if "/contrix/v1/check" in line:
-                lint.fail(path, f"line {line_no}: legacy policy path /contrix/v1/check must be replaced with /policy/check")
+            if "/cokret/v1/check" in line:
+                lint.fail(path, f"line {line_no}: legacy policy path /cokret/v1/check must be replaced with /policy/check")
 
             if TRUST_DOMAIN_JSON_DID_RE.search(line):
-                lint.fail(path, f"line {line_no}: trust_domain must use cx:trust_domain:<scope>, not a raw DID")
+                lint.fail(path, f"line {line_no}: trust_domain must use ck:trust_domain:<scope>, not a raw DID")
 
             if LEGACY_DID_METHOD_REGEX_RE.search(line):
                 lint.fail(path, f"line {line_no}: DID regex must not allow ':'/'.'/'_' inside the method segment")
@@ -2978,18 +2978,18 @@ def check_security_closure_vectors(lint: Lint) -> None:
 def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str, rest: str, known: dict[str, set[str]]) -> None:
     if token_kind == "blob" and rest.startswith("sha256:"):
         if not SHA256_RE.fullmatch(rest):
-            lint.fail(path, f"{json_path} has invalid cx:blob:sha256 reference")
+            lint.fail(path, f"{json_path} has invalid ck:blob:sha256 reference")
         return
     if token_kind in known["id_kinds"]:
         candidate = rest[:36]
         if not UUID7_RE.fullmatch(candidate):
-            lint.fail(path, f"{json_path} has invalid cx:{token_kind}: typed UUIDv7 reference")
+            lint.fail(path, f"{json_path} has invalid ck:{token_kind}: typed UUIDv7 reference")
         return
     if token_kind in known["special_id_kinds"]:
         if not rest:
-            lint.fail(path, f"{json_path} has empty cx:{token_kind}: special reference")
+            lint.fail(path, f"{json_path} has empty ck:{token_kind}: special reference")
         return
-    lint.fail(path, f"{json_path} references unregistered typed ID kind: cx:{token_kind}:")
+    lint.fail(path, f"{json_path} references unregistered typed ID kind: ck:{token_kind}:")
 
 
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -3181,7 +3181,7 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
             kind, rest = match.group(1), match.group(2)
             if is_placeholder_typed_id(rest):
                 if kind not in known["id_kinds"] and kind not in known["special_id_kinds"]:
-                    lint.fail(path, f"{json_path} markdown JSON references unregistered typed ID kind: cx:{kind}:")
+                    lint.fail(path, f"{json_path} markdown JSON references unregistered typed ID kind: ck:{kind}:")
                 continue
             check_typed_id_token(lint, path, json_path, kind, rest, known)
 
@@ -3252,7 +3252,7 @@ def resolve_json_pointer(document: Any, fragment: str) -> Any:
 
 
 def load_json_schema_for_uri(uri: str) -> Any:
-    prefix = "https://contrix.io/artifacts/"
+    prefix = "https://cokret.io/artifacts/"
     if not uri.startswith(prefix):
         raise ValueError(f"unsupported remote schema URI {uri}")
     path = ARTIFACTS / uri[len(prefix):]
@@ -3391,7 +3391,7 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
         for prefix_match in TYPED_ID_PREFIX_TOKEN_RE.finditer(text):
             kind = prefix_match.group(1)
             if kind not in known["id_kinds"] and kind not in known["special_id_kinds"]:
-                lint.fail(path, f"markdown references unregistered typed ID kind: cx:{kind}:")
+                lint.fail(path, f"markdown references unregistered typed ID kind: ck:{kind}:")
 
         for match in TYPED_ID_TOKEN_RE.finditer(text):
             kind, rest = match.group(1), match.group(2)
@@ -3744,7 +3744,7 @@ def check_openapi_no_floating_number(lint: Lint) -> None:
     break canonical-bytes interop. The forbidden-fields list below carries
     explicit waivers for known non-canonical surfaces.
     """
-    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     if not openapi_path.exists():
         return
     lines = openapi_path.read_text(encoding="utf-8").splitlines()

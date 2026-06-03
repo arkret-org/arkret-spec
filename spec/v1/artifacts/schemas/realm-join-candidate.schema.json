@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/realm-join-candidate.schema.json",
-  "title": "Contrix Realm Join Candidate",
+  "$id": "https://cokret.io/artifacts/schemas/realm-join-candidate.schema.json",
+  "title": "Cokret Realm Join Candidate",
   "description": "Time-bounded routing hint for submitting Realm join, invite-accept, knock, or restricted-join material through a qualified Realm service. This object is not membership authorization and is distinct from member_delivery_binding.",
   "type": "object",
   "required": [
@@ -160,11 +160,11 @@
     },
     "event_id": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
       "type": "string",

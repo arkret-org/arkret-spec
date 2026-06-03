@@ -21,7 +21,7 @@ sidebar:
 
 在很多去中心化产品中，如果存在审查，往往是通过向客户端下发"旁路后门"或者弱化密钥机制实现的，这引起了极大的隐私恐慌。
 
-Contrix 引入 **"透明留痕审计 (Transparent Audit Trail)"** 机制：既满足组织的强制合规要求，又向所有参与者提供可验证的审计记录。该机制划分为两类正交保证：
+Cokret 引入 **"透明留痕审计 (Transparent Audit Trail)"** 机制：既满足组织的强制合规要求，又向所有参与者提供可验证的审计记录。该机制划分为两类正交保证：
 
 - **`attested` 类**（`cx.profile.attested_audit.e2ee.v1`）：通过 TEE / HSM / 等价硬件隔离把 key release 或明文输出**密码学绑定**到先写审计记录。
 - **`disclosed` 类**（`cx.profile.disclosed_audit.e2ee.v1`）：仅在 Realm policy 中**公开声明**审计代理在场并约定流程，**不提供密码学/硬件强制**——协议层不能阻止恶意持钥客户端绕过日志。
@@ -79,7 +79,7 @@ Contrix 引入 **"透明留痕审计 (Transparent Audit Trail)"** 机制：既�
 
 ### 3.1 审计节点最小权限与前向安全边界
 
-Audited E2EE 必须明确承认其安全边界：Audit Agent 是真实 MLS 成员，因此它被移除后仍可解密其成员期间已经收到且按 retention policy 保留的历史消息；Audit Agent key 泄露会影响其可访问 epoch 的机密性。Contrix 不得把这种模式描述为"审计方不可见内容"或"对审计方仍保持完整 forward secrecy"。
+Audited E2EE 必须明确承认其安全边界：Audit Agent 是真实 MLS 成员，因此它被移除后仍可解密其成员期间已经收到且按 retention policy 保留的历史消息；Audit Agent key 泄露会影响其可访问 epoch 的机密性。Cokret 不得把这种模式描述为"审计方不可见内容"或"对审计方仍保持完整 forward secrecy"。
 
 Audit Agent profile MUST 满足：
 
@@ -91,7 +91,7 @@ Audit Agent profile MUST 满足：
 
 #### 3.1.1 Audit Agent 移除后 epoch key destruction attestation(`attested_hardware` 专属)
 
-> **不实现本节即不得使用 `audit_assurance="attested_hardware"` 措辞。** 仅声明 attested 文案而不发布 destruction attestation 时,Audit Agent 与软件审计在 forward secrecy 行为上**完全等价**;Contrix 把这种部署视为 spec violation,group MUST 在下一轮 MLS commit 中把 `audit_assurance` 强制降级为 `disclosed_policy` 或更弱形态，并按 §2.1 重新展示降级文案。
+> **不实现本节即不得使用 `audit_assurance="attested_hardware"` 措辞。** 仅声明 attested 文案而不发布 destruction attestation 时,Audit Agent 与软件审计在 forward secrecy 行为上**完全等价**;Cokret 把这种部署视为 spec violation,group MUST 在下一轮 MLS commit 中把 `audit_assurance` 强制降级为 `disclosed_policy` 或更弱形态，并按 §2.1 重新展示降级文案。
 
 > **非 retroactive revocation**：`cx.audit.epoch_key_destruction` 只能证明声明的 enclave / HSM 在某时刻销毁了其受控边界内仍持有的 epoch key material，从而限制未来继续访问；它不能密码学证明历史 epoch key、历史明文或导出副本从未泄漏。已交付给 Audit Agent 或其运行环境的历史 epoch 必须按“可能已被永久解密”建模。UI、合规说明和市场文案 MUST NOT 把本机制宣传为“可撤销历史审计访问”或“移除 Audit Agent 后历史内容密码学不可解”。
 
@@ -150,17 +150,17 @@ Audit Agent profile MUST 满足：
 
 获得密钥并不意味着可以合规地随意查看。协议要求 Audit Agent 按声明的 audit profile 执行以下工作流；`cx.profile.attested_audit.e2ee.v1` 下该实现必须依托 TEE / enclave 或等价硬件隔离环境，并保证 MLS key、exporter secret 或解密明文不会在审计确认前离开受控边界：
 
-1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:message:99804430-0000-7000-8000-000000000000`）。
+1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: ck:message:99804430-0000-7000-8000-000000000000`）。
 2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条 `kind="cx.audit.accessed"` 的不可撤销 Event，并提交给该 Realm：
    ```json
    {
      "kind": "cx.audit.accessed",
-     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
      "actor_id": "did:web:compliance.acme.corp",
      "payload": {
        "access_kind": "e2ee_plaintext_release",
        "writer_actor_id": "did:web:compliance.acme.corp",
-       "target_ref": "cx:message:99804430-0000-7000-8000-000000000000",
+       "target_ref": "ck:message:99804430-0000-7000-8000-000000000000",
        "purpose": "Internal legal compliance request #8801",
        "accessed_at": "2026-04-30T00:00:00Z",
        "ryw_required": true
@@ -187,21 +187,21 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 
 ```json
 {
-  "receipt_id": "cx:receipt:0196418f-0000-7000-8000-000000000000",
+  "receipt_id": "ck:receipt:0196418f-0000-7000-8000-000000000000",
   "schema": "cx.schema.audit_ryw_receipt.v1",
   "issuer": "did:web:witness.example.com",
   "issuer_role": "witness",
-  "audit_event_id": "cx:event:019640a5-0000-7000-8000-000000000000",
+  "audit_event_id": "ck:event:019640a5-0000-7000-8000-000000000000",
   "audit_event_digest": "sha256:...",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "trust_domain": "cx:trust_domain:did.webvh.example",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "trust_domain": "ck:trust_domain:did.webvh.example",
   "audit_actor_id": "did:web:audit-agent.example.com",
   "frontier": {
-    "realm_frontier": ["cx:event:..."],
+    "realm_frontier": ["ck:event:..."],
     "actor_frontier": {
       "did:web:audit-agent.example.com": {
         "actor_seq": 17,
-        "event_id": "cx:event:019640a5-0000-7000-8000-000000000000"
+        "event_id": "ck:event:019640a5-0000-7000-8000-000000000000"
       }
     }
   },
@@ -242,7 +242,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `receipt_id` | yes | `cx:receipt:<uuid>`。 |
+| `receipt_id` | yes | `ck:receipt:<uuid>`。 |
 | `schema` | yes | 固定 `cx.schema.audit_ryw_receipt.v1`。该字段同时充当类型鉴别器，与 `cx.schema.flow.v1` / `cx.schema.message.v1` 等其它标准对象保持同一约定，receipt 不再额外携带 `type` 字段。 |
 | `issuer` | yes | 签发方 service / witness DID。MUST 与 proof `verification_method` 同 DID。 |
 | `issuer_role` | yes | `events_api` / `witness` / `peer_node` 之一，标记 receipt 来源类型。 |

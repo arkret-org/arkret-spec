@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Migrate ULID-shaped test/example IDs to UUIDv7 across implementation repos
-(soland, yougen, floria, chime, sodmin, cotest, contrix-rust-sdk).
+(soland, yougen, floria, chime, sodmin, cotest, cokret-rust-sdk).
 
 Reuses the typed-prefix-anchored regex from migrate_ulid_to_uuid7.py to
-restrict replacements to actual `cx:<kind>:<26-char>` references and quoted
+restrict replacements to actual `ck:<kind>:<26-char>` references and quoted
 JSON strings; never touches sha256 hex or other 26-char-looking content.
 
 Skips:
@@ -20,9 +20,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REPOS = [
-    # Only repos whose ULID examples represent Contrix wire IDs (`cx:<kind>:<id>`).
+    # Only repos whose ULID examples represent Cokret wire IDs (`ck:<kind>:<id>`).
     # starid/coauth are excluded: they have their own ULID-shaped IDs (did:webvh
-    # scid, internal admin tokens) that are NOT Contrix typed UUIDs and would
+    # scid, internal admin tokens) that are NOT Cokret typed UUIDs and would
     # break at parse if blanket-converted.
     "soland",
     "yougen",
@@ -30,7 +30,7 @@ REPOS = [
     "chime",
     "sodmin",
     "cotest",
-    "contrix-rust-sdk",
+    "cokret-rust-sdk",
 ]
 SUFFIXES = (".rs", ".ts", ".tsx", ".js", ".jsx", ".dart", ".swift", ".kt",
             ".md", ".mdx", ".json", ".yaml", ".yml", ".toml", ".html")
@@ -45,7 +45,7 @@ TYPED_KINDS = (
     "version|cell|webrtc|fr|webhook|push|portal|session|registration|fallback"
 )
 TYPED_ULID_RE = re.compile(
-    rf"(cx:(?:{TYPED_KINDS}):)([0-9a-z]{{26}})(?![0-9a-z])"
+    rf"(ck:(?:{TYPED_KINDS}):)([0-9a-z]{{26}})(?![0-9a-z])"
 )
 QUOTED_ULID_RE = re.compile(r'(["\'])([0-9a-z]{26})\1')
 
@@ -92,10 +92,10 @@ def walk_files(root: Path):
 
 
 def collect_ulids(repos: list[Path]) -> dict[str, str]:
-    """Only collect ULIDs that appear after a known cx:<kind>: typed prefix.
+    """Only collect ULIDs that appear after a known ck:<kind>: typed prefix.
     Bare quoted ULIDs (e.g. inside `Ulid::from_string("...")` arguments,
     raw fixture digests, content-hash bytes) are intentionally NOT collected
-    because they may be non-Contrix internal IDs that would break if
+    because they may be non-Cokret internal IDs that would break if
     converted to UUID format.
     """
     mapping: dict[str, str] = {}
@@ -114,7 +114,7 @@ def collect_ulids(repos: list[Path]) -> dict[str, str]:
 
 
 def rewrite_text(text: str, ulid_map: dict[str, str]) -> str:
-    """Replace only typed `cx:<kind>:<ulid>` references. Bare quoted ULIDs
+    """Replace only typed `ck:<kind>:<ulid>` references. Bare quoted ULIDs
     are not touched."""
     def _typed_sub(m: re.Match) -> str:
         prefix, ulid = m.group(1), m.group(2)

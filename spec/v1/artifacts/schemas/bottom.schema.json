@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/bottom.schema.json",
-  "title": "Contrix Bottom Diagnostics",
+  "$id": "https://cokret.io/artifacts/schemas/bottom.schema.json",
+  "title": "Cokret Bottom Diagnostics",
   "description": "Structured diagnostic for cell join values that resolve to bottom (⊥). Surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined under the current Anchor view. See spec/v1/zh/authz/event-auth-state-resolution.md §5.1.",
   "type": "object",
   "required": [
@@ -27,7 +27,7 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+        "pattern": "^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
       },
       "description": "Cell ids participating in the bottom diagnostic. Multi-cell when a multi-cell Move atomically failed across linked cells."
     },
@@ -36,7 +36,7 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "description": "Anchored reducer-input event ids whose effects (or precondition checks) produced this bottom. Empty allowed when the cell's bottom is structural (e.g. anchorer cell schema_error) and not tied to a specific event."
     },
@@ -53,7 +53,7 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "pattern": "^cx:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+            "pattern": "^ck:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
           }
         },
         "state_root": {

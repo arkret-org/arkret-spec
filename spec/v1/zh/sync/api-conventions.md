@@ -12,8 +12,8 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-本文定义 Contrix 默认 HTTP/JSON binding 的线级约定。  
-Contrix 协议核心不强绑定 REST API；核心操作、消息 envelope 与 transport binding 的关系见 `transport-bindings.md`。
+本文定义 Cokret 默认 HTTP/JSON binding 的线级约定。  
+Cokret 协议核心不强绑定 REST API；核心操作、消息 envelope 与 transport binding 的关系见 `transport-bindings.md`。
 
 各服务面可以扩展自己的 HTTP endpoint，但 MUST 遵守本文的基础规则，除非对应文档明确说明例外。非 HTTP binding（例如 gRPC、WebSocket、SSE、libp2p、message queue）MUST 提供语义等价的认证、授权、幂等、分页、错误和流控语义。
 
@@ -38,7 +38,7 @@ Contrix 协议核心不强绑定 REST API；核心操作、消息 envelope 与 t
 
 所有 JSON request / response MUST 使用 UTF-8。
 
-Contrix canonical JSON 字段名 MUST 使用小写字母与下划线连接，例如：
+Cokret canonical JSON 字段名 MUST 使用小写字母与下划线连接，例如：
 
 - `realm_id`
 - `event_id`
@@ -47,7 +47,7 @@ Contrix canonical JSON 字段名 MUST 使用小写字母与下划线连接，例
 - `retry_after_ms`
 - `reconnect_after_ms`
 
-Raw 外部标准文档 MUST 保留外部标准字段名，例如 W3C DID Core 的 `verificationMethod` / `alsoKnownAs` / `serviceEndpoint` 和 VC 的 `credentialSubject`。Contrix normalized view、索引、policy input 和 reducer input MAY 使用 snake_case 派生字段，但这些派生字段不得作为 raw DID / VC 文档重新输出。
+Raw 外部标准文档 MUST 保留外部标准字段名，例如 W3C DID Core 的 `verificationMethod` / `alsoKnownAs` / `serviceEndpoint` 和 VC 的 `credentialSubject`。Cokret normalized view、索引、policy input 和 reducer input MAY 使用 snake_case 派生字段，但这些派生字段不得作为 raw DID / VC 文档重新输出。
 
 ### 2.3 Content-Type
 
@@ -65,7 +65,7 @@ Content-Type: application/json
 
 Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，但 metadata response 仍应使用 JSON。
 
-注意：OpenAPI `content:` map 与 HTTP `Content-Type` 只表示 media type / body 编码，不是 Contrix Content Block 字段。协议正文内容仍按对象或 Event payload schema 使用 `content` / `encrypted_content`。
+注意：OpenAPI `content:` map 与 HTTP `Content-Type` 只表示 media type / body 编码，不是 Cokret Content Block 字段。协议正文内容仍按对象或 Event payload schema 使用 `content` / `encrypted_content`。
 
 ### 2.4 Operation ID 动词 taxonomy
 
@@ -111,7 +111,7 @@ API 调用 SHOULD 使用以下方式之一：
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。服务 describe / discovery 响应 SHOULD 公布认证 metadata，但不得把 OAuth/OIDC subject 当作 Contrix principal：
+认证与授权服务器可以分离。服务 describe / discovery 响应 SHOULD 公布认证 metadata，但不得把 OAuth/OIDC subject 当作 Cokret principal：
 
 ```json
 {
@@ -167,7 +167,7 @@ API 调用 SHOULD 使用以下方式之一：
     "retry_after_ms": null,
     "details": {}
   },
-  "request_id": "cx:request:01964137-0000-7000-8000-000000000000"
+  "request_id": "ck:request:01964137-0000-7000-8000-000000000000"
 }
 ```
 
@@ -191,7 +191,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 ### 5.2 未知路径与错误方法
 
-对 `/api/v1/*` 与 `/contrix/v1/*` 之下的请求，服务端 MUST 使用统一错误响应，不得返回 HTML、纯文本框架错误或实现栈信息。
+对 `/api/v1/*` 与 `/cokret/v1/*` 之下的请求，服务端 MUST 使用统一错误响应，不得返回 HTML、纯文本框架错误或实现栈信息。
 
 规则：
 
@@ -219,14 +219,14 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 ## 7. Cursor（统一不透明 token）
 
-Contrix v1 在所有需要不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `cx:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它统一承担增量同步、列表分页和写后读屏障所有用途。
+Cokret v1 在所有需要不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `ck:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它统一承担增量同步、列表分页和写后读屏障所有用途。
 
 cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing 服务自检）：
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
 | `stream` | 增量同步 / 列表分页的位置承诺。可作为 `after` / `before` / `prev_cursor` / `next_cursor` 回传。 | `/account/subscribe` frame 的 `cursor` 与重连 `after=` 参数、`timeline.prev_cursor` / `next_cursor`、列表分页 `next_cursor`、`cx.events.query`（含联邦 pull 复用形态 `GET /api/v1/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段。 |
-| `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Contrix-Wait-For` header。 |
+| `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Cokret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
@@ -254,7 +254,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 ```json
 {
   "<items_field>": [],
-  "next_cursor": "cx:cursor:...",
+  "next_cursor": "ck:cursor:...",
   "has_more": false
 }
 ```
@@ -281,20 +281,20 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 ```json
 {
   "status": "accepted",
-  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-  "cursor": "cx:cursor:..."
+  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "cursor": "ck:cursor:..."
 }
 ```
 
 该 cursor 内部 `purpose=barrier`、`target.event_id` 与 `target.event_digest` 绑定到刚提交事件。后续读接口 SHOULD 接受：
 
 ```text
-X-Contrix-Wait-For: <cursor>
+X-Cokret-Wait-For: <cursor>
 ```
 
 如果服务在超时前到达该 cursor 描述的 causal frontier，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 frontier。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `invalid_param`。
 
-**Wait-for canonical 与投影（normative）**：`X-Contrix-Wait-For` HTTP header 是 wait-for barrier 的 wire canonical 形态；[`../conformance/query-schema.md §2`](../conformance/query-schema.md) 嵌套形态 `consistency: { wait_for, timeout_ms }` 与 [`../../artifacts/openapi/contrix-service-api.openapi.yaml`](../../artifacts/openapi/contrix-service-api.openapi.yaml) request body 扁平字段 `wait_for: string` 是同义投影，三者等价绑定到同一 RYW (read-your-writes) barrier 语义。服务端 MUST 接受任一形态并解析为相同 cursor；客户端 MAY 选择任一形态。当同一请求同时出现多种形态且取值不一致时，服务端 MUST 按下列优先级解析：(1) `X-Contrix-Wait-For` header；(2) request body `wait_for`；(3) `consistency.wait_for`。
+**Wait-for canonical 与投影（normative）**：`X-Cokret-Wait-For` HTTP header 是 wait-for barrier 的 wire canonical 形态；[`../conformance/query-schema.md §2`](../conformance/query-schema.md) 嵌套形态 `consistency: { wait_for, timeout_ms }` 与 [`../../artifacts/openapi/cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) request body 扁平字段 `wait_for: string` 是同义投影，三者等价绑定到同一 RYW (read-your-writes) barrier 语义。服务端 MUST 接受任一形态并解析为相同 cursor；客户端 MAY 选择任一形态。当同一请求同时出现多种形态且取值不一致时，服务端 MUST 按下列优先级解析：(1) `X-Cokret-Wait-For` header；(2) request body `wait_for`；(3) `consistency.wait_for`。
 
 ## 9. Rate Limit
 
@@ -347,8 +347,8 @@ HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 H
 ```text
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS
-Access-Control-Allow-Headers: Authorization, Content-Type, Content-Digest, Digest, Idempotency-Key, X-Contrix-Wait-For, X-Contrix-Request-Id
-Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disposition, Content-Range, Location, X-Contrix-Request-Id
+Access-Control-Allow-Headers: Authorization, Content-Type, Content-Digest, Digest, Idempotency-Key, X-Cokret-Wait-For, X-Cokret-Request-Id
+Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disposition, Content-Range, Location, X-Cokret-Request-Id
 ```
 
 服务端 MUST NOT 在 `OPTIONS` preflight 请求中执行写入逻辑。
@@ -380,7 +380,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ### 11.1 服务发现缓存与委托
 
-服务 DID Document 中的 service endpoint 是服务身份与 endpoint 绑定的权威来源。域名级 bootstrap MAY 通过 `/.well-known/contrix/server` 或等价 signed metadata 暴露 endpoint 摘要，但接收方仍 MUST 校验：
+服务 DID Document 中的 service endpoint 是服务身份与 endpoint 绑定的权威来源。域名级 bootstrap MAY 通过 `/.well-known/cokret/server` 或等价 signed metadata 暴露 endpoint 摘要，但接收方仍 MUST 校验：
 
 - HTTPS/TLS 名称与返回的 endpoint 一致；
 - service DID、DID Document service entry、describe 响应和 HTTP Message Signature 绑定一致；

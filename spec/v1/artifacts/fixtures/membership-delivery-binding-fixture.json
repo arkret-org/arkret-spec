@@ -7,7 +7,7 @@
     {
       "vector_id": "cx.vector.membership.delivery_binding.explicit.v1",
       "given_state": {
-        "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "delivery_binding_policy": {
           "allow_binding_sources": [
@@ -25,7 +25,7 @@
       "input": {
         "event_kind": "cx.member.state",
         "payload": {
-          "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
@@ -42,7 +42,7 @@
               "key_packages"
             ],
             "resolved_at": "2026-05-19T10:00:00Z",
-            "service_acceptance_ref": "cx:event:7d000001-0000-7000-8000-000000000000"
+            "service_acceptance_ref": "ck:event:7d000001-0000-7000-8000-000000000000"
           },
           "gate_proofs": [
             {
@@ -61,13 +61,13 @@
     {
       "vector_id": "cx.vector.membership.delivery_binding.did_document_default.v1",
       "given_state": {
-        "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "delivery_binding_policy": {
           "allow_did_document_default": true
         },
         "did_document_service": {
-          "service_type": "ContrixPrincipalServer",
+          "service_type": "CokretPrincipalServer",
           "recipient_service_did": "did:web:personal.alice.example",
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
@@ -76,7 +76,7 @@
       "input": {
         "event_kind": "cx.member.state",
         "payload": {
-          "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
@@ -108,7 +108,7 @@
     {
       "vector_id": "cx.vector.membership.delivery_binding.unroutable.v1",
       "given_state": {
-        "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
         "delivery_binding_policy": {
           "allow_unroutable_membership": true
         }
@@ -117,7 +117,7 @@
       "input": {
         "event_kind": "cx.member.state",
         "payload": {
-          "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "unroutable"
@@ -175,7 +175,7 @@
     {
       "vector_id": "cx.vector.membership.delivery_binding.policy_mismatch.v1",
       "given_state": {
-        "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
         "delivery_binding_policy": {
           "allow_binding_sources": [
             "organization_policy"
@@ -189,7 +189,7 @@
       "input": {
         "event_kind": "cx.member.state",
         "payload": {
-          "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "membership": "join",
           "delivery_status": "routable",
@@ -203,7 +203,7 @@
               "sync"
             ],
             "resolved_at": "2026-05-19T10:00:00Z",
-            "service_acceptance_ref": "cx:event:7d000002-0000-7000-8000-000000000000"
+            "service_acceptance_ref": "ck:event:7d000002-0000-7000-8000-000000000000"
           }
         }
       },

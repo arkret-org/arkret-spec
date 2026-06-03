@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/ice-config-response.schema.json",
-  "title": "Contrix ICE Config Response",
+  "$id": "https://cokret.io/artifacts/schemas/ice-config-response.schema.json",
+  "title": "Cokret ICE Config Response",
   "description": "Response shape for the WebRTC media service ICE config endpoint. Used by cx.profile.webrtc_media.v1; see crypto-media/webrtc-signaling.md §6.",
   "type": "object",
   "required": [
@@ -20,12 +20,12 @@
   "properties": {
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Echo of the request Realm id. Bound into the signature to prevent cross-Realm replay."
     },
     "call_id": {
       "type": "string",
-      "pattern": "^cx:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Echo of the request call id. Bound into the signature to prevent cross-call replay."
     },
     "actor_id": {
@@ -35,7 +35,7 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Device that may use this ICE configuration. Bound into the signature."
     },
     "ice_servers": {

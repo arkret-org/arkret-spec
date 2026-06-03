@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 概述
 
-本规范定义了 Contrix v1 能力授权中约束的形式 schema。约束细化了能力授权可以行使的条件和方式。
+本规范定义了 Cokret v1 能力授权中约束的形式 schema。约束细化了能力授权可以行使的条件和方式。
 
 职责切分是 normative：
 
@@ -219,11 +219,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "allowed_flow_ids": [
-    "cx:flow:01964180-0280-7000-8000-000000000000"
+    "ck:flow:01964180-0280-7000-8000-000000000000"
   ],
   "allowed_tracks": ["discussion"],
   "denied_flow_ids": [
-    "cx:flow:01964180-0289-7a52-94a5-294a5294a400"
+    "ck:flow:01964180-0289-7a52-94a5-294a5294a400"
   ]
 }
 ```
@@ -254,16 +254,16 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
-  "allowed_view_ids": ["cx:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
+  "allowed_view_ids": ["ck:view:019641be-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["ck:space:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["ck:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```
 
 `scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
 
-`allowed_space_ids` / `denied_space_ids` MUST 使用 `cx:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `cx:space:`（或 profile 明确声明的 `cx:flow:` / `cx:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `cx:realm:` 塞进 Space 或 container 字段。
+`allowed_space_ids` / `denied_space_ids` MUST 使用 `ck:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ck:space:`（或 profile 明确声明的 `ck:flow:` / `ck:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ck:realm:` 塞进 Space 或 container 字段。
 
 ### 6.4 服务出口与 presign 范围
 
@@ -273,7 +273,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "blob_presign_scope": {
     "purpose_allow": ["media_inline", "thumbnail"],
-    "realm_ids": ["cx:realm:0196419b-0000-7000-8000-000000000000"]
+    "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"]
   },
   "allowed_endpoints": ["https://api.trusted.example"],
   "allowed_data_classes": ["public", "internal"]
@@ -740,13 +740,13 @@ function matches_field_access(operation, constraint):
 
 ```json
 {
-  "grant_id": "cx:grant:...",
+  "grant_id": "ck:grant:...",
   "subject": "did:web:agent.example.com",
   "actions": ["cx.object.read", "cx.flow.create", "cx.morph.create"],
   "resources": [
     {
       "kind": "flow",
-      "realm_id": "cx:realm:...",
+      "realm_id": "ck:realm:...",
       "flow_id": "*"
     }
   ],
@@ -819,8 +819,8 @@ Grant envelope 字段、签名规则与必填性以
 [`artifacts/schemas/capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json)
 为准；下述示例展示 grant 上下文中的典型 typed constraint 组合，不引入新规则。
 
-> Grant 撤销 MUST 表达为 accepted `cx.capability.revoke` Event 指向 `cx:grant:<uuid>`；
-> Contrix v1 不注册 `cx:revocation-list:*` typed ID。
+> Grant 撤销 MUST 表达为 accepted `cx.capability.revoke` Event 指向 `ck:grant:<uuid>`；
+> Cokret v1 不注册 `ck:revocation-list:*` typed ID。
 
 #### 20.3.1 Field-level 与 Type 限制
 
@@ -907,9 +907,9 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
-  "allowed_view_ids": ["cx:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
+  "allowed_view_ids": ["ck:view:019641be-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["ck:space:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["ck:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```

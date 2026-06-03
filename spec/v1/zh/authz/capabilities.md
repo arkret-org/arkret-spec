@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系或模糊角色。
+Cokret 的权限模型采用 capability 思路，而不是只依赖成员关系或模糊角色。
 
 这样做的原因是：
 
@@ -55,16 +55,16 @@ Authorization condition: Claim / Attestation
 
 ID 语义：
 
-- `cx:grant:<uuid>` 是签名 Capability Grant object 的规范 ID，`cx.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
-- `cx:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为签名 grant object ID 使用。
+- `ck:grant:<uuid>` 是签名 Capability Grant object 的规范 ID，`cx.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
+- `ck:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为签名 grant object ID 使用。
 
 示例：
 
 ```json schema=schemas/capability-grant.schema.json
 {
-  "id": "cx:grant:0196410c-0000-7000-8000-000000000000",
+  "id": "ck:grant:0196410c-0000-7000-8000-000000000000",
   "schema": "cx.schema.capability.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
   "actions": [
@@ -77,13 +77,13 @@ ID 语义：
   "resources": [
     {
       "kind": "object",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "object_type": "flow",
       "match_scope": "realm_wide"
     },
     {
       "kind": "morph",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "morph_type": "document",
       "match_scope": "realm_wide"
     }
@@ -121,7 +121,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ## 4. Resource Selector
 
-Contrix v1 支持以下 `kind`：
+Cokret v1 支持以下 `kind`：
 
 - `realm`
 - `space`
@@ -316,7 +316,7 @@ Audit action 只授权受控审计代理执行“先记录后解密”、读取�
 
 ## 6. Constraints
 
-Contrix v1 支持：
+Cokret v1 支持：
 
 - `expires_at`
 - `not_before`
@@ -537,7 +537,7 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Move MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或 Anchor frontier 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
-`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `cx:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `/policy/check` decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
+`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ck:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `/policy/check` decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 
 1. 该 grant 直接授权的 pending Event MUST fail closed；
 2. 该 grant 派生出的 child grant MUST 标记 `revoked_upstream`。child grant 的有效性 **MUST** 取其**所有** parent path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在该 child 的某条 parent path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 **MUST** 降级 fail-closed，**MUST NOT** 因为存在另一条"仍有效的 alternate parent path"而保持有效。实现 **MUST NOT** 把 multi-path delegation 当作可漂白单条 path 撤销的冗余授权；多 path 只增加约束、不放宽约束。child grant 仅当其**每一条** parent path 上的全部关键 ancestor 都仍有效时才保持有效；
@@ -546,7 +546,7 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 ## 11. 有效权限集合
 
-Contrix v1 采用 allow-grant + explicit revoke 模型。
+Cokret v1 采用 allow-grant + explicit revoke 模型。
 
 也就是说：
 
@@ -564,7 +564,7 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 {
   "kind": "cx.capability.revoke",
   "payload": {
-    "grant_id": "cx:grant:0196410c-0000-7000-8000-000000000000",
+    "grant_id": "ck:grant:0196410c-0000-7000-8000-000000000000",
     "reason": "contract ended"
   }
 }
@@ -613,7 +613,7 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 
 ## 16. Flow / Discussion 场景下的权限建议
 
-Contrix v1 至少区分：
+Cokret v1 至少区分：
 
 - 修改 Flow synthesis。
 - 开启或关闭 discussion track。
@@ -731,7 +731,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 ## 19. 设计决定
 
-Contrix v1 固定：
+Cokret v1 固定：
 
 - 权限采用 capability 模型。
 - Flow、discussion、agent 执行都使用统一 grant 体系；Flow track 不携带独立 access，整个 Flow 通过 Realm-default scope 或 Circle scope 形成单一安全边界。

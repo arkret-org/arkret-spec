@@ -16,7 +16,7 @@ see_also:
 
 ## 1. 目标
 
-本文集中定义 Contrix 规范中的核心术语。若其他文档使用同一术语，除非所在章节另有说明，以下定义优先于扩展实现约定。
+本文集中定义 Cokret 规范中的核心术语。若其他文档使用同一术语，除非所在章节另有说明，以下定义优先于扩展实现约定。
 
 本文中的英文术语保留为规范关键字；中文解释用于阅读，不能替代字段名、对象名或事件名。
 
@@ -31,7 +31,7 @@ see_also:
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Contrix | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
+| Cokret | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
 | Principal | 主体 | 协议中的稳定行为者身份；通常由 DID 标识，包含个人主体、组织、agent、Applet 等。 |
 | Actor | 参与身份 | Principal 在 Realm 内的行为身份：执行动作、产生 Event、持有 profile 与 membership；可在不同 Realm 表现为 pairwise pseudonym。 |
 | Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
@@ -40,15 +40,15 @@ see_also:
 | Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Realm history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
-| Realm | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Realm 为根。`cx:realm:` 永远是边界，不承担产品导航树职责。底层只有一个 schema `cx.schema.realm.v1`；按用途分为 Principal Control Realm 与 Collaboration Realm 两类（见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）。 |
+| Realm | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Realm 为根。`ck:realm:` 永远是边界，不承担产品导航树职责。底层只有一个 schema `cx.schema.realm.v1`；按用途分为 Principal Control Realm 与 Collaboration Realm 两类（见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）。 |
 | Collaboration Realm | 协作 Realm（角色） | Realm 的一种用途，承载多方业务协作状态（Flow / Message / Space / Morph / Relation 等）。与 Principal Control Realm 互补。按是否含跨信任域成员再分 Internal / External 两类。 |
 | Internal Collaboration Realm | 域内协作 Realm | Collaboration Realm 的一种：`federation_policy ∈ {closed, restricted}` 且成员仅来自本部署 trust domain。组织主网络上的普通项目 / 团队 Realm 默认属于此类。 |
 | External Collaboration Realm | 跨域协作 Realm | Collaboration Realm 的一种：含跨信任域成员（external Organization DID / external principal）。Sovereign deployment 中其 policy 受 `cx.profile.sovereign_deployment.v1` 进一步约束（allowlist federation、独立 enclave、E2EE、deny-default applet/agent；见 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)）。 |
 | Principal Control Realm | 主体控制 Realm（PCR） | Realm 的另一用途：与某 principal DID 1:1 绑定，承载该 principal 的身份基础设施事件（device / session / KeyPackage / recovery / profile / consent）。schema 层仍是 `cx.schema.realm.v1`，通过 `fields.purpose="principal_control"` + `schema_refs` 含 `cx.profile.principal_control_realm.v1` 标记 + 事件类型 allowlist 与一般 Collaboration Realm 区分。详见 [`identity/key-management.md` §4.1](../identity/key-management.md)。 |
-| Trust Domain | 信任域 | deployment / sovereign replay boundary，wire 形态为 `cx:trust_domain:<scope>`。它在 service describe、Realm create 和跨域 proof transcript 中绑定接收上下文；定义见 [`../identity/identity-did.md` §3.6](../identity/identity-did.md#36-trust-domain)。 |
+| Trust Domain | 信任域 | deployment / sovereign replay boundary，wire 形态为 `ck:trust_domain:<scope>`。它在 service describe、Realm create 和跨域 proof transcript 中绑定接收上下文；定义见 [`../identity/identity-did.md` §3.6](../identity/identity-did.md#36-trust-domain)。 |
 | Official Realm | 官方边界 | 由组织或 policy 明确确认的 Realm；它是治理 / 安全声明，不等同于用户可见的 Space。 |
 | Realm Link | Realm 关系边 | Realm 之间通过 `cx.realm.link` 表达的显式治理、发现、mirror、confidential extension、迁移等关系；不是 hierarchy，不默认级联权限或历史。 |
-| Space | 结构性分组对象 | 用户可理解的结构容器与导航节点（project、folder、board、list、泳道、calendar bucket、page group 等），ID 形如 `cx:space:`。永远没有自己的 membership / policy / E2EE group / federation policy；metadata 由 `realm_id` 指向的 home Realm 授权，子资源默认 Realm 由 `default_realm_id` 解析。 |
+| Space | 结构性分组对象 | 用户可理解的结构容器与导航节点（project、folder、board、list、泳道、calendar bucket、page group 等），ID 形如 `ck:space:`。永远没有自己的 membership / policy / E2EE group / federation policy；metadata 由 `realm_id` 指向的 home Realm 授权，子资源默认 Realm 由 `default_realm_id` 解析。 |
 | Space Hierarchy | Space 层级 | Space 之间通过 `parent_space_id` + `cx.space.parent` 表达父子关系；可跨 Realm 做导航，但不传播 Realm membership、capability、history 或 E2EE key。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
 | Flow | 协作主对象 | Realm 内承载协作议题、任务、正式表达与讨论轨道的标准对象。 |
@@ -56,11 +56,11 @@ see_also:
 | ~~Room~~ | _deprecated_ | 历史用语；v1 core model 不使用 `Room` 名词，请使用 `Flow discussion track` / `discussion track view`。`Room` 仅在 MIMI / Matrix interop 模块的明确互操作上下文中允许出现（参见 [`forbidden-model-terms.json`](../../artifacts/registry/forbidden-model-terms.json) `Room` 条目的 `allowed_contexts`）。 |
 | synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。完整字段、profile、适用场景以 [`../models/flow-and-message.md` §4.2](../models/flow-and-message.md) 为准。 |
 | discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 由 Flow 整体的 `scope_circle_id` 决定（`null`=Realm-default scope，否则=该 [Circle](../models/circle.md) scope）。Flow 单一 scope，不存在 per-track 安全边界。完整 profile 集合与适用场景以 [`../models/flow-and-message.md` §4.3](../models/flow-and-message.md) 为准。 |
-| Circle | 子事件边界 / scoped 协作圈 | `cx:circle:` 对象，Realm 内的子集成员 + 独立 history visibility + 投递 / 查询 / projection 裁剪边界。**译名注意**：不要叫"信任圈"——Circle 不构成信任域，避免与 Trust Domain 混淆。**不**持有 federation identity 或 policy server（这些仍在父 Realm）。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的协作圈"；可按父 Realm floor 启用独立 MLS group。详见 [`../models/circle.md`](../models/circle.md)。 |
+| Circle | 子事件边界 / scoped 协作圈 | `ck:circle:` 对象，Realm 内的子集成员 + 独立 history visibility + 投递 / 查询 / projection 裁剪边界。**译名注意**：不要叫"信任圈"——Circle 不构成信任域，避免与 Trust Domain 混淆。**不**持有 federation identity 或 policy server（这些仍在父 Realm）。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的协作圈"；可按父 Realm floor 启用独立 MLS group。详见 [`../models/circle.md`](../models/circle.md)。 |
 | Circle scope / `scope_circle_id` | 对象 effective scope 引用 | 对象（Flow / Message / Morph / Space）的 `scope_circle_id` 字段；`null` = Realm-default scope，否则指向同 Realm 的 Circle。Reducer 把它物化为 immutable tagged `effective_scope`，进入 Event envelope / Anchor leaf；MLS-backed scope 中也进入 E2EE AAD。 |
 | effective_scope | 事件 immutable scope tag | Reducer 在每个 Event 接受时固化的 tagged scope（`{kind:"realm",realm_id}` 或 `{kind:"circle",realm_id,circle_id}`）。进入 envelope / sub-anchor leaf；在 MLS-backed scope 中也进入 AAD；后续 `scope_circle_id` 改绑不得重解释旧 event。 |
-| Board | 看板 | `cx:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
-| List | 列 / 泳道 | `cx:space: kind=list`，挂到 Board Space 下、承载 Flow 位置关系的列容器。 |
+| Board | 看板 | `ck:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
+| List | 列 / 泳道 | `ck:space: kind=list`，挂到 Board Space 下、承载 Flow 位置关系的列容器。 |
 | Message | 消息对象 | 发生在 Flow discussion 轨道中的即时沟通与补充记录。 |
 | Morph | 开放对象 | 标准对象扩展框架，承载非固定业务类型的可声明对象。 |
 | Facet | 能力标签 | Morph/Profile 的能力提示（如 container/schedulable/renderable）。 |
@@ -100,7 +100,7 @@ see_also:
 | Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。 |
 | Genesis Anchor | 创世锚点 | 某个 Realm 的 Anchor DAG 根 Anchor；它是唯一允许 `predecessor_refs=[]` 的 Anchor，且 v1 要求 `frontier=[]`。它给该 Realm 的首个 reducer-input Event（通常是 `cx.realm.create`）提供 `anchor_ref` 基线，本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md` §4](../authz/event-auth-state-resolution.md)。 |
 | Anchor DAG | 锚点图 | 某个 Realm 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
-| Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `cx:cell:<component>:<subject>`。 |
+| Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `ck:cell:<component>:<subject>`。 |
 | Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`、`lww_register`（仅可用于 profile 明确标记 `client_projection_only=true` 的 UI affordance，不得作为授权或 Anchor 关键路径）、`rga`（协作文本与有序列表）。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的 Move fail closed，`bottom=expose` 时可投影为冲突诊断。 |
 | Reset | 重置语义 | 规范中“reset”不是单一 wire 动作：capability reset 通常是 revoke + reissue；cross-signing reset 是 `cx.cross_signing.reset`；cas_register / fsm 进入 `⊥` 后的恢复是 conflict-recovery Move（带 `state_witness` / `inclusion_proof` / recovery capability），不是普通 CAS 覆盖。正文使用 reset 时必须说明对应 event kind 或 recovery path。 |
@@ -126,7 +126,7 @@ see_also:
 | Native Personal Agent | 原生个人代理（canonical） | Controller 主动 provision 的 personal AI agent。wire 上使用 `actor_kind=agent`，持有独立 DID，作为一等 principal 参与协议；其 native 身份由 `cx.agent.provision` / `cx.identity.accountability_grant` / `cx.agent.key.authorize` 等 provisioning state 判定，而不是新增 `actor_kind` 枚举；详见 [`actor.md` §3.3](../models/actor.md)。`Personal Agent` 是 informative alias，prose 中遇到时应理解为 Native Personal Agent。 |
 | Personal Agent | _informative alias_ | 非规范别名；canonical 术语为 **Native Personal Agent**。新增 normative 文本 MUST 使用 canonical 术语。 |
 | Agent Runtime | Agent 运行时 | 执行 agent 业务逻辑的进程或容器；通过 `cx.account.agent_key_pair` pairing 持有 agent key。Agent Runtime 是部署单元，不是 protocol principal——principal 身份由 Native Personal Agent 或 Ghost Actor 承担。 |
-| Ghost Actor | 幽灵 actor | Applet-managed actor，通常是外部网络用户、账号或 automation 在 Contrix 中的镜像。Ghost Actor 必须使用可审计的独立 Actor DID（`actor_id` 不带 DID URL fragment）；wire `actor_kind` 仍取 `user / org / team / agent / service / device / integration` 之一，外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`。Ghost/native 差异由 Applet provenance、`accountable_principal_ids` / `accountability` 与 profile/capability 约束表达，不新增 `agent_ghost` 或 `ghost` enum。 |
+| Ghost Actor | 幽灵 actor | Applet-managed actor，通常是外部网络用户、账号或 automation 在 Cokret 中的镜像。Ghost Actor 必须使用可审计的独立 Actor DID（`actor_id` 不带 DID URL fragment）；wire `actor_kind` 仍取 `user / org / team / agent / service / device / integration` 之一，外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`。Ghost/native 差异由 Applet provenance、`accountable_principal_ids` / `accountability` 与 profile/capability 约束表达，不新增 `agent_ghost` 或 `ghost` enum。 |
 | Member | 成员 | 已加入某 Realm 或 Circle 的 actor；具体由 membership cell `cx.component.member.state.v1` 中 `state=active` 的条目定义。Member 是 actor 在某个 security boundary 内的 membership 状态，不是独立主体类型。 |
 | Subject | 授权对象 | Capability grant 的授予对象；`subject` 字段值是 DID（具体 principal）或 condition selector（如 role / actor_kind / federated trust scope）。具体使用约束见 [`common-fields.md` §4.1](../models/common-fields.md#41-did-适用边界)。 |
 | participant | _local-context only_ | 不是通用术语。仅允许在 SFU stream binding、Mermaid sequence 图、call participant_id 等明确局部上下文出现；prose normative 段落 MUST 使用 actor / member / subject 视语义选用，不得用 `participant` 表达通用主体语义。 |
@@ -139,10 +139,10 @@ see_also:
 | Group (capability subject) | 大写 Group（授权主体集合） | 大写 **Group** 表示作为 capability grant subject 的 principal / actor 集合（即"一组主体被授予同一 capability"），与 **MLS group**（小写，MLS 加密会话）无关。当两者并列出现时，prose MUST 加限定词：`capability subject Group` vs `MLS group`，不得仅写裸 `group`。 |
 | Provision vs Register vs Install | provision / register / install 用词分工 | 三者不互换：**provision** = principal 主体一等创建（如 `cx.agent.provision`），主体身份进入协议线；**registration** = service / applet 描述符接入（如 `cx.applet.registration`），描述符进入 directory / registry；**install** = client-side 软件安装（应用商店安装、桌面安装），**不**进入 wire。Normative prose 描述 protocol 主体生命周期时 MUST 使用 provision，不得写 "install agent"。 |
 | backup_class | 密钥备份分类 | `cx.schema.key_backup.v1` envelope 的 class enum，v1 仅三类：`did_recovery`（DID inception key 恢复）、`secret_storage`（用户密钥 / passphrase 保护的备份）、`mls_history`（MLS group history secret 备份）。详见 [`key-management.md` §7](../identity/key-management.md)。注意：**`external` / `escrow` 不在 v1 backup_class enum 中**，MUST NOT 在 normative prose 中用作 backup_class 同义词或第四类标签。 |
-| MLS KeyPackage | MLS 密钥包（durable event payload） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生对象：actor 预先公布、供他人将其加入 MLS group 的单次使用公钥材料。在 Contrix 中作为可声明 / 领取 / 消费 / 撤销的 durable event payload（`cx.mls.keypackage` 等）落地，并被 Realm-scoped claim 生命周期约束。prose 用 `KeyPackage`（PascalCase），wire 字段用 `keypackage_` 前缀（如 `keypackage_id` / `keypackage_digest`）。详见 [`encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)。 |
-| MLS Welcome | MLS 欢迎消息（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生消息，把新成员带入当前 epoch。Contrix 扩展：MUST 通过 durable `cx.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付（Ephemeral Channel 不得是唯一路径）。prose 用 `Welcome`，wire 字段（如 `welcome_digest`）保持小写。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
-| MLS Commit | MLS 提交（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生 epoch 推进消息。Contrix 扩展：作为 `cx.mls.commit` durable Event 进入 Realm history，并 MUST 携带 `governance_binding`（GroupContext extension `cx_governance_binding`）把 governance frontier 哈希进 MLS transcript（见 MLS Governance Binding 行）。详见 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)。 |
-| MLS Proposal | MLS 提案（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生提案消息（add / remove / update 等），由后续 Commit 落实。Contrix 中作为 `cx.mls.proposal` durable Event 传输；发送者 MUST 在事件自身 causal auth state 下满足对应 admin set 或成员 self-update 规则。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
+| MLS KeyPackage | MLS 密钥包（durable event payload） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生对象：actor 预先公布、供他人将其加入 MLS group 的单次使用公钥材料。在 Cokret 中作为可声明 / 领取 / 消费 / 撤销的 durable event payload（`cx.mls.keypackage` 等）落地，并被 Realm-scoped claim 生命周期约束。prose 用 `KeyPackage`（PascalCase），wire 字段用 `keypackage_` 前缀（如 `keypackage_id` / `keypackage_digest`）。详见 [`encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)。 |
+| MLS Welcome | MLS 欢迎消息（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生消息，把新成员带入当前 epoch。Cokret 扩展：MUST 通过 durable `cx.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付（Ephemeral Channel 不得是唯一路径）。prose 用 `Welcome`，wire 字段（如 `welcome_digest`）保持小写。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
+| MLS Commit | MLS 提交（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生 epoch 推进消息。Cokret 扩展：作为 `cx.mls.commit` durable Event 进入 Realm history，并 MUST 携带 `governance_binding`（GroupContext extension `cx_governance_binding`）把 governance frontier 哈希进 MLS transcript（见 MLS Governance Binding 行）。详见 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)。 |
+| MLS Proposal | MLS 提案（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生提案消息（add / remove / update 等），由后续 Commit 落实。Cokret 中作为 `cx.mls.proposal` durable Event 传输；发送者 MUST 在事件自身 causal auth state 下满足对应 admin set 或成员 self-update 规则。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
 | ServiceDescribe | 服务描述响应（discovery / operation-response 契约） | 各 `/describe` 端点（`server/describe`、`directory/describe`、`applet/describe` 等）统一的 canonical 响应 shape（schema `cx.schema.service_describe.v1`，artifact [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)）。它是 operation-response / discovery 契约，含 `service_did`、`trust_domain`、`service_type`、claim-level profile 分区、`plaintext_visibility` 等。详见 [`service-surface.md` §2.6](../sync/service-surface.md)。 |
 | Policy Server | 策略服务（service role） | 对授权决策做集中评估并回签 bound decision 的服务角色；运行时 `service_type=policy_server`。它评估 Realm policy / capability 并签发绑定到 `realm_id` / `actor` / `action` / `request_canonical_digest` 的 decision。详见 [`policy-server.md`](../authz/policy-server.md)。 |
 | Applet Server | Applet 服务（service role） | 承载受注册、受授权集成（applet describe / transaction / Ghost Actor / portal Realm / third-party lookup）的服务角色；运行时 `service_type=applet_service`，端点前缀 `/applet`、`/server`。属 extension profile，非 v1 core 互操作必需。详见 [`applet-integration.md` §3.1](../extensions/applet-integration.md)。 |
@@ -157,7 +157,7 @@ see_also:
 | MCU | Multipoint Control Unit（external WebRTC 标准缩写） | 外部 WebRTC 标准缩写：服务端混流后端。因混流通常需要明文媒体，故 **不可用于 E2EE 媒体**；若使用必须按 plaintext-visible service 在 Realm policy / profile 中披露，且不进入 MLS governance binding。详见 [`webrtc-signaling.md`](../crypto-media/webrtc-signaling.md)。 |
 | MemberIdentity | 成员身份段（durable event payload） | Realm-scoped、actor-scoped 的完整 `member_identity` 段，由 `cx.member.identity.update` 以明文或加密封装携带（schema `cx.schema.member_identity.v1`，artifact [`member-identity.schema.json`](../../artifacts/schemas/member-identity.schema.json)）。wire scope = durable event payload；披露 `subject_id` 与 `display_profile` 供 Realm UI projection，handle 生命周期刻意排除。 |
 | MemberDeliveryBindingCandidate | 成员投递绑定候选（builder-side 候选对象） | builder-side 候选对象，把 Handle resolution 输出或可信签发等价物送入 Realm member_add / invite 流水线（schema `cx.schema.member_delivery_binding_candidate.v1`，artifact [`member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json)）。它本身不是 wire fact；只有 reducer 依 Join Policy 独立复核后才物化为 Realm-scoped `member_delivery_binding`。详见 [`identity-handles.md` §3.7](../identity/identity-handles.md)。 |
-| DeviceMessageEnvelope | 设备消息信封（to-device 队列消息） | 私有点对点设备消息封装（schema artifact [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)，title "Contrix Device Message Envelope"）。wire scope = to-device 队列消息（经 `cx.device_messages.put` / `.get`，account subscribe `to_device`），**不是** durable shared Realm Event，不进入 reducer / Anchor history。prose 用 `to-device`，类型用 `DeviceMessageEnvelope`。 |
+| DeviceMessageEnvelope | 设备消息信封（to-device 队列消息） | 私有点对点设备消息封装（schema artifact [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)，title "Cokret Device Message Envelope"）。wire scope = to-device 队列消息（经 `cx.device_messages.put` / `.get`，account subscribe `to_device`），**不是** durable shared Realm Event，不进入 reducer / Anchor history。prose 用 `to-device`，类型用 `DeviceMessageEnvelope`。 |
 | Account Data | 账户数据（actor-private account data） | actor-private 的个人偏好 / 状态类别（read marker、saved view personalization、通知偏好、个人 blocklist、agent draft / sidecar projection 等）。wire scope = account data（`wire_scope=actor_private_event`，encrypted account data 或 actor-private stream），MUST NOT 进入 shared Realm Move / Anchor history。详见 [`client-preferences.md`](../discovery/client-preferences.md)。 |
 | to-device | 设备直投通道（ephemeral / to-device 队列） | prose 术语：发往特定设备的私有点对点消息通道；类型为 DeviceMessageEnvelope，wire path / 字段为 `device_messages` / `to_device`。wire scope = to-device 队列（非 durable shared event）。详见 [`transport-bindings.md`](../sync/transport-bindings.md)。 |
 | Franking Proof | franking 证明（审核证据对象） | 服务在接收 E2EE 密文事件时生成的不可伪造收讫证明（`cx.moderation.franking_proof`），目标是：证明被举报密文确实对应某条已投递消息、保护举报者、并让审核方在无完整明文下也能验证。MUST 在 routing metadata、ciphertext digest、AAD digest、sender claim、接收服务 DID、接收时间与 `replay_nonce` 之上生成；MUST NOT 包含 plaintext body。详见 [`content-moderation.md` §3.4](../governance/content-moderation.md)。 |
@@ -166,11 +166,11 @@ see_also:
 
 本节给出术语在 prose 与 wire 形态间的 canonical 大小写规则。这些规则与 §1 的术语表维护规则叠加适用，不取代后者；§1 维护规则（canonical 唯一定义、别名标注、禁用词范围等）仍然有效。
 
-通用规则（CC-04 / SA-05）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Contrix 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名（`Policy Server`、`Principal Server`、`Directory Server`、`Applet Server`）；泛指"某个 policy 服务"时小写普通名词可接受。
+通用规则（CC-04 / SA-05）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Cokret 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名（`Policy Server`、`Principal Server`、`Directory Server`、`Applet Server`）；泛指"某个 policy 服务"时小写普通名词可接受。
 
 - **KeyPackage（CC-01）**：prose 引用 MLS KeyPackage 时 MUST 写 `KeyPackage`（PascalCase）；wire 字段保留 `keypackage_` snake_case 前缀（如 `keypackage_id` / `keypackage_digest`）。prose 中 MUST NOT 写 `key package`（带空格）或 `keypackage`（全小写）。
 - **Welcome（CC-02）**：prose 引用 MLS Welcome 消息时 MUST 写 `Welcome`；字段名（如 `welcome_digest`）MUST 保持小写。
 - **fail closed vs fail-closed（CC-03）**：动词短语用 `fail closed`（如 "Implementations MUST fail closed"）；形容词用连字符 `fail-closed`（如 "fail-closed default"）。
 - **E2EE vs e2ee（CC-04）**：prose MUST 用 `E2EE`；profile ID / enum / schema key 保留小写 `e2ee`（如 `cx.profile.e2ee_client.v1`、`encryption_profile` 取值）。
-- **服务角色专名（CC-05）**：见上方通用规则；命名 Contrix 服务角色用 PascalCase 专名。
+- **服务角色专名（CC-05）**：见上方通用规则；命名 Cokret 服务角色用 PascalCase 专名。
 - **to-device（CC-06）**：prose 术语写 `to-device`；schema / 类型名用 `DeviceMessageEnvelope`；wire path / 字段用 `device_messages` / `to_device`。

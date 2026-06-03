@@ -113,15 +113,15 @@ profile: cx.profile.agent_sidecar_thread.v1
     "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:agents:research-assistant"
   ],
   "context_ref": {
-    "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
-    "flow_id": "cx:flow:01970000-0000-7000-8000-000000000001",
+    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
+    "flow_id": "ck:flow:01970000-0000-7000-8000-000000000001",
     "track": "discussion",
-    "message_id": "cx:message:01970000-0000-7000-8000-000000000071"
+    "message_id": "ck:message:01970000-0000-7000-8000-000000000071"
   }
 }
 ```
 
-`context_ref` 是本 profile 定义的 polymorphic reference descriptor:它可以锚定 Flow、Message、Relation 或 profile-defined cursor 位置,不是单一具体 object id,所以使用 `_ref` 后缀。descriptor 内部字段仍按自身 value category 命名:`realm_id` / `flow_id` / `message_id` / `relation_id` 是具体 object IDs;`track_name` 是 FlowTrack key;若未来加入 cursor,字段名应使用 `cursor`,值为 `cx:cursor:<base64url>`。
+`context_ref` 是本 profile 定义的 polymorphic reference descriptor:它可以锚定 Flow、Message、Relation 或 profile-defined cursor 位置,不是单一具体 object id,所以使用 `_ref` 后缀。descriptor 内部字段仍按自身 value category 命名:`realm_id` / `flow_id` / `message_id` / `relation_id` 是具体 object IDs;`track_name` 是 FlowTrack key;若未来加入 cursor,字段名应使用 `cursor`,值为 `ck:cursor:<base64url>`。
 
 `context_ref.realm_id` REQUIRED。`context_ref` MUST 解析到唯一 target endpoint,且仅满足以下两种形态之一:
 
@@ -139,9 +139,9 @@ v1 `cx.agent.sidecar_thread.ensure` request schema 是 closed schema。除已注
 ```json
 {
   "ok": true,
-  "private_circle_id": "cx:circle:01970000-0000-7000-8000-000000000080",
-  "private_flow_id": "cx:flow:01970000-0000-7000-8000-000000000081",
-  "private_relation_id": "cx:relation:01970000-0000-7000-8000-000000000082",
+  "private_circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
+  "private_flow_id": "ck:flow:01970000-0000-7000-8000-000000000081",
+  "private_relation_id": "ck:relation:01970000-0000-7000-8000-000000000082",
   "pending_member_reconciliation": [
     {
       "agent_principal_id": "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:agents:research-assistant",
@@ -271,7 +271,7 @@ Sidecar Circle 的 active membership MUST 收敛为:
 
 `controller_agent_circle_key` MUST 是 `(realm_id, controller_principal_id)` 的确定性 profile-local key,具体规则:
 
-1. **Canonical realm_id**:按 typed prefix 解析得到 `cx:realm:<uuid>`,uuid 部分按 RFC 4122 lowercase hex 形式归一(去除任意空白)。无法解析为 typed prefix 时 fail closed。
+1. **Canonical realm_id**:按 typed prefix 解析得到 `ck:realm:<uuid>`,uuid 部分按 RFC 4122 lowercase hex 形式归一(去除任意空白)。无法解析为 typed prefix 时 fail closed。
 2. **Canonical controller_principal_id**:按 [W3C DID Core](https://www.w3.org/TR/did-core/) 解析,移除 fragment(`#...`)与 query(`?...`),只保留 `did:<method>:<method-specific-id>` 部分;method-specific-id 内部不做大小写归一(method 自身定义其大小写敏感性)。无法解析为合法 DID URI 时 fail closed。
 3. 对两个 canonical 字符串做 Unicode NFC normalize。
 4. 以 UTF-8 编码以下 canonical string(分隔符是单个 0x0A 字节;不允许 CRLF):
@@ -282,7 +282,7 @@ Sidecar Circle 的 active membership MUST 收敛为:
 
 5. `controller_agent_circle_key = base32(sha256(canonical_bytes))[:24].lower()`(base32 alphabet 按 RFC 4648 §6 标准表,去除 padding,结果转 lowercase)。
 
-该 key 是 profile-local 派生值,不是 canonical object id。实际 Circle 仍使用 `cx:circle:<uuid>`;派生值只用于 deterministic short name、idempotent lookup 与 conformance fixture。
+该 key 是 profile-local 派生值,不是 canonical object id。实际 Circle 仍使用 `ck:circle:<uuid>`;派生值只用于 deterministic short name、idempotent lookup 与 conformance fixture。
 
 不同客户端实现 MUST 对相同 `(realm_id, controller_principal_id)` 输入得到 bit-identical `controller_agent_circle_key`;否则 sidecar Circle 双源——不同设备会创建两个 Circle,破坏 invariant 9。Conformance vector 至少覆盖一组 mixed-case / fragment-bearing DID 输入,保证派生函数收敛。
 
@@ -327,8 +327,8 @@ Accepted profile SHOULD 编排以下 durable material:
 {
   "kind": "cx.circle.create",
   "payload": {
-    "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
-    "circle_id": "cx:circle:01970000-0000-7000-8000-000000000080",
+    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
+    "circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
     "title": "Agent sidecar",
     "display": {
       "short_name": "AI-A4F2N1QZ8K9M",
@@ -374,9 +374,9 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
   "kind": "cx.flow.create",
   "payload": {
     "object": {
-      "id": "cx:flow:01970000-0000-7000-8000-000000000081",
+      "id": "ck:flow:01970000-0000-7000-8000-000000000081",
       "schema": "cx.schema.flow.v1",
-      "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
       "metadata": {
         "title": "Agent sidecar"
       },
@@ -387,7 +387,7 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
           "profile": "agent_sidecar"
         }
       },
-      "scope_circle_id": "cx:circle:01970000-0000-7000-8000-000000000080",
+      "scope_circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
       "stage": "in_progress",
       "created_by": "did:web:controller.example",
       "created_at": "2026-04-26T00:00:00Z"
@@ -406,15 +406,15 @@ Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普�
 {
   "kind": "cx.relation.create",
   "payload": {
-    "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
-    "relation_id": "cx:relation:01970000-0000-7000-8000-000000000082",
+    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
+    "relation_id": "ck:relation:01970000-0000-7000-8000-000000000082",
     "relation_kind": "agent_sidecar_of",
-    "from_ref": "cx:flow:01970000-0000-7000-8000-000000000081",
-    "to_ref": "cx:message:01970000-0000-7000-8000-000000000071",
+    "from_ref": "ck:flow:01970000-0000-7000-8000-000000000081",
+    "to_ref": "ck:message:01970000-0000-7000-8000-000000000071",
     "fields": {
       "context_track_name": "discussion"
     },
-    "scope_circle_id": "cx:circle:01970000-0000-7000-8000-000000000080"
+    "scope_circle_id": "ck:circle:01970000-0000-7000-8000-000000000080"
   }
 }
 ```
@@ -570,12 +570,12 @@ Flow F
 {
   "type": "cx.agent.sidecar_projection.v1",
   "target": {
-    "realm_id": "cx:realm:01970000-0000-7000-8000-000000000000",
-    "flow_id": "cx:flow:01970000-0000-7000-8000-000000000001"
+    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
+    "flow_id": "ck:flow:01970000-0000-7000-8000-000000000001"
   },
   "entries": [
     {
-      "private_flow_id": "cx:flow:01970000-0000-7000-8000-000000000081",
+      "private_flow_id": "ck:flow:01970000-0000-7000-8000-000000000081",
       "addressed_agent_principal_ids": [
         "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant"
       ],

@@ -14,7 +14,7 @@ updated: 2026-05-26
 
 身份层定义“谁是主体”，加密层定义“如何保护内容”，但真正能让系统安全运行的是密钥管理。
 
-本文定义 Contrix 的密钥生命周期：
+本文定义 Cokret 的密钥生命周期：
 
 - inception key
 - principal signing key
@@ -180,14 +180,14 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 ```json
 {
-  "id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "id": "ck:device:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "display_name": "Alice MacBook Pro",
   "device_public_key": "z6Mks...",
   "device_key_type": "Multikey",
   "created_at": "2026-04-26T00:00:00Z",
-  "authorized_by": "cx:device:01964136-8000-7000-8000-000000000000",
-  "authorization_ref": "cx:event:01964137-8000-7000-8000-000000000000",
+  "authorized_by": "ck:device:01964136-8000-7000-8000-000000000000",
+  "authorization_ref": "ck:event:01964137-8000-7000-8000-000000000000",
   "status": "active",
   "last_seen_at": "2026-04-26T08:00:00Z",
   "revocation_ref": null
@@ -196,7 +196,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 ### 4.1 Principal Control Event Stream
 
-设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Contrix v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#27-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.7 中正式分类）。
+设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Cokret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#27-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.7 中正式分类）。
 
 当 `cx.device.authorize`、`cx.device.revoke`、`cx.device.list_update` 或 `cx.session.grant` 以 `cx.schema.event.v1` Event Envelope 传播时：
 
@@ -216,7 +216,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 §5.1 假设新设备由"已授权设备"签发 `cx.device.authorize` 才能加入。但 principal 第一次激活时只有一台设备，没有任何已授权 peer 可以扮演这个角色。如果不为这种"无 peer 设备"的初始情形定义协议路径，§5.1 的链条永远无法启动，§4.1 的 control stream 也无法获得 genesis record。
 
-Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信任根，把"第一台设备的 device key"和"DID 的 inception controller key"建立可验证绑定。Contrix 不发明新的 DID inception 操作；它把已有 DID method 的 inception 证据**重用**为 principal control stream 的 genesis record 授权依据。
+Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信任根，把"第一台设备的 device key"和"DID 的 inception controller key"建立可验证绑定。Cokret 不发明新的 DID inception 操作；它把已有 DID method 的 inception 证据**重用**为 principal control stream 的 genesis record 授权依据。
 
 #### 5.0.1 标准 Inception 路径（v1 core 默认 `did:webvh` principal）
 
@@ -375,7 +375,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 ```json
 {
   "principal_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
     "cx.events.describe",
@@ -385,7 +385,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": null,
-  "authorized_by": "cx:device:01964136-8000-7000-8000-000000000000",
+  "authorized_by": "ck:device:01964136-8000-7000-8000-000000000000",
   "cross_signing_binding": {
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_self_signing_v1",
     "alg": "EdDSA",
@@ -414,14 +414,14 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 ## 6. Session Grant
 
 Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。  
-Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标准 durable control event 类型。
+Cokret v1 使用 `cx.session.grant` 作为 principal control stream 中的标准 durable control event 类型。
 
 `cx.session.grant.payload` 示例：
 
 ```json
 {
-  "grant_id": "cx:grant:01964198-0000-7000-8000-000000000000",
-  "realm_id": "cx:realm:01964198-7000-7000-8000-000000000000",
+  "grant_id": "ck:grant:01964198-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:01964198-7000-7000-8000-000000000000",
   "issuer": "did:web:auth-gateway.example.com",
   "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
@@ -448,13 +448,13 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 - session key MUST NOT 超过 grant 的有效期
 - session grant SHOULD 绑定 audience
 - 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储
-- session grant 撤销 MUST 由 accepted `cx.session.grant` 状态更新、device/account revoke、或 profile 注册的 credential status mechanism 表达；不得使用未注册的 `cx:revocation-list:*` typed ID。
+- session grant 撤销 MUST 由 accepted `cx.session.grant` 状态更新、device/account revoke、或 profile 注册的 credential status mechanism 表达；不得使用未注册的 `ck:revocation-list:*` typed ID。
 
 ## 7. 密钥备份
 
 ### 7.1 备份内容
 
-Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 中声明备份域，且不得把一个域的解锁材料当作另一个域的授权证明：
+Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 中声明备份域，且不得把一个域的解锁材料当作另一个域的授权证明：
 
 - `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `cx.device.authorize` 等操作。
 - `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。
@@ -464,7 +464,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 
 - 每个 `backup_class` MUST 使用独立 salt、KDF context、HKDF info 和 AEAD associated data；一个域的 derived key、commitment key 或 wrap key 不得直接用于另一个域。
 - AEAD AAD MUST 绑定 `actor_id`、`device_id`、`backup_class`、`backup_version`、item type、created_at 和 schema/profile id，防止把 ciphertext 从一个域重放到另一个域。
-- 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="contrix-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
+- 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="cokret-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
 - `did_recovery` 域不得和 `mls_history` 域共享 wrap key、recovery share 或 key commitment。攻破 `mls_history` backup key 不得允许 DID rotate / recover；攻破 DID recovery share 也不得直接解密 MLS 历史。
 - `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。只有 `cx.profile.personal_node.v1` MAY 接受 `mixed_secret_storage=true` 的本地备份 envelope；`small_team`、`organization`、`high_security_organization`、`sovereign_deployment` 等 profile MUST 拒绝该 flag。mixed 模式若使用 `passphrase_kdf`，MUST 使用 Argon2id 且 `memory_kib >= 262144`、`iterations >= 4`、`parallelism >= 1`。
 
@@ -493,12 +493,12 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 
 ```json
 {
-  "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
+  "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "secret_storage",
   "backup_version": "kb_1",
-  "series_id": "cx:backup_series:01964137-1000-7000-8000-000000000000",
+  "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
   "series_seq": 0,
   "supersedes": null,
   "created_at": "2026-04-26T00:00:00Z",
@@ -528,7 +528,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
   "ciphertext": "base64url...",
   "ciphertext_digest": "sha256:2108421084217842908421084210842121084210842178429084210842108421",
   "auth_data": {
-    "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+    "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
     "signature": "base64url..."
   }
 }
@@ -543,14 +543,14 @@ FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例
 
 ```
 derived_key = KDF(passphrase, salt, kdf_params)
-commitment_key = HKDF(derived_key, info="contrix-key-backup-commitment-v1")
+commitment_key = HKDF(derived_key, info="cokret-key-backup-commitment-v1")
 key_commitment = SHA256(commitment_key)
 ```
 
 `recipient_method="passphrase_kdf"` 的 AEAD nonce MUST deterministic derive，但 derivation transcript MUST 包含 producer-generated `aead.nonce_salt`。`nonce_salt` 是随 envelope 新生成的至少 128-bit 随机值，不是 secret，必须进入 signed metadata / AAD；服务端不得生成、覆盖或由用户输入提供该值。
 
 ```text
-nonce_key = HKDF(derived_key, info="contrix-key-backup-aead-nonce-v1")
+nonce_key = HKDF(derived_key, info="cokret-key-backup-aead-nonce-v1")
 nonce = HMAC-SHA256(
   key  = nonce_key,
   data = canonical_json({
@@ -707,7 +707,7 @@ DEK 由本地或托管 HSM / TPM / Secure Enclave wrap。
 
 要求：
 
-- `series_id` 是 `cx:backup_series:<uuid>` typed-id。每个 `series_id` MUST 只属于一个 `(actor_id, backup_class)`，但同一 `(actor_id, backup_class)` MAY 在密钥泄露轮换或迁移过渡期拥有多个 series。常规状态下只能有一个 active series；当前 active series MUST 由下方 signed active-series record 选择，不得由服务端返回顺序推断。
+- `series_id` 是 `ck:backup_series:<uuid>` typed-id。每个 `series_id` MUST 只属于一个 `(actor_id, backup_class)`，但同一 `(actor_id, backup_class)` MAY 在密钥泄露轮换或迁移过渡期拥有多个 series。常规状态下只能有一个 active series；当前 active series MUST 由下方 signed active-series record 选择，不得由服务端返回顺序推断。
 - 新 envelope MUST 满足 `series_seq == prev.series_seq + 1`；`supersedes` MUST 是同 `series_id` 中上一条 envelope 的 `backup_id`，且 `supersedes_digest` MUST 等于上一条 envelope 排除 `auth_data.signature` 后 canonical_json 的哈希。
 - genesis envelope MUST `series_seq == 0`，`supersedes == null`，且 MUST NOT 携带 `supersedes_digest`。
 - `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_seq` / `supersedes`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
@@ -761,11 +761,11 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 ```json
 {
   "schema": "cx.schema.recovery_policy.v1",
-  "policy_id": "cx:policy:01964140-0000-7000-8000-000000000000",
+  "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
   "principal_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "version": 1,
   "supersedes": null,
-  "trust_domain": "cx:trust_domain:did.webvh.example",
+  "trust_domain": "ck:trust_domain:did.webvh.example",
   "allowed_proof_kinds": ["threshold_recovery", "device_quorum"],
   "threshold": {
     "k": 3,
@@ -792,8 +792,8 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
   "device_quorum": {
     "k": 2,
     "members": [
-      "cx:device:01964137-0000-7000-8000-000000000000",
-      "cx:device:01964138-0000-7000-8000-000000000000"
+      "ck:device:01964137-0000-7000-8000-000000000000",
+      "ck:device:01964138-0000-7000-8000-000000000000"
     ]
   },
   "approval_requirement": {
@@ -884,7 +884,7 @@ share holder（无论是个人 DID、托管服务 DID，还是 hardware module�
 
 ## 11. 一致性要求
 
-Contrix v1 对设备、会话和恢复要求如下：
+Cokret v1 对设备、会话和恢复要求如下：
 
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
 - `cx.device.authorize` 与 `cx.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`cx.device.revoke.payload.revocation_frontier` MUST 绑定撤销被接受时的 principal control stream frontier；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。

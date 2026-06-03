@@ -12,10 +12,10 @@ updated: 2026-05-26
 
 ## 1. 目标
 
-本文定义 Contrix 协作图中的两个一等对象：
+本文定义 Cokret 协作图中的两个一等对象：
 
-- **Realm**（`cx:realm:`）：security / sync / auth / E2EE / federation 的硬边界。
-- **Space**（`cx:space:`）：用户可理解的结构容器与导航节点，可表达 organization 下的 workspace、project、folder、board、list、section、calendar bucket 等形态；Space 自身不是安全边界。
+- **Realm**（`ck:realm:`）：security / sync / auth / E2EE / federation 的硬边界。
+- **Space**（`ck:space:`）：用户可理解的结构容器与导航节点，可表达 organization 下的 workspace、project、folder、board、list、section、calendar bucket 等形态；Space 自身不是安全边界。
 
 两类对象的边界职责严格分离：
 
@@ -33,7 +33,7 @@ Realm 之间只允许显式 link graph（governance / discoverability / import-e
 
 ### 2.1 概念
 
-每个 `cx:realm:` ID 都是一个 security / sync / auth / E2EE 边界。以下语义全部以 Realm 为根解析：
+每个 `ck:realm:` ID 都是一个 security / sync / auth / E2EE 边界。以下语义全部以 Realm 为根解析：
 
 - membership
 - capability grant / revoke 的授权上下文
@@ -56,7 +56,7 @@ Realm 与 MLS group 不是同义词：
 - 非 E2EE Realm 可以没有 MLS group。
 - E2EE Realm 通常拥有一个 primary MLS group。
 - Realm 还包含 policy、membership、history、sync frontier、federation、retention 和 capability 等语义；MLS group 只承载加密成员、epoch 和密钥演进。
-- 实现把 Realm 内的子事件 / 子消息边界形式化为一等对象 [Circle](./circle.md)（`cx:circle:`）：独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪，且 `Circle.members ⊆ Realm.members`；当父 Realm 或 policy 要求 E2EE 时，Circle 还必须拥有独立 MLS group。federation identity / policy server / capability registry 仍在父 Realm。
+- 实现把 Realm 内的子事件 / 子消息边界形式化为一等对象 [Circle](./circle.md)（`ck:circle:`）：独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪，且 `Circle.members ⊆ Realm.members`；当父 Realm 或 policy 要求 E2EE 时，Circle 还必须拥有独立 MLS group。federation identity / policy server / capability registry 仍在父 Realm。
 
 规范性规则：
 
@@ -73,7 +73,7 @@ Schema id: `cx.schema.realm.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:realm` | 以 `cx:realm:` 开头。 | Realm ID。 |
+| `id` | yes | `id:realm` | 以 `ck:realm:` 开头。 | Realm ID。 |
 | `schema` | yes | `cx.schema.realm.v1` | 固定。 | 对象 schema。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称；产品 UI MAY 隐藏或弱化它。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
@@ -106,11 +106,11 @@ Schema id: `cx.schema.realm.v1`
 
 ```json schema=schemas/realm.schema.json
 {
-  "id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "schema": "cx.schema.realm.v1",
   "title": "Launch Plan Confidential Realm",
   "created_by": "did:web:acme.example",
-  "trust_domain": "cx:trust_domain:did.webvh.acme.example",
+  "trust_domain": "ck:trust_domain:did.webvh.acme.example",
   "schema_refs": ["cx.schema.realm.v1"],
   "default_discoverability": "invite_only",
   "default_join_rule": "invite",
@@ -271,10 +271,10 @@ Schema id: `cx.schema.space.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
+| `id` | yes | `id:space` | 以 `ck:space:` 开头。 | Space ID。 |
 | `schema` | yes | `cx.schema.space.v1` | 固定。 | 对象 schema。 |
-| `realm_id` | yes | `id:realm` | MUST 指向 `cx:realm:`。 | Space metadata 的 home Realm。 |
-| `default_realm_id` | no | `id:realm` | MUST 指向 `cx:realm:`。 | 子资源默认 Realm；省略时继承。 |
+| `realm_id` | yes | `id:realm` | MUST 指向 `ck:realm:`。 | Space metadata 的 home Realm。 |
+| `default_realm_id` | no | `id:realm` | MUST 指向 `ck:realm:`。 | 子资源默认 Realm；省略时继承。 |
 | `scope_circle_id` | no | `id:circle` | MUST 指向 Space metadata home Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 effective scope；省略表示 Realm-default。 |
 | `default_scope_circle_id` | no | `id:circle` | MUST 指向该 Space 子资源 effective `default_realm_id` 所在 Realm 的 Circle。 | 在该 Space 下新建子资源的默认 Circle scope；hint，不强制。若 `default_realm_id` 继承，先解析 effective target Realm 再校验该 Circle。 |
 | `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement / encryption floor 的 reducer-enforced 约束。 |
@@ -330,7 +330,7 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 `cx.space.parent` 写入 cell：
 
 ```text
-cell_id := cx:cell:cx.component.space.parent.v1:<space_id>
+cell_id := ck:cell:cx.component.space.parent.v1:<space_id>
 lattice := cas_register
 bottom  := reject
 value   := id:space | null
@@ -349,7 +349,7 @@ value   := id:space | null
 Flow 在 board/list 类 Space 中的位置仍由 cas_register cell 维护：
 
 ```text
-cell_id     := cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
+cell_id     := ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
 lattice     := cas_register
 bottom      := reject
 value shape := { "list_space_id": id:space, "rank": string } | null
@@ -371,10 +371,10 @@ Project Space：
 
 ```json schema=schemas/space.schema.json
 {
-  "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+  "id": "ck:space:019640b6-8000-7000-8000-000000000000",
   "schema": "cx.schema.space.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "default_realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "default_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "kind": "project",
   "title": "Website Redesign",
   "created_by": "did:web:alice.example",
@@ -386,11 +386,11 @@ Confidential sibling Space：
 
 ```json schema=schemas/space.schema.json
 {
-  "id": "cx:space:019640c0-8000-7000-8000-000000000000",
+  "id": "ck:space:019640c0-8000-7000-8000-000000000000",
   "schema": "cx.schema.space.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "default_realm_id": "cx:realm:019641aa-0000-7000-8000-000000000000",
-  "parent_space_id": "cx:space:019640a0-8000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "default_realm_id": "ck:realm:019641aa-0000-7000-8000-000000000000",
+  "parent_space_id": "ck:space:019640a0-8000-7000-8000-000000000000",
   "kind": "project",
   "title": "Pricing Strategy",
   "created_by": "did:web:alice.example",
@@ -414,8 +414,8 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 
 完整 ID 列表与 ID kind registry 见 [common-fields.md](./common-fields.md) §6。Realm / Space 相关：
 
-- `cx:realm:<uuid>`
-- `cx:space:<uuid>`
+- `ck:realm:<uuid>`
+- `ck:space:<uuid>`
 
 ## 6. 规范性引用
 

@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-Contrix 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Realm 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
+Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Realm 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
 
 - 节点之间如何互相发现与认证
 - 如何安全交换签名 Event Envelope
@@ -57,8 +57,8 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
   "id": "did:web:server.acme.example.com",
   "service": [
     {
-      "id": "#contrix-principal-server",
-      "type": "ContrixPrincipalServer",
+      "id": "#cokret-principal-server",
+      "type": "CokretPrincipalServer",
       "serviceEndpoint": "https://server.acme.example.com/api/v1"
     }
   ],
@@ -72,7 +72,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 }
 ```
 
-其中 DID Document 的 `service.type` 使用协议注册名（如 `ContrixPrincipalServer`），服务 describe 响应中的 `service_type` 使用运行时注册值（如 `principal_server`）。联邦鉴权 MUST 校验两者的绑定关系，不得只凭域名或 URL 接受请求。
+其中 DID Document 的 `service.type` 使用协议注册名（如 `CokretPrincipalServer`），服务 describe 响应中的 `service_type` 使用运行时注册值（如 `principal_server`）。联邦鉴权 MUST 校验两者的绑定关系，不得只凭域名或 URL 接受请求。
 
 ### 3.2 请求签名
 
@@ -107,7 +107,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 ### 3.3 域信任模型
 
-Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可列表 (Federation Allow List)**：
+Cokret 不要求全局信任列表。每个节点维护自己的**联邦许可列表 (Federation Allow List)**：
 
 - **开放联邦 (Open)**：接受来自任何域的合法签名请求。适合公共协作场景。
 - **受限联邦 (Restricted)**：仅接受来自预配置域列表的请求。适合企业内部或联盟场景。
@@ -154,8 +154,8 @@ Host: server-beta.com
 Source-Service-DID: did:web:server-alpha.com
 Destination-Service-DID: did:web:server-beta.com
 Destination-Service-Endpoint-Digest: sha256:<hex>
-Source-Trust-Domain: cx:trust_domain:did.webvh.alpha.example
-Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
+Source-Trust-Domain: ck:trust_domain:did.webvh.alpha.example
+Destination-Trust-Domain: ck:trust_domain:did.webvh.beta.example
 Content-Digest: sha256=:<base64>:
 Request-Canonical-Digest: sha256:<hex>
 Idempotency-Key: <opaque-key>
@@ -190,16 +190,16 @@ Signature: sig1=:base64...:
 
 请求示例（`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
 
-```json schema=openapi/contrix-service-api.openapi.yaml#/components/schemas/EventsSubmitFederationRequest
+```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/EventsSubmitFederationRequest
 {
   "service_binding_ref": {
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "realm_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "membership_frontier": [
-      "cx:event:0196419b-1000-7000-8000-000000000001"
+      "ck:event:0196419b-1000-7000-8000-000000000001"
     ],
     "delivery_binding_frontier": [
-      "cx:event:0196419b-1000-7000-8000-000000000002"
+      "ck:event:0196419b-1000-7000-8000-000000000002"
     ],
     "delivery_binding_diagnostics": {
       "basis": ["member_delivery_binding"]
@@ -209,26 +209,26 @@ Signature: sig1=:base64...:
   },
   "events": [
     {
-      "event_id": "cx:event:0196419b-2000-7000-8000-000000000001",
+      "event_id": "ck:event:0196419b-2000-7000-8000-000000000001",
       "kind": "cx.read_cursor.advance",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:web:alice.example",
       "actor_seq": 42,
       "created_at": "2026-04-26T00:00:00Z",
       "prev_refs": [],
       "refs": [],
       "payload": {
-        "id": "cx:read_cursor:0196419b-3000-7000-8000-000000000001",
+        "id": "ck:read_cursor:0196419b-3000-7000-8000-000000000001",
         "schema": "cx.schema.read_cursor.v1",
         "actor_id": "did:web:alice.example",
-        "device_id": "cx:device:0196419b-3000-7000-8000-000000000002",
-        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "device_id": "ck:device:0196419b-3000-7000-8000-000000000002",
+        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "read_scope": {
           "kind": "thread",
-          "ref": "cx:message:0196419b-3000-7000-8000-000000000001"
+          "ref": "ck:message:0196419b-3000-7000-8000-000000000001"
         },
         "position": {
-          "event_id": "cx:event:0196419b-1000-7000-8000-000000000001",
+          "event_id": "ck:event:0196419b-1000-7000-8000-000000000001",
           "hlc": "01970e589d21-0001-a13f9c2e"
         },
         "updated_at": "2026-04-26T00:00:00Z"
@@ -261,7 +261,7 @@ Signature: sig1=:base64...:
 
 错误响应 MUST 使用 `api-conventions.md` 中的标准 JSON error envelope。批量请求中，单条 Event 的拒绝 SHOULD 进入 `rejected[]`；整个请求无法认证、目的地不匹配、schema 解析失败或被限流时 SHOULD 返回对应 HTTP 错误。`rate_limited` 和可预期恢复的 `temporarily_unavailable` SHOULD 携带 `Retry-After`。
 
-Contrix v1 的联邦批量传播采用依赖感知的 partial accept：最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。需要 all-or-nothing 批处理的部署必须通过 profile / critical extension 显式协商。
+Cokret v1 的联邦批量传播采用依赖感知的 partial accept：最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。需要 all-or-nothing 批处理的部署必须通过 profile / critical extension 显式协商。
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的**授权 pre-state**。换言之，`refs[role=authorized_by]`、capability grant freshness 校验、policy auth state 引用 MUST 命中后续 Event 自身 `anchor_ref` 指向的 Anchor pre-state；同批前序 Event 创建、delegate、恢复或扩权出的 grant **不**在同一 Anchor batch 内对后续高风险 Event 生效，依赖方必须等待下一 Anchor 覆盖，否则当前批 MUST 以 `dependency_missing` / `stale_frontier` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §POST /api/v1/events 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 `apply_anchor(A)` pre-state 模型完全一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
@@ -294,7 +294,7 @@ for each member m of Realm S that needs to receive event E:
 
 **MUST NOT fallback** 路径：
 
-- 即便 `recipient_service_did` 解析失败、binding 过期、或 binding 被撤销，sender **MUST NOT** 退回 actor DID Document 的 `ContrixPrincipalServer` service entry 作为替代目的地。这是设计上的硬约束。
+- 即便 `recipient_service_did` 解析失败、binding 过期、或 binding 被撤销，sender **MUST NOT** 退回 actor DID Document 的 `CokretPrincipalServer` service entry 作为替代目的地。这是设计上的硬约束。
 - 即便 actor DID 在接收方 (或任何其它) Principal Server 上存在本地账号、OIDC/SSO 绑定、员工目录记录、device session，**这些都不构成 Realm-scoped 投递授权**。投递授权仅来自 member binding 的 `service_acceptance_ref` / `policy_event_ref` 链。
 - 即便 actor DID Document 当前可解析且其 service entry 指向某个 Principal Server，**这也不是 Realm-scoped 投递的目的地**——DID Document service entry 是 actor event source / 非 Realm 默认服务发现入口（§6.2），与 member-level delivery 解耦。
 
@@ -344,7 +344,7 @@ sequenceDiagram
 
 ### 4.1.1 批量推送与幂等
 
-Contrix v1 联邦推送 **复用** `POST /api/v1/events`（`cx.events.submit`）一个 endpoint，认证侧由 service signature header 区分；不再定义独立 `/federation/*` path：
+Cokret v1 联邦推送 **复用** `POST /api/v1/events`（`cx.events.submit`）一个 endpoint，认证侧由 service signature header 区分；不再定义独立 `/federation/*` path：
 
 - 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 返回 `accepted[]` 而非报错，内容不一致 MUST 拒绝（参见 §4.3）。
 - 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Digest` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
@@ -356,7 +356,7 @@ Contrix v1 联邦推送 **复用** `POST /api/v1/events`（`cx.events.submit`）
 当节点发现自己的因果图中存在缺失（`prev_refs` 或 `refs[role=authorized_by]` 引用了本地没有的 Event）时，可以主动向源 Principal Server 或源 Events API 拉取。**v1 联邦 pull 复用 `cx.events.query`**（`GET /api/v1/events`），通过 `before=<cursor>` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
 
 ```
-GET /api/v1/events?realms=cx:realm:...&before=<cursor>&limit=100
+GET /api/v1/events?realms=ck:realm:...&before=<cursor>&limit=100
 Host: server-alpha.com
 Source-Service-DID: did:web:server-beta.com
 Destination-Service-DID: did:web:server-alpha.com
@@ -454,7 +454,7 @@ Probe 响应 payload：
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "heads": ["sha256:..."],
   "max_hlc": "01970e589d21-0004-a13f9c2e",
   "frontier_root": "sha256:...",
@@ -564,7 +564,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "sync_endpoints": [
     {
       "did": "did:web:server-alpha.com",
@@ -588,11 +588,11 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join
 
 ### 6.2 Actor Event Source 发现
 
-DID Document 的 `service[type=ContrixPrincipalServer]` 是该 Actor DID 的**默认 event source**，**不是** Realm-scoped 投递入口。两者用途严格分开：
+DID Document 的 `service[type=CokretPrincipalServer]` 是该 Actor DID 的**默认 event source**，**不是** Realm-scoped 投递入口。两者用途严格分开：
 
 | 用途 | 解析路径 |
 | --- | --- |
-| 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `DID Document -> service[type=ContrixPrincipalServer] -> serviceEndpoint` |
+| 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `DID Document -> service[type=CokretPrincipalServer] -> serviceEndpoint` |
 | Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上 |
 | Realm policy 显式允许 `did_document_default` 且 join 时已物化进 `delivery_binding` 的来源 | 同上（仅作为 join 时的 source；join 之后**仍**走 member binding） |
 | 已加入 Realm 的成员的 events / account aggregate / to_device / push / key_packages 投递 | **MUST** 走 [`governance/join-policy.md` §6.4](../governance/join-policy.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
@@ -604,7 +604,7 @@ DID Document 的 `service[type=ContrixPrincipalServer]` 是该 Actor DID 的**�
 DID Document 的 service entry 是联邦服务发现的权威来源。域名级 bootstrap MAY 暴露：
 
 ```text
-GET https://<domain>/.well-known/contrix/server
+GET https://<domain>/.well-known/cokret/server
 ```
 
 该响应只用于找到候选服务 endpoint，不直接授权联邦请求。接收方仍 MUST 校验 service DID、DID Document、describe 响应、TLS 名称、HTTP Message Signature、Realm policy / service delegation 和 `destination` 绑定一致。
@@ -636,8 +636,8 @@ Authorization: <service_signature>
 Source-Service-DID: did:web:server.acme.example
 Destination-Service-DID: did:web:server.beta.example
 Destination-Service-Endpoint-Digest: sha256:<hex>
-Source-Trust-Domain: cx:trust_domain:did.webvh.acme.example
-Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
+Source-Trust-Domain: ck:trust_domain:did.webvh.acme.example
+Destination-Trust-Domain: ck:trust_domain:did.webvh.beta.example
 Request-Canonical-Digest: sha256:...
 Idempotency-Key: <opaque-key>
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest" "idempotency-key");created=...;expires=...
@@ -683,7 +683,7 @@ Authorization: <service_signature>
 
 ### 7.4 验证 Actor
 
-跨域 actor 验证复用 `POST /api/v1/identity/resolve` 公共服务面（`cx.identity.resolve`）。该端点本就是公共 DID 解析入口，但 Contrix 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
+跨域 actor 验证复用 `POST /api/v1/identity/resolve` 公共服务面（`cx.identity.resolve`）。该端点本就是公共 DID 解析入口，但 Cokret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
 
 下面列出 `holder-approved proof challenge` 高级 query 形态的字段集——这是 `/api/v1/identity/resolve` 的一种调用形态，不是独立 operation。
 
@@ -709,7 +709,7 @@ Authorization: <service_signature>
 {
   "actor_id": "did:webvh:...",
   "purpose": "event_source",
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "challenge": "base64url...",
   "signed_payload_digest": "sha256:...",
   "signature": {
@@ -739,7 +739,7 @@ Authorization: <service_signature>
   "valid": true,
   "actor_id": "did:webvh:...",
   "verified_key_id": "did:webvh:...#device-a",
-  "key_log_head": "cx:key_event:...",
+  "key_log_head": "ck:key_event:...",
   "did_document_ref": "sha256:...",
   "expires_at": "2026-04-26T00:05:00Z",
   "warnings": []

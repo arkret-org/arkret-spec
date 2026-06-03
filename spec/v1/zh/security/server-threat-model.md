@@ -15,7 +15,7 @@ sidebar:
 ## 1. 目标
 
 本文件给出服务端可直接落地的威胁与防护。
-所有条目均按 Contrix 的 Events API / Sync Service / Directory / Policy Server / Identity 平面映射到协议规则。
+所有条目均按 Cokret 的 Events API / Sync Service / Directory / Policy Server / Identity 平面映射到协议规则。
 
 ## 2. 服务端攻击面
 

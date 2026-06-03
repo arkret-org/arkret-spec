@@ -20,7 +20,7 @@ Client Sync 是客户端 **账号视角聚合** 推流协议。它在 Events API
 
 两者共享相同的 stream cursor 形态、resume / `dropped` / `resync_required` 恢复语义，差异仅在 selector 与 frame 内容。
 
-本文定义 Contrix v1 的客户端账号同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
+本文定义 Cokret v1 的客户端账号同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
 
 所有 full client 和 E2EE client MUST 支持本文件。
 
@@ -46,7 +46,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
    - 邀请方处于多 Principal Server 登录上下文且没有可推断的默认值（fall back to `explicit`，要求用户选择）；
    - Realm policy 强制 `binding_source ∈ {explicit}` 且邀请方未在该上下文登录（提示用户切换上下文或退出邀请）；
    - 用户主动进入"高级 / 投递设置"面板查看 / 修改。
-2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_service_did` 不属于该 actor DID Document 默认 `ContrixPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
+2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_service_did` 不属于该 actor DID Document 默认 `CokretPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
 3. **邀请 flow 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
    - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，先走 `cx.directory.resolve_handle(intent="member_add")` 得到 `subject` DID 与 `member_delivery_binding`，UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
    - 邀请方在 Org-A 内部 Realm 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
@@ -91,9 +91,9 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 ```json
 {
   "kind": "delta",
-  "cursor": "cx:cursor:<opaque-valid-stream-cursor>",
+  "cursor": "ck:cursor:<opaque-valid-stream-cursor>",
   "realms": {
-    "cx:realm:0196419b-0000-7000-8000-000000000000": {
+    "ck:realm:0196419b-0000-7000-8000-000000000000": {
       "timeline": {
         "events": [],
         "limited": false
@@ -113,15 +113,15 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 控制 frame 示例:
 
 ```text
-{"kind": "catchup_complete", "cursor": "cx:cursor:..."}
-{"kind": "frontier", "cursor": "cx:cursor:..."}
+{"kind": "catchup_complete", "cursor": "ck:cursor:..."}
+{"kind": "frontier", "cursor": "ck:cursor:..."}
 {"kind": "heartbeat"}
-{"kind": "dropped", "cursor": "cx:cursor:...", "reconnect_after_ms": 5000}
+{"kind": "dropped", "cursor": "ck:cursor:...", "reconnect_after_ms": 5000}
 {"kind": "resync_required", "reconnect_after_ms": 10000}
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `cx:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `cx.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状:
+`realms` MUST 是以 `ck:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `cx.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状:
 
 ```json
 {
@@ -167,7 +167,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 ## 4. Realm Buckets
 
-`realms` 不按 membership 做外层分桶；它始终以 `cx:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `cx.member.state` projection，取值可为 `join`、`invite`、`knock`、`leave` 或 `ban`（完整枚举见 §2 首次定义），不得把这些值提升为 `realms` 的外层 key。
+`realms` 不按 membership 做外层分桶；它始终以 `ck:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `cx.member.state` projection，取值可为 `join`、`invite`、`knock`、`leave` 或 `ban`（完整枚举见 §2 首次定义），不得把这些值提升为 `realms` 的外层 key。
 
 每个 Realm 响应：
 
@@ -177,7 +177,7 @@ Account subscribe `delta` frame 包含以下 stream：
     "events": [],
     "limited": false,
     "preview_only": false,
-    "prev_cursor": "cx:cursor:<opaque-valid-stream-cursor>"
+    "prev_cursor": "ck:cursor:<opaque-valid-stream-cursor>"
   },
   "state": {"events": []},
   "state_after": {"events": []},
@@ -195,7 +195,7 @@ Account subscribe `delta` frame 包含以下 stream：
   },
   "members": [],
   "members_limited": true,
-  "members_next_cursor": "cx:cursor:<opaque-valid-stream-cursor>",
+  "members_next_cursor": "ck:cursor:<opaque-valid-stream-cursor>",
   "unread_notifications": {
     "notification_count": 3,
     "highlight_count": 1
@@ -221,7 +221,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
-**协议正确性层面**，Contrix 的事件携带 `prev_refs` 与 `refs[role=authorized_by]`，每个事件自带因果与授权 anchor；reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
+**协议正确性层面**，Cokret 的事件携带 `prev_refs` 与 `refs[role=authorized_by]`，每个事件自带因果与授权 anchor；reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
 
 **渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm / Flow / Space 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 anchor view"渲染 window 起点事件会显示错误的 display name / Realm/Flow/Space display metadata / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
 
@@ -232,12 +232,12 @@ Account subscribe `delta` frame 包含以下 stream：
   "timeline": {
     "events": [],
     "limited": true,
-    "prev_cursor": "cx:cursor:..."
+    "prev_cursor": "ck:cursor:..."
   },
   "state_at_window_start": {
     "actor_profiles": {"did:webvh:...": {"display_name": "...", "avatar_blob_ref": "..."}},
     "realm_metadata": {"title": "...", "summary": "...", "join_rule": "..."},
-    "e2ee_epoch": {"epoch": 17, "key_ref": "cx:mls:..."}
+    "e2ee_epoch": {"epoch": 17, "key_ref": "ck:mls:..."}
   }
 }
 ```
@@ -255,7 +255,7 @@ Account subscribe `delta` frame 包含以下 stream：
     "events": [],
     "limited": true,
     "preview_only": true,
-    "prev_cursor": "cx:cursor:..."
+    "prev_cursor": "ck:cursor:..."
   }
 }
 ```
@@ -263,7 +263,7 @@ Account subscribe `delta` frame 包含以下 stream：
 - 客户端 MUST NOT 在 backfill 完成（即缺口被 `prev_cursor` 拉取并应用）前把该 timeline 渲染为已验证的完整 UI。
 - 客户端可以渲染为占位、loading 状态或带 "loading history..." 标签的预览，但不得让用户感知为"完整 timeline"。
 
-> Rationale: Matrix `/sync` limited timeline 同时返回 state delta；Contrix 的 per-event auth state 已覆盖协议层正确性，但渲染层（display name / Realm or Flow avatar / epoch boundary）仍可能错位。`state_at_window_start` 给服务端实现一条轻量恢复路径，`preview_only` 给无法计算历史 anchor 的实现一条安全回退。
+> Rationale: Matrix `/sync` limited timeline 同时返回 state delta；Cokret 的 per-event auth state 已覆盖协议层正确性，但渲染层（display name / Realm or Flow avatar / epoch boundary）仍可能错位。`state_at_window_start` 给服务端实现一条轻量恢复路径，`preview_only` 给无法计算历史 anchor 的实现一条安全回退。
 
 ## 6. Event Ordering
 
@@ -314,7 +314,7 @@ event_id ASC
 
 ```json
 {
-  "cursor": "cx:cursor:<opaque-valid-stream-cursor>",
+  "cursor": "ck:cursor:<opaque-valid-stream-cursor>",
   "partial": true,
   "priority": "active_view",
   "realms": {}
@@ -351,7 +351,7 @@ event_id ASC
       "actor_id": "did:key:z6MkRealmPairwise...",
       "membership": "join",
       "identity_event_ids": [
-        "cx:event:0196419b-0000-7000-8000-000000000001"
+        "ck:event:0196419b-0000-7000-8000-000000000001"
       ],
       "handle_claim_digests": [
         "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -406,12 +406,12 @@ event_id ASC
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:key:z6MkRealmPairwise...",
   "segment": "member_identity",
   "replaces": [
     {
-      "event_id": "cx:event:0196419a-0000-7000-8000-000000000001",
+      "event_id": "ck:event:0196419a-0000-7000-8000-000000000001",
       "payload_digest": "sha256:..."
     }
   ],
@@ -421,17 +421,17 @@ event_id ASC
       "version": "1.0",
       "group_id": "base64url",
       "epoch": 12,
-      "content_type": "application/vnd.contrix.member-identity+json",
+      "content_type": "application/vnd.cokret.member-identity+json",
       "ciphertext": "base64url",
       "aad_visibility_event_id": "routing_digest",
       "aad": {
-        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "event_kind": "cx.member.identity.update",
         "event_ref_digest": "sha256:..."
       },
       "key_ref": {
         "algorithm": "MLS",
-        "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
+        "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
       },
       "payload_digest": "sha256:...",
       "aad_digest": "sha256:..."
@@ -458,12 +458,12 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
 ```json
 {
   "schema": "cx.schema.member_identity.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:key:z6MkRealmPairwise...",
   "subject_id": "did:webvh:zQmPr8...",
   "display_profile": {
     "display_name": "Alice Zhang",
-    "avatar_blob_ref": "cx:blob:sha256:..."
+    "avatar_blob_ref": "ck:blob:sha256:..."
   },
   "asserted_at": "2026-05-27T00:00:00Z",
   "expires_at": "2026-06-27T00:00:00Z",
@@ -485,14 +485,14 @@ MemberIdentity replacement 规则：
 - MemberIdentity 只负责 Realm-scoped display projection：`subject_id` 披露、display name、avatar 和其它未来 display-profile segment。mention / reply / quote 等 actor 引用字段 MUST 按 [`identity/identity-handles.md` §3.8](../identity/identity-handles.md) 使用 `subject_id` 而不是 handle 字符串；handle claim 只影响显示和可读寻址，不影响 grant subject、actor attribution、membership key、delivery 决策或 audit attribution。
 - handle、display name 和 avatar 只用于 UI / mention / member picker，不得用于 grant subject、actor 归因、membership key、delivery 决策或 audit attribution。
 - `cx.profile.update` 继续表示 principal-scoped actor profile 的字段级 delta；`cx.profile.space_override` 继续表示 Realm-scoped profile override。二者 MAY 作为客户端构造 MemberIdentity display fields 的输入；handle fields MUST 来自当前 effective handle claims。
-- `identity_payload.encrypted_payload` MUST 复用 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)。明文 MemberIdentity 是 `ciphertext` 解密结果；`content_type` SHOULD 使用 `application/vnd.contrix.member-identity+json`。
+- `identity_payload.encrypted_payload` MUST 复用 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)。明文 MemberIdentity 是 `ciphertext` 解密结果；`content_type` SHOULD 使用 `application/vnd.cokret.member-identity+json`。
 - 加密 MemberIdentity MUST 由成员设备或被 Realm policy 授权的身份 issuer 设备生成。Sync / Principal / Federation Service MUST 存储和返回原始 encrypted payload 或其事件引用，不得因客户端查询而重加密、重封包或推进 MLS sender generation。
 - 客户端解密时按 `group_id`、`epoch` 和 `key_ref.group_state_ref` 查找本地 MLS group state；缺少 epoch 时按 §15 标记 `decryption_pending` 并补拉 `cx.mls.*` state / Welcome / winning Commit / 授权 history key material。
 - 客户端 MUST 验证 MemberIdentity 的 `realm_id`、`actor_id`、`subject_id`、`proof.payload_digest`、签名链和 Realm disclosure policy；`proof.payload_digest` MUST 等于移除顶层 `proof` 字段后的 MemberIdentity 对象的 RFC 8785 JCS canonical JSON bytes 的 `sha256` digest，签名也 MUST 覆盖同一 canonical bytes。任一失败时不得把该 event 提升为 verified display identity。
 
 Handle claim 获取与刷新规则：
 
-- 注册、邀请链接、管理员预分配、管理员后期修改、重签和撤销 handle 都落到 issuer / coauth / 部署本地 `cx.schema.handle_claim.v1` lifecycle。Contrix v1 core 不定义用户如何申请、管理员如何收到通知、谁有权审批、审批状态如何流转或客户端如何在 bootstrap 中领取自己的 claim。
+- 注册、邀请链接、管理员预分配、管理员后期修改、重签和撤销 handle 都落到 issuer / coauth / 部署本地 `cx.schema.handle_claim.v1` lifecycle。Cokret v1 core 不定义用户如何申请、管理员如何收到通知、谁有权审批、审批状态如何流转或客户端如何在 bootstrap 中领取自己的 claim。
 - 客户端不得通过 `cx.profile.update`、`cx.profile.space_override` 或 `cx.member.identity.update` 自行设置 handle。无论 claim 来自 coauth bootstrap、issuer 本地 API、设备迁移恢复、Directory resolve 还是 roster 内联，客户端只有在 schema、issuer trust、proof、audience、expiry 和 revocation 状态验证通过后，才能把它作为 handle 授权事实。
 - 已知 `subject_id`、需要渲染 Realm member 当前 handle 时，客户端调用 `cx.directory.list_handles_for_subject`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。已知 handle 字符串、需要解析到 subject 或投递绑定时，继续使用 `cx.directory.resolve_handle`。
 - roster / member picker / mention autocomplete 的当前 handle projection MUST 由当前可见 handle-claim set + Realm policy 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 得出。`cx.member.identity.update` 事件的 churn 不应成为 handle 更新传播的必要条件。
@@ -559,11 +559,11 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - stream positions
 - expiry
 
-`cursor`（purpose=`barrier`）由写接口在响应中返回（见 [`api-conventions.md` §8](./api-conventions.md)），用于 `X-Contrix-Wait-For` header；它和 stream cursor 共享 wire 形态 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分。客户端不需要分辨，只需把"写响应里的 cursor"作为 wait-for header、把"`/account/subscribe` frame 里的 cursor"作为下次 `after=` 重连参数即可。
+`cursor`（purpose=`barrier`）由写接口在响应中返回（见 [`api-conventions.md` §8](./api-conventions.md)），用于 `X-Cokret-Wait-For` header；它和 stream cursor 共享 wire 形态 `ck:cursor:<base64url>`，由内部 `purpose` 字段区分。客户端不需要分辨，只需把"写响应里的 cursor"作为 wait-for header、把"`/account/subscribe` frame 里的 cursor"作为下次 `after=` 重连参数即可。
 
 ### 12.1 Cursor Integrity (normative)
 
-无论 stream 还是 barrier cursor，wire 形态 `cx:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于推进 to-device ack、`/account/subscribe` `after=` resume 起点、`X-Contrix-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。
+无论 stream 还是 barrier cursor，wire 形态 `ck:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于推进 to-device ack、`/account/subscribe` `after=` resume 起点、`X-Cokret-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。
 
 **v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, t, x, h}`，其中 `h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry)` 映射。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
 
@@ -573,7 +573,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 任何 endpoint 在使用客户端回传的 cursor 推进 server-side state 之前，MUST 执行：
 
-1. 解析 `cx:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL (`x` 未过期)。语法/参数失败映射顶层 `invalid_param`（reason `invalid_cursor`）；TTL 失败映射 `cursor_expired`。
+1. 解析 `ck:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL (`x` 未过期)。语法/参数失败映射顶层 `invalid_param`（reason `invalid_cursor`）；TTL 失败映射 `cursor_expired`。
 2. **Handle 查表完整性校验**：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal_id, device_id, service_id, filter_digest, purpose)` 与当前 authenticated request 匹配；任一失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
 3. 校验通过后才可读 handle 解析出的 positions（stream cursors）或 target（barrier cursors），并用于推进同步状态。
 4. 若实现声明 `cx.profile.stateless_cursor.v1`，且收到的 cursor body 缺 `h` 但含 `_mac` / `_sig` / `issuer_kid` / `s` / `d` / `target` 字段，按该 profile 在 [`conformance/conformance-profiles.md` §19c](../conformance/conformance-profiles.md) 的额外校验流程处理；core implementations 收到缺 `h` 的 cursor MUST 返回 `cursor_integrity_invalid`。

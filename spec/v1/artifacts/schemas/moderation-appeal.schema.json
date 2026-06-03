@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/moderation-appeal.schema.json",
-  "title": "Contrix Moderation Appeal",
+  "$id": "https://cokret.io/artifacts/schemas/moderation-appeal.schema.json",
+  "title": "Cokret Moderation Appeal",
   "description": "Payload shapes for the four cx.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the cx.component.moderation_appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed. The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same Anchor batch with a cx.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal flow). Capability: cx.moderation.appeal.submit (any member, low risk) for submit; cx.moderation.appeal.review (moderator) for the other three.",
   "type": "object",
   "oneOf": [
@@ -13,16 +13,16 @@
   "$defs": {
     "appeal_id": {
       "type": "string",
-      "pattern": "^cx:appeal:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:appeal:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Realm whose moderation decision is being appealed. MUST equal the enclosing Event.realm_id and the Realm of decision_ref / target_ref unless an explicit cross-Realm moderation profile authorizes otherwise."
     },
     "decision_ref": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Reference to the cx.moderation.decision event being appealed."
     },
     "actor_ref": {
@@ -133,7 +133,7 @@
         },
         "modify_decision_ref": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Required iff verdict=modify. Points to the replacement cx.moderation.decision event in the same Anchor batch."
         },
         "decided_at": { "$ref": "#/$defs/timestamp" }

@@ -39,21 +39,21 @@
         {
           "label": "missing",
           "body": {
-            "realm_id": "cx:realm:019640a5-0000-7000-8000-000000000000",
+            "realm_id": "ck:realm:019640a5-0000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         },
         {
           "label": "hidden",
           "body": {
-            "realm_id": "cx:realm:019640b5-8000-7000-8000-000000000000",
+            "realm_id": "ck:realm:019640b5-8000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         },
         {
           "label": "invite_only_without_proof",
           "body": {
-            "realm_id": "cx:realm:019640c6-0000-7000-8000-000000000000",
+            "realm_id": "ck:realm:019640c6-0000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         }
@@ -190,11 +190,11 @@
       "inputs": [
         {
           "label": "missing",
-          "blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "blob_ref": "ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
         {
           "label": "hidden",
-          "blob_ref": "cx:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          "blob_ref": "ck:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
       ],
       "expected": {
@@ -224,7 +224,7 @@
           "devices": [
             {
               "push_key": "fcm:eJx9k2-example",
-              "app_id": "com.contrix.client"
+              "app_id": "com.cokret.client"
             }
           ]
         }

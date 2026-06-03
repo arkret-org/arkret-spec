@@ -1,4 +1,4 @@
-# Contrix Spec Release Readiness 2026 Q3
+# Cokret Spec Release Readiness 2026 Q3
 
 - Report ID: `release-readiness-2026-Q3`
 - Generated: `2026-05-25`

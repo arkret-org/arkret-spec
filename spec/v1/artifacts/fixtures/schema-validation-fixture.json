@@ -10,7 +10,7 @@
       "expect_valid": true,
       "instance": {
         "service_did": "did:web:alice.example.net",
-        "trust_domain": "cx:trust_domain:did.webvh.alice.example",
+        "trust_domain": "ck:trust_domain:did.webvh.alice.example",
         "service_type": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [
@@ -45,7 +45,7 @@
       "first_expected_error": "$: 'development_mode' is a required property",
       "instance": {
         "service_did": "did:web:alice.example.net",
-        "trust_domain": "cx:trust_domain:did.webvh.alice.example",
+        "trust_domain": "ck:trust_domain:did.webvh.alice.example",
         "service_type": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
@@ -105,11 +105,11 @@
       "schema_ref": "schemas/realm.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "schema": "cx.schema.realm.v1",
         "title": "Launch Plan Confidential Realm",
         "created_by": "did:web:acme.example",
-        "trust_domain": "cx:trust_domain:did.webvh.acme.example",
+        "trust_domain": "ck:trust_domain:did.webvh.acme.example",
         "schema_refs": [
           "cx.schema.realm.v1"
         ],
@@ -138,7 +138,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'trust_domain' is a required property",
       "instance": {
-        "id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "schema": "cx.schema.realm.v1",
         "title": "Launch Plan Confidential Realm",
         "created_by": "did:web:acme.example",
@@ -154,15 +154,15 @@
     },
     {
       "name": "policy_check_request_valid_bound_context",
-      "schema_ref": "openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest",
+      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest",
       "expect_valid": true,
       "instance": {
         "request_id": "polreq_01",
-        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "action": "cx.message.create",
         "actor": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
-        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
         "source": {
           "service_did": "did:web:server.example",
           "service_type": "principal_server",
@@ -181,7 +181,7 @@
     },
     {
       "name": "policy_check_request_missing_realm_id_rejected",
-      "schema_ref": "openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest",
+      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest",
       "expect_valid": false,
       "first_expected_error": "$: 'realm_id' is a required property",
       "instance": {
@@ -198,12 +198,12 @@
     },
     {
       "name": "policy_check_response_valid_bound_decision",
-      "schema_ref": "openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse",
+      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse",
       "expect_valid": true,
       "instance": {
         "request_id": "polreq_01",
         "bound_to": {
-          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "actor": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "action": "cx.message.create",
           "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -223,7 +223,7 @@
     },
     {
       "name": "policy_check_response_missing_bound_to_rejected",
-      "schema_ref": "openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse",
+      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse",
       "expect_valid": false,
       "first_expected_error": "$: 'bound_to' is a required property",
       "instance": {
@@ -245,9 +245,9 @@
       "schema_ref": "schemas/event-envelope.schema.json",
       "expect_valid": true,
       "instance": {
-        "event_id": "cx:event:019a6aa0-0000-7000-8000-000000000000",
+        "event_id": "ck:event:019a6aa0-0000-7000-8000-000000000000",
         "kind": "cx.read_cursor.advance",
-        "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:web:alice.example",
         "actor_seq": 1,
         "created_at": "2026-05-20T00:00:00Z",
@@ -255,18 +255,18 @@
         "prev_refs": [],
         "refs": [],
         "payload": {
-          "id": "cx:read_cursor:019a6aa0-1000-7000-8000-000000000000",
+          "id": "ck:read_cursor:019a6aa0-1000-7000-8000-000000000000",
           "schema": "cx.schema.read_cursor.v1",
           "actor_id": "did:web:alice.example",
-          "device_id": "cx:device:019a6aa0-2000-7000-8000-000000000000",
-          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+          "device_id": "ck:device:019a6aa0-2000-7000-8000-000000000000",
+          "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "read_scope": {
             "kind": "flow",
-            "ref": "cx:flow:019a6aa0-3000-7000-8000-000000000000",
+            "ref": "ck:flow:019a6aa0-3000-7000-8000-000000000000",
             "track_name": "discussion"
           },
           "position": {
-            "event_id": "cx:event:019a6aa0-4000-7000-8000-000000000000",
+            "event_id": "ck:event:019a6aa0-4000-7000-8000-000000000000",
             "hlc": "01970e589d21-0001-a13f9c2e"
           },
           "updated_at": "2026-05-20T00:00:00Z"
@@ -288,7 +288,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
       "expect_valid": true,
       "instance": {
-        "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
+        "target_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
         "reason": "privacy_cleanup"
       }
     },
@@ -297,7 +297,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
       "expect_valid": true,
       "instance": {
-        "space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
+        "space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
         "reason": "release_cycle_complete"
       }
     },
@@ -307,7 +307,7 @@
       "expect_valid": false,
       "first_expected_error": "$.actions[0]: 'cx.flow.*' does not match '^cx\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*$'",
       "instance": {
-        "id": "cx:grant:0196410c-1000-7000-8000-000000000000",
+        "id": "ck:grant:0196410c-1000-7000-8000-000000000000",
         "schema": "cx.schema.capability.v1",
         "issuer": "did:web:owner.example",
         "subject": "did:web:alice.example",
@@ -317,7 +317,7 @@
         "resources": [
           {
             "kind": "realm",
-            "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
           }
         ],
         "proofs": [
@@ -337,8 +337,8 @@
       "schema_ref": "schemas/anchor.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "cx:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+        "id": "ck:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "predecessor_refs": [],
         "frontier": [
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -380,9 +380,9 @@
         "x": 1798761599000,
         "issuer_kid": "did:web:sync.example#cursor-2026-05",
         "s": {
-          "cx:realm:019a7360-0000-7000-8000-000000000000": {
+          "ck:realm:019a7360-0000-7000-8000-000000000000": {
             "p": [
-              "cx:event:019a6aa0-0000-7000-8000-000000000000"
+              "ck:event:019a6aa0-0000-7000-8000-000000000000"
             ],
             "o": "01970e589d21-0000-a13f9c2e",
             "h": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -397,9 +397,9 @@
       "expect_valid": true,
       "instance": {
         "kind": "delta",
-        "cursor": "cx:cursor:opaque",
+        "cursor": "ck:cursor:opaque",
         "realms": {
-          "cx:realm:019a7360-0000-7000-8000-000000000000": {
+          "ck:realm:019a7360-0000-7000-8000-000000000000": {
             "timeline": {
               "events": [],
               "limited": false
@@ -417,7 +417,7 @@
       "expect_valid": true,
       "instance": {
         "kind": "dropped",
-        "cursor": "cx:cursor:opaque",
+        "cursor": "ck:cursor:opaque",
         "reconnect_after_ms": 5000
       }
     },
@@ -473,7 +473,7 @@
           "resources": [
             {
               "kind": "realm",
-              "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000"
+              "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000"
             }
           ]
         },
@@ -484,7 +484,7 @@
         "expires_at": "2026-05-21T00:00:00Z",
         "approval_evidence": {
           "kind": "capability_grant",
-          "ref": "cx:grant:019a6aa0-0000-7000-8000-000000000000"
+          "ref": "ck:grant:019a6aa0-0000-7000-8000-000000000000"
         }
       }
     },
@@ -493,9 +493,9 @@
       "schema_ref": "schemas/invite.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "cx:invite:019a6aa0-0000-7000-8000-000000000000",
+        "id": "ck:invite:019a6aa0-0000-7000-8000-000000000000",
         "schema": "cx.schema.invite.v1",
-        "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "inviter": "did:web:alice.example",
         "third_party_id": {
           "display_name_hint": "A.",
@@ -521,9 +521,9 @@
         "schema": "cx.schema.identity_link.v1",
         "pairwise_did": "did:key:z6Mkpseudonymous",
         "principal_id": "did:web:alice.example",
-        "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
-        "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
-        "trust_domain": "cx:trust_domain:did.webvh.example",
+        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "trust_domain": "ck:trust_domain:did.webvh.example",
         "mls_leaf_index": 0,
         "mls_epoch": 1,
         "effective_at": "2026-05-20T00:00:00Z",
@@ -544,8 +544,8 @@
         "schema": "cx.schema.identity_link.v1",
         "pairwise_did": "did:key:z6Mkpseudonymous",
         "principal_id": "did:web:alice.example",
-        "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
-        "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "mls_leaf_index": 0,
         "mls_epoch": 1,
         "effective_at": "2026-05-20T00:00:00Z",
@@ -562,13 +562,13 @@
       "schema_ref": "schemas/attestation-evidence.schema.json",
       "expect_valid": true,
       "instance": {
-        "evidence_id": "cx:attestation:019a6aa0-0000-7000-8000-000000000000",
-        "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+        "evidence_id": "ck:attestation:019a6aa0-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "audit_agent_principal_id": "did:web:audit.example",
         "service_did": "did:web:audit.example",
         "platform": {
           "family": "software_test_only",
-          "vendor": "contrix",
+          "vendor": "cokret",
           "model": "fixture"
         },
         "measurement": {
@@ -612,13 +612,13 @@
       "expect_valid": false,
       "first_expected_error": "$.audit_policy_version_digest: 'blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' does not match '^sha256:[0-9a-f]{64}$'",
       "instance": {
-        "evidence_id": "cx:attestation:019a6aa0-0000-7000-8000-000000000000",
-        "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+        "evidence_id": "ck:attestation:019a6aa0-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "audit_agent_principal_id": "did:web:audit.example",
         "service_did": "did:web:audit.example",
         "platform": {
           "family": "software_test_only",
-          "vendor": "contrix",
+          "vendor": "cokret",
           "model": "fixture"
         },
         "measurement": {
@@ -701,9 +701,9 @@
       "expect_valid": true,
       "instance": {
         "principal_id": "did:web:alice.example",
-        "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
+        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "device_public_key": "z6MkDevicePublicKey",
-        "authorized_by": "cx:device:019a6aa0-1000-7000-8000-000000000000",
+        "authorized_by": "ck:device:019a6aa0-1000-7000-8000-000000000000",
         "not_before": "2026-05-20T00:00:00Z",
         "expires_at": null,
         "cross_signing_binding": {
@@ -725,7 +725,7 @@
       "expect_valid": true,
       "instance": {
         "principal_id": "did:web:alice.example",
-        "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
+        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "device_public_key": "z6MkDevicePublicKey",
         "authorized_by": "did:web:alice.example",
         "not_before": "2026-05-20T00:00:00Z",
@@ -747,9 +747,9 @@
       "first_expected_error": "$: 'proof' is a required property",
       "instance": {
         "kind": "cx.call.signal",
-        "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:web:alice.example",
-        "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
+        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "sent_at": "2026-05-20T00:00:00Z",
         "expires_at": "2026-05-20T00:00:30Z",
         "payload": {
@@ -765,11 +765,11 @@
       "expect_valid": true,
       "instance": {
         "schema": "cx.schema.recovery_session.v1",
-        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:web:alice.example",
-        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "cx:trust_domain:soland.local",
-        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ck:trust_domain:soland.local",
+        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -785,11 +785,11 @@
       "expect_valid": false,
       "instance": {
         "schema": "cx.schema.recovery_session.v1",
-        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:web:alice.example",
-        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "cx:trust_domain:soland.local",
-        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ck:trust_domain:soland.local",
+        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
@@ -805,11 +805,11 @@
       "expect_valid": false,
       "instance": {
         "schema": "cx.schema.recovery_session.v1",
-        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:web:alice.example",
-        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "cx:trust_domain:soland.local",
-        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ck:trust_domain:soland.local",
+        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -826,8 +826,8 @@
       "expect_valid": true,
       "instance": {
         "principal_id": "did:web:alice.example",
-        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "cx:trust_domain:soland.local",
+        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ck:trust_domain:soland.local",
         "ssk_generation": 1
       }
     },
@@ -837,8 +837,8 @@
       "expect_valid": false,
       "instance": {
         "principal_id": "did:web:alice.example",
-        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "cx:trust_domain:soland.local",
+        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ck:trust_domain:soland.local",
         "ssk_generation": 1,
         "unexpected": "x"
       },
@@ -873,8 +873,8 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
       "expect_valid": true,
       "instance": {
-        "authorization_event_id": "cx:event:01964137-0000-7000-8000-00000000a111",
-        "device_list_update_event_id": "cx:event:01964137-0000-7000-8000-00000000a222"
+        "authorization_event_id": "ck:event:01964137-0000-7000-8000-00000000a111",
+        "device_list_update_event_id": "ck:event:01964137-0000-7000-8000-00000000a222"
       }
     },
     {
@@ -892,11 +892,11 @@
         "type": "cx.identity.recovery_proof.v1",
         "kind": "principal_signing",
         "principal_id": "did:web:alice.example",
-        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "cx:trust_domain:soland.local",
-        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ck:trust_domain:soland.local",
+        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
-        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "created_at": "2026-05-30T00:00:00Z",
@@ -909,13 +909,13 @@
       "expect_valid": true,
       "instance": {
         "schema": "cx.schema.recovery_receipt.v1",
-        "receipt_id": "cx:receipt:019a6aa0-0000-7000-8000-0000000000cc",
+        "receipt_id": "ck:receipt:019a6aa0-0000-7000-8000-0000000000cc",
         "principal_id": "did:web:alice.example",
-        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
-        "trust_domain": "cx:trust_domain:soland.local",
-        "new_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ck:trust_domain:soland.local",
+        "new_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "proof_summary": {
           "kind": "principal_signing",
           "proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -923,8 +923,8 @@
         "backup_classes_unlocked": [
           {
             "backup_class": "did_recovery",
-            "backup_id": "cx:backup:019a6aa0-0000-7000-8000-0000000000dd",
-            "series_id": "cx:backup_series:019a6aa0-0000-7000-8000-0000000000ee",
+            "backup_id": "ck:backup:019a6aa0-0000-7000-8000-0000000000dd",
+            "series_id": "ck:backup_series:019a6aa0-0000-7000-8000-0000000000ee",
             "ciphertext_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           }
         ],
@@ -933,7 +933,7 @@
         "started_at": "2026-05-30T00:00:00Z",
         "completed_at": "2026-05-30T00:00:01Z",
         "auth_data": {
-          "verification_method": "did:web:alice.example#cx:device:019a6aa0-0000-7000-8000-000000000099",
+          "verification_method": "did:web:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
           "signature_algorithm": "EdDSA",
           "signature": "c2ln",
           "signed_fields": [
@@ -960,13 +960,13 @@
       "expect_valid": false,
       "instance": {
         "schema": "cx.schema.recovery_receipt.v1",
-        "receipt_id": "cx:receipt:019a6aa0-0000-7000-8000-0000000000cc",
+        "receipt_id": "ck:receipt:019a6aa0-0000-7000-8000-0000000000cc",
         "principal_id": "did:web:alice.example",
-        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
-        "trust_domain": "cx:trust_domain:soland.local",
-        "new_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ck:trust_domain:soland.local",
+        "new_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "proof_summary": {
           "kind": "principal_signing",
           "proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -976,7 +976,7 @@
         "started_at": "2026-05-30T00:00:00Z",
         "completed_at": "2026-05-30T00:00:01Z",
         "auth_data": {
-          "verification_method": "did:web:alice.example#cx:device:019a6aa0-0000-7000-8000-000000000099",
+          "verification_method": "did:web:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
           "signature_algorithm": "EdDSA",
           "signature": "c2ln",
           "signed_fields": [

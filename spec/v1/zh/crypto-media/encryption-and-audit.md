@@ -16,14 +16,14 @@ sidebar:
 
 去中心化协作协议面临着复杂的隐私与合规矛盾：一方面，商业数据和私密频道必须提供不可被 Sync Service 或未授权受托服务窃听的端到端加密 (E2EE)；另一方面，在特定组织边界内，数据流又需要受到法律或合规层面的安全审查。
 
-本规范定义了 Contrix 官方推荐的加密标准，旨在实现：
+本规范定义了 Cokret 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
 - 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)
 - **可审查加密 (Auditable E2EE)**，在 TEE / HSM / 等价受控执行 profile 下把合规解密绑定到可验证审计记录；在 software-only profile 下提供透明审计流程，但不声称具备同等密码学强制力。
 
-## 2. 基础加密架构：MLS 与 Contrix 的融合
+## 2. 基础加密架构：MLS 与 Cokret 的融合
 
-Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf.org/doc/html/rfc9420) 作为官方的群组加密标准。
+Cokret 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf.org/doc/html/rfc9420) 作为官方的群组加密标准。
 不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 discussion track 或大型协作 Realm 中，双棘轮会导致巨大的性能开销与并发处理难题。
 
 ### 2.1 KeyPackage 与服务发现
@@ -32,7 +32,7 @@ Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.iet
 - **生命周期验证**：其他客户端在拉取 `KeyPackage` 时，MUST 通过 Actor 的 DID Document 与 Event history 验证该包的公钥签名，确保未被身份盗用。
 
 ### 2.2 握手与组成员管理 (Welcome, Commit)
-MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Contrix 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Realm` 与 Event 模型中：
+MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Cokret 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Realm` 与 Event 模型中：
 
 ```mermaid
 sequenceDiagram
@@ -58,11 +58,11 @@ sequenceDiagram
 - **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Realm Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。Welcome MUST 通过 durable `cx.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付，直到被消费、撤销或过期。Sync Service 的 Ephemeral Channel 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
 
-**Welcome 大小侧信道（acknowledged side channel）**：MLS Welcome / GroupInfo 的 ciphertext 长度会与 leaf 数量、ratchet tree 形态、path secret 数量和近期 churn 有相关性。Contrix v1 不声称第三方观察者无法从 Welcome 大小推断粗粒度成员变化。高隐私 Realm SHOULD 对 Welcome blob 使用 policy 声明的 padding bucket（例如按 4KiB / 16KiB 桶补齐）并批量投递 welcome pointer；实现不得在 minimal-metadata 或 high-confidentiality 文案中承诺“成员变化不可由消息大小观察”，除非部署 profile 额外声明并测试了 padding 策略。
+**Welcome 大小侧信道（acknowledged side channel）**：MLS Welcome / GroupInfo 的 ciphertext 长度会与 leaf 数量、ratchet tree 形态、path secret 数量和近期 churn 有相关性。Cokret v1 不声称第三方观察者无法从 Welcome 大小推断粗粒度成员变化。高隐私 Realm SHOULD 对 Welcome blob 使用 policy 声明的 padding bucket（例如按 4KiB / 16KiB 桶补齐）并批量投递 welcome pointer；实现不得在 minimal-metadata 或 high-confidentiality 文案中承诺“成员变化不可由消息大小观察”，除非部署 profile 额外声明并测试了 padding 策略。
 
 #### 2.2.1 MLS Group Admin 推导
 
-MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第一个成员”。Contrix v1 按当前 accepted auth state 确定管理集合：
+MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第一个成员”。Cokret v1 按当前 accepted auth state 确定管理集合：
 
 - Realm-scoped MLS group 的默认 admin set 来自 `cx.realm.create.payload.object.initial_creators` / `created_by`，以及当前有效的 `cx.realm.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Realm policy 声明的等价 E2EE admin capability。
 - Realm 内的 [Circle](../models/circle.md)（`Flow.scope_circle_id` 指向的子事件边界）只有在 `encryption_profile=mls_rfc9420` 时才拥有 Circle MLS group；其 MLS group admin set 由该 Circle 的 `cx.circle.create` / `cx.circle.member.state` / `cx.mls.commit` / `cx.mls.welcome` 等事件按 Circle 自身的 capability 与 membership 体系收敛，与 Realm-default MLS group admin set 独立；Circle key MUST NOT 从 Realm-default key 派生。
@@ -113,13 +113,13 @@ Realm policy MUST 通过 `cx.realm.policy_components.metadata_encryption_profile
     "ciphertext": "base64url",
     "aad_visibility_event_id": "routing_digest",
     "aad": {
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "event_kind": "cx.message.create",
       "event_ref_digest": "sha256:..."
     },
     "key_ref": {
       "algorithm": "MLS",
-      "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
+      "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
     },
     "payload_digest": "sha256:...",
     "aad_digest": "sha256:..."
@@ -168,10 +168,10 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "event_kind": "cx.message.create",
   "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-  "causal_refs": ["cx:event:019640ed-0000-7000-8000-000000000000"]
+  "causal_refs": ["ck:event:019640ed-0000-7000-8000-000000000000"]
 }
 ```
 
@@ -198,13 +198,13 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "content_type": "application/json",
   "aad_visibility_event_id": "routing_digest",
   "aad": {
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "event_kind": "cx.message.create",
     "event_ref_digest": "sha256:..."
   },
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
+    "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
   }
 }
 ```
@@ -213,7 +213,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 4. `encrypted_payload_bytes = base64url_decode(ciphertext)`；若 envelope 含 `authentication_tag`，追加 `base64url_decode(authentication_tag)`。
 5. `payload_digest = "sha256:" + sha256(payload_metadata_bytes || encrypted_payload_bytes)`。
 
-`mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Contrix envelope 的外层完整性检查，不替代 MLS AEAD。
+`mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Cokret envelope 的外层完整性检查，不替代 MLS AEAD。
 
 #### 2.3.4 解密错误处理
 
@@ -288,7 +288,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 - Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`，**默认 30,000 ms**；profile MAY 覆盖（交互式 profile SHOULD 不超过 30,000 ms，高延迟 / 批量 profile MAY 声明更大值）。客户端在 commit 滞后超过该 effective 值后 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
 - 网络分区期间可以继续 backfill 旧 epoch 历史，但不得把旧 epoch 下的新消息展示为已满足最新 membership policy 的消息。
 
-该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Contrix 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
+该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Cokret 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
 
 ### 2.4.2 `cx.profile.e2ee_relaxed.v1`(降级 profile)
 
@@ -326,7 +326,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 ### 2.5 MLS Governance Binding
 
-**MLS Governance Binding** 是 Contrix v1 把 **MLS epoch 与 governance state（membership / policy / capability / Anchor frontier）强绑定** 的机制，相对于 Matrix 把 Olm/Megolm 与 room state 当作两条并行轨而言，它是 v1 的核心新增层。该机制由两个 wire-level artifact 组成，分工固定：
+**MLS Governance Binding** 是 Cokret v1 把 **MLS epoch 与 governance state（membership / policy / capability / Anchor frontier）强绑定** 的机制，相对于 Matrix 把 Olm/Megolm 与 room state 当作两条并行轨而言，它是 v1 的核心新增层。该机制由两个 wire-level artifact 组成，分工固定：
 
 | 层 | 名称（wire-level） | 角色 |
 |---|---|---|
@@ -339,7 +339,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 ```mermaid
 flowchart TB
-    subgraph GS ["Contrix Governance State (per effective scope: Realm / Circle)"]
+    subgraph GS ["Cokret Governance State (per effective scope: Realm / Circle)"]
         direction TB
         Memb["membership cells"]
         Pol["policy cells (join_rule / history_visibility / plaintext-visible / moderation / lifecycle)"]
@@ -393,15 +393,15 @@ MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_i
   "governance_binding": {
     "binding_version": 1,
     "encoding_profile": "cbor-deterministic-rfc8949-v1",
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "effective_scope": {
       "kind": "realm",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
     },
     "mls_group_id": "base64url...",
     "previous_epoch": 41,
     "next_epoch": 42,
-    "membership_frontier": ["cx:event:8ea2dd8c-c436-7b94-9000-000000000000"],
+    "membership_frontier": ["ck:event:8ea2dd8c-c436-7b94-9000-000000000000"],
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
     "discussion_metadata_digest": "sha256:canonical_discussion_metadata",
@@ -423,7 +423,7 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
 - `capability_root` MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell。
 - `discussion_metadata_digest` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
-- 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Contrix Anchor view 与 state_root。无法回补 Move/Anchor inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
+- 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Cokret Anchor view 与 state_root。无法回补 Move/Anchor inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 是并发 Move。它们只有被有效 Anchor frontier 覆盖、且其 preconditions 在 Anchor batch pre-state 下成立时，才能推进 `mls_epoch_cell`。
 
 #### 2.5.2 Covered Frontier Cell (`covered_frontier_cell`)
@@ -460,12 +460,12 @@ Move 在 Anchor 前是 pending；被 Anchor 后是否可用于 E2EE 由 `covered
 
 #### 2.5.3 GroupContext Extension 定义
 
-Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 必须通过实现 profile、部署 profile 或未来 registry 协商，不能静默占用未声明的公共 codepoint。
+Cokret 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 必须通过实现 profile、部署 profile 或未来 registry 协商，不能静默占用未声明的公共 codepoint。
 
 | 字段 | 值 |
 |------|-----|
 | ExtensionType（IANA name） | `cx_governance_binding` |
-| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Contrix v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `cx.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。未来若需要全网注册，可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint,并在新 hardening profile 中显式声明，作为单独的 wire 版本，而不是 v1 内的私有覆盖。所有 Contrix 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
+| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Cokret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `cx.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。未来若需要全网注册，可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint,并在新 hardening profile 中显式声明，作为单独的 wire 版本，而不是 v1 内的私有覆盖。所有 Cokret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
 | ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列：
@@ -496,7 +496,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 | `binding_version` / `encoding_profile` | 否 | **必须**：把 codepoint 之外的 wire version 与 canonical encoding 锁入 signed bytes，避免未来 codepoint 或 CBOR profile 变化时不同实现对同一 governance binding 得出不同 canonical 形态。 |
 | `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
 | `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_frontier_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
-| `effective_scope` / `realm_id` / `circle_id` | **否**（Contrix-specific，MLS 不知道 Realm / Circle 概念） | **必须**：`effective_scope` 是把 MLS group 锚定到 Contrix governance state 的核心绑定；Realm-default group 使用 `{kind:"realm", realm_id}`，Circle group 使用 `{kind:"circle", realm_id, circle_id}`。`realm_id` 与可选 `circle_id` 是离线审计冗余字段，MUST 与 `effective_scope` 一致；缺失或不一致会使 governance_binding 可能被错误重绑定到不同 Realm/Circle 的 commit。 |
+| `effective_scope` / `realm_id` / `circle_id` | **否**（Cokret-specific，MLS 不知道 Realm / Circle 概念） | **必须**：`effective_scope` 是把 MLS group 锚定到 Cokret governance state 的核心绑定；Realm-default group 使用 `{kind:"realm", realm_id}`，Circle group 使用 `{kind:"circle", realm_id, circle_id}`。`realm_id` 与可选 `circle_id` 是离线审计冗余字段，MUST 与 `effective_scope` 一致；缺失或不一致会使 governance_binding 可能被错误重绑定到不同 Realm/Circle 的 commit。 |
 | `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_digest` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
 | `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
 
@@ -511,7 +511,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 规则：
 
 - 声明 full binding profile 时，`cx_governance_binding` extension MUST 出现在每次 `cx.mls.commit` 对应的 GroupContext `extensions` 字段中。
-- `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Contrix 应用状态绑定到 MLS transcript。
+- `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Cokret 应用状态绑定到 MLS transcript。
 - 若底层 MLS 库暂不支持 GroupContext extension，base E2EE profile MUST 至少把 `governance_binding` 放入签名 Event 和 Commit transcript hash 可验证覆盖的字段中，并在实现文档中声明降级原因；不得声称支持 full binding profile。
 - 接收方验证 Commit 时 MUST 解码 `cx_governance_binding` extension 并执行 section 2.5 中的 `governance_binding` 验证规则。
 
@@ -519,7 +519,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 KeyPackage 不应被建模为可无限次公开拉取的静态材料。E2EE 实现 MUST 将 MLS KeyPackage 作为可声明、可领取、可消费、可撤销的单次使用材料。
 
-> **Contrix 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Contrix 的 claim 模型在此基础上增加了 `intended_realm_id` 绑定和 Realm-scoped claim，要求 MLS Delivery Service 跟踪 Realm affinity。这是 Contrix 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) Realm-scoped claim 使客户端可以控制自己被邀请进入哪些 Realm，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Realm 消费。实现若使用标准 MLS 库（不支持 Realm-scoped claim），MUST 至少在 Contrix 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
+> **Cokret 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Cokret 的 claim 模型在此基础上增加了 `intended_realm_id` 绑定和 Realm-scoped claim，要求 MLS Delivery Service 跟踪 Realm affinity。这是 Cokret 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) Realm-scoped claim 使客户端可以控制自己被邀请进入哪些 Realm，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Realm 消费。实现若使用标准 MLS 库（不支持 Realm-scoped claim），MUST 至少在 Cokret 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
 
 KeyPackage lifecycle：
 
@@ -534,9 +534,9 @@ published -> claimed -> consumed
 ```json
 {
   "kind": "cx.mls.keypackage",
-  "keypackage_id": "cx:mls:kp:01JS...",
+  "keypackage_id": "ck:mls:kp:01JS...",
   "principal_id": "did:web:alice.example.com",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "keypackage_ref": "sha256:...",
   "keypackage_digest": "sha256:canonical_keypackage_bytes",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
@@ -615,9 +615,9 @@ Profile 规则：
   "status": "active",
   "pairwise_did": "did:key:z6Mkpseudonymous",
   "principal_id": "did:web:alice.example",
-  "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
-  "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
-  "trust_domain": "cx:trust_domain:did.webvh.example",
+  "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+  "trust_domain": "ck:trust_domain:did.webvh.example",
   "mls_group_id": "mls-group-019a7360",
   "mls_leaf_index": 0,
   "mls_epoch": 1,
@@ -689,7 +689,7 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
     ```text
     reaction_routing_hmac_v1 =
         HMAC-SHA256(
-            key   = MLS-Exporter("contrix-reaction-routing-v1", context = realm_id, length = 32),
+            key   = MLS-Exporter("cokret-reaction-routing-v1", context = realm_id, length = 32),
             data  = utf8(canonical_emoji)
         )
     ```
@@ -715,7 +715,7 @@ Reaction 事件的 `aad.event_kind` 始终为明文 (`cx.reaction.add` / `cx.rea
 > RYW receipt 流程、join warning 文案、disclosed/attested 区分、forbidden marketing terms
 > 全部由独立的 audited-e2ee profile 文档承载。
 
-Contrix 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制，划分为两类正交保证 hardening profile：
+Cokret 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制，划分为两类正交保证 hardening profile：
 
 - **`cx.profile.attested_audit.e2ee.v1`**（`audit_assurance="attested_hardware"`）：通过
   TEE / HSM / 等价硬件隔离把 key release 或明文输出**密码学绑定**到先写审计记录。
@@ -773,11 +773,11 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 
 ## 5. 组员变动与高可用容错 (Proposal & Commit)
 
-在去中心化网络中，管理员踢人（或邀请人）是一个典型的容易因网络抖动而“在部分完成后导致 epoch advancement 卡死（key tree 锁定）”的操作。为避免单点故障导致群组密钥树锁定，Contrix 严格继承了 MLS (RFC 9420) 的 **“提案与提交分离 (Proposal & Commit)”** 架构。
+在去中心化网络中，管理员踢人（或邀请人）是一个典型的容易因网络抖动而“在部分完成后导致 epoch advancement 卡死（key tree 锁定）”的操作。为避免单点故障导致群组密钥树锁定，Cokret 严格继承了 MLS (RFC 9420) 的 **“提案与提交分离 (Proposal & Commit)”** 架构。
 
 ### 5.1 MLS Group Genesis
 
-`cx.mls.genesis` 创建 Contrix 绑定的 MLS group 初始状态。它不是普通 Commit，也不消费 Proposal；它声明 epoch 0 的 group identity、初始 ratchet tree / GroupInfo proof 和被 MLS GroupContext extension 覆盖的 Contrix application state。
+`cx.mls.genesis` 创建 Cokret 绑定的 MLS group 初始状态。它不是普通 Commit，也不消费 Proposal；它声明 epoch 0 的 group identity、初始 ratchet tree / GroupInfo proof 和被 MLS GroupContext extension 覆盖的 Cokret application state。
 
 `cx.mls.genesis.payload` MUST 至少包含：
 

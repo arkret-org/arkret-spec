@@ -15,7 +15,7 @@
  * meta that no machine artifact owns.
  */
 
-export const repoUrl = "https://github.com/contrix-dev/contrix-spec";
+export const repoUrl = "https://github.com/cokret-dev/cokret-spec";
 export const repoMain = `${repoUrl}/blob/main`;
 
 /** Returns a URL to a file under spec/v1/ on the canonical repo. */

@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Realm Event history；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
+Cokret 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Realm Event history；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
 
 本文件定义：
 
@@ -63,10 +63,10 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 ```json
 {
   "morph_type": "call",
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "title": "Design review",
   "fields": {
-    "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
     "mode": "sfu",
     "state": "ringing",
     "started_at": null,
@@ -115,7 +115,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ### 6.1 Realm Media Service
 
-`cx.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**（参考 [CXP-0010](../../proposals/0010-media-service-binding-framework.md)）。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / contrix-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+`cx.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**（参考 [CXP-0010](../../proposals/0010-media-service-binding-framework.md)）。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
 
 ```json
 {
@@ -126,22 +126,22 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
       "turn",
       "sfu"
     ],
-    "ice_config_endpoint": "https://media.example.com/contrix/v1/ice-config",
+    "ice_config_endpoint": "https://media.example.com/cokret/v1/ice-config",
     "foci": [
       {
         "focus_id": "fra-1",
         "type": "livekit",
         "region": "eu-fra",
-        "token_endpoint": "https://media.example.com/contrix/v1/rtc/token",
+        "token_endpoint": "https://media.example.com/cokret/v1/rtc/token",
         "connect_url": "wss://livekit-fra.example.com",
         "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-        "health_endpoint": "https://media.example.com/contrix/v1/rtc/health/fra-1"
+        "health_endpoint": "https://media.example.com/cokret/v1/rtc/health/fra-1"
       },
       {
         "focus_id": "us-east-1",
         "type": "livekit",
         "region": "us-east",
-        "token_endpoint": "https://media.example.com/contrix/v1/rtc/token",
+        "token_endpoint": "https://media.example.com/cokret/v1/rtc/token",
         "connect_url": "wss://livekit-use.example.com",
         "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
         "cascade_group": "livekit-cloud-mesh-a"
@@ -160,20 +160,20 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 字段语义（normative）：
 
 - `foci[].focus_id`：focus 在该 Realm media service 内的稳定 ID；进入签名 canonical bytes 与 `session_focus` 选举（见 §11.1）。
-- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`contrix-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
+- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`cokret-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
 - `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §6.2），差异只在 `backend_token` 形态。
 - `foci[].connect_url`：backend 连接入口；具体协议由 type-specific 附录定义。
 - `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。
 - `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `cx.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
 - `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议——每个 backend 自行实现 mesh，详见 [CXP-0010 §4.6](../../proposals/0010-media-service-binding-framework.md)。
 
-兼容性（v1 当前行为）：服务端 SHOULD 接受遗留单 `sfu_endpoint` 形态并 normalize 为 `foci=[{focus_id:"legacy", type:"contrix-native", connect_url:<sfu_endpoint>, ...}]`，同时打 audit log。_Informative：未来 hardening 版本可将单 endpoint 形态升级为 `failed_precondition` `reason="legacy_single_endpoint_media_service"`；该收紧属迁移建议，不是 v1 规范要求。_
+兼容性（v1 当前行为）：服务端 SHOULD 接受遗留单 `sfu_endpoint` 形态并 normalize 为 `foci=[{focus_id:"legacy", type:"cokret-native", connect_url:<sfu_endpoint>, ...}]`，同时打 audit log。_Informative：未来 hardening 版本可将单 endpoint 形态升级为 `failed_precondition` `reason="legacy_single_endpoint_media_service"`；该收紧属迁移建议，不是 v1 规范要求。_
 
 修改该 state event 需要 `cx.call.configure_media_service` 或 `cx.policy.manage` capability。
 
 ### 6.2 Token Exchange (normative)
 
-会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Contrix-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Contrix 的 capability / Realm policy / MLS governance binding。
+会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Cokret-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Cokret 的 capability / Realm policy / MLS governance binding。
 
 请求：
 
@@ -183,12 +183,12 @@ Authorization: <device proof | bearer>
 Content-Type: application/json
 
 {
-  "realm_id": "cx:realm:...",
-  "call_id": "cx:call:...",
+  "realm_id": "ck:realm:...",
+  "call_id": "ck:call:...",
   "actor_id": "did:web:alice.example.com",
-  "device_id": "cx:device:...",
+  "device_id": "ck:device:...",
   "focus_id": "fra-1",
-  "capability_refs": ["cx:grant:..."],
+  "capability_refs": ["ck:grant:..."],
   "desired_media": { "audio": true, "video": true, "screen": false }
 }
 ```
@@ -200,16 +200,16 @@ Content-Type: application/json
   "focus_id": "fra-1",
   "type": "livekit",
   "connect_url": "wss://livekit-fra.example.com",
-  "backend_token": "<opaque to Contrix protocol — type-specific>",
-  "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+  "backend_token": "<opaque to Cokret protocol — type-specific>",
+  "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
     "scheme": "cx.media.participant_binding.v1",
-    "realm_id": "cx:realm:...",
-    "call_id": "cx:call:...",
+    "realm_id": "ck:realm:...",
+    "call_id": "ck:call:...",
     "focus_id": "fra-1",
     "actor_id": "did:web:alice.example.com",
-    "device_id": "cx:device:...",
-    "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+    "device_id": "ck:device:...",
+    "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
     "issuer_kid": "did:web:media.example#key-1",
@@ -243,7 +243,7 @@ Token issuer MUST 在签发前校验：
 默认 HTTP binding：
 
 ```http
-POST /contrix/v1/ice-config
+POST /cokret/v1/ice-config
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
@@ -263,10 +263,10 @@ Content-Type: application/json
 
 ```json
 {
-  "realm_id": "cx:realm:...",
-  "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:...",
+  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:...",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "mode": "p2p"
 }
 ```
@@ -299,10 +299,10 @@ Content-Type: application/json
 
 ```json
 {
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "call_id": "cx:call:0196419c-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "call_id": "ck:call:0196419c-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "ttl_seconds": 600,
   "refresh_lead_seconds": 60,
   "issued_at": "2026-04-26T00:00:00Z",
@@ -335,7 +335,7 @@ Content-Type: application/json
 要求：
 
 - TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC-SHA256(turn_shared_secret, username)`；实现不得降级为 HMAC-SHA1）。
-- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `cx_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；该不可关联性只针对 TURN 运营方成立，不对铸造 pseudonym 的 Contrix media service 成立。
+- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `cx_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；该不可关联性只针对 TURN 运营方成立，不对铸造 pseudonym 的 Cokret media service 成立。
 - Pseudonym 生成 MUST 使用每次通话的新随机种子或 media service 私有密钥派生，且至少绑定 `(realm_id, call_id, actor_id, device_id, issued_at_bucket, media_service_did)`；推荐：
 
   ```text
@@ -380,13 +380,13 @@ Content-Type: application/json
 ```json schema=schemas/ephemeral-envelope.schema.json
 {
   "kind": "cx.call.signal",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "sent_at": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-26T00:00:30Z",
   "payload": {
-    "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
     "signal_type": "invite",
     "seq": 12,
     "data": {}
@@ -471,7 +471,7 @@ Candidate payload:
 }
 ```
 
-字段名在 Contrix envelope 中使用 snake_case；浏览器原生 `sdpMid` / `sdpMLineIndex` MUST 映射为 `sdp_mid` / `sdp_m_line_index`。
+字段名在 Cokret envelope 中使用 snake_case；浏览器原生 `sdpMid` / `sdpMLineIndex` MUST 映射为 `sdp_mid` / `sdp_m_line_index`。
 
 ## 9. 多设备冲突处理
 
@@ -491,7 +491,7 @@ Candidate payload:
 SFU 在 v1 通过 [§6.1](#61-realm-media-service) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：
 
 - `type="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
-- `type="contrix-native"`：见 [`bindings/contrix-native.md`](./bindings/contrix-native.md)（reference impl，不推荐生产使用）。
+- `type="cokret-native"`：见 [`bindings/cokret-native.md`](./bindings/cokret-native.md)（reference impl，不推荐生产使用）。
 - `type="mediasoup"` / `type="janus"` / `type="moq-relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `type` MUST fail closed，错误码 `unknown_focus_type`。
 
 不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§6.2 Token Exchange](#62-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 type-specific 附录定义。下面的 §10.2 / §10.3 / §10.4 是跨 backend 通用约束。
@@ -531,7 +531,7 @@ backend "X 加入会议" 通知到达客户端时，客户端 MUST：
 3. 验证该 participant entry 内的 `participant_binding` 签名（[§6.2](#62-token-exchange-normative)），确认它覆盖同一 `(realm_id, call_id, session_focus, actor_id, device_id, participant_identity)`。
 4. 不匹配或签名无效 → 拒绝为该 participant 建立媒体流（不收音、不订阅 video），错误码 `participant_identity_unrecognised`。
 
-这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Contrix-side `cx.call.state` 真源。
+这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Cokret-side `cx.call.state` 真源。
 
 ### 10.5 E2EE with SFU
 
@@ -541,7 +541,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 
 #### 10.5.0 E2EE Key Injection 通用契约（normative）
 
-无论 backend 自身是否支持 E2EE，所有 binding 附录的 E2EE 章节 MUST 规定一个最小契约，使得 **客户端侧 binding adapter / media SDK** 能从 Contrix 协议层接收 frame key，而不从 backend 自带密钥分发机制取。最小契约：
+无论 backend 自身是否支持 E2EE，所有 binding 附录的 E2EE 章节 MUST 规定一个最小契约，使得 **客户端侧 binding adapter / media SDK** 能从 Cokret 协议层接收 frame key，而不从 backend 自带密钥分发机制取。最小契约：
 
 ```text
 inject_frame_key(key_bytes: 32-byte secret,
@@ -555,7 +555,7 @@ inject_frame_key(key_bytes: 32-byte secret,
 
 约束：
 
-- `key_bytes` MUST 由 Contrix MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `cx.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking，必须开新 profile。
+- `key_bytes` MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `cx.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
 - backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §10.5.1 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
 - Conformance negative vector `cx.vector.media_binding.e2ee_key_source.v1`：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
@@ -569,7 +569,7 @@ Conformance vectors for the full media binding framework：
 - `cx.vector.media_binding.participant_binding_required.v1` — 缺失或签名无效的 `participant_binding` 必须拒绝。
 - `cx.vector.media_binding.unknown_type_fail_closed.v1` — §6.1 未知 `foci[].type` MUST fail closed。
 - `cx.vector.media_binding.participant_identity_unrecognised.v1` — §10.4 backend 通知的 participant 不在 `cx.call.state` 时拒绝该流。
-- `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1` — §13 backend-generated recording 必须经 Contrix blob pipeline。
+- `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1` — §13 backend-generated recording 必须经 Cokret blob pipeline。
 - `cx.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"cx-rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
 
 #### 10.5.1 治理绑定（normative）
@@ -593,27 +593,27 @@ Conformance vectors for the full media binding framework：
 ```json
 {
   "kind": "cx.call.state",
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "payload": {
-    "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
     "state": "active",
     "mode": "sfu",
     "session_focus": "fra-1",
     "participants": [
       {
         "actor_id": "did:web:alice.example.com",
-        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
         "foci_preferred": ["fra-1", "us-east-1"],
-        "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
           "scheme": "cx.media.participant_binding.v1",
-          "realm_id": "cx:realm:...",
-          "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:...",
+          "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
           "focus_id": "fra-1",
           "actor_id": "did:web:alice.example.com",
-          "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
-          "participant_identity": "cx:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:05:00Z",
           "issuer_kid": "did:web:media.example#key-1",
@@ -676,9 +676,9 @@ Conformance vectors for the full media binding framework：
 ```json
 {
   "kind": "cx.call.recording.start",
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "payload": {
-    "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
     "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
     "recording_agent": "did:web:recorder.example",
     "mode": "audio_video",
@@ -691,12 +691,12 @@ Conformance vectors for the full media binding framework：
 
 - 需要 `cx.call.record` capability。
 - 客户端 MUST 对所有参会者显示录制中。
-- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `cx:*` typed ID；最终持久化产物仍通过 Contrix blob / Morph / artifact 引用暴露。
+- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ck:*` typed ID；最终持久化产物仍通过 Cokret blob / Morph / artifact 引用暴露。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
-- **Backend-generated recording 必经 Contrix blob pipeline**（参见 [CXP-0010 §4.7](../../proposals/0010-media-service-binding-framework.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
-  1. 作为加密 blob 上传到 Contrix media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
+- **Backend-generated recording 必经 Cokret blob pipeline**（参见 [CXP-0010 §4.7](../../proposals/0010-media-service-binding-framework.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
+  1. 作为加密 blob 上传到 Cokret media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
   2. 上传请求携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `cx.call.record` 的 actor 发起。
-  3. 加密 key MUST 由 Contrix 协议层提供（与 §10.5.0 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"cx-rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"cx-rtc-frame-key/v1"` 或空 Context。
+  3. 加密 key MUST 由 Cokret 协议层提供（与 §10.5.0 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"cx-rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"cx-rtc-frame-key/v1"` 或空 Context。
   4. 入库后通过 `cx.call.state` 发布 lifecycle state，引用 blob hash、duration、media type、retention policy 与 `recording_start_event_id`。
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
 - 录制结果 MUST 通过已注册的 `cx.call.state` 写入 call lifecycle state（例如 `state="recording_ready"` / `state="recording_failed"`），并在 payload 中引用 blob hash、duration、media type、retention policy 和 `recording_start_event_id`。v1 不注册独立的 `cx.call.recording.result` event kind；实现不得把该裸名写入 Event Envelope。
@@ -710,7 +710,7 @@ Conformance vectors for the full media binding framework：
 
 ```json
 {
-  "push_target_id": "cx:pseudonym:push:01js0pu0000000000000000000",
+  "push_target_id": "ck:pseudonym:push:01js0pu0000000000000000000",
   "wakeup_kind": "incoming_call",
   "urgency": "urgent",
   "expires_at": "2026-04-26T00:01:00Z"
@@ -758,6 +758,6 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 
 ## 17. 与 Matrix Call 的关系
 
-Contrix 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、policy server 和 transport binding 模型。
+Cokret 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、policy server 和 transport binding 模型。
 
-Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `cx.call.signal`，但 durable meeting state、recording artifact 和 Realm policy 必须遵守 Contrix 规则。
+Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `cx.call.signal`，但 durable meeting state、recording artifact 和 Realm policy 必须遵守 Cokret 规则。

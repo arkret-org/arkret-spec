@@ -7,7 +7,7 @@ updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:
-  - did:web:contrix.example
+  - did:web:cokret.example
 depends_on: [CXP-0002]
 ---
 
@@ -88,7 +88,7 @@ Schema id: `cx.schema.workflow.v1`
     },
     {
       "kind": "field_filled",
-      "field_def_ref": "cx:field_def:<reviewer-field>"
+      "field_def_ref": "ck:field_def:<reviewer-field>"
     }
   ],
   "on_enter_event": null

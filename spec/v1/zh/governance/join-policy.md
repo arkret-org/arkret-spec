@@ -55,7 +55,7 @@ updated: 2026-05-25
 ## 3. Cell Family 与 State Event
 
 ```text
-cell_id     := cx:cell:realm.join_policy.v1:<realm_id>
+cell_id     := ck:cell:realm.join_policy.v1:<realm_id>
 lattice     := cas_register
 bottom      := reject
 value shape := JoinPolicy（见下）
@@ -172,7 +172,7 @@ applicant 直接提交：
 {
   "kind": "cx.member.state",
   "payload": {
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
     "membership": "join",
     "delivery_status": "routable",
@@ -182,7 +182,7 @@ applicant 直接提交：
       "binding_scope": "realm",
       "binding_source": "explicit",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-      "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001"
+      "service_acceptance_ref": "ck:event:0196419b-0000-7000-8000-000000000001"
     },
     "gate_proofs": [
       {
@@ -284,7 +284,7 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
 {
   "kind": "cx.realm.delivery_binding_policy",
   "payload": {
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "allow_binding_sources": [
       "explicit",
       "invite",
@@ -323,7 +323,7 @@ Realm 通过独立的 `cx.realm.delivery_binding_policy` event 声明对成员�
 `delivery_binding` 一旦进入 accepted member cell，**任何 sender** 在向该 Realm 投递面向该成员的事件 / sync delta / to-device 消息 / push 唤醒 / MLS KeyPackage 请求时：
 
 - MUST 解析当前 effective `delivery_binding.recipient_service_did` 作为唯一投递目标。
-- MUST NOT 退路到该 actor 的 DID Document `ContrixPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_did` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（默认重试上限见 [`sync/federation.md` §4.1](../sync/federation.md)），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
+- MUST NOT 退路到该 actor 的 DID Document `CokretPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_did` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（默认重试上限见 [`sync/federation.md` §4.1](../sync/federation.md)），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
 - MUST NOT 把"recipient_service_did 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
 
 `expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并提示该成员客户端通过 §6.5 rebind 流程提交新 binding。**未提供 fallback path**——这是设计约束。
@@ -441,7 +441,7 @@ application 进入 `accepted` 状态后：
 
 Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不能直接走 Realm MLS group。MUST 使用以下机制之一：
 
-1. **Reviewer Sub-Group MLS**：Realm 维护一个独立 MLS group `cx:mls:reviewer_subgroup:<realm_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `cx.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
+1. **Reviewer Sub-Group MLS**：Realm 维护一个独立 MLS group `ck:mls:reviewer_subgroup:<realm_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `cx.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
 2. **Envelope Encryption to Reviewer Devices**：当 reviewer 数小于阈值（默认 `<=5`）或 sub-group 维护成本不可接受时，applicant 可使用 `encryption_envelope` 字段对 reviewer 当前已 published `cx.mls.keypackage` 的接收方公钥逐一封装：
 
 ```json
@@ -450,8 +450,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
     "scheme": "hpke-base-x25519-aes256gcm",
     "ciphertext": "base64url:...",
     "recipients": [
-      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "cx:device:...", "wrapped_key": "base64url:..."},
-      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "cx:device:...", "wrapped_key": "base64url:..."}
+      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ck:device:...", "wrapped_key": "base64url:..."},
+      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ck:device:...", "wrapped_key": "base64url:..."}
     ]
   }
 }
@@ -461,7 +461,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 **Envelope recipient capability 绑定（normative）**：`encryption_envelope.recipients[]` 中列出的每个 reviewer device，applicant / 提交服务在构造 envelope 时 MUST 校验其对应 reviewer DID 在该 Anchor pre-state 下仍持有有效 `review_capability`，且该 device 仍是该 reviewer 当前有效 device；MUST NOT 向已撤销 capability 或已退役 device 封装 `wrapped_key`。reducer / 投递服务在投递**新** envelope 时 SHOULD 拒绝向已失去 `review_capability` 的 device 投递，reason `reviewer_capability_revoked`。注意这是 best-effort 前向控制：**reviewer 退职前已经解密的历史 application 正文无法被协议回收**——一旦某 device 在持有有效 capability 期间收到并解出 `wrapped_key`，撤销 capability 只能阻止后续新 envelope 投递，不能撤销既有明文副本。需要严格前向保密的部署 SHOULD 改用 §8.2(1) Reviewer Sub-Group MLS 并在 reviewer 退职时 rotate epoch。
 
-申请正文 MUST NOT 进入 `cx.member.state{knock}` Move（该 Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Contrix 通过结构上禁止 knock Move 携带正文规避该缺陷。
+申请正文 MUST NOT 进入 `cx.member.state{knock}` Move（该 Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Cokret 通过结构上禁止 knock Move 携带正文规避该缺陷。
 
 ## 9. Membership 状态机扩展
 
@@ -511,7 +511,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
         "actor": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:applicant",
         "action": "member.application",
         "request_canonical_digest": "sha256:...",
-        "device_id": "cx:device:01964137-0000-7000-8000-000000000000"
+        "device_id": "ck:device:01964137-0000-7000-8000-000000000000"
       }
     }
   ]
@@ -536,7 +536,7 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 
 ## 13. 与 MIMI 的映射
 
-[`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 SHOULD 由 facade 在 Contrix `realm.join_policy` component 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Contrix 专属 component 标记 `application/vnd.contrix.component+json`。MIMI facade 接收外部 join 请求时 SHOULD 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Contrix 原生客户端完成。
+[`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 SHOULD 由 facade 在 Cokret `realm.join_policy` component 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Cokret 专属 component 标记 `application/vnd.cokret.component+json`。MIMI facade 接收外部 join 请求时 SHOULD 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Cokret 原生客户端完成。
 
 ## 14. 完整示例
 
@@ -546,7 +546,7 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 {
   "candidate_kind": "realm.join_policy",
   "payload": {
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "value": {
       "combinator": "any",
       "gates": [

@@ -14,25 +14,25 @@ const painPoints = [
     tag: "历史可信",
     title: "能导出历史，不等于历史可验证",
     body:
-      "常见协作和社交系统把消息、成员、撤回、权限保存在服务端数据库里。客户端可以验证连接和登录态，却通常不能离线证明「这条历史确实由某个 actor 在某个授权下产生」。Contrix 把持久修改定义为签名 Event, 让同步节点、客户端和审计方都能独立重放。",
+      "常见协作和社交系统把消息、成员、撤回、权限保存在服务端数据库里。客户端可以验证连接和登录态，却通常不能离线证明「这条历史确实由某个 actor 在某个授权下产生」。Cokret 把持久修改定义为签名 Event, 让同步节点、客户端和审计方都能独立重放。",
   },
   {
     tag: "授权可携带",
     title: "权限不应该只是一段后台配置",
     body:
-      "很多系统的「谁能做什么」由服务端 ACL、角色表或控制台配置解释；跨服务迁移、联邦同步或离线审计时，这些规则很难随数据一起被验证。Contrix 用 capability grant 表达主体、资源、动作、时间窗、字段约束和审批要求，授权本身成为可校验对象。",
+      "很多系统的「谁能做什么」由服务端 ACL、角色表或控制台配置解释；跨服务迁移、联邦同步或离线审计时，这些规则很难随数据一起被验证。Cokret 用 capability grant 表达主体、资源、动作、时间窗、字段约束和审批要求，授权本身成为可校验对象。",
   },
   {
     tag: "E2EE 治理",
     title: "端到端加密不会自动解决成员治理",
     body:
-      "E2EE 保护内容密文，但成员加入、移除、设备撤销、举报与审核仍需要协议把治理状态和密钥状态对齐。Contrix 把 Space policy、成员变更和设备生命周期绑定进 MLS epoch；新消息必须基于新 epoch，避免 UI 状态和加密状态分叉。",
+      "E2EE 保护内容密文，但成员加入、移除、设备撤销、举报与审核仍需要协议把治理状态和密钥状态对齐。Cokret 把 Space policy、成员变更和设备生命周期绑定进 MLS epoch；新消息必须基于新 epoch，避免 UI 状态和加密状态分叉。",
   },
   {
     tag: "Agent 边界",
     title: "Bot token 不足以承载自主 Agent",
     body:
-      "平台应用通常通过 API token、scope 和服务端审计来限制自动化行为。面对可规划、可委托、可连续行动的 Agent, 协议还需要记录 acting principal、责任主体、资源边界、时间窗和审批约束。Contrix 让 Agent 以 DID principal 身份签名事件，和人类 actor 共用同一套责任链。",
+      "平台应用通常通过 API token、scope 和服务端审计来限制自动化行为。面对可规划、可委托、可连续行动的 Agent, 协议还需要记录 acting principal、责任主体、资源边界、时间窗和审批约束。Cokret 让 Agent 以 DID principal 身份签名事件，和人类 actor 共用同一套责任链。",
   },
 ];
 
@@ -171,7 +171,7 @@ const useCases = [
         <span class="cx-h1-accent">可验证事实协议</span>
       </h1>
       <p class="cx-lead">
-        Contrix 定义消息、任务、文档、关系和 Agent 行为在网络中的共同真相：
+        Cokret 定义消息、任务、文档、关系和 Agent 行为在网络中的共同真相：
         <strong>谁创建</strong>、<strong>基于什么授权</strong>、
         <strong>处于哪个 Space</strong>、<strong>受哪个加密 epoch 保护</strong>。
         它不是聊天 UI, 也不是区块链；它是一套事件、身份、授权、E2EE 和同步规范，
@@ -207,7 +207,7 @@ const useCases = [
         </div>
         <p class="cx-section-sub">
           以下问题来自常见系统边界：服务端数据库是事实权威、授权规则留在平台内、
-          E2EE 与治理状态分层、自动化身份依赖 token。Contrix 把这些边界提升到协议层处理。
+          E2EE 与治理状态分层、自动化身份依赖 token。Cokret 把这些边界提升到协议层处理。
         </p>
       </div>
       <div class="cx-pain-grid">
@@ -229,7 +229,7 @@ const useCases = [
       <div class="cx-section-head">
         <div>
           <span class="cx-section-tag">六根支柱</span>
-          <h2>Contrix 先定义协作事实，再定义接口和投影</h2>
+          <h2>Cokret 先定义协作事实，再定义接口和投影</h2>
         </div>
         <p class="cx-section-sub">
           签名事件、Capability 授权、MLS 治理绑定、去中心化身份、可投影对象图、Agent 责任链。

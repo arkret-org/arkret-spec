@@ -12,13 +12,13 @@ updated: 2026-06-01
 
 ## 1. 目标
 
-本文给出 Contrix v1 的统一对象模型读法，确保实现、文档和交互层对同一套协作语义采用一致解释。
+本文给出 Cokret v1 的统一对象模型读法，确保实现、文档和交互层对同一套协作语义采用一致解释。
 
-### 1.1 从常见产品概念理解 Contrix
+### 1.1 从常见产品概念理解 Cokret
 
-Contrix 不是把某个产品的对象名搬进协议，而是把常见协作产品拆成更稳定的协议边界：
+Cokret 不是把某个产品的对象名搬进协议，而是把常见协作产品拆成更稳定的协议边界：
 
-| 产品 / 场景概念 | Contrix 中的落点 | 不应误读为 |
+| 产品 / 场景概念 | Cokret 中的落点 | 不应误读为 |
 | --- | --- | --- |
 | 聊天群、WeChat 群、频道 | `Realm` 提供成员与历史边界；一个或多个 `Flow(tracks.discussion)` 承载对话 | `Message` 本身不是房间；`discussion` track 也不是独立 ACL。 |
 | Matrix Room | 通常拆为 `Realm`（room state / membership / history 边界）+ `Flow/Message`（协作主题与消息）+ `View`（timeline / thread 投影） | v1 core 不使用 `Room` 作为通用对象根。 |
@@ -54,7 +54,7 @@ Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review�
 
 ## 4. 工作流容器
 
-工作流容器是独立的 `Space` 对象（`cx:space:`）。Space 是产品结构节点，不形成自己的 boundary；它的 metadata 写入 `realm_id` 指向的 home Realm，子资源默认落点由 `default_realm_id` 解析：
+工作流容器是独立的 `Space` 对象（`ck:space:`）。Space 是产品结构节点，不形成自己的 boundary；它的 metadata 写入 `realm_id` 指向的 home Realm，子资源默认落点由 `default_realm_id` 解析：
 
 - `Board Space`（`kind=board`）
 - `List Space`（`kind=list`）
@@ -103,7 +103,7 @@ Agent 的标准落点为：
 
 ## 9. 统一读法
 
-Contrix v1 的统一读法是：
+Cokret v1 的统一读法是：
 
 1. `Realm` 是协作边界，不承担产品导航树职责。
 2. `Flow` 是统一协作对象。

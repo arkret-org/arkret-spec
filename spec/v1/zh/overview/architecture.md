@@ -19,7 +19,7 @@ see_also:
 
 ## 1. 目标（Goals）
 
-Contrix 的顶层架构要同时满足四件事：
+Cokret 的顶层架构要同时满足四件事：
 
 - 去中心化身份与发布
 - 多主体协作对象共享
@@ -30,41 +30,41 @@ Contrix 的顶层架构要同时满足四件事：
 
 ## 2. 总体模型
 
-Contrix 采用 **principal server + signed Event + identity registry + client-side projection** 的分层模型。
+Cokret 采用 **principal server + signed Event + identity registry + client-side projection** 的分层模型。
 
 `Principal Server` 是 principal 自己控制或通过 DID / Realm policy 明确委托的服务入口。它可以同机承载 Events API、sync、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。搜索、inbox、notification 和 View projection 默认是客户端或 SDK 的派生能力；若某部署额外提供受托搜索服务，该服务仍是可选扩展，不是协议核心真相源。
 
-Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
+Cokret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
-协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Flow、Space、Message 等标准对象；看板与列容器是独立的 Space（`cx:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
+协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Flow、Space、Message 等标准对象；看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
 
 ### 2.0 容器选型参考（Container Selection Reference）
 
-Contrix 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow。
+Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow。
 
 *Table 2-1. 容器对象按使用场景索引（informative）。*
 
 | 使用场景 | 推荐对象 | 关键边界属性 |
 | --- | --- | --- |
-| 共享 federation / identity、policy server、capability registry、Realm-default E2EE group | `cx:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、policy server、capability registry、Realm-default MLS group |
-| Realm 内子集成员 + 独立 history / 投递 / 查询裁剪，复用父 Realm federation / policy / capability registry；必要时独立 MLS group | `cx:circle:`，对象通过 `scope_circle_id` 引用 | intra-Realm scoped event boundary；不持有 federation identity 或 policy server；约束 `Circle.members ⊆ Realm.members` |
-| Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `cx:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_circle_id` 仅决定 Space metadata effective scope，不构成独立 Realm 边界 |
-| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `cx:flow:` | Realm 内协作主体；整 Flow 单一 effective scope（由 `Flow.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
+| 共享 federation / identity、policy server、capability registry、Realm-default E2EE group | `ck:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、policy server、capability registry、Realm-default MLS group |
+| Realm 内子集成员 + 独立 history / 投递 / 查询裁剪，复用父 Realm federation / policy / capability registry；必要时独立 MLS group | `ck:circle:`，对象通过 `scope_circle_id` 引用 | intra-Realm scoped event boundary；不持有 federation identity 或 policy server；约束 `Circle.members ⊆ Realm.members` |
+| Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `ck:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_circle_id` 仅决定 Space metadata effective scope，不构成独立 Realm 边界 |
+| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `ck:flow:` | Realm 内协作主体；整 Flow 单一 effective scope（由 `Flow.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
 | 客户端导航整洁化（"软隐藏一组 Realm"） | （不新建容器）使用 View / Space hierarchy / Realm linking | Realm 间无树形包含关系，仅有 link graph；产品层"我的工作区"为 client-side 概念 |
 
 判定顺序（normative）：
 
-1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `cx:realm:`。
-2. Realm 内若需要独立 membership、history visibility、投递 / 查询裁剪或独立 MLS group，MUST 使用 `cx:circle:`，对象通过 `scope_circle_id` 引用。
-3. 仅用于导航 / 结构分组的容器 MUST 使用 `cx:space:`，MUST NOT 借此获得 membership 或安全边界。
-4. 带协作语义的最小单元 MUST 使用 `cx:flow:`。
+1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `ck:realm:`。
+2. Realm 内若需要独立 membership、history visibility、投递 / 查询裁剪或独立 MLS group，MUST 使用 `ck:circle:`，对象通过 `scope_circle_id` 引用。
+3. 仅用于导航 / 结构分组的容器 MUST 使用 `ck:space:`，MUST NOT 借此获得 membership 或安全边界。
+4. 带协作语义的最小单元 MUST 使用 `ck:flow:`。
 5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../../proposals/) 留档。
 
 详细字段定义见 [`models/realm-and-space.md`](../models/realm-and-space.md)、[`models/circle.md`](../models/circle.md)、[`models/space-hierarchy.md`](../models/space-hierarchy.md)、[`models/realm-links.md`](../models/realm-links.md) 与 [`models/flow-and-message.md`](../models/flow-and-message.md)。
 
 ### 2.1 Organization / Realm 边界
 
-组织在 Contrix 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Realm。
+组织在 Cokret 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Realm。
 
 Organization principal 可以：
 
@@ -79,7 +79,7 @@ Realm 则是协作数据边界。它定义 membership、capability scope、schem
 
 ### 2.2 Per-Actor Event Chain
 
-Contrix v1 的协议一等概念是 **signed Event** 与 **per-actor event chain**，不是任何形式的内容仓库或公开发布记录。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
+Cokret v1 的协议一等概念是 **signed Event** 与 **per-actor event chain**，不是任何形式的内容仓库或公开发布记录。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
 
 它承担：
 
@@ -88,7 +88,7 @@ Contrix v1 的协议一等概念是 **signed Event** 与 **per-actor event chain
 - 设备离线后重传
 - 审计基线
 
-Contrix 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 event chain 物化成仓库、append-only log、Merkle tree 或对象存储，完全是实现选择，协议不规定。
+Cokret 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 event chain 物化成仓库、append-only log、Merkle tree 或对象存储，完全是实现选择，协议不规定。
 
 Event chain 可以由以下形态承载：
 
@@ -154,7 +154,7 @@ Capability Authority 是一个逻辑角色，不要求独立部署。
 
 ### 2.7 Client / Agent
 
-Contrix 的 client 不只包括 GUI 应用，也包括：
+Cokret 的 client 不只包括 GUI 应用，也包括：
 
 - CLI
 - webhook worker
@@ -166,7 +166,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 ### 2.8 Principal Server 部署形态
 
-Contrix 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：service DID、`service_type`、capability、Realm policy、plaintext visibility 和 endpoint 契约仍必须可区分。
+Cokret 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：service DID、`service_type`、capability、Realm policy、plaintext visibility 和 endpoint 契约仍必须可区分。
 
 面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
@@ -305,7 +305,7 @@ Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可
 
 ## 4. 部署拓扑
 
-Contrix 不要求所有角色分离部署。
+Cokret 不要求所有角色分离部署。
 
 ### 4.0 通用网络拓扑（General Network Topology）
 
@@ -435,7 +435,7 @@ Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **External Col
 
 ## 5. 核心架构取向
 
-Contrix 固定以下架构取向：
+Cokret 固定以下架构取向：
 
 - realm-first
 - object-first
@@ -504,7 +504,7 @@ Realm 构成了协作图的硬性隔离边界：
 
 ## 7. AI 与人类共用同一协议
 
-Contrix 不打算做“两套系统”：
+Cokret 不打算做“两套系统”：
 
 - 一套给人类看板
 - 一套给 agent 上下文
@@ -527,7 +527,7 @@ Agent 代表人类或服务写入 Event 时，payload、`unsigned` 或 profile �
 
 ## 8. 架构决定
 
-Contrix v1 固定以下方向：
+Cokret v1 固定以下方向：
 
 - signed Event Envelope 和 per-actor event chain 是 actor 发布基线
 - identity registry / witness 是 DID 文档的解析与写入层
@@ -541,7 +541,7 @@ Contrix v1 固定以下方向：
 
 ## 9. 可落地性要求
 
-Contrix v1 不允许实现用单一“万能服务”隐藏协议边界。任何声称支持 `cx.profile.principal_server.v1` 或 `cx.profile.full_client.v1` 的实现 MUST 满足以下要求：
+Cokret v1 不允许实现用单一“万能服务”隐藏协议边界。任何声称支持 `cx.profile.principal_server.v1` 或 `cx.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `conformance-vectors.md` 执行。
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。

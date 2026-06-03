@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/applet.schema.json",
-  "title": "Contrix Applet Protocol Object",
+  "$id": "https://cokret.io/artifacts/schemas/applet.schema.json",
+  "title": "Cokret Applet Protocol Object",
   "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for cx.applet.* MUST use the typed payload definitions in event-payload.schema.json; this object is not a loose transport envelope and is closed at the top level except for x_* extensions.",
   "type": "object",
   "required": [
@@ -13,7 +13,7 @@
       "const": "cx.schema.applet.v1"
     },
     "applet_id": {
-      "description": "Stable applet identifier. MUST be either a DID or the registered typed-id form cx:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
+      "description": "Stable applet identifier. MUST be either a DID or the registered typed-id form ck:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
       "oneOf": [
         {
           "type": "string",
@@ -21,7 +21,7 @@
         },
         {
           "type": "string",
-          "pattern": "^cx:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ]
     },

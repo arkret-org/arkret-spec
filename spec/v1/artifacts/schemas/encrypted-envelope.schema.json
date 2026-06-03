@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/encrypted-envelope.schema.json",
-  "title": "Contrix Encrypted Payload Envelope",
+  "$id": "https://cokret.io/artifacts/schemas/encrypted-envelope.schema.json",
+  "title": "Cokret Encrypted Payload Envelope",
   "type": "object",
   "required": [
     "scheme",
@@ -65,7 +65,7 @@
       "properties": {
         "realm_id": {
           "type": "string",
-          "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "event_kind": {
           "type": "string",
@@ -73,7 +73,7 @@
         },
         "event_id": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "event_ref_digest": {
           "type": "string",
@@ -83,7 +83,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "causal_ref_digests": {
@@ -116,7 +116,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
               "description": "Reference to accepted cx.mls.genesis / winning cx.mls.commit event."
             },
             {

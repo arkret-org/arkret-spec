@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/did-key-log-entry.schema.json",
-  "title": "Contrix DID Key Log Entry",
+  "$id": "https://cokret.io/artifacts/schemas/did-key-log-entry.schema.json",
+  "title": "Cokret DID Key Log Entry",
   "type": "object",
   "required": [
     "did",

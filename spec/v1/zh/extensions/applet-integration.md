@@ -7,7 +7,7 @@ updated: 2026-05-25
 ---
 
 > **状态：extension profile（非 v1 core 互操作必需）**。Applet registry、审核 SLA 与 capability
-> 注入流程仍在演进。Contrix v1 core 互操作 **不要求** 实现本 profile；声称 v1 core 的
+> 注入流程仍在演进。Cokret v1 core 互操作 **不要求** 实现本 profile；声称 v1 core 的
 > 实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。
 > `cx.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json`
 > 的 `profile_tiers.extension_profile_implementation`）。
@@ -18,9 +18,9 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-Matrix 有 Application Service / Appservice，用于桥接 IRC、Slack、Discord 等外部网络，也用于 bot 和自动化集成。Contrix 需要类似能力，但不能继承 homeserver 中心化和 user_id namespace 的假设。
+Matrix 有 Application Service / Appservice，用于桥接 IRC、Slack、Discord 等外部网络，也用于 bot 和自动化集成。Cokret 需要类似能力，但不能继承 homeserver 中心化和 user_id namespace 的假设。
 
-Contrix 将该能力定义为 **Applet**。
+Cokret 将该能力定义为 **Applet**。
 
 Applet 是一个受注册、受授权、可审计的集成服务。它可以：
 
@@ -28,8 +28,8 @@ Applet 是一个受注册、受授权、可审计的集成服务。它可以：
 - 桥接外部网络
 - 创建和管理 Ghost Actor
 - 管理 portal realm
-- 接收 Contrix 事件交易
-- 把外部事件转换为 Contrix event
+- 接收 Cokret 事件交易
+- 把外部事件转换为 Cokret event
 - 在获得明确授权时以受托 agent / device 方式执行操作
 
 Applet / Agent / Morph / Ghost Actor 的选择边界如下，实现 MUST 按最窄概念建模：
@@ -39,13 +39,13 @@ Applet / Agent / Morph / Ghost Actor 的选择边界如下，实现 MUST 按最�
 | 高频外部事件桥接、多用户镜像、需要 namespace / capability 撤销 / portal Realm | Applet + Ghost Actor | Morph 直接表示外部用户；Agent session 长期常驻 |
 | 单次或低频外部对象导入、内容不可信、只需保留原文与映射证据 | Morph / Relation | Ghost Actor 写入协作历史 |
 | AI / 自动化长任务、需要状态回流、产物归档、可取消会话 | Agent protocol session | Applet masquerading 成人类 actor |
-| 外部人类用户在 Contrix 内可被 mention / 授权 / 审计 | Ghost Actor（标记 managed_by_applet） | 伪装为 native principal DID |
+| 外部人类用户在 Cokret 内可被 mention / 授权 / 审计 | Ghost Actor（标记 managed_by_applet） | 伪装为 native principal DID |
 
 同一外部实体可以在不同上下文下产生 Morph 记录和 Ghost Actor，但二者 MUST 通过显式 Relation / provenance 字段连接，不能让 projection 自由猜测它们是同一主体。
 
 ## 2. 与 Matrix Appservice 的对应关系
 
-| Matrix Appservice | Contrix Applet |
+| Matrix Appservice | Cokret Applet |
 | --- | --- |
 | homeserver 本地注册文件 | signed `applet_registration` |
 | sender localpart | applet controller DID / bot DID |
@@ -81,7 +81,7 @@ Applet 的主要可见 Actor。Bot Actor 可以加入 Realm、被 mention、发�
 
 ### 3.4 Ghost Actor
 
-外部网络用户在 Contrix 中的镜像 Actor。例如 Slack 用户 `U123` 映射为一个独立 Actor DID：
+外部网络用户在 Cokret 中的镜像 Actor。例如 Slack 用户 `U123` 映射为一个独立 Actor DID：
 
 ```text
 did:web:slack-bridge.example:ghost:u123
@@ -112,7 +112,7 @@ CXP-0008 / CXP-0009 只覆盖 native personal agent 路径;Ghost Actor / Applet 
 
 ### 3.5 Portal Realm
 
-外部网络 location 在 Contrix 中的镜像 Realm。例如 Slack channel、Discord guild channel、GitHub issue discussion。
+外部网络 location 在 Cokret 中的镜像 Realm。例如 Slack channel、Discord guild channel、GitHub issue discussion。
 
 ## 4. Applet Registration
 
@@ -125,7 +125,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 ```json
 {
   "kind": "cx.applet.registration",
-  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
+  "applet_id": "ck:applet:21532600-0000-7000-8000-000000000000",
   "service_did": "did:web:slack-bridge.example",
   "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://slack-bridge.example/api/v1/applet",
@@ -247,7 +247,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
   "subject": "did:web:slack-bridge.example:bot",
   "claim_scope": {
     "realm_ids": [
-      "cx:realm:0196419b-0000-7000-8000-000000000000"
+      "ck:realm:0196419b-0000-7000-8000-000000000000"
     ],
     "actions": [
       "cx.flow.create",
@@ -260,7 +260,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
     {
       "constraint_type": "scope_limitation",
       "effect": "allow",
-      "via_applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
+      "via_applet_id": "ck:applet:21532600-0000-7000-8000-000000000000",
       "allowed_actor_namespace": "did:web:slack-bridge.example:ghost:*"
     }
   ],
@@ -272,15 +272,15 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 
 ## 7. Applet API
 
-Applet API 是 Contrix 节点调用 Applet 的接口。  
-Applet 调用 Contrix 节点时使用常规 Events API / sync service / authz API。
+Applet API 是 Cokret 节点调用 Applet 的接口。  
+Applet 调用 Cokret 节点时使用常规 Events API / sync service / authz API。
 
 Base URL 来自 registration 的 `base_url`。
 
 **`cx.applet.*` 标识符的两类用途（normative 区分）**：`cx.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
 
-- **Event kind（进 Realm history）**：`cx.applet.registration`、`cx.applet.transaction`（指其作为 wire `Event.kind` 的语义，例如 §4 的 registration event、§8 写入的 transaction-origin event）、`cx.applet.bridge_error`（见 `applet-schema.md` §7）。这些是 durable Contrix Event，进入 Realm history，由 reducer 按 schema 校验。
-- **operation_id（HTTP，不进 history）**：本节表中的 `cx.applet.ping`、`cx.applet.describe`、`cx.applet.transaction`、`cx.applet.resolve_actor`、`cx.applet.resolve_realm`、`cx.applet.protocol_metadata`、`cx.applet.third_party_users`、`cx.applet.third_party_locations` 是 HTTP API operation 标识符，只描述 Contrix 节点 ↔ Applet 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
+- **Event kind（进 Realm history）**：`cx.applet.registration`、`cx.applet.transaction`（指其作为 wire `Event.kind` 的语义，例如 §4 的 registration event、§8 写入的 transaction-origin event）、`cx.applet.bridge_error`（见 `applet-schema.md` §7）。这些是 durable Cokret Event，进入 Realm history，由 reducer 按 schema 校验。
+- **operation_id（HTTP，不进 history）**：本节表中的 `cx.applet.ping`、`cx.applet.describe`、`cx.applet.transaction`、`cx.applet.resolve_actor`、`cx.applet.resolve_realm`、`cx.applet.protocol_metadata`、`cx.applet.third_party_users`、`cx.applet.third_party_locations` 是 HTTP API operation 标识符，只描述 Cokret 节点 ↔ Applet 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
 
 注意 `cx.applet.transaction` 同时出现在两类用途：作 operation_id 时指 §7.3 的 transaction push HTTP 调用；作 Event kind 概念时指该 push 携带 / 触发的 durable Event。二者通过本说明显式区分（与 [`agent-protocol-interop.md` §7](./agent-protocol-interop.md) 对 capability action 与 `cx.agent.protocol_session.*` event kind 的区分写法一致）。
 
@@ -308,7 +308,7 @@ GET /api/v1/applet/ping
 ```json
 {
   "ok": true,
-  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
+  "applet_id": "ck:applet:21532600-0000-7000-8000-000000000000",
   "service_did": "did:web:slack-bridge.example",
   "protocol_version": "1.0"
 }
@@ -329,7 +329,7 @@ POST /api/v1/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
-Contrix sync service / Events API 向 Applet 推送事件批次。
+Cokret sync service / Events API 向 Applet 推送事件批次。
 
 请求示例（非完整 schema）：
 
@@ -338,8 +338,8 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
   "source_service_did": "did:web:server.example",
   "events": [
     {
-      "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "kind": "cx.message.create",
       "actor_id": "did:web:alice.example",
       "payload": {}
@@ -348,7 +348,7 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
   "ephemeral": [
     {
       "type": "typing",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:web:alice.example"
     }
   ]
@@ -379,7 +379,7 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
 GET /api/v1/applet/actors/{actor_id}
 ```
 
-用于 Contrix 节点发现 namespace 内的未知 Ghost Actor 是否存在。
+用于 Cokret 节点发现 namespace 内的未知 Ghost Actor 是否存在。
 
 返回：
 
@@ -411,7 +411,7 @@ GET /api/v1/applet/realms/{realm_id_or_alias}
 ```json
 {
   "exists": true,
-  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
   "title": "#release on Slack",
   "external_ref": {
     "protocol": "slack",
@@ -433,7 +433,7 @@ GET /api/v1/applet/protocols/{protocol}
 {
   "protocol": "slack",
   "display_name": "Slack",
-  "icon_blob_ref": "cx:blob:sha256:...",
+  "icon_blob_ref": "ck:blob:sha256:...",
   "field_types": {
     "team": {
       "label": "Workspace",
@@ -463,11 +463,11 @@ GET /api/v1/applet/third_party/users?protocol=slack&team=T123&user=U123
 GET /api/v1/applet/third_party/locations?protocol=slack&team=T123&channel=C456
 ```
 
-用于把外部用户或 location 映射到 Contrix actor / portal Realm。
+用于把外部用户或 location 映射到 Cokret actor / portal Realm。
 
-## 8. Applet 写入 Contrix
+## 8. Applet 写入 Cokret
 
-Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
+Applet 写入 Cokret MUST 使用常规 `/events` submit 接口。
 
 每个写入 Event MUST 包含：
 
@@ -481,18 +481,18 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
 
 ```json
 {
-  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
   "actor_id": "did:web:slack-bridge.example:ghost:u123",
   "kind": "cx.message.create",
-  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
+  "applet_id": "ck:applet:21532600-0000-7000-8000-000000000000",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",
     "event_id": "1714040000.000100"
   },
   "payload": {
-    "flow_id": "cx:flow:c0c69410-0000-7000-8000-000000000001",
+    "flow_id": "ck:flow:c0c69410-0000-7000-8000-000000000001",
     "content": {
       "body": "hello from Slack"
     }
@@ -520,7 +520,7 @@ Ghost Actor profile SHOULD 包含：
   "principal_id": "did:web:slack-bridge.example:ghost:u123",
   "actor_kind": "integration",
   "display_name": "Alice on Slack",
-  "managed_by_applet": "cx:applet:21532600-0000-7000-8000-000000000000",
+  "managed_by_applet": "ck:applet:21532600-0000-7000-8000-000000000000",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",
@@ -540,7 +540,7 @@ Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式
 
 ## 10. Portal Realm
 
-Portal Realm 把外部 location 映射到 Contrix。
+Portal Realm 把外部 location 映射到 Cokret。
 
 Portal Realm SHOULD 记录：
 
@@ -575,8 +575,8 @@ Alice via Calendar Applet
 {
   "actor_id": "did:web:alice.example",
   "executed_by": "did:web:calendar-applet.example#agent",
-  "authorization_ref": "cx:grant:0196410c-0000-7000-8000-000000000000",
-  "applet_id": "cx:applet:8a0baad5-6000-7000-8000-000000000000"
+  "authorization_ref": "ck:grant:0196410c-0000-7000-8000-000000000000",
+  "applet_id": "ck:applet:8a0baad5-6000-7000-8000-000000000000"
 }
 ```
 
@@ -609,8 +609,8 @@ Applet 参与 E2EE Realm 时有三种模式：
 
 **E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `cx.flow.create` / `cx.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
 
-- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 authz service 签发（参照 §4 的 `applet_registration_unauthorized` 门槛），并落为可审计的 Contrix Event（如 `cx.member.state` 加入 effect 携带 applet provenance），不得仅凭 Applet 自身 Welcome 入组。
-- 缺少该独立 E2EE 加入授权时，Contrix 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。
+- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 authz service 签发（参照 §4 的 `applet_registration_unauthorized` 门槛），并落为可审计的 Cokret Event（如 `cx.member.state` 加入 effect 携带 applet provenance），不得仅凭 Applet 自身 Welcome 入组。
+- 缺少该独立 E2EE 加入授权时，Cokret 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。
 - 成员加入后，客户端在 MLS group 的成员 roster（成员列表 UI 与 audit 视图）中 MUST 显式标注该成员为 **applet-managed**（区别于 native 人类成员），不得让 applet / ghost 成员在 roster 中表现为普通 native 成员。该标注与 §9 的 Ghost Actor 协议层可区分要求一致。
 
 ## 13. 安全要求
@@ -669,11 +669,11 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 - Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `cx.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。
-- Applet UI widget sandbox MUST 与 Realm capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Contrix session token 或未授权 Event history access。该 sandbox 的字段与约束在 [§17 Applet UI Widget](#17-applet-ui-widget) 定义。
+- Applet UI widget sandbox MUST 与 Realm capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Cokret session token 或未授权 Event history access。该 sandbox 的字段与约束在 [§17 Applet UI Widget](#17-applet-ui-widget) 定义。
 
 ## 17. Applet UI Widget
 
-部分 Applet 在 Contrix 客户端内嵌入 UI widget（如 Slack-style 交互卡片、配置面板）。Widget 在 host 客户端的信任边界内渲染，因此 MUST 被沙箱隔离。本节定义 §16 引用的 widget sandbox 的最小 normative 形态。
+部分 Applet 在 Cokret 客户端内嵌入 UI widget（如 Slack-style 交互卡片、配置面板）。Widget 在 host 客户端的信任边界内渲染，因此 MUST 被沙箱隔离。本节定义 §16 引用的 widget sandbox 的最小 normative 形态。
 
 Widget 声明（registration 或 describe 响应内）SHOULD 包含：
 
@@ -687,6 +687,6 @@ Widget 声明（registration 或 describe 响应内）SHOULD 包含：
 约束（normative）：
 
 - **Origin 隔离**：widget MUST 在与 host 客户端隔离的 origin 中运行；host 客户端 MUST NOT 把自身 origin 的 cookie、localStorage、IndexedDB 或 in-memory session 暴露给 widget。
-- **Token scoping**：host 客户端 MUST NOT 把 Contrix 用户的 session token 或 device key 传给 widget；widget 只能拿到为其单独签发、scope 收敛到 `token_scope` 的短期 capability token，且该 token MUST NOT 超出 widget 声明的 scope。
+- **Token scoping**：host 客户端 MUST NOT 把 Cokret 用户的 session token 或 device key 传给 widget；widget 只能拿到为其单独签发、scope 收敛到 `token_scope` 的短期 capability token，且该 token MUST NOT 超出 widget 声明的 scope。
 - **History 读取不可越权**：widget MUST NOT 通过任何接口读取超出其 capability scope 的 Event history；host 客户端 MUST 以 widget 的 scoped capability 为准做 history 访问授权，未授权范围 MUST 拒绝。
 - **Consent**：`requires_consent=true` 时，host 客户端 MUST 在加载 widget 前向用户展示其 origin 与请求 scope，未获 consent MUST NOT 加载。

@@ -12,7 +12,7 @@ updated: 2026-06-01
 
 ## 1. 目标
 
-Contrix 必须对人类友好，因此协议必须允许对象自然投影为：
+Cokret 必须对人类友好，因此协议必须允许对象自然投影为：
 
 - 看板、列表、表格、日历、甘特图
 - 时间线、活动流、聊天、话题论坛、单线程讨论
@@ -152,7 +152,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 | `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
 | `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
 | `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
-| `board_space_id` | conditional | `id:space` | `mode="relation_container"` 时必填，指向一个 `cx:space: kind=board`。 | Board Space。 |
+| `board_space_id` | conditional | `id:space` | `mode="relation_container"` 时必填，指向一个 `ck:space: kind=board`。 | Board Space。 |
 | `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
 | `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
 | `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |
@@ -165,9 +165,9 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ```json
 {
-  "id": "cx:view:019641be-0000-7000-8000-000000000000",
+  "id": "ck:view:019641be-0000-7000-8000-000000000000",
   "schema": "cx.schema.view.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:web:acme.example.com",
   "created_at": "2026-04-26T00:00:00Z",
   "kind": "collection",
@@ -182,7 +182,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "source_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
       "depth": 2
     }
   },
@@ -194,7 +194,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
@@ -257,7 +257,7 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
+    "source_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
     "depth": 2
   }
 }
@@ -270,7 +270,7 @@ View 应通过结构化 query 表达对象范围。
   "object_types": ["message"],
   "filters": [
     { "field": "state", "op": "eq", "value": "active" },
-    { "field": "flow_id", "op": "eq", "value": "cx:flow:01964200-0000-7000-8000-000000000000" },
+    { "field": "flow_id", "op": "eq", "value": "ck:flow:01964200-0000-7000-8000-000000000000" },
     { "field": "track_name", "op": "eq", "value": "discussion" }
   ],
   "order_by": [
@@ -283,7 +283,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "anchor_ref": "cx:flow:019640f9-8000-7000-8000-000000000000",
+  "anchor_ref": "ck:flow:019640f9-8000-7000-8000-000000000000",
   "include": [
     "relations",
     "synthesis",
@@ -330,21 +330,21 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Flow。实现 MUST 按
 {
   "kind": "collection",
   "renderer": "board",
-  "view_id": "cx:view:019641be-0000-7000-8000-000000000000",
-  "frontier": ["cx:event:..."],
+  "view_id": "ck:view:019641be-0000-7000-8000-000000000000",
+  "frontier": ["ck:event:..."],
   "groups": [
     {
-      "group_id": "cx:space:01c3b617-7000-7000-8000-000000000000",
+      "group_id": "ck:space:01c3b617-7000-7000-8000-000000000000",
       "title": "Review",
       "rank": "mV",
       "items": [
         {
           "object": {
-            "id": "cx:flow:01d2b330-0000-7000-8000-000000000000",
+            "id": "ck:flow:01d2b330-0000-7000-8000-000000000000",
             "title": "Legal review"
           },
           "position": {
-            "relation_id": "cx:relation:01b03200-0000-7000-8000-000000000000",
+            "relation_id": "ck:relation:01b03200-0000-7000-8000-000000000000",
             "rank": "mV"
           },
           "discussion": {
@@ -394,7 +394,7 @@ Graph projection 可展开 Flow、Morph、Message、Board 等对象之间的 Rel
 
 ## 10. 设计决定
 
-Contrix v1 固定：
+Cokret v1 固定：
 
 - View 投影 Flow、Message、Morph 和 Realm workflow。
 - Board Space 和 List Space 是 `Space.kind`，不是 `View.kind`。

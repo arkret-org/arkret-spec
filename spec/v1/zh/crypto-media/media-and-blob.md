@@ -18,9 +18,9 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ```json
 {
-  "blob_ref": "cx:blob:sha256:...",
+  "blob_ref": "ck:blob:sha256:...",
   "schema": "cx.schema.blob.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "content_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
@@ -47,7 +47,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
 | `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |
 
-命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob 内容 digest 统一使用 `content_digest`，不得新增裸 `sha256` 字段；内容寻址 `blob_ref` 继续可携带 `cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 这类 typed-id 形态。
+命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob 内容 digest 统一使用 `content_digest`，不得新增裸 `sha256` 字段；内容寻址 `blob_ref` 继续可携带 `ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 这类 typed-id 形态。
 
 上传规则：
 
@@ -62,12 +62,12 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ```json
 {
-  "blob_ref": "cx:blob:sha256:...",
+  "blob_ref": "ck:blob:sha256:...",
   "encrypted": true,
   "alg": "xchacha20_poly1305",
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
+    "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
   },
   "epoch": 42,
   "nonce": "base64url...",
@@ -79,13 +79,13 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ### 3.1 AEAD nonce uniqueness（normative）
 
-AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的明文被同时解密 = **整个 key catastrophic compromise**。Contrix MLS application key 在同一 epoch 内被所有群成员设备共享，如果多设备并发加密大量 attachment / blob,**naive random 96-bit nonce** 在 ~2^48 次操作后(birthday bound)有显著碰撞概率，且任何单次碰撞都击穿整个 epoch。因此 v1 wire **MUST** 满足下列 nonce 构造规则:
+AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的明文被同时解密 = **整个 key catastrophic compromise**。Cokret MLS application key 在同一 epoch 内被所有群成员设备共享，如果多设备并发加密大量 attachment / blob,**naive random 96-bit nonce** 在 ~2^48 次操作后(birthday bound)有显著碰撞概率，且任何单次碰撞都击穿整个 epoch。因此 v1 wire **MUST** 满足下列 nonce 构造规则:
 
 1. **派生 schema (normative)**:`nonce = sender_nonce_prefix || device_nonce_counter_be64`。`sender_nonce_prefix` 是每个 `(key_ref, epoch, device_id, purpose, aead_profile)` 的发送者 nonce 域，长度为 `N_AEAD - 8` 字节；`device_nonce_counter_be64` 是 8 字节 unsigned big-endian 单调计数器。具体形态:
 
     ```text
     sender_nonce_prefix = MLS-Exporter(
-        label   = "contrix-aead-sender-nonce-prefix-v1",
+        label   = "cokret-aead-sender-nonce-prefix-v1",
         context = canonical-bytes(
             { "key_ref": <key_ref-canonical>,
               "epoch": <mls-epoch>,
@@ -124,8 +124,8 @@ Thumbnail descriptor:
 
 ```json
 {
-  "source_blob_ref": "cx:blob:sha256:...",
-  "thumbnail_blob_ref": "cx:blob:sha256:...",
+  "source_blob_ref": "ck:blob:sha256:...",
+  "thumbnail_blob_ref": "ck:blob:sha256:...",
   "width": 320,
   "height": 180,
   "media_type": "image/webp"
@@ -145,7 +145,7 @@ GET /api/v1/blob/get?blob_ref=<ref>
 | `blob_ref` | query | `string` | required | 内容寻址 blob 引用。 |
 | `Authorization` | header | `bearer token` 或 `device proof` | 私有 blob required | 调用者认证。 |
 | `Range` | header | `string` | optional | Range 下载范围。 |
-| `X-Contrix-Wait-For` | header | `cursor` | optional | barrier cursor（`purpose=barrier`）；服务端在 frontier 覆盖该 cursor 描述的 target event 前阻塞响应。 |
+| `X-Cokret-Wait-For` | header | `cursor` | optional | barrier cursor（`purpose=barrier`）；服务端在 frontier 覆盖该 cursor 描述的 target event 前阻塞响应。 |
 
 响应字段 / header：
 
@@ -182,13 +182,13 @@ Retention 与 erasure 规则：
 
 ```text
 Authorization: Bearer <session_token>
-X-Contrix-Wait-For: <cursor>
+X-Cokret-Wait-For: <cursor>
 Range: bytes=<start>-<end>
 ```
 
 规则：
 
-- `X-Contrix-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `stale_frontier` 或 `temporarily_unavailable`。
+- `X-Cokret-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `stale_frontier` 或 `temporarily_unavailable`。
 - 下载授权 MUST 绑定 actor DID、device/session、Realm id、blob ref、purpose 和过期时间。服务端不得只凭 URL 随机串放行私有媒体。
 - 受保护下载 MUST NOT 接受 query string 中的 session、access token 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。
@@ -310,8 +310,8 @@ Cache-Control: public, immutable, max-age=31536000
 ```json
 {
   "scheme": "cx.blob.presign.v1",
-  "blob_ref": "cx:blob:sha256:0123456789abcdef...",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "blob_ref": "ck:blob:sha256:0123456789abcdef...",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "issuer_service_did": "did:web:blob.acme.example",
   "issued_at": "2026-05-18T10:00:00Z",
   "expires_at": "2026-05-18T10:05:00Z",

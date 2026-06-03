@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/erasure-verification-stub.schema.json",
-  "title": "Contrix Erasure Verification Stub",
+  "$id": "https://cokret.io/artifacts/schemas/erasure-verification-stub.schema.json",
+  "title": "Cokret Erasure Verification Stub",
   "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest. It preserves event graph, proof, anchor, redaction, legal-hold and receipt linkage evidence without retaining erased plaintext.",
   "type": "object",
   "required": [
@@ -122,7 +122,7 @@
     },
     "receipt_id": {
       "type": "string",
-      "pattern": "^cx:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "completed_at": {
       "$ref": "#/$defs/timestamp"
@@ -141,15 +141,15 @@
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "policy_id": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "subject_ref": {
       "type": "string",
-      "pattern": "^(did:[^\\s]+|cx:(realm|event|anchor|blob|device|policy|message|flow|morph|relation|view|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+      "pattern": "^(did:[^\\s]+|ck:(realm|event|anchor|blob|device|policy|message|flow|morph|relation|view|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
     }
   }
 }

@@ -6,8 +6,8 @@ extend-exclude = [
 ]
 
 [default.extend-words]
-Contrix = "Contrix"
-contrix = "contrix"
+Cokret = "Cokret"
+cokret = "cokret"
 CXP = "CXP"
 CXPs = "CXPs"
 WebVH = "WebVH"

@@ -759,7 +759,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space parent declaration. Parent is another cx:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
+      "payload": "Space parent declaration. Parent is another ck:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
       "cell_family": "cx.component.space.parent.v1",
       "cell_subject": {
         "type": "id:space",

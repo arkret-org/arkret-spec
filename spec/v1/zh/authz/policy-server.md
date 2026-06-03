@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-Policy Server 是可插拔的风险判断与治理服务，用于邀请、加入、媒体、消息、Applet、跨域联邦、目录发现、通话邀请等场景的预检查和审计。它类似 Matrix policy server / moderation policy 的思想，但在 Contrix 中不替代 capability authorization。
+Policy Server 是可插拔的风险判断与治理服务，用于邀请、加入、媒体、消息、Applet、跨域联邦、目录发现、通话邀请等场景的预检查和审计。它类似 Matrix policy server / moderation policy 的思想，但在 Cokret 中不替代 capability authorization。
 
 ## 2. Policy Server Declaration
 
@@ -81,14 +81,14 @@ Content-Type: application/json
 
 请求示例（非完整 schema）：
 
-```json schema=openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest
+```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest
 {
   "request_id": "polreq_01",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "action": "cx.message.create",
   "actor": "did:webvh:...",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "source": {
     "service_did": "did:web:server.example",
     "service_type": "principal_server",
@@ -140,11 +140,11 @@ Content-Type: application/json
 
 响应示例（非完整 schema）：
 
-```json schema=openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse
+```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse
 {
   "request_id": "polreq_01",
   "bound_to": {
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "actor": "did:webvh:...",
     "action": "cx.message.create",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -218,7 +218,7 @@ Content-Type: application/json
   "actor": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
   "action": "member.application",
   "request_canonical_digest": "sha256:...",
-  "device_id": "cx:device:..."
+  "device_id": "ck:device:..."
 }
 ```
 

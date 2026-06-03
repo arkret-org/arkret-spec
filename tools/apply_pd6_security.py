@@ -20,7 +20,7 @@ import re
 import sys
 from pathlib import Path
 
-YAML_PATH = Path("spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml")
+YAML_PATH = Path("spec/v1/artifacts/openapi/cokret-service-api.openapi.yaml")
 
 # Method names that carry a body for which Content-Digest is required.
 METHODS_WITH_BODY = {"post", "put", "patch", "delete"}

@@ -12,12 +12,12 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-本文集中定义 Contrix 协作图中的**治理对象**：
+本文集中定义 Cokret 协作图中的**治理对象**：
 
 - **Schema**：标准对象 / Morph type / facet / event 的结构与约束。
-- **Policy**（`cx:policy:`）：access / encryption / retention / federation / moderation 等运行时策略。
-- **Capability Grant**（`cx:grant:`）：授权委派。
-- **Invite**（`cx:invite:`）：Realm 加入引导。
+- **Policy**（`ck:policy:`）：access / encryption / retention / federation / moderation 等运行时策略。
+- **Capability Grant**（`ck:grant:`）：授权委派。
+- **Invite**（`ck:invite:`）：Realm 加入引导。
 
 这些对象都不直接承载协作内容，但决定了协作内容的合法范围、可见性和权限路径。完整 capability 模型、policy server 决策、anchor finality profile 等运行时语义在 `authz/`、`governance/` 和 `security/` 章节展开；本文聚焦对象级 schema、字段和生命周期。
 
@@ -53,7 +53,7 @@ Schema evolution MUST be additive by default：
 
 ### 2.3 Schema 在 Realm 中的应用
 
-Realm 通过 `schema_refs` 字段引用启用的 schema 集合。`policy` 既是 typed-id 前缀（`cx:policy:`）下的物化对象，也有对应 state event 形态。
+Realm 通过 `schema_refs` 字段引用启用的 schema 集合。`policy` 既是 typed-id 前缀（`ck:policy:`）下的物化对象，也有对应 state event 形态。
 
 Schema 引用的写入路径：
 
@@ -122,7 +122,7 @@ Schema id: `cx.schema.capability.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:grant` | `cx:grant:<uuidv7>`；不得使用 `cx:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID。 |
+| `id` | yes | `id:grant` | `ck:grant:<uuidv7>`；不得使用 `ck:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID。 |
 | `schema` | yes | `cx.schema.capability.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
@@ -130,7 +130,7 @@ Schema id: `cx.schema.capability.v1`
 | `actions` | yes | `array<string>` | 例如 `cx.flow.update`、`cx.message.create`。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
-| `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `cx:grant:` 开头，不得指向 `cx:capability:`。 | 父授权。 |
+| `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 父授权。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
 | `updated_by` | no | `did` | grant lifecycle update 的 actor；普通 grant body 仍不可变。 | 最近更新者。 |
@@ -162,7 +162,7 @@ Schema id: `cx.schema.invite.v1`
 | `invitee` | no | `did` | 3PID 邀请可为空。 | 被邀请 DID。 |
 | `third_party_id` | no | `object` | 见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 | 邮箱/手机号等外部标识证明。 |
 | `join_rule_snapshot` | yes | `object` | 防止邀请后规则混淆。 | 邀请时 join rule。 |
-| `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `cx:grant:` 开头，不得指向 `cx:capability:`。 | 关联授权。 |
+| `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 关联授权。 |
 | `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD 不超过 24 小时。 | 过期时间。 |
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed, send_failed, revoked_by_capability_loss, revoked_by_inviter_left, invalidated_by_rate_limit)` | Invite 的流程对象状态；保留为 `state` 是 v1 兼容例外，不表示通用对象物理 lifecycle。 | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

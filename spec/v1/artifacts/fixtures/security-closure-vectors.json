@@ -14,8 +14,8 @@
             "headers": {
               "Source-Service-DID": "did:web:alpha.example",
               "Destination-Service-DID": "did:web:beta.example",
-              "Source-Trust-Domain": "cx:trust_domain:did.webvh.alpha.example",
-              "Destination-Trust-Domain": "cx:trust_domain:did.webvh.beta.example",
+              "Source-Trust-Domain": "ck:trust_domain:did.webvh.alpha.example",
+              "Destination-Trust-Domain": "ck:trust_domain:did.webvh.beta.example",
               "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "Idempotency-Key": "idem-001"
             },
@@ -35,8 +35,8 @@
                 "headers": {
                   "Source-Service-DID": "did:web:alpha.example",
                   "Destination-Service-DID": "did:web:beta.example",
-                  "Source-Trust-Domain": "cx:trust_domain:did.webvh.alpha.example",
-                  "Destination-Trust-Domain": "cx:trust_domain:did.webvh.beta.example",
+                  "Source-Trust-Domain": "ck:trust_domain:did.webvh.alpha.example",
+                  "Destination-Trust-Domain": "ck:trust_domain:did.webvh.beta.example",
                   "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                   "Idempotency-Key": "idem-001"
                 },
@@ -52,8 +52,8 @@
                 "headers": {
                   "Source-Service-DID": "did:web:alpha.example",
                   "Destination-Service-DID": "did:web:beta.example",
-                  "Source-Trust-Domain": "cx:trust_domain:did.webvh.alpha.example",
-                  "Destination-Trust-Domain": "cx:trust_domain:did.webvh.beta.example",
+                  "Source-Trust-Domain": "ck:trust_domain:did.webvh.alpha.example",
+                  "Destination-Trust-Domain": "ck:trust_domain:did.webvh.beta.example",
                   "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                   "Idempotency-Key": "idem-001"
                 },
@@ -892,8 +892,8 @@
           "name": "input_order_independent_winner",
           "input": {
             "siblings": [
-              "cx:event:019a7360-0000-7000-8000-000000000001",
-              "cx:event:019a7360-0000-7000-8000-000000000002"
+              "ck:event:019a7360-0000-7000-8000-000000000001",
+              "ck:event:019a7360-0000-7000-8000-000000000002"
             ],
             "same_logical_time": true
           },
@@ -908,8 +908,8 @@
               "vector_id": "cx.vector.lattice.lww_open_set.v1",
               "preconditions": {
                 "siblings": [
-                  "cx:event:019a7360-0000-7000-8000-000000000001",
-                  "cx:event:019a7360-0000-7000-8000-000000000002"
+                  "ck:event:019a7360-0000-7000-8000-000000000001",
+                  "ck:event:019a7360-0000-7000-8000-000000000002"
                 ],
                 "same_logical_time": true
               }
@@ -920,8 +920,8 @@
               "canonicalization": "fixture_json_v1",
               "input": {
                 "siblings": [
-                  "cx:event:019a7360-0000-7000-8000-000000000001",
-                  "cx:event:019a7360-0000-7000-8000-000000000002"
+                  "ck:event:019a7360-0000-7000-8000-000000000001",
+                  "ck:event:019a7360-0000-7000-8000-000000000002"
                 ],
                 "same_logical_time": true
               }

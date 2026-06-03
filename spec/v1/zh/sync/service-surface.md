@@ -20,7 +20,7 @@ see_also:
 
 如果只有对象模型、同步原则和 capability，而没有最小线级服务面，协议仍然很难真正互操作。
 
-因此 Contrix v1 定义：
+因此 Cokret v1 定义：
 
 - identity registry 如何收发 DID 操作与 receipt
 - Events API 如何提交、读取、回填 signed Event
@@ -104,7 +104,7 @@ DID Document SHOULD 只负责：
 | Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
 | MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、anchorer service 或 Applet Bridge 承载 | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
-| Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
+| Realtime Media Server | 通话/会议可选 | `/cokret/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
 | Moderation / Compliance Server | 公共或组织部署建议独立 | `/moderation`, `/server` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 |
 | Archive / Recovery Service | history sharing、late key recovery 或组织恢复场景可选；高安全部署必须显式声明 | `/server` + `supported_operations` 中的 keys / blob / events 子集 | Archive Node、Key Recovery Service 或 Recovery Service。只能按 Realm policy、history visibility、T0 membership 和 capability 返回最小必要 epoch material / backup envelope / recovery proof；不得因持有归档副本自动获得明文读取权。 |
 
@@ -134,7 +134,7 @@ GET /api/v1/server/describe
 ```json schema=schemas/service-describe.schema.json
 {
   "service_did": "did:web:alice.example.net",
-  "trust_domain": "cx:trust_domain:did.webvh.alice.example",
+  "trust_domain": "ck:trust_domain:did.webvh.alice.example",
   "service_type": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [
@@ -223,7 +223,7 @@ GET /api/v1/server/describe
 
 服务类型命名规则：
 
-- DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixDirectory`。
+- DID Document `service.type` 使用协议注册名，例如 `CokretPrincipalServer`、`CokretDirectory`。
 - describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`、`archive_node`、`key_recovery_service`、`recovery_service`。其中 `sync_node` 保留：它不是独立的 describe-only 角色，而是 `realm.schema.json` / `realm-join-candidate.schema.json` 的 service class 枚举值，仅当 Realm policy 授权其接收 join-side submission / delivery binding 时使用（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
@@ -236,7 +236,7 @@ GET /api/v1/server/describe
 
 - `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
   不构成 profile claim。元素 SHOULD 命中 `operation-registry.json` 注册项。
-- `trust_domain: cx:trust_domain:<scope>` — 部署级 replay boundary。客户端 / 接收方 MUST 要求它与 Realm create-locked trust domain、federation header 和本地 receive context 一致；不一致时不得接受 replay-sensitive proof。
+- `trust_domain: ck:trust_domain:<scope>` — 部署级 replay boundary。客户端 / 接收方 MUST 要求它与 Realm create-locked trust domain、federation header 和本地 receive context 一致；不一致时不得接受 replay-sensitive proof。
 - `implemented_features: feature_id[]` — 服务有实现代码、但 **不一定** 通过 conformance verification 的 feature。
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
@@ -248,7 +248,7 @@ GET /api/v1/server/describe
   把它当成协议级决策的依据，也不得继承到 `claimed_profiles`。
 - `compat_surfaces: [{name, kind, ...}]` — 仅为兼容性而暴露的 legacy / external interop surface
   （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `legacy_alias`, `external_interop`, `deprecated_alias`}）。
-  这些 surface **不构成** Contrix v1 conformance 的一部分。
+  这些 surface **不构成** Cokret v1 conformance 的一部分。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
 - `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Policy Server、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
 
@@ -339,7 +339,7 @@ GET /api/v1/identity/receipts?did=<did>&head=<event-hash>
 
 #### 3.1.6 写入确认建议
 
-Contrix v1 要求：
+Cokret v1 要求：
 
 - writer 客户端同时向多个 registry / witness 提交 `did_operation`
 - 至少拿到 `k-of-n` receipt 才视为提交成功
@@ -351,7 +351,7 @@ Contrix v1 要求：
 
 Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/events/*`。
 
-Contrix v1 不规定 Event 在服务端的物化形态——不要求集中式 record 仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event,但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` 与 `refs[role=authorized_by]` 因果依赖和 `event_id` 幂等性。
+Cokret v1 不规定 Event 在服务端的物化形态——不要求集中式 record 仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event,但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` 与 `refs[role=authorized_by]` 因果依赖和 `event_id` 幂等性。
 
 Events API 至少应提供以下语义：
 
@@ -466,17 +466,17 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 ```json
 {
-  "cell": "cx:cell:cx.component.realm.policy.v1:cx.realm.01j…",
+  "cell": "ck:cell:cx.component.realm.policy.v1:cx.realm.01j…",
   "status": "bottom",
   "bottom": {
     "kind": "conflict",
-    "cells": ["cx:cell:cx.component.realm.policy.v1:cx.realm.01j…"],
+    "cells": ["ck:cell:cx.component.realm.policy.v1:cx.realm.01j…"],
     "event_ids": [
-      "cx:event:84210000-0000-7000-8000-000000000000…",
-      "cx:event:a5294000-0000-7000-8000-000000000000…"
+      "ck:event:84210000-0000-7000-8000-000000000000…",
+      "ck:event:a5294000-0000-7000-8000-000000000000…"
     ],
     "anchor_view": {
-      "leaves": ["cx:anchor:sha256:dddd…"],
+      "leaves": ["ck:anchor:sha256:dddd…"],
       "state_root": "sha256:eeee…"
     },
     "heads": [{"…": "candidate-A"}, {"…": "candidate-B"}],
@@ -508,7 +508,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 ## 6. Search / Projection Semantics
 
-Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查询、View projection、inbox、notification 和全文搜索默认属于客户端或 SDK 的本地派生能力；客户端可以根据已同步且已授权、已解密的 Event 集合自行维护本地索引，也可以完全不提供搜索功能。
+Cokret v1 不定义必需的远端索引或应用视图服务面。当前态查询、View projection、inbox、notification 和全文搜索默认属于客户端或 SDK 的本地派生能力；客户端可以根据已同步且已授权、已解密的 Event 集合自行维护本地索引，也可以完全不提供搜索功能。
 
 实现 MAY 提供协议外或扩展 profile 的受托 search / projection 服务，但该服务不是核心协议角色。任何此类服务都不得成为真相源；其输出必须能追溯到 signed Event、reducer profile、View definition 和 causal frontier。
 
@@ -525,7 +525,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 - cursor
 - limit
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
-- barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Realm frontier。Wire 形态与 stream cursor 共享 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
+- barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Realm frontier。Wire 形态与 stream cursor 共享 `ck:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
 
 barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `after=` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `/account/subscribe after=`。
 
@@ -544,7 +544,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
 ```json
 {
   "query": "legal review",
-  "realm_ids": ["cx:realm:0196419b-0000-7000-8000-000000000000"],
+  "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["message", "flow", "morph"],
   "morph_types": ["comment"],
   "sender_actor_id": "did:web:alice.example.com",
@@ -592,7 +592,7 @@ Search / projection 派生结果可能比 account aggregate surface 更容易查
 
 - Events / Sync / Federation / Push / Blob preview，以及任何受托 search / projection 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Realm policy 的 `plaintext_visible_services` 中，且 `visibility` 等级与 `data_classes[]` 均覆盖该内容类型。
 - 未授权服务 MUST 拒绝明文请求并返回 `capability_denied` 或 `schema_violation`，不得静默索引、转发、缓存或降级保存。
-- 恶意客户端把明文发送到协议外服务不属于协议可强制阻止的范围；但任何声称支持 Contrix profile 的服务若接收或处理未授权明文，均视为 profile violation。
+- 恶意客户端把明文发送到协议外服务不属于协议可强制阻止的范围；但任何声称支持 Cokret profile 的服务若接收或处理未授权明文，均视为 profile violation。
 
 ## 7. Blob Surface
 
@@ -739,15 +739,15 @@ Native personal agent 的 management 与 sidecar operations 落在 `/api/v1/agen
 
 约束:
 
-- 本 CXP 不引入 custom URI scheme(`contrix://` 等);所有 deep-link 由客户端用 deployment 已知的 `contrix_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
-- `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `cx:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
+- 本 CXP 不引入 custom URI scheme(`cokret://` 等);所有 deep-link 由客户端用 deployment 已知的 `contrix_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
+- `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ck:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
 - `{agent_principal_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
 
 详细 wire 规则见 CXP-0008 §4 / CXP-0009 §4。
 
 ## 11. Realm Bootstrap Flow
 
-Contrix v1 的首次加入流程：
+Cokret v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Realm link
 2. 客户端解析 DID，并完成 handle 双向校验
@@ -812,7 +812,7 @@ Contrix v1 的首次加入流程：
 
 ## 15. 设计决定
 
-Contrix v1 固定：
+Cokret v1 固定：
 
 - 定义最小 principal server / identity registry / events / account / snapshot / blob / authz 服务面
 - v1 core 互操作 transport 锁定为 HTTP/JSON（见 [`transport-bindings.md` §1](./transport-bindings.md)）；gRPC / WebSocket / SSE / MQ / libp2p 等其他 binding 仅为 extension profile，本节列出的 operation 形态与字段以 HTTP/JSON 为唯一权威。其他 binding 必须语义等价但不构成 v1 core 一致性。

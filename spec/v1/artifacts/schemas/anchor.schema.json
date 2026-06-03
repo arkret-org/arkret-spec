@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/anchor.schema.json",
-  "title": "Contrix Anchor",
-  "description": "Wire shape of a Contrix Anchor. Identity & signature model (see zh/authz/event-auth-state-resolution.md §4): the typed `id` (`cx:anchor:<algo>:<hex>`) is content-derived — its hex equals H(anchor_canonical_bytes) under the Realm digest_algorithm. Anchor canonical bytes are the canonical JSON of the body fields ONLY (realm_id, predecessor_refs, frontier, state_root, optional previous_state_root / previous_digest_algorithm, anchored_at, hlc plus any other signed top-level field). The `id` is NOT part of canonical bytes (it is the hash OUTPUT, not input — no self-reference). The `anchorer_signature` is NOT part of canonical bytes (it covers the bytes; signatures never sign themselves). Receivers MUST (a) recompute H(anchor_canonical_bytes) and verify it equals the hex in `id` (`digest_mismatch` otherwise) and (b) verify `anchorer_signature` over the same canonical bytes (`invalid_signature` otherwise). additionalProperties=false prevents undeclared fields from sneaking into the transcript.",
+  "$id": "https://cokret.io/artifacts/schemas/anchor.schema.json",
+  "title": "Cokret Anchor",
+  "description": "Wire shape of a Cokret Anchor. Identity & signature model (see zh/authz/event-auth-state-resolution.md §4): the typed `id` (`ck:anchor:<algo>:<hex>`) is content-derived — its hex equals H(anchor_canonical_bytes) under the Realm digest_algorithm. Anchor canonical bytes are the canonical JSON of the body fields ONLY (realm_id, predecessor_refs, frontier, state_root, optional previous_state_root / previous_digest_algorithm, anchored_at, hlc plus any other signed top-level field). The `id` is NOT part of canonical bytes (it is the hash OUTPUT, not input — no self-reference). The `anchorer_signature` is NOT part of canonical bytes (it covers the bytes; signatures never sign themselves). Receivers MUST (a) recompute H(anchor_canonical_bytes) and verify it equals the hex in `id` (`digest_mismatch` otherwise) and (b) verify `anchorer_signature` over the same canonical bytes (`invalid_signature` otherwise). additionalProperties=false prevents undeclared fields from sneaking into the transcript.",
   "type": "object",
   "required": [
     "id",
@@ -95,7 +95,7 @@
   "$defs": {
     "anchor_ref": {
       "type": "string",
-      "pattern": "^cx:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^ck:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "event_digest": {
       "type": "string",
@@ -103,7 +103,7 @@
     },
     "realm_ref": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did": {
       "type": "string",

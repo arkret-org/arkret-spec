@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/account-subscribe-frame.schema.json",
-  "title": "Contrix Account Subscribe Frame",
+  "$id": "https://cokret.io/artifacts/schemas/account-subscribe-frame.schema.json",
+  "title": "Cokret Account Subscribe Frame",
   "description": "Single NDJSON frame on the cx.account.subscribe streaming channel (GET /api/v1/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (cross-Realm frontier, to_device, account_data, device_lists, presence, notifications, unread counts); the other kinds are control frames that mirror cx.events.subscribe (`catchup_complete`, `frontier`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
   "type": "object",
   "required": [
@@ -26,9 +26,9 @@
     },
     "realms": {
       "type": "object",
-      "description": "Per-Realm map on `delta` frames. Keys are `cx:realm:*`; values are that Realm's aggregate timeline/state/account-data entry. Membership lifecycle (`join` / `invite` / `knock` / `leave`) is carried by the events inside the Realm entry, not by legacy outer buckets.",
+      "description": "Per-Realm map on `delta` frames. Keys are `ck:realm:*`; values are that Realm's aggregate timeline/state/account-data entry. Membership lifecycle (`join` / `invite` / `knock` / `leave`) is carried by the events inside the Realm entry, not by legacy outer buckets.",
       "patternProperties": {
-        "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
+        "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
           "$ref": "#/$defs/realm_sync_entry"
         }
       },
@@ -73,7 +73,7 @@
       "oneOf": [
         {
           "type": "string",
-          "pattern": "^cx:cursor:.+$"
+          "pattern": "^ck:cursor:.+$"
         },
         {
           "$ref": "./cursor.schema.json"
@@ -184,7 +184,7 @@
             "properties": {
               "event_id": {
                 "type": "string",
-                "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               },
               "event_state": {
                 "type": "string",
@@ -218,7 +218,7 @@
             "properties": {
               "cell": {
                 "type": "string",
-                "pattern": "^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+                "pattern": "^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
               },
               "status": {
                 "type": "string",
@@ -266,7 +266,7 @@
           "description": "Effective cx.member.identity.update event ids for this actor after replacement refs are applied.",
           "items": {
             "type": "string",
-            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "uniqueItems": true
         },

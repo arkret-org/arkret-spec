@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-在即时通讯与协作中，“已读”状态是消除信息不对称的关键。Contrix 协议将“已读”分为两种机制：
+在即时通讯与协作中，“已读”状态是消除信息不对称的关键。Cokret 协议将“已读”分为两种机制：
 
 1. **Read Receipt (已读回执)**：公开或共享的，让**其他人**知道某 actor 已读至哪条消息。
 2. **Read Cursor (已读游标)**：私有的，用于 actor **多端设备**之间同步阅读进度。
@@ -44,21 +44,21 @@ updated: 2026-05-25
 ```json
 {
   "kind": "cx.receipt.read",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "sent_at": "2026-04-26T10:00:00Z",
   "expires_at": "2026-04-26T10:00:30Z",
   "payload": {
     "receipt_type": "read",
     "schema": "cx.schema.read_receipt.v1",
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example",
     "read_scope": {
       "kind": "flow",
-      "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
+      "ref": "ck:flow:01964200-0000-7000-8000-000000000001",
       "track_name": "discussion"
     },
-    "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
+    "event_id": "ck:event:01964387-7000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e",
     "created_at": "2026-04-26T10:00:00Z"
   }
@@ -148,22 +148,22 @@ Read Cursor 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 ### 3.2 格式
 
-Read cursor schema：`cx.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中；wire 对象的 `id` MUST 使用 `cx:read_cursor:<uuid7>` typed ID。实现 MAY 为 account data 使用本地存储 key，但该 key 不得替代 wire 对象 `id`。Read Cursor 按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
+Read cursor schema：`cx.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中；wire 对象的 `id` MUST 使用 `ck:read_cursor:<uuid7>` typed ID。实现 MAY 为 account data 使用本地存储 key，但该 key 不得替代 wire 对象 `id`。Read Cursor 按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
 
 ```json
 {
-  "id": "cx:read_cursor:01964137-0000-7000-8000-000000000001",
+  "id": "ck:read_cursor:01964137-0000-7000-8000-000000000001",
   "schema": "cx.schema.read_cursor.v1",
   "actor_id": "did:web:alice.example",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
     "kind": "flow",
-    "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
+    "ref": "ck:flow:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
   },
   "position": {
-    "event_id": "cx:event:01964386-8000-7000-8000-000000000000",
+    "event_id": "ck:event:01964386-8000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T10:00:00Z"
@@ -204,15 +204,15 @@ Read Cursor 是 actor-private 状态。最小结构示例：
 ```json
 {
   "actor_id": "did:web:alice.example",
-  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
     "kind": "flow",
-    "ref": "cx:flow:01964180-0280-7000-8000-000000000000",
+    "ref": "ck:flow:01964180-0280-7000-8000-000000000000",
     "track_name": "discussion"
   },
   "position": {
-    "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+    "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T00:00:00Z"
@@ -229,14 +229,14 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`cx.schema.rea
 {
   "receipt_type": "read",
   "schema": "cx.schema.read_receipt.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "read_scope": {
     "kind": "flow",
-    "ref": "cx:flow:01964200-0000-7000-8000-000000000001",
+    "ref": "ck:flow:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
   },
-  "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
+  "event_id": "ck:event:01964387-7000-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -247,14 +247,14 @@ Notification 是派生 projection，不是 canonical truth。schema：`cx.schema
 
 ```json
 {
-  "id": "cx:notification:01964157-8000-7000-8000-000000000000",
+  "id": "ck:notification:01964157-8000-7000-8000-000000000000",
   "schema": "cx.schema.notification.v1",
   "actor_id": "did:web:alice.example",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "flow_id": "ck:flow:01964200-0000-7000-8000-000000000001",
   "track_name": "discussion",
-  "source_event_id": "cx:event:0196434a-8000-7000-8000-000000000000",
-  "source_ref": "cx:message:0196434c-c000-7000-8000-000000000000",
+  "source_event_id": "ck:event:0196434a-8000-7000-8000-000000000000",
+  "source_ref": "ck:message:0196434c-c000-7000-8000-000000000000",
   "notification_type": "mention",
   "state": "unread",
   "priority": "normal",

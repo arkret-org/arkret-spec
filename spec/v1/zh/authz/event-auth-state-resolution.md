@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-Contrix v1 的 canonical history 由 signed Move、Anchor DAG 与 per-cell Lattice 三个协议原语构成。协议状态不再由全局 winner 算法、单 host proof 或独立 MLS 中间态驱动。
+Cokret v1 的 canonical history 由 signed Move、Anchor DAG 与 per-cell Lattice 三个协议原语构成。协议状态不再由全局 winner 算法、单 host proof 或独立 MLS 中间态驱动。
 
 本文件定义：
 
@@ -33,7 +33,7 @@ Contrix v1 的 canonical history 由 signed Move、Anchor DAG 与 per-cell Latti
 | Anchor | ordering authority 对一组 Move frontier 的承诺，包含 `predecessor_refs[]`、`frontier[]`、`state_root` 与 `anchorer_signature`。 |
 | Genesis Anchor | 某个 Realm 的 Anchor DAG 根 Anchor。它是唯一允许 `predecessor_refs=[]` 的 Anchor，且 v1 要求 `frontier=[]`；它给该 Realm 的首个 reducer-input Event 提供 `anchor_ref` 基线，本身不是 Event，也不写 cell。 |
 | Anchor DAG | 某个 Realm 内所有已接受 Anchor 的有向无环图。Genesis Anchor 没有 predecessor。 |
-| Cell | 可被 Lattice 合并的最小协议状态单元，标识为 `cx:cell:<component>:<subject>` 或等价 canonical tuple。 |
+| Cell | 可被 Lattice 合并的最小协议状态单元，标识为 `ck:cell:<component>:<subject>` 或等价 canonical tuple。 |
 | Lattice | Realm schema 为每个 cell family 选择的封闭核心代数类型。`join()` 返回值或 bottom (`⊥`)。 |
 | Bottom (`⊥`) | 该 cell 在当前 Anchor frontier 下无有效单值或存在非法状态。`bottom=reject` 时依赖它的 Move fail closed；`bottom=expose` 时可向 projection 暴露多值诊断。 |
 | Effective State | 某个 Anchor view 的 `frontier` 中所有 Move 经 Lattice join 后得到的 cell map。 |
@@ -78,7 +78,7 @@ flowchart LR
 
 ### 2.2 Event、Move、Anchor、Lattice 的分层
 
-Contrix v1 在线路上只有 signed Event Envelope；**Move 不是第二种 wire object**。当一个 Event 同时携带 `preconditions[]`、`effects[]` 与 `anchor_ref` 时，reducer / verifier 把这个 Event 按 Move 语义解释：`preconditions[]` 描述提交者认为的 pre-state，`effects[]` 描述要写入哪些 cell，`anchor_ref` 描述这次写入基于哪个 Anchor view。没有这三个字段的 durable Event 仍可作为审计、通知或账户私有状态事实存在，但不是共享 Realm 的 reducer-input Move。
+Cokret v1 在线路上只有 signed Event Envelope；**Move 不是第二种 wire object**。当一个 Event 同时携带 `preconditions[]`、`effects[]` 与 `anchor_ref` 时，reducer / verifier 把这个 Event 按 Move 语义解释：`preconditions[]` 描述提交者认为的 pre-state，`effects[]` 描述要写入哪些 cell，`anchor_ref` 描述这次写入基于哪个 Anchor view。没有这三个字段的 durable Event 仍可作为审计、通知或账户私有状态事实存在，但不是共享 Realm 的 reducer-input Move。
 
 Anchor 也不是 Event。Anchor 是 ordering authority 对一组 reducer-input Event digest 的签名承诺：`frontier[]` 引用的是这些 Event 的 `event_digest`，`state_root` 承诺的是同一 Anchor view 下所有 cell 经过 Lattice join 后的结果。因此，Event 提供签名事实，Move 是 reducer 对 reducer-input Event 的视图，Anchor 决定哪些 Move 进入 effective set，Lattice 决定这些 Move effects 在每个 cell 上收敛为 value 还是 `⊥`。
 
@@ -90,7 +90,7 @@ Anchor 也不是 Event。Anchor 是 ordering authority 对一组 reducer-input E
 
 ```text
 Move (reducer view of signed Event) {
-  event_id        = cx:event:<uuidv7>                 // 来自 Event.event_id（producer-assigned UUIDv7）
+  event_id        = ck:event:<uuidv7>                 // 来自 Event.event_id（producer-assigned UUIDv7）
   event_digest    = H(canonical bytes excluding proofs and unsigned)
                                                        // 内容指纹；等价于 proof.event_digest
   issuer          DID                                  // 来自 Event.actor_id
@@ -106,7 +106,7 @@ Move (reducer view of signed Event) {
 
 身份与去重模型（normative）：
 
-- `event_id` 是 producer 在签名前分配的 typed UUIDv7（`cx:event:<uuidv7>`），是 actor chain 与 dedup 的稳定 wire id。它进入 canonical bytes 并被 `proof.event_digest` 覆盖。
+- `event_id` 是 producer 在签名前分配的 typed UUIDv7（`ck:event:<uuidv7>`），是 actor chain 与 dedup 的稳定 wire id。它进入 canonical bytes 并被 `proof.event_digest` 覆盖。
 - `event_digest` 是 canonical event bytes（不含 `proofs` 与 `unsigned`，包含 `hlc` 与所有其它顶层字段）的哈希，编码为 `<algo>:<hex>`，等价于 `proof.event_digest`。它是 Event 的内容指纹；Anchor `frontier[]` 直接引用 `event_digest`，dot / lattice / hash profile 的引用字段使用 `event_id` 或 `event_digest`。
 - 同一 `event_id` 的两次提交若 `event_digest` 不同，节点 MUST 拒绝并记为冲突（见 [`operations-sync.md`](../sync/operations-sync.md) §15）。`event_id` 在签名前由 producer 分配，因此节点不能仅凭 digest 区分 actor 意图；正确实现 MUST 把 (event_id, event_digest) 都纳入 dedup key。
 
@@ -115,7 +115,7 @@ Move (reducer view of signed Event) {
 1. canonical bytes MUST 覆盖 `event_id`、`actor_id`、`realm_id`、`preconditions`、`effects`、`anchor_ref`、`refs`、`hlc` 与所有其它 signed 顶层字段。`proofs` 与 `unsigned` MUST NOT 进入 canonical bytes（它们是对 canonical bytes 的签名或后置 advisory）。`realm_id` 必须进入以防止跨 Realm 重放。
 2. `preconditions[]` 与 `effects[]` 是 set；同一 Event 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Event FAIL，MUST NOT 部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 reducer-input event 不存在）。
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Realm 声明的 `max_anchor_staleness_ms`。
-4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`audit_pair`（隐私敏感业务 Event 与 `cx.audit.accessed` 的同 batch 配对）、`recovery_capability`、`state_witness`（§8.1，conflict recovery Event 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Event 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。`role="authorized_by"` 的 `id` MUST 是 `cx:grant:<uuid>` 或 profile 明确注册的不可变 grant record id；不得引用裸 Event id、policy name、human-readable role 或可变 membership cell。reducer 必须能从该 id 反查 grant canonical digest、issuer、subject、actions、scope、parent grant 链和 revoke/supersede 状态。
+4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`audit_pair`（隐私敏感业务 Event 与 `cx.audit.accessed` 的同 batch 配对）、`recovery_capability`、`state_witness`（§8.1，conflict recovery Event 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Event 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。`role="authorized_by"` 的 `id` MUST 是 `ck:grant:<uuid>` 或 profile 明确注册的不可变 grant record id；不得引用裸 Event id、policy name、human-readable role 或可变 membership cell。reducer 必须能从该 id 反查 grant canonical digest、issuer、subject、actions、scope、parent grant 链和 revoke/supersede 状态。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
 6. Event 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Event issuer 层表达。
 
@@ -182,7 +182,7 @@ Anchor 的 wire schema 见 [`anchor.schema.json`](../../artifacts/schemas/anchor
 
 ```text
 Anchor {
-  id                 = "cx:anchor:" || <algo> || ":" || hex(H(anchor_canonical_bytes))
+  id                 = "ck:anchor:" || <algo> || ":" || hex(H(anchor_canonical_bytes))
   realm_id            Realm id
   predecessor_refs    [Anchor.id]
   frontier            [event_digest]              // hash of each covered reducer-input Event's canonical bytes
@@ -195,7 +195,7 @@ Anchor {
 
 身份与去自引用模型（normative）：
 
-- `id` 是 Anchor 的 wire-stable typed reference，形态为 `cx:anchor:<algo>:<hex>`。它的 hex 部分等于 `H(anchor_canonical_bytes)`，hash algo 跟 Realm `digest_algorithm`。`id` **不**进入 `anchor_canonical_bytes`——它在 wire 上是 H 的输出而不是输入，所以不会形成 `id = H(... id ...)` 自引用。
+- `id` 是 Anchor 的 wire-stable typed reference，形态为 `ck:anchor:<algo>:<hex>`。它的 hex 部分等于 `H(anchor_canonical_bytes)`，hash algo 跟 Realm `digest_algorithm`。`id` **不**进入 `anchor_canonical_bytes`——它在 wire 上是 H 的输出而不是输入，所以不会形成 `id = H(... id ...)` 自引用。
 - `anchorer_signature` **不**进入 `anchor_canonical_bytes`：anchor 签名覆盖 canonical bytes，本身不是 canonical bytes 的成员。
 - canonical bytes 由下表"transcript fields"列出的字段按 canonical JSON 编码（[`conformance/encoding.md`](../conformance/encoding.md) §2）形成，**不含** `id` 与 `anchorer_signature`，**包含** `realm_id` / `predecessor_refs` / `frontier` / `state_root` / `anchored_at` / `hlc` 与所有其它 signed 顶层字段（如 hash transition 下的 `previous_state_root` / `previous_digest_algorithm`）。
 
@@ -227,7 +227,7 @@ d. 同一 wire bytes 在重排键顺序、注入额外 proof 字段或更换 `an
 4. `anchorer_signature` 的合法签发者由 anchorer cell 在 predecessor joined view 下的 effective value 决定。
 5. `state_root` MUST 是该 Anchor view 下所有 cell 当前 Lattice value / bottom diagnostics 的 canonical Merkle root。
 6. `anchored_at` MUST 由 anchorer 写入并被 `anchorer_signature` 覆盖。它只用于 freshness 诊断和 `state_changed_at` 等 reducer-derived 投影时间，MUST NOT 参与 Lattice winner 选择。
-7. 负向：任何尝试把 `id` 或 `anchorer_signature` 放进 canonical bytes 的实现 MUST 失败（test 见 §4 Anchor canonical 负向向量条目）；frontier 中含非 `<algo>:<hex>` 形态（例如 `cx:event:<uuid>`）的 Anchor MUST `schema_violation`。
+7. 负向：任何尝试把 `id` 或 `anchorer_signature` 放进 canonical bytes 的实现 MUST 失败（test 见 §4 Anchor canonical 负向向量条目）；frontier 中含非 `<algo>:<hex>` 形态（例如 `ck:event:<uuid>`）的 Anchor MUST `schema_violation`。
 
 ### 4.1 Anchor View 与 Signed Compaction
 
@@ -339,7 +339,7 @@ assert merkle_root(post_state) == A.state_root
 每个 Realm 有一个 anchorer cell：
 
 ```text
-cell = cx:cell:cx.component.anchorer.v1:<realm_id>
+cell = ck:cell:cx.component.anchorer.v1:<realm_id>
 lattice = cas_register
 bottom = reject
 ```
@@ -426,7 +426,7 @@ Bottom {
 | --- | --- | --- |
 | Cell-local bottom | 普通业务 cell 在当前 effective view 下为 `⊥`，例如 `cx.component.flow.position.v1:<board_space_id>:<flow_id>`。 | 读取或写入该 cell 的普通 Move MUST fail closed；同一对象的其他独立 cell、其他对象和 Realm Anchor 推进不受直接影响。Projection MAY 把该字段显示为 conflict。 |
 | Dependency bottom | 授权、policy、membership、capability、lifecycle 等治理 cell 为 `⊥`，并且某个 Move 的 precondition / authz check / reducer invariant 需要读取它。 | 依赖该 cell 的 Move MUST fail closed。这可能阻塞大量业务写入，但它仍是依赖链阻塞，不等同于 Anchor 层 Realm-wide pause。 |
-| Realm-wide Anchor pause | `cx:cell:cx.component.anchorer.v1:<realm_id>` 为 `⊥`（`anchorer_split`）。 | 普通 Anchor MUST 停止推进；只有 genesis 声明的 recovery anchorer / emergency quorum MAY 签发恢复 Anchor。 |
+| Realm-wide Anchor pause | `ck:cell:cx.component.anchorer.v1:<realm_id>` 为 `⊥`（`anchorer_split`）。 | 普通 Anchor MUST 停止推进；只有 genesis 声明的 recovery anchorer / emergency quorum MAY 签发恢复 Anchor。 |
 
 Flow position 冲突的影响是第一类：该 Flow 的 canonical placement 未决，后续普通 position Move 不能继续；Flow 的 `metadata.title` / content / comments / watch 等独立 cell 仍可按各自 Lattice 和授权规则继续更新，其他 Flow 的更新也 MUST NOT 被阻塞。只有当某个后续 Move 显式读取该 position cell（例如“只允许移动当前位于 List-X 的 Flow”）时，才因 `cell_in_bottom_state` fail closed。
 
@@ -463,7 +463,7 @@ Lattice `join()` 输入是 Move set，而不是本地接收序列。需要顺序
 
 真正的 observed-remove set，按 **dot** 收敛。
 
-- 每个 add op MUST 携带 `dot = "<event_id>:<effect_index>"`，由 add op 所在 Event 的 wire `event_id`（typed `cx:event:<uuidv7>`）与该 effect 在 `effects[]` 中的 0-based 下标拼接而成。`event_id` 已经全局唯一，dot 因此天然唯一。当需要在 dot 之上做内容指纹比对（例如对照 Anchor frontier）时使用 `event_digest` 作为辅助键，但 dot 自身只用 `event_id`。
+- 每个 add op MUST 携带 `dot = "<event_id>:<effect_index>"`，由 add op 所在 Event 的 wire `event_id`（typed `ck:event:<uuidv7>`）与该 effect 在 `effects[]` 中的 0-based 下标拼接而成。`event_id` 已经全局唯一，dot 因此天然唯一。当需要在 dot 之上做内容指纹比对（例如对照 Anchor frontier）时使用 `event_digest` 作为辅助键，但 dot 自身只用 `event_id`。
 - 每个 remove op MUST 携带 `observed_dots: [dot, ...]`——它枚举 remove issuer 在 enclosing Event 的 `anchor_ref` 对应 pre-state 下能看到的、想要撤销的具体 add dot。`observed_dots` MUST 升序去重，且每条 dot 必须能在该 anchor view 下解析为合法 add op。
 - Add op MAY 在 `value` 内嵌入 schema-defined `intent` 字段（例如 consent 的 `(consent_id, peer, scope)` 元组）。`intent` 不参与 lattice join；它只是 projection 层把同 intent 的多 dot 折叠成一条 UI/审计行的辅助数据。
 

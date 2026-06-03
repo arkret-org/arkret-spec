@@ -14,13 +14,13 @@ sidebar:
 
 ## 1. 目标
 
-本文定义 Contrix 的 canonical encoding、ID、hash、signature、cursor、HLC 与 rank 编码规则，确保不同实现能得到相同 digest 和验证结果。
+本文定义 Cokret 的 canonical encoding、ID、hash、signature、cursor、HLC 与 rank 编码规则，确保不同实现能得到相同 digest 和验证结果。
 
 ## 2. Canonical JSON
 
-Contrix canonical JSON 是签名、hash、event digest、receipt digest、snapshot commitment 和 cursor 内部状态的唯一编码 profile。实现 MAY 复用 RFC 8785 / JCS 类库，但最终输出必须满足本节的收窄规则和 `conformance-vectors.md` 的测试向量。
+Cokret canonical JSON 是签名、hash、event digest、receipt digest、snapshot commitment 和 cursor 内部状态的唯一编码 profile。实现 MAY 复用 RFC 8785 / JCS 类库，但最终输出必须满足本节的收窄规则和 `conformance-vectors.md` 的测试向量。
 
-Contrix canonical JSON MUST 使用：
+Cokret canonical JSON MUST 使用：
 
 - UTF-8 不带 BOM；输入若包含 UTF-8 BOM（`U+FEFF` 编码 `EF BB BF`，无论出现在 stream 起始还是 string value 内部）、malformed UTF-8、孤立 surrogate 或无法被 JSON parser 唯一解释的字符串，MUST reject。`U+FEFF` 在 string value 中只允许作为 zero-width no-break space 的语义存在，但 v1 canonical JSON MUST NOT 接受此用法——任何 `U+FEFF` 出现都按 schema_violation 拒绝。
 - object key 按 Unicode code point 升序排序，并在每一层独立排序。
@@ -73,7 +73,7 @@ v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设�
 
 ### 3.1 Wire 形态
 
-Contrix 所有 hash wire value MUST 形如：
+Cokret 所有 hash wire value MUST 形如：
 
 ```text
 <algo>:<lowercase_hex_digest>
@@ -115,24 +115,24 @@ v1 conformance 锁定的 hash 算法集合：
 协议 wire / canonical object 层的 typed ID 格式：
 
 ```text
-cx:<kind>:<uuid>
+ck:<kind>:<uuid>
 ```
 
 标准 `kind` 的机器可读 source of truth 是 `artifacts/registry/id-kind-registry.json`。本文只定义通用规则。
 
-`cx:` 前缀表示 Contrix 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
+`ck:` 前缀表示 Cokret 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
 
 - Event Envelope、canonical object、receipt、snapshot、fixture 和 OpenAPI / non-HTTP DTO。
 - canonical JSON、签名 payload、`event_digest`、cursor 内部 state、federation payload、audit log。
 - 跨服务引用、日志和错误响应中需要自描述对象类型的字段。
 
-数据库或本地索引实现 MAY 不把 `cx:<kind>:` 前缀作为主键的一部分存储——例如直接用 PostgreSQL `uuid` / `BYTEA(16)` 列存 16 字节 raw value，由表名或显式 `kind` 列提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，MUST NOT 用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
+数据库或本地索引实现 MAY 不把 `ck:<kind>:` 前缀作为主键的一部分存储——例如直接用 PostgreSQL `uuid` / `BYTEA(16)` 列存 16 字节 raw value，由表名或显式 `kind` 列提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，MUST NOT 用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
 
-`<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `cx:receipt:<id>` 改写成 `cx:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
+`<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `ck:receipt:<id>` 改写成 `ck:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
 v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 `<uuid>` 段 MUST 是 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUID **version 7**：48-bit Unix-millisecond timestamp（big-endian）+ 4-bit version=`0111` + 12-bit `rand_a` + 2-bit variant=`10` + 62-bit `rand_b`，按 RFC 9562 §4 的 canonical 36-character lowercase hex 形式 `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` 序列化（其中 `N ∈ {8, 9, a, b}`，对应 RFC 4122 variant 1）。外部导入数据若是大写或带 URN/Microsoft braces 等变体形式，MUST 在生成 v1 Event Envelope、object id、cursor payload 或 proof `event_digest` 前规范化为小写无前缀的 36-char hyphen-separated 形式。已经进入签名 canonical bytes 的 ID MUST NOT 在验证、转发、backfill 或审计回放时重写大小写或形式。
 
-同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也 MUST NOT 作为 typed `cx:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
+同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也 MUST NOT 作为 typed `ck:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
 
 `event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
 
@@ -140,13 +140,13 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 
-- `cx:cursor:<base64url>` 是 opaque token，不是 typed UUIDv7 object ID。
-- `cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`cx:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
-- `cx:anchor:sha256:<digest>` 是内容寻址 Anchor hash（active special form；见 `id-kind-registry.json`）。
-- `cx:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；component 来自 cell-component registry，subject 是 cell 的 subject key）。
-- `cx:mls:<profile>:<profile_id>`、`cx:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
+- `ck:cursor:<base64url>` 是 opaque token，不是 typed UUIDv7 object ID。
+- `ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ck:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
+- `ck:anchor:sha256:<digest>` 是内容寻址 Anchor hash（active special form；见 `id-kind-registry.json`）。
+- `ck:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；component 来自 cell-component registry，subject 是 cell 的 subject key）。
+- `ck:mls:<profile>:<profile_id>`、`ck:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 
-自定义 profile 若新增 `cx:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `cx:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
+自定义 profile 若新增 `ck:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `ck:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
 ### 4.1 Field Naming: `_id` / `_ref` / `_did`（normative）
 
@@ -166,7 +166,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 ```json
 {
   "schema": "cx.schema.event_batch_receipt.v1",
-  "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
+  "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
   "receipt_scope": {
     "actor_id": "did:web:alice.example"
@@ -242,7 +242,7 @@ Hybrid Logical Clock 编码：
 - `unix_ms_hex` MUST 是 12 位小写十六进制毫秒时间戳。
 - `logical_hex` MUST 是 4 位小写十六进制逻辑计数器，取值范围 `0000..ffff`。
 - `node_id_hash` MUST 是 8 位小写十六进制稳定节点哈希；它只用于同一 `(unix_ms, logical)` 下的确定性 tie-break，MUST NOT 替代因果关系或授权判断。
-- 用户客户端的 `node_id_hash` MUST 从 Realm-scoped 或 deployment-scoped 的本地 node secret 派生，例如 `SHA256("contrix-hlc-v1" || realm_id || device_id || local_node_secret)[0:8]`。MUST NOT 直接使用 principal DID、公开 handle、长期 device id 或跨 Realm 稳定标识作为 hash 输入。
+- 用户客户端的 `node_id_hash` MUST 从 Realm-scoped 或 deployment-scoped 的本地 node secret 派生，例如 `SHA256("cokret-hlc-v1" || realm_id || device_id || local_node_secret)[0:8]`。MUST NOT 直接使用 principal DID、公开 handle、长期 device id 或跨 Realm 稳定标识作为 hash 输入。
 - 服务 DID 产生的公开服务事件 MAY 使用 service-scoped node id，但服务若代表用户或 minimal-metadata Realm 转发/生成事件，MUST 使用 Realm-scoped pseudonymous node id，避免跨 Realm 关联。
 
 排序按 `(unix_ms, logical, node_id_hash)` 字典序。
@@ -324,7 +324,7 @@ causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 Cursor 是不透明字符串：
 
 ```text
-cx:cursor:<base64url>
+ck:cursor:<base64url>
 ```
 
 ### 8.1 客户端契约
@@ -338,7 +338,7 @@ cx:cursor:<base64url>
 
 服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 cursor 内部结构 MUST 遵循下方 schema**，与 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 一致；目的是让客户端在 Principal Server 之间迁移时目标服务器有能力解析旧 cursor 并生成等价本地 cursor。客户端 MUST NOT 解析或修改 cursor；**服务器侧的 cursor 内部结构 MUST 遵循本节 schema，MUST NOT 使用私有形态**。
 
-cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步、列表分页、写后读屏障所有用途。`purpose` 字段区分两个语义：`stream`（增量同步与列表分页，出现位置：`after` / `before` / `prev_cursor` / `next_cursor`）与 `barrier`（写后读屏障，出现位置：写接口响应中的 `cursor` 字段、`X-Contrix-Wait-For` header）。
+cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步、列表分页、写后读屏障所有用途。`purpose` 字段区分两个语义：`stream`（增量同步与列表分页，出现位置：`after` / `before` / `prev_cursor` / `next_cursor`）与 `barrier`（写后读屏障，出现位置：写接口响应中的 `cursor` 字段、`X-Cokret-Wait-For` header）。
 
 Stream 形态：
 
@@ -348,14 +348,14 @@ Stream 形态：
   "purpose": "stream",
   "t": "2026-04-26T00:00:00.000Z",
   "s": {
-    "cx:realm:0196419b-0000-7000-8000-000000000000": {
-      "p": ["cx:event:019640ed-8000-7000-8000-000000000000"],
+    "ck:realm:0196419b-0000-7000-8000-000000000000": {
+      "p": ["ck:event:019640ed-8000-7000-8000-000000000000"],
       "o": "01970e589d21-0004-a13f9c2e",
       "h": "sha256:abc123..."
     }
   },
   "d": {
-    "cx:device:019640da-0000-7000-8000-000000000000": "cx:device_message:019640da-0000-7000-8000-000000000000"
+    "ck:device:019640da-0000-7000-8000-000000000000": "ck:device_message:019640da-0000-7000-8000-000000000000"
   },
   "x": 1714080000000
 }
@@ -369,9 +369,9 @@ Barrier 形态：
   "purpose": "barrier",
   "t": "2026-04-26T00:00:00.000Z",
   "target": {
-    "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+    "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
     "event_digest": "sha256:abc123...",
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
   },
   "x": 1714080000000
 }
@@ -402,17 +402,17 @@ Barrier 形态：
 
 服务端接收 cursor 时 MUST 验证：
 
-1. 前缀以 `cx:cursor:` 开头。
+1. 前缀以 `ck:cursor:` 开头。
 2. 其余部分是合法 base64url。
 3. 解码后 `v` 是支持的版本。
 4. 解码后 `purpose` 是 `stream` 或 `barrier`。
 5. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
 6. 解码后是合法 JSON。
-7. 所有 `realm_id` 是合法 `cx:realm:*` 格式（如 `s` 出现）。
+7. 所有 `realm_id` 是合法 `ck:realm:*` 格式（如 `s` 出现）。
 8. 因果前沿中的所有 event id 合法（如 `s` 出现）。
 9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
 10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
-11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `/account/subscribe after=`、`before`、`after`、`prev_cursor` / `next_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Contrix-Wait-For` 上下文 MUST `invalid_param`）。
+11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `/account/subscribe after=`、`before`、`after`、`prev_cursor` / `next_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Cokret-Wait-For` 上下文 MUST `invalid_param`）。
 12. **TTL 硬上限**：以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 13. **形态互斥**（schema `oneOf` 强制）：cursor body MUST 满足下列二选一：
     - **stateless** — 含 `issuer_kid` 且含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。
@@ -424,7 +424,7 @@ Barrier 形态：
 
 ### 8.3.1 完整性校验（normative）
 
-服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state（to-device ack、`/account/subscribe after=` resume、`X-Contrix-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复等；详见 [`client-sync.md` §10 / §12](../sync/client-sync.md)）之前，执行下列完整性校验。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
+服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state（to-device ack、`/account/subscribe after=` resume、`X-Cokret-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复等；详见 [`client-sync.md` §10 / §12](../sync/client-sync.md)）之前，执行下列完整性校验。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
 
 **Stateless 形态（含 `_mac` 或 `_sig`）**：
 
@@ -446,7 +446,7 @@ Barrier 形态：
 
 Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下迁移路径之一：
 
-1. **直接 reparse（仅 stateless 形态）**：B 收到 `after=cx:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<realm_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Realm 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），MUST NOT 直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
+1. **直接 reparse（仅 stateless 形态）**：B 收到 `after=ck:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<realm_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Realm 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），MUST NOT 直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
 2. **stateful 形态不可跨服务迁移**：含 `h` 的 cursor 中 handle 是 A 本地表的引用，B 无法解析。B 收到 stateful 形态 cursor 时 MUST 返回 `cursor_unrecognized`，客户端按全新初始同步处理。这是 stateful 形态在 portability 上的固有取舍。
 3. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 静默丢失因果对齐。
 4. **可选 translate 端点**：未来 profile 可能在 `cx.profile.principal_server.v1` 之上引入 `POST /api/v1/account/translate-cursor`；该端点不属于 v1 强制范围。
@@ -463,7 +463,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 
 ### 8.6 一致性
 
-声明支持 Contrix v1 同步的实现 MUST：
+声明支持 Cokret v1 同步的实现 MUST：
 
 - 以不透明字符串形式接受和传输版本 1 cursor。
 - 服务端 MUST 接收时验证所有 cursor 字段。
@@ -545,9 +545,9 @@ rank_between(left, right):
 | `cx.component.device.authorization.v1` / `cx.device.authorize` | `[principal_id, device_id]` |
 | `cx.component.device.authorization.v1` / `cx.device.revoke` | `[principal_id, device_id]` |
 
-`principal_id` MUST 是无 fragment 的完整 DID URI（见 §4）；`device_id` MUST 是完整 `id:device` typed ID（`cx:device:<uuidv7>`）。
+`principal_id` MUST 是无 fragment 的完整 DID URI（见 §4）；`device_id` MUST 是完整 `id:device` typed ID（`ck:device:<uuidv7>`）。
 
-非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Realm policy 用 Realm id）直接把规范化 subject 放入 `cx:cell:<component>:<subject>`，不需要 hash 化。
+非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Realm policy 用 Realm id）直接把规范化 subject 放入 `ck:cell:<component>:<subject>`，不需要 hash 化。
 
 接收方收到不符合本节定义的复合 subject components_array 时 MUST 返回 `schema_violation`。文档中若以管道分隔形态展示复合 subject，MUST 显式标注 "informational; canonical cell subject is base64url(sha256(canonical_json(...)))"。
 
@@ -567,7 +567,7 @@ payload_digest = sha256(canonical_json(cleartext_metadata) || ciphertext_bytes)
 
 - **Nonce 唯一性**:实现 MUST NOT 在同一 `key_ref` 下重用 nonce — AEAD 在 nonce 复用时机密性 + 完整性同时被打破，影响所有曾用该 (key, nonce) 加密的密文。
 - **派生形态**:nonce MUST 从 MLS exporter secret 派生的 `nonce_key` 与 per-device `(device_id, monotonic_counter)` 通过 HMAC 派生而来; exporter context MUST 绑定 canonical `key_ref`、MLS `epoch` 和 AEAD purpose,具体公式与字段 schema 见 [`crypto-media/media-and-blob.md` §3.1](../crypto-media/media-and-blob.md)。
-- **不回退到 random**:实现 MUST NOT fallback 到 random nonce。96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率;Contrix MLS application key 跨多设备共享,naive random nonce **不满足** v1 normative。
+- **不回退到 random**:实现 MUST NOT fallback 到 random nonce。96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率;Cokret MLS application key 跨多设备共享,naive random nonce **不满足** v1 normative。
 - **接收方 replay 防护**:接收方 MUST 维护 per-`(key_ref, epoch, device_id)` 已见 counter 集合或等价无误判结构，重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
 - **AAD binding**:AEAD AAD MUST 绑定 `(key_ref, ciphertext_digest, nonce)` canonical 形态，防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密。
-- **不同 AEAD 用途独立 nonce 域**:`label` 输入 MUST 至少包含 purpose 子域(例如 `"contrix-aead-nonce-derivation-v1"` + purpose),避免 `blob-attachment` 与 `to-device` 共享 nonce 计数器。
+- **不同 AEAD 用途独立 nonce 域**:`label` 输入 MUST 至少包含 purpose 子域(例如 `"cokret-aead-nonce-derivation-v1"` + purpose),避免 `blob-attachment` 与 `to-device` 共享 nonce 计数器。

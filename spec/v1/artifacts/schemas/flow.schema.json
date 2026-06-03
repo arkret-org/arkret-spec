@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/flow.schema.json",
-  "title": "Contrix Flow",
+  "$id": "https://cokret.io/artifacts/schemas/flow.schema.json",
+  "title": "Cokret Flow",
   "type": "object",
   "required": [
     "id",
@@ -26,14 +26,14 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.flow.v1"
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "metadata": {
       "$ref": "#/$defs/flow_metadata"
@@ -93,7 +93,7 @@
     },
     "scope_circle_id": {
       "type": "string",
-      "pattern": "^cx:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Flow's effective scope. When set, ALL Flow tracks (synthesis, discussion, etc.) share that Circle's membership, history visibility, delivery/query/projection boundary, and encryption_profile. When unset, the Flow lives in Realm-default scope. The referenced Circle MUST have realm_id == this Flow's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_circle_id is forbidden by default (failed_precondition reason=scope_rebind_forbidden). For 'wide synthesis + narrow discussion' scenarios use two Flows linked by a confidential_discussion_of Relation (circle.md §7.2)."
     },
     "created_by": {

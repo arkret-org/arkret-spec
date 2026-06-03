@@ -1,6 +1,6 @@
-# Contrix Spec
+# Cokret Spec
 
-Contrix v1 去中心化协作协议规范。仓库同时承载 **规范本体** 和 **协议站源码**。
+Cokret v1 去中心化协作协议规范。仓库同时承载 **规范本体** 和 **协议站源码**。
 
 ## Realm vs Space
 
@@ -19,7 +19,7 @@ recorded in `CHANGELOG.md` and the machine-readable drift artifacts under
   - 中文 normative 正文：[`spec/v1/zh/index.md`](./spec/v1/zh/index.md)
   - 英文翻译：占位（未发布，非 normative）
   - 机器构件：[`spec/v1/artifacts/`](./spec/v1/artifacts/)
-  - **提案（非 normative）**：[`spec/v1/proposals/`](./spec/v1/proposals/) — Contrix Proposal (CXP) 草案，未 accepted 前不构成 wire contract
+  - **提案（非 normative）**：[`spec/v1/proposals/`](./spec/v1/proposals/) — Cokret Proposal (CXP) 草案，未 accepted 前不构成 wire contract
 - 协议站源码：[`site/`](./site/) — Astro Starlight + Scalar(OpenAPI) + 自定义 JSON Schema 渲染器
 - 工具：[`tools/`](./tools/) — registry 生成 / lint 流水线
 
@@ -28,12 +28,12 @@ recorded in `CHANGELOG.md` and the machine-readable drift artifacts under
 ```
 spec/v1/
 ├── zh/   en/                      # zh 为 normative prose；en 为未发布占位
-├── proposals/                     # Contrix Proposals (CXP) — 非 normative
+├── proposals/                     # Cokret Proposals (CXP) — 非 normative
 └── artifacts/
     ├── registry/                  # contract-catalog (canonical) + 派生 view
     ├── profiles/                  # conformance-profiles.json
     ├── schemas/                   # JSON Schema *.schema.json
-    ├── openapi/                   # contrix-service-api.openapi.yaml
+    ├── openapi/                   # cokret-service-api.openapi.yaml
     ├── bindings/                  # 非 HTTP transport binding
     └── fixtures/                  # conformance fixtures
 site/
@@ -48,7 +48,7 @@ tools/
 - `spec/v1/artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
 - `spec/v1/artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`、`operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK、lint 应消费这些生成物，不要手抄 Markdown。
 - `spec/v1/artifacts/registry/error-code-registry.json` 是标准 service error 的 canonical registry。
-- `spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape。
+- `spec/v1/artifacts/openapi/cokret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape。
 - `spec/v1/artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵。
 - `spec/v1/zh/**/*.md` 主要承担解释、边界说明和阅读路径；除明确标注"生成视图"外，不再手工维护穷尽清单——这部分由协议站组件运行时从 catalog 渲染。
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/realm.schema.json",
-  "title": "Contrix Realm",
+  "$id": "https://cokret.io/artifacts/schemas/realm.schema.json",
+  "title": "Cokret Realm",
   "type": "object",
   "required": [
     "id",
@@ -25,7 +25,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.realm.v1"
@@ -156,11 +156,11 @@
     },
     "policy_id": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "preview_policy_id": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use cx.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
     },
     "default_discoverability": {
@@ -209,7 +209,7 @@
         "allow_plaintext",
         "e2ee_required"
       ],
-      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). When e2ee_required, the effective_scope of Flow / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM, not which Contrix fields enter ciphertext. Defaults to allow_plaintext when absent."
+      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). When e2ee_required, the effective_scope of Flow / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM, not which Cokret fields enter ciphertext. Defaults to allow_plaintext when absent."
     },
     "metadata_encryption_profile": {
       "type": "string",
@@ -347,11 +347,11 @@
     },
     "retention_policy_id": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "avatar_blob_ref": {
       "type": "string",
-      "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
@@ -493,7 +493,7 @@
     },
     "trust_domain": {
       "type": "string",
-      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+      "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     },
     "timestamp": {
       "type": "string",
@@ -553,7 +553,7 @@
         },
         "policy_id": {
           "type": "string",
-          "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"

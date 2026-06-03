@@ -1,14 +1,14 @@
 ---
-title: Contrix Proposals (CXP)
+title: Cokret Proposals (CXP)
 status: candidate
 normative: false
 stability: v1
 updated: 2026-05-28
 ---
 
-# Contrix Proposals
+# Cokret Proposals
 
-本目录承载 **Contrix v1 协议级提案 (Contrix Proposal, CXP)**。
+本目录承载 **Cokret v1 协议级提案 (Cokret Proposal, CXP)**。
 
 提案不是 normative 规范。它的作用是把一个增量设计 **完整摆在台面上**(动机、对象形态、wire 影响、与既有 spec 的交互、开放问题),供讨论、迭代、否决或者接受。**只有 status=accepted 的提案才会被分批迁移到 `spec/v1/zh/` + `artifacts/` 的 normative 真源**;在那之前,实现 MUST NOT 把本目录当作 wire contract。
 
@@ -76,17 +76,17 @@ discussion: <PR / issue 链接>
 
 | CXP | 标题 | Status | 备注 |
 | --- | --- | --- | --- |
-| [CXP-0001](./.deferred/0001-label-entity.md) | Label as first-class entity | deferred-to-v1.1 | 把 `labels: array<string>` 升级为 `cx:label:` 对象 + `labeled_with` Relation |
-| [CXP-0002](./.deferred/0002-flow-type.md) | Flow Type (Work Item Type) | deferred-to-v1.1 | 引入 `cx:flow_type:`(Task / Sub-task / Bug / Story / ...) |
-| [CXP-0003](./.deferred/0003-field-catalog.md) | Field Catalog | deferred-to-v1.1 | 引入 `cx:field_def:` 可复用 typed 字段目录 |
+| [CXP-0001](./.deferred/0001-label-entity.md) | Label as first-class entity | deferred-to-v1.1 | 把 `labels: array<string>` 升级为 `ck:label:` 对象 + `labeled_with` Relation |
+| [CXP-0002](./.deferred/0002-flow-type.md) | Flow Type (Work Item Type) | deferred-to-v1.1 | 引入 `ck:flow_type:`(Task / Sub-task / Bug / Story / ...) |
+| [CXP-0003](./.deferred/0003-field-catalog.md) | Field Catalog | deferred-to-v1.1 | 引入 `ck:field_def:` 可复用 typed 字段目录 |
 | [CXP-0004](./.deferred/0004-form-layout.md) | Form Layout | deferred-to-v1.1 | 单 Flow 详情面板字段排列(类似 Jira "Work item layout") |
 | [CXP-0005](./.deferred/0005-workflow-state-machine.md) | Workflow State Machine | deferred-to-v1.1 | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
-| [CXP-0006](./.deferred/0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `cx:component:` / `cx:version:` 结构性分类对象 |
-| [CXP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | **accepted** (merged 2026-05-25 → [`zh/models/circle.md`](../zh/models/circle.md)) | 引入 `cx:circle:` 作为 Realm 内的密码学子边界(独立 MLS / 子集成员 / 独立 history),**彻底删除** `Flow.discussion_realm_ref`,Flow 永远单一 scope |
+| [CXP-0006](./.deferred/0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `ck:component:` / `ck:version:` 结构性分类对象 |
+| [CXP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | **accepted** (merged 2026-05-25 → [`zh/models/circle.md`](../zh/models/circle.md)) | 引入 `ck:circle:` 作为 Realm 内的密码学子边界(独立 MLS / 子集成员 / 独立 history),**彻底删除** `Flow.discussion_realm_ref`,Flow 永远单一 scope |
 | [CXP-0008](./0008-personal-agent-provisioning.md) | 个人 AI Agent 创建与运行时认证 | **accepted** (merged 2026-05-26 → identity / agent runtime normative files) | 用户创建 native AI agent、runtime key pairing、`proof_kind=agent_key_proof` 换短期 session、权限交集与 act-on-behalf 边界 |
 | [CXP-0009](./0009-agent-sidecar-thread.md) | Agent Sidecar Thread（Agent 旁路私聊线程） | **accepted** (merged 2026-05-26 → sidecar thread normative files) | 在 Flow / Message 上下文中为 controller 与自己的 native AI agent 创建私有 sidecar thread,支持 controller-home / context-Realm home,并定义 E2EE / 存在性隐私边界 |
 | [CXP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | **accepted** (merged 2026-05-27 → [`zh/crypto-media/webrtc-signaling.md`](../zh/crypto-media/webrtc-signaling.md) 及 `bindings/`) | 把 `cx.realm.media_service` 从单 SFU endpoint 升级为 multi-focus + transport-agnostic backend 抽象;定义统一 token exchange、session focus 持久化、participant binding、E2EE key injection 契约、recording artifact 流转;LiveKit / mediasoup / Janus / MoQ 通过附录绑定接入 |
-| [CXP-0011](./0011-shareable-object-addressing.md) | Shareable Object Addressing — web+contrix URI scheme & deep-link resolution | **accepted** (merged 2026-05-28 → [`zh/discovery/object-addressing.md`](../zh/discovery/object-addressing.md)) | 客户端无关的可分享对象地址:`web+contrix:` URI scheme + HTTPS 落地(matrix.to 模型),path 表 containment / query 表路由提示,`reference`/`invite` 两型 link(`preview` 保留),寻址 ≠ 授权,token 绑定 canonical target,新增 `cx.directory.resolve_target` |
+| [CXP-0011](./0011-shareable-object-addressing.md) | Shareable Object Addressing — web+cokret URI scheme & deep-link resolution | **accepted** (merged 2026-05-28 → [`zh/discovery/object-addressing.md`](../zh/discovery/object-addressing.md)) | 客户端无关的可分享对象地址:`web+cokret:` URI scheme + HTTPS 落地(matrix.to 模型),path 表 containment / query 表路由提示,`reference`/`invite` 两型 link(`preview` 保留),寻址 ≠ 授权,token 绑定 canonical target,新增 `cx.directory.resolve_target` |
 
 ## 6. 写作风格
 

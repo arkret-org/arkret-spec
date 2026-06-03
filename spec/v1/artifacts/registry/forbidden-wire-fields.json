@@ -1,9 +1,9 @@
 {
-  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
-  "description": "Field names that MUST NOT appear on the current Contrix v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
+  "description": "Field names that MUST NOT appear on the current Cokret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
   "rejection_levels": {
     "hard_reject": "Reducer / parser MUST fail with schema_violation when the field appears in the listed context.",
     "migration_only": "Readers MAY tolerate the field during a bounded migration window but writers MUST NOT emit it.",
@@ -117,13 +117,13 @@
       "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_flow_refs, allowed_circle_refs, denied_flow_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Flow, or Morph containers."
     },
     {
-      "id": "cx:rtcpart:",
+      "id": "ck:rtcpart:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "cx:rtc_participant:",
+      "replacement": "ck:rtc_participant:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "The abbreviated media participant typed ID prefix was expanded to the full snake_case kind. Current v1 wire MUST use cx:rtc_participant:<uuid>; cx:rtcpart:<uuid> is rejected."
+      "notes": "The abbreviated media participant typed ID prefix was expanded to the full snake_case kind. Current v1 wire MUST use ck:rtc_participant:<uuid>; ck:rtcpart:<uuid> is rejected."
     },
     {
       "id": "hash#key_backup_kdf_params",
@@ -468,65 +468,65 @@
       "notes": "Generic detached-JWS proofs over non-Event canonical payloads (Anchor signature, identity-link, did-continuity, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix."
     },
     {
-      "id": "cx:notif:",
+      "id": "ck:notif:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:notification:",
+      "replacement": "ck:notification:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "cx:devmsg:",
+      "id": "ck:devmsg:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:device_message:",
+      "replacement": "ck:device_message:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "cx:keyevt:",
+      "id": "ck:keyevt:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:key_event:",
+      "replacement": "ck:key_event:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "cx:modq:",
+      "id": "ck:modq:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:moderation_queue_item:",
+      "replacement": "ck:moderation_queue_item:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "cx:req:",
+      "id": "ck:req:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:request:",
+      "replacement": "ck:request:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "cx:txn:",
+      "id": "ck:txn:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:transaction:",
+      "replacement": "ck:transaction:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "cx:frank:",
+      "id": "ck:frank:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:franking_proof:",
+      "replacement": "ck:franking_proof:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
@@ -942,7 +942,7 @@
       "rejection_level": "hard_reject",
       "replacement": "content_digest",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Blob metadata uses content_digest with an algorithm prefix. Content-addressed blob_ref values may still use cx:blob:sha256:<hex>."
+      "notes": "Blob metadata uses content_digest with an algorithm prefix. Content-addressed blob_ref values may still use ck:blob:sha256:<hex>."
     },
     {
       "id": "size",

@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-在 Contrix 网络中，绝大部分数据是跨节点共享的协作对象（Realm、Space、Flow、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
+在 Cokret 网络中，绝大部分数据是跨节点共享的协作对象（Realm、Space、Flow、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
 
 本规范定义了这些**客户端偏好与账户数据 (Account Data)** 的存储、同步与标准 Schema。
 
@@ -20,7 +20,7 @@ updated: 2026-05-25
 
 ### 2.1 存储在私有 Account Data
 
-由于 Contrix 采用 signed Event 和 per-actor event chain 作为信任根，账户私有数据 SHOULD 作为加密 account data 或 actor-private Event 保存。
+由于 Cokret 采用 signed Event 和 per-actor event chain 作为信任根，账户私有数据 SHOULD 作为加密 account data 或 actor-private Event 保存。
 
 这些私有数据只有用户本人的受信任设备有权限读写。Sync Service 节点仅负责存储加密或不透明的二进制块，并不解析其中的明文。
 
@@ -78,7 +78,7 @@ updated: 2026-05-25
 {
   "images": {
     "party_parrot": {
-      "blob_ref": "cx:blob:sha256:abcd...",
+      "blob_ref": "ck:blob:sha256:abcd...",
       "mime_type": "image/gif"
     }
   }
@@ -95,14 +95,14 @@ updated: 2026-05-25
 {
   "sidebar_collapsed": false,
   "recent_realms": [
-    "cx:realm:01964195-0000-7000-8000-000000000000",
-    "cx:realm:01964195-8000-7000-8000-000000000000"
+    "ck:realm:01964195-0000-7000-8000-000000000000",
+    "ck:realm:01964195-8000-7000-8000-000000000000"
   ],
   "language": "zh-CN"
 }
 ```
 
-> **字段命名（normative）**：该数组承载的是 `cx:realm:` ID，因此 canonical 字段名为 `recent_realms`，与命名约定（值类型 = Realm）对齐。早期草稿曾使用 `recent_spaces`（语义错位：承载的是 realm id 而非 `cx:space:` 容器 id）。`cx.client.ui_state` 是 actor-private account data，不进入共享 wire 互操作面；客户端 SHOULD 写 `recent_realms`，读取时 MAY 兼容历史 `recent_spaces` 键并在下次写入时迁移为 `recent_realms`。两者语义相同，均为最近访问的 Realm id 列表。
+> **字段命名（normative）**：该数组承载的是 `ck:realm:` ID，因此 canonical 字段名为 `recent_realms`，与命名约定（值类型 = Realm）对齐。早期草稿曾使用 `recent_spaces`（语义错位：承载的是 realm id 而非 `ck:space:` 容器 id）。`cx.client.ui_state` 是 actor-private account data，不进入共享 wire 互操作面；客户端 SHOULD 写 `recent_realms`，读取时 MAY 兼容历史 `recent_spaces` 键并在下次写入时迁移为 `recent_realms`。两者语义相同，均为最近访问的 Realm id 列表。
 
 ### 3.5 个人屏蔽与过滤 (Personal Blocklist)
 
@@ -115,7 +115,7 @@ updated: 2026-05-25
   "version": 1,
   "entries": [
     {
-      "entry_id": "cx:block:019640b3-cc00-7000-8000-000000000000",
+      "entry_id": "ck:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
         "did": "did:web:spammer.example.com"
@@ -174,7 +174,7 @@ updated: 2026-05-25
     "did": "did:web:wang.example.com"
   },
   "local_name": "老王（前同事）",
-  "note": "2024 年 ContrixCon 认识",
+  "note": "2024 年 CokretCon 认识",
   "tags": ["work", "favorite"],
   "pinned": true,
   "verified_handle_at_save": "wang.example.com",
@@ -222,7 +222,7 @@ updated: 2026-05-25
   "version": 1,
   "subject": {
     "kind": "realm",
-    "id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+    "id": "ck:realm:0196419b-0000-7000-8000-000000000000"
   },
   "local_name": "Acme 内部 · 工程",
   "note": "和外包侧 Engineering Realm 同名，注意区分",
@@ -256,9 +256,9 @@ updated: 2026-05-25
 - 该 key 是 actor-private，MUST 与 §3.5、§3.6 一样以加密 account data 形式同步，Sync Service 不得读取明文。
 - `local_name` 与 `note` MUST NOT 通过 invite 文案、mention、quote、forward、directory 投影、shared link preview 或任何 Realm state 字段泄露给其他 Realm 成员；客户端构造邀请、跨端 share sheet、跨 Realm 引用或导出时 MUST 使用 Realm 公开 `title`，不得替换为本地备注。
 - 本地备注 MUST NOT 参与 ACL、capability subject、policy condition、audit attribution、MLS credential 或 federation routing 判定，约束与 §3.6 中本地联系人备注一致。
-- UI 显示本地备注时 SHOULD 同时呈现 Realm 公开 `title` 或 `cx:realm:` 短摘要（UUID 前 8 位），使用户可识别"备注相同但 Realm 不同"的误判；安全敏感 UI（删除 / archive / tombstone Realm、跨 Realm 邀请确认、转账类 applet 调用）MUST 能直接显示完整 `realm_id` 与 `owning_organizations`。
+- UI 显示本地备注时 SHOULD 同时呈现 Realm 公开 `title` 或 `ck:realm:` 短摘要（UUID 前 8 位），使用户可识别"备注相同但 Realm 不同"的误判；安全敏感 UI（删除 / archive / tombstone Realm、跨 Realm 邀请确认、转账类 applet 调用）MUST 能直接显示完整 `realm_id` 与 `owning_organizations`。
 - 当 Realm 公开 `title` 与 `verified_title_at_save` 不一致，或 `owning_organizations` 与 `verified_owning_organizations_at_save` 不一致时，客户端 SHOULD 在该 Realm 渲染处显示 title changed / org changed 标记，并提示用户复核备注；该机制与 §3.6 `verified_handle_at_save` 对称。
-- 当用户已加入的多个 Realm 的公开 `title` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / source Realm / `cx:realm:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
+- 当用户已加入的多个 Realm 的公开 `title` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / source Realm / `ck:realm:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
 - 删除 Realm 备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理；用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
 - `cx.contacts.realm.<realm_id>` 与 §3.1 `cx.tags.realm.<realm_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `realm_id` join 二者，规范上互不替代。
@@ -276,12 +276,12 @@ updated: 2026-05-25
     "display": true
   },
   "realms": {
-    "cx:realm:0196419b-0000-7000-8000-000000000000": {
+    "ck:realm:0196419b-0000-7000-8000-000000000000": {
       "send": false
     }
   },
   "flows": {
-    "cx:flow:01964200-0000-7000-8000-000000000001": {
+    "ck:flow:01964200-0000-7000-8000-000000000001": {
       "send": true
     }
   }

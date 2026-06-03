@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/policy.schema.json",
-  "title": "Contrix Policy",
+  "$id": "https://cokret.io/artifacts/schemas/policy.schema.json",
+  "title": "Cokret Policy",
   "type": "object",
   "required": [
     "id",
@@ -15,14 +15,14 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.policy.v1"
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "policy_type": {
       "type": "string",
@@ -157,11 +157,11 @@
               },
               "realm_id": {
                 "type": "string",
-                "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               },
               "ref": {
                 "type": "string",
-                "pattern": "^(cx:[a-z0-9_]+:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*|did:[^\\s]+)$"
+                "pattern": "^(ck:[a-z0-9_]+:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*|did:[^\\s]+)$"
               }
             },
             "additionalProperties": false
@@ -240,7 +240,7 @@
     },
     "trust_domain": {
       "type": "string",
-      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+      "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     },
     "domain_name": {
       "type": "string",

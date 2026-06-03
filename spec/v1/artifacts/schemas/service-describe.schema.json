@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/service-describe.schema.json",
-  "title": "Contrix Service Describe",
+  "$id": "https://cokret.io/artifacts/schemas/service-describe.schema.json",
+  "title": "Cokret Service Describe",
   "description": "Canonical service describe response returned by cx.server.describe and per-surface describe operations. It combines stable service metadata (service_did, service_type, protocol_version, profiles, bindings, auth, limits, plaintext visibility and rate-limit policy) with claim-level partitions: implemented_features, claimed_profiles, verified_profiles, experimental_features and compat_surfaces. The legacy field `supported_operations` MUST list endpoint-callable operation_ids. Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry, and clients MUST verify cotest artifacts before treating verified_profiles as production conformance. See service-surface.md §3.0.",
   "type": "object",
   "patternProperties": {
@@ -440,7 +440,7 @@
     },
     "compat_surfaces": {
       "type": "array",
-      "description": "Legacy or external-interop surfaces this service exposes for compatibility, not as part of its claimed Contrix v1 conformance.",
+      "description": "Legacy or external-interop surfaces this service exposes for compatibility, not as part of its claimed Cokret v1 conformance.",
       "items": {
         "type": "object",
         "required": ["name", "kind"],
@@ -531,7 +531,7 @@
     },
     "trust_domain": {
       "type": "string",
-      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+      "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     },
     "timestamp": {
       "type": "string",

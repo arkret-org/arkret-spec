@@ -1,5 +1,5 @@
 ---
-title: Contrix Protocol (English)
+title: Cokret Protocol (English)
 status: candidate
 stability: v1
 updated: 2026-05-25
@@ -10,7 +10,7 @@ translation_tracking: CXP-EN-MIRROR
 > Non-normative placeholder. Authority is `zh/`. Translation tracked in
 > CXP-EN-MIRROR.
 
-The English normative text for Contrix v1 is **not yet published**. The
+The English normative text for Cokret v1 is **not yet published**. The
 authoritative human-readable normative text for v1 is the Chinese version
 under [`spec/v1/zh/`](../zh/). Machine-readable contracts under
 [`spec/v1/artifacts/`](../artifacts/) are language-neutral and are the same

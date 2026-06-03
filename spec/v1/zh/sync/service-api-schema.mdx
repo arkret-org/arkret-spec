@@ -7,7 +7,7 @@ import OperationTable from "~/components/OperationTable.astro";
 
 ## 1. 目标
 
-`service-api-schema.mdx` 是 Contrix **canonical operation** 的说明性服务清单。  
+`service-api-schema.mdx` 是 Cokret **canonical operation** 的说明性服务清单。  
 HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其它 transport（gRPC、WebSocket、SSE、MQ、libp2p、IPC）。
 
 本文件同时承担：
@@ -22,14 +22,14 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 
 - `artifacts/registry/contract-catalog.json#operation_registry` 是 operation contract 的 canonical source。
 - `artifacts/registry/operation-registry.json` 是由 canonical source 生成的机器视图，供实现、SDK、lint 与 transport adapter 直接消费。
-- `contrix-service-api.openapi.yaml` 是 HTTP binding 的规范性 shape 文档；它必须与 operation registry 对齐，但不是第二套 operation namespace。
+- `cokret-service-api.openapi.yaml` 是 HTTP binding 的规范性 shape 文档；它必须与 operation registry 对齐，但不是第二套 operation namespace。
 - 本文是说明性地图与治理说明；完整枚举以 canonical source 与生成物为准。
 
 ## 2. 统一约定
 
 - 所有 canonical operation 均使用 `encoding.md` 的 canonical JSON 与签名输入规则。
 - 关键行为不由路径决定，而由 `operation_id` 与数据语义决定。
-- Contrix 协议字段和 feature discovery 使用 `operation_id`，取值使用 `cx.<namespace>.<lower_snake_case>`。OpenAPI 3.1 标准字段名仍为 `operationId`，但其值 MUST 等于对应的 Contrix `operation_id`。
+- Cokret 协议字段和 feature discovery 使用 `operation_id`，取值使用 `cx.<namespace>.<lower_snake_case>`。OpenAPI 3.1 标准字段名仍为 `operationId`，但其值 MUST 等于对应的 Cokret `operation_id`。
 - 服务发现使用 canonical `ServiceDescribe` shape；响应 MUST 至少包含：
   - `service_did`
   - `trust_domain`
@@ -67,7 +67,7 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | 推送 | `cx.push.*` | `/push/*` |
 | 设备加密 | `cx.device_messages.*`、`cx.keys.*` | `/device_messages/*`、`/keys/*` |
 | 授权与策略 | `cx.authz.*`、`cx.policy.*` | `/authz/*`、`/policy/check` |
-| 媒体服务 | `cx.media.*` | `/contrix/v1/ice-config` |
+| 媒体服务 | `cx.media.*` | `/cokret/v1/ice-config` |
 | 审核 | `cx.moderation.*` | `/moderation/*` |
 | Applet | `cx.applet.*` | `/applet/*` |
 | MIMI 互操作 | `cx.mimi.*` | `/mimi/*` |
@@ -76,12 +76,12 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 
 ## 3. OpenAPI 参考快照（非穷尽示例）
 
-以下 YAML 片段只用于说明 shape 和命名规则，不构成完整 operation 枚举。完整 HTTP operation 集合以 `contrix-service-api.openapi.yaml` 和生成的 operation registry 为准；新增 operation 时应先更新 canonical catalog，再更新生成物。
+以下 YAML 片段只用于说明 shape 和命名规则，不构成完整 operation 枚举。完整 HTTP operation 集合以 `cokret-service-api.openapi.yaml` 和生成的 operation registry 为准；新增 operation 时应先更新 canonical catalog，再更新生成物。
 
 ```yaml
 openapi: 3.1.0
 info:
-  title: Contrix Service API
+  title: Cokret Service API
   version: 1.0.0
   x-conformance-profile: cx.profile.core_event_store.v1
 servers:
@@ -274,7 +274,7 @@ paths:
   /policy/check:
     post:
       operationId: cx.policy.check
-  /contrix/v1/ice-config:
+  /cokret/v1/ice-config:
     servers:
       - url: https://{host}
     post:
@@ -336,7 +336,7 @@ paths:
 | `cx.ephemeral.send` | `POST /ephemeral` | gRPC `Ephemeral/Send` / MQ `ephemeral.send`；承载 `cx.schema.ephemeral_envelope.v1`，不写 durable Event |
 | `cx.snapshot.head` | `GET /snapshot/head` | snapshot pointer |
 | `cx.projection.spaces` / `cx.projection.flows` / `cx.projection.morphs` | `GET /projection/spaces`, `GET /projection/flows`, `GET /projection/morphs` | gRPC `Projection/Spaces` / `Projection/Flows` / `Projection/Morphs`; MQ `projection.*` |
-| 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/contrix/sync/1.0.0` + service signature。 |
+| 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/cokret/sync/1.0.0` + service signature。 |
 | `cx.directory.search_*` / `cx.directory.resolve_*` / `cx.directory.list_handles_for_subject` | `POST /directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
 | `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.push.register` | `POST /directory/announce`, `POST /directory/withdraw`, `POST /directory/push/register` | gRPC Discovery Ingest Service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
@@ -346,7 +346,7 @@ paths:
 | `cx.keys.backups.put` / `cx.keys.backups.list` / `cx.keys.backups.get` / `cx.keys.backups.delete` | `PUT /keys/backups/{backup_id}`, `GET /keys/backups`, `GET /keys/backups/{backup_id}`, `DELETE /keys/backups/{backup_id}` | Encrypted key backup storage binding |
 | `cx.authz.check` / `cx.authz.get_effective_grants` / `cx.authz.get_invites` | `POST /authz/check`, `GET /authz/effective-grants`, `GET /authz/invites` | gRPC / policy 插件回调 |
 | `cx.policy.check` | `POST /policy/check` | policy 本地调用 |
-| `cx.media.ice_config` | `POST /contrix/v1/ice-config` | Media service / TURN credential adapter |
+| `cx.media.ice_config` | `POST /cokret/v1/ice-config` | Media service / TURN credential adapter |
 | `cx.moderation.report` | `POST /moderation/report` | Moderation queue / local compliance workflow |
 | `cx.applet.transaction` / `cx.applet.resolve_actor` / `cx.applet.resolve_realm` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 
@@ -362,11 +362,11 @@ paths:
 ## 5. 落地要求
 
 - 任何新增、重命名或删除 `operation_id` 的提案，必须先更新 `artifacts/registry/contract-catalog.json` 中的 `operation_registry`，再生成 registry / OpenAPI / 文档视图。
-- 任何节点都应能发布一份可下载的 OpenAPI 文档（建议路径 `/.well-known/contrix/openapi.yaml`），并在 service DID metadata 中声明版本和 hash。
+- 任何节点都应能发布一份可下载的 OpenAPI 文档（建议路径 `/.well-known/cokret/openapi.yaml`），并在 service DID metadata 中声明版本和 hash。
 - 实现必须保持 `operation_id` 在演进中稳定；若请求字段名变更，必须通过 profile、schema 版本或 feature discovery 明确协商。
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - 实现不得因为支持 core Event / Account aggregate 就默认声称支持目录、MIMI、账户登录、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
-- `/contrix/v1/*` 是服务本地绝对路径，不挂在 `/api/v1` 下。生成 OpenAPI 时必须为这些 path 使用 path-level `servers` 或拆成独立文档。
+- `/cokret/v1/*` 是服务本地绝对路径，不挂在 `/api/v1` 下。生成 OpenAPI 时必须为这些 path 使用 path-level `servers` 或拆成独立文档。
 - `GET /account/subscribe`（`cx.account.subscribe`）是客户端账号视角聚合 streaming 订阅(跨 Realm delta + to_device + account_data + device_lists + presence);`GET /events`(`cx.events.query`,可双向)是按 selector 的事件查询/历史回补;`GET /events/subscribe`(`cx.events.subscribe`,可携 bounded catch-up replay)是按 selector 的事件流订阅。`cx.account.subscribe` 与 `cx.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log);三类操作的 selector、auth、frame schema 与 freshness 行为不同,不得互相替代,也不得新增未声明的 canonical account / events endpoint。
 - 生成的 OpenAPI MUST 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme MUST NOT 定义 query string token 认证；受保护 endpoint 只能使用 header / signature / mTLS / signed proof body 等认证方式。

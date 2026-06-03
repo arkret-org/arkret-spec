@@ -67,5 +67,5 @@
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",
   "hash": "sha256",
-  "schema": "contrix.fixture-digests.v1"
+  "schema": "cokret.fixture-digests.v1"
 }

@@ -19,7 +19,7 @@ see_also:
 
 ## 1. 目标（Goals）
 
-Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议。
+Cokret 是面向协作对象的分布式发布、传播、查询与收敛协议。
 
 同步层必须支持：
 
@@ -34,7 +34,7 @@ Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议
 
 ## 2. 核心角色
 
-Contrix v1 区分：
+Cokret v1 区分：
 
 - `client`
 - `agent`
@@ -45,13 +45,13 @@ Contrix v1 区分：
 
 ### 2.1 Event Store 与 reducer-input Event
 
-Contrix v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read cursor、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
+Cokret v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read cursor、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
 
 Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3）：
 
 | 字段 | 含义 |
 | --- | --- |
-| `event_id` (`cx:event:<uuid>`) | producer 在签名前分配的 typed-UUIDv7。被纳入 canonical bytes 由 `proof.event_digest` 覆盖。 |
+| `event_id` (`ck:event:<uuid>`) | producer 在签名前分配的 typed-UUIDv7。被纳入 canonical bytes 由 `proof.event_digest` 覆盖。 |
 | `actor_id` | 签发者 DID。 |
 | `realm_id` | 所属 Realm。 |
 | `actor_seq` | actor chain 单调序号。 |
@@ -131,7 +131,7 @@ Principal Server / Sync Service MUST NOT：
 
 ## 3. Event-first 发布模型
 
-Contrix 采用 Event-first 模型：
+Cokret 采用 Event-first 模型：
 
 1. actor/device/service 生成 signed Event。reducer-input event 在顶层带 `preconditions[]` / `effects[]` / `anchor_ref`（§2.1）。
 2. `/events/*` 或等价 transport 接收 event，校验 schema、签名、actor chain；对 reducer-input event 走 `verify_event` + Anchor pipeline。
@@ -200,19 +200,19 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
 
 ```json
 {
-  "receipt_id": "cx:receipt:01964186-5800-7000-8000-000000000000",
+  "receipt_id": "ck:receipt:01964186-5800-7000-8000-000000000000",
   "issuer": "did:web:alice.example.net",
   "receipt_scope": {
     "actor_id": "did:web:alice.example.com",
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
   },
   "frontier": {
     "actor_seq": 144,
     "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "events": [
-    "cx:event:019640ed-8000-7000-8000-000000000000",
-    "cx:event:019640ee-0000-7000-8000-000000000000"
+    "ck:event:019640ed-8000-7000-8000-000000000000",
+    "ck:event:019640ee-0000-7000-8000-000000000000"
   ],
   "created_at": "2026-04-22T08:30:00Z",
   "proofs": []
@@ -242,14 +242,14 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 ```json
 {
-  "attestation_id": "cx:attestation:01970a55-0000-7000-8000-000000000000",
+  "attestation_id": "ck:attestation:01970a55-0000-7000-8000-000000000000",
   "schema": "cx.schema.range_completeness_attestation.v1",
   "issuer": "did:web:witness.example",
   "issuer_role": "witness",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "event_range": {
-    "from_frontier": {"realm_frontier": ["cx:event:..."]},
-    "to_frontier":   {"realm_frontier": ["cx:event:..."]},
+    "from_frontier": {"realm_frontier": ["ck:event:..."]},
+    "to_frontier":   {"realm_frontier": ["ck:event:..."]},
     "actor_seq_ranges": [
       { "actor_id": "did:web:alice.example", "from_seq_exclusive": 144, "to_seq_inclusive": 187 },
       { "actor_id": "did:web:bob.example",   "from_seq_exclusive": 87,  "to_seq_inclusive": 102 }
@@ -341,34 +341,34 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
 
 ```json
 {
-  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 42,
   "kind": "cx.flow.update",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0007-a13f9c2e",
   "prev_refs": [
-    "cx:event:019640ed-0000-7000-8000-000000000000"
+    "ck:event:019640ed-0000-7000-8000-000000000000"
   ],
   "refs": [
-    { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "preconditions": [
     {
-      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:cx.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "predicate": { "op": "head_eq", "value": { "metadata.fields.status": "in_progress" } }
     }
   ],
   "effects": [
     {
-      "cell": "cx:cell:cx.component.flow.metadata.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:cx.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.status": "review" } }
     }
   ],
-  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "anchor_ref": "ck:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
-    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
+    "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.status": "review"
     }
@@ -390,27 +390,27 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
 
 ```json
 {
-  "event_id": "cx:event:0196418a-0000-7000-8000-000000000000",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ck:event:0196418a-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 43,
   "kind": "cx.read_cursor.advance",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0008-a13f9c2e",
-  "prev_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
+  "prev_refs": ["ck:event:019640ed-8000-7000-8000-000000000000"],
   "payload": {
-    "id": "cx:read_cursor:0196418a-1000-7000-8000-000000000000",
+    "id": "ck:read_cursor:0196418a-1000-7000-8000-000000000000",
     "schema": "cx.schema.read_cursor.v1",
     "actor_id": "did:web:alice.example.com",
-    "device_id": "cx:device:0196418a-2000-7000-8000-000000000000",
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "device_id": "ck:device:0196418a-2000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "read_scope": {
       "kind": "flow",
-      "ref": "cx:flow:019640c6-8000-7000-8000-000000000000",
+      "ref": "ck:flow:019640c6-8000-7000-8000-000000000000",
       "track": "discussion"
     },
     "position": {
-      "event_id": "cx:event:01964147-0000-7000-8000-000000000000",
+      "event_id": "ck:event:01964147-0000-7000-8000-000000000000",
       "hlc": "01970e589d21-0008-a13f9c2e"
     },
     "updated_at": "2026-04-22T08:30:00Z"
@@ -425,7 +425,7 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
 
 单一时间戳不足以支撑协作收敛。
 
-Contrix v1 要求：
+Cokret v1 要求：
 
 - `prev_refs` 表示 actor event chain 的直接前序
 - `hlc` 表示近实时逻辑时间
@@ -446,7 +446,7 @@ Contrix v1 要求：
 
 ### 6.1 跨 Actor 依赖与确定性排序
 
-Contrix v1 将 Move 依赖关系和 Anchor/Lattice 生效分开处理：
+Cokret v1 将 Move 依赖关系和 Anchor/Lattice 生效分开处理：
 
 - `prev_refs` 表示 actor chain 因果；`refs[]` 表示语义依赖（authorized_by / attestation / state_witness / ...）。状态收敛以顶层 `preconditions[]`、`effects[]`、`refs[]` 和 Anchor frontier 为准。
 - 若事件 B 的 dependency closure 包含事件 A，任何 canonical replay、timeline recovery 或 reducer input normalization 都 MUST 在拓扑上令 A 先于 B；即使 `hlc(A) > hlc(B)` 也不得反转。
@@ -599,7 +599,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 > `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 **候选**（candidate）workflow concept/action 名称，不是 v1 wire `Event.kind`。它们尚未进入 v1 active conformance；实现声明 v1 base profile 时不强制支持。正式登记进入 v1 registry 前不得使用 `cx.*` 标准前缀，也不得作为 Event envelope 的 `kind`、active reducer 或 sync conformance 项。
 
-`cx.member.state{membership="join"}` 除成员 FSM 外，还承载该成员在本 Realm 的 effective delivery binding。`payload.delivery_binding.recipient_service_did` 是 Realm-scoped Event / sync / to-device / push / key package 的投递服务；DID Document 中的默认 `ContrixPrincipalServer` 只可在 Realm policy 允许 `did_document_default` fallback 且已物化进该 field 时使用。成员已处于 `join` 时，新的 `membership="join"` Move MAY 作为 delivery rebind self-transition 更新 binding，但必须满足 Join Policy / Realm policy 的 rebind 授权。`payload.delivery_status="unroutable"` 只能在 Realm policy 显式允许不可服务端投递成员时出现。
+`cx.member.state{membership="join"}` 除成员 FSM 外，还承载该成员在本 Realm 的 effective delivery binding。`payload.delivery_binding.recipient_service_did` 是 Realm-scoped Event / sync / to-device / push / key package 的投递服务；DID Document 中的默认 `CokretPrincipalServer` 只可在 Realm policy 允许 `did_document_default` fallback 且已物化进该 field 时使用。成员已处于 `join` 时，新的 `membership="join"` Move MAY 作为 delivery rebind self-transition 更新 binding，但必须满足 Join Policy / Realm policy 的 rebind 授权。`payload.delivery_status="unroutable"` 只能在 Realm policy 显式允许不可服务端投递成员时出现。
 
 ### 7.7 Profile / Device / Realm Key
 
@@ -650,7 +650,7 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 {
   "kind": "cx.flow.tracks.update",
   "payload": {
-    "flow_id": "cx:flow:01964195-8000-7000-8000-000000000000",
+    "flow_id": "ck:flow:01964195-8000-7000-8000-000000000000",
     "patch": {
       "tracks.discussion.enabled": { "$op": "set", "value": true },
       "tracks.discussion.profile": { "$op": "set", "value": "discussion" }
@@ -673,24 +673,24 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 
 `cx.flow.move` 用于跨 List-Space 移动 Flow。它移动的是 Flow 在一个 Board Space 内的主位置，而不是修改 track 定义。
 
-写入路径是 cas_register cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`（详见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md#36-flow-位置)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_space_id` + `rank` 编译为 `set { list_space_id, rank }` effect。Payload 上的目的地输入字段只有 `target_space_id` 一个；MUST NOT 在 `cx.flow.move` payload 上直接写 `list_space_id`（schema `additionalProperties=false` 已经会拒）——`list_space_id` 是 cell value 字段名，由 reducer 从 `target_space_id` 编译而来。这与 Space-parent 的 cas_register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
+写入路径是 cas_register cell `ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`（详见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md#36-flow-位置)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_space_id` + `rank` 编译为 `set { list_space_id, rank }` effect。Payload 上的目的地输入字段只有 `target_space_id` 一个；MUST NOT 在 `cx.flow.move` payload 上直接写 `list_space_id`（schema `additionalProperties=false` 已经会拒）——`list_space_id` 是 cell value 字段名，由 reducer 从 `target_space_id` 编译而来。这与 Space-parent 的 cas_register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
 
 ```json
 {
   "kind": "cx.flow.move",
   "unsigned": {
-    "target_ref_hint": "cx:flow:019641a9-8000-7000-8000-000000000000"
+    "target_ref_hint": "ck:flow:019641a9-8000-7000-8000-000000000000"
   },
   "payload": {
-    "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
-    "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
-    "from_space_id": "cx:space:01d01a00-0000-7000-8000-000000000000",
-    "target_space_id": "cx:space:01c3b617-7000-7000-8000-000000000000",
+    "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+    "flow_id": "ck:flow:019641a9-8000-7000-8000-000000000000",
+    "from_space_id": "ck:space:01d01a00-0000-7000-8000-000000000000",
+    "target_space_id": "ck:space:01c3b617-7000-7000-8000-000000000000",
     "rank": "mV",
     "expected_position": {
-      "space_id": "cx:space:01d01a00-0000-7000-8000-000000000000",
+      "space_id": "ck:space:01d01a00-0000-7000-8000-000000000000",
       "rank": "h0",
-      "relation_id": "cx:relation:01005a00-0000-7000-8000-000000000000"
+      "relation_id": "ck:relation:01005a00-0000-7000-8000-000000000000"
     }
   }
 }
@@ -701,7 +701,7 @@ Reducer 语义：
 1. 验证 actor 对 `board_space_id`、`flow_id`、`from_space_id` 和 `target_space_id` 的 move/reorder 权限（落到 Flow 所属 Realm）。
 2. 验证 `target_space_id` 是 `board_space_id` 下的 active List Space（`kind="list"` 且 `parent_space_id` 为 board）。
 3. 验证目标 Flow 所属 Realm schema/profile 允许它进入该 Board Space。
-4. 把 `expected_position` 编译为 cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>` 的 `head_eq` precondition；把 `target_space_id` + `rank` 编译为 `set { list_space_id: target_space_id, rank }` effect。
+4. 把 `expected_position` 编译为 cell `ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>` 的 `head_eq` precondition；把 `target_space_id` + `rank` 编译为 `set { list_space_id: target_space_id, rank }` effect。
 5. cas_register lattice 在该 cell 上 join：成功则 `target_space_id --contains--> flow_id` 派生 Relation 由 cell value 自动投影出来（旧 list 的派生 Relation 自动失效）；并发不同 set 返回 `⊥`（kind=conflict），依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery。
 6. 对相同 Event 保持幂等（同一 `event_id` / `event_digest` 的重放是 cell 的恒等 set，不产生新 ⊥）。
 
@@ -717,22 +717,22 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 
 ### 9.2 `cx.flow.reorder`
 
-`cx.flow.reorder` 只改变同一 List Space 内的 rank，不改变 List Space membership。它写入与 `cx.flow.move` 相同的 cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`，但 effect 的 `list_space_id` MUST 与 `head_eq.list_space_id` 相同（即只更新 rank）；试图通过 reorder 改变 list 的 effect MUST `schema_violation`，必须使用 `cx.flow.move`。
+`cx.flow.reorder` 只改变同一 List Space 内的 rank，不改变 List Space membership。它写入与 `cx.flow.move` 相同的 cell `ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`，但 effect 的 `list_space_id` MUST 与 `head_eq.list_space_id` 相同（即只更新 rank）；试图通过 reorder 改变 list 的 effect MUST `schema_violation`，必须使用 `cx.flow.move`。
 
 ```json
 {
   "kind": "cx.flow.reorder",
   "unsigned": {
-    "target_ref_hint": "cx:flow:019641a9-8000-7000-8000-000000000000"
+    "target_ref_hint": "ck:flow:019641a9-8000-7000-8000-000000000000"
   },
   "payload": {
-    "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
-    "space_id": "cx:space:01c3b617-7000-7000-8000-000000000000",
-    "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
+    "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+    "space_id": "ck:space:01c3b617-7000-7000-8000-000000000000",
+    "flow_id": "ck:flow:019641a9-8000-7000-8000-000000000000",
     "rank": "mV",
     "expected_position": {
       "rank": "h0",
-      "relation_id": "cx:relation:01b03200-0000-7000-8000-000000000000"
+      "relation_id": "ck:relation:01b03200-0000-7000-8000-000000000000"
     }
   }
 }
@@ -752,7 +752,7 @@ List Space 在 Board Space 内的顺序通过 `cx.space.update` 修改 List Spac
 {
   "kind": "cx.flow.tracks.update",
   "payload": {
-    "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
+    "flow_id": "ck:flow:019641a9-8000-7000-8000-000000000000",
     "patch": {
       "tracks.discussion.enabled":    { "$op": "set", "value": true },
       "tracks.synthesis.is_primary":  { "$op": "set", "value": false },
@@ -892,7 +892,7 @@ Flow Sync MUST NOT 因为 actor 可读 Flow synthesis 就自动展开不可读 d
 
 ## 16. 冲突与收敛
 
-Contrix 初版不引入全网共识链。
+Cokret 初版不引入全网共识链。
 
 它要求：
 
@@ -960,7 +960,7 @@ Reducer 输出：
 同一个 Flow 在同一 Board 内的唯一主位置 key 是 `(board_id, flow_id)`，但 canonical truth 不是多条 `contains` / position edge 的 winner，而是 §9.1 定义的 cas_register cell：
 
 ```text
-cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
+ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
 ```
 
 同一 key 下出现多个并发且互不兼容的 position write 时，Reducer MUST 按该 cell 的 lattice 规则返回 `⊥`（`bottom=reject`），依赖该 cell 的后续 `cx.flow.move` / `cx.flow.reorder` MUST `failed_bottom`，直到通过 §8 conflict-recovery 或专门的高权限恢复 event 修复。实现 MAY 在诊断投影中列出 competing writes / `conflict_records`，并 MAY 为 legacy UI 计算一个非规范的临时展示顺序；该展示顺序 MUST NOT 写回 canonical state、不得作为授权或后续 move 的 `expected_position` 真相，也不得替代 cell bottom。
@@ -980,7 +980,7 @@ cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
 
 授权不能只看墙上时钟，否则 revoke、迟到 Event、离线写入都会失真。
 
-Contrix v1 要求：
+Cokret v1 要求：
 
 - grant / delegate / revoke 本身也是 event。
 - 某个业务 event 是否有效，由同一 reducer 顺序下的有效授权集合决定。
@@ -1007,7 +1007,7 @@ ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。
 
 ## 22. 设计决定
 
-Contrix v1 固定：
+Cokret v1 固定：
 
 - signed Event Envelope 是 actor 发布单元。
 - Event Envelope 是共享状态归约单元。

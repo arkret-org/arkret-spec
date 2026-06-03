@@ -10,7 +10,7 @@ not emitted because the user said "不管兼容性，直接改 sql"; we just rew
 original CREATE TABLE statements.
 
 Column classification rule:
-  - ULID-typed Contrix wire IDs (per id-kind-registry.json) → UUID
+  - ULID-typed Cokret wire IDs (per id-kind-registry.json) → UUID
   - Soland-internal opaque IDs that store UUID-shape values → UUID
   - DIDs, handles, hashes, JWTs, public keys, status enums, action names,
     polymorphic refs → STAY TEXT
@@ -23,14 +23,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = [
-    # soland is the only Contrix wire participant. starid uses multihash scid
+    # soland is the only Cokret wire participant. starid uses multihash scid
     # (z<base58(sha256)>) for receipt_id and is NOT migrated. coauth's
     # device_id is an opaque OAuth scope-derived client string and is also
     # NOT migrated; coauth's other tables are already UUID-native.
     ROOT / "soland" / "migrations",
 ]
 
-# Columns that store Contrix typed UUIDv7 values (per id-kind-registry):
+# Columns that store Cokret typed UUIDv7 values (per id-kind-registry):
 UUID_COLUMNS_CONTRIX = {
     # core wire IDs
     "event_id", "realm_id", "space_id", "flow_id", "morph_id", "view_id",
@@ -54,7 +54,7 @@ UUID_COLUMNS_CONTRIX = {
     "frame_id", "devmsg_id",
 }
 
-# Soland-internal opaque IDs that are UUID-shape but not in the Contrix
+# Soland-internal opaque IDs that are UUID-shape but not in the Cokret
 # id-kind-registry namespace. These are server-internal but the user wants
 # them stored as native UUID for the same performance reasons.
 UUID_COLUMNS_SOLAND_INTERNAL = {

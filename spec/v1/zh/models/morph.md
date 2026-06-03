@@ -12,7 +12,7 @@ updated: 2026-06-01
 
 ## 1. 目标
 
-`morph`（`cx:morph:`）是 Contrix 协作图中的**开放形态对象**，用于承载协议未固化为标准类型的协作对象。它适合：
+`morph`（`ck:morph:`）是 Cokret 协作图中的**开放形态对象**，用于承载协议未固化为标准类型的协作对象。它适合：
 
 - 插件或业务自定义对象
 - 未来标准类型的实验阶段
@@ -30,7 +30,7 @@ Schema id: `cx.schema.morph.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:morph` | 以 `cx:morph:` 开头。 | Morph ID。 |
+| `id` | yes | `id:morph` | 以 `ck:morph:` 开头。 | Morph ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_type` / `facets` 不能替代。 |
 | `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `cx.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
@@ -53,9 +53,9 @@ Schema id: `cx.schema.morph.v1`
 
 ```json schema=schemas/morph.schema.json
 {
-  "id": "cx:morph:0196414b-0000-7000-8000-000000000000",
+  "id": "ck:morph:0196414b-0000-7000-8000-000000000000",
   "schema": "cx.schema.morph.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "schema_refs": ["cx.schema.morph.customer_risk.v1"],
   "morph_type": "customer_risk",
   "metadata": {

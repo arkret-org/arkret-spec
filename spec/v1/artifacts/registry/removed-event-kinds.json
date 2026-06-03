@@ -1,9 +1,9 @@
 {
-  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "removed_event_kinds",
   "source_of_truth": true,
-  "description": "Machine-readable list of Event.kind values that have been removed from the Contrix v1 protocol. Downstream implementations (SDKs, yougen, soland, cotest) MUST treat these as schema_violation on the wire and MUST NOT introduce them as new contributions. cotest scanner consumes this list to detect drift.",
+  "description": "Machine-readable list of Event.kind values that have been removed from the Cokret v1 protocol. Downstream implementations (SDKs, yougen, soland, cotest) MUST treat these as schema_violation on the wire and MUST NOT introduce them as new contributions. cotest scanner consumes this list to detect drift.",
   "rejection_levels": {
     "hard_reject": "MUST be rejected at parse/reducer time. No legitimate occurrence on current wire or in current code.",
     "migration_only": "MUST NOT be emitted by new writers; MAY be tolerated by readers for a bounded migration window declared per entry.",
@@ -355,7 +355,7 @@
       "replacement": "cx.read_cursor.advance",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "migration_window_until": "2026-12-31",
-      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (cx:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (ck:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
     },
     {
       "id": "cx.flow.discussion_realm_ref",

@@ -52,7 +52,7 @@ function planeItems(plane) {
 }
 
 /**
- * Contrix protocol site.
+ * Cokret protocol site.
  *
  * Routing model:
  *   /<locale>/v<version>/<spec-path>          — normative prose (Markdown under spec/<v>/<locale>/)
@@ -63,7 +63,7 @@ function planeItems(plane) {
  * version is a directory drop + sidebar entry; nothing else changes.
  */
 export default defineConfig({
-  site: "https://contrix.io",
+  site: "https://cokret.io",
   trailingSlash: "always",
   redirects: {
     // Locale roots have no normative prose entry; send visitors to the
@@ -108,9 +108,9 @@ export default defineConfig({
   },
   integrations: [
     starlight({
-      title: "Contrix Spec",
+      title: "Cokret Spec",
       description:
-        "Contrix v1 — decentralized collaboration protocol specification.",
+        "Cokret v1 — decentralized collaboration protocol specification.",
       defaultLocale: "zh",
       // Suppress Starlight's auto-injected /404 route: it issues a
       // `getEntry('docs','404')` lookup at build time to find a user override,

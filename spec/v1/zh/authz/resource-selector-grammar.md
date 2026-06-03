@@ -12,9 +12,9 @@ updated: 2026-05-25
 
 ## 1. 概述
 
-本规范定义 Contrix v1 capability 授权中的资源选择器。资源选择器只回答“授权命中哪些资源”，不单独表达动作、字段、track、claim 或审批约束；这些约束必须由 grant 的 `actions` 与 `constraints` 表达。
+本规范定义 Cokret v1 capability 授权中的资源选择器。资源选择器只回答“授权命中哪些资源”，不单独表达动作、字段、track、claim 或审批约束；这些约束必须由 grant 的 `actions` 与 `constraints` 表达。
 
-Contrix v1 capability 使用以下 canonical resource selector 模型：
+Cokret v1 capability 使用以下 canonical resource selector 模型：
 
 - `flow` 是统一协作主对象，默认入口由 track primary 解析规则得到，不是 selector domain。
 - `message` 总是属于某个 Flow 的 `discussion` track。
@@ -33,16 +33,16 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
   "resources": [
     {
       "kind": "realm",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
     },
     {
       "kind": "flow",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-      "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000"
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000"
     },
     {
       "kind": "morph",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "morph_type": "customer_case"
     }
   ],
@@ -66,7 +66,7 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `space_kind_allow` 约�
   "resources": [
     {
       "kind": "space",
-      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
     }
   ],
   "constraints": [
@@ -90,15 +90,15 @@ Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint
   "resources": [
     {
       "kind": "circle",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-      "circle_id": "cx:circle:019640d0-0000-7000-8000-000000000000"
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "circle_id": "ck:circle:019640d0-0000-7000-8000-000000000000"
     }
   ],
   "constraints": [
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "allowed_circle_ids": ["cx:circle:019640d0-0000-7000-8000-000000000000"]
+      "allowed_circle_ids": ["ck:circle:019640d0-0000-7000-8000-000000000000"]
     }
   ]
 }
@@ -113,8 +113,8 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
   "resources": [
     {
       "kind": "flow",
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-      "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000"
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000"
     }
   ],
   "constraints": [
@@ -208,17 +208,17 @@ flow_part            ::= flow_id | "*"
 
 ### 3.2 词法规则（reference）
 
-- `realm_id`：`cx:realm:` 后接 UUIDv7。
-- `space_id`：`cx:space:` 后接 UUIDv7。
-- `circle_id`：`cx:circle:` 后接 UUIDv7。
-- `flow_id`：`cx:flow:` 后接 UUIDv7。
-- `message_id`：`cx:message:` 后接 UUIDv7。
-- `morph_id`：`cx:morph:` 后接 UUIDv7。
-- `relation_id`：`cx:relation:` 后接 UUIDv7。
-- `view_id`：`cx:view:` 后接 UUIDv7。
-- `event_id`：`cx:event:` 后接 UUIDv7。
-- `policy_id`：`cx:policy:` 后接 UUIDv7。
-- `invite_id`：`cx:invite:` 后接 UUIDv7。
+- `realm_id`：`ck:realm:` 后接 UUIDv7。
+- `space_id`：`ck:space:` 后接 UUIDv7。
+- `circle_id`：`ck:circle:` 后接 UUIDv7。
+- `flow_id`：`ck:flow:` 后接 UUIDv7。
+- `message_id`：`ck:message:` 后接 UUIDv7。
+- `morph_id`：`ck:morph:` 后接 UUIDv7。
+- `relation_id`：`ck:relation:` 后接 UUIDv7。
+- `view_id`：`ck:view:` 后接 UUIDv7。
+- `event_id`：`ck:event:` 后接 UUIDv7。
+- `policy_id`：`ck:policy:` 后接 UUIDv7。
+- `invite_id`：`ck:invite:` 后接 UUIDv7。
 - `schema_id`：schema registry id，例如 `cx.schema.flow.v1` 或反向域名 schema id。
 - `did`：DID URI。
 - `blob_ref`：Blob typed ID，wire form 为 `cx` blob 前缀后接 UUIDv7，或 content-addressed sha256 blob ref。
@@ -254,7 +254,7 @@ flow_part            ::= flow_id | "*"
 
 ### 4.1 Realm 选择器
 
-`realm:cx:realm:0196419b-0000-7000-8000-000000000000`
+`realm:ck:realm:0196419b-0000-7000-8000-000000000000`
 
 - 匹配：特定 Realm。
 - 适用：该 Realm 中的对象、Event、View、policy、invite、read cursor、notification 和 Blob 引用。
@@ -267,7 +267,7 @@ flow_part            ::= flow_id | "*"
 
 ### 4.2 Space 选择器
 
-`space:cx:space:019640b6-8000-7000-8000-000000000000`
+`space:ck:space:019640b6-8000-7000-8000-000000000000`
 
 - 匹配：特定结构 Space。
 - 适用：Space metadata、Space lifecycle、Space parent、board/list 类 workflow container 操作。
@@ -280,19 +280,19 @@ flow_part            ::= flow_id | "*"
 
 ### 4.3 Flow 选择器
 
-`flow:cx:realm:...:*`
+`flow:ck:realm:...:*`
 
 - 匹配：该 Realm 中所有 Flow。
 - 若只允许某个 track 范围，必须使用 `allowed_tracks`。
 
-`flow:cx:realm:...:cx:flow:019640c5-0400-7000-8000-000000000000`
+`flow:ck:realm:...:ck:flow:019640c5-0400-7000-8000-000000000000`
 
 - 匹配：特定 Flow。
 - 不匹配：Message、Morph、Relation、View 或 Board/List 容器。
 
 ### 4.4 Message 选择器
 
-`message:cx:realm:...:cx:flow:...:*`
+`message:ck:realm:...:ck:flow:...:*`
 
 - 匹配：某个 Flow `discussion` track 内的所有 Message。
 - 不授予 Flow synthesis 字段写入权限。
@@ -300,12 +300,12 @@ flow_part            ::= flow_id | "*"
 
 ### 4.5 Morph 选择器
 
-`morph:cx:realm:...:customer_case`
+`morph:ck:realm:...:customer_case`
 
 - 匹配：该 Realm 中所有 `morph_type=customer_case` 的 Morph。
 - 不匹配：标准 Flow、Message 或 Relation。
 
-`morph:cx:realm:...:cx:morph:01964140-0000-7000-8000-000000000000`
+`morph:ck:realm:...:ck:morph:01964140-0000-7000-8000-000000000000`
 
 - 匹配：特定 Morph。
 
@@ -313,23 +313,23 @@ flow_part            ::= flow_id | "*"
 
 `object` 是跨对象类型的通用选择器，只应在授权面确实需要同时覆盖多类对象时使用。实现 SHOULD 优先使用更具体的 `realm`、`flow`、`message`、`morph`、`relation` 或 `view` selector。
 
-`object:cx:realm:...:flow`
+`object:ck:realm:...:flow`
 
 - 匹配：该 Realm 中所有 `type=flow` 的对象。
 - 若只允许某个 track 范围，必须额外使用 `allowed_tracks`。
 
-`object:cx:realm:...:cx:flow:019640c5-0400-7000-8000-000000000000`
+`object:ck:realm:...:ck:flow:019640c5-0400-7000-8000-000000000000`
 
 - 匹配：给定对象引用。
 
 ### 4.7 Relation 与 View 选择器
 
-`relation:cx:realm:...:contains`
+`relation:ck:realm:...:contains`
 
 - 匹配：该 Realm 中所有 `contains` 关系。
 - 不授予被 relation 指向对象的读取权；跨 Realm 展开必须重新执行目标 Realm 授权。
 
-`view:cx:realm:...:cx:view:019641be-0000-7000-8000-000000000000`
+`view:ck:realm:...:ck:view:019641be-0000-7000-8000-000000000000`
 
 - 匹配：特定 View 定义。
 - 查询结果仍按底层对象授权裁剪。
@@ -347,14 +347,14 @@ flow_part            ::= flow_id | "*"
 
 ### 5.1 合取 (+)
 
-`realm:cx:realm:...+flow:cx:realm:...:*`
+`realm:ck:realm:...+flow:ck:realm:...:*`
 
 - 表示两个 selector 同时命中时才授权。
 - 常用于把宽泛 selector 与额外资源范围或环境约束组合。
 
 ### 5.2 析取 (,)
 
-`realm:cx:realm:01964195-0000-7000-8000-000000000000,realm:cx:realm:01964195-8000-7000-8000-000000000000`
+`realm:ck:realm:01964195-0000-7000-8000-000000000000,realm:ck:realm:01964195-8000-7000-8000-000000000000`
 
 - 表示任一 selector 命中即可。
 

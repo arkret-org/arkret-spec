@@ -7,13 +7,13 @@ updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:
-  - did:web:contrix.example
+  - did:web:cokret.example
 depends_on: [CXP-0003]
 ---
 
 ## 1. Summary
 
-引入 `cx:flow_type:` 一等对象,声明 Realm 内某个 Flow 业务类型(Task / Sub-task / Bug / Story / Initiative / ...)的字段集合、必填项、允许的 workflow、父子层级。Flow 上新增可选 `flow_type_ref: id:flow_type`,reducer 在 `cx.flow.create` / `cx.flow.update` 时按 type 声明做字段验证。
+引入 `ck:flow_type:` 一等对象,声明 Realm 内某个 Flow 业务类型(Task / Sub-task / Bug / Story / Initiative / ...)的字段集合、必填项、允许的 workflow、父子层级。Flow 上新增可选 `flow_type_ref: id:flow_type`,reducer 在 `cx.flow.create` / `cx.flow.update` 时按 type 声明做字段验证。
 
 ## 2. Motivation
 
@@ -28,13 +28,13 @@ Jira 截图里 "Sub-task / Task" tab 切换 = 每个 Space 内 Flow 的有限**�
 
 ## 3. Specification
 
-### 3.1 `cx:flow_type:` 对象
+### 3.1 `ck:flow_type:` 对象
 
 Schema id: `cx.schema.flow_type.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:flow_type` | `cx:flow_type:<uuid>` | Flow type ID。 |
+| `id` | yes | `id:flow_type` | `ck:flow_type:<uuid>` | Flow type ID。 |
 | `realm_id` | yes | `id:realm` | — | 归属 Realm。 |
 | `key` | yes | `string` | `^[a-z][a-z0-9_]{0,63}$`;在 `(realm_id, key)` 唯一;**create-locked**(与 morph_type 同理,授权 / selector 不能被 silent rename)。 | 机器名(`task`, `subtask`, `bug`, `story`, ...)。 |
 | `name` | yes | `string` | 1..64 chars。 | 显示名。 |
@@ -42,7 +42,7 @@ Schema id: `cx.schema.flow_type.v1`
 | `icon` | no | `object` | `{emoji?, blob_ref?}` | 类型图标。 |
 | `color` | no | `object` | 同 [CXP-0001](./0001-label-entity.md) `color`。 | 类型主题色(用于 UI tag 渲染)。 |
 | `parent_type_refs` | no | `array<id:flow_type>` | 允许多个父类型(例如 `subtask` 的父可以是 `task` 也可以是 `bug`)。 | 父子层级:本 type 的 Flow MUST 有 `cx.flow.parent --> flow` Relation 指向一个 `flow_type ∈ parent_type_refs` 的 Flow。 |
-| `field_requirements` | no | `array<FieldRequirement>` | 见 §3.2。 | 字段必填 / 推荐 / 禁止表;**依赖 [CXP-0003 Field Catalog](./0003-field-catalog.md) 的 `cx:field_def:`**。 |
+| `field_requirements` | no | `array<FieldRequirement>` | 见 §3.2。 | 字段必填 / 推荐 / 禁止表;**依赖 [CXP-0003 Field Catalog](./0003-field-catalog.md) 的 `ck:field_def:`**。 |
 | `allowed_workflow_ref` | no | `id:workflow` | 见 [CXP-0005](./0005-workflow-state-machine.md)。 | 本 type 默认 / 唯一允许的 workflow。 |
 | `allowed_relation_kinds` | no | `array<string>` | — | 本 type 的 Flow 允许出现哪些 outgoing Relation kind(白名单收紧)。 |
 | `default_stage` | no | `enum(common-fields §5.3.2 的 8 值)` | — | `cx.flow.create` 未指定 stage 时的 fallback。**注意**:协议级 stage 仍要求 actor 必填(common-fields §5.3.1),本字段仅供 client 端 picker 预填。 |
@@ -53,7 +53,7 @@ Schema id: `cx.schema.flow_type.v1`
 
 ```json
 {
-  "field_def_ref": "cx:field_def:<uuid>",
+  "field_def_ref": "ck:field_def:<uuid>",
   "requirement": "required" | "recommended" | "optional" | "forbidden",
   "visible_when_empty": true,
   "default_value": { "...": "..." }

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/operations-error-mapping.schema.json",
+  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/operations-error-mapping.schema.json",
   "version": "2026-05-27",
   "kind": "operations_error_mapping",
   "source_role": "canonical",

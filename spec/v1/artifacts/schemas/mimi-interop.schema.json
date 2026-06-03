@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/mimi-interop.schema.json",
-  "title": "Contrix MIMI Interoperability",
+  "$id": "https://cokret.io/artifacts/schemas/mimi-interop.schema.json",
+  "title": "Cokret MIMI Interoperability",
   "description": "Provider directory, room binding, and content mapping receipt objects for cx.profile.mimi_interop.v1.",
   "anyOf": [
     {
@@ -115,7 +115,7 @@
                   "application/mimi-content",
                   "text/plain;charset=utf-8",
                   "text/markdown;variant=GFM-MIMI",
-                  "application/vnd.contrix.content+json"
+                  "application/vnd.cokret.content+json"
                 ]
               },
               "uniqueItems": true
@@ -175,11 +175,11 @@
               "properties": {
                 "realm_id": {
                   "type": "string",
-                  "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
                 },
                 "flow_id": {
                   "type": "string",
-                  "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
                 }
               },
               "additionalProperties": true
@@ -246,7 +246,7 @@
             "application/mimi-content",
             "text/plain;charset=utf-8",
             "text/markdown;variant=GFM-MIMI",
-            "application/vnd.contrix.content+json"
+            "application/vnd.cokret.content+json"
           ]
         },
         "target_format": {
@@ -259,7 +259,7 @@
             "cx.reaction.remove",
             "cx.relation.create",
             "application/mimi-content",
-            "application/vnd.contrix.content+json"
+            "application/vnd.cokret.content+json"
           ]
         },
         "original_envelope_digest": {
@@ -273,7 +273,7 @@
         },
         "contrix_event_id": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "accepted_at": {
           "type": "string",

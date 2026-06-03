@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-本文集中定义 Contrix 协作图中的**派生 / actor-private 对象**：
+本文集中定义 Cokret 协作图中的**派生 / actor-private 对象**：
 
 - **Read Cursor**：actor 私有的已读位置状态。
 - **Notification**：从 Event / Flow / Message / Relation 派生的 inbox projection。
@@ -35,7 +35,7 @@ Schema id: `cx.schema.read_cursor.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:read_cursor` | `cx:read_cursor:<uuidv7>`。 | 私有状态 ID。 |
+| `id` | yes | `id:read_cursor` | `ck:read_cursor:<uuidv7>`。 | 私有状态 ID。 |
 | `schema` | yes | `cx.schema.read_cursor.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `realm_id` | yes | `id:realm` |  | Realm。 |
@@ -62,7 +62,7 @@ Schema id: `cx.schema.notification.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:notification` | `cx:notification:<uuidv7>`。 | 通知 ID。 |
+| `id` | yes | `id:notification` | `ck:notification:<uuidv7>`。 | 通知 ID。 |
 | `schema` | yes | `cx.schema.notification.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `realm_id` | no | `id:realm` |  | 来源 Realm。 |

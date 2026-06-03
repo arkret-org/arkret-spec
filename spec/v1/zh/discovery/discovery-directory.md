@@ -14,7 +14,7 @@ see_also:
 
 ## 1. 目标
 
-Contrix 需要明确区分三件事：
+Cokret 需要明确区分三件事：
 
 - 资源是否可被发现。
 - 资源是否可被预览。
@@ -284,7 +284,7 @@ OPRF 选择：
 {
   "profile": "cx.private_contact_discovery.v1",
   "phase": "blind",
-  "batch_id": "cx:batch:0196429a-0000-7000-8000-000000000000",
+  "batch_id": "ck:batch:0196429a-0000-7000-8000-000000000000",
   "ciphersuite": "OPRF-ristretto255-SHA512",
   "key_epoch": 14,
   "blinded_elements": ["base64url...", "base64url..."]
@@ -297,7 +297,7 @@ OPRF 选择：
 {
   "profile": "cx.private_contact_discovery.v1",
   "phase": "match",
-  "batch_id": "cx:batch:0196429a-0000-7000-8000-000000000000",
+  "batch_id": "ck:batch:0196429a-0000-7000-8000-000000000000",
   "key_epoch": 14,
   "derived_prefixes": ["base64url-16bytes...", "base64url-16bytes..."]
 }
@@ -314,7 +314,7 @@ OPRF 选择：
 
 ## 7. Directory Service Role
 
-Directory Service 是 Contrix 的**发现入口层**：让任意 subject 在不预先知道精确 id / alias / invite 的前提下，从其 trust 范围内**已 opt-in 暴露**的资源中找到目标，并取得**足以独立发起下一步 action（resolve / preview / knock / join / invite / verify / contact）的最小可验证元数据**。
+Directory Service 是 Cokret 的**发现入口层**：让任意 subject 在不预先知道精确 id / alias / invite 的前提下，从其 trust 范围内**已 opt-in 暴露**的资源中找到目标，并取得**足以独立发起下一步 action（resolve / preview / knock / join / invite / verify / contact）的最小可验证元数据**。
 
 它的职责面 normative 限定为三件事，超出以下范围的能力 MUST NOT 被实现为 Directory 的内置职责：
 
@@ -424,19 +424,19 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `resource_kind` | `enum(realm, organization, actor, applet, handle)` | required | 资源类别。 |
-| `resource_id` | `id \| did \| handle` | required | 资源主键：Realm 用 `cx:realm:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
+| `resource_id` | `id \| did \| handle` | required | 资源主键：Realm 用 `ck:realm:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
 | `discovery_state` | `object` | required | 完整签名 `cx.{kind}.discovery` payload（含 `proof`）。MUST 与真相源 byte-for-byte 一致。 |
 | `source_refs` | `id[]` | required | 真相源 event id 列表，至少包含产生当前 effective discovery state 的 anchor / state event id。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
 | `principal_server_did` | `did` | required | 当前资源真相源所在的 Principal Server service DID（用于 Directory 在需要时 pull 验证）。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
-| `supersedes_announce_id` | `cx:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
+| `supersedes_announce_id` | `ck:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
 
 **响应**：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `announce_id` | `cx:announce:<uuidv7>` | 本次 ingest 记录 id，例如 `cx:announce:0196419b-0000-7000-8000-000000000000`。这是 Directory 本地 ingest 记录；typed 形态只用于统一 validator / SDK 处理，不赋予跨 Directory 的全局对象权威。 |
+| `announce_id` | `ck:announce:<uuidv7>` | 本次 ingest 记录 id，例如 `ck:announce:0196419b-0000-7000-8000-000000000000`。这是 Directory 本地 ingest 记录；typed 形态只用于统一 validator / SDK 处理，不赋予跨 Directory 的全局对象权威。 |
 | `indexed_at` | `timestamp` | Directory 完成索引的服务器时间。 |
 | `effective_ttl_seconds` | `int` | Directory 实际授予的 TTL。 |
 | `next_revalidation_after` | `timestamp` | 下一次 re-announce 或 pull-refresh 的最早时间。 |
@@ -454,7 +454,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
   "as_of": "2026-05-10T08:00:00Z",
   "ttl_seconds": 86400,
   "source_refs": [
-    "cx:event:0196419b-0000-7000-8000-000000000000"
+    "ck:event:0196419b-0000-7000-8000-000000000000"
   ],
   "discovery_state": {
     "kind": "cx.organization.discovery",
@@ -654,7 +654,7 @@ Directory MUST NOT：
 
 #### 9.1.1 Realm Join Candidate（normative）
 
-`join_candidates[]` 是 Contrix 对 Matrix `via` / candidate resident servers 模式的 Realm 级对应物：它是路由提示，不是授权证明。客户端 MAY 通过列表中任一合格候选提交 `cx.invite.accept`、`cx.member.state{membership="join"}`、`cx.member.state{membership="knock"}` 或 profile 声明的 application receipt；协议不要求必须经邀请者所在 Principal Server 加入。
+`join_candidates[]` 是 Cokret 对 Matrix `via` / candidate resident servers 模式的 Realm 级对应物：它是路由提示，不是授权证明。客户端 MAY 通过列表中任一合格候选提交 `cx.invite.accept`、`cx.member.state{membership="join"}`、`cx.member.state{membership="knock"}` 或 profile 声明的 application receipt；协议不要求必须经邀请者所在 Principal Server 加入。
 
 每个 candidate MUST 符合 [`cx.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json)，并满足：
 
@@ -687,7 +687,7 @@ Directory MUST NOT：
   },
   "requester": "did:web:alice.example.com",
   "proofs": [
-    "cx:presentation:..."
+    "ck:presentation:..."
   ],
   "limit": 20,
   "cursor": null
@@ -700,7 +700,7 @@ Result：
 {
   "results": [
     {
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "title": "Release Coordination",
       "summary": "Public release coordination",
       "discoverability": "listed",
@@ -709,10 +709,10 @@ Result：
       "owning_organizations": [
         "did:web:acme.example"
       ],
-      "preview_ref": "cx:event:<uuid>",
+      "preview_ref": "ck:event:<uuid>",
       "join_candidates": [
         {
-          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "service_did": "did:web:principal.acme.example",
           "service_type": "principal_server",
           "role": "primary",
@@ -728,7 +728,7 @@ Result：
           "priority": 0,
           "source": "directory_ingest",
           "source_refs": [
-            "cx:event:36531ccc-395a-7455-9880-000000000000"
+            "ck:event:36531ccc-395a-7455-9880-000000000000"
           ],
           "as_of": "2026-05-10T07:55:12Z",
           "expires_at": "2026-05-10T08:05:12Z"
@@ -737,9 +737,9 @@ Result：
       "as_of": "2026-05-10T07:55:12Z",
       "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
       "source_refs": [
-        "cx:event:36531ccc-395a-7455-9880-000000000000",
-        "cx:event:36531cd0-e580-7bb1-a8ab-310000000000",
-        "cx:event:36531c0c-4155-7fd5-a082-b15662000000"
+        "ck:event:36531ccc-395a-7455-9880-000000000000",
+        "ck:event:36531cd0-e580-7bb1-a8ab-310000000000",
+        "ck:event:36531c0c-4155-7fd5-a082-b15662000000"
       ]
     }
   ],

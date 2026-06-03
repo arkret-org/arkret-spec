@@ -89,9 +89,9 @@
       "vector_id": "cx.vector.encoding.event_digest.v1",
       "kind": "canonical_json_digest",
       "input": {
-        "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+        "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
         "kind": "cx.message.create",
-        "realm_id": "cx:realm:01964137-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:web:alice.example",
         "actor_seq": 1,
         "created_at": "2026-04-26T00:00:00Z",
@@ -101,29 +101,29 @@
         "preconditions": [],
         "effects": [
           {
-            "cell": "cx:cell:message:019640ed-8000-7000-8000-000000000000",
+            "cell": "ck:cell:message:019640ed-8000-7000-8000-000000000000",
             "op": {
               "kind": "append",
               "value": {
-                "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
-                "message_id": "cx:message:019640ed-8000-7000-8000-000000000000",
+                "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
+                "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
                 "track_name": "discussion"
               }
             }
           }
         ],
-        "anchor_ref": "cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "anchor_ref": "ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "payload": {
-          "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
+          "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
           "track_name": "discussion",
-          "message_id": "cx:message:019640ed-8000-7000-8000-000000000000",
+          "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
           "content": {
             "kind": "cx.content.text",
             "body": "hello"
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"anchor_ref\":\"cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"cx:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"flow_id\":\"cx:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"cx:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"cx:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"cx.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"cx.content.text\"},\"flow_id\":\"cx:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"cx:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"preconditions\":[],\"prev_refs\":[],\"realm_id\":\"cx:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[]}",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"anchor_ref\":\"ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"cx.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"cx.content.text\"},\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"preconditions\":[],\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[]}",
       "expected_digest": "sha256:297487d820da12ad42ffffbbb82b53dd01ddf48911b650c38f5b19a127c587a4",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
@@ -137,7 +137,7 @@
       "kind": "canonical_json_digest",
       "input": {
         "schema": "cx.schema.event_batch_receipt.v1",
-        "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
+        "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
         "issuer": "did:web:alice.example",
         "receipt_scope": {
           "actor_id": "did:web:alice.example"
@@ -151,7 +151,7 @@
         ],
         "created_at": "2026-04-26T00:00:00Z"
       },
-      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"cx:receipt:01964186-0000-7000-8000-000000000000\",\"receipt_scope\":{\"actor_id\":\"did:web:alice.example\"},\"schema\":\"cx.schema.event_batch_receipt.v1\"}",
+      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"ck:receipt:01964186-0000-7000-8000-000000000000\",\"receipt_scope\":{\"actor_id\":\"did:web:alice.example\"},\"schema\":\"cx.schema.event_batch_receipt.v1\"}",
       "expected_digest": "sha256:2b0748e19647155acf1627f22cc4ca66acce025ec726b9ac309e30cd567d0f86",
       "fail_conditions": [
         "events array sorted or deduplicated before hashing",
@@ -218,7 +218,7 @@
     {
       "vector_id": "cx.vector.encoding.cursor_opaque.core.v1",
       "kind": "cursor_opaqueness",
-      "input_cursor": "cx:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9",
+      "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9",
       "decoded_payload_canonical_bytes_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
       "fixture_freshness_note": "Timestamps are fixed at year 2099 deliberately so the static vector cannot expire during normal spec lifetime. Implementations generating their own conformance cursors MUST use fresh `t`/`x` matching their authority's clock; do NOT reuse this fixture's `t`/`x` on the wire.",
       "client_rules": [
@@ -241,8 +241,8 @@
       "applies_to_profiles": [
         "cx.profile.stateless_cursor.v1"
       ],
-      "input_cursor": "cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0",
-      "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"issuer_kid\":\"did:web:sync.example#cursor-2026-05\",\"purpose\":\"stream\",\"s\":{\"cx:realm:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"cx:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
+      "input_cursor": "ck:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0",
+      "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"issuer_kid\":\"did:web:sync.example#cursor-2026-05\",\"purpose\":\"stream\",\"s\":{\"ck:realm:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"ck:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
       "fixture_freshness_note": "Profile-only stateless cursor vector. Core suites MUST skip this vector unless cx.profile.stateless_cursor.v1 is claimed.",
       "client_rules": [
         "MUST treat cursor as an opaque string and round-trip it verbatim",
@@ -277,24 +277,24 @@
   ],
   "rank_order": [
     {
-      "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000",
-      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
+      "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000",
+      "list_id": "ck:space:01964010-8000-7000-8000-000000000000",
       "rank": "U"
     },
     {
-      "flow_id": "cx:flow:019640c5-0800-7000-8000-000000000000",
-      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
+      "flow_id": "ck:flow:019640c5-0800-7000-8000-000000000000",
+      "list_id": "ck:space:01964010-8000-7000-8000-000000000000",
       "rank": "j"
     },
     {
-      "flow_id": "cx:flow:019640c5-0c00-7000-8000-000000000000",
-      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
+      "flow_id": "ck:flow:019640c5-0c00-7000-8000-000000000000",
+      "list_id": "ck:space:01964010-8000-7000-8000-000000000000",
       "rank": "t"
     }
   ],
   "expected_order": [
-    "cx:flow:019640c5-0400-7000-8000-000000000000",
-    "cx:flow:019640c5-0800-7000-8000-000000000000",
-    "cx:flow:019640c5-0c00-7000-8000-000000000000"
+    "ck:flow:019640c5-0400-7000-8000-000000000000",
+    "ck:flow:019640c5-0800-7000-8000-000000000000",
+    "ck:flow:019640c5-0c00-7000-8000-000000000000"
   ]
 }

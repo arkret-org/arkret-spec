@@ -10,14 +10,14 @@ updated: 2026-05-25
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-> **权威 schema / OpenAPI 来源**：本文是 Applet wire 对象与 HTTP 字段的人类可读参考；它**不**是机器可校验的权威定义。Applet registration / transaction / bridge-error 的权威 JSON Schema 见 `artifacts/schemas/applet.schema.json`，HTTP operation 的权威 OpenAPI 定义见 `artifacts/openapi/contrix-service-api.openapi.yaml`（两者由 artifact pipeline 从 contract catalog 生成）。本文与上述 artifacts 冲突时，**以 artifacts 为准**。
+> **权威 schema / OpenAPI 来源**：本文是 Applet wire 对象与 HTTP 字段的人类可读参考；它**不**是机器可校验的权威定义。Applet registration / transaction / bridge-error 的权威 JSON Schema 见 `artifacts/schemas/applet.schema.json`，HTTP operation 的权威 OpenAPI 定义见 `artifacts/openapi/cokret-service-api.openapi.yaml`（两者由 artifact pipeline 从 contract catalog 生成）。本文与上述 artifacts 冲突时，**以 artifacts 为准**。
 
 ## 1. Applet Registration Schema
 
 ```json
 {
   "kind": "cx.applet.registration",
-  "applet_id": "cx:applet:dd552c17-0000-7000-8000-000000000000",
+  "applet_id": "ck:applet:dd552c17-0000-7000-8000-000000000000",
   "service_did": "did:web:applet.example",
   "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://applet.example/api/v1/applet",
@@ -146,7 +146,7 @@ GET /api/v1/applet/realms/{realm_id_or_alias}
 ```json
 {
   "exists": true,
-  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
   "title": "#general",
   "external_ref": {}
 }
@@ -176,9 +176,9 @@ GET /api/v1/applet/protocols/{protocol}
 ```json
 {
   "kind": "cx.applet.bridge_error",
-  "applet_id": "cx:applet:dd552c17-0000-7000-8000-000000000000",
-  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
-  "failed_transaction_ref": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "applet_id": "ck:applet:dd552c17-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
+  "failed_transaction_ref": "ck:event:019640ed-8000-7000-8000-000000000000",
   "external_ref": {},
   "error_code": "external_rate_limited",
   "error_class": "external_network",

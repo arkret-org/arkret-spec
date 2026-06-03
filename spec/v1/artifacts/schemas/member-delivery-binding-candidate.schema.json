@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/member-delivery-binding-candidate.schema.json",
-  "title": "Contrix Member Delivery Binding Candidate",
+  "$id": "https://cokret.io/artifacts/schemas/member-delivery-binding-candidate.schema.json",
+  "title": "Cokret Member Delivery Binding Candidate",
   "description": "Builder-side candidate object that ferries Handle resolution output (intent=member_add | invite) or a trusted-issuer-signed equivalent into the Realm member_add / invite pipeline. Produces a Realm-scoped member_delivery_binding only after the reducer independently re-validates against Join Policy. See identity-handles.md §3.7.",
   "type": "object",
   "required": [
@@ -25,7 +25,7 @@
     "handle": {
       "type": "string",
       "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
-      "description": "Contrix canonical handle string: <localpart>:<domain>. acct: aliases and @ mention spelling are rejected here."
+      "description": "Cokret canonical handle string: <localpart>:<domain>. acct: aliases and @ mention spelling are rejected here."
     },
     "handle_aliases": {
       "type": "array",
@@ -78,11 +78,11 @@
         },
         "service_acceptance_ref": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "policy_event_ref": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       },
       "additionalProperties": false
@@ -112,7 +112,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true,
       "minItems": 1,

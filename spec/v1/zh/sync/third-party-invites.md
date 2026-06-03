@@ -35,9 +35,9 @@ updated: 2026-05-25
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
 {
   "invite": {
-    "id": "cx:invite:0196419b-1000-7000-8000-000000000000",
+    "id": "ck:invite:0196419b-1000-7000-8000-000000000000",
     "schema": "cx.schema.invite.v1",
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "inviter": "did:web:alice.example",
     "third_party_id": {
       "display_name_hint": "external invite",
@@ -76,14 +76,14 @@ updated: 2026-05-25
 **Canonical 示例**（fragment 形式）：
 
 ```text
-https://app.contrix.example/invite#token=<invite_token>
+https://app.cokret.example/invite#token=<invite_token>
 ```
 
 或 OOB code 形式（用户在已打开的客户端中手动录入）：
 
 ```text
 邮件正文: Your invite code is XYZ7-K9MP-Q4LB-A2HN-V8RD-T6FW.
-打开 Contrix → "我有邀请码" → 输入 XYZ7-K9MP-Q4LB-A2HN-V8RD-T6FW.
+打开 Cokret → "我有邀请码" → 输入 XYZ7-K9MP-Q4LB-A2HN-V8RD-T6FW.
 ```
 
 > **OOB code 熵约束（normative）**：上面 `XYZ7-K9MP-Q4LB-A2HN-V8RD-T6FW` 是说明性占位，**不**是允许的固定低熵格式。真实 OOB code MUST 满足下列**任一**模式才能被接受：
@@ -96,8 +96,8 @@ https://app.contrix.example/invite#token=<invite_token>
 **禁止形态**（reducer / 服务端 MUST 拒绝 inbound claim 携带这种 token 来源声明）：
 
 ```text
-https://app.contrix.example/invite?token=<invite_token>&realm=cx:realm:...    ❌ token in query
-https://app.contrix.example/invite/<invite_token>                              ❌ token in path
+https://app.cokret.example/invite?token=<invite_token>&realm=ck:realm:...    ❌ token in query
+https://app.cokret.example/invite/<invite_token>                              ❌ token in path
 ```
 
 邮件/SMS 内容不得包含 Realm 私密名称、成员列表、历史摘要或其他未授权预览。验证服务 MUST 在 SMTP 网关上启用 sender domain restriction (SPF/DKIM/DMARC) 以防 token-bearing link 被 phishing 重用。
@@ -118,7 +118,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
 {
-  "invite_id": "cx:invite:0196419b-1000-7000-8000-000000000000",
+  "invite_id": "ck:invite:0196419b-1000-7000-8000-000000000000",
   "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
   "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
@@ -126,8 +126,8 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
     "verification_service_did": "did:web:identity.alice.example",
     "verification_method": "did:web:identity.alice.example#invite-001",
     "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-    "audience": "contrix.invite.claim",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "audience": "cokret.invite.claim",
     "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
     "expires_at": "2026-05-05T00:00:00Z",
     "signature": "c2ln"
@@ -146,7 +146,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到该 Event 时：
 1. 匹配 `token_commitment` 与未过期、未撤销、未认领的 `cx.invite.third_party`。
 2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_id`、`realm_id`、audience、过期时间和 claim nonce。
-3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("cx.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"contrix.invite.claim", verification_service_did, binding_proof_digest})`，其中 `verification_service_did` 等于 `binding_proof.verification_service_did`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_service_did` / `binding_proof_digest` 的 subject proof MUST reject；`verification_service_did` 与 `binding_proof.verification_service_did` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
+3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("cx.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"cokret.invite.claim", verification_service_did, binding_proof_digest})`，其中 `verification_service_did` 等于 `binding_proof.verification_service_did`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_service_did` / `binding_proof_digest` 的 subject proof MUST reject；`verification_service_did` 与 `binding_proof.verification_service_did` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
 4. 原子标记 pending invite 为 `claimed`；同一个 `token_commitment` 的第二次认领 MUST reject。
 5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
 6. 随后 Bob 刷新 Realm 的 `join_candidates[]`，选择一个未过期候选并按照正常流程发送 `cx.invite.accept` 加入 Realm。

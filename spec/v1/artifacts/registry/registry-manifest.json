@@ -32,7 +32,7 @@
       "kind": "mls_extension_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical registry of Contrix-defined MLS GroupContext extension codepoints in the private-use range."
+      "description": "Canonical registry of Cokret-defined MLS GroupContext extension codepoints in the private-use range."
     },
     {
       "name": "event_kinds",
@@ -50,7 +50,7 @@
       "source_role": "generated",
       "source_of_truth": false,
       "generated_from": "registry/contract-catalog.json",
-      "description": "Generated registry view for cx:<kind>: typed ID prefixes and storage/wire rules."
+      "description": "Generated registry view for ck:<kind>: typed ID prefixes and storage/wire rules."
     },
     {
       "name": "operations",

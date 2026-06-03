@@ -26,13 +26,13 @@ updated: 2026-05-25
 
 ```json
 {
-  "id": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
+  "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
   "schema": "cx.schema.actor_profile.v1",
   "principal_id": "did:web:alice.example.com",
   "actor_kind": "user",
   "display_name": "Alice Chen",
   "handle": "alice",
-  "avatar_blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "avatar_blob_ref": "ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "active",
   "profile_fields": {
     "status_message": "On vacation until May 5",
@@ -70,9 +70,9 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
 
 ```json
 {
-  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "kind": "cx.profile.create",
-  "realm_id": "cx:realm:01964166-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -81,13 +81,13 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
   "refs": [],
   "payload": {
     "object": {
-      "id": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
+      "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
       "schema": "cx.schema.actor_profile.v1",
       "principal_id": "did:web:alice.example.com",
       "actor_kind": "user",
       "display_name": "Alice Chen",
       "handle": "alice",
-      "avatar_blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "avatar_blob_ref": "ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "status": "active",
       "profile_fields": {
         "timezone": "Asia/Shanghai",
@@ -113,19 +113,19 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "event_id": "cx:event:019640ed-8400-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8400-7000-8000-000000000000",
   "kind": "cx.profile.update",
-  "realm_id": "cx:realm:01964166-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 2,
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
-  "prev_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
+  "prev_refs": ["ck:event:019640ed-8000-7000-8000-000000000000"],
   "refs": [
-    { "id": "cx:event:019640ed-8000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ck:event:019640ed-8000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "payload": {
-    "target_ref": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
+    "target_ref": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
     "patch": {
       "display_name": "Alice C.",
       "profile_fields.status_message": "Back at work!"
@@ -148,30 +148,30 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
-`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）。两 kind 共写入同一 cell `cx:cell:cx.component.profile.v1:<target_actor_profile_id>`（cas_register, bottom=reject），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
+`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）。两 kind 共写入同一 cell `ck:cell:cx.component.profile.v1:<target_actor_profile_id>`（cas_register, bottom=reject），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
 
 ### 2.4 Per-Realm Profile 覆写
 
 用户 MAY 为特定 Realm 设置不同的显示名或头像（例如在公司 Realm 用真名，在开源项目 Realm 用昵称）：
 
-`cx.profile.space_override` 是保留的 wire kind 名称；其语义是 Realm-scoped profile override，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `cx:space:` 容器，也不创建 Space 级访问边界。
+`cx.profile.space_override` 是保留的 wire kind 名称；其语义是 Realm-scoped profile override，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ck:space:` 容器，也不创建 Space 级访问边界。
 
 ```json
 {
-  "event_id": "cx:event:019640ed-8800-7000-8000-000000000000",
+  "event_id": "ck:event:019640ed-8800-7000-8000-000000000000",
   "kind": "cx.profile.space_override",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 3,
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",
-  "prev_refs": ["cx:event:019640ed-8400-7000-8000-000000000000"],
+  "prev_refs": ["ck:event:019640ed-8400-7000-8000-000000000000"],
   "refs": [
-    { "id": "cx:event:019640ed-8400-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ck:event:019640ed-8400-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "payload": {
-    "target_ref": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
-    "target_realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "target_ref": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
+    "target_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "patch": {
       "display_name": "alice-oss",
       "avatar_blob_ref": {
@@ -259,8 +259,8 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 {
   "kind": "cx.typing",
   "actor_id": "did:web:alice.example.com",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "flow_id": "ck:flow:01964200-0000-7000-8000-000000000001",
   "typing": true,
   "ttl_ms": 5000
 }
@@ -283,7 +283,7 @@ Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能
 ```
 POST /api/v1/directory/search-users
 
-{ "query": "alice", "realm_id": "cx:realm:...", "limit": 10 }
+{ "query": "alice", "realm_id": "ck:realm:...", "limit": 10 }
 ```
 
 请求字段：
@@ -317,7 +317,7 @@ POST /api/v1/directory/search-users
     {
       "handle": "alice@example.com",
       "display_name": "Alice Chen",
-      "avatar_blob_ref": "cx:blob:sha256:a1b2c3...",
+      "avatar_blob_ref": "ck:blob:sha256:a1b2c3...",
       "membership": "joined"
     }
   ],

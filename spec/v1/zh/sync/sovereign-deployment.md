@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-高安全组织可以运行独立的 Contrix 网络，同时在必要时为外部人员或外部组织开启 **External Collaboration Realm**。
+高安全组织可以运行独立的 Cokret 网络，同时在必要时为外部人员或外部组织开启 **External Collaboration Realm**。
 
 本文定义：
 
@@ -28,7 +28,7 @@ sidebar:
 
 ## 2. 部署模型
 
-Sovereign deployment 是由单一组织或联盟控制的 Contrix 服务域。它通常包含：
+Sovereign deployment 是由单一组织或联盟控制的 Cokret 服务域。它通常包含：
 
 - Organization DID / governance registry / witness
 - Identity Registry
@@ -155,7 +155,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 ```json
 {
   "kind": "cx.sovereign.did_policy",
-  "trust_domain": "cx:trust_domain:did.webvh.defense.example",
+  "trust_domain": "ck:trust_domain:did.webvh.defense.example",
   "default_principal_method": "did:webvh",
   "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
   "trust_roots": [
@@ -192,12 +192,12 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
   "kind": "cx.realm.create",
   "payload": {
     "object": {
-      "id": "cx:realm:019640ea-8000-7000-8000-000000000000",
+      "id": "ck:realm:019640ea-8000-7000-8000-000000000000",
       "schema": "cx.schema.realm.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
       "created_by": "did:web:defense.example",
-      "trust_domain": "cx:trust_domain:did.webvh.defense.example",
+      "trust_domain": "ck:trust_domain:did.webvh.defense.example",
       "owning_organizations": [
         "did:web:defense.example"
       ],
@@ -264,7 +264,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组
   "issuer": "did:web:defense.example",
   "subject": "did:web:contractor.example",
   "claim_scope": {
-    "realm_id": "cx:realm:400d7400-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:400d7400-0000-7000-8000-000000000000",
     "roles": ["contractor_reviewer"],
     "max_members": 20
   },

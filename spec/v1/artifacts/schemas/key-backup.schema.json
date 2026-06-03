@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/key-backup.schema.json",
-  "title": "Contrix Encrypted Key Backup",
+  "$id": "https://cokret.io/artifacts/schemas/key-backup.schema.json",
+  "title": "Cokret Encrypted Key Backup",
   "type": "object",
   "required": [
     "backup_id",
@@ -20,7 +20,7 @@
   "properties": {
     "backup_id": {
       "type": "string",
-      "pattern": "^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
       "type": "string",
@@ -28,7 +28,7 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "backup_class": {
       "type": "string",
@@ -49,7 +49,7 @@
     },
     "series_id": {
       "type": "string",
-      "pattern": "^cx:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Stable identifier for one immutable chain of backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during compromise rotation or migration; active series selection is outside this envelope and MUST come from the signed active-series record in identity/key-management.md §7.6. Receivers use (actor_id, backup_class, series_id) to detect server-side rollback / withholding within the selected series."
     },
     "series_seq": {
@@ -62,7 +62,7 @@
         { "type": "null" },
         {
           "type": "string",
-          "pattern": "^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ],
       "description": "backup_id of the immediate predecessor in the same series_id. MUST be null for series_seq=0; MUST be non-null and reference an existing predecessor for series_seq>0."
@@ -83,7 +83,7 @@
         },
         "anchor_ref": {
           "type": "string",
-          "pattern": "^cx:anchor:sha256:[0-9a-f]{64}$"
+          "pattern": "^ck:anchor:sha256:[0-9a-f]{64}$"
         },
         "ssk_generation": {
           "type": "integer",
@@ -102,7 +102,7 @@
       "properties": {
         "policy_id": {
           "type": "string",
-          "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "policy_version": {
           "type": "integer",
@@ -304,7 +304,7 @@
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='contrix-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
+              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='cokret-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
             },
             "nonce_salt": {
               "type": "string",
@@ -427,7 +427,7 @@
           },
           "realm_id": {
             "type": "string",
-            "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "mls_group_id": {
             "type": "string",
@@ -439,11 +439,11 @@
           },
           "first_event_id": {
             "type": "string",
-            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "last_event_id": {
             "type": "string",
-            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "secret_id": {
             "type": "string",
@@ -477,7 +477,7 @@
       "properties": {
         "device_id": {
           "type": "string",
-          "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "verification_method": {
           "type": "string",
@@ -693,7 +693,7 @@
         "properties": {
           "supersedes": {
             "type": "string",
-            "pattern": "^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "auth_data": {
             "properties": {

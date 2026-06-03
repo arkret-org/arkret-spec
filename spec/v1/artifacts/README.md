@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-05-25
 ---
 
-`artifacts/` 存放 Contrix 的机器可读协议契约（machine-readable contract）。
+`artifacts/` 存放 Cokret 的机器可读协议契约（machine-readable contract）。
 
 ## 1. 约定与分层
 
@@ -22,7 +22,7 @@ updated: 2026-05-25
   - 实现 / 部署 / 向量 / hardening profile 矩阵。
 - `artifacts/schemas/*.schema.json`
   - 核心对象、Event Envelope payload、sync、blob/media、push、identity、moderation、MIMI interop 的 JSON Schema。
-- `artifacts/openapi/contrix-service-api.openapi.yaml`
+- `artifacts/openapi/cokret-service-api.openapi.yaml`
   - HTTP/JSON binding shape；与 operation registry 对齐，不构成第二套 operation namespace。
 - `artifacts/bindings/non-http-bindings.yaml`
   - gRPC / WS / SSE / MQ / libp2p 等 binding extension profile 概要。

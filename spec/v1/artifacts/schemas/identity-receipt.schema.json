@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/identity-receipt.schema.json",
-  "title": "Contrix Identity Receipt",
+  "$id": "https://cokret.io/artifacts/schemas/identity-receipt.schema.json",
+  "title": "Cokret Identity Receipt",
   "type": "object",
   "required": [
     "schema",
@@ -21,7 +21,7 @@
     },
     "receipt_id": {
       "type": "string",
-      "pattern": "^cx:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did": {
       "type": "string",

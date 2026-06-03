@@ -229,7 +229,7 @@
         "schema_validation",
         "state_resolution"
       ],
-      "description": "Sub-reason for schema_violation when a cx.reaction.add / cx.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows cx:message: targets; profiles MAY register additional target kinds. See zh/models/flow-and-message.md §9.8.2."
+      "description": "Sub-reason for schema_violation when a cx.reaction.add / cx.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows ck:message: targets; profiles MAY register additional target kinds. See zh/models/flow-and-message.md §9.8.2."
     },
     {
       "code": "reaction_scope_mismatch",
@@ -356,7 +356,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "The opaque cursor (cx:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier)."
+      "description": "The opaque cursor (ck:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier)."
     },
     {
       "code": "cursor_integrity_invalid",
@@ -686,7 +686,7 @@
       "code": "unsupported_digest_algorithm",
       "http_status": 422,
       "scope": "both",
-      "description": "The digest algorithm prefix in a typed digest value (e.g. cx:event:<algo>:<hex>) is not in the receiver's supported digest algorithm list. See zh/conformance/encoding.md §3.2."
+      "description": "The digest algorithm prefix in a typed digest value (e.g. ck:event:<algo>:<hex>) is not in the receiver's supported digest algorithm list. See zh/conformance/encoding.md §3.2."
     },
     {
       "code": "anchor_incomplete",
@@ -722,7 +722,7 @@
       "code": "delivery_binding_unresolvable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_did after the bounded retry limit; sender MUST NOT fall back to the DID Document ContrixPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md §5.1.4."
+      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_did after the bounded retry limit; sender MUST NOT fall back to the DID Document CokretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md §5.1.4."
     },
     {
       "code": "historical_only",
@@ -937,7 +937,7 @@
       "applies_to": [
         "encoding"
       ],
-      "description": "Bytes are not valid Contrix canonical JSON (sorted keys, integer-only numbers, escape rules per encoding.md §1)."
+      "description": "Bytes are not valid Cokret canonical JSON (sorted keys, integer-only numbers, escape rules per encoding.md §1)."
     },
     {
       "code": "invalid_encoding",
@@ -974,7 +974,7 @@
         "client_sync",
         "encoding"
       ],
-      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_digest / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /account/subscribe after= resume, X-Contrix-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_digest / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /account/subscribe after= resume, X-Cokret-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "cursor_revoked",
@@ -1574,7 +1574,7 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "A `cx.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `contrix-native` / `moq-relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/webrtc-signaling.md §6.1."
+      "description": "A `cx.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `cokret-native` / `moq-relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/webrtc-signaling.md §6.1."
     },
     {
       "code": "token_issuer_unauthorised",
@@ -1611,14 +1611,14 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "A backend media SDK supplied an SFrame / frame encryption key from a source other than the Contrix MLS exporter (label `cx-rtc-frame-key/v1`). Clients MUST reject and refuse to publish / subscribe media. Closes the attack where backend cloud key escrow could intercept ostensibly-E2EE media. See zh/crypto-media/webrtc-signaling.md §10.5.0."
+      "description": "A backend media SDK supplied an SFrame / frame encryption key from a source other than the Cokret MLS exporter (label `cx-rtc-frame-key/v1`). Clients MUST reject and refuse to publish / subscribe media. Closes the attack where backend cloud key escrow could intercept ostensibly-E2EE media. See zh/crypto-media/webrtc-signaling.md §10.5.0."
     },
     {
       "code": "recording_artifact_pipeline_bypassed",
       "applies_to": [
         "service_call"
       ],
-      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Contrix-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Contrix media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/webrtc-signaling.md §13 and proposals/0010-media-service-binding-framework.md §4.7."
+      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Cokret-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Cokret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/webrtc-signaling.md §13 and proposals/0010-media-service-binding-framework.md §4.7."
     },
     {
       "code": "legacy_single_endpoint_media_service",
@@ -1626,7 +1626,7 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "A `cx.realm.media_service` event still uses the v1.0 legacy single-`sfu_endpoint` shape after v1.1. In v1 cycle servers SHOULD normalize the legacy shape to `foci=[{focus_id:\"legacy\", type:\"contrix-native\", ...}]` with audit log; starting v1.1 this MUST be rejected with `failed_precondition` and this `reason`. See zh/crypto-media/webrtc-signaling.md §6.1."
+      "description": "A `cx.realm.media_service` event still uses the v1.0 legacy single-`sfu_endpoint` shape after v1.1. In v1 cycle servers SHOULD normalize the legacy shape to `foci=[{focus_id:\"legacy\", type:\"cokret-native\", ...}]` with audit log; starting v1.1 this MUST be rejected with `failed_precondition` and this `reason`. See zh/crypto-media/webrtc-signaling.md §6.1."
     },
     {
       "code": "focus_unavailable_for_client",
@@ -2003,14 +2003,14 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "An Agent Protocol handoff returned or submitted an artifact that failed Contrix schema, safety, policy, or malware checks. The agent session MAY continue, but the artifact MUST NOT be admitted as accepted Realm content. See zh/extensions/agent-protocol-interop.md."
+      "description": "An Agent Protocol handoff returned or submitted an artifact that failed Cokret schema, safety, policy, or malware checks. The agent session MAY continue, but the artifact MUST NOT be admitted as accepted Realm content. See zh/extensions/agent-protocol-interop.md."
     },
     {
       "code": "remote_rejected",
       "applies_to": [
         "service_call"
       ],
-      "description": "A remote agent or peer explicitly rejected the delegated task / protocol handoff. Contrix records the rejection as a stable handoff outcome rather than retrying blindly. See zh/extensions/agent-protocol-interop.md."
+      "description": "A remote agent or peer explicitly rejected the delegated task / protocol handoff. Cokret records the rejection as a stable handoff outcome rather than retrying blindly. See zh/extensions/agent-protocol-interop.md."
     },
     {
       "code": "webvh_cache_too_stale",
@@ -2257,7 +2257,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI facade attempted to project room state, groupInfo, key material, or message data into a Contrix Realm without a verifiable Contrix MLS governance binding. Receiver MUST quarantine or reject fail-closed instead of accepting unauthenticated MIMI state as Realm authority. See zh/extensions/mimi-interop.md §4."
+      "description": "A MIMI facade attempted to project room state, groupInfo, key material, or message data into a Cokret Realm without a verifiable Cokret MLS governance binding. Receiver MUST quarantine or reject fail-closed instead of accepting unauthenticated MIMI state as Realm authority. See zh/extensions/mimi-interop.md §4."
     },
     {
       "code": "mimi_governance_binding_mismatch",
@@ -2273,7 +2273,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI room policy component does not match the Contrix Realm policy_root or cx.realm.policy_components state. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md §4.1."
+      "description": "A MIMI room policy component does not match the Cokret Realm policy_root or cx.realm.policy_components state. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md §4.1."
     },
     {
       "code": "mimi_room_state_incompatible",
@@ -2281,7 +2281,7 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "Incoming MIMI room state uses lifecycle, membership, policy, or extension shape not supported by the declared Contrix MIMI interop profile. Facade MUST reject or require a newer profile. See zh/extensions/mimi-interop.md §4.1."
+      "description": "Incoming MIMI room state uses lifecycle, membership, policy, or extension shape not supported by the declared Cokret MIMI interop profile. Facade MUST reject or require a newer profile. See zh/extensions/mimi-interop.md §4.1."
     },
     {
       "code": "mimi_provider_unreachable",

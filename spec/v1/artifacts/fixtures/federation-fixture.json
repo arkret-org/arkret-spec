@@ -2,7 +2,7 @@
   "suite": "federation",
   "profile": "cx.profile.federation_vectors.v1",
   "topology": {
-    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "principal_servers": [
       {
         "service_did": "did:web:server-alpha.example",
@@ -24,10 +24,10 @@
       }
     ],
     "service_binding_ref": {
-      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "realm_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "membership_frontier": [
-        "cx:event:01964145-8000-7000-8000-000000000000"
+        "ck:event:01964145-8000-7000-8000-000000000000"
       ],
       "destination_service_type": "principal_server",
       "reducer_profile_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
@@ -67,7 +67,7 @@
     {
       "name": "fork_quarantine",
       "input": {
-        "event_id": "cx:event:019640f9-8000-7000-8000-000000000000",
+        "event_id": "ck:event:019640f9-8000-7000-8000-000000000000",
         "alpha_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "beta_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
       },
@@ -78,7 +78,7 @@
       "input": {
         "requester": "did:web:server-beta.example",
         "source": "did:web:server-alpha.example",
-        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "requested_visibility": "private_plaintext",
         "requester_plaintext_visible": false
       },

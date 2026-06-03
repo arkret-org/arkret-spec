@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Contrix Service API
+  title: Cokret Service API
   version: 1.0.0
-  summary: Canonical Contrix service surface and admin/account bindings
+  summary: Canonical Cokret service surface and admin/account bindings
   description: 'Authoritative source for operations and error codes is the contract catalog at
 
     `artifacts/registry/contract-catalog.json` and the error registry at
@@ -81,7 +81,7 @@ info:
 
     inherit the global servers prefix `/api/v1`.
 
-    Paths under the deployment-local namespaces `/contrix/v1/*`, `/auth/account/*`,
+    Paths under the deployment-local namespaces `/cokret/v1/*`, `/auth/account/*`,
 
     `/admin/*`, and `/.well-known/*` MUST carry a path-level
 
@@ -125,7 +125,7 @@ components:
     moderatorCapability:
       type: apiKey
       in: header
-      name: X-Contrix-Moderator-Capability
+      name: X-Cokret-Moderator-Capability
       description: |
         Capability proof for moderation queue reads. Deployments may encode
         this as a grant reference, signed presentation, or equivalent local
@@ -167,7 +167,7 @@ components:
       name: Source-Trust-Domain
       description: |
         Federation companion to httpMessageSignature. Identifies the source
-        deployment trust domain (`cx:trust_domain:<scope>`) and MUST be covered
+        deployment trust domain (`ck:trust_domain:<scope>`) and MUST be covered
         by the signature transcript.
     destinationTrustDomain:
       type: apiKey
@@ -175,7 +175,7 @@ components:
       name: Destination-Trust-Domain
       description: |
         Federation companion to httpMessageSignature. Identifies the receiver
-        deployment trust domain (`cx:trust_domain:<scope>`) and MUST match the
+        deployment trust domain (`ck:trust_domain:<scope>`) and MUST match the
         destination service / Realm receive context before reducer logic runs.
     requestCanonicalDigest:
       type: apiKey
@@ -216,7 +216,7 @@ components:
         in this OpenAPI document; deployments MAY require it as an additional
         AND constraint on admin endpoints via deployment-local profile.
   headers:
-    XContrixRequestId:
+    XCokretRequestId:
       description: Stable request identifier.
       schema:
         type: string
@@ -224,7 +224,7 @@ components:
       description: Idempotency key for write requests.
       schema:
         type: string
-    XContrixWaitFor:
+    XCokretWaitFor:
       description: Causal frontier token the caller is waiting on.
       schema:
         type: string
@@ -236,33 +236,33 @@ components:
     ActorDid:
       type: string
       pattern: ^did:[a-z0-9]+:[^\s#?]+$
-      description: Bare DID used as a Contrix actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id.
+      description: Bare DID used as a Cokret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id.
     ServiceDid:
       type: string
       pattern: ^did:[a-z0-9]+:[^\s#?]+$
       description: Bare DID identifying a service endpoint.
     RealmId:
       type: string
-      pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     FlowId:
       type: string
-      pattern: ^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     EventId:
       type: string
-      pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     DeviceId:
       type: string
-      pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     GrantId:
       type: string
-      pattern: ^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     Cursor:
       type: string
-      pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+      pattern: ^ck:cursor:[A-Za-z0-9_-]+$
     AccountId:
       type: string
       pattern: ^[A-Za-z0-9._:-]{1,128}$
-      description: Deployment-local account identifier. It is not a Contrix principal DID and not a protocol object typed ID.
+      description: Deployment-local account identifier. It is not a Cokret principal DID and not a protocol object typed ID.
     ErrorEnvelope:
       type: object
       required:
@@ -440,7 +440,7 @@ components:
           type: string
         trust_domain:
           type: string
-          pattern: ^cx:trust_domain:[a-z0-9][a-z0-9._\-:]{0,127}$
+          pattern: ^ck:trust_domain:[a-z0-9][a-z0-9._\-:]{0,127}$
           description: Deployment trust-domain boundary used for cross-deployment replay protection.
         supported_profiles:
           type: array
@@ -684,7 +684,7 @@ components:
           type: array
           description: |
             Legacy or external-interop surfaces this service exposes for
-            compatibility, not as part of its claimed Contrix v1 conformance.
+            compatibility, not as part of its claimed Cokret v1 conformance.
             `kind` is one of `matrix_passthrough`, `mimi_passthrough`,
             `legacy_alias`, `external_interop`, `deprecated_alias`.
           items:
@@ -752,7 +752,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_policy_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
@@ -760,12 +760,12 @@ components:
           type: array
           items:
             type: string
-            pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         delivery_binding_frontier:
           type: array
           items:
             type: string
-            pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         delivery_binding_diagnostics:
           type: object
           additionalProperties: true
@@ -1174,7 +1174,7 @@ components:
         normalized_view:
           type: object
           description: |
-            Optional Contrix normalized principal view (snake_case) — derived
+            Optional Cokret normalized principal view (snake_case) — derived
             projection only, NOT a re-publishable DID Document. See
             zh/identity/identity-did.md §6.
         method_evidence:
@@ -1200,7 +1200,7 @@ components:
       properties:
         cell:
           type: string
-          pattern: ^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$
+          pattern: ^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$
         status:
           type: string
           enum:
@@ -1232,7 +1232,7 @@ components:
               uniqueItems: true
               items:
                 type: string
-                pattern: ^cx:anchor:sha256:[0-9a-f]{64}$
+                pattern: ^ck:anchor:sha256:[0-9a-f]{64}$
             state_root:
               type: string
               pattern: ^sha256:[0-9a-f]{64}$
@@ -1252,7 +1252,7 @@ components:
       properties:
         event_id:
           type: string
-          pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         event_digest:
           type: string
           description: Canonical hash of the event's canonical bytes (excluding
@@ -1468,7 +1468,7 @@ components:
       properties:
         report_id:
           type: string
-          pattern: ^cx:report:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:report:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         status:
           type: string
           enum:
@@ -1570,20 +1570,20 @@ components:
           - both
         source_ref:
           type: string
-          pattern: ^(cx:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(ck:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         source_actor_id:
           type: string
         source_realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         target_ref:
           type: string
-          pattern: ^(cx:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(ck:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         target_actor_id:
           type: string
         target_realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         depth:
           type: integer
           minimum: 0
@@ -1647,11 +1647,11 @@ components:
           type: array
           items:
             type: string
-            pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           minItems: 1
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         projection:
           type: string
           enum:
@@ -1696,7 +1696,7 @@ components:
         cursor:
           oneOf:
           - type: string
-            pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         limit:
           type: integer
@@ -1733,7 +1733,7 @@ components:
           - view_id
     ObjectRef:
       type: string
-      pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ck:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     ObjectLookupResponse:
       type: object
       required:
@@ -1840,7 +1840,7 @@ components:
           type: array
           items:
             type: string
-            pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         object_types:
           type: array
           items:
@@ -1899,7 +1899,7 @@ components:
       properties:
         root_space_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         root:
           $ref: '#/components/schemas/ProjectionObject'
         children:
@@ -1931,7 +1931,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         accessible:
@@ -1950,10 +1950,10 @@ components:
       properties:
         parent_space_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         child_space_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         relation_kind:
@@ -1971,7 +1971,7 @@ components:
           type: array
           items:
             type: string
-            pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         actor_frontiers:
           type: array
           items:
@@ -1989,7 +1989,7 @@ components:
                 minimum: 0
               event_id:
                 type: string
-                pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
               hlc:
                 type: string
                 pattern: ^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$
@@ -2011,7 +2011,7 @@ components:
             type: object
         next_cursor:
           type: string
-          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
         total_estimate:
           type: integer
           minimum: 0
@@ -2056,10 +2056,10 @@ components:
           const: relation_container
         scope_container_id:
           type: string
-          pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
@@ -2142,16 +2142,16 @@ components:
           const: relation
         scope_container_id:
           type: string
-          pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^cx:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
         relation_id:
           type: string
-          pattern: ^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -2230,7 +2230,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         limited:
           type: boolean
@@ -2351,10 +2351,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         groups:
@@ -2368,7 +2368,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         total_estimate:
           type: integer
@@ -2389,7 +2389,7 @@ components:
       properties:
         id:
           type: string
-          pattern: ^cx:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         type:
           type: string
           enum:
@@ -2466,7 +2466,7 @@ components:
           - tombstone
         event_id:
           type: string
-          pattern: ^cx:(evt|event):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:(evt|event):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         object:
           $ref: '#/components/schemas/ProjectionObject'
         actor_id:
@@ -2480,7 +2480,7 @@ components:
           minLength: 1
         thread_id:
           type: string
-          pattern: ^cx:(flow|message):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:(flow|message):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         body:
           type: object
         redacted:
@@ -2501,10 +2501,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         entries:
@@ -2514,7 +2514,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         limited:
           type: boolean
@@ -2547,16 +2547,16 @@ components:
       properties:
         relation_id:
           type: string
-          pattern: ^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
         from_ref:
           type: string
-          pattern: ^(cx:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(ck:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         to_ref:
           type: string
-          pattern: ^(cx:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(ck:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -2579,10 +2579,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         nodes:
@@ -2596,7 +2596,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         limited:
           type: boolean
@@ -2637,10 +2637,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         sections:
@@ -2650,7 +2650,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         stale:
           type: boolean
@@ -2701,10 +2701,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         widgets:
@@ -2748,7 +2748,7 @@ components:
           type: string
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         request_canonical_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
@@ -2759,7 +2759,7 @@ components:
           pattern: ^did:[a-z0-9]+:[^\s#?]+$
         device_id:
           type: string
-          pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         source:
           type: object
           required:
@@ -2813,7 +2813,7 @@ components:
           properties:
             realm_id:
               type: string
-              pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+              pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
             actor:
               type: string
               pattern: ^did:[a-z0-9]+:[^\s#?]+$
@@ -2886,7 +2886,7 @@ components:
           pattern: ^did:[a-z0-9]+:[^\s#?]+$
         device_id:
           type: string
-          pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         requested_scope:
           type: array
           items:
@@ -2897,7 +2897,7 @@ components:
             `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Event ref of the accepted
             `cx.agent.key.authorize` that authorized the runtime key. REQUIRED when
             `proof.proof_kind="agent_key_proof"`; MUST be omitted for human session grants.
-          pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         agent_scope_request:
           type: object
           description: |
@@ -2913,12 +2913,12 @@ components:
               type: array
               items:
                 type: string
-                pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
             flow_ids:
               type: array
               items:
                 type: string
-                pattern: ^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                pattern: ^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
             track_names:
               type: array
               items:
@@ -3022,7 +3022,7 @@ components:
           pattern: ^did:[a-z0-9]+:[^\s#?]+$
         device_id:
           type: string
-          pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         session_grant:
           type: string
           description: Short-lived bearer/session grant bound to the requested principal, device and audience.
@@ -3046,12 +3046,12 @@ components:
               type: array
               items:
                 type: string
-                pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
             flow_ids:
               type: array
               items:
                 type: string
-                pattern: ^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                pattern: ^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
             track_names:
               type: array
               items:
@@ -3192,10 +3192,10 @@ components:
       properties:
         space_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         kind:
           type: string
           description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
@@ -3245,7 +3245,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         spaces:
           type: array
           items:
@@ -3255,7 +3255,7 @@ components:
           minimum: 0
         next_cursor:
           type: string
-          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
         has_more:
           type: boolean
     ProjectionFlowRow:
@@ -3268,10 +3268,10 @@ components:
       properties:
         flow_id:
           type: string
-          pattern: ^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         state:
           type: string
           enum:
@@ -3292,13 +3292,13 @@ components:
           type:
           - string
           - 'null'
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           description: Derived board Space id from cx.component.flow.position.v1; not canonical Flow object state.
         list_space_id:
           type:
           - string
           - 'null'
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           description: Derived list Space id from cx.component.flow.position.v1; not canonical Flow object state.
         rank:
           type:
@@ -3335,7 +3335,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         flows:
           type: array
           items:
@@ -3345,7 +3345,7 @@ components:
           minimum: 0
         next_cursor:
           type: string
-          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
         has_more:
           type: boolean
     ProjectionMorphRow:
@@ -3359,10 +3359,10 @@ components:
       properties:
         morph_id:
           type: string
-          pattern: ^cx:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         morph_type:
           type: string
         state:
@@ -3405,7 +3405,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         morphs:
           type: array
           items:
@@ -3415,7 +3415,7 @@ components:
           minimum: 0
         next_cursor:
           type: string
-          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
         has_more:
           type: boolean
     EphemeralSubmitResponse:
@@ -3440,7 +3440,7 @@ components:
           - cx.receipt.read
         realm_id:
           type: string
-          pattern: '^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+          pattern: '^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
         dispatched_to:
           type: integer
           minimum: 0
@@ -3471,7 +3471,7 @@ components:
         resource_id:
           oneOf:
           - type: string
-            pattern: ^cx:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ck:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           - $ref: '#/components/schemas/ActorDid'
           - type: string
             pattern: ^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$
@@ -3494,7 +3494,7 @@ components:
           minimum: 1
         supersedes_announce_id:
           type: string
-          pattern: ^cx:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     DirectoryAnnounceResponse:
       type: object
       additionalProperties: false
@@ -3506,7 +3506,7 @@ components:
       properties:
         announce_id:
           type: string
-          pattern: ^cx:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         indexed_at:
           type: string
           format: date-time
@@ -3530,7 +3530,7 @@ components:
         resource_id:
           oneOf:
           - type: string
-            pattern: ^cx:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ck:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           - $ref: '#/components/schemas/ActorDid'
           - type: string
             pattern: ^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$
@@ -3553,7 +3553,7 @@ components:
       properties:
         withdrawal_ref:
           type: string
-          description: Directory-local audit reference for the withdrawal; not a registered cx:<kind> typed ID.
+          description: Directory-local audit reference for the withdrawal; not a registered ck:<kind> typed ID.
           pattern: ^withdrawal:[A-Za-z0-9._:-]{1,128}$
         acked_at:
           type: string
@@ -3848,15 +3848,15 @@ paths:
           headers:
             Idempotency-Key:
               $ref: '#/components/headers/IdempotencyKey'
-            X-Contrix-Request-Id:
-              $ref: '#/components/headers/XContrixRequestId'
+            X-Cokret-Request-Id:
+              $ref: '#/components/headers/XCokretRequestId'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsSubmitResponse'
     get:
       operationId: cx.events.query
-      x-contrix-required-any-of:
+      x-cokret-required-any-of:
       - - realms
       - - actors
       security:
@@ -4045,7 +4045,7 @@ paths:
   /events/subscribe:
     get:
       operationId: cx.events.subscribe
-      x-contrix-required-any-of:
+      x-cokret-required-any-of:
       - - realms
       - - actors
       security:
@@ -4169,7 +4169,7 @@ paths:
   /events/frontier:
     get:
       operationId: cx.events.frontier
-      x-contrix-required-any-of:
+      x-cokret-required-any-of:
       - - actor_id
       - - realm_id
       security:
@@ -4251,7 +4251,7 @@ paths:
       operationId: cx.call.media.token_exchange
       security:
       - bearerAuth: []
-      summary: Exchange Contrix capability proof for a backend media token.
+      summary: Exchange Cokret capability proof for a backend media token.
       description: |
         Media service token exchange operation (CXP-0010,
         zh/crypto-media/webrtc-signaling.md §6.4). Issues a short-lived
@@ -4259,7 +4259,7 @@ paths:
         joining a focus declared in `cx.realm.media_service.foci[]`.
 
         Same wire across all backend types (livekit / mediasoup / janus /
-        contrix-native); only `backend_token` shape is type-specific and opaque
+        cokret-native); only `backend_token` shape is type-specific and opaque
         to the protocol layer (parsed by backend SDK only).
 
         Token issuer MUST be one of the Realm-authorized media service DIDs;
@@ -4283,16 +4283,16 @@ paths:
               properties:
                 realm_id:
                   type: string
-                  pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                  pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                 call_id:
                   type: string
-                  pattern: ^cx:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                  pattern: ^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                 actor_id:
                   type: string
                   pattern: ^did:[a-z0-9]+:[^\s#?]+$
                 device_id:
                   type: string
-                  pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                  pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                 focus_id:
                   type: string
                   minLength: 1
@@ -4301,7 +4301,7 @@ paths:
                   type: array
                   items:
                     type: string
-                    pattern: ^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                    pattern: ^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                 desired_media:
                   type: object
                   additionalProperties: false
@@ -4336,24 +4336,24 @@ paths:
                     maxLength: 64
                   type:
                     type: string
-                    description: Backend binding type identifier (livekit / contrix-native / etc.).
+                    description: Backend binding type identifier (livekit / cokret-native / etc.).
                     enum:
                     - livekit
                     - mediasoup
                     - janus
-                    - contrix-native
+                    - cokret-native
                     - moq-relay
                   connect_url:
                     type: string
                     format: uri
                   backend_token:
                     type: string
-                    description: Opaque to Contrix protocol; type-specific (e.g. LiveKit JWT).
+                    description: Opaque to Cokret protocol; type-specific (e.g. LiveKit JWT).
                     minLength: 1
                   participant_identity:
                     type: string
                     description: SFU-local short handle, scope `(call_id, focus_id, sfu_did)`. UUIDv7-form rtc_participant typed ID.
-                    pattern: ^cx:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                    pattern: ^ck:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                   participant_binding:
                     type: object
                     additionalProperties: false
@@ -4374,10 +4374,10 @@ paths:
                         const: cx.media.participant_binding.v1
                       realm_id:
                         type: string
-                        pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                       call_id:
                         type: string
-                        pattern: ^cx:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        pattern: ^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                       focus_id:
                         type: string
                         minLength: 1
@@ -4387,10 +4387,10 @@ paths:
                         pattern: ^did:[a-z0-9]+:[^\s#?]+$
                       device_id:
                         type: string
-                        pattern: ^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                       participant_identity:
                         type: string
-                        pattern: ^cx:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        pattern: ^ck:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
                       issued_at:
                         type: string
                         format: date-time
@@ -4468,12 +4468,12 @@ paths:
         scope. Replaces the prior Matrix-derived long-poll cx.account.sync.
       parameters:
       - in: header
-        name: X-Contrix-Wait-For
+        name: X-Cokret-Wait-For
         required: false
         description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until the local frontier covers target.event_id, or emits an error frame (timeout / stale_frontier / temporarily_unavailable).
         schema:
           type: string
-          pattern: '^cx:cursor:.+$'
+          pattern: '^ck:cursor:.+$'
       - name: after
         in: query
         description: |
@@ -4483,7 +4483,7 @@ paths:
           server first emits a baseline delta.
         schema:
           type: string
-          pattern: '^cx:cursor:.+$'
+          pattern: '^ck:cursor:.+$'
       - name: catchup
         in: query
         description: |
@@ -4548,7 +4548,7 @@ paths:
               properties:
                 cursor:
                   type: string
-                  pattern: '^cx:cursor:.+$'
+                  pattern: '^ck:cursor:.+$'
                 reason_code:
                   type: string
                 revoke_scope:
@@ -4619,7 +4619,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -4632,7 +4632,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
       - name: limit
         in: query
         required: false
@@ -4667,7 +4667,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -4680,7 +4680,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
       - name: limit
         in: query
         required: false
@@ -4715,7 +4715,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -4728,7 +4728,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
       - name: limit
         in: query
         required: false
@@ -4815,8 +4815,8 @@ paths:
         '200':
           description: Blob accepted
           headers:
-            X-Contrix-Request-Id:
-              $ref: '#/components/headers/XContrixRequestId'
+            X-Cokret-Request-Id:
+              $ref: '#/components/headers/XCokretRequestId'
           content:
             application/json:
               schema:
@@ -4877,7 +4877,7 @@ paths:
     - name: blob_ref
       in: query
       required: true
-      description: Content-addressed blob reference (`cx:blob:sha256:<hex>`) or metadata id (`cx:blob:<uuid>`).
+      description: Content-addressed blob reference (`ck:blob:sha256:<hex>`) or metadata id (`ck:blob:<uuid>`).
       schema:
         type: string
     - name: presign
@@ -5258,7 +5258,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       requestBody:
         required: true
         content:
@@ -5282,7 +5282,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       responses:
         '200':
           description: Encrypted key backup object
@@ -5300,7 +5300,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       responses:
         '200':
           description: Encrypted key backup deleted
@@ -5320,7 +5320,7 @@ paths:
         description: Filter by backup series. When present, response metadata is ordered by series_seq ascending so clients can rebuild the chain.
         schema:
           type: string
-          pattern: ^cx:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - in: query
         name: backup_class
         required: false
@@ -6022,7 +6022,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PolicyCheckRequest'
-  /contrix/v1/ice-config:
+  /cokret/v1/ice-config:
     servers:
     - url: https://{host}
       variables:
@@ -6054,7 +6054,7 @@ paths:
     post:
       operationId: cx.account.issue_session_grant
       security: []
-      x-contrix-auth:
+      x-cokret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
@@ -6358,7 +6358,7 @@ paths:
     post:
       operationId: cx.account.oidc_callback
       security: []
-      x-contrix-auth:
+      x-cokret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: code

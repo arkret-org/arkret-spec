@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/cross-signing-reset.schema.json",
-  "title": "Contrix Cross-Signing Reset",
+  "$id": "https://cokret.io/artifacts/schemas/cross-signing-reset.schema.json",
+  "title": "Cokret Cross-Signing Reset",
   "description": "Payload content for cx.cross_signing.reset (schema_id cx.schema.cross_signing_reset.v1). High-risk operation that retires the current (SSK, USK) generation and requires one of four kinds of proof — see device-lifecycle.md §14. A successor cx.cross_signing.publish MUST follow within 24h.",
   "type": "object",
   "required": [
@@ -17,12 +17,12 @@
   "properties": {
     "trust_domain": {
       "type": "string",
-      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
+      "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
       "description": "Deployment-scope trust domain identifier. Enters every proof's canonical transcript so the same proof bytes cannot be replayed from deployment A into deployment B (different trust_domain → different transcript → signature verification fails as invalid_signature). Receivers MUST check this matches their own trust_domain before doing any signature work, returning cross_domain_replay_rejected otherwise. See zh/crypto-media/device-lifecycle.md §14.1 and zh/identity/identity-did.md §3.6."
     },
     "reset_event_id": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Typed event_id of the Event Envelope carrying this reset payload. MUST equal the enclosing Event.event_id. Binding it into proof transcript prevents wrapping the same proof bytes into a different Event shell. Mismatch MUST be rejected as reset_event_id_mismatch."
     },
     "principal_id": { "$ref": "#/$defs/did" },
@@ -98,7 +98,7 @@
         "kind": { "const": "recovery_unlock" },
         "recovery_session_id": {
           "type": "string",
-          "pattern": "^cx:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ck:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Recovery session id from the §15 device recovery state machine (step 2). Carried inside the recovery_unlock proof body so it enters the §14.1 canonical transcript via proof_body, giving the proof a self-contained freshness binding that does not depend on external recovery state. Receivers MUST reject a recovery_unlock reset whose recovery_session_id does not match an active recovery session for principal_id at issued_at. See zh/crypto-media/device-lifecycle.md §14.1 / §15."
         },
         "recovery_secret_ref": {
@@ -121,7 +121,7 @@
       "properties": {
         "device_id": {
           "type": "string",
-          "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "verification_method": { "$ref": "#/$defs/did_url" },
         "alg": { "type": "string", "minLength": 1 },
@@ -160,7 +160,7 @@
         "signature": { "$ref": "#/$defs/signature_b64u" },
         "attestation_ref": {
           "type": "string",
-          "pattern": "^cx:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ck:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Optional attestation object for service_did. If present, receivers MUST resolve it in the same trust_domain as the reset payload and reject cross-domain attestations as cross_signing_reset_recovery_service_attestation_domain_mismatch."
         }
       },

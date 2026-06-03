@@ -19,7 +19,7 @@ merged_into: spec/v1/zh/models/circle.md
 
 ## 1. Summary
 
-引入一等对象 **`cx:circle:`**(信任圈),作为 Realm 内的**密码学子边界**:拥有独立 MLS group、独立 key epoch、独立 history key eligibility、Realm membership 的真子集成员,但不持有 federation identity 或 policy server。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的加密可见性圈"。**一个 Flow 永远只有一个 encryption scope**,不再支持 per-track 安全边界。
+引入一等对象 **`ck:circle:`**(信任圈),作为 Realm 内的**密码学子边界**:拥有独立 MLS group、独立 key epoch、独立 history key eligibility、Realm membership 的真子集成员,但不持有 federation identity 或 policy server。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的加密可见性圈"。**一个 Flow 永远只有一个 encryption scope**,不再支持 per-track 安全边界。
 
 同时**删除 `Flow.discussion_realm_ref`** —— Flow 不允许跨两个安全边界。需要"宽 synthesis + 窄 discussion"的场景统一用**两个 Flow + Relation 连接**的形态表达(一个 public Flow,一个 Circle-scoped Flow)。
 
@@ -55,17 +55,17 @@ merged_into: spec/v1/zh/models/circle.md
 - Slack: workspace ≈ Realm,private channel ≈ 产品层的 scoped audience;Circle 只采纳其中"子圈"产品语义,但在协议层要求独立 MLS 密钥边界。
 - Element/MLS deployments: "subgroup" / "encryption scope" 概念已是行业共识。
 
-Contrix v1 把两层压成一个 Realm 原语,是当前协议设计中的最大单点遗漏。
+Cokret v1 把两层压成一个 Realm 原语,是当前协议设计中的最大单点遗漏。
 
 ## 3. Specification
 
-### 3.1 `cx:circle:` 对象
+### 3.1 `ck:circle:` 对象
 
 Schema id: `cx.schema.circle.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:circle` | `cx:circle:<uuid>`(UUIDv7) | Circle ID。 |
+| `id` | yes | `id:circle` | `ck:circle:<uuid>`(UUIDv7) | Circle ID。 |
 | `schema` | yes | `cx.schema.circle.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | create-locked;Circle 永远属于一个 Realm,不可改绑。 | 归属 Realm(父安全/联邦边界)。 |
 | `title` | yes | `string` | 1..256 chars。 | 人类可读名称。 |
@@ -129,7 +129,7 @@ reducer 规则:
 - `scope_circle_id` 引用的 Circle MUST `realm_id` 与对象 `realm_id` 一致;否则 `schema_violation`(`reason="circle_realm_mismatch"`)。
 - `scope_circle_id` 引用的 Circle MUST `state=active`;否则 `failed_precondition`(`reason="circle_not_active"`)。
 - `scope_circle_id=null` 不表示"没有 scope";它表示 Realm-default encryption scope。Reducer MUST 把它物化为 tagged `effective_scope = {kind:"realm", realm_id}`。
-- `scope_circle_id=cx:circle:...` MUST 物化为 tagged `effective_scope = {kind:"circle", realm_id, circle_id}`。
+- `scope_circle_id=ck:circle:...` MUST 物化为 tagged `effective_scope = {kind:"circle", realm_id, circle_id}`。
 - Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope、E2EE AAD、MLS governance binding 输入、Anchor/sub-anchor leaf,后续 `scope_circle_id` 改绑不得重解释旧 event。
 - Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm,不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason="scope_rebind_forbidden"`);profile MAY 允许,但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope MLS;新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
@@ -138,14 +138,14 @@ reducer 规则:
 `effective_scope` wire shape:
 
 ```json
-{ "kind": "realm", "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000" }
+{ "kind": "realm", "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000" }
 ```
 
 ```json
 {
   "kind": "circle",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
 }
 ```
 
@@ -168,7 +168,7 @@ Realm **不会**自动创建默认 Circle。Realm-default encryption scope 是 R
 | `realm` | `Realm.encryption_profile` 指定的 Realm-default group / external provider / plaintext mode | `scope_circle_id=null` |
 | `circle` | Circle 独立 MLS group | `scope_circle_id` 指向 Circle |
 
-`Realm.encryption_profile="mls_rfc9420"` 只说明使用 MLS 作为加密机制,**不**说明哪些 Contrix 字段进入密文。加密覆盖范围由 Realm policy floor 独立声明:
+`Realm.encryption_profile="mls_rfc9420"` 只说明使用 MLS 作为加密机制,**不**说明哪些 Cokret 字段进入密文。加密覆盖范围由 Realm policy floor 独立声明:
 
 | policy field | enum | 说明 |
 | --- | --- | --- |
@@ -210,7 +210,7 @@ Reducer MUST 在 `cx.flow.create`、`cx.flow.move`、`cx.space.parent`、structu
 
 ```
 Flow F_public  (scope_circle_id = null)              ← 公开 anchor Flow,承载 metadata.title / metadata.summary / stage / metadata.fields
-Flow F_private (scope_circle_id = cx:circle:HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
+Flow F_private (scope_circle_id = ck:circle:HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
 
@@ -334,7 +334,7 @@ Membership transition table:
 ### 4.2 修改文件
 
 - [`zh/overview/architecture.md` §2.0](../zh/overview/architecture.md):容器选型表:
-  - 追加 Circle 行:`| 在已有 Realm 内做"密码学子圈"(独立 MLS group / 独立成员 / 独立 history),但共享 federation/policy/capability registry | **Circle**(`cx:circle:`),对象 `scope_circle_id` 引用 | Circle 是 Realm 内的密码学子边界;父 Realm 仍承担 federation identity / policy / capability registry。 |`
+  - 追加 Circle 行:`| 在已有 Realm 内做"密码学子圈"(独立 MLS group / 独立成员 / 独立 history),但共享 federation/policy/capability registry | **Circle**(`ck:circle:`),对象 `scope_circle_id` 引用 | Circle 是 Realm 内的密码学子边界;父 Realm 仍承担 federation identity / policy / capability registry。 |`
   - **删除** `Flow + discussion_realm_ref` 行;改写"宽 synthesis + 窄 discussion"指引到"两 Flow + Relation"形态(见 §3.4.3)。
   - 修订 §2.0 末尾"不得自行造第四类"为"第四类(Circle)由 CXP-0007 引入;新增容器型概念仍 MUST 先验证是否可分解为 Realm / Space / Flow / Circle"。
 
@@ -359,7 +359,7 @@ Membership transition table:
 
 ### 4.3 修改 artifact
 
-- `id-kind-registry.json`:新增 `circle` → `cx:circle:<uuid>`。
+- `id-kind-registry.json`:新增 `circle` → `ck:circle:<uuid>`。
 - `event-kind-registry.json`:
   - 新增 7 条 `cx.circle.*` event kinds。
   - **删除** `flow_create_payload` / `flow_update_payload` 中的 `discussion_realm_ref` 字段引用。
@@ -424,7 +424,7 @@ Membership transition table:
 否决理由:
 - 这与现有 Group、capability constraint、resource selector 重叠,没有足够理由引入一等 primitive。
 - "Circle" 名称会让用户和客户端误以为存在独立密钥边界;实际只是服务端不投递,一旦服务端、镜像或日志路径出错就泄露正文。
-- Contrix 已经有明确的 E2EE / MLS governance binding 语义。新增边界若不能进入该体系,反而会制造比 `discussion_realm_ref` 更隐蔽的安全错觉。
+- Cokret 已经有明确的 E2EE / MLS governance binding 语义。新增边界若不能进入该体系,反而会制造比 `discussion_realm_ref` 更隐蔽的安全错觉。
 
 ### 5.4 为什么不嵌套 Circle
 
@@ -484,7 +484,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 要让 UI 能可靠区分,以下信号 MUST 在 spec 层统一,**不**留给客户端各自发明:
 
 - **颜色 token**:同一 Circle 在 Alice 与 Bob 的客户端上必须呈现一致颜色,否则跨设备 social engineering 攻击成立。
-- **短名**:`HR-Conf` 比 `cx:circle:01964...` 可读性高几个量级,且能进入 compose bar 实时显示。
+- **短名**:`HR-Conf` 比 `ck:circle:01964...` 可读性高几个量级,且能进入 compose bar 实时显示。
 - **符号 / glyph**:无障碍 / 色盲场景的第二信号。
 
 客户端实现 SHOULD 至少做到:
@@ -540,7 +540,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 ### 8.1 Pre-freeze 强制项(必须在 v1 ship 前完成)
 
 1. **删除 `Flow.discussion_realm_ref`**:更新 `flow.schema.json` / `event-payload.schema.json` / `forbidden-wire-fields.json`;改写 [`flow-and-message.md`](../zh/models/flow-and-message.md) §3 / §5 / §5.0.1 / §5.1 / §8.9 等所有引用段;更新 [`overview/glossary.md`](../zh/overview/glossary.md) / [`overview/current-model.md`](../zh/overview/current-model.md) / [`overview/architecture.md`](../zh/overview/architecture.md) §2.0。
-2. **引入 `cx:circle:` 对象 schema 与基础 event**(`cx.circle.create` / `cx.circle.member.state` / `cx.circle.tombstone`);更新 `id-kind-registry.json` / `event-kind-registry.json` / `schema-registry.json`。
+2. **引入 `ck:circle:` 对象 schema 与基础 event**(`cx.circle.create` / `cx.circle.member.state` / `cx.circle.tombstone`);更新 `id-kind-registry.json` / `event-kind-registry.json` / `schema-registry.json`。
 3. **独立 MLS group 必须同步落地**:Circle create 必须创建 `(realm_id, circle_id)` scope 的 MLS group、epoch 0 governance binding、Circle scoped covered-frontier cell;不得以 Realm-default MLS + 应用层过滤替代。
 4. **声明加密覆盖 policy**:新增 Realm `content_encryption_floor`;把既有 `metadata_encryption_profile` 固化为 Realm-wide floor,并支持 `content_only` / `minimal_encrypted` / `full_encrypted` 三档 conformance。
 5. **引入 `scope_circle_id` / tagged `effective_scope` 字段** 到 `flow.schema.json` / `message.schema.json` / `morph.schema.json` / `space.schema.json`(`default_scope_circle_id` / `child_scope_policy`)以及 Event envelope / E2EE AAD / Anchor leaf canonical bytes。

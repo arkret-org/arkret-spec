@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标
 
-Contrix 的访问授权由 **capability + invite** 两条路径承担。但二者都不能完整表达一类语义：
+Cokret 的访问授权由 **capability + invite** 两条路径承担。但二者都不能完整表达一类语义：
 
 > "我同意 / 不同意来自 X 的联系请求。"
 
@@ -24,7 +24,7 @@ Contrix 的访问授权由 **capability + invite** 两条路径承担。但二�
 
 它是 invite / direct contact 路径上的**前置 gate**：在"是否给 Alice 发出 invite"之前，先看"Alice 是否同意接收来自 Bob 的 invite"。
 
-本规范定义 Contrix 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Contrix 的 Move / Anchor / Lattice 三原语之上：consent 是 holder 控制的 Realm 内某个 consent cell（or_set lattice）的当前 join 值，由签名 Move 维护。
+本规范定义 Cokret 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Cokret 的 Move / Anchor / Lattice 三原语之上：consent 是 holder 控制的 Realm 内某个 consent cell（or_set lattice）的当前 join 值，由签名 Move 维护。
 
 ## 2. 设计原则
 
@@ -61,7 +61,7 @@ Consent 表达"我接受联系"，但加入 Realm、写入 Realm、解密 E2EE �
 Consent state 写入 holder 控制的 Realm（默认是 holder 的 principal control Realm）内一个 or_set lattice cell：
 
 ```text
-cell_id  = cx:cell:cx.component.consent.grant.v1:<consent_id>
+cell_id  = ck:cell:cx.component.consent.grant.v1:<consent_id>
 lattice  = or_set
 bottom   = (registry-declared, inert for or_set)  // or_set join never produces ⊥
 ```
@@ -76,15 +76,15 @@ bottom   = (registry-declared, inert for or_set)  // or_set join never produces 
 
 ```text
 Move(cx.consent.grant) {
-  event_id     = cx:event:019640ed-7000-7000-8000-000000000001   // producer-assigned typed UUIDv7
+  event_id     = ck:event:019640ed-7000-7000-8000-000000000001   // producer-assigned typed UUIDv7
   event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
   issuer       = holder DID（或 holder DID Document 显式授权的 controller / agent）
   realm_id     = holder principal control Realm
   preconditions = []          // grant 不依赖 cell 既有状态
   effects   = [
-    (cx:cell:cx.component.consent.grant.v1:<consent_id>,
+    (ck:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "add",
-      dot:  "cx:event:019640ed-7000-7000-8000-000000000001:0",   // = "<enclosing event_id>:<effect_index>"
+      dot:  "ck:event:019640ed-7000-7000-8000-000000000001:0",   // = "<enclosing event_id>:<effect_index>"
       value: {
         intent: {                          // projection-level dedupe key
           consent_id: <consent_id>,
@@ -93,12 +93,12 @@ Move(cx.consent.grant) {
         },
         not_before:   "2026-05-07T00:00:00Z",
         expires_at:  "2026-12-31T00:00:00Z",
-        evidence_ref: "cx:event:019640e0-0000-7000-8000-000000000002",
+        evidence_ref: "ck:event:019640e0-0000-7000-8000-000000000002",
         reason:       "Bob completed verified contact discovery"
       }})
   ]
   refs       = [
-    (id="cx:grant:0196411c-b000-7000-8000-000000000000",
+    (id="ck:grant:0196411c-b000-7000-8000-000000000000",
      role="authorized_by")
   ]
   anchor_ref = <holder principal control Realm 的最新 Anchor>
@@ -123,7 +123,7 @@ Payload-only schema 示例：
   "consent_scope": "invite",
   "not_before": "2026-05-07T00:00:00Z",
   "expires_at": "2026-12-31T00:00:00Z",
-  "evidence_ref": "cx:event:019640e0-0000-7000-8000-000000000002",
+  "evidence_ref": "ck:event:019640e0-0000-7000-8000-000000000002",
   "reason": "Bob completed verified contact discovery"
 }
 ```
@@ -136,29 +136,29 @@ Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controll
 
 ```text
 Move(cx.consent.revoke) {
-  event_id     = cx:event:0196414c-3000-7000-8000-000000000003   // producer-assigned typed UUIDv7
+  event_id     = ck:event:0196414c-3000-7000-8000-000000000003   // producer-assigned typed UUIDv7
   event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
   issuer       = holder DID
   realm_id  = holder principal control Realm
   preconditions = [
-    (cx:cell:cx.component.consent.grant.v1:<consent_id>,
+    (ck:cell:cx.component.consent.grant.v1:<consent_id>,
      {op: "contains_dots",
       dots: [
-        "cx:event:019640ed-7000-7000-8000-000000000001:0"   // anchor_ref pre-state 下该 intent 全部 active dots
+        "ck:event:019640ed-7000-7000-8000-000000000001:0"   // anchor_ref pre-state 下该 intent 全部 active dots
       ]})
   ]
   effects   = [
-    (cx:cell:cx.component.consent.grant.v1:<consent_id>,
+    (ck:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "remove",
       observed_dots: [
-        "cx:event:019640ed-7000-7000-8000-000000000001:0"
+        "ck:event:019640ed-7000-7000-8000-000000000001:0"
       ],
       value: {
         revoked_at: "2026-06-15T10:00:00Z",
         reason:     "Bob harassment incident #4711"
       }})
   ]
-  refs       = [(id="cx:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
+  refs       = [(id="ck:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
   anchor_ref = <holder principal control Realm 的最新 Anchor>
 }
 ```
@@ -171,7 +171,7 @@ Payload-only schema 示例：
 {
   "consent_id": "consent-alice-bob-invite-001",
   "observed_dots": [
-    "cx:event:019640ed-7000-7000-8000-000000000001:0"
+    "ck:event:019640ed-7000-7000-8000-000000000001:0"
   ],
   "revoked_at": "2026-06-15T10:00:00Z",
   "reason": "Bob harassment incident #4711"
@@ -281,7 +281,7 @@ policy MAY 声明 `cx.realm.policy_components` 中的 `preauth` component 包含
 MIMI 协议有 `request_consent` / `update_consent` 操作（`cx.mimi.request_consent` / `cx.mimi.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
 - 接收 MIMI consent update：facade MUST 先验证 actor 是声明 holder 或受授权 controller，然后构造 grant 或 revoke Move 写入 holder principal control Realm 的 consent cell。
-- 发送 Contrix consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
+- 发送 Cokret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
 - consent state 不暴露具体 evidence_ref / reason 跨 provider；只暴露最小 `(peer, scope, granted/revoked)` 三元组。
 
 ## 8. 隐私与审计

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "renames",
   "source_of_truth": true,
@@ -22,7 +22,7 @@
   },
   "migration_group_definitions": {
     "agent_session_namespace_collapse": "Capability action namespace flattened from cx.agent.protocol_session.* to cx.agent.session.* (5 actions); event kinds preserved for wire-format stability. Single design decision; entries are mechanical applications.",
-    "typed_id_prefix_unabbreviation": "Abbreviated typed-id prefixes expanded to full snake_case kind. Single rule: cx:<abbrev>: → cx:<full_kind>: (9 entries).",
+    "typed_id_prefix_unabbreviation": "Abbreviated typed-id prefixes expanded to full snake_case kind. Single rule: ck:<abbrev>: → ck:<full_kind>: (9 entries).",
     "realm_lifecycle_segment_realignment": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.<verb>) to 3 segments (cx.realm.<verb>) to match the corresponding event kind (4 entries). target_event_kinds preserved.",
     "did_id_suffix": "Protocol responsibility subjects use the _id suffix even when the value is a DID. actor_did / principal_did / subject_did renamed to actor_id / principal_id / subject_id (3 entries).",
     "agent_key_imperative_verbs": "Event kind verbs use imperative action names, not past participles. cx.agent.key.{authorized,revoked,rotated} → cx.agent.key.{authorize,revoke,rotate} (3 entries).",
@@ -202,7 +202,7 @@
       "rejection_level": "hard_reject",
       "replacement": "allowed_view_ids",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Grant constraint field contains concrete cx:view ids, not reference material."
+      "notes": "Grant constraint field contains concrete ck:view ids, not reference material."
     },
     {
       "id": "allowed_flow_refs",
@@ -212,7 +212,7 @@
       "rejection_level": "hard_reject",
       "replacement": "allowed_flow_ids",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Grant constraint field contains concrete cx:flow ids, not reference material."
+      "notes": "Grant constraint field contains concrete ck:flow ids, not reference material."
     },
     {
       "id": "allowed_circle_refs",
@@ -222,7 +222,7 @@
       "rejection_level": "hard_reject",
       "replacement": "allowed_circle_ids",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Grant constraint field contains concrete cx:circle ids, not reference material."
+      "notes": "Grant constraint field contains concrete ck:circle ids, not reference material."
     },
     {
       "id": "denied_flow_refs",
@@ -232,7 +232,7 @@
       "rejection_level": "hard_reject",
       "replacement": "denied_flow_ids",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Grant constraint field contains concrete cx:flow ids, not reference material."
+      "notes": "Grant constraint field contains concrete ck:flow ids, not reference material."
     },
     {
       "id": "allowed_space_refs",
@@ -242,7 +242,7 @@
       "rejection_level": "hard_reject",
       "replacement": "allowed_space_ids",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Grant constraint field contains concrete cx:space ids, not reference material."
+      "notes": "Grant constraint field contains concrete ck:space ids, not reference material."
     },
     {
       "id": "denied_space_refs",
@@ -252,7 +252,7 @@
       "rejection_level": "hard_reject",
       "replacement": "denied_space_ids",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Grant constraint field contains concrete cx:space ids, not reference material."
+      "notes": "Grant constraint field contains concrete ck:space ids, not reference material."
     },
     {
       "id": "realm_refs#grant_constraint",
@@ -263,7 +263,7 @@
       "rejection_level": "hard_reject",
       "replacement": "realm_ids",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Grant blob-presign scope contains concrete cx:realm ids, not reference material."
+      "notes": "Grant blob-presign scope contains concrete ck:realm ids, not reference material."
     },
     {
       "id": "approval_actor_refs",
@@ -276,12 +276,12 @@
       "notes": "Approval actor constraints carry concrete actor DID identifiers. DID-valued subject fields use `_id` in v1."
     },
     {
-      "id": "cx:rtcpart:",
+      "id": "ck:rtcpart:",
       "kind_class": "typed_id_prefix",
       "migration_group": "typed_id_prefix_unabbreviation",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "cx:rtc_participant:",
+      "replacement": "ck:rtc_participant:",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Media participant typed ID prefix expanded from the abbreviated `rtcpart` form to the full snake_case `rtc_participant` kind."
     },
@@ -891,11 +891,11 @@
       "notes": "cx.schema.applet.v1 object snapshot field 'status' renamed to 'runtime_status' so that applet registry-object state does not appear interchangeable with the canonical agent session state machine. v1 does not define a canonical applet protocol-session state machine; bridges declare their own enum within {pending,running,completed,failed,cancelled}. cx.schema.agent.v1 keeps its `status` field but its enum was widened to mirror agent_session_status_payload.status (9 values)."
     },
     {
-      "id": "cx:notif:",
+      "id": "ck:notif:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:notification:",
+      "replacement": "ck:notification:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -905,11 +905,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "cx:devmsg:",
+      "id": "ck:devmsg:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:device_message:",
+      "replacement": "ck:device_message:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -919,11 +919,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "cx:keyevt:",
+      "id": "ck:keyevt:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:key_event:",
+      "replacement": "ck:key_event:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -933,11 +933,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "cx:modq:",
+      "id": "ck:modq:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:moderation_queue_item:",
+      "replacement": "ck:moderation_queue_item:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -947,11 +947,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "cx:req:",
+      "id": "ck:req:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:request:",
+      "replacement": "ck:request:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -961,11 +961,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "cx:txn:",
+      "id": "ck:txn:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:transaction:",
+      "replacement": "ck:transaction:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -975,11 +975,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "cx:frank:",
+      "id": "ck:frank:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx:franking_proof:",
+      "replacement": "ck:franking_proof:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1516,7 +1516,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Error code returned when the target Realm is frozen / archived / tombstoned / closed to ordinary writes. After the Realm/Space inversion the responsibility for freeze/archive/tombstone/destroy lifecycle lives on the Realm boundary; the legacy name 'space_frozen' could mislead implementations into checking only an in-Realm Space container's lifecycle. See spec/v1/artifacts/registry/error-code-registry.json and spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml EventSubmitResponse.rejected[].reason_code."
+      "notes": "Error code returned when the target Realm is frozen / archived / tombstoned / closed to ordinary writes. After the Realm/Space inversion the responsibility for freeze/archive/tombstone/destroy lifecycle lives on the Realm boundary; the legacy name 'space_frozen' could mislead implementations into checking only an in-Realm Space container's lifecycle. See spec/v1/artifacts/registry/error-code-registry.json and spec/v1/artifacts/openapi/cokret-service-api.openapi.yaml EventSubmitResponse.rejected[].reason_code."
     },
     {
       "id": "space_state",
@@ -1555,7 +1555,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Contrix Encrypted Payload Envelope'. Flow, Message, and Morph content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
+      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Cokret Encrypted Payload Envelope'. Flow, Message, and Morph content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
     },
     {
       "id": "encrypted_payload",
@@ -1702,7 +1702,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Both the legacy event kind cx.read.cursor and the previously-renamed capability action cx.cursor.advance now collapse to the single canonical name cx.read_cursor.advance. This aligns the typed-id prefix (cx:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action on the same noun root read_cursor."
+      "notes": "Both the legacy event kind cx.read.cursor and the previously-renamed capability action cx.cursor.advance now collapse to the single canonical name cx.read_cursor.advance. This aligns the typed-id prefix (ck:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action on the same noun root read_cursor."
     },
     {
       "id": "cx.cursor.advance",
@@ -1798,7 +1798,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MIMI interop HTTP paths /mimi/rooms/{flow_id}/{update,notify,messages,group-info} renamed to /mimi/flows/{flow_id}/.... The path parameter was always {flow_id} (a Contrix Flow), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
+      "notes": "MIMI interop HTTP paths /mimi/rooms/{flow_id}/{update,notify,messages,group-info} renamed to /mimi/flows/{flow_id}/.... The path parameter was always {flow_id} (a Cokret Flow), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
     },
     {
       "id": "notification.space_name",
@@ -2354,7 +2354,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MLS ratchet tree digest renamed on Contrix wire. Distinct from RFC 9420's tree_hash inside MLS bytes; this is the Contrix payload field, not the MLS GroupContext extension.",
+      "notes": "MLS ratchet tree digest renamed on Cokret wire. Distinct from RFC 9420's tree_hash inside MLS bytes; this is the Cokret payload field, not the MLS GroupContext extension.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2368,7 +2368,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MLS commit digest renamed on Contrix wire.",
+      "notes": "MLS commit digest renamed on Cokret wire.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2382,7 +2382,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MLS proposal digest renamed on Contrix wire.",
+      "notes": "MLS proposal digest renamed on Cokret wire.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2396,7 +2396,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MLS KeyPackage digest renamed on Contrix wire.",
+      "notes": "MLS KeyPackage digest renamed on Cokret wire.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2898,7 +2898,7 @@
       "rejection_level": "hard_reject",
       "replacement": "content_digest",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Blob metadata digest field now uses content_digest with an algorithm prefix; cx:blob:sha256:<hex> remains valid as a content-addressed blob_ref.",
+      "notes": "Blob metadata digest field now uses content_digest with an algorithm prefix; ck:blob:sha256:<hex> remains valid as a content-addressed blob_ref.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {

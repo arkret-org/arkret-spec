@@ -10,7 +10,7 @@ sidebar:
 
 > **状态：extension profile（非 v1 core 互操作必需）**。本文档涉及的外部 agent 协议（A2A / ACP /
 > MCP bridge 等）目前都未标准化（IBM Research 已宣布 ACP 并入 Linux Foundation 旗下的
-> A2A）。Contrix v1 core 互操作 **不要求** 实现 agent-protocol upgrade；core v1 中 agent
+> A2A）。Cokret v1 core 互操作 **不要求** 实现 agent-protocol upgrade；core v1 中 agent
 > 仅作为 actor + capability 出现，外协议升级在标准成熟前由 `cx.profile.agent_runtime.v1`
 > 单独承载，且视为可选 interop extension profile（见 `artifacts/profiles/conformance-profiles.json`
 > 的 `profile_tiers.extension_profile_implementation`）。
@@ -21,13 +21,13 @@ sidebar:
 
 ## 1. 目标
 
-Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Contrix Event / Realm 模型内。
+Cokret 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Cokret Event / Realm 模型内。
 
-当两个 agent 都支持专用 agent-to-agent 协议，例如 A2A 或 ACP endpoint，且任务适合高频、流式、长运行或跨框架直接协作时，Contrix MAY 将一次协作从 canonical 协作层升级为外部 agent protocol session。
+当两个 agent 都支持专用 agent-to-agent 协议，例如 A2A 或 ACP endpoint，且任务适合高频、流式、长运行或跨框架直接协作时，Cokret MAY 将一次协作从 canonical 协作层升级为外部 agent protocol session。
 
-这里的“升级”不是替代 Contrix，而是：
+这里的“升级”不是替代 Cokret，而是：
 
-- Contrix 负责身份、授权、任务登记、审计、状态回流和结果归档。
+- Cokret 负责身份、授权、任务登记、审计、状态回流和结果归档。
 - A2A / ACP / 其他 agent protocol 负责高效的实时 agent-to-agent 执行通道。
 
 ## 2. 当前外部协议状态
@@ -39,11 +39,11 @@ Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 
 - BeeAI Framework 仍提供 ACP adapter，可连接 ACP-compliant service。
 - A2A 使用 AgentCard / Task / Message / Artifact 等概念，面向 agent discovery、长任务协作、streaming、async 和跨框架互操作。
 
-因此 Contrix 不应硬编码“ACP-only”路径。实现 MUST 使用 protocol adapter registry，并允许 A2A、ACP、MCP bridge、私有企业 agent protocol 并存。
+因此 Cokret 不应硬编码“ACP-only”路径。实现 MUST 使用 protocol adapter registry，并允许 A2A、ACP、MCP bridge、私有企业 agent protocol 并存。
 
-## 3. 什么时候留在 Contrix
+## 3. 什么时候留在 Cokret
 
-以下场景 SHOULD 留在 Contrix 原生协议：
+以下场景 SHOULD 留在 Cokret 原生协议：
 
 - 需要强审计和长期可验证协作历史。
 - 需要 Realm membership / capability / policy 逐事件判定。
@@ -52,7 +52,7 @@ Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 
 - 对端 agent 不可信、不可发现或没有受支持协议。
 - E2EE / 合规 / policy server 要求所有步骤进入 Realm 账本。
 
-Contrix 原生模式更适合作为“协作事实层”和“治理层”。
+Cokret 原生模式更适合作为“协作事实层”和“治理层”。
 
 ## 4. 什么时候升级到外部 Agent Protocol
 
@@ -61,7 +61,7 @@ Contrix 原生模式更适合作为“协作事实层”和“治理层”。
 - 两个 agent 需要高频 token streaming 或事件 streaming。
 - 任务是长运行、分阶段、可暂停/恢复的 agent task。
 - 对端 agent 已经以 A2A AgentCard 或 ACP metadata 暴露能力。
-- 任务执行过程主要是 agent 内部推理、工具调用或跨框架编排，只有最终状态需要回写 Contrix。
+- 任务执行过程主要是 agent 内部推理、工具调用或跨框架编排，只有最终状态需要回写 Cokret。
 - 多 agent 团队跨 LangChain、AutoGen、CrewAI、BeeAI、ADK 等框架协作。
 - 需要临时直连或服务到服务通道，避免把每个 token / tool step 写成 durable Event。
 
@@ -99,21 +99,21 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ### 5.2 Protocol Session
 
-升级会话由 Contrix 事件登记：
+升级会话由 Cokret 事件登记：
 
 ```json
 {
   "kind": "cx.agent.protocol_session.start",
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "actor_id": "did:web:requesting-agent.example.com",
   "payload": {
-    "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
-    "task_flow_id": "cx:flow:4accc010-0000-7000-8000-000000000000",
+    "session_id": "ck:agent_session:019643c0-0000-7000-8000-000000000000",
+    "task_flow_id": "ck:flow:4accc010-0000-7000-8000-000000000000",
     "counterparty_agent": "did:web:remote-agent.example.com",
     "protocol": "a2a",
     "protocol_version": "1.x",
     "endpoint_ref": "https://agent.example/.well-known/agent-card.json",
-    "capability_grant": "cx:grant:...",
+    "capability_grant": "ck:grant:...",
     "allowed_artifact_types": [
       "text",
       "file",
@@ -133,14 +133,14 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 
 ### 5.3 Status 回流
 
-外部协议执行过程中的状态 MUST 回流为 Contrix event：
+外部协议执行过程中的状态 MUST 回流为 Cokret event：
 
 ```json
 {
   "kind": "cx.agent.protocol_session.status",
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "payload": {
-    "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ck:agent_session:019643c0-0000-7000-8000-000000000000",
     "external_task_id": "a2a-task-123",
     "status": "working",
     "progress_basis_points": 4200,
@@ -168,19 +168,19 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `cx.agent.sess
 
 ### 5.4 Result 回流
 
-最终结果 MUST 回写 Contrix：
+最终结果 MUST 回写 Cokret：
 
 ```json
 {
   "kind": "cx.agent.protocol_session.result",
-  "realm_id": "cx:realm:...",
+  "realm_id": "ck:realm:...",
   "payload": {
-    "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ck:agent_session:019643c0-0000-7000-8000-000000000000",
     "status": "completed",
     "result_objects": [
       {
         "object_type": "flow",
-        "object_ref": "cx:flow:4accc010-0000-7000-8000-000000000000",
+        "object_ref": "ck:flow:4accc010-0000-7000-8000-000000000000",
         "track": "synthesis",
         "role": "primary_result"
       }
@@ -188,7 +188,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `cx.agent.sess
     "artifacts": [
       {
         "artifact_type": "text",
-        "object_ref": "cx:morph:0ecec3a6-8180-7000-8000-000000000000",
+        "object_ref": "ck:morph:0ecec3a6-8180-7000-8000-000000000000",
         "hash": "sha256:..."
       }
     ],
@@ -233,13 +233,13 @@ reducer normative：
 
 ## 6. 协商流程
 
-下图把一次升级到外部 agent protocol 的握手画成时序图。**Contrix 始终持有身份 / capability / 任务登记 / 审计**，外部协议只承担高频实时执行通道。
+下图把一次升级到外部 agent protocol 的握手画成时序图。**Cokret 始终持有身份 / capability / 任务登记 / 审计**，外部协议只承担高频实时执行通道。
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant LocalAg as Local Agent
-    participant Cx as Contrix Realm<br>(capability + Anchor)
+    participant Cx as Cokret Realm<br>(capability + Anchor)
     participant Pol as Policy Server
     participant Remote as Remote Agent<br>(A2A / ACP endpoint)
 
@@ -263,11 +263,11 @@ sequenceDiagram
 
 - 步骤 3-4 的 endpoint validation 是 normative MUST：必须把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
 - 节流回写 `status` 不要求每个 token 都进 durable Event；具体频率由 `audit_mode` 决定（`status_only` / `summary_and_artifacts` / `full_transcript_digest` / `full_transcript`）。
-- Contrix 不信任外部 task status：只有 `cx.agent.protocol_session.result` event 被 reducer accept 后才改变 canonical task 状态。
+- Cokret 不信任外部 task status：只有 `cx.agent.protocol_session.result` event 被 reducer accept 后才改变 canonical task 状态。
 
 
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
-2. Requesting agent 在 Contrix 中创建或选择任务 Flow，或选择可承载任务语义的 Morph。
+2. Requesting agent 在 Cokret 中创建或选择任务 Flow，或选择可承载任务语义的 Morph。
 3. Requesting agent 检查自己是否拥有 `cx.agent.session.start` capability。
 4. **Endpoint validation（normative MUST）**：Policy server MUST 验证目标 endpoint 与目标 agent DID 的 service binding 一致性，至少完成以下检查（任一失败 MUST 拒绝 session start）：
    - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
@@ -279,7 +279,7 @@ sequenceDiagram
 5. Requesting agent 提交 `cx.agent.protocol_session.start`。
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。
-8. 结果、artifact、transcript hash、错误或取消原因回写 Contrix。
+8. 结果、artifact、transcript hash、错误或取消原因回写 Cokret。
 9. Reducer 将 Flow、Morph、Relation 或 notification 更新为最终状态。
 
 ## 7. Capability
@@ -313,10 +313,10 @@ Capability constraint SHOULD 支持：
 
 | 维度 | Personal agent runtime session(CXP-0008) | External agent protocol session(本文档) |
 | --- | --- | --- |
-| 用途 | Contrix 内部 native agent runtime 认证 Auth Server 与 Events API | 与外部 A2A / ACP / MCP endpoint 协商执行 task |
+| 用途 | Cokret 内部 native agent runtime 认证 Auth Server 与 Events API | 与外部 A2A / ACP / MCP endpoint 协商执行 task |
 | Endpoint | `/auth/account/session-grants` | `cx.agent.protocol_session.start` Event + 外部 protocol endpoint |
 | Proof | `agent_key_proof`(短期 `cx.session.grant`) | 由 `cx.agent.endpoint` policy / external protocol auth 决定 |
-| 是否数据外发 | 否——session 只用于在 Contrix 内签发后续 wire write | 是——外发到 external agent network |
+| 是否数据外发 | 否——session 只用于在 Cokret 内签发后续 wire write | 是——外发到 external agent network |
 | Realm policy 闸口 | `cx.profile.personal_agent_provisioning.v1` / `cx.profile.agent_auth.v1` | `cx.profile.agent_runtime.v1` + `audit_mode` |
 
 Agent runtime 拥有 `cx.profile.agent_auth.v1` session grant **不**自动授权其启动外部 agent protocol session;后者仍需独立的 `cx.agent.protocol_session.start` 写入、`cx.agent.endpoint` policy 校验、以及 §8 的外发行为约束。实现 MUST 把二者作为独立 capability 与独立 audit 流处理。
@@ -330,7 +330,7 @@ Agent runtime 拥有 `cx.profile.agent_auth.v1` session grant **不**自动授�
 - 外发 E2EE Realm 明文或其派生明文 / 摘要时，session start MUST 命中显式 egress grant（如 capability constraint 中的 `egress_policy` 配合具体 grant）并通过数据分类（`allowed_data_classes`）校验；任一不满足，实现 MUST 拒绝 session start，reason=`egress_policy_denied`，MUST NOT 退回到 SHOULD 形态或静默外发。
 - 对敏感 Realm 默认要求 human approval。
 - 对返回 artifact 做 hash、MIME、size、malware scan 和 policy check。
-- 不信任外部 task status；只有 Contrix result event accepted 后才改变 canonical task 状态。
+- 不信任外部 task status；只有 Cokret result event accepted 后才改变 canonical task 状态。
 - 支持 cancellation 和 timeout。
 
 ## 9. 审计模式
@@ -346,9 +346,9 @@ Agent runtime 拥有 `cx.profile.agent_auth.v1` session grant **不**自动授�
 
 ## 10. 与 MCP 的关系
 
-MCP 主要是 agent 到 tool/data 的协议，不是 Contrix 的 agent-to-agent 升级目标。但外部 A2A / ACP agent 在执行内部 MAY 使用 MCP 调用工具。
+MCP 主要是 agent 到 tool/data 的协议，不是 Cokret 的 agent-to-agent 升级目标。但外部 A2A / ACP agent 在执行内部 MAY 使用 MCP 调用工具。
 
-Contrix 只要求最终状态、artifact、审计证明和授权边界回流，不要求记录远端 agent 内部每次 MCP tool call，除非 Realm policy 要求 full transcript 或 regulated audit。
+Cokret 只要求最终状态、artifact、审计证明和授权边界回流，不要求记录远端 agent 内部每次 MCP tool call，除非 Realm policy 要求 full transcript 或 regulated audit。
 
 ## 11. Adapter Registry
 
@@ -358,7 +358,7 @@ Contrix 只要求最终状态、artifact、审计证明和授权边界回流，�
 | --- | --- |
 | `a2a` | 首选 agent-to-agent 外部协议。 |
 | `acp` | 连接使用 ACP metadata / endpoint 的 BeeAI 或 ACP-compliant service。 |
-| `mcp_bridge` | 将 Contrix task 包装为 MCP tool/resource 调用，适合 agent-to-tool。 |
+| `mcp_bridge` | 将 Cokret task 包装为 MCP tool/resource 调用，适合 agent-to-tool。 |
 | `http_custom` | 企业内部私有 agent API，需要显式 allowlist。 |
 
 Adapter MUST 声明：
@@ -381,7 +381,7 @@ Adapter MUST 声明：
 | `discovery_failed` | 找不到或无法验证对端 metadata / AgentCard。 |
 | `protocol_not_supported` | 双方没有共同协议。 |
 | `auth_failed` | 外部协议认证失败。 |
-| `policy_denied` | Contrix policy server 或 capability constraint 拒绝。 |
+| `policy_denied` | Cokret policy server 或 capability constraint 拒绝。 |
 | `egress_policy_denied` | 外发 E2EE Realm 明文 / 派生明文未命中显式 egress grant 或未通过数据分类校验；MUST 拒绝 session start（见 §6 步骤 4 与 §8）。 |
 | `remote_rejected` | 对端 agent 拒绝任务。 |
 | `timeout` | 超过最大执行时间。 |
@@ -394,10 +394,10 @@ Adapter MUST 声明：
 
 ## 13. 设计结论
 
-Contrix SHOULD 支持 agent protocol upgrade，但它必须是受控 handoff：
+Cokret SHOULD 支持 agent protocol upgrade，但它必须是受控 handoff：
 
-- Contrix 是 durable coordination / authorization / audit layer。
+- Cokret 是 durable coordination / authorization / audit layer。
 - A2A / ACP 是 optional execution transport。
-- 所有外部执行的输入边界、状态、结果和审计证明必须回到 Contrix。
+- 所有外部执行的输入边界、状态、结果和审计证明必须回到 Cokret。
 
-这样 Contrix 可以连接外部 agent 生态，同时不牺牲 DID、capability、Realm policy、E2EE 和审计模型。
+这样 Cokret 可以连接外部 agent 生态，同时不牺牲 DID、capability、Realm policy、E2EE 和审计模型。

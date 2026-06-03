@@ -815,7 +815,7 @@
     },
     "cx.profile.directory_service.v1": {
       "inherits": [],
-      "description": "Contrix v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
+      "description": "Cokret v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
       "required_endpoints": [
         "cx.directory.describe",
         "cx.directory.search_realms",
@@ -1072,7 +1072,7 @@
     },
     "cx.profile.auth_server.v1": {
       "inherits": [],
-      "description": "Contrix v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `cx.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `cx.policy.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `cx.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
+      "description": "Cokret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `cx.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `cx.policy.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `cx.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
       "required_endpoints": [
         "cx.server.describe",
         "cx.account.issue_session_grant"
@@ -1324,7 +1324,7 @@
     },
     "cx.profile.push_gateway.matrix_passthrough.v1": {
       "role": "interop",
-      "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as a bridge for legacy clients but MUST NOT mix this profile with cx.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Contrix privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under cx.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
+      "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as a bridge for legacy clients but MUST NOT mix this profile with cx.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Cokret privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under cx.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
       "depends_on": [
         "cx.profile.matrix_compat.v1"
       ],
@@ -1357,9 +1357,9 @@
         "unsupported_optional": "omit profile claim; bridges that cannot partition traffic MUST NOT claim this profile"
       },
       "additional_requirements": {
-        "partition_must": "Bridges MUST partition push traffic so that Contrix v1 default-baseline peers (cx.profile.push_gateway.blind_wakeup.v1) NEVER receive matrix_passthrough-shaped payloads.",
+        "partition_must": "Bridges MUST partition push traffic so that Cokret v1 default-baseline peers (cx.profile.push_gateway.blind_wakeup.v1) NEVER receive matrix_passthrough-shaped payloads.",
         "no_default_mixing_must": "Implementations MUST NOT advertise both cx.profile.push_gateway.blind_wakeup.v1 and cx.profile.push_gateway.matrix_passthrough.v1 as applying to the same (recipient_service_did, device) tuple.",
-        "interop_only_must": "This profile is interop-only; it MUST NOT be used as a substitute for cx.profile.push_gateway.blind_wakeup.v1 in default Contrix deployments."
+        "interop_only_must": "This profile is interop-only; it MUST NOT be used as a substitute for cx.profile.push_gateway.blind_wakeup.v1 in default Cokret deployments."
       }
     },
     "cx.profile.applet_service.v1": {
@@ -1818,7 +1818,7 @@
     },
     "cx.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework (CXP-0010). Upgrades cx.realm.media_service from a single sfu_endpoint to a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / contrix-native) declare an additional sub-profile. See zh/crypto-media/webrtc-signaling.md §6.1 / §6.4 / §10 / §11.",
+      "description": "Transport-agnostic media backend binding framework (CXP-0010). Upgrades cx.realm.media_service from a single sfu_endpoint to a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/webrtc-signaling.md §6.1 / §6.4 / §10 / §11.",
       "depends_on": [
         "cx.profile.webrtc_media.v1"
       ],
@@ -1860,14 +1860,14 @@
         "issuer_did_anchoring_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in cx.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
         "session_focus_must": "cx.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
         "participant_binding_must": "cx.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
-        "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Contrix MLS-Exporter with label cx-rtc-frame-key/v1 (length=19 bytes, Context=\"\", KDF.Nh=32 bytes). MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
-        "recording_pipeline_must": "Backend-generated recording artifacts MUST flow through Contrix authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
-        "recording_key_source_must": "Recording artifact encryption keys MUST derive from Contrix MLS-Exporter label cx-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label cx-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
+        "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Cokret MLS-Exporter with label cx-rtc-frame-key/v1 (length=19 bytes, Context=\"\", KDF.Nh=32 bytes). MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
+        "recording_pipeline_must": "Backend-generated recording artifacts MUST flow through Cokret authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
+        "recording_key_source_must": "Recording artifact encryption keys MUST derive from Cokret MLS-Exporter label cx-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label cx-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
       }
     },
     "cx.profile.media_service_binding.livekit.v1": {
       "role": "server",
-      "description": "LiveKit backend binding sub-profile (CXP-0010 §4.5). Maps Contrix token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Contrix blob pipeline. Declaring this sub-profile requires declaring cx.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
+      "description": "LiveKit backend binding sub-profile (CXP-0010 §4.5). Maps Cokret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Cokret blob pipeline. Declaring this sub-profile requires declaring cx.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
       "depends_on": [
         "cx.profile.media_service_binding.v1"
       ],
@@ -1900,13 +1900,13 @@
         "unsupported_optional": "fall back to cx.profile.media_service_binding.contrix_native.v1 if available"
       },
       "additional_requirements": {
-        "livekit_metadata_ban_must": "Token issuer MUST NOT inject LiveKit metadata or canUpdateOwnMetadata claims; Contrix participant metadata flows through cx.call.state only.",
-        "livekit_recorder_claim_must": "Token issuer MUST set video.recorder=false; recording goes through Contrix Egress proxy, not LiveKit recorder claim."
+        "livekit_metadata_ban_must": "Token issuer MUST NOT inject LiveKit metadata or canUpdateOwnMetadata claims; Cokret participant metadata flows through cx.call.state only.",
+        "livekit_recorder_claim_must": "Token issuer MUST set video.recorder=false; recording goes through Cokret Egress proxy, not LiveKit recorder claim."
       }
     },
     "cx.profile.media_service_binding.contrix_native.v1": {
       "role": "server",
-      "description": "Contrix-native SFU reference implementation binding sub-profile (CXP-0010 §4.5). Preserves the v1.0 custom SFU wire format as a reference impl for conformance testing and legacy migration. Not recommended for production — workload of self-maintaining SFU (cascade, recording, SFrame, scalability) exceeds the cost of LiveKit / mediasoup bindings. May transition to informative in v1.1. Declaring this sub-profile requires declaring cx.profile.media_service_binding.v1. See zh/crypto-media/bindings/contrix-native.md.",
+      "description": "Cokret-native SFU reference implementation binding sub-profile (CXP-0010 §4.5). Preserves the v1.0 custom SFU wire format as a reference impl for conformance testing and legacy migration. Not recommended for production — workload of self-maintaining SFU (cascade, recording, SFrame, scalability) exceeds the cost of LiveKit / mediasoup bindings. May transition to informative in v1.1. Declaring this sub-profile requires declaring cx.profile.media_service_binding.v1. See zh/crypto-media/bindings/cokret-native.md.",
       "depends_on": [
         "cx.profile.media_service_binding.v1"
       ],
@@ -2268,9 +2268,9 @@
         "unsupported_optional": "fail closed on root mismatch"
       },
       "required_cells": [
-        "cx:cell:cx.component.covered_frontier.v1:<realm_id>",
-        "cx:cell:cx.component.mls_epoch.v1:<mls_group_id>",
-        "cx:cell:cx.component.key_schedule.v1:<mls_group_id>"
+        "ck:cell:cx.component.covered_frontier.v1:<realm_id>",
+        "ck:cell:cx.component.mls_epoch.v1:<mls_group_id>",
+        "ck:cell:cx.component.key_schedule.v1:<mls_group_id>"
       ]
     },
     "cx.profile.mls.minimal_metadata_realm.v1": {
@@ -2928,7 +2928,7 @@
     },
     "cx.profile.matrix_compat.v1": {
       "inherits": [],
-      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Account-aggregate sync is NOT covered: Contrix v1 chose a streaming push form (cx.account.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the cx.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
+      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Account-aggregate sync is NOT covered: Cokret v1 chose a streaming push form (cx.account.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the cx.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "required_endpoints": [
         "cx.device_messages.put",
         "cx.device_messages.get",

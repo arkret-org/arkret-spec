@@ -12,10 +12,10 @@ updated: 2026-06-01
 
 ## 1. 目标
 
-本文定义 Contrix 协作图中两个最常用的对象：
+本文定义 Cokret 协作图中两个最常用的对象：
 
-- **Flow**（`cx:flow:`）：Realm 内统一的协作主对象，承载"这件事本身"。
-- **Message**（`cx:message:`）：Flow `discussion` track 时间线中的原子消息。
+- **Flow**（`ck:flow:`）：Realm 内统一的协作主对象，承载"这件事本身"。
+- **Message**（`ck:message:`）：Flow `discussion` track 时间线中的原子消息。
 
 Flow 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Flow 落在 Realm 内的某个 [Circle](./circle.md)（子事件 / 子消息边界；可按父 Realm floor 启用独立 MLS）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
 
@@ -45,7 +45,7 @@ Schema id: `cx.schema.flow.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:flow` | 以 `cx:flow:` 开头。 | Flow ID。 |
+| `id` | yes | `id:flow` | 以 `ck:flow:` 开头。 | Flow ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Flow metadata；MLS / E2EE 下按 `metadata_encryption_profile` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Flow metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
@@ -66,9 +66,9 @@ Schema id: `cx.schema.flow.v1`
 
 ```json schema=schemas/flow.schema.json
 {
-  "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
+  "id": "ck:flow:019640f9-8000-7000-8000-000000000000",
   "schema": "cx.schema.flow.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "metadata": {
     "title": "支付重构",
     "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
@@ -88,7 +88,7 @@ Schema id: `cx.schema.flow.v1`
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "cx:circle:019640dc-8000-7000-8000-000000000000",
+  "scope_circle_id": "ck:circle:019640dc-8000-7000-8000-000000000000",
   "state": "active",
   "stage": "in_progress",
   "created_by": "did:web:alice.example",
@@ -119,7 +119,7 @@ Schema id: `cx.schema.flow.v1`
 {
   "kind": "cx.flow.stage.set",
   "payload": {
-    "flow_id": "cx:flow:...",
+    "flow_id": "ck:flow:...",
     "stage": "blocked",
     "expected_stage": "in_progress"
   }
@@ -268,7 +268,7 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
 {
   "kind": "cx.flow.tracks.update",
   "payload": {
-    "flow_id": "cx:flow:...",
+    "flow_id": "ck:flow:...",
     "patch": {
       "tracks.discussion.enabled":   { "$op": "set", "value": true },
       "tracks.discussion.profile":   { "$op": "set", "value": "review" },
@@ -299,7 +299,7 @@ Flow 永远只有**一个** effective scope。整个 Flow（含所有 track：sy
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "cx:circle:019640dc-8000-7000-8000-000000000000"
+  "scope_circle_id": "ck:circle:019640dc-8000-7000-8000-000000000000"
 }
 ```
 
@@ -318,12 +318,12 @@ Flow 只有一份 identity；`tracks` map 的 key 决定可用协作面；`scope
 
 ```mermaid
 flowchart LR
-    subgraph Realm ["cx:realm: — 父 Realm（federation / policy / capability registry）"]
+    subgraph Realm ["ck:realm: — 父 Realm（federation / policy / capability registry）"]
         direction TB
-        FlowA["cx:flow: F_A<br/>scope_circle_id = null"]
-        FlowB["cx:flow: F_B<br/>scope_circle_id = cx:circle:0196419c-0000-7000-8000-000000000000"]
+        FlowA["ck:flow: F_A<br/>scope_circle_id = null"]
+        FlowB["ck:flow: F_B<br/>scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000"]
         RealmScope["Realm-default scope<br/>+ Realm membership"]
-        subgraph Circle ["cx:circle: C — 子事件边界"]
+        subgraph Circle ["ck:circle: C — 子事件边界"]
             direction TB
             CircleScope["Circle membership（⊆ Realm.members）<br/>+ 独立 history visibility<br/>+ 投递 / 查询裁剪<br/>+ 可选独立 MLS group"]
         end
@@ -396,7 +396,7 @@ Wire 形态：`cx.flow.watch.set` durable event 写入下文 §8.3 描述的 cas
 ```text
 event_kind  := cx.flow.watch.set
 cell_family := cx.component.flow.watch.v1
-cell_id     := cx:cell:cx.component.flow.watch.v1:<flow_id>:<watcher_actor_id>
+cell_id     := ck:cell:cx.component.flow.watch.v1:<flow_id>:<watcher_actor_id>
 lattice     := cas_register
 bottom      := reject
 value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
@@ -529,7 +529,7 @@ Schema id: `cx.schema.message.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:message` | 以 `cx:message:` 开头。 | Message ID。 |
+| `id` | yes | `id:message` | 以 `ck:message:` 开头。 | Message ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
 | `track_name` | yes | `const("discussion")` | v1 Message 只属于目标 Flow 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track_name 扩展出第二类消息时间线。 | 所属 Flow track key。 |
@@ -554,10 +554,10 @@ Schema id: `cx.schema.message.v1`
 
 ```json schema=schemas/message.schema.json
 {
-  "id": "cx:message:0196414c-8000-7000-8000-000000000000",
+  "id": "ck:message:0196414c-8000-7000-8000-000000000000",
   "schema": "cx.schema.message.v1",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "flow_id": "ck:flow:019640f9-8000-7000-8000-000000000000",
   "track_name": "discussion",
   "created_by": "did:web:alice.example",
   "content": {
@@ -567,7 +567,7 @@ Schema id: `cx.schema.message.v1`
     "formatted_body": "<mention did=\"did:web:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
   "state": "active",
-  "revision_root": "cx:message:0196414c-8000-7000-8000-000000000000",
+  "revision_root": "ck:message:0196414c-8000-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -584,9 +584,9 @@ Schema id: `cx.schema.message.v1`
     "kind": "cx.flow.create",
     "payload": {
       "object": {
-        "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
+        "id": "ck:flow:019640f9-8000-7000-8000-000000000000",
         "schema": "cx.schema.flow.v1",
-        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "metadata": {
           "title": "项目同步"
         },
@@ -602,7 +602,7 @@ Schema id: `cx.schema.message.v1`
   {
     "kind": "cx.message.create",
     "payload": {
-      "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
+      "flow_id": "ck:flow:019640f9-8000-7000-8000-000000000000",
       "track_name": "discussion",
       "content": {
         "kind": "cx.content.text",
@@ -678,11 +678,11 @@ v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有
 
 字段语义：
 
-- `audience`（必填）：v1 core 允许 `effective_scope_members`、`flow_participants`、`flow_watchers`、`flow_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Flow 绑定 Circle 时只包含该 Circle scope 的可见成员。`flow_participants` 表示该 Flow discussion track 中至少发过一条 active Message 的 actors。`flow_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`flow_engaged` 是 `flow_participants ∪ flow_watchers`，是 Contrix v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
+- `audience`（必填）：v1 core 允许 `effective_scope_members`、`flow_participants`、`flow_watchers`、`flow_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Flow 绑定 Circle 时只包含该 Circle scope 的可见成员。`flow_participants` 表示该 Flow discussion track 中至少发过一条 active Message 的 actors。`flow_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`flow_engaged` 是 `flow_participants ∪ flow_watchers`，是 Cokret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
 - `mention_text_original`（可选）：用户键入的原始 token，例如 `@all`、`@participants` 或本地化显示文本；仅用于 audit / debug / 搜索。
 - `resolved_at`（可选）：客户端形成该节点的时间。最终收件人集合仍由 dispatcher 在 source event causal frontier 下计算，不能信任客户端填入的计数或列表。
 
-`@here` 在 Contrix v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="flow_engaged"`，即“曾经参与当前 Flow discussion 或当前有效 watch 该 Flow 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile，并证明不泄露 presence 隐私。未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
+`@here` 在 Cokret v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="flow_engaged"`，即“曾经参与当前 Flow discussion 或当前有效 watch 该 Flow 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile，并证明不泄露 presence 隐私。未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
 
 Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST 不收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
 
@@ -758,7 +758,7 @@ Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../art
 
 #### 9.8.2 Target 范围（v1 决策）
 
-v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `cx:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `cx:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Flow synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
+v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `ck:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `ck:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Flow synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
 
 跨 effective scope 表态不允许：`target_ref` 必须落在 reaction event 自身 stamped 的 effective scope 内，否则 `failed_precondition`（`reason="reaction_scope_mismatch"`）。
 

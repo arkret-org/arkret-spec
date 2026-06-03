@@ -11,7 +11,7 @@ see_also:
 
 ## 1. 目标
 
-本文是 Contrix 规范的阅读入口。它按协议平面组织文档，避免读者在大量单文件中迷失。
+本文是 Cokret 规范的阅读入口。它按协议平面组织文档，避免读者在大量单文件中迷失。
 
 若本文与具体规范冲突，以具体规范中的 MUST / SHOULD 规则为准。
 
@@ -20,7 +20,7 @@ see_also:
 - `artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
 - `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json` 和 `operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
 - `artifacts/registry/error-code-registry.json` 是标准 service error 与逐项 `reason_code` 的 canonical registry。
-- `artifacts/openapi/contrix-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
+- `artifacts/openapi/cokret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
 - `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
 
@@ -83,7 +83,7 @@ see_also:
 
 ### 2.2 从产品概念找章节
 
-| 产品概念 | Contrix 读法 | 先读 |
+| 产品概念 | Cokret 读法 | 先读 |
 | --- | --- | --- |
 | 群聊 / 频道 / Matrix Room | Realm 负责成员和历史边界；Flow + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/flow-and-message.md`、`governance/history-visibility.md` |
 | Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Flow；拖拽位置是 `cx.flow.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
@@ -209,7 +209,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `discovery/discovery-directory.md` | Realm / Organization / Actor / Applet discoverability、私密联系人发现与目录服务。 |
-| `discovery/object-addressing.md` | 客户端无关可分享对象地址：`web+contrix:` URI scheme、HTTPS 落地、link 类型与 `resolve_target`。 |
+| `discovery/object-addressing.md` | 客户端无关可分享对象地址：`web+cokret:` URI scheme、HTTPS 落地、link 类型与 `resolve_target`。 |
 | `discovery/profiles-presence.md` | Actor profile、presence、typing、用户目录。 |
 | `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist、联系人 / Realm 本地备注。 |
 | `discovery/push-notifications.md` | 推送规则、推送网关、E2EE 脱敏推送。 |

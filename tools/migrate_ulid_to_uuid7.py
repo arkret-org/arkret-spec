@@ -28,7 +28,7 @@ SPEC = ROOT / "spec" / "v1"
 
 ULID_RAW_RE      = re.compile(r"\[0-9a-hjkmnp-z\]\{26\}")
 # Typed-prefix-anchored ULID: only match 26-char Crockford strings preceded by
-# a known cx:<kind>: typed prefix from id-kind-registry, so we don't touch
+# a known ck:<kind>: typed prefix from id-kind-registry, so we don't touch
 # unrelated 26-char alphanumerics (hashes, hex strings, etc.).
 TYPED_KINDS = (
     "actor_profile|agent_session|applet|backup|batch|blob|block|call|"
@@ -37,7 +37,7 @@ TYPED_KINDS = (
     "relation|report|req|snapshot|space|txn|view"
 )
 TYPED_ULID_RE    = re.compile(
-    rf"(cx:(?:{TYPED_KINDS}):)([0-9a-z]{{26}})(?![0-9a-z])"
+    rf"(ck:(?:{TYPED_KINDS}):)([0-9a-z]{{26}})(?![0-9a-z])"
 )
 # Standalone bare ULID in a quoted JSON value (string starts immediately):
 QUOTED_ULID_RE   = re.compile(r'(["\'])([0-9a-z]{26})\1')
@@ -87,7 +87,7 @@ def ulid_to_uuid7(ulid_str: str) -> str:
 def find_all_ulids() -> dict[str, str]:
     """Walk all spec files; return {ulid_str: uuid7_str} for every unique
     ULID-shaped 26-char Crockford string that appears either after a known
-    cx:<kind>: typed prefix or inside a quoted JSON string."""
+    ck:<kind>: typed prefix or inside a quoted JSON string."""
     mapping: dict[str, str] = {}
     targets = []
     for ext in ("*.json", "*.md", "*.mdx", "*.yaml", "*.yml"):
@@ -112,7 +112,7 @@ def rewrite_text(text: str, ulid_map: dict[str, str]) -> str:
     # 1) regex pattern in schemas
     text = ULID_RAW_RE.sub(UUID7_PATTERN, text)
 
-    # 2) typed-prefix-anchored ULID: cx:KIND:<26-char> → cx:KIND:<uuid7>
+    # 2) typed-prefix-anchored ULID: ck:KIND:<26-char> → ck:KIND:<uuid7>
     def _typed_sub(m: re.Match) -> str:
         prefix, ulid = m.group(1), m.group(2)
         return prefix + ulid_map.get(ulid, ulid)
@@ -134,12 +134,12 @@ def rewrite_id_kind_storage_rules(catalog_path: Path) -> None:
     if not isinstance(section, dict):
         return
     section["uuid_pattern"] = f"^{UUID7_PATTERN}$"
-    section["typed_uuid_pattern"] = f"^cx:<kind>:{UUID7_PATTERN}$"
+    section["typed_uuid_pattern"] = f"^ck:<kind>:{UUID7_PATTERN}$"
     section.pop("ulid_pattern", None)
     section.pop("typed_ulid_pattern", None)
     new_rules = [
-        "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form cx:<kind>:<uuid> unless a special form below applies.",
-        "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the cx:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
+        "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form ck:<kind>:<uuid> unless a special form below applies.",
+        "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ck:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
         "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
         "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
         "The UUID segment MUST be RFC 9562 UUID version 7 (48-bit Unix-millisecond timestamp + 4-bit version=7 + 12-bit rand_a + 2-bit variant=10b + 62-bit rand_b), serialized as the canonical 36-character lowercase hex form `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` where N ∈ {8,9,a,b}.",

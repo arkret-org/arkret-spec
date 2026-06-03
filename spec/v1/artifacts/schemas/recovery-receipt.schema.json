@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/recovery-receipt.schema.json",
-  "title": "Contrix Recovery Receipt",
+  "$id": "https://cokret.io/artifacts/schemas/recovery-receipt.schema.json",
+  "title": "Cokret Recovery Receipt",
   "description": "Signed completion receipt for a principal recovery flow. Bound to the recovery_session_id used by every proof, backup unlock, and MLS Welcome replay action; written to either the audit Realm declared by the active recovery policy or — when audit policy permits — as an actor-private record on the Principal Control Realm. Formal recovery receipts are signed only after the recovering device has been accepted via cx.device.authorize; pre-authorization failures use server outcome/audit evidence instead. See crypto-media/device-lifecycle.md §15 step 7.",
   "type": "object",
   "required": [
@@ -27,19 +27,19 @@
     },
     "receipt_id": {
       "type": "string",
-      "pattern": "^cx:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "principal_id": {
       "$ref": "#/$defs/did"
     },
     "recovery_session_id": {
       "type": "string",
-      "pattern": "^cx:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ck:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Stable session identifier used by every proof transcript, backup decrypt proof, and MLS Welcome replay during this recovery. Receivers MUST reject receipts that reuse a session id already accepted for the same principal."
     },
     "policy_id": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "policy_version": {
       "type": "integer",
@@ -47,11 +47,11 @@
     },
     "trust_domain": {
       "type": "string",
-      "pattern": "^cx:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
+      "pattern": "^ck:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
     },
     "new_device_id": {
       "type": "string",
-      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "previous_ssk_generation": {
       "type": "integer",
@@ -123,11 +123,11 @@
           },
           "backup_id": {
             "type": "string",
-            "pattern": "^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "series_id": {
             "type": "string",
-            "pattern": "^cx:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "ciphertext_digest": {
             "$ref": "#/$defs/hash"
@@ -379,7 +379,7 @@
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     }
   }
 }

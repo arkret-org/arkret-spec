@@ -12,7 +12,7 @@ updated: 2026-05-26
 
 ## 1. 目标
 
-**Circle**(`cx:circle:`)是 Realm 内被父 Realm 包裹的**子事件 / 子消息边界**:拥有独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪规则，且 `Circle.members ⊆ Realm.members`；但**不**持有 federation identity、policy server 或 capability registry。Circle 表达"窄于 Realm 的协作圈"。
+**Circle**(`ck:circle:`)是 Realm 内被父 Realm 包裹的**子事件 / 子消息边界**:拥有独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪规则，且 `Circle.members ⊆ Realm.members`；但**不**持有 federation identity、policy server 或 capability registry。Circle 表达"窄于 Realm 的协作圈"。
 
 Realm 与 Circle 分工正交:Realm 承担 federation / identity boundary,Circle 承担 intra-Realm scoped event boundary。**一对象一 effective scope** 是协议级硬不变量——任何对象 MUST 只属于一个 effective scope(Realm-default 或某个 Circle)。
 
@@ -35,7 +35,7 @@ Schema id: `cx.schema.circle.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:circle` | `cx:circle:<uuid>`(UUIDv7) | Circle ID。 |
+| `id` | yes | `id:circle` | `ck:circle:<uuid>`(UUIDv7) | Circle ID。 |
 | `schema` | yes | `cx.schema.circle.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | create-locked;Circle 永远属于一个 Realm,不可改绑。 | 归属 Realm(父安全/联邦边界)。 |
 | `title` | yes | `string` | 1..256 chars。 | 人类可读名称。 |
@@ -46,7 +46,7 @@ Schema id: `cx.schema.circle.v1`
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`../governance/history-visibility.md`](../governance/history-visibility.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `metadata_encryption_floor` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm floor。 | Circle 内对象的 metadata 加密下限；只能收紧，不得放宽父 Realm floor。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420)` | create-locked。父 Realm `encryption_profile=mls_rfc9420` 或 effective `content_encryption_floor=e2ee_required` 时 MUST 为 `mls_rfc9420`；父 Realm 允许明文时 MAY 为 `none`。未来 MLS 版本 / PQ-MLS / external provider 必须显式扩展 schema。 | Circle 内容加密形态。 |
-| `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `cx.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST 不存在。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `cx:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
+| `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `cx.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST 不存在。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `ck:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` | — | 创建者。 |
@@ -101,7 +101,7 @@ Morph.scope_circle_id         : id:circle | null
 - `scope_circle_id` 引用的 Circle MUST `realm_id` 与对象 `realm_id` 一致；否则 `schema_violation`(`reason=circle_realm_mismatch`)。
 - `scope_circle_id` 引用的 Circle MUST `state=active`;否则 `failed_precondition`(`reason=circle_not_active`)。
 - `scope_circle_id=null` 不表示"没有 scope";它表示 Realm-default scope。Reducer MUST 把它物化为 tagged `effective_scope = {kind:"realm", realm_id}`。
-- `scope_circle_id=cx:circle:...` MUST 物化为 tagged `effective_scope = {kind:"circle", realm_id, circle_id}`。
+- `scope_circle_id=ck:circle:...` MUST 物化为 tagged `effective_scope = {kind:"circle", realm_id, circle_id}`。
 - Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope 与 Anchor/sub-anchor leaf；在 MLS-backed scope 中还进入 E2EE AAD 与 MLS governance binding 输入。后续 `scope_circle_id` 改绑不得重解释旧 event。
 - Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm,不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope 的 history / key eligibility；新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
@@ -126,7 +126,7 @@ Morph.scope_circle_id         : id:circle | null
 
 ```json
 {
-  "scope_circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+  "scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
 }
 ```
 
@@ -137,16 +137,16 @@ Morph.scope_circle_id         : id:circle | null
 `effective_scope.kind = "realm"`(对应 submit-payload `scope_circle_id=null`):
 
 ```json
-{ "kind": "realm", "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000" }
+{ "kind": "realm", "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000" }
 ```
 
-`effective_scope.kind = "circle"`(对应 submit-payload `scope_circle_id=cx:circle:...`):
+`effective_scope.kind = "circle"`(对应 submit-payload `scope_circle_id=ck:circle:...`):
 
 ```json
 {
   "kind": "circle",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "circle_id": "cx:circle:0196419c-0000-7000-8000-000000000000"
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
 }
 ```
 
@@ -177,7 +177,7 @@ Realm **不会**自动创建默认 Circle。Realm-default scope 是 Realm 自身
 | `realm` | 父 Realm membership / history visibility / policy floor | `Realm.encryption_profile` 指定的 Realm-default group / external provider / plaintext mode | `scope_circle_id=null` |
 | `circle` | Circle membership / history visibility / projection 裁剪，且受父 Realm policy floor 包裹 | `Circle.encryption_profile=none` 时为 plaintext delivery-only；`mls_rfc9420` 时为 Circle 独立 MLS group | `scope_circle_id` 指向 Circle |
 
-`Realm.encryption_profile="mls_rfc9420"` 只说明使用 MLS 作为加密机制,**不**说明哪些 Contrix 字段进入密文。加密覆盖范围由 Realm policy floor 独立声明:
+`Realm.encryption_profile="mls_rfc9420"` 只说明使用 MLS 作为加密机制,**不**说明哪些 Cokret 字段进入密文。加密覆盖范围由 Realm policy floor 独立声明:
 
 | policy field | enum | 说明 |
 | --- | --- | --- |
@@ -227,7 +227,7 @@ Reducer MUST 在 `cx.flow.create`、`cx.flow.move`、`cx.space.parent`、structu
 
 ```
 Flow F_public  (scope_circle_id = null)              ← 公开 anchor Flow,承载 metadata.title / metadata.summary / stage / metadata.fields
-Flow F_private (scope_circle_id = cx:circle:0196419c-0000-7000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
+Flow F_private (scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
 
@@ -346,7 +346,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 要让 UI 能可靠区分，以下信号 **MUST** 在 spec 层统一,**不**留给客户端各自发明:
 
 - **颜色 token**:同一 Circle 在 Alice 与 Bob 的客户端上必须呈现一致颜色，否则跨设备 social engineering 攻击成立。
-- **短名**:`HR-Conf` 比 `cx:circle:01964...` 可读性高几个量级，且能进入 compose bar 实时显示。
+- **短名**:`HR-Conf` 比 `ck:circle:01964...` 可读性高几个量级，且能进入 compose bar 实时显示。
 - **符号 / glyph**:无障碍 / 色盲场景的第二信号。
 
 客户端实现 SHOULD 至少做到:
