@@ -16,7 +16,7 @@
   "properties": {
     "kind": {
       "type": "string",
-      "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+      "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
     },
     "sender_principal_id": {
       "$ref": "#/$defs/did",
@@ -57,14 +57,14 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.key.verification.request",
-              "cx.key.verification.ready",
-              "cx.key.verification.start",
-              "cx.key.verification.accept",
-              "cx.key.verification.key",
-              "cx.key.verification.mac",
-              "cx.key.verification.done",
-              "cx.key.verification.cancel"
+              "ck.key.verification.request",
+              "ck.key.verification.ready",
+              "ck.key.verification.start",
+              "ck.key.verification.accept",
+              "ck.key.verification.key",
+              "ck.key.verification.mac",
+              "ck.key.verification.done",
+              "ck.key.verification.cancel"
             ]
           }
         },
@@ -84,7 +84,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.request"
+            "const": "ck.key.verification.request"
           }
         },
         "required": [
@@ -109,7 +109,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.ready"
+            "const": "ck.key.verification.ready"
           }
         },
         "required": [
@@ -132,7 +132,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.start"
+            "const": "ck.key.verification.start"
           }
         },
         "required": [
@@ -155,7 +155,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.accept"
+            "const": "ck.key.verification.accept"
           }
         },
         "required": [
@@ -178,7 +178,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.key"
+            "const": "ck.key.verification.key"
           }
         },
         "required": [
@@ -201,7 +201,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.mac"
+            "const": "ck.key.verification.mac"
           }
         },
         "required": [
@@ -225,7 +225,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.cancel"
+            "const": "ck.key.verification.cancel"
           }
         },
         "required": [
@@ -281,13 +281,13 @@
           "minItems": 1,
           "items": {
             "type": "string",
-            "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+            "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
           },
           "uniqueItems": true
         },
         "method": {
           "type": "string",
-          "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "timestamp": {
           "$ref": "#/$defs/timestamp"

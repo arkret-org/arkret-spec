@@ -42,6 +42,25 @@
 
 ## [Unreleased]
 
+### 品牌命名空间 cx→ck 与 API 信任同心圆改名(2026-06-03)
+
+把半迁移的 `contrix`→`cokret` 品牌收尾，并把 HTTP API 命名空间从扁平功能模块改为去版本的"信任同心圆"。详见 `_rename.md`。
+
+- **变更类型**: modify
+- **影响 artifact**: registry（contract-catalog / 全部派生视图 / operations-error-mapping / error-code / renames / forbidden-model-terms）/ schema / fixture / openapi / non-http binding / prose / site metadata / tooling
+- **canonical 变更**:
+  - 全部 wire token 前缀 `cx.`→`ck.`、typed-id 前缀 `ck:`→`ck:`、品牌串 `contrix`/`Contrix`→`cokret`/`Cokret`（含实体文件 `cokret-service-api.openapi.yaml`、`cokret-native.md`）。
+  - 每个 operation 的 `http` binding 重写为 `/_cokret/<信任段>/...`（段：`self`/`gate`/`root`/`find`/`peer`/`open`/`edge`/`local`），顶层 `ck.server.describe` 落根 meta 位 `GET /_cokret/describe`。
+  - **去 path 版本**：删除所有 `/v1/`、`/api/v1`、`/cokret/v1` 片段；`servers` 仅 `https://{host}`；版本改由 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header）。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 重生成全部派生 registry 视图与 public catalog snapshot；OpenAPI path、`operations-error-mapping.http_alias`、prose 路径表已同步；fixture 内嵌 digest 经 `tools/fix_crypto_signature_fixture.py` 与 digest 重算更新，`tools/check_fixture_digests.py --write-reference` 刷新引用。
+- **conformance impact**:
+  - 受影响 profile: 全部（operation id 与 wire token 全变）。
+  - wire 兼容性: **breaking**（协议尚未公开发布，单一 v1 线，允许 pre-release breaking）。
+  - reader / writer 行为要求: 旧 `cx.*` / `contrix` token 与旧扁平 / 版本化 path MUST 被拒绝；登记于 `renames.json` 迁移组 `brand_namespace_cx_to_ck`（hard_reject）与 `forbidden-model-terms.json`。
+- **fixture / vector 变化**: 全部 fixture 的 token 与内嵌 digest 已重算；`reports/fixture-digests.json` 引用已刷新。
+- **prose 同步**: `sync/service-http-binding.md`(§2.1 信任段图例)、`sync/api-conventions.md`(§11 path 无版本 + 版本协商)、`sync/service-surface.md`、`sync/service-api-schema.mdx` 及全部引用 HTTP path 的 zh 文档。
+- **迁移指南**: 下游实现把所有 `cx.`→`ck.`、`ck:`→`ck:`、`contrix`→`cokret`；调用 path 从扁平 `/events` 等改为 `/_cokret/<段>/...`，去掉 `/api/v1`、`/cokret/v1` 前缀；用 `*.describe` 协商版本，不要在 path 写版本。
+
 ### MLS effective scope and public catalog gate(2026-05-31)
 
 收紧 MLS Realm/Circle key scope 的机器契约，并把当前候选站点元数据与 public catalog 快照对齐。

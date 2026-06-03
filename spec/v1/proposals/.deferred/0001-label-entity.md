@@ -33,7 +33,7 @@ Jira / Linear / Asana 都是一等 label 实体。本提案把这层 gap 补上�
 
 ### 3.1 `ck:label:` 对象
 
-Schema id: `cx.schema.label.v1`
+Schema id: `ck.schema.label.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -54,11 +54,11 @@ Schema id: `cx.schema.label.v1`
 
 | event kind | reducer_input | payload | 说明 |
 | --- | --- | --- | --- |
-| `cx.label.create` | yes | full object | 创建 label。 |
-| `cx.label.update` | yes | `cx.patch.v1`(path 不含 `key`) | 改 name / color / description / icon / scope。 |
-| `cx.label.archive` | yes | object_lifecycle_payload | active → archived。 |
-| `cx.label.restore` | yes | object_lifecycle_payload | archived → active。 |
-| `cx.label.tombstone` | yes | object_lifecycle_payload | active/archived → tombstoned,不可逆。 |
+| `ck.label.create` | yes | full object | 创建 label。 |
+| `ck.label.update` | yes | `ck.patch.v1`(path 不含 `key`) | 改 name / color / description / icon / scope。 |
+| `ck.label.archive` | yes | object_lifecycle_payload | active → archived。 |
+| `ck.label.restore` | yes | object_lifecycle_payload | archived → active。 |
+| `ck.label.tombstone` | yes | object_lifecycle_payload | active/archived → tombstoned,不可逆。 |
 
 ### 3.3 应用到 Flow / Morph:`labeled_with` Relation
 
@@ -67,8 +67,8 @@ flow  --labeled_with-->  label    cardinality: many-to-many
 morph --labeled_with-->  label    cardinality: many-to-many
 ```
 
-- 写入:`cx.relation.create relation_kind=labeled_with`
-- 删除:`cx.relation.tombstone`
+- 写入:`ck.relation.create relation_kind=labeled_with`
+- 删除:`ck.relation.tombstone`
 - 冲突收敛:Relation 集合,OR-Set
 - **跨 Realm 约束**:`from_ref.realm_id == to_ref.realm_id`,否则 `schema_violation`(避免审计边界逃逸,与 Realm 是安全边界一致)。
 
@@ -76,18 +76,18 @@ morph --labeled_with-->  label    cardinality: many-to-many
 
 **关键:reducer fail-closed 单源**,通过 Realm profile 选择模式:
 
-- Profile **未启用** typed label(默认 v1 行为):沿用现行 `array<string>` 自由 tag,`cx.label.*` event MUST 被 reducer 拒绝(`schema_violation`,`reason="label_profile_not_enabled"`)。
-- Profile **启用** typed label(`cx.profile.label.typed.v1` opt-in):
+- Profile **未启用** typed label(默认 v1 行为):沿用现行 `array<string>` 自由 tag,`ck.label.*` event MUST 被 reducer 拒绝(`schema_violation`,`reason="label_profile_not_enabled"`)。
+- Profile **启用** typed label(`ck.profile.label.typed.v1` opt-in):
   - 对象顶层 `labels: array<string>` MUST 由 reducer 派生(只读投影),actor 直接写入 MUST `schema_violation`(与 `watches` Relation / `contains` Relation 的双源约束同模式)。
-  - `cx.label.*` 是 label CRUD 真源;`labeled_with` Relation 是应用真源。
+  - `ck.label.*` 是 label CRUD 真源;`labeled_with` Relation 是应用真源。
   - 客户端展示用的 `labels: array<string>` 由 reducer 从已应用的 `labeled_with` Relation + label `name` 派生(label 改名时投影自动更新)。
 
 ### 3.5 Capability split
 
 | action | risk_tier | target event kinds |
 | --- | --- | --- |
-| `cx.label.manage` | medium | `cx.label.create`, `cx.label.update`, `cx.label.archive`, `cx.label.restore`, `cx.label.tombstone` |
-| `cx.label.apply` | low | `cx.relation.create` 限 `relation_kind=labeled_with` + `cx.relation.tombstone` 限同 kind(通过 capability constraint `relation_kind_allow`) |
+| `ck.label.manage` | medium | `ck.label.create`, `ck.label.update`, `ck.label.archive`, `ck.label.restore`, `ck.label.tombstone` |
+| `ck.label.apply` | low | `ck.relation.create` 限 `relation_kind=labeled_with` + `ck.relation.tombstone` 限同 kind(通过 capability constraint `relation_kind_allow`) |
 
 理由:Trello / GitHub 常见场景是"只有 admin 能扩调色板,所有成员都能贴 label"。
 
@@ -98,8 +98,8 @@ morph --labeled_with-->  label    cardinality: many-to-many
 - 新增 id-kind:`label` → `ck:label:` 加入 `id-kind-registry.json`。
 - 新增 event_kinds(catalog + registry 同步)5 条;新增 capability actions 2 条。
 - 新增 relation_kind:`labeled_with`(应该已在 relation profile 里能声明,确认即可)。
-- 新增 profile:`cx.profile.label.typed.v1`,声明启用此提案。
-- `common-fields.md` §3 的 `labels: array<string>` 行追加 note:"启用 `cx.profile.label.typed.v1` 时本字段降级为 reducer-derived 投影"。
+- 新增 profile:`ck.profile.label.typed.v1`,声明启用此提案。
+- `common-fields.md` §3 的 `labels: array<string>` 行追加 note:"启用 `ck.profile.label.typed.v1` 时本字段降级为 reducer-derived 投影"。
 - **不**新增 forbidden-wire 字段(单源约束通过 profile gate 而非 wire-level reject 表达,因为旧 array<string> 形态仍合法)。
 
 ## 5. Rationale & alternatives
@@ -132,7 +132,7 @@ Relation 已经是协议级一等概念,有 lifecycle / cross-Realm 校验 / aud
 - [ ] `scope=personal` 是否真的需要协议级表达?或者完全留给客户端 actor-private state?
 - [ ] 跨 Realm 引用 label 的场景(用 Realm A 的 label 给 Realm B 的 Flow 贴)需要吗?默认拒绝,但 Linked Realm 场景可能合理。
 - [ ] Label `key` create-locked 与 morph_type 同模式,还是允许低 tier rename(并接受 grant selector 失效)?
-- [ ] 是否需要 `cx.label.merge` event(把两个 label 合并,自动迁移所有 `labeled_with`)?这是 Trello / GitHub 都有的高频运维操作。
+- [ ] 是否需要 `ck.label.merge` event(把两个 label 合并,自动迁移所有 `labeled_with`)?这是 Trello / GitHub 都有的高频运维操作。
 
 ## 7. Migration plan
 

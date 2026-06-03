@@ -1,11 +1,11 @@
 {
   "suite": "membership_delivery_binding_vectors",
-  "profile": "cx.profile.privacy_security_vectors.v1",
+  "profile": "ck.profile.privacy_security_vectors.v1",
   "version": "2026-05-23",
-  "description": "Machine-readable fixtures for cx.member.state{membership=join} delivery_binding closure. The effective member cell is the only authority for Realm-scoped delivery routing; DID Document service entries are materialized only at join/rebind time and are never a runtime fallback.",
+  "description": "Machine-readable fixtures for ck.member.state{membership=join} delivery_binding closure. The effective member cell is the only authority for Realm-scoped delivery routing; DID Document service entries are materialized only at join/rebind time and are never a runtime fallback.",
   "vectors": [
     {
-      "vector_id": "cx.vector.membership.delivery_binding.explicit.v1",
+      "vector_id": "ck.vector.membership.delivery_binding.explicit.v1",
       "given_state": {
         "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
@@ -21,9 +21,9 @@
           ]
         }
       },
-      "operation": "cx.events.submit",
+      "operation": "ck.events.submit",
       "input": {
-        "event_kind": "cx.member.state",
+        "event_kind": "ck.member.state",
         "payload": {
           "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
@@ -59,7 +59,7 @@
       }
     },
     {
-      "vector_id": "cx.vector.membership.delivery_binding.did_document_default.v1",
+      "vector_id": "ck.vector.membership.delivery_binding.did_document_default.v1",
       "given_state": {
         "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
@@ -72,9 +72,9 @@
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
       },
-      "operation": "cx.events.submit",
+      "operation": "ck.events.submit",
       "input": {
-        "event_kind": "cx.member.state",
+        "event_kind": "ck.member.state",
         "payload": {
           "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
@@ -106,16 +106,16 @@
       }
     },
     {
-      "vector_id": "cx.vector.membership.delivery_binding.unroutable.v1",
+      "vector_id": "ck.vector.membership.delivery_binding.unroutable.v1",
       "given_state": {
         "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
         "delivery_binding_policy": {
           "allow_unroutable_membership": true
         }
       },
-      "operation": "cx.events.submit",
+      "operation": "ck.events.submit",
       "input": {
-        "event_kind": "cx.member.state",
+        "event_kind": "ck.member.state",
         "payload": {
           "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
@@ -131,7 +131,7 @@
       }
     },
     {
-      "vector_id": "cx.vector.membership.delivery_binding.handover.v1",
+      "vector_id": "ck.vector.membership.delivery_binding.handover.v1",
       "given_state": {
         "initial_frontier": "F0",
         "rebind_frontier": "F1",
@@ -173,7 +173,7 @@
       }
     },
     {
-      "vector_id": "cx.vector.membership.delivery_binding.policy_mismatch.v1",
+      "vector_id": "ck.vector.membership.delivery_binding.policy_mismatch.v1",
       "given_state": {
         "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
         "delivery_binding_policy": {
@@ -185,9 +185,9 @@
           ]
         }
       },
-      "operation": "cx.events.submit",
+      "operation": "ck.events.submit",
       "input": {
-        "event_kind": "cx.member.state",
+        "event_kind": "ck.member.state",
         "payload": {
           "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",

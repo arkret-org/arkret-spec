@@ -29,7 +29,7 @@
     },
     "reducer_profile": {
       "type": "string",
-      "pattern": "^cx\\.reducer(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+      "pattern": "^ck\\.reducer(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
     },
     "security_class": {
       "type": "string",
@@ -44,7 +44,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+        "pattern": "^ck\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
       },
       "minItems": 1,
       "uniqueItems": true

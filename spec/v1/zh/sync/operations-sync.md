@@ -60,41 +60,41 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | `preconditions[]` | reducer-input only：`[(cell, predicate)]`。任一不成立则整个 event FAIL。 |
 | `effects[]` | reducer-input only：`[(cell, lattice_op)]`。原子多 cell CAS。 |
 | `anchor_ref` | reducer-input only：本 event 提交时所对应的 Anchor DAG 节点。 |
-| `payload` | kind-specific 业务载荷（`cx.message.create.payload.content`、`cx.flow.update.payload.patch` 等）；它们是 effect 写入值的源数据，不替代 effects[]。 |
+| `payload` | kind-specific 业务载荷（`ck.message.create.payload.content`、`ck.flow.update.payload.patch` 等）；它们是 effect 写入值的源数据，不替代 effects[]。 |
 | `proofs[]` | 至少一条 detached JWS，覆盖 canonical event bytes（不含 `proofs` 与 `unsigned`）。 |
 | `hlc` | advisory tie-breaker。**进入 canonical event bytes 与 proof `event_digest`**（与 [encoding.md](../conformance/encoding.md) §7、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3 rule 1 一致），因此被生产者签名锁定、relay 不得改写；但语义上仅用于 timeline 展示与 freshness 诊断，MUST NOT 进授权决策、Lattice 收敛、Move precondition 比较或 Anchor finality 判断。 |
 
-非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read_cursor.advance`、`cx.device.push_route`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
+非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `ck.read_cursor.advance`、`ck.device.push_route`、`ck.typing`、`ck.receipt.read`、`ck.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
 
 Actor-private state 是独立层，不是“弱 durable Event”。标准规则：
 
 - `actor_private_event` 可以写入 principal control stream、account data 或 device/private cell，cell subject MUST 可由 payload / actor / authenticated account 唯一派生，并在 registry 中声明。
 - actor-private cell 不参与 shared Realm `state_root`、Anchor frontier、membership visibility 或 federation delivery binding；需要跨设备同步时，只在同一 principal / account 授权边界内复制。
 - 任何实现想让 actor-private state 影响其它成员的共享视图，必须 emit 一条独立 durable reducer-input Event（例如 moderation decision、watch manage audit pair），不得让投影层直接读取他人的 actor-private cell。
-- `cx.device.list_update`、`cx.device.push_route`、`cx.account.blocklist`、contacts remarks / preferences 是该模型的标准例子；typing / presence / call.signal 仍是 ephemeral，不得写 actor-private cell。
+- `ck.device.list_update`、`ck.device.push_route`、`ck.account.blocklist`、contacts remarks / preferences 是该模型的标准例子；typing / presence / call.signal 仍是 ephemeral，不得写 actor-private cell。
 
 ### 2.1.1 Wire-Scope 边界（normative）
 
-为避免 ephemeral 信号意外进入持久 Event 流，event-envelope.schema.json 与 cx.events.submit MUST 按下表 fail-closed：
+为避免 ephemeral 信号意外进入持久 Event 流，event-envelope.schema.json 与 ck.events.submit MUST 按下表 fail-closed：
 
 | `wire_scope`（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)） | 允许使用的 envelope schema | 允许的提交路径 |
 | --- | --- | --- |
-| `durable_event` | `cx.schema.event.v1`（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)） | `cx.events.submit` |
-| `actor_private_event` | `cx.schema.event.v1`（同上；不携带 `preconditions/effects/anchor_ref`，payload 仍按 kind-specific schema 校验） | `cx.events.submit`（actor 私有，写入 actor 私有 store 或 registry 声明的 actor-private state cell；不进 Realm frontier） |
-| `ephemeral_event`（`cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`） | `cx.schema.ephemeral_envelope.v1`（[`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)） | `cx.ephemeral.send`（HTTP `POST /api/v1/ephemeral`）或等价已声明 binding；fanout 通过 sync subscribe 实时流、presence/typing fanout、call signaling channel；**MUST NOT** 出现在 `cx.events.submit` |
-| `ephemeral_event`（`cx.key.verification.*` — 点对点 to-device） | `cx.schema.device_message.v1`（[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)） | to-device 队列（不广播）；**MUST NOT** 出现在 `cx.events.submit` |
+| `durable_event` | `ck.schema.event.v1`（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)） | `ck.events.submit` |
+| `actor_private_event` | `ck.schema.event.v1`（同上；不携带 `preconditions/effects/anchor_ref`，payload 仍按 kind-specific schema 校验） | `ck.events.submit`（actor 私有，写入 actor 私有 store 或 registry 声明的 actor-private state cell；不进 Realm frontier） |
+| `ephemeral_event`（`ck.presence` / `ck.typing` / `ck.receipt.read` / `ck.call.signal`） | `ck.schema.ephemeral_envelope.v1`（[`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)） | `ck.ephemeral.send`（HTTP `POST /_cokret/self/ephemeral`）或等价已声明 binding；fanout 通过 sync subscribe 实时流、presence/typing fanout、call signaling channel；**MUST NOT** 出现在 `ck.events.submit` |
+| `ephemeral_event`（`ck.key.verification.*` — 点对点 to-device） | `ck.schema.device_message.v1`（[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)） | to-device 队列（不广播）；**MUST NOT** 出现在 `ck.events.submit` |
 
 规则：
 
-1. `cx.events.submit` MUST 对 `kind` 的 `wire_scope=ephemeral_event` 立即 `schema_violation`，不进 reducer / anchor pipeline。event-envelope.schema.json 已用 `not` 分支静态强制 cx.call.signal / cx.presence / cx.typing / cx.receipt.read / cx.key.verification.* MUST NOT 出现在 durable Event Envelope。
-2. ephemeral 广播信号 MUST 通过 `cx.ephemeral.send` 或等价已声明 binding 发送，MUST 携带 `expires_at` 并由接收方按 schema 中 5 分钟硬上限丢弃；不得作为 backfill / sync replay 入口。
+1. `ck.events.submit` MUST 对 `kind` 的 `wire_scope=ephemeral_event` 立即 `schema_violation`，不进 reducer / anchor pipeline。event-envelope.schema.json 已用 `not` 分支静态强制 ck.call.signal / ck.presence / ck.typing / ck.receipt.read / ck.key.verification.* MUST NOT 出现在 durable Event Envelope。
+2. ephemeral 广播信号 MUST 通过 `ck.ephemeral.send` 或等价已声明 binding 发送，MUST 携带 `expires_at` 并由接收方按 schema 中 5 分钟硬上限丢弃；不得作为 backfill / sync replay 入口。
 3. 接收方 MUST NOT 把 ephemeral envelope 解释为 reducer 输入：它们不写 cell、不推 anchor frontier、不消耗 actor_seq。`actor_private_event` 可消耗 actor-private stream seq，但不得推进 shared Realm `actor_seq` / Anchor frontier。
-4. 部署若希望"高频信号但仍可审计"，MUST 选择 sample / digest 后单独 emit 一条 durable event（例如 `cx.call.state` / `cx.notification.read`），而不是把 ephemeral envelope 当 durable Event 提交。
-5. 负向测试：conformance suite MUST 包含 reject case，把 `cx.presence` / `cx.typing` / `cx.call.signal` / `cx.key.verification.start` 这些 kind 当 durable Event 通过 `cx.events.submit` 提交时立即被拒（`schema_violation`，不进 anchor pipeline）。
+4. 部署若希望"高频信号但仍可审计"，MUST 选择 sample / digest 后单独 emit 一条 durable event（例如 `ck.call.state` / `ck.notification.read`），而不是把 ephemeral envelope 当 durable Event 提交。
+5. 负向测试：conformance suite MUST 包含 reject case，把 `ck.presence` / `ck.typing` / `ck.call.signal` / `ck.key.verification.start` 这些 kind 当 durable Event 通过 `ck.events.submit` 提交时立即被拒（`schema_violation`，不进 anchor pipeline）。
 
 接收方 MUST 按以下顺序验证 reducer-input event：
 
-1. Envelope schema validation（`cx.schema.event.v1`，含 canonical bytes / proofs[]）。
+1. Envelope schema validation（`ck.schema.event.v1`，含 canonical bytes / proofs[]）。
 2. 至少一条 `proofs[]` 由 `actor_id` 控制密钥签发；签名 payload 覆盖 canonical event bytes（不含 `proofs` 与 `unsigned`；`hlc` 包含在内但仅作 advisory）。
 3. `verify_event()`（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6）在该 event 的 `anchor_ref` 对应 pre-state 下成立。
 4. 写入 Anchor pipeline。
@@ -111,7 +111,7 @@ Event Store 是 Principal Server、客户端、本地节点或授权副本保存
 - proof material：签名、hash、DID key 状态引用和可选 witness receipt。
 - Anchor view：reducer-input event 集合 + 当前 Anchor DAG + state_root 视图。
 
-网络上的 `/events/*` 是 Event 提交、读取、回填和前沿查询 API surface。接收方验证 Event 时 MUST 按 §2.1 顺序校验。
+网络上的 `/_cokret/self/events/*` 是 Event 提交、读取、回填和前沿查询 API surface。接收方验证 Event 时 MUST 按 §2.1 顺序校验。
 
 实现 MAY 发布 Event batch receipt、checkpoint、snapshot 或 witness receipt 加速恢复和审计，但这些对象不得成为 canonical history 的必经层，也不得替代 Event 本身的签名责任。
 
@@ -134,7 +134,7 @@ Principal Server / Sync Service MUST NOT：
 Cokret 采用 Event-first 模型：
 
 1. actor/device/service 生成 signed Event。reducer-input event 在顶层带 `preconditions[]` / `effects[]` / `anchor_ref`（§2.1）。
-2. `/events/*` 或等价 transport 接收 event，校验 schema、签名、actor chain；对 reducer-input event 走 `verify_event` + Anchor pipeline。
+2. `/_cokret/self/events/*` 或等价 transport 接收 event，校验 schema、签名、actor chain；对 reducer-input event 走 `verify_event` + Anchor pipeline。
 3. Principal Server / Sync Service 同步调用方授权可见的 Realm Event。每个 reducer-input event 与 Anchor 的当前态 (`event_state` / `anchor view` / `state_root`) 通过同步 surface 暴露给客户端 reducer。
 4. client reducer 将 accepted reducer-input event 集合按 Lattice + Anchor frontier 归约为当前态；non-reducer event（read cursor / notification / typing 等）不进 cell。客户端可选择生成本地搜索索引和 View projection。
 
@@ -161,7 +161,7 @@ flowchart TB
 
     subgraph S ["Principal Server / Sync Service"]
         direction LR
-        S1["/events/* 接收<br/>schema + signature + actor_seq + prev_refs"]
+        S1["/_cokret/self/events/* 接收<br/>schema + signature + actor_seq + prev_refs"]
         S2["verify_event()<br/>capability / policy / Move precondition"]
         S3["Anchor pipeline<br/>frontier 覆盖 → state_root"]
         S4["fanout / 订阅<br/>cursor / 增量"]
@@ -228,22 +228,22 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 - Receipt MUST NOT 被实现解释为“该 `receipt_scope`（actor / realm / frontier）下的所有已 accepted reducer-input event 都包含在 `events[]` 中”。Issuer 可以选择性 commit 任意子集，set-bound commitment 不构成抗丢弃证明。
 - Receipt MUST NOT 替代 Event 自身签名作为 reducer 输入合法性凭据：reducer MUST 按 §5 / event-and-patch.md §6 在 Event 层验证签名、prev_refs、refs、anchor 与 schema。
 - Receipt MUST NOT 被 Anchor pipeline 当作 canonical history 输入：Anchor 仍以 Event 为真源。
-- 想取得 range completeness 的实现，MUST 使用 §4.2 定义的 `cx.attestation.range_completeness` 原语（active event kind；payload schema `cx.schema.range_completeness_attestation.v1`），其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界），并伴随 witness quorum 或独立 anchor 背书。Core batch receipt 不承担此职责。
+- 想取得 range completeness 的实现，MUST 使用 §4.2 定义的 `ck.attestation.range_completeness` 原语（active event kind；payload schema `ck.schema.range_completeness_attestation.v1`），其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界），并伴随 witness quorum 或独立 anchor 背书。Core batch receipt 不承担此职责。
 
 > 术语：*integrity* 指给定数据未被篡改；*completeness* 指给定范围内没有漏给的成员。Set-bound Merkle commitment 提供 integrity，不提供 completeness——后者必须依赖 range-bound 语义。详见 [glossary.md](../overview/glossary.md)。
 
 ### 4.2 Range-bound Completeness Attestation (Normative)
 
-`cx.attestation.range_completeness` 是独立的 attestation event kind（见 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)，`status=active`），用于提供 *completeness* 证明——即"该范围内没有 reducer-input event 被静默丢弃"。它与 `cx.event_batch_receipt`（set-bound integrity）和 `cx.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
+`ck.attestation.range_completeness` 是独立的 attestation event kind（见 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)，`status=active`），用于提供 *completeness* 证明——即"该范围内没有 reducer-input event 被静默丢弃"。它与 `ck.event_batch_receipt`（set-bound integrity）和 `ck.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
 
-事件 kind 不携带 `.v1` 后缀；版本号只出现在 payload schema id 上。Schema id: `cx.schema.range_completeness_attestation.v1`（artifact `artifacts/schemas/range-completeness-attestation.schema.json`）。
+事件 kind 不携带 `.v1` 后缀；版本号只出现在 payload schema id 上。Schema id: `ck.schema.range_completeness_attestation.v1`（artifact `artifacts/schemas/range-completeness-attestation.schema.json`）。
 
 *Example (informative). Range completeness attestation 示例。*
 
 ```json
 {
   "attestation_id": "ck:attestation:01970a55-0000-7000-8000-000000000000",
-  "schema": "cx.schema.range_completeness_attestation.v1",
+  "schema": "ck.schema.range_completeness_attestation.v1",
   "issuer": "did:web:witness.example",
   "issuer_role": "witness",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
@@ -290,7 +290,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 #### 4.2.3 Witness Attestation 与 sovereign-grade 完整性
 
-`witness_attestation` 复用 `cx.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1.1](../crypto-media/audited-e2ee.md)）：
+`witness_attestation` 复用 `ck.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1.1](../crypto-media/audited-e2ee.md)）：
 
 - `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Realm `audit.range_completeness_witnesses[]` 中已声明。
 - `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。
@@ -299,7 +299,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 **重要**：`single_source` attestation 不构成 sovereign-grade completeness 证明——它只是 issuer 的自报。需要"对方未藏分支"语义保证的部署 MUST 要求 `federation_witness_attested`。这是 silent fork 抗性的最后一道防线：base batch receipt（integrity）+ frontier exchange（probe）+ range-completeness attestation（completeness with witness quorum）才能完整覆盖。
 
-启用 `security_class=high_assurance`、`cx.profile.federation.high_assurance.v1` 或 sovereign / regulated federation profile 的 Realm，range completeness MUST 使用 `federation_witness_attested`；`single_source` 只能作为诊断 hint，不能解除 `dependency_missing`、`stale_peer`、snapshot bootstrap 或 progressive backfill 的 completeness gate。
+启用 `security_class=high_assurance`、`ck.profile.federation.high_assurance.v1` 或 sovereign / regulated federation profile 的 Realm，range completeness MUST 使用 `federation_witness_attested`；`single_source` 只能作为诊断 hint，不能解除 `dependency_missing`、`stale_peer`、snapshot bootstrap 或 progressive backfill 的 completeness gate。
 
 - 在上述 high_assurance / sovereign profile 下，witness quorum MUST 防止退化为单源背书：每个 witness 的 `controlling_organization` MUST 与该 Realm 的 anchorer（Realm anchor / recovery_anchorer 的 controlling_organization）以及彼此之间两两 distinct，且 SHOULD 跨信任域（不同 `trust_domain`）。任一 witness 与 anchorer（或与另一 witness）共享 `controlling_organization` 的 attestation MUST 拒绝（`audit_receipt_invalidated`），不得用于解除上述 completeness gate——否则名义上的 quorum 实际由单一组织控制，silent-fork 抗性形同虚设。
 
@@ -319,9 +319,9 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 | 原语 | scope | 提供 | 不提供 |
 | --- | --- | --- | --- |
-| `cx.event_batch_receipt` | issuer 选择的 events 集合 | integrity（给的没被改） | completeness（没漏给） |
-| `cx.audit.ryw_receipt` | 单个 `cx.audit.accessed` event | RYW witness attestation | range coverage |
-| `cx.attestation.range_completeness`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
+| `ck.event_batch_receipt` | issuer 选择的 events 集合 | integrity（给的没被改） | completeness（没漏给） |
+| `ck.audit.ryw_receipt` | 单个 `ck.audit.accessed` event | RYW witness attestation | range coverage |
+| `ck.attestation.range_completeness`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
 
 issuer / verifier 应根据需求选取；混用以补强各自边界。
 
@@ -329,11 +329,11 @@ issuer / verifier 应根据需求选取；混用以补强各自边界。
 
 本节的 **Wire Event** 指术语表中的 [Wire Event / Wire fact](../overview/glossary.md#2-核心术语)：在协议 wire format 中以 canonical bytes + proof 承诺、实际传输 / 存储 / 同步 / 联邦并可进入 reducer 或审计验证的 signed Event Envelope。详细字段与 reducer 语义见 [`event-and-patch.md` §2](../models/event-and-patch.md)。
 
-v1 的规范性共享 wire fact 只有 **Event Envelope / Wire Event**（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。Reducer-input event 是这个单层 Event 对象；`Event Envelope` 是 schema / artifact 名称，不表示另有一层 envelope wrapper。
+v1 的规范性共享 wire fact 只有 **Event Envelope / Wire Event**（schema 见 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `ck.schema.event.v1` 作为共享状态事实输入。Reducer-input event 是这个单层 Event 对象；`Event Envelope` 是 schema / artifact 名称，不表示另有一层 envelope wrapper。
 
 Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event Envelope / Wire Event。SDK 可以定义本地 builder / draft 对象作为生成 Event 前的中间结构，但这种 builder 不进入协议 wire format，也不出现在 registry / schema 中——它属于 SDK 实现细节，不是 protocol normative 对象。
 
-Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs` 表示 actor event chain 前序，`refs[]` 表示语义依赖（含授权 `role="authorized_by"`）。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `payload.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `payload` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
+Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs` 表示 actor event chain 前序，`refs[]` 表示语义依赖（含授权 `role="authorized_by"`）。标准 `ck.*` Event kind 不得写入顶层 `type` 或 `payload.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `payload` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
 
 如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event 顶层 `requirements` 对象中声明对应 `features` 或 `critical_extensions`。`requirements.{schema, reducer, features, critical_extensions}` 全部 MUST 进入 canonical event bytes、event digest 和 proof `event_digest`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
 
@@ -345,7 +345,7 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 42,
-  "kind": "cx.flow.update",
+  "kind": "ck.flow.update",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0007-a13f9c2e",
   "prev_refs": [
@@ -356,13 +356,13 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
   ],
   "preconditions": [
     {
-      "cell": "ck:cell:cx.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "predicate": { "op": "head_eq", "value": { "metadata.fields.status": "in_progress" } }
     }
   ],
   "effects": [
     {
-      "cell": "ck:cell:cx.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.status": "review" } }
     }
   ],
@@ -386,7 +386,7 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
 }
 ```
 
-*Example (informative). Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `cx.read_cursor.advance`）。*
+*Example (informative). Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `ck.read_cursor.advance`）。*
 
 ```json
 {
@@ -394,13 +394,13 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 43,
-  "kind": "cx.read_cursor.advance",
+  "kind": "ck.read_cursor.advance",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0008-a13f9c2e",
   "prev_refs": ["ck:event:019640ed-8000-7000-8000-000000000000"],
   "payload": {
     "id": "ck:read_cursor:0196418a-1000-7000-8000-000000000000",
-    "schema": "cx.schema.read_cursor.v1",
+    "schema": "ck.schema.read_cursor.v1",
     "actor_id": "did:web:alice.example.com",
     "device_id": "ck:device:0196418a-2000-7000-8000-000000000000",
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
@@ -419,7 +419,7 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
 }
 ```
 
-`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.account.subscribe`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
+`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `ck.account.subscribe`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
 
 ## 6. 为什么需要 `prev_refs + hlc + actor_seq`
 
@@ -505,11 +505,11 @@ function validate_actor_seq(event, known_frontiers):
 - 同一个 `event_id` 从 `soft_failed` → `accepted` 是单调升级；从 `soft_failed` → `rejected` 触发回滚。**MUST NOT** 出现 `accepted` → `rejected` 的状态退化（除非走 redaction / governance 显式撤回路径，那是新的 Event，不是同一个 Event 状态变化）。
 - reconcile 完成后，reducer MUST 重算受影响 cell 的 state_root 并更新本地 frontier；client SHOULD 通过 sync stream 通知 UI 刷新。
 
-合规客户端 MUST 实现该 reconciliation 流程；conformance vector `cx.vector.sync.soft_fail_reconcile.v1`（参见 `conformance-vectors.md`）覆盖 backfill→accepted 与 backfill→rejected 两条路径。
+合规客户端 MUST 实现该 reconciliation 流程；conformance vector `ck.vector.sync.soft_fail_reconcile.v1`（参见 `conformance-vectors.md`）覆盖 backfill→accepted 与 backfill→rejected 两条路径。
 
 ## 7. 标准 Event Kind
 
-标准 `Event.kind` 的机器可读 source of truth 是 `artifacts/registry/event-kind-registry.json`；`schema-registry.md` 只是文档视图。实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的标准事件类型。自定义事件不得使用 `cx.` 前缀，除非已纳入标准 registry。
+标准 `Event.kind` 的机器可读 source of truth 是 `artifacts/registry/event-kind-registry.json`；`schema-registry.md` 只是文档视图。实现必须拒绝未注册、未带 `ck.` 前缀或未在服务端能力清单中声明的标准事件类型。自定义事件不得使用 `ck.` 前缀，除非已纳入标准 registry。
 
 registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 且 `wire_scope=durable_event` 的 kind 可以进入共享 Event Envelope 历史、参与 actor chain、推进 reducer frontier 或 state hash；`wire_scope=actor_private_event` 只能用于加密 account data 或 actor-private stream；`wire_scope=ephemeral_event` 只能走 ephemeral channel，MUST NOT 增加 `actor_seq`、`prev_refs`、state hash 或 reducer frontier。生产者不得发出未声明的 wire_scope。
 
@@ -517,117 +517,117 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 ### 7.1 Realm / Schema / Policy / Discovery
 
-- `cx.realm.create`
-- `cx.realm.update`
-- `cx.realm.archive`
-- `cx.realm.freeze`
-- `cx.realm.tombstone`
-- `cx.realm.destroy`
-- `cx.realm.schema`
-- `cx.realm.policy`
-- `cx.realm.policy_server`
-- `cx.realm.policy_components`
-- `cx.realm.plaintext_visible_services`
-- `cx.realm.preview_policy`
-- `cx.realm.history_visibility`
-- `cx.realm.history_sharing_policy`
-- `cx.realm.join_rule`
-- `cx.realm.discovery`
-- `cx.organization.discovery`
-- `cx.schema.define`
-- `cx.schema.update`
-- `cx.policy.set`
+- `ck.realm.create`
+- `ck.realm.update`
+- `ck.realm.archive`
+- `ck.realm.freeze`
+- `ck.realm.tombstone`
+- `ck.realm.destroy`
+- `ck.realm.schema`
+- `ck.realm.policy`
+- `ck.realm.policy_server`
+- `ck.realm.policy_components`
+- `ck.realm.plaintext_visible_services`
+- `ck.realm.preview_policy`
+- `ck.realm.history_visibility`
+- `ck.realm.history_sharing_policy`
+- `ck.realm.join_rule`
+- `ck.realm.discovery`
+- `ck.organization.discovery`
+- `ck.schema.define`
+- `ck.schema.update`
+- `ck.policy.set`
 
 ### 7.2 Flow
 
-- `cx.flow.create`
-- `cx.flow.update`
-- `cx.flow.archive`
-- `cx.flow.restore`
-- `cx.flow.tracks.update`
-- `cx.flow.move`
-- `cx.flow.reorder`
-- `cx.flow.watch.set`
+- `ck.flow.create`
+- `ck.flow.update`
+- `ck.flow.archive`
+- `ck.flow.restore`
+- `ck.flow.tracks.update`
+- `ck.flow.move`
+- `ck.flow.reorder`
+- `ck.flow.watch.set`
 
-`cx.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `cx.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / 投递裁剪或 E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md) 与 [`../models/circle.md`](../models/circle.md)）。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas_register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
+`ck.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `ck.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / 投递裁剪或 E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md) 与 [`../models/circle.md`](../models/circle.md)）。`ck.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`ck.flow.watch.set` 写入 per-(flow, actor) cas_register cell `ck.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `ck.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
 
 ### 7.3 Space
 
-- `cx.space.create`
-- `cx.space.update`
-- `cx.space.parent`
-- `cx.space.archive`
-- `cx.space.restore`
-- `cx.space.tombstone`
+- `ck.space.create`
+- `ck.space.update`
+- `ck.space.parent`
+- `ck.space.archive`
+- `ck.space.restore`
+- `ck.space.tombstone`
 
-`cx.space.*` 只修改 Space 自身的元数据与生命周期；`archive -> active` 的反向转换由 `cx.space.restore` 承担，不得通过 `cx.space.update` 直接 PATCH 顶层 `state`。`tombstoned` 是不可逆终态，MUST NOT 被 restore。Flow 在 Space 中的位置由 `cx.flow.move` / `cx.flow.reorder` 维护，不写入 `cx.space.*`。
+`ck.space.*` 只修改 Space 自身的元数据与生命周期；`archive -> active` 的反向转换由 `ck.space.restore` 承担，不得通过 `ck.space.update` 直接 PATCH 顶层 `state`。`tombstoned` 是不可逆终态，MUST NOT 被 restore。Flow 在 Space 中的位置由 `ck.flow.move` / `ck.flow.reorder` 维护，不写入 `ck.space.*`。
 
 ### 7.4 Message
 
-- `cx.message.create`
-- `cx.message.revise`
-- `cx.message.redact`
-- `cx.reaction.add`
-- `cx.reaction.remove`
+- `ck.message.create`
+- `ck.message.revise`
+- `ck.message.redact`
+- `ck.reaction.add`
+- `ck.reaction.remove`
 
 ### 7.5 Morph / Relation / View
 
-- `cx.morph.create`
-- `cx.morph.update`
-- `cx.morph.archive`
-- `cx.morph.restore`
-- `cx.relation.create`
-- `cx.relation.update`
-- `cx.relation.tombstone`
-- `cx.container.move_item`
-- `cx.container.rebalance`
-- `cx.view.create`
-- `cx.view.update`
-- `cx.view.reconcile`
+- `ck.morph.create`
+- `ck.morph.update`
+- `ck.morph.archive`
+- `ck.morph.restore`
+- `ck.relation.create`
+- `ck.relation.update`
+- `ck.relation.tombstone`
+- `ck.container.move_item`
+- `ck.container.rebalance`
+- `ck.view.create`
+- `ck.view.update`
+- `ck.view.reconcile`
 
-`cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Flow 所属 List Space、Flow rank、List Space rank、discussion membership、Message timeline、Relation active state 或对象字段的唯一真相。
+`ck.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Flow 所属 List Space、Flow rank、List Space rank、discussion membership、Message timeline、Relation active state 或对象字段的唯一真相。
 
 ### 7.6 Membership / Invite / Capability
 
-- `cx.member.state`
-- `cx.invite.create`
-- `cx.invite.cancel`
-- `cx.invite.accept`
-- `cx.capability.grant`
-- `cx.capability.delegate`
-- `cx.capability.revoke`
+- `ck.member.state`
+- `ck.invite.create`
+- `ck.invite.cancel`
+- `ck.invite.accept`
+- `ck.capability.grant`
+- `ck.capability.delegate`
+- `ck.capability.revoke`
 
-> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 **候选**（candidate）workflow concept/action 名称，不是 v1 wire `Event.kind`。它们尚未进入 v1 active conformance；实现声明 v1 base profile 时不强制支持。正式登记进入 v1 registry 前不得使用 `cx.*` 标准前缀，也不得作为 Event envelope 的 `kind`、active reducer 或 sync conformance 项。
+> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 **候选**（candidate）workflow concept/action 名称，不是 v1 wire `Event.kind`。它们尚未进入 v1 active conformance；实现声明 v1 base profile 时不强制支持。正式登记进入 v1 registry 前不得使用 `ck.*` 标准前缀，也不得作为 Event envelope 的 `kind`、active reducer 或 sync conformance 项。
 
-`cx.member.state{membership="join"}` 除成员 FSM 外，还承载该成员在本 Realm 的 effective delivery binding。`payload.delivery_binding.recipient_service_did` 是 Realm-scoped Event / sync / to-device / push / key package 的投递服务；DID Document 中的默认 `CokretPrincipalServer` 只可在 Realm policy 允许 `did_document_default` fallback 且已物化进该 field 时使用。成员已处于 `join` 时，新的 `membership="join"` Move MAY 作为 delivery rebind self-transition 更新 binding，但必须满足 Join Policy / Realm policy 的 rebind 授权。`payload.delivery_status="unroutable"` 只能在 Realm policy 显式允许不可服务端投递成员时出现。
+`ck.member.state{membership="join"}` 除成员 FSM 外，还承载该成员在本 Realm 的 effective delivery binding。`payload.delivery_binding.recipient_service_did` 是 Realm-scoped Event / sync / to-device / push / key package 的投递服务；DID Document 中的默认 `CokretPrincipalServer` 只可在 Realm policy 允许 `did_document_default` fallback 且已物化进该 field 时使用。成员已处于 `join` 时，新的 `membership="join"` Move MAY 作为 delivery rebind self-transition 更新 binding，但必须满足 Join Policy / Realm policy 的 rebind 授权。`payload.delivery_status="unroutable"` 只能在 Realm policy 显式允许不可服务端投递成员时出现。
 
 ### 7.7 Profile / Device / Realm Key
 
-- `cx.profile.update`
-- `cx.profile.space_override`
-- `cx.device.authorize`
-- `cx.device.revoke`
-- `cx.device.list_update`
-- `cx.mls.keypackage`
-- `cx.realm_key.share`
-- `cx.realm_key.withheld`
-- `cx.mls.proposal`
-- `cx.mls.commit`
-- `cx.mls.commit_failed`
-- `cx.mls.welcome`
-- `cx.audit.accessed`
-- `cx.redaction`
+- `ck.profile.update`
+- `ck.profile.space_override`
+- `ck.device.authorize`
+- `ck.device.revoke`
+- `ck.device.list_update`
+- `ck.mls.keypackage`
+- `ck.realm_key.share`
+- `ck.realm_key.withheld`
+- `ck.mls.proposal`
+- `ck.mls.commit`
+- `ck.mls.commit_failed`
+- `ck.mls.welcome`
+- `ck.audit.accessed`
+- `ck.redaction`
 
-`cx.profile.update`、`cx.device.*` 与 `cx.session.grant` 是 durable Event Envelope kind，但其规范作用域是 Principal Control Realm。生产者 MUST 使用目标 principal 的 `principal_control_realm_id` 作为 `realm_id`；普通 Collaboration Realm 只能通过 `refs[role="authorized_by"]`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入 Collaboration Realm history。Realm 角色分类（Principal Control Realm vs Collaboration Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。`cx.profile.space_override` 若作为共享 Realm history 传播，MUST 使用目标 Realm 的 `realm_id` 并通过该 Realm policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Realm。
+`ck.profile.update`、`ck.device.*` 与 `ck.session.grant` 是 durable Event Envelope kind，但其规范作用域是 Principal Control Realm。生产者 MUST 使用目标 principal 的 `principal_control_realm_id` 作为 `realm_id`；普通 Collaboration Realm 只能通过 `refs[role="authorized_by"]`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入 Collaboration Realm history。Realm 角色分类（Principal Control Realm vs Collaboration Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。`ck.profile.space_override` 若作为共享 Realm history 传播，MUST 使用目标 Realm 的 `realm_id` 并通过该 Realm policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Realm。
 
 以下标准 kind 不属于共享 durable Realm history，不能列入本节 durable 写路径：
 
-- `cx.read_cursor.advance`：`actor_private_event`，只能进入 encrypted account data 或 actor-private stream。
-- `cx.receipt.read`：`ephemeral_event`，只能走 ephemeral / receipt stream，不推进 `actor_seq`、Realm reducer frontier 或 state hash。
+- `ck.read_cursor.advance`：`actor_private_event`，只能进入 encrypted account data 或 actor-private stream。
+- `ck.receipt.read`：`ephemeral_event`，只能走 ephemeral / receipt stream，不推进 `actor_seq`、Realm reducer frontier 或 state hash。
 
 ## 8. 操作体原则
 
-非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 [`../models/event-and-patch.md` §4](../models/event-and-patch.md)；实现不得用私有 dot-path 解析规则替代该格式。Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。
+非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `ck.patch.v1`，定义见 [`../models/event-and-patch.md` §4](../models/event-and-patch.md)；实现不得用私有 dot-path 解析规则替代该格式。Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。
 
 Create 类操作若在 `payload.object` 中携带完整 materialized object schema，接收方 MUST 在 schema validation 后执行 cross-field validation：对象创建者字段必须与顶层 `actor_id` / 授权 controller 一致，对象 `created_at` 必须与顶层 Event `created_at` 一致。任何不一致都不得进入 reducer；返回标准 `schema_violation`，或在 controller/guardian 授权缺失时返回 `capability_denied`。
 
@@ -635,20 +635,20 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 
 例如：
 
-- `cx.flow.update` 只带字段变更
-- `cx.flow.move` 只带目标 List 和新 rank
-- `cx.message.revise` 只带新正文
-- `cx.message.redact` 只带目标消息与原因
-- `cx.morph.update` 只带 Morph 字段 patch
-- `cx.view.update` 只带投影定义 patch；通过 View 触发的对象变更仍使用对应对象 Event kind
+- `ck.flow.update` 只带字段变更
+- `ck.flow.move` 只带目标 List 和新 rank
+- `ck.message.revise` 只带新正文
+- `ck.message.redact` 只带目标消息与原因
+- `ck.morph.update` 只带 Morph 字段 patch
+- `ck.view.update` 只带投影定义 patch；通过 View 触发的对象变更仍使用对应对象 Event kind
 
 ### 8.1 Flow Track 写入
 
-`cx.flow.tracks.update` 通过 `cx.patch.v1` 对 `Flow.tracks` map 做任意原子修改——开/关 track、切换 primary、修改 track profile 都走同一条 event。v1 标准 track name 为 `synthesis` 和 `discussion`；profile MAY 声明更多 track name。
+`ck.flow.tracks.update` 通过 `ck.patch.v1` 对 `Flow.tracks` map 做任意原子修改——开/关 track、切换 primary、修改 track profile 都走同一条 event。v1 标准 track name 为 `synthesis` 和 `discussion`；profile MAY 声明更多 track name。
 
 ```json
 {
-  "kind": "cx.flow.tracks.update",
+  "kind": "ck.flow.tracks.update",
   "payload": {
     "flow_id": "ck:flow:01964195-8000-7000-8000-000000000000",
     "patch": {
@@ -662,22 +662,22 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 规则：
 
 - 开 / 关 track 不改变 Flow identity。
-- 开 `discussion` track 时，access 完全继承 Flow 的 effective scope（与 synthesis 同 scope）。需要让 Flow 拥有独立 membership / history visibility / 投递裁剪或 E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)——`cx.flow.tracks.update` payload 不支持 `access` 子对象，也不修改 `scope_circle_id`。
+- 开 `discussion` track 时，access 完全继承 Flow 的 effective scope（与 synthesis 同 scope）。需要让 Flow 拥有独立 membership / history visibility / 投递裁剪或 E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)——`ck.flow.tracks.update` payload 不支持 `access` 子对象，也不修改 `scope_circle_id`。
 - Flow synthesis 与 discussion 共享同一 effective scope，可见性同源：`scope_circle_id=null` 时按 Realm-default history visibility；`scope_circle_id` 指向 Circle 时按该 Circle 自身 policy 判断。projection 必须按 effective scope 裁剪。
 - Reducer MUST 保证同一 Flow 至多一个 active track 设置 `is_primary=true`。若没有显式 primary，且 `synthesis` 与 `discussion` 同时存在，默认入口 MUST 派生为 `synthesis`。
-- 发送 `cx.message.*` 到未启用的 discussion track MUST 返回 `discussion_track_disabled` 或等价 fail-closed 结果。
+- 发送 `ck.message.*` 到未启用的 discussion track MUST 返回 `discussion_track_disabled` 或等价 fail-closed 结果。
 
 ## 9. Flow 有序操作
 
-### 9.1 `cx.flow.move`
+### 9.1 `ck.flow.move`
 
-`cx.flow.move` 用于跨 List-Space 移动 Flow。它移动的是 Flow 在一个 Board Space 内的主位置，而不是修改 track 定义。
+`ck.flow.move` 用于跨 List-Space 移动 Flow。它移动的是 Flow 在一个 Board Space 内的主位置，而不是修改 track 定义。
 
-写入路径是 cas_register cell `ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`（详见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md#36-flow-位置)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_space_id` + `rank` 编译为 `set { list_space_id, rank }` effect。Payload 上的目的地输入字段只有 `target_space_id` 一个；MUST NOT 在 `cx.flow.move` payload 上直接写 `list_space_id`（schema `additionalProperties=false` 已经会拒）——`list_space_id` 是 cell value 字段名，由 reducer 从 `target_space_id` 编译而来。这与 Space-parent 的 cas_register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
+写入路径是 cas_register cell `ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>`（详见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md#36-flow-位置)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_space_id` + `rank` 编译为 `set { list_space_id, rank }` effect。Payload 上的目的地输入字段只有 `target_space_id` 一个；MUST NOT 在 `ck.flow.move` payload 上直接写 `list_space_id`（schema `additionalProperties=false` 已经会拒）——`list_space_id` 是 cell value 字段名，由 reducer 从 `target_space_id` 编译而来。这与 Space-parent 的 cas_register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
 
 ```json
 {
-  "kind": "cx.flow.move",
+  "kind": "ck.flow.move",
   "unsigned": {
     "target_ref_hint": "ck:flow:019641a9-8000-7000-8000-000000000000"
   },
@@ -701,11 +701,11 @@ Reducer 语义：
 1. 验证 actor 对 `board_space_id`、`flow_id`、`from_space_id` 和 `target_space_id` 的 move/reorder 权限（落到 Flow 所属 Realm）。
 2. 验证 `target_space_id` 是 `board_space_id` 下的 active List Space（`kind="list"` 且 `parent_space_id` 为 board）。
 3. 验证目标 Flow 所属 Realm schema/profile 允许它进入该 Board Space。
-4. 把 `expected_position` 编译为 cell `ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>` 的 `head_eq` precondition；把 `target_space_id` + `rank` 编译为 `set { list_space_id: target_space_id, rank }` effect。
+4. 把 `expected_position` 编译为 cell `ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>` 的 `head_eq` precondition；把 `target_space_id` + `rank` 编译为 `set { list_space_id: target_space_id, rank }` effect。
 5. cas_register lattice 在该 cell 上 join：成功则 `target_space_id --contains--> flow_id` 派生 Relation 由 cell value 自动投影出来（旧 list 的派生 Relation 自动失效）；并发不同 set 返回 `⊥`（kind=conflict），依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery。
 6. 对相同 Event 保持幂等（同一 `event_id` / `event_digest` 的重放是 cell 的恒等 set，不产生新 ⊥）。
 
-`cx.flow.move` 不得把 `board_space_id`、`space_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源；真相是 cell value。View projection MAY 返回这些派生字段，但必须能追溯到该 cell 的 anchored value 和 reducer frontier。
+`ck.flow.move` 不得把 `board_space_id`、`space_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源；真相是 cell value。View projection MAY 返回这些派生字段，但必须能追溯到该 cell 的 anchored value 和 reducer frontier。
 
 CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当前位置，编译为 cell 的 `head_eq`：
 
@@ -713,15 +713,15 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 - `expected_position.rank` → `head_eq.rank`
 - `expected_position.relation_id` 仅作为客户端 hint，不参与 cell join（派生 Relation 的 id 由 reducer 计算）。
 
-不一致时 cas_register 直接返回 `failed_precondition`（走标准 lattice 路径）。`expected_position` 缺失 / 为空 → 等价 `head_eq null`，仅在 cell 真正处于初始态（Flow 尚未进入该 Board）时通过；非初始态下省略 `expected_position` MUST `failed_precondition`，不接受"无 CAS 强制写"。policy 明确允许"无条件覆盖"的特殊场景（如管理员强制重置）必须使用专门的高权限 event kind，而不是省略 `cx.flow.move` 的 `expected_position`。
+不一致时 cas_register 直接返回 `failed_precondition`（走标准 lattice 路径）。`expected_position` 缺失 / 为空 → 等价 `head_eq null`，仅在 cell 真正处于初始态（Flow 尚未进入该 Board）时通过；非初始态下省略 `expected_position` MUST `failed_precondition`，不接受"无 CAS 强制写"。policy 明确允许"无条件覆盖"的特殊场景（如管理员强制重置）必须使用专门的高权限 event kind，而不是省略 `ck.flow.move` 的 `expected_position`。
 
-### 9.2 `cx.flow.reorder`
+### 9.2 `ck.flow.reorder`
 
-`cx.flow.reorder` 只改变同一 List Space 内的 rank，不改变 List Space membership。它写入与 `cx.flow.move` 相同的 cell `ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`，但 effect 的 `list_space_id` MUST 与 `head_eq.list_space_id` 相同（即只更新 rank）；试图通过 reorder 改变 list 的 effect MUST `schema_violation`，必须使用 `cx.flow.move`。
+`ck.flow.reorder` 只改变同一 List Space 内的 rank，不改变 List Space membership。它写入与 `ck.flow.move` 相同的 cell `ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>`，但 effect 的 `list_space_id` MUST 与 `head_eq.list_space_id` 相同（即只更新 rank）；试图通过 reorder 改变 list 的 effect MUST `schema_violation`，必须使用 `ck.flow.move`。
 
 ```json
 {
-  "kind": "cx.flow.reorder",
+  "kind": "ck.flow.reorder",
   "unsigned": {
     "target_ref_hint": "ck:flow:019641a9-8000-7000-8000-000000000000"
   },
@@ -738,19 +738,19 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 }
 ```
 
-`cx.flow.reorder` 不得改变 List Space。`expected_position` 编译为 cell `head_eq`；不一致时 cas_register 返回 `failed_precondition`，不再走单独的 `cas_conflict` 旁路。`expected_position` 缺失只在 Flow 尚未进入该 Board 的初始态合法（理论上此时也不该用 reorder），其他情况 MUST `failed_precondition`。
+`ck.flow.reorder` 不得改变 List Space。`expected_position` 编译为 cell `head_eq`；不一致时 cas_register 返回 `failed_precondition`，不再走单独的 `cas_conflict` 旁路。`expected_position` 缺失只在 Flow 尚未进入该 Board 的初始态合法（理论上此时也不该用 reorder），其他情况 MUST `failed_precondition`。
 
 ### 9.3 List Space 排序
 
-List Space 在 Board Space 内的顺序通过 `cx.space.update` 修改 List Space 的 `rank` 字段（或 `cx.space.parent` 调整 `parent_space_id` + rank）来改变。它 MUST NOT 移动 Flow。实现 MUST NOT 使用 `cx.realm.update` 修改 List 排序——Space 不是 Realm，不与 Realm 共享生命周期 / membership / E2EE 边界。
+List Space 在 Board Space 内的顺序通过 `ck.space.update` 修改 List Space 的 `rank` 字段（或 `ck.space.parent` 调整 `parent_space_id` + rank）来改变。它 MUST NOT 移动 Flow。实现 MUST NOT 使用 `ck.realm.update` 修改 List 排序——Space 不是 Realm，不与 Realm 共享生命周期 / membership / E2EE 边界。
 
 ### 9.4 切换 Flow 默认 track
 
-通过同一条 `cx.flow.tracks.update` 原子地启用目标 track 并切换 primary：
+通过同一条 `ck.flow.tracks.update` 原子地启用目标 track 并切换 primary：
 
 ```json
 {
-  "kind": "cx.flow.tracks.update",
+  "kind": "ck.flow.tracks.update",
   "payload": {
     "flow_id": "ck:flow:019641a9-8000-7000-8000-000000000000",
     "patch": {
@@ -764,12 +764,12 @@ List Space 在 Board Space 内的顺序通过 `cx.space.update` 修改 List Spac
 
 规则：
 
-- 要求对应 capability action（`cx.flow.tracks.manage`）。
+- 要求对应 capability action（`ck.flow.tracks.manage`）。
 - 不改变 `flow_id`，不删除已有 discussion 历史或 synthesis 字段。
 - 切到一个尚未 enabled 的 track 时 MUST 在同一 patch 中将其 enabled 置 true；否则 reducer MUST reject。
 - 切换 primary 不自动关闭 discussion track；若要关闭讨论，必须在同一或后续 patch 中显式 `tracks.<name>.enabled: false`。
 - Reducer MUST 把目标 track 的 `is_primary` 设为 true，并清除同一 Flow 其他 active track 的 primary 标记。
-- 默认 track 切换不自动移除 Board/List 位置；是否移除由后续 `cx.flow.move` / profile policy 决定。
+- 默认 track 切换不自动移除 Board/List 位置；是否移除由后续 `ck.flow.move` / profile policy 决定。
 
 ## 10. 验证流程
 
@@ -812,7 +812,7 @@ Snapshot manifest MUST 包含：
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
 5. **Inclusion challenge**：`security_class=high_assurance` 的 Realm MUST 在采用 snapshot 前对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要执行 inclusion / omission challenge（wire 形态、抽样规则与失败处理见 [`conformance/snapshot-schema.md` §6](../conformance/snapshot-schema.md)）；其他 profile SHOULD。issuer 无法提供合规证明时，客户端 MUST 返回 `inclusion_proof_failed` 并 quarantine snapshot 或回退到原始 Event 回放。Issuer 在 `created_at` 之前已被 revoke 时 MUST 返回 `snapshot_issuer_revoked`。
 6. 后续 admin / snapshot issuer revoke 不会自动否定此前在有效权限下签名的 snapshot，但客户端在用 snapshot 恢复后 MUST 继续回放 snapshot frontier 之后的 Event，再用当前 auth state 判断新写入。
-7. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
+7. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `GET /_cokret/self/events?before=<cursor>`（`ck.events.query`）进行原始 Event 历史回放。
 
 ## 12. 同步面
 
@@ -960,10 +960,10 @@ Reducer 输出：
 同一个 Flow 在同一 Board 内的唯一主位置 key 是 `(board_id, flow_id)`，但 canonical truth 不是多条 `contains` / position edge 的 winner，而是 §9.1 定义的 cas_register cell：
 
 ```text
-ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
+ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>
 ```
 
-同一 key 下出现多个并发且互不兼容的 position write 时，Reducer MUST 按该 cell 的 lattice 规则返回 `⊥`（`bottom=reject`），依赖该 cell 的后续 `cx.flow.move` / `cx.flow.reorder` MUST `failed_bottom`，直到通过 §8 conflict-recovery 或专门的高权限恢复 event 修复。实现 MAY 在诊断投影中列出 competing writes / `conflict_records`，并 MAY 为 legacy UI 计算一个非规范的临时展示顺序；该展示顺序 MUST NOT 写回 canonical state、不得作为授权或后续 move 的 `expected_position` 真相，也不得替代 cell bottom。
+同一 key 下出现多个并发且互不兼容的 position write 时，Reducer MUST 按该 cell 的 lattice 规则返回 `⊥`（`bottom=reject`），依赖该 cell 的后续 `ck.flow.move` / `ck.flow.reorder` MUST `failed_bottom`，直到通过 §8 conflict-recovery 或专门的高权限恢复 event 修复。实现 MAY 在诊断投影中列出 competing writes / `conflict_records`，并 MAY 为 legacy UI 计算一个非规范的临时展示顺序；该展示顺序 MUST NOT 写回 canonical state、不得作为授权或后续 move 的 `expected_position` 真相，也不得替代 cell bottom。
 
 ### 17.4 Graph cycle
 
@@ -971,10 +971,10 @@ ck:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
 
 ## 18. Message
 
-- `cx.message.create` 是 append-only。
-- `cx.message.revise` 形成 revision chain。
+- `ck.message.create` 是 append-only。
+- `ck.message.revise` 形成 revision chain。
 - 默认视图显示最新可见 revision。
-- `cx.message.redact` 保留最小审计字段。
+- `ck.message.redact` 保留最小审计字段。
 
 ## 19. 授权时序收敛
 

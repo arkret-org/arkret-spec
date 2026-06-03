@@ -23,7 +23,7 @@ Cokret 协议核心定义的是：
 
 **v1 core 互操作 transport 锁定为 HTTP/JSON**：默认 binding 由 [`service-http-binding.md`](./service-http-binding.md) 与
 [`cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) 规定。声称
-`cx.profile.principal_server.v1` / `cx.profile.full_client.v1` 等 v1 core profile 的实现
+`ck.profile.principal_server.v1` / `ck.profile.full_client.v1` 等 v1 core profile 的实现
 **MUST** 提供 HTTP/JSON binding；其他 transport（gRPC、WebSocket-frame、SSE、message queue、
 libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供。
 
@@ -39,11 +39,11 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 | Semantic operation | 是 | `submit_event`, `get_events`, `sync`, `backfill`, `authz_check`, `applet_transaction` |
 | Message envelope | 是 | request id、actor、device、capability refs、idempotency key、cursor、error code |
 | Encoding profile | 是 | canonical JSON、hash、signature、CBOR profile 可选 |
-| Transport binding (HTTP/JSON) | 是（v1 core） | `/api/v1/...` 路径、Idempotency-Key header、错误 JSON。 |
+| Transport binding (HTTP/JSON) | 是（v1 core） | `/...` 路径、Idempotency-Key header、错误 JSON。 |
 | Transport binding (gRPC / WS / SSE / MQ / libp2p) | 否（binding extension profile） | 仅在显式声明 binding profile 时启用。 |
 | Product SDK | 否 | TypeScript SDK、Python SDK、CLI |
 
-规范中的 `/api/v1/...` 路径是 v1 core HTTP binding 的 normative 形态；非 HTTP binding 是 extension。
+规范中的 `/...` 路径是 v1 core HTTP binding 的 normative 形态；非 HTTP binding 是 extension。
 
 ## 3. Binding Requirements
 
@@ -61,42 +61,42 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 ## 4. Canonical Operation IDs
 
-Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#operation_registry` 中定义的 canonical `operation_id`。`artifacts/registry/operation-registry.json` 是实现可直接消费的生成视图。取值使用 `cx.<namespace>.<lower_snake_case>`。下表只是核心示例；完整集合以 generated registry 为准，OpenAPI、gRPC、MQ、SSE、WebSocket 和 libp2p binding 均不得声明 catalog 中不存在的 operation。
+Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#operation_registry` 中定义的 canonical `operation_id`。`artifacts/registry/operation-registry.json` 是实现可直接消费的生成视图。取值使用 `ck.<namespace>.<lower_snake_case>`。下表只是核心示例；完整集合以 generated registry 为准，OpenAPI、gRPC、MQ、SSE、WebSocket 和 libp2p binding 均不得声明 catalog 中不存在的 operation。
 
 | Operation | 语义 |
 | --- | --- |
-| `cx.server.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
-| `cx.identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
-| `cx.identity.get_log` | 获取 DID key log。 |
-| `cx.identity.submit_did_operation` | 提交 DID 更新操作。 |
-| `cx.events.submit` | 提交 signed Event Envelope。 |
-| `cx.events.get` | 按 ID 读取单个 Event。 |
-| `cx.events.resolve` | 批量读取 Event。 |
-| `cx.events.query` | 按 actor / Realm / cursor 双向查询 Event。 |
-| `cx.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
-| `cx.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
-| `cx.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `cx.events.subscribe` 对称)。 |
-| Federation push（复用 `cx.events.submit` + service_signature） | 联邦推送复用 `POST /api/v1/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
-| Federation pull / backfill（复用 `cx.events.query` + service_signature） | 跨域历史回补复用 `GET /api/v1/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
-| `cx.directory.search_realms` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |
-| `cx.directory.resolve_realm` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` / `cx.directory.list_handles_for_subject` | 精确解析 Realm / Organization / handle，以及列出已知 subject 的当前可见 handle claims。 |
-| `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.push.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
-| `cx.blob.upload` | 上传 blob。 |
-| `cx.blob.get` | 获取 blob 或下载授权。 |
-| `cx.push.register_device` | 注册推送设备和推送网关。 |
-| `cx.push.notify` | 投递脱敏唤醒。 |
-| `cx.authz.check` | 检查 capability / policy 是否允许动作。 |
-| `cx.policy.check` | 调用 policy server 获取签名决策。 |
-| `cx.moderation.report` | 提交内容或行为举报。 |
-| `cx.applet.transaction` | 向 Applet 推送事件批次。 |
-| `cx.applet.describe` | 查询 Applet profile、namespace 与限制。 |
-| `cx.device_messages.put` | 发送 to-device message。 |
-| `cx.keys.upload` / `cx.keys.query` / `cx.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
-| `cx.keys.backups.put` / `cx.keys.backups.list` / `cx.keys.backups.get` / `cx.keys.backups.delete` | 加密密钥备份对象存储、枚举、读取与删除。 |
+| `ck.server.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
+| `ck.identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
+| `ck.identity.get_log` | 获取 DID key log。 |
+| `ck.identity.submit_did_operation` | 提交 DID 更新操作。 |
+| `ck.events.submit` | 提交 signed Event Envelope。 |
+| `ck.events.get` | 按 ID 读取单个 Event。 |
+| `ck.events.resolve` | 批量读取 Event。 |
+| `ck.events.query` | 按 actor / Realm / cursor 双向查询 Event。 |
+| `ck.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
+| `ck.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
+| `ck.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `ck.events.subscribe` 对称)。 |
+| Federation push（复用 `ck.events.submit` + service_signature） | 联邦推送复用 `POST /_cokret/self/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
+| Federation pull / backfill（复用 `ck.events.query` + service_signature） | 跨域历史回补复用 `GET /_cokret/self/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
+| `ck.directory.search_realms` / `ck.directory.search_organizations` / `ck.directory.search_actors` / `ck.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |
+| `ck.directory.resolve_realm` / `ck.directory.resolve_organization` / `ck.directory.resolve_handle` / `ck.directory.list_handles_for_subject` | 精确解析 Realm / Organization / handle，以及列出已知 subject 的当前可见 handle claims。 |
+| `ck.directory.announce` / `ck.directory.withdraw` / `ck.directory.push.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
+| `ck.blob.upload` | 上传 blob。 |
+| `ck.blob.get` | 获取 blob 或下载授权。 |
+| `ck.push.register_device` | 注册推送设备和推送网关。 |
+| `ck.push.notify` | 投递脱敏唤醒。 |
+| `ck.authz.check` | 检查 capability / policy 是否允许动作。 |
+| `ck.policy.check` | 调用 policy server 获取签名决策。 |
+| `ck.moderation.report` | 提交内容或行为举报。 |
+| `ck.applet.transaction` | 向 Applet 推送事件批次。 |
+| `ck.applet.describe` | 查询 Applet profile、namespace 与限制。 |
+| `ck.device_messages.put` | 发送 to-device message。 |
+| `ck.keys.upload` / `ck.keys.query` / `ck.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
+| `ck.keys.backups.put` / `ck.keys.backups.list` / `ck.keys.backups.get` / `ck.keys.backups.delete` | 加密密钥备份对象存储、枚举、读取与删除。 |
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 
-Agent protocol handoff 状态通过 durable Event kind（例如 `cx.agent.protocol_session.start`、`cx.agent.protocol_session.status`）表达，不注册为 service `operation_id`。
+Agent protocol handoff 状态通过 durable Event kind（例如 `ck.agent.protocol_session.start`、`ck.agent.protocol_session.status`）表达，不注册为 service `operation_id`。
 
 ## 5. HTTP/JSON Binding
 
@@ -117,7 +117,7 @@ gRPC、WebSocket / SSE、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / 
 或 discovery 字段；这些 transport 名称仅作为 extension profile slot 保留。
 
 任何声明此类 binding 的部署 MUST 自行发布独立 binding profile 文档（profile id 形如
-`cx.profile.binding.<transport>.v1`），并在该文档中至少明确：
+`ck.profile.binding.<transport>.v1`），并在该文档中至少明确：
 
 - canonical `operation_id` → transport-specific 调用形态的映射；
 - envelope / frame schema、签名绑定、idempotency key 与 cursor 处理；
@@ -139,8 +139,8 @@ transport MUST 各自通过 binding profile 单独 normative 化。
   "supported_bindings": [
     {
       "kind": "http_json",
-      "base_url": "https://server.example/api/v1",
-      "operations": ["cx.account.subscribe", "cx.snapshot.head"],
+      "base_url": "https://server.example",
+      "operations": ["ck.account.subscribe", "ck.snapshot.head"],
       "extension_profile_required": null
     }
   ]

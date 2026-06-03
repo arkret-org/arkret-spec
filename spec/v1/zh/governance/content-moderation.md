@@ -24,7 +24,7 @@ updated: 2026-05-25
 
 ### 2.1 审核权由 Realm Owner 行使
 
-去中心化环境中没有"全网管理员"。内容审核的权限由 Realm 的 Capability 体系决定。只有拥有 `cx.realm.moderation_policy` 权限的 Actor 才能执行审核操作。
+去中心化环境中没有"全网管理员"。内容审核的权限由 Realm 的 Capability 体系决定。只有拥有 `ck.realm.moderation_policy` 权限的 Actor 才能执行审核操作。
 
 ### 2.2 屏蔽是本地行为
 
@@ -54,7 +54,7 @@ flowchart TB
     Cap -- "否" --> DenyCap["拒绝 (missing_capability)<br>没有任何 deny 层能补救"]
     Cap -- "是" --> Mod{"2. Moderation Policy<br>(Realm / Organization / Service)"}
 
-    Mod -- "deny / hard_deny" --> DenyMod["拒绝并写入<br>cx.component.moderation_state.v1<br>(anchored Move，跨 peer 一致)"]
+    Mod -- "deny / hard_deny" --> DenyMod["拒绝并写入<br>ck.component.moderation_state.v1<br>(anchored Move，跨 peer 一致)"]
     Mod -- "quarantine" --> Quar["事件进 quarantine 队列<br>不进 effective state<br>(anchored)"]
     Mod -- "require_review" --> Rev["进 review 队列<br>等待 moderator 决策"]
     Mod -- "allow" --> Stored["写入 Realm 历史<br>(canonical fact)"]
@@ -67,13 +67,13 @@ flowchart TB
 读图要点：
 
 - **Capability 是唯一 allow 来源**：黑名单 / moderation policy / personal blocklist 都不能凭空创造权限。
-- **Moderation 决策 MUST anchored**（见 §2.6）：`hard_deny` / `quarantine` / `require_review` 必须通过 anchored Move 写入 `cx.component.moderation_state.v1` cell，避免不同 Principal Server 给出不一致判定导致跨 peer 视图分叉。
+- **Moderation 决策 MUST anchored**（见 §2.6）：`hard_deny` / `quarantine` / `require_review` 必须通过 anchored Move 写入 `ck.component.moderation_state.v1` cell，避免不同 Principal Server 给出不一致判定导致跨 peer 视图分叉。
 - **Personal Blocklist 不进 cell**：它只是接收方本地客户端 view 过滤，不广播、不共享、不替 Realm 删除其他人可见的事实。
 - **Blocklist 不可枚举**：个人 block 命中不得向被屏蔽方或 federation peer 暴露为独立错误码、receipt 差异、presence / typing 差异或 directory 结果差异；对外表现必须与普通不可见、不可达或不存在一致。
 
 ### 2.6 Moderation 决策 MUST Anchored
 
-任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入 `cx.component.moderation_state.v1` cell，详细规则见 [`authz/policy-server.md` §7.1](../authz/policy-server.md)。Policy server signed decision 与个人 blocklist 仍是 out-of-band，不进入该 cell。这避免不同 Principal Server 对同一事件做出不一致 quarantine / allow 决策导致跨 peer 视图分叉。
+任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入 `ck.component.moderation_state.v1` cell，详细规则见 [`authz/policy-server.md` §7.1](../authz/policy-server.md)。Policy server signed decision 与个人 blocklist 仍是 out-of-band，不进入该 cell。这避免不同 Principal Server 对同一事件做出不一致 quarantine / allow 决策导致跨 peer 视图分叉。
 
 ## 3. 内容举报 (Report)
 
@@ -82,7 +82,7 @@ flowchart TB
 用户可以举报 Realm 中的任何可见对象（Message、Flow、Morph、Relation 等）：
 
 ```
-POST /api/v1/moderation/report
+POST /_cokret/self/moderation/report
 ```
 
 请求字段：
@@ -130,8 +130,8 @@ POST /api/v1/moderation/report
 
 ### 3.3 举报的处理
 
-- 举报会生成一个 `cx.moderation.report` 事件，写入 Realm Event history
-- 该事件仅对拥有 `cx.realm.moderation_policy` 权限的 Actor 可见
+- 举报会生成一个 `ck.moderation.report` 事件，写入 Realm Event history
+- 该事件仅对拥有 `ck.realm.moderation_policy` 权限的 Actor 可见
 - 被举报人不会收到通知
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）
 
@@ -143,7 +143,7 @@ POST /api/v1/moderation/report
 
 ```json
 {
-  "kind": "cx.moderation.franking_proof",
+  "kind": "ck.moderation.franking_proof",
   "franking_proof_id": "ck:franking_proof:0196425b-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
@@ -167,7 +167,7 @@ POST /api/v1/moderation/report
 - `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce`（接收服务生成的一次性防重放值）之上生成。`replay_nonce` MUST 落在签名覆盖范围内，使 §3.4 信任链步骤 5 可独立校验其唯一性。
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash，除非 Realm policy 明确允许该字段。
 - 接收方客户端在解密消息后 SHOULD 保存 `franking_proof` 与明文的本地绑定证明；该绑定默认只在本地或 E2EE 私有报告中保存。
-- 举报 E2EE 内容时，`cx.moderation.report` MAY 携带 `plaintext_evidence` 的加密副本、原始 encrypted envelope、`franking_proof` 和 reporter 对明文/evidence package 的签名。
+- 举报 E2EE 内容时，`ck.moderation.report` MAY 携带 `plaintext_evidence` 的加密副本、原始 encrypted envelope、`franking_proof` 和 reporter 对明文/evidence package 的签名。
 - 审核方验证时 MUST 检查：`franking_proof` 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
 - `franking_proof` 只证明服务接收过对应密文事件，不单独证明明文含义。审核决定仍必须落成 signed moderation decision，并受 Realm policy、capability 和 appeal 规则约束。
 
@@ -175,7 +175,7 @@ POST /api/v1/moderation/report
 >
 > E2EE message franking 的公开研究为本节设计提供了参照系。Grubbs、Lu 与 Ristenpart 在 "Message Franking via Committing Authenticated Encryption"（CRYPTO 2017）中提出 committing AEAD 思路：让加密同时输出一个对明文与 AAD 的承诺，使收件人能向第三方举报方证明"被举报明文确实是发件人加密发送的那条"，而无需把消息内容预先暴露给中转服务。Facebook Message Franking 是该思路的早期工程化部署，其核心是把"举报可验证性"建立在密文层的承诺上，而非依赖服务端读取明文。后续 asymmetric message franking 一类工作进一步针对 metadata-private 传输与第三方举报场景，把承诺/举报凭据从对称设置推广到收发双方与举报受理方身份分离的设置。
 >
-> 与上述方案相比，Cokret 当前 franking 设计的取舍是：core `franking_proof`（本节主体）只承担 service-side delivery proof，即证明某条密文 envelope 在接收服务处被投递，而刻意不在 wire 上强制 committing AEAD 式的明文承诺——明文级 sender attribution 被隔离到 opt-in 的 `cx.profile.franking.sender_commitment.v1`（§3.4.2），由 per-device-per-epoch 的 sender commitment 单独提供，且只在 audit-gated verifier 与发件人之间生效。这样未启用该 profile 的部署仍保留 MLS 群外 deniability，而需要更强举报可验证性的部署可以在不改动 core envelope 形态的前提下叠加承诺层。实现者在评估自身威胁模型时，可把上述外部方案作为"承诺放在何处、归因暴露给谁"这一权衡的背景读物。
+> 与上述方案相比，Cokret 当前 franking 设计的取舍是：core `franking_proof`（本节主体）只承担 service-side delivery proof，即证明某条密文 envelope 在接收服务处被投递，而刻意不在 wire 上强制 committing AEAD 式的明文承诺——明文级 sender attribution 被隔离到 opt-in 的 `ck.profile.franking.sender_commitment.v1`（§3.4.2），由 per-device-per-epoch 的 sender commitment 单独提供，且只在 audit-gated verifier 与发件人之间生效。这样未启用该 profile 的部署仍保留 MLS 群外 deniability，而需要更强举报可验证性的部署可以在不改动 core envelope 形态的前提下叠加承诺层。实现者在评估自身威胁模型时，可把上述外部方案作为"承诺放在何处、归因暴露给谁"这一权衡的背景读物。
 
 #### 3.4.1 `franking_proof` 不证明的事实 (Normative Non-Properties)
 
@@ -184,11 +184,11 @@ POST /api/v1/moderation/report
 - `franking_proof` MUST NOT 被实现解释为“reporter 提交的明文与 sender 加密的明文一致”——除非额外验证流程（reporter 提交的 encrypted envelope 与 `franking_proof` 中 `ciphertext_digest` 匹配，且审核方能独立解密或验证 sender-bound content commitment）通过。
 - `franking_proof` MUST NOT 被实现解释为“sender authored the plaintext”。它只能归因 *密文 envelope* 由 `sender_claim` 中声明的 device 在 receiving service 处投递；plaintext 与该 envelope 的绑定不在 `franking_proof` 覆盖范围内。
 - `franking_proof` MUST NOT 被实现解释为“sender 对该明文内容在群外仍负 non-repudiation 责任”。MLS 等 group messaging 协议默认不为群外审核提供 plaintext non-repudiation；`franking_proof` 不改变这一边界。
-- Reporter 提交的 `plaintext_evidence` 在以下任一条件不满足时，MUST NOT 与 sender identity 自动绑定：(a) 审核方有独立解密能力并完成解密一致性校验；或 (b) 存在该 Realm 启用的 `cx.profile.franking.sender_commitment.v1` profile 且 §3.4.2 校验通过；或 (c) reporter 自身的明文签名/承诺与该 Realm 协议绑定（明确归因 reporter 而非 sender）。
+- Reporter 提交的 `plaintext_evidence` 在以下任一条件不满足时，MUST NOT 与 sender identity 自动绑定：(a) 审核方有独立解密能力并完成解密一致性校验；或 (b) 存在该 Realm 启用的 `ck.profile.franking.sender_commitment.v1` profile 且 §3.4.2 校验通过；或 (c) reporter 自身的明文签名/承诺与该 Realm 协议绑定（明确归因 reporter 而非 sender）。
 
-Sender 级 plaintext attribution 由独立的 opt-in profile `cx.profile.franking.sender_commitment.v1` 提供（见 §3.4.2）。该 profile 不改变 core franking 的 wire 形态：sender commitment 走独立 sidecar 字段；未启用该 profile 的部署 plaintext-level sender attribution 依旧不可用。
+Sender 级 plaintext attribution 由独立的 opt-in profile `ck.profile.franking.sender_commitment.v1` 提供（见 §3.4.2）。该 profile 不改变 core franking 的 wire 形态：sender commitment 走独立 sidecar 字段；未启用该 profile 的部署 plaintext-level sender attribution 依旧不可用。
 
-#### 3.4.2 `cx.profile.franking.sender_commitment.v1` (Normative, opt-in)
+#### 3.4.2 `ck.profile.franking.sender_commitment.v1` (Normative, opt-in)
 
 本 profile 在 core franking 之上增加 **sender-bound plaintext commitment**：允许审核方在仅持有 plaintext + commitment + MLS epoch metadata 的情况下，独立验证"sender 该 device 在该 epoch 内确实承诺了该明文"。Profile 是 opt-in，Realm policy MUST 显式声明启用；未声明则发送端不得产生 sender commitment sidecar，接收端遇到 sidecar 字段 MUST 视为 unknown extension 处理。
 
@@ -233,7 +233,7 @@ SC = HMAC-SHA-256(
   "unsigned": {
     "franking": {
       "sender_commitment": {
-        "profile": "cx.profile.franking.sender_commitment.v1",
+        "profile": "ck.profile.franking.sender_commitment.v1",
         "epoch_local_seq": 17,
         "commitment_tag": "base64url:..."
       }
@@ -249,7 +249,7 @@ SC = HMAC-SHA-256(
 ```json
 {
   "requirements": {
-    "features": ["cx.profile.franking.sender_commitment.v1"]
+    "features": ["ck.profile.franking.sender_commitment.v1"]
   },
   "payload": {
     "franking": {
@@ -259,12 +259,12 @@ SC = HMAC-SHA-256(
 }
 ```
 
-`sender_commitment_digest` 是对 `unsigned.franking.sender_commitment` 对象按 RFC 8785 JCS canonicalize 后的 SHA-256。接收端看到 `requirements.features[]` 含 `cx.profile.franking.sender_commitment.v1` 时，MUST 要求 sidecar 存在且 digest 匹配；sidecar 缺失或 digest 不匹配时，该 Event 仍可按 core E2EE 消息处理，但 plaintext-level sender attribution MUST fail closed，reason 分别为 `sender_commitment_missing` / `sender_commitment_invalid`。这样中继或服务端剥离 sidecar 会被降级为可检测的审核能力缺失，而不是静默降低归责保证。
+`sender_commitment_digest` 是对 `unsigned.franking.sender_commitment` 对象按 RFC 8785 JCS canonicalize 后的 SHA-256。接收端看到 `requirements.features[]` 含 `ck.profile.franking.sender_commitment.v1` 时，MUST 要求 sidecar 存在且 digest 匹配；sidecar 缺失或 digest 不匹配时，该 Event 仍可按 core E2EE 消息处理，但 plaintext-level sender attribution MUST fail closed，reason 分别为 `sender_commitment_missing` / `sender_commitment_invalid`。这样中继或服务端剥离 sidecar 会被降级为可检测的审核能力缺失，而不是静默降低归责保证。
 
 **接收端 / 审核端校验**（reporter 提交 plaintext + envelope + claimed commitment 时）：
 
 1. 取得该 message 的 MLS epoch metadata（`mls_group_id`, `epoch`, `sender_device_id`），通过 verifier 在该 epoch 仍持有的 exporter secret 派生候选 `SCK`。
-2. 若 Event 声明 `cx.profile.franking.sender_commitment.v1`，校验 `payload.franking.sender_commitment_digest` 与 `unsigned.franking.sender_commitment` 的 JCS SHA-256 一致；sidecar 缺失 reason `sender_commitment_missing`，digest 不一致 reason `sender_commitment_invalid`。
+2. 若 Event 声明 `ck.profile.franking.sender_commitment.v1`，校验 `payload.franking.sender_commitment_digest` 与 `unsigned.franking.sender_commitment` 的 JCS SHA-256 一致；sidecar 缺失 reason `sender_commitment_missing`，digest 不一致 reason `sender_commitment_invalid`。
 3. 重算 `SC'` 并按 constant-time 比较 `SC' == commitment_tag`：不一致 MUST 拒绝（reason `sender_commitment_invalid`），不进入 plaintext attribution。
 4. 校验 `(sender_device_id, epoch, epoch_local_seq)` 唯一性：verifier MUST 在持久化的 `(sender_device_id, epoch)` 已见 seq 集合中检查该 `epoch_local_seq` 未出现；重复则拒绝，reason `sender_commitment_seq_replay`。不得使用单一 high-water 拒绝低于最大值但尚未见过的 seq，因为举报和审核提交可以乱序到达。
 5. 校验 `ciphertext_digest` 与 reporter 提交的 encrypted envelope 实际 digest 一致；不通过 reason `sender_commitment_ciphertext_mismatch`。
@@ -281,7 +281,7 @@ SC = HMAC-SHA-256(
 
 **Verifier 资格 audit-gating（normative）**：sender_commitment verifier 是"持 exporter secret 即可对 candidate plaintext 集合做线下 brute-force"的高敏角色，其资格 MUST 由 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 **audit-gated role** 显式授予（受该文档的 audit obligation、披露范围与撤销规则约束）。实现 MUST NOT 把通用举报受理方（report ingestion service、普通 moderator、Sync Service operator 等）直接当作 sender_commitment verifier，也 MUST NOT 仅因某方"恰好能解出 exporter secret"就赋予其 verifier 权限——verifier 资格是显式 audit-gated grant，不是 exporter secret 持有的副产物。未经 audit gating 的 verifier 授予 MUST fail closed。
 
-启用本 profile 的部署 MUST 在 `cx.server.describe.supported_profiles[]` 中列出 `cx.profile.franking.sender_commitment.v1`；未列出的部署 MUST NOT 生成或验证 sender commitment sidecar。
+启用本 profile 的部署 MUST 在 `ck.server.describe.supported_profiles[]` 中列出 `ck.profile.franking.sender_commitment.v1`；未列出的部署 MUST NOT 生成或验证 sender commitment sidecar。
 
 Franking 信任链：
 
@@ -300,7 +300,7 @@ Franking 信任链：
 
 ```json
 {
-  "kind": "cx.account.blocklist",
+  "kind": "ck.account.blocklist",
   "owner": "did:web:alice.example.com",
   "entries": [
     {
@@ -353,14 +353,14 @@ Franking 信任链：
 
 ### 5.1 内容删除
 
-管理员可以通过 `cx.message.redact` 操作撤回任意成员的消息：
-- 需要 `cx.realm.moderation_policy` 权限
+管理员可以通过 `ck.message.redact` 操作撤回任意成员的消息：
+- 需要 `ck.realm.moderation_policy` 权限
 - 撤回会产生 tombstone，不可逆
 - 审计视图中仍可看到撤回记录
 
 ### 5.2 用户封禁
 
-管理员通过 `cx.member.state{membership="ban"}` Event 封禁用户（成员状态机详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)，policy 对象详见 [`../models/governance-objects.md` §3](../models/governance-objects.md)）。封禁后：
+管理员通过 `ck.member.state{membership="ban"}` Event 封禁用户（成员状态机详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)，policy 对象详见 [`../models/governance-objects.md` §3](../models/governance-objects.md)）。封禁后：
 
 - 被封禁用户无法重新加入该 Realm
 - 其未来的 Operation 提交将被 Sync Service 拒绝
@@ -368,11 +368,11 @@ Franking 信任链：
 
 ### 5.3 Realm Blocklist / Filter Policy
 
-Realm MAY 使用 `cx.realm.moderation_policy` state event 声明黑名单、允许列表、内容过滤和风险处理策略。
+Realm MAY 使用 `ck.realm.moderation_policy` state event 声明黑名单、允许列表、内容过滤和风险处理策略。
 
 ```json
 {
-  "kind": "cx.realm.moderation_policy",
+  "kind": "ck.realm.moderation_policy",
   "payload": {
     "version": 1,
     "targets": [
@@ -440,13 +440,13 @@ Realm MAY 使用 `cx.realm.moderation_policy` state event 声明黑名单、允�
 | `media_digest` | `digest` | 媒体或 blob 内容 digest。 |
 | `content_label` | `label` | 分类器或审核标签。 |
 
-Realm 级 server ACL 等价规则 MUST 使用 `service_did`、`domain` 或 `trust_domain` target 表达。`deny_write` / `deny_federation` 命中这些 target 时，接收方 MUST 拒绝该 peer 后续 service-to-service 写入、backfill push、完整 frontier probe 和默认 fanout；`quarantine_message` 命中时，事件不得进入普通用户可见视图，直到 anchored moderation decision 解除。`deny_join` 命中 server target 时，MUST 拒绝通过该 service DID 或 domain 发起的新 join / invite acceptance，但不会自动清扫已经 accepted 的成员；`deny_restricted_join` 只作用于 `join_rule=restricted` / `history_visibility=restricted` 或等价 restricted admission profile 的申请、knock、invite acceptance，命中时 MUST fail closed，不得回退到普通 `deny_join` 之外的宽松路径。清扫既有成员必须通过 `cx.member.state{membership="ban"}`、grant revoke、MLS epoch rotation 或明确的 moderation decision 完成。
+Realm 级 server ACL 等价规则 MUST 使用 `service_did`、`domain` 或 `trust_domain` target 表达。`deny_write` / `deny_federation` 命中这些 target 时，接收方 MUST 拒绝该 peer 后续 service-to-service 写入、backfill push、完整 frontier probe 和默认 fanout；`quarantine_message` 命中时，事件不得进入普通用户可见视图，直到 anchored moderation decision 解除。`deny_join` 命中 server target 时，MUST 拒绝通过该 service DID 或 domain 发起的新 join / invite acceptance，但不会自动清扫已经 accepted 的成员；`deny_restricted_join` 只作用于 `join_rule=restricted` / `history_visibility=restricted` 或等价 restricted admission profile 的申请、knock、invite acceptance，命中时 MUST fail closed，不得回退到普通 `deny_join` 之外的宽松路径。清扫既有成员必须通过 `ck.member.state{membership="ban"}`、grant revoke、MLS epoch rotation 或明确的 moderation decision 完成。
 
 Domain target 的匹配必须基于已验证 service DID / DID Document endpoint / member delivery binding 的规范化结果。实现 MUST NOT 对未经验证的裸字符串、display name、handle 后缀或用户输入 URL 做后缀封禁推断。
 
 规则：
 
-- 修改 `cx.realm.moderation_policy` MUST 持有 `cx.realm.moderation_policy` 或 `cx.policy.manage` capability。
+- 修改 `ck.realm.moderation_policy` MUST 持有 `ck.realm.moderation_policy` 或 `ck.policy.manage` capability。
 - Realm blocklist MUST 在 signature / DID 基础校验之后、事件进入用户可见 reducer 状态之前进行评估。
 - `deny_join` / `deny_write` SHOULD 产出已签名的 moderation decision 或 audit record。
 - `quarantine_message` MUST 在审核通过前阻止事件进入普通用户可见视图。
@@ -488,7 +488,7 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 
 ### 5.5 上诉流程 (Appeal Flow, normative)
 
-上诉是审核闭环的反向通道。被 `cx.moderation.decision` 影响的 target（成员被 ban、消息被 remove、Flow 被锁等）可以走标准 `cx.moderation.appeal.*` 事件链请求复核，无需脱离 Cokret wire。本节定义事件链、状态机与 reducer 强制约束。
+上诉是审核闭环的反向通道。被 `ck.moderation.decision` 影响的 target（成员被 ban、消息被 remove、Flow 被锁等）可以走标准 `ck.moderation.appeal.*` 事件链请求复核，无需脱离 Cokret wire。本节定义事件链、状态机与 reducer 强制约束。
 
 #### 5.5.1 事件链
 
@@ -496,21 +496,21 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 
 | Event kind | 触发者 | 目标 cell 状态转换 | capability |
 | --- | --- | --- | --- |
-| `cx.moderation.appeal.submit` | appellant（被影响 target 的控制者或 policy 列出的 advocate） | (none) → `submitted` | `cx.moderation.appeal.submit`（risk_tier=low） |
-| `cx.moderation.appeal.review` | reviewer（不得是原 decision 的 issuer） | `submitted` → `under_review` | `cx.moderation.appeal.review`（risk_tier=medium） |
-| `cx.moderation.appeal.decision` | reviewer（同上） | `under_review` → `decided` | `cx.moderation.appeal.review` |
-| `cx.moderation.appeal.close` | reviewer 或 timer | `decided` → `closed` | `cx.moderation.appeal.review` |
+| `ck.moderation.appeal.submit` | appellant（被影响 target 的控制者或 policy 列出的 advocate） | (none) → `submitted` | `ck.moderation.appeal.submit`（risk_tier=low） |
+| `ck.moderation.appeal.review` | reviewer（不得是原 decision 的 issuer） | `submitted` → `under_review` | `ck.moderation.appeal.review`（risk_tier=medium） |
+| `ck.moderation.appeal.decision` | reviewer（同上） | `under_review` → `decided` | `ck.moderation.appeal.review` |
+| `ck.moderation.appeal.close` | reviewer 或 timer | `decided` → `closed` | `ck.moderation.appeal.review` |
 
-Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/moderation-appeal.schema.json)（schema id `cx.schema.moderation_appeal.v1`，四种 payload 通过 `oneOf` 分支）。
+Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/moderation-appeal.schema.json)（schema id `ck.schema.moderation_appeal.v1`，四种 payload 通过 `oneOf` 分支）。
 
 #### 5.5.2 Reducer 强制约束
 
-- **Realm 绑定**：所有 `cx.moderation.appeal.*` payload MUST 携带 `realm_id`，且该值 MUST 等于 enclosing Event 的 `realm_id`。Reducer 还 MUST 解析 `decision_ref`，确认它引用同一 Realm 的 `cx.moderation.decision`；若 target / decision 属于另一 Realm，除非显式 cross-Realm moderation profile 授权，否则 MUST `schema_violation` 或 `capability_denied`。
-- **separation of duties**：`cx.moderation.appeal.review` / `cx.moderation.appeal.decision` 的 `reviewer` MUST NOT 等于被上诉 `decision_ref` 对应 `cx.moderation.decision` event 的 issuer。违反时 reducer 用 `appeal_self_review_forbidden` 拒绝。
-- **overturn 与 lift 原子**：`cx.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `cx.moderation.decision.lift`（target 等于 `decision_ref`）在同一 Anchor batch 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝。这关闭"上诉胜诉但原 decision 仍生效"的窗口。
-- **modify 与新 decision 原子**：`verdict=modify` MUST 与一条新的 `cx.moderation.decision`（其 `target_ref` 等于原 target、`modify_decision_ref` 字段指向它）在同一 batch 中出现；reducer 校验 `modify_decision_ref` 与同 batch event id 一致。
+- **Realm 绑定**：所有 `ck.moderation.appeal.*` payload MUST 携带 `realm_id`，且该值 MUST 等于 enclosing Event 的 `realm_id`。Reducer 还 MUST 解析 `decision_ref`，确认它引用同一 Realm 的 `ck.moderation.decision`；若 target / decision 属于另一 Realm，除非显式 cross-Realm moderation profile 授权，否则 MUST `schema_violation` 或 `capability_denied`。
+- **separation of duties**：`ck.moderation.appeal.review` / `ck.moderation.appeal.decision` 的 `reviewer` MUST NOT 等于被上诉 `decision_ref` 对应 `ck.moderation.decision` event 的 issuer。违反时 reducer 用 `appeal_self_review_forbidden` 拒绝。
+- **overturn 与 lift 原子**：`ck.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 Anchor batch 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝。这关闭"上诉胜诉但原 decision 仍生效"的窗口。
+- **modify 与新 decision 原子**：`verdict=modify` MUST 与一条新的 `ck.moderation.decision`（其 `target_ref` 等于原 target、`modify_decision_ref` 字段指向它）在同一 batch 中出现；reducer 校验 `modify_decision_ref` 与同 batch event id 一致。
 - **重复上诉 cool-off**：同一 `(decision_ref, appellant)` 在 cell `closed` 状态后的 Realm 声明 `appeal_cool_off_ms`（默认 90 天）内不得再次 submit；违反时 `failed_precondition`。新 cool-off 之后允许新 `appeal_id`。
-- **auto close**：cell 进入 `decided` 状态后超过 Realm `appeal_window_ms`（默认 30 天）仍未 close，授权 timer 服务（Realm policy 声明）MAY emit `cx.moderation.appeal.close` `auto_closed=true`。该 close payload MUST 携带 `closer`；`auto_closed=true` 时 reducer MUST 校验 `closer` 是 Realm policy 声明的 timer service DID，且 `closed_at >= decided_at + appeal_window_ms`。普通 reviewer 不得伪造 timer close 来提前触发 cool-off。
+- **auto close**：cell 进入 `decided` 状态后超过 Realm `appeal_window_ms`（默认 30 天）仍未 close，授权 timer 服务（Realm policy 声明）MAY emit `ck.moderation.appeal.close` `auto_closed=true`。该 close payload MUST 携带 `closer`；`auto_closed=true` 时 reducer MUST 校验 `closer` 是 Realm policy 声明的 timer service DID，且 `closed_at >= decided_at + appeal_window_ms`。普通 reviewer 不得伪造 timer close 来提前触发 cool-off。
 
 #### 5.5.3 审计与可见性
 
@@ -540,17 +540,17 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
 }
 ```
 
-该 `server_acl` 是部署本地 policy 名称，不是标准 Event kind，不进入 `event-kind-registry.json`，也不是可复制的 Realm 状态。实现 MUST NOT 接受 `cx.realm.server_acl`、`cx.server.acl` 或等价未注册 kind 作为 Realm 权威状态。
+该 `server_acl` 是部署本地 policy 名称，不是标准 Event kind，不进入 `event-kind-registry.json`，也不是可复制的 Realm 状态。实现 MUST NOT 接受 `ck.realm.server_acl`、`ck.server.acl` 或等价未注册 kind 作为 Realm 权威状态。
 
 规则评估顺序：先检查 `deny` 列表，再检查 `allow` 列表。支持 glob 通配符时，通配符只允许覆盖完整 DNS label；`*.example.com` 不得匹配 `example.com` 或 `badexample.com`。推荐实现同时支持 exact `service_did`、`trust_domain` 与 DNS domain 规则，并优先使用已验证 service DID。
 
 ### 6.2 Realm 级 server ACL 的权威路径
 
-需要让参与该 Realm 的 peer 以可验证、可复制方式看到 server ACL 时，MUST 使用已注册的 `cx.realm.moderation_policy`：
+需要让参与该 Realm 的 peer 以可验证、可复制方式看到 server ACL 时，MUST 使用已注册的 `ck.realm.moderation_policy`：
 
 ```json
 {
-  "kind": "cx.realm.moderation_policy",
+  "kind": "ck.realm.moderation_policy",
   "payload": {
     "value": {
       "version": 1,
@@ -578,7 +578,7 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
 }
 ```
 
-`cx.realm.moderation_policy` server target 的生效规则：
+`ck.realm.moderation_policy` server target 的生效规则：
 
 - 接收方在完成请求签名、DID、trust domain 和 endpoint digest 识别后，MUST 在接受 Event 进入普通 reducer 前评估 Realm policy。
 - 命中 `deny_federation` 或 `deny_write` 的入站 service-to-service 写入 MUST fail closed；批量请求中可逐项拒绝，也可在请求级拒绝，取决于被拒绝规则是否影响整批认证上下文。
@@ -588,7 +588,7 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
 
 ### 6.3 与联邦协议的关系
 
-Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `cx.events.submit`（service-to-service 形态，`Source-Service-DID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
+Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `ck.events.submit`（service-to-service 形态，`Source-Service-DID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
 
 整机级 defederation 需要入站与出站同时配置：拒收该 peer 的 push / pull / frontier probe，并停止向其 fanout 新 Event、push、to-device、key-package、backfill 和媒体 / snapshot fetch。
 
@@ -600,7 +600,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
 
 ```json
 {
-  "kind": "cx.organization.moderation_policy",
+  "kind": "ck.organization.moderation_policy",
   "organization_did": "did:web:acme.example",
   "policy_id": "ck:org-policy:abuse-v1",
   "policy_scope": {
@@ -641,7 +641,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
 
 规则：
 
-- 组织策略只对显式引用它的 Realm / 服务有权威；对官方 Realm 也仅当其 `cx.realm.organization` 背书声明组织策略适用时才生效。
+- 组织策略只对显式引用它的 Realm / 服务有权威；对官方 Realm 也仅当其 `ck.realm.organization` 背书声明组织策略适用时才生效。
 - 仅当组织策略允许覆盖时，Realm MAY 覆盖组织默认值。
 - 组织级 deny SHOULD 由 Policy Server、Principal Server ACL、Directory 过滤与 Realm moderation policy 共同执行。
 - 组织策略 MUST 由 Organization DID 或受授权的 governance service DID 签名。

@@ -16,7 +16,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "cx.schema.identity_receipt.v1",
+      "const": "ck.schema.identity_receipt.v1",
       "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators distinguish identity registry receipts from other receipt envelopes (e.g. audit-ryw-receipt, event-batch-receipt)."
     },
     "receipt_id": {

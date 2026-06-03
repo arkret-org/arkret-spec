@@ -30,7 +30,7 @@ Cokret canonical JSON MUST 使用：
 - timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入 MUST NOT 接受本地时区、隐式时区或 leap-second 变体。
 - 字段名使用 snake_case。
 
-Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。
+Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何 v1 schema MUST NOT 新增 `type: number`（非整数）字段；遗留字段 MUST 在下一个 schema profile 升级时迁移到整数 + scale。
 
@@ -67,7 +67,7 @@ v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设�
 - **CBOR (RFC 8949) deterministic encoding** — 与 IETF MLS / COSE / WebAuthn 同源；适合 IoT、嵌入式与高密度 wire 场景。引入 CBOR profile 时 MUST 同时定义 JSON ↔ CBOR 等价规则，并在 conformance vector 中给出双向 digest 一致性测试。
 - 其他 binary encoding（如 protobuf、msgpack）SHOULD 通过 profile 单独引入，MUST NOT 静默替换 v1 canonical JSON。
 
-引入备用 encoding 的 profile id 形如 `cx.profile.encoding.cbor.v1`；事件 envelope 中通过 `requirements.features[]` 声明使用该 encoding，否则接收方按 canonical JSON 解析。
+引入备用 encoding 的 profile id 形如 `ck.profile.encoding.cbor.v1`；事件 envelope 中通过 `requirements.features[]` 声明使用该 encoding，否则接收方按 canonical JSON 解析。
 
 ## 3. Hash
 
@@ -89,10 +89,10 @@ v1 conformance 锁定的 hash 算法集合：
 
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
-| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt digest 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `cx.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
-| `sha512` | 64 bytes（128 hex） | v1 optional；声明 `cx.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Realm 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
-| `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
-| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
+| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt digest 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `ck.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
+| `sha512` | 64 bytes（128 hex） | v1 optional；声明 `ck.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Realm 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
+| `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `ck.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
+| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `ck.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
 
 扩展 profile MAY 通过新 hash profile 加入抗量子 hash（如 SLH-DSA hash family、SHAKE256 派生），v1 wire 形态 `<algo>:<hex>` 已经为这种加法准备好——**无需重写 wire**。
 
@@ -104,11 +104,11 @@ v1 conformance 锁定的 hash 算法集合：
 
 ### 3.3 State Root 与 Anchor Hash 编码
 
-`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt digest 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。Move 是 reducer-input Event 的协议视图；Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。Realm 内所有后续 Anchor / Event digest / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
+`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt digest 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。Move 是 reducer-input Event 的协议视图；Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。Realm 内所有后续 Anchor / Event digest / state_root MUST 使用同一 algo；切换需要通过 `ck.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
 
 ### 3.4 Multihash 兼容（profile-gated）
 
-声明 `cx.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<algo>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。
+声明 `ck.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<algo>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。
 
 ## 4. ID
 
@@ -165,7 +165,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 ```json
 {
-  "schema": "cx.schema.event_batch_receipt.v1",
+  "schema": "ck.schema.event_batch_receipt.v1",
   "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
   "receipt_scope": {
@@ -331,7 +331,7 @@ ck:cursor:<base64url>
 
 - 客户端 MUST 把 cursor 当作不透明字符串。
 - 客户端 MUST NOT 解码、解析或修改 cursor 内容。
-- 客户端 MUST 存储最新 stream `cursor`（来自 `/account/subscribe` frame 或分页响应）用于恢复。
+- 客户端 MUST 存储最新 stream `cursor`（来自 `/_cokret/self/account/subscribe` frame 或分页响应）用于恢复。
 - 客户端 MUST 在下次同步 / 查询请求中按原样使用 cursor。
 
 ### 8.2 服务端 canonical 内部结构
@@ -412,7 +412,7 @@ Barrier 形态：
 8. 因果前沿中的所有 event id 合法（如 `s` 出现）。
 9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
 10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
-11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `/account/subscribe after=`、`before`、`after`、`prev_cursor` / `next_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Cokret-Wait-For` 上下文 MUST `invalid_param`）。
+11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `/_cokret/self/account/subscribe after=`、`before`、`after`、`prev_cursor` / `next_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Cokret-Wait-For` 上下文 MUST `invalid_param`）。
 12. **TTL 硬上限**：以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 13. **形态互斥**（schema `oneOf` 强制）：cursor body MUST 满足下列二选一：
     - **stateless** — 含 `issuer_kid` 且含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。
@@ -424,7 +424,7 @@ Barrier 形态：
 
 ### 8.3.1 完整性校验（normative）
 
-服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state（to-device ack、`/account/subscribe after=` resume、`X-Cokret-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复等；详见 [`client-sync.md` §10 / §12](../sync/client-sync.md)）之前，执行下列完整性校验。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
+服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state（to-device ack、`/_cokret/self/account/subscribe after=` resume、`X-Cokret-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复等；详见 [`client-sync.md` §10 / §12](../sync/client-sync.md)）之前，执行下列完整性校验。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
 
 **Stateless 形态（含 `_mac` 或 `_sig`）**：
 
@@ -449,7 +449,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 1. **直接 reparse（仅 stateless 形态）**：B 收到 `after=ck:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<realm_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Realm 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），MUST NOT 直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
 2. **stateful 形态不可跨服务迁移**：含 `h` 的 cursor 中 handle 是 A 本地表的引用，B 无法解析。B 收到 stateful 形态 cursor 时 MUST 返回 `cursor_unrecognized`，客户端按全新初始同步处理。这是 stateful 形态在 portability 上的固有取舍。
 3. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 静默丢失因果对齐。
-4. **可选 translate 端点**：未来 profile 可能在 `cx.profile.principal_server.v1` 之上引入 `POST /api/v1/account/translate-cursor`；该端点不属于 v1 强制范围。
+4. **可选 translate 端点**：未来 profile 可能在 `ck.profile.principal_server.v1` 之上引入 `POST /_cokret/self/account/translate-cursor`；该端点不属于 v1 强制范围。
 
 `_` 前缀的服务器私有字段（`_compression`）在迁移时可被丢弃；canonical 字段（`v` `t` `s` `d` `x`）足以恢复 frontier。`_mac` / `_sig` MUST 由目标服务器用自己的 key 重新生成（不可跨服务复用）。
 
@@ -477,7 +477,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 
 ## 9. Rank
 
-列表排序 rank MUST 使用 `cx.rank.lexofractional.v1` profile，除非 Realm schema 显式声明其他 rank profile。
+列表排序 rank MUST 使用 `ck.rank.lexofractional.v1` profile，除非 Realm schema 显式声明其他 rank profile。
 
 规则：
 
@@ -515,15 +515,15 @@ rank_between(left, right):
   return rank_exhausted
 ```
 
-例如 `rank_between("", "0")` MUST 返回 `rank_exhausted`，因为在 start sentinel 与最小 rank `"0"` 之间不存在合法 rank。客户端或 reducer 遇到 `rank_exhausted` MUST 触发 rebalance 或要求调用方提交 `cx.container.rebalance`，MUST NOT 生成非法 rank。
-- 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `cx.container.rebalance`。Reducer MUST NOT 接受超过 128 字符的 rank。
+例如 `rank_between("", "0")` MUST 返回 `rank_exhausted`，因为在 start sentinel 与最小 rank `"0"` 之间不存在合法 rank。客户端或 reducer 遇到 `rank_exhausted` MUST 触发 rebalance 或要求调用方提交 `ck.container.rebalance`，MUST NOT 生成非法 rank。
+- 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `ck.container.rebalance`。Reducer MUST NOT 接受超过 128 字符的 rank。
 - 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_hlc`、`rank_source_actor_id`、`rank_source_event_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。
-- `cx.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST reject 该 rebalance。
+- `ck.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST reject 该 rebalance。
 - Rebalance assignments MUST 覆盖 container 内全部 active edges，且 MUST NOT 新增、删除或跨 container 移动 edge。CAS 的 `expected_state_digest` 不匹配时，MUST 拒绝整个 operation，MUST NOT 部分应用。
 
 ## 9.5. Composite Cell Subject
 
-部分 cell 的 subject 由多个 sub-component 复合派生（例如 `cx.device.authorize` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Move precondition、Lattice join 和 fixture 必须使用同一形态。
+部分 cell 的 subject 由多个 sub-component 复合派生（例如 `ck.device.authorize` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Move precondition、Lattice join 和 fixture 必须使用同一形态。
 
 ### 9.5.1 通用规则
 
@@ -542,8 +542,8 @@ rank_between(left, right):
 
 | Cell family / Event kind | components_array 顺序（来源字段） |
 | --- | --- |
-| `cx.component.device.authorization.v1` / `cx.device.authorize` | `[principal_id, device_id]` |
-| `cx.component.device.authorization.v1` / `cx.device.revoke` | `[principal_id, device_id]` |
+| `ck.component.device.authorization.v1` / `ck.device.authorize` | `[principal_id, device_id]` |
+| `ck.component.device.authorization.v1` / `ck.device.revoke` | `[principal_id, device_id]` |
 
 `principal_id` MUST 是无 fragment 的完整 DID URI（见 §4）；`device_id` MUST 是完整 `id:device` typed ID（`ck:device:<uuidv7>`）。
 

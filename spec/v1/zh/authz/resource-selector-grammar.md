@@ -83,7 +83,7 @@ List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowe
 
 ### 2.2 Circle 选择
 
-Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint 或具体 `circle_id` 限制 Circle-scoped 管理 grant。Circle selector 只表达子事件 / 子消息边界对象本身；它不会替代 Circle membership、history visibility、delivery/query eligibility、MLS-backed Circle 的 epoch eligibility 或 `cx.audit.accessed` 配对要求。
+Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint 或具体 `circle_id` 限制 Circle-scoped 管理 grant。Circle selector 只表达子事件 / 子消息边界对象本身；它不会替代 Circle membership、history visibility、delivery/query eligibility、MLS-backed Circle 的 epoch eligibility 或 `ck.audit.accessed` 配对要求。
 
 ```json
 {
@@ -127,7 +127,7 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
 }
 ```
 
-`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
+`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `ck.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
 
 ## 3. 字符串 Shorthand（可选 CLI / 日志形态，non-normative）
 
@@ -219,7 +219,7 @@ flow_part            ::= flow_id | "*"
 - `event_id`：`ck:event:` 后接 UUIDv7。
 - `policy_id`：`ck:policy:` 后接 UUIDv7。
 - `invite_id`：`ck:invite:` 后接 UUIDv7。
-- `schema_id`：schema registry id，例如 `cx.schema.flow.v1` 或反向域名 schema id。
+- `schema_id`：schema registry id，例如 `ck.schema.flow.v1` 或反向域名 schema id。
 - `did`：DID URI。
 - `blob_ref`：Blob typed ID，wire form 为 `cx` blob 前缀后接 UUIDv7，或 content-addressed sha256 blob ref。
 - `morph_type`：Realm schema 中注册的开放对象类型。

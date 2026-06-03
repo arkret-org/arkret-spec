@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/ephemeral-envelope.schema.json",
   "title": "Cokret Ephemeral Broadcast Envelope",
-  "description": "Wire shape for broadcast ephemeral signals — cx.presence, cx.typing, cx.receipt.read, cx.call.signal. These signals have wire_scope=ephemeral_event in event-kind-registry.json: they MUST NOT carry preconditions / effects / anchor_ref, MUST NOT advance Anchor frontier or Move state_root or actor_seq, MUST NOT enter reducer state, and MUST NOT be submitted via cx.events.submit. They are carried on dedicated ephemeral channels (sync subscribe live stream, presence/typing fanout, call signaling channel) and are dropped at TTL. Point-to-point to-device signals (cx.key.verification.*) use device-message.schema.json instead — they have a sender+recipient pair and do not match this broadcast shape. See zh/sync/operations-sync.md §3.6 (wire-scope reject rule) and zh/crypto-media/webrtc-signaling.md §3 (ephemeral channel transport).",
+  "description": "Wire shape for broadcast ephemeral signals — ck.presence, ck.typing, ck.receipt.read, ck.call.signal. These signals have wire_scope=ephemeral_event in event-kind-registry.json: they MUST NOT carry preconditions / effects / anchor_ref, MUST NOT advance Anchor frontier or Move state_root or actor_seq, MUST NOT enter reducer state, and MUST NOT be submitted via ck.events.submit. They are carried on dedicated ephemeral channels (sync subscribe live stream, presence/typing fanout, call signaling channel) and are dropped at TTL. Point-to-point to-device signals (ck.key.verification.*) use device-message.schema.json instead — they have a sender+recipient pair and do not match this broadcast shape. See zh/sync/operations-sync.md §3.6 (wire-scope reject rule) and zh/crypto-media/webrtc-signaling.md §3 (ephemeral channel transport).",
   "type": "object",
   "required": [
     "kind",
@@ -16,12 +16,12 @@
     "kind": {
       "type": "string",
       "enum": [
-        "cx.call.signal",
-        "cx.presence",
-        "cx.typing",
-        "cx.receipt.read"
+        "ck.call.signal",
+        "ck.presence",
+        "ck.typing",
+        "ck.receipt.read"
       ],
-      "description": "Ephemeral signal kind. MUST be one of the four broadcast ephemeral kinds; cx.key.verification.* point-to-point flows MUST use device-message.schema.json instead."
+      "description": "Ephemeral signal kind. MUST be one of the four broadcast ephemeral kinds; ck.key.verification.* point-to-point flows MUST use device-message.schema.json instead."
     },
     "realm_id": {
       "type": "string",
@@ -30,7 +30,7 @@
     },
     "actor_id": {
       "$ref": "#/$defs/did",
-      "description": "Signaling actor. MUST be a member of the Realm (cx.member.state cell join != ban/leave/remove at receive time) for the broadcast to be admitted by other clients; receivers drop signals from non-members without surfacing them."
+      "description": "Signaling actor. MUST be a member of the Realm (ck.member.state cell join != ban/leave/remove at receive time) for the broadcast to be admitted by other clients; receivers drop signals from non-members without surfacing them."
     },
     "device_id": {
       "type": "string",
@@ -51,17 +51,17 @@
     },
     "payload": {
       "type": "object",
-      "description": "Kind-specific signal payload. Schema per kind is defined by the producing module (e.g. zh/crypto-media/webrtc-signaling.md for cx.call.signal, zh/discovery/read-receipts.md for cx.receipt.read). Payload MUST NOT carry mutable governance state — that belongs in a durable event."
+      "description": "Kind-specific signal payload. Schema per kind is defined by the producing module (e.g. zh/crypto-media/webrtc-signaling.md for ck.call.signal, zh/discovery/read-receipts.md for ck.receipt.read). Payload MUST NOT carry mutable governance state — that belongs in a durable event."
     },
     "proof": {
       "type": "object",
-      "description": "Optional detached signature over canonical envelope bytes (per RFC 8785 JCS, excluding `proof` itself). Required for cx.call.signal; RECOMMENDED for cx.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state."
+      "description": "Optional detached signature over canonical envelope bytes (per RFC 8785 JCS, excluding `proof` itself). Required for ck.call.signal; RECOMMENDED for ck.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state."
     }
   },
   "allOf": [
     {
       "if": {
-        "properties": { "kind": { "const": "cx.call.signal" } },
+        "properties": { "kind": { "const": "ck.call.signal" } },
         "required": ["kind"]
       },
       "then": {

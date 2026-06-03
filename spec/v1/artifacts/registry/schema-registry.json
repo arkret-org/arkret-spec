@@ -5,286 +5,286 @@
   "generated_by": "tools/artifact_pipeline.py",
   "schemas": [
     {
-      "schema_id": "cx.schema.realm.v1",
+      "schema_id": "ck.schema.realm.v1",
       "file": "schemas/realm.schema.json"
     },
     {
-      "schema_id": "cx.schema.space.v1",
+      "schema_id": "ck.schema.space.v1",
       "file": "schemas/space.schema.json"
     },
     {
-      "schema_id": "cx.schema.actor_profile.v1",
+      "schema_id": "ck.schema.actor_profile.v1",
       "file": "schemas/actor-profile.schema.json"
     },
     {
-      "schema_id": "cx.schema.circle.v1",
+      "schema_id": "ck.schema.circle.v1",
       "file": "schemas/circle.schema.json",
       "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
     },
     {
-      "schema_id": "cx.schema.flow.v1",
+      "schema_id": "ck.schema.flow.v1",
       "file": "schemas/flow.schema.json"
     },
     {
-      "schema_id": "cx.schema.message.v1",
+      "schema_id": "ck.schema.message.v1",
       "file": "schemas/message.schema.json"
     },
     {
-      "schema_id": "cx.schema.morph.v1",
+      "schema_id": "ck.schema.morph.v1",
       "file": "schemas/morph.schema.json"
     },
     {
-      "schema_id": "cx.schema.morph.customer_risk.v1",
+      "schema_id": "ck.schema.morph.customer_risk.v1",
       "file": "schemas/morph-customer-risk.schema.json",
-      "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside cx.schema.morph.v1 containers."
+      "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ck.schema.morph.v1 containers."
     },
     {
-      "schema_id": "cx.schema.relation.v1",
+      "schema_id": "ck.schema.relation.v1",
       "file": "schemas/relation.schema.json"
     },
     {
-      "schema_id": "cx.schema.view.v1",
+      "schema_id": "ck.schema.view.v1",
       "file": "schemas/view.schema.json"
     },
     {
-      "schema_id": "cx.schema.policy.v1",
+      "schema_id": "ck.schema.policy.v1",
       "file": "schemas/policy.schema.json"
     },
     {
-      "schema_id": "cx.schema.invite.v1",
+      "schema_id": "ck.schema.invite.v1",
       "file": "schemas/invite.schema.json"
     },
     {
-      "schema_id": "cx.schema.event.v1",
+      "schema_id": "ck.schema.event.v1",
       "file": "schemas/event-envelope.schema.json"
     },
     {
-      "schema_id": "cx.schema.event_payload.v1",
+      "schema_id": "ck.schema.event_payload.v1",
       "file": "schemas/event-payload.schema.json"
     },
     {
-      "schema_id": "cx.schema.event_batch_receipt.v1",
+      "schema_id": "ck.schema.event_batch_receipt.v1",
       "file": "schemas/event-batch-receipt.schema.json"
     },
     {
-      "schema_id": "cx.schema.patch.v1",
+      "schema_id": "ck.schema.patch.v1",
       "file": "schemas/patch.schema.json",
       "format_aliases": [
-        "cx.patch.v1"
+        "ck.patch.v1"
       ],
-      "description": "Registered schema for the embedded cx.patch.v1 field-patch wire format."
+      "description": "Registered schema for the embedded ck.patch.v1 field-patch wire format."
     },
     {
-      "schema_id": "cx.schema.range_completeness_attestation.v1",
+      "schema_id": "ck.schema.range_completeness_attestation.v1",
       "file": "schemas/range-completeness-attestation.schema.json"
     },
     {
-      "schema_id": "cx.schema.ice_config_response.v1",
+      "schema_id": "ck.schema.ice_config_response.v1",
       "file": "schemas/ice-config-response.schema.json"
     },
     {
-      "schema_id": "cx.schema.capability.v1",
+      "schema_id": "ck.schema.capability.v1",
       "file": "schemas/capability-grant.schema.json"
     },
     {
-      "schema_id": "cx.schema.cursor.v1",
+      "schema_id": "ck.schema.cursor.v1",
       "file": "schemas/cursor.schema.json"
     },
     {
-      "schema_id": "cx.schema.snapshot.v1",
+      "schema_id": "ck.schema.snapshot.v1",
       "file": "schemas/snapshot.schema.json"
     },
     {
-      "schema_id": "cx.schema.account_subscribe_frame.v1",
+      "schema_id": "ck.schema.account_subscribe_frame.v1",
       "file": "schemas/account-subscribe-frame.schema.json"
     },
     {
-      "schema_id": "cx.schema.device_message.v1",
+      "schema_id": "ck.schema.device_message.v1",
       "file": "schemas/device-message.schema.json"
     },
     {
-      "schema_id": "cx.schema.ephemeral_envelope.v1",
+      "schema_id": "ck.schema.ephemeral_envelope.v1",
       "file": "schemas/ephemeral-envelope.schema.json"
     },
     {
-      "schema_id": "cx.schema.blob.v1",
+      "schema_id": "ck.schema.blob.v1",
       "file": "schemas/blob.schema.json"
     },
     {
-      "schema_id": "cx.schema.media_metadata.v1",
+      "schema_id": "ck.schema.media_metadata.v1",
       "file": "schemas/media-metadata.schema.json"
     },
     {
-      "schema_id": "cx.schema.encrypted_envelope.v1",
+      "schema_id": "ck.schema.encrypted_envelope.v1",
       "file": "schemas/encrypted-envelope.schema.json"
     },
     {
-      "schema_id": "cx.schema.key_backup.v1",
+      "schema_id": "ck.schema.key_backup.v1",
       "file": "schemas/key-backup.schema.json"
     },
     {
-      "schema_id": "cx.schema.recovery_policy.v1",
+      "schema_id": "ck.schema.recovery_policy.v1",
       "file": "schemas/recovery-policy.schema.json",
       "status": "active",
-      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / cx.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
+      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ck.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
     },
     {
-      "schema_id": "cx.schema.recovery_session.v1",
+      "schema_id": "ck.schema.recovery_session.v1",
       "file": "schemas/recovery-session.schema.json",
       "status": "active",
       "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit/complete request and response helpers, and principal_signing recovery proof transcript. See crypto-media/device-lifecycle.md §15."
     },
     {
-      "schema_id": "cx.schema.recovery_receipt.v1",
+      "schema_id": "ck.schema.recovery_receipt.v1",
       "file": "schemas/recovery-receipt.schema.json",
       "status": "active",
       "description": "Signed completion receipt for a principal recovery flow. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
     },
     {
-      "schema_id": "cx.schema.notification.v1",
+      "schema_id": "ck.schema.notification.v1",
       "file": "schemas/notification.schema.json"
     },
     {
-      "schema_id": "cx.schema.read_cursor.v1",
+      "schema_id": "ck.schema.read_cursor.v1",
       "file": "schemas/read-cursor.schema.json"
     },
     {
-      "schema_id": "cx.schema.read_receipt.v1",
+      "schema_id": "ck.schema.read_receipt.v1",
       "file": "schemas/read-receipt.schema.json"
     },
     {
-      "schema_id": "cx.schema.did_key_log_entry.v1",
+      "schema_id": "ck.schema.did_key_log_entry.v1",
       "file": "schemas/did-key-log-entry.schema.json"
     },
     {
-      "schema_id": "cx.schema.did_continuity_proof.v1",
+      "schema_id": "ck.schema.did_continuity_proof.v1",
       "file": "schemas/did-continuity-proof.schema.json",
       "status": "active",
       "description": "Signed DID continuity / migration proof payload"
     },
     {
-      "schema_id": "cx.schema.identity_receipt.v1",
+      "schema_id": "ck.schema.identity_receipt.v1",
       "file": "schemas/identity-receipt.schema.json"
     },
     {
-      "schema_id": "cx.schema.identity_link.v1",
+      "schema_id": "ck.schema.identity_link.v1",
       "file": "schemas/identity-link.schema.json",
       "status": "active",
       "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain."
     },
     {
-      "schema_id": "cx.schema.member_identity.v1",
+      "schema_id": "ck.schema.member_identity.v1",
       "file": "schemas/member-identity.schema.json",
       "status": "active",
-      "description": "Realm-scoped member display/subject projection carried by cx.member.identity.update; handle lifecycle is carried by cx.schema.handle_claim.v1."
+      "description": "Realm-scoped member display/subject projection carried by ck.member.identity.update; handle lifecycle is carried by ck.schema.handle_claim.v1."
     },
     {
-      "schema_id": "cx.schema.handle_claim.v1",
+      "schema_id": "ck.schema.handle_claim.v1",
       "file": "schemas/handle-claim.schema.json"
     },
     {
-      "schema_id": "cx.schema.list_handles_for_subject_response.v1",
+      "schema_id": "ck.schema.list_handles_for_subject_response.v1",
       "file": "schemas/list-handles-for-subject-response.schema.json",
       "status": "active",
       "description": "Directory response listing currently visible handle claims for a disclosed subject DID."
     },
     {
-      "schema_id": "cx.schema.member_delivery_binding_candidate.v1",
+      "schema_id": "ck.schema.member_delivery_binding_candidate.v1",
       "file": "schemas/member-delivery-binding-candidate.schema.json",
       "status": "active",
       "description": "Builder-side candidate object for Handle resolution intent=member_add | invite (identity-handles.md §3.7); produces a Realm-scoped member_delivery_binding only after Join Policy re-validation."
     },
     {
-      "schema_id": "cx.schema.realm_join_candidate.v1",
+      "schema_id": "ck.schema.realm_join_candidate.v1",
       "file": "schemas/realm-join-candidate.schema.json",
       "status": "active",
       "description": "Time-bounded routing hint returned by Realm discovery / resolve paths for selecting a qualified service to receive join, invite-accept, knock, or restricted-join submissions. Not an authorization grant and not a member_delivery_binding."
     },
     {
-      "schema_id": "cx.schema.grant_constraint.v1",
+      "schema_id": "ck.schema.grant_constraint.v1",
       "file": "schemas/grant-constraint.schema.json"
     },
     {
-      "schema_id": "cx.schema.resource_selector.v1",
+      "schema_id": "ck.schema.resource_selector.v1",
       "file": "schemas/resource-selector.schema.json"
     },
     {
-      "schema_id": "cx.schema.mimi_interop.v1",
+      "schema_id": "ck.schema.mimi_interop.v1",
       "file": "schemas/mimi-interop.schema.json"
     },
     {
-      "schema_id": "cx.schema.moderation_report.v1",
+      "schema_id": "ck.schema.moderation_report.v1",
       "file": "schemas/moderation-report.schema.json"
     },
     {
-      "schema_id": "cx.schema.moderation_queue_item.v1",
+      "schema_id": "ck.schema.moderation_queue_item.v1",
       "file": "schemas/moderation-queue-item.schema.json"
     },
     {
-      "schema_id": "cx.schema.moderation_appeal.v1",
+      "schema_id": "ck.schema.moderation_appeal.v1",
       "file": "schemas/moderation-appeal.schema.json"
     },
     {
-      "schema_id": "cx.schema.attestation_evidence.v1",
+      "schema_id": "ck.schema.attestation_evidence.v1",
       "file": "schemas/attestation-evidence.schema.json"
     },
     {
-      "schema_id": "cx.schema.applet.v1",
+      "schema_id": "ck.schema.applet.v1",
       "file": "schemas/applet.schema.json",
       "status": "active",
-      "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for cx.applet.* use typed payload definitions in event-payload.schema.json."
+      "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ck.applet.* use typed payload definitions in event-payload.schema.json."
     },
     {
-      "schema_id": "cx.schema.agent.v1",
+      "schema_id": "ck.schema.agent.v1",
       "file": "schemas/agent.schema.json",
       "status": "active",
-      "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for cx.agent.* use typed payload definitions in event-payload.schema.json."
+      "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ck.agent.* use typed payload definitions in event-payload.schema.json."
     },
     {
-      "schema_id": "cx.schema.audit_ryw_receipt.v1",
+      "schema_id": "ck.schema.audit_ryw_receipt.v1",
       "file": "schemas/audit-ryw-receipt.schema.json"
     },
     {
-      "schema_id": "cx.schema.erasure_receipt.v1",
+      "schema_id": "ck.schema.erasure_receipt.v1",
       "file": "schemas/erasure-receipt.schema.json",
       "status": "active",
-      "description": "Signed hard-erasure receipt payload for cx.audit.erasure_receipt"
+      "description": "Signed hard-erasure receipt payload for ck.audit.erasure_receipt"
     },
     {
-      "schema_id": "cx.schema.erasure_verification_stub.v1",
+      "schema_id": "ck.schema.erasure_verification_stub.v1",
       "file": "schemas/erasure-verification-stub.schema.json",
       "status": "active",
       "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest"
     },
     {
-      "schema_id": "cx.schema.cross_signing_publish.v1",
+      "schema_id": "ck.schema.cross_signing_publish.v1",
       "file": "schemas/cross-signing-publish.schema.json",
       "status": "active",
-      "description": "Wire payload schema for cx.cross_signing.publish — establishes the PSK→{SSK, USK} binding on the principal control stream. See device-lifecycle.md §5.1."
+      "description": "Wire payload schema for ck.cross_signing.publish — establishes the PSK→{SSK, USK} binding on the principal control stream. See device-lifecycle.md §5.1."
     },
     {
-      "schema_id": "cx.schema.cross_signing_reset.v1",
+      "schema_id": "ck.schema.cross_signing_reset.v1",
       "file": "schemas/cross-signing-reset.schema.json",
       "status": "active",
-      "description": "Wire payload schema for cx.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
+      "description": "Wire payload schema for ck.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
     },
     {
-      "schema_id": "cx.schema.anchor.v1",
+      "schema_id": "ck.schema.anchor.v1",
       "file": "schemas/anchor.schema.json",
       "status": "active",
       "description": "Anchor DAG finality commitment schema"
     },
     {
-      "schema_id": "cx.schema.bottom.v1",
+      "schema_id": "ck.schema.bottom.v1",
       "file": "schemas/bottom.schema.json",
       "status": "active",
       "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
     },
     {
-      "schema_id": "cx.schema.service_describe.v1",
+      "schema_id": "ck.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for cx.server.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. See service-surface.md §3.0."
+      "description": "Canonical ServiceDescribe response for ck.server.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. See service-surface.md §3.0."
     }
   ]
 }

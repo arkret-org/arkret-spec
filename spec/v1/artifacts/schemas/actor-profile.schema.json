@@ -17,7 +17,7 @@
       "pattern": "^ck:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.actor_profile.v1"
+      "const": "ck.schema.actor_profile.v1"
     },
     "realm_id": {
       "type": "string",
@@ -63,7 +63,7 @@
         "deactivated",
         "erasure_pending"
       ],
-      "description": "Public projection of the account lifecycle status values defined in zh/identity/account-lifecycle.md §3. Implementations MAY hide or coarsen this field in projection views, but the wire enum mirrors cx.account.status."
+      "description": "Public projection of the account lifecycle status values defined in zh/identity/account-lifecycle.md §3. Implementations MAY hide or coarsen this field in projection views, but the wire enum mirrors ck.account.status."
     },
     "accountable_principal_ids": {
       "type": "array",

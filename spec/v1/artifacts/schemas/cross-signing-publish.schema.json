@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/cross-signing-publish.schema.json",
   "title": "Cokret Cross-Signing Publish",
-  "description": "Payload content for cx.cross_signing.publish (schema_id cx.schema.cross_signing_publish.v1). Publishes the (PSK -> {SSK, USK}) binding to the principal control stream. Each subordinate key MUST carry a binding signature produced by PSK over a canonical signing input that includes trust_domain — see device-lifecycle.md §5.1.",
+  "description": "Payload content for ck.cross_signing.publish (schema_id ck.schema.cross_signing_publish.v1). Publishes the (PSK -> {SSK, USK}) binding to the principal control stream. Each subordinate key MUST carry a binding signature produced by PSK over a canonical signing input that includes trust_domain — see device-lifecycle.md §5.1.",
   "type": "object",
   "required": [
     "principal_id",
@@ -27,7 +27,7 @@
     "generation": {
       "type": "integer",
       "minimum": 1,
-      "description": "Monotonically increasing publish generation. Each cx.cross_signing.reset MUST increment by 1. Receivers MUST reject publishes whose generation is <= the currently accepted generation."
+      "description": "Monotonically increasing publish generation. Each ck.cross_signing.reset MUST increment by 1. Receivers MUST reject publishes whose generation is <= the currently accepted generation."
     },
     "expected_previous_generation": {
       "type": "integer",

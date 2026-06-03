@@ -32,7 +32,7 @@
       "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "schema": {
-      "const": "cx.schema.blob.v1"
+      "const": "ck.schema.blob.v1"
     },
     "realm_id": {
       "type": "string",

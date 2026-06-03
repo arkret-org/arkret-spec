@@ -13,7 +13,7 @@
   ],
   "properties": {
     "stub_schema": {
-      "const": "cx.schema.erasure_verification_stub.v1"
+      "const": "ck.schema.erasure_verification_stub.v1"
     },
     "subject": {
       "type": "object",

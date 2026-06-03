@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/applet.schema.json",
   "title": "Cokret Applet Protocol Object",
-  "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for cx.applet.* MUST use the typed payload definitions in event-payload.schema.json; this object is not a loose transport envelope and is closed at the top level except for x_* extensions.",
+  "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ck.applet.* MUST use the typed payload definitions in event-payload.schema.json; this object is not a loose transport envelope and is closed at the top level except for x_* extensions.",
   "type": "object",
   "required": [
     "schema",
@@ -10,7 +10,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "cx.schema.applet.v1"
+      "const": "ck.schema.applet.v1"
     },
     "applet_id": {
       "description": "Stable applet identifier. MUST be either a DID or the registered typed-id form ck:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
@@ -44,7 +44,7 @@
         "failed",
         "cancelled"
       ],
-      "description": "Bridge-implementation-defined runtime status for cx.applet.protocol_session.status events. v1 does NOT mandate a canonical applet session state machine (unlike cx.agent.* which uses the 9-value agent_session_status enum); bridges MAY restrict the set further in their applet manifest. The field name is `runtime_status` (not `status`) to keep applet object snapshots distinguishable from the canonical agent session state machine in agent.schema.json."
+      "description": "Bridge-implementation-defined runtime status for ck.applet.protocol_session.status events. v1 does NOT mandate a canonical applet session state machine (unlike ck.agent.* which uses the 9-value agent_session_status enum); bridges MAY restrict the set further in their applet manifest. The field name is `runtime_status` (not `status`) to keep applet object snapshots distinguishable from the canonical agent session state machine in agent.schema.json."
     },
     "params": {
       "description": "Caller-supplied parameters for protocol_session.start. Opaque to soland — bridge implementations interpret per applet manifest."
@@ -56,7 +56,7 @@
     },
     "error": {
       "type": "object",
-      "description": "Bridge-error context for cx.applet.bridge_error events.",
+      "description": "Bridge-error context for ck.applet.bridge_error events.",
       "properties": {
         "code": {
           "type": "string"

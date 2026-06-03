@@ -15,6 +15,8 @@ see_also:
 
 若本文与具体规范冲突，以具体规范中的 MUST / SHOULD 规则为准。
 
+> **`v1/` 不是 URL 版本号**：本规范树的 `v1/` 目录与 `ck.*.v1` 标识符表示协议代际（`protocol_version="1.0"`），HTTP path 不含任何版本段。消歧说明见 [`index.md` §1](./index.md)，path 规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。
+
 ### 1.1 规范权威层级
 
 - `artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
@@ -30,8 +32,8 @@ see_also:
 `artifacts/registry/` 下提供一组 drift detection artifacts。它们是 canonical source of truth，由
 `registry-manifest.json` 索引，cotest scanner 直接消费这些文件来识别旧 id / 旧字段 / 旧术语的残留：
 
-- `artifacts/registry/removed-event-kinds.json`：已移除的 Event.kind 列表（例如 `cx.field.position.*`、
-  `cx.flow.track.*`、`cx.realm.lifecycle.set`、`cx.realm.policy.set`）。
+- `artifacts/registry/removed-event-kinds.json`：已移除的 Event.kind 列表（例如 `ck.field.position.*`、
+  `ck.flow.track.*`、`ck.realm.lifecycle.set`、`ck.realm.policy.set`）。
 - `artifacts/registry/removed-operation-ids.json`：已移除的 operation id（与上述 event kind 对齐的 binding 端点）。
 - `artifacts/registry/deprecated-profile-ids.json`：已弃用或从未 canonical 化的 profile id
   （例如 `chat_only_client`、`kanban_only_client`）。
@@ -48,7 +50,7 @@ see_also:
 可选字段：`migration_group`（同一设计决策的批量条目归并标签，见 `renames.json.migration_group_definitions`）、
 `migration_tool_only: true`（仅离线 migration / replay 工具可消费的 disambiguation entry）。
 
-新增、移除或重命名标准 cx.* 概念时 MUST 同步更新这组 artifacts；CHANGELOG 条目和这些 artifacts 是
+新增、移除或重命名标准 ck.* 概念时 MUST 同步更新这组 artifacts；CHANGELOG 条目和这些 artifacts 是
 "机器可发现的协议演化记录"的两面。
 
 #### 1.2.1 Parser 分层（normative）
@@ -56,7 +58,7 @@ see_also:
 `renames.json` 的条目按消费方分两层，分别由 `renames.json.parser_tier_definitions` 定义：
 
 - **Current parser**：sync service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。MUST 把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目都视作输入禁止；**MUST NOT 做 payload-shape disambiguation**；遇到旧 id MUST 直接返回 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误，**不得在线静默重写**。
-- **Migration tool**：离线批处理工具，读取 pre-v1 / pre-inversion bytes 并改写成 canonical v1 形态。MAY 消费带 `migration_tool_only: true` 的 entry（例如 `cx.space.create#pre_inversion_security_boundary`），按 `disambiguation_payload_shape` 规则鉴别。MUST NOT 嵌入实时 parser 表面（无 inline transform；无 "auto-accept legacy and quietly rewrite"）。
+- **Migration tool**：离线批处理工具，读取 pre-v1 / pre-inversion bytes 并改写成 canonical v1 形态。MAY 消费带 `migration_tool_only: true` 的 entry（例如 `ck.space.create#pre_inversion_security_boundary`），按 `disambiguation_payload_shape` 规则鉴别。MUST NOT 嵌入实时 parser 表面（无 inline transform；无 "auto-accept legacy and quietly rewrite"）。
 
 这条规则把 Realm/Space inversion 时引入的"payload-shape 鉴别"复杂度严格限制在迁移工具内：当前 v1 sync / federation / snapshot 路径不需要也不允许实现这条 fallback。新增的 `migration_tool_only` 标志使该约束机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。
 
@@ -86,7 +88,7 @@ see_also:
 | 产品概念 | Cokret 读法 | 先读 |
 | --- | --- | --- |
 | 群聊 / 频道 / Matrix Room | Realm 负责成员和历史边界；Flow + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/flow-and-message.md`、`governance/history-visibility.md` |
-| Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Flow；拖拽位置是 `cx.flow.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
+| Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Flow；拖拽位置是 `ck.flow.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
 | Jira issue / workflow / issue links | Issue 对应 Flow；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/flow-and-message.md`、`models/relation.md`、`models/common-fields.md` |
 | Watchers / 通知规则 / 勿扰 | Watch cell 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/flow-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
 | 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Flow、Message、Morph 或 Relation。 | `extensions/applet-integration.md`、`extensions/agent-protocol-interop.md`、`models/extension-objects.md` |
@@ -111,7 +113,7 @@ see_also:
 ### 3.3 Principal Server / Events / Sync / Projection
 
 - signed Event Envelope 是唯一 canonical fact。
-- Principal Server 通过 `/events/*` API 提交、读取、回填和验证 Event frontier。
+- Principal Server 通过 `/_cokret/self/events/*` API 提交、读取、回填和验证 Event frontier。
 - Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Realm 同步能力。
 - 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不得成为真相源。
 
@@ -168,7 +170,7 @@ see_also:
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
 | `models/private-objects.md` | Read Cursor、Notification、actor-private account data 引导。 |
-| `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`cx.patch.v1`)、Event Batch Receipt、reducer 总则。 |
+| `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ck.patch.v1`)、Event Batch Receipt、reducer 总则。 |
 | `models/extension-objects.md` | Applet、Agent、Blob 等通过 extension profile 接入的对象（指向 `extensions/` 与 `crypto-media/`）。 |
 | `models/views.md` | View kind / renderer、Query、Board / Timeline / Graph / Document projection。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
@@ -221,7 +223,7 @@ see_also:
 | --- | --- |
 | `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、cross-signing、secret storage、key backup。 |
 | `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Governance Binding（`governance_binding` payload + `covered_frontier_cell`）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
-| `crypto-media/audited-e2ee.md` | 可选 hardening profile：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 的 audit policy、join warning、强制留痕、RYW receipt、forbidden marketing terms。 |
+| `crypto-media/audited-e2ee.md` | 可选 hardening profile：`ck.profile.attested_audit.e2ee.v1` / `ck.profile.disclosed_audit.e2ee.v1` 的 audit policy、join warning、强制留痕、RYW receipt、forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话、会议、TURN/STUN/ICE、SFU/MCU。 |
 

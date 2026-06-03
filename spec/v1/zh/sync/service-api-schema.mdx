@@ -29,7 +29,7 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 
 - 所有 canonical operation 均使用 `encoding.md` 的 canonical JSON 与签名输入规则。
 - 关键行为不由路径决定，而由 `operation_id` 与数据语义决定。
-- Cokret 协议字段和 feature discovery 使用 `operation_id`，取值使用 `cx.<namespace>.<lower_snake_case>`。OpenAPI 3.1 标准字段名仍为 `operationId`，但其值 MUST 等于对应的 Cokret `operation_id`。
+- Cokret 协议字段和 feature discovery 使用 `operation_id`，取值使用 `ck.<namespace>.<lower_snake_case>`。OpenAPI 3.1 标准字段名仍为 `operationId`，但其值 MUST 等于对应的 Cokret `operation_id`。
 - 服务发现使用 canonical `ServiceDescribe` shape；响应 MUST 至少包含：
   - `service_did`
   - `trust_domain`
@@ -57,22 +57,22 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 
 | 分组 | `operation_id` 前缀 | 默认 HTTP 命名空间 |
 | --- | --- | --- |
-| 服务发现 | `cx.server.*` | `/server/*` |
-| 身份与 registry | `cx.identity.*` | `/identity/*` |
-| Events | `cx.events.*` | `/events/*` |
-| 账号视角聚合订阅 | `cx.account.subscribe`、`cx.account.describe`、`cx.account.cursor_revoke` | `/account/*` |
-| Realm snapshot 入口 | `cx.snapshot.*` | `/snapshot/*` |
-| 目录发现 | `cx.directory.*` | `/directory/*` |
-| Blob / media | `cx.blob.*` | `/blob/*` |
-| 推送 | `cx.push.*` | `/push/*` |
-| 设备加密 | `cx.device_messages.*`、`cx.keys.*` | `/device_messages/*`、`/keys/*` |
-| 授权与策略 | `cx.authz.*`、`cx.policy.*` | `/authz/*`、`/policy/check` |
-| 媒体服务 | `cx.media.*` | `/cokret/v1/ice-config` |
-| 审核 | `cx.moderation.*` | `/moderation/*` |
-| Applet | `cx.applet.*` | `/applet/*` |
-| MIMI 互操作 | `cx.mimi.*` | `/mimi/*` |
-| 账户登录与设备配对 | `cx.account.{issue_session_grant,device_pair,oidc_callback}` | `/auth/account/*` |
-| 管理员与运维 | `cx.admin.*` | `/admin/*` |
+| 服务发现 | `ck.server.*` | `/server/*` |
+| 身份与 registry | `ck.identity.*` | `/_cokret/root/identity/*` |
+| Events | `ck.events.*` | `/_cokret/self/events/*` |
+| 账号视角聚合订阅 | `ck.account.subscribe`、`ck.account.describe`、`ck.account.cursor_revoke` | `/_cokret/self/account/*` |
+| Realm snapshot 入口 | `ck.snapshot.*` | `/_cokret/self/snapshot/*` |
+| 目录发现 | `ck.directory.*` | `/_cokret/find/directory/*` |
+| Blob / media | `ck.blob.*` | `/_cokret/self/blob/*` |
+| 推送 | `ck.push.*` | `/_cokret/edge/push/*` |
+| 设备加密 | `ck.device_messages.*`、`ck.keys.*` | `/_cokret/self/device_messages/*`、`/_cokret/self/keys/*` |
+| 授权与策略 | `ck.authz.*`、`ck.policy.*` | `/_cokret/self/authz/*`、`/_cokret/self/policy/check` |
+| 媒体服务 | `ck.media.*` | `/_cokret/self/rtc/ice-config` |
+| 审核 | `ck.moderation.*` | `/_cokret/self/moderation/*` |
+| Applet | `ck.applet.*` | `/_cokret/edge/applet/*` |
+| MIMI 互操作 | `ck.mimi.*` | `/_cokret/open/mimi/*` |
+| 账户登录与设备配对 | `ck.account.{issue_session_grant,device_pair,oidc_callback}` | `/_cokret/gate/account/*` |
+| 管理员与运维 | `ck.admin.*` | `/_cokret/local/admin/*` |
 
 ## 3. OpenAPI 参考快照（非穷尽示例）
 
@@ -83,9 +83,9 @@ openapi: 3.1.0
 info:
   title: Cokret Service API
   version: 1.0.0
-  x-conformance-profile: cx.profile.core_event_store.v1
+  x-conformance-profile: ck.profile.core_event_store.v1
 servers:
-  - url: https://{host}/api/v1
+  - url: https://{host}
     variables:
       host: { default: localhost }
 
@@ -97,258 +97,258 @@ components:
       schema: { type: string }
 
 paths:
-  /server/describe:
+  /_cokret/describe:
     get:
-      operationId: cx.server.describe
+      operationId: ck.server.describe
       responses:
         '200': { description: service profile }
 
-  /identity/resolve:
+  /_cokret/root/identity/resolve:
     post:
-      operationId: cx.identity.resolve
-  /identity/describe:
+      operationId: ck.identity.resolve
+  /_cokret/root/identity/describe:
     get:
-      operationId: cx.identity.describe_registry
-  /identity/document:
+      operationId: ck.identity.describe_registry
+  /_cokret/root/identity/document:
     get:
-      operationId: cx.identity.get_document
-  /identity/log:
+      operationId: ck.identity.get_document
+  /_cokret/root/identity/log:
     get:
-      operationId: cx.identity.get_log
-  /identity/submit-did-operation:
+      operationId: ck.identity.get_log
+  /_cokret/root/identity/submit-did-operation:
     post:
-      operationId: cx.identity.submit_did_operation
-  /identity/receipts:
+      operationId: ck.identity.submit_did_operation
+  /_cokret/root/identity/receipts:
     get:
-      operationId: cx.identity.get_receipts
+      operationId: ck.identity.get_receipts
 
-  /events/describe:
+  /_cokret/self/events/describe:
     get:
-      operationId: cx.events.describe
-  /events:
+      operationId: ck.events.describe
+  /_cokret/self/events:
     post:
-      operationId: cx.events.submit
+      operationId: ck.events.submit
     get:
-      operationId: cx.events.query
-  /events/subscribe:
+      operationId: ck.events.query
+  /_cokret/self/events/subscribe:
     get:
-      operationId: cx.events.subscribe
-  /events/{event_id}:
+      operationId: ck.events.subscribe
+  /_cokret/self/events/{event_id}:
     get:
-      operationId: cx.events.get
-  /events/resolve:
+      operationId: ck.events.get
+  /_cokret/self/events/resolve:
     post:
-      operationId: cx.events.resolve
-  /events/frontier:
+      operationId: ck.events.resolve
+  /_cokret/self/events/frontier:
     get:
-      operationId: cx.events.frontier
+      operationId: ck.events.frontier
 
-  /account/subscribe:
+  /_cokret/self/account/subscribe:
     get:
-      operationId: cx.account.subscribe
-  /account/describe:
+      operationId: ck.account.subscribe
+  /_cokret/self/account/describe:
     get:
-      operationId: cx.account.describe
-  /account/cursor/revoke:
+      operationId: ck.account.describe
+  /_cokret/self/account/cursor/revoke:
     post:
-      operationId: cx.account.cursor_revoke
-  /snapshot/head:
+      operationId: ck.account.cursor_revoke
+  /_cokret/self/snapshot/head:
     get:
-      operationId: cx.snapshot.head
+      operationId: ck.snapshot.head
 
-  /directory/describe:
+  /_cokret/find/directory/describe:
     get:
-      operationId: cx.directory.describe
-  /directory/search-realms:
+      operationId: ck.directory.describe
+  /_cokret/find/directory/search-realms:
     post:
-      operationId: cx.directory.search_realms
-  /directory/resolve-realm:
+      operationId: ck.directory.search_realms
+  /_cokret/find/directory/resolve-realm:
     post:
-      operationId: cx.directory.resolve_realm
-  /directory/search-organizations:
+      operationId: ck.directory.resolve_realm
+  /_cokret/find/directory/search-organizations:
     post:
-      operationId: cx.directory.search_organizations
-  /directory/resolve-organization:
+      operationId: ck.directory.search_organizations
+  /_cokret/find/directory/resolve-organization:
     post:
-      operationId: cx.directory.resolve_organization
-  /directory/search-actors:
+      operationId: ck.directory.resolve_organization
+  /_cokret/find/directory/search-actors:
     post:
-      operationId: cx.directory.search_actors
-  /directory/search-users:
+      operationId: ck.directory.search_actors
+  /_cokret/find/directory/search-users:
     post:
-      operationId: cx.directory.search_users
-  /directory/resolve-handle:
+      operationId: ck.directory.search_users
+  /_cokret/find/directory/resolve-handle:
     post:
-      operationId: cx.directory.resolve_handle
-  /directory/list-handles-for-subject:
+      operationId: ck.directory.resolve_handle
+  /_cokret/find/directory/list-handles-for-subject:
     post:
-      operationId: cx.directory.list_handles_for_subject
-  /directory/private-contact-discovery:
+      operationId: ck.directory.list_handles_for_subject
+  /_cokret/find/directory/private-contact-discovery:
     post:
-      operationId: cx.directory.private_contact_discovery
-  /directory/announce:
+      operationId: ck.directory.private_contact_discovery
+  /_cokret/find/directory/announce:
     post:
-      operationId: cx.directory.announce
-  /directory/withdraw:
+      operationId: ck.directory.announce
+  /_cokret/find/directory/withdraw:
     post:
-      operationId: cx.directory.withdraw
-  /directory/push/register:
+      operationId: ck.directory.withdraw
+  /_cokret/find/directory/push/register:
     post:
-      operationId: cx.directory.push.register
+      operationId: ck.directory.push.register
 
-  /blob/upload:
+  /_cokret/self/blob/upload:
     post:
-      operationId: cx.blob.upload
-  /blob/get:
+      operationId: ck.blob.upload
+  /_cokret/self/blob/get:
     head:
-      operationId: cx.blob.head
+      operationId: ck.blob.head
     get:
-      operationId: cx.blob.get
+      operationId: ck.blob.get
 
-  /push/register-device:
+  /_cokret/edge/push/register-device:
     post:
-      operationId: cx.push.register_device
-  /push/unregister-device:
+      operationId: ck.push.register_device
+  /_cokret/edge/push/unregister-device:
     post:
-      operationId: cx.push.unregister_device
-  /push/notify:
+      operationId: ck.push.unregister_device
+  /_cokret/edge/push/notify:
     post:
-      operationId: cx.push.notify
+      operationId: ck.push.notify
 
-  /device_messages:
+  /_cokret/self/device_messages:
     post:
-      operationId: cx.device_messages.put
+      operationId: ck.device_messages.put
     get:
-      operationId: cx.device_messages.get
-  /keys/upload:
+      operationId: ck.device_messages.get
+  /_cokret/self/keys/upload:
     post:
-      operationId: cx.keys.upload
-  /keys/query:
+      operationId: ck.keys.upload
+  /_cokret/self/keys/query:
     post:
-      operationId: cx.keys.query
-  /keys/claim:
+      operationId: ck.keys.query
+  /_cokret/self/keys/claim:
     post:
-      operationId: cx.keys.claim
-  /keys/keypackages/upload:
+      operationId: ck.keys.claim
+  /_cokret/self/keys/keypackages/upload:
     post:
-      operationId: cx.keys.keypackages.upload
-  /keys/keypackages/claim:
+      operationId: ck.keys.keypackages.upload
+  /_cokret/self/keys/keypackages/claim:
     post:
-      operationId: cx.keys.keypackages.claim
-  /keys/keypackages/consume:
+      operationId: ck.keys.keypackages.claim
+  /_cokret/self/keys/keypackages/consume:
     post:
-      operationId: cx.keys.keypackages.consume
-  /keys/keypackages/revoke:
+      operationId: ck.keys.keypackages.consume
+  /_cokret/self/keys/keypackages/revoke:
     post:
-      operationId: cx.keys.keypackages.revoke
-  /keys/backups/{backup_id}:
+      operationId: ck.keys.keypackages.revoke
+  /_cokret/self/keys/backups/{backup_id}:
     put:
-      operationId: cx.keys.backups.put
+      operationId: ck.keys.backups.put
     get:
-      operationId: cx.keys.backups.get
+      operationId: ck.keys.backups.get
     delete:
-      operationId: cx.keys.backups.delete
-  /keys/backups:
+      operationId: ck.keys.backups.delete
+  /_cokret/self/keys/backups:
     get:
-      operationId: cx.keys.backups.list
+      operationId: ck.keys.backups.list
 
-  /auth/account/session-grants:
+  /_cokret/gate/account/session-grants:
     post:
-      operationId: cx.account.issue_session_grant
-  /auth/account/device-pair:
+      operationId: ck.account.issue_session_grant
+  /_cokret/gate/account/device-pair:
     post:
-      operationId: cx.account.device_pair
-  /auth/account/oidc/callback:
+      operationId: ck.account.device_pair
+  /_cokret/gate/account/oidc/callback:
     post:
-      operationId: cx.account.oidc_callback
+      operationId: ck.account.oidc_callback
 
-  /authz/check:
+  /_cokret/self/authz/check:
     post:
-      operationId: cx.authz.check
-  /authz/effective-grants:
+      operationId: ck.authz.check
+  /_cokret/self/authz/effective-grants:
     get:
-      operationId: cx.authz.get_effective_grants
-  /authz/invites:
+      operationId: ck.authz.get_effective_grants
+  /_cokret/self/authz/invites:
     get:
-      operationId: cx.authz.get_invites
-  /policy/check:
+      operationId: ck.authz.get_invites
+  /_cokret/self/policy/check:
     post:
-      operationId: cx.policy.check
-  /cokret/v1/ice-config:
+      operationId: ck.policy.check
+  /_cokret/self/rtc/ice-config:
     servers:
       - url: https://{host}
     post:
-      operationId: cx.media.ice_config
-  /moderation/report:
+      operationId: ck.media.ice_config
+  /_cokret/self/moderation/report:
     post:
-      operationId: cx.moderation.report
-  /admin/server/status:
+      operationId: ck.moderation.report
+  /_cokret/local/admin/server/status:
     get:
-      operationId: cx.admin.get_server_status
-  /admin/moderation/queue:
+      operationId: ck.admin.get_server_status
+  /_cokret/local/admin/moderation/queue:
     get:
-      operationId: cx.admin.get_moderation_queue
-  /admin/devices/{device_id}/revoke:
+      operationId: ck.admin.get_moderation_queue
+  /_cokret/local/admin/devices/{device_id}/revoke:
     post:
-      operationId: cx.admin.revoke_device
-  /admin/accounts/{account_id}/status:
+      operationId: ck.admin.revoke_device
+  /_cokret/local/admin/accounts/{account_id}/status:
     post:
-      operationId: cx.admin.update_account_status
+      operationId: ck.admin.update_account_status
 
-  /applet/ping:
+  /_cokret/edge/applet/ping:
     get:
-      operationId: cx.applet.ping
-  /applet/describe:
+      operationId: ck.applet.ping
+  /_cokret/edge/applet/describe:
     get:
-      operationId: cx.applet.describe
-  /applet/transactions:
+      operationId: ck.applet.describe
+  /_cokret/edge/applet/transactions:
     post:
-      operationId: cx.applet.transaction
-  /applet/actors/{actor_id}:
+      operationId: ck.applet.transaction
+  /_cokret/edge/applet/actors/{actor_id}:
     get:
-      operationId: cx.applet.resolve_actor
-  /applet/realms/{realm_id_or_alias}:
+      operationId: ck.applet.resolve_actor
+  /_cokret/edge/applet/realms/{realm_id_or_alias}:
     get:
-      operationId: cx.applet.resolve_realm
-  /applet/protocols/{protocol}:
+      operationId: ck.applet.resolve_realm
+  /_cokret/edge/applet/protocols/{protocol}:
     get:
-      operationId: cx.applet.protocol_metadata
-  /applet/third_party/users:
+      operationId: ck.applet.protocol_metadata
+  /_cokret/edge/applet/third_party/users:
     get:
-      operationId: cx.applet.third_party_users
-  /applet/third_party/locations:
+      operationId: ck.applet.third_party_users
+  /_cokret/edge/applet/third_party/locations:
     get:
-      operationId: cx.applet.third_party_locations
+      operationId: ck.applet.third_party_locations
 ```
 
 ## 4. Canonical 操作与 transport 映射
 
 | `operation_id` | HTTP 参考绑定 | 其他 transport 映射 |
 | --- | --- | --- |
-| `cx.identity.resolve` | `POST /identity/resolve` | gRPC `ResolveIdentity` / MQ `identity.resolve` |
-| `cx.identity.submit_did_operation` | `POST /identity/submit-did-operation` | gRPC `SubmitDidOperation` / libp2p stream |
-| `cx.identity.get_document` / `cx.identity.get_log` / `cx.identity.get_receipts` | `GET /identity/document`, `GET /identity/log`, `GET /identity/receipts` | gRPC Identity Registry / witness query |
-| `cx.events.submit` | `POST /events` | gRPC `Events/Submit` / 队列 `events.submit` |
-| `cx.events.get` / `cx.events.resolve` / `cx.events.query` / `cx.events.frontier` | `GET /events/{event_id}`, `POST /events/resolve`, `GET /events`, `GET /events/frontier` | gRPC `Events/Get` / `Events/Resolve` / `Events/Query` / `Events/Frontier` |
-| `cx.events.subscribe` | `GET /events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
-| `cx.account.subscribe` | `GET /account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
-| `cx.account.cursor_revoke` | `POST /account/cursor/revoke` | gRPC `Account/CursorRevoke` / MQ `account.cursor_revoke` |
-| `cx.ephemeral.send` | `POST /ephemeral` | gRPC `Ephemeral/Send` / MQ `ephemeral.send`；承载 `cx.schema.ephemeral_envelope.v1`，不写 durable Event |
-| `cx.snapshot.head` | `GET /snapshot/head` | snapshot pointer |
-| `cx.projection.spaces` / `cx.projection.flows` / `cx.projection.morphs` | `GET /projection/spaces`, `GET /projection/flows`, `GET /projection/morphs` | gRPC `Projection/Spaces` / `Projection/Flows` / `Projection/Morphs`; MQ `projection.*` |
-| 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/cokret/sync/1.0.0` + service signature。 |
-| `cx.directory.search_*` / `cx.directory.resolve_*` / `cx.directory.list_handles_for_subject` | `POST /directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
-| `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.push.register` | `POST /directory/announce`, `POST /directory/withdraw`, `POST /directory/push/register` | gRPC Discovery Ingest Service |
-| `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
-| `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |
-| `cx.device_messages.put` / `cx.device_messages.get` | `POST /device_messages`, `GET /device_messages` | MQ device topic / 本地 IPC |
-| `cx.keys.upload` / `cx.keys.query` / `cx.keys.claim` | `POST /keys/upload`, `POST /keys/query`, `POST /keys/claim` | E2EE key service binding |
-| `cx.keys.backups.put` / `cx.keys.backups.list` / `cx.keys.backups.get` / `cx.keys.backups.delete` | `PUT /keys/backups/{backup_id}`, `GET /keys/backups`, `GET /keys/backups/{backup_id}`, `DELETE /keys/backups/{backup_id}` | Encrypted key backup storage binding |
-| `cx.authz.check` / `cx.authz.get_effective_grants` / `cx.authz.get_invites` | `POST /authz/check`, `GET /authz/effective-grants`, `GET /authz/invites` | gRPC / policy 插件回调 |
-| `cx.policy.check` | `POST /policy/check` | policy 本地调用 |
-| `cx.media.ice_config` | `POST /cokret/v1/ice-config` | Media service / TURN credential adapter |
-| `cx.moderation.report` | `POST /moderation/report` | Moderation queue / local compliance workflow |
-| `cx.applet.transaction` / `cx.applet.resolve_actor` / `cx.applet.resolve_realm` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
+| `ck.identity.resolve` | `POST /_cokret/root/identity/resolve` | gRPC `ResolveIdentity` / MQ `identity.resolve` |
+| `ck.identity.submit_did_operation` | `POST /_cokret/root/identity/submit-did-operation` | gRPC `SubmitDidOperation` / libp2p stream |
+| `ck.identity.get_document` / `ck.identity.get_log` / `ck.identity.get_receipts` | `GET /_cokret/root/identity/document`, `GET /_cokret/root/identity/log`, `GET /_cokret/root/identity/receipts` | gRPC Identity Registry / witness query |
+| `ck.events.submit` | `POST /_cokret/self/events` | gRPC `Events/Submit` / 队列 `events.submit` |
+| `ck.events.get` / `ck.events.resolve` / `ck.events.query` / `ck.events.frontier` | `GET /_cokret/self/events/{event_id}`, `POST /_cokret/self/events/resolve`, `GET /_cokret/self/events`, `GET /_cokret/self/events/frontier` | gRPC `Events/Get` / `Events/Resolve` / `Events/Query` / `Events/Frontier` |
+| `ck.events.subscribe` | `GET /_cokret/self/events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
+| `ck.account.subscribe` | `GET /_cokret/self/account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
+| `ck.account.cursor_revoke` | `POST /_cokret/self/account/cursor/revoke` | gRPC `Account/CursorRevoke` / MQ `account.cursor_revoke` |
+| `ck.ephemeral.send` | `POST /_cokret/self/ephemeral` | gRPC `Ephemeral/Send` / MQ `ephemeral.send`；承载 `ck.schema.ephemeral_envelope.v1`，不写 durable Event |
+| `ck.snapshot.head` | `GET /_cokret/self/snapshot/head` | snapshot pointer |
+| `ck.projection.spaces` / `ck.projection.flows` / `ck.projection.morphs` | `GET /_cokret/self/projection/spaces`, `GET /_cokret/self/projection/flows`, `GET /_cokret/self/projection/morphs` | gRPC `Projection/Spaces` / `Projection/Flows` / `Projection/Morphs`; MQ `projection.*` |
+| 联邦推送 / 拉取 | 复用 `ck.events.submit` / `ck.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/cokret/sync/1.0.0` + service signature。 |
+| `ck.directory.search_*` / `ck.directory.resolve_*` / `ck.directory.list_handles_for_subject` | `POST /_cokret/find/directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
+| `ck.directory.announce` / `ck.directory.withdraw` / `ck.directory.push.register` | `POST /_cokret/find/directory/announce`, `POST /_cokret/find/directory/withdraw`, `POST /_cokret/find/directory/push/register` | gRPC Discovery Ingest Service |
+| `ck.blob.upload` / `ck.blob.head` / `ck.blob.get` | `POST /_cokret/self/blob/upload`, `HEAD/GET /_cokret/self/blob/get` | Object-store signed URL binding / gRPC blob service |
+| `ck.push.register_device` / `ck.push.notify` | `POST /_cokret/edge/push/register-device`, `POST /_cokret/edge/push/notify` | APNs/FCM adapter / MQ wakeup topic |
+| `ck.device_messages.put` / `ck.device_messages.get` | `POST /_cokret/self/device_messages`, `GET /_cokret/self/device_messages` | MQ device topic / 本地 IPC |
+| `ck.keys.upload` / `ck.keys.query` / `ck.keys.claim` | `POST /_cokret/self/keys/upload`, `POST /_cokret/self/keys/query`, `POST /_cokret/self/keys/claim` | E2EE key service binding |
+| `ck.keys.backups.put` / `ck.keys.backups.list` / `ck.keys.backups.get` / `ck.keys.backups.delete` | `PUT /_cokret/self/keys/backups/{backup_id}`, `GET /_cokret/self/keys/backups`, `GET /_cokret/self/keys/backups/{backup_id}`, `DELETE /_cokret/self/keys/backups/{backup_id}` | Encrypted key backup storage binding |
+| `ck.authz.check` / `ck.authz.get_effective_grants` / `ck.authz.get_invites` | `POST /_cokret/self/authz/check`, `GET /_cokret/self/authz/effective-grants`, `GET /_cokret/self/authz/invites` | gRPC / policy 插件回调 |
+| `ck.policy.check` | `POST /_cokret/self/policy/check` | policy 本地调用 |
+| `ck.media.ice_config` | `POST /_cokret/self/rtc/ice-config` | Media service / TURN credential adapter |
+| `ck.moderation.report` | `POST /_cokret/self/moderation/report` | Moderation queue / local compliance workflow |
+| `ck.applet.transaction` / `ck.applet.resolve_actor` / `ck.applet.resolve_realm` | `POST /_cokret/edge/applet/transactions`, `GET /_cokret/edge/applet/actors/{actor_id}`, `GET /_cokret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 
 ### 4.1 Generated Full Inventory
 
@@ -366,8 +366,8 @@ paths:
 - 实现必须保持 `operation_id` 在演进中稳定；若请求字段名变更，必须通过 profile、schema 版本或 feature discovery 明确协商。
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - 实现不得因为支持 core Event / Account aggregate 就默认声称支持目录、MIMI、账户登录、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
-- `/cokret/v1/*` 是服务本地绝对路径，不挂在 `/api/v1` 下。生成 OpenAPI 时必须为这些 path 使用 path-level `servers` 或拆成独立文档。
-- `GET /account/subscribe`（`cx.account.subscribe`）是客户端账号视角聚合 streaming 订阅(跨 Realm delta + to_device + account_data + device_lists + presence);`GET /events`(`cx.events.query`,可双向)是按 selector 的事件查询/历史回补;`GET /events/subscribe`(`cx.events.subscribe`,可携 bounded catch-up replay)是按 selector 的事件流订阅。`cx.account.subscribe` 与 `cx.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log);三类操作的 selector、auth、frame schema 与 freshness 行为不同,不得互相替代,也不得新增未声明的 canonical account / events endpoint。
+- 所有 path 都是 `/_cokret/<信任段>/...` 形态的绝对路径，不含版本段；`servers` 只声明 `https://{host}`。生成 OpenAPI 时无需 path-level `servers` 覆盖，协议版本通过 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header），不放进 path。
+- `GET /_cokret/self/account/subscribe`（`ck.account.subscribe`）是客户端账号视角聚合 streaming 订阅(跨 Realm delta + to_device + account_data + device_lists + presence);`GET /_cokret/self/events`(`ck.events.query`,可双向)是按 selector 的事件查询/历史回补;`GET /_cokret/self/events/subscribe`(`ck.events.subscribe`,可携 bounded catch-up replay)是按 selector 的事件流订阅。`ck.account.subscribe` 与 `ck.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log);三类操作的 selector、auth、frame schema 与 freshness 行为不同,不得互相替代,也不得新增未声明的 canonical account / events endpoint。
 - 生成的 OpenAPI MUST 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme MUST NOT 定义 query string token 认证；受保护 endpoint 只能使用 header / signature / mTLS / signed proof body 等认证方式。
 - Blob / media endpoint 的 schema MUST 显式声明 `Content-Type`、`Content-Disposition`、`Range`、`Content-Range`、`Location` 和缓存头行为，避免通过 header 泄露不可见资源。

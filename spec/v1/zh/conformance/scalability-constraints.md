@@ -25,7 +25,7 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | 单个 canonical Event / Operation envelope | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。正文、附件和大对象必须使用 Blob。 |
-| 单次 `/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
+| 单次 `/_cokret/self/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
 | 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）或要求提交 snapshot / checkpoint 引用；数组项 MUST 去重。 |
@@ -93,7 +93,7 @@ Move / Anchor fallback 不得选择本地接收顺序或数据库 ID。Snapshot 
 | 单 Realm active Space 数 | 5,000 | 超过时 Realm projection MUST paginate；建议拆分为多个 Realm 或使用嵌套 Space。 |
 | 单个 Board Space active List Space 数 | 500 | 超过时 Board projection MUST paginate 或 require filtered View。 |
 | 单个 List Space active Flow item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
-| Space 嵌套深度 | 8 | 超过时 reducer MUST reject `cx.space.parent`；防止任意深度的容器树拖累查询性能。 |
+| Space 嵌套深度 | 8 | 超过时 reducer MUST reject `ck.space.parent`；防止任意深度的容器树拖累查询性能。 |
 | 单个对象 active Relation 数 | 10,000 | Projection executor MUST paginate，不能要求客户端一次性拉全。 |
 | 单个 View projection page | 1,000 items | View cursor MUST 绑定 authorization context 和 frontier。 |
 | rank 长度 | 128 chars | 超过时 MUST reject，见 `encoding.md`。 |
@@ -119,7 +119,7 @@ Cokret 的真相源仍是 signed Event Envelope；GC 只能释放某个存储边
 | tombstone / redaction verification stub 保留 | 不短于 raw event retention | 删除 payload 或压缩历史后仍 MUST 保留足以验证 causal refs、payload hash / proof、redaction / tombstone 授权和 erasure receipt 的最小 stub。 |
 | snapshot cadence | 实现声明 | 大型 Realm SHOULD 周期性生成可验证 snapshot；当 replay 成本超过第 4 节预算时 MUST 提供 snapshot-assisted recovery、可分页 backfill 或明确的可恢复错误。 |
 | snapshot 保留数量 | 至少 2 个有效 head SHOULD | 服务 SHOULD 保留当前推荐 snapshot 和至少一个前代 snapshot，便于 cursor 过期、移动端恢复和 snapshot 校验失败时回退。 |
-| track-disabled / archived materialized state | snapshot 中保留 stub | 通过 `cx.flow.tracks.update` 关闭 track（`tracks.<name>.enabled: set false`）、Realm tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 track 不活跃而从 state hash 中静默消失。 |
+| track-disabled / archived materialized state | snapshot 中保留 stub | 通过 `ck.flow.tracks.update` 关闭 track（`tracks.<name>.enabled: set false`）、Realm tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 track 不活跃而从 state hash 中静默消失。 |
 
 Pruning 前置条件：
 

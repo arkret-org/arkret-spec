@@ -39,204 +39,204 @@
       "surface": "service_discovery",
       "tier": "core",
       "operations": [
-        "cx.server.describe"
+        "ck.server.describe"
       ]
     },
     {
       "surface": "identity_registry",
       "tier": "core",
       "operations": [
-        "cx.identity.describe_registry",
-        "cx.identity.resolve",
-        "cx.identity.get_document",
-        "cx.identity.get_log",
-        "cx.identity.get_receipts",
-        "cx.identity.submit_did_operation"
+        "ck.identity.describe_registry",
+        "ck.identity.resolve",
+        "ck.identity.get_document",
+        "ck.identity.get_log",
+        "ck.identity.get_receipts",
+        "ck.identity.submit_did_operation"
       ]
     },
     {
       "surface": "events_sync",
       "tier": "core",
       "operations": [
-        "cx.events.describe",
-        "cx.events.submit",
-        "cx.events.get",
-        "cx.events.resolve",
-        "cx.events.query",
-        "cx.events.query_post",
-        "cx.events.subscribe",
-        "cx.events.frontier",
-        "cx.account.describe",
-        "cx.account.subscribe",
-        "cx.account.cursor_revoke",
-        "cx.ephemeral.send",
-        "cx.snapshot.head",
-        "cx.call.media.token_exchange"
+        "ck.events.describe",
+        "ck.events.submit",
+        "ck.events.get",
+        "ck.events.resolve",
+        "ck.events.query",
+        "ck.events.query_post",
+        "ck.events.subscribe",
+        "ck.events.frontier",
+        "ck.account.describe",
+        "ck.account.subscribe",
+        "ck.account.cursor_revoke",
+        "ck.ephemeral.send",
+        "ck.snapshot.head",
+        "ck.call.media.token_exchange"
       ]
     },
     {
       "surface": "directory_discovery",
       "tier": "extension",
       "operations": [
-        "cx.directory.describe",
-        "cx.directory.search_realms",
-        "cx.directory.resolve_realm",
-        "cx.directory.resolve_target",
-        "cx.directory.search_organizations",
-        "cx.directory.resolve_organization",
-        "cx.directory.search_actors",
-        "cx.directory.search_users",
-        "cx.directory.resolve_handle",
-        "cx.directory.list_handles_for_subject",
-        "cx.directory.private_contact_discovery",
-        "cx.directory.announce",
-        "cx.directory.withdraw",
-        "cx.directory.push.register"
+        "ck.directory.describe",
+        "ck.directory.search_realms",
+        "ck.directory.resolve_realm",
+        "ck.directory.resolve_target",
+        "ck.directory.search_organizations",
+        "ck.directory.resolve_organization",
+        "ck.directory.search_actors",
+        "ck.directory.search_users",
+        "ck.directory.resolve_handle",
+        "ck.directory.list_handles_for_subject",
+        "ck.directory.private_contact_discovery",
+        "ck.directory.announce",
+        "ck.directory.withdraw",
+        "ck.directory.push.register"
       ]
     },
     {
       "surface": "blob_storage",
       "tier": "extension",
       "operations": [
-        "cx.blob.upload",
-        "cx.blob.head",
-        "cx.blob.get",
-        "cx.blob.presign"
+        "ck.blob.upload",
+        "ck.blob.head",
+        "ck.blob.get",
+        "ck.blob.presign"
       ]
     },
     {
       "surface": "realtime_media",
       "tier": "extension",
       "operations": [
-        "cx.media.ice_config"
+        "ck.media.ice_config"
       ]
     },
     {
       "surface": "authz_policy",
       "tier": "extension",
       "operations": [
-        "cx.authz.check",
-        "cx.authz.get_effective_grants",
-        "cx.authz.get_invites",
-        "cx.policy.check"
+        "ck.authz.check",
+        "ck.authz.get_effective_grants",
+        "ck.authz.get_invites",
+        "ck.policy.check"
       ]
     },
     {
       "surface": "moderation_reports",
       "tier": "extension",
       "operations": [
-        "cx.moderation.report"
+        "ck.moderation.report"
       ]
     },
     {
       "surface": "device_and_keys",
       "tier": "extension",
       "operations": [
-        "cx.device_messages.put",
-        "cx.device_messages.get",
-        "cx.keys.upload",
-        "cx.keys.query",
-        "cx.keys.claim",
-        "cx.keys.keypackages.upload",
-        "cx.keys.keypackages.claim",
-        "cx.keys.keypackages.consume",
-        "cx.keys.keypackages.revoke",
-        "cx.keys.backups.put",
-        "cx.keys.backups.list",
-        "cx.keys.backups.get",
-        "cx.keys.backups.delete"
+        "ck.device_messages.put",
+        "ck.device_messages.get",
+        "ck.keys.upload",
+        "ck.keys.query",
+        "ck.keys.claim",
+        "ck.keys.keypackages.upload",
+        "ck.keys.keypackages.claim",
+        "ck.keys.keypackages.consume",
+        "ck.keys.keypackages.revoke",
+        "ck.keys.backups.put",
+        "ck.keys.backups.list",
+        "ck.keys.backups.get",
+        "ck.keys.backups.delete"
       ]
     },
     {
       "surface": "push",
       "tier": "extension",
       "operations": [
-        "cx.push.register_device",
-        "cx.push.unregister_device",
-        "cx.push.notify"
+        "ck.push.register_device",
+        "ck.push.unregister_device",
+        "ck.push.notify"
       ]
     },
     {
       "surface": "projection_lifecycle",
       "tier": "extension",
       "operations": [
-        "cx.projection.spaces",
-        "cx.projection.flows",
-        "cx.projection.morphs"
+        "ck.projection.spaces",
+        "ck.projection.flows",
+        "ck.projection.morphs"
       ]
     },
     {
       "surface": "applet",
       "tier": "interop_bridge",
       "operations": [
-        "cx.applet.ping",
-        "cx.applet.describe",
-        "cx.applet.transaction",
-        "cx.applet.resolve_actor",
-        "cx.applet.resolve_realm",
-        "cx.applet.protocol_metadata",
-        "cx.applet.third_party_users",
-        "cx.applet.third_party_locations"
+        "ck.applet.ping",
+        "ck.applet.describe",
+        "ck.applet.transaction",
+        "ck.applet.resolve_actor",
+        "ck.applet.resolve_realm",
+        "ck.applet.protocol_metadata",
+        "ck.applet.third_party_users",
+        "ck.applet.third_party_locations"
       ]
     },
     {
       "surface": "mimi_interop",
       "tier": "interop_bridge",
       "operations": [
-        "cx.mimi.provider_directory",
-        "cx.mimi.group_info",
-        "cx.mimi.key_material",
-        "cx.mimi.submit_message",
-        "cx.mimi.room_update",
-        "cx.mimi.request_consent",
-        "cx.mimi.update_consent",
-        "cx.mimi.identifier_query",
-        "cx.mimi.notify",
-        "cx.mimi.report_abuse",
-        "cx.mimi.proxy_download"
+        "ck.mimi.provider_directory",
+        "ck.mimi.group_info",
+        "ck.mimi.key_material",
+        "ck.mimi.submit_message",
+        "ck.mimi.room_update",
+        "ck.mimi.request_consent",
+        "ck.mimi.update_consent",
+        "ck.mimi.identifier_query",
+        "ck.mimi.notify",
+        "ck.mimi.report_abuse",
+        "ck.mimi.proxy_download"
       ]
     },
     {
       "surface": "account_auth",
       "tier": "deployment_local",
       "operations": [
-        "cx.account.device_pair",
-        "cx.account.issue_session_grant",
-        "cx.account.oidc_callback"
+        "ck.account.device_pair",
+        "ck.account.issue_session_grant",
+        "ck.account.oidc_callback"
       ]
     },
     {
       "surface": "agent_runtime",
       "tier": "extension",
       "operations": [
-        "cx.account.agent_key_pair",
-        "cx.agent.provision",
-        "cx.agent.list",
-        "cx.agent.get",
-        "cx.agent.pause",
-        "cx.agent.resume",
-        "cx.agent.deactivate",
-        "cx.agent.rotate_key",
-        "cx.agent.grant.attach",
-        "cx.agent.grant.detach",
-        "cx.agent.sidecar_thread.ensure"
+        "ck.account.agent_key_pair",
+        "ck.agent.provision",
+        "ck.agent.list",
+        "ck.agent.get",
+        "ck.agent.pause",
+        "ck.agent.resume",
+        "ck.agent.deactivate",
+        "ck.agent.rotate_key",
+        "ck.agent.grant.attach",
+        "ck.agent.grant.detach",
+        "ck.agent.sidecar_thread.ensure"
       ]
     },
     {
       "surface": "admin_operator",
       "tier": "deployment_local",
       "operations": [
-        "cx.admin.get_moderation_queue",
-        "cx.admin.get_server_status",
-        "cx.admin.revoke_device",
-        "cx.admin.update_account_status"
+        "ck.admin.get_moderation_queue",
+        "ck.admin.get_server_status",
+        "ck.admin.revoke_device",
+        "ck.admin.update_account_status"
       ]
     }
   ],
   "operations": [
     {
-      "operation_id": "cx.account.device_pair",
-      "http": "POST /auth/account/device-pair",
+      "operation_id": "ck.account.device_pair",
+      "http": "POST /_cokret/gate/account/device-pair",
       "grpc": "Account/DevicePair",
       "mq": "account.device_pair",
       "success_shape_kind": "operation_result",
@@ -250,15 +250,15 @@
       }
     },
     {
-      "operation_id": "cx.account.issue_session_grant",
-      "http": "POST /auth/account/session-grants",
+      "operation_id": "ck.account.issue_session_grant",
+      "http": "POST /_cokret/gate/account/session-grants",
       "grpc": "Account/IssueSessionGrant",
       "mq": "account.issue_session_grant",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.account.agent_key_pair",
-      "http": "POST /auth/account/agent-key-pair",
+      "operation_id": "ck.account.agent_key_pair",
+      "http": "POST /_cokret/gate/account/agent-key-pair",
       "grpc": "Account/AgentKeyPair",
       "mq": "account.agent_key_pair",
       "success_shape_kind": "operation_result",
@@ -272,8 +272,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.provision",
-      "http": "POST /agents",
+      "operation_id": "ck.agent.provision",
+      "http": "POST /_cokret/self/agents",
       "grpc": "Agent/Provision",
       "mq": "agent.provision",
       "success_shape_kind": "operation_result",
@@ -287,8 +287,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.list",
-      "http": "GET /agents",
+      "operation_id": "ck.agent.list",
+      "http": "GET /_cokret/self/agents",
       "grpc": "Agent/List",
       "mq": "agent.list",
       "success_shape_kind": "operation_result",
@@ -302,8 +302,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.get",
-      "http": "GET /agents/{agent_principal_id}",
+      "operation_id": "ck.agent.get",
+      "http": "GET /_cokret/self/agents/{agent_principal_id}",
       "grpc": "Agent/Get",
       "mq": "agent.get",
       "success_shape_kind": "operation_result",
@@ -317,8 +317,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.pause",
-      "http": "POST /agents/{agent_principal_id}/pause",
+      "operation_id": "ck.agent.pause",
+      "http": "POST /_cokret/self/agents/{agent_principal_id}/pause",
       "grpc": "Agent/Pause",
       "mq": "agent.pause",
       "success_shape_kind": "operation_result",
@@ -332,8 +332,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.resume",
-      "http": "POST /agents/{agent_principal_id}/resume",
+      "operation_id": "ck.agent.resume",
+      "http": "POST /_cokret/self/agents/{agent_principal_id}/resume",
       "grpc": "Agent/Resume",
       "mq": "agent.resume",
       "success_shape_kind": "operation_result",
@@ -347,8 +347,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.deactivate",
-      "http": "POST /agents/{agent_principal_id}/deactivate",
+      "operation_id": "ck.agent.deactivate",
+      "http": "POST /_cokret/self/agents/{agent_principal_id}/deactivate",
       "grpc": "Agent/Deactivate",
       "mq": "agent.deactivate",
       "success_shape_kind": "operation_result",
@@ -362,8 +362,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.rotate_key",
-      "http": "POST /agents/{agent_principal_id}/rotate-key",
+      "operation_id": "ck.agent.rotate_key",
+      "http": "POST /_cokret/self/agents/{agent_principal_id}/rotate-key",
       "grpc": "Agent/RotateKey",
       "mq": "agent.rotate_key",
       "success_shape_kind": "operation_result",
@@ -377,8 +377,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.grant.attach",
-      "http": "POST /agents/{agent_principal_id}/grants",
+      "operation_id": "ck.agent.grant.attach",
+      "http": "POST /_cokret/self/agents/{agent_principal_id}/grants",
       "grpc": "Agent/GrantAttach",
       "mq": "agent.grant.attach",
       "success_shape_kind": "operation_result",
@@ -392,8 +392,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.grant.detach",
-      "http": "DELETE /agents/{agent_principal_id}/grants/{grant_id}",
+      "operation_id": "ck.agent.grant.detach",
+      "http": "DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}",
       "grpc": "Agent/GrantDetach",
       "mq": "agent.grant.detach",
       "success_shape_kind": "operation_result",
@@ -407,8 +407,8 @@
       }
     },
     {
-      "operation_id": "cx.agent.sidecar_thread.ensure",
-      "http": "POST /agent-sidecar-threads:ensure",
+      "operation_id": "ck.agent.sidecar_thread.ensure",
+      "http": "POST /_cokret/self/agent-sidecar-threads:ensure",
       "grpc": "Agent/SidecarThreadEnsure",
       "mq": "agent.sidecar_thread.ensure",
       "success_shape_kind": "operation_result",
@@ -422,50 +422,50 @@
       }
     },
     {
-      "operation_id": "cx.account.oidc_callback",
-      "http": "POST /auth/account/oidc/callback",
+      "operation_id": "ck.account.oidc_callback",
+      "http": "POST /_cokret/gate/account/oidc/callback",
       "grpc": "Account/OidcCallback",
       "mq": "account.oidc_callback",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.admin.get_moderation_queue",
-      "http": "GET /admin/moderation/queue",
+      "operation_id": "ck.admin.get_moderation_queue",
+      "http": "GET /_cokret/local/admin/moderation/queue",
       "grpc": "Admin/GetModerationQueue",
       "mq": "admin.get_moderation_queue",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.admin.get_server_status",
-      "http": "GET /admin/server/status",
+      "operation_id": "ck.admin.get_server_status",
+      "http": "GET /_cokret/local/admin/server/status",
       "grpc": "Admin/GetServerStatus",
       "mq": "admin.get_server_status",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.admin.revoke_device",
-      "http": "POST /admin/devices/{device_id}/revoke",
+      "operation_id": "ck.admin.revoke_device",
+      "http": "POST /_cokret/local/admin/devices/{device_id}/revoke",
       "grpc": "Admin/RevokeDevice",
       "mq": "admin.revoke_device",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.admin.update_account_status",
-      "http": "POST /admin/accounts/{account_id}/status",
+      "operation_id": "ck.admin.update_account_status",
+      "http": "POST /_cokret/local/admin/accounts/{account_id}/status",
       "grpc": "Admin/UpdateAccountStatus",
       "mq": "admin.update_account_status",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.applet.describe",
-      "http": "GET /applet/describe",
+      "operation_id": "ck.applet.describe",
+      "http": "GET /_cokret/edge/applet/describe",
       "grpc": "Applet/Describe",
       "mq": "applet.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "cx.applet.ping",
-      "http": "GET /applet/ping",
+      "operation_id": "ck.applet.ping",
+      "http": "GET /_cokret/edge/applet/ping",
       "grpc": "Applet/Ping",
       "mq": "applet.ping",
       "success_shape_kind": "operation_result",
@@ -479,8 +479,8 @@
       }
     },
     {
-      "operation_id": "cx.applet.protocol_metadata",
-      "http": "GET /applet/protocols/{protocol}",
+      "operation_id": "ck.applet.protocol_metadata",
+      "http": "GET /_cokret/edge/applet/protocols/{protocol}",
       "grpc": "Applet/ProtocolMetadata",
       "mq": "applet.protocol_metadata",
       "success_shape_kind": "operation_result",
@@ -494,8 +494,8 @@
       }
     },
     {
-      "operation_id": "cx.applet.resolve_actor",
-      "http": "GET /applet/actors/{actor_id}",
+      "operation_id": "ck.applet.resolve_actor",
+      "http": "GET /_cokret/edge/applet/actors/{actor_id}",
       "grpc": "Applet/ResolveActor",
       "mq": "applet.resolve_actor",
       "success_shape_kind": "operation_result",
@@ -509,8 +509,8 @@
       }
     },
     {
-      "operation_id": "cx.applet.resolve_realm",
-      "http": "GET /applet/realms/{realm_id_or_alias}",
+      "operation_id": "ck.applet.resolve_realm",
+      "http": "GET /_cokret/edge/applet/realms/{realm_id_or_alias}",
       "grpc": "Applet/ResolveRealm",
       "mq": "applet.resolve_realm",
       "success_shape_kind": "operation_result",
@@ -524,8 +524,8 @@
       }
     },
     {
-      "operation_id": "cx.applet.third_party_locations",
-      "http": "GET /applet/third_party/locations",
+      "operation_id": "ck.applet.third_party_locations",
+      "http": "GET /_cokret/edge/applet/third_party/locations",
       "grpc": "Applet/ThirdPartyLocations",
       "mq": "applet.third_party_locations",
       "success_shape_kind": "operation_result",
@@ -539,8 +539,8 @@
       }
     },
     {
-      "operation_id": "cx.applet.third_party_users",
-      "http": "GET /applet/third_party/users",
+      "operation_id": "ck.applet.third_party_users",
+      "http": "GET /_cokret/edge/applet/third_party/users",
       "grpc": "Applet/ThirdPartyUsers",
       "mq": "applet.third_party_users",
       "success_shape_kind": "operation_result",
@@ -554,8 +554,8 @@
       }
     },
     {
-      "operation_id": "cx.applet.transaction",
-      "http": "POST /applet/transactions",
+      "operation_id": "ck.applet.transaction",
+      "http": "POST /_cokret/edge/applet/transactions",
       "grpc": "Applet/Transaction",
       "mq": "applet.transaction",
       "success_shape_kind": "operation_result",
@@ -569,22 +569,22 @@
       }
     },
     {
-      "operation_id": "cx.authz.check",
-      "http": "POST /authz/check",
+      "operation_id": "ck.authz.check",
+      "http": "POST /_cokret/self/authz/check",
       "grpc": "Authz/Check",
       "mq": "authz.check",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.authz.get_effective_grants",
-      "http": "GET /authz/effective-grants",
+      "operation_id": "ck.authz.get_effective_grants",
+      "http": "GET /_cokret/self/authz/effective-grants",
       "grpc": "Authz/GetEffectiveGrants",
       "mq": "authz.get_effective_grants",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.authz.get_invites",
-      "http": "GET /authz/invites",
+      "operation_id": "ck.authz.get_invites",
+      "http": "GET /_cokret/self/authz/invites",
       "grpc": "Authz/GetInvites",
       "mq": "authz.get_invites",
       "success_shape_kind": "operation_result",
@@ -598,22 +598,22 @@
       }
     },
     {
-      "operation_id": "cx.blob.get",
-      "http": "GET /blob/get",
+      "operation_id": "ck.blob.get",
+      "http": "GET /_cokret/self/blob/get",
       "grpc": "Blob/Get",
       "mq": "blob.get",
       "success_shape_kind": "binary_stream"
     },
     {
-      "operation_id": "cx.blob.head",
-      "http": "HEAD /blob/get",
+      "operation_id": "ck.blob.head",
+      "http": "HEAD /_cokret/self/blob/get",
       "grpc": "Blob/Head",
       "mq": "blob.head",
       "success_shape_kind": "metadata_headers"
     },
     {
-      "operation_id": "cx.blob.upload",
-      "http": "POST /blob/upload",
+      "operation_id": "ck.blob.upload",
+      "http": "POST /_cokret/self/blob/upload",
       "grpc": "Blob/Upload",
       "mq": "blob.upload",
       "success_shape_kind": "schema_resource",
@@ -627,44 +627,44 @@
       }
     },
     {
-      "operation_id": "cx.blob.presign",
-      "http": "POST /blob/presign",
+      "operation_id": "ck.blob.presign",
+      "http": "POST /_cokret/self/blob/presign",
       "grpc": "Blob/Presign",
       "mq": "blob.presign",
       "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4.",
       "success_shape_kind": "inline_response"
     },
     {
-      "operation_id": "cx.device_messages.get",
-      "http": "GET /device_messages",
+      "operation_id": "ck.device_messages.get",
+      "http": "GET /_cokret/self/device_messages",
       "grpc": "DeviceMessages/Get",
       "mq": "device_messages.get",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.device_messages.put",
-      "http": "POST /device_messages",
+      "operation_id": "ck.device_messages.put",
+      "http": "POST /_cokret/self/device_messages",
       "grpc": "DeviceMessages/Put",
       "mq": "device_messages.put",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.directory.announce",
-      "http": "POST /directory/announce",
+      "operation_id": "ck.directory.announce",
+      "http": "POST /_cokret/find/directory/announce",
       "grpc": "Directory/Announce",
       "mq": "directory.announce",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.directory.describe",
-      "http": "GET /directory/describe",
+      "operation_id": "ck.directory.describe",
+      "http": "GET /_cokret/find/directory/describe",
       "grpc": "Directory/Describe",
       "mq": "directory.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "cx.directory.private_contact_discovery",
-      "http": "POST /directory/private-contact-discovery",
+      "operation_id": "ck.directory.private_contact_discovery",
+      "http": "POST /_cokret/find/directory/private-contact-discovery",
       "grpc": "Directory/PrivateContactDiscovery",
       "mq": "directory.private_contact_discovery",
       "success_shape_kind": "operation_result",
@@ -678,8 +678,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.resolve_handle",
-      "http": "POST /directory/resolve-handle",
+      "operation_id": "ck.directory.resolve_handle",
+      "http": "POST /_cokret/find/directory/resolve-handle",
       "grpc": "Directory/ResolveHandle",
       "mq": "directory.resolve_handle",
       "success_shape_kind": "schema_resource",
@@ -693,8 +693,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.list_handles_for_subject",
-      "http": "POST /directory/list-handles-for-subject",
+      "operation_id": "ck.directory.list_handles_for_subject",
+      "http": "POST /_cokret/find/directory/list-handles-for-subject",
       "grpc": "Directory/ListHandlesForSubject",
       "mq": "directory.list_handles_for_subject",
       "success_shape_kind": "schema_resource",
@@ -708,8 +708,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.resolve_organization",
-      "http": "POST /directory/resolve-organization",
+      "operation_id": "ck.directory.resolve_organization",
+      "http": "POST /_cokret/find/directory/resolve-organization",
       "grpc": "Directory/ResolveOrganization",
       "mq": "directory.resolve_organization",
       "success_shape_kind": "operation_result",
@@ -723,8 +723,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.resolve_realm",
-      "http": "POST /directory/resolve-realm",
+      "operation_id": "ck.directory.resolve_realm",
+      "http": "POST /_cokret/find/directory/resolve-realm",
       "grpc": "Directory/ResolveRealm",
       "mq": "directory.resolve_realm",
       "success_shape_kind": "operation_result",
@@ -738,8 +738,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.resolve_target",
-      "http": "POST /directory/resolve-target",
+      "operation_id": "ck.directory.resolve_target",
+      "http": "POST /_cokret/find/directory/resolve-target",
       "grpc": "Directory/ResolveTarget",
       "mq": "directory.resolve_target",
       "success_shape_kind": "operation_result",
@@ -753,8 +753,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.search_actors",
-      "http": "POST /directory/search-actors",
+      "operation_id": "ck.directory.search_actors",
+      "http": "POST /_cokret/find/directory/search-actors",
       "grpc": "Directory/SearchActors",
       "mq": "directory.search_actors",
       "success_shape_kind": "operation_result",
@@ -768,8 +768,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.search_organizations",
-      "http": "POST /directory/search-organizations",
+      "operation_id": "ck.directory.search_organizations",
+      "http": "POST /_cokret/find/directory/search-organizations",
       "grpc": "Directory/SearchOrganizations",
       "mq": "directory.search_organizations",
       "success_shape_kind": "operation_result",
@@ -783,8 +783,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.search_realms",
-      "http": "POST /directory/search-realms",
+      "operation_id": "ck.directory.search_realms",
+      "http": "POST /_cokret/find/directory/search-realms",
       "grpc": "Directory/SearchRealms",
       "mq": "directory.search_realms",
       "success_shape_kind": "operation_result",
@@ -798,8 +798,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.search_users",
-      "http": "POST /directory/search-users",
+      "operation_id": "ck.directory.search_users",
+      "http": "POST /_cokret/find/directory/search-users",
       "grpc": "Directory/SearchUsers",
       "mq": "directory.search_users",
       "success_shape_kind": "operation_result",
@@ -813,8 +813,8 @@
       }
     },
     {
-      "operation_id": "cx.directory.push.register",
-      "http": "POST /directory/push/register",
+      "operation_id": "ck.directory.push.register",
+      "http": "POST /_cokret/find/directory/push/register",
       "grpc": "Directory/PushRegister",
       "mq": "directory.push.register",
       "success_shape_kind": "operation_result",
@@ -828,132 +828,132 @@
       }
     },
     {
-      "operation_id": "cx.directory.withdraw",
-      "http": "POST /directory/withdraw",
+      "operation_id": "ck.directory.withdraw",
+      "http": "POST /_cokret/find/directory/withdraw",
       "grpc": "Directory/Withdraw",
       "mq": "directory.withdraw",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.events.describe",
-      "http": "GET /events/describe",
+      "operation_id": "ck.events.describe",
+      "http": "GET /_cokret/self/events/describe",
       "grpc": "Events/Describe",
       "mq": "events.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "cx.events.frontier",
-      "http": "GET /events/frontier",
+      "operation_id": "ck.events.frontier",
+      "http": "GET /_cokret/self/events/frontier",
       "grpc": "Events/Frontier",
       "mq": "events.frontier",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.events.get",
-      "http": "GET /events/{event_id}",
+      "operation_id": "ck.events.get",
+      "http": "GET /_cokret/self/events/{event_id}",
       "grpc": "Events/Get",
       "mq": "events.get",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.events.query",
-      "http": "GET /events",
+      "operation_id": "ck.events.query",
+      "http": "GET /_cokret/self/events",
       "grpc": "Events/Query",
       "mq": "events.query",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.events.query_post",
-      "binding_variant_of": "cx.events.query",
+      "operation_id": "ck.events.query_post",
+      "binding_variant_of": "ck.events.query",
       "http_only_variant": true,
-      "http": "POST /events/query",
-      "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical cx.events.query binding (Events/Query / events.query), not expose this variant as a separate gRPC or MQ operation.",
+      "http": "POST /_cokret/self/events/query",
+      "notes": "HTTP-specific POST/body form of ck.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ck.events.query binding (Events/Query / events.query), not expose this variant as a separate gRPC or MQ operation.",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.events.resolve",
-      "http": "POST /events/resolve",
+      "operation_id": "ck.events.resolve",
+      "http": "POST /_cokret/self/events/resolve",
       "grpc": "Events/Resolve",
       "mq": "events.resolve",
-      "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use cx.events.query for selector-based reads.",
+      "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ck.events.query for selector-based reads.",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.events.subscribe",
-      "http": "GET /events/subscribe",
+      "operation_id": "ck.events.subscribe",
+      "http": "GET /_cokret/self/events/subscribe",
       "grpc": "Events/Subscribe",
       "mq": "events.subscribe",
       "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After.",
       "success_shape_kind": "event_stream"
     },
     {
-      "operation_id": "cx.events.submit",
-      "http": "POST /events",
+      "operation_id": "ck.events.submit",
+      "http": "POST /_cokret/self/events",
       "grpc": "Events/Submit",
       "mq": "events.submit",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.ephemeral.send",
-      "http": "POST /ephemeral",
+      "operation_id": "ck.ephemeral.send",
+      "http": "POST /_cokret/self/ephemeral",
       "grpc": "Ephemeral/Send",
       "mq": "ephemeral.send",
-      "notes": "Canonical broadcast ephemeral send operation for cx.schema.ephemeral_envelope.v1. Carries cx.presence, cx.typing, cx.receipt.read, and cx.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
+      "notes": "Canonical broadcast ephemeral send operation for ck.schema.ephemeral_envelope.v1. Carries ck.presence, ck.typing, ck.receipt.read, and ck.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.call.media.token_exchange",
-      "http": "POST /rtc/token",
+      "operation_id": "ck.call.media.token_exchange",
+      "http": "POST /_cokret/self/rtc/token",
       "grpc": "CallMedia/TokenExchange",
       "mq": "call.media.token_exchange",
-      "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in cx.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/webrtc-signaling.md §6.4.",
+      "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/webrtc-signaling.md §6.4.",
       "success_shape_kind": "inline_response"
     },
     {
-      "operation_id": "cx.identity.describe_registry",
-      "http": "GET /identity/describe",
+      "operation_id": "ck.identity.describe_registry",
+      "http": "GET /_cokret/root/identity/describe",
       "grpc": "Identity/DescribeRegistry",
       "mq": "identity.describe_registry",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "cx.identity.get_document",
-      "http": "GET /identity/document",
+      "operation_id": "ck.identity.get_document",
+      "http": "GET /_cokret/root/identity/document",
       "grpc": "Identity/GetDocument",
       "mq": "identity.get_document",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.identity.get_log",
-      "http": "GET /identity/log",
+      "operation_id": "ck.identity.get_log",
+      "http": "GET /_cokret/root/identity/log",
       "grpc": "Identity/GetLog",
       "mq": "identity.get_log",
       "success_shape_kind": "inline_response"
     },
     {
-      "operation_id": "cx.identity.get_receipts",
-      "http": "GET /identity/receipts",
+      "operation_id": "ck.identity.get_receipts",
+      "http": "GET /_cokret/root/identity/receipts",
       "grpc": "Identity/GetReceipts",
       "mq": "identity.get_receipts",
       "success_shape_kind": "inline_response"
     },
     {
-      "operation_id": "cx.identity.resolve",
-      "http": "POST /identity/resolve",
+      "operation_id": "ck.identity.resolve",
+      "http": "POST /_cokret/root/identity/resolve",
       "grpc": "Identity/Resolve",
       "mq": "identity.resolve",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.identity.submit_did_operation",
-      "http": "POST /identity/submit-did-operation",
+      "operation_id": "ck.identity.submit_did_operation",
+      "http": "POST /_cokret/root/identity/submit-did-operation",
       "grpc": "Identity/SubmitDidOperation",
       "mq": "identity.submit_did_operation",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.keys.claim",
-      "http": "POST /keys/claim",
+      "operation_id": "ck.keys.claim",
+      "http": "POST /_cokret/self/keys/claim",
       "grpc": "Keys/Claim",
       "mq": "keys.claim",
       "success_shape_kind": "operation_result",
@@ -967,8 +967,8 @@
       }
     },
     {
-      "operation_id": "cx.keys.backups.delete",
-      "http": "DELETE /keys/backups/{backup_id}",
+      "operation_id": "ck.keys.backups.delete",
+      "http": "DELETE /_cokret/self/keys/backups/{backup_id}",
       "grpc": "Keys/BackupsDelete",
       "mq": "keys.backups.delete",
       "success_shape_kind": "operation_result",
@@ -982,15 +982,15 @@
       }
     },
     {
-      "operation_id": "cx.keys.backups.get",
-      "http": "GET /keys/backups/{backup_id}",
+      "operation_id": "ck.keys.backups.get",
+      "http": "GET /_cokret/self/keys/backups/{backup_id}",
       "grpc": "Keys/BackupsGet",
       "mq": "keys.backups.get",
       "success_shape_kind": "schema_resource"
     },
     {
-      "operation_id": "cx.keys.backups.list",
-      "http": "GET /keys/backups",
+      "operation_id": "ck.keys.backups.list",
+      "http": "GET /_cokret/self/keys/backups",
       "grpc": "Keys/BackupsList",
       "mq": "keys.backups.list",
       "success_shape_kind": "operation_result",
@@ -1004,8 +1004,8 @@
       }
     },
     {
-      "operation_id": "cx.keys.backups.put",
-      "http": "PUT /keys/backups/{backup_id}",
+      "operation_id": "ck.keys.backups.put",
+      "http": "PUT /_cokret/self/keys/backups/{backup_id}",
       "grpc": "Keys/BackupsPut",
       "mq": "keys.backups.put",
       "success_shape_kind": "operation_result",
@@ -1019,8 +1019,8 @@
       }
     },
     {
-      "operation_id": "cx.keys.keypackages.claim",
-      "http": "POST /keys/keypackages/claim",
+      "operation_id": "ck.keys.keypackages.claim",
+      "http": "POST /_cokret/self/keys/keypackages/claim",
       "grpc": "Keys/KeyPackagesClaim",
       "mq": "keys.keypackages.claim",
       "success_shape_kind": "operation_result",
@@ -1034,8 +1034,8 @@
       }
     },
     {
-      "operation_id": "cx.keys.keypackages.consume",
-      "http": "POST /keys/keypackages/consume",
+      "operation_id": "ck.keys.keypackages.consume",
+      "http": "POST /_cokret/self/keys/keypackages/consume",
       "grpc": "Keys/KeyPackagesConsume",
       "mq": "keys.keypackages.consume",
       "success_shape_kind": "operation_result",
@@ -1049,8 +1049,8 @@
       }
     },
     {
-      "operation_id": "cx.keys.keypackages.revoke",
-      "http": "POST /keys/keypackages/revoke",
+      "operation_id": "ck.keys.keypackages.revoke",
+      "http": "POST /_cokret/self/keys/keypackages/revoke",
       "grpc": "Keys/KeyPackagesRevoke",
       "mq": "keys.keypackages.revoke",
       "success_shape_kind": "operation_result",
@@ -1064,8 +1064,8 @@
       }
     },
     {
-      "operation_id": "cx.keys.keypackages.upload",
-      "http": "POST /keys/keypackages/upload",
+      "operation_id": "ck.keys.keypackages.upload",
+      "http": "POST /_cokret/self/keys/keypackages/upload",
       "grpc": "Keys/KeyPackagesUpload",
       "mq": "keys.keypackages.upload",
       "success_shape_kind": "operation_result",
@@ -1079,8 +1079,8 @@
       }
     },
     {
-      "operation_id": "cx.keys.query",
-      "http": "POST /keys/query",
+      "operation_id": "ck.keys.query",
+      "http": "POST /_cokret/self/keys/query",
       "grpc": "Keys/Query",
       "mq": "keys.query",
       "success_shape_kind": "operation_result",
@@ -1094,8 +1094,8 @@
       }
     },
     {
-      "operation_id": "cx.keys.upload",
-      "http": "POST /keys/upload",
+      "operation_id": "ck.keys.upload",
+      "http": "POST /_cokret/self/keys/upload",
       "grpc": "Keys/Upload",
       "mq": "keys.upload",
       "success_shape_kind": "operation_result",
@@ -1109,8 +1109,8 @@
       }
     },
     {
-      "operation_id": "cx.media.ice_config",
-      "http": "POST /cokret/v1/ice-config",
+      "operation_id": "ck.media.ice_config",
+      "http": "POST /_cokret/self/rtc/ice-config",
       "grpc": "Media/IceConfig",
       "mq": "media.ice_config",
       "success_shape_kind": "operation_result",
@@ -1124,8 +1124,8 @@
       }
     },
     {
-      "operation_id": "cx.mimi.group_info",
-      "http": "GET /mimi/flows/{flow_id}/group-info",
+      "operation_id": "ck.mimi.group_info",
+      "http": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
       "grpc": "Mimi/GroupInfo",
       "mq": "mimi.group_info",
       "success_shape_kind": "operation_result",
@@ -1139,8 +1139,8 @@
       }
     },
     {
-      "operation_id": "cx.mimi.identifier_query",
-      "http": "POST /mimi/identifiers/query",
+      "operation_id": "ck.mimi.identifier_query",
+      "http": "POST /_cokret/open/mimi/identifiers/query",
       "grpc": "Mimi/IdentifierQuery",
       "mq": "mimi.identifier_query",
       "success_shape_kind": "operation_result",
@@ -1154,8 +1154,8 @@
       }
     },
     {
-      "operation_id": "cx.mimi.key_material",
-      "http": "POST /mimi/key-material",
+      "operation_id": "ck.mimi.key_material",
+      "http": "POST /_cokret/open/mimi/key-material",
       "grpc": "Mimi/KeyMaterial",
       "mq": "mimi.key_material",
       "success_shape_kind": "operation_result",
@@ -1169,8 +1169,8 @@
       }
     },
     {
-      "operation_id": "cx.mimi.notify",
-      "http": "POST /mimi/flows/{flow_id}/notify",
+      "operation_id": "ck.mimi.notify",
+      "http": "POST /_cokret/open/mimi/flows/{flow_id}/notify",
       "grpc": "Mimi/Notify",
       "mq": "mimi.notify",
       "success_shape_kind": "operation_result",
@@ -1184,18 +1184,18 @@
       }
     },
     {
-      "operation_id": "cx.mimi.provider_directory",
-      "http": "GET /mimi/provider-directory",
+      "operation_id": "ck.mimi.provider_directory",
+      "http": "GET /_cokret/open/mimi/provider-directory",
       "grpc": "Mimi/ProviderDirectory",
       "mq": "mimi.provider_directory",
       "success_shape_kind": "schema_resource"
     },
     {
-      "operation_id": "cx.mimi.proxy_download",
-      "http": "POST /mimi/proxy-download",
+      "operation_id": "ck.mimi.proxy_download",
+      "http": "POST /_cokret/open/mimi/proxy-download",
       "grpc": "Mimi/ProxyDownload",
       "mq": "mimi.proxy_download",
-      "bridges_to": "cx.blob.get",
+      "bridges_to": "ck.blob.get",
       "success_shape_kind": "operation_result",
       "generic_binding": {
         "request": true,
@@ -1207,11 +1207,11 @@
       }
     },
     {
-      "operation_id": "cx.mimi.report_abuse",
-      "http": "POST /mimi/report-abuse",
+      "operation_id": "ck.mimi.report_abuse",
+      "http": "POST /_cokret/open/mimi/report-abuse",
       "grpc": "Mimi/ReportAbuse",
       "mq": "mimi.report_abuse",
-      "bridges_to": "cx.moderation.report",
+      "bridges_to": "ck.moderation.report",
       "success_shape_kind": "operation_result",
       "generic_binding": {
         "request": true,
@@ -1223,8 +1223,8 @@
       }
     },
     {
-      "operation_id": "cx.mimi.request_consent",
-      "http": "POST /mimi/consent/request",
+      "operation_id": "ck.mimi.request_consent",
+      "http": "POST /_cokret/open/mimi/consent/request",
       "grpc": "Mimi/RequestConsent",
       "mq": "mimi.request_consent",
       "success_shape_kind": "operation_result",
@@ -1238,8 +1238,8 @@
       }
     },
     {
-      "operation_id": "cx.mimi.room_update",
-      "http": "PUT /mimi/flows/{flow_id}/update",
+      "operation_id": "ck.mimi.room_update",
+      "http": "PUT /_cokret/open/mimi/flows/{flow_id}/update",
       "grpc": "Mimi/RoomUpdate",
       "mq": "mimi.room_update",
       "success_shape_kind": "operation_result",
@@ -1253,8 +1253,8 @@
       }
     },
     {
-      "operation_id": "cx.mimi.submit_message",
-      "http": "POST /mimi/flows/{flow_id}/messages",
+      "operation_id": "ck.mimi.submit_message",
+      "http": "POST /_cokret/open/mimi/flows/{flow_id}/messages",
       "grpc": "Mimi/SubmitMessage",
       "mq": "mimi.submit_message",
       "success_shape_kind": "operation_result",
@@ -1268,8 +1268,8 @@
       }
     },
     {
-      "operation_id": "cx.mimi.update_consent",
-      "http": "POST /mimi/consent/update",
+      "operation_id": "ck.mimi.update_consent",
+      "http": "POST /_cokret/open/mimi/consent/update",
       "grpc": "Mimi/UpdateConsent",
       "mq": "mimi.update_consent",
       "success_shape_kind": "operation_result",
@@ -1283,47 +1283,47 @@
       }
     },
     {
-      "operation_id": "cx.moderation.report",
-      "http": "POST /moderation/report",
+      "operation_id": "ck.moderation.report",
+      "http": "POST /_cokret/self/moderation/report",
       "grpc": "Moderation/Report",
       "mq": "moderation.report",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.policy.check",
-      "http": "POST /policy/check",
+      "operation_id": "ck.policy.check",
+      "http": "POST /_cokret/self/policy/check",
       "grpc": "Policy/Check",
       "mq": "policy.check",
-      "notes": "Canonical HTTP binding is POST /api/v1/policy/check (bare path inheriting the global /api/v1 prefix).",
+      "notes": "Canonical HTTP binding is POST /_cokret/self/policy/check. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.projection.flows",
-      "http": "GET /projection/flows",
+      "operation_id": "ck.projection.flows",
+      "http": "GET /_cokret/self/projection/flows",
       "grpc": "Projection/Flows",
       "mq": "projection.flows",
       "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.projection.morphs",
-      "http": "GET /projection/morphs",
+      "operation_id": "ck.projection.morphs",
+      "http": "GET /_cokret/self/projection/morphs",
       "grpc": "Projection/Morphs",
       "mq": "projection.morphs",
       "notes": "Extension read surface for reducer-maintained Morph lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.projection.spaces",
-      "http": "GET /projection/spaces",
+      "operation_id": "ck.projection.spaces",
+      "http": "GET /_cokret/self/projection/spaces",
       "grpc": "Projection/Spaces",
       "mq": "projection.spaces",
       "notes": "Extension read surface for reducer-maintained Space lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
       "success_shape_kind": "typed_response"
     },
     {
-      "operation_id": "cx.push.notify",
-      "http": "POST /push/notify",
+      "operation_id": "ck.push.notify",
+      "http": "POST /_cokret/edge/push/notify",
       "grpc": "Push/Notify",
       "mq": "push.notify",
       "success_shape_kind": "inline_response",
@@ -1337,8 +1337,8 @@
       }
     },
     {
-      "operation_id": "cx.push.register_device",
-      "http": "POST /push/register-device",
+      "operation_id": "ck.push.register_device",
+      "http": "POST /_cokret/edge/push/register-device",
       "grpc": "Push/RegisterDevice",
       "mq": "push.register_device",
       "success_shape_kind": "operation_result",
@@ -1352,8 +1352,8 @@
       }
     },
     {
-      "operation_id": "cx.push.unregister_device",
-      "http": "POST /push/unregister-device",
+      "operation_id": "ck.push.unregister_device",
+      "http": "POST /_cokret/edge/push/unregister-device",
       "grpc": "Push/UnregisterDevice",
       "mq": "push.unregister_device",
       "success_shape_kind": "operation_result",
@@ -1367,38 +1367,38 @@
       }
     },
     {
-      "operation_id": "cx.server.describe",
-      "http": "GET /server/describe",
+      "operation_id": "ck.server.describe",
+      "http": "GET /_cokret/describe",
       "grpc": "Server/Describe",
       "mq": "server.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "cx.account.describe",
-      "http": "GET /account/describe",
+      "operation_id": "ck.account.describe",
+      "http": "GET /_cokret/self/account/describe",
       "grpc": "Account/Describe",
       "mq": "account.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "cx.account.subscribe",
-      "http": "GET /account/subscribe",
+      "operation_id": "ck.account.subscribe",
+      "http": "GET /_cokret/self/account/subscribe",
       "grpc": "Account/Subscribe",
       "mq": "account.subscribe",
-      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync.",
+      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with ck.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll ck.account.sync; not wire-compatible with Matrix /sync.",
       "success_shape_kind": "event_stream"
     },
     {
-      "operation_id": "cx.account.cursor_revoke",
-      "http": "POST /account/cursor/revoke",
+      "operation_id": "ck.account.cursor_revoke",
+      "http": "POST /_cokret/self/account/cursor/revoke",
       "grpc": "Account/CursorRevoke",
       "mq": "account.cursor_revoke",
       "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance to-device ack, account subscribe position, barrier wait, or dropped recovery state.",
       "success_shape_kind": "inline_response"
     },
     {
-      "operation_id": "cx.snapshot.head",
-      "http": "GET /snapshot/head",
+      "operation_id": "ck.snapshot.head",
+      "http": "GET /_cokret/self/snapshot/head",
       "grpc": "Snapshot/Head",
       "mq": "snapshot.head",
       "success_shape_kind": "typed_response"

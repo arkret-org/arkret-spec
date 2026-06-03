@@ -12,8 +12,8 @@
   },
   "operations": [
     {
-      "operation_id": "cx.events.submit",
-      "http_alias": "POST /api/v1/events",
+      "operation_id": "ck.events.submit",
+      "http_alias": "POST /_cokret/self/events",
       "operation_specific": [
         "duplicate_conflict",
         "failed_precondition",
@@ -28,32 +28,32 @@
       "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes."
     },
     {
-      "operation_id": "cx.events.get",
-      "http_alias": "GET /api/v1/events/{event_id}",
+      "operation_id": "ck.events.get",
+      "http_alias": "GET /_cokret/self/events/{event_id}",
       "operation_specific": [
         "not_found"
       ],
       "description": "not_found is returned both for nonexistent events and for events hidden by visibility (uniform failure surface)."
     },
     {
-      "operation_id": "cx.events.query",
-      "http_alias": "GET /api/v1/events",
+      "operation_id": "ck.events.query",
+      "http_alias": "GET /_cokret/self/events",
       "operation_specific": [
         "cursor_invalid",
         "cursor_revoked"
       ]
     },
     {
-      "operation_id": "cx.events.query_post",
-      "http_alias": "POST /api/v1/events/query",
+      "operation_id": "ck.events.query_post",
+      "http_alias": "POST /_cokret/self/events/query",
       "operation_specific": [
         "cursor_invalid",
         "cursor_revoked"
       ]
     },
     {
-      "operation_id": "cx.events.subscribe",
-      "http_alias": "GET /api/v1/events/subscribe",
+      "operation_id": "ck.events.subscribe",
+      "http_alias": "GET /_cokret/self/events/subscribe",
       "operation_specific": [
         "cursor_invalid",
         "cursor_revoked",
@@ -62,22 +62,22 @@
       ]
     },
     {
-      "operation_id": "cx.events.resolve",
-      "http_alias": "POST /api/v1/events/resolve",
+      "operation_id": "ck.events.resolve",
+      "http_alias": "POST /_cokret/self/events/resolve",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "cx.events.frontier",
-      "http_alias": "GET /api/v1/events/frontier",
+      "operation_id": "ck.events.frontier",
+      "http_alias": "GET /_cokret/self/events/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "cx.account.subscribe",
-      "http_alias": "GET /api/v1/account/subscribe",
+      "operation_id": "ck.account.subscribe",
+      "http_alias": "GET /_cokret/self/account/subscribe",
       "operation_specific": [
         "cursor_invalid",
         "cursor_revoked",
@@ -86,23 +86,23 @@
       ]
     },
     {
-      "operation_id": "cx.account.cursor_revoke",
-      "http_alias": "POST /api/v1/account/cursor/revoke",
+      "operation_id": "ck.account.cursor_revoke",
+      "http_alias": "POST /_cokret/self/account/cursor/revoke",
       "operation_specific": [
         "cursor_revoked"
       ]
     },
     {
-      "operation_id": "cx.snapshot.head",
-      "http_alias": "GET /api/v1/snapshot/head",
+      "operation_id": "ck.snapshot.head",
+      "http_alias": "GET /_cokret/self/snapshot/head",
       "operation_specific": [
         "snapshot_unavailable",
         "snapshot_authority_unverified"
       ]
     },
     {
-      "operation_id": "cx.identity.resolve",
-      "http_alias": "POST /api/v1/identity/resolve",
+      "operation_id": "ck.identity.resolve",
+      "http_alias": "POST /_cokret/root/identity/resolve",
       "operation_specific": [
         "unsupported_did_method",
         "did_not_found",
@@ -110,8 +110,8 @@
       ]
     },
     {
-      "operation_id": "cx.identity.get_document",
-      "http_alias": "GET /api/v1/identity/document",
+      "operation_id": "ck.identity.get_document",
+      "http_alias": "GET /_cokret/root/identity/document",
       "operation_specific": [
         "unsupported_did_method",
         "did_not_found",
@@ -119,16 +119,16 @@
       ]
     },
     {
-      "operation_id": "cx.identity.get_log",
-      "http_alias": "GET /api/v1/identity/log",
+      "operation_id": "ck.identity.get_log",
+      "http_alias": "GET /_cokret/root/identity/log",
       "operation_specific": [
         "unsupported_did_method",
         "did_not_found"
       ]
     },
     {
-      "operation_id": "cx.identity.submit_did_operation",
-      "http_alias": "POST /api/v1/identity/submit-did-operation",
+      "operation_id": "ck.identity.submit_did_operation",
+      "http_alias": "POST /_cokret/root/identity/submit-did-operation",
       "operation_specific": [
         "unsupported_did_method",
         "did_already_exists",
@@ -137,37 +137,37 @@
       ]
     },
     {
-      "operation_id": "cx.directory.search_realms",
-      "http_alias": "POST /api/v1/directory/search-realms",
+      "operation_id": "ck.directory.search_realms",
+      "http_alias": "POST /_cokret/find/directory/search-realms",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "cx.directory.resolve_realm",
-      "http_alias": "POST /api/v1/directory/resolve-realm",
+      "operation_id": "ck.directory.resolve_realm",
+      "http_alias": "POST /_cokret/find/directory/resolve-realm",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "cx.directory.resolve_target",
-      "http_alias": "POST /api/v1/directory/resolve-target",
+      "operation_id": "ck.directory.resolve_target",
+      "http_alias": "POST /_cokret/find/directory/resolve-target",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "cx.directory.resolve_handle",
-      "http_alias": "POST /api/v1/directory/resolve-handle",
+      "operation_id": "ck.directory.resolve_handle",
+      "http_alias": "POST /_cokret/find/directory/resolve-handle",
       "operation_specific": [
         "not_found",
         "handle_unverified"
       ]
     },
     {
-      "operation_id": "cx.directory.announce",
-      "http_alias": "POST /api/v1/directory/announce",
+      "operation_id": "ck.directory.announce",
+      "http_alias": "POST /_cokret/find/directory/announce",
       "operation_specific": [
         "directory_not_authorized",
         "accept_policy_denied",
@@ -181,8 +181,8 @@
       ]
     },
     {
-      "operation_id": "cx.directory.withdraw",
-      "http_alias": "POST /api/v1/directory/withdraw",
+      "operation_id": "ck.directory.withdraw",
+      "http_alias": "POST /_cokret/find/directory/withdraw",
       "operation_specific": [
         "directory_not_authorized",
         "signature_invalid",
@@ -190,16 +190,16 @@
       ]
     },
     {
-      "operation_id": "cx.directory.private_contact_discovery",
-      "http_alias": "POST /api/v1/directory/private-contact-discovery",
+      "operation_id": "ck.directory.private_contact_discovery",
+      "http_alias": "POST /_cokret/find/directory/private-contact-discovery",
       "operation_specific": [
         "rate_limited",
         "unsupported_feature"
       ]
     },
     {
-      "operation_id": "cx.blob.upload",
-      "http_alias": "POST /api/v1/blob/upload",
+      "operation_id": "ck.blob.upload",
+      "http_alias": "POST /_cokret/self/blob/upload",
       "operation_specific": [
         "too_large",
         "blob_quota_exceeded",
@@ -208,8 +208,8 @@
       ]
     },
     {
-      "operation_id": "cx.blob.get",
-      "http_alias": "GET /api/v1/blob/get",
+      "operation_id": "ck.blob.get",
+      "http_alias": "GET /_cokret/self/blob/get",
       "operation_specific": [
         "not_found",
         "blob_expired",
@@ -217,8 +217,8 @@
       ]
     },
     {
-      "operation_id": "cx.blob.head",
-      "http_alias": "HEAD /api/v1/blob/get",
+      "operation_id": "ck.blob.head",
+      "http_alias": "HEAD /_cokret/self/blob/get",
       "operation_specific": [
         "not_found",
         "blob_expired",
@@ -226,23 +226,23 @@
       ]
     },
     {
-      "operation_id": "cx.push.register_device",
-      "http_alias": "POST /api/v1/push/register-device",
+      "operation_id": "ck.push.register_device",
+      "http_alias": "POST /_cokret/edge/push/register-device",
       "operation_specific": [
         "push_gateway_unreachable",
         "push_token_invalid"
       ]
     },
     {
-      "operation_id": "cx.push.unregister_device",
-      "http_alias": "POST /api/v1/push/unregister-device",
+      "operation_id": "ck.push.unregister_device",
+      "http_alias": "POST /_cokret/edge/push/unregister-device",
       "operation_specific": [
         "push_token_unknown"
       ]
     },
     {
-      "operation_id": "cx.push.notify",
-      "http_alias": "POST /api/v1/push/notify",
+      "operation_id": "ck.push.notify",
+      "http_alias": "POST /_cokret/edge/push/notify",
       "operation_specific": [
         "push_gateway_unreachable",
         "push_target_unknown",
@@ -251,8 +251,8 @@
       ]
     },
     {
-      "operation_id": "cx.keys.upload",
-      "http_alias": "POST /api/v1/keys/upload",
+      "operation_id": "ck.keys.upload",
+      "http_alias": "POST /_cokret/self/keys/upload",
       "operation_specific": [
         "device_unknown",
         "key_replay",
@@ -260,40 +260,40 @@
       ]
     },
     {
-      "operation_id": "cx.keys.claim",
-      "http_alias": "POST /api/v1/keys/claim",
+      "operation_id": "ck.keys.claim",
+      "http_alias": "POST /_cokret/self/keys/claim",
       "operation_specific": [
         "one_time_keys_exhausted",
         "device_unknown"
       ]
     },
     {
-      "operation_id": "cx.keys.keypackages.claim",
-      "http_alias": "POST /api/v1/keys/keypackages/claim",
+      "operation_id": "ck.keys.keypackages.claim",
+      "http_alias": "POST /_cokret/self/keys/keypackages/claim",
       "operation_specific": [
         "one_time_keys_exhausted",
         "principal_unknown"
       ]
     },
     {
-      "operation_id": "cx.keys.keypackages.consume",
-      "http_alias": "POST /api/v1/keys/keypackages/consume",
+      "operation_id": "ck.keys.keypackages.consume",
+      "http_alias": "POST /_cokret/self/keys/keypackages/consume",
       "operation_specific": [
         "keypackage_already_consumed",
         "keypackage_unknown"
       ]
     },
     {
-      "operation_id": "cx.keys.keypackages.revoke",
-      "http_alias": "POST /api/v1/keys/keypackages/revoke",
+      "operation_id": "ck.keys.keypackages.revoke",
+      "http_alias": "POST /_cokret/self/keys/keypackages/revoke",
       "operation_specific": [
         "keypackage_already_consumed",
         "keypackage_unknown"
       ]
     },
     {
-      "operation_id": "cx.keys.backups.put",
-      "http_alias": "PUT /api/v1/keys/backups/{backup_id}",
+      "operation_id": "ck.keys.backups.put",
+      "http_alias": "PUT /_cokret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "legacy_secret_storage_wire_form",
         "series_chain_broken",
@@ -303,45 +303,45 @@
       ]
     },
     {
-      "operation_id": "cx.keys.backups.get",
-      "http_alias": "GET /api/v1/keys/backups/{backup_id}",
+      "operation_id": "ck.keys.backups.get",
+      "http_alias": "GET /_cokret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "cx.keys.backups.list",
-      "http_alias": "GET /api/v1/keys/backups",
+      "operation_id": "ck.keys.backups.list",
+      "http_alias": "GET /_cokret/self/keys/backups",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "cx.keys.backups.delete",
-      "http_alias": "DELETE /api/v1/keys/backups/{backup_id}",
+      "operation_id": "ck.keys.backups.delete",
+      "http_alias": "DELETE /_cokret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "cx.authz.check",
-      "http_alias": "POST /api/v1/authz/check",
+      "operation_id": "ck.authz.check",
+      "http_alias": "POST /_cokret/self/authz/check",
       "operation_specific": [
         "capability_denied",
         "policy_unavailable"
       ]
     },
     {
-      "operation_id": "cx.policy.check",
-      "http_alias": "POST /api/v1/policy/check",
+      "operation_id": "ck.policy.check",
+      "http_alias": "POST /_cokret/self/policy/check",
       "operation_specific": [
         "policy_unavailable",
         "policy_stale"
       ]
     },
     {
-      "operation_id": "cx.ephemeral.send",
-      "http_alias": "POST /api/v1/ephemeral",
+      "operation_id": "ck.ephemeral.send",
+      "http_alias": "POST /_cokret/self/ephemeral",
       "operation_specific": [
         "ephemeral_kind_not_permitted",
         "ephemeral_ttl_out_of_range",
@@ -349,8 +349,8 @@
       ]
     },
     {
-      "operation_id": "cx.call.media.token_exchange",
-      "http_alias": "POST /api/v1/rtc/token",
+      "operation_id": "ck.call.media.token_exchange",
+      "http_alias": "POST /_cokret/self/rtc/token",
       "operation_specific": [
         "focus_mismatch",
         "unknown_focus_type",
@@ -360,11 +360,11 @@
         "capability_denied",
         "legacy_single_endpoint_media_service"
       ],
-      "description": "Media service token exchange (CXP-0010, zh/crypto-media/webrtc-signaling.md §6.4). Token issuer validates device proof / bearer, cx.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. v1.1 servers also return legacy_single_endpoint_media_service when callers reference a remnant sfu_endpoint cx.realm.media_service shape; in v1 cycle servers MAY auto-normalize and proceed."
+      "description": "Media service token exchange (CXP-0010, zh/crypto-media/webrtc-signaling.md §6.4). Token issuer validates device proof / bearer, ck.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. v1.1 servers also return legacy_single_endpoint_media_service when callers reference a remnant sfu_endpoint ck.realm.media_service shape; in v1 cycle servers MAY auto-normalize and proceed."
     },
     {
-      "operation_id": "cx.account.issue_session_grant",
-      "http_alias": "POST /auth/account/session-grants",
+      "operation_id": "ck.account.issue_session_grant",
+      "http_alias": "POST /_cokret/gate/account/session-grants",
       "operation_specific": [
         "did_proof_required",
         "soft_logged_out",
@@ -379,8 +379,8 @@
       "description": "Session grant issuance. Shared by human user_session and agent runtime branches (CXP-0008 §4.6): when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
     {
-      "operation_id": "cx.account.agent_key_pair",
-      "http_alias": "POST /auth/account/agent-key-pair",
+      "operation_id": "ck.account.agent_key_pair",
+      "http_alias": "POST /_cokret/gate/account/agent-key-pair",
       "operation_specific": [
         "verification_method_principal_mismatch",
         "pairing_request_expired",
@@ -390,32 +390,32 @@
       "description": "Native personal agent runtime key pairing (CXP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
     },
     {
-      "operation_id": "cx.agent.provision",
-      "http_alias": "POST /api/v1/agents",
+      "operation_id": "ck.agent.provision",
+      "http_alias": "POST /_cokret/self/agents",
       "operation_specific": [
         "failed_precondition",
         "accountability_grant_missing"
       ],
-      "description": "Provision a native personal agent principal (CXP-0008). The op is the aggregate `cx.agent.provision` capability action (capability-action-registry.json) and fans out `cx.profile.create` + `cx.identity.accountability_grant` + `cx.agent.key.authorize` + `cx.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `cx.identity.accountability_grant` (controller lacks `cx.agent.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
+      "description": "Provision a native personal agent principal (CXP-0008). The op is the aggregate `ck.agent.provision` capability action (capability-action-registry.json) and fans out `ck.profile.create` + `ck.identity.accountability_grant` + `ck.agent.key.authorize` + `ck.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ck.identity.accountability_grant` (controller lacks `ck.agent.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
     },
     {
-      "operation_id": "cx.agent.list",
-      "http_alias": "GET /api/v1/agents",
+      "operation_id": "ck.agent.list",
+      "http_alias": "GET /_cokret/self/agents",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "cx.agent.get",
-      "http_alias": "GET /api/v1/agents/{agent_principal_id}",
+      "operation_id": "ck.agent.get",
+      "http_alias": "GET /_cokret/self/agents/{agent_principal_id}",
       "operation_specific": [
         "not_found"
       ],
-      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches cx.events.get pattern)."
+      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ck.events.get pattern)."
     },
     {
-      "operation_id": "cx.agent.pause",
-      "http_alias": "POST /api/v1/agents/{agent_principal_id}/pause",
+      "operation_id": "ck.agent.pause",
+      "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/pause",
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
@@ -424,8 +424,8 @@
       "description": "agent_paused is returned for idempotent re-pause; agent_deactivated is terminal."
     },
     {
-      "operation_id": "cx.agent.resume",
-      "http_alias": "POST /api/v1/agents/{agent_principal_id}/resume",
+      "operation_id": "ck.agent.resume",
+      "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/resume",
       "operation_specific": [
         "agent_deactivated",
         "failed_precondition",
@@ -434,8 +434,8 @@
       "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar exposure re-disclosure failure surfaces as failed_precondition with reason=`sidecar_exposure_ack_required`."
     },
     {
-      "operation_id": "cx.agent.deactivate",
-      "http_alias": "POST /api/v1/agents/{agent_principal_id}/deactivate",
+      "operation_id": "ck.agent.deactivate",
+      "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/deactivate",
       "operation_specific": [
         "agent_deactivated",
         "failed_precondition"
@@ -443,8 +443,8 @@
       "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal agent."
     },
     {
-      "operation_id": "cx.agent.rotate_key",
-      "http_alias": "POST /api/v1/agents/{agent_principal_id}/rotate-key",
+      "operation_id": "ck.agent.rotate_key",
+      "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/rotate-key",
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
@@ -452,11 +452,11 @@
         "proof_invalid",
         "failed_precondition"
       ],
-      "description": "Wire op cx.agent.rotate_key corresponds to event kind cx.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
+      "description": "Wire op ck.agent.rotate_key corresponds to event kind ck.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
     },
     {
-      "operation_id": "cx.agent.grant.attach",
-      "http_alias": "POST /api/v1/agents/{agent_principal_id}/grants",
+      "operation_id": "ck.agent.grant.attach",
+      "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/grants",
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
@@ -466,8 +466,8 @@
       "description": "Attaches a capability grant to the agent. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate."
     },
     {
-      "operation_id": "cx.agent.grant.detach",
-      "http_alias": "DELETE /api/v1/agents/{agent_principal_id}/grants/{grant_id}",
+      "operation_id": "ck.agent.grant.detach",
+      "http_alias": "DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}",
       "operation_specific": [
         "not_found",
         "agent_deactivated"
@@ -475,8 +475,8 @@
       "description": "not_found is returned for nonexistent grant_id and for grants not attached to this agent (uniform failure surface)."
     },
     {
-      "operation_id": "cx.agent.sidecar_thread.ensure",
-      "http_alias": "POST /api/v1/agent-sidecar-threads:ensure",
+      "operation_id": "ck.agent.sidecar_thread.ensure",
+      "http_alias": "POST /_cokret/self/agent-sidecar-threads:ensure",
       "operation_specific": [
         "sidecar_create_denied",
         "agent_paused",

@@ -37,15 +37,15 @@ sidebar:
 
 | schema id | canonical 文件 | 说明 |
 | --- | --- | --- |
-| `cx.schema.event.v1` | `schemas/event-envelope.schema.json` | schema id 用 `event` 保持协议对象名，文件名用 `event-envelope` 对齐 wire envelope 术语；不得机械推导为 `event.schema.json`。 |
-| `cx.schema.capability.v1` | `schemas/capability-grant.schema.json` | id 简化为 `capability`，文件保留 `capability-grant` 以区别于其他 capability 相关 schema（grant-constraint、resource-selector 等）。 |
-| `cx.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
+| `ck.schema.event.v1` | `schemas/event-envelope.schema.json` | schema id 用 `event` 保持协议对象名，文件名用 `event-envelope` 对齐 wire envelope 术语；不得机械推导为 `event.schema.json`。 |
+| `ck.schema.capability.v1` | `schemas/capability-grant.schema.json` | id 简化为 `capability`，文件保留 `capability-grant` 以区别于其他 capability 相关 schema（grant-constraint、resource-selector 等）。 |
+| `ck.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
 
 新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-catalog.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
 
 ### 1.1.1 error code 命名空间例外（normative）
 
-`error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `bad_json`、`policy_violation`、`failed_precondition`），不加 `cx.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `cx.` 前缀补进 wire code。
+`error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `bad_json`、`policy_violation`、`failed_precondition`），不加 `ck.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `ck.` 前缀补进 wire code。
 
 新增标准错误码必须继续登记在 `error-code-registry.json`，不得因为本例外而在其它 registry 里注册裸名 action / event / operation。
 
@@ -55,9 +55,9 @@ sidebar:
 
 | 保留名（wire） | 当前语义 | 保留理由 | 防护参考 |
 | --- | --- | --- | --- |
-| event kind `cx.profile.space_override` | Realm-scoped Actor Profile override（`payload.target_realm_id` 是目标 Realm，不指向 `ck:space:` 容器，也不创建任何 Space 级访问边界） | 该 event 在反转前已经发布到 wire 并被多个客户端消费；强行重命名会破坏现存事件审计链与历史 query。新对象类型用 `cx.profile.realm_override` 命名。 | `event-payload.schema.json` `$defs/profile_realm_override_payload`；`contract-catalog.json` 中 payload description 显式说明语义；`zh/discovery/profiles-presence.md §3` 散文兼容声明 |
-| HTTP path segment `/mimi/rooms/...` → `/mimi/flows/...` | （已重命名，仅作对照说明）当前 wire 是 `/mimi/flows/{flow_id}/...`；旧路径已 hard reject。 | 不再保留 | 见 `renames.json` `/mimi/rooms/{flow_id}/...` |
-| operation id `cx.mimi.room_update` / `cx.mimi.notify` / `cx.mimi.submit_message` / `cx.mimi.group_info` | MIMI interop 命名空间内的标准操作；`room` 出现是为了与上游 MIMI 规范对齐 | MIMI interop 模块对外语义就是 "MIMI room"；仅在 interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
+| event kind `ck.profile.space_override` | Realm-scoped Actor Profile override（`payload.target_realm_id` 是目标 Realm，不指向 `ck:space:` 容器，也不创建任何 Space 级访问边界） | 该 event 在反转前已经发布到 wire 并被多个客户端消费；强行重命名会破坏现存事件审计链与历史 query。新对象类型用 `ck.profile.realm_override` 命名。 | `event-payload.schema.json` `$defs/profile_realm_override_payload`；`contract-catalog.json` 中 payload description 显式说明语义；`zh/discovery/profiles-presence.md §3` 散文兼容声明 |
+| HTTP path segment `/_cokret/open/mimi/rooms/...` → `/_cokret/open/mimi/flows/...` | （已重命名，仅作对照说明）当前 wire 是 `/_cokret/open/mimi/flows/{flow_id}/...`；旧路径已 hard reject。 | 不再保留 | 见 `renames.json` `/_cokret/open/mimi/rooms/{flow_id}/...` |
+| operation id `ck.mimi.room_update` / `ck.mimi.notify` / `ck.mimi.submit_message` / `ck.mimi.group_info` | MIMI interop 命名空间内的标准操作；`room` 出现是为了与上游 MIMI 规范对齐 | MIMI interop 模块对外语义就是 "MIMI room"；仅在 interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
 
 新增"有意保留的旧命名"必须在此表登记并在对应 schema / registry 内联说明保留理由；不得仅靠口头约定。下游漂移扫描器 SHOULD 把此表作为 allowlist。
 
@@ -65,53 +65,53 @@ sidebar:
 
 | schema id | kind |
 | --- | --- |
-| `cx.schema.realm.v1` | Realm |
-| `cx.schema.space.v1` | Space |
-| `cx.schema.actor_profile.v1` | Actor Profile |
-| `cx.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
-| `cx.schema.flow.v1` | Flow |
-| `cx.schema.message.v1` | Message |
-| `cx.schema.morph.v1` | Morph |
-| `cx.schema.relation.v1` | Relation |
-| `cx.schema.view.v1` | View |
-| `cx.schema.policy.v1` | Policy |
-| `cx.schema.invite.v1` | Invite |
-| `cx.schema.read_cursor.v1` | Read Cursor |
-| `cx.schema.notification.v1` | Notification |
-| `cx.schema.capability.v1` | Capability Grant |
-| `cx.schema.event.v1` | Event Envelope |
-| `cx.schema.event_payload.v1` | Standard Event Payload Classes |
-| `cx.schema.event_batch_receipt.v1` | Event Batch Receipt |
-| `cx.schema.cursor.v1` | Cursor |
-| `cx.schema.snapshot.v1` | Snapshot Manifest |
-| `cx.schema.grant_constraint.v1` | Grant Constraint |
-| `cx.schema.resource_selector.v1` | Resource Selector |
-| `cx.schema.did_key_log_entry.v1` | DID Key Log Entry |
-| `cx.schema.did_continuity_proof.v1` | DID Continuity Proof |
-| `cx.schema.identity_receipt.v1` | Identity Receipt |
-| `cx.schema.identity_link.v1` | Minimal-metadata E2EE identity link |
-| `cx.schema.handle_claim.v1` | Handle Claim |
-| `cx.schema.realm_join_candidate.v1` | Realm join candidate routing hint |
-| `cx.schema.media_metadata.v1` | Media Metadata |
-| `cx.schema.read_receipt.v1` | Read Receipt |
-| `cx.schema.blob.v1` | Blob Metadata |
-| `cx.schema.encrypted_envelope.v1` | MLS Encrypted Payload Envelope |
-| `cx.schema.key_backup.v1` | Encrypted Key Backup |
-| `cx.schema.recovery_policy.v1` | Principal Recovery Policy |
-| `cx.schema.recovery_session.v1` | Device Recovery Session |
-| `cx.schema.recovery_receipt.v1` | Recovery Receipt |
-| `cx.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
-| `cx.schema.device_message.v1` | To-device Message Envelope |
-| `cx.schema.mimi_interop.v1` | MIMI Provider Directory / MIMI Room Binding (interop; see [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)) / Mapping Receipt |
-| `cx.schema.moderation_report.v1` | Moderation Report |
-| `cx.schema.moderation_queue_item.v1` | Moderation Queue Item |
+| `ck.schema.realm.v1` | Realm |
+| `ck.schema.space.v1` | Space |
+| `ck.schema.actor_profile.v1` | Actor Profile |
+| `ck.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
+| `ck.schema.flow.v1` | Flow |
+| `ck.schema.message.v1` | Message |
+| `ck.schema.morph.v1` | Morph |
+| `ck.schema.relation.v1` | Relation |
+| `ck.schema.view.v1` | View |
+| `ck.schema.policy.v1` | Policy |
+| `ck.schema.invite.v1` | Invite |
+| `ck.schema.read_cursor.v1` | Read Cursor |
+| `ck.schema.notification.v1` | Notification |
+| `ck.schema.capability.v1` | Capability Grant |
+| `ck.schema.event.v1` | Event Envelope |
+| `ck.schema.event_payload.v1` | Standard Event Payload Classes |
+| `ck.schema.event_batch_receipt.v1` | Event Batch Receipt |
+| `ck.schema.cursor.v1` | Cursor |
+| `ck.schema.snapshot.v1` | Snapshot Manifest |
+| `ck.schema.grant_constraint.v1` | Grant Constraint |
+| `ck.schema.resource_selector.v1` | Resource Selector |
+| `ck.schema.did_key_log_entry.v1` | DID Key Log Entry |
+| `ck.schema.did_continuity_proof.v1` | DID Continuity Proof |
+| `ck.schema.identity_receipt.v1` | Identity Receipt |
+| `ck.schema.identity_link.v1` | Minimal-metadata E2EE identity link |
+| `ck.schema.handle_claim.v1` | Handle Claim |
+| `ck.schema.realm_join_candidate.v1` | Realm join candidate routing hint |
+| `ck.schema.media_metadata.v1` | Media Metadata |
+| `ck.schema.read_receipt.v1` | Read Receipt |
+| `ck.schema.blob.v1` | Blob Metadata |
+| `ck.schema.encrypted_envelope.v1` | MLS Encrypted Payload Envelope |
+| `ck.schema.key_backup.v1` | Encrypted Key Backup |
+| `ck.schema.recovery_policy.v1` | Principal Recovery Policy |
+| `ck.schema.recovery_session.v1` | Device Recovery Session |
+| `ck.schema.recovery_receipt.v1` | Recovery Receipt |
+| `ck.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
+| `ck.schema.device_message.v1` | To-device Message Envelope |
+| `ck.schema.mimi_interop.v1` | MIMI Provider Directory / MIMI Room Binding (interop; see [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)) / Mapping Receipt |
+| `ck.schema.moderation_report.v1` | Moderation Report |
+| `ck.schema.moderation_queue_item.v1` | Moderation Queue Item |
 
 ## 3. Event Type 设计约束
 
 ### 3.1 命名规则
 
-- 标准事件必须使用命名空间：`cx.<domain>[.<subdomain>].<verb>`。
-- 所有标准事件必须是 `cx.` 前缀。
+- 标准事件必须使用命名空间：`ck.<domain>[.<subdomain>].<verb>`。
+- 所有标准事件必须是 `ck.` 前缀。
 - 裸名事件（例如 `realm.create`）不是标准事件。
 - 自由字符串事件（如 `custom.*`）不能直接登记标准事件，需要通过自定义 schema + capability / state filter 映射。
 
@@ -131,113 +131,113 @@ sidebar:
 
 | event type | payload |
 | --- | --- |
-| `cx.realm.create` | Realm create |
-| `cx.realm.update` | Realm patch |
-| `cx.realm.upgrade` | Realm version upgrade |
-| `cx.realm.organization` | Realm official sponsor statement |
-| `cx.realm.link` | Typed Realm link graph edge |
-| `cx.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
-| `cx.realm.join_rule` | Join rule state |
-| `cx.realm.history_visibility` | History visibility state |
-| `cx.realm.history_sharing_policy` | E2EE history key share policy |
-| `cx.realm.discovery` | Discoverability state |
-| `cx.realm.preview_policy` | Preview / peek policy state |
-| `cx.realm.policy` | Realm policy state |
-| `cx.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
-| `cx.realm.tombstone` | Terminal Realm tombstone or replacement marker |
-| `cx.realm.archive` | Reversible archive state |
-| `cx.realm.freeze` | Temporary freeze state |
-| `cx.realm.destroy` | Terminal decommission marker |
-| `cx.member.state` | Membership state |
+| `ck.realm.create` | Realm create |
+| `ck.realm.update` | Realm patch |
+| `ck.realm.upgrade` | Realm version upgrade |
+| `ck.realm.organization` | Realm official sponsor statement |
+| `ck.realm.link` | Typed Realm link graph edge |
+| `ck.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
+| `ck.realm.join_rule` | Join rule state |
+| `ck.realm.history_visibility` | History visibility state |
+| `ck.realm.history_sharing_policy` | E2EE history key share policy |
+| `ck.realm.discovery` | Discoverability state |
+| `ck.realm.preview_policy` | Preview / peek policy state |
+| `ck.realm.policy` | Realm policy state |
+| `ck.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
+| `ck.realm.tombstone` | Terminal Realm tombstone or replacement marker |
+| `ck.realm.archive` | Reversible archive state |
+| `ck.realm.freeze` | Temporary freeze state |
+| `ck.realm.destroy` | Terminal decommission marker |
+| `ck.member.state` | Membership state |
 
-> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `cx.*` 前缀，也不得作为 Event envelope 的 `kind`。
-| `cx.flow.create` | Flow create |
-| `cx.flow.update` | Flow patch |
-| `cx.flow.archive` | Flow archive |
-| `cx.flow.restore` | Flow restore |
-| `cx.flow.move` | Flow move between Lists |
-| `cx.flow.reorder` | Flow reorder within List |
-| `cx.flow.tracks.update` | Flow tracks map patch（`cx.patch.v1` payload；详见 [`../models/flow-and-message.md` §4.8](../models/flow-and-message.md)） |
-| `cx.flow.watch.set` | Set / clear per-(flow, actor) watch subscription (writes cas_register cell `cx.component.flow.watch.v1`; derives `watches` Relation) |
-| `cx.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
-| `cx.space.update` | Space metadata patch |
-| `cx.space.parent` | Space parent declaration (cas_register cell) |
-| `cx.space.archive` | Space archive (reversible UI hide) |
-| `cx.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
-| `cx.space.tombstone` | Space tombstone (irreversible; contained Flows MUST be relocated first) |
+> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `ck.*` 前缀，也不得作为 Event envelope 的 `kind`。
+| `ck.flow.create` | Flow create |
+| `ck.flow.update` | Flow patch |
+| `ck.flow.archive` | Flow archive |
+| `ck.flow.restore` | Flow restore |
+| `ck.flow.move` | Flow move between Lists |
+| `ck.flow.reorder` | Flow reorder within List |
+| `ck.flow.tracks.update` | Flow tracks map patch（`ck.patch.v1` payload；详见 [`../models/flow-and-message.md` §4.8](../models/flow-and-message.md)） |
+| `ck.flow.watch.set` | Set / clear per-(flow, actor) watch subscription (writes cas_register cell `ck.component.flow.watch.v1`; derives `watches` Relation) |
+| `ck.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
+| `ck.space.update` | Space metadata patch |
+| `ck.space.parent` | Space parent declaration (cas_register cell) |
+| `ck.space.archive` | Space archive (reversible UI hide) |
+| `ck.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
+| `ck.space.tombstone` | Space tombstone (irreversible; contained Flows MUST be relocated first) |
 
 ### 4.2 消息与关系
 
 | event type | payload |
 | --- | --- |
-| `cx.morph.create` | Morph create |
-| `cx.morph.update` | Morph patch |
-| `cx.morph.archive` | Morph archive |
-| `cx.morph.restore` | Morph restore |
-| `cx.container.move_item` | Facet container item move |
-| `cx.container.rebalance` | Facet container rank rebalance |
-| `cx.message.create` | Message create |
-| `cx.message.revise` | Message edit patch |
-| `cx.message.redact` | Message-scoped redaction |
-| `cx.relation.create` | Relation create |
-| `cx.relation.update` | Relation patch |
-| `cx.relation.tombstone` | Relation tombstone |
-| `cx.reaction.add` | Reaction add |
-| `cx.reaction.remove` | Reaction remove |
-| `cx.read_cursor.advance` | Read cursor advance event |
-| `cx.receipt.read` | Read receipt event |
+| `ck.morph.create` | Morph create |
+| `ck.morph.update` | Morph patch |
+| `ck.morph.archive` | Morph archive |
+| `ck.morph.restore` | Morph restore |
+| `ck.container.move_item` | Facet container item move |
+| `ck.container.rebalance` | Facet container rank rebalance |
+| `ck.message.create` | Message create |
+| `ck.message.revise` | Message edit patch |
+| `ck.message.redact` | Message-scoped redaction |
+| `ck.relation.create` | Relation create |
+| `ck.relation.update` | Relation patch |
+| `ck.relation.tombstone` | Relation tombstone |
+| `ck.reaction.add` | Reaction add |
+| `ck.reaction.remove` | Reaction remove |
+| `ck.read_cursor.advance` | Read cursor advance event |
+| `ck.receipt.read` | Read receipt event |
 
 ### 4.3 授权与治理
 
 | event type | payload |
 | --- | --- |
-| `cx.capability.grant` | Grant |
-| `cx.capability.delegate` | Delegate grant |
-| `cx.capability.revoke` | Revocation |
-| `cx.capability.derived` | Derived capability state |
-| `cx.account.status` | Signed account lifecycle status |
-| `cx.profile.create` | Actor profile create |
-| `cx.profile.update` | Actor profile patch |
-| `cx.profile.space_override` | Realm-scoped profile override |
-| `cx.audit.accessed` | Auditable access |
-| `cx.moderation.report` | Moderation report |
-| `cx.key.verification.request` | Device key verification request |
-| `cx.key.verification.ready` | Device key verification ready |
-| `cx.key.verification.start` | Device key verification start |
-| `cx.key.verification.accept` | Device key verification accept |
-| `cx.key.verification.key` | Device key verification ephemeral key |
-| `cx.key.verification.mac` | Device key verification MAC |
-| `cx.key.verification.done` | Device key verification completion |
-| `cx.key.verification.cancel` | Device key verification cancellation |
-| `cx.session.grant` | Session grant |
-| `cx.device.authorize` | Device authorization |
-| `cx.device.revoke` | Device revocation |
-| `cx.device.list_update` | Device list update |
-| `cx.call.signal` | WebRTC signal message |
+| `ck.capability.grant` | Grant |
+| `ck.capability.delegate` | Delegate grant |
+| `ck.capability.revoke` | Revocation |
+| `ck.capability.derived` | Derived capability state |
+| `ck.account.status` | Signed account lifecycle status |
+| `ck.profile.create` | Actor profile create |
+| `ck.profile.update` | Actor profile patch |
+| `ck.profile.space_override` | Realm-scoped profile override |
+| `ck.audit.accessed` | Auditable access |
+| `ck.moderation.report` | Moderation report |
+| `ck.key.verification.request` | Device key verification request |
+| `ck.key.verification.ready` | Device key verification ready |
+| `ck.key.verification.start` | Device key verification start |
+| `ck.key.verification.accept` | Device key verification accept |
+| `ck.key.verification.key` | Device key verification ephemeral key |
+| `ck.key.verification.mac` | Device key verification MAC |
+| `ck.key.verification.done` | Device key verification completion |
+| `ck.key.verification.cancel` | Device key verification cancellation |
+| `ck.session.grant` | Session grant |
+| `ck.device.authorize` | Device authorization |
+| `ck.device.revoke` | Device revocation |
+| `ck.device.list_update` | Device list update |
+| `ck.call.signal` | WebRTC signal message |
 
 ### 4.4 加密、协作与扩展
 
 | event type | payload |
 | --- | --- |
-| `cx.mls.proposal` | MLS proposal |
-| `cx.mls.genesis` | MLS group genesis |
-| `cx.mls.commit` | MLS commit |
-| `cx.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
-| `cx.mls.welcome` | MLS welcome ref |
-| `cx.mls.keypackage` | MLS KeyPackage publication |
-| `cx.realm_key.share` | Realm key share |
-| `cx.realm_key.withheld` | Realm key withheld notice |
-| `cx.realm_key.share_audit` | Auditable history key share marker |
-| `cx.agent.endpoint` | Agent protocol endpoint declaration |
-| `cx.agent.protocol_session.start` | Agent protocol session start |
-| `cx.agent.protocol_session.status` | Agent protocol session status |
-| `cx.agent.protocol_session.result` | Agent protocol session result |
-| `cx.applet.bridge_error` | Bridge failure |
-| `cx.applet.registration` | Applet registration |
-| `cx.applet.protocol_session.start` | Applet / agent protocol session start |
-| `cx.applet.protocol_session.status` | Protocol session status |
-| `cx.mimi.room_binding` | MIMI room binding state |
-| `cx.redaction` | Generic redaction envelope |
+| `ck.mls.proposal` | MLS proposal |
+| `ck.mls.genesis` | MLS group genesis |
+| `ck.mls.commit` | MLS commit |
+| `ck.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
+| `ck.mls.welcome` | MLS welcome ref |
+| `ck.mls.keypackage` | MLS KeyPackage publication |
+| `ck.realm_key.share` | Realm key share |
+| `ck.realm_key.withheld` | Realm key withheld notice |
+| `ck.realm_key.share_audit` | Auditable history key share marker |
+| `ck.agent.endpoint` | Agent protocol endpoint declaration |
+| `ck.agent.protocol_session.start` | Agent protocol session start |
+| `ck.agent.protocol_session.status` | Agent protocol session status |
+| `ck.agent.protocol_session.result` | Agent protocol session result |
+| `ck.applet.bridge_error` | Bridge failure |
+| `ck.applet.registration` | Applet registration |
+| `ck.applet.protocol_session.start` | Applet / agent protocol session start |
+| `ck.applet.protocol_session.status` | Protocol session status |
+| `ck.mimi.room_binding` | MIMI room binding state |
+| `ck.redaction` | Generic redaction envelope |
 
 ## 5. Extension 约定
 
@@ -247,7 +247,7 @@ sidebar:
 com.example.schema.foo.v1
 ```
 
-自定义 event type MUST NOT 使用 `cx.` 前缀，除非被正式纳入标准注册表。
+自定义 event type MUST NOT 使用 `ck.` 前缀，除非被正式纳入标准注册表。
 
 ## 6. 演进约束
 

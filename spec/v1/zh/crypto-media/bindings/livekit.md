@@ -3,7 +3,7 @@ title: LiveKit Backend Binding
 status: candidate
 normative: true
 stability: v1
-profile: cx.profile.media_service_binding.livekit.v1
+profile: ck.profile.media_service_binding.livekit.v1
 updated: 2026-05-27
 sidebar:
   label: LiveKit Binding
@@ -15,9 +15,9 @@ sidebar:
 
 ## 1. 范围
 
-本附录定义 `cx.realm.media_service.foci[].type = "livekit"` 的 backend binding 细节。它 **不替代** [`../webrtc-signaling.md`](../webrtc-signaling.md)——参见该文件 §6.1（multi-focus schema）、§6.4（token exchange 通用契约）、§10.2（focus selection）、§10.4（participant identity 校验）、§10.5.0（E2EE key injection 通用契约）、§11（cx.call.state 字段）。
+本附录定义 `ck.realm.media_service.foci[].type = "livekit"` 的 backend binding 细节。它 **不替代** [`../webrtc-signaling.md`](../webrtc-signaling.md)——参见该文件 §6.1（multi-focus schema）、§6.4（token exchange 通用契约）、§10.2（focus selection）、§10.4（participant identity 校验）、§10.5.0（E2EE key injection 通用契约）、§11（ck.call.state 字段）。
 
-声明 `cx.profile.media_service_binding.livekit.v1` 的部署 MUST 同时声明上游 `cx.profile.media_service_binding.v1`。本 binding 在 v1 周期内为 **optional** sub-profile；core conformance 不强制实现 LiveKit binding。
+声明 `ck.profile.media_service_binding.livekit.v1` 的部署 MUST 同时声明上游 `ck.profile.media_service_binding.v1`。本 binding 在 v1 周期内为 **optional** sub-profile；core conformance 不强制实现 LiveKit binding。
 
 ## 2. Token Claims
 
@@ -33,14 +33,14 @@ sidebar:
 | `video.room` | `call_id` | MUST 等于请求的 `call_id`；LiveKit room name 由 issuer 派生（建议 `cx_call_<call_id_short_hash>`，不暴露 raw Realm/call id 到 LiveKit logs） |
 | `video.roomJoin` | `true` | join 权限 |
 | `video.canPublish` | `desired_media.audio ∨ video ∨ screen` | issuer 按 capability 派生 |
-| `video.canPublishSources[]` | `["microphone","camera","screen_share"]` 子集 | 与 `cx.call.screen_share` 等子 capability 对齐 |
+| `video.canPublishSources[]` | `["microphone","camera","screen_share"]` 子集 | 与 `ck.call.screen_share` 等子 capability 对齐 |
 | `video.canSubscribe` | `true` | 接收者权限 |
 | `video.hidden` | `false` | Cokret 不使用 LiveKit hidden participant |
 | `video.recorder` | `false` | recording 走 Cokret blob pipeline（§5），不通过 LiveKit recorder claim |
 
 Issuer MUST NOT 注入：
 
-- `metadata`：LiveKit 允许任意 JSON 字符串，但携带 `metadata` 会绕过 Cokret `participant_binding` 真源。Cokret participant metadata MUST 通过 `cx.call.state` 写入。
+- `metadata`：LiveKit 允许任意 JSON 字符串，但携带 `metadata` 会绕过 Cokret `participant_binding` 真源。Cokret participant metadata MUST 通过 `ck.call.state` 写入。
 - `video.canUpdateOwnMetadata`：禁止 client 改写 LiveKit metadata。
 
 ## 3. Connect Handshake
@@ -49,8 +49,8 @@ Issuer MUST NOT 注入：
 
 约束：
 
-- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../webrtc-signaling.md` §10.4](../webrtc-signaling.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `cx.call.state.participants[]` 找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_identity_unrecognised`。
-- 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `cx.call.state` + `participant_binding`。
+- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../webrtc-signaling.md` §10.4](../webrtc-signaling.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ck.call.state.participants[]` 找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_identity_unrecognised`。
+- 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `ck.call.state` + `participant_binding`。
 
 ## 4. E2EE Key Injection
 
@@ -69,9 +69,9 @@ LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 fram
 | --- | --- |
 | `audio: true` | `video.canPublishSources` 含 `microphone` |
 | `video: true` | `video.canPublishSources` 含 `camera` |
-| `screen: true` + `cx.call.screen_share` | `video.canPublishSources` 含 `screen_share` |
-| `cx.call.record` | recording 走 §6 不签 LiveKit recorder claim |
-| `cx.call.moderate` | issuer MAY 派生 `video.roomAdmin=true`，但生效仅限 LiveKit-level moderation（mute remote、disconnect），不替代 Cokret `cx.call.signal` moderation |
+| `screen: true` + `ck.call.screen_share` | `video.canPublishSources` 含 `screen_share` |
+| `ck.call.record` | recording 走 §6 不签 LiveKit recorder claim |
+| `ck.call.moderate` | issuer MAY 派生 `video.roomAdmin=true`，但生效仅限 LiveKit-level moderation（mute remote、disconnect），不替代 Cokret `ck.call.signal` moderation |
 
 ## 6. Recording
 
@@ -79,7 +79,7 @@ Cokret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoi
 
 - Egress destination MUST 是 Cokret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
 - 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"cx-rtc-recording-key/v1"`（与 SFrame `"cx-rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
-- 录制完成后通过 `cx.call.state` 发布 `state="recording_ready"` + blob hash。
+- 录制完成后通过 `ck.call.state` 发布 `state="recording_ready"` + blob hash。
 - 客户端检测到 LiveKit Egress 配置指向非 Cokret endpoint → fail closed `recording_artifact_pipeline_bypassed`。
 
 ## 7. Cascading
@@ -101,19 +101,19 @@ LiveKit Cloud SFU mesh 是 backend-internal 概念；Cokret 通过 `foci[].casca
 
 ## 10. Conformance Vectors
 
-实现声明 `cx.profile.media_service_binding.livekit.v1` 时，至少通过 [`../../../zh/conformance/conformance-vectors.md`](../../../zh/conformance/conformance-vectors.md) 中的：
+实现声明 `ck.profile.media_service_binding.livekit.v1` 时，至少通过 [`../../../zh/conformance/conformance-vectors.md`](../../../zh/conformance/conformance-vectors.md) 中的：
 
-- `cx.vector.media_binding.focus_selection_oldest_membership.v1`
-- `cx.vector.media_binding.session_focus_no_split_brain.v1`
-- `cx.vector.media_binding.token_exchange_minimal.v1`
-- `cx.vector.media_binding.token_issuer_unauthorised.v1`
-- `cx.vector.media_binding.participant_binding_required.v1`
-- `cx.vector.media_binding.unknown_type_fail_closed.v1`
-- `cx.vector.media_binding.e2ee_key_source.v1`
-- `cx.vector.media_binding.participant_identity_unrecognised.v1`
-- `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1`
-- `cx.vector.media_binding.recording_exporter_label.v1`
+- `ck.vector.media_binding.focus_selection_oldest_membership.v1`
+- `ck.vector.media_binding.session_focus_no_split_brain.v1`
+- `ck.vector.media_binding.token_exchange_minimal.v1`
+- `ck.vector.media_binding.token_issuer_unauthorised.v1`
+- `ck.vector.media_binding.participant_binding_required.v1`
+- `ck.vector.media_binding.unknown_type_fail_closed.v1`
+- `ck.vector.media_binding.e2ee_key_source.v1`
+- `ck.vector.media_binding.participant_identity_unrecognised.v1`
+- `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1`
+- `ck.vector.media_binding.recording_exporter_label.v1`
 
-LiveKit-specific vectors (JWT claim shape conformance、SFrame key injection cross-check) 在 v1 cycle 内非 normative；录制 exporter label 已由 `cx.vector.media_binding.recording_exporter_label.v1` 固定，任何 label/context 变更都必须开新 profile。
+LiveKit-specific vectors (JWT claim shape conformance、SFrame key injection cross-check) 在 v1 cycle 内非 normative；录制 exporter label 已由 `ck.vector.media_binding.recording_exporter_label.v1` 固定，任何 label/context 变更都必须开新 profile。
 
 具体向量 fixture 与脚本由 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json) 编排。

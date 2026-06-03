@@ -42,11 +42,11 @@
     },
     "previous_state_root": {
       "$ref": "#/$defs/hash",
-      "description": "Hash-algorithm transition only: present iff this Anchor is a Transition Anchor under cx.profile.hash_transition.v1. When present, MUST be computed with the previous digest_algorithm algorithm over the same frontier as state_root, and MUST equal the receiver-recomputed root under that algorithm before the new state_root is accepted. See event-auth-state-resolution.md §4.2.5."
+      "description": "Hash-algorithm transition only: present iff this Anchor is a Transition Anchor under ck.profile.hash_transition.v1. When present, MUST be computed with the previous digest_algorithm algorithm over the same frontier as state_root, and MUST equal the receiver-recomputed root under that algorithm before the new state_root is accepted. See event-auth-state-resolution.md §4.2.5."
     },
     "previous_digest_algorithm": {
       "type": "string",
-      "pattern": "^cx\\.profile\\.hash\\.[a-z0-9_]+\\.v[0-9]+$",
+      "pattern": "^ck\\.profile\\.hash\\.[a-z0-9_]+\\.v[0-9]+$",
       "description": "Profile id of the previous hash algorithm. Required iff previous_state_root is present; absent on non-transition Anchors."
     },
     "anchorer_signature": {

@@ -63,16 +63,16 @@ Cokret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
 
 ```json
 {
-  "type": "cx.service.tsp",
+  "type": "ck.service.tsp",
   "id": "did:web:server.example#tsp",
   "serviceEndpoint": "https://server.example/tsp",
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [
-    "cx.events.submit",
-    "cx.events.query",
-    "cx.identity.presentation",
-    "cx.agent.protocol_session.start"
+    "ck.events.submit",
+    "ck.events.query",
+    "ck.identity.presentation",
+    "ck.agent.protocol_session.start"
   ],
   "metadata_privacy": {
     "nested_messages": true,
@@ -85,7 +85,7 @@ Cokret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
 
 ### 4.1 Endpoint 反向绑定校验（normative）
 
-DID Document 或 normalized principal view 中出现 `cx.service.tsp` 只是一侧声明。Verifier 在把该 endpoint 作为可信 TSP 通道前，MUST 完成反向绑定校验，二选一：
+DID Document 或 normalized principal view 中出现 `ck.service.tsp` 只是一侧声明。Verifier 在把该 endpoint 作为可信 TSP 通道前，MUST 完成反向绑定校验，二选一：
 
 1. 调用 TSP endpoint 的等价 `/.well-known`、`/holder?did=<holder_did>` 或 profile 声明的 discovery API，取得由 endpoint service key 签名的声明，确认该 endpoint 确实服务该 holder / service DID、支持相同 VID scheme 与 payload set。
 2. 通过 OOBI / trust registry / support system 取得同一 endpoint 与 holder DID 的双向 binding proof，并验证 proof digest 与 DID Document service entry 一致。
@@ -98,15 +98,15 @@ DID Document 或 normalized principal view 中出现 `cx.service.tsp` 只是一�
 
 **Operation id**（取自 `operation-registry.json`）：
 
-- 跨 `trust_domain` 的 `cx.events.submit`
-- `cx.identity.submit_did_operation`
+- 跨 `trust_domain` 的 `ck.events.submit`
+- `ck.identity.submit_did_operation`
 
-**Durable Event kind carried inside `cx.events.submit`**：
+**Durable Event kind carried inside `ck.events.submit`**：
 
-- `cx.cross_signing.publish`
-- `cx.cross_signing.reset`
-- 跨 `trust_domain` 的 `cx.member.state`
-- 跨 `trust_domain` 的 `cx.invite.create`
+- `ck.cross_signing.publish`
+- `ck.cross_signing.reset`
+- 跨 `trust_domain` 的 `ck.member.state`
+- 跨 `trust_domain` 的 `ck.invite.create`
 
 **Capability action**：
 
@@ -120,7 +120,7 @@ Cokret operation 可作为 TSP application payload：
 
 ```json
 {
-  "operation": "cx.events.submit",
+  "operation": "ck.events.submit",
   "content_type": "application/cokret+json",
   "realm_id": "ck:realm:...",
   "payload_digest": "sha256:...",

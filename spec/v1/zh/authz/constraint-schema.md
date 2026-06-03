@@ -18,7 +18,7 @@ updated: 2026-05-25
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
 - **Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。
-- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `/policy/check` obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / Move canonical hash 绑定一致。
+- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `/_cokret/self/policy/check` obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / Move canonical hash 绑定一致。
 
 因此，`claim_based` constraint 中的 `requires_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有对应 Policy Server proof / accepted approval Event / reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
 
@@ -50,25 +50,25 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 
 约束类型分为 **core** 与 **extension** 两组：
 
-- **core**：所有声明 `cx.profile.core_event_store.v1` 的实现 MUST 支持。这些类型表达最小授权语义。
+- **core**：所有声明 `ck.profile.core_event_store.v1` 的实现 MUST 支持。这些类型表达最小授权语义。
 - **extension**：profile-gated。实现声明对应 profile 时 MUST 支持；未声明 MUST fail closed（不得 silent ignore，避免 grant 在弱实现上语义放宽）。
 
 | 约束 family | subtype（可选） | 类别 | 说明 | 启用 profile |
 |-------------|---------------|------|------|------|
 | `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
-| `temporal` | `edit_window` | extension | `applies_to_actions=["cx.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `cx.profile.chat_mvp.v1` |
-| `temporal` | `redact_window` | extension | `applies_to_actions=["cx.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `cx.profile.chat_mvp.v1` |
+| `temporal` | `edit_window` | extension | `applies_to_actions=["ck.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `ck.profile.chat_mvp.v1` |
+| `temporal` | `redact_window` | extension | `applies_to_actions=["ck.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ck.profile.chat_mvp.v1` |
 | `field_access` | （省略 = 列表比较） | core | `fields_write_allow` / `fields_write_deny` 等。 | core |
 | `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Flow / View / track 范围。 | core |
-| `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `cx.profile.kanban_mvp.v1` |
+| `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ck.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、subset_only 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
-| `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `cx.profile.constraint.resource_limit.v1` |
-| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；包含原 `accountability`（responsible / guardian / controller 通过 claim 表达）和原 `device_session`（device binding 通过 claim issuer = device cross-signing key 表达）。 | `cx.profile.constraint.claim_based.v1` |
-| `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `cx.profile.constraint.approval_workflow.v1` |
-| `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `cx.profile.constraint.encryption_requirement.v1` |
-| `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `cx.profile.constraint.visibility_control.v1` |
+| `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ck.profile.constraint.resource_limit.v1` |
+| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；包含原 `accountability`（responsible / guardian / controller 通过 claim 表达）和原 `device_session`（device binding 通过 claim issuer = device cross-signing key 表达）。 | `ck.profile.constraint.claim_based.v1` |
+| `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `ck.profile.constraint.approval_workflow.v1` |
+| `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ck.profile.constraint.encryption_requirement.v1` |
+| `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `ck.profile.constraint.visibility_control.v1` |
 
 > v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 表达：`edit_window` / `redact_window` 走 `temporal` (subtype 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`subtype=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`subtype=approval` / `accountability`)；device/session binding **不是独立 subtype**，并入 `claim_based` `subtype=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`subtype=encryption` / `visibility`)。底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 
@@ -228,7 +228,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
+`allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `ck.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
 
 `discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 决定。
 
@@ -261,7 +261,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
+`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ck.flow.move` / `ck.container.move_item` 不得直接生效。
 
 `allowed_space_ids` / `denied_space_ids` MUST 使用 `ck:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ck:space:`（或 profile 明确声明的 `ck:flow:` / `ck:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ck:realm:` 塞进 Space 或 container 字段。
 
@@ -280,7 +280,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`blob_presign_scope` 是 `cx.blob.presign` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_classes` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
+`blob_presign_scope` 是 `ck.blob.presign` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_classes` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
 
 ## 7. 委托控制
 
@@ -340,7 +340,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`blob_presign_max_ttl_seconds` 是 `cx.blob.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
+`blob_presign_max_ttl_seconds` 是 `ck.blob.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
 
 ## 9. 审批工作流（claim_based, subtype=approval）
 
@@ -549,7 +549,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   {
     "constraint_type": "temporal",
     "subtype": "edit_window",
-    "applies_to_actions": ["cx.message.revise.own"],
+    "applies_to_actions": ["ck.message.revise.own"],
     "effect": "allow",
     "message_edit_window": "PT15M",
     "allow_redact_after_window": true
@@ -557,7 +557,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   {
     "constraint_type": "temporal",
     "subtype": "redact_window",
-    "applies_to_actions": ["cx.message.redact.own"],
+    "applies_to_actions": ["ck.message.redact.own"],
     "effect": "allow",
     "message_redact_window": "PT24H"
   }
@@ -566,20 +566,20 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 **字段语义**：
 
-- `message_edit_window`：发送后可编辑消息（`cx.message.revise.own`）的时间窗口，从被编辑 Message 的 `created_at` 起算。
-- `message_redact_window`：发送后可撤回消息（`cx.message.redact.own`）的时间窗口，从被撤回 Message 的 `created_at` 起算。
+- `message_edit_window`：发送后可编辑消息（`ck.message.revise.own`）的时间窗口，从被编辑 Message 的 `created_at` 起算。
+- `message_redact_window`：发送后可撤回消息（`ck.message.redact.own`）的时间窗口，从被撤回 Message 的 `created_at` 起算。
 - `allow_redact_after_window`（默认 `false`）：控制**编辑窗口关闭后撤回是否仍被允许**。它只在约束声明了 `message_edit_window` 时有意义：
-  - `false`（默认）：未单独声明 `message_redact_window` 时，撤回与编辑共享同一时窗——编辑窗口过期后 `cx.message.redact.own` 一并被拒。
+  - `false`（默认）：未单独声明 `message_redact_window` 时，撤回与编辑共享同一时窗——编辑窗口过期后 `ck.message.redact.own` 一并被拒。
   - `true`：编辑窗口过期后仍允许撤回（典型"消息可删但不可改"产品语义）；此时撤回判定回退到 `message_redact_window`（若声明）或无上限（若未声明）。
   - 当 `message_redact_window` 已显式声明时，它对撤回具有权威性，`allow_redact_after_window` 不再改变撤回判定（上例中 `PT24H` 是权威撤回窗，`allow_redact_after_window=true` 仅显式表达"撤回不被 15 分钟编辑窗连带锁死"）。
 
-**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器按字段各自对应的 action enforce（`message_edit_window` → `cx.message.revise.own`；`message_redact_window` → `cx.message.redact.own`），与 `subtype` 标签本身无关。等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
+**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器按字段各自对应的 action enforce（`message_edit_window` → `ck.message.revise.own`；`message_redact_window` → `ck.message.redact.own`），与 `subtype` 标签本身无关。等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
 
-**超时行为**：窗口超时后 `cx.message.revise.own` 或 `cx.message.redact.own` MUST 被拒绝（`failed_precondition`），**除非** actor 持有更高权限的 `cx.message.revise` 或 `cx.message.redact`（不带 `.own` 后缀，典型是 moderator / admin）——后者不受 `.own` 时窗约束，使管理员可在窗口外撤回。
+**超时行为**：窗口超时后 `ck.message.revise.own` 或 `ck.message.redact.own` MUST 被拒绝（`failed_precondition`），**除非** actor 持有更高权限的 `ck.message.revise` 或 `ck.message.redact`（不带 `.own` 后缀，典型是 moderator / admin）——后者不受 `.own` 时窗约束，使管理员可在窗口外撤回。
 
-**无时限（unbounded）**：不在任何生效 grant 上声明 `message_redact_window`（且无 `allow_redact_after_window=false` 把撤回连带锁进编辑窗）即等价"撤回无时限"——`cx.message.redact.own` 仅受 capability 本身约束，不受时间限制。Realm 管理员据此可在"设最大撤回时限"（声明 `message_redact_window`）与"无时限"（省略）之间选择；编辑窗口同理。该约束族为 `extension` 类（profile `cx.profile.chat_mvp.v1`），未启用该 profile 的实现遇到这些字段 MUST fail closed（见 §2.2）。
+**无时限（unbounded）**：不在任何生效 grant 上声明 `message_redact_window`（且无 `allow_redact_after_window=false` 把撤回连带锁进编辑窗）即等价"撤回无时限"——`ck.message.redact.own` 仅受 capability 本身约束，不受时间限制。Realm 管理员据此可在"设最大撤回时限"（声明 `message_redact_window`）与"无时限"（省略）之间选择；编辑窗口同理。该约束族为 `extension` 类（profile `ck.profile.chat_mvp.v1`），未启用该 profile 的实现遇到这些字段 MUST fail closed（见 §2.2）。
 
-求值器对这些字段的 enforce 义务由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中对应 action 的 `required_constraints` 声明（`cx.message.revise.own` → `message_edit_window`；`cx.message.redact.own` → `message_redact_window`）。非 `.own` 的 `cx.message.revise` / `cx.message.redact` 可由 Realm policy 或 grant 自行声明更窄 temporal constraint，但 v1 core 不把自助窗口作为管理员 / moderator action 的 mandatory constraint。
+求值器对这些字段的 enforce 义务由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中对应 action 的 `required_constraints` 声明（`ck.message.revise.own` → `message_edit_window`；`ck.message.redact.own` → `message_redact_window`）。非 `.own` 的 `ck.message.revise` / `ck.message.redact` 可由 Realm policy 或 grant 自行声明更窄 temporal constraint，但 v1 core 不把自助窗口作为管理员 / moderator action 的 mandatory constraint。
 
 ## 15. 约束求值
 
@@ -742,7 +742,7 @@ function matches_field_access(operation, constraint):
 {
   "grant_id": "ck:grant:...",
   "subject": "did:web:agent.example.com",
-  "actions": ["cx.object.read", "cx.flow.create", "cx.morph.create"],
+  "actions": ["ck.object.read", "ck.flow.create", "ck.morph.create"],
   "resources": [
     {
       "kind": "flow",
@@ -819,7 +819,7 @@ Grant envelope 字段、签名规则与必填性以
 [`artifacts/schemas/capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json)
 为准；下述示例展示 grant 上下文中的典型 typed constraint 组合，不引入新规则。
 
-> Grant 撤销 MUST 表达为 accepted `cx.capability.revoke` Event 指向 `ck:grant:<uuid>`；
+> Grant 撤销 MUST 表达为 accepted `ck.capability.revoke` Event 指向 `ck:grant:<uuid>`；
 > Cokret v1 不注册 `ck:revocation-list:*` typed ID。
 
 #### 20.3.1 Field-level 与 Type 限制
@@ -856,7 +856,7 @@ Grant envelope 字段、签名规则与必填性以
   "effect": "allow",
   "requires_claims": [
     {
-      "claim_type": "contrix_org_membership_credential",
+      "claim_type": "cokret_org_membership_credential",
       "trusted_issuers": ["did:web:google.example"],
       "subject_matches_actor": true,
       "value_constraints": {

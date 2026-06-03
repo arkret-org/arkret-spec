@@ -22,7 +22,7 @@
       "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.erasure_receipt.v1"
+      "const": "ck.schema.erasure_receipt.v1"
     },
     "issuer": {
       "$ref": "#/$defs/did"
@@ -229,7 +229,7 @@
       ],
       "properties": {
         "stub_schema": {
-          "const": "cx.schema.erasure_verification_stub.v1"
+          "const": "ck.schema.erasure_verification_stub.v1"
         },
         "subject": {
           "type": "object",

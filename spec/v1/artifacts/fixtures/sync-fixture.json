@@ -1,5 +1,5 @@
 {
-  "profile": "cx.profile.sync_vectors.v1",
+  "profile": "ck.profile.sync_vectors.v1",
   "version": "2026-05-02",
   "collection_projection": {
     "projection": "collection",
@@ -29,8 +29,8 @@
               "rank": "U"
             },
             "permissions": [
-              "cx.flow.read",
-              "cx.flow.update"
+              "ck.flow.read",
+              "ck.flow.update"
             ],
             "pending_events": [],
             "conflict_records": []
@@ -73,7 +73,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "recovery": {
-        "call": "cx.snapshot.head",
+        "call": "ck.snapshot.head",
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
       }
     }

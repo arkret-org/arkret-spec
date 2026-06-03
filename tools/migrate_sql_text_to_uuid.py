@@ -31,7 +31,7 @@ TARGETS = [
 ]
 
 # Columns that store Cokret typed UUIDv7 values (per id-kind-registry):
-UUID_COLUMNS_CONTRIX = {
+UUID_COLUMNS_COKRET = {
     # core wire IDs
     "event_id", "realm_id", "space_id", "flow_id", "morph_id", "view_id",
     "relation_id", "from_entity_id", "to_entity_id",
@@ -67,7 +67,7 @@ UUID_COLUMNS_SOLAND_INTERNAL = {
     "registration_id", "operation_id",
 }
 
-UUID_COLUMNS = UUID_COLUMNS_CONTRIX | UUID_COLUMNS_SOLAND_INTERNAL
+UUID_COLUMNS = UUID_COLUMNS_COKRET | UUID_COLUMNS_SOLAND_INTERNAL
 
 # Pattern: column declaration line where TEXT appears as the type.
 # Examples it must match:

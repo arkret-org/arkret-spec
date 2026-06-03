@@ -136,14 +136,14 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 | 标识层 | 由谁决定 | 解析/验证通道 | 示例 |
 | --- | --- | --- | --- |
 | DID 历史托管域名 | DID method 与 SCID（一旦签发即写入历史链） | `did:webvh` `did.jsonl` + entry hash chain + witness | `did:webvh:<scid>:users.acme.example` |
-| Principal Server 服务域名 | DID Document 中 `service` entry 的 `serviceEndpoint`，受组织/用户 service delegation 控制 | DID Document service binding + service DID 解析 + describe 响应 + `destination` 绑定（见 [federation.md §6](../sync/federation.md)） | `https://principal-7.cluster.acme.example:8443/api/v1` |
+| Principal Server 服务域名 | DID Document 中 `service` entry 的 `serviceEndpoint`，受组织/用户 service delegation 控制 | DID Document service binding + service DID 解析 + describe 响应 + `destination` 绑定（见 [federation.md §6](../sync/federation.md)） | `https://principal-7.cluster.acme.example:8443` |
 | Handle 域名 | Holder 选择并通过双向验证发布 | DNS TXT / HTTPS well-known + DID Document `alsoKnownAs` 双向验证（见 [identity-handles.md §5–§6](./identity-handles.md)） | `alice.example.com`、`@alice:example.org` |
 
 要点：
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Principal Server，也**不**是用户公开 handle。
 - 用户/组织搬迁 Principal Server、变更端口、增加 mirror、切换到第三方 host 时，正确路径是更新 DID Document 中的 service entry 并重新签发 service delegation；这条路径会进入可验证历史，不依赖 DNS+TLS 的现时强度。
-- DID Document 中的 `CokretPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Realm 的强制投递入口。某个 Realm 中已接受的 `cx.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_did`，该 Realm 的事件、sync、to-device、push 与 key package 投递 MUST 优先使用该 binding。只有 Realm policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_digest` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Realm 的投递路径。
+- DID Document 中的 `CokretPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Realm 的强制投递入口。某个 Realm 中已接受的 `ck.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_did`，该 Realm 的事件、sync、to-device、push 与 key package 投递 MUST 优先使用该 binding。只有 Realm policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_digest` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Realm 的投递路径。
 - Handle（例如 `@alice:acme.example` / `alice@acme.example`，canonical `alice:acme.example`）属于 Handle 层，不属于 DID method 或 DID Document service discovery。它 MAY 解析出 `subject DID + member_delivery_binding`，但该结果只有在加入 Realm 时被物化为 `delivery_binding` 并通过 Realm policy 校验后，才成为 Realm-scoped 投递路径。
 - Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `alice:alice.example.com` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 issuer claim 双向验证一致。
 - [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/cokret/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；权威服务发现源仍然是 DID Document 的 service entry。
@@ -182,10 +182,10 @@ Cokret v1 core conformance 要求如下：
   - ✅ 已缓存对象的本地搜索 / 本地索引查询
   - ✅ 已收到 snapshot / Anchor 的 state_root 重算(用于本地一致性自检)
   - ❌ 接收新到达的 Event Envelope / Move / Anchor 并写入本地 store(即使是只读 store)
-  - ❌ 联邦 transaction 接收(`POST /api/v1/events` 的 service-to-service 形态:含 `Source-Service-DID` / `Destination-Service-DID` header)
+  - ❌ 联邦 transaction 接收(`POST /_cokret/self/events` 的 service-to-service 形态:含 `Source-Service-DID` / `Destination-Service-DID` header)
   - ❌ Push notification wakeup 后的 client sync 拉取
   - ❌ 任何 capability cache 重建或 freshness check
-  - ❌ 任何 `cx.session.grant` 验证或登录态续期
+  - ❌ 任何 `ck.session.grant` 验证或登录态续期
   - ❌ Snapshot witness 接收
   - ❌ 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `unknown_did`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
 - fallback 期间禁止任何 live DID Document 解析、handle re-resolution、capability subject 重映射或基于网络响应的缓存索引重建。允许的"本地搜索"只能读取进入 degraded mode 之前已经由 verified DID evidence 建好的本地索引；实现不得在 outage 期间用新的 DNS / HTTPS / handle 结果重建索引或补全 subject。
@@ -223,7 +223,7 @@ artifact。
 
 - Service Describe 响应的 `trust_domain` 字段（所有 `*/describe` endpoint 返回同一 `ServiceDescribe` shape）；
 - Realm create object 的 `trust_domain` 字段（首次写入后 immutable，跟随 Realm create event 锁定）；
-- 任何跨域可重放的 high-risk proof transcript（例如 `cx.cross_signing.reset` §14.1 canonical input）。
+- 任何跨域可重放的 high-risk proof transcript（例如 `ck.cross_signing.reset` §14.1 canonical input）。
 
 约束：
 
@@ -372,13 +372,13 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 3. Auth Server 生成一次性 challenge。challenge MUST 绑定用途、目标服务、origin / audience、过期时间和随机 nonce。
 4. 客户端使用该 DID 当前有效的 `authentication` verification method、已授权 device key，或被有效 session / device grant 覆盖的临时 key 签名 challenge。
 5. Auth Server 验证签名、verification method 当前有效性、challenge 未过期且未使用过。
-6. 验证通过后，Auth Server MAY 创建或更新 `service_account -> principal_id` 绑定，并签发短期 `cx.session.grant` 或登记 device binding。
+6. 验证通过后，Auth Server MAY 创建或更新 `service_account -> principal_id` 绑定，并签发短期 `ck.session.grant` 或登记 device binding。
 
 签名 payload SHOULD 使用结构化 canonical JSON，至少包含：
 
 ```json
 {
-  "kind": "cx.did.proof",
+  "kind": "ck.did.proof",
   "purpose": "account_binding",
   "did": "did:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "audience": "did:web:auth.acme.example",
@@ -398,7 +398,7 @@ Auth Server 在以下情况下 MUST NOT 接受 DID proof：
 - `issued_at` 相对 Auth Server 时钟的偏移超过 skew 容忍（SHOULD ≤ 300s），或 `expires_at - issued_at` 超过最大新鲜度窗口（SHOULD ≤ 300s）——否则签发方可任意拉宽重放窗口
 - DID 已停用或 method history 无效
 
-Conformance vector `cx.vector.identity.did_proof_replay_window.v1` 固定该 replay 边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 DID proof。
+Conformance vector `ck.vector.identity.did_proof_replay_window.v1` 固定该 replay 边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 DID proof。
 
 service account 绑定是组织本地状态。它不会把 DID 所有权转移给组织，也不会允许组织轮换、恢复或停用用户 DID，除非 DID 自身控制状态或 recovery policy 授权该动作。
 
@@ -419,7 +419,7 @@ Normalized principal view SHOULD 包含：
 - `authentication_methods`
 - `assertion_methods`
 - `service_bindings`
-- `contrix_bindings`
+- `cokret_bindings`
 - `method_evidence`
 - `limitations`
 
@@ -499,8 +499,8 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
       "serviceEndpoint": "https://acme.example/.well-known/cokret/governance"
     }
   ],
-  "contrix_governance": {
-    "profile": "cx.org.governance.v1",
+  "cokret_governance": {
+    "profile": "ck.org.governance.v1",
     "threshold": {
       "required": 2,
       "eligible_methods": [
@@ -572,7 +572,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 1. proposal 绑定 service DID、service endpoint、purpose、scope、plaintext visibility、validFrom / validUntil 和 revocation path。
 2. quorum proof 覆盖完整 proposal。
-3. DID Document service entry 或 Cokret `cx.realm.organization` / policy state 发布 delegation。
+3. DID Document service entry 或 Cokret `ck.realm.organization` / policy state 发布 delegation。
 4. 接收方在接受该 service 的事件、明文可见性或 federation transaction 前，验证 organization DID、quorum proof、service DID 控制权和 Realm policy。
 
 **Emergency recovery**：

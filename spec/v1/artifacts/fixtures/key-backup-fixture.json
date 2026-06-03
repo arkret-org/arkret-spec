@@ -1,8 +1,8 @@
 {
   "suite": "key_backup_schema_validation",
-  "profile": "cx.profile.key_backup.memory_hard.v1",
+  "profile": "ck.profile.key_backup.memory_hard.v1",
   "version": "2026-05-26",
-  "description": "Positive and negative wire-form validation cases for key backup and recovery contracts. Covers cx.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, auth_data.signed_fields coverage required for series fields, and minimal cx.schema.recovery_policy.v1 / cx.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.6 / §8 and crypto-media/device-lifecycle.md §12 / §15. Lint runs tools/lint_artifacts.py against schema_validation_cases[].",
+  "description": "Positive and negative wire-form validation cases for key backup and recovery contracts. Covers ck.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, auth_data.signed_fields coverage required for series fields, and minimal ck.schema.recovery_policy.v1 / ck.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.6 / §8 and crypto-media/device-lifecycle.md §12 / §15. Lint runs tools/lint_artifacts.py against schema_validation_cases[].",
   "schema_validation_cases": [
     {
       "name": "genesis_envelope_valid",
@@ -31,7 +31,7 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "aead_profile": "cx.aead.xchacha20_poly1305.v1",
+            "aead_profile": "ck.aead.xchacha20_poly1305.v1",
             "nonce": "nonce-base64url-placeholder",
             "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
           },
@@ -92,7 +92,7 @@
           "recipient_key_ref": "mls_group_secrets_backup_key",
           "aead": {
             "name": "xchacha20_poly1305",
-            "aead_profile": "cx.aead.xchacha20_poly1305.v1",
+            "aead_profile": "ck.aead.xchacha20_poly1305.v1",
             "nonce": "nonce-base64url-placeholder"
           }
         },
@@ -270,7 +270,7 @@
           "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery",
           "aead": {
             "name": "chacha20_poly1305",
-            "aead_profile": "cx.aead.chacha20_poly1305.v1",
+            "aead_profile": "ck.aead.chacha20_poly1305.v1",
             "enc": "hpke-enc-base64url-placeholder"
           }
         },
@@ -327,7 +327,7 @@
           "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery",
           "aead": {
             "name": "chacha20_poly1305",
-            "aead_profile": "cx.aead.chacha20_poly1305.v1"
+            "aead_profile": "ck.aead.chacha20_poly1305.v1"
           }
         },
         "contents": [
@@ -457,7 +457,7 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "aead_profile": "cx.aead.xchacha20_poly1305.v1",
+            "aead_profile": "ck.aead.xchacha20_poly1305.v1",
             "nonce": "nonce-base64url-placeholder",
             "nonce_salt": "noncesaltnoncesaltnoncesalt1111"
           },
@@ -923,7 +923,7 @@
       "schema_ref": "schemas/recovery-policy.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "cx.schema.recovery_policy.v1",
+        "schema": "ck.schema.recovery_policy.v1",
         "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 1,
@@ -980,7 +980,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'supersedes' is a required property",
       "instance": {
-        "schema": "cx.schema.recovery_policy.v1",
+        "schema": "ck.schema.recovery_policy.v1",
         "policy_id": "ck:policy:01964140-0000-7000-8000-000000000001",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 2,
@@ -1018,7 +1018,7 @@
       "schema_ref": "schemas/recovery-policy.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "cx.schema.recovery_policy.v1",
+        "schema": "ck.schema.recovery_policy.v1",
         "policy_id": "ck:policy:01964140-0000-7000-8000-000000000002",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 2,
@@ -1049,7 +1049,7 @@
       "schema_ref": "schemas/recovery-session.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "cx.schema.recovery_session.v1",
+        "schema": "ck.schema.recovery_session.v1",
         "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "requesting_device_id": "ck:device:01964139-0000-7000-8000-000000000000",
@@ -1069,7 +1069,7 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_transcript",
       "expect_valid": true,
       "instance": {
-        "type": "cx.identity.recovery_proof.v1",
+        "type": "ck.identity.recovery_proof.v1",
         "kind": "principal_signing",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "requesting_device_id": "ck:device:01964139-0000-7000-8000-000000000000",
@@ -1088,7 +1088,7 @@
       "schema_ref": "schemas/recovery-receipt.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "cx.schema.recovery_receipt.v1",
+        "schema": "ck.schema.recovery_receipt.v1",
         "receipt_id": "ck:receipt:01964141-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000000",
@@ -1145,7 +1145,7 @@
       "expect_valid": false,
       "first_expected_error": "$.backup_classes_unlocked[0]: 'series_id' is a required property",
       "instance": {
-        "schema": "cx.schema.recovery_receipt.v1",
+        "schema": "ck.schema.recovery_receipt.v1",
         "receipt_id": "ck:receipt:01964141-0000-7000-8000-000000000001",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000001",

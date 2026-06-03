@@ -106,7 +106,7 @@ API 调用 SHOULD 使用以下方式之一：
 
 - 带有 `access_token`、`session_token`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
-- `cx.blob.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
+- `ck.blob.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
 
 ### 3.1 认证服务发现
@@ -122,7 +122,7 @@ API 调用 SHOULD 使用以下方式之一：
     "token_endpoint_auth_methods": ["private_key_jwt", "client_secret_basic"],
     "supported_grant_types": ["authorization_code", "refresh_token"],
     "did_binding_methods": ["session_grant", "did_http_signature"],
-    "required_audience": "https://server.example/api/v1"
+    "required_audience": "https://server.example"
   }
 }
 ```
@@ -163,7 +163,7 @@ API 调用 SHOULD 使用以下方式之一：
   "ok": false,
   "error": {
     "code": "capability_denied",
-    "message": "actor does not have cx.flow.update on this flow",
+    "message": "actor does not have ck.flow.update on this flow",
     "retry_after_ms": null,
     "details": {}
   },
@@ -183,7 +183,7 @@ API 调用 SHOULD 使用以下方式之一：
 - 错误语义必须使用单一标准 code。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。
 - `stale_frontier` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
 - 格式错误的 cursor 使用 `invalid_param` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
-- `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `cx.*` Event kind。二者不得互相替代。
+- `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ck.*` Event kind。二者不得互相替代。
 - `conflict` / 409 是抽象 base code；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `discussion_track_disabled` / `duplicate_conflict` / `epoch_mismatch` / `key_unavailable` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `audit_receipt_invalidated`）。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 
@@ -191,7 +191,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 ### 5.2 未知路径与错误方法
 
-对 `/api/v1/*` 与 `/cokret/v1/*` 之下的请求，服务端 MUST 使用统一错误响应，不得返回 HTML、纯文本框架错误或实现栈信息。
+对 `/_cokret/*` 之下的请求，服务端 MUST 使用统一错误响应，不得返回 HTML、纯文本框架错误或实现栈信息。
 
 规则：
 
@@ -225,17 +225,17 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。可作为 `after` / `before` / `prev_cursor` / `next_cursor` 回传。 | `/account/subscribe` frame 的 `cursor` 与重连 `after=` 参数、`timeline.prev_cursor` / `next_cursor`、列表分页 `next_cursor`、`cx.events.query`（含联邦 pull 复用形态 `GET /api/v1/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。可作为 `after` / `before` / `prev_cursor` / `next_cursor` 回传。 | `/_cokret/self/account/subscribe` frame 的 `cursor` 与重连 `after=` 参数、`timeline.prev_cursor` / `next_cursor`、列表分页 `next_cursor`、`ck.events.query`（含联邦 pull 复用形态 `GET /_cokret/self/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Cokret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
-任何返回 cursor 对的响应（`cx.events.query`、列表分页等）使用统一的**绝对方向**约定；`/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
+任何返回 cursor 对的响应（`ck.events.query`、列表分页等）使用统一的**绝对方向**约定；`/_cokret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
 
 | 响应字段 | 含义 | 回传给下一次请求 |
 | --- | --- | --- |
-| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `cx.events.query` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
-| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `cx.events.query` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批；或作为 catch-up subscribe 起点 |
+| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ck.events.query` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
+| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ck.events.query` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批；或作为 catch-up subscribe 起点 |
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
@@ -262,7 +262,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 **`<items_field>` 命名约定** (normative)：
 - 优先使用资源复数名（`realms[]` / `flows[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时（mixed entity 搜索、private contact discovery 等），使用 `results[]`；
-- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `cx.device_messages.get` 与 `cx.account.subscribe`）。
+- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ck.device_messages.get` 与 `ck.account.subscribe`）。
 
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
@@ -270,7 +270,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 **`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
 
-**Cursor 方向参数** (`before` / `after`)：见 §3.3 与 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `cx.device_messages.get` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
+**Cursor 方向参数** (`before` / `after`)：见 §3.3 与 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `ck.device_messages.get` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
 
 服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `invalid_param`。
 
@@ -362,6 +362,10 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - Preflight、CORS error、redirect 与 4xx/5xx body 都不得泄露不可见 Realm、actor、member 或 blob 是否存在。
 
 ## 11. 版本与 feature discovery
+
+**path 不含版本段。** 所有 HTTP path 都是 `/_cokret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/cokret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ck.schema.*.v1`）和 event kind 版本后缀承载。
+
+版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。破坏性变更通过新增 event kind / schema id + `renames.json` 的 `hard_reject` + `forbidden-wire-fields` + profile gating + CHANGELOG 发布门槛承载，从不发生"整面切 v2"。如确需在传输层标注协议版本，用请求/响应 header（`Cokret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
 
 每个服务 SHOULD 暴露 describe endpoint，返回：
 

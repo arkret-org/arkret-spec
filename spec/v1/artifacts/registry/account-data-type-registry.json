@@ -1,15 +1,15 @@
 {
   "version": "2026-05-23",
   "source_of_truth": true,
-  "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through cx.account_data.set unless a row explicitly lists another actor-private event kind.",
+  "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ck.account_data.set unless a row explicitly lists another actor-private event kind.",
   "account_data_types": [
     {
-      "key_pattern": "cx.tags.realm.<realm_id>",
+      "key_pattern": "ck.tags.realm.<realm_id>",
       "status": "active",
       "scope": "realm_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Private per-Realm tags and ordering hints.",
       "source_refs": [
@@ -17,12 +17,12 @@
       ]
     },
     {
-      "key_pattern": "cx.push_rules",
+      "key_pattern": "ck.push_rules",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Principal-private notification and push rule configuration.",
       "source_refs": [
@@ -31,12 +31,12 @@
       ]
     },
     {
-      "key_pattern": "cx.dnd_schedule",
+      "key_pattern": "ck.dnd_schedule",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Principal-private do-not-disturb schedule used by notification routing.",
       "source_refs": [
@@ -44,12 +44,12 @@
       ]
     },
     {
-      "key_pattern": "cx.collections.stickers",
+      "key_pattern": "ck.collections.stickers",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Principal-private custom emoji and sticker collection metadata.",
       "source_refs": [
@@ -57,12 +57,12 @@
       ]
     },
     {
-      "key_pattern": "cx.client.ui_state",
+      "key_pattern": "ck.client.ui_state",
       "status": "active",
       "scope": "device_or_principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Private client UI state such as sidebar, recent spaces, language, and layout preferences.",
       "source_refs": [
@@ -70,13 +70,13 @@
       ]
     },
     {
-      "key_pattern": "cx.account.blocklist",
+      "key_pattern": "ck.account.blocklist",
       "status": "active",
       "scope": "principal_private_policy",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set",
-        "cx.account.blocklist"
+        "ck.account_data.set",
+        "ck.account.blocklist"
       ],
       "description": "Holder-private personal blocklist. It affects only the holder's local projection, notifications, contact handling, and trusted holder-side filtering.",
       "source_refs": [
@@ -85,12 +85,12 @@
       ]
     },
     {
-      "key_pattern": "cx.contacts.actor.<did>",
+      "key_pattern": "ck.contacts.actor.<did>",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Private local remark, note, tag, and pin metadata for an actor, organization, device, or service DID.",
       "source_refs": [
@@ -98,12 +98,12 @@
       ]
     },
     {
-      "key_pattern": "cx.contacts.realm.<realm_id>",
+      "key_pattern": "ck.contacts.realm.<realm_id>",
       "status": "active",
       "scope": "realm_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Private local remark, note, tag, and pin metadata for a Realm.",
       "source_refs": [
@@ -111,12 +111,12 @@
       ]
     },
     {
-      "key_pattern": "cx.read_receipt.preferences",
+      "key_pattern": "ck.read_receipt.preferences",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Private read-receipt send/display defaults and per-Realm or per-Flow overrides.",
       "source_refs": [
@@ -125,29 +125,29 @@
       ]
     },
     {
-      "key_pattern": "cx.agent.draft.v1:<agent_principal_id>:<draft_id>",
+      "key_pattern": "ck.agent.draft.v1:<agent_principal_id>:<draft_id>",
       "status": "active",
       "scope": "controller_private_state",
       "storage": "encrypted_account_data",
       "owner_principal": "controller",
       "write_event_kinds": [
-        "cx.agent.action_approve",
-        "cx.account_data.set"
+        "ck.agent.action_approve",
+        "ck.account_data.set"
       ],
-      "description": "Controller-owned encrypted draft created when Principal Server materializes an agent's cx.agent.draft.propose / cx.agent.action_request after capability / policy / accountability / risk check. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See CXP-0008 §4.8 / private-objects.md §4.1.",
+      "description": "Controller-owned encrypted draft created when Principal Server materializes an agent's ck.agent.draft.propose / ck.agent.action_request after capability / policy / accountability / risk check. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See CXP-0008 §4.8 / private-objects.md §4.1.",
       "source_refs": [
         "spec/v1/proposals/0008-personal-agent-provisioning.md",
         "spec/v1/zh/models/private-objects.md"
       ]
     },
     {
-      "key_pattern": "cx.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>",
+      "key_pattern": "ck.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>",
       "status": "active",
       "scope": "controller_private_preference",
       "storage": "encrypted_account_data",
       "owner_principal": "controller",
       "write_event_kinds": [
-        "cx.account_data.set"
+        "ck.account_data.set"
       ],
       "description": "Controller-private personal-track projection for the agent sidecar UI (cross-device sync of My AI tab order, pin state, addressed agents). MUST NOT modify target Flow tracks map or write any target-side metadata / Relation / watch / unread / search / notification state. See CXP-0009 §4.14 / private-objects.md §4.1.",
       "source_refs": [

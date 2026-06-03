@@ -27,7 +27,7 @@ discussion: <pending>
 
 ## 1. Summary
 
-定义 `cx.profile.media_service_binding.v1`：把"媒体服务实例"从 Realm policy 中的单一 `sfu_endpoint` 字段升级为 **multi-focus 列表 + 抽象 backend 描述符**；定义统一的 **token exchange 端点契约**（Matrix MSC4195 `lk-jwt-service` 的等价物）；定义 **session focus 选择与持久化规则**（`oldest_membership` 模式）；并规定 **具体 backend binding 附录** 的写法（v1 给出 LiveKit binding 作为参考）。
+定义 `ck.profile.media_service_binding.v1`：把"媒体服务实例"从 Realm policy 中的单一 `sfu_endpoint` 字段升级为 **multi-focus 列表 + 抽象 backend 描述符**；定义统一的 **token exchange 端点契约**（Matrix MSC4195 `lk-jwt-service` 的等价物）；定义 **session focus 选择与持久化规则**（`oldest_membership` 模式）；并规定 **具体 backend binding 附录** 的写法（v1 给出 LiveKit binding 作为参考）。
 
 设计目标是：**协议层永不规定 SFU 内部协议**；backend 替换不破坏 wire；MoQ 等未来 transport 通过新增 `type` 值接入而不破坏现有客户端。
 
@@ -35,11 +35,11 @@ discussion: <pending>
 
 ### 2.1 现状缺口
 
-[`webrtc-signaling.md` §6.1](../zh/crypto-media/webrtc-signaling.md) 的 `cx.realm.media_service` 把 SFU 视为单实例 endpoint：
+[`webrtc-signaling.md` §6.1](../zh/crypto-media/webrtc-signaling.md) 的 `ck.realm.media_service` 把 SFU 视为单实例 endpoint：
 
 ```json
 { "service_id": "did:web:media.example.com",
-  "sfu_endpoint": "https://sfu.example.com/cokret/v1",
+  "sfu_endpoint": "https://sfu.example.com",
   ... }
 ```
 
@@ -79,13 +79,13 @@ Matrix 走过的弯路给出明确答案（详见 [MSC4143 MatrixRTC](https://gi
 
 ## 4. 规格草案（outline）
 
-### 4.1 升级 `cx.realm.media_service`
+### 4.1 升级 `ck.realm.media_service`
 
 把现行单 endpoint 形态扩展为 multi-focus 列表（保持向后兼容：单 focus 是 N=1 的特例）：
 
 ```json
 {
-  "kind": "cx.realm.media_service",
+  "kind": "ck.realm.media_service",
   "payload": {
     "service_id": "did:web:media.example.com",
     "foci": [
@@ -93,16 +93,16 @@ Matrix 走过的弯路给出明确答案（详见 [MSC4143 MatrixRTC](https://gi
         "focus_id": "fra-1",
         "type": "livekit",
         "region": "eu-fra",
-        "token_endpoint": "https://media.example.com/cokret/v1/rtc/token",
+        "token_endpoint": "https://media.example.com/_cokret/self/rtc/token",
         "connect_url": "wss://livekit-fra.example.com",
         "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-        "health_endpoint": "https://media.example.com/cokret/v1/rtc/health/fra-1"
+        "health_endpoint": "https://media.example.com/_cokret/self/rtc/health/fra-1"
       },
       {
         "focus_id": "us-east-1",
         "type": "livekit",
         "region": "us-east",
-        "token_endpoint": "https://media.example.com/cokret/v1/rtc/token",
+        "token_endpoint": "https://media.example.com/_cokret/self/rtc/token",
         "connect_url": "wss://livekit-use.example.com",
         "capabilities": ["audio", "video", "screen", "e2ee_sframe"]
       }
@@ -120,7 +120,7 @@ Matrix 走过的弯路给出明确答案（详见 [MSC4143 MatrixRTC](https://gi
 - `foci[].token_endpoint` — token 兑换端点（见 §4.2）。**所有 backend 共用同一抽象**，差异只在返回 payload 形态。
 - `foci[].connect_url` — backend 连接入口（具体协议见 type-specific 附录）。
 - `foci[].capabilities` — 该 focus 支持的能力子集，用于客户端能力协商。
-- `foci[].health_endpoint` (optional) — 客户端预检 endpoint。返回 `200` + `{"status":"ok","load":<0..1>}` 表示可用。该 endpoint 只用于**尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `cx.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus 造成 split-brain。
+- `foci[].health_endpoint` (optional) — 客户端预检 endpoint。返回 `200` + `{"status":"ok","load":<0..1>}` 表示可用。该 endpoint 只用于**尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `ck.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus 造成 split-brain。
 
 ### 4.2 Token Exchange 端点（normative，所有 backend 通用）
 
@@ -150,7 +150,7 @@ Content-Type: application/json
   "backend_token": "<opaque to Cokret protocol — type-specific>",
   "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
-    "scheme": "cx.media.participant_binding.v1",
+    "scheme": "ck.media.participant_binding.v1",
     "realm_id": "ck:realm:...",
     "call_id": "ck:call:...",
     "focus_id": "fra-1",
@@ -172,16 +172,16 @@ Content-Type: application/json
 - Token issuer MUST 在签发前完成 §4.4 的权限校验。
 - TTL 短期化：**MUST ≤ 600s**（10 分钟），SHOULD ≤ 300s。过期前客户端 MUST 重新兑换。
 - `participant_identity` 在 backend 中作为 SFU-local handle，MUST 不携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §6.6 pairwise pseudonym](../zh/crypto-media/webrtc-signaling.md) 规则对齐），且 MUST 至少绑定 `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` 派生。
-- `participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺；客户端 MUST 先验证该 binding，再把它写入 / 对照 `cx.call.state` membership。backend 只需要看到 `participant_identity` 与 `backend_token`，不应获得长期 actor 身份。
-- **Token issuer DID 锚定**：响应中的 `service_signature.kid` 与 `participant_binding.issuer_kid` MUST 对应一个出现在当前 epoch `cx.realm.media_service.service_id` 的 service DID（即该 service 在 Realm policy 中已被 `cx.call.configure_media_service` 或 `cx.policy.manage` 显式授权）；客户端 MUST 拒绝来自未授权 DID 的 token。这把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
+- `participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺；客户端 MUST 先验证该 binding，再把它写入 / 对照 `ck.call.state` membership。backend 只需要看到 `participant_identity` 与 `backend_token`，不应获得长期 actor 身份。
+- **Token issuer DID 锚定**：响应中的 `service_signature.kid` 与 `participant_binding.issuer_kid` MUST 对应一个出现在当前 epoch `ck.realm.media_service.service_id` 的 service DID（即该 service 在 Realm policy 中已被 `ck.call.configure_media_service` 或 `ck.policy.manage` 显式授权）；客户端 MUST 拒绝来自未授权 DID 的 token。这把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
 
 ### 4.3 Focus 选择规则（normative）
 
-`m.rtc.member` 的 Cokret 等价物（沿用现有 `cx.call.state` membership facet）新增 call-level `session_focus` 与 participant-level binding 字段：
+`m.rtc.member` 的 Cokret 等价物（沿用现有 `ck.call.state` membership facet）新增 call-level `session_focus` 与 participant-level binding 字段：
 
 ```json
 {
-  "kind": "cx.call.state",
+  "kind": "ck.call.state",
   "payload": {
     "call_id": "ck:call:...",
     "state": "active",
@@ -193,7 +193,7 @@ Content-Type: application/json
         "device_id": "ck:device:...",
         "foci_preferred": ["fra-1", "us-east-1"],
         "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-        "participant_binding": { "scheme": "cx.media.participant_binding.v1", "...": "..." },
+        "participant_binding": { "scheme": "ck.media.participant_binding.v1", "...": "..." },
         "joined_at": "2026-05-27T10:00:00.123Z"
       }
     ]
@@ -203,7 +203,7 @@ Content-Type: application/json
 
 **选举规则**（确定性，无投票）：
 
-1. 若 `cx.call.state.session_focus` 已存在，它就是唯一 authoritative focus；客户端和 token issuer MUST 使用它。
+1. 若 `ck.call.state.session_focus` 已存在，它就是唯一 authoritative focus；客户端和 token issuer MUST 使用它。
 2. 若 `session_focus` 尚不存在，收集所有当前 active member 的 `(joined_at, actor_id, device_id, foci_preferred)` 元组；按 `(joined_at, actor_id, device_id)` 升序，**oldest_membership 的 `foci_preferred[0]` 被写入 `session_focus`**。
 3. 后加入者 MUST 使用同一 `session_focus`，无论自己的偏好；如果该 focus 在自己的 preferred 列表中不存在，客户端 MAY 拒绝加入（fail closed）。
 4. Token issuer MUST 拒绝任何 `focus_id != session_focus` 的 token exchange；这条规则优先于 health check、region preference 和 load balancing。
@@ -218,10 +218,10 @@ Token 端点扮演的角色等价于 [MSC4195 `lk-jwt-service`](https://github.c
 - 调用者 device proof / bearer 有效，未 revoked。
 - Actor 在 `realm_id` 拥有 `call.join` capability。
 - 请求的 `desired_media` 不超过授权（`call.screen_share` 等子 capability 检查）。
-- Realm policy 允许该 `focus_id`（即 focus 出现在当前 `cx.realm.media_service.foci[]` 中）。
-- 如果 `cx.call.state.session_focus` 已存在，请求的 `focus_id` 与其完全一致；不一致 MUST 返回 `focus_mismatch` / `sfu_not_allowed` 的等价错误并拒绝签发。
+- Realm policy 允许该 `focus_id`（即 focus 出现在当前 `ck.realm.media_service.foci[]` 中）。
+- 如果 `ck.call.state.session_focus` 已存在，请求的 `focus_id` 与其完全一致；不一致 MUST 返回 `focus_mismatch` / `sfu_not_allowed` 的等价错误并拒绝签发。
 - call state 允许新 participant，且该 `(actor_id, device_id)` 未被 revoked、未被 ban / suspended。
-- MLS governance binding `policy_root` 与 `cx.realm.media_service` 当前 epoch 一致（防 stale policy）。
+- MLS governance binding `policy_root` 与 `ck.realm.media_service` 当前 epoch 一致（防 stale policy）。
 - 如果 backend 将解密媒体（`media_service_decrypts=true`），完整执行 [`webrtc-signaling.md` §10.3.1](../zh/crypto-media/webrtc-signaling.md) 的三层校验。
 
 ### 4.5 Backend Binding 附录格式（normative meta-rule）
@@ -236,7 +236,7 @@ Token 端点扮演的角色等价于 [MSC4195 `lk-jwt-service`](https://github.c
 | Capability mapping | `desired_media` 字段如何映射到 backend 内部权限 |
 | Cascading 行为 | backend 是否支持 mesh / cascading，及如何配置 |
 | Failure modes | 错误码到 [`webrtc-signaling.md` §16](../zh/crypto-media/webrtc-signaling.md) 错误表的映射 |
-| Participant identity validation | backend "X 加入"通知与 `cx.call.state` membership 的交叉校验路径 |
+| Participant identity validation | backend "X 加入"通知与 `ck.call.state` membership 的交叉校验路径 |
 
 v1 提案随附 LiveKit binding 草案（`bindings/livekit.md`）作为示例与 conformance baseline。
 
@@ -260,7 +260,7 @@ inject_frame_key(key_bytes: 32-byte secret,
 Backend 通知"X 加入会议"时，客户端 MUST：
 
 1. 从 backend 通知中提取 `participant_identity`。
-2. 在当前 `cx.call.state.participants[]` 中查找同一 `participant_identity`。
+2. 在当前 `ck.call.state.participants[]` 中查找同一 `participant_identity`。
 3. 验证该 participant entry 内的 `participant_binding` 签名，确认它覆盖同一 `(realm_id, call_id, session_focus, actor_id, device_id, participant_identity)`。
 4. 不匹配或签名无效 → 拒绝建立该 participant 的媒体流，报 `participant_identity_unrecognised`。
 
@@ -275,7 +275,7 @@ Backend 通知"X 加入会议"时，客户端 MUST：
 
 但协议层 MUST 暴露 cascading 状态：
 
-- `cx.realm.media_service.foci[].cascade_group` 字段（optional），声明属于同一 backend cluster 的 focus 集合。
+- `ck.realm.media_service.foci[].cascade_group` 字段（optional），声明属于同一 backend cluster 的 focus 集合。
 - 客户端可以读出该字段并向用户提示"跨区域会议由 backend 内部级联，媒体延迟取决于 backend 配置"。
 
 ### 4.7 Recording Artifact 流转（normative）
@@ -285,7 +285,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 1. Backend recording component 把录制结果作为加密 blob **上传到 Cokret media service**（通过 [`media-and-blob.md`](../zh/crypto-media/media-and-blob.md) 的 authenticated upload 端点），不得自行托管。
 2. 上传请求 MUST 携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `call.record` 的 actor 发起。
 3. 录制 artifact 加密 key MUST 由 Cokret 协议层提供（与 §4.5.1 同源），backend 不持久化明文。Artifact encryption key MUST come from MLS exporter label `"cx-rtc-recording-key/v1"` with `Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`; it MUST NOT reuse SFrame label `"cx-rtc-frame-key/v1"` or an empty Context。
-4. 入库后通过已注册的 `cx.call.state` 写入 call lifecycle state（例如 `state="recording_ready"` / `state="recording_failed"`），并在 payload 中引用 blob hash、duration、media type、retention policy 和 `recording_start_event_id`。v1 不新增 `cx.call.recording.artifact` event kind。
+4. 入库后通过已注册的 `ck.call.state` 写入 call lifecycle state（例如 `state="recording_ready"` / `state="recording_failed"`），并在 payload 中引用 blob hash、duration、media type、retention policy 和 `recording_start_event_id`。v1 不新增 `ck.call.recording.artifact` event kind。
 
 这保证 backend 是"录制执行单元"而非"录制档案库"，audit 链与生命周期管控不被 backend 实现细节绕过。
 
@@ -293,33 +293,33 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 
 至少：
 
-- `cx.vector.media_binding.focus_selection_oldest_membership.v1` — 多人不同 preferred 时 oldest member 偏好胜出。
-- `cx.vector.media_binding.session_focus_no_split_brain.v1` — `session_focus` 一旦写入，token issuer 拒绝其他 focus；connect 失败不得静默切换。
-- `cx.vector.media_binding.token_exchange_minimal.v1` — token 端点最小字段集与 TTL ≤ 600s。
-- `cx.vector.media_binding.token_issuer_unauthorised.v1` — token issuer DID 不在 `cx.realm.media_service.service_id` 列表时客户端 MUST 拒绝。
-- `cx.vector.media_binding.participant_binding_required.v1` — 缺失或签名无效的 participant binding 必须拒绝。
-- `cx.vector.media_binding.unknown_type_fail_closed.v1` — 未知 `type` 值客户端 MUST 拒绝加入。
-- `cx.vector.media_binding.e2ee_key_source.v1` — backend 即使支持自家 E2EE，密钥源 MUST 来自 Cokret MLS exporter；backend 自生成 key 时客户端拒绝。
-- `cx.vector.media_binding.participant_identity_unrecognised.v1` — backend 通知 join 的 participant 不在 `cx.call.state` 时客户端拒绝该流。
-- `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1` — backend-generated recording 必须通过 Cokret blob pipeline 入库，并用 `cx.call.state` 发布结果；绕过路径拒绝。
-- `cx.vector.media_binding.recording_exporter_label.v1` — recording key 必须使用 `"cx-rtc-recording-key/v1"` 与 recording transcript Context；复用 SFrame label 或空 Context 必须拒绝。
+- `ck.vector.media_binding.focus_selection_oldest_membership.v1` — 多人不同 preferred 时 oldest member 偏好胜出。
+- `ck.vector.media_binding.session_focus_no_split_brain.v1` — `session_focus` 一旦写入，token issuer 拒绝其他 focus；connect 失败不得静默切换。
+- `ck.vector.media_binding.token_exchange_minimal.v1` — token 端点最小字段集与 TTL ≤ 600s。
+- `ck.vector.media_binding.token_issuer_unauthorised.v1` — token issuer DID 不在 `ck.realm.media_service.service_id` 列表时客户端 MUST 拒绝。
+- `ck.vector.media_binding.participant_binding_required.v1` — 缺失或签名无效的 participant binding 必须拒绝。
+- `ck.vector.media_binding.unknown_type_fail_closed.v1` — 未知 `type` 值客户端 MUST 拒绝加入。
+- `ck.vector.media_binding.e2ee_key_source.v1` — backend 即使支持自家 E2EE，密钥源 MUST 来自 Cokret MLS exporter；backend 自生成 key 时客户端拒绝。
+- `ck.vector.media_binding.participant_identity_unrecognised.v1` — backend 通知 join 的 participant 不在 `ck.call.state` 时客户端拒绝该流。
+- `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1` — backend-generated recording 必须通过 Cokret blob pipeline 入库，并用 `ck.call.state` 发布结果；绕过路径拒绝。
+- `ck.vector.media_binding.recording_exporter_label.v1` — recording key 必须使用 `"cx-rtc-recording-key/v1"` 与 recording transcript Context；复用 SFrame label 或空 Context 必须拒绝。
 
 ## 5. Interactions with normative spec
 
 | 文件 | 影响 |
 | --- | --- |
-| [`zh/crypto-media/webrtc-signaling.md`](../zh/crypto-media/webrtc-signaling.md) | §6.1 schema 扩展（`sfu_endpoint` → `foci[]`，兼容退化）；§7.2 `focus_join`/`focus_leave` 语义补全；§10.1 SFU join request/response 重新框架化为 type-specific 附录；§11 `cx.call.state` 增加 `session_focus`、`participant_identity`、`participant_binding`；§13 录制结果继续使用 `cx.call.state` |
+| [`zh/crypto-media/webrtc-signaling.md`](../zh/crypto-media/webrtc-signaling.md) | §6.1 schema 扩展（`sfu_endpoint` → `foci[]`，兼容退化）；§7.2 `focus_join`/`focus_leave` 语义补全；§10.1 SFU join request/response 重新框架化为 type-specific 附录；§11 `ck.call.state` 增加 `session_focus`、`participant_identity`、`participant_binding`；§13 录制结果继续使用 `ck.call.state` |
 | `zh/crypto-media/bindings/livekit.md` | **新文件** — LiveKit binding |
 | `zh/crypto-media/bindings/cokret-native.md` | **新文件** — 把现行 §10.1 自定义 SFU 信令搬入此处作为 reference impl |
-| [`zh/sync/service-http-binding.md`](../zh/sync/service-http-binding.md)、[`zh/sync/service-surface.md`](../zh/sync/service-surface.md) | 登记 token exchange canonical operation 与默认 HTTP binding（建议 `POST /cokret/v1/rtc/token`），并在 media service describe 中暴露 |
-| [`zh/authz/capabilities.md`](../zh/authz/capabilities.md) | 已有 `cx.call.configure_media_service` 不变；`call.join` / `call.screen_share` / `call.record` 等现行裸名在 accepted 迁移时必须注册或收敛到 `cx.call.*` action，不得只停留在 narrative |
+| [`zh/sync/service-http-binding.md`](../zh/sync/service-http-binding.md)、[`zh/sync/service-surface.md`](../zh/sync/service-surface.md) | 登记 token exchange canonical operation 与默认 HTTP binding（建议 `POST /_cokret/self/rtc/token`），并在 media service describe 中暴露 |
+| [`zh/authz/capabilities.md`](../zh/authz/capabilities.md) | 已有 `ck.call.configure_media_service` 不变；`call.join` / `call.screen_share` / `call.record` 等现行裸名在 accepted 迁移时必须注册或收敛到 `ck.call.*` action，不得只停留在 narrative |
 | `artifacts/registry/operation-registry.json`、`artifacts/openapi/cokret-service-api.openapi.yaml` | 新增 token exchange operation / schema / error response；health endpoint 若保留也要登记 discovery 语义 |
-| `artifacts/registry/event-kind-registry.json` | `cx.realm.media_service` payload schema 更新；不新增 recording artifact event kind |
+| `artifacts/registry/event-kind-registry.json` | `ck.realm.media_service` payload schema 更新；不新增 recording artifact event kind |
 | `artifacts/registry/error-code-registry.json` | 新增 `focus_mismatch`、`e2ee_key_source_unauthorised`、`participant_identity_unrecognised` 等错误码，或映射到既有 canonical code |
-| `artifacts/profiles/conformance-profiles.json` | 新增 `cx.profile.media_service_binding.v1`；具体 backend binding 作为可选 sub-profile |
+| `artifacts/profiles/conformance-profiles.json` | 新增 `ck.profile.media_service_binding.v1`；具体 backend binding 作为可选 sub-profile |
 | `artifacts/registry/vector-registry.json` | 新增 §4.8 列出的向量 |
 
-**Forbidden wire**：旧客户端发出的 `cx.realm.media_service` 单 endpoint 形态在本提案 accepted 后的 **v1 cycle 全程** SHOULD 被规范化为单 focus 列表；服务端 MAY 在事件 reducer / projection 入口自动迁移（把 `sfu_endpoint` 重写为 `foci=[{focus_id:"legacy",type:"cokret-native",connect_url:<sfu_endpoint>,...}]`），且 MUST 在 normalization 时打 audit log；v1.1 起单 endpoint 形态升级为 `failed_precondition`（`reason="legacy_single_endpoint_media_service"`）。`foci[].type` MUST 有 registry source of truth；客户端遇到未知 `type` 或已知但 unsupported / experimental 的 `type` MUST fail closed，而不是尝试把 token 交给任意 SDK。
+**Forbidden wire**：旧客户端发出的 `ck.realm.media_service` 单 endpoint 形态在本提案 accepted 后的 **v1 cycle 全程** SHOULD 被规范化为单 focus 列表；服务端 MAY 在事件 reducer / projection 入口自动迁移（把 `sfu_endpoint` 重写为 `foci=[{focus_id:"legacy",type:"cokret-native",connect_url:<sfu_endpoint>,...}]`），且 MUST 在 normalization 时打 audit log；v1.1 起单 endpoint 形态升级为 `failed_precondition`（`reason="legacy_single_endpoint_media_service"`）。`foci[].type` MUST 有 registry source of truth；客户端遇到未知 `type` 或已知但 unsupported / experimental 的 `type` MUST fail closed，而不是尝试把 token 交给任意 SDK。
 
 ## 6. Rationale & alternatives
 
@@ -336,26 +336,26 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 1. **是否在 v1 normative 中包含 LiveKit binding，还是仅作为参考附录？** 包含的代价是把 LiveKit 协议变动纳入 Cokret v1 ratification 风险；不包含的代价是 implementer 缺少 reference。倾向：**作为参考附录 (`bindings/livekit.md`) 但 conformance profile 标 optional**，不进入 v1 mandatory 集合。
 2. **Cascading 节点级可观测性** — backend 是否需要向客户端汇报"你被路由到了哪个具体 SFU 节点 / region"以便用户诊断和透明度？目前 §4.6 只暴露静态 `cascade_group`。增加运行时可观测意味着 backend 暴露内部拓扑，可能与某些 backend 商业部署模式冲突。等 LiveKit binding 起草时根据实际 SDK 能力决定。
 3. **`cokret-native` reference impl 的命运** — 当前 §10.1 自定义 SFU 信令一旦被搬入 binding 附录，是否值得继续维护？还是只保留它作为"协议自洽性测试"用途，并在文档中明确不推荐生产使用？
-4. **call capability 命名收敛** — 现行 `webrtc-signaling.md` 使用 `call.join` / `call.record` 裸名，但 capability registry 的标准动作使用 `cx.*` 命名。accepted 迁移前需要决定是注册兼容裸名，还是一次性收敛为 `cx.call.join` / `cx.call.record` 等。
+4. **call capability 命名收敛** — 现行 `webrtc-signaling.md` 使用 `call.join` / `call.record` 裸名，但 capability registry 的标准动作使用 `ck.*` 命名。accepted 迁移前需要决定是注册兼容裸名，还是一次性收敛为 `ck.call.join` / `ck.call.record` 等。
 
 ## 8. Resolved Decisions（记录已定取舍）
 
 为避免后续重新争论：
 
 - **Token TTL**：MUST ≤ 600s，SHOULD ≤ 300s（§4.2）。
-- **Token issuer DID 锚定**：必须等于 Realm-configured `cx.realm.media_service.service_id`（§4.2）。
+- **Token issuer DID 锚定**：必须等于 Realm-configured `ck.realm.media_service.service_id`（§4.2）。
 - **Focus health check**：可选 `health_endpoint` 只参与 pre-commit 排序；`session_focus` 写入后不得静默 fallback（§4.1 / §4.3）。
 - **Backend-native E2EE 密钥来源**：MUST 来自 Cokret MLS exporter，固定客户端侧接口 `inject_frame_key(key_bytes, epoch_id, rotation_trigger)`，MLS-Exporter label 固定为 `"cx-rtc-frame-key/v1"`、context 空、`KDF.Nh=32`（§4.5.1）。
 - **遗留单 endpoint 形态**：v1 cycle 内 SHOULD 接受并 normalize 为 `foci=[{type:"cokret-native",...}]`；v1.1 起 `failed_precondition` `reason="legacy_single_endpoint_media_service"`（§5）。
-- **Participant identity 交叉校验**：客户端 MUST 校验 backend 通知的 participant 与 `cx.call.state` 中的 signed `participant_binding` 一致（§4.5.2）。
+- **Participant identity 交叉校验**：客户端 MUST 校验 backend 通知的 participant 与 `ck.call.state` 中的 signed `participant_binding` 一致（§4.5.2）。
 - **MoQ 保留位**：v1 schema 接受 `type: "moq-relay"`，但 v1 周期内不提供 normative binding（§4.1）。
-- **Recording artifact**：backend 可执行录制，但 artifact MUST 经 Cokret blob pipeline 入库，加密 key 来自协议层 MLS exporter label `"cx-rtc-recording-key/v1"`，结果通过 `cx.call.state` 发布，不新增 `cx.call.recording.artifact` event（§4.7）。
+- **Recording artifact**：backend 可执行录制，但 artifact MUST 经 Cokret blob pipeline 入库，加密 key 来自协议层 MLS exporter label `"cx-rtc-recording-key/v1"`，结果通过 `ck.call.state` 发布，不新增 `ck.call.recording.artifact` event（§4.7）。
 - **Focus migration**：v1 不提供在线 focus 切换；session 持续到所有人离开（§4.3）。
 
 ## 9. Migration plan（accepted 后填）
 
 - Phase 1：webrtc-signaling.md §6.1 扩展为 multi-focus（兼容退化）；§10.1 文本搬入 `bindings/cokret-native.md` 作为 reference impl，不改 wire。
-- Phase 2：补 `cx.call.state.session_focus` / `participant_binding` schema、token exchange operation、OpenAPI、error registry 与 backend type registry。
+- Phase 2：补 `ck.call.state.session_focus` / `participant_binding` schema、token exchange operation、OpenAPI、error registry 与 backend type registry。
 - Phase 3：新增 `bindings/livekit.md`，给出完整 LiveKit binding，conformance profile 标 optional。
 - Phase 4：vector-registry 落 §4.8 向量。
 - Phase 5：observation period 后，决定是否把 LiveKit binding 升 candidate normative。

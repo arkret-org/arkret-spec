@@ -70,7 +70,7 @@ sidebar:
     混淆 `realm_id` / `service scope` / `destination` / `organization` 的绑定域，触发越权写入或错误可见性。
 
 17. **邀请令牌与第三方身份绑定滥用（Third-Party Invite Abuse）**
-    针对 `cx.invite.third_party` / `cx.invite.claim` 的 token 泄露、重放、并发认领进行滥用。
+    针对 `ck.invite.third_party` / `ck.invite.claim` 的 token 泄露、重放、并发认领进行滥用。
 
 18. **会话成员与设备凭证滥用（Session/Device Credential Abuse）**
     复用未及时撤销的 device/session/gateway token 继续提交高敏操作、join、invite 或读取。
@@ -84,7 +84,7 @@ sidebar:
 21. **URL 凭证泄露（URL Credential Leakage）**
     将 session token、API key 或签名材料放入 query string，导致浏览器历史、代理日志、崩溃日志、复制链接或 referrer 泄露。
 
-    *受控例外：`cx.blob.presign`* — 为兼容浏览器原生标签（`<img src>` / `<video src>` 等无法附 Authorization header）允许由 blob service DID 签发的 pre-signed URL 通过 `?presign=<envelope>` 携带认证。该例外受 §5.4 [`crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) 严格收紧：TTL ≤ 1h、单 blob、只读、可撤销、不得用于 E2EE 附件；envelope 内不得包含可重用 credential；服务端用 audit log 追踪签发。**除此一个明确登记的例外外，本威胁项规则不变**：session token / refresh token / capability grant / device key 等任何长期或可重用凭证仍 MUST NOT 进入 URL。
+    *受控例外：`ck.blob.presign`* — 为兼容浏览器原生标签（`<img src>` / `<video src>` 等无法附 Authorization header）允许由 blob service DID 签发的 pre-signed URL 通过 `?presign=<envelope>` 携带认证。该例外受 §5.4 [`crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) 严格收紧：TTL ≤ 1h、单 blob、只读、可撤销、不得用于 E2EE 附件；envelope 内不得包含可重用 credential；服务端用 audit log 追踪签发。**除此一个明确登记的例外外，本威胁项规则不变**：session token / refresh token / capability grant / device key 等任何长期或可重用凭证仍 MUST NOT 进入 URL。
 
 22. **媒体侧信道探测（Media Header / Range Probe）**
     通过 `HEAD`、`Range`、`Content-Length`、`Content-Type`、`Content-Disposition` 或 redirect 差异推断私有 blob 是否存在、大小、类型或文件名。
@@ -139,7 +139,7 @@ sidebar:
 | 会话凭证滥用 | 是 | `account-lifecycle` 强制撤销链路、推送网关 token 与 service token 的短期有效策略。 |
 | MLS epoch 滥用 | 是 | epoch monotonic、移除成员 fail-closed、提交顺序与 commit/proposal 校验。 |
 | 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。 |
-| URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`cx.blob.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
+| URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ck.blob.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
 | 出站 URL / SSRF | 是 | [`sync/api-conventions.md`](../sync/api-conventions.md) §11.2 的出站网络目标策略；DID、联邦、媒体、snapshot、Policy Server、Webhook、Applet/Agent endpoint 统一做私网/metadata 地址拒绝、DNS rebind 防护和 redirect 复核。 |
 
@@ -190,7 +190,7 @@ sidebar:
 
 ### 4.6 加密状态与通知
 
-- `cx.mls` 提交需保留 `epoch`、`commit`、proposal 关系；移除成员不得解密后续事件。
+- `ck.mls` 提交需保留 `epoch`、`commit`、proposal 关系；移除成员不得解密后续事件。
 - 推送网关仅接收最小唤醒元数据，禁止推送明文内容。
 
 ## 5. 相关文档

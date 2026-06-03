@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/identity-link.schema.json",
   "title": "Cokret Minimal-Metadata Identity Link",
-  "description": "Encrypted application-message or MLS private-extension payload that binds a Realm-scoped pairwise DID to the real principal DID for cx.profile.mls.minimal_metadata_realm.v1. The binding is scoped to both realm_id and trust_domain so the same pairwise mapping cannot be replayed across deployments. This object is never written to public Realm history unless a separate disclosure policy explicitly permits it.",
+  "description": "Encrypted application-message or MLS private-extension payload that binds a Realm-scoped pairwise DID to the real principal DID for ck.profile.mls.minimal_metadata_realm.v1. The binding is scoped to both realm_id and trust_domain so the same pairwise mapping cannot be replayed across deployments. This object is never written to public Realm history unless a separate disclosure policy explicitly permits it.",
   "type": "object",
   "required": [
     "schema",
@@ -18,7 +18,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "cx.schema.identity_link.v1"
+      "const": "ck.schema.identity_link.v1"
     },
     "status": {
       "type": "string",
@@ -62,7 +62,7 @@
     "mls_group_id": {
       "type": "string",
       "minLength": 1,
-      "description": "Optional MLS group identifier (base64url RFC 9420 GroupID) for diagnostic / cross-implementation correlation. NOT used by the reducer for authorization — authoritative MLS group state lives in cx.mls.genesis / cx.mls.commit events. Provided here so audit projections can quickly correlate an identity-link with its MLS group without replaying the full epoch chain."
+      "description": "Optional MLS group identifier (base64url RFC 9420 GroupID) for diagnostic / cross-implementation correlation. NOT used by the reducer for authorization — authoritative MLS group state lives in ck.mls.genesis / ck.mls.commit events. Provided here so audit projections can quickly correlate an identity-link with its MLS group without replaying the full epoch chain."
     },
     "mls_leaf_index": {
       "type": "integer",

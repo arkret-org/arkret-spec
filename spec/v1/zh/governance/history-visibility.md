@@ -40,8 +40,8 @@ Reader 的成员时点：
 
 | 名称 | 定义 |
 | --- | --- |
-| `invite_frontier(reader)` | 最近一次有效 `cx.member.state{membership=invite}` 或等价 invite accept / claim 使 reader 成为 invited 的 Anchor frontier；被 revoke / expire / reject 后失效。 |
-| `join_frontier(reader)` | 最近一次有效 `cx.member.state{membership=join}` 使 reader 成为 active member 的 Anchor frontier。 |
+| `invite_frontier(reader)` | 最近一次有效 `ck.member.state{membership=invite}` 或等价 invite accept / claim 使 reader 成为 invited 的 Anchor frontier；被 revoke / expire / reject 后失效。 |
+| `join_frontier(reader)` | 最近一次有效 `ck.member.state{membership=join}` 使 reader 成为 active member 的 Anchor frontier。 |
 | `remove_frontier(reader)` | 最近一次有效 leave / ban / remove / account deactivation cascade 使 reader 不再是 active member 的 Anchor frontier。 |
 
 一个 Event `E` 的 `T0` 如果包含 `join_frontier(reader)` 且不包含之后的 `remove_frontier(reader)`，则 reader 在 `E` 的 `T0` 为 joined。类似地，`T0` 包含有效 invite frontier 且未包含撤销 frontier，则为 invited。
@@ -50,21 +50,21 @@ Current read-time member state 只决定服务是否可以继续提供 server-me
 
 ## 3. `history_visibility` 语义表
 
-下表是 v1 的规范语义。每个 Event 使用其 `T0` 下 effective `cx.realm.history_visibility` 值；Circle（[`../models/circle.md`](../models/circle.md)）scope 使用父 Realm **floor** 与 Circle visibility 的更严格者。这里的 **floor** 指父 Realm 在该 `T0` 下 effective `history_visibility` 所确立的**最严格下界**——按本表从宽到严的序 `world_readable > shared > invited > joined > restricted`，Circle effective visibility MUST NOT 宽于该下界；Circle 只能取等于或更严格的值，绝不能借自身设置放宽父 Realm 的历史可见性。
+下表是 v1 的规范语义。每个 Event 使用其 `T0` 下 effective `ck.realm.history_visibility` 值；Circle（[`../models/circle.md`](../models/circle.md)）scope 使用父 Realm **floor** 与 Circle visibility 的更严格者。这里的 **floor** 指父 Realm 在该 `T0` 下 effective `history_visibility` 所确立的**最严格下界**——按本表从宽到严的序 `world_readable > shared > invited > joined > restricted`，Circle effective visibility MUST NOT 宽于该下界；Circle 只能取等于或更严格的值，绝不能借自身设置放宽父 Realm 的历史可见性。
 
 | 值 | Event-time eligibility | 加入前历史 | invitee preview / read | server-mediated removal 后 backfill | E2EE key material |
 | --- | --- | --- | --- | --- | --- |
-| `world_readable` | 任何通过 discoverability / reference disclosure 的 reader MAY 读取该 Event 的授权视图。 | 允许读取该值生效期间的历史。 | MAY 按 preview policy 返回 stripped state 或历史 stub；MUST NOT 自动披露成员列表 / policy 原文。 | 默认 MAY 返回 redacted / public projection；明文 backfill 受 current safety policy。 | 不自动发 key；必须由 `cx.realm.history_sharing_policy` 明确允许 public / token holder key share，否则只返回密文或占位。 |
+| `world_readable` | 任何通过 discoverability / reference disclosure 的 reader MAY 读取该 Event 的授权视图。 | 允许读取该值生效期间的历史。 | MAY 按 preview policy 返回 stripped state 或历史 stub；MUST NOT 自动披露成员列表 / policy 原文。 | 默认 MAY 返回 redacted / public projection；明文 backfill 受 current safety policy。 | 不自动发 key；必须由 `ck.realm.history_sharing_policy` 明确允许 public / token holder key share，否则只返回密文或占位。 |
 | `shared` | 当前 active Realm member MAY 读取该值生效期间的历史，即使 Event 早于其 `join_frontier`。 | joined 后可读 join 前历史。 | invited 但未 joined 的 reader 默认不能读正文历史；只能按 preview policy 看 stripped state。 | 默认 DENY 给非 active member；policy MAY 允许对 T0 可见历史作受审计恢复。 | joined 后可按 history sharing policy 获得旧 epoch key；无 policy 时不能靠 visibility 自动补 key。 |
 | `invited` | reader 在 Event 的 `T0` 已处于 invited 或 joined 状态时 MAY 读取。 | joined 后最多回到自身有效 invite frontier；不能读 invite 前历史。 | invited reader MAY 读取 invite frontier 之后、policy 允许的 stripped state / history range。 | 默认 DENY；policy MAY 允许 T0 可见历史恢复。 | key share range MUST 从 invite frontier 起算，且必须写入 membership frontier digest。 |
 | `joined` | reader 在 Event 的 `T0` 已处于 joined 状态时 MAY 读取。 | 不允许读 join 前历史。 | invitee 未 joined 时不能读正文历史，只能看 preview policy 允许的 stripped metadata。 | 默认 DENY；policy MAY 允许 T0 joined 且 current policy 仍允许的恢复。 | Welcome 只授予 join 后 future epoch；join 前 key share MUST 被拒。 |
-| `restricted` | 不由 enum 自身定义；MUST 由 effective `cx.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；缺少 rule 或 proof 时 MUST withhold。 |
+| `restricted` | 不由 enum 自身定义；MUST 由 effective `ck.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；缺少 rule 或 proof 时 MUST withhold。 |
 
-Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 Anchor pre-state 或同一 ordered submit batch 的前序 Event 已接受一个有效 `cx.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`；如果 policy 存在但没有覆盖目标 scope / audience / range，读取或 key share MUST fail closed，原因 SHOULD 使用 `history_not_visible` 或 `policy_denied`。
+Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 Anchor pre-state 或同一 ordered submit batch 的前序 Event 已接受一个有效 `ck.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`；如果 policy 存在但没有覆盖目标 scope / audience / range，读取或 key share MUST fail closed，原因 SHOULD 使用 `history_not_visible` 或 `policy_denied`。
 
 ### 3.1 `restricted_rules[]` 结构
 
-`restricted` 的判定语义由 effective `cx.realm.history_sharing_policy` 的 `restricted_rules[]` 显式承载；其 canonical schema 由该 policy component 在 [encryption-and-audit.md](../crypto-media/encryption-and-audit.md) 中定义，本节给出 v1 normative 的最小字段约束：
+`restricted` 的判定语义由 effective `ck.realm.history_sharing_policy` 的 `restricted_rules[]` 显式承载；其 canonical schema 由该 policy component 在 [encryption-and-audit.md](../crypto-media/encryption-and-audit.md) 中定义，本节给出 v1 normative 的最小字段约束：
 
 | 字段 | 必填 | 类型 | 语义 |
 | --- | --- | --- | --- |
@@ -86,7 +86,7 @@ Preview 是读取授权的一种受限投影，不是加入、写入或完整历
 | history stub | preview token / invited preview | Event id、kind、timestamp bucket、redaction reason、payload digest、必要 sender display stub；不含正文。 |
 | history snippet | 明文 Realm 且 preview policy 显式允许 | 有界数量的最近消息或摘要；MUST NOT 用于 E2EE plaintext，除非独立 audited plaintext-visible service profile 明确声明。 |
 
-`cx.realm.preview_policy` 是 v1 active Realm policy component，用于声明 preview 的 audience、字段、历史范围和 token 要求。Directory `cx.realm.discovery.preview` 只表达目录卡片与 stripped state 的最小形态；一旦 preview 会返回历史 stub、history snippet、object preview 或 token-scoped preview，resolver MUST 同时验证 effective `cx.realm.preview_policy`。
+`ck.realm.preview_policy` 是 v1 active Realm policy component，用于声明 preview 的 audience、字段、历史范围和 token 要求。Directory `ck.realm.discovery.preview` 只表达目录卡片与 stripped state 的最小形态；一旦 preview 会返回历史 stub、history snippet、object preview 或 token-scoped preview，resolver MUST 同时验证 effective `ck.realm.preview_policy`。
 
 Preview policy MUST 满足：
 
@@ -117,22 +117,22 @@ Preview policy MUST 满足：
 
 ## 6. E2EE 历史共享
 
-`cx.realm.history_visibility` 只判定 Event 是否可见；`cx.realm.history_sharing_policy` 判定是否可以交付旧 epoch key / history key share。发送 `cx.realm_key.share` 前，key source MUST 同时满足：
+`ck.realm.history_visibility` 只判定 Event 是否可见；`ck.realm.history_sharing_policy` 判定是否可以交付旧 epoch key / history key share。发送 `ck.realm_key.share` 前，key source MUST 同时满足：
 
 1. 目标 Event range 在 `T0` 下通过 §3 visibility 判定。
-2. effective `cx.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。
+2. effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。
 3. receiver device 当前未撤销，且通过 policy 要求的 device verification。
 4. current safety policy 未禁止向该 principal / device 继续交付。
-5. audit profile 要求的 `cx.realm_key.share_audit` / `cx.audit.accessed` 已满足。
+5. audit profile 要求的 `ck.realm_key.share_audit` / `ck.audit.accessed` 已满足。
 
-如果任一条件不满足，key source MUST 发送 `cx.realm_key.withheld` 或等价诊断，并使用 `history_not_visible`、`not_member`、`policy_denied` 或更具体 reason。Key source MUST NOT 因为自己持有 backup、Archive Node 副本或 service operator 权限而跳过这些检查。
+如果任一条件不满足，key source MUST 发送 `ck.realm_key.withheld` 或等价诊断，并使用 `history_not_visible`、`not_member`、`policy_denied` 或更具体 reason。Key source MUST NOT 因为自己持有 backup、Archive Node 副本或 service operator 权限而跳过这些检查。
 
 ## 7. 测试向量要求
 
-实现声明支持 `cx.profile.e2ee_client.v1`、Directory preview、或 `cx.realm.preview_policy` 时，MUST 覆盖以下行为：
+实现声明支持 `ck.profile.e2ee_client.v1`、Directory preview、或 `ck.realm.preview_policy` 时，MUST 覆盖以下行为：
 
-- `cx.vector.history_visibility.joined_prejoin_denied.v1`
-- `cx.vector.preview.token_scoped_stripped_state.v1`
-- `cx.vector.history_sharing.e2ee_prejoin_key_share_policy.v1`
+- `ck.vector.history_visibility.joined_prejoin_denied.v1`
+- `ck.vector.preview.token_scoped_stripped_state.v1`
+- `ck.vector.history_sharing.e2ee_prejoin_key_share_policy.v1`
 
 这些向量定义见 [conformance-vectors.md](../conformance/conformance-vectors.md)。

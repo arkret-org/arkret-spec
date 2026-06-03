@@ -39,14 +39,14 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "spec" / "v1"
 ARTIFACTS = SPEC_ROOT / "artifacts"
 
-EVENT_KIND_TOKEN_RE = re.compile(r"\bcx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
-OPERATION_ID_RE = re.compile(r"^cx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
-SCHEMA_ID_RE = re.compile(r"^cx\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
-SCHEMA_ID_TOKEN_RE = re.compile(r"\bcx\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+\b")
-PROFILE_ID_RE = re.compile(r"^cx\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
-PROFILE_ID_TOKEN_RE = re.compile(r"\bcx\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+\b")
-VECTOR_ID_TOKEN_RE = re.compile(r"\bcx\.vector\.[a-z0-9_.-]+\.v[0-9]+\b")
-TYPED_ID_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
+EVENT_KIND_TOKEN_RE = re.compile(r"\bck\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
+OPERATION_ID_RE = re.compile(r"^ck\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
+SCHEMA_ID_RE = re.compile(r"^ck\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
+SCHEMA_ID_TOKEN_RE = re.compile(r"\bck\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+\b")
+PROFILE_ID_RE = re.compile(r"^ck\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
+PROFILE_ID_TOKEN_RE = re.compile(r"\bck\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+\b")
+VECTOR_ID_TOKEN_RE = re.compile(r"\bck\.vector\.[a-z0-9_.-]+\.v[0-9]+\b")
+TYPED_ID_TOKEN_RE = re.compile(r"\bck:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
 UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$", re.MULTILINE)
@@ -55,7 +55,7 @@ JSON_FENCE_RE = re.compile(r"```json(?P<meta>[^\n`]*)\n(?P<body>.*?)```", re.IGN
 JSON_FENCE_SCHEMA_ATTR_RE = re.compile(r"\bschema=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
 JSON_FENCE_EXPECT_ATTR_RE = re.compile(r"\bexpect=(valid|invalid)\b")
 JSON_FENCE_FIRST_ERROR_ATTR_RE = re.compile(r"\bfirst_error=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
-TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):")
+TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bck:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 TEXT_ARTIFACT_REF_RE = re.compile(
     r"(?<![A-Za-z0-9_./-])("
@@ -70,18 +70,18 @@ TRUST_DOMAIN_JSON_DID_RE = re.compile(r'"trust_domain"\s*:\s*"did:')
 LEGACY_DID_METHOD_REGEX_RE = re.compile(r"\^did:\[a-z0-9:[.\-_\\]+")
 
 SECURITY_CLOSURE_VECTOR_IDS = {
-    "cx.vector.federation.idempotency_after_key_revoke.v1",
-    "cx.vector.webrtc.media_plaintext_downgrade.v1",
-    "cx.vector.identity_link.eager_invalidation.v1",
-    "cx.vector.identity_link.policy_tightening_invalidation.v1",
-    "cx.vector.late_key_recovery.removed_actor.v1",
-    "cx.vector.invite.oob_code_entropy.v1",
-    "cx.vector.invite.failure_indistinguishable.v1",
-    "cx.vector.consent.scope_cascade.v1",
-    "cx.vector.consent.cache_invalidation.v1",
-    "cx.vector.sync.soft_fail_reconcile.v1",
-    "cx.vector.lattice.lww_open_set.v1",
-    "cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
+    "ck.vector.federation.idempotency_after_key_revoke.v1",
+    "ck.vector.webrtc.media_plaintext_downgrade.v1",
+    "ck.vector.identity_link.eager_invalidation.v1",
+    "ck.vector.identity_link.policy_tightening_invalidation.v1",
+    "ck.vector.late_key_recovery.removed_actor.v1",
+    "ck.vector.invite.oob_code_entropy.v1",
+    "ck.vector.invite.failure_indistinguishable.v1",
+    "ck.vector.consent.scope_cascade.v1",
+    "ck.vector.consent.cache_invalidation.v1",
+    "ck.vector.sync.soft_fail_reconcile.v1",
+    "ck.vector.lattice.lww_open_set.v1",
+    "ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
 }
 
 REGISTRY_LATTICES = {
@@ -462,14 +462,14 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "ck:txn:": "ck:transaction:",
     "ck:frank:": "ck:franking_proof:",
     "ck:rtcpart:": "ck:rtc_participant:",
-    "cx.agent.key.authorized": "cx.agent.key.authorize",
-    "cx.agent.key.revoked": "cx.agent.key.revoke",
-    "cx.agent.key.rotated": "cx.agent.key.rotate",
-    "cx.device.authorized": "cx.device.authorize",
-    "cx.device.revoked": "cx.device.revoke",
-    "cx.relation.delete": "cx.relation.tombstone",
-    "cx.read.marker": "cx.read.cursor",
-    "cx.schema.read_marker.v1": "cx.schema.read_cursor.v1",
+    "ck.agent.key.authorized": "ck.agent.key.authorize",
+    "ck.agent.key.revoked": "ck.agent.key.revoke",
+    "ck.agent.key.rotated": "ck.agent.key.rotate",
+    "ck.device.authorized": "ck.device.authorize",
+    "ck.device.revoked": "ck.device.revoke",
+    "ck.relation.delete": "ck.relation.tombstone",
+    "ck.read.marker": "ck.read.cursor",
+    "ck.schema.read_marker.v1": "ck.schema.read_cursor.v1",
     "or-set": "or_set",
     "mv-register": "mv_register",
     "cas-register": "cas_register",
@@ -501,12 +501,12 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "prev_frontier_hash": "prev_frontier_digest",
     "constraint_hash": "constraint_digest",
     # verb_noun_bridge_collapse — capability action MUST equal target event kind
-    "cx.invite.create_third_party": "cx.invite.third_party",
-    "cx.policy.rule.manage": "cx.policy.rule",
-    "cx.policy.action.manage": "cx.policy.action",
-    "cx.realm.link.manage": "cx.realm.link",
-    "cx.realm.plaintext_visible_services.modify": "cx.realm.plaintext_visible_services",
-    "cx.realm.moderate": "cx.realm.moderation_policy",
+    "ck.invite.create_third_party": "ck.invite.third_party",
+    "ck.policy.rule.manage": "ck.policy.rule",
+    "ck.policy.action.manage": "ck.policy.action",
+    "ck.realm.link.manage": "ck.realm.link",
+    "ck.realm.plaintext_visible_services.modify": "ck.realm.plaintext_visible_services",
+    "ck.realm.moderate": "ck.realm.moderation_policy",
     "parent_ref": "parent_space_id",
     "default_realm_ref": "default_realm_id",
     "scope_ref": "scope_circle_id",
@@ -682,9 +682,9 @@ def check_join_policy_gate_id_uniqueness(lint: Lint) -> None:
 
     JSON Schema 2020-12 has no native "unique by property" keyword: ``uniqueItems``
     only catches whole-object duplicates. The wire contract for
-    ``cx.realm.join_policy`` (see zh/governance/join-policy.md §3.1) requires that
+    ``ck.realm.join_policy`` (see zh/governance/join-policy.md §3.1) requires that
     ``gate_id`` be unique across siblings in ``gates[]`` so that audit refs in
-    ``cx.member.state{gate_proofs[gate_id=…]}`` remain unambiguous; the canonical
+    ``ck.member.state{gate_proofs[gate_id=…]}`` remain unambiguous; the canonical
     reject reason is ``schema_violation reason_code=join_policy_duplicate_gate_id``.
 
     This lint walks every JSON artifact and every Markdown ``json`` example,
@@ -766,7 +766,7 @@ def check_join_policy_gate_id_uniqueness(lint: Lint) -> None:
 
 
 def check_content_composite_uses_parts(lint: Lint) -> None:
-    """Reject legacy ``blocks`` spelling on cx.content.composite examples.
+    """Reject legacy ``blocks`` spelling on ck.content.composite examples.
 
     The canonical composite child field is required as ``parts``. ``blocks`` is
     too tied to document layout semantics and is now listed in
@@ -786,18 +786,18 @@ def check_content_composite_uses_parts(lint: Lint) -> None:
 
     def check_value(path: Path, value: Any, where: str) -> None:
         def on_object(obj: dict) -> None:
-            if obj.get("kind") != "cx.content.composite":
+            if obj.get("kind") != "ck.content.composite":
                 return
             if "blocks" in obj:
                 lint.fail(
                     path,
-                    f"{where}: cx.content.composite uses legacy `blocks`; "
+                    f"{where}: ck.content.composite uses legacy `blocks`; "
                     "canonical wire field is `parts`.",
                 )
             if "parts" not in obj:
                 lint.fail(
                     path,
-                    f"{where}: cx.content.composite is missing required `parts`.",
+                    f"{where}: ck.content.composite is missing required `parts`.",
                 )
 
         walk(value, on_object)
@@ -973,7 +973,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         for row in event_rows
         if isinstance(row, dict) and isinstance(row.get("event_kind"), str)
     }
-    kind_pattern = re.compile(event_registry.get("kind_pattern", r"^cx\.[a-z0-9_]+(\.[a-z0-9_]+)*$"))
+    kind_pattern = re.compile(event_registry.get("kind_pattern", r"^ck\.[a-z0-9_]+(\.[a-z0-9_]+)*$"))
     wire_scopes = set((event_registry.get("wire_scope_definitions") or {}).keys())
     for row in event_by_kind.values():
         kind = row["event_kind"]
@@ -1117,10 +1117,10 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             values = profile_registry.get(key)
             if isinstance(values, list):
                 claimable_profiles.update(
-                    item for item in values if isinstance(item, str) and item.startswith("cx.profile.")
+                    item for item in values if isinstance(item, str) and item.startswith("ck.profile.")
                 )
     for _, value, _ in walk_json(profile_registry):
-        if isinstance(value, str) and value.startswith("cx.profile."):
+        if isinstance(value, str) and value.startswith("ck.profile."):
             if value in event_kinds:
                 continue
             profiles.add(value)
@@ -1250,7 +1250,7 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
     for key in ("implementation_profiles", "deployment_profiles", "hardening_profiles", "vector_profiles"):
         values = data.get(key, [])
         if isinstance(values, list):
-            declared_profiles.update(item for item in values if isinstance(item, str) and item.startswith("cx.profile."))
+            declared_profiles.update(item for item in values if isinstance(item, str) and item.startswith("ck.profile."))
 
     for profile_id in sorted(declared_profiles - set(requirements.keys())):
         lint.fail(path, f"profile_requirements missing declared profile: {profile_id}")
@@ -1401,10 +1401,10 @@ PAYLOAD_DISPATCH_REF_RE = re.compile(
 # Kind → payload-class pairs where the class name intentionally diverges from
 # the kind's last dot-segment (one-to-one semantic renames).
 KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
-    "cx.member.state": "membership_payload",
-    "cx.circle.update": "circle_patch_payload",
-    "cx.space.update": "space_patch_payload",
-    "cx.profile.space_override": "profile_realm_override_payload",
+    "ck.member.state": "membership_payload",
+    "ck.circle.update": "circle_patch_payload",
+    "ck.space.update": "space_patch_payload",
+    "ck.profile.space_override": "profile_realm_override_payload",
 }
 
 
@@ -1415,82 +1415,82 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 # object_patch). Adding a new dispatch that doesn't match the last-segment
 # rule MUST add the pair here, forcing reviewer awareness of the rename.
 LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
-    ("cx.actor.discovery", "state_payload"),
-    ("cx.applet.discovery", "state_payload"),
-    ("cx.attestation.range_completeness", "audit_payload"),
-    ("cx.audit.epoch_key_destruction", "audit_payload"),
-    ("cx.audit.ryw_receipt", "audit_payload"),
-    ("cx.call.recording.start", "call_payload"),
-    ("cx.call.state", "call_payload"),
-    ("cx.capability.delegate", "capability_grant_payload"),
-    ("cx.capability.derived", "capability_grant_payload"),
-    ("cx.circle.archive", "object_lifecycle_payload"),
-    ("cx.circle.restore", "object_lifecycle_payload"),
-    ("cx.circle.tombstone", "object_lifecycle_payload"),
-    ("cx.container.move_item", "container_position_payload"),
-    ("cx.container.rebalance", "container_position_payload"),
-    ("cx.did.proof", "state_payload"),
-    ("cx.flow.archive", "object_lifecycle_payload"),
-    ("cx.flow.restore", "object_lifecycle_payload"),
-    ("cx.flow.tracks.update", "flow_patch_payload"),
-    ("cx.flow.update", "flow_patch_payload"),
-    ("cx.handle.discovery", "state_payload"),
-    ("cx.identity.accountability_grant", "state_payload"),
-    ("cx.identity.disclosure_policy", "state_payload"),
-    ("cx.identity.disclosure_receipt", "state_payload"),
-    ("cx.identity.presentation_request", "state_payload"),
-    ("cx.identity.presentation_response", "state_payload"),
-    ("cx.invite.accept", "invite_payload"),
-    ("cx.invite.cancel", "invite_payload"),
-    ("cx.invite.claim", "invite_payload"),
-    ("cx.invite.create", "invite_payload"),
-    ("cx.invite.revoke", "invite_payload"),
-    ("cx.invite.third_party", "invite_payload"),
-    ("cx.moderation.franking_proof", "audit_payload"),
-    ("cx.morph.archive", "object_lifecycle_payload"),
-    ("cx.morph.restore", "object_lifecycle_payload"),
-    ("cx.morph.update", "object_patch_payload"),
-    ("cx.organization.discovery", "state_payload"),
-    ("cx.organization.moderation_policy", "state_payload"),
-    ("cx.policy.action", "state_payload"),
-    ("cx.policy.rule", "state_payload"),
-    ("cx.policy.set", "state_payload"),
-    ("cx.profile.update", "object_patch_payload"),
-    ("cx.reaction.add", "reaction_payload"),
-    ("cx.reaction.remove", "reaction_payload"),
-    ("cx.realm.asset_privacy_policy", "state_payload"),
-    ("cx.realm.audit_policy_downgrade", "audit_payload"),
-    ("cx.realm.delivery_binding_policy", "state_payload"),
-    ("cx.realm.discovery", "state_payload"),
-    ("cx.realm.history_sharing_policy", "state_payload"),
-    ("cx.realm.history_visibility", "state_payload"),
-    ("cx.realm.join_rule", "state_payload"),
-    ("cx.realm.link", "state_payload"),
-    ("cx.realm.media_service", "state_payload"),
-    ("cx.realm.moderation_policy", "state_payload"),
-    ("cx.realm.organization", "state_payload"),
-    ("cx.realm.policy", "state_payload"),
-    ("cx.realm.policy_components", "state_payload"),
-    ("cx.realm.policy_server", "state_payload"),
-    ("cx.realm.read_receipt_policy", "state_payload"),
-    ("cx.realm.schema", "state_payload"),
-    ("cx.realm.update", "object_patch_payload"),
-    ("cx.realm.upgrade", "state_payload"),
-    ("cx.redaction", "message_redact_payload"),
-    ("cx.relation.tombstone", "relation_update_payload"),
-    ("cx.schema.define", "state_payload"),
-    ("cx.schema.update", "state_payload"),
-    ("cx.sovereign.did_policy", "state_payload"),
-    ("cx.space.archive", "generic_standard_payload"),
-    ("cx.space.archive", "space_state_transition_payload"),
-    ("cx.space.create", "generic_standard_payload"),
-    ("cx.space.parent", "generic_standard_payload"),
-    ("cx.space.restore", "generic_standard_payload"),
-    ("cx.space.restore", "space_state_transition_payload"),
-    ("cx.space.tombstone", "generic_standard_payload"),
-    ("cx.view.create", "view_payload"),
-    ("cx.view.reconcile", "view_payload"),
-    ("cx.view.update", "view_payload"),
+    ("ck.actor.discovery", "state_payload"),
+    ("ck.applet.discovery", "state_payload"),
+    ("ck.attestation.range_completeness", "audit_payload"),
+    ("ck.audit.epoch_key_destruction", "audit_payload"),
+    ("ck.audit.ryw_receipt", "audit_payload"),
+    ("ck.call.recording.start", "call_payload"),
+    ("ck.call.state", "call_payload"),
+    ("ck.capability.delegate", "capability_grant_payload"),
+    ("ck.capability.derived", "capability_grant_payload"),
+    ("ck.circle.archive", "object_lifecycle_payload"),
+    ("ck.circle.restore", "object_lifecycle_payload"),
+    ("ck.circle.tombstone", "object_lifecycle_payload"),
+    ("ck.container.move_item", "container_position_payload"),
+    ("ck.container.rebalance", "container_position_payload"),
+    ("ck.did.proof", "state_payload"),
+    ("ck.flow.archive", "object_lifecycle_payload"),
+    ("ck.flow.restore", "object_lifecycle_payload"),
+    ("ck.flow.tracks.update", "flow_patch_payload"),
+    ("ck.flow.update", "flow_patch_payload"),
+    ("ck.handle.discovery", "state_payload"),
+    ("ck.identity.accountability_grant", "state_payload"),
+    ("ck.identity.disclosure_policy", "state_payload"),
+    ("ck.identity.disclosure_receipt", "state_payload"),
+    ("ck.identity.presentation_request", "state_payload"),
+    ("ck.identity.presentation_response", "state_payload"),
+    ("ck.invite.accept", "invite_payload"),
+    ("ck.invite.cancel", "invite_payload"),
+    ("ck.invite.claim", "invite_payload"),
+    ("ck.invite.create", "invite_payload"),
+    ("ck.invite.revoke", "invite_payload"),
+    ("ck.invite.third_party", "invite_payload"),
+    ("ck.moderation.franking_proof", "audit_payload"),
+    ("ck.morph.archive", "object_lifecycle_payload"),
+    ("ck.morph.restore", "object_lifecycle_payload"),
+    ("ck.morph.update", "object_patch_payload"),
+    ("ck.organization.discovery", "state_payload"),
+    ("ck.organization.moderation_policy", "state_payload"),
+    ("ck.policy.action", "state_payload"),
+    ("ck.policy.rule", "state_payload"),
+    ("ck.policy.set", "state_payload"),
+    ("ck.profile.update", "object_patch_payload"),
+    ("ck.reaction.add", "reaction_payload"),
+    ("ck.reaction.remove", "reaction_payload"),
+    ("ck.realm.asset_privacy_policy", "state_payload"),
+    ("ck.realm.audit_policy_downgrade", "audit_payload"),
+    ("ck.realm.delivery_binding_policy", "state_payload"),
+    ("ck.realm.discovery", "state_payload"),
+    ("ck.realm.history_sharing_policy", "state_payload"),
+    ("ck.realm.history_visibility", "state_payload"),
+    ("ck.realm.join_rule", "state_payload"),
+    ("ck.realm.link", "state_payload"),
+    ("ck.realm.media_service", "state_payload"),
+    ("ck.realm.moderation_policy", "state_payload"),
+    ("ck.realm.organization", "state_payload"),
+    ("ck.realm.policy", "state_payload"),
+    ("ck.realm.policy_components", "state_payload"),
+    ("ck.realm.policy_server", "state_payload"),
+    ("ck.realm.read_receipt_policy", "state_payload"),
+    ("ck.realm.schema", "state_payload"),
+    ("ck.realm.update", "object_patch_payload"),
+    ("ck.realm.upgrade", "state_payload"),
+    ("ck.redaction", "message_redact_payload"),
+    ("ck.relation.tombstone", "relation_update_payload"),
+    ("ck.schema.define", "state_payload"),
+    ("ck.schema.update", "state_payload"),
+    ("ck.sovereign.did_policy", "state_payload"),
+    ("ck.space.archive", "generic_standard_payload"),
+    ("ck.space.archive", "space_state_transition_payload"),
+    ("ck.space.create", "generic_standard_payload"),
+    ("ck.space.parent", "generic_standard_payload"),
+    ("ck.space.restore", "generic_standard_payload"),
+    ("ck.space.restore", "space_state_transition_payload"),
+    ("ck.space.tombstone", "generic_standard_payload"),
+    ("ck.view.create", "view_payload"),
+    ("ck.view.reconcile", "view_payload"),
+    ("ck.view.update", "view_payload"),
 }
 
 
@@ -1520,7 +1520,7 @@ def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
                             else None
                         )
                         for kind in collect_kind_selector_tokens(kind_schema):
-                            if kind.startswith("cx."):
+                            if kind.startswith("ck."):
                                 pairs.append((kind, class_name))
         for child in value.values():
             pairs.extend(collect_payload_dispatch_pairs(child))
@@ -1546,7 +1546,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     event_schema_kinds = {
         token
         for token in event_schema_tokens
-        if token.startswith("cx.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
+        if token.startswith("ck.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
     }
     for token in sorted(event_schema_kinds - known["event_kinds"]):
         lint.fail(path, f"event-schema enum references unregistered Event.kind: {token}")
@@ -1562,7 +1562,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     payload_dispatch_kinds = {
         token
         for token in collect_payload_dispatch_kinds(data)
-        if token.startswith("cx.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
+        if token.startswith("ck.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
     }
     for token in sorted(active_envelope_event_kinds - payload_dispatch_kinds):
         lint.fail(path, f"active Event.kind missing payload schema dispatch: {token}")
@@ -1570,7 +1570,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     # Mis-routed dispatch detector: each (kind, payload_class) pair must either
     # appear in KIND_PAYLOAD_RENAME_EXEMPTIONS verbatim, or embed the kind's
     # last dot-segment as a case-insensitive substring of the class name.
-    # Catches typo / copy-paste errors like `cx.agent.pause → agent_resume_payload`.
+    # Catches typo / copy-paste errors like `ck.agent.pause → agent_resume_payload`.
     seen_pairs: set[tuple[str, str]] = set()
     for kind, class_name in collect_payload_dispatch_pairs(data):
         if (kind, class_name) in seen_pairs:
@@ -1782,12 +1782,12 @@ def check_service_describe_alignment(lint: Lint) -> None:
     if not isinstance(paths, dict):
         return
     describe_paths = [
-        "/server/describe",
-        "/events/describe",
-        "/identity/describe",
-        "/account/describe",
-        "/directory/describe",
-        "/applet/describe",
+        "/_cokret/describe",
+        "/_cokret/self/events/describe",
+        "/_cokret/root/identity/describe",
+        "/_cokret/self/account/describe",
+        "/_cokret/find/directory/describe",
+        "/_cokret/edge/applet/describe",
     ]
     for describe_path in describe_paths:
         response_schema = (
@@ -1813,9 +1813,9 @@ def check_policy_check_alignment(lint: Lint) -> None:
     if not isinstance(paths, dict) or not isinstance(components, dict):
         return
     if "/cokret/v1/check" in paths:
-        lint.fail(openapi_path, "legacy /cokret/v1/check policy path must not be present; use /policy/check")
+        lint.fail(openapi_path, "legacy /cokret/v1/check policy path must not be present; use /_cokret/self/policy/check")
 
-    policy_path = paths.get("/policy/check", {}).get("post", {})
+    policy_path = paths.get("/_cokret/self/policy/check", {}).get("post", {})
     request_schema = (
         policy_path.get("requestBody", {})
         .get("content", {})
@@ -1830,9 +1830,9 @@ def check_policy_check_alignment(lint: Lint) -> None:
         .get("schema")
     )
     if request_schema != {"$ref": "#/components/schemas/PolicyCheckRequest"}:
-        lint.fail(openapi_path, "/policy/check requestBody must reference PolicyCheckRequest")
+        lint.fail(openapi_path, "/_cokret/self/policy/check requestBody must reference PolicyCheckRequest")
     if response_schema != {"$ref": "#/components/schemas/PolicyCheckResponse"}:
-        lint.fail(openapi_path, "/policy/check 200 response must reference PolicyCheckResponse")
+        lint.fail(openapi_path, "/_cokret/self/policy/check 200 response must reference PolicyCheckResponse")
 
     request_component = components.get("PolicyCheckRequest")
     response_component = components.get("PolicyCheckResponse")
@@ -1930,19 +1930,19 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         )
 
     expected = {
-        "cx.identity.submit_did_operation": ("DidOperationSubmitRequest", "DidOperationSubmitResponse"),
-        "cx.account.issue_session_grant": ("SessionGrantRequest", "SessionGrantResponse"),
-        "cx.account.oidc_callback": ("AccountOidcCallbackRequest", "AccountOidcCallbackResponse"),
-        "cx.directory.announce": ("DirectoryAnnounceRequest", "DirectoryAnnounceResponse"),
-        "cx.directory.withdraw": ("DirectoryWithdrawRequest", "DirectoryWithdrawResponse"),
-        "cx.admin.update_account_status": (
+        "ck.identity.submit_did_operation": ("DidOperationSubmitRequest", "DidOperationSubmitResponse"),
+        "ck.account.issue_session_grant": ("SessionGrantRequest", "SessionGrantResponse"),
+        "ck.account.oidc_callback": ("AccountOidcCallbackRequest", "AccountOidcCallbackResponse"),
+        "ck.directory.announce": ("DirectoryAnnounceRequest", "DirectoryAnnounceResponse"),
+        "ck.directory.withdraw": ("DirectoryWithdrawRequest", "DirectoryWithdrawResponse"),
+        "ck.admin.update_account_status": (
             "AdminUpdateAccountStatusRequest",
             "AdminUpdateAccountStatusResponse",
         ),
-        "cx.admin.revoke_device": ("AdminRevokeDeviceRequest", "AdminRevokeDeviceResponse"),
+        "ck.admin.revoke_device": ("AdminRevokeDeviceRequest", "AdminRevokeDeviceResponse"),
     }
     expected_response_only = {
-        "cx.admin.get_server_status": "AdminServerStatusResponse",
+        "ck.admin.get_server_status": "AdminServerStatusResponse",
     }
     dedicated_schema_refs = {
         f"#/components/schemas/{name}"
@@ -1996,9 +1996,9 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         lint.fail(openapi_path, "SessionGrantRequest.proof.required must include audience")
 
     projection_components = {
-        "cx.projection.spaces": "ProjectionSpacesResponse",
-        "cx.projection.flows": "ProjectionFlowsResponse",
-        "cx.projection.morphs": "ProjectionMorphsResponse",
+        "ck.projection.spaces": "ProjectionSpacesResponse",
+        "ck.projection.flows": "ProjectionFlowsResponse",
+        "ck.projection.morphs": "ProjectionMorphsResponse",
     }
     for operation_id, component_name in projection_components.items():
         operation = find_operation(operation_id)
@@ -2069,32 +2069,32 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict) or schema.get("$ref") != ref:
             lint.fail(openapi_path, f"{operation_id}.{name} parameter must reference {ref}")
 
-    expect_any_of("cx.events.query", [["realms"], ["actors"]])
-    expect_any_of("cx.events.subscribe", [["realms"], ["actors"]])
-    expect_any_of("cx.events.frontier", [["actor_id"], ["realm_id"]])
-    for operation_id in ("cx.events.query", "cx.events.subscribe"):
+    expect_any_of("ck.events.query", [["realms"], ["actors"]])
+    expect_any_of("ck.events.subscribe", [["realms"], ["actors"]])
+    expect_any_of("ck.events.frontier", [["actor_id"], ["realm_id"]])
+    for operation_id in ("ck.events.query", "ck.events.subscribe"):
         expect_array_param(operation_id, "realms", "#/components/schemas/RealmId")
         expect_array_param(operation_id, "actors", "#/components/schemas/ActorDid")
     for name in ("before", "after"):
-        expect_param_ref("cx.events.query", name, "#/components/schemas/Cursor")
-    expect_param_ref("cx.events.subscribe", "after", "#/components/schemas/Cursor")
-    expect_param_ref("cx.events.get", "event_id", "#/components/schemas/EventId")
-    expect_param_ref("cx.events.frontier", "actor_id", "#/components/schemas/ActorDid")
-    expect_param_ref("cx.events.frontier", "realm_id", "#/components/schemas/RealmId")
-    expect_param_ref("cx.snapshot.head", "realm_id", "#/components/schemas/RealmId")
+        expect_param_ref("ck.events.query", name, "#/components/schemas/Cursor")
+    expect_param_ref("ck.events.subscribe", "after", "#/components/schemas/Cursor")
+    expect_param_ref("ck.events.get", "event_id", "#/components/schemas/EventId")
+    expect_param_ref("ck.events.frontier", "actor_id", "#/components/schemas/ActorDid")
+    expect_param_ref("ck.events.frontier", "realm_id", "#/components/schemas/RealmId")
+    expect_param_ref("ck.snapshot.head", "realm_id", "#/components/schemas/RealmId")
 
-    query_post = op("cx.events.query_post")
+    query_post = op("ck.events.query_post")
     if query_post is not None:
         schema = openapi_request_schema(query_post)
         if not isinstance(schema, dict):
-            lint.fail(openapi_path, "cx.events.query_post requestBody schema missing")
+            lint.fail(openapi_path, "ck.events.query_post requestBody schema missing")
         else:
             expected_any_of = [{"required": ["realms"]}, {"required": ["actors"]}]
             if schema.get("anyOf") != expected_any_of:
-                lint.fail(openapi_path, "cx.events.query_post requestBody must require realms or actors")
+                lint.fail(openapi_path, "ck.events.query_post requestBody must require realms or actors")
             properties = schema.get("properties")
             if not isinstance(properties, dict):
-                lint.fail(openapi_path, "cx.events.query_post requestBody properties missing")
+                lint.fail(openapi_path, "ck.events.query_post requestBody properties missing")
             else:
                 for name, ref in (
                     ("realms", "#/components/schemas/RealmId"),
@@ -2102,17 +2102,17 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):
-                        lint.fail(openapi_path, f"cx.events.query_post.{name} property missing")
+                        lint.fail(openapi_path, f"ck.events.query_post.{name} property missing")
                         continue
                     if property_schema.get("type") != "array" or property_schema.get("minItems") != 1:
-                        lint.fail(openapi_path, f"cx.events.query_post.{name} must be a non-empty array")
+                        lint.fail(openapi_path, f"ck.events.query_post.{name} must be a non-empty array")
                     items = property_schema.get("items")
                     if not isinstance(items, dict) or items.get("$ref") != ref:
-                        lint.fail(openapi_path, f"cx.events.query_post.{name}.items must reference {ref}")
+                        lint.fail(openapi_path, f"ck.events.query_post.{name}.items must reference {ref}")
                 for name in ("before", "after"):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict) or property_schema.get("$ref") != "#/components/schemas/Cursor":
-                        lint.fail(openapi_path, f"cx.events.query_post.{name} must reference Cursor")
+                        lint.fail(openapi_path, f"ck.events.query_post.{name} must reference Cursor")
 
 
 def check_openapi_auth_semantics(lint: Lint) -> None:
@@ -2123,18 +2123,18 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         return
     operations = openapi_operations_by_id(openapi)
     public_metadata_operations = {
-        "cx.server.describe",
-        "cx.events.describe",
-        "cx.mimi.provider_directory",
-        "cx.identity.describe_registry",
-        "cx.account.describe",
-        "cx.directory.describe",
-        "cx.applet.describe",
-        "cx.applet.protocol_metadata",
+        "ck.server.describe",
+        "ck.events.describe",
+        "ck.mimi.provider_directory",
+        "ck.identity.describe_registry",
+        "ck.account.describe",
+        "ck.directory.describe",
+        "ck.applet.describe",
+        "ck.applet.protocol_metadata",
     }
     proof_in_body_operations = {
-        "cx.account.issue_session_grant",
-        "cx.account.oidc_callback",
+        "ck.account.issue_session_grant",
+        "ck.account.oidc_callback",
     }
 
     for operation_id, operation in operations.items():
@@ -2167,14 +2167,14 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         return [group for group in groups if isinstance(group, dict)] if isinstance(groups, list) else []
 
     for operation_id, operation in operations.items():
-        if not operation_id.startswith("cx.admin."):
+        if not operation_id.startswith("ck.admin."):
             continue
         groups = security_groups(operation)
         if any("bearerAuth" in group for group in groups):
             lint.fail(openapi_path, f"{operation_id} must not use ordinary bearerAuth on admin surface")
-        if operation_id == "cx.admin.get_moderation_queue":
+        if operation_id == "ck.admin.get_moderation_queue":
             if not any({"adminBearer", "moderatorCapability"}.issubset(group.keys()) for group in groups):
-                lint.fail(openapi_path, "cx.admin.get_moderation_queue must require adminBearer and moderatorCapability")
+                lint.fail(openapi_path, "ck.admin.get_moderation_queue must require adminBearer and moderatorCapability")
         elif not any(set(group.keys()) == {"adminBearer"} for group in groups):
             lint.fail(openapi_path, f"{operation_id} must require adminBearer")
 
@@ -2453,9 +2453,9 @@ def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> 
     if schema is None:
         if method == "head":
             return "metadata_headers"
-        if operation_id in {"cx.events.subscribe", "cx.account.subscribe"}:
+        if operation_id in {"ck.events.subscribe", "ck.account.subscribe"}:
             return "event_stream"
-        if operation_id == "cx.blob.get":
+        if operation_id == "ck.blob.get":
             return "binary_stream"
         return "empty_response"
     if isinstance(schema, dict):
@@ -2658,7 +2658,7 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
                 lint.fail(path, f"line {line_no}: placeholder section reference must be replaced with a stable heading or real section number")
 
             if "/cokret/v1/check" in line:
-                lint.fail(path, f"line {line_no}: legacy policy path /cokret/v1/check must be replaced with /policy/check")
+                lint.fail(path, f"line {line_no}: legacy policy path /cokret/v1/check must be replaced with /_cokret/self/policy/check")
 
             if TRUST_DOMAIN_JSON_DID_RE.search(line):
                 lint.fail(path, f"line {line_no}: trust_domain must use ck:trust_domain:<scope>, not a raw DID")
@@ -2699,7 +2699,7 @@ def check_vector_registry(lint: Lint) -> None:
 
         vector_id = row.get("vector_id")
         if not isinstance(vector_id, str) or not VECTOR_ID_TOKEN_RE.fullmatch(vector_id):
-            lint.fail(path, f"{label}.vector_id must be a cx.vector.*.vN identifier")
+            lint.fail(path, f"{label}.vector_id must be a ck.vector.*.vN identifier")
             continue
         if vector_id in registered:
             lint.fail(path, f"{label}.vector_id duplicates {vector_id}")
@@ -2708,7 +2708,7 @@ def check_vector_registry(lint: Lint) -> None:
         if row.get("status") not in {"active", "reserved", "deprecated"}:
             lint.fail(path, f"{label}.status must be active, reserved, or deprecated")
 
-        expected_domain = vector_id.removeprefix("cx.vector.").rsplit(".v", 1)[0].split(".", 1)[0]
+        expected_domain = vector_id.removeprefix("ck.vector.").rsplit(".v", 1)[0].split(".", 1)[0]
         if row.get("domain") != expected_domain:
             lint.fail(path, f"{label}.domain must match vector id domain {expected_domain!r}")
 
@@ -2776,8 +2776,8 @@ def check_account_data_type_registry(lint: Lint, known: dict[str, set[str]]) -> 
             continue
 
         key_pattern = row.get("key_pattern")
-        if not isinstance(key_pattern, str) or not key_pattern.startswith("cx."):
-            lint.fail(path, f"{label}.key_pattern must be a cx.* key pattern")
+        if not isinstance(key_pattern, str) or not key_pattern.startswith("ck."):
+            lint.fail(path, f"{label}.key_pattern must be a ck.* key pattern")
             continue
         if key_pattern in seen:
             lint.fail(path, f"{label}.key_pattern duplicates {key_pattern}")
@@ -3016,16 +3016,16 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
 
             if (
                 key in {"kind", "event_kind", "target_format"}
-                and value.startswith("cx.")
-                and not value.startswith("cx.content.")
+                and value.startswith("ck.")
+                and not value.startswith("ck.content.")
             ):
                 if value not in known["event_kinds"]:
                     lint.fail(path, f"{json_path} references unregistered Event.kind: {value}")
 
-            if key in {"operation_id", "mapped_operation_id"} and value.startswith("cx."):
+            if key in {"operation_id", "mapped_operation_id"} and value.startswith("ck."):
                 if value not in known["operation_ids"]:
                     lint.fail(path, f"{json_path} references unregistered operation_id: {value}")
-            if key == "call" and ".recovery.call" in json_path and value.startswith("cx."):
+            if key == "call" and ".recovery.call" in json_path and value.startswith("ck."):
                 if value not in known["operation_ids"]:
                     lint.fail(path, f"{json_path} references unregistered recovery operation_id: {value}")
             if key == "constraint_type" and value not in known["constraint_types"]:
@@ -3164,13 +3164,13 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
 
         if (
             key in {"kind", "event_kind", "target_format"}
-            and value.startswith("cx.")
-            and not value.startswith("cx.content.")
+            and value.startswith("ck.")
+            and not value.startswith("ck.content.")
         ):
             if value not in known["event_kinds"]:
                 lint.fail(path, f"{json_path} markdown JSON references unregistered Event.kind: {value}")
 
-        if key in {"operation_id", "mapped_operation_id", "operationId"} and value.startswith("cx."):
+        if key in {"operation_id", "mapped_operation_id", "operationId"} and value.startswith("ck."):
             if value not in known["operation_ids"]:
                 lint.fail(path, f"{json_path} markdown JSON references unregistered operation_id: {value}")
 
@@ -3378,8 +3378,8 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
     for path in markdown_files():
         text = path.read_text(encoding="utf-8")
 
-        if "cx.moderation.policy_action" in text:
-            lint.fail(path, "markdown references removed Event.kind cx.moderation.policy_action; use cx.policy.action")
+        if "ck.moderation.policy_action" in text:
+            lint.fail(path, "markdown references removed Event.kind ck.moderation.policy_action; use ck.policy.action")
 
         for schema_id in SCHEMA_ID_TOKEN_RE.findall(text):
             if schema_id not in known["schema_ids"]:

@@ -26,12 +26,12 @@ updated: 2026-05-25
 
 ### 2.2 数据寻址
 
-所有的偏好数据以 Key-Value 字典的形式组织。每次修改是对某个 Key 的全量覆盖（使用 `cx.account_data.set` 操作）。
+所有的偏好数据以 Key-Value 字典的形式组织。每次修改是对某个 Key 的全量覆盖（使用 `ck.account_data.set` 操作）。
 
 ```json
 {
-  "kind": "cx.account_data.set",
-  "key": "cx.client.theme",
+  "kind": "ck.account_data.set",
+  "key": "ck.client.theme",
   "body": {
     "mode": "dark",
     "accent_color": "#FF5733"
@@ -48,13 +48,13 @@ updated: 2026-05-25
 
 用户可以给加入的 Realm 打上私有标签（例如“收藏”、“低优先级”、“公司项目”）。
 
-**Key:** `cx.tags.realm.<realm_id>`
+**Key:** `ck.tags.realm.<realm_id>`
 
 ```json
 {
   "tags": {
-    "cx.favorite": { "order": 0.5 },
-    "cx.low_priority": {},
+    "ck.favorite": { "order": 0.5 },
+    "ck.low_priority": {},
     "org.example.work": {}
   }
 }
@@ -66,13 +66,13 @@ updated: 2026-05-25
 
 控制各个 Realm 或全局的通知覆盖行为（详见 `push-notifications.md`）。
 
-**Key:** `cx.push_rules` 和 `cx.dnd_schedule`
+**Key:** `ck.push_rules` 和 `ck.dnd_schedule`
 
 ### 3.3 自定义 Emoji 与 Sticker (Custom Emojis)
 
 用户个人收藏的表情包或贴纸集。
 
-**Key:** `cx.collections.stickers`
+**Key:** `ck.collections.stickers`
 
 ```json
 {
@@ -89,7 +89,7 @@ updated: 2026-05-25
 
 用于保存用户的视图偏好，以便在新设备登录时恢复熟悉的界面。
 
-**Key:** `cx.client.ui_state`
+**Key:** `ck.client.ui_state`
 
 ```json
 {
@@ -102,13 +102,13 @@ updated: 2026-05-25
 }
 ```
 
-> **字段命名（normative）**：该数组承载的是 `ck:realm:` ID，因此 canonical 字段名为 `recent_realms`，与命名约定（值类型 = Realm）对齐。早期草稿曾使用 `recent_spaces`（语义错位：承载的是 realm id 而非 `ck:space:` 容器 id）。`cx.client.ui_state` 是 actor-private account data，不进入共享 wire 互操作面；客户端 SHOULD 写 `recent_realms`，读取时 MAY 兼容历史 `recent_spaces` 键并在下次写入时迁移为 `recent_realms`。两者语义相同，均为最近访问的 Realm id 列表。
+> **字段命名（normative）**：该数组承载的是 `ck:realm:` ID，因此 canonical 字段名为 `recent_realms`，与命名约定（值类型 = Realm）对齐。早期草稿曾使用 `recent_spaces`（语义错位：承载的是 realm id 而非 `ck:space:` 容器 id）。`ck.client.ui_state` 是 actor-private account data，不进入共享 wire 互操作面；客户端 SHOULD 写 `recent_realms`，读取时 MAY 兼容历史 `recent_spaces` 键并在下次写入时迁移为 `recent_realms`。两者语义相同，均为最近访问的 Realm id 列表。
 
 ### 3.5 个人屏蔽与过滤 (Personal Blocklist)
 
 用户可以在私有 account data 中保存个人 blocklist。该数据只影响用户自己的客户端、本地搜索/投影、通知规则和联系请求处理，不改变 Realm 的共享事实。
 
-**Key:** `cx.account.blocklist`
+**Key:** `ck.account.blocklist`
 
 ```json
 {
@@ -156,7 +156,7 @@ updated: 2026-05-25
 - 客户端 MAY 在共享 Realm 视图中隐藏或折叠被屏蔽内容。
 - 客户端 MUST NOT 把 blocklist 发布到公共 Realm 状态或目录服务。
 - 对被屏蔽方的可观察行为 MUST 与普通不可达 / 不可枚举场景一致：客户端和受托服务不得返回 `blocked_by_user`、不得发送 read receipt / typing / presence 的差异信号、不得因为 block 命中改变公开错误码、延迟模式或 directory 结果形态。需要本地诊断时只能在 holder 自己的加密 account data 或本地日志中记录。
-- `cx.account.blocklist` 是 actor-private/account-private durable cell：它可以在 holder 的设备间同步，但不进入共享 Realm Anchor frontier、membership state、Directory ingest 或 federation payload。
+- `ck.account.blocklist` 是 actor-private/account-private durable cell：它可以在 holder 的设备间同步，但不进入共享 Realm Anchor frontier、membership state、Directory ingest 或 federation payload。
 - 若服务端代表用户执行 blocklist 过滤（例如通知、DM invite、call invite 或 directory preview），该服务 MUST 被 holder 显式授权读取对应 blocklist 明文，或声明自身进入 `plaintext_visible_services.data_classes=["blocklist"]` / 等价 holder-private confidential service；否则只能转发给客户端本地过滤。服务端执行模式不得让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 用户离线"。
 - 屏蔽组织或域 MUST 在可能时通过已验证的 DID / claim 绑定评估；仅有弱字符串匹配时，客户端 SHOULD 给出警告。
 
@@ -164,7 +164,7 @@ updated: 2026-05-25
 
 用户可以为已知联系人（其他 Actor / Organization / 设备）保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Realm history、mention、sender attribution 或任何协议主体字段。
 
-**Key:** `cx.contacts.actor.<did>`
+**Key:** `ck.contacts.actor.<did>`
 
 ```json
 {
@@ -192,7 +192,7 @@ updated: 2026-05-25
 | `subject.did` | `did` | yes | 备注对象 DID；MUST 与 key 中 `<did>` 完全一致。 |
 | `local_name` | `string` | no | 本地备注名，最大 128 字符；规范化与 confusable 处理与 display name 一致（见 [`conformance/encoding.md`](../conformance/encoding.md) §2）。 |
 | `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
-| `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Realm tags（`cx.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
+| `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Realm tags（`ck.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
 | `pinned` | `bool` | no | 是否置顶。 |
 | `verified_handle_at_save` | `string` | no | 保存或最近一次更新时该 DID 的 verified handle 快照，用于反冒充比对。 |
 | `saved_at` | `timestamp` | yes | 首次保存时间。 |
@@ -207,7 +207,7 @@ updated: 2026-05-25
 - 当对方当前 verified handle 与 `verified_handle_at_save` 不一致时，客户端 SHOULD 在该联系人的渲染处显示 handle changed / transferred 标记，并提示用户复核备注，与 [`identity/identity-handles.md`](../identity/identity-handles.md) §6.1 的缓存失效语义一致。
 - 当对方公开 display name 与本地 `local_name` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先显示本地备注并加可识别的"备注"角标，避免对方通过改名伪装成用户给他取的备注。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
-- 删除联系人备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理。
+- 删除联系人备注 MUST 通过 `ck.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理。
 
 ### 3.7 Realm 备注 (Realm Remarks)
 
@@ -215,7 +215,7 @@ updated: 2026-05-25
 
 典型场景：用户加入多个 `title` 相同的 Realm（例如多个 "Engineering"、多家客户都用 "项目 A"），需要在本地侧栏稳定区分而无需向其他成员暴露区分依据。
 
-**Key:** `cx.contacts.realm.<realm_id>`
+**Key:** `ck.contacts.realm.<realm_id>`
 
 ```json
 {
@@ -244,7 +244,7 @@ updated: 2026-05-25
 | `subject.id` | `id:realm` | yes | 备注对象 Realm ID；MUST 与 key 中 `<realm_id>` 完全一致。 |
 | `local_name` | `string` | no | 本地备注名，最大 128 字符；规范化与 confusable 处理与 §3.6 `local_name` 一致（见 [`conformance/encoding.md`](../conformance/encoding.md) §2）。 |
 | `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
-| `tags` | `string[]` | no | 私有分组标签，命名空间与 §3.1 `cx.tags.realm.<realm_id>.tags` 互通（同名 tag 视为同一分组）；`cx.*` 保留给本规范，`<vendor>.*` 用于客户端扩展。 |
+| `tags` | `string[]` | no | 私有分组标签，命名空间与 §3.1 `ck.tags.realm.<realm_id>.tags` 互通（同名 tag 视为同一分组）；`ck.*` 保留给本规范，`<vendor>.*` 用于客户端扩展。 |
 | `pinned` | `bool` | no | 是否置顶。 |
 | `verified_title_at_save` | `string` | no | 保存或最近一次更新时 Realm 公开 `title` 的快照，用于反"改名混淆"。 |
 | `verified_owning_organizations_at_save` | `did[]` | no | 保存时 `owning_organizations` 快照，用于在组织漂移 / takeover 时给出复核提示。 |
@@ -260,14 +260,14 @@ updated: 2026-05-25
 - 当 Realm 公开 `title` 与 `verified_title_at_save` 不一致，或 `owning_organizations` 与 `verified_owning_organizations_at_save` 不一致时，客户端 SHOULD 在该 Realm 渲染处显示 title changed / org changed 标记，并提示用户复核备注；该机制与 §3.6 `verified_handle_at_save` 对称。
 - 当用户已加入的多个 Realm 的公开 `title` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / source Realm / `ck:realm:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
-- 删除 Realm 备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理；用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
-- `cx.contacts.realm.<realm_id>` 与 §3.1 `cx.tags.realm.<realm_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `realm_id` join 二者，规范上互不替代。
+- 删除 Realm 备注 MUST 通过 `ck.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理；用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
+- `ck.contacts.realm.<realm_id>` 与 §3.1 `ck.tags.realm.<realm_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `realm_id` join 二者，规范上互不替代。
 
 ### 3.8 已读回执偏好 (Read Receipt Preferences)
 
-控制是否向其他成员发送 `cx.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Realm 或 Flow / discussion track 单独重写。
+控制是否向其他成员发送 `ck.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Realm 或 Flow / discussion track 单独重写。
 
-**Key:** `cx.read_receipt.preferences`
+**Key:** `ck.read_receipt.preferences`
 
 ```json
 {
@@ -292,8 +292,8 @@ updated: 2026-05-25
 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
-| `default.send` | `bool` | `true` | 全局是否发送 `cx.receipt.read`。 |
-| `default.display` | `bool` | `true` | 全局是否在本地 UI 显示他人的 `cx.receipt.read`。只影响本地渲染，不改变订阅、fanout 或 unread 计算。 |
+| `default.send` | `bool` | `true` | 全局是否发送 `ck.receipt.read`。 |
+| `default.display` | `bool` | `true` | 全局是否在本地 UI 显示他人的 `ck.receipt.read`。只影响本地渲染，不改变订阅、fanout 或 unread 计算。 |
 | `realms.<realm_id>.send` | `bool` |  | 针对单个 Realm 的覆盖，优先于 `default`。 |
 | `realms.<realm_id>.display` | `bool` |  | 针对单个 Realm 的本地显示覆盖，优先于 `default`。 |
 | `flows.<flow_id>.send` | `bool` |  | 针对单个 Flow / discussion track 的覆盖，优先于 `realms.<realm_id>`。 |
@@ -302,17 +302,17 @@ updated: 2026-05-25
 规则：
 
 - 该 key 是 actor-private，加密存储于 account data；其他成员或 Sync Service 不得读取明文。
-- 客户端在生成 `cx.receipt.read` 前 MUST 按 (flow, realm, default) 顺序解析有效 `send`，最先命中的非空值生效。
-- 客户端在渲染他人的 `cx.receipt.read` 前 SHOULD 按相同顺序解析有效 `display`；`display=false` 只隐藏本地 UI，不得要求 Sync Service 停止投递，也不得改变 read cursor、unread count 或 push suppression 的协议状态。
-- 该偏好 MUST NOT 影响 §3 中 actor-private 的 Read Cursor（`cx.read_cursor.advance`）发送或多端同步。
-- 当目标 Realm / Flow 声明 `cx.realm.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST 不允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Realm / Flow 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
+- 客户端在生成 `ck.receipt.read` 前 MUST 按 (flow, realm, default) 顺序解析有效 `send`，最先命中的非空值生效。
+- 客户端在渲染他人的 `ck.receipt.read` 前 SHOULD 按相同顺序解析有效 `display`；`display=false` 只隐藏本地 UI，不得要求 Sync Service 停止投递，也不得改变 read cursor、unread count 或 push suppression 的协议状态。
+- 该偏好 MUST NOT 影响 §3 中 actor-private 的 Read Cursor（`ck.read_cursor.advance`）发送或多端同步。
+- 当目标 Realm / Flow 声明 `ck.realm.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST 不允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Realm / Flow 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
 - 客户端 MAY 在 UI 上将常用过滤维度（按 Realm 标签、按 Organization）做成批量编辑入口，但实际 canonical state 仍以本 key 中的逐 ID 覆盖为准。
 
 ## 4. 与本地投影的交互
 
 虽然 account data 对外不公开，但用户自己的客户端或可信端侧节点会拉取并解密这些数据，并合并到本地查询结果中。
 
-例如：当客户端以 `object_types=["realm"]` 查询加入的 Realm 列表时，本地 projection 可以按 `realm_id` 同时 join `cx.tags.realm.*`（私有标签与排序）与 `cx.contacts.realm.*`（本地备注名、笔记、置顶），得到带 `local_name` 与 tag 的 Realm 列表，并在 `title` 重复时优先按 `local_name` 区分。
+例如：当客户端以 `object_types=["realm"]` 查询加入的 Realm 列表时，本地 projection 可以按 `realm_id` 同时 join `ck.tags.realm.*`（私有标签与排序）与 `ck.contacts.realm.*`（本地备注名、笔记、置顶），得到带 `local_name` 与 tag 的 Realm 列表，并在 `title` 重复时优先按 `local_name` 区分。
 
 ## 5. 安全与隐私
 

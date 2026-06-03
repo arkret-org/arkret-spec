@@ -69,7 +69,7 @@
         },
         "event_kind": {
           "type": "string",
-          "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "event_id": {
           "type": "string",
@@ -117,7 +117,7 @@
             {
               "type": "string",
               "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-              "description": "Reference to accepted cx.mls.genesis / winning cx.mls.commit event."
+              "description": "Reference to accepted ck.mls.genesis / winning ck.mls.commit event."
             },
             {
               "type": "string",
@@ -125,7 +125,7 @@
               "description": "Equivalent group state proof hash."
             }
           ],
-          "description": "v1 MLS group state lookup hint. MUST point to accepted cx.mls.genesis / winning cx.mls.commit / equivalent group state proof. Does NOT replace MLS transcript verification. See encryption-and-audit.md §4. Ratchet tree material MUST NOT be carried in the per-message envelope; group state changes flow through cx.mls.genesis / Welcome / Commit events."
+          "description": "v1 MLS group state lookup hint. MUST point to accepted ck.mls.genesis / winning ck.mls.commit / equivalent group state proof. Does NOT replace MLS transcript verification. See encryption-and-audit.md §4. Ratchet tree material MUST NOT be carried in the per-message envelope; group state changes flow through ck.mls.genesis / Welcome / Commit events."
         }
       },
       "additionalProperties": false,

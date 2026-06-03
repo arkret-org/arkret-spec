@@ -3,7 +3,7 @@
   "version": 1,
   "kind": "deprecated_profile_ids",
   "source_of_truth": true,
-  "description": "Profile ids that have been removed or deprecated from cx.profile.* and MUST NOT be declared in service describe claims, conformance reports, or implementation manifests. cotest scanner uses this list to detect downstream drift.",
+  "description": "Profile ids that have been removed or deprecated from ck.profile.* and MUST NOT be declared in service describe claims, conformance reports, or implementation manifests. cotest scanner uses this list to detect downstream drift.",
   "rejection_levels": {
     "hard_reject": "MUST be rejected if declared by a current implementation.",
     "migration_only": "MAY be tolerated as read-only legacy claim during migration window; new declarations MUST be rejected.",
@@ -21,57 +21,57 @@
       "id": "chat_only_client",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "cx.profile.chat_mvp.v1",
+      "replacement": "ck.profile.chat_mvp.v1",
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Single-modality profile ids never existed as canonical cx.profile.* entries; downstream (notably yougen) declared them informally. Use cx.profile.chat_mvp.v1 + the Realm's actual schema declaration to describe a chat-focused product."
+      "notes": "Single-modality profile ids never existed as canonical ck.profile.* entries; downstream (notably yougen) declared them informally. Use ck.profile.chat_mvp.v1 + the Realm's actual schema declaration to describe a chat-focused product."
     },
     {
       "id": "kanban_only_client",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "cx.profile.kanban_mvp.v1",
+      "replacement": "ck.profile.kanban_mvp.v1",
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "See chat_only_client. Use cx.profile.kanban_mvp.v1; modality is expressed via Realm schema / morph_type_profiles, not via single-modality profile gating."
+      "notes": "See chat_only_client. Use ck.profile.kanban_mvp.v1; modality is expressed via Realm schema / morph_type_profiles, not via single-modality profile gating."
     },
     {
-      "id": "cx.profile.agent_workspace.v1",
+      "id": "ck.profile.agent_workspace.v1",
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Agent workspace profile was withdrawn from v1. Private agent context (mirror Realm + agent_task FSM + mention_redirect / import_attestation) is now treated as a deployment-local concern outside the canonical protocol. Generic agent participation is still supported via cx.member.state + cx.capability.grant + cx.agent.* protocol session events (cx.profile.agent_runtime.v1)."
+      "notes": "Agent workspace profile was withdrawn from v1. Private agent context (mirror Realm + agent_task FSM + mention_redirect / import_attestation) is now treated as a deployment-local concern outside the canonical protocol. Generic agent participation is still supported via ck.member.state + ck.capability.grant + ck.agent.* protocol session events (ck.profile.agent_runtime.v1)."
     },
     {
-      "id": "cx.profile.agent_workspace.lite.v1",
+      "id": "ck.profile.agent_workspace.lite.v1",
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Removed with cx.profile.agent_workspace.v1."
+      "notes": "Removed with ck.profile.agent_workspace.v1."
     },
     {
-      "id": "cx.profile.agent_workspace.governed.v1",
+      "id": "ck.profile.agent_workspace.governed.v1",
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Removed with cx.profile.agent_workspace.v1."
+      "notes": "Removed with ck.profile.agent_workspace.v1."
     },
     {
-      "id": "cx.profile.agent_workspace.strict.v1",
+      "id": "ck.profile.agent_workspace.strict.v1",
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Reserved placeholder id removed with cx.profile.agent_workspace.v1."
+      "notes": "Reserved placeholder id removed with ck.profile.agent_workspace.v1."
     },
     {
-      "id": "cx.profile.mls.minimal_metadata_space.v1",
+      "id": "ck.profile.mls.minimal_metadata_space.v1",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "cx.profile.mls.minimal_metadata_realm.v1",
+      "replacement": "ck.profile.mls.minimal_metadata_realm.v1",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Realm/Space inversion cleanup. Current v1 uses cx.profile.mls.minimal_metadata_realm.v1 because the profile scope is the Realm E2EE / routing boundary."
+      "notes": "Realm/Space inversion cleanup. Current v1 uses ck.profile.mls.minimal_metadata_realm.v1 because the profile scope is the Realm E2EE / routing boundary."
     }
   ]
 }

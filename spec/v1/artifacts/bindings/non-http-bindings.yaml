@@ -44,128 +44,128 @@ frame_schemas:
 grpc:
   services:
     Server:
-      Describe: cx.server.describe
+      Describe: ck.server.describe
     Identity:
-      DescribeRegistry: cx.identity.describe_registry
-      Resolve: cx.identity.resolve
-      GetDocument: cx.identity.get_document
-      GetLog: cx.identity.get_log
-      SubmitDidOperation: cx.identity.submit_did_operation
-      GetReceipts: cx.identity.get_receipts
+      DescribeRegistry: ck.identity.describe_registry
+      Resolve: ck.identity.resolve
+      GetDocument: ck.identity.get_document
+      GetLog: ck.identity.get_log
+      SubmitDidOperation: ck.identity.submit_did_operation
+      GetReceipts: ck.identity.get_receipts
     Events:
-      Describe: cx.events.describe
-      Submit: cx.events.submit
-      Get: cx.events.get
-      Resolve: cx.events.resolve
-      Query: cx.events.query
+      Describe: ck.events.describe
+      Submit: ck.events.submit
+      Get: ck.events.get
+      Resolve: ck.events.resolve
+      Query: ck.events.query
       # The HTTP POST/body query variant reuses the canonical Events/Query
       # gRPC binding and is not exposed as a separate non-HTTP operation.
-      Subscribe: cx.events.subscribe
-      Frontier: cx.events.frontier
+      Subscribe: ck.events.subscribe
+      Frontier: ck.events.frontier
     Ephemeral:
-      Send: cx.ephemeral.send
+      Send: ck.ephemeral.send
     CallMedia:
-      TokenExchange: cx.call.media.token_exchange
+      TokenExchange: ck.call.media.token_exchange
     Snapshot:
-      Head: cx.snapshot.head
+      Head: ck.snapshot.head
     Directory:
-      Describe: cx.directory.describe
-      SearchRealms: cx.directory.search_realms
-      ResolveRealm: cx.directory.resolve_realm
-      ResolveTarget: cx.directory.resolve_target
-      SearchOrganizations: cx.directory.search_organizations
-      ResolveOrganization: cx.directory.resolve_organization
-      SearchActors: cx.directory.search_actors
-      SearchUsers: cx.directory.search_users
-      ResolveHandle: cx.directory.resolve_handle
-      ListHandlesForSubject: cx.directory.list_handles_for_subject
-      PrivateContactDiscovery: cx.directory.private_contact_discovery
-      Announce: cx.directory.announce
-      Withdraw: cx.directory.withdraw
-      PushRegister: cx.directory.push.register
+      Describe: ck.directory.describe
+      SearchRealms: ck.directory.search_realms
+      ResolveRealm: ck.directory.resolve_realm
+      ResolveTarget: ck.directory.resolve_target
+      SearchOrganizations: ck.directory.search_organizations
+      ResolveOrganization: ck.directory.resolve_organization
+      SearchActors: ck.directory.search_actors
+      SearchUsers: ck.directory.search_users
+      ResolveHandle: ck.directory.resolve_handle
+      ListHandlesForSubject: ck.directory.list_handles_for_subject
+      PrivateContactDiscovery: ck.directory.private_contact_discovery
+      Announce: ck.directory.announce
+      Withdraw: ck.directory.withdraw
+      PushRegister: ck.directory.push.register
     Keys:
-      Upload: cx.keys.upload
-      Query: cx.keys.query
-      Claim: cx.keys.claim
-      KeyPackagesUpload: cx.keys.keypackages.upload
-      KeyPackagesClaim: cx.keys.keypackages.claim
-      KeyPackagesConsume: cx.keys.keypackages.consume
-      KeyPackagesRevoke: cx.keys.keypackages.revoke
-      BackupsPut: cx.keys.backups.put
-      BackupsList: cx.keys.backups.list
-      BackupsGet: cx.keys.backups.get
-      BackupsDelete: cx.keys.backups.delete
+      Upload: ck.keys.upload
+      Query: ck.keys.query
+      Claim: ck.keys.claim
+      KeyPackagesUpload: ck.keys.keypackages.upload
+      KeyPackagesClaim: ck.keys.keypackages.claim
+      KeyPackagesConsume: ck.keys.keypackages.consume
+      KeyPackagesRevoke: ck.keys.keypackages.revoke
+      BackupsPut: ck.keys.backups.put
+      BackupsList: ck.keys.backups.list
+      BackupsGet: ck.keys.backups.get
+      BackupsDelete: ck.keys.backups.delete
     Blob:
-      Upload: cx.blob.upload
-      Get: cx.blob.get
-      Head: cx.blob.head
-      Presign: cx.blob.presign
+      Upload: ck.blob.upload
+      Get: ck.blob.get
+      Head: ck.blob.head
+      Presign: ck.blob.presign
     DeviceMessages:
-      Put: cx.device_messages.put
-      Get: cx.device_messages.get
+      Put: ck.device_messages.put
+      Get: ck.device_messages.get
     Moderation:
-      Report: cx.moderation.report
+      Report: ck.moderation.report
     Projection:
-      Spaces: cx.projection.spaces
-      Flows: cx.projection.flows
-      Morphs: cx.projection.morphs
+      Spaces: ck.projection.spaces
+      Flows: ck.projection.flows
+      Morphs: ck.projection.morphs
     Policy:
-      Check: cx.policy.check
+      Check: ck.policy.check
     Media:
-      IceConfig: cx.media.ice_config
+      IceConfig: ck.media.ice_config
     Applet:
-      Ping: cx.applet.ping
-      Describe: cx.applet.describe
-      Transaction: cx.applet.transaction
-      ResolveActor: cx.applet.resolve_actor
-      ResolveRealm: cx.applet.resolve_realm
-      ProtocolMetadata: cx.applet.protocol_metadata
-      ThirdPartyUsers: cx.applet.third_party_users
-      ThirdPartyLocations: cx.applet.third_party_locations
+      Ping: ck.applet.ping
+      Describe: ck.applet.describe
+      Transaction: ck.applet.transaction
+      ResolveActor: ck.applet.resolve_actor
+      ResolveRealm: ck.applet.resolve_realm
+      ProtocolMetadata: ck.applet.protocol_metadata
+      ThirdPartyUsers: ck.applet.third_party_users
+      ThirdPartyLocations: ck.applet.third_party_locations
     Mimi:
-      ProviderDirectory: cx.mimi.provider_directory
-      KeyMaterial: cx.mimi.key_material
-      RoomUpdate: cx.mimi.room_update
-      Notify: cx.mimi.notify
-      SubmitMessage: cx.mimi.submit_message
-      GroupInfo: cx.mimi.group_info
-      RequestConsent: cx.mimi.request_consent
-      UpdateConsent: cx.mimi.update_consent
-      IdentifierQuery: cx.mimi.identifier_query
-      ReportAbuse: cx.mimi.report_abuse
-      ProxyDownload: cx.mimi.proxy_download
+      ProviderDirectory: ck.mimi.provider_directory
+      KeyMaterial: ck.mimi.key_material
+      RoomUpdate: ck.mimi.room_update
+      Notify: ck.mimi.notify
+      SubmitMessage: ck.mimi.submit_message
+      GroupInfo: ck.mimi.group_info
+      RequestConsent: ck.mimi.request_consent
+      UpdateConsent: ck.mimi.update_consent
+      IdentifierQuery: ck.mimi.identifier_query
+      ReportAbuse: ck.mimi.report_abuse
+      ProxyDownload: ck.mimi.proxy_download
     Push:
-      RegisterDevice: cx.push.register_device
-      UnregisterDevice: cx.push.unregister_device
-      Notify: cx.push.notify
+      RegisterDevice: ck.push.register_device
+      UnregisterDevice: ck.push.unregister_device
+      Notify: ck.push.notify
     Authz:
-      Check: cx.authz.check
-      GetEffectiveGrants: cx.authz.get_effective_grants
-      GetInvites: cx.authz.get_invites
+      Check: ck.authz.check
+      GetEffectiveGrants: ck.authz.get_effective_grants
+      GetInvites: ck.authz.get_invites
     Account:
-      Describe: cx.account.describe
-      Subscribe: cx.account.subscribe
-      CursorRevoke: cx.account.cursor_revoke
-      IssueSessionGrant: cx.account.issue_session_grant
-      AgentKeyPair: cx.account.agent_key_pair
-      DevicePair: cx.account.device_pair
-      OidcCallback: cx.account.oidc_callback
+      Describe: ck.account.describe
+      Subscribe: ck.account.subscribe
+      CursorRevoke: ck.account.cursor_revoke
+      IssueSessionGrant: ck.account.issue_session_grant
+      AgentKeyPair: ck.account.agent_key_pair
+      DevicePair: ck.account.device_pair
+      OidcCallback: ck.account.oidc_callback
     Agent:
-      Provision: cx.agent.provision
-      List: cx.agent.list
-      Get: cx.agent.get
-      Pause: cx.agent.pause
-      Resume: cx.agent.resume
-      Deactivate: cx.agent.deactivate
-      RotateKey: cx.agent.rotate_key
-      GrantAttach: cx.agent.grant.attach
-      GrantDetach: cx.agent.grant.detach
-      SidecarThreadEnsure: cx.agent.sidecar_thread.ensure
+      Provision: ck.agent.provision
+      List: ck.agent.list
+      Get: ck.agent.get
+      Pause: ck.agent.pause
+      Resume: ck.agent.resume
+      Deactivate: ck.agent.deactivate
+      RotateKey: ck.agent.rotate_key
+      GrantAttach: ck.agent.grant.attach
+      GrantDetach: ck.agent.grant.detach
+      SidecarThreadEnsure: ck.agent.sidecar_thread.ensure
     Admin:
-      GetServerStatus: cx.admin.get_server_status
-      UpdateAccountStatus: cx.admin.update_account_status
-      RevokeDevice: cx.admin.revoke_device
-      GetModerationQueue: cx.admin.get_moderation_queue
+      GetServerStatus: ck.admin.get_server_status
+      UpdateAccountStatus: ck.admin.update_account_status
+      RevokeDevice: ck.admin.revoke_device
+      GetModerationQueue: ck.admin.get_moderation_queue
 mq:
   envelope:
     required:
@@ -188,55 +188,55 @@ mq:
       signatures:
         type: array
   topics:
-    events.submit: cx.events.submit
-    events.resolve: cx.events.resolve
-    events.query: cx.events.query
-    events.subscribe: cx.events.subscribe
-    ephemeral.send: cx.ephemeral.send
-    call.media.token_exchange: cx.call.media.token_exchange
-    account.subscribe: cx.account.subscribe
-    account.cursor_revoke: cx.account.cursor_revoke
-    account.agent_key_pair: cx.account.agent_key_pair
-    agent.provision: cx.agent.provision
-    agent.list: cx.agent.list
-    agent.get: cx.agent.get
-    agent.pause: cx.agent.pause
-    agent.resume: cx.agent.resume
-    agent.deactivate: cx.agent.deactivate
-    agent.rotate_key: cx.agent.rotate_key
-    agent.grant.attach: cx.agent.grant.attach
-    agent.grant.detach: cx.agent.grant.detach
-    agent.sidecar_thread.ensure: cx.agent.sidecar_thread.ensure
-    directory.private_contact_discovery: cx.directory.private_contact_discovery
-    directory.list_handles_for_subject: cx.directory.list_handles_for_subject
-    directory.announce: cx.directory.announce
-    directory.withdraw: cx.directory.withdraw
-    directory.push.register: cx.directory.push.register
-    keys.keypackages.upload: cx.keys.keypackages.upload
-    keys.keypackages.claim: cx.keys.keypackages.claim
-    keys.keypackages.consume: cx.keys.keypackages.consume
-    keys.keypackages.revoke: cx.keys.keypackages.revoke
-    keys.backups.put: cx.keys.backups.put
-    keys.backups.list: cx.keys.backups.list
-    keys.backups.get: cx.keys.backups.get
-    keys.backups.delete: cx.keys.backups.delete
-    moderation.report: cx.moderation.report
-    projection.spaces: cx.projection.spaces
-    projection.flows: cx.projection.flows
-    projection.morphs: cx.projection.morphs
-    mimi.provider_directory: cx.mimi.provider_directory
-    mimi.key_material: cx.mimi.key_material
-    mimi.room_update: cx.mimi.room_update
-    mimi.notify: cx.mimi.notify
-    mimi.submit_message: cx.mimi.submit_message
-    mimi.group_info: cx.mimi.group_info
-    mimi.request_consent: cx.mimi.request_consent
-    mimi.update_consent: cx.mimi.update_consent
-    mimi.identifier_query: cx.mimi.identifier_query
-    mimi.report_abuse: cx.mimi.report_abuse
-    mimi.proxy_download: cx.mimi.proxy_download
-    push.notify: cx.push.notify
-    authz.check: cx.authz.check
+    events.submit: ck.events.submit
+    events.resolve: ck.events.resolve
+    events.query: ck.events.query
+    events.subscribe: ck.events.subscribe
+    ephemeral.send: ck.ephemeral.send
+    call.media.token_exchange: ck.call.media.token_exchange
+    account.subscribe: ck.account.subscribe
+    account.cursor_revoke: ck.account.cursor_revoke
+    account.agent_key_pair: ck.account.agent_key_pair
+    agent.provision: ck.agent.provision
+    agent.list: ck.agent.list
+    agent.get: ck.agent.get
+    agent.pause: ck.agent.pause
+    agent.resume: ck.agent.resume
+    agent.deactivate: ck.agent.deactivate
+    agent.rotate_key: ck.agent.rotate_key
+    agent.grant.attach: ck.agent.grant.attach
+    agent.grant.detach: ck.agent.grant.detach
+    agent.sidecar_thread.ensure: ck.agent.sidecar_thread.ensure
+    directory.private_contact_discovery: ck.directory.private_contact_discovery
+    directory.list_handles_for_subject: ck.directory.list_handles_for_subject
+    directory.announce: ck.directory.announce
+    directory.withdraw: ck.directory.withdraw
+    directory.push.register: ck.directory.push.register
+    keys.keypackages.upload: ck.keys.keypackages.upload
+    keys.keypackages.claim: ck.keys.keypackages.claim
+    keys.keypackages.consume: ck.keys.keypackages.consume
+    keys.keypackages.revoke: ck.keys.keypackages.revoke
+    keys.backups.put: ck.keys.backups.put
+    keys.backups.list: ck.keys.backups.list
+    keys.backups.get: ck.keys.backups.get
+    keys.backups.delete: ck.keys.backups.delete
+    moderation.report: ck.moderation.report
+    projection.spaces: ck.projection.spaces
+    projection.flows: ck.projection.flows
+    projection.morphs: ck.projection.morphs
+    mimi.provider_directory: ck.mimi.provider_directory
+    mimi.key_material: ck.mimi.key_material
+    mimi.room_update: ck.mimi.room_update
+    mimi.notify: ck.mimi.notify
+    mimi.submit_message: ck.mimi.submit_message
+    mimi.group_info: ck.mimi.group_info
+    mimi.request_consent: ck.mimi.request_consent
+    mimi.update_consent: ck.mimi.update_consent
+    mimi.identifier_query: ck.mimi.identifier_query
+    mimi.report_abuse: ck.mimi.report_abuse
+    mimi.proxy_download: ck.mimi.proxy_download
+    push.notify: ck.push.notify
+    authz.check: ck.authz.check
 libp2p:
   envelope:
     required:
@@ -264,7 +264,7 @@ libp2p:
   suggested_protocols:
     - /cokret/sync/1.0.0
     - /cokret/blob/1.0.0
-  # Federation API 走 sync surface（HTTP 侧复用 cx.events.submit / cx.events.query
+  # Federation API 走 sync surface（HTTP 侧复用 ck.events.submit / ck.events.query
   # 加 service signature header；详见 federation.md §4 与 §7）。libp2p binding 同样使用
   # /cokret/sync/1.0.0 + service-signature envelope，不另设独立 /cokret/federation/1.0.0
   # protocol multiplexer。

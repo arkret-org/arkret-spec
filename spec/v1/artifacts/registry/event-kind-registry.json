@@ -3,43 +3,43 @@
   "source_of_truth": false,
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
-  "kind_pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+  "kind_pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "wire_scope_definitions": {
     "durable_event": "Valid Event Envelope kind for persisted canonical history and reducer input.",
     "actor_private_event": "Persisted actor-private/account-data event; not shared Realm history and not Realm reducer input.",
     "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history."
   },
   "registry_rules": [
-    "Standard cx.* effect kinds MUST appear in this registry when used by a Move effect or Event Envelope payload router.",
+    "Standard ck.* effect kinds MUST appear in this registry when used by a Move effect or Event Envelope payload router.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Realm Move/Anchor history.",
-    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas_register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells.",
-    "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement cx.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww_register or rga.",
+    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ck.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas_register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells.",
+    "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ck.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww_register or rga.",
     "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority."
   ],
   "payload_schema_contract": {
     "event_envelope_schema": "schemas/event-envelope.schema.json",
     "payload_schema_file": "schemas/event-payload.schema.json",
     "coverage_required": true,
-    "validation_rule": "Every active standard cx.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
+    "validation_rule": "Every active standard ck.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
     "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported."
   },
   "event_kinds": [
     {
-      "event_kind": "cx.realm.create",
+      "event_kind": "ck.realm.create",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm create",
-      "cell_family": "cx.component.realm.create.v1",
+      "cell_family": "ck.component.realm.create.v1",
       "cell_subject": null,
       "lattice": "ordered_log",
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.realm.update",
+      "event_kind": "ck.realm.update",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
@@ -47,13 +47,13 @@
       "payload": "Realm patch"
     },
     {
-      "event_kind": "cx.realm.upgrade",
+      "event_kind": "ck.realm.upgrade",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm version upgrade",
-      "cell_family": "cx.component.realm.upgrade.v1",
+      "cell_family": "ck.component.realm.upgrade.v1",
       "cell_subject": {
         "type": "profile_ref",
         "field": "payload.target_reducer_profile"
@@ -62,25 +62,25 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.organization",
+      "event_kind": "ck.realm.organization",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm official or sponsoring organization statement",
-      "cell_family": "cx.component.realm.organization.v1",
+      "cell_family": "ck.component.realm.organization.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.link",
+      "event_kind": "ck.realm.link",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
-      "cell_family": "cx.component.realm.link.v1",
+      "cell_family": "ck.component.realm.link.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -100,193 +100,193 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.realm.policy",
+      "event_kind": "ck.realm.policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm access policy reference (policy_id)",
-      "cell_family": "cx.component.realm.policy.v1",
+      "cell_family": "ck.component.realm.policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.join_rule",
+      "event_kind": "ck.realm.join_rule",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm join rule (public/invite/knock/restricted/closed)",
-      "cell_family": "cx.component.realm.join_rule.v1",
+      "cell_family": "ck.component.realm.join_rule.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.history_visibility",
+      "event_kind": "ck.realm.history_visibility",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm history visibility scope",
-      "cell_family": "cx.component.realm.history_visibility.v1",
+      "cell_family": "ck.component.realm.history_visibility.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.discovery",
+      "event_kind": "ck.realm.discovery",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm discoverability state",
-      "cell_family": "cx.component.realm.discovery.v1",
+      "cell_family": "ck.component.realm.discovery.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.preview_policy",
+      "event_kind": "ck.realm.preview_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm preview / peek policy for directory card, stripped state, history stub, and plaintext history snippet projections",
-      "cell_family": "cx.component.realm.preview_policy.v1",
+      "cell_family": "ck.component.realm.preview_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.policy_server",
+      "event_kind": "ck.realm.policy_server",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm Policy Server binding",
-      "cell_family": "cx.component.realm.policy_server.v1",
+      "cell_family": "ck.component.realm.policy_server.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.policy_components",
+      "event_kind": "ck.realm.policy_components",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
-      "cell_family": "cx.component.realm.policy_components.v1",
+      "cell_family": "ck.component.realm.policy_components.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.history_sharing_policy",
+      "event_kind": "ck.realm.history_sharing_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "E2EE history sharing policy",
-      "cell_family": "cx.component.realm.history_sharing_policy.v1",
+      "cell_family": "ck.component.realm.history_sharing_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.delivery_binding_policy",
+      "event_kind": "ck.realm.delivery_binding_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of cx.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
-      "cell_family": "cx.component.realm.delivery_binding_policy.v1",
+      "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ck.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
+      "cell_family": "ck.component.realm.delivery_binding_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.asset_privacy_policy",
+      "event_kind": "ck.realm.asset_privacy_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm asset privacy policy",
-      "cell_family": "cx.component.realm.asset_privacy_policy.v1",
+      "cell_family": "ck.component.realm.asset_privacy_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.read_receipt_policy",
+      "event_kind": "ck.realm.read_receipt_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / allow_child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5 for the compliance-floor escape switch",
-      "cell_family": "cx.component.realm.read_receipt_policy.v1",
+      "cell_family": "ck.component.realm.read_receipt_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.moderation_policy",
+      "event_kind": "ck.realm.moderation_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
-      "cell_family": "cx.component.realm.moderation_policy.v1",
+      "cell_family": "ck.component.realm.moderation_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.plaintext_visible_services",
+      "event_kind": "ck.realm.plaintext_visible_services",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Plaintext-visible services declaration outside E2EE boundary",
-      "cell_family": "cx.component.realm.plaintext_visible_services.v1",
+      "cell_family": "ck.component.realm.plaintext_visible_services.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.media_service",
+      "event_kind": "ck.realm.media_service",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
-      "cell_family": "cx.component.realm.media_service.v1",
+      "cell_family": "ck.component.realm.media_service.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.schema",
+      "event_kind": "ck.realm.schema",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm schema_refs declaration",
-      "cell_family": "cx.component.realm.schema.v1",
+      "cell_family": "ck.component.realm.schema.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.inheritance_policy",
+      "event_kind": "ck.realm.inheritance_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Per-parent inheritance policy; one entry per source Realm",
-      "cell_family": "cx.component.realm.inheritance_policy.v1",
+      "cell_family": "ck.component.realm.inheritance_policy.v1",
       "cell_subject": {
         "type": "id:realm",
         "field": "payload.source_realm_id"
@@ -295,79 +295,79 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.archive",
+      "event_kind": "ck.realm.archive",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm archive lifecycle facet (reversible boolean)",
       "lifecycle_modality": "reversible",
-      "cell_family": "cx.component.realm.archive.v1",
+      "cell_family": "ck.component.realm.archive.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.freeze",
+      "event_kind": "ck.realm.freeze",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm freeze lifecycle facet (reversible boolean)",
       "lifecycle_modality": "reversible",
-      "cell_family": "cx.component.realm.freeze.v1",
+      "cell_family": "ck.component.realm.freeze.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.tombstone",
+      "event_kind": "ck.realm.tombstone",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
       "lifecycle_modality": "terminal",
-      "cell_family": "cx.component.realm.tombstone.v1",
+      "cell_family": "ck.component.realm.tombstone.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.realm.destroy",
+      "event_kind": "ck.realm.destroy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
       "lifecycle_modality": "terminal",
-      "cell_family": "cx.component.realm.destroy.v1",
+      "cell_family": "ck.component.realm.destroy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.circle.create",
+      "event_kind": "ck.circle.create",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
-      "cell_family": "cx.component.circle.create.v1",
+      "cell_family": "ck.component.circle.create.v1",
       "cell_subject": null,
       "lattice": "ordered_log",
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.circle.update",
+      "event_kind": "ck.circle.update",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle patch (cx.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
+      "payload": "Circle patch (ck.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
     },
     {
-      "event_kind": "cx.circle.archive",
+      "event_kind": "ck.circle.archive",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -375,7 +375,7 @@
       "payload": "Circle archive lifecycle facet (active -> archived)."
     },
     {
-      "event_kind": "cx.circle.restore",
+      "event_kind": "ck.circle.restore",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -383,26 +383,26 @@
       "payload": "Circle restore lifecycle facet (archived -> active)."
     },
     {
-      "event_kind": "cx.circle.tombstone",
+      "event_kind": "ck.circle.tombstone",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
       "lifecycle_modality": "terminal",
-      "cell_family": "cx.component.circle.tombstone.v1",
+      "cell_family": "ck.component.circle.tombstone.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.circle.member.state",
+      "event_kind": "ck.circle.member.state",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle membership state (parallel to cx.member.state). Reducer MUST first validate the target actor is parent Realm active member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
-      "cell_family": "cx.component.circle.member.v1",
+      "payload": "Circle membership state (parallel to ck.member.state). Reducer MUST first validate the target actor is parent Realm active member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+      "cell_family": "ck.component.circle.member.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -414,7 +414,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.circle.anchor_commit",
+      "event_kind": "ck.circle.anchor_commit",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -422,7 +422,7 @@
       "payload": "Reducer-derived: Circle sub-anchor commits opaque sub_anchor_head_digest to the Realm Anchor stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2."
     },
     {
-      "event_kind": "cx.organization.discovery",
+      "event_kind": "ck.organization.discovery",
       "category": "organization",
       "status": "active",
       "wire_scope": "durable_event",
@@ -430,7 +430,7 @@
       "payload": "Organization discoverability state"
     },
     {
-      "event_kind": "cx.actor.discovery",
+      "event_kind": "ck.actor.discovery",
       "category": "actor",
       "status": "active",
       "wire_scope": "durable_event",
@@ -438,7 +438,7 @@
       "payload": "Actor discoverability state"
     },
     {
-      "event_kind": "cx.applet.discovery",
+      "event_kind": "ck.applet.discovery",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -446,7 +446,7 @@
       "payload": "Applet discoverability state"
     },
     {
-      "event_kind": "cx.handle.discovery",
+      "event_kind": "ck.handle.discovery",
       "category": "handle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -454,7 +454,7 @@
       "payload": "Handle discoverability state"
     },
     {
-      "event_kind": "cx.organization.moderation_policy",
+      "event_kind": "ck.organization.moderation_policy",
       "category": "organization",
       "status": "active",
       "wire_scope": "durable_event",
@@ -462,7 +462,7 @@
       "payload": "Organization moderation policy state"
     },
     {
-      "event_kind": "cx.did.proof",
+      "event_kind": "ck.did.proof",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -470,7 +470,7 @@
       "payload": "DID proof object or event"
     },
     {
-      "event_kind": "cx.identity.disclosure_policy",
+      "event_kind": "ck.identity.disclosure_policy",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -478,7 +478,7 @@
       "payload": "Identity disclosure policy"
     },
     {
-      "event_kind": "cx.identity.disclosure_receipt",
+      "event_kind": "ck.identity.disclosure_receipt",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -486,7 +486,7 @@
       "payload": "Identity disclosure receipt"
     },
     {
-      "event_kind": "cx.identity.presentation_request",
+      "event_kind": "ck.identity.presentation_request",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -494,7 +494,7 @@
       "payload": "Presentation request"
     },
     {
-      "event_kind": "cx.identity.presentation_response",
+      "event_kind": "ck.identity.presentation_response",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -502,7 +502,7 @@
       "payload": "Presentation response"
     },
     {
-      "event_kind": "cx.identity.accountability_grant",
+      "event_kind": "ck.identity.accountability_grant",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -510,7 +510,7 @@
       "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_principal_ids[]` entries; reducer strips unverified DIDs from accountable_principal_ids. See zh/models/actor.md §3.3.1."
     },
     {
-      "event_kind": "cx.schema.define",
+      "event_kind": "ck.schema.define",
       "category": "schema",
       "status": "active",
       "wire_scope": "durable_event",
@@ -518,7 +518,7 @@
       "payload": "Schema definition"
     },
     {
-      "event_kind": "cx.schema.update",
+      "event_kind": "ck.schema.update",
       "category": "schema",
       "status": "active",
       "wire_scope": "durable_event",
@@ -526,7 +526,7 @@
       "payload": "Schema patch"
     },
     {
-      "event_kind": "cx.policy.set",
+      "event_kind": "ck.policy.set",
       "category": "policy",
       "status": "active",
       "wire_scope": "durable_event",
@@ -534,13 +534,13 @@
       "payload": "Policy object set"
     },
     {
-      "event_kind": "cx.policy.rule",
+      "event_kind": "ck.policy.rule",
       "category": "policy",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Policy rule state",
-      "cell_family": "cx.component.policy.rule.v1",
+      "cell_family": "ck.component.policy.rule.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.rule_id"
@@ -549,7 +549,7 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.policy.action",
+      "event_kind": "ck.policy.action",
       "category": "policy",
       "status": "active",
       "wire_scope": "durable_event",
@@ -557,13 +557,13 @@
       "payload": "Policy-gated action proposal or execution"
     },
     {
-      "event_kind": "cx.member.state",
+      "event_kind": "ck.member.state",
       "category": "membership",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm membership state",
-      "cell_family": "cx.component.member.state.v1",
+      "cell_family": "ck.component.member.state.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.actor_id"
@@ -572,13 +572,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.member.identity.update",
+      "event_kind": "ck.member.identity.update",
       "category": "membership",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior cx.member.identity.update events via payload.replaces[] without overloading cx.profile.update patch semantics.",
-      "cell_family": "cx.component.member.identity.v1",
+      "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ck.member.identity.update events via payload.replaces[] without overloading ck.profile.update patch semantics.",
+      "cell_family": "ck.component.member.identity.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -591,7 +591,7 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.flow.create",
+      "event_kind": "ck.flow.create",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
@@ -599,13 +599,13 @@
       "payload": "Flow create"
     },
     {
-      "event_kind": "cx.flow.update",
+      "event_kind": "ck.flow.update",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Flow patch",
-      "cell_family": "cx.component.flow.metadata.v1",
+      "cell_family": "ck.component.flow.metadata.v1",
       "cell_subject": {
         "type": "id:flow",
         "field": "payload.flow_id"
@@ -614,7 +614,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.flow.archive",
+      "event_kind": "ck.flow.archive",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
@@ -622,7 +622,7 @@
       "payload": "Flow archive"
     },
     {
-      "event_kind": "cx.flow.restore",
+      "event_kind": "ck.flow.restore",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
@@ -630,13 +630,13 @@
       "payload": "Flow restore"
     },
     {
-      "event_kind": "cx.flow.stage.set",
+      "event_kind": "ck.flow.stage.set",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow business-progression stage transition. Single source of truth for mutating Flow.stage / Flow.stage_changed_at; cx.flow.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Flow's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=flow_already_terminal; state=archived yields flow_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
-      "cell_family": "cx.component.flow.stage.v1",
+      "payload": "Flow business-progression stage transition. Single source of truth for mutating Flow.stage / Flow.stage_changed_at; ck.flow.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Flow's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=flow_already_terminal; state=archived yields flow_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
+      "cell_family": "ck.component.flow.stage.v1",
       "cell_subject": {
         "type": "id:flow",
         "field": "payload.flow_id"
@@ -645,13 +645,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.flow.tracks.update",
+      "event_kind": "ck.flow.tracks.update",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Unified Flow tracks patch. payload.patch uses cx.patch.v1 against the Flow.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
-      "cell_family": "cx.component.flow.tracks.v1",
+      "payload": "Unified Flow tracks patch. payload.patch uses ck.patch.v1 against the Flow.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
+      "cell_family": "ck.component.flow.tracks.v1",
       "cell_subject": {
         "type": "id:flow",
         "field": "payload.flow_id"
@@ -660,13 +660,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.flow.move",
+      "event_kind": "ck.flow.move",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Flow move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, flow_id); the contains Relation list_space_id->flow_id is derived from cell value, not a separate truth source.",
-      "cell_family": "cx.component.flow.position.v1",
+      "cell_family": "ck.component.flow.position.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -686,13 +686,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.flow.reorder",
+      "event_kind": "ck.flow.reorder",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow reorder within Space. Writes the same cell as cx.flow.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update).",
-      "cell_family": "cx.component.flow.position.v1",
+      "payload": "Flow reorder within Space. Writes the same cell as ck.flow.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update).",
+      "cell_family": "ck.component.flow.position.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -712,13 +712,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.flow.watch.set",
+      "event_kind": "ck.flow.watch.set",
       "category": "discussion",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas_register cell keyed by (flow_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds cx.flow.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct cx.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
-      "cell_family": "cx.component.flow.watch.v1",
+      "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas_register cell keyed by (flow_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ck.flow.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ck.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct ck.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
+      "cell_family": "ck.component.flow.watch.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -738,7 +738,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.create",
+      "event_kind": "ck.space.create",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -746,7 +746,7 @@
       "payload": "Space create (board / list / swimlane / calendar bucket / etc.)"
     },
     {
-      "event_kind": "cx.space.update",
+      "event_kind": "ck.space.update",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -754,13 +754,13 @@
       "payload": "Space metadata update (title, rank, kind-specific fields)"
     },
     {
-      "event_kind": "cx.space.parent",
+      "event_kind": "ck.space.parent",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Space parent declaration. Parent is another ck:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
-      "cell_family": "cx.component.space.parent.v1",
+      "cell_family": "ck.component.space.parent.v1",
       "cell_subject": {
         "type": "id:space",
         "field": "payload.space_id"
@@ -769,7 +769,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.archive",
+      "event_kind": "ck.space.archive",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -777,7 +777,7 @@
       "payload": "Space archive (UI-level grouping archive; contained Flows MUST be relocated or follow archive)"
     },
     {
-      "event_kind": "cx.space.restore",
+      "event_kind": "ck.space.restore",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -785,7 +785,7 @@
       "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)"
     },
     {
-      "event_kind": "cx.space.tombstone",
+      "event_kind": "ck.space.tombstone",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -793,7 +793,7 @@
       "payload": "Space tombstone (irreversible; contained Flows MUST be relocated before)"
     },
     {
-      "event_kind": "cx.message.create",
+      "event_kind": "ck.message.create",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -801,7 +801,7 @@
       "payload": "Message create"
     },
     {
-      "event_kind": "cx.message.revise",
+      "event_kind": "ck.message.revise",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -809,7 +809,7 @@
       "payload": "Message edit patch"
     },
     {
-      "event_kind": "cx.message.redact",
+      "event_kind": "ck.message.redact",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -817,7 +817,7 @@
       "payload": "Message-scoped redaction; does not grant generic redaction authority"
     },
     {
-      "event_kind": "cx.reaction.add",
+      "event_kind": "ck.reaction.add",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -825,7 +825,7 @@
       "payload": "Reaction add"
     },
     {
-      "event_kind": "cx.reaction.remove",
+      "event_kind": "ck.reaction.remove",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -833,7 +833,7 @@
       "payload": "Reaction remove"
     },
     {
-      "event_kind": "cx.redaction",
+      "event_kind": "ck.redaction",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -841,7 +841,7 @@
       "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming"
     },
     {
-      "event_kind": "cx.morph.create",
+      "event_kind": "ck.morph.create",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -849,7 +849,7 @@
       "payload": "Morph create"
     },
     {
-      "event_kind": "cx.morph.update",
+      "event_kind": "ck.morph.update",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -857,7 +857,7 @@
       "payload": "Morph patch"
     },
     {
-      "event_kind": "cx.morph.archive",
+      "event_kind": "ck.morph.archive",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -865,7 +865,7 @@
       "payload": "Morph archive"
     },
     {
-      "event_kind": "cx.morph.restore",
+      "event_kind": "ck.morph.restore",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -873,21 +873,21 @@
       "payload": "Morph restore"
     },
     {
-      "event_kind": "cx.morph.schema_migrate",
+      "event_kind": "ck.morph.schema_migrate",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ck.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ck.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
     },
     {
-      "event_kind": "cx.morph.stage.set",
+      "event_kind": "ck.morph.stage.set",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; cx.morph.update / cx.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
-      "cell_family": "cx.component.morph.stage.v1",
+      "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ck.morph.update / ck.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
+      "cell_family": "ck.component.morph.stage.v1",
       "cell_subject": {
         "type": "id:morph",
         "field": "payload.morph_id"
@@ -896,7 +896,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.relation.create",
+      "event_kind": "ck.relation.create",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -904,7 +904,7 @@
       "payload": "Relation create"
     },
     {
-      "event_kind": "cx.relation.update",
+      "event_kind": "ck.relation.update",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -912,7 +912,7 @@
       "payload": "Relation patch"
     },
     {
-      "event_kind": "cx.relation.tombstone",
+      "event_kind": "ck.relation.tombstone",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -920,7 +920,7 @@
       "payload": "Relation tombstone"
     },
     {
-      "event_kind": "cx.container.move_item",
+      "event_kind": "ck.container.move_item",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -928,7 +928,7 @@
       "payload": "Profile-declared container item move"
     },
     {
-      "event_kind": "cx.container.rebalance",
+      "event_kind": "ck.container.rebalance",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -936,13 +936,13 @@
       "payload": "Profile-declared container rank rebalance"
     },
     {
-      "event_kind": "cx.view.create",
+      "event_kind": "ck.view.create",
       "category": "view",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View create",
-      "cell_family": "cx.component.view.create.v1",
+      "cell_family": "ck.component.view.create.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.view_id"
@@ -951,13 +951,13 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.view.update",
+      "event_kind": "ck.view.update",
       "category": "view",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View update",
-      "cell_family": "cx.component.view.update.v1",
+      "cell_family": "ck.component.view.update.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.view_id"
@@ -966,13 +966,13 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.view.reconcile",
+      "event_kind": "ck.view.reconcile",
       "category": "view",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View schema or definition sync",
-      "cell_family": "cx.component.view.reconcile.v1",
+      "cell_family": "ck.component.view.reconcile.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.view_id"
@@ -981,7 +981,7 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.agent.endpoint",
+      "event_kind": "ck.agent.endpoint",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -989,13 +989,13 @@
       "payload": "Agent protocol endpoint declaration"
     },
     {
-      "event_kind": "cx.agent.key.authorize",
+      "event_kind": "ck.agent.key.authorize",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_principal_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
-      "cell_family": "cx.component.agent.key.v1",
+      "cell_family": "ck.component.agent.key.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1007,13 +1007,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.agent.key.revoke",
+      "event_kind": "ck.agent.key.revoke",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_principal_id, key_id, revoked_at, revoked_by, and revocation_frontier.",
-      "cell_family": "cx.component.agent.key.v1",
+      "cell_family": "ck.component.agent.key.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1025,13 +1025,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.agent.key.rotate",
+      "event_kind": "ck.agent.key.rotate",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent signing key rotation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_rotate_payload; key_id names the retiring key and replacement_key_id names the new key under the same accountable_principal_id with equivalent or narrower agent_key_scope.",
-      "cell_family": "cx.component.agent.key.v1",
+      "cell_family": "ck.component.agent.key.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1043,13 +1043,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.agent.pause",
+      "event_kind": "ck.agent.pause",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle transition to paused state (CXP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via cx.agent.resume.",
-      "cell_family": "cx.component.agent.status.v1",
+      "payload": "Agent lifecycle transition to paused state (CXP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ck.agent.resume.",
+      "cell_family": "ck.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.agent_principal_id"
@@ -1058,13 +1058,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.agent.resume",
+      "event_kind": "ck.agent.resume",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent lifecycle transition from paused to active (CXP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
-      "cell_family": "cx.component.agent.status.v1",
+      "cell_family": "ck.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.agent_principal_id"
@@ -1073,13 +1073,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.agent.deactivate",
+      "event_kind": "ck.agent.deactivate",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle terminal state (CXP-0008 §4.11). MUST fan-out cx.agent.key.revoke for all active agent keys, cx.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
-      "cell_family": "cx.component.agent.status.v1",
+      "payload": "Agent lifecycle terminal state (CXP-0008 §4.11). MUST fan-out ck.agent.key.revoke for all active agent keys, ck.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
+      "cell_family": "ck.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.agent_principal_id"
@@ -1088,15 +1088,15 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.agent.draft.propose",
+      "event_kind": "ck.agent.draft.propose",
       "category": "agent",
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Agent-initiated draft proposal (CXP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned cx.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
+      "payload": "Agent-initiated draft proposal (CXP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ck.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
     },
     {
-      "event_kind": "cx.agent.action_request",
+      "event_kind": "ck.agent.action_request",
       "category": "agent",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1104,7 +1104,7 @@
       "payload": "Agent-initiated action request (CXP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
     },
     {
-      "event_kind": "cx.agent.action_approve",
+      "event_kind": "ck.agent.action_approve",
       "category": "agent",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1112,7 +1112,7 @@
       "payload": "Controller approval of a draft / action request (CXP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
     },
     {
-      "event_kind": "cx.agent.action_reject",
+      "event_kind": "ck.agent.action_reject",
       "category": "agent",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1120,7 +1120,7 @@
       "payload": "Controller rejection of a draft / action request (CXP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
     },
     {
-      "event_kind": "cx.agent.protocol_session.start",
+      "event_kind": "ck.agent.protocol_session.start",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1128,7 +1128,7 @@
       "payload": "Agent protocol session start"
     },
     {
-      "event_kind": "cx.agent.protocol_session.status",
+      "event_kind": "ck.agent.protocol_session.status",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1136,7 +1136,7 @@
       "payload": "Agent protocol session status"
     },
     {
-      "event_kind": "cx.agent.protocol_session.result",
+      "event_kind": "ck.agent.protocol_session.result",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1144,13 +1144,13 @@
       "payload": "Agent protocol session result"
     },
     {
-      "event_kind": "cx.capability.grant",
+      "event_kind": "ck.capability.grant",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Capability grant",
-      "cell_family": "cx.component.capability.grant.v1",
+      "cell_family": "ck.component.capability.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1159,13 +1159,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.capability.delegate",
+      "event_kind": "ck.capability.delegate",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Capability delegation",
-      "cell_family": "cx.component.capability.delegate.v1",
+      "cell_family": "ck.component.capability.delegate.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1174,13 +1174,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.capability.revoke",
+      "event_kind": "ck.capability.revoke",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Capability revocation",
-      "cell_family": "cx.component.capability.grant.v1",
+      "cell_family": "ck.component.capability.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1189,13 +1189,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.capability.derived",
+      "event_kind": "ck.capability.derived",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Derived capability state",
-      "cell_family": "cx.component.capability.derived.v1",
+      "cell_family": "ck.component.capability.derived.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1204,13 +1204,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.session.grant",
+      "event_kind": "ck.session.grant",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Session grant",
-      "cell_family": "cx.component.session.grant.v1",
+      "cell_family": "ck.component.session.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1219,13 +1219,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.consent.grant",
+      "event_kind": "ck.consent.grant",
       "category": "consent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Holder-private consent declaration: 'I consent to receive <consent_scope> from <peer>'",
-      "cell_family": "cx.component.consent.grant.v1",
+      "cell_family": "ck.component.consent.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.consent_id"
@@ -1234,13 +1234,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.consent.revoke",
+      "event_kind": "ck.consent.revoke",
       "category": "consent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Revoke a previously granted consent (shares the cx.consent.grant cell; semantically a remove on the consent or_set)",
-      "cell_family": "cx.component.consent.grant.v1",
+      "payload": "Revoke a previously granted consent (shares the ck.consent.grant cell; semantically a remove on the consent or_set)",
+      "cell_family": "ck.component.consent.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.consent_id"
@@ -1249,13 +1249,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.account.status",
+      "event_kind": "ck.account.status",
       "category": "account",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Signed account lifecycle status",
-      "cell_family": "cx.component.account.status.v1",
+      "cell_family": "ck.component.account.status.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.principal_id"
@@ -1264,7 +1264,7 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.account.blocklist",
+      "event_kind": "ck.account.blocklist",
       "category": "account",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1272,7 +1272,7 @@
       "payload": "Actor-private blocklist state"
     },
     {
-      "event_kind": "cx.account_data.set",
+      "event_kind": "ck.account_data.set",
       "category": "account",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1280,7 +1280,7 @@
       "payload": "Actor-private account data update"
     },
     {
-      "event_kind": "cx.presence",
+      "event_kind": "ck.presence",
       "category": "account",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1288,7 +1288,7 @@
       "payload": "Presence ephemeral or account state"
     },
     {
-      "event_kind": "cx.typing",
+      "event_kind": "ck.typing",
       "category": "account",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1296,13 +1296,13 @@
       "payload": "Typing ephemeral event"
     },
     {
-      "event_kind": "cx.profile.create",
+      "event_kind": "ck.profile.create",
       "category": "profile",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Actor profile create",
-      "cell_family": "cx.component.profile.create.v1",
+      "cell_family": "ck.component.profile.create.v1",
       "cell_subject": {
         "type": "id:actor_profile",
         "field": "payload.object.id"
@@ -1311,13 +1311,13 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.profile.update",
+      "event_kind": "ck.profile.update",
       "category": "profile",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Actor profile update",
-      "cell_family": "cx.component.profile.create.v1",
+      "cell_family": "ck.component.profile.create.v1",
       "cell_subject": {
         "type": "id:actor_profile",
         "field": "payload.target_ref"
@@ -1326,7 +1326,7 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.profile.space_override",
+      "event_kind": "ck.profile.space_override",
       "category": "profile",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1334,13 +1334,13 @@
       "payload": "Realm-scoped profile override. The event kind keeps the historical space_override spelling for wire compatibility; payload.target_realm_id is the target Realm and no Space boundary is created."
     },
     {
-      "event_kind": "cx.device.authorize",
+      "event_kind": "ck.device.authorize",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Device authorization",
-      "cell_family": "cx.component.device.authorization.v1",
+      "cell_family": "ck.component.device.authorization.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1352,13 +1352,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.device.revoke",
+      "event_kind": "ck.device.revoke",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Device revocation",
-      "cell_family": "cx.component.device.authorization.v1",
+      "cell_family": "ck.component.device.authorization.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1370,13 +1370,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.device.list_update",
+      "event_kind": "ck.device.list_update",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Device list update",
-      "cell_family": "cx.component.device.list_update.v1",
+      "cell_family": "ck.component.device.list_update.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.principal_id"
@@ -1385,13 +1385,13 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.device.push_route",
+      "event_kind": "ck.device.push_route",
       "category": "device",
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
       "payload": "Push route binding for a (recipient_service_did, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_did context.",
-      "cell_family": "cx.component.device.push_route.v1",
+      "cell_family": "ck.component.device.push_route.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1405,14 +1405,14 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.cross_signing.publish",
+      "event_kind": "ck.cross_signing.publish",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Cross-signing publish",
-      "payload_schema": "cx.schema.cross_signing_publish.v1",
-      "cell_family": "cx.component.cross_signing.publish.v1",
+      "payload_schema": "ck.schema.cross_signing_publish.v1",
+      "cell_family": "ck.component.cross_signing.publish.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -1432,14 +1432,14 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.cross_signing.reset",
+      "event_kind": "ck.cross_signing.reset",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Cross-signing reset",
-      "payload_schema": "cx.schema.cross_signing_reset.v1",
-      "cell_family": "cx.component.cross_signing.reset.v1",
+      "payload_schema": "ck.schema.cross_signing_reset.v1",
+      "cell_family": "ck.component.cross_signing.reset.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.principal_id"
@@ -1448,7 +1448,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.key.verification.request",
+      "event_kind": "ck.key.verification.request",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1456,7 +1456,7 @@
       "payload": "Device key verification request"
     },
     {
-      "event_kind": "cx.key.verification.ready",
+      "event_kind": "ck.key.verification.ready",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1464,7 +1464,7 @@
       "payload": "Device key verification ready"
     },
     {
-      "event_kind": "cx.key.verification.start",
+      "event_kind": "ck.key.verification.start",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1472,7 +1472,7 @@
       "payload": "Device key verification start"
     },
     {
-      "event_kind": "cx.key.verification.accept",
+      "event_kind": "ck.key.verification.accept",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1480,7 +1480,7 @@
       "payload": "Device key verification accept"
     },
     {
-      "event_kind": "cx.key.verification.key",
+      "event_kind": "ck.key.verification.key",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1488,7 +1488,7 @@
       "payload": "Device key verification ephemeral key"
     },
     {
-      "event_kind": "cx.key.verification.mac",
+      "event_kind": "ck.key.verification.mac",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1496,7 +1496,7 @@
       "payload": "Device key verification MAC"
     },
     {
-      "event_kind": "cx.key.verification.done",
+      "event_kind": "ck.key.verification.done",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1504,7 +1504,7 @@
       "payload": "Device key verification completion"
     },
     {
-      "event_kind": "cx.key.verification.cancel",
+      "event_kind": "ck.key.verification.cancel",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1512,7 +1512,7 @@
       "payload": "Device key verification cancellation"
     },
     {
-      "event_kind": "cx.mls.proposal",
+      "event_kind": "ck.mls.proposal",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1520,7 +1520,7 @@
       "payload": "MLS proposal"
     },
     {
-      "event_kind": "cx.mls.genesis",
+      "event_kind": "ck.mls.genesis",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1528,7 +1528,7 @@
       "payload": "MLS group genesis"
     },
     {
-      "event_kind": "cx.mls.commit",
+      "event_kind": "ck.mls.commit",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1536,7 +1536,7 @@
       "payload": "MLS commit"
     },
     {
-      "event_kind": "cx.mls.commit_failed",
+      "event_kind": "ck.mls.commit_failed",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1544,7 +1544,7 @@
       "payload": "MLS commit or Welcome processing failure diagnostic"
     },
     {
-      "event_kind": "cx.mls.welcome",
+      "event_kind": "ck.mls.welcome",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1552,7 +1552,7 @@
       "payload": "MLS welcome reference"
     },
     {
-      "event_kind": "cx.mls.keypackage",
+      "event_kind": "ck.mls.keypackage",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1560,7 +1560,7 @@
       "payload": "MLS KeyPackage publication"
     },
     {
-      "event_kind": "cx.realm_key.share",
+      "event_kind": "ck.realm_key.share",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1568,7 +1568,7 @@
       "payload": "Realm key share"
     },
     {
-      "event_kind": "cx.realm_key.withheld",
+      "event_kind": "ck.realm_key.withheld",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1576,7 +1576,7 @@
       "payload": "Realm key withheld notice"
     },
     {
-      "event_kind": "cx.realm_key.share_audit",
+      "event_kind": "ck.realm_key.share_audit",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1584,7 +1584,7 @@
       "payload": "Auditable history key share marker"
     },
     {
-      "event_kind": "cx.audit.accessed",
+      "event_kind": "ck.audit.accessed",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1592,7 +1592,7 @@
       "payload": "Auditable access"
     },
     {
-      "event_kind": "cx.audit.ryw_receipt",
+      "event_kind": "ck.audit.ryw_receipt",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1600,7 +1600,7 @@
       "payload": "Audit RYW receipt"
     },
     {
-      "event_kind": "cx.audit.erasure_receipt",
+      "event_kind": "ck.audit.erasure_receipt",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1608,15 +1608,15 @@
       "payload": "Signed hard-erasure receipt. Attests deletion outcome and retained verification stub within an issuer-declared storage boundary; does not prove independent third-party copies disappeared."
     },
     {
-      "event_kind": "cx.attestation.range_completeness",
+      "event_kind": "ck.attestation.range_completeness",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Range-bound completeness attestation. Distinct from cx.audit.ryw_receipt (per-event read-your-writes hint) and cx.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent anchor backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §4.2."
+      "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent anchor backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §4.2."
     },
     {
-      "event_kind": "cx.moderation.report",
+      "event_kind": "ck.moderation.report",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1624,7 +1624,7 @@
       "payload": "Moderation report"
     },
     {
-      "event_kind": "cx.moderation.franking_proof",
+      "event_kind": "ck.moderation.franking_proof",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1632,15 +1632,15 @@
       "payload": "Moderation franking proof"
     },
     {
-      "event_kind": "cx.moderation.decision",
+      "event_kind": "ck.moderation.decision",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Anchored moderation decision (writes cx.component.moderation_state.v1 cell)"
+      "payload": "Anchored moderation decision (writes ck.component.moderation_state.v1 cell)"
     },
     {
-      "event_kind": "cx.moderation.decision.lift",
+      "event_kind": "ck.moderation.decision.lift",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1648,47 +1648,47 @@
       "payload": "Lift a previously anchored moderation decision"
     },
     {
-      "event_kind": "cx.moderation.appeal.submit",
+      "event_kind": "ck.moderation.appeal.submit",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Submit an appeal against an existing cx.moderation.decision. Writes the appeal cell to state=submitted. Schema: cx.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal flow)."
+      "payload": "Submit an appeal against an existing ck.moderation.decision. Writes the appeal cell to state=submitted. Schema: ck.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal flow)."
     },
     {
-      "event_kind": "cx.moderation.appeal.review",
+      "event_kind": "ck.moderation.appeal.review",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: cx.schema.moderation_appeal.v1."
+      "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ck.schema.moderation_appeal.v1."
     },
     {
-      "event_kind": "cx.moderation.appeal.decision",
+      "event_kind": "ck.moderation.appeal.decision",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits cx.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: cx.schema.moderation_appeal.v1."
+      "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ck.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ck.schema.moderation_appeal.v1."
     },
     {
-      "event_kind": "cx.moderation.appeal.close",
+      "event_kind": "ck.moderation.appeal.close",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Closes the appeal after the decided window expires (default 30 days). Transitions cell state decided → closed; locks against re-appeal of the same target by the same appellant. Schema: cx.schema.moderation_appeal.v1."
+      "payload": "Closes the appeal after the decided window expires (default 30 days). Transitions cell state decided → closed; locks against re-appeal of the same target by the same appellant. Schema: ck.schema.moderation_appeal.v1."
     },
     {
-      "event_kind": "cx.read_cursor.advance",
+      "event_kind": "ck.read_cursor.advance",
       "category": "read",
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named cx.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
+      "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ck.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
     },
     {
-      "event_kind": "cx.receipt.read",
+      "event_kind": "ck.receipt.read",
       "category": "read",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1696,7 +1696,7 @@
       "payload": "Read receipt event"
     },
     {
-      "event_kind": "cx.invite.create",
+      "event_kind": "ck.invite.create",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1704,7 +1704,7 @@
       "payload": "Invite create"
     },
     {
-      "event_kind": "cx.invite.cancel",
+      "event_kind": "ck.invite.cancel",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1712,7 +1712,7 @@
       "payload": "Invite cancel"
     },
     {
-      "event_kind": "cx.invite.accept",
+      "event_kind": "ck.invite.accept",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1720,7 +1720,7 @@
       "payload": "Invite accept"
     },
     {
-      "event_kind": "cx.invite.third_party",
+      "event_kind": "ck.invite.third_party",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1728,7 +1728,7 @@
       "payload": "Third-party identifier pending invite"
     },
     {
-      "event_kind": "cx.invite.claim",
+      "event_kind": "ck.invite.claim",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1736,7 +1736,7 @@
       "payload": "Third-party invite claim"
     },
     {
-      "event_kind": "cx.invite.revoke",
+      "event_kind": "ck.invite.revoke",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1744,7 +1744,7 @@
       "payload": "Third-party invite revoke"
     },
     {
-      "event_kind": "cx.applet.bridge_error",
+      "event_kind": "ck.applet.bridge_error",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1752,7 +1752,7 @@
       "payload": "Bridge failure"
     },
     {
-      "event_kind": "cx.applet.registration",
+      "event_kind": "ck.applet.registration",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1760,7 +1760,7 @@
       "payload": "Applet registration"
     },
     {
-      "event_kind": "cx.applet.protocol_session.start",
+      "event_kind": "ck.applet.protocol_session.start",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1768,7 +1768,7 @@
       "payload": "Applet protocol session start"
     },
     {
-      "event_kind": "cx.applet.protocol_session.status",
+      "event_kind": "ck.applet.protocol_session.status",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1776,13 +1776,13 @@
       "payload": "Applet protocol session status"
     },
     {
-      "event_kind": "cx.mimi.room_binding",
+      "event_kind": "ck.mimi.room_binding",
       "category": "mimi",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "MIMI room binding state",
-      "cell_family": "cx.component.mimi.room_binding.v1",
+      "cell_family": "ck.component.mimi.room_binding.v1",
       "cell_subject": {
         "type": "mimi_uri",
         "field": "payload.mimi_room_uri"
@@ -1791,7 +1791,7 @@
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.call.signal",
+      "event_kind": "ck.call.signal",
       "category": "call",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1799,7 +1799,7 @@
       "payload": "WebRTC signal message"
     },
     {
-      "event_kind": "cx.call.state",
+      "event_kind": "ck.call.state",
       "category": "call",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1807,7 +1807,7 @@
       "payload": "Call state"
     },
     {
-      "event_kind": "cx.call.recording.start",
+      "event_kind": "ck.call.recording.start",
       "category": "call",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1815,7 +1815,7 @@
       "payload": "Call recording start"
     },
     {
-      "event_kind": "cx.sovereign.did_policy",
+      "event_kind": "ck.sovereign.did_policy",
       "category": "sovereign",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1823,20 +1823,20 @@
       "payload": "Sovereign DID resolver policy state"
     },
     {
-      "event_kind": "cx.audit.epoch_key_destruction",
+      "event_kind": "ck.audit.epoch_key_destruction",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Attested_hardware Audit Agent removal — enclave-signed attestation that historical epoch / exporter secrets held by the removed Audit Agent have been cryptographically destroyed. MUST be in the same anchor batch as the paired cx.mls.commit that removes the Audit Agent (see crypto-media/audited-e2ee.md §3.1.1). Wire schema versioning expressed via `requirements.features` (e.g. `cx.feature.audit_destruction_v1`), not via a `.v<n>` suffix on the kind name."
+      "payload": "Attested_hardware Audit Agent removal — enclave-signed attestation that historical epoch / exporter secrets held by the removed Audit Agent have been cryptographically destroyed. MUST be in the same anchor batch as the paired ck.mls.commit that removes the Audit Agent (see crypto-media/audited-e2ee.md §3.1.1). Wire schema versioning expressed via `requirements.features` (e.g. `ck.feature.audit_destruction_v1`), not via a `.v<n>` suffix on the kind name."
     },
     {
-      "event_kind": "cx.realm.audit_policy_downgrade",
+      "event_kind": "ck.realm.audit_policy_downgrade",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Explicit downgrade of Realm audit_assurance from attested_hardware to disclosed_policy before future audit operations proceed. This event rewrites Realm audit policy and triggers the UI banner, but MUST NOT be accepted as delayed remediation for an Audit Agent remove batch that lacked the same-batch cx.audit.epoch_key_destruction attestation. Wire schema versioning expressed via `requirements.features`."
+      "payload": "Explicit downgrade of Realm audit_assurance from attested_hardware to disclosed_policy before future audit operations proceed. This event rewrites Realm audit policy and triggers the UI banner, but MUST NOT be accepted as delayed remediation for an Audit Agent remove batch that lacked the same-batch ck.audit.epoch_key_destruction attestation. Wire schema versioning expressed via `requirements.features`."
     }
   ]
 }

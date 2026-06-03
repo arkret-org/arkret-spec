@@ -42,80 +42,80 @@
     }
   },
   "implementation_profiles": [
-    "cx.profile.core_event_store.v1",
-    "cx.profile.chat_mvp.v1",
-    "cx.profile.kanban_mvp.v1",
-    "cx.profile.minimal_client.v1",
-    "cx.profile.full_client.v1",
-    "cx.profile.e2ee_client.v1",
-    "cx.profile.e2ee_relaxed.v1",
-    "cx.profile.enterprise_client.v1",
-    "cx.profile.principal_server_events_api.v1",
-    "cx.profile.principal_server.v1",
-    "cx.profile.directory_service.v1",
-    "cx.profile.federation_minimal.v1",
-    "cx.profile.federation.high_assurance.v1",
-    "cx.profile.identity_registry.v1",
-    "cx.profile.auth_server.v1",
-    "cx.profile.blob_node.v1",
-    "cx.profile.push_gateway.v1",
-    "cx.profile.push_gateway.blind_wakeup.v1",
-    "cx.profile.push_gateway.visible_notification.v1",
-    "cx.profile.push_gateway.matrix_passthrough.v1",
-    "cx.profile.applet_service.v1",
-    "cx.profile.agent_runtime.v1",
-    "cx.profile.personal_agent_provisioning.v1",
-    "cx.profile.agent_auth.v1",
-    "cx.profile.agent_delegation_policy.v1",
-    "cx.profile.media_service_binding.v1",
-    "cx.profile.media_service_binding.livekit.v1",
-    "cx.profile.media_service_binding.contrix_native.v1",
-    "cx.profile.agent_sidecar_thread.v1",
-    "cx.profile.mimi_interop.v1",
-    "cx.profile.sovereign_client.v1",
-    "cx.profile.franking.v1",
-    "cx.profile.franking.sender_commitment.v1",
-    "cx.profile.morph.schema_migration_transformations.v1",
-    "cx.profile.webrtc_media.v1",
-    "cx.profile.stateless_cursor.v1",
-    "cx.profile.circle_conformance.v1"
+    "ck.profile.core_event_store.v1",
+    "ck.profile.chat_mvp.v1",
+    "ck.profile.kanban_mvp.v1",
+    "ck.profile.minimal_client.v1",
+    "ck.profile.full_client.v1",
+    "ck.profile.e2ee_client.v1",
+    "ck.profile.e2ee_relaxed.v1",
+    "ck.profile.enterprise_client.v1",
+    "ck.profile.principal_server_events_api.v1",
+    "ck.profile.principal_server.v1",
+    "ck.profile.directory_service.v1",
+    "ck.profile.federation_minimal.v1",
+    "ck.profile.federation.high_assurance.v1",
+    "ck.profile.identity_registry.v1",
+    "ck.profile.auth_server.v1",
+    "ck.profile.blob_node.v1",
+    "ck.profile.push_gateway.v1",
+    "ck.profile.push_gateway.blind_wakeup.v1",
+    "ck.profile.push_gateway.visible_notification.v1",
+    "ck.profile.push_gateway.matrix_passthrough.v1",
+    "ck.profile.applet_service.v1",
+    "ck.profile.agent_runtime.v1",
+    "ck.profile.personal_agent_provisioning.v1",
+    "ck.profile.agent_auth.v1",
+    "ck.profile.agent_delegation_policy.v1",
+    "ck.profile.media_service_binding.v1",
+    "ck.profile.media_service_binding.livekit.v1",
+    "ck.profile.media_service_binding.cokret_native.v1",
+    "ck.profile.agent_sidecar_thread.v1",
+    "ck.profile.mimi_interop.v1",
+    "ck.profile.sovereign_client.v1",
+    "ck.profile.franking.v1",
+    "ck.profile.franking.sender_commitment.v1",
+    "ck.profile.morph.schema_migration_transformations.v1",
+    "ck.profile.webrtc_media.v1",
+    "ck.profile.stateless_cursor.v1",
+    "ck.profile.circle_conformance.v1"
   ],
   "profile_tiers": {
     "v1_profile_catalog": [
-      "cx.profile.core_event_store.v1",
-      "cx.profile.chat_mvp.v1",
-      "cx.profile.kanban_mvp.v1",
-      "cx.profile.minimal_client.v1",
-      "cx.profile.full_client.v1",
-      "cx.profile.e2ee_client.v1",
-      "cx.profile.enterprise_client.v1",
-      "cx.profile.principal_server_events_api.v1",
-      "cx.profile.principal_server.v1",
-      "cx.profile.directory_service.v1",
-      "cx.profile.federation_minimal.v1",
-      "cx.profile.federation.high_assurance.v1",
-      "cx.profile.identity_registry.v1",
-      "cx.profile.auth_server.v1",
-      "cx.profile.blob_node.v1",
-      "cx.profile.push_gateway.v1",
-      "cx.profile.push_gateway.blind_wakeup.v1",
-      "cx.profile.push_gateway.visible_notification.v1",
-      "cx.profile.push_gateway.matrix_passthrough.v1",
-      "cx.profile.sovereign_client.v1",
-      "cx.profile.franking.v1",
-      "cx.profile.franking.sender_commitment.v1",
-      "cx.profile.morph.schema_migration_transformations.v1",
-      "cx.profile.webrtc_media.v1",
-      "cx.profile.stateless_cursor.v1",
-      "cx.profile.circle_conformance.v1"
+      "ck.profile.core_event_store.v1",
+      "ck.profile.chat_mvp.v1",
+      "ck.profile.kanban_mvp.v1",
+      "ck.profile.minimal_client.v1",
+      "ck.profile.full_client.v1",
+      "ck.profile.e2ee_client.v1",
+      "ck.profile.enterprise_client.v1",
+      "ck.profile.principal_server_events_api.v1",
+      "ck.profile.principal_server.v1",
+      "ck.profile.directory_service.v1",
+      "ck.profile.federation_minimal.v1",
+      "ck.profile.federation.high_assurance.v1",
+      "ck.profile.identity_registry.v1",
+      "ck.profile.auth_server.v1",
+      "ck.profile.blob_node.v1",
+      "ck.profile.push_gateway.v1",
+      "ck.profile.push_gateway.blind_wakeup.v1",
+      "ck.profile.push_gateway.visible_notification.v1",
+      "ck.profile.push_gateway.matrix_passthrough.v1",
+      "ck.profile.sovereign_client.v1",
+      "ck.profile.franking.v1",
+      "ck.profile.franking.sender_commitment.v1",
+      "ck.profile.morph.schema_migration_transformations.v1",
+      "ck.profile.webrtc_media.v1",
+      "ck.profile.stateless_cursor.v1",
+      "ck.profile.circle_conformance.v1"
     ],
     "v1_minimal_interop_floor": [
-      "cx.profile.core_event_store.v1"
+      "ck.profile.core_event_store.v1"
     ],
     "extension_profile_implementation": [
-      "cx.profile.applet_service.v1",
-      "cx.profile.agent_runtime.v1",
-      "cx.profile.mimi_interop.v1"
+      "ck.profile.applet_service.v1",
+      "ck.profile.agent_runtime.v1",
+      "ck.profile.mimi_interop.v1"
     ],
     "tier_rules": {
       "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
@@ -124,133 +124,133 @@
     }
   },
   "identity_extension_profiles": [
-    "cx.profile.public_network_identity.v1",
-    "cx.profile.org_high_assurance_identity.v1",
-    "cx.profile.principal_control_realm.v1"
+    "ck.profile.public_network_identity.v1",
+    "ck.profile.org_high_assurance_identity.v1",
+    "ck.profile.principal_control_realm.v1"
   ],
   "deployment_profiles": [
-    "cx.profile.personal_node.v1",
-    "cx.profile.small_team.v1",
-    "cx.profile.organization.v1",
-    "cx.profile.high_security_organization.v1",
-    "cx.profile.isolated_sovereign_network.v1",
-    "cx.profile.sovereign_deployment.v1",
-    "cx.profile.sovereign_enclave.v1"
+    "ck.profile.personal_node.v1",
+    "ck.profile.small_team.v1",
+    "ck.profile.organization.v1",
+    "ck.profile.high_security_organization.v1",
+    "ck.profile.isolated_sovereign_network.v1",
+    "ck.profile.sovereign_deployment.v1",
+    "ck.profile.sovereign_enclave.v1"
   ],
   "constraint_extension_profiles": [
-    "cx.profile.constraint.approval_workflow.v1",
-    "cx.profile.constraint.claim_based.v1",
-    "cx.profile.constraint.encryption_requirement.v1",
-    "cx.profile.constraint.visibility_control.v1",
-    "cx.profile.constraint.resource_limit.v1"
+    "ck.profile.constraint.approval_workflow.v1",
+    "ck.profile.constraint.claim_based.v1",
+    "ck.profile.constraint.encryption_requirement.v1",
+    "ck.profile.constraint.visibility_control.v1",
+    "ck.profile.constraint.resource_limit.v1"
   ],
   "lattice_extension_profiles": [
-    "cx.profile.collaborative_text.v1"
+    "ck.profile.collaborative_text.v1"
   ],
   "interop_compat_profiles": [
-    "cx.profile.matrix_compat.v1"
+    "ck.profile.matrix_compat.v1"
   ],
   "encoding_extension_profiles": [
-    "cx.profile.encoding.cbor.v1",
-    "cx.profile.encoding.multihash.v1"
+    "ck.profile.encoding.cbor.v1",
+    "ck.profile.encoding.multihash.v1"
   ],
   "hash_extension_profiles": [
-    "cx.profile.hash.sha512.v1",
-    "cx.profile.hash.sha3.v1",
-    "cx.profile.hash.blake3.v1",
-    "cx.profile.hash_transition.v1"
+    "ck.profile.hash.sha512.v1",
+    "ck.profile.hash.sha3.v1",
+    "ck.profile.hash.blake3.v1",
+    "ck.profile.hash_transition.v1"
   ],
   "candidate_profiles": [
-    "cx.profile.candidate.join_policy.v1"
+    "ck.profile.candidate.join_policy.v1"
   ],
-  "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate workflow concept/action names / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired wire Event.kind values registered under `cx.*`) once their underlying surface is formally registered.",
+  "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate workflow concept/action names / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired wire Event.kind values registered under `ck.*`) once their underlying surface is formally registered.",
   "profile_roles_rule": "Every profile id MUST be annotated with exactly one role from the enum {client, server, gateway, directory, admin, interop}. Roles partition the profile namespace so that an implementation MUST NOT mistake e.g. a gateway profile (push_gateway, blob_node) for a client profile, or a deployment / hardening / vector profile (admin role) for a wire-conformance client / server profile. SDK manifests, client-side feature negotiation, and conformance harness loaders MUST consult `profile_roles` before claiming a profile as locally implemented. Roles in spec layer metadata; the per-profile object in `profile_requirements` MAY ALSO carry a `role` field for convenience, but `profile_roles` is the canonical source.",
   "profile_roles": {
-    "cx.profile.core_event_store.v1": "server",
-    "cx.profile.chat_mvp.v1": "client",
-    "cx.profile.kanban_mvp.v1": "client",
-    "cx.profile.minimal_client.v1": "client",
-    "cx.profile.full_client.v1": "client",
-    "cx.profile.e2ee_client.v1": "client",
-    "cx.profile.e2ee_relaxed.v1": "client",
-    "cx.profile.enterprise_client.v1": "client",
-    "cx.profile.sovereign_client.v1": "client",
-    "cx.profile.principal_server_events_api.v1": "server",
-    "cx.profile.principal_server.v1": "server",
-    "cx.profile.directory_service.v1": "directory",
-    "cx.profile.federation_minimal.v1": "server",
-    "cx.profile.federation.high_assurance.v1": "server",
-    "cx.profile.identity_registry.v1": "directory",
-    "cx.profile.auth_server.v1": "server",
-    "cx.profile.public_network_identity.v1": "directory",
-    "cx.profile.org_high_assurance_identity.v1": "directory",
-    "cx.profile.blob_node.v1": "gateway",
-    "cx.profile.push_gateway.v1": "gateway",
-    "cx.profile.push_gateway.blind_wakeup.v1": "gateway",
-    "cx.profile.push_gateway.visible_notification.v1": "gateway",
-    "cx.profile.push_gateway.matrix_passthrough.v1": "interop",
-    "cx.profile.media_service_binding.v1": "server",
-    "cx.profile.media_service_binding.livekit.v1": "server",
-    "cx.profile.media_service_binding.contrix_native.v1": "server",
-    "cx.profile.applet_service.v1": "server",
-    "cx.profile.agent_runtime.v1": "server",
-    "cx.profile.mimi_interop.v1": "interop",
-    "cx.profile.franking.v1": "server",
-    "cx.profile.franking.sender_commitment.v1": "client",
-    "cx.profile.morph.schema_migration_transformations.v1": "server",
-    "cx.profile.webrtc_media.v1": "gateway",
-    "cx.profile.stateless_cursor.v1": "server",
-    "cx.profile.circle_conformance.v1": "interop",
-    "cx.profile.personal_node.v1": "admin",
-    "cx.profile.small_team.v1": "admin",
-    "cx.profile.organization.v1": "admin",
-    "cx.profile.high_security_organization.v1": "admin",
-    "cx.profile.isolated_sovereign_network.v1": "admin",
-    "cx.profile.sovereign_deployment.v1": "admin",
-    "cx.profile.sovereign_enclave.v1": "admin",
-    "cx.profile.principal_control_realm.v1": "admin",
-    "cx.profile.constraint.approval_workflow.v1": "admin",
-    "cx.profile.constraint.claim_based.v1": "admin",
-    "cx.profile.constraint.encryption_requirement.v1": "admin",
-    "cx.profile.constraint.visibility_control.v1": "admin",
-    "cx.profile.constraint.resource_limit.v1": "admin",
-    "cx.profile.collaborative_text.v1": "client",
-    "cx.profile.matrix_compat.v1": "interop",
-    "cx.profile.encoding.cbor.v1": "interop",
-    "cx.profile.encoding.multihash.v1": "interop",
-    "cx.profile.hash.sha512.v1": "interop",
-    "cx.profile.hash.sha3.v1": "interop",
-    "cx.profile.hash.blake3.v1": "interop",
-    "cx.profile.hash_transition.v1": "interop",
-    "cx.profile.candidate.join_policy.v1": "admin",
-    "cx.profile.mls_governance_binding.full.v1": "admin",
-    "cx.profile.attested_audit.e2ee.v1": "admin",
-    "cx.profile.disclosed_audit.e2ee.v1": "admin",
-    "cx.profile.cross_signing.reset.v1": "admin",
-    "cx.profile.mls.minimal_metadata_realm.v1": "admin",
-    "cx.profile.key_backup.memory_hard.v1": "admin",
-    "cx.profile.circle_anchor_cadence.fixed_5m.v1": "admin",
-    "cx.profile.accountable_principals.strict_reject.v1": "admin",
-    "cx.profile.anchor.single_did.v1": "admin",
-    "cx.profile.anchor.threshold.v1": "admin",
-    "cx.profile.anchor.open_set.v1": "admin",
-    "cx.profile.anchor.mixed_recovery.v1": "admin",
-    "cx.profile.capability_vectors.v1": "interop",
-    "cx.profile.crypto_signature_vectors.v1": "interop",
-    "cx.profile.encoding_vectors.v1": "interop",
-    "cx.profile.event_envelope_negative_vectors.v1": "interop",
-    "cx.profile.discovery_vectors.v1": "interop",
-    "cx.profile.event_kind_lattice_dispatch_vectors.v1": "interop",
-    "cx.profile.event_kind_payload_coverage_vectors.v1": "interop",
-    "cx.profile.operation_registry_coverage_vectors.v1": "interop",
-    "cx.profile.error_code_registry_coverage_vectors.v1": "interop",
-    "cx.profile.federation_vectors.v1": "interop",
-    "cx.profile.privacy_security_vectors.v1": "interop",
-    "cx.profile.reaction_vectors.v1": "interop",
-    "cx.profile.redaction_vectors.v1": "interop",
-    "cx.profile.sync_vectors.v1": "interop",
-    "cx.profile.mimi_interop_vectors.v1": "interop",
-    "cx.profile.move_anchor_lattice_vectors.v1": "interop"
+    "ck.profile.core_event_store.v1": "server",
+    "ck.profile.chat_mvp.v1": "client",
+    "ck.profile.kanban_mvp.v1": "client",
+    "ck.profile.minimal_client.v1": "client",
+    "ck.profile.full_client.v1": "client",
+    "ck.profile.e2ee_client.v1": "client",
+    "ck.profile.e2ee_relaxed.v1": "client",
+    "ck.profile.enterprise_client.v1": "client",
+    "ck.profile.sovereign_client.v1": "client",
+    "ck.profile.principal_server_events_api.v1": "server",
+    "ck.profile.principal_server.v1": "server",
+    "ck.profile.directory_service.v1": "directory",
+    "ck.profile.federation_minimal.v1": "server",
+    "ck.profile.federation.high_assurance.v1": "server",
+    "ck.profile.identity_registry.v1": "directory",
+    "ck.profile.auth_server.v1": "server",
+    "ck.profile.public_network_identity.v1": "directory",
+    "ck.profile.org_high_assurance_identity.v1": "directory",
+    "ck.profile.blob_node.v1": "gateway",
+    "ck.profile.push_gateway.v1": "gateway",
+    "ck.profile.push_gateway.blind_wakeup.v1": "gateway",
+    "ck.profile.push_gateway.visible_notification.v1": "gateway",
+    "ck.profile.push_gateway.matrix_passthrough.v1": "interop",
+    "ck.profile.media_service_binding.v1": "server",
+    "ck.profile.media_service_binding.livekit.v1": "server",
+    "ck.profile.media_service_binding.cokret_native.v1": "server",
+    "ck.profile.applet_service.v1": "server",
+    "ck.profile.agent_runtime.v1": "server",
+    "ck.profile.mimi_interop.v1": "interop",
+    "ck.profile.franking.v1": "server",
+    "ck.profile.franking.sender_commitment.v1": "client",
+    "ck.profile.morph.schema_migration_transformations.v1": "server",
+    "ck.profile.webrtc_media.v1": "gateway",
+    "ck.profile.stateless_cursor.v1": "server",
+    "ck.profile.circle_conformance.v1": "interop",
+    "ck.profile.personal_node.v1": "admin",
+    "ck.profile.small_team.v1": "admin",
+    "ck.profile.organization.v1": "admin",
+    "ck.profile.high_security_organization.v1": "admin",
+    "ck.profile.isolated_sovereign_network.v1": "admin",
+    "ck.profile.sovereign_deployment.v1": "admin",
+    "ck.profile.sovereign_enclave.v1": "admin",
+    "ck.profile.principal_control_realm.v1": "admin",
+    "ck.profile.constraint.approval_workflow.v1": "admin",
+    "ck.profile.constraint.claim_based.v1": "admin",
+    "ck.profile.constraint.encryption_requirement.v1": "admin",
+    "ck.profile.constraint.visibility_control.v1": "admin",
+    "ck.profile.constraint.resource_limit.v1": "admin",
+    "ck.profile.collaborative_text.v1": "client",
+    "ck.profile.matrix_compat.v1": "interop",
+    "ck.profile.encoding.cbor.v1": "interop",
+    "ck.profile.encoding.multihash.v1": "interop",
+    "ck.profile.hash.sha512.v1": "interop",
+    "ck.profile.hash.sha3.v1": "interop",
+    "ck.profile.hash.blake3.v1": "interop",
+    "ck.profile.hash_transition.v1": "interop",
+    "ck.profile.candidate.join_policy.v1": "admin",
+    "ck.profile.mls_governance_binding.full.v1": "admin",
+    "ck.profile.attested_audit.e2ee.v1": "admin",
+    "ck.profile.disclosed_audit.e2ee.v1": "admin",
+    "ck.profile.cross_signing.reset.v1": "admin",
+    "ck.profile.mls.minimal_metadata_realm.v1": "admin",
+    "ck.profile.key_backup.memory_hard.v1": "admin",
+    "ck.profile.circle_anchor_cadence.fixed_5m.v1": "admin",
+    "ck.profile.accountable_principals.strict_reject.v1": "admin",
+    "ck.profile.anchor.single_did.v1": "admin",
+    "ck.profile.anchor.threshold.v1": "admin",
+    "ck.profile.anchor.open_set.v1": "admin",
+    "ck.profile.anchor.mixed_recovery.v1": "admin",
+    "ck.profile.capability_vectors.v1": "interop",
+    "ck.profile.crypto_signature_vectors.v1": "interop",
+    "ck.profile.encoding_vectors.v1": "interop",
+    "ck.profile.event_envelope_negative_vectors.v1": "interop",
+    "ck.profile.discovery_vectors.v1": "interop",
+    "ck.profile.event_kind_lattice_dispatch_vectors.v1": "interop",
+    "ck.profile.event_kind_payload_coverage_vectors.v1": "interop",
+    "ck.profile.operation_registry_coverage_vectors.v1": "interop",
+    "ck.profile.error_code_registry_coverage_vectors.v1": "interop",
+    "ck.profile.federation_vectors.v1": "interop",
+    "ck.profile.privacy_security_vectors.v1": "interop",
+    "ck.profile.reaction_vectors.v1": "interop",
+    "ck.profile.redaction_vectors.v1": "interop",
+    "ck.profile.sync_vectors.v1": "interop",
+    "ck.profile.mimi_interop_vectors.v1": "interop",
+    "ck.profile.move_anchor_lattice_vectors.v1": "interop"
   },
   "federation_hardening": [
     "service_did_authentication",
@@ -259,12 +259,12 @@
     "quarantine_appeal_audit"
   ],
   "e2ee_hardening": [
-    "cx.profile.mls_governance_binding.full.v1",
+    "ck.profile.mls_governance_binding.full.v1",
     "keypackage_claim_lifecycle",
-    "cx.profile.mls.minimal_metadata_realm.v1",
+    "ck.profile.mls.minimal_metadata_realm.v1",
     "aad_visibility_policy",
-    "cx.profile.attested_audit.e2ee.v1",
-    "cx.profile.disclosed_audit.e2ee.v1",
+    "ck.profile.attested_audit.e2ee.v1",
+    "ck.profile.disclosed_audit.e2ee.v1",
     "e2ee_report_framed_franking"
   ],
   "privacy_hardening": [
@@ -287,82 +287,82 @@
     "unsupported_draft_fail_closed"
   ],
   "hardening_profiles": [
-    "cx.profile.mls_governance_binding.full.v1",
-    "cx.profile.attested_audit.e2ee.v1",
-    "cx.profile.disclosed_audit.e2ee.v1",
-    "cx.profile.cross_signing.reset.v1",
-    "cx.profile.mls.minimal_metadata_realm.v1",
-    "cx.profile.key_backup.memory_hard.v1",
-    "cx.profile.circle_anchor_cadence.fixed_5m.v1",
-    "cx.profile.accountable_principals.strict_reject.v1"
+    "ck.profile.mls_governance_binding.full.v1",
+    "ck.profile.attested_audit.e2ee.v1",
+    "ck.profile.disclosed_audit.e2ee.v1",
+    "ck.profile.cross_signing.reset.v1",
+    "ck.profile.mls.minimal_metadata_realm.v1",
+    "ck.profile.key_backup.memory_hard.v1",
+    "ck.profile.circle_anchor_cadence.fixed_5m.v1",
+    "ck.profile.accountable_principals.strict_reject.v1"
   ],
   "vector_profiles": [
-    "cx.profile.capability_vectors.v1",
-    "cx.profile.crypto_signature_vectors.v1",
-    "cx.profile.encoding_vectors.v1",
-    "cx.profile.event_envelope_negative_vectors.v1",
-    "cx.profile.discovery_vectors.v1",
-    "cx.profile.event_kind_lattice_dispatch_vectors.v1",
-    "cx.profile.event_kind_payload_coverage_vectors.v1",
-    "cx.profile.operation_registry_coverage_vectors.v1",
-    "cx.profile.error_code_registry_coverage_vectors.v1",
-    "cx.profile.federation_vectors.v1",
-    "cx.profile.privacy_security_vectors.v1",
-    "cx.profile.reaction_vectors.v1",
-    "cx.profile.redaction_vectors.v1",
-    "cx.profile.move_anchor_lattice_vectors.v1",
-    "cx.profile.sync_vectors.v1",
-    "cx.profile.mimi_interop_vectors.v1"
+    "ck.profile.capability_vectors.v1",
+    "ck.profile.crypto_signature_vectors.v1",
+    "ck.profile.encoding_vectors.v1",
+    "ck.profile.event_envelope_negative_vectors.v1",
+    "ck.profile.discovery_vectors.v1",
+    "ck.profile.event_kind_lattice_dispatch_vectors.v1",
+    "ck.profile.event_kind_payload_coverage_vectors.v1",
+    "ck.profile.operation_registry_coverage_vectors.v1",
+    "ck.profile.error_code_registry_coverage_vectors.v1",
+    "ck.profile.federation_vectors.v1",
+    "ck.profile.privacy_security_vectors.v1",
+    "ck.profile.reaction_vectors.v1",
+    "ck.profile.redaction_vectors.v1",
+    "ck.profile.move_anchor_lattice_vectors.v1",
+    "ck.profile.sync_vectors.v1",
+    "ck.profile.mimi_interop_vectors.v1"
   ],
   "profile_requirements": {
-    "cx.profile.principal_control_realm.v1": {
+    "ck.profile.principal_control_realm.v1": {
       "role": "admin",
       "description": "Realm profile for a principal-scoped durable control stream (the Principal Control Realm role; see zh/models/realm-and-space.md §2.7). It is an ordinary Collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.events.query",
-        "cx.events.get",
-        "cx.keys.keypackages.upload",
-        "cx.keys.keypackages.claim",
-        "cx.keys.keypackages.consume",
-        "cx.keys.keypackages.revoke"
+        "ck.events.submit",
+        "ck.events.query",
+        "ck.events.get",
+        "ck.keys.keypackages.upload",
+        "ck.keys.keypackages.claim",
+        "ck.keys.keypackages.consume",
+        "ck.keys.keypackages.revoke"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.device.authorize",
-        "cx.device.revoke",
-        "cx.device.list_update",
-        "cx.session.grant",
-        "cx.cross_signing.publish",
-        "cx.cross_signing.reset",
-        "cx.mls.keypackage",
-        "cx.account.status",
-        "cx.consent.grant",
-        "cx.consent.revoke"
+        "ck.realm.create",
+        "ck.device.authorize",
+        "ck.device.revoke",
+        "ck.device.list_update",
+        "ck.session.grant",
+        "ck.cross_signing.publish",
+        "ck.cross_signing.reset",
+        "ck.mls.keypackage",
+        "ck.account.status",
+        "ck.consent.grant",
+        "ck.consent.revoke"
       ],
       "rejected_event_kinds": [
-        "cx.flow.create",
-        "cx.flow.update",
-        "cx.flow.move",
-        "cx.flow.reorder",
-        "cx.message.create",
-        "cx.message.revise",
-        "cx.reaction.add",
-        "cx.reaction.remove",
-        "cx.space.create",
-        "cx.relation.create",
-        "cx.view.create",
-        "cx.morph.create",
-        "cx.call.state"
+        "ck.flow.create",
+        "ck.flow.update",
+        "ck.flow.move",
+        "ck.flow.reorder",
+        "ck.message.create",
+        "ck.message.revise",
+        "ck.reaction.add",
+        "ck.reaction.remove",
+        "ck.space.create",
+        "ck.relation.create",
+        "ck.view.create",
+        "ck.morph.create",
+        "ck.call.state"
       ],
       "required_schemas": [
-        "cx.schema.realm.v1",
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1",
-        "cx.schema.capability.v1",
-        "cx.schema.key_backup.v1",
-        "cx.schema.cross_signing_publish.v1",
-        "cx.schema.cross_signing_reset.v1"
+        "ck.schema.realm.v1",
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.capability.v1",
+        "ck.schema.key_backup.v1",
+        "ck.schema.cross_signing_publish.v1",
+        "ck.schema.cross_signing_reset.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -370,8 +370,8 @@
         "schema-validation-fixture.json"
       ],
       "optional_extensions": [
-        "cx.profile.org_high_assurance_identity.v1",
-        "cx.profile.public_network_identity.v1"
+        "ck.profile.org_high_assurance_identity.v1",
+        "ck.profile.public_network_identity.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -379,22 +379,22 @@
           "control_event_kind_allowlist",
           "principal_control_binding_check"
         ],
-        "unsupported_optional": "Receivers that do not understand cx.profile.principal_control_realm.v1 MUST treat the Realm as an ordinary Collaboration Realm and MUST NOT accept device/session/cross-signing state from it as principal control state."
+        "unsupported_optional": "Receivers that do not understand ck.profile.principal_control_realm.v1 MUST treat the Realm as an ordinary Collaboration Realm and MUST NOT accept device/session/cross-signing state from it as principal control state."
       },
       "realm_event_kind_policy": {
         "allowlist_only": true,
         "allowed_event_kinds": [
-          "cx.realm.create",
-          "cx.device.authorize",
-          "cx.device.revoke",
-          "cx.device.list_update",
-          "cx.session.grant",
-          "cx.cross_signing.publish",
-          "cx.cross_signing.reset",
-          "cx.mls.keypackage",
-          "cx.account.status",
-          "cx.consent.grant",
-          "cx.consent.revoke"
+          "ck.realm.create",
+          "ck.device.authorize",
+          "ck.device.revoke",
+          "ck.device.list_update",
+          "ck.session.grant",
+          "ck.cross_signing.publish",
+          "ck.cross_signing.reset",
+          "ck.mls.keypackage",
+          "ck.account.status",
+          "ck.consent.grant",
+          "ck.consent.revoke"
         ],
         "reject_categories": [
           "flow",
@@ -417,34 +417,34 @@
       },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
-        "fields.purpose MUST be principal_control and schema_refs MUST contain cx.profile.principal_control_realm.v1.",
+        "fields.purpose MUST be principal_control and schema_refs MUST contain ck.profile.principal_control_realm.v1.",
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer."
       ]
     },
-    "cx.profile.core_event_store.v1": {
+    "ck.profile.core_event_store.v1": {
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.events.describe",
-        "cx.events.submit",
-        "cx.events.get",
-        "cx.events.resolve",
-        "cx.events.query",
-        "cx.events.frontier"
+        "ck.server.describe",
+        "ck.events.describe",
+        "ck.events.submit",
+        "ck.events.get",
+        "ck.events.resolve",
+        "ck.events.query",
+        "ck.events.frontier"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state"
+        "ck.realm.create",
+        "ck.member.state"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event",
         "wire_scope:ephemeral_event"
       ],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1",
-        "cx.schema.event_batch_receipt.v1",
-        "cx.schema.cursor.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.event_batch_receipt.v1",
+        "ck.schema.cursor.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_constraint_types": [
         "temporal",
@@ -477,31 +477,31 @@
         "unsupported_optional": "omit optional feature or return unsupported_feature"
       }
     },
-    "cx.profile.chat_mvp.v1": {
+    "ck.profile.chat_mvp.v1": {
       "inherits": [
-        "cx.profile.core_event_store.v1"
+        "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "cx.account.subscribe",
-        "cx.events.query"
+        "ck.account.subscribe",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state",
-        "cx.flow.create",
-        "cx.message.create",
-        "cx.message.revise",
-        "cx.message.redact",
-        "cx.reaction.add",
-        "cx.reaction.remove",
-        "cx.redaction"
+        "ck.realm.create",
+        "ck.member.state",
+        "ck.flow.create",
+        "ck.message.create",
+        "ck.message.revise",
+        "ck.message.redact",
+        "ck.reaction.add",
+        "ck.reaction.remove",
+        "ck.redaction"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.realm.v1",
-        "cx.schema.flow.v1",
-        "cx.schema.message.v1",
-        "cx.schema.account_subscribe_frame.v1"
+        "ck.schema.realm.v1",
+        "ck.schema.flow.v1",
+        "ck.schema.message.v1",
+        "ck.schema.account_subscribe_frame.v1"
       ],
       "required_constraint_types": [
         "temporal"
@@ -517,7 +517,7 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "cx.profile.e2ee_client.v1",
+        "ck.profile.e2ee_client.v1",
         "read_receipts",
         "push_notifications"
       ],
@@ -530,29 +530,29 @@
         "unsupported_optional": "return unsupported_feature without dropping encrypted events"
       }
     },
-    "cx.profile.kanban_mvp.v1": {
+    "ck.profile.kanban_mvp.v1": {
       "inherits": [
-        "cx.profile.core_event_store.v1"
+        "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "cx.events.query"
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state",
-        "cx.flow.create",
-        "cx.flow.update",
-        "cx.flow.move",
-        "cx.flow.reorder",
-        "cx.relation.create",
-        "cx.container.rebalance"
+        "ck.realm.create",
+        "ck.member.state",
+        "ck.flow.create",
+        "ck.flow.update",
+        "ck.flow.move",
+        "ck.flow.reorder",
+        "ck.relation.create",
+        "ck.container.rebalance"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.realm.v1",
-        "cx.schema.flow.v1",
-        "cx.schema.relation.v1",
-        "cx.schema.view.v1"
+        "ck.schema.realm.v1",
+        "ck.schema.flow.v1",
+        "ck.schema.relation.v1",
+        "ck.schema.view.v1"
       ],
       "required_constraint_types": [
         "scope_limitation"
@@ -575,27 +575,27 @@
         "unsupported_optional": "return unsupported_feature or omit projection capability"
       }
     },
-    "cx.profile.minimal_client.v1": {
+    "ck.profile.minimal_client.v1": {
       "inherits": [
-        "cx.profile.core_event_store.v1"
+        "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.events.get",
-        "cx.events.query"
+        "ck.server.describe",
+        "ck.events.get",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state"
+        "ck.realm.create",
+        "ck.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.realm.v1",
-        "cx.schema.flow.v1",
-        "cx.schema.message.v1",
-        "cx.schema.morph.v1",
-        "cx.schema.relation.v1",
-        "cx.schema.view.v1"
+        "ck.schema.realm.v1",
+        "ck.schema.flow.v1",
+        "ck.schema.message.v1",
+        "ck.schema.morph.v1",
+        "ck.schema.relation.v1",
+        "ck.schema.view.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json",
@@ -614,36 +614,36 @@
         "unsupported_optional": "render generic fallback or return unsupported_feature"
       }
     },
-    "cx.profile.full_client.v1": {
+    "ck.profile.full_client.v1": {
       "inherits": [
-        "cx.profile.chat_mvp.v1",
-        "cx.profile.kanban_mvp.v1"
+        "ck.profile.chat_mvp.v1",
+        "ck.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.events.submit",
-        "cx.account.subscribe",
-        "cx.events.subscribe",
-        "cx.blob.upload",
-        "cx.blob.get",
-        "cx.authz.check"
+        "ck.server.describe",
+        "ck.events.submit",
+        "ck.account.subscribe",
+        "ck.events.subscribe",
+        "ck.blob.upload",
+        "ck.blob.get",
+        "ck.authz.check"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state",
-        "cx.flow.create",
-        "cx.message.create",
-        "cx.reaction.add",
-        "cx.redaction",
-        "cx.account_data.set",
-        "cx.read_cursor.advance"
+        "ck.realm.create",
+        "ck.member.state",
+        "ck.flow.create",
+        "ck.message.create",
+        "ck.reaction.add",
+        "ck.redaction",
+        "ck.account_data.set",
+        "ck.read_cursor.advance"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.account_subscribe_frame.v1",
-        "cx.schema.blob.v1",
-        "cx.schema.notification.v1",
-        "cx.schema.read_cursor.v1"
+        "ck.schema.account_subscribe_frame.v1",
+        "ck.schema.blob.v1",
+        "ck.schema.notification.v1",
+        "ck.schema.read_cursor.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json",
@@ -653,9 +653,9 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "cx.profile.e2ee_client.v1",
-        "cx.profile.mimi_interop.v1",
-        "cx.profile.agent_runtime.v1"
+        "ck.profile.e2ee_client.v1",
+        "ck.profile.mimi_interop.v1",
+        "ck.profile.agent_runtime.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -666,39 +666,39 @@
         "unsupported_optional": "surface unavailable capability before write"
       }
     },
-    "cx.profile.e2ee_client.v1": {
+    "ck.profile.e2ee_client.v1": {
       "inherits": [
-        "cx.profile.full_client.v1",
-        "cx.profile.mls_governance_binding.full.v1"
+        "ck.profile.full_client.v1",
+        "ck.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
-        "cx.keys.upload",
-        "cx.keys.query",
-        "cx.keys.claim",
-        "cx.keys.keypackages.upload",
-        "cx.keys.keypackages.claim",
-        "cx.keys.keypackages.consume",
-        "cx.keys.keypackages.revoke",
-        "cx.keys.backups.put",
-        "cx.keys.backups.list",
-        "cx.keys.backups.get",
-        "cx.keys.backups.delete"
+        "ck.keys.upload",
+        "ck.keys.query",
+        "ck.keys.claim",
+        "ck.keys.keypackages.upload",
+        "ck.keys.keypackages.claim",
+        "ck.keys.keypackages.consume",
+        "ck.keys.keypackages.revoke",
+        "ck.keys.backups.put",
+        "ck.keys.backups.list",
+        "ck.keys.backups.get",
+        "ck.keys.backups.delete"
       ],
       "required_event_kinds": [
-        "cx.device.authorize",
-        "cx.device.revoke",
-        "cx.mls.proposal",
-        "cx.mls.commit",
-        "cx.mls.welcome",
-        "cx.realm_key.share",
-        "cx.realm_key.withheld",
-        "cx.realm_key.share_audit"
+        "ck.device.authorize",
+        "ck.device.revoke",
+        "ck.mls.proposal",
+        "ck.mls.commit",
+        "ck.mls.welcome",
+        "ck.realm_key.share",
+        "ck.realm_key.withheld",
+        "ck.realm_key.share_audit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.encrypted_envelope.v1",
-        "cx.schema.media_metadata.v1",
-        "cx.schema.key_backup.v1"
+        "ck.schema.encrypted_envelope.v1",
+        "ck.schema.media_metadata.v1",
+        "ck.schema.key_backup.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -706,7 +706,7 @@
         "sync-fixture.json"
       ],
       "optional_extensions": [
-        "cx.profile.mls.minimal_metadata_realm.v1",
+        "ck.profile.mls.minimal_metadata_realm.v1",
         "aad_visibility_policy"
       ],
       "feature_discovery": {
@@ -719,12 +719,12 @@
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       }
     },
-    "cx.profile.e2ee_relaxed.v1": {
+    "ck.profile.e2ee_relaxed.v1": {
       "tier": "extension_profile_implementation",
-      "depends_on": ["cx.profile.e2ee_client.v1"],
-      "mutually_exclusive_with": ["cx.profile.mls_governance_binding.full.v1"],
+      "depends_on": ["ck.profile.e2ee_client.v1"],
+      "mutually_exclusive_with": ["ck.profile.mls_governance_binding.full.v1"],
       "spec_ref": "spec/v1/zh/crypto-media/encryption-and-audit.md#242-cxprofilee2ee_relaxedv1降级-profile",
-      "description": "Degraded E2EE profile. Allows `mls_send_pause=\"advisory\"` (cf. §2.4.1) so that low-latency interactive scenarios (real-time AV, collaborative editing, in-game chat) do not block message send on MLS commit completion. Cost: removed members can continue decrypting a small window of subsequent messages. NOT for general chat / collaboration / compliance use. MUTUALLY EXCLUSIVE with cx.profile.mls_governance_binding.full.v1.",
+      "description": "Degraded E2EE profile. Allows `mls_send_pause=\"advisory\"` (cf. §2.4.1) so that low-latency interactive scenarios (real-time AV, collaborative editing, in-game chat) do not block message send on MLS commit completion. Cost: removed members can continue decrypting a small window of subsequent messages. NOT for general chat / collaboration / compliance use. MUTUALLY EXCLUSIVE with ck.profile.mls_governance_binding.full.v1.",
       "applies_to_roles": ["e2ee_space"],
       "required_endpoints": [],
       "required_event_kinds": [],
@@ -732,7 +732,7 @@
       "required_schemas": [],
       "required_capability_actions": [],
       "required_features": [
-        "cx.feature.e2ee_relaxed.v1"
+        "ck.feature.e2ee_relaxed.v1"
       ],
       "required_constraint_kinds": [],
       "required_cell_namespaces": [],
@@ -742,7 +742,7 @@
         "required": [
           "e2ee_relaxed"
         ],
-        "unsupported_optional": "Servers that do not advertise cx.feature.e2ee_relaxed.v1 MUST reject Realm create / cx.realm.policy_components writes that set mls_send_pause=\"advisory\" (reason: profile_unsupported / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
+        "unsupported_optional": "Servers that do not advertise ck.feature.e2ee_relaxed.v1 MUST reject Realm create / ck.realm.policy_components writes that set mls_send_pause=\"advisory\" (reason: profile_unsupported / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
       },
       "reducer_reject_reasons": [
         "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
@@ -759,8 +759,8 @@
         "max": 300000,
         "absolute_hard_ceiling_ms": 300000,
         "rationale": "Receiving client refuses to admit a message into verified timeline if the gap between receive_at and the most recent membership_change_at exceeds this window with old-epoch decryption.",
-        "receiver_enforcement": "Receiver MUST enforce the hard ceiling independently of any declared deployment value: if a Realm policy event sets relaxed_window_max_ms > absolute_hard_ceiling_ms (300000 ms / 5 min), the reducer MUST reject the policy update with reason_code `relaxed_window_exceeds_ceiling` (mapped from `schema_violation`), and the receiver MUST treat the policy event as failed_precondition. Receivers MUST NOT silently clamp the value to the ceiling, because a silent clamp would let a deployment publish a longer window than receivers honor and split visible policy state across implementations. Negative vector: `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1` covers (a) reducer reject on policy write > 300000 ms, (b) receiver reject on old-epoch decrypt admission when the gap exceeds the per-policy declared window, and (c) reject when any deployment tries to redefine the ceiling via an unrelated profile.",
-        "compliance_profile_disabled": "Profiles in the compliance / audited tier (cx.profile.attested_audit.e2ee.v1, cx.profile.disclosed_audit.e2ee.v1, and any deployment declaring `audit_assurance >= disclosed_policy`) MUST NOT enable cx.profile.e2ee_relaxed.v1. Reducer MUST reject the combination with reason_code `e2ee_relaxed_disallowed_in_compliance_profile`. Rationale: compliance assurance presumes the kick-out semantic is cryptographically immediate; the relaxed window contradicts that presumption."
+        "receiver_enforcement": "Receiver MUST enforce the hard ceiling independently of any declared deployment value: if a Realm policy event sets relaxed_window_max_ms > absolute_hard_ceiling_ms (300000 ms / 5 min), the reducer MUST reject the policy update with reason_code `relaxed_window_exceeds_ceiling` (mapped from `schema_violation`), and the receiver MUST treat the policy event as failed_precondition. Receivers MUST NOT silently clamp the value to the ceiling, because a silent clamp would let a deployment publish a longer window than receivers honor and split visible policy state across implementations. Negative vector: `ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1` covers (a) reducer reject on policy write > 300000 ms, (b) receiver reject on old-epoch decrypt admission when the gap exceeds the per-policy declared window, and (c) reject when any deployment tries to redefine the ceiling via an unrelated profile.",
+        "compliance_profile_disabled": "Profiles in the compliance / audited tier (ck.profile.attested_audit.e2ee.v1, ck.profile.disclosed_audit.e2ee.v1, and any deployment declaring `audit_assurance >= disclosed_policy`) MUST NOT enable ck.profile.e2ee_relaxed.v1. Reducer MUST reject the combination with reason_code `e2ee_relaxed_disallowed_in_compliance_profile`. Rationale: compliance assurance presumes the kick-out semantic is cryptographically immediate; the relaxed window contradicts that presumption."
       },
       "federation_guard": {
         "forbidden_federation_policy": [
@@ -776,26 +776,26 @@
       },
       "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
     },
-    "cx.profile.enterprise_client.v1": {
+    "ck.profile.enterprise_client.v1": {
       "inherits": [
-        "cx.profile.full_client.v1"
+        "ck.profile.full_client.v1"
       ],
       "required_endpoints": [
-        "cx.directory.resolve_organization",
-        "cx.directory.search_organizations",
-        "cx.authz.get_effective_grants"
+        "ck.directory.resolve_organization",
+        "ck.directory.search_organizations",
+        "ck.authz.get_effective_grants"
       ],
       "required_event_kinds": [
-        "cx.organization.discovery",
-        "cx.organization.moderation_policy",
-        "cx.policy.set",
-        "cx.policy.rule"
+        "ck.organization.discovery",
+        "ck.organization.moderation_policy",
+        "ck.policy.set",
+        "ck.policy.rule"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.policy.v1",
-        "cx.schema.handle_claim.v1",
-        "cx.schema.identity_receipt.v1"
+        "ck.schema.policy.v1",
+        "ck.schema.handle_claim.v1",
+        "ck.schema.identity_receipt.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -813,41 +813,41 @@
         "unsupported_optional": "return unsupported_feature for managed-only action"
       }
     },
-    "cx.profile.directory_service.v1": {
+    "ck.profile.directory_service.v1": {
       "inherits": [],
       "description": "Cokret v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
       "required_endpoints": [
-        "cx.directory.describe",
-        "cx.directory.search_realms",
-        "cx.directory.resolve_realm",
-        "cx.directory.search_organizations",
-        "cx.directory.resolve_organization",
-        "cx.directory.search_actors",
-        "cx.directory.search_users",
-        "cx.directory.resolve_handle",
-        "cx.directory.announce",
-        "cx.directory.withdraw"
+        "ck.directory.describe",
+        "ck.directory.search_realms",
+        "ck.directory.resolve_realm",
+        "ck.directory.search_organizations",
+        "ck.directory.resolve_organization",
+        "ck.directory.search_actors",
+        "ck.directory.search_users",
+        "ck.directory.resolve_handle",
+        "ck.directory.announce",
+        "ck.directory.withdraw"
       ],
       "required_event_kinds": [
-        "cx.realm.discovery",
-        "cx.organization.discovery",
-        "cx.actor.discovery",
-        "cx.applet.discovery",
-        "cx.handle.discovery"
+        "ck.realm.discovery",
+        "ck.organization.discovery",
+        "ck.actor.discovery",
+        "ck.applet.discovery",
+        "ck.handle.discovery"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event"
       ],
       "required_schemas": [
-        "cx.schema.actor_profile.v1",
-        "cx.schema.handle_claim.v1"
+        "ck.schema.actor_profile.v1",
+        "ck.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
         "crypto-signature-fixture.json"
       ],
       "optional_extensions": [
-        "cx.private_contact_discovery.v1",
+        "ck.private_contact_discovery.v1",
         "pull_mode_ingest",
         "webhook_fanout",
         "restricted_query_proofs",
@@ -867,31 +867,31 @@
         "unsupported_optional": "omit optional profile or return unsupported_feature without leaking hidden resources"
       }
     },
-    "cx.profile.principal_server_events_api.v1": {
+    "ck.profile.principal_server_events_api.v1": {
       "inherits": [
-        "cx.profile.core_event_store.v1"
+        "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "cx.events.describe",
-        "cx.events.submit",
-        "cx.events.get",
-        "cx.events.resolve",
-        "cx.events.query",
-        "cx.events.frontier"
+        "ck.events.describe",
+        "ck.events.submit",
+        "ck.events.get",
+        "ck.events.resolve",
+        "ck.events.query",
+        "ck.events.frontier"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state"
+        "ck.realm.create",
+        "ck.member.state"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event",
         "wire_scope:ephemeral_event"
       ],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1",
-        "cx.schema.cursor.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.cursor.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -911,35 +911,35 @@
         "unsupported_optional": "return unsupported_feature"
       }
     },
-    "cx.profile.principal_server.v1": {
+    "ck.profile.principal_server.v1": {
       "inherits": [
-        "cx.profile.principal_server_events_api.v1",
-        "cx.profile.chat_mvp.v1",
-        "cx.profile.kanban_mvp.v1"
+        "ck.profile.principal_server_events_api.v1",
+        "ck.profile.chat_mvp.v1",
+        "ck.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.account.describe",
-        "cx.account.subscribe",
-        "cx.events.subscribe",
-        "cx.events.query",
-        "cx.snapshot.head",
-        "cx.authz.check"
+        "ck.server.describe",
+        "ck.account.describe",
+        "ck.account.subscribe",
+        "ck.events.subscribe",
+        "ck.events.query",
+        "ck.snapshot.head",
+        "ck.authz.check"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state",
-        "cx.flow.create",
-        "cx.message.create",
-        "cx.capability.grant",
-        "cx.capability.revoke"
+        "ck.realm.create",
+        "ck.member.state",
+        "ck.flow.create",
+        "ck.message.create",
+        "ck.capability.grant",
+        "ck.capability.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.account_subscribe_frame.v1",
-        "cx.schema.snapshot.v1",
-        "cx.schema.capability.v1",
-        "cx.schema.grant_constraint.v1"
+        "ck.schema.account_subscribe_frame.v1",
+        "ck.schema.snapshot.v1",
+        "ck.schema.capability.v1",
+        "ck.schema.grant_constraint.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -949,8 +949,8 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "cx.profile.federation_minimal.v1",
-        "cx.profile.push_gateway.v1",
+        "ck.profile.federation_minimal.v1",
+        "ck.profile.push_gateway.v1",
         "snapshot_witness"
       ],
       "feature_discovery": {
@@ -962,24 +962,24 @@
         "unsupported_optional": "omit optional operation or return unsupported_feature"
       }
     },
-    "cx.profile.federation_minimal.v1": {
+    "ck.profile.federation_minimal.v1": {
       "inherits": [
-        "cx.profile.core_event_store.v1"
+        "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state"
+        "ck.realm.create",
+        "ck.member.state"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event",
         "wire_scope:ephemeral_event"
       ],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1",
-        "cx.schema.event_batch_receipt.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.event_batch_receipt.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -999,11 +999,11 @@
         "unsupported_optional": "reject unsupported profile before accepting events"
       }
     },
-    "cx.profile.federation.high_assurance.v1": {
+    "ck.profile.federation.high_assurance.v1": {
       "inherits": [
-        "cx.profile.federation_minimal.v1"
+        "ck.profile.federation_minimal.v1"
       ],
-      "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the cx.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
+      "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the ck.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -1021,7 +1021,7 @@
           "frontier_probe_interval_seconds",
           "stale_peer_threshold"
         ],
-        "unsupported_optional": "reject claim of cx.profile.federation.high_assurance.v1 if proactive frontier exchange or stale_peer fail-state is not implemented"
+        "unsupported_optional": "reject claim of ck.profile.federation.high_assurance.v1 if proactive frontier exchange or stale_peer fail-state is not implemented"
       },
       "additional_requirements": {
         "frontier_probe_capability_must": "Peer MUST expose capability-gated frontier probe endpoint per federation.md §4.5.1.",
@@ -1030,27 +1030,27 @@
         "stale_peer_behavior_must": "While a peer is in 'stale_peer' state: MUST quarantine its push payloads (no local frontier advancement); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after successful fork resolution (head reconvergence or quorum witness attestation alignment)."
       }
     },
-    "cx.profile.identity_registry.v1": {
+    "ck.profile.identity_registry.v1": {
       "required_endpoints": [
-        "cx.identity.describe_registry",
-        "cx.identity.resolve",
-        "cx.identity.get_document",
-        "cx.identity.get_log",
-        "cx.identity.get_receipts",
-        "cx.identity.submit_did_operation"
+        "ck.identity.describe_registry",
+        "ck.identity.resolve",
+        "ck.identity.get_document",
+        "ck.identity.get_log",
+        "ck.identity.get_receipts",
+        "ck.identity.submit_did_operation"
       ],
       "required_event_kinds": [
-        "cx.did.proof",
-        "cx.identity.disclosure_policy",
-        "cx.identity.disclosure_receipt",
-        "cx.identity.presentation_request",
-        "cx.identity.presentation_response"
+        "ck.did.proof",
+        "ck.identity.disclosure_policy",
+        "ck.identity.disclosure_receipt",
+        "ck.identity.presentation_request",
+        "ck.identity.presentation_response"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.did_key_log_entry.v1",
-        "cx.schema.identity_receipt.v1",
-        "cx.schema.handle_claim.v1"
+        "ck.schema.did_key_log_entry.v1",
+        "ck.schema.identity_receipt.v1",
+        "ck.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -1070,30 +1070,30 @@
         "unsupported_optional": "return unsupported_did_method"
       }
     },
-    "cx.profile.auth_server.v1": {
+    "ck.profile.auth_server.v1": {
       "inherits": [],
-      "description": "Cokret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `cx.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `cx.policy.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `cx.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
+      "description": "Cokret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ck.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ck.policy.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ck.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.account.issue_session_grant"
+        "ck.server.describe",
+        "ck.account.issue_session_grant"
       ],
       "required_event_kinds": [
-        "cx.session.grant"
+        "ck.session.grant"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event"
       ],
       "required_schemas": [
-        "cx.schema.service_describe.v1",
-        "cx.schema.handle_claim.v1"
+        "ck.schema.service_describe.v1",
+        "ck.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "cx.account.issue_session_grant",
-        "cx.policy.check",
+        "ck.account.issue_session_grant",
+        "ck.policy.check",
         "session_grant_introspection",
         "session_grant_revocation",
         "oidc",
@@ -1118,22 +1118,22 @@
       "additional_requirements": {
         "session_grant_must_be_short_lived": "Auth Server MUST cap session_grant TTL well below the Realm policy review horizon (per device-lifecycle.md §5, typical ceiling is minutes-to-hours, not days).",
         "audience_binding_must": "Every issued session_grant MUST carry an `audience` claim; auth servers MUST refuse to issue grants for audiences they have not been configured to serve.",
-        "session_grant_release_readiness_must": "Release readiness MUST cover cx.vector.auth.session_grant_audience_binding.v1 and cx.vector.auth.soft_logout_did_proof.v1: proof binds challenge, audience, request_canonical_digest, principal and device; stranger audiences are rejected; soft_logged_out recovery requires fresh DID proof; development_mode=true never advertises verified profiles.",
-        "not_identity_registry_must": "Auth Server MUST NOT claim `cx.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
-        "not_principal_server_must": "Auth Server MUST NOT claim `cx.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
+        "session_grant_release_readiness_must": "Release readiness MUST cover ck.vector.auth.session_grant_audience_binding.v1 and ck.vector.auth.soft_logout_did_proof.v1: proof binds challenge, audience, request_canonical_digest, principal and device; stranger audiences are rejected; soft_logged_out recovery requires fresh DID proof; development_mode=true never advertises verified profiles.",
+        "not_identity_registry_must": "Auth Server MUST NOT claim `ck.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
+        "not_principal_server_must": "Auth Server MUST NOT claim `ck.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run."
       }
     },
-    "cx.profile.public_network_identity.v1": {
+    "ck.profile.public_network_identity.v1": {
       "required_endpoints": [
-        "cx.identity.resolve",
-        "cx.identity.get_document"
+        "ck.identity.resolve",
+        "ck.identity.get_document"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.identity_receipt.v1",
-        "cx.schema.handle_claim.v1"
+        "ck.schema.identity_receipt.v1",
+        "ck.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json"
@@ -1151,18 +1151,18 @@
         "unsupported_optional": "return unsupported_did_method"
       }
     },
-    "cx.profile.org_high_assurance_identity.v1": {
+    "ck.profile.org_high_assurance_identity.v1": {
       "required_endpoints": [
-        "cx.identity.resolve",
-        "cx.identity.get_document",
-        "cx.identity.get_log"
+        "ck.identity.resolve",
+        "ck.identity.get_document",
+        "ck.identity.get_log"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.did_key_log_entry.v1",
-        "cx.schema.identity_receipt.v1",
-        "cx.schema.handle_claim.v1"
+        "ck.schema.did_key_log_entry.v1",
+        "ck.schema.identity_receipt.v1",
+        "ck.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json"
@@ -1181,20 +1181,20 @@
         "unsupported_optional": "return unsupported_did_method"
       }
     },
-    "cx.profile.blob_node.v1": {
+    "ck.profile.blob_node.v1": {
       "required_endpoints": [
-        "cx.blob.upload",
-        "cx.blob.get",
-        "cx.blob.head"
+        "ck.blob.upload",
+        "ck.blob.get",
+        "ck.blob.head"
       ],
       "required_event_kinds": [
-        "cx.realm.asset_privacy_policy",
-        "cx.realm.media_service"
+        "ck.realm.asset_privacy_policy",
+        "ck.realm.media_service"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.blob.v1",
-        "cx.schema.media_metadata.v1"
+        "ck.schema.blob.v1",
+        "ck.schema.media_metadata.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1212,28 +1212,28 @@
         "unsupported_optional": "return unsupported_media_policy"
       }
     },
-    "cx.profile.push_gateway.v1": {
+    "ck.profile.push_gateway.v1": {
       "role": "gateway",
-      "description": "Push gateway base profile. Provides the device registration / notify operation surface. All implementations claiming this profile MUST also implement cx.profile.push_gateway.blind_wakeup.v1 (default interop privacy baseline) — see zh/discovery/push-notifications.md §2.2 / §5.1. Visible-payload variants are opt-in only via cx.profile.push_gateway.visible_notification.v1.",
+      "description": "Push gateway base profile. Provides the device registration / notify operation surface. All implementations claiming this profile MUST also implement ck.profile.push_gateway.blind_wakeup.v1 (default interop privacy baseline) — see zh/discovery/push-notifications.md §2.2 / §5.1. Visible-payload variants are opt-in only via ck.profile.push_gateway.visible_notification.v1.",
       "depends_on": [
-        "cx.profile.push_gateway.blind_wakeup.v1"
+        "ck.profile.push_gateway.blind_wakeup.v1"
       ],
       "required_profiles": [
-        "cx.profile.push_gateway.blind_wakeup.v1"
+        "ck.profile.push_gateway.blind_wakeup.v1"
       ],
       "required_endpoints": [
-        "cx.push.register_device",
-        "cx.push.unregister_device",
-        "cx.push.notify"
+        "ck.push.register_device",
+        "ck.push.unregister_device",
+        "ck.push.notify"
       ],
       "required_event_kinds": [
-        "cx.device.authorize",
-        "cx.device.revoke",
-        "cx.account_data.set"
+        "ck.device.authorize",
+        "ck.device.revoke",
+        "ck.account_data.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.notification.v1"
+        "ck.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1249,16 +1249,16 @@
         "unsupported_optional": "strip unsupported plaintext fields"
       }
     },
-    "cx.profile.push_gateway.blind_wakeup.v1": {
+    "ck.profile.push_gateway.blind_wakeup.v1": {
       "role": "gateway",
-      "description": "Default push gateway privacy baseline. Every implementation claiming cx.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Flow id / name, Message id, event id, device DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
+      "description": "Default push gateway privacy baseline. Every implementation claiming ck.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Flow id / name, Message id, event id, device DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
       "required_endpoints": [
-        "cx.push.notify"
+        "ck.push.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.notification.v1"
+        "ck.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1270,36 +1270,36 @@
           "push_target_id_scope",
           "wakeup_kind_enum"
         ],
-        "unsupported_optional": "MUST fail closed; gateways unable to enforce blind wakeup MUST NOT claim cx.profile.push_gateway.v1"
+        "unsupported_optional": "MUST fail closed; gateways unable to enforce blind wakeup MUST NOT claim ck.profile.push_gateway.v1"
       },
       "additional_requirements": {
         "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Realm id / name, Flow id / name, Message id, event id, device DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Realm stable correlation key.",
         "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_service_did, principal, device, push_route); MUST NOT be reusable across Principal Server contexts.",
-        "default_claim_must": "Any implementation claiming cx.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
+        "default_claim_must": "Any implementation claiming ck.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
       }
     },
-    "cx.profile.push_gateway.visible_notification.v1": {
+    "ck.profile.push_gateway.visible_notification.v1": {
       "role": "gateway",
-      "description": "Opt-in push gateway profile for deployments that require visible notification fields (e.g. titles, sender labels) in provider payloads. Claiming this profile is permitted ONLY when (1) Realm policy explicitly lists the gateway in plaintext_visible_services AND declares visible_notification allowance, (2) per-device opt-in is recorded in cx.device authorization state, and (3) the client UI clearly surfaces that visible-notification mode is active. Even when claimed, payloads MUST stay minimised: no message body, no DID URL, no cross-Realm stable correlation key, no IP / geolocation, no free-form text outside the profile-declared field set. See zh/discovery/push-notifications.md §5.1.",
+      "description": "Opt-in push gateway profile for deployments that require visible notification fields (e.g. titles, sender labels) in provider payloads. Claiming this profile is permitted ONLY when (1) Realm policy explicitly lists the gateway in plaintext_visible_services AND declares visible_notification allowance, (2) per-device opt-in is recorded in ck.device authorization state, and (3) the client UI clearly surfaces that visible-notification mode is active. Even when claimed, payloads MUST stay minimised: no message body, no DID URL, no cross-Realm stable correlation key, no IP / geolocation, no free-form text outside the profile-declared field set. See zh/discovery/push-notifications.md §5.1.",
       "depends_on": [
-        "cx.profile.push_gateway.v1"
+        "ck.profile.push_gateway.v1"
       ],
       "required_profiles": [
-        "cx.profile.push_gateway.v1",
-        "cx.profile.push_gateway.blind_wakeup.v1"
+        "ck.profile.push_gateway.v1",
+        "ck.profile.push_gateway.blind_wakeup.v1"
       ],
       "inherits": [
-        "cx.profile.push_gateway.v1"
+        "ck.profile.push_gateway.v1"
       ],
       "required_endpoints": [
-        "cx.push.notify"
+        "ck.push.notify"
       ],
       "required_event_kinds": [
-        "cx.device.authorize"
+        "ck.device.authorize"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.notification.v1"
+        "ck.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1322,23 +1322,23 @@
         "payload_minimisation_must": "Even when claimed, payload MUST NOT carry message body, DID URLs, cross-Realm stable correlation keys, IP / geolocation, or untyped free-form text."
       }
     },
-    "cx.profile.push_gateway.matrix_passthrough.v1": {
+    "ck.profile.push_gateway.matrix_passthrough.v1": {
       "role": "interop",
-      "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as a bridge for legacy clients but MUST NOT mix this profile with cx.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Cokret privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under cx.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
+      "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as a bridge for legacy clients but MUST NOT mix this profile with ck.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Cokret privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under ck.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
       "depends_on": [
-        "cx.profile.matrix_compat.v1"
+        "ck.profile.matrix_compat.v1"
       ],
       "required_profiles": [
-        "cx.profile.matrix_compat.v1"
+        "ck.profile.matrix_compat.v1"
       ],
       "inherits": [],
       "required_endpoints": [
-        "cx.push.notify"
+        "ck.push.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.notification.v1"
+        "ck.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1347,7 +1347,7 @@
         "matrix_push_gateway_passthrough"
       ],
       "incompatible_with": [
-        "cx.profile.push_gateway.blind_wakeup.v1"
+        "ck.profile.push_gateway.blind_wakeup.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -1357,31 +1357,31 @@
         "unsupported_optional": "omit profile claim; bridges that cannot partition traffic MUST NOT claim this profile"
       },
       "additional_requirements": {
-        "partition_must": "Bridges MUST partition push traffic so that Cokret v1 default-baseline peers (cx.profile.push_gateway.blind_wakeup.v1) NEVER receive matrix_passthrough-shaped payloads.",
-        "no_default_mixing_must": "Implementations MUST NOT advertise both cx.profile.push_gateway.blind_wakeup.v1 and cx.profile.push_gateway.matrix_passthrough.v1 as applying to the same (recipient_service_did, device) tuple.",
-        "interop_only_must": "This profile is interop-only; it MUST NOT be used as a substitute for cx.profile.push_gateway.blind_wakeup.v1 in default Cokret deployments."
+        "partition_must": "Bridges MUST partition push traffic so that Cokret v1 default-baseline peers (ck.profile.push_gateway.blind_wakeup.v1) NEVER receive matrix_passthrough-shaped payloads.",
+        "no_default_mixing_must": "Implementations MUST NOT advertise both ck.profile.push_gateway.blind_wakeup.v1 and ck.profile.push_gateway.matrix_passthrough.v1 as applying to the same (recipient_service_did, device) tuple.",
+        "interop_only_must": "This profile is interop-only; it MUST NOT be used as a substitute for ck.profile.push_gateway.blind_wakeup.v1 in default Cokret deployments."
       }
     },
-    "cx.profile.applet_service.v1": {
+    "ck.profile.applet_service.v1": {
       "required_endpoints": [
-        "cx.applet.describe",
-        "cx.applet.ping",
-        "cx.applet.transaction",
-        "cx.applet.resolve_actor",
-        "cx.applet.resolve_realm",
-        "cx.applet.protocol_metadata"
+        "ck.applet.describe",
+        "ck.applet.ping",
+        "ck.applet.transaction",
+        "ck.applet.resolve_actor",
+        "ck.applet.resolve_realm",
+        "ck.applet.protocol_metadata"
       ],
       "required_event_kinds": [
-        "cx.applet.registration",
-        "cx.applet.protocol_session.start",
-        "cx.applet.protocol_session.status",
-        "cx.applet.bridge_error"
+        "ck.applet.registration",
+        "ck.applet.protocol_session.start",
+        "ck.applet.protocol_session.status",
+        "ck.applet.bridge_error"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -1400,22 +1400,22 @@
         "unsupported_optional": "return unsupported_feature"
       }
     },
-    "cx.profile.agent_runtime.v1": {
+    "ck.profile.agent_runtime.v1": {
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.events.submit",
-        "cx.events.query",
-        "cx.authz.check"
+        "ck.server.describe",
+        "ck.events.submit",
+        "ck.events.query",
+        "ck.authz.check"
       ],
       "required_event_kinds": [
-        "cx.agent.endpoint",
-        "cx.agent.protocol_session.start",
-        "cx.agent.protocol_session.status",
-        "cx.agent.protocol_session.result"
+        "ck.agent.endpoint",
+        "ck.agent.protocol_session.start",
+        "ck.agent.protocol_session.status",
+        "ck.agent.protocol_session.result"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.capability.v1"
+        "ck.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -1434,36 +1434,36 @@
         "unsupported_optional": "require explicit grant before join or tool use"
       }
     },
-    "cx.profile.personal_agent_provisioning.v1": {
+    "ck.profile.personal_agent_provisioning.v1": {
       "inherits": [
-        "cx.profile.agent_runtime.v1"
+        "ck.profile.agent_runtime.v1"
       ],
       "required_endpoints": [
-        "cx.agent.provision",
-        "cx.account.agent_key_pair",
-        "cx.events.submit",
-        "cx.events.query"
+        "ck.agent.provision",
+        "ck.account.agent_key_pair",
+        "ck.events.submit",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.profile.create",
-        "cx.identity.accountability_grant",
-        "cx.agent.key.authorize",
-        "cx.agent.key.rotate",
-        "cx.agent.key.revoke",
-        "cx.agent.pause",
-        "cx.agent.resume",
-        "cx.agent.deactivate",
-        "cx.agent.draft.propose",
-        "cx.agent.action_request",
-        "cx.agent.action_approve",
-        "cx.agent.action_reject",
-        "cx.capability.grant",
-        "cx.capability.revoke"
+        "ck.profile.create",
+        "ck.identity.accountability_grant",
+        "ck.agent.key.authorize",
+        "ck.agent.key.rotate",
+        "ck.agent.key.revoke",
+        "ck.agent.pause",
+        "ck.agent.resume",
+        "ck.agent.deactivate",
+        "ck.agent.draft.propose",
+        "ck.agent.action_request",
+        "ck.agent.action_approve",
+        "ck.agent.action_reject",
+        "ck.capability.grant",
+        "ck.capability.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.actor_profile.v1",
-        "cx.schema.capability.v1"
+        "ck.schema.actor_profile.v1",
+        "ck.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -1481,21 +1481,21 @@
         "unsupported_optional": "fail closed; do not return long-lived bearer or private key"
       }
     },
-    "cx.profile.agent_auth.v1": {
+    "ck.profile.agent_auth.v1": {
       "inherits": [
-        "cx.profile.agent_runtime.v1",
-        "cx.profile.auth_server.v1"
+        "ck.profile.agent_runtime.v1",
+        "ck.profile.auth_server.v1"
       ],
       "required_endpoints": [
-        "cx.account.issue_session_grant"
+        "ck.account.issue_session_grant"
       ],
       "required_event_kinds": [
-        "cx.agent.key.authorize",
-        "cx.agent.key.revoke"
+        "ck.agent.key.authorize",
+        "ck.agent.key.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.capability.v1"
+        "ck.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json"
@@ -1511,22 +1511,22 @@
         "unsupported_optional": "fail closed; never fallback to password / OIDC / passkey validator"
       }
     },
-    "cx.profile.agent_delegation_policy.v1": {
+    "ck.profile.agent_delegation_policy.v1": {
       "inherits": [
-        "cx.profile.agent_runtime.v1"
+        "ck.profile.agent_runtime.v1"
       ],
       "required_endpoints": [
-        "cx.authz.check"
+        "ck.authz.check"
       ],
       "required_event_kinds": [
-        "cx.capability.grant",
-        "cx.capability.delegate",
-        "cx.capability.revoke",
-        "cx.message.create"
+        "ck.capability.grant",
+        "ck.capability.delegate",
+        "ck.capability.revoke",
+        "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.capability.v1"
+        "ck.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json"
@@ -1544,28 +1544,28 @@
         "unsupported_optional": "fail closed; do not inherit controller permissions"
       }
     },
-    "cx.profile.agent_sidecar_thread.v1": {
+    "ck.profile.agent_sidecar_thread.v1": {
       "inherits": [
-        "cx.profile.personal_agent_provisioning.v1",
-        "cx.profile.circle_conformance.v1"
+        "ck.profile.personal_agent_provisioning.v1",
+        "ck.profile.circle_conformance.v1"
       ],
       "required_endpoints": [
-        "cx.agent.sidecar_thread.ensure",
-        "cx.events.submit",
-        "cx.events.query"
+        "ck.agent.sidecar_thread.ensure",
+        "ck.events.submit",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.circle.create",
-        "cx.circle.member.state",
-        "cx.flow.create",
-        "cx.relation.create",
-        "cx.message.create"
+        "ck.circle.create",
+        "ck.circle.member.state",
+        "ck.flow.create",
+        "ck.relation.create",
+        "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.circle.v1",
-        "cx.schema.flow.v1",
-        "cx.schema.relation.v1"
+        "ck.schema.circle.v1",
+        "ck.schema.flow.v1",
+        "ck.schema.relation.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -1587,24 +1587,24 @@
         "unsupported_optional": "fail closed; do not split into multiple sidecar Circles"
       }
     },
-    "cx.profile.mimi_interop.v1": {
+    "ck.profile.mimi_interop.v1": {
       "required_endpoints": [
-        "cx.mimi.provider_directory",
-        "cx.mimi.request_consent",
-        "cx.mimi.update_consent",
-        "cx.mimi.room_update",
-        "cx.mimi.submit_message",
-        "cx.mimi.group_info"
+        "ck.mimi.provider_directory",
+        "ck.mimi.request_consent",
+        "ck.mimi.update_consent",
+        "ck.mimi.room_update",
+        "ck.mimi.submit_message",
+        "ck.mimi.group_info"
       ],
       "required_event_kinds": [
-        "cx.mimi.room_binding",
-        "cx.mls.keypackage",
-        "cx.mls.commit"
+        "ck.mimi.room_binding",
+        "ck.mls.keypackage",
+        "ck.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.mimi_interop.v1",
-        "cx.schema.encrypted_envelope.v1"
+        "ck.schema.mimi_interop.v1",
+        "ck.schema.encrypted_envelope.v1"
       ],
       "required_fixtures": [
         "mimi-interop-fixture.json",
@@ -1623,26 +1623,26 @@
         "unsupported_optional": "fail closed on unsupported draft"
       }
     },
-    "cx.profile.sovereign_deployment.v1": {
+    "ck.profile.sovereign_deployment.v1": {
       "inherits": [
-        "cx.profile.principal_server.v1",
-        "cx.profile.identity_registry.v1"
+        "ck.profile.principal_server.v1",
+        "ck.profile.identity_registry.v1"
       ],
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.identity.resolve",
-        "cx.authz.check"
+        "ck.server.describe",
+        "ck.identity.resolve",
+        "ck.authz.check"
       ],
       "required_event_kinds": [
-        "cx.sovereign.did_policy",
-        "cx.capability.grant",
-        "cx.capability.revoke",
-        "cx.realm.policy"
+        "ck.sovereign.did_policy",
+        "ck.capability.grant",
+        "ck.capability.revoke",
+        "ck.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.policy.v1",
-        "cx.schema.capability.v1"
+        "ck.schema.policy.v1",
+        "ck.schema.capability.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -1661,23 +1661,23 @@
         "unsupported_optional": "deny bridge until explicit policy exists"
       }
     },
-    "cx.profile.sovereign_enclave.v1": {
+    "ck.profile.sovereign_enclave.v1": {
       "inherits": [
-        "cx.profile.sovereign_deployment.v1"
+        "ck.profile.sovereign_deployment.v1"
       ],
-      "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `cx.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
+      "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `ck.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.identity.resolve",
-        "cx.authz.check"
+        "ck.server.describe",
+        "ck.identity.resolve",
+        "ck.authz.check"
       ],
       "required_event_kinds": [
-        "cx.sovereign.did_policy",
-        "cx.realm.policy"
+        "ck.sovereign.did_policy",
+        "ck.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.policy.v1"
+        "ck.schema.policy.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json"
@@ -1696,19 +1696,19 @@
         "unsupported_optional": "deny outbound HTTP until allowlist contains the destination host"
       }
     },
-    "cx.profile.franking.v1": {
+    "ck.profile.franking.v1": {
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.account.subscribe"
+        "ck.events.submit",
+        "ck.account.subscribe"
       ],
       "required_event_kinds": [
-        "cx.moderation.franking_proof",
-        "cx.moderation.report"
+        "ck.moderation.franking_proof",
+        "ck.moderation.report"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1726,9 +1726,9 @@
         "unsupported_optional": "return franking_proof_unavailable rather than silently dropping"
       }
     },
-    "cx.profile.franking.sender_commitment.v1": {
+    "ck.profile.franking.sender_commitment.v1": {
       "inherits": [
-        "cx.profile.franking.v1"
+        "ck.profile.franking.v1"
       ],
       "description": "Opt-in sender-bound plaintext commitment for E2EE Realms. Adds a sidecar (unsigned.franking.sender_commitment) carrying an HMAC-SHA-256 tag derived from per-device-per-epoch MLS exporter secret over plaintext+aad+ciphertext+epoch_local_seq, enabling audit verifiers to independently attribute plaintext to (sender_device_id, epoch). Does NOT change core franking wire shape (sidecar lives in unsigned scope). Does NOT provide outside-of-group non-repudiation — verifier attribution is bounded by MLS epoch deniability and verifier's exporter-secret retention window (default <= 72h). Plaintext sender attribution from reporter evidence MUST go through §3.4.2 verification flow. See zh/governance/content-moderation.md §3.4.2.",
       "required_endpoints": [],
@@ -1758,15 +1758,15 @@
         "plaintext_brute_force_must": "Deployments MUST NOT combine this profile with governance models where verifiers can offline-brute-force candidate plaintexts against the commitment without prior gating."
       }
     },
-    "cx.profile.morph.schema_migration_transformations.v1": {
-      "description": "Opt-in Realm profile that permits cx.morph.schema_migrate events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating cx.morph.schema.migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
+    "ck.profile.morph.schema_migration_transformations.v1": {
+      "description": "Opt-in Realm profile that permits ck.morph.schema_migrate events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating ck.morph.schema.migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
       "required_endpoints": [],
       "required_event_kinds": [
-        "cx.morph.schema_migrate"
+        "ck.morph.schema_migrate"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event_payload.v1"
+        "ck.schema.event_payload.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [
@@ -1781,22 +1781,22 @@
         "unsupported_optional": "deployments without this profile MUST reject breaking and transformation migrations even if the event-payload schema would accept them"
       },
       "additional_requirements": {
-        "capability_must": "Reducer MUST require cx.morph.schema.migrate (or Realm-declared equivalent) capability at the event's frontier; missing yields capability_denied.",
+        "capability_must": "Reducer MUST require ck.morph.schema.migrate (or Realm-declared equivalent) capability at the event's frontier; missing yields capability_denied.",
         "from_set_check_must": "Reducer MUST set-equal-compare payload.from_schema_refs[] against the Morph's current schema_refs[] at apply time; mismatch yields failed_precondition.",
         "deterministic_transformation_must": "Any transformation_rules[] MUST be replay-deterministic across implementations; profile vectors MUST cover identity, rename, type widening, and default backfill cases."
       }
     },
-    "cx.profile.webrtc_media.v1": {
+    "ck.profile.webrtc_media.v1": {
       "required_endpoints": [
-        "cx.server.describe"
+        "ck.server.describe"
       ],
       "required_event_kinds": [
-        "cx.call.signal",
-        "cx.call.state"
+        "ck.call.signal",
+        "ck.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1"
+        "ck.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1816,25 +1816,25 @@
         "unsupported_optional": "return turn_credential_expired with next_retry_at"
       }
     },
-    "cx.profile.media_service_binding.v1": {
+    "ck.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework (CXP-0010). Upgrades cx.realm.media_service from a single sfu_endpoint to a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/webrtc-signaling.md §6.1 / §6.4 / §10 / §11.",
+      "description": "Transport-agnostic media backend binding framework (CXP-0010). Upgrades ck.realm.media_service from a single sfu_endpoint to a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/webrtc-signaling.md §6.1 / §6.4 / §10 / §11.",
       "depends_on": [
-        "cx.profile.webrtc_media.v1"
+        "ck.profile.webrtc_media.v1"
       ],
       "required_profiles": [
-        "cx.profile.webrtc_media.v1"
+        "ck.profile.webrtc_media.v1"
       ],
       "required_endpoints": [
-        "cx.call.media.token_exchange"
+        "ck.call.media.token_exchange"
       ],
       "required_event_kinds": [
-        "cx.realm.media_service",
-        "cx.call.state"
+        "ck.realm.media_service",
+        "ck.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1"
+        "ck.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1857,33 +1857,33 @@
       },
       "additional_requirements": {
         "token_ttl_must": "Token issuer MUST cap backend_token / participant_binding expires_at at 600s after issuance; SHOULD use ≤ 300s.",
-        "issuer_did_anchoring_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in cx.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
-        "session_focus_must": "cx.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
-        "participant_binding_must": "cx.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
+        "issuer_did_anchoring_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in ck.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
+        "session_focus_must": "ck.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
+        "participant_binding_must": "ck.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
         "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Cokret MLS-Exporter with label cx-rtc-frame-key/v1 (length=19 bytes, Context=\"\", KDF.Nh=32 bytes). MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
         "recording_pipeline_must": "Backend-generated recording artifacts MUST flow through Cokret authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
         "recording_key_source_must": "Recording artifact encryption keys MUST derive from Cokret MLS-Exporter label cx-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label cx-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
       }
     },
-    "cx.profile.media_service_binding.livekit.v1": {
+    "ck.profile.media_service_binding.livekit.v1": {
       "role": "server",
-      "description": "LiveKit backend binding sub-profile (CXP-0010 §4.5). Maps Cokret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Cokret blob pipeline. Declaring this sub-profile requires declaring cx.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
+      "description": "LiveKit backend binding sub-profile (CXP-0010 §4.5). Maps Cokret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Cokret blob pipeline. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
       "depends_on": [
-        "cx.profile.media_service_binding.v1"
+        "ck.profile.media_service_binding.v1"
       ],
       "required_profiles": [
-        "cx.profile.media_service_binding.v1"
+        "ck.profile.media_service_binding.v1"
       ],
       "required_endpoints": [
-        "cx.call.media.token_exchange"
+        "ck.call.media.token_exchange"
       ],
       "required_event_kinds": [
-        "cx.realm.media_service",
-        "cx.call.state"
+        "ck.realm.media_service",
+        "ck.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1"
+        "ck.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1897,32 +1897,32 @@
           "livekit_jwt_claim_set",
           "livekit_sframe_keyprovider"
         ],
-        "unsupported_optional": "fall back to cx.profile.media_service_binding.contrix_native.v1 if available"
+        "unsupported_optional": "fall back to ck.profile.media_service_binding.cokret_native.v1 if available"
       },
       "additional_requirements": {
-        "livekit_metadata_ban_must": "Token issuer MUST NOT inject LiveKit metadata or canUpdateOwnMetadata claims; Cokret participant metadata flows through cx.call.state only.",
+        "livekit_metadata_ban_must": "Token issuer MUST NOT inject LiveKit metadata or canUpdateOwnMetadata claims; Cokret participant metadata flows through ck.call.state only.",
         "livekit_recorder_claim_must": "Token issuer MUST set video.recorder=false; recording goes through Cokret Egress proxy, not LiveKit recorder claim."
       }
     },
-    "cx.profile.media_service_binding.contrix_native.v1": {
+    "ck.profile.media_service_binding.cokret_native.v1": {
       "role": "server",
-      "description": "Cokret-native SFU reference implementation binding sub-profile (CXP-0010 §4.5). Preserves the v1.0 custom SFU wire format as a reference impl for conformance testing and legacy migration. Not recommended for production — workload of self-maintaining SFU (cascade, recording, SFrame, scalability) exceeds the cost of LiveKit / mediasoup bindings. May transition to informative in v1.1. Declaring this sub-profile requires declaring cx.profile.media_service_binding.v1. See zh/crypto-media/bindings/cokret-native.md.",
+      "description": "Cokret-native SFU reference implementation binding sub-profile (CXP-0010 §4.5). Preserves the v1.0 custom SFU wire format as a reference impl for conformance testing and legacy migration. Not recommended for production — workload of self-maintaining SFU (cascade, recording, SFrame, scalability) exceeds the cost of LiveKit / mediasoup bindings. May transition to informative in v1.1. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. See zh/crypto-media/bindings/cokret-native.md.",
       "depends_on": [
-        "cx.profile.media_service_binding.v1"
+        "ck.profile.media_service_binding.v1"
       ],
       "required_profiles": [
-        "cx.profile.media_service_binding.v1"
+        "ck.profile.media_service_binding.v1"
       ],
       "required_endpoints": [
-        "cx.call.media.token_exchange"
+        "ck.call.media.token_exchange"
       ],
       "required_event_kinds": [
-        "cx.realm.media_service",
-        "cx.call.state"
+        "ck.realm.media_service",
+        "ck.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1"
+        "ck.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1930,23 +1930,23 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "contrix_native_sfu_join_request"
+          "cokret_native_sfu_join_request"
         ],
-        "unsupported_optional": "production deployments SHOULD migrate to cx.profile.media_service_binding.livekit.v1"
+        "unsupported_optional": "production deployments SHOULD migrate to ck.profile.media_service_binding.livekit.v1"
       }
     },
-    "cx.profile.stateless_cursor.v1": {
+    "ck.profile.stateless_cursor.v1": {
       "role": "server",
       "description": "Opt-in extension for stateless self-describing cursors (canonical body contains s / d / target / issuer_kid plus _mac or _sig). v1 core cursor schema rejects this body shape; services that declare this profile MUST extend cursor.schema.json to accept the stateless body and implement the transcript-verification path. See sync/client-sync.md §12.1 and conformance/conformance-profiles.md §19c.",
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.events.subscribe",
-        "cx.account.subscribe"
+        "ck.server.describe",
+        "ck.events.subscribe",
+        "ck.account.subscribe"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.cursor.v1"
+        "ck.schema.cursor.v1"
       ],
       "required_fixtures": [
         "schema-validation-fixture.json"
@@ -1968,22 +1968,22 @@
         "fixture_must": "schema-validation-fixture.json cursor_stateless_body_rejected_by_core_schema documents the core-schema fail-closed; profile-declaring services MUST provide additional fixtures showing successful transcript verification under the profile's schema overlay."
       }
     },
-    "cx.profile.sovereign_client.v1": {
+    "ck.profile.sovereign_client.v1": {
       "inherits": [
-        "cx.profile.full_client.v1"
+        "ck.profile.full_client.v1"
       ],
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.identity.resolve"
+        "ck.server.describe",
+        "ck.identity.resolve"
       ],
       "required_event_kinds": [
-        "cx.sovereign.did_policy",
-        "cx.realm.policy"
+        "ck.sovereign.did_policy",
+        "ck.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.policy.v1",
-        "cx.schema.identity_receipt.v1"
+        "ck.schema.policy.v1",
+        "ck.schema.identity_receipt.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -2001,25 +2001,25 @@
         "unsupported_optional": "mark remote Realm unavailable"
       }
     },
-    "cx.profile.personal_node.v1": {
+    "ck.profile.personal_node.v1": {
       "inherits": [
-        "cx.profile.principal_server_events_api.v1"
+        "ck.profile.principal_server_events_api.v1"
       ],
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.events.submit",
-        "cx.account.subscribe"
+        "ck.server.describe",
+        "ck.events.submit",
+        "ck.account.subscribe"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state",
-        "cx.account_data.set"
+        "ck.realm.create",
+        "ck.member.state",
+        "ck.account_data.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.account_subscribe_frame.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.account_subscribe_frame.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -2047,29 +2047,29 @@
         "downgrade_note": "Personal node MAY use did:web as principal method when explicitly declared. Upgrade to small_team or higher MUST migrate to did:webvh per identity-did.md §4.2.2."
       }
     },
-    "cx.profile.small_team.v1": {
+    "ck.profile.small_team.v1": {
       "inherits": [
-        "cx.profile.principal_server.v1",
-        "cx.profile.chat_mvp.v1",
-        "cx.profile.kanban_mvp.v1"
+        "ck.profile.principal_server.v1",
+        "ck.profile.chat_mvp.v1",
+        "ck.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.events.submit",
-        "cx.account.subscribe"
+        "ck.server.describe",
+        "ck.events.submit",
+        "ck.account.subscribe"
       ],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state",
-        "cx.flow.create",
-        "cx.message.create"
+        "ck.realm.create",
+        "ck.member.state",
+        "ck.flow.create",
+        "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.realm.v1",
-        "cx.schema.space.v1",
-        "cx.schema.flow.v1",
-        "cx.schema.message.v1"
+        "ck.schema.realm.v1",
+        "ck.schema.space.v1",
+        "ck.schema.flow.v1",
+        "ck.schema.message.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json",
@@ -2096,27 +2096,27 @@
         "principal_method_downgrade_allowed": false
       }
     },
-    "cx.profile.organization.v1": {
+    "ck.profile.organization.v1": {
       "inherits": [
-        "cx.profile.principal_server.v1",
-        "cx.profile.identity_registry.v1"
+        "ck.profile.principal_server.v1",
+        "ck.profile.identity_registry.v1"
       ],
       "required_endpoints": [
-        "cx.directory.resolve_organization",
-        "cx.authz.get_effective_grants",
-        "cx.admin.get_server_status"
+        "ck.directory.resolve_organization",
+        "ck.authz.get_effective_grants",
+        "ck.admin.get_server_status"
       ],
       "required_event_kinds": [
-        "cx.organization.discovery",
-        "cx.organization.moderation_policy",
-        "cx.policy.set",
-        "cx.account.status"
+        "ck.organization.discovery",
+        "ck.organization.moderation_policy",
+        "ck.policy.set",
+        "ck.account.status"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.policy.v1",
-        "cx.schema.handle_claim.v1",
-        "cx.schema.moderation_report.v1"
+        "ck.schema.policy.v1",
+        "ck.schema.handle_claim.v1",
+        "ck.schema.moderation_report.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -2143,28 +2143,28 @@
         "witness_threshold_minimum": 1
       }
     },
-    "cx.profile.high_security_organization.v1": {
+    "ck.profile.high_security_organization.v1": {
       "inherits": [
-        "cx.profile.organization.v1",
-        "cx.profile.e2ee_client.v1",
-        "cx.profile.mls_governance_binding.full.v1"
+        "ck.profile.organization.v1",
+        "ck.profile.e2ee_client.v1",
+        "ck.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
-        "cx.snapshot.head",
-        "cx.keys.keypackages.revoke",
-        "cx.admin.revoke_device"
+        "ck.snapshot.head",
+        "ck.keys.keypackages.revoke",
+        "ck.admin.revoke_device"
       ],
       "required_event_kinds": [
-        "cx.device.revoke",
-        "cx.mls.commit",
-        "cx.realm_key.withheld",
-        "cx.realm.moderation_policy"
+        "ck.device.revoke",
+        "ck.mls.commit",
+        "ck.realm_key.withheld",
+        "ck.realm.moderation_policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.snapshot.v1",
-        "cx.schema.encrypted_envelope.v1",
-        "cx.schema.moderation_queue_item.v1"
+        "ck.schema.snapshot.v1",
+        "ck.schema.encrypted_envelope.v1",
+        "ck.schema.moderation_queue_item.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -2194,26 +2194,26 @@
         "require_witness_evidence": true
       }
     },
-    "cx.profile.isolated_sovereign_network.v1": {
+    "ck.profile.isolated_sovereign_network.v1": {
       "inherits": [
-        "cx.profile.sovereign_deployment.v1",
-        "cx.profile.high_security_organization.v1"
+        "ck.profile.sovereign_deployment.v1",
+        "ck.profile.high_security_organization.v1"
       ],
       "required_endpoints": [
-        "cx.server.describe",
-        "cx.identity.resolve"
+        "ck.server.describe",
+        "ck.identity.resolve"
       ],
       "required_event_kinds": [
-        "cx.sovereign.did_policy",
-        "cx.capability.grant",
-        "cx.capability.revoke",
-        "cx.realm.policy"
+        "ck.sovereign.did_policy",
+        "ck.capability.grant",
+        "ck.capability.revoke",
+        "ck.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.policy.v1",
-        "cx.schema.capability.v1",
-        "cx.schema.snapshot.v1"
+        "ck.schema.policy.v1",
+        "ck.schema.capability.v1",
+        "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -2233,23 +2233,23 @@
         "unsupported_optional": "deny cross-boundary operation"
       }
     },
-    "cx.profile.mls_governance_binding.full.v1": {
+    "ck.profile.mls_governance_binding.full.v1": {
       "inherits": [],
       "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the cx_governance_binding GroupContext extension) and update three cells (mls_epoch, key_schedule, covered_frontier). E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier; governance / recovery Moves do not depend on it.",
       "required_endpoints": [
-        "cx.keys.keypackages.claim",
-        "cx.keys.keypackages.consume",
-        "cx.events.query"
+        "ck.keys.keypackages.claim",
+        "ck.keys.keypackages.consume",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.mls.commit",
-        "cx.realm_key.share",
-        "cx.realm_key.withheld"
+        "ck.mls.commit",
+        "ck.realm_key.share",
+        "ck.realm_key.withheld"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.encrypted_envelope.v1",
-        "cx.schema.snapshot.v1"
+        "ck.schema.encrypted_envelope.v1",
+        "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -2257,7 +2257,7 @@
       ],
       "optional_extensions": [
         "aad_visibility_policy",
-        "cx.profile.mls.minimal_metadata_realm.v1"
+        "ck.profile.mls.minimal_metadata_realm.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -2268,29 +2268,29 @@
         "unsupported_optional": "fail closed on root mismatch"
       },
       "required_cells": [
-        "ck:cell:cx.component.covered_frontier.v1:<realm_id>",
-        "ck:cell:cx.component.mls_epoch.v1:<mls_group_id>",
-        "ck:cell:cx.component.key_schedule.v1:<mls_group_id>"
+        "ck:cell:ck.component.covered_frontier.v1:<realm_id>",
+        "ck:cell:ck.component.mls_epoch.v1:<mls_group_id>",
+        "ck:cell:ck.component.key_schedule.v1:<mls_group_id>"
       ]
     },
-    "cx.profile.mls.minimal_metadata_realm.v1": {
+    "ck.profile.mls.minimal_metadata_realm.v1": {
       "inherits": [
-        "cx.profile.e2ee_client.v1"
+        "ck.profile.e2ee_client.v1"
       ],
       "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.events.query"
+        "ck.events.submit",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.mls.commit",
-        "cx.message.create"
+        "ck.mls.commit",
+        "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.encrypted_envelope.v1",
-        "cx.schema.identity_link.v1"
+        "ck.schema.event.v1",
+        "ck.schema.encrypted_envelope.v1",
+        "ck.schema.identity_link.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -2308,21 +2308,21 @@
         "unsupported_optional": "fail closed before joining minimal-metadata encrypted Realm"
       }
     },
-    "cx.profile.accountable_principals.strict_reject.v1": {
+    "ck.profile.accountable_principals.strict_reject.v1": {
       "role": "admin",
-      "description": "Deployment hardening profile for Actor Profile accountability. When declared, any Actor Profile create/update that contains an accountable_principal_ids[] entry without an active cx.identity.accountability_grant MUST reject the whole Event with failed_precondition/accountability_grant_missing instead of stripping the unverifiable entry.",
+      "description": "Deployment hardening profile for Actor Profile accountability. When declared, any Actor Profile create/update that contains an accountable_principal_ids[] entry without an active ck.identity.accountability_grant MUST reject the whole Event with failed_precondition/accountability_grant_missing instead of stripping the unverifiable entry.",
       "required_endpoints": [
-        "cx.events.submit"
+        "ck.events.submit"
       ],
       "required_event_kinds": [
-        "cx.profile.create",
-        "cx.profile.update",
-        "cx.identity.accountability_grant"
+        "ck.profile.create",
+        "ck.profile.update",
+        "ck.identity.accountability_grant"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.actor_profile.v1",
-        "cx.schema.event.v1"
+        "ck.schema.actor_profile.v1",
+        "ck.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2335,25 +2335,25 @@
         "unsupported_optional": "default to strip + audit log behavior from models/actor.md §3.3.1"
       }
     },
-    "cx.profile.attested_audit.e2ee.v1": {
+    "ck.profile.attested_audit.e2ee.v1": {
       "inherits": [
-        "cx.profile.e2ee_client.v1"
+        "ck.profile.e2ee_client.v1"
       ],
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.account.subscribe"
+        "ck.events.submit",
+        "ck.account.subscribe"
       ],
       "required_event_kinds": [
-        "cx.audit.accessed",
-        "cx.audit.ryw_receipt",
-        "cx.mls.commit"
+        "ck.audit.accessed",
+        "ck.audit.ryw_receipt",
+        "ck.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.encrypted_envelope.v1",
-        "cx.schema.audit_ryw_receipt.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.encrypted_envelope.v1",
+        "ck.schema.audit_ryw_receipt.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -2370,25 +2370,25 @@
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
-    "cx.profile.disclosed_audit.e2ee.v1": {
+    "ck.profile.disclosed_audit.e2ee.v1": {
       "inherits": [
-        "cx.profile.e2ee_client.v1"
+        "ck.profile.e2ee_client.v1"
       ],
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.account.subscribe"
+        "ck.events.submit",
+        "ck.account.subscribe"
       ],
       "required_event_kinds": [
-        "cx.audit.accessed",
-        "cx.audit.ryw_receipt",
-        "cx.mls.commit"
+        "ck.audit.accessed",
+        "ck.audit.ryw_receipt",
+        "ck.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.encrypted_envelope.v1",
-        "cx.schema.audit_ryw_receipt.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.encrypted_envelope.v1",
+        "ck.schema.audit_ryw_receipt.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2405,20 +2405,20 @@
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
-    "cx.profile.capability_vectors.v1": {
+    "ck.profile.capability_vectors.v1": {
       "required_endpoints": [
-        "cx.authz.check"
+        "ck.authz.check"
       ],
       "required_event_kinds": [
-        "cx.capability.grant",
-        "cx.capability.revoke",
-        "cx.member.state"
+        "ck.capability.grant",
+        "ck.capability.revoke",
+        "ck.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.capability.v1",
-        "cx.schema.grant_constraint.v1",
-        "cx.schema.resource_selector.v1"
+        "ck.schema.capability.v1",
+        "ck.schema.grant_constraint.v1",
+        "ck.schema.resource_selector.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json"
@@ -2431,15 +2431,15 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.crypto_signature_vectors.v1": {
+    "ck.profile.crypto_signature_vectors.v1": {
       "required_endpoints": [],
       "required_event_kinds": [
-        "cx.message.create"
+        "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json"
@@ -2452,17 +2452,17 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.encoding_vectors.v1": {
+    "ck.profile.encoding_vectors.v1": {
       "required_endpoints": [],
       "required_event_kinds": [
-        "cx.message.create"
+        "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.cursor.v1",
-        "cx.schema.event_batch_receipt.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.cursor.v1",
+        "ck.schema.event_batch_receipt.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json"
@@ -2477,23 +2477,23 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.event_envelope_negative_vectors.v1": {
+    "ck.profile.event_envelope_negative_vectors.v1": {
       "required_endpoints": [
-        "cx.events.submit"
+        "ck.events.submit"
       ],
       "required_event_kinds": [
-        "cx.message.create",
-        "cx.read_cursor.advance",
-        "cx.typing"
+        "ck.message.create",
+        "ck.read_cursor.advance",
+        "ck.typing"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event",
         "wire_scope:ephemeral_event"
       ],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json"
@@ -2512,9 +2512,9 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.discovery_vectors.v1": {
+    "ck.profile.discovery_vectors.v1": {
       "required_endpoints": [
-        "cx.server.describe"
+        "ck.server.describe"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2536,7 +2536,7 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.event_kind_lattice_dispatch_vectors.v1": {
+    "ck.profile.event_kind_lattice_dispatch_vectors.v1": {
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2556,15 +2556,15 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.event_kind_payload_coverage_vectors.v1": {
+    "ck.profile.event_kind_payload_coverage_vectors.v1": {
       "required_endpoints": [
-        "cx.events.submit"
+        "ck.events.submit"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
       ],
       "required_fixtures": [],
       "required_cotest_suites": [
@@ -2581,7 +2581,7 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.operation_registry_coverage_vectors.v1": {
+    "ck.profile.operation_registry_coverage_vectors.v1": {
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2601,7 +2601,7 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.error_code_registry_coverage_vectors.v1": {
+    "ck.profile.error_code_registry_coverage_vectors.v1": {
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2621,16 +2621,16 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.federation_vectors.v1": {
+    "ck.profile.federation_vectors.v1": {
       "required_endpoints": [],
       "required_event_kinds": [
-        "cx.realm.create",
-        "cx.member.state"
+        "ck.realm.create",
+        "ck.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json"
@@ -2643,21 +2643,21 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.privacy_security_vectors.v1": {
+    "ck.profile.privacy_security_vectors.v1": {
       "required_endpoints": [
-        "cx.directory.resolve_realm",
-        "cx.directory.private_contact_discovery",
-        "cx.events.submit",
-        "cx.blob.head",
-        "cx.push.notify"
+        "ck.directory.resolve_realm",
+        "ck.directory.private_contact_discovery",
+        "ck.events.submit",
+        "ck.blob.head",
+        "ck.push.notify"
       ],
       "required_event_kinds": [
-        "cx.message.create"
+        "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.notification.v1",
-        "cx.schema.blob.v1"
+        "ck.schema.notification.v1",
+        "ck.schema.blob.v1"
       ],
       "required_fixtures": [
         "membership-delivery-binding-fixture.json",
@@ -2671,28 +2671,28 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.reaction_vectors.v1": {
+    "ck.profile.reaction_vectors.v1": {
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.events.query"
+        "ck.events.submit",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.message.create",
-        "cx.message.redact",
-        "cx.reaction.add",
-        "cx.reaction.remove",
-        "cx.capability.revoke"
+        "ck.message.create",
+        "ck.message.redact",
+        "ck.reaction.add",
+        "ck.reaction.remove",
+        "ck.capability.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "reaction-fixture.json"
       ],
       "optional_extensions": [
-        "cx.profile.e2ee_client.v1"
+        "ck.profile.e2ee_client.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -2701,21 +2701,21 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.redaction_vectors.v1": {
+    "ck.profile.redaction_vectors.v1": {
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.events.query"
+        "ck.events.submit",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.message.create",
-        "cx.message.redact",
-        "cx.redaction"
+        "ck.message.create",
+        "ck.message.redact",
+        "ck.redaction"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1",
-        "cx.schema.anchor.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.anchor.v1"
       ],
       "required_fixtures": [
         "redaction-fixture.json"
@@ -2728,21 +2728,21 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.sync_vectors.v1": {
+    "ck.profile.sync_vectors.v1": {
       "required_endpoints": [
-        "cx.account.subscribe",
-        "cx.events.query",
-        "cx.snapshot.head"
+        "ck.account.subscribe",
+        "ck.events.query",
+        "ck.snapshot.head"
       ],
       "required_event_kinds": [
-        "cx.message.create",
-        "cx.member.state"
+        "ck.message.create",
+        "ck.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.account_subscribe_frame.v1",
-        "cx.schema.cursor.v1",
-        "cx.schema.snapshot.v1"
+        "ck.schema.account_subscribe_frame.v1",
+        "ck.schema.cursor.v1",
+        "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json"
@@ -2755,19 +2755,19 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.mimi_interop_vectors.v1": {
+    "ck.profile.mimi_interop_vectors.v1": {
       "required_endpoints": [
-        "cx.mimi.provider_directory",
-        "cx.mimi.room_update",
-        "cx.mimi.submit_message"
+        "ck.mimi.provider_directory",
+        "ck.mimi.room_update",
+        "ck.mimi.submit_message"
       ],
       "required_event_kinds": [
-        "cx.mimi.room_binding",
-        "cx.mls.keypackage"
+        "ck.mimi.room_binding",
+        "ck.mls.keypackage"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.mimi_interop.v1"
+        "ck.schema.mimi_interop.v1"
       ],
       "required_fixtures": [
         "mimi-interop-fixture.json"
@@ -2780,21 +2780,21 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.move_anchor_lattice_vectors.v1": {
+    "ck.profile.move_anchor_lattice_vectors.v1": {
       "required_endpoints": [
-        "cx.events.submit"
+        "ck.events.submit"
       ],
       "required_event_kinds": [
-        "cx.member.state",
-        "cx.flow.move",
-        "cx.flow.reorder",
-        "cx.policy.set"
+        "ck.member.state",
+        "ck.flow.move",
+        "ck.flow.reorder",
+        "ck.policy.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.anchor.v1",
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "ck.schema.anchor.v1",
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "move-anchor-lattice-fixture.json"
@@ -2807,18 +2807,18 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.anchor.single_did.v1": {
+    "ck.profile.anchor.single_did.v1": {
       "inherits": [],
       "description": "Anchor profile using one DID/service key as anchorer.",
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.snapshot.head"
+        "ck.events.submit",
+        "ck.snapshot.head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.anchor.v1",
-        "cx.schema.snapshot.v1"
+        "ck.schema.anchor.v1",
+        "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "move-anchor-lattice-fixture.json"
@@ -2832,18 +2832,18 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "cx.profile.anchor.threshold.v1": {
+    "ck.profile.anchor.threshold.v1": {
       "inherits": [],
       "description": "Anchor profile using k-of-n threshold signatures.",
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.snapshot.head"
+        "ck.events.submit",
+        "ck.snapshot.head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.anchor.v1",
-        "cx.schema.snapshot.v1"
+        "ck.schema.anchor.v1",
+        "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "move-anchor-lattice-fixture.json"
@@ -2857,18 +2857,18 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "cx.profile.anchor.open_set.v1": {
+    "ck.profile.anchor.open_set.v1": {
       "inherits": [],
       "description": "Anchor profile allowing multiple leaf anchors and deterministic anchor view joins.",
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.snapshot.head"
+        "ck.events.submit",
+        "ck.snapshot.head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.anchor.v1",
-        "cx.schema.snapshot.v1"
+        "ck.schema.anchor.v1",
+        "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "move-anchor-lattice-fixture.json"
@@ -2882,18 +2882,18 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "cx.profile.anchor.mixed_recovery.v1": {
+    "ck.profile.anchor.mixed_recovery.v1": {
       "inherits": [],
       "description": "Anchor profile with primary anchorer and fallback recovery anchorer.",
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.snapshot.head"
+        "ck.events.submit",
+        "ck.snapshot.head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.anchor.v1",
-        "cx.schema.snapshot.v1"
+        "ck.schema.anchor.v1",
+        "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "move-anchor-lattice-fixture.json"
@@ -2907,14 +2907,14 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "cx.profile.collaborative_text.v1": {
+    "ck.profile.collaborative_text.v1": {
       "inherits": [],
       "description": "Lattice extension profile that registers lww_register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww_register and rga MUST NOT be used for authorization_root / policy_root / anchorer_root / membership / lifecycle cells (statically rejected by realm.schema.json).",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.realm.v1"
+        "ck.schema.realm.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [],
@@ -2926,21 +2926,21 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "cx.profile.matrix_compat.v1": {
+    "ck.profile.matrix_compat.v1": {
       "inherits": [],
-      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Account-aggregate sync is NOT covered: Cokret v1 chose a streaming push form (cx.account.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the cx.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
+      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Account-aggregate sync is NOT covered: Cokret v1 chose a streaming push form (ck.account.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ck.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "required_endpoints": [
-        "cx.device_messages.put",
-        "cx.device_messages.get",
-        "cx.keys.upload",
-        "cx.keys.query",
-        "cx.keys.claim",
-        "cx.push.notify"
+        "ck.device_messages.put",
+        "ck.device_messages.get",
+        "ck.keys.upload",
+        "ck.keys.query",
+        "ck.keys.claim",
+        "ck.push.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.device_message.v1"
+        "ck.schema.device_message.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [
@@ -2955,11 +2955,11 @@
         "unsupported_optional": "omit profile claim"
       }
     },
-    "cx.profile.candidate.join_policy.v1": {
+    "ck.profile.candidate.join_policy.v1": {
       "inherits": [],
       "tier": "candidate",
       "status": "candidate",
-      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `cx.realm.join.review`. These bare names are not v1 wire Event.kind values. The action remains in the canonical capability registry so prose can reference it stably, but receivers that do not implement this profile MUST treat `cx.realm.join.review` as unknown (capability-action-registry.json registry_rules: 'Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)'). Claiming the profile commits the implementation to the candidate join-policy workflow surface defined in zh/governance/join-policy.md. This profile is not part of v1 active conformance; it will be promoted with registered `cx.*` Event.kind values when join-policy is formally registered.",
+      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `ck.realm.join.review`. These bare names are not v1 wire Event.kind values. The action remains in the canonical capability registry so prose can reference it stably, but receivers that do not implement this profile MUST treat `ck.realm.join.review` as unknown (capability-action-registry.json registry_rules: 'Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)'). Claiming the profile commits the implementation to the candidate join-policy workflow surface defined in zh/governance/join-policy.md. This profile is not part of v1 active conformance; it will be promoted with registered `ck.*` Event.kind values when join-policy is formally registered.",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2967,7 +2967,7 @@
       "required_fixtures": [],
       "optional_extensions": [],
       "required_capability_actions": [
-        "cx.realm.join.review"
+        "ck.realm.join.review"
       ],
       "feature_discovery": {
         "required": [
@@ -2977,22 +2977,22 @@
         "unsupported_optional": "omit profile claim (and reject member.application.* events as unknown)"
       }
     },
-    "cx.profile.key_backup.memory_hard.v1": {
+    "ck.profile.key_backup.memory_hard.v1": {
       "inherits": [],
       "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_seq / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
       "required_endpoints": [
-        "cx.keys.backups.put",
-        "cx.keys.backups.list",
-        "cx.keys.backups.get",
-        "cx.keys.backups.delete"
+        "ck.keys.backups.put",
+        "ck.keys.backups.list",
+        "ck.keys.backups.get",
+        "ck.keys.backups.delete"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.key_backup.v1",
-        "cx.schema.recovery_policy.v1",
-        "cx.schema.recovery_session.v1",
-        "cx.schema.recovery_receipt.v1"
+        "ck.schema.key_backup.v1",
+        "ck.schema.recovery_policy.v1",
+        "ck.schema.recovery_session.v1",
+        "ck.schema.recovery_receipt.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -3016,20 +3016,20 @@
         "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"
       }
     },
-    "cx.profile.circle_anchor_cadence.fixed_5m.v1": {
+    "ck.profile.circle_anchor_cadence.fixed_5m.v1": {
       "inherits": [],
-      "description": "Named cadence profile for confidential Circle sub-anchor commitments. Implementations claiming this profile MUST emit cx.circle.anchor_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-anchor upload, but MUST NOT relax the public Realm anchor cadence.",
+      "description": "Named cadence profile for confidential Circle sub-anchor commitments. Implementations claiming this profile MUST emit ck.circle.anchor_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-anchor upload, but MUST NOT relax the public Realm anchor cadence.",
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.events.subscribe"
+        "ck.events.submit",
+        "ck.events.subscribe"
       ],
       "required_event_kinds": [
-        "cx.circle.anchor_commit"
+        "ck.circle.anchor_commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "circle-scope-fixture.json"
@@ -3062,18 +3062,18 @@
         "unsupported_optional": "omit profile claim; confidential Circle deployments MUST NOT claim an event-count cadence as equivalent"
       }
     },
-    "cx.profile.cross_signing.reset.v1": {
+    "ck.profile.cross_signing.reset.v1": {
       "inherits": [],
-      "description": "Hardening profile for high-risk cross-signing reset. Claimants MUST accept cx.cross_signing.reset only with one valid reset proof family, enforce generation monotonicity, clock skew, and replay rejection, and require a successor cx.cross_signing.publish within the recovery window. Verification rules and reason codes are normative in zh/crypto-media/device-lifecycle.md §14.4.",
+      "description": "Hardening profile for high-risk cross-signing reset. Claimants MUST accept ck.cross_signing.reset only with one valid reset proof family, enforce generation monotonicity, clock skew, and replay rejection, and require a successor ck.cross_signing.publish within the recovery window. Verification rules and reason codes are normative in zh/crypto-media/device-lifecycle.md §14.4.",
       "required_endpoints": [],
       "required_event_kinds": [
-        "cx.cross_signing.reset",
-        "cx.cross_signing.publish"
+        "ck.cross_signing.reset",
+        "ck.cross_signing.publish"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.cross_signing_reset.v1",
-        "cx.schema.cross_signing_publish.v1"
+        "ck.schema.cross_signing_reset.v1",
+        "ck.schema.cross_signing_publish.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [],
@@ -3082,13 +3082,13 @@
           "default": 300,
           "min": 60,
           "max": 900,
-          "rationale": "Maximum allowed deviation between `cx.cross_signing.reset.issued_at` and receiver local clock. Default 300s mirrors policy-decision freshness windows; receivers MAY tighten down to 60s for high-assurance deployments or relax up to 900s for federated peers with documented clock skew. Beyond the configured value receivers MUST emit cross_signing_reset_clock_skew_exceeded."
+          "rationale": "Maximum allowed deviation between `ck.cross_signing.reset.issued_at` and receiver local clock. Default 300s mirrors policy-decision freshness windows; receivers MAY tighten down to 60s for high-assurance deployments or relax up to 900s for federated peers with documented clock skew. Beyond the configured value receivers MUST emit cross_signing_reset_clock_skew_exceeded."
         },
         "publish_recovery_window_seconds": {
           "default": 86400,
           "min": 3600,
           "max": 172800,
-          "rationale": "Maximum interval after an accepted reset within which the successor cx.cross_signing.publish MUST be observed; receivers MUST otherwise enter the 'no usable SSK/USK' state from §14.2 step 5. Default 24h matches the §14.1 normative requirement."
+          "rationale": "Maximum interval after an accepted reset within which the successor ck.cross_signing.publish MUST be observed; receivers MUST otherwise enter the 'no usable SSK/USK' state from §14.2 step 5. Default 24h matches the §14.1 normative requirement."
         },
         "reset_replay_cache_min_retention_seconds": {
           "default": 90000,
@@ -3107,36 +3107,36 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "cx.profile.circle_conformance.v1": {
+    "ck.profile.circle_conformance.v1": {
       "role": "interop",
       "inherits": [],
       "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Flow / Message / Morph / Relation / Space objects.",
       "required_endpoints": [
-        "cx.events.submit",
-        "cx.events.query"
+        "ck.events.submit",
+        "ck.events.query"
       ],
       "required_event_kinds": [
-        "cx.circle.create",
-        "cx.circle.update",
-        "cx.circle.archive",
-        "cx.circle.restore",
-        "cx.circle.tombstone",
-        "cx.circle.member.state",
-        "cx.circle.anchor_commit"
+        "ck.circle.create",
+        "ck.circle.update",
+        "ck.circle.archive",
+        "ck.circle.restore",
+        "ck.circle.tombstone",
+        "ck.circle.member.state",
+        "ck.circle.anchor_commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.circle.v1",
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "ck.schema.circle.v1",
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
       ],
       "required_capability_actions": [
-        "cx.circle.create",
-        "cx.circle.manage",
-        "cx.circle.member.add",
-        "cx.circle.member.manage",
-        "cx.circle.member.add.others",
-        "cx.circle.audit"
+        "ck.circle.create",
+        "ck.circle.manage",
+        "ck.circle.member.add",
+        "ck.circle.member.manage",
+        "ck.circle.member.add.others",
+        "ck.circle.audit"
       ],
       "required_fixtures": [
         "circle-scope-fixture.json",
@@ -3154,22 +3154,22 @@
           "circle_scope_rebind_default_reject",
           "circle_member_state_transition_table"
         ],
-        "unsupported_optional": "implementations that cannot enforce canonical reducer-stamped effective_scope MUST NOT claim cx.profile.circle_conformance.v1; receivers MUST treat any unknown Circle event-kind as schema_violation"
+        "unsupported_optional": "implementations that cannot enforce canonical reducer-stamped effective_scope MUST NOT claim ck.profile.circle_conformance.v1; receivers MUST treat any unknown Circle event-kind as schema_violation"
       },
       "additional_requirements": {
-        "submit_payload_must": "Submit payload for cx.flow.create / cx.message.create / cx.morph.create / cx.relation.create / cx.space.create / cx.space.parent MUST carry only scope_circle_id (id:circle | null). Reducer MUST reject any submit payload that also carries effective_scope (reason=effective_scope_reducer_managed).",
+        "submit_payload_must": "Submit payload for ck.flow.create / ck.message.create / ck.morph.create / ck.relation.create / ck.space.create / ck.space.parent MUST carry only scope_circle_id (id:circle | null). Reducer MUST reject any submit payload that also carries effective_scope (reason=effective_scope_reducer_managed).",
         "canonical_reducer_output_must": "Reducer MUST stamp tagged effective_scope on accepted Event envelope and materialized object cell. effective_scope is immutable per-event; later scope_circle_id rebinds MUST NOT re-interpret historical events.",
-        "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit cx.audit.accessed pairing.",
+        "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit ck.audit.accessed pairing.",
         "circle_encryption_profile_floor_must": "Circle.encryption_profile may be none or mls_rfc9420. Reducer MUST reject plaintext Circle creation or update when the parent Realm encryption_profile is mls_rfc9420 or the effective content_encryption_floor is e2ee_required (reason=circle_encryption_below_realm_floor).",
-        "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject cx.circle.member.state -> active when the target actor is not a Realm active member (reason=circle_member_must_be_realm_member).",
+        "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ck.circle.member.state -> active when the target actor is not a Realm active member (reason=circle_member_must_be_realm_member).",
         "scope_invariant_must": "Sync Service MUST NOT deliver events with effective_scope.kind=circle to actors not in that Circle's member frontier at the event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }
     }
   },
   "anchor_profiles": [
-    "cx.profile.anchor.single_did.v1",
-    "cx.profile.anchor.threshold.v1",
-    "cx.profile.anchor.open_set.v1",
-    "cx.profile.anchor.mixed_recovery.v1"
+    "ck.profile.anchor.single_did.v1",
+    "ck.profile.anchor.threshold.v1",
+    "ck.profile.anchor.open_set.v1",
+    "ck.profile.anchor.mixed_recovery.v1"
   ]
 }

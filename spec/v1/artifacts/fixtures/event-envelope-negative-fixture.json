@@ -1,6 +1,6 @@
 {
   "suite": "event_envelope_negative",
-  "profile": "cx.profile.core_event_store.v1",
+  "profile": "ck.profile.core_event_store.v1",
   "version": "2026-05-02",
   "cases": [
     {
@@ -19,7 +19,7 @@
           "payload": {
             "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "cx.content.text",
+              "kind": "ck.content.text",
               "body": "hello"
             }
           },
@@ -29,7 +29,7 @@
       "expected": {
         "decision": "reject",
         "error_code": "schema_violation",
-        "reason": "Event.kind MUST use registered cx.* spelling"
+        "reason": "Event.kind MUST use registered ck.* spelling"
       }
     },
     {
@@ -37,7 +37,7 @@
       "input": {
         "event": {
           "event_id": "ck:event:019a6ab0-0000-7000-8000-000000000000",
-          "kind": "cx.message.create",
+          "kind": "ck.message.create",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 2,
@@ -56,7 +56,7 @@
           "payload": {
             "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "cx.content.text",
+              "kind": "ck.content.text",
               "body": "hello"
             }
           },
@@ -64,7 +64,7 @@
           "requirements": {
             "critical_extensions": [
               {
-                "id": "cx.feature.future_required.v1",
+                "id": "ck.feature.future_required.v1",
                 "extension_scope": "reducer",
                 "fail_closed": true
               }
@@ -72,7 +72,7 @@
           }
         },
         "supported_features": [
-          "cx.feature.detached_jws.v1"
+          "ck.feature.detached_jws.v1"
         ]
       },
       "expected": {
@@ -86,7 +86,7 @@
       "input": {
         "event": {
           "event_id": "ck:event:019a6ac0-0000-7000-8000-000000000000",
-          "kind": "cx.message.create",
+          "kind": "ck.message.create",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 3,
@@ -105,7 +105,7 @@
           "payload": {
             "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "cx.content.text",
+              "kind": "ck.content.text",
               "body": "tampered"
             }
           },
@@ -138,7 +138,7 @@
         },
         "event": {
           "event_id": "ck:event:019a6ad0-0000-7000-8000-000000000000",
-          "kind": "cx.message.create",
+          "kind": "ck.message.create",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 9,
@@ -157,7 +157,7 @@
           "payload": {
             "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "cx.content.text",
+              "kind": "ck.content.text",
               "body": "rollback"
             }
           },
@@ -175,7 +175,7 @@
       "input": {
         "event": {
           "event_id": "ck:event:019a6ae0-0000-7000-8000-000000000000",
-          "kind": "cx.message.create",
+          "kind": "ck.message.create",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 11,
@@ -322,7 +322,7 @@
           "payload": {
             "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "cx.content.text",
+              "kind": "ck.content.text",
               "body": "too many prev refs"
             }
           },
@@ -340,7 +340,7 @@
       "input": {
         "event": {
           "event_id": "ck:event:019a6b00-0000-7000-8000-000000000000",
-          "kind": "cx.message.create",
+          "kind": "ck.message.create",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 12,
@@ -352,7 +352,7 @@
           "payload": {
             "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "cx.content.text",
+              "kind": "ck.content.text",
               "body": "missing auth refs"
             }
           },
@@ -370,7 +370,7 @@
       "input": {
         "event": {
           "event_id": "ck:event:019a6bd0-0000-7000-8000-000000000000",
-          "kind": "cx.message.create",
+          "kind": "ck.message.create",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 13,
@@ -389,7 +389,7 @@
           "payload": {
             "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "cx.content.text",
+              "kind": "ck.content.text",
               "body": "self ref"
             }
           },
@@ -426,7 +426,7 @@
         "wire_scope": "durable_history",
         "event": {
           "event_id": "ck:event:019a6b30-0000-7000-8000-000000000000",
-          "kind": "cx.read_cursor.advance",
+          "kind": "ck.read_cursor.advance",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 14,
@@ -460,7 +460,7 @@
         "wire_scope": "durable_history",
         "event": {
           "event_id": "ck:event:019a6b40-0000-7000-8000-000000000000",
-          "kind": "cx.typing",
+          "kind": "ck.typing",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 15,

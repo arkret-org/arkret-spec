@@ -27,7 +27,7 @@ updated: 2026-05-25
 ```json
 {
   "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
-  "schema": "cx.schema.actor_profile.v1",
+  "schema": "ck.schema.actor_profile.v1",
   "principal_id": "did:web:alice.example.com",
   "actor_kind": "user",
   "display_name": "Alice Chen",
@@ -51,7 +51,7 @@ updated: 2026-05-25
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `id` | id:actor_profile | MUST | Profile 对象 ID。 |
-| `schema` | string | MUST | `cx.schema.actor_profile.v1`。 |
+| `schema` | string | MUST | `ck.schema.actor_profile.v1`。 |
 | `principal_id` | did | MUST | Actor / Principal DID。 |
 | `actor_kind` | enum | MUST | `user`、`org`、`team`、`agent`、`service`、`device` 或 `integration`。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
@@ -66,12 +66,12 @@ updated: 2026-05-25
 
 ### 2.3 Profile 创建与更新
 
-Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到 actor 的 principal control Realm。Move 写入以 `payload.object.id` 为 subject 的 profile cell。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
+Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到 actor 的 principal control Realm。Move 写入以 `payload.object.id` 为 subject 的 profile cell。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
 
 ```json
 {
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "kind": "cx.profile.create",
+  "kind": "ck.profile.create",
   "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 1,
@@ -82,7 +82,7 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
   "payload": {
     "object": {
       "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
-      "schema": "cx.schema.actor_profile.v1",
+      "schema": "ck.schema.actor_profile.v1",
       "principal_id": "did:web:alice.example.com",
       "actor_kind": "user",
       "display_name": "Alice Chen",
@@ -109,12 +109,12 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
 }
 ```
 
-Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。该 payload 使用 `object_patch_payload`；Move 使用 `payload.target_ref` 与 `cx.profile.create` 共用同一 profile cell。变更字段放在 `payload.patch`，不得使用旧的顶层 `actor` / `body` 形态：
+Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。该 payload 使用 `object_patch_payload`；Move 使用 `payload.target_ref` 与 `ck.profile.create` 共用同一 profile cell。变更字段放在 `payload.patch`，不得使用旧的顶层 `actor` / `body` 形态：
 
 ```json
 {
   "event_id": "ck:event:019640ed-8400-7000-8000-000000000000",
-  "kind": "cx.profile.update",
+  "kind": "ck.profile.update",
   "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 2,
@@ -144,22 +144,22 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 }
 ```
 
-- `cx.profile.create` 初始化完整对象；`cx.profile.update` 仅携带发生变化的字段（delta 更新）
+- `ck.profile.create` 初始化完整对象；`ck.profile.update` 仅携带发生变化的字段（delta 更新）
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
-`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）。两 kind 共写入同一 cell `ck:cell:cx.component.profile.v1:<target_actor_profile_id>`（cas_register, bottom=reject），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
+`ck.profile.create` 与 `ck.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）。两 kind 共写入同一 cell `ck:cell:ck.component.profile.v1:<target_actor_profile_id>`（cas_register, bottom=reject），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
 
 ### 2.4 Per-Realm Profile 覆写
 
 用户 MAY 为特定 Realm 设置不同的显示名或头像（例如在公司 Realm 用真名，在开源项目 Realm 用昵称）：
 
-`cx.profile.space_override` 是保留的 wire kind 名称；其语义是 Realm-scoped profile override，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ck:space:` 容器，也不创建 Space 级访问边界。
+`ck.profile.space_override` 是保留的 wire kind 名称；其语义是 Realm-scoped profile override，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ck:space:` 容器，也不创建 Space 级访问边界。
 
 ```json
 {
   "event_id": "ck:event:019640ed-8800-7000-8000-000000000000",
-  "kind": "cx.profile.space_override",
+  "kind": "ck.profile.space_override",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 3,
@@ -194,7 +194,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 
 - Realm 覆写的优先级高于全局 Profile
 - `null` 值表示使用全局 Profile 的对应字段
-- `cx.profile.space_override` MUST 同时绑定 actor DID 与目标 Realm。若作为共享 Realm history 传播，顶层 `realm_id` 是目标 Realm，事件必须通过目标 Realm 的 membership / visibility / policy 校验；若作为 actor-private 或 principal control profile state 传播，content MUST 显式包含目标 Realm id，projection 服务只可向有权读取该 Realm profile override 的请求方披露。
+- `ck.profile.space_override` MUST 同时绑定 actor DID 与目标 Realm。若作为共享 Realm history 传播，顶层 `realm_id` 是目标 Realm，事件必须通过目标 Realm 的 membership / visibility / policy 校验；若作为 actor-private 或 principal control profile state 传播，content MUST 显式包含目标 Realm id，projection 服务只可向有权读取该 Realm profile override 的请求方披露。
 
 ## 3. 在线状态 (Presence)
 
@@ -217,7 +217,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "kind": "cx.presence",
+  "kind": "ck.presence",
   "actor_id": "did:web:alice.example.com",
   "state": "online",
   "status_message": "On vacation until May 5",
@@ -249,7 +249,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 | `contacts_only` | 仅对明确的联系人可见 |
 | `nobody` | 完全隐藏在线状态（对所有人显示为 offline） |
 
-当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `cx.presence`，Sync Service MUST NOT 转发既有或缓存的 `cx.presence`；接收方看到的结果必须与从未收到 presence 一致。
+当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `ck.presence`，Sync Service MUST NOT 转发既有或缓存的 `ck.presence`；接收方看到的结果必须与从未收到 presence 一致。
 
 ### 3.5 Typing 指示器
 
@@ -257,7 +257,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "kind": "cx.typing",
+  "kind": "ck.typing",
   "actor_id": "did:web:alice.example.com",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "flow_id": "ck:flow:01964200-0000-7000-8000-000000000001",
@@ -269,7 +269,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 - `ttl_ms` 到期后客户端应自动清除 Typing 指示
 - 客户端 SHOULD 限制 Typing 广播频率（建议每 3 秒最多一次）
 - 客户端 SHOULD 在用户停止输入后主动发送 `typing: false`
-- Typing 指示器 MUST 遵循与 Presence 至少同等严格的可见性策略：当 `presence_visibility="nobody"` 或接收方不在允许集合内时，不得发送或转发 `cx.typing`；`contacts_only` 时只可发给明确联系人且仍需满足 Realm membership / history visibility。
+- Typing 指示器 MUST 遵循与 Presence 至少同等严格的可见性策略：当 `presence_visibility="nobody"` 或接收方不在允许集合内时，不得发送或转发 `ck.typing`；`contacts_only` 时只可发给明确联系人且仍需满足 Realm membership / history visibility。
 - Sync Service 转发 typing 前 MUST 同时检查发送者与接收者在目标 Flow effective scope（Realm-default 或 Circle）的可见性、personal blocklist 过滤结果和 `discussion` track 状态。被屏蔽、无权读取 discussion、或不可枚举的接收方 MUST 看到与未发生 typing 一致的空结果，不得收到可区分的拒绝。
 
 ## 4. 用户目录 (User Directory)
@@ -278,10 +278,10 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 
 Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现。
 
-> **Normative 源（normative）**：`search-users` 的 operation 形态、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `cx.directory.search_users` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（`results[].membership`、autocomplete intent 等）。下表字段与 directory §9 冲突时以 directory §9 为准。
+> **Normative 源（normative）**：`search-users` 的 operation 形态、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `ck.directory.search_users` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（`results[].membership`、autocomplete intent 等）。下表字段与 directory §9 冲突时以 directory §9 为准。
 
 ```
-POST /api/v1/directory/search-users
+POST /_cokret/find/directory/search-users
 
 { "query": "alice", "realm_id": "ck:realm:...", "limit": 10 }
 ```
@@ -306,7 +306,7 @@ POST /api/v1/directory/search-users
 | `results[].display_name` | `string` | optional | 显示名。 |
 | `results[].avatar_blob_ref` | `id:blob` | optional | 头像 Blob 引用；字段名与 Actor Profile canonical 字段保持一致。 |
 | `results[].membership` | `string` | optional | 与 `realm_id` 相关的成员状态。 |
-| `next_cursor` | `cursor` | optional | 下一页 cursor；分页语义与 [`discovery-directory.md` §9](./discovery-directory.md) `cx.directory.search_*` 一致。 |
+| `next_cursor` | `cursor` | optional | 下一页 cursor；分页语义与 [`discovery-directory.md` §9](./discovery-directory.md) `ck.directory.search_*` 一致。 |
 | `has_more` | `boolean` | optional | 是否还有更多结果（取代旧 `limited` 字段，统一对齐 directory §9 的 `has_more` 约定）。 |
 
 响应示例（非完整 schema）：

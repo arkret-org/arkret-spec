@@ -20,4 +20,4 @@ jobs:
           -w /workspace
           lycheeverse/lychee:0.24.2
             --config lychee.toml
-            README.md CHANGELOG.md _contrix-spec_todos.md "spec/v1/**/*.md"
+            README.md CHANGELOG.md _cokret-spec_todos.md "spec/v1/**/*.md"

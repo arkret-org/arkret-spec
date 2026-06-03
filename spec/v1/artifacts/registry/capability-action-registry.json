@@ -3,7 +3,7 @@
   "source_of_truth": false,
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
-  "action_pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+  "action_pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "risk_tier_definitions": {
     "low": "Read, projection, discovery, ack, and account-private affordances. Freshness fail-closed treats unknown / stale as local-pending allowed (capabilities.md §18).",
     "medium": "Object create / update / delete, message authoring, invite issuance, MLS proposal, audit query. Freshness requires recent frontier within freshness_required_ms.",
@@ -14,13 +14,13 @@
     "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
     "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
     "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
-    "target_event_kinds links the action to one or more cx.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
-    "profile is null for v1 core actions, or a cx.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
+    "target_event_kinds links the action to one or more ck.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
+    "profile is null for v1 core actions, or a ck.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories. wire_compat_grandfather entries MUST declare grandfathered_since."
   ],
   "actions": [
     {
-      "action": "cx.realm.discover",
+      "action": "ck.realm.discover",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -29,130 +29,130 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.realm.create",
+      "action": "ck.realm.create",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.create"
+        "ck.realm.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.update",
+      "action": "ck.realm.update",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
         "fields_write_allow"
       ],
       "target_event_kinds": [
-        "cx.realm.update"
+        "ck.realm.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.archive",
+      "action": "ck.realm.archive",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.archive"
+        "ck.realm.archive"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.freeze",
+      "action": "ck.realm.freeze",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.freeze"
+        "ck.realm.freeze"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.tombstone",
+      "action": "ck.realm.tombstone",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.tombstone"
+        "ck.realm.tombstone"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.destroy",
+      "action": "ck.realm.destroy",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.destroy"
+        "ck.realm.destroy"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.circle.create",
+      "action": "ck.circle.create",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.circle.create"
+        "ck.circle.create"
       ],
       "profile": null,
       "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.circle.manage",
+      "action": "ck.circle.manage",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_circle_ids"
       ],
       "target_event_kinds": [
-        "cx.circle.update",
-        "cx.circle.archive",
-        "cx.circle.restore",
-        "cx.circle.tombstone"
+        "ck.circle.update",
+        "ck.circle.archive",
+        "ck.circle.restore",
+        "ck.circle.tombstone"
       ],
       "profile": null,
       "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission.",
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "cx.circle.member.add",
+      "action": "ck.circle.member.add",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.circle.member.state"
+        "ck.circle.member.state"
       ],
       "profile": null,
       "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed.",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.circle.member.manage",
+      "action": "ck.circle.member.manage",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_circle_ids"
       ],
       "target_event_kinds": [
-        "cx.circle.member.state"
+        "ck.circle.member.state"
       ],
       "profile": null,
       "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id.",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.circle.member.add.others",
+      "action": "ck.circle.member.add.others",
       "category": "audit",
       "risk_tier": "high",
       "required_constraints": [
@@ -162,14 +162,14 @@
         "audit_pair_required"
       ],
       "target_event_kinds": [
-        "cx.circle.member.state"
+        "ck.circle.member.state"
       ],
       "profile": null,
-      "notes": "Cross-actor write (rare). MUST carry cx.audit.accessed pair (same model as cx.flow.watch.set.others).",
+      "notes": "Cross-actor write (rare). MUST carry ck.audit.accessed pair (same model as ck.flow.watch.set.others).",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.circle.audit",
+      "action": "ck.circle.audit",
       "category": "audit",
       "risk_tier": "high",
       "required_constraints": [],
@@ -178,11 +178,11 @@
       ],
       "target_event_kinds": [],
       "profile": null,
-      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with cx.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
+      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with ck.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.object.read",
+      "action": "ck.object.read",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -191,7 +191,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.object.read_metadata",
+      "action": "ck.object.read_metadata",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -200,7 +200,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.object.read_content",
+      "action": "ck.object.read_content",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -209,43 +209,43 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.object.archive",
+      "action": "ck.object.archive",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.archive",
-        "cx.morph.archive"
+        "ck.flow.archive",
+        "ck.morph.archive"
       ],
       "profile": null,
       "event_mapping_kind": "polymorphic_object"
     },
     {
-      "action": "cx.object.restore",
+      "action": "ck.object.restore",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.restore",
-        "cx.morph.restore",
-        "cx.space.restore"
+        "ck.flow.restore",
+        "ck.morph.restore",
+        "ck.space.restore"
       ],
       "profile": null,
       "event_mapping_kind": "polymorphic_object"
     },
     {
-      "action": "cx.flow.create",
+      "action": "ck.flow.create",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.create"
+        "ck.flow.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.flow.read",
+      "action": "ck.flow.read",
       "category": "flow",
       "risk_tier": "low",
       "required_constraints": [],
@@ -254,20 +254,20 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.flow.update",
+      "action": "ck.flow.update",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [
         "fields_write_allow"
       ],
       "target_event_kinds": [
-        "cx.flow.update"
+        "ck.flow.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.morph.read",
+      "action": "ck.morph.read",
       "category": "morph",
       "risk_tier": "low",
       "required_constraints": [],
@@ -276,179 +276,179 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.morph.create",
+      "action": "ck.morph.create",
       "category": "morph",
       "risk_tier": "medium",
       "required_constraints": [
         "morph_type_allow"
       ],
       "target_event_kinds": [
-        "cx.morph.create"
+        "ck.morph.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.morph.update",
+      "action": "ck.morph.update",
       "category": "morph",
       "risk_tier": "medium",
       "required_constraints": [
         "fields_write_allow"
       ],
       "target_event_kinds": [
-        "cx.morph.update"
+        "ck.morph.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.morph.schema.migrate",
+      "action": "ck.morph.schema.migrate",
       "category": "morph",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.morph.schema_migrate"
+        "ck.morph.schema_migrate"
       ],
       "profile": null,
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.flow.archive",
+      "action": "ck.flow.archive",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.archive"
+        "ck.flow.archive"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.flow.restore",
+      "action": "ck.flow.restore",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.restore"
+        "ck.flow.restore"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.flow.move",
+      "action": "ck.flow.move",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.move"
+        "ck.flow.move"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.flow.reorder",
+      "action": "ck.flow.reorder",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.reorder"
+        "ck.flow.reorder"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.flow.tracks.manage",
+      "action": "ck.flow.tracks.manage",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.tracks.update"
+        "ck.flow.tracks.update"
       ],
       "profile": null,
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.flow.stage.set",
+      "action": "ck.flow.stage.set",
       "category": "flow",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.stage.set"
+        "ck.flow.stage.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.morph.stage.set",
+      "action": "ck.morph.stage.set",
       "category": "morph",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.morph.stage.set"
+        "ck.morph.stage.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.object.stage.set",
+      "action": "ck.object.stage.set",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.stage.set",
-        "cx.morph.stage.set"
+        "ck.flow.stage.set",
+        "ck.morph.stage.set"
       ],
       "profile": null,
       "event_mapping_kind": "polymorphic_object"
     },
     {
-      "action": "cx.relation.create",
+      "action": "ck.relation.create",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.relation.create"
+        "ck.relation.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.relation.update",
+      "action": "ck.relation.update",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.relation.update"
+        "ck.relation.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.relation.tombstone",
+      "action": "ck.relation.tombstone",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.relation.tombstone"
+        "ck.relation.tombstone"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.flow.watch.set",
+      "action": "ck.flow.watch.set",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.watch.set"
+        "ck.flow.watch.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.flow.watch.set.others",
+      "action": "ck.flow.watch.set.others",
       "category": "discussion",
       "risk_tier": "high",
       "required_constraints": [],
@@ -457,13 +457,13 @@
         "audit_pair_required"
       ],
       "target_event_kinds": [
-        "cx.flow.watch.set"
+        "ck.flow.watch.set"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.realm.notification.audit",
+      "action": "ck.realm.notification.audit",
       "category": "governance",
       "risk_tier": "high",
       "required_constraints": [],
@@ -472,132 +472,132 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.space.create",
+      "action": "ck.space.create",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [
         "space_kind_allow"
       ],
       "target_event_kinds": [
-        "cx.space.create"
+        "ck.space.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.space.update",
+      "action": "ck.space.update",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [
         "space_kind_allow"
       ],
       "target_event_kinds": [
-        "cx.space.update"
+        "ck.space.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.space.parent",
+      "action": "ck.space.parent",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.parent"
+        "ck.space.parent"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.space.archive",
+      "action": "ck.space.archive",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.archive"
+        "ck.space.archive"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.space.restore",
+      "action": "ck.space.restore",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.restore"
+        "ck.space.restore"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.space.tombstone",
+      "action": "ck.space.tombstone",
       "category": "flow",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.tombstone"
+        "ck.space.tombstone"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.container.move_item",
+      "action": "ck.container.move_item",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.container.move_item"
+        "ck.container.move_item"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.container.rebalance",
+      "action": "ck.container.rebalance",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.container.rebalance"
+        "ck.container.rebalance"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.view.create",
+      "action": "ck.view.create",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.view.create"
+        "ck.view.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.view.update",
+      "action": "ck.view.update",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.view.update"
+        "ck.view.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.view.reconcile",
+      "action": "ck.view.reconcile",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.view.reconcile"
+        "ck.view.reconcile"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.event.read",
+      "action": "ck.event.read",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
@@ -606,18 +606,18 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.message.create",
+      "action": "ck.message.create",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.message.create"
+        "ck.message.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.message.mention.broadcast",
+      "action": "ck.message.mention.broadcast",
       "category": "discussion",
       "risk_tier": "high",
       "required_constraints": [
@@ -630,26 +630,26 @@
         "audience_mention_recipient_count_within_limit"
       ],
       "target_event_kinds": [
-        "cx.message.create",
-        "cx.message.revise"
+        "ck.message.create",
+        "ck.message.revise"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant",
       "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"flow_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
     },
     {
-      "action": "cx.message.revise",
+      "action": "ck.message.revise",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.message.revise"
+        "ck.message.revise"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.message.revise.own",
+      "action": "ck.message.revise.own",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [
@@ -659,26 +659,26 @@
         "actor_eq_target_author"
       ],
       "target_event_kinds": [
-        "cx.message.revise"
+        "ck.message.revise"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.message.redact",
+      "action": "ck.message.redact",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.message.redact",
-        "cx.redaction"
+        "ck.message.redact",
+        "ck.redaction"
       ],
       "profile": null,
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.message.redact.own",
+      "action": "ck.message.redact.own",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [
@@ -688,119 +688,119 @@
         "actor_eq_target_author"
       ],
       "target_event_kinds": [
-        "cx.message.redact",
-        "cx.redaction"
+        "ck.message.redact",
+        "ck.redaction"
       ],
       "profile": null,
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.reaction.add",
+      "action": "ck.reaction.add",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.reaction.add"
+        "ck.reaction.add"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.reaction.remove",
+      "action": "ck.reaction.remove",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.reaction.remove"
+        "ck.reaction.remove"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.admin",
+      "action": "ck.realm.admin",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.organization",
-        "cx.realm.link",
-        "cx.realm.policy",
-        "cx.realm.join_rule",
-        "cx.realm.history_visibility",
-        "cx.realm.discovery",
-        "cx.realm.preview_policy",
-        "cx.realm.policy_server",
-        "cx.realm.policy_components",
-        "cx.realm.history_sharing_policy",
-        "cx.realm.delivery_binding_policy",
-        "cx.realm.asset_privacy_policy",
-        "cx.realm.read_receipt_policy",
-        "cx.realm.moderation_policy",
-        "cx.realm.media_service",
-        "cx.realm.schema",
-        "cx.realm.inheritance_policy"
+        "ck.realm.organization",
+        "ck.realm.link",
+        "ck.realm.policy",
+        "ck.realm.join_rule",
+        "ck.realm.history_visibility",
+        "ck.realm.discovery",
+        "ck.realm.preview_policy",
+        "ck.realm.policy_server",
+        "ck.realm.policy_components",
+        "ck.realm.history_sharing_policy",
+        "ck.realm.delivery_binding_policy",
+        "ck.realm.asset_privacy_policy",
+        "ck.realm.read_receipt_policy",
+        "ck.realm.moderation_policy",
+        "ck.realm.media_service",
+        "ck.realm.schema",
+        "ck.realm.inheritance_policy"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "cx.realm.link",
+      "action": "ck.realm.link",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.link"
+        "ck.realm.link"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.upgrade",
+      "action": "ck.realm.upgrade",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.upgrade"
+        "ck.realm.upgrade"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.moderation_policy",
+      "action": "ck.realm.moderation_policy",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.moderation_policy"
+        "ck.realm.moderation_policy"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.plaintext_visible_services",
+      "action": "ck.realm.plaintext_visible_services",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.plaintext_visible_services"
+        "ck.realm.plaintext_visible_services"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.preview_policy",
+      "action": "ck.realm.preview_policy",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.preview_policy"
+        "ck.realm.preview_policy"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.audit_policy_downgrade",
+      "action": "ck.realm.audit_policy_downgrade",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -808,13 +808,13 @@
         "audit_pair_required"
       ],
       "target_event_kinds": [
-        "cx.realm.audit_policy_downgrade"
+        "ck.realm.audit_policy_downgrade"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.flow.admin",
+      "action": "ck.flow.admin",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -823,108 +823,108 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.schema.define",
+      "action": "ck.schema.define",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.schema.define"
+        "ck.schema.define"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.schema.update",
+      "action": "ck.schema.update",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.schema.update"
+        "ck.schema.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.capability.grant",
+      "action": "ck.capability.grant",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.capability.grant"
+        "ck.capability.grant"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.capability.delegate",
+      "action": "ck.capability.delegate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
         "max_delegation_depth"
       ],
       "target_event_kinds": [
-        "cx.capability.delegate"
+        "ck.capability.delegate"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.capability.derived",
+      "action": "ck.capability.derived",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.capability.derived"
+        "ck.capability.derived"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.capability.revoke",
+      "action": "ck.capability.revoke",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.capability.revoke"
+        "ck.capability.revoke"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.key.authorize",
+      "action": "ck.agent.key.authorize",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.key.authorize"
+        "ck.agent.key.authorize"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.key.revoke",
+      "action": "ck.agent.key.revoke",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.key.revoke"
+        "ck.agent.key.revoke"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.key.rotate",
+      "action": "ck.agent.key.rotate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.key.rotate"
+        "ck.agent.key.rotate"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.provision",
+      "action": "ck.agent.provision",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -932,126 +932,126 @@
         "controller_approval_required"
       ],
       "target_event_kinds": [
-        "cx.profile.create",
-        "cx.identity.accountability_grant",
-        "cx.agent.key.authorize",
-        "cx.capability.grant"
+        "ck.profile.create",
+        "ck.identity.accountability_grant",
+        "ck.agent.key.authorize",
+        "ck.capability.grant"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "profile": "ck.profile.personal_agent_provisioning.v1",
       "migration_group": "cxp_0008_agent_provisioning",
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "cx.agent.pause",
+      "action": "ck.agent.pause",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.pause"
+        "ck.agent.pause"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.resume",
+      "action": "ck.agent.resume",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.resume"
+        "ck.agent.resume"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.deactivate",
+      "action": "ck.agent.deactivate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.deactivate"
+        "ck.agent.deactivate"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.draft.propose",
+      "action": "ck.agent.draft.propose",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
         "expires_at"
       ],
       "target_event_kinds": [
-        "cx.agent.draft.propose"
+        "ck.agent.draft.propose"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.action_request",
+      "action": "ck.agent.action_request",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
         "expires_at"
       ],
       "target_event_kinds": [
-        "cx.agent.action_request"
+        "ck.agent.action_request"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.action_approve",
+      "action": "ck.agent.action_approve",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.action_approve"
+        "ck.agent.action_approve"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.action_reject",
+      "action": "ck.agent.action_reject",
       "category": "management",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.action_reject"
+        "ck.agent.action_reject"
       ],
-      "profile": "cx.profile.personal_agent_provisioning.v1",
+      "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.agent.sidecar_thread.ensure",
+      "action": "ck.agent.sidecar_thread.ensure",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.circle.create",
-        "cx.circle.member.state",
-        "cx.flow.create",
-        "cx.relation.create"
+        "ck.circle.create",
+        "ck.circle.member.state",
+        "ck.flow.create",
+        "ck.relation.create"
       ],
-      "profile": "cx.profile.agent_sidecar_thread.v1",
+      "profile": "ck.profile.agent_sidecar_thread.v1",
       "migration_group": "cxp_0009_sidecar_ensure",
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "cx.agent.sidecar_thread.write",
+      "action": "ck.agent.sidecar_thread.write",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
         "allowed_flow_ids"
       ],
       "target_event_kinds": [
-        "cx.message.create"
+        "ck.message.create"
       ],
-      "profile": "cx.profile.agent_sidecar_thread.v1",
+      "profile": "ck.profile.agent_sidecar_thread.v1",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.agent.sidecar_thread.publish",
+      "action": "ck.agent.sidecar_thread.publish",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1059,22 +1059,22 @@
         "approval_required"
       ],
       "target_event_kinds": [
-        "cx.message.create"
+        "ck.message.create"
       ],
-      "profile": "cx.profile.agent_sidecar_thread.v1",
+      "profile": "ck.profile.agent_sidecar_thread.v1",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.agent.protocol.discover",
+      "action": "ck.agent.protocol.discover",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": "cx.profile.agent_runtime.v1",
+      "profile": "ck.profile.agent_runtime.v1",
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.agent.session.start",
+      "action": "ck.agent.session.start",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1082,39 +1082,39 @@
         "allowed_data_classes"
       ],
       "target_event_kinds": [
-        "cx.agent.protocol_session.start"
+        "ck.agent.protocol_session.start"
       ],
-      "profile": "cx.profile.agent_runtime.v1",
+      "profile": "ck.profile.agent_runtime.v1",
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.agent.session.cancel",
+      "action": "ck.agent.session.cancel",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.protocol_session.status",
-        "cx.agent.protocol_session.result"
+        "ck.agent.protocol_session.status",
+        "ck.agent.protocol_session.result"
       ],
-      "profile": "cx.profile.agent_runtime.v1",
+      "profile": "ck.profile.agent_runtime.v1",
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.agent.session.stream_status",
+      "action": "ck.agent.session.stream_status",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.agent.protocol_session.status"
+        "ck.agent.protocol_session.status"
       ],
-      "profile": "cx.profile.agent_runtime.v1",
+      "profile": "ck.profile.agent_runtime.v1",
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.agent.session.attach_artifact",
+      "action": "ck.agent.session.attach_artifact",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1122,200 +1122,200 @@
         "max_artifact_bytes"
       ],
       "target_event_kinds": [
-        "cx.agent.protocol_session.status",
-        "cx.agent.protocol_session.result"
+        "ck.agent.protocol_session.status",
+        "ck.agent.protocol_session.result"
       ],
-      "profile": "cx.profile.agent_runtime.v1",
+      "profile": "ck.profile.agent_runtime.v1",
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.agent.session.read_transcript",
+      "action": "ck.agent.session.read_transcript",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [
         "allowed_data_classes"
       ],
       "target_event_kinds": [],
-      "profile": "cx.profile.agent_runtime.v1",
+      "profile": "ck.profile.agent_runtime.v1",
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.policy.manage",
+      "action": "ck.policy.manage",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.policy.set",
-        "cx.policy.rule",
-        "cx.policy.action",
-        "cx.realm.policy",
-        "cx.realm.policy_server",
-        "cx.realm.policy_components",
-        "cx.realm.delivery_binding_policy",
-        "cx.realm.asset_privacy_policy",
-        "cx.realm.read_receipt_policy",
-        "cx.realm.history_sharing_policy",
-        "cx.realm.preview_policy",
-        "cx.realm.moderation_policy"
+        "ck.policy.set",
+        "ck.policy.rule",
+        "ck.policy.action",
+        "ck.realm.policy",
+        "ck.realm.policy_server",
+        "ck.realm.policy_components",
+        "ck.realm.delivery_binding_policy",
+        "ck.realm.asset_privacy_policy",
+        "ck.realm.read_receipt_policy",
+        "ck.realm.history_sharing_policy",
+        "ck.realm.preview_policy",
+        "ck.realm.moderation_policy"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "cx.policy.set",
+      "action": "ck.policy.set",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.policy.set"
+        "ck.policy.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.policy.rule",
+      "action": "ck.policy.rule",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.policy.rule"
+        "ck.policy.rule"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.policy.action",
+      "action": "ck.policy.action",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.policy.action"
+        "ck.policy.action"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.invite.create",
+      "action": "ck.invite.create",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.invite.create"
+        "ck.invite.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.realm.join.review",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": "cx.profile.candidate.join_policy.v1",
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "cx.invite.cancel",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.invite.cancel"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "cx.invite.third_party",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.invite.third_party"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "cx.invite.claim",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.invite.claim"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "cx.invite.revoke",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.invite.revoke"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "cx.approval.vote",
+      "action": "ck.realm.join.review",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null,
+      "profile": "ck.profile.candidate.join_policy.v1",
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.moderation.decision",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.moderation.decision"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "cx.moderation.decision.lift",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.moderation.decision.lift"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "cx.moderation.appeal.submit",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.moderation.appeal.submit"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "cx.moderation.appeal.review",
+      "action": "ck.invite.cancel",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.moderation.appeal.review",
-        "cx.moderation.appeal.decision",
-        "cx.moderation.appeal.close"
+        "ck.invite.cancel"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.invite.third_party",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.invite.third_party"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.invite.claim",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.invite.claim"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.invite.revoke",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.invite.revoke"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.approval.vote",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ck.moderation.decision",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.moderation.decision"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.moderation.decision.lift",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.moderation.decision.lift"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.moderation.appeal.submit",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.moderation.appeal.submit"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.moderation.appeal.review",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.moderation.appeal.review",
+        "ck.moderation.appeal.decision",
+        "ck.moderation.appeal.close"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "cx.events.query",
+      "action": "ck.events.query",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1324,7 +1324,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.events.subscribe",
+      "action": "ck.events.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1333,7 +1333,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.account.subscribe",
+      "action": "ck.account.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1342,7 +1342,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.account.describe",
+      "action": "ck.account.describe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1351,7 +1351,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.snapshot.head",
+      "action": "ck.snapshot.head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1360,7 +1360,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.blob.upload",
+      "action": "ck.blob.upload",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
@@ -1371,7 +1371,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.blob.get",
+      "action": "ck.blob.get",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1380,7 +1380,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.blob.head",
+      "action": "ck.blob.head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1389,7 +1389,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.blob.presign",
+      "action": "ck.blob.presign",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
@@ -1401,86 +1401,86 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.call.configure_media_service",
+      "action": "ck.call.configure_media_service",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.realm.media_service"
+        "ck.realm.media_service"
       ],
       "profile": null,
       "event_mapping_kind": "wire_compat_grandfather",
       "grandfathered_since": "2026-05-08"
     },
     {
-      "action": "cx.mls.genesis",
+      "action": "ck.mls.genesis",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.mls.genesis"
+        "ck.mls.genesis"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.mls.proposal",
+      "action": "ck.mls.proposal",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.mls.proposal"
+        "ck.mls.proposal"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.mls.commit",
+      "action": "ck.mls.commit",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.mls.commit",
-        "cx.mls.commit_failed"
+        "ck.mls.commit",
+        "ck.mls.commit_failed"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "cx.mls.welcome",
+      "action": "ck.mls.welcome",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.mls.welcome"
+        "ck.mls.welcome"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.mls.keypackage",
+      "action": "ck.mls.keypackage",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.mls.keypackage"
+        "ck.mls.keypackage"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.audit.accessed",
+      "action": "ck.audit.accessed",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.audit.accessed"
+        "ck.audit.accessed"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.audit.query",
+      "action": "ck.audit.query",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1489,7 +1489,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.audit.export",
+      "action": "ck.audit.export",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1498,7 +1498,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.presence.broadcast",
+      "action": "ck.presence.broadcast",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1507,7 +1507,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.typing.broadcast",
+      "action": "ck.typing.broadcast",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1516,7 +1516,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.receipt.broadcast",
+      "action": "ck.receipt.broadcast",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1525,7 +1525,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.call.signal.send",
+      "action": "ck.call.signal.send",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1534,74 +1534,74 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.call.join",
+      "action": "ck.call.join",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.call.state"
+        "ck.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.call.screen_share",
+      "action": "ck.call.screen_share",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.call.state"
+        "ck.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.call.record",
+      "action": "ck.call.record",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.call.recording.start",
-        "cx.call.state"
+        "ck.call.recording.start",
+        "ck.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "cx.call.transcribe",
+      "action": "ck.call.transcribe",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.call.state"
+        "ck.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.call.moderate",
+      "action": "ck.call.moderate",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.call.state"
+        "ck.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "cx.read_cursor.advance",
+      "action": "ck.read_cursor.advance",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.read_cursor.advance"
+        "ck.read_cursor.advance"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "cx.notification.read",
+      "action": "ck.notification.read",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1610,7 +1610,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.notification.ack",
+      "action": "ck.notification.ack",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1619,12 +1619,12 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "cx.invite.accept",
+      "action": "ck.invite.accept",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.invite.accept"
+        "ck.invite.accept"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"

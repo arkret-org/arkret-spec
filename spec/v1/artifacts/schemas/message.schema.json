@@ -84,7 +84,7 @@
       "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.message.v1"
+      "const": "ck.schema.message.v1"
     },
     "realm_id": {
       "type": "string",
@@ -123,16 +123,16 @@
         "active",
         "redacted"
       ],
-      "description": "Top-level lifecycle state for messages. Messages do not have a separate deleted/tombstone state; retention or moderation removal uses cx.message.redact and state=redacted so the message slot and audit metadata remain stable."
+      "description": "Top-level lifecycle state for messages. Messages do not have a separate deleted/tombstone state; retention or moderation removal uses ck.message.redact and state=redacted so the message slot and audit metadata remain stable."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.message.redact Event. Aligns with the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ck.message.redact Event. Aligns with the common-fields rule in models/common-fields.md §3."
     },
     "revision_root": {
       "type": "string",
       "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "First revision in this message's edit chain. The first revision MUST have revision_root == id. Maintained by cx.message.revise reducer."
+      "description": "First revision in this message's edit chain. The first revision MUST have revision_root == id. Maintained by ck.message.revise reducer."
     },
     "edited_at": {
       "$ref": "#/$defs/timestamp"
@@ -140,7 +140,7 @@
     "redaction_ref": {
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Required when state=redacted; references the cx.message.redact event that produced this state. MUST be absent for other states."
+      "description": "Required when state=redacted; references the ck.message.redact event that produced this state. MUST be absent for other states."
     },
     "created_by": {
       "$ref": "#/$defs/did"
@@ -150,7 +150,7 @@
     },
     "updated_by": {
       "$ref": "#/$defs/did",
-      "description": "Reducer-derived actor that produced the most recent materialized message update, such as cx.message.revise or cx.message.redact."
+      "description": "Reducer-derived actor that produced the most recent materialized message update, such as ck.message.revise or ck.message.redact."
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"
@@ -191,7 +191,7 @@
     },
     "content_kind": {
       "type": "string",
-      "pattern": "^(cx\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
+      "pattern": "^(ck\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
     "content_block": {
       "type": "object",
@@ -260,7 +260,7 @@
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "cx.content.composite" } },
+            "properties": { "kind": { "const": "ck.content.composite" } },
             "required": ["kind"]
           },
           "then": { "required": ["parts"] }

@@ -156,7 +156,7 @@
       ],
       "properties": {
         "kind": {
-          "const": "cx.moderation.franking_proof"
+          "const": "ck.moderation.franking_proof"
         },
         "franking_proof_id": {
           "type": "string",

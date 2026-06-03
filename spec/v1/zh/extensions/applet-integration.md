@@ -9,7 +9,7 @@ updated: 2026-05-25
 > **状态：extension profile（非 v1 core 互操作必需）**。Applet registry、审核 SLA 与 capability
 > 注入流程仍在演进。Cokret v1 core 互操作 **不要求** 实现本 profile；声称 v1 core 的
 > 实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。
-> `cx.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json`
+> `ck.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json`
 > 的 `profile_tiers.extension_profile_implementation`）。
 
 ## 0. 规范语言
@@ -52,9 +52,9 @@ Applet / Agent / Morph / Ghost Actor 的选择边界如下，实现 MUST 按最�
 | user namespace regex | actor namespace claim / DID namespace |
 | room namespace regex | Realm / portal namespace |
 | alias namespace regex | handle / portal alias namespace |
-| `/transactions/{txn_id}` | `POST /api/v1/applet/transactions` + `Idempotency-Key` header |
-| `/users/{user_id}` | `/api/v1/applet/actors/{actor_id}` |
-| `/rooms/{room_alias}` | `/api/v1/applet/realms/{realm_id_or_alias}` |
+| `/transactions/{txn_id}` | `POST /_cokret/edge/applet/transactions` + `Idempotency-Key` header |
+| `/users/{user_id}` | `/_cokret/edge/applet/actors/{actor_id}` |
+| `/rooms/{room_alias}` | `/_cokret/edge/applet/realms/{realm_id_or_alias}` |
 | third-party protocols | external protocol metadata |
 | appservice masquerading | delegated agent / Ghost Actor capability |
 
@@ -95,16 +95,16 @@ Ghost Actor MUST 带有 `accountability`，指向 Applet controller 和外部网
 
 `actor_kind` 不定义 `agent_native`、`agent_ghost` 或 `ghost` wire enum。Native personal AI agent 使用 `actor_kind="agent"`；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值：外部人类/账号镜像 SHOULD 使用 `actor_kind="integration"`，Applet 托管的 AI/automation ghost MAY 使用 `actor_kind="agent"`。二者必须通过 Applet provenance、`accountable_principal_ids` / `accountability` 和 profile/capability 约束与 native personal agent 区分，不能依赖新增 `actor_kind` 值区分。
 
-Native personal AI agent(由 controller 通过 `cx.agent.provision` 创建，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))与 Applet-managed Ghost Actor(本节)是两类不同 actor,生命周期与治理路径完全分离:
+Native personal AI agent(由 controller 通过 `ck.agent.provision` 创建，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))与 Applet-managed Ghost Actor(本节)是两类不同 actor,生命周期与治理路径完全分离:
 
 | 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
-| 创建路径 | `cx.agent.provision` operation,fan-out `cx.profile.create` / `cx.identity.accountability_grant` / `cx.agent.key.authorize` / `cx.capability.grant` | `cx.applet.registration` + Applet bot/Ghost Actor 注册 |
-| `accountable_principal_ids` | 指向 controller principal,显式 `cx.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
-| Runtime credential | 通过 `POST /auth/account/agent-key-pair` pairing 得到 `cx.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
-| Session 路径 | `POST /auth/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `cx.applet.transaction` 与 Applet 的 delegated session |
-| 撤销 | `cx.agent.pause` / `cx.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;Ghost Actor 跟随 Applet 生命周期 |
-| Realm policy | Realm policy MUST 单独允许 native personal agent(`cx.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet + Ghost Actor(`cx.profile.applet_service.v1`) |
+| 创建路径 | `ck.agent.provision` operation,fan-out `ck.profile.create` / `ck.identity.accountability_grant` / `ck.agent.key.authorize` / `ck.capability.grant` | `ck.applet.registration` + Applet bot/Ghost Actor 注册 |
+| `accountable_principal_ids` | 指向 controller principal,显式 `ck.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
+| Runtime credential | 通过 `POST /_cokret/gate/account/agent-key-pair` pairing 得到 `ck.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
+| Session 路径 | `POST /_cokret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ck.applet.transaction` 与 Applet 的 delegated session |
+| 撤销 | `ck.agent.pause` / `ck.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;Ghost Actor 跟随 Applet 生命周期 |
+| Realm policy | Realm policy MUST 单独允许 native personal agent(`ck.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet + Ghost Actor(`ck.profile.applet_service.v1`) |
 
 **Realm policy MUST 至少能分别控制 native personal agent 与 Applet / Ghost Actor**:部署可以禁止普通用户创建或使用 personal agents 同时允许管理员安装的 Applet + Ghost Actor,也可以反向配置;**二者不得被合并为一个不可区分的 "automation allowed" 开关**。
 
@@ -118,17 +118,17 @@ CXP-0008 / CXP-0009 只覆盖 native personal agent 路径;Ghost Actor / Applet 
 
 Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员、registry 或 authz service 接受。
 
-Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin 或 Realm policy 明确授权的 registry/authz service 签发。仅凭 Applet 自签 registration、namespace claim 或外部 registry 收录不得写入 Realm；缺少该 grant 时，任何 `cx.applet.registration` / `cx.applet.transaction` 引入的 Realm 写入 MUST 拒绝，reason=`applet_registration_unauthorized`。
+Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin 或 Realm policy 明确授权的 registry/authz service 签发。仅凭 Applet 自签 registration、namespace claim 或外部 registry 收录不得写入 Realm；缺少该 grant 时，任何 `ck.applet.registration` / `ck.applet.transaction` 引入的 Realm 写入 MUST 拒绝，reason=`applet_registration_unauthorized`。
 
 示例：
 
 ```json
 {
-  "kind": "cx.applet.registration",
+  "kind": "ck.applet.registration",
   "applet_id": "ck:applet:21532600-0000-7000-8000-000000000000",
   "service_did": "did:web:slack-bridge.example",
   "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
-  "base_url": "https://slack-bridge.example/api/v1/applet",
+  "base_url": "https://slack-bridge.example/applet",
   "bot_actor_id": "did:web:slack-bridge.example:bot",
   "protocols": [
     "slack"
@@ -157,12 +157,12 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "receive_ephemeral": false,
   "rate_limited": true,
   "requested_scopes": [
-    "cx.realm.discover",
-    "cx.object.read",
-    "cx.flow.create",
-    "cx.morph.create",
-    "cx.message.create",
-    "cx.relation.create"
+    "ck.realm.discover",
+    "ck.object.read",
+    "ck.flow.create",
+    "ck.morph.create",
+    "ck.message.create",
+    "ck.relation.create"
   ],
   "webhook_auth": {
     "type": "http_message_signature",
@@ -250,10 +250,10 @@ Handle namespace 适用于外部用户或 location 的人类入口。
       "ck:realm:0196419b-0000-7000-8000-000000000000"
     ],
     "actions": [
-      "cx.flow.create",
-      "cx.morph.create",
-      "cx.message.create",
-      "cx.relation.create"
+      "ck.flow.create",
+      "ck.morph.create",
+      "ck.message.create",
+      "ck.relation.create"
     ]
   },
   "constraints": [
@@ -277,30 +277,30 @@ Applet 调用 Cokret 节点时使用常规 Events API / sync service / authz API
 
 Base URL 来自 registration 的 `base_url`。
 
-**`cx.applet.*` 标识符的两类用途（normative 区分）**：`cx.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
+**`ck.applet.*` 标识符的两类用途（normative 区分）**：`ck.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
 
-- **Event kind（进 Realm history）**：`cx.applet.registration`、`cx.applet.transaction`（指其作为 wire `Event.kind` 的语义，例如 §4 的 registration event、§8 写入的 transaction-origin event）、`cx.applet.bridge_error`（见 `applet-schema.md` §7）。这些是 durable Cokret Event，进入 Realm history，由 reducer 按 schema 校验。
-- **operation_id（HTTP，不进 history）**：本节表中的 `cx.applet.ping`、`cx.applet.describe`、`cx.applet.transaction`、`cx.applet.resolve_actor`、`cx.applet.resolve_realm`、`cx.applet.protocol_metadata`、`cx.applet.third_party_users`、`cx.applet.third_party_locations` 是 HTTP API operation 标识符，只描述 Cokret 节点 ↔ Applet 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
+- **Event kind（进 Realm history）**：`ck.applet.registration`、`ck.applet.transaction`（指其作为 wire `Event.kind` 的语义，例如 §4 的 registration event、§8 写入的 transaction-origin event）、`ck.applet.bridge_error`（见 `applet-schema.md` §7）。这些是 durable Cokret Event，进入 Realm history，由 reducer 按 schema 校验。
+- **operation_id（HTTP，不进 history）**：本节表中的 `ck.applet.ping`、`ck.applet.describe`、`ck.applet.transaction`、`ck.applet.resolve_actor`、`ck.applet.resolve_realm`、`ck.applet.protocol_metadata`、`ck.applet.third_party_users`、`ck.applet.third_party_locations` 是 HTTP API operation 标识符，只描述 Cokret 节点 ↔ Applet 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
 
-注意 `cx.applet.transaction` 同时出现在两类用途：作 operation_id 时指 §7.3 的 transaction push HTTP 调用；作 Event kind 概念时指该 push 携带 / 触发的 durable Event。二者通过本说明显式区分（与 [`agent-protocol-interop.md` §7](./agent-protocol-interop.md) 对 capability action 与 `cx.agent.protocol_session.*` event kind 的区分写法一致）。
+注意 `ck.applet.transaction` 同时出现在两类用途：作 operation_id 时指 §7.3 的 transaction push HTTP 调用；作 Event kind 概念时指该 push 携带 / 触发的 durable Event。二者通过本说明显式区分（与 [`agent-protocol-interop.md` §7](./agent-protocol-interop.md) 对 capability action 与 `ck.agent.protocol_session.*` event kind 的区分写法一致）。
 
 字段级接口索引：
 
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
-| `cx.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
-| `cx.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
-| `cx.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
-| `cx.applet.resolve_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
-| `cx.applet.resolve_realm` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
-| `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
-| `cx.applet.third_party_users` | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
-| `cx.applet.third_party_locations` | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
+| `ck.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
+| `ck.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
+| `ck.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
+| `ck.applet.resolve_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
+| `ck.applet.resolve_realm` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
+| `ck.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
+| `ck.applet.third_party_users` | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
+| `ck.applet.third_party_locations` | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
 
 ### 7.1 Ping
 
 ```text
-GET /api/v1/applet/ping
+GET /_cokret/edge/applet/ping
 ```
 
 返回：
@@ -317,7 +317,7 @@ GET /api/v1/applet/ping
 ### 7.2 Describe
 
 ```text
-GET /api/v1/applet/describe
+GET /_cokret/edge/applet/describe
 ```
 
 返回 Applet 支持的协议、profile、namespace、最大交易大小和认证方式。
@@ -325,7 +325,7 @@ GET /api/v1/applet/describe
 ### 7.3 Transaction Push
 
 ```text
-POST /api/v1/applet/transactions
+POST /_cokret/edge/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
@@ -340,7 +340,7 @@ Cokret sync service / Events API 向 Applet 推送事件批次。
     {
       "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "kind": "cx.message.create",
+      "kind": "ck.message.create",
       "actor_id": "did:web:alice.example",
       "payload": {}
     }
@@ -376,7 +376,7 @@ Cokret sync service / Events API 向 Applet 推送事件批次。
 ### 7.4 Query Actor
 
 ```text
-GET /api/v1/applet/actors/{actor_id}
+GET /_cokret/edge/applet/actors/{actor_id}
 ```
 
 用于 Cokret 节点发现 namespace 内的未知 Ghost Actor 是否存在。
@@ -401,7 +401,7 @@ GET /api/v1/applet/actors/{actor_id}
 ### 7.5 Query Realm
 
 ```text
-GET /api/v1/applet/realms/{realm_id_or_alias}
+GET /_cokret/edge/applet/realms/{realm_id_or_alias}
 ```
 
 用于查询 portal Realm 是否存在或可创建。
@@ -424,7 +424,7 @@ GET /api/v1/applet/realms/{realm_id_or_alias}
 ### 7.6 Protocol Metadata
 
 ```text
-GET /api/v1/applet/protocols/{protocol}
+GET /_cokret/edge/applet/protocols/{protocol}
 ```
 
 返回：
@@ -456,18 +456,18 @@ GET /api/v1/applet/protocols/{protocol}
 ### 7.7 Third-Party Lookup
 
 ```text
-GET /api/v1/applet/third_party/users?protocol=slack&team=T123&user=U123
+GET /_cokret/edge/applet/third_party/users?protocol=slack&team=T123&user=U123
 ```
 
 ```text
-GET /api/v1/applet/third_party/locations?protocol=slack&team=T123&channel=C456
+GET /_cokret/edge/applet/third_party/locations?protocol=slack&team=T123&channel=C456
 ```
 
 用于把外部用户或 location 映射到 Cokret actor / portal Realm。
 
 ## 8. Applet 写入 Cokret
 
-Applet 写入 Cokret MUST 使用常规 `/events` submit 接口。
+Applet 写入 Cokret MUST 使用常规 `/_cokret/self/events` submit 接口。
 
 每个写入 Event MUST 包含：
 
@@ -484,7 +484,7 @@ Applet 写入 Cokret MUST 使用常规 `/events` submit 接口。
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
   "actor_id": "did:web:slack-bridge.example:ghost:u123",
-  "kind": "cx.message.create",
+  "kind": "ck.message.create",
   "applet_id": "ck:applet:21532600-0000-7000-8000-000000000000",
   "external_ref": {
     "protocol": "slack",
@@ -516,7 +516,7 @@ Ghost Actor profile SHOULD 包含：
 
 ```json
 {
-  "schema": "cx.schema.actor_profile.v1",
+  "schema": "ck.schema.actor_profile.v1",
   "principal_id": "did:web:slack-bridge.example:ghost:u123",
   "actor_kind": "integration",
   "display_name": "Alice on Slack",
@@ -584,10 +584,10 @@ Alice via Calendar Applet
 
 - 当 Event 的 envelope signature 由 applet / delegated agent key 签发但 `actor_id` 指向 native principal DID 时（即 actor_id ≠ signing key 所属 DID），reducer MUST 校验：
   1. `executed_by` 必填，指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致;
-  2. `authorization_ref` 必填，指向已 accepted 的 `cx.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
+  2. `authorization_ref` 必填，指向已 accepted 的 `ck.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
   3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet;
   4. grant constraint MUST 绑定 `applet_id`、`executed_by` DID、`executed_by` DID Document epoch 证据和 registration epoch hash。对支持版本化的 DID method，epoch 证据 MUST 包含 method-specific version / log entry id；对**无版本化的 DID method（如部分 `did:web` 部署）**，grant MUST 绑定 service DID Document 的 **fetch-time digest**（canonical document hash）外加 **registration epoch hash**，reducer MUST 以 fetch-time digest 或 registration epoch 不匹配作为拒绝条件，不得因为 method 不提供显式版本号而豁免该绑定。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。
-- 缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时,reducer MUST `schema_violation` 拒绝。该规则适用于所有 `cx.profile.applet_*` profile,客户端 / SDK 不得退回到 SHOULD 形态。
+- 缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时,reducer MUST `schema_violation` 拒绝。该规则适用于所有 `ck.profile.applet_*` profile,客户端 / SDK 不得退回到 SHOULD 形态。
 
 Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示 `via applet`：UI 在渲染 mention、notification、audit log、moderation queue 等任何"who did this"上下文时,MUST 同时显示 native actor 与 `executed_by` 双重署名，不得仅显示 native actor 而隐藏 applet 身份。
 
@@ -607,9 +607,9 @@ Applet 参与 E2EE Realm 时有三种模式：
 - Bridge 到不支持 E2EE 的外部网络时，客户端 MUST 明确提示加密边界在 bridge 处终止。
 - Applet 托管 Ghost Actor MLS state 时，必须将其视为高敏感密钥材料。
 
-**E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `cx.flow.create` / `cx.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
+**E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `ck.flow.create` / `ck.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
 
-- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 authz service 签发（参照 §4 的 `applet_registration_unauthorized` 门槛），并落为可审计的 Cokret Event（如 `cx.member.state` 加入 effect 携带 applet provenance），不得仅凭 Applet 自身 Welcome 入组。
+- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 authz service 签发（参照 §4 的 `applet_registration_unauthorized` 门槛），并落为可审计的 Cokret Event（如 `ck.member.state` 加入 effect 携带 applet provenance），不得仅凭 Applet 自身 Welcome 入组。
 - 缺少该独立 E2EE 加入授权时，Cokret 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。
 - 成员加入后，客户端在 MLS group 的成员 roster（成员列表 UI 与 audit 视图）中 MUST 显式标注该成员为 **applet-managed**（区别于 native 人类成员），不得让 applet / ghost 成员在 roster 中表现为普通 native 成员。该标注与 §9 的 Ghost Actor 协议层可区分要求一致。
 
@@ -648,7 +648,7 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 
 ## 15. Conformance
 
-`cx.profile.applet_service.v1` MUST 测试：
+`ck.profile.applet_service.v1` MUST 测试：
 
 - registration signature
 - namespace matching
@@ -667,7 +667,7 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 - Namespace pattern grammar MUST 明确 actor、realm、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
 - Transaction schema MUST 包含 source network、external event id、mapped actor、target Realm、operation refs、`Idempotency-Key`、signature 和 received_at。
 - Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
-- Bridge error event 使用 `cx.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
+- Bridge error event 使用 `ck.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。
 - Applet UI widget sandbox MUST 与 Realm capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Cokret session token 或未授权 Event history access。该 sandbox 的字段与约束在 [§17 Applet UI Widget](#17-applet-ui-widget) 定义。
 

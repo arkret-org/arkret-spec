@@ -19,7 +19,7 @@
       "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.relation.v1"
+      "const": "ck.schema.relation.v1"
     },
     "realm_id": {
       "type": "string",
@@ -63,11 +63,11 @@
         "active",
         "tombstoned"
       ],
-      "description": "Relation state. 'tombstoned' covers both deletion and redaction; the originating reason is preserved on the cx.relation.tombstone / cx.redaction event, not on the materialized object."
+      "description": "Relation state. 'tombstoned' covers both deletion and redaction; the originating reason is preserved on the ck.relation.tombstone / ck.redaction event, not on the materialized object."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.relation.tombstone / redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ck.relation.tombstone / redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "created_by": {
       "$ref": "#/$defs/did"

@@ -37,7 +37,7 @@ Schema 约束：
 - default views
 - validation rules
 
-Schema 在 wire 上以 schema id（如 `cx.schema.flow.v1`、`cx.schema.message.v1`）引用。Schema 文件本身在 [`artifacts/schemas/`](../../artifacts/schemas/) 维护，schema registry 在 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/registry/schema-registry.json`。
+Schema 在 wire 上以 schema id（如 `ck.schema.flow.v1`、`ck.schema.message.v1`）引用。Schema 文件本身在 [`artifacts/schemas/`](../../artifacts/schemas/) 维护，schema registry 在 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/registry/schema-registry.json`。
 
 ### 2.2 Schema Evolution
 
@@ -57,8 +57,8 @@ Realm 通过 `schema_refs` 字段引用启用的 schema 集合。`policy` 既是
 
 Schema 引用的写入路径：
 
-- Realm create：通过 `cx.realm.create.payload.object.schema_refs` 设置初值。
-- Realm update：通过 `cx.realm.schema` state event 更新引用集合。
+- Realm create：通过 `ck.realm.create.payload.object.schema_refs` 设置初值。
+- Realm update：通过 `ck.realm.schema` state event 更新引用集合。
 - Morph：通过 `morph.schema_refs[]` 引用具体类型 schema（详见 [morph.md §4](./morph.md) 顺序 1）。
 
 ## 3. Policy
@@ -86,12 +86,12 @@ quota（速率 / 资源上限）不作为独立 `policy_type`，而是通过相�
 
 ### 3.2 Schema 与字段
 
-Schema id: `cx.schema.policy.v1`
+Schema id: `ck.schema.policy.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:policy` |  | Policy ID。 |
-| `schema` | yes | `cx.schema.policy.v1` |  | Schema ID。 |
+| `schema` | yes | `ck.schema.policy.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 组织级 policy 可省略。 | 适用 Realm。 |
 | `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
 | `rules` | yes | `array<PolicyRule>` | 每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。 | 策略规则。 |
@@ -118,16 +118,16 @@ Grant 体系总览、derivation chain、revocation 传播见 [`../authz/capabili
 
 ### 4.2 Schema 与字段
 
-Schema id: `cx.schema.capability.v1`
+Schema id: `ck.schema.capability.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:grant` | `ck:grant:<uuidv7>`；不得使用 `ck:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID。 |
-| `schema` | yes | `cx.schema.capability.v1` |  | Schema ID。 |
+| `schema` | yes | `ck.schema.capability.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
-| `actions` | yes | `array<string>` | 例如 `cx.flow.update`、`cx.message.create`。 | 允许动作。 |
+| `actions` | yes | `array<string>` | 例如 `ck.flow.update`、`ck.message.create`。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
 | `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 父授权。 |
@@ -141,7 +141,7 @@ Schema id: `cx.schema.capability.v1`
 
 ### 4.3 Capability 派生与 Realm 层级继承
 
-Realm link graph 中的 derived capability grant 通过 `cx.capability.derived` event 表达，必须满足 source grant、target Realm 的 `cx.realm.inheritance_policy`、`max_depth` 等约束，并在 source grant 被 revoke 时按因果传播失效。完整规则见 [`realm-links.md` §6](./realm-links.md) 与 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
+Realm link graph 中的 derived capability grant 通过 `ck.capability.derived` event 表达，必须满足 source grant、target Realm 的 `ck.realm.inheritance_policy`、`max_depth` 等约束，并在 source grant 被 revoke 时按因果传播失效。完整规则见 [`realm-links.md` §6](./realm-links.md) 与 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
 
 ## 5. Invite
 
@@ -151,12 +151,12 @@ Invite 是加入引导对象，**不等于 capability grant**。接受 invite �
 
 ### 5.2 Schema 与字段
 
-Schema id: `cx.schema.invite.v1`
+Schema id: `ck.schema.invite.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:invite` |  | Invite ID。 |
-| `schema` | yes | `cx.schema.invite.v1` |  | Schema ID。 |
+| `schema` | yes | `ck.schema.invite.v1` |  | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 目标 Realm。 |
 | `inviter` | yes | `did` | 必须持有 invite capability。 | 邀请者。 |
 | `invitee` | no | `did` | 3PID 邀请可为空。 | 被邀请 DID。 |

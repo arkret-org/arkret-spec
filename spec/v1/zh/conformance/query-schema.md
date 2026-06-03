@@ -28,7 +28,7 @@ updated: 2026-05-25
   "filters": [],
   "relation": null,
   "context": {
-    "event_kinds": ["cx.flow.update", "cx.message.create", "cx.relation.create"],
+    "event_kinds": ["ck.flow.update", "ck.message.create", "ck.relation.create"],
     "relation_kinds": ["contains", "assigned_to", "depends_on", "replies_to", "promoted_from_discussion"],
     "event_tiebreak": "event_id"
   },

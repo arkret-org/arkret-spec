@@ -93,7 +93,7 @@ Cokret 记录的是 **协作 Event**——授权状态、协作事实、E2EE han
 Event chain 可以由以下形态承载：
 
 - 用户设备上的本地 append-only log。
-- Principal Server 内置的 event store 与 `/events/*` API。
+- Principal Server 内置的 event store 与 `/_cokret/self/events/*` API。
 - 多个受控 storage replica 保存的只读副本。
 - Principal Server 在 DID Document 中声明的服务 endpoint。
 
@@ -120,9 +120,9 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 - Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 只可在 join / rebind 时作为 Realm policy 明确允许的 `did_document_default` 物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。组织 Principal Server 上存在同一 DID 的内部账号，MUST NOT 自动获得该 DID 的其它 Realm 或个人上下文投递权。
 - 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Realm policy 中声明为 `plaintext_visible_services`。
 - `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，MUST NOT 单独作为明文授权依据。
-- 修改 `plaintext_visible_services` 的事件必须经 `cx.realm.plaintext_visible_services` 授权；普通 `cx.realm.update` 或服务自声明 MUST NOT 隐式扩大明文可见边界。
+- 修改 `plaintext_visible_services` 的事件必须经 `ck.realm.plaintext_visible_services` 授权；普通 `ck.realm.update` 或服务自声明 MUST NOT 隐式扩大明文可见边界。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
-- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `cx.realm.preview_policy` 或等价 export policy 约束。
+- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ck.realm.preview_policy` 或等价 export policy 约束。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.4 Client Query / Projection
@@ -199,7 +199,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 - Auth / Account Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 
-某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /api/v1/server/describe`、`supported_operations`、conformance profile 和 Realm policy 共同声明。
+某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /_cokret/describe`、`supported_operations`、conformance profile 和 Realm policy 共同声明。
 
 ## 3. 架构平面（Architectural Planes）
 
@@ -541,7 +541,7 @@ Cokret v1 固定以下方向：
 
 ## 9. 可落地性要求
 
-Cokret v1 不允许实现用单一“万能服务”隐藏协议边界。任何声称支持 `cx.profile.principal_server.v1` 或 `cx.profile.full_client.v1` 的实现 MUST 满足以下要求：
+Cokret v1 不允许实现用单一“万能服务”隐藏协议边界。任何声称支持 `ck.profile.principal_server.v1` 或 `ck.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `conformance-vectors.md` 执行。
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。

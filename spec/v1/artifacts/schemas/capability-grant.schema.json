@@ -18,7 +18,7 @@
       "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.capability.v1"
+      "const": "ck.schema.capability.v1"
     },
     "realm_id": {
       "type": "string",
@@ -56,8 +56,8 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-        "description": "Canonical action vocabulary. MUST be of the form cx.<segment>.<segment>... matching capabilities.md §5. Bare names without the cx. prefix are not permitted; consult capabilities.md before introducing new action names. Wildcards within a segment are not permitted in this schema; the resource selector controls scope, not action expansion."
+        "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+        "description": "Canonical action vocabulary. MUST be of the form ck.<segment>.<segment>... matching capabilities.md §5. Bare names without the ck. prefix are not permitted; consult capabilities.md before introducing new action names. Wildcards within a segment are not permitted in this schema; the resource selector controls scope, not action expansion."
       },
       "minItems": 1
     },
@@ -134,9 +134,9 @@
             "contains": {
               "type": "string",
               "enum": [
-                "cx.moderation.decision",
-                "cx.moderation.decision.lift",
-                "cx.realm.moderation_policy"
+                "ck.moderation.decision",
+                "ck.moderation.decision.lift",
+                "ck.realm.moderation_policy"
               ]
             }
           }

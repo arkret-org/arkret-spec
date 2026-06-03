@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/event-envelope.schema.json",
   "title": "Cokret Event Envelope",
-  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) carry top-level preconditions / effects / anchor_ref; non-reducer events (read cursor, batch receipts, range completeness, audit RYW, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.event_digest is the hash of canonical event bytes minus proofs and unsigned; detached_jws signs the canonical proof binding object that includes event_digest, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (cx.presence, cx.typing, cx.receipt.read, cx.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Anchor frontier, Move state_root, or reducer state). Likewise cx.key.verification.* kinds use device-message.schema.json on the point-to-point to-device channel. cx.events.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §3.6 (wire-scope reject rule).",
+  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) carry top-level preconditions / effects / anchor_ref; non-reducer events (read cursor, batch receipts, range completeness, audit RYW, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.event_digest is the hash of canonical event bytes minus proofs and unsigned; detached_jws signs the canonical proof binding object that includes event_digest, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (ck.presence, ck.typing, ck.receipt.read, ck.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Anchor frontier, Move state_root, or reducer state). Likewise ck.key.verification.* kinds use device-message.schema.json on the point-to-point to-device channel. ck.events.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §3.6 (wire-scope reject rule).",
   "type": "object",
   "required": [
     "event_id",
@@ -23,8 +23,8 @@
     },
     "kind": {
       "type": "string",
-      "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-      "description": "Standard cx.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by event preconditions/effects, Anchor DAG finality, and per-cell Lattice join."
+      "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+      "description": "Standard ck.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by event preconditions/effects, Anchor DAG finality, and per-cell Lattice join."
     },
     "realm_id": {
       "type": "string",
@@ -76,7 +76,7 @@
     },
     "refs": {
       "type": "array",
-      "description": "Semantic refs with role. Roles include: authorized_by (replaces v1's auth_refs[]), attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its cx.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1.",
+      "description": "Semantic refs with role. Roles include: authorized_by (replaces v1's auth_refs[]), attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ck.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1.",
       "maxItems": 128,
       "items": {
         "$ref": "#/$defs/semantic_ref"
@@ -168,17 +168,17 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.account.blocklist",
-              "cx.account_data.set",
-              "cx.agent.action_approve",
-              "cx.agent.action_reject",
-              "cx.agent.action_request",
-              "cx.agent.draft.propose",
-              "cx.attestation.range_completeness",
-              "cx.audit.ryw_receipt",
-              "cx.circle.anchor_commit",
-              "cx.device.push_route",
-              "cx.read_cursor.advance"
+              "ck.account.blocklist",
+              "ck.account_data.set",
+              "ck.agent.action_approve",
+              "ck.agent.action_reject",
+              "ck.agent.action_request",
+              "ck.agent.draft.propose",
+              "ck.attestation.range_completeness",
+              "ck.audit.ryw_receipt",
+              "ck.circle.anchor_commit",
+              "ck.device.push_route",
+              "ck.read_cursor.advance"
             ]
           }
         },
@@ -196,7 +196,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.read_cursor.advance" } },
+        "properties": { "kind": { "const": "ck.read_cursor.advance" } },
         "required": ["kind"]
       },
       "then": {
@@ -205,7 +205,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.account_data.set" } },
+        "properties": { "kind": { "const": "ck.account_data.set" } },
         "required": ["kind"]
       },
       "then": {
@@ -214,7 +214,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.account.blocklist" } },
+        "properties": { "kind": { "const": "ck.account.blocklist" } },
         "required": ["kind"]
       },
       "then": {
@@ -222,23 +222,23 @@
       }
     },
     {
-      "$comment": "Wire-scope boundary (normative, T02). Kinds with wire_scope=ephemeral_event in event-kind-registry.json MUST NOT appear in the durable Event Envelope. They use ephemeral-envelope.schema.json (broadcast: presence/typing/receipt/call.signal) or device-message.schema.json (point-to-point to-device: cx.key.verification.*). cx.events.submit MUST schema_violation on any wire bytes matching this enum; reducer/state path MUST NOT advance Anchor frontier or actor_seq for these kinds.",
+      "$comment": "Wire-scope boundary (normative, T02). Kinds with wire_scope=ephemeral_event in event-kind-registry.json MUST NOT appear in the durable Event Envelope. They use ephemeral-envelope.schema.json (broadcast: presence/typing/receipt/call.signal) or device-message.schema.json (point-to-point to-device: ck.key.verification.*). ck.events.submit MUST schema_violation on any wire bytes matching this enum; reducer/state path MUST NOT advance Anchor frontier or actor_seq for these kinds.",
       "not": {
         "properties": {
           "kind": {
             "enum": [
-              "cx.call.signal",
-              "cx.presence",
-              "cx.typing",
-              "cx.receipt.read",
-              "cx.key.verification.request",
-              "cx.key.verification.ready",
-              "cx.key.verification.start",
-              "cx.key.verification.accept",
-              "cx.key.verification.key",
-              "cx.key.verification.mac",
-              "cx.key.verification.done",
-              "cx.key.verification.cancel"
+              "ck.call.signal",
+              "ck.presence",
+              "ck.typing",
+              "ck.receipt.read",
+              "ck.key.verification.request",
+              "ck.key.verification.ready",
+              "ck.key.verification.start",
+              "ck.key.verification.accept",
+              "ck.key.verification.key",
+              "ck.key.verification.mac",
+              "ck.key.verification.done",
+              "ck.key.verification.cancel"
             ]
           }
         },
@@ -251,148 +251,148 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.account.status",
-              "cx.actor.discovery",
-              "cx.agent.deactivate",
-              "cx.agent.endpoint",
-              "cx.agent.pause",
-              "cx.agent.protocol_session.result",
-              "cx.agent.protocol_session.start",
-              "cx.agent.protocol_session.status",
-              "cx.agent.resume",
-              "cx.applet.bridge_error",
-              "cx.applet.discovery",
-              "cx.applet.protocol_session.start",
-              "cx.applet.protocol_session.status",
-              "cx.applet.registration",
-              "cx.audit.accessed",
-              "cx.audit.erasure_receipt",
-              "cx.audit.epoch_key_destruction",
-              "cx.call.recording.start",
-              "cx.call.state",
-              "cx.capability.delegate",
-              "cx.capability.derived",
-              "cx.capability.grant",
-              "cx.capability.revoke",
-              "cx.circle.archive",
-              "cx.circle.create",
-              "cx.circle.member.state",
-              "cx.circle.restore",
-              "cx.circle.tombstone",
-              "cx.circle.update",
-              "cx.consent.grant",
-              "cx.consent.revoke",
-              "cx.container.move_item",
-              "cx.container.rebalance",
-              "cx.cross_signing.publish",
-              "cx.cross_signing.reset",
-              "cx.device.authorize",
-              "cx.device.list_update",
-              "cx.device.revoke",
-              "cx.did.proof",
-              "cx.flow.archive",
-              "cx.flow.create",
-              "cx.flow.move",
-              "cx.flow.reorder",
-              "cx.flow.restore",
-              "cx.flow.stage.set",
-              "cx.flow.tracks.update",
-              "cx.flow.update",
-              "cx.flow.watch.set",
-              "cx.handle.discovery",
-              "cx.identity.accountability_grant",
-              "cx.identity.disclosure_policy",
-              "cx.identity.disclosure_receipt",
-              "cx.identity.presentation_request",
-              "cx.identity.presentation_response",
-              "cx.invite.accept",
-              "cx.invite.cancel",
-              "cx.invite.claim",
-              "cx.invite.create",
-              "cx.invite.revoke",
-              "cx.invite.third_party",
-              "cx.member.identity.update",
-              "cx.member.state",
-              "cx.message.create",
-              "cx.message.redact",
-              "cx.message.revise",
-              "cx.mimi.room_binding",
-              "cx.mls.commit",
-              "cx.mls.commit_failed",
-              "cx.mls.genesis",
-              "cx.mls.keypackage",
-              "cx.mls.proposal",
-              "cx.mls.welcome",
-              "cx.moderation.appeal.close",
-              "cx.moderation.appeal.decision",
-              "cx.moderation.appeal.review",
-              "cx.moderation.appeal.submit",
-              "cx.moderation.decision",
-              "cx.moderation.decision.lift",
-              "cx.moderation.franking_proof",
-              "cx.moderation.report",
-              "cx.morph.archive",
-              "cx.morph.create",
-              "cx.morph.restore",
-              "cx.morph.schema_migrate",
-              "cx.morph.stage.set",
-              "cx.morph.update",
-              "cx.organization.discovery",
-              "cx.organization.moderation_policy",
-              "cx.space.archive",
-              "cx.space.create",
-              "cx.space.parent",
-              "cx.space.restore",
-              "cx.space.tombstone",
-              "cx.space.update",
-              "cx.policy.action",
-              "cx.policy.rule",
-              "cx.policy.set",
-              "cx.profile.create",
-              "cx.profile.space_override",
-              "cx.profile.update",
-              "cx.reaction.add",
-              "cx.reaction.remove",
-              "cx.redaction",
-              "cx.relation.create",
-              "cx.relation.tombstone",
-              "cx.relation.update",
-              "cx.schema.define",
-              "cx.schema.update",
-              "cx.session.grant",
-              "cx.sovereign.did_policy",
-              "cx.realm.archive",
-              "cx.realm.asset_privacy_policy",
-              "cx.realm.audit_policy_downgrade",
-              "cx.realm.link",
-              "cx.realm.create",
-              "cx.realm.delivery_binding_policy",
-              "cx.realm.destroy",
-              "cx.realm.discovery",
-              "cx.realm.freeze",
-              "cx.realm.history_sharing_policy",
-              "cx.realm.history_visibility",
-              "cx.realm.inheritance_policy",
-              "cx.realm.join_rule",
-              "cx.realm.media_service",
-              "cx.realm.moderation_policy",
-              "cx.realm.organization",
-              "cx.realm.plaintext_visible_services",
-              "cx.realm.preview_policy",
-              "cx.realm.policy",
-              "cx.realm.policy_components",
-              "cx.realm.policy_server",
-              "cx.realm.read_receipt_policy",
-              "cx.realm.schema",
-              "cx.realm.tombstone",
-              "cx.realm.update",
-              "cx.realm.upgrade",
-              "cx.realm_key.share",
-              "cx.realm_key.share_audit",
-              "cx.realm_key.withheld",
-              "cx.view.create",
-              "cx.view.reconcile",
-              "cx.view.update"
+              "ck.account.status",
+              "ck.actor.discovery",
+              "ck.agent.deactivate",
+              "ck.agent.endpoint",
+              "ck.agent.pause",
+              "ck.agent.protocol_session.result",
+              "ck.agent.protocol_session.start",
+              "ck.agent.protocol_session.status",
+              "ck.agent.resume",
+              "ck.applet.bridge_error",
+              "ck.applet.discovery",
+              "ck.applet.protocol_session.start",
+              "ck.applet.protocol_session.status",
+              "ck.applet.registration",
+              "ck.audit.accessed",
+              "ck.audit.erasure_receipt",
+              "ck.audit.epoch_key_destruction",
+              "ck.call.recording.start",
+              "ck.call.state",
+              "ck.capability.delegate",
+              "ck.capability.derived",
+              "ck.capability.grant",
+              "ck.capability.revoke",
+              "ck.circle.archive",
+              "ck.circle.create",
+              "ck.circle.member.state",
+              "ck.circle.restore",
+              "ck.circle.tombstone",
+              "ck.circle.update",
+              "ck.consent.grant",
+              "ck.consent.revoke",
+              "ck.container.move_item",
+              "ck.container.rebalance",
+              "ck.cross_signing.publish",
+              "ck.cross_signing.reset",
+              "ck.device.authorize",
+              "ck.device.list_update",
+              "ck.device.revoke",
+              "ck.did.proof",
+              "ck.flow.archive",
+              "ck.flow.create",
+              "ck.flow.move",
+              "ck.flow.reorder",
+              "ck.flow.restore",
+              "ck.flow.stage.set",
+              "ck.flow.tracks.update",
+              "ck.flow.update",
+              "ck.flow.watch.set",
+              "ck.handle.discovery",
+              "ck.identity.accountability_grant",
+              "ck.identity.disclosure_policy",
+              "ck.identity.disclosure_receipt",
+              "ck.identity.presentation_request",
+              "ck.identity.presentation_response",
+              "ck.invite.accept",
+              "ck.invite.cancel",
+              "ck.invite.claim",
+              "ck.invite.create",
+              "ck.invite.revoke",
+              "ck.invite.third_party",
+              "ck.member.identity.update",
+              "ck.member.state",
+              "ck.message.create",
+              "ck.message.redact",
+              "ck.message.revise",
+              "ck.mimi.room_binding",
+              "ck.mls.commit",
+              "ck.mls.commit_failed",
+              "ck.mls.genesis",
+              "ck.mls.keypackage",
+              "ck.mls.proposal",
+              "ck.mls.welcome",
+              "ck.moderation.appeal.close",
+              "ck.moderation.appeal.decision",
+              "ck.moderation.appeal.review",
+              "ck.moderation.appeal.submit",
+              "ck.moderation.decision",
+              "ck.moderation.decision.lift",
+              "ck.moderation.franking_proof",
+              "ck.moderation.report",
+              "ck.morph.archive",
+              "ck.morph.create",
+              "ck.morph.restore",
+              "ck.morph.schema_migrate",
+              "ck.morph.stage.set",
+              "ck.morph.update",
+              "ck.organization.discovery",
+              "ck.organization.moderation_policy",
+              "ck.space.archive",
+              "ck.space.create",
+              "ck.space.parent",
+              "ck.space.restore",
+              "ck.space.tombstone",
+              "ck.space.update",
+              "ck.policy.action",
+              "ck.policy.rule",
+              "ck.policy.set",
+              "ck.profile.create",
+              "ck.profile.space_override",
+              "ck.profile.update",
+              "ck.reaction.add",
+              "ck.reaction.remove",
+              "ck.redaction",
+              "ck.relation.create",
+              "ck.relation.tombstone",
+              "ck.relation.update",
+              "ck.schema.define",
+              "ck.schema.update",
+              "ck.session.grant",
+              "ck.sovereign.did_policy",
+              "ck.realm.archive",
+              "ck.realm.asset_privacy_policy",
+              "ck.realm.audit_policy_downgrade",
+              "ck.realm.link",
+              "ck.realm.create",
+              "ck.realm.delivery_binding_policy",
+              "ck.realm.destroy",
+              "ck.realm.discovery",
+              "ck.realm.freeze",
+              "ck.realm.history_sharing_policy",
+              "ck.realm.history_visibility",
+              "ck.realm.inheritance_policy",
+              "ck.realm.join_rule",
+              "ck.realm.media_service",
+              "ck.realm.moderation_policy",
+              "ck.realm.organization",
+              "ck.realm.plaintext_visible_services",
+              "ck.realm.preview_policy",
+              "ck.realm.policy",
+              "ck.realm.policy_components",
+              "ck.realm.policy_server",
+              "ck.realm.read_receipt_policy",
+              "ck.realm.schema",
+              "ck.realm.tombstone",
+              "ck.realm.update",
+              "ck.realm.upgrade",
+              "ck.realm_key.share",
+              "ck.realm_key.share_audit",
+              "ck.realm_key.withheld",
+              "ck.view.create",
+              "ck.view.reconcile",
+              "ck.view.update"
             ]
           }
         },
@@ -462,7 +462,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.move" } },
+        "properties": { "kind": { "const": "ck.flow.move" } },
         "required": ["kind"]
       },
       "then": {
@@ -472,7 +472,7 @@
     {
       "if": {
         "properties": {
-          "kind": { "const": "cx.audit.erasure_receipt" }
+          "kind": { "const": "ck.audit.erasure_receipt" }
         },
         "required": ["kind"]
       },
@@ -485,11 +485,11 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.space.create",
-              "cx.space.parent",
-              "cx.space.archive",
-              "cx.space.restore",
-              "cx.space.tombstone"
+              "ck.space.create",
+              "ck.space.parent",
+              "ck.space.archive",
+              "ck.space.restore",
+              "ck.space.tombstone"
             ]
           }
         },
@@ -501,7 +501,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.update" } },
+        "properties": { "kind": { "const": "ck.space.update" } },
         "required": ["kind"]
       },
       "then": {
@@ -513,8 +513,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.space.archive",
-              "cx.space.restore"
+              "ck.space.archive",
+              "ck.space.restore"
             ]
           }
         },
@@ -526,7 +526,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.tombstone" } },
+        "properties": { "kind": { "const": "ck.space.tombstone" } },
         "required": ["kind"]
       },
       "then": {
@@ -535,7 +535,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.reorder" } },
+        "properties": { "kind": { "const": "ck.flow.reorder" } },
         "required": ["kind"]
       },
       "then": {
@@ -544,7 +544,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.watch.set" } },
+        "properties": { "kind": { "const": "ck.flow.watch.set" } },
         "required": ["kind"]
       },
       "then": {
@@ -553,7 +553,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.member.state" } },
+        "properties": { "kind": { "const": "ck.member.state" } },
         "required": ["kind"]
       },
       "then": {
@@ -562,7 +562,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.member.identity.update" } },
+        "properties": { "kind": { "const": "ck.member.identity.update" } },
         "required": ["kind"]
       },
       "then": {
@@ -571,7 +571,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.plaintext_visible_services" } },
+        "properties": { "kind": { "const": "ck.realm.plaintext_visible_services" } },
         "required": ["kind"]
       },
       "then": {
@@ -580,7 +580,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.preview_policy" } },
+        "properties": { "kind": { "const": "ck.realm.preview_policy" } },
         "required": ["kind"]
       },
       "then": {
@@ -589,7 +589,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.history_visibility" } },
+        "properties": { "kind": { "const": "ck.realm.history_visibility" } },
         "required": ["kind"]
       },
       "then": {
@@ -598,7 +598,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.history_sharing_policy" } },
+        "properties": { "kind": { "const": "ck.realm.history_sharing_policy" } },
         "required": ["kind"]
       },
       "then": {
@@ -607,7 +607,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.create" } },
+        "properties": { "kind": { "const": "ck.realm.create" } },
         "required": ["kind"]
       },
       "then": {
@@ -616,7 +616,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.create" } },
+        "properties": { "kind": { "const": "ck.space.create" } },
         "required": ["kind"]
       },
       "then": {
@@ -625,7 +625,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.create" } },
+        "properties": { "kind": { "const": "ck.flow.create" } },
         "required": ["kind"]
       },
       "then": {
@@ -634,7 +634,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.circle.create" } },
+        "properties": { "kind": { "const": "ck.circle.create" } },
         "required": ["kind"]
       },
       "then": {
@@ -643,7 +643,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.morph.create" } },
+        "properties": { "kind": { "const": "ck.morph.create" } },
         "required": ["kind"]
       },
       "then": {
@@ -652,7 +652,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.morph.schema_migrate" } },
+        "properties": { "kind": { "const": "ck.morph.schema_migrate" } },
         "required": ["kind"]
       },
       "then": {
@@ -661,7 +661,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.stage.set" } },
+        "properties": { "kind": { "const": "ck.flow.stage.set" } },
         "required": ["kind"]
       },
       "then": {
@@ -670,7 +670,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.morph.stage.set" } },
+        "properties": { "kind": { "const": "ck.morph.stage.set" } },
         "required": ["kind"]
       },
       "then": {
@@ -682,9 +682,9 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.realm.update",
-              "cx.morph.update",
-              "cx.profile.update"
+              "ck.realm.update",
+              "ck.morph.update",
+              "ck.profile.update"
             ]
           }
         },
@@ -696,7 +696,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.circle.update" } },
+        "properties": { "kind": { "const": "ck.circle.update" } },
         "required": ["kind"]
       },
       "then": {
@@ -705,7 +705,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.profile.space_override" } },
+        "properties": { "kind": { "const": "ck.profile.space_override" } },
         "required": ["kind"]
       },
       "then": {
@@ -717,8 +717,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.flow.update",
-              "cx.flow.tracks.update"
+              "ck.flow.update",
+              "ck.flow.tracks.update"
             ]
           }
         },
@@ -730,7 +730,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.profile.create" } },
+        "properties": { "kind": { "const": "ck.profile.create" } },
         "required": ["kind"]
       },
       "then": {
@@ -739,7 +739,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.inheritance_policy" } },
+        "properties": { "kind": { "const": "ck.realm.inheritance_policy" } },
         "required": ["kind"]
       },
       "then": {
@@ -748,7 +748,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.archive" } },
+        "properties": { "kind": { "const": "ck.realm.archive" } },
         "required": ["kind"]
       },
       "then": {
@@ -757,7 +757,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.freeze" } },
+        "properties": { "kind": { "const": "ck.realm.freeze" } },
         "required": ["kind"]
       },
       "then": {
@@ -766,7 +766,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.tombstone" } },
+        "properties": { "kind": { "const": "ck.realm.tombstone" } },
         "required": ["kind"]
       },
       "then": {
@@ -775,7 +775,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.destroy" } },
+        "properties": { "kind": { "const": "ck.realm.destroy" } },
         "required": ["kind"]
       },
       "then": {
@@ -784,7 +784,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.link" } },
+        "properties": { "kind": { "const": "ck.realm.link" } },
         "required": ["kind"]
       },
       "then": {
@@ -793,7 +793,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.parent" } },
+        "properties": { "kind": { "const": "ck.space.parent" } },
         "required": ["kind"]
       },
       "then": {
@@ -805,19 +805,19 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.realm.policy",
-              "cx.realm.join_rule",
-              "cx.realm.history_visibility",
-              "cx.realm.discovery",
-              "cx.realm.policy_server",
-              "cx.realm.policy_components",
-              "cx.realm.delivery_binding_policy",
-              "cx.realm.history_sharing_policy",
-              "cx.realm.asset_privacy_policy",
-              "cx.realm.read_receipt_policy",
-              "cx.realm.moderation_policy",
-              "cx.realm.media_service",
-              "cx.realm.schema"
+              "ck.realm.policy",
+              "ck.realm.join_rule",
+              "ck.realm.history_visibility",
+              "ck.realm.discovery",
+              "ck.realm.policy_server",
+              "ck.realm.policy_components",
+              "ck.realm.delivery_binding_policy",
+              "ck.realm.history_sharing_policy",
+              "ck.realm.asset_privacy_policy",
+              "ck.realm.read_receipt_policy",
+              "ck.realm.moderation_policy",
+              "ck.realm.media_service",
+              "ck.realm.schema"
             ]
           }
         },
@@ -832,26 +832,26 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.realm.upgrade",
-              "cx.realm.organization",
-              "cx.realm.link",
-              "cx.organization.discovery",
-              "cx.actor.discovery",
-              "cx.applet.discovery",
-              "cx.handle.discovery",
-              "cx.organization.moderation_policy",
-              "cx.did.proof",
-              "cx.identity.disclosure_policy",
-              "cx.identity.disclosure_receipt",
-              "cx.identity.presentation_request",
-              "cx.identity.presentation_response",
-              "cx.identity.accountability_grant",
-              "cx.schema.define",
-              "cx.schema.update",
-              "cx.policy.set",
-              "cx.policy.rule",
-              "cx.policy.action",
-              "cx.sovereign.did_policy"
+              "ck.realm.upgrade",
+              "ck.realm.organization",
+              "ck.realm.link",
+              "ck.organization.discovery",
+              "ck.actor.discovery",
+              "ck.applet.discovery",
+              "ck.handle.discovery",
+              "ck.organization.moderation_policy",
+              "ck.did.proof",
+              "ck.identity.disclosure_policy",
+              "ck.identity.disclosure_receipt",
+              "ck.identity.presentation_request",
+              "ck.identity.presentation_response",
+              "ck.identity.accountability_grant",
+              "ck.schema.define",
+              "ck.schema.update",
+              "ck.policy.set",
+              "ck.policy.rule",
+              "ck.policy.action",
+              "ck.sovereign.did_policy"
             ]
           }
         },
@@ -866,13 +866,13 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.flow.archive",
-              "cx.flow.restore",
-              "cx.circle.archive",
-              "cx.circle.restore",
-              "cx.circle.tombstone",
-              "cx.morph.archive",
-              "cx.morph.restore"
+              "ck.flow.archive",
+              "ck.flow.restore",
+              "ck.circle.archive",
+              "ck.circle.restore",
+              "ck.circle.tombstone",
+              "ck.morph.archive",
+              "ck.morph.restore"
             ]
           }
         },
@@ -884,7 +884,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.circle.member.state" } },
+        "properties": { "kind": { "const": "ck.circle.member.state" } },
         "required": ["kind"]
       },
       "then": {
@@ -893,7 +893,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.circle.anchor_commit" } },
+        "properties": { "kind": { "const": "ck.circle.anchor_commit" } },
         "required": ["kind"]
       },
       "then": {
@@ -902,7 +902,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.message.create" } },
+        "properties": { "kind": { "const": "ck.message.create" } },
         "required": ["kind"]
       },
       "then": {
@@ -911,7 +911,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.message.revise" } },
+        "properties": { "kind": { "const": "ck.message.revise" } },
         "required": ["kind"]
       },
       "then": {
@@ -923,8 +923,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.message.redact",
-              "cx.redaction"
+              "ck.message.redact",
+              "ck.redaction"
             ]
           }
         },
@@ -936,7 +936,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm.read_receipt_policy" } },
+        "properties": { "kind": { "const": "ck.realm.read_receipt_policy" } },
         "required": ["kind"]
       },
       "then": {
@@ -948,8 +948,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.reaction.add",
-              "cx.reaction.remove"
+              "ck.reaction.add",
+              "ck.reaction.remove"
             ]
           }
         },
@@ -961,7 +961,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.relation.create" } },
+        "properties": { "kind": { "const": "ck.relation.create" } },
         "required": ["kind"]
       },
       "then": {
@@ -973,8 +973,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.relation.update",
-              "cx.relation.tombstone"
+              "ck.relation.update",
+              "ck.relation.tombstone"
             ]
           }
         },
@@ -989,8 +989,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.container.move_item",
-              "cx.container.rebalance"
+              "ck.container.move_item",
+              "ck.container.rebalance"
             ]
           }
         },
@@ -1005,9 +1005,9 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.view.create",
-              "cx.view.update",
-              "cx.view.reconcile"
+              "ck.view.create",
+              "ck.view.update",
+              "ck.view.reconcile"
             ]
           }
         },
@@ -1019,7 +1019,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.endpoint" } },
+        "properties": { "kind": { "const": "ck.agent.endpoint" } },
         "required": ["kind"]
       },
       "then": {
@@ -1028,7 +1028,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.protocol_session.start" } },
+        "properties": { "kind": { "const": "ck.agent.protocol_session.start" } },
         "required": ["kind"]
       },
       "then": {
@@ -1037,7 +1037,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.protocol_session.status" } },
+        "properties": { "kind": { "const": "ck.agent.protocol_session.status" } },
         "required": ["kind"]
       },
       "then": {
@@ -1046,7 +1046,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.protocol_session.result" } },
+        "properties": { "kind": { "const": "ck.agent.protocol_session.result" } },
         "required": ["kind"]
       },
       "then": {
@@ -1055,7 +1055,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.key.authorize" } },
+        "properties": { "kind": { "const": "ck.agent.key.authorize" } },
         "required": ["kind"]
       },
       "then": {
@@ -1064,7 +1064,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.key.revoke" } },
+        "properties": { "kind": { "const": "ck.agent.key.revoke" } },
         "required": ["kind"]
       },
       "then": {
@@ -1073,7 +1073,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.key.rotate" } },
+        "properties": { "kind": { "const": "ck.agent.key.rotate" } },
         "required": ["kind"]
       },
       "then": {
@@ -1082,7 +1082,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.pause" } },
+        "properties": { "kind": { "const": "ck.agent.pause" } },
         "required": ["kind"]
       },
       "then": {
@@ -1091,7 +1091,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.resume" } },
+        "properties": { "kind": { "const": "ck.agent.resume" } },
         "required": ["kind"]
       },
       "then": {
@@ -1100,7 +1100,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.deactivate" } },
+        "properties": { "kind": { "const": "ck.agent.deactivate" } },
         "required": ["kind"]
       },
       "then": {
@@ -1109,7 +1109,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.draft.propose" } },
+        "properties": { "kind": { "const": "ck.agent.draft.propose" } },
         "required": ["kind"]
       },
       "then": {
@@ -1118,7 +1118,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.action_request" } },
+        "properties": { "kind": { "const": "ck.agent.action_request" } },
         "required": ["kind"]
       },
       "then": {
@@ -1127,7 +1127,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.action_approve" } },
+        "properties": { "kind": { "const": "ck.agent.action_approve" } },
         "required": ["kind"]
       },
       "then": {
@@ -1136,7 +1136,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.agent.action_reject" } },
+        "properties": { "kind": { "const": "ck.agent.action_reject" } },
         "required": ["kind"]
       },
       "then": {
@@ -1148,9 +1148,9 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.capability.grant",
-              "cx.capability.delegate",
-              "cx.capability.derived"
+              "ck.capability.grant",
+              "ck.capability.delegate",
+              "ck.capability.derived"
             ]
           }
         },
@@ -1162,7 +1162,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.capability.revoke" } },
+        "properties": { "kind": { "const": "ck.capability.revoke" } },
         "required": ["kind"]
       },
       "then": {
@@ -1174,12 +1174,12 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.invite.create",
-              "cx.invite.cancel",
-              "cx.invite.accept",
-              "cx.invite.third_party",
-              "cx.invite.claim",
-              "cx.invite.revoke"
+              "ck.invite.create",
+              "ck.invite.cancel",
+              "ck.invite.accept",
+              "ck.invite.third_party",
+              "ck.invite.claim",
+              "ck.invite.revoke"
             ]
           }
         },
@@ -1194,8 +1194,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.invite.create",
-              "cx.invite.third_party"
+              "ck.invite.create",
+              "ck.invite.third_party"
             ]
           }
         },
@@ -1222,7 +1222,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.device.authorize" } },
+        "properties": { "kind": { "const": "ck.device.authorize" } },
         "required": ["kind"]
       },
       "then": {
@@ -1231,7 +1231,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.account.status" } },
+        "properties": { "kind": { "const": "ck.account.status" } },
         "required": ["kind"]
       },
       "then": {
@@ -1240,7 +1240,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.session.grant" } },
+        "properties": { "kind": { "const": "ck.session.grant" } },
         "required": ["kind"]
       },
       "then": {
@@ -1249,7 +1249,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.consent.grant" } },
+        "properties": { "kind": { "const": "ck.consent.grant" } },
         "required": ["kind"]
       },
       "then": {
@@ -1258,7 +1258,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.consent.revoke" } },
+        "properties": { "kind": { "const": "ck.consent.revoke" } },
         "required": ["kind"]
       },
       "then": {
@@ -1267,7 +1267,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.device.revoke" } },
+        "properties": { "kind": { "const": "ck.device.revoke" } },
         "required": ["kind"]
       },
       "then": {
@@ -1276,7 +1276,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.device.push_route" } },
+        "properties": { "kind": { "const": "ck.device.push_route" } },
         "required": ["kind"]
       },
       "then": {
@@ -1285,7 +1285,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.device.list_update" } },
+        "properties": { "kind": { "const": "ck.device.list_update" } },
         "required": ["kind"]
       },
       "then": {
@@ -1294,7 +1294,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.cross_signing.publish" } },
+        "properties": { "kind": { "const": "ck.cross_signing.publish" } },
         "required": ["kind"]
       },
       "then": {
@@ -1303,7 +1303,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.cross_signing.reset" } },
+        "properties": { "kind": { "const": "ck.cross_signing.reset" } },
         "required": ["kind"]
       },
       "then": {
@@ -1312,7 +1312,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.mls.proposal" } },
+        "properties": { "kind": { "const": "ck.mls.proposal" } },
         "required": ["kind"]
       },
       "then": {
@@ -1321,7 +1321,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.mls.genesis" } },
+        "properties": { "kind": { "const": "ck.mls.genesis" } },
         "required": ["kind"]
       },
       "then": {
@@ -1330,7 +1330,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.mls.welcome" } },
+        "properties": { "kind": { "const": "ck.mls.welcome" } },
         "required": ["kind"]
       },
       "then": {
@@ -1339,7 +1339,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.mls.keypackage" } },
+        "properties": { "kind": { "const": "ck.mls.keypackage" } },
         "required": ["kind"]
       },
       "then": {
@@ -1348,7 +1348,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm_key.share" } },
+        "properties": { "kind": { "const": "ck.realm_key.share" } },
         "required": ["kind"]
       },
       "then": {
@@ -1357,7 +1357,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm_key.withheld" } },
+        "properties": { "kind": { "const": "ck.realm_key.withheld" } },
         "required": ["kind"]
       },
       "then": {
@@ -1366,7 +1366,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.realm_key.share_audit" } },
+        "properties": { "kind": { "const": "ck.realm_key.share_audit" } },
         "required": ["kind"]
       },
       "then": {
@@ -1375,7 +1375,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.mls.commit" } },
+        "properties": { "kind": { "const": "ck.mls.commit" } },
         "required": ["kind"]
       },
       "then": {
@@ -1384,7 +1384,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.mls.commit_failed" } },
+        "properties": { "kind": { "const": "ck.mls.commit_failed" } },
         "required": ["kind"]
       },
       "then": {
@@ -1393,7 +1393,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.moderation.report" } },
+        "properties": { "kind": { "const": "ck.moderation.report" } },
         "required": ["kind"]
       },
       "then": {
@@ -1402,7 +1402,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.moderation.appeal.submit" } },
+        "properties": { "kind": { "const": "ck.moderation.appeal.submit" } },
         "required": ["kind"]
       },
       "then": {
@@ -1411,7 +1411,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.moderation.appeal.review" } },
+        "properties": { "kind": { "const": "ck.moderation.appeal.review" } },
         "required": ["kind"]
       },
       "then": {
@@ -1420,7 +1420,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.moderation.appeal.decision" } },
+        "properties": { "kind": { "const": "ck.moderation.appeal.decision" } },
         "required": ["kind"]
       },
       "then": {
@@ -1429,7 +1429,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.moderation.appeal.close" } },
+        "properties": { "kind": { "const": "ck.moderation.appeal.close" } },
         "required": ["kind"]
       },
       "then": {
@@ -1438,7 +1438,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.moderation.decision" } },
+        "properties": { "kind": { "const": "ck.moderation.decision" } },
         "required": ["kind"]
       },
       "then": {
@@ -1447,7 +1447,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.moderation.decision.lift" } },
+        "properties": { "kind": { "const": "ck.moderation.decision.lift" } },
         "required": ["kind"]
       },
       "then": {
@@ -1457,7 +1457,7 @@
     {
       "if": {
         "properties": {
-          "kind": { "const": "cx.audit.accessed" }
+          "kind": { "const": "ck.audit.accessed" }
         },
         "required": ["kind"]
       },
@@ -1470,11 +1470,11 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.audit.ryw_receipt",
-              "cx.audit.epoch_key_destruction",
-              "cx.realm.audit_policy_downgrade",
-              "cx.moderation.franking_proof",
-              "cx.attestation.range_completeness"
+              "ck.audit.ryw_receipt",
+              "ck.audit.epoch_key_destruction",
+              "ck.realm.audit_policy_downgrade",
+              "ck.moderation.franking_proof",
+              "ck.attestation.range_completeness"
             ]
           }
         },
@@ -1489,8 +1489,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.call.state",
-              "cx.call.recording.start"
+              "ck.call.state",
+              "ck.call.recording.start"
             ]
           }
         },
@@ -1502,7 +1502,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.mimi.room_binding" } },
+        "properties": { "kind": { "const": "ck.mimi.room_binding" } },
         "required": ["kind"]
       },
       "then": {
@@ -1511,7 +1511,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.applet.bridge_error" } },
+        "properties": { "kind": { "const": "ck.applet.bridge_error" } },
         "required": ["kind"]
       },
       "then": {
@@ -1520,7 +1520,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.applet.registration" } },
+        "properties": { "kind": { "const": "ck.applet.registration" } },
         "required": ["kind"]
       },
       "then": {
@@ -1529,7 +1529,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.applet.protocol_session.start" } },
+        "properties": { "kind": { "const": "ck.applet.protocol_session.start" } },
         "required": ["kind"]
       },
       "then": {
@@ -1538,7 +1538,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.applet.protocol_session.status" } },
+        "properties": { "kind": { "const": "ck.applet.protocol_session.status" } },
         "required": ["kind"]
       },
       "then": {
@@ -1748,7 +1748,7 @@
         },
         "predicate_id": {
           "type": "string",
-          "pattern": "^cx\\.predicate\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+          "pattern": "^ck\\.predicate\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
         }
       },
       "additionalProperties": false
@@ -1784,7 +1784,7 @@
             "insert",
             "delete"
           ],
-          "description": "add/remove → or_set; set → mv_register/cas_register/lww_register; transition → fsm; inc/dec → counter; append → ordered_log; insert/delete → rga (rga + lww_register require cx.profile.collaborative_text.v1)."
+          "description": "add/remove → or_set; set → mv_register/cas_register/lww_register; transition → fsm; inc/dec → counter; append → ordered_log; insert/delete → rga (rga + lww_register require ck.profile.collaborative_text.v1)."
         },
         "tag": { "type": "string" },
         "value": true,
@@ -1820,7 +1820,7 @@
         "role": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Common roles include authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its cx.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1."
+          "description": "Common roles include authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ck.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1."
         },
         "critical": {
           "type": "boolean",

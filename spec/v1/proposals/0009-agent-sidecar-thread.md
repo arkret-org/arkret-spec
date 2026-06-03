@@ -28,7 +28,7 @@ merged_into:
 > - [`spec/v1/zh/models/relation.md`](../zh/models/relation.md) §3 — `agent_sidecar_of` relation kind(weak-semantic, non-structural, non-cascading)。
 > - [`spec/v1/zh/models/private-objects.md`](../zh/models/private-objects.md) §4.1 / §4.2 — sidecar projection account-data 与隐私边界。
 > - [`spec/v1/zh/authz/capabilities.md`](../zh/authz/capabilities.md) §5.4 — sidecar capability actions。
-> - [`spec/v1/zh/sync/service-surface.md`](../zh/sync/service-surface.md) §10.1 — `cx.agent.sidecar_thread.ensure` operation。
+> - [`spec/v1/zh/sync/service-surface.md`](../zh/sync/service-surface.md) §10.1 — `ck.agent.sidecar_thread.ensure` operation。
 > - [`spec/v1/zh/conformance/conformance-profiles.md`](../zh/conformance/conformance-profiles.md) §18.4。
 > - [`spec/v1/zh/conformance/conformance-vectors.md`](../zh/conformance/conformance-vectors.md) §11.6–11.9。
 >
@@ -40,7 +40,7 @@ merged_into:
 
 ## 1. 概要
 
-本提案定义 `cx.profile.agent_sidecar_thread.v1`:controller 可以从某个 Flow、Message、track 或 cursor 位置开启一个只对自己和自己在当前 Realm 内的 native AI agents 可见的私有上下文线程。
+本提案定义 `ck.profile.agent_sidecar_thread.v1`:controller 可以从某个 Flow、Message、track 或 cursor 位置开启一个只对自己和自己在当前 Realm 内的 native AI agents 可见的私有上下文线程。
 
 Sidecar thread 不在目标 Flow 内创建隐藏消息。它用一个 private Circle + private Flow 承载私聊历史,再用 private Relation 锚定到目标上下文。目标 Flow 成员默认看不到 sidecar 的存在、内容、活动节奏或通知。
 
@@ -83,7 +83,7 @@ CXP-0008 解决"个人 AI agent 如何创建、认证、授权和运行"。但�
 ### 4.1 Profile 声明
 
 ```text
-cx.profile.agent_sidecar_thread.v1
+ck.profile.agent_sidecar_thread.v1
 ```
 
 该 profile 依赖:
@@ -96,12 +96,12 @@ cx.profile.agent_sidecar_thread.v1
 新增 profile operation:
 
 ```text
-POST /api/v1/agent-sidecar-threads:ensure
-operation_id: cx.agent.sidecar_thread.ensure
-profile: cx.profile.agent_sidecar_thread.v1
+POST /_cokret/self/agent-sidecar-threads:ensure
+operation_id: ck.agent.sidecar_thread.ensure
+profile: ck.profile.agent_sidecar_thread.v1
 ```
 
-该 operation 是幂等编排入口。它创建或复用一条 controller-context sidecar thread,并返回 private Circle / Flow / Relation 的 typed IDs。实现 MAY 提供 `POST /api/v1/agents/{agent_principal_id}/sidecar-threads:ensure` 作为单 agent 快捷 binding,但 canonical operation 语义由 `controller_principal_id`、`context_ref` 与 fixed controller-Realm sidecar Circle 决定。
+该 operation 是幂等编排入口。它创建或复用一条 controller-context sidecar thread,并返回 private Circle / Flow / Relation 的 typed IDs。实现 MAY 提供 `POST /_cokret/self/agents/{agent_principal_id}/sidecar-threads:ensure` 作为单 agent 快捷 binding,但 canonical operation 语义由 `controller_principal_id`、`context_ref` 与 fixed controller-Realm sidecar Circle 决定。
 
 请求:
 
@@ -132,7 +132,7 @@ profile: cx.profile.agent_sidecar_thread.v1
 
 `ensure` request 不携带目标内容复制字段。默认不复制目标 message body;任何 target content transfer 都必须通过后续显式、单独授权的 sidecar action 表达(见 §4.10)。
 
-v1 `cx.agent.sidecar_thread.ensure` request schema 是 closed schema。除已注册 extension profile 明确声明的扩展字段外,实现 MUST reject unknown top-level fields,避免 caller 通过未定义字段暗示新的 reuse、visibility 或 content-transfer 语义。
+v1 `ck.agent.sidecar_thread.ensure` request schema 是 closed schema。除已注册 extension profile 明确声明的扩展字段外,实现 MUST reject unknown top-level fields,避免 caller 通过未定义字段暗示新的 reuse、visibility 或 content-transfer 语义。
 
 响应:
 
@@ -161,10 +161,10 @@ Sidecar thread 由 `private_flow_id`(承载 thread history 的 Flow)和 `private
 
 #### 4.2.1 并发 ensure 的幂等性(normative)
 
-`cx.agent.sidecar_thread.ensure` 是 idempotent operation。Reducer / service layer MUST 在两个层面 enforce idempotency:
+`ck.agent.sidecar_thread.ensure` 是 idempotent operation。Reducer / service layer MUST 在两个层面 enforce idempotency:
 
-- **Sidecar Circle**:以 `(realm_id, controller_principal_id)` 为唯一性 key。并发 `cx.circle.create` 路径(本 profile 触发的)MUST 收敛到单一 Circle;后到的 create 路径 MUST 解析为既有 `circle_id`,而**不是**返回 `failed_precondition` 或重复创建。实现层可以通过 `controller_agent_circle_key` lookup index、reducer-level unique constraint 或 controller principal sequencer 实现该收敛——具体路径由 implementation 选择,但可观察行为必须等同于 strict idempotency。
-- **Sidecar private Flow**:以 `(controller_principal_id, normalized_context_ref)` 为唯一性 key。并发 `cx.flow.create` 路径 MUST 收敛到单一 Flow;Relation 同理(`(realm_id, relation_kind="agent_sidecar_of", from_ref=private_flow_id, to_ref)` 已经是 relation registry 默认去重 key)。
+- **Sidecar Circle**:以 `(realm_id, controller_principal_id)` 为唯一性 key。并发 `ck.circle.create` 路径(本 profile 触发的)MUST 收敛到单一 Circle;后到的 create 路径 MUST 解析为既有 `circle_id`,而**不是**返回 `failed_precondition` 或重复创建。实现层可以通过 `controller_agent_circle_key` lookup index、reducer-level unique constraint 或 controller principal sequencer 实现该收敛——具体路径由 implementation 选择,但可观察行为必须等同于 strict idempotency。
+- **Sidecar private Flow**:以 `(controller_principal_id, normalized_context_ref)` 为唯一性 key。并发 `ck.flow.create` 路径 MUST 收敛到单一 Flow;Relation 同理(`(realm_id, relation_kind="agent_sidecar_of", from_ref=private_flow_id, to_ref)` 已经是 relation registry 默认去重 key)。
 
 `ensure` 在两个 reducer 路径上都返回 idempotent success 时,即使没有任何新 durable event 写入,response 仍 `ok=true` 并返回既有 typed IDs。客户端不应依赖响应区分 "本次创建" vs "本次复用"。
 
@@ -172,7 +172,7 @@ Sidecar thread 由 `private_flow_id`(承载 thread history 的 Flow)和 `private
 
 ### 4.3 创建时机与复用粒度
 
-Sidecar private Flow SHOULD lazy-create。controller-Realm sidecar Circle 也 SHOULD lazy-create:第一次 `cx.agent.sidecar_thread.ensure` 需要该 `(realm_id, controller_principal_id)` 的 agent sidecar scope 时创建或复用,并同时 reconcile eligible agent membership。实现不应在用户打开目标 Flow、创建 agent、加入 Realm 或生成普通 draft 时预先为每个 Flow / agent 创建 private Flow 或 sidecar Circle。
+Sidecar private Flow SHOULD lazy-create。controller-Realm sidecar Circle 也 SHOULD lazy-create:第一次 `ck.agent.sidecar_thread.ensure` 需要该 `(realm_id, controller_principal_id)` 的 agent sidecar scope 时创建或复用,并同时 reconcile eligible agent membership。实现不应在用户打开目标 Flow、创建 agent、加入 Realm 或生成普通 draft 时预先为每个 Flow / agent 创建 private Flow 或 sidecar Circle。
 
 推荐创建触发点:
 
@@ -212,7 +212,7 @@ Sidecar 不引入独立归属 Realm。对于 Flow / Message / Relation / track /
 
 该规则依赖 CXP-0007 的现有能力:只要 private Flow 的 `scope_circle_id` 指向 user-agent sidecar Circle,非 Circle 成员就不能收到该 Flow 的 events envelope / payload,也不应看到该 Flow 的存在、活动节奏、watcher 列表、private Relation 或 notification。换言之,"当前 Realm 内的私有 Circle + private Flow"已经足以表达"我的 AI 私聊",不需要把它移动到另一个 Realm。
 
-`cx.agent.sidecar_thread.ensure` MUST fail closed,除非以下 Realm-local 条件全部成立:
+`ck.agent.sidecar_thread.ensure` MUST fail closed,除非以下 Realm-local 条件全部成立:
 
 - `context_ref.realm_id` 可解析且与目标 Flow / Message / Relation 所在 Realm 一致。
 - controller 是该 Realm active member。
@@ -238,10 +238,10 @@ Sidecar profile MUST NOT 创建隐藏 Realm member 来绕过 Circle membership �
 `eligible_sidecar_agent(realm, controller, agent)` 当且仅当以下条件全部成立:
 
 1. `agent` 是 native personal agent principal,不是 Applet Ghost Actor。
-2. `agent` 通过 active `cx.identity.accountability_grant` accountable to `controller`。
+2. `agent` 通过 active `ck.identity.accountability_grant` accountable to `controller`。
 3. `controller` 与 `agent` 都是该 Realm active member。
 4. `agent`、agent key authorization 与运行时状态均 active,未 paused、deactivated、revoked 或 pairing expired。
-5. Realm policy 允许该 controller 的 personal agents 参与 `cx.profile.agent_sidecar_thread.v1`。
+5. Realm policy 允许该 controller 的 personal agents 参与 `ck.profile.agent_sidecar_thread.v1`。
 
 condition 4 的 `pairing_expired` 是 CXP-0008 §4.3.1 定义的 provisioning-specific 状态投影,不一定出现在 Actor Profile.status 上。实现 MUST 同时查询 provisioning service 状态,不得仅凭 `Actor Profile.status="active"` 即判定 eligibility,否则未完成 pairing 的 agent 会被错算为 eligible。
 
@@ -277,7 +277,7 @@ Sidecar Circle 的 active membership MUST 收敛为:
 4. 以 UTF-8 编码以下 canonical string(分隔符是单个 0x0A 字节;不允许 CRLF):
 
    ```text
-   cx.agent_sidecar_circle.v1\n<canonical_realm_id>\n<canonical_controller_principal_id>
+   ck.agent_sidecar_circle.v1\n<canonical_realm_id>\n<canonical_controller_principal_id>
    ```
 
 5. `controller_agent_circle_key = base32(sha256(canonical_bytes))[:24].lower()`(base32 alphabet 按 RFC 4648 §6 标准表,去除 padding,结果转 lowercase)。
@@ -325,7 +325,7 @@ Accepted profile SHOULD 编排以下 durable material:
 
 ```json
 {
-  "kind": "cx.circle.create",
+  "kind": "ck.circle.create",
   "payload": {
     "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
     "circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
@@ -358,7 +358,7 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
 
 - reducer 在 sidecar Circle 创建路径上,若检测到 `(realm_id, short_name)` 碰撞**且**调用方不是已有 Circle 的 member,MUST 返回与 "Realm policy 拒绝" 同款 generic `failed_precondition`(`reason="sidecar_create_denied"`),不得返回 `short_name_already_taken` 这类可区分错误。
 - 同一 controller 在同一 Realm 重复 ensure 时,returning member 的请求 idempotently 解析为既有 Circle,不触发唯一性错误路径。
-- 上述规则只适用于 sidecar profile;一般 `cx.circle.create` 的唯一性错误语义不变。
+- 上述规则只适用于 sidecar profile;一般 `ck.circle.create` 的唯一性错误语义不变。
 
 默认成员为:
 
@@ -371,11 +371,11 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
 
 ```json
 {
-  "kind": "cx.flow.create",
+  "kind": "ck.flow.create",
   "payload": {
     "object": {
       "id": "ck:flow:01970000-0000-7000-8000-000000000081",
-      "schema": "cx.schema.flow.v1",
+      "schema": "ck.schema.flow.v1",
       "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
       "metadata": {
         "title": "Agent sidecar"
@@ -396,7 +396,7 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
 }
 ```
 
-Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普通私聊不需要额外定义 `cx.agent.sidecar_message.create`。
+Sidecar 消息是该 private Flow 内的普通 `ck.message.create` event。普通私聊不需要额外定义 `ck.agent.sidecar_message.create`。
 
 `tracks.discussion.profile="agent_sidecar"` 只是 FlowTrack 的 semantic hint,不创建独立权限、成员或 E2EE scope。读取 / 写入仍由 Flow `scope_circle_id`、`allowed_tracks` 与 sidecar capability policy 决定。
 
@@ -404,7 +404,7 @@ Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普�
 
 ```json
 {
-  "kind": "cx.relation.create",
+  "kind": "ck.relation.create",
   "payload": {
     "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
     "relation_id": "ck:relation:01970000-0000-7000-8000-000000000082",
@@ -429,7 +429,7 @@ Sidecar 消息是该 private Flow 内的普通 `cx.message.create` event。普�
 
 ### 4.7 授权校验
 
-`cx.agent.sidecar_thread.ensure` MUST fail closed,除非以下校验全部通过:
+`ck.agent.sidecar_thread.ensure` MUST fail closed,除非以下校验全部通过:
 
 - `controller_principal_id` 已认证,或由 fresh controller approval 表示。
 - `addressed_agent_principal_ids[]` MUST NOT 包含 `controller_principal_id` 自身;违反则 `failed_precondition`(`reason="controller_in_addressed_agents"`)。Controller 自己天然是 sidecar Circle member,不需要(也不应当)出现在 routing list 中。
@@ -450,10 +450,10 @@ Agent runtime SHOULD NOT 只凭宽泛的 "create hidden channels" grant 调用�
 
 | Action | 注册形态 |
 | --- | --- |
-| `cx.agent.sidecar_thread.ensure` | 聚合 admin action。`capability-action-registry.json` MUST 声明 `target_event_kinds=[cx.circle.create,cx.circle.member.state,cx.flow.create,cx.relation.create]`。 Controller-private projection account-data(§4.14 `cx.agent.sidecar_projection.v1`)的写入**不**纳入此 action 的 grantable set——它由 controller principal 自己对自身 account-data 的固有写权批准,与 sidecar ensure 解耦,因此 ensure caller 不需要持有任何 account-data 写 grant 也能成功。 |
-| `cx.agent.sidecar_thread.read` | **v1 不注册**。读取 sidecar metadata 与 private Flow messages 复用现有 `cx.events.query` / `cx.events.subscribe`,resource selector 限定为 sidecar private Flow / sidecar Circle scope 即可,不需要 sidecar-specific read action。 |
-| `cx.agent.sidecar_thread.write` | Profile action;`target_event_kinds=[cx.message.create]`,resource 必须限定为 sidecar private Flow。 |
-| `cx.agent.sidecar_thread.publish` | Profile action;target event kinds 由最终发布目标决定,至少包括 `cx.message.create`,并受 CXP-0008 reply-as-agent / act-on-behalf attribution 规则约束。 |
+| `ck.agent.sidecar_thread.ensure` | 聚合 admin action。`capability-action-registry.json` MUST 声明 `target_event_kinds=[ck.circle.create,ck.circle.member.state,ck.flow.create,ck.relation.create]`。 Controller-private projection account-data(§4.14 `ck.agent.sidecar_projection.v1`)的写入**不**纳入此 action 的 grantable set——它由 controller principal 自己对自身 account-data 的固有写权批准,与 sidecar ensure 解耦,因此 ensure caller 不需要持有任何 account-data 写 grant 也能成功。 |
+| `ck.agent.sidecar_thread.read` | **v1 不注册**。读取 sidecar metadata 与 private Flow messages 复用现有 `ck.events.query` / `ck.events.subscribe`,resource selector 限定为 sidecar private Flow / sidecar Circle scope 即可,不需要 sidecar-specific read action。 |
+| `ck.agent.sidecar_thread.write` | Profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定为 sidecar private Flow。 |
+| `ck.agent.sidecar_thread.publish` | Profile action;target event kinds 由最终发布目标决定,至少包括 `ck.message.create`,并受 CXP-0008 reply-as-agent / act-on-behalf attribution 规则约束。 |
 
 这些 action 不满足"action 名称与单一 event kind 同名"的默认规则,因此 accepted migration MUST 按 `capabilities.md` §5.0 的聚合 admin / profile action 类别显式注册 `target_event_kinds` 或 operation targets,不得由 action 字符串拆解推断。
 
@@ -484,11 +484,11 @@ Sidecar E2EE MUST 遵守 Circle 规则:
 
 Agent 参与 sidecar 必须是 normal MLS member,不是 controller 的 delegated device:
 
-- agent runtime MUST 提供绑定到 `agent_principal_id` 且受 active `cx.agent.key.authorize` 支撑的 MLS KeyPackage 或等价 device/workload key package。
-- KeyPackage signing key SHOULD 与 `cx.agent.key.authorize.verification_method` 绑定,使 agent key authorization、session proof 与 MLS membership 落在同一审计链。
+- agent runtime MUST 提供绑定到 `agent_principal_id` 且受 active `ck.agent.key.authorize` 支撑的 MLS KeyPackage 或等价 device/workload key package。
+- KeyPackage signing key SHOULD 与 `ck.agent.key.authorize.verification_method` 绑定,使 agent key authorization、session proof 与 MLS membership 落在同一审计链。
 - sidecar 创建被接受后,通过 profile-defined delivery path 向 agent runtime 发送 MLS Welcome。
 - agent key rotation SHOULD 根据 key model 触发 MLS member update 或 remove/add。
-- Sidecar Circle 的 active membership 由 §4.5 的 `eligible_sidecar_agent` predicate 派生。当某 agent 因 pause / deactivate / revoke / pairing_expired / accountability grant 失效 / Realm membership 失效等任何原因转出 eligible 集合时,reducer / service layer MUST **主动** fan-out 写入对应 sidecar Circle 的 `cx.circle.member.state`(membership: `left` 或 `banned`),不得等下次 ensure 调用被动 reconcile——否则会留下 stale-membership 窗口,其间 ineligible agent 仍能解密新 epoch 消息。该 fan-out 同时阻止该 agent 后续 sidecar session grant。
+- Sidecar Circle 的 active membership 由 §4.5 的 `eligible_sidecar_agent` predicate 派生。当某 agent 因 pause / deactivate / revoke / pairing_expired / accountability grant 失效 / Realm membership 失效等任何原因转出 eligible 集合时,reducer / service layer MUST **主动** fan-out 写入对应 sidecar Circle 的 `ck.circle.member.state`(membership: `left` 或 `banned`),不得等下次 ensure 调用被动 reconcile——否则会留下 stale-membership 窗口,其间 ineligible agent 仍能解密新 epoch 消息。该 fan-out 同时阻止该 agent 后续 sidecar session grant。
 - 移除一个 agent MUST rotate 到新 epoch;被移除 agent 不应获得该 controller-Realm sidecar Circle 下任何 private Flow 的后续消息 key。
 - 由于 §4.5.2 允许同一个 sidecar Circle 承载多个 sidecar private Flow,Circle MLS group 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Flow,**不可**只 rotate 某一个 Flow。实现若以"按 Flow 独立 rotate"模型对待,会破坏 Circle 的密码学边界假设——任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Flow 的未来 epoch。
 - Cross-Realm fan-out 是 Realm-local 的:controller deactivate / pause 一个 agent 时,该 agent 可能是该 controller 在 N 个 Realm 各自 sidecar Circle 的 member。MLS rotation MUST 在该 agent 实际所在的每个 sidecar Circle 各执行一次,但**只**在这些 Circle;controller 的其他 Realm 内 sidecar Circle(该 agent 未加入的)不应被触发。Audit projection SHOULD 把该次 deactivation 关联到所有受影响的 sidecar Circle id,便于事后追溯。
@@ -568,7 +568,7 @@ Flow F
 
 ```json
 {
-  "type": "cx.agent.sidecar_projection.v1",
+  "type": "ck.agent.sidecar_projection.v1",
   "target": {
     "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
     "flow_id": "ck:flow:01970000-0000-7000-8000-000000000001"
@@ -587,13 +587,13 @@ Flow F
 }
 ```
 
-v1 SHOULD 注册 `cx.agent.sidecar_projection.v1` 为 controller-private account-data type,以保证用户在多设备上看到一致的 "My AI" projection(tab 顺序、pin 状态、折叠状态)。Accepted migration MUST 在 `account-data-type-registry.json` 落地以下 key pattern:
+v1 SHOULD 注册 `ck.agent.sidecar_projection.v1` 为 controller-private account-data type,以保证用户在多设备上看到一致的 "My AI" projection(tab 顺序、pin 状态、折叠状态)。Accepted migration MUST 在 `account-data-type-registry.json` 落地以下 key pattern:
 
 ```text
-cx.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>
+ck.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>
 ```
 
-key 设计:projection index 按 controller 属人(controller-private),按 `(target_realm_id, target_flow_id)` 做 per-Flow 投影。CXP-0008 的 `cx.agent.draft.v1` 使用 `cx.agent.draft.v1:<agent_principal_id>:<draft_id>`(agent-attributed,per-draft)。二者 key 前缀不同、key 第二段语义不同(controller vs agent),不会在 `cx.agent.*` 命名空间下冲突。注册时 MUST 显式声明 key pattern 与 owner principal,reducer 据此做归属校验。
+key 设计:projection index 按 controller 属人(controller-private),按 `(target_realm_id, target_flow_id)` 做 per-Flow 投影。CXP-0008 的 `ck.agent.draft.v1` 使用 `ck.agent.draft.v1:<agent_principal_id>:<draft_id>`(agent-attributed,per-draft)。二者 key 前缀不同、key 第二段语义不同(controller vs agent),不会在 `ck.agent.*` 命名空间下冲突。注册时 MUST 显式声明 key pattern 与 owner principal,reducer 据此做归属校验。
 
 仅服务单设备客户端的 deployment MAY 跳过注册,代价是失去跨设备 projection 同步;但同一可观察 invariant(§4.14 列出的"不修改目标 Flow / 不泄露"等)仍是 normative。
 
@@ -607,13 +607,13 @@ key 设计:projection index 按 controller 属人(controller-private),按 `(targ
 - `zh/models/private-objects.md` 与 `zh/sync/client-sync.md`: controller-private sidecar index / personal track projection account data。
 - `zh/authz/capabilities.md`: sidecar actions 与 constraints。
 - `zh/identity/key-management.md`: 将 agent runtime key / MLS member key 绑定到 sidecar participation。
-- `zh/sync/service-surface.md` 与 `service-http-binding.md`: `cx.agent.sidecar_thread.ensure`。
-- `zh/conformance/conformance-profiles.md`: `cx.profile.agent_sidecar_thread.v1`。
+- `zh/sync/service-surface.md` 与 `service-http-binding.md`: `ck.agent.sidecar_thread.ensure`。
+- `zh/conformance/conformance-profiles.md`: `ck.profile.agent_sidecar_thread.v1`。
 
 Accepted 后可能需要的 artifacts:
 
-- `operation-registry.json`: 增加 `cx.agent.sidecar_thread.ensure`。
-- `capability-action-registry.json`: 增加 sidecar actions,并按 `capabilities.md` §5.0 显式声明 aggregate action 的 `target_event_kinds` / operation targets。`cx.agent.sidecar_thread.ensure` 至少覆盖 `cx.circle.create`、`cx.circle.member.state`、`cx.flow.create`、`cx.relation.create` 与 controller-private index 写入。
+- `operation-registry.json`: 增加 `ck.agent.sidecar_thread.ensure`。
+- `capability-action-registry.json`: 增加 sidecar actions,并按 `capabilities.md` §5.0 显式声明 aggregate action 的 `target_event_kinds` / operation targets。`ck.agent.sidecar_thread.ensure` 至少覆盖 `ck.circle.create`、`ck.circle.member.state`、`ck.flow.create`、`ck.relation.create` 与 controller-private index 写入。
 - relation vocabulary / schema:若 accepted,增加 `agent_sidecar_of`。
 - Flow projection / schema registry:注册 `navigation_visibility="scope_only"` 或等价 profile-enforced projection rule,保证 sidecar Flow 不进入 Realm-wide navigation。
 - `account-data-type-registry.json`: 若标准化,增加 controller-private sidecar index / personal track projection key pattern。
@@ -661,17 +661,17 @@ v1 选择"每个 `(realm, controller)` 一个 Circle"而不是 participant set,�
 ### 7.1 已决记录
 
 - [x] Relation kind 使用 `agent_sidecar_of`,注册为 weak-semantic、non-structural、non-cascading kind。`from_ref` 为 sidecar Flow,`to_ref` 为目标 Flow / Message / Relation。
-- [x] 普通用户即使没有 general `cx.circle.create`,也可以通过受限 `cx.agent.sidecar_thread.ensure` 创建 sidecar composite。该 action 只允许 controller + accountable agents、profile-enforced private Circle / Flow / Relation,不等于授予普通 Circle 创建权。
+- [x] 普通用户即使没有 general `ck.circle.create`,也可以通过受限 `ck.agent.sidecar_thread.ensure` 创建 sidecar composite。该 action 只允许 controller + accountable agents、profile-enforced private Circle / Flow / Relation,不等于授予普通 Circle 创建权。
 - [x] Sidecar 所属 Realm 固定为目标上下文所在 Realm;本 CXP 不引入额外 Realm 选择或跨 Realm fallback。
 - [x] 默认 Flow reuse 是 `same_controller_context`:同一个 `(controller, normalized_context_ref)` 一个 sidecar private Flow。
 - [x] Circle reuse 固定为 `per_realm_controller_agent_pool`:同一个 `(realm, controller)` 在本 profile 下有且仅有一个 sidecar Circle,成员为 controller + 当前 Realm 内所有 eligible native personal agents。
 - [x] `addressed_agent_principal_ids[]` 只影响路由 / 通知 / UI 呈现,不是密码学可见性边界。
 - [x] `context_ref` 默认对 sidecar Circle members 可见为 opaque target ID,但不复制目标内容。High-secrecy `target_ref_visible_to_agent=false` 不属于 v1 single-Circle profile。
-- [x] Agent 是 normal MLS member,KeyPackage 由 active `cx.agent.key.authorize` 支撑;不是 controller delegated device。
+- [x] Agent 是 normal MLS member,KeyPackage 由 active `ck.agent.key.authorize` 支撑;不是 controller delegated device。
 - [x] Sidecar Flow 从普通 Realm navigation / search / board / relation expansion 隐藏是 profile-enforced rule,不是 UI recommendation。
 - [x] 多 agent projection 默认 grouped 为一个 controller-local "My AI" personal track;客户端 MAY 在该 grouped track 内显示多个 agent entry。
 - [x] Retention 默认继承目标 Realm,sidecar profile 可通过 `retention_policy_ref` 收紧、不得放宽(见 §4.13);具体数值由 deployment policy 决定,不属于协议层决策。
-- [x] `cx.agent.sidecar_projection.v1` SHOULD 注册为 controller-private account-data type(跨设备 UI 一致性默认开启);projection invariants 与泄露边界已在 §4.14 强制化(见 §4.14 末段)。
+- [x] `ck.agent.sidecar_projection.v1` SHOULD 注册为 controller-private account-data type(跨设备 UI 一致性默认开启);projection invariants 与泄露边界已在 §4.14 强制化(见 §4.14 末段)。
 
 ### 7.2 仍需讨论
 
@@ -681,19 +681,19 @@ v1 选择"每个 `(realm, controller)` 一个 Circle"而不是 participant set,�
 
 Accepted profile SHOULD 增加以下 conformance fixtures:
 
-1. Subscribe/query 隔离:non-sidecar-member 对目标 Realm `cx.events.subscribe` 与 `cx.events.query` 返回 zero events referencing sidecar Circle / Flow / Relation。
+1. Subscribe/query 隔离:non-sidecar-member 对目标 Realm `ck.events.subscribe` 与 `ck.events.query` 返回 zero events referencing sidecar Circle / Flow / Relation。
 2. 反向 relation 不泄露:对 `to_ref=<target_message_id>` 的 relation query,non-sidecar-member 看不到 `agent_sidecar_of` 边。
 3. Directory 不可枚举:non-member 对 Realm directory 调用返回 zero hits for sidecar Circle title、display、short_name 或 member_count。
-4. Notification fanout 隔离:sidecar 内 `cx.message.create` 不触发目标 Flow members 的 notification。
+4. Notification fanout 隔离:sidecar 内 `ck.message.create` 不触发目标 Flow members 的 notification。
 5. Anchor leaf 隔离:sidecar `effective_scope=circle` event 不出现在目标 Realm default anchor leaf 明文 metadata 中;只能作为 opaque commitment。
-6. Revocation 闭环:`cx.agent.deactivate` 后,agent 被移出 sidecar Circle MLS group,后续 `agent_key_proof` session grant fail closed,sidecar 写入全部拒绝。
+6. Revocation 闭环:`ck.agent.deactivate` 后,agent 被移出 sidecar Circle MLS group,后续 `agent_key_proof` session grant fail closed,sidecar 写入全部拒绝。
 
 ## 8. 迁移计划
 
 草案占位。若 accepted:
 
-1. 注册 `cx.profile.agent_sidecar_thread.v1`。
-2. 增加 `cx.agent.sidecar_thread.ensure` service operation 与 OpenAPI schemas。
+1. 注册 `ck.profile.agent_sidecar_thread.v1`。
+2. 增加 `ck.agent.sidecar_thread.ensure` service operation 与 OpenAPI schemas。
 3. 增加 sidecar capability actions,并把 context Flow / relation kind / quota / E2EE / retention 约束映射到现有 constraint vocabulary 或 profile-specific extension。
 4. 注册 `agent_sidecar_of` private relation kind。
 5. 增加 `navigation_visibility="scope_only"` 或等价 projection rule。

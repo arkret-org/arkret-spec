@@ -28,7 +28,7 @@
       "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.realm.v1"
+      "const": "ck.schema.realm.v1"
     },
     "title": {
       "type": "string",
@@ -52,7 +52,7 @@
     },
     "trust_domain": {
       "$ref": "#/$defs/trust_domain",
-      "description": "Immutable deployment trust domain captured by cx.realm.create. Receivers MUST require this to match the current Realm trust domain before accepting cross-domain replay-sensitive proofs."
+      "description": "Immutable deployment trust domain captured by ck.realm.create. Receivers MUST require this to match the current Realm trust domain before accepting cross-domain replay-sensitive proofs."
     },
     "owning_organizations": {
       "type": "array",
@@ -161,7 +161,7 @@
     "preview_policy_id": {
       "type": "string",
       "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use cx.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
+      "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use ck.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
     },
     "default_discoverability": {
       "type": "string",
@@ -231,7 +231,7 @@
     },
     "sync_endpoints": {
       "type": "array",
-      "description": "Realm-level service binding list for shared anchorer / sync / mirror / federation peer surfaces. Directory resolve responses expose a requester-filtered join_candidates projection for join-side ingress; raw sync_endpoints are not a public candidate list. Member-level delivery_binding remains on cx.member.state and MUST NOT be inferred from this list.",
+      "description": "Realm-level service binding list for shared anchorer / sync / mirror / federation peer surfaces. Directory resolve responses expose a requester-filtered join_candidates projection for join-side ingress; raw sync_endpoints are not a public candidate list. Member-level delivery_binding remains on ck.member.state and MUST NOT be inferred from this list.",
       "items": {
         "$ref": "#/$defs/sync_endpoint"
       },
@@ -339,7 +339,7 @@
         "type": "array",
         "items": {
           "type": "string",
-          "pattern": "^cx\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+          "pattern": "^ck\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
         },
         "minItems": 1,
         "uniqueItems": true
@@ -425,7 +425,7 @@
       }
     },
     {
-      "$comment": "Principal control Realms are ordinary cx.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together.",
+      "$comment": "Principal control Realms are ordinary ck.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together.",
       "if": {
         "properties": {
           "fields": {
@@ -447,7 +447,7 @@
         "properties": {
           "schema_refs": {
             "contains": {
-              "const": "cx.profile.principal_control_realm.v1"
+              "const": "ck.profile.principal_control_realm.v1"
             }
           }
         }
@@ -459,7 +459,7 @@
         "properties": {
           "schema_refs": {
             "contains": {
-              "const": "cx.profile.principal_control_realm.v1"
+              "const": "ck.profile.principal_control_realm.v1"
             }
           }
         },
@@ -572,7 +572,7 @@
       "properties": {
         "cell_family": {
           "type": "string",
-          "pattern": "^cx\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+          "pattern": "^ck\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
         },
         "lattice": {
           "type": "string",
@@ -621,7 +621,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+            "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
           },
           "uniqueItems": true,
           "description": "Optional companion to `initial_value` (cas_register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §5.3.3."

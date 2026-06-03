@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/mimi-interop.schema.json",
   "title": "Cokret MIMI Interoperability",
-  "description": "Provider directory, room binding, and content mapping receipt objects for cx.profile.mimi_interop.v1.",
+  "description": "Provider directory, room binding, and content mapping receipt objects for ck.profile.mimi_interop.v1.",
   "anyOf": [
     {
       "$ref": "#/$defs/provider_directory"
@@ -36,7 +36,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "cx.schema.mimi_interop.v1"
+          "const": "ck.schema.mimi_interop.v1"
         },
         "service_did": {
           "$ref": "#/$defs/did"
@@ -50,7 +50,7 @@
             "type": "string"
           },
           "contains": {
-            "const": "cx.profile.mimi_interop.v1"
+            "const": "ck.profile.mimi_interop.v1"
           }
         },
         "mimi": {
@@ -138,17 +138,17 @@
     },
     "room_binding": {
       "type": "object",
-      "description": "MIMI room binding effect payload. In Move/Anchor/Lattice state, the cell subject is payload.mimi_room_uri for cx.component.mimi.room_binding.v1.",
+      "description": "MIMI room binding effect payload. In Move/Anchor/Lattice state, the cell subject is payload.mimi_room_uri for ck.component.mimi.room_binding.v1.",
       "required": [
         "kind",
         "payload"
       ],
       "properties": {
         "schema": {
-          "const": "cx.schema.mimi_interop.v1"
+          "const": "ck.schema.mimi_interop.v1"
         },
         "kind": {
-          "const": "cx.mimi.room_binding"
+          "const": "ck.mimi.room_binding"
         },
         "payload": {
           "type": "object",
@@ -161,7 +161,7 @@
           ],
           "properties": {
             "profile": {
-              "const": "cx.profile.mimi_interop.v1"
+              "const": "ck.profile.mimi_interop.v1"
             },
             "mimi_room_uri": {
               "$ref": "#/$defs/mimi_uri"
@@ -229,13 +229,13 @@
       ],
       "properties": {
         "schema": {
-          "const": "cx.schema.mimi_interop.v1"
+          "const": "ck.schema.mimi_interop.v1"
         },
         "kind": {
-          "const": "cx.mimi.mapping_receipt"
+          "const": "ck.mimi.mapping_receipt"
         },
         "profile": {
-          "const": "cx.profile.mimi_interop.v1"
+          "const": "ck.profile.mimi_interop.v1"
         },
         "mimi_room_uri": {
           "$ref": "#/$defs/mimi_uri"
@@ -252,12 +252,12 @@
         "target_format": {
           "type": "string",
           "enum": [
-            "cx.message.create",
-            "cx.message.revise",
-            "cx.message.redact",
-            "cx.reaction.add",
-            "cx.reaction.remove",
-            "cx.relation.create",
+            "ck.message.create",
+            "ck.message.revise",
+            "ck.message.redact",
+            "ck.reaction.add",
+            "ck.reaction.remove",
+            "ck.relation.create",
             "application/mimi-content",
             "application/vnd.cokret.content+json"
           ]
@@ -271,7 +271,7 @@
         "mimi_message_id": {
           "type": "string"
         },
-        "contrix_event_id": {
+        "cokret_event_id": {
           "type": "string",
           "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },

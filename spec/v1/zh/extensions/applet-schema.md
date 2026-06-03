@@ -16,11 +16,11 @@ updated: 2026-05-25
 
 ```json
 {
-  "kind": "cx.applet.registration",
+  "kind": "ck.applet.registration",
   "applet_id": "ck:applet:dd552c17-0000-7000-8000-000000000000",
   "service_did": "did:web:applet.example",
   "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
-  "base_url": "https://applet.example/api/v1/applet",
+  "base_url": "https://applet.example/applet",
   "bot_actor_id": "did:web:applet.example:bot",
   "protocols": ["slack"],
   "namespaces": {
@@ -49,7 +49,7 @@ updated: 2026-05-25
 > 字段，且 `payload_digest` 覆盖整个 canonical registration object（不含 `proof` 自身）。
 > 空 `"proof": {}` 形态 MUST 被 receiver 以 `schema_violation` 拒绝。
 
-> **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `cx.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §5](./applet-integration.md)。
+> **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ck.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §5](./applet-integration.md)。
 
 > **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical 形态（不含 `proof` 自身）取的稳定 epoch hash，唯一标识本次 registration 的版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`，registration 更新（namespace / endpoint / scope 变化）后该 hash MUST 变化，使旧 grant 不再匹配新 registration epoch，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。对无版本化 DID method，`registration_epoch` 与 service DID Document 的 fetch-time digest 共同构成 grant 的 epoch 证据；reducer MUST 以二者任一不匹配作为拒绝条件。该字段 required。
 
@@ -77,7 +77,7 @@ Pattern grammar:
 ## 3. Transaction Endpoint
 
 ```text
-POST /api/v1/applet/transactions
+POST /_cokret/edge/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
@@ -117,7 +117,7 @@ Idempotency-Key: <opaque-string>
 ## 4. Query Actor
 
 ```text
-GET /api/v1/applet/actors/{actor_id}
+GET /_cokret/edge/applet/actors/{actor_id}
 ```
 
 响应字段：`exists: boolean` required；`actor_id: did` optional；`display_name: string` optional；`external_ref: object` optional。
@@ -136,7 +136,7 @@ GET /api/v1/applet/actors/{actor_id}
 ## 5. Query Realm
 
 ```text
-GET /api/v1/applet/realms/{realm_id_or_alias}
+GET /_cokret/edge/applet/realms/{realm_id_or_alias}
 ```
 
 响应字段：`exists: boolean` required；`realm_id: id` optional；`title: string` optional；`external_ref: object` optional。
@@ -155,7 +155,7 @@ GET /api/v1/applet/realms/{realm_id_or_alias}
 ## 6. Protocol Metadata
 
 ```text
-GET /api/v1/applet/protocols/{protocol}
+GET /_cokret/edge/applet/protocols/{protocol}
 ```
 
 响应字段：`protocol: string` required；`display_name: string` required；`icon_blob_ref: string` optional；`field_types: object` required；`instances: object[]` optional。
@@ -175,7 +175,7 @@ GET /api/v1/applet/protocols/{protocol}
 
 ```json
 {
-  "kind": "cx.applet.bridge_error",
+  "kind": "ck.applet.bridge_error",
   "applet_id": "ck:applet:dd552c17-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
   "failed_transaction_ref": "ck:event:019640ed-8000-7000-8000-000000000000",
@@ -193,7 +193,7 @@ GET /api/v1/applet/protocols/{protocol}
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `kind` | `string` | required | 固定为 `cx.applet.bridge_error`（wire Event kind，进 Realm history）。 |
+| `kind` | `string` | required | 固定为 `ck.applet.bridge_error`（wire Event kind，进 Realm history）。 |
 | `applet_id` | `id` | required | 产生该错误的 Applet id。 |
 | `realm_id` | `id` | required | 该 bridge error 所属 Realm；reducer / 客户端据此做可见范围与授权判定。 |
 | `failed_transaction_ref` | `ref` | required | 指向失败的 transaction / 源 Event（如 push 中的 `event_id` 或 transaction idempotency 记录），用于审计回溯。MUST NOT 内联未授权外部正文。 |
@@ -205,4 +205,4 @@ GET /api/v1/applet/protocols/{protocol}
 | `message` | `string` | optional | 人类可读摘要；MUST NOT 泄露未授权外部正文。 |
 | `retry_after_ms` | `int` | optional | 建议重试延迟，仅当 `retriable=true` 时有意义。 |
 
-`cx.applet.bridge_error` MUST 绑定 `realm_id`、`failed_transaction_ref`、`retriable` 和 `visibility_scope`；缺少任一 required 字段的 bridge error event MUST 被以 `schema_violation` 拒绝。该 event MUST NOT 泄露未授权外部正文（与 [`applet-integration.md` §16](./applet-integration.md) 一致）。
+`ck.applet.bridge_error` MUST 绑定 `realm_id`、`failed_transaction_ref`、`retriable` 和 `visibility_scope`；缺少任一 required 字段的 bridge error event MUST 被以 `schema_violation` 拒绝。该 event MUST NOT 泄露未授权外部正文（与 [`applet-integration.md` §16](./applet-integration.md) 一致）。

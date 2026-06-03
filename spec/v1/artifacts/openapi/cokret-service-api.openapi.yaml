@@ -25,11 +25,11 @@ info:
 
     operation-specific required fields directly from OpenAPI without consulting
 
-    prose. The typed surface currently covers `cx.events.{submit, get, resolve,
+    prose. The typed surface currently covers `ck.events.{submit, get, resolve,
 
-    query, query_post, frontier}`, `cx.account.subscribe`, `cx.snapshot.head`,
+    query, query_post, frontier}`, `ck.account.subscribe`, `ck.snapshot.head`,
 
-    `cx.identity.{resolve, get_document, get_receipts, submit_did_operation}`, `cx.authz.{check,
+    `ck.identity.{resolve, get_document, get_receipts, submit_did_operation}`, `ck.authz.{check,
 
     get_effective_grants}`, and the ServiceDescribe envelope. The corresponding
 
@@ -77,21 +77,36 @@ info:
     every other path requires at least one of the declared securitySchemes.
 
 
-    Path prefix convention: bare paths (e.g. `/events`, `/identity/resolve`)
+    Path namespace convention: every path is absolute under the negative-space
 
-    inherit the global servers prefix `/api/v1`.
+    root `/_cokret/` and carries NO version segment. The first segment after
 
-    Paths under the deployment-local namespaces `/cokret/v1/*`, `/auth/account/*`,
+    `/_cokret/` is a trust-circle name encoding the caller-to-server trust
 
-    `/admin/*`, and `/.well-known/*` MUST carry a path-level
+    relationship, from inner (strongest) to outer (weakest): `self` (the
 
-    `servers: - url: https://{host}` override so the URL is absolute and does not
+    authenticated session of the caller), `gate` (authentication entry), `root` (identity /
 
-    get the protocol `/api/v1` prefix. Implementations and SDK generators MUST
+    DID trust root), `find` (directory discovery), `peer` (federation server-to-server
 
-    honor path-level `servers` overrides; the corresponding `operation-registry.json`
+    wire; reserved namespace branch), `open` (non-cokret external vendors, e.g. MIMI),
 
-    `http` field always records the bare (post-prefix) path.'
+    `edge` (push / bridge gateways), `local` (operator / deployment-local surfaces).
+
+    Reading the URL therefore reveals the attack surface. The pre-auth capability
+
+    advertisement lives at the root meta position `/_cokret/describe`.
+
+
+    Versioning is NOT expressed in the path. The protocol version is negotiated via
+
+    `*.describe` / `supported_operations` (and optionally a `Cokret-Protocol-Version`
+
+    request/response header); schema ids carry their own `.v1` suffix. The
+
+    corresponding `operation-registry.json` `http` field records the full absolute
+
+    path verbatim.'
 # Default is authenticated. SDKs / lint / threat-model audits still require
 # every operation to declare its own `security:` block, but the document-level
 # fallback MUST be fail-closed if a future operation is added incorrectly.
@@ -100,7 +115,7 @@ info:
 security:
 - bearerAuth: []
 servers:
-- url: https://{host}/api/v1
+- url: https://{host}
   variables:
     host:
       default: localhost
@@ -200,11 +215,11 @@ components:
       in: query
       name: presign
       description: |
-        Single-blob, short-TTL pre-signed authorization (cx.blob.presign).
+        Single-blob, short-TTL pre-signed authorization (ck.blob.presign).
         Carries a server-signed envelope binding blob_ref / TTL / scope /
         issuance nonce. The nonce is an envelope/audit/revocation key, not a
         one-use media-load replay guard unless a single-use profile is declared.
-        Permitted ONLY on cx.blob.get and cx.blob.head, and MUST NOT
+        Permitted ONLY on ck.blob.get and ck.blob.head, and MUST NOT
         co-occur with bearerAuth — implementations enforce mutual exclusion.
         See media-and-blob.md §5.4 and server-threat-model.md §2.1 #21 for the
         carve-out's normative constraints.
@@ -403,8 +418,8 @@ components:
     ServiceDescribe:
       type: object
       description: |
-        Service capability descriptor returned by `cx.server.describe` and the
-        per-surface `cx.*.describe` operations. Required fields are normatively
+        Service capability descriptor returned by `ck.server.describe` and the
+        per-surface `ck.*.describe` operations. Required fields are normatively
         listed in `zh/sync/service-surface.md` §3.0 and §17. Implementations MUST
         emit `plaintext_visibility` so callers can honor the plaintext-boundary
         rule from `zh/overview/architecture.md` §2.3.
@@ -461,7 +476,7 @@ components:
         supported_features:
           type: array
           description: |
-            Optional feature identifiers (`cx.feature.*`) this service supports.
+            Optional feature identifiers (`ck.feature.*`) this service supports.
             Mirrors the `supported_features[]` declaration in
             `zh/sync/service-surface.md` §3.0. Distinct from `supported_profiles`:
             features are finer-grained capability tokens that may be required
@@ -601,7 +616,7 @@ components:
             necessarily claim conformance for. Tooling that builds a
             conformance matrix MUST treat this strictly weaker than
             `claimed_profiles`. See `zh/sync/service-surface.md` §3.0 and
-            `cx.schema.service_describe.v1`.
+            `ck.schema.service_describe.v1`.
           items:
             type: string
         claimed_profiles:
@@ -630,7 +645,7 @@ components:
             `artifact_ref`, `cotest_issuer_did`, `signature` and `timestamp`.
             When `development_mode=true` this array MUST be
             empty (see `zh/sync/service-surface.md` §3.0 and
-            `cx.schema.service_describe.v1`).
+            `ck.schema.service_describe.v1`).
           items:
             type: object
             required:
@@ -740,7 +755,7 @@ components:
       type: object
       description: |
         Request-level service binding snapshot carried by federation
-        service-to-service cx.events.submit calls. This is metadata for the
+        service-to-service ck.events.submit calls. This is metadata for the
         receiver to verify the sender's delivery decision; client writes omit it.
       required:
       - realm_id
@@ -788,14 +803,14 @@ components:
           - required:
             - effective_scope
         description: |
-          Actor-supplied cx.events.submit input envelope. It reuses the base Event
+          Actor-supplied ck.events.submit input envelope. It reuses the base Event
           shape for actor intent fields but forbids reducer-managed accepted-output
           projections such as actor_kind and effective_scope. Services stamp those
           fields only after accept and expose them on read/query/sync envelopes.
 
     EventsSubmitBatchRequest:
       type: object
-      description: Batch cx.events.submit request used by account clients.
+      description: Batch ck.events.submit request used by account clients.
       required:
       - events
       properties:
@@ -808,7 +823,7 @@ components:
 
     EventsSubmitFederationRequest:
       type: object
-      description: Federation service-to-service cx.events.submit request body.
+      description: Federation service-to-service ck.events.submit request body.
       required:
       - service_binding_ref
       - events
@@ -825,7 +840,7 @@ components:
     EventsSubmitResponse:
       type: object
       description: |
-        Result of cx.events.submit. Tracks per-event acceptance / duplication /
+        Result of ck.events.submit. Tracks per-event acceptance / duplication /
         rejection along with the post-write frontier and an optional barrier
         cursor for read-your-writes.
       required:
@@ -879,7 +894,7 @@ components:
 
     EventGetResponse:
       type: object
-      description: Result of cx.events.get — a single Event Envelope with optional visibility / receipt hints.
+      description: Result of ck.events.get — a single Event Envelope with optional visibility / receipt hints.
       required:
       - event
       properties:
@@ -896,7 +911,7 @@ components:
 
     EventsResolveRequest:
       type: object
-      description: cx.events.resolve request body. At least one of event_ids or event_digests MUST be non-empty.
+      description: ck.events.resolve request body. At least one of event_ids or event_digests MUST be non-empty.
       properties:
         event_ids:
           type: array
@@ -913,7 +928,7 @@ components:
 
     EventsResolveResponse:
       type: object
-      description: cx.events.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.
+      description: ck.events.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.
       required:
       - events
       - missing
@@ -936,7 +951,7 @@ components:
     EventsQueryResponse:
       type: object
       description: |
-        Result of cx.events.query (GET form) and cx.events.query_post (POST/body
+        Result of ck.events.query (GET form) and ck.events.query_post (POST/body
         form). Ordering follows the "近邻先返回" rule unless `order` was
         explicitly set on the request; see service-http-binding.md §3.3.3.
       required:
@@ -961,7 +976,7 @@ components:
 
     EventsSubscribeFrame:
       type: object
-      description: One NDJSON line emitted by cx.events.subscribe. `dropped` requires a usable recovery cursor; if no cursor exists, servers MUST emit `resync_required` instead.
+      description: One NDJSON line emitted by ck.events.subscribe. `dropped` requires a usable recovery cursor; if no cursor exists, servers MUST emit `resync_required` instead.
       required:
       - kind
       properties:
@@ -986,7 +1001,7 @@ components:
         reconnect_after_ms:
           type: integer
           minimum: 1
-          description: Optional server-directed minimum delay before opening another cx.events.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
+          description: Optional server-directed minimum delay before opening another ck.events.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
       allOf:
       - if:
           properties:
@@ -1024,7 +1039,7 @@ components:
 
     EventsFrontierAccountClientResponse:
       type: object
-      description: Account-client cx.events.frontier response.
+      description: Account-client ck.events.frontier response.
       required:
       - frontier
       properties:
@@ -1043,7 +1058,7 @@ components:
 
     EventsFrontierFederationPeerResponse:
       type: object
-      description: Federation peer cx.events.frontier response. Requires S2S signed trust-domain headers.
+      description: Federation peer ck.events.frontier response. Requires S2S signed trust-domain headers.
       required:
       - frontier
       - frontier_root
@@ -1069,7 +1084,7 @@ components:
 
     EventsFrontierAnonymousHealthResponse:
       type: object
-      description: Anonymous health cx.events.frontier response. MUST NOT include actor_seq_upper_bounds, receipts, frontier details, or service signature material.
+      description: Anonymous health ck.events.frontier response. MUST NOT include actor_seq_upper_bounds, receipts, frontier details, or service signature material.
       required:
       - frontier_root
       properties:
@@ -1088,7 +1103,7 @@ components:
 
     SnapshotBootstrap:
       type: object
-      description: Optional cx.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
+      description: Optional ck.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
       required:
       - snapshot_ref
       - state_digest
@@ -1125,7 +1140,7 @@ components:
 
     SnapshotHeadResponse:
       type: object
-      description: Result of cx.snapshot.head — a signed snapshot pointer for fast bootstrap. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.
+      description: Result of ck.snapshot.head — a signed snapshot pointer for fast bootstrap. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.
       required:
       - snapshot_ref
       - state_digest
@@ -1164,7 +1179,7 @@ components:
 
     IdentityGetDocumentResponse:
       type: object
-      description: Result of cx.identity.get_document — current DID Document plus normalized view hints.
+      description: Result of ck.identity.get_document — current DID Document plus normalized view hints.
       required:
       - did_document
       properties:
@@ -1284,7 +1299,7 @@ components:
       properties:
         kind:
           type: string
-          pattern: ^cx\.[a-z0-9_]+(\.[a-z0-9_]+)*$
+          pattern: ^ck\.[a-z0-9_]+(\.[a-z0-9_]+)*$
         content:
           type: object
         expires_at:
@@ -1348,8 +1363,8 @@ components:
     AuthzCheckRequest:
       type: object
       description: |
-        cx.authz.check input — single capability decision query. `resource` is
-        optional because some actions (e.g. `cx.realm.create`, identity-scoped
+        ck.authz.check input — single capability decision query. `resource` is
+        optional because some actions (e.g. `ck.realm.create`, identity-scoped
         actions) have no Realm-bound target.
       required:
       - actor_id
@@ -1361,7 +1376,7 @@ components:
           description: Subject DID whose authorization is being checked.
         action:
           type: string
-          description: Capability action id (e.g. `cx.flow.update`).
+          description: Capability action id (e.g. `ck.flow.update`).
         resource:
           type: object
           description: Optional resource selector (Realm / Flow / Space / Morph / etc.).
@@ -1371,7 +1386,7 @@ components:
       additionalProperties: false
     AuthzCheckResponse:
       type: object
-      description: cx.authz.check decision. See zh/authz/capabilities.md §18.
+      description: ck.authz.check decision. See zh/authz/capabilities.md §18.
       required:
       - decision
       properties:
@@ -2735,7 +2750,7 @@ components:
       additionalProperties: false
     PolicyCheckRequest:
       type: object
-      description: cx.policy.check input bound to a Realm authorization context.
+      description: ck.policy.check input bound to a Realm authorization context.
       required:
       - request_id
       - realm_id
@@ -2787,7 +2802,7 @@ components:
       additionalProperties: false
     PolicyCheckResponse:
       type: object
-      description: Result of cx.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.
+      description: Result of ck.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.
       required:
       - request_id
       - bound_to
@@ -2894,14 +2909,14 @@ components:
         agent_key_authorization_ref:
           type: string
           description: |
-            `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Event ref of the accepted
-            `cx.agent.key.authorize` that authorized the runtime key. REQUIRED when
+            `ck.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Event ref of the accepted
+            `ck.agent.key.authorize` that authorized the runtime key. REQUIRED when
             `proof.proof_kind="agent_key_proof"`; MUST be omitted for human session grants.
           pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         agent_scope_request:
           type: object
           description: |
-            `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Narrowing hints for the
+            `ck.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Narrowing hints for the
             issued session scope; the server still intersects with the agent's accepted
             capability grants and Realm policy. REQUIRED when `proof.proof_kind="agent_key_proof"`;
             MUST be omitted for human session grants. `track_names` is a request-side
@@ -2937,7 +2952,7 @@ components:
             proof_kind:
               type: string
               description: |
-                `agent_key_proof` selects the `cx.profile.agent_auth.v1` overlay branch (CXP-0008 §4.6).
+                `agent_key_proof` selects the `ck.profile.agent_auth.v1` overlay branch (CXP-0008 §4.6).
                 Implementations MUST route `agent_key_proof` to an independent validator and MUST NOT
                 fall back to password / OIDC / passkey validators for this branch.
               enum:
@@ -2960,7 +2975,7 @@ components:
             verification_method:
               type: string
               description: |
-                `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). DID URL of the runtime
+                `ck.profile.agent_auth.v1` overlay (CXP-0008 §4.6). DID URL of the runtime
                 signing key (`<agent_principal_id>#<key-fragment>`). REQUIRED when
                 `proof_kind="agent_key_proof"`; the DID component MUST bit-identically equal
                 `principal_id` after stripping the fragment / query — otherwise the endpoint
@@ -2973,7 +2988,7 @@ components:
       allOf:
       - description: |
           Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is
-          `agent_key_proof`, the request MUST carry the `cx.profile.agent_auth.v1` overlay
+          `agent_key_proof`, the request MUST carry the `ck.profile.agent_auth.v1` overlay
           fields (`agent_key_authorization_ref`, `agent_scope_request`, `proof.verification_method`);
           when it is any other enum value, those fields MUST be absent. SDKs and server-side
           validators MUST reject violations at schema-validation time, not at proof-validator
@@ -3036,7 +3051,7 @@ components:
         scope_details:
           type: object
           description: |
-            `cx.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Materialized narrow scope
+            `ck.profile.agent_auth.v1` overlay (CXP-0008 §4.6). Materialized narrow scope
             actually granted to the agent runtime session, after intersecting `agent_scope_request`
             with capability grants and Realm policy. Present iff the request was the
             `proof.proof_kind="agent_key_proof"` branch; absent for human session grants.
@@ -3293,18 +3308,18 @@ components:
           - string
           - 'null'
           pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-          description: Derived board Space id from cx.component.flow.position.v1; not canonical Flow object state.
+          description: Derived board Space id from ck.component.flow.position.v1; not canonical Flow object state.
         list_space_id:
           type:
           - string
           - 'null'
           pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-          description: Derived list Space id from cx.component.flow.position.v1; not canonical Flow object state.
+          description: Derived list Space id from ck.component.flow.position.v1; not canonical Flow object state.
         rank:
           type:
           - string
           - 'null'
-          description: Derived rank within list_space_id from cx.component.flow.position.v1.
+          description: Derived rank within list_space_id from ck.component.flow.position.v1.
         created_by:
           type:
           - string
@@ -3421,7 +3436,7 @@ components:
     EphemeralSubmitResponse:
       type: object
       description: |
-        Result of cx.ephemeral.send. `accepted=true` means the Sync Service
+        Result of ck.ephemeral.send. `accepted=true` means the Sync Service
         admitted the short-lived signal into its ephemeral fanout path. No
         Event ID, actor_seq, Anchor frontier, or durable receipt is minted.
       required:
@@ -3434,10 +3449,10 @@ components:
         kind:
           type: string
           enum:
-          - cx.call.signal
-          - cx.presence
-          - cx.typing
-          - cx.receipt.read
+          - ck.call.signal
+          - ck.presence
+          - ck.typing
+          - ck.receipt.read
         realm_id:
           type: string
           pattern: '^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
@@ -3477,7 +3492,7 @@ components:
             pattern: ^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$
         discovery_state:
           type: object
-          description: Signed cx.{kind}.discovery payload, including its proof.
+          description: Signed ck.{kind}.discovery payload, including its proof.
           additionalProperties: true
         source_refs:
           type: array
@@ -3681,9 +3696,9 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorEnvelope'
 paths:
-  /server/describe:
+  /_cokret/describe:
     get:
-      operationId: cx.server.describe
+      operationId: ck.server.describe
       security: []
       responses:
         '200':
@@ -3700,9 +3715,9 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '503':
           $ref: '#/components/responses/TemporarilyUnavailable'
-  /identity/resolve:
+  /_cokret/root/identity/resolve:
     post:
-      operationId: cx.identity.resolve
+      operationId: ck.identity.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3736,9 +3751,9 @@ paths:
                 $ref: '#/components/schemas/IdentityResolveResponse'
         '404':
           $ref: '#/components/responses/NotFound'
-  /identity/document:
+  /_cokret/root/identity/document:
     get:
-      operationId: cx.identity.get_document
+      operationId: ck.identity.get_document
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3758,9 +3773,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IdentityGetDocumentResponse'
-  /identity/log:
+  /_cokret/root/identity/log:
     get:
-      operationId: cx.identity.get_log
+      operationId: ck.identity.get_log
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3780,9 +3795,9 @@ paths:
                       $ref: ../schemas/did-key-log-entry.schema.json
                   next_cursor:
                     type: string
-  /identity/submit-did-operation:
+  /_cokret/root/identity/submit-did-operation:
     post:
-      operationId: cx.identity.submit_did_operation
+      operationId: ck.identity.submit_did_operation
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -3801,9 +3816,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DidOperationSubmitRequest'
-  /identity/receipts:
+  /_cokret/root/identity/receipts:
     get:
-      operationId: cx.identity.get_receipts
+      operationId: ck.identity.get_receipts
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3821,9 +3836,9 @@ paths:
                     type: array
                     items:
                       $ref: ../schemas/identity-receipt.schema.json
-  /events:
+  /_cokret/self/events:
     post:
-      operationId: cx.events.submit
+      operationId: ck.events.submit
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3855,7 +3870,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsSubmitResponse'
     get:
-      operationId: cx.events.query
+      operationId: ck.events.query
       x-cokret-required-any-of:
       - - realms
       - - actors
@@ -3954,9 +3969,9 @@ paths:
         '400':
           description: |
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
-  /events/query:
+  /_cokret/self/events/query:
     post:
-      operationId: cx.events.query_post
+      operationId: ck.events.query_post
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3966,9 +3981,9 @@ paths:
         destinationTrustDomain: []
         requestCanonicalDigest: []
         contentDigest: []
-      summary: cx.events.query in HTTP POST body form (for long/complex queries).
+      summary: ck.events.query in HTTP POST body form (for long/complex queries).
       description: |
-        Semantically identical to `GET /events` (`cx.events.query`); the same
+        Semantically identical to `GET /_cokret/self/events` (`ck.events.query`); the same
         selector / cursor / order / filter parameter set is transported as a
         JSON request body instead of URL query parameters. Use this form when
         any of:
@@ -3985,7 +4000,7 @@ paths:
         come from the same source — see zh/sync/service-http-binding.md §3.3.
 
         gRPC / MQ bindings reuse the canonical `Events/Query` channel; this
-        operation_id is a HTTP-only binding variant of `cx.events.query` to keep
+        operation_id is a HTTP-only binding variant of `ck.events.query` to keep
         OpenAPI / SDK generators round-trippable.
       requestBody:
         required: true
@@ -4034,7 +4049,7 @@ paths:
                   description: Structured filter object (kind, payload predicates).
       responses:
         '200':
-          description: Event query page (same shape as GET /events response)
+          description: Event query page (same shape as GET /_cokret/self/events response)
           content:
             application/json:
               schema:
@@ -4042,9 +4057,9 @@ paths:
         '400':
           description: |
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
-  /events/subscribe:
+  /_cokret/self/events/subscribe:
     get:
-      operationId: cx.events.subscribe
+      operationId: ck.events.subscribe
       x-cokret-required-any-of:
       - - realms
       - - actors
@@ -4067,7 +4082,7 @@ paths:
         the bounded catch-up range from that cursor up to the current frontier,
         then emits `catchup_complete` per Realm and continues with live frames.
         This is not a request for all historical events; full history is read
-        through `GET /events` pagination / range queries.
+        through `GET /_cokret/self/events` pagination / range queries.
       parameters:
       - name: realms
         in: query
@@ -4091,7 +4106,7 @@ paths:
         explode: true
       - name: after
         in: query
-        description: Subscription start cursor (exclusive). Same semantics as cx.events.query's `after=` parameter.
+        description: Subscription start cursor (exclusive). Same semantics as ck.events.query's `after=` parameter.
         schema:
           $ref: '#/components/schemas/Cursor'
       - name: catchup
@@ -4107,9 +4122,9 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
-  /events/describe:
+  /_cokret/self/events/describe:
     get:
-      operationId: cx.events.describe
+      operationId: ck.events.describe
       security: []
       responses:
         '200':
@@ -4118,9 +4133,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /events/{event_id}:
+  /_cokret/self/events/{event_id}:
     get:
-      operationId: cx.events.get
+      operationId: ck.events.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4144,9 +4159,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventGetResponse'
-  /events/resolve:
+  /_cokret/self/events/resolve:
     post:
-      operationId: cx.events.resolve
+      operationId: ck.events.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4166,9 +4181,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsResolveResponse'
-  /events/frontier:
+  /_cokret/self/events/frontier:
     get:
-      operationId: cx.events.frontier
+      operationId: ck.events.frontier
       x-cokret-required-any-of:
       - - actor_id
       - - realm_id
@@ -4207,9 +4222,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierResponse'
-  /ephemeral:
+  /_cokret/self/ephemeral:
     post:
-      operationId: cx.ephemeral.send
+      operationId: ck.ephemeral.send
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4218,12 +4233,12 @@ paths:
         contentDigest: []
       summary: Send a broadcast ephemeral signal.
       description: |
-        Sends a `cx.schema.ephemeral_envelope.v1` broadcast signal (`cx.presence`,
-        `cx.typing`, `cx.receipt.read`, or `cx.call.signal`) into the Sync
+        Sends a `ck.schema.ephemeral_envelope.v1` broadcast signal (`ck.presence`,
+        `ck.typing`, `ck.receipt.read`, or `ck.call.signal`) into the Sync
         Service fanout path. This endpoint never persists the signal as a
         durable Event and never advances actor_seq, Anchor state, or Realm
         frontier. Point-to-point device verification signals use
-        `cx.device_messages.put` instead.
+        `ck.device_messages.put` instead.
       requestBody:
         required: true
         content:
@@ -4245,10 +4260,10 @@ paths:
           description: |
             `capability_denied` or `policy_violation` — caller cannot broadcast
             this signal in the Realm, or the effective read-receipt policy
-            disables `cx.receipt.read`.
-  /rtc/token:
+            disables `ck.receipt.read`.
+  /_cokret/self/rtc/token:
     post:
-      operationId: cx.call.media.token_exchange
+      operationId: ck.call.media.token_exchange
       security:
       - bearerAuth: []
       summary: Exchange Cokret capability proof for a backend media token.
@@ -4256,7 +4271,7 @@ paths:
         Media service token exchange operation (CXP-0010,
         zh/crypto-media/webrtc-signaling.md §6.4). Issues a short-lived
         (TTL ≤ 600s, SHOULD ≤ 300s) backend_token + participant_binding for
-        joining a focus declared in `cx.realm.media_service.foci[]`.
+        joining a focus declared in `ck.realm.media_service.foci[]`.
 
         Same wire across all backend types (livekit / mediasoup / janus /
         cokret-native); only `backend_token` shape is type-specific and opaque
@@ -4264,7 +4279,7 @@ paths:
 
         Token issuer MUST be one of the Realm-authorized media service DIDs;
         clients MUST reject otherwise (`token_issuer_unauthorised`). Issuer
-        MUST validate: device proof, `cx.call.join` capability, focus_id
+        MUST validate: device proof, `ck.call.join` capability, focus_id
         membership in current `foci[]`, session_focus persistence, MLS
         governance binding policy_root freshness, and `media_service_decrypts`
         pre-conditions (§10.5.1).
@@ -4371,7 +4386,7 @@ paths:
                     - sig
                     properties:
                       scheme:
-                        const: cx.media.participant_binding.v1
+                        const: ck.media.participant_binding.v1
                       realm_id:
                         type: string
                         pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
@@ -4421,19 +4436,19 @@ paths:
                 additionalProperties: false
         '403':
           description: |
-            `capability_denied` — actor lacks `cx.call.join` or
+            `capability_denied` — actor lacks `ck.call.join` or
             requested `desired_media` exceeds granted sub-capabilities; or
             `token_issuer_unauthorised` when the issuing DID is not registered
-            in `cx.realm.media_service.service_id`.
+            in `ck.realm.media_service.service_id`.
         '409':
           description: |
             `focus_mismatch` — requested `focus_id` differs from the
-            already-committed `cx.call.state.session_focus`; clients MUST
+            already-committed `ck.call.state.session_focus`; clients MUST
             re-target the established focus rather than retrying.
         '412':
           description: |
             `mls_governance_binding_stale` — current MLS epoch policy_root
-            does not cover the `cx.realm.media_service` cell; or
+            does not cover the `ck.realm.media_service` cell; or
             `media_plaintext_service_not_authorised` for SFUs negotiating
             decryption role without `plaintext_visible_services` entry.
         '422':
@@ -4442,9 +4457,9 @@ paths:
             whose `type` is unsupported by this token issuer; or
             `legacy_single_endpoint_media_service` (v1.1+) when the Realm
             still uses the deprecated single-`sfu_endpoint` shape.
-  /account/subscribe:
+  /_cokret/self/account/subscribe:
     get:
-      operationId: cx.account.subscribe
+      operationId: ck.account.subscribe
       security:
       - bearerAuth: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
@@ -4458,14 +4473,14 @@ paths:
         `heartbeat`, `catchup_complete`, `dropped`, `resync_required`,
         `unauthorized`).
 
-        Symmetric with cx.events.subscribe (per-Realm event log streaming);
+        Symmetric with ck.events.subscribe (per-Realm event log streaming);
         both share resume semantics (`after=<cursor>` exclusive start).
         `dropped` requires account-aggregate catch-up by reconnecting with
         `after=<cursor>&catchup=true`; `resync_required` requires local
         rebuild / initial account sync. `dropped` / `resync_required` may
         carry `reconnect_after_ms`, a minimum server-directed delay before
         opening another subscription for the same principal/device/filter
-        scope. Replaces the prior Matrix-derived long-poll cx.account.sync.
+        scope. Replaces the prior Matrix-derived long-poll ck.account.sync.
       parameters:
       - in: header
         name: X-Cokret-Wait-For
@@ -4493,7 +4508,7 @@ paths:
           and `after` is omitted, this is initial account sync: server first
           emits a current baseline delta, then `catchup_complete`, then
           real-time push. This parameter never means "return all history";
-          complete event history is retrieved via `GET /events`.
+          complete event history is retrieved via `GET /_cokret/self/events`.
         schema:
           type: boolean
           default: false
@@ -4524,9 +4539,9 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
-  /account/cursor/revoke:
+  /_cokret/self/account/cursor/revoke:
     post:
-      operationId: cx.account.cursor_revoke
+      operationId: ck.account.cursor_revoke
       security:
       - bearerAuth: []
       summary: Revoke a previously issued cursor authority.
@@ -4574,9 +4589,9 @@ paths:
                   expires_at:
                     type: string
                     format: date-time
-  /snapshot/head:
+  /_cokret/self/snapshot/head:
     get:
-      operationId: cx.snapshot.head
+      operationId: ck.snapshot.head
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4598,9 +4613,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SnapshotHeadResponse'
-  /projection/spaces:
+  /_cokret/self/projection/spaces:
     get:
-      operationId: cx.projection.spaces
+      operationId: ck.projection.spaces
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4647,9 +4662,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionSpacesResponse'
-  /projection/flows:
+  /_cokret/self/projection/flows:
     get:
-      operationId: cx.projection.flows
+      operationId: ck.projection.flows
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4695,9 +4710,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionFlowsResponse'
-  /projection/morphs:
+  /_cokret/self/projection/morphs:
     get:
-      operationId: cx.projection.morphs
+      operationId: ck.projection.morphs
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4743,9 +4758,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionMorphsResponse'
-  /directory/resolve-handle:
+  /_cokret/find/directory/resolve-handle:
     post:
-      operationId: cx.directory.resolve_handle
+      operationId: ck.directory.resolve_handle
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4765,9 +4780,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/list-handles-for-subject:
+  /_cokret/find/directory/list-handles-for-subject:
     post:
-      operationId: cx.directory.list_handles_for_subject
+      operationId: ck.directory.list_handles_for_subject
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4788,9 +4803,9 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/list-handles-for-subject-response.schema.json
-  /directory/private-contact-discovery:
+  /_cokret/find/directory/private-contact-discovery:
     post:
-      operationId: cx.directory.private_contact_discovery
+      operationId: ck.directory.private_contact_discovery
       security:
       - bearerAuth: []
       requestBody:
@@ -4806,9 +4821,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /blob/upload:
+  /_cokret/self/blob/upload:
     post:
-      operationId: cx.blob.upload
+      operationId: ck.blob.upload
       security:
       - bearerAuth: []
       responses:
@@ -4827,9 +4842,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /blob/get:
+  /_cokret/self/blob/get:
     head:
-      operationId: cx.blob.head
+      operationId: ck.blob.head
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4840,7 +4855,7 @@ paths:
         '200':
           description: Blob metadata
     get:
-      operationId: cx.blob.get
+      operationId: ck.blob.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4884,7 +4899,7 @@ paths:
       in: query
       required: false
       description: |
-        Pre-signed authorization token returned by `cx.blob.presign`. When
+        Pre-signed authorization token returned by `ck.blob.presign`. When
         present, the request is authenticated solely by this token — the
         `Authorization` header MUST be absent and is rejected if both are
         supplied. Pre-signed mode is a deliberate carve-out of the
@@ -4900,9 +4915,9 @@ paths:
         §5.4.
       schema:
         type: string
-  /blob/presign:
+  /_cokret/self/blob/presign:
     post:
-      operationId: cx.blob.presign
+      operationId: ck.blob.presign
       security:
       - bearerAuth: []
       requestBody:
@@ -4957,7 +4972,7 @@ paths:
                     description: Echo of the issued `purpose`.
         '403':
           description: |
-            `capability_denied` — caller lacks `cx.blob.presign` for this
+            `capability_denied` — caller lacks `ck.blob.presign` for this
             blob or this purpose; or the grant's TTL constraint forbids the
             requested `max_age_seconds`; or the target is a minimal-metadata
             Realm-owned blob for which bearer presign is forbidden by
@@ -4967,9 +4982,9 @@ paths:
             `not_found` — blob does not exist or is not visible to the
             caller. MUST NOT differentiate between non-existence and lack of
             visibility.
-  /push/register-device:
+  /_cokret/edge/push/register-device:
     post:
-      operationId: cx.push.register_device
+      operationId: ck.push.register_device
       security:
       - bearerAuth: []
       responses:
@@ -4985,9 +5000,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /push/unregister-device:
+  /_cokret/edge/push/unregister-device:
     post:
-      operationId: cx.push.unregister_device
+      operationId: ck.push.unregister_device
       security:
       - bearerAuth: []
       responses:
@@ -5003,9 +5018,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /push/notify:
+  /_cokret/edge/push/notify:
     post:
-      operationId: cx.push.notify
+      operationId: ck.push.notify
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5029,9 +5044,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /authz/check:
+  /_cokret/self/authz/check:
     post:
-      operationId: cx.authz.check
+      operationId: ck.authz.check
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5051,9 +5066,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthzCheckResponse'
-  /authz/effective-grants:
+  /_cokret/self/authz/effective-grants:
     get:
-      operationId: cx.authz.get_effective_grants
+      operationId: ck.authz.get_effective_grants
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5066,9 +5081,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GrantListResponse'
-  /device_messages:
+  /_cokret/self/device_messages:
     post:
-      operationId: cx.device_messages.put
+      operationId: ck.device_messages.put
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5095,7 +5110,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesPutResponse'
     get:
-      operationId: cx.device_messages.get
+      operationId: ck.device_messages.get
       security:
       - bearerAuth: []
       responses:
@@ -5105,9 +5120,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesGetResponse'
-  /keys/upload:
+  /_cokret/self/keys/upload:
     post:
-      operationId: cx.keys.upload
+      operationId: ck.keys.upload
       security:
       - bearerAuth: []
       responses:
@@ -5123,9 +5138,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /keys/query:
+  /_cokret/self/keys/query:
     post:
-      operationId: cx.keys.query
+      operationId: ck.keys.query
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5145,9 +5160,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /keys/claim:
+  /_cokret/self/keys/claim:
     post:
-      operationId: cx.keys.claim
+      operationId: ck.keys.claim
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5167,9 +5182,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /keys/keypackages/upload:
+  /_cokret/self/keys/keypackages/upload:
     post:
-      operationId: cx.keys.keypackages.upload
+      operationId: ck.keys.keypackages.upload
       security:
       - bearerAuth: []
       responses:
@@ -5185,9 +5200,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /keys/keypackages/claim:
+  /_cokret/self/keys/keypackages/claim:
     post:
-      operationId: cx.keys.keypackages.claim
+      operationId: ck.keys.keypackages.claim
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5207,9 +5222,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /keys/keypackages/consume:
+  /_cokret/self/keys/keypackages/consume:
     post:
-      operationId: cx.keys.keypackages.consume
+      operationId: ck.keys.keypackages.consume
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5229,9 +5244,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /keys/keypackages/revoke:
+  /_cokret/self/keys/keypackages/revoke:
     post:
-      operationId: cx.keys.keypackages.revoke
+      operationId: ck.keys.keypackages.revoke
       security:
       - bearerAuth: []
       responses:
@@ -5247,9 +5262,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /keys/backups/{backup_id}:
+  /_cokret/self/keys/backups/{backup_id}:
     put:
-      operationId: cx.keys.backups.put
+      operationId: ck.keys.backups.put
       security:
       - bearerAuth: []
       parameters:
@@ -5273,7 +5288,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationResult'
     get:
-      operationId: cx.keys.backups.get
+      operationId: ck.keys.backups.get
       security:
       - bearerAuth: []
       parameters:
@@ -5291,7 +5306,7 @@ paths:
               schema:
                 $ref: ../schemas/key-backup.schema.json
     delete:
-      operationId: cx.keys.backups.delete
+      operationId: ck.keys.backups.delete
       security:
       - bearerAuth: []
       parameters:
@@ -5308,9 +5323,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /keys/backups:
+  /_cokret/self/keys/backups:
     get:
-      operationId: cx.keys.backups.list
+      operationId: ck.keys.backups.list
       security:
       - bearerAuth: []
       parameters:
@@ -5338,9 +5353,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /moderation/report:
+  /_cokret/self/moderation/report:
     post:
-      operationId: cx.moderation.report
+      operationId: ck.moderation.report
       security:
       - bearerAuth: []
       requestBody:
@@ -5356,9 +5371,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModerationReportResponse'
-  /mimi/provider-directory:
+  /_cokret/open/mimi/provider-directory:
     get:
-      operationId: cx.mimi.provider_directory
+      operationId: ck.mimi.provider_directory
       security: []
       responses:
         '200':
@@ -5367,9 +5382,9 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/mimi-interop.schema.json
-  /mimi/key-material:
+  /_cokret/open/mimi/key-material:
     post:
-      operationId: cx.mimi.key_material
+      operationId: ck.mimi.key_material
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5388,9 +5403,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/flows/{flow_id}/update:
+  /_cokret/open/mimi/flows/{flow_id}/update:
     put:
-      operationId: cx.mimi.room_update
+      operationId: ck.mimi.room_update
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5415,9 +5430,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/flows/{flow_id}/notify:
+  /_cokret/open/mimi/flows/{flow_id}/notify:
     post:
-      operationId: cx.mimi.notify
+      operationId: ck.mimi.notify
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5442,9 +5457,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/flows/{flow_id}/messages:
+  /_cokret/open/mimi/flows/{flow_id}/messages:
     post:
-      operationId: cx.mimi.submit_message
+      operationId: ck.mimi.submit_message
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5469,9 +5484,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/flows/{flow_id}/group-info:
+  /_cokret/open/mimi/flows/{flow_id}/group-info:
     get:
-      operationId: cx.mimi.group_info
+      operationId: ck.mimi.group_info
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5489,9 +5504,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /mimi/consent/request:
+  /_cokret/open/mimi/consent/request:
     post:
-      operationId: cx.mimi.request_consent
+      operationId: ck.mimi.request_consent
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5510,9 +5525,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/consent/update:
+  /_cokret/open/mimi/consent/update:
     post:
-      operationId: cx.mimi.update_consent
+      operationId: ck.mimi.update_consent
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5531,9 +5546,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/identifiers/query:
+  /_cokret/open/mimi/identifiers/query:
     post:
-      operationId: cx.mimi.identifier_query
+      operationId: ck.mimi.identifier_query
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5552,9 +5567,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/report-abuse:
+  /_cokret/open/mimi/report-abuse:
     post:
-      operationId: cx.mimi.report_abuse
+      operationId: ck.mimi.report_abuse
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5573,9 +5588,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /mimi/proxy-download:
+  /_cokret/open/mimi/proxy-download:
     post:
-      operationId: cx.mimi.proxy_download
+      operationId: ck.mimi.proxy_download
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5594,9 +5609,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /identity/describe:
+  /_cokret/root/identity/describe:
     get:
-      operationId: cx.identity.describe_registry
+      operationId: ck.identity.describe_registry
       security: []
       responses:
         '200':
@@ -5605,9 +5620,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /account/describe:
+  /_cokret/self/account/describe:
     get:
-      operationId: cx.account.describe
+      operationId: ck.account.describe
       security: []
       responses:
         '200':
@@ -5616,9 +5631,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /directory/describe:
+  /_cokret/find/directory/describe:
     get:
-      operationId: cx.directory.describe
+      operationId: ck.directory.describe
       security: []
       responses:
         '200':
@@ -5627,9 +5642,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /directory/announce:
+  /_cokret/find/directory/announce:
     post:
-      operationId: cx.directory.announce
+      operationId: ck.directory.announce
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5649,9 +5664,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryAnnounceRequest'
-  /directory/withdraw:
+  /_cokret/find/directory/withdraw:
     post:
-      operationId: cx.directory.withdraw
+      operationId: ck.directory.withdraw
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5671,9 +5686,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryWithdrawRequest'
-  /directory/search-realms:
+  /_cokret/find/directory/search-realms:
     post:
-      operationId: cx.directory.search_realms
+      operationId: ck.directory.search_realms
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5693,9 +5708,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/resolve-realm:
+  /_cokret/find/directory/resolve-realm:
     post:
-      operationId: cx.directory.resolve_realm
+      operationId: ck.directory.resolve_realm
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5715,9 +5730,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/resolve-target:
+  /_cokret/find/directory/resolve-target:
     post:
-      operationId: cx.directory.resolve_target
+      operationId: ck.directory.resolve_target
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5737,9 +5752,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/search-organizations:
+  /_cokret/find/directory/search-organizations:
     post:
-      operationId: cx.directory.search_organizations
+      operationId: ck.directory.search_organizations
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5759,9 +5774,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/resolve-organization:
+  /_cokret/find/directory/resolve-organization:
     post:
-      operationId: cx.directory.resolve_organization
+      operationId: ck.directory.resolve_organization
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5781,9 +5796,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/search-actors:
+  /_cokret/find/directory/search-actors:
     post:
-      operationId: cx.directory.search_actors
+      operationId: ck.directory.search_actors
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5803,9 +5818,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/search-users:
+  /_cokret/find/directory/search-users:
     post:
-      operationId: cx.directory.search_users
+      operationId: ck.directory.search_users
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5825,9 +5840,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/push/register:
+  /_cokret/find/directory/push/register:
     post:
-      operationId: cx.directory.push.register
+      operationId: ck.directory.push.register
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5847,9 +5862,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /authz/invites:
+  /_cokret/self/authz/invites:
     get:
-      operationId: cx.authz.get_invites
+      operationId: ck.authz.get_invites
       security:
       - bearerAuth: []
       responses:
@@ -5859,9 +5874,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /applet/ping:
+  /_cokret/edge/applet/ping:
     get:
-      operationId: cx.applet.ping
+      operationId: ck.applet.ping
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5873,9 +5888,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /applet/describe:
+  /_cokret/edge/applet/describe:
     get:
-      operationId: cx.applet.describe
+      operationId: ck.applet.describe
       security: []
       responses:
         '200':
@@ -5884,9 +5899,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /applet/transactions:
+  /_cokret/edge/applet/transactions:
     post:
-      operationId: cx.applet.transaction
+      operationId: ck.applet.transaction
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5911,9 +5926,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletTransactionRequest'
-  /applet/actors/{actor_id}:
+  /_cokret/edge/applet/actors/{actor_id}:
     get:
-      operationId: cx.applet.resolve_actor
+      operationId: ck.applet.resolve_actor
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5931,9 +5946,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /applet/realms/{realm_id_or_alias}:
+  /_cokret/edge/applet/realms/{realm_id_or_alias}:
     get:
-      operationId: cx.applet.resolve_realm
+      operationId: ck.applet.resolve_realm
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5951,9 +5966,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /applet/protocols/{protocol}:
+  /_cokret/edge/applet/protocols/{protocol}:
     get:
-      operationId: cx.applet.protocol_metadata
+      operationId: ck.applet.protocol_metadata
       security: []
       parameters:
       - in: path
@@ -5968,9 +5983,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /applet/third_party/users:
+  /_cokret/edge/applet/third_party/users:
     get:
-      operationId: cx.applet.third_party_users
+      operationId: ck.applet.third_party_users
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5982,9 +5997,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /applet/third_party/locations:
+  /_cokret/edge/applet/third_party/locations:
     get:
-      operationId: cx.applet.third_party_locations
+      operationId: ck.applet.third_party_locations
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5996,12 +6011,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /policy/check:
+  /_cokret/self/policy/check:
     post:
-      operationId: cx.policy.check
+      operationId: ck.policy.check
       summary: Signed policy decision.
       description: |
-        Canonical HTTP binding for `cx.policy.check`. The Policy Server returns
+        Canonical HTTP binding for `ck.policy.check`. The Policy Server returns
         a signed allow/deny/quarantine/require_review decision.
       security:
       - bearerAuth: []
@@ -6022,14 +6037,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PolicyCheckRequest'
-  /cokret/v1/ice-config:
+  /_cokret/self/rtc/ice-config:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     post:
-      operationId: cx.media.ice_config
+      operationId: ck.media.ice_config
       security:
       - bearerAuth: []
       responses:
@@ -6045,14 +6060,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /auth/account/session-grants:
+  /_cokret/gate/account/session-grants:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     post:
-      operationId: cx.account.issue_session_grant
+      operationId: ck.account.issue_session_grant
       security: []
       x-cokret-auth:
         public_metadata: false
@@ -6072,14 +6087,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantRequest'
-  /auth/account/device-pair:
+  /_cokret/gate/account/device-pair:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     post:
-      operationId: cx.account.device_pair
+      operationId: ck.account.device_pair
       security:
       - bearerAuth: []
       responses:
@@ -6095,20 +6110,20 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /auth/account/agent-key-pair:
+  /_cokret/gate/account/agent-key-pair:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     post:
-      operationId: cx.account.agent_key_pair
-      description: Native personal agent runtime key pairing (CXP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes cx.agent.key.authorize on approval.
+      operationId: ck.account.agent_key_pair
+      description: Native personal agent runtime key pairing (CXP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes ck.agent.key.authorize on approval.
       security:
       - bearerAuth: []
       responses:
         '200':
-          description: Agent key pairing accepted; cx.agent.key.authorize event written.
+          description: Agent key pairing accepted; ck.agent.key.authorize event written.
           content:
             application/json:
               schema:
@@ -6121,9 +6136,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /agents:
+  /_cokret/self/agents:
     get:
-      operationId: cx.agent.list
+      operationId: ck.agent.list
       description: List native personal agents visible to the authenticated controller.
       security:
       - bearerAuth: []
@@ -6135,7 +6150,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationResult'
     post:
-      operationId: cx.agent.provision
+      operationId: ck.agent.provision
       description: Provision a native personal agent principal (CXP-0008).
       security:
       - bearerAuth: []
@@ -6152,9 +6167,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /agents/{agent_principal_id}:
+  /_cokret/self/agents/{agent_principal_id}:
     get:
-      operationId: cx.agent.get
+      operationId: ck.agent.get
       description: Read one native personal agent projection.
       security:
       - bearerAuth: []
@@ -6171,9 +6186,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /agents/{agent_principal_id}/pause:
+  /_cokret/self/agents/{agent_principal_id}/pause:
     post:
-      operationId: cx.agent.pause
+      operationId: ck.agent.pause
       description: Pause a native personal agent and reject new agent sessions.
       security:
       - bearerAuth: []
@@ -6196,9 +6211,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /agents/{agent_principal_id}/resume:
+  /_cokret/self/agents/{agent_principal_id}/resume:
     post:
-      operationId: cx.agent.resume
+      operationId: ck.agent.resume
       description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
       security:
       - bearerAuth: []
@@ -6221,10 +6236,10 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /agents/{agent_principal_id}/deactivate:
+  /_cokret/self/agents/{agent_principal_id}/deactivate:
     post:
-      operationId: cx.agent.deactivate
-      description: Terminally deactivate a native personal agent. fan-out cx.agent.key.revoke / cx.capability.revoke / runtime endpoint revocation.
+      operationId: ck.agent.deactivate
+      description: Terminally deactivate a native personal agent. fan-out ck.agent.key.revoke / ck.capability.revoke / runtime endpoint revocation.
       security:
       - bearerAuth: []
       parameters:
@@ -6246,9 +6261,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /agents/{agent_principal_id}/rotate-key:
+  /_cokret/self/agents/{agent_principal_id}/rotate-key:
     post:
-      operationId: cx.agent.rotate_key
+      operationId: ck.agent.rotate_key
       description: Rotate the active runtime key for a native personal agent.
       security:
       - bearerAuth: []
@@ -6271,9 +6286,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /agents/{agent_principal_id}/grants:
+  /_cokret/self/agents/{agent_principal_id}/grants:
     post:
-      operationId: cx.agent.grant.attach
+      operationId: ck.agent.grant.attach
       description: Attach a capability grant to a native personal agent.
       security:
       - bearerAuth: []
@@ -6296,9 +6311,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /agents/{agent_principal_id}/grants/{grant_id}:
+  /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}:
     delete:
-      operationId: cx.agent.grant.detach
+      operationId: ck.agent.grant.detach
       description: Detach or revoke a capability grant from a native personal agent.
       security:
       - bearerAuth: []
@@ -6320,9 +6335,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /agent-sidecar-threads:ensure:
+  /_cokret/self/agent-sidecar-threads:ensure:
     post:
-      operationId: cx.agent.sidecar_thread.ensure
+      operationId: ck.agent.sidecar_thread.ensure
       description: |
         Idempotently ensure the controller-agent sidecar Circle, Flow, and relation (CXP-0009 §4.2.1).
         The wire-level idempotency keys are **server-derived**: the sidecar Circle is keyed by
@@ -6349,14 +6364,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /auth/account/oidc/callback:
+  /_cokret/gate/account/oidc/callback:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     post:
-      operationId: cx.account.oidc_callback
+      operationId: ck.account.oidc_callback
       security: []
       x-cokret-auth:
         public_metadata: false
@@ -6376,14 +6391,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountOidcCallbackRequest'
-  /admin/server/status:
+  /_cokret/local/admin/server/status:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     get:
-      operationId: cx.admin.get_server_status
+      operationId: ck.admin.get_server_status
       security:
       - adminBearer: []
       responses:
@@ -6393,14 +6408,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdminServerStatusResponse'
-  /admin/accounts/{account_id}/status:
+  /_cokret/local/admin/accounts/{account_id}/status:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     post:
-      operationId: cx.admin.update_account_status
+      operationId: ck.admin.update_account_status
       security:
       - adminBearer: []
       parameters:
@@ -6422,14 +6437,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AdminUpdateAccountStatusRequest'
-  /admin/devices/{device_id}/revoke:
+  /_cokret/local/admin/devices/{device_id}/revoke:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     post:
-      operationId: cx.admin.revoke_device
+      operationId: ck.admin.revoke_device
       security:
       - adminBearer: []
       parameters:
@@ -6451,14 +6466,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AdminRevokeDeviceRequest'
-  /admin/moderation/queue:
+  /_cokret/local/admin/moderation/queue:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     get:
-      operationId: cx.admin.get_moderation_queue
+      operationId: ck.admin.get_moderation_queue
       security:
       - adminBearer: []
         moderatorCapability: []

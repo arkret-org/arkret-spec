@@ -37,13 +37,13 @@ updated: 2026-05-25
 | Claimable conformance profile | 68 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 89 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数（快照约 60）以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 校验；其中 `cx.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数（快照约 60）以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 校验；其中 `ck.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
-当前候选基线包含两个 wire-breaking cleanup：`cx.schema.handle_claim.v1.claim_kind` 不再允许 draft-era `service_handle`（服务 / 资源可读名必须迁移到独立服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`），并且 `cx.member.identity.update` payload 中旧草案字段 `identity_state_digest` 已更名为 `identity_payload_digest`，以避免与 roster `member_display_state_digest` 混淆。实现者 MUST NOT 同时接受旧名和新名作为等价字段，除非在本地迁移层先把旧草案数据正规化后再进入 v1 validator。
+当前候选基线包含两个 wire-breaking cleanup：`ck.schema.handle_claim.v1.claim_kind` 不再允许 draft-era `service_handle`（服务 / 资源可读名必须迁移到独立服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`），并且 `ck.member.identity.update` payload 中旧草案字段 `identity_state_digest` 已更名为 `identity_payload_digest`，以避免与 roster `member_display_state_digest` 混淆。实现者 MUST NOT 同时接受旧名和新名作为等价字段，除非在本地迁移层先把旧草案数据正规化后再进入 v1 validator。
 
-`conformance-profiles.json` 另含一组 `profile_requirements` block（快照约 78）与 `profile_tiers` 分组（快照约 4）；权威计数以该文件为准并由 pipeline 校验，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `cx.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+`conformance-profiles.json` 另含一组 `profile_requirements` block（快照约 78）与 `profile_tiers` 分组（快照约 4）；权威计数以该文件为准并由 pipeline 校验，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ck.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
-> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `cx.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
+> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `ck.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明
 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或退役 registry 项，MUST 同时
@@ -57,7 +57,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 | 阶段 | 必须实现 | 可暂缓 |
 | --- | --- | --- |
-| `core_event_store` | Event Envelope 验证、canonical JSON / proof、`cx.realm.create`、`cx.member.state`、events submit/get/list/frontier、backfill。 | Flow UI、View projection、MLS、federation、blob、push、agent。 |
+| `core_event_store` | Event Envelope 验证、canonical JSON / proof、`ck.realm.create`、`ck.member.state`、events submit/get/list/frontier、backfill。 | Flow UI、View projection、MLS、federation、blob、push、agent。 |
 | `chat_mvp` | Flow discussion track、Message create/revise/redact、reaction、redaction、client sync、history visibility、基础 capability check。 | Board/List、advanced View renderer、MIMI、auditable E2EE、agent runtime。 |
 | `kanban_mvp` | Flow create/update/move/reorder、Relation create、container rebalance、View collection projection、rank conflict handling。 | Discussion track、message timeline、E2EE、push、federation。 |
 | `full_client` | chat + kanban、blob/media、account-private data、read cursor、notification projection、offline queue 和 conflict records。 | Enterprise governance、MIMI、agent interop、高安全 witness。 |
@@ -82,7 +82,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 ## 4. 必须保持的不变量
 
-- 标准 `cx.*` Event kind 必须出现在 `event-kind-registry.json`，MUST NOT 只写在 Markdown 中
+- 标准 `ck.*` Event kind 必须出现在 `event-kind-registry.json`，MUST NOT 只写在 Markdown 中
 - Event Envelope 必须先验证 envelope schema，再验证 kind-selected payload schema，最后才进入 auth / reducer
 - Snapshot 签名不能单独证明无遗漏；实现必须校验 `event_set_commitment`
 - Sync、Directory、Blob、Push、Moderation、Agent 和受托 search / projection 等服务 MUST NOT 绕过 capability、Realm policy、history visibility、plaintext-visible service 或 E2EE 边界

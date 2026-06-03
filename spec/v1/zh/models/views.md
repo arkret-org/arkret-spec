@@ -26,7 +26,7 @@ Cokret 必须对人类友好，因此协议必须允许对象自然投影为：
 
 ### 2.1 View 有定义真相，但不是对象真相
 
-View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `cx.view.create` / `cx.view.update` 修改、签名、审计和同步。
+View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `ck.view.create` / `ck.view.update` 修改、签名、审计和同步。
 
 View 不承载被投影对象的 canonical state。Board Space / List Space / Flow / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和 causal frontier。
 
@@ -76,7 +76,7 @@ Board Space / List Space 作为容器由 `space.kind` 与 `contains` relation �
 
 View 展示 Flow、Message 或跨 Realm Relation 时，必须先按对象 home Realm / Circle effective scope 判断可见性，再按 capability action scope 裁剪可执行操作。Renderer、track name、View filter 都不能授予读取或写入权限。
 
-- 用户能看某个 Flow，仍不代表能执行 `cx.flow.update`、`cx.flow.stage.set`、`cx.flow.move` 或 `cx.message.create`；每个交互写入都要按对应 action 重新鉴权。
+- 用户能看某个 Flow，仍不代表能执行 `ck.flow.update`、`ck.flow.stage.set`、`ck.flow.move` 或 `ck.message.create`；每个交互写入都要按对应 action 重新鉴权。
 - Message timeline 的可见性来自 Flow 的 single effective scope（Realm-default 或 Circle），不是 `discussion` track 自己的 ACL。
 - `allowed_tracks` / `flow_track` 这类 action 或通知 scope 只能缩小已授权动作和通知匹配范围，不能创造新的读权。
 - Board projection MAY 显示 discussion locked link，但不得泄露未授权 discussion 的消息摘要、成员、统计、最后活动时间或存在性细节，除非 policy 明确允许。
@@ -87,27 +87,27 @@ View 展示 Flow、Message 或跨 Realm Relation 时，必须先按对象 home R
 
 | 用户动作 | canonical event |
 | --- | --- |
-| Flow 拖到另一个 List | `cx.flow.move` |
-| Flow 在同一 List 内排序 | `cx.flow.reorder` |
-| 修改 Flow 标题、状态、负责人、截止时间 | `cx.flow.update` |
-| 切换 Flow 默认 track / 开启 / 关闭 track / 修改 track profile | `cx.flow.tracks.update` |
-| 修改 Board Space / List Space 元数据 | `cx.space.update` |
-| 发送、编辑、撤回 discussion 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
-| 改变共享 View filter / sort / group / columns / layout | `cx.view.update` |
+| Flow 拖到另一个 List | `ck.flow.move` |
+| Flow 在同一 List 内排序 | `ck.flow.reorder` |
+| 修改 Flow 标题、状态、负责人、截止时间 | `ck.flow.update` |
+| 切换 Flow 默认 track / 开启 / 关闭 track / 修改 track profile | `ck.flow.tracks.update` |
+| 修改 Board Space / List Space 元数据 | `ck.space.update` |
+| 发送、编辑、撤回 discussion 消息 | `ck.message.create` / `ck.message.revise` / `ck.message.redact` |
+| 改变共享 View filter / sort / group / columns / layout | `ck.view.update` |
 | 改变个人 View 偏好、临时 filter、列宽、折叠状态 | actor-private account data |
 
 ## 3. View 对象
 
 ### 3.1 Schema 与字段
 
-Schema id: `cx.schema.view.v1`
+Schema id: `ck.schema.view.v1`
 
 View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query、kind、renderer、typed config、visible fields、layout 和共享配置。它不得作为被投影对象的状态、位置、关系、权限或消息历史的唯一来源。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:view` |  | View ID。 |
-| `schema` | yes | `cx.schema.view.v1` |  | Schema ID。 |
+| `schema` | yes | `ck.schema.view.v1` |  | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
 | `renderer` | no | `enum(board, list, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
@@ -166,7 +166,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 ```json
 {
   "id": "ck:view:019641be-0000-7000-8000-000000000000",
-  "schema": "cx.schema.view.v1",
+  "schema": "ck.schema.view.v1",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:web:acme.example.com",
   "created_at": "2026-04-26T00:00:00Z",
@@ -398,7 +398,7 @@ Cokret v1 固定：
 
 - View 投影 Flow、Message、Morph 和 Realm workflow。
 - Board Space 和 List Space 是 `Space.kind`，不是 `View.kind`。
-- 看板拖拽使用 `cx.flow.move` / `cx.flow.reorder`。
+- 看板拖拽使用 `ck.flow.move` / `ck.flow.reorder`。
 - discussion chat 使用 `flow + message`。
 - Graph / Tree 遇到跨 Realm 必须 lazy link。
 - View projection 输出不得成为真相源。

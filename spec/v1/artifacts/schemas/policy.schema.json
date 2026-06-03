@@ -18,7 +18,7 @@
       "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.policy.v1"
+      "const": "ck.schema.policy.v1"
     },
     "realm_id": {
       "type": "string",
@@ -132,7 +132,7 @@
           "minItems": 1,
           "items": {
             "type": "string",
-            "pattern": "^cx\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+            "pattern": "^ck\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
           },
           "uniqueItems": true
         },
@@ -183,11 +183,11 @@
         },
         "schema_ref": {
           "type": "string",
-          "pattern": "^cx\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+          "pattern": "^ck\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
         },
         "profile_ref": {
           "type": "string",
-          "pattern": "^cx\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+          "pattern": "^ck\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
         },
         "params": {
           "type": "object",

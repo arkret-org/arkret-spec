@@ -1,5 +1,5 @@
 {
-  "profile": "cx.profile.move_anchor_lattice_vectors.v1",
+  "profile": "ck.profile.move_anchor_lattice_vectors.v1",
   "version": "2026-05-07",
   "notes": [
     "Move objects in these vectors describe protocol-level semantics. Wire-required Move fields realm_id, hlc, and sig are elided for readability; conformance runners that re-emit these vectors as wire bytes MUST fill them in (any valid realm_id/hlc/sig that does not change the precondition-effect-anchor_ref triple).",
@@ -14,15 +14,15 @@
       "pre_state": {
         "anchor": "ck:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "cells": {
-          "ck:cell:cx.component.member.state.v1:did.web.alice.example": {
+          "ck:cell:ck.component.member.state.v1:did.web.alice.example": {
             "membership": "join",
             "head": "ck:event:21084210-8421-7842-9084-210842108421"
           },
-          "ck:cell:cx.component.capability.grant.v1:cx.grant.0196410c-0000-7000-8000-000000000000": {
+          "ck:cell:ck.component.capability.grant.v1:ck.grant.0196410c-0000-7000-8000-000000000000": {
             "status": "active",
             "head": "ck:event:42108421-0842-7084-a108-421084210842"
           },
-          "ck:cell:cx.component.capability.grant.v1:cx.grant.0196410c-8000-7000-8000-000000000000": {
+          "ck:cell:ck.component.capability.grant.v1:ck.grant.0196410c-8000-7000-8000-000000000000": {
             "status": "active",
             "head": "ck:event:6318c631-8c63-78c6-b18c-6318c6318c63"
           }
@@ -34,21 +34,21 @@
         "anchor_ref": "ck:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "preconditions": [
           {
-            "cell": "ck:cell:cx.component.member.state.v1:did.web.alice.example",
+            "cell": "ck:cell:ck.component.member.state.v1:did.web.alice.example",
             "predicate": {
               "op": "head_eq",
               "value": "ck:event:21084210-8421-7842-9084-210842108421"
             }
           },
           {
-            "cell": "ck:cell:cx.component.capability.grant.v1:cx.grant.0196410c-0000-7000-8000-000000000000",
+            "cell": "ck:cell:ck.component.capability.grant.v1:ck.grant.0196410c-0000-7000-8000-000000000000",
             "predicate": {
               "op": "head_eq",
               "value": "ck:event:42108421-0842-7084-a108-421084210842"
             }
           },
           {
-            "cell": "ck:cell:cx.component.capability.grant.v1:cx.grant.0196410c-8000-7000-8000-000000000000",
+            "cell": "ck:cell:ck.component.capability.grant.v1:ck.grant.0196410c-8000-7000-8000-000000000000",
             "predicate": {
               "op": "head_eq",
               "value": "ck:event:6318c631-8c63-78c6-b18c-6318c6318c63"
@@ -57,7 +57,7 @@
         ],
         "effects": [
           {
-            "cell": "ck:cell:cx.component.member.state.v1:did.web.alice.example",
+            "cell": "ck:cell:ck.component.member.state.v1:did.web.alice.example",
             "op": {
               "kind": "transition",
               "from": "join",
@@ -66,14 +66,14 @@
             }
           },
           {
-            "cell": "ck:cell:cx.component.capability.grant.v1:cx.grant.0196410c-0000-7000-8000-000000000000",
+            "cell": "ck:cell:ck.component.capability.grant.v1:ck.grant.0196410c-0000-7000-8000-000000000000",
             "op": {
               "kind": "remove",
               "tag": "grant-tag-a"
             }
           },
           {
-            "cell": "ck:cell:cx.component.capability.grant.v1:cx.grant.0196410c-8000-7000-8000-000000000000",
+            "cell": "ck:cell:ck.component.capability.grant.v1:ck.grant.0196410c-8000-7000-8000-000000000000",
             "op": {
               "kind": "remove",
               "tag": "grant-tag-b"
@@ -95,7 +95,7 @@
     {
       "name": "cas_register_conflict_returns_bottom",
       "description": "Two anchored Moves concurrently set the same cas_register cell. Query returns structured bottom rather than choosing a winner.",
-      "cell": "ck:cell:cx.component.realm.policy.v1:cx.realm.0196419b-0000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.realm.policy.v1:ck.realm.0196419b-0000-7000-8000-000000000000",
       "cell_lattice": {
         "lattice": "cas_register",
         "bottom": "reject"
@@ -110,7 +110,7 @@
           "bottom": {
             "kind": "conflict",
             "cells": [
-              "ck:cell:cx.component.realm.policy.v1:cx.realm.0196419b-0000-7000-8000-000000000000"
+              "ck:cell:ck.component.realm.policy.v1:ck.realm.0196419b-0000-7000-8000-000000000000"
             ],
             "event_ids": [
               "ck:event:84210842-1084-7108-8210-842108421084",
@@ -147,7 +147,7 @@
         "id": "ck:event:ce739ce7-39ce-739c-a739-ce739ce739ce",
         "effects": [
           {
-            "cell": "ck:cell:cx.component.mls_epoch.v1:group.01js0mls0000000000000000",
+            "cell": "ck:cell:ck.component.mls_epoch.v1:group.01js0mls0000000000000000",
             "op": {
               "kind": "set",
               "value": "epoch-42"
@@ -156,7 +156,7 @@
         ],
         "preconditions": [
           {
-            "cell": "ck:cell:cx.component.covered_frontier.v1:cx.realm.0196419b-0000-7000-8000-000000000000",
+            "cell": "ck:cell:ck.component.covered_frontier.v1:ck.realm.0196419b-0000-7000-8000-000000000000",
             "predicate": {
               "op": "contains",
               "value": "ck:anchor:sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"

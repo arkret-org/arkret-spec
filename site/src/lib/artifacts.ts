@@ -177,7 +177,7 @@ export const schemaEntries: SchemaEntry[] = schemaRegistry.schemas.slice().sort(
 export const profileMatrix = conformanceProfiles;
 
 /**
- * Distinct `cx.profile.*` ids declared anywhere in conformance-profiles.json.
+ * Distinct `ck.profile.*` ids declared anywhere in conformance-profiles.json.
  * Mirrors what `tools/lint_artifacts.py` reports as "N profiles" so the
  * homepage stat and release-readiness numbers stay in sync.
  */
@@ -185,7 +185,7 @@ export const totalProfileCount: number = (() => {
   const seen = new Set<string>();
   const walk = (value: unknown): void => {
     if (typeof value === "string") {
-      if (value.startsWith("cx.profile.")) seen.add(value);
+      if (value.startsWith("ck.profile.")) seen.add(value);
       return;
     }
     if (Array.isArray(value)) {

@@ -1,7 +1,7 @@
 {
   "suite": "mimi_interop",
   "version": "2026-04-30",
-  "profile": "cx.profile.mimi_interop.v1",
+  "profile": "ck.profile.mimi_interop.v1",
   "drafts": {
     "protocol": "draft-ietf-mimi-protocol-06",
     "content": "draft-ietf-mimi-content-08",
@@ -15,14 +15,14 @@
         "service_did": "did:web:mimi.example.com",
         "service_type": "mimi_provider_facade",
         "supported_profiles": [
-          "cx.profile.mimi_interop.v1"
+          "ck.profile.mimi_interop.v1"
         ],
         "mimi": {
           "protocol_draft": "draft-ietf-mimi-protocol-06",
           "content_draft": "draft-ietf-mimi-content-08",
           "room_policy_draft": "draft-ietf-mimi-room-policy-03",
           "identifier_draft": "draft-kohbrok-mimi-identifiers-01",
-          "base_url": "https://mimi.example.com/api/v1/mimi",
+          "base_url": "https://mimi.example.com/_cokret/open/mimi",
           "provider_id": "mimi://mimi.example.com",
           "features": [
             "key_material",
@@ -40,9 +40,9 @@
     {
       "name": "room_binding_projection",
       "input": {
-        "kind": "cx.mimi.room_binding",
+        "kind": "ck.mimi.room_binding",
         "payload": {
-          "profile": "cx.profile.mimi_interop.v1",
+          "profile": "ck.profile.mimi_interop.v1",
           "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
           "binding_scope": {
             "realm_id": "ck:realm:0110c853-1d09-7044-b214-c74240110c85",
@@ -60,7 +60,7 @@
       "name": "submit_message_text_mapping",
       "input": {
         "source_format": "text/markdown;variant=GFM-MIMI",
-        "target_format": "cx.message.create",
+        "target_format": "ck.message.create",
         "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
         "original_envelope_digest": "sha256:012345678901234567890123456789012345678901234567890123456789abcd"
       },

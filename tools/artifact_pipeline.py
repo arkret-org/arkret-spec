@@ -232,12 +232,12 @@ def check_public_catalog_snapshot() -> list[str]:
         if isinstance(snapshot_catalog, dict):
             event_rows = snapshot_catalog.get("event_kind_registry", {}).get("event_kinds", [])
             has_circle_create = any(
-                isinstance(row, dict) and row.get("event_kind") == "cx.circle.create"
+                isinstance(row, dict) and row.get("event_kind") == "ck.circle.create"
                 for row in event_rows
             )
             if not has_circle_create:
                 errors.append(
-                    f"public catalog snapshot missing cx.circle.create: {target.relative_to(ROOT).as_posix()}"
+                    f"public catalog snapshot missing ck.circle.create: {target.relative_to(ROOT).as_posix()}"
                 )
     return errors
 

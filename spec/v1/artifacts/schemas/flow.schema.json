@@ -29,7 +29,7 @@
       "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.flow.v1"
+      "const": "ck.schema.flow.v1"
     },
     "realm_id": {
       "type": "string",
@@ -56,11 +56,11 @@
         "archived",
         "redacted"
       ],
-      "description": "Flow lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: cx.flow.archive MUST come from 'active' (else failed_precondition reason=flow_not_active); cx.flow.restore MUST come from 'archived' (else flow_not_archived); terminal state is reached only via a cx.redaction event targeting the flow (MUST come from {'active','archived'} else flow_already_terminal). Same-state self-transitions MUST fail. 'redacted' is the irreversible terminal."
+      "description": "Flow lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: ck.flow.archive MUST come from 'active' (else failed_precondition reason=flow_not_active); ck.flow.restore MUST come from 'archived' (else flow_not_archived); terminal state is reached only via a ck.redaction event targeting the flow (MUST come from {'active','archived'} else flow_already_terminal). Same-state self-transitions MUST fail. 'redacted' is the irreversible terminal."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.flow.archive / cx.flow.restore / cx.redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ck.flow.archive / ck.flow.restore / ck.redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "stage": {
       "type": "string",
@@ -74,11 +74,11 @@
         "cancelled",
         "superseded"
       ],
-      "description": "Flow business-progression stage. Orthogonal to top-level 'state' (physical lifecycle): archive does NOT change stage; stage=done does NOT auto-archive. Required on cx.flow.create (no protocol-level default). The only wire path that mutates stage is the dedicated cx.flow.stage.set event; cx.flow.update patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the cx.flow.stage.set event log is the audit source, and human-readable explanations belong in a Message on the discussion track that references the event. A per-Realm workflow profile MAY narrow which transitions are legal beyond the core reducer hard invariants (terminal state freeze, non-active reject) defined in models/common-fields.md §5.3.3. See models/flow-and-message.md §3.2 for full semantics and models/common-fields.md §5.3 for the protocol-level enum / bucket mapping."
+      "description": "Flow business-progression stage. Orthogonal to top-level 'state' (physical lifecycle): archive does NOT change stage; stage=done does NOT auto-archive. Required on ck.flow.create (no protocol-level default). The only wire path that mutates stage is the dedicated ck.flow.stage.set event; ck.flow.update patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the ck.flow.stage.set event log is the audit source, and human-readable explanations belong in a Message on the discussion track that references the event. A per-Realm workflow profile MAY narrow which transitions are legal beyond the core reducer hard invariants (terminal state freeze, non-active reject) defined in models/common-fields.md §5.3.3. See models/flow-and-message.md §3.2 for full semantics and models/common-fields.md §5.3 for the protocol-level enum / bucket mapping."
     },
     "stage_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent stage transition. MUST be ignored when present on wire; reducer overwrites with the triggering cx.flow.stage.set event's created_at. Same-value self-transitions (stage value unchanged) MUST NOT update this field."
+      "description": "Reducer-derived timestamp of the most recent stage transition. MUST be ignored when present on wire; reducer overwrites with the triggering ck.flow.stage.set event's created_at. Same-value self-transitions (stage value unchanged) MUST NOT update this field."
     },
     "tracks": {
       "type": "object",
@@ -134,7 +134,7 @@
   "$defs": {
     "content_kind": {
       "type": "string",
-      "pattern": "^(cx\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
+      "pattern": "^(ck\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
     "content_block": {
       "type": "object",
@@ -186,7 +186,7 @@
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "cx.content.composite" } },
+            "properties": { "kind": { "const": "ck.content.composite" } },
             "required": ["kind"]
           },
           "then": { "required": ["parts"] }

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/cross-signing-reset.schema.json",
   "title": "Cokret Cross-Signing Reset",
-  "description": "Payload content for cx.cross_signing.reset (schema_id cx.schema.cross_signing_reset.v1). High-risk operation that retires the current (SSK, USK) generation and requires one of four kinds of proof — see device-lifecycle.md §14. A successor cx.cross_signing.publish MUST follow within 24h.",
+  "description": "Payload content for ck.cross_signing.reset (schema_id ck.schema.cross_signing_reset.v1). High-risk operation that retires the current (SSK, USK) generation and requires one of four kinds of proof — see device-lifecycle.md §14. A successor ck.cross_signing.publish MUST follow within 24h.",
   "type": "object",
   "required": [
     "trust_domain",
@@ -34,7 +34,7 @@
     "new_generation": {
       "type": "integer",
       "minimum": 2,
-      "description": "Generation that the successor cx.cross_signing.publish will use; MUST equal previous_generation + 1."
+      "description": "Generation that the successor ck.cross_signing.publish will use; MUST equal previous_generation + 1."
     },
     "reset_reason_code": {
       "type": "string",

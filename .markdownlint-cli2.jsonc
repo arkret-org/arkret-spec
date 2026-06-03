@@ -2,7 +2,7 @@
   "globs": [
     "README.md",
     "CHANGELOG.md",
-    "_contrix-spec_todos.md",
+    "_cokret-spec_todos.md",
     "spec/v1/**/*.md"
   ],
   "ignores": [

@@ -22,28 +22,28 @@ sidebar:
 - capability 与授权派生规则
 - Principal Server Events API / sync service / E2EE / applet / policy-server 关键接口
 
-所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `cx.realm.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
+所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `ck.realm.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
 
 ## 2. 测试角色（Profile）
 
-- `cx.profile.minimal_client.v1`
-- `cx.profile.core_event_store.v1`
-- `cx.profile.chat_mvp.v1`
-- `cx.profile.kanban_mvp.v1`
-- `cx.profile.full_client.v1`
-- `cx.profile.e2ee_client.v1`
-- `cx.profile.principal_server_events_api.v1`
-- `cx.profile.principal_server.v1`
-- `cx.profile.federation_minimal.v1`
-- `cx.profile.identity_registry.v1`
-- `cx.profile.blob_node.v1`
-- `cx.profile.applet_service.v1`
-- `cx.profile.enterprise_client.v1`
-- `cx.profile.agent_runtime.v1`
-- `cx.profile.mimi_interop.v1`
-- `cx.profile.sovereign_deployment.v1`
-- `cx.profile.sovereign_client.v1`
-- `cx.profile.mls_governance_binding.full.v1`
+- `ck.profile.minimal_client.v1`
+- `ck.profile.core_event_store.v1`
+- `ck.profile.chat_mvp.v1`
+- `ck.profile.kanban_mvp.v1`
+- `ck.profile.full_client.v1`
+- `ck.profile.e2ee_client.v1`
+- `ck.profile.principal_server_events_api.v1`
+- `ck.profile.principal_server.v1`
+- `ck.profile.federation_minimal.v1`
+- `ck.profile.identity_registry.v1`
+- `ck.profile.blob_node.v1`
+- `ck.profile.applet_service.v1`
+- `ck.profile.enterprise_client.v1`
+- `ck.profile.agent_runtime.v1`
+- `ck.profile.mimi_interop.v1`
+- `ck.profile.sovereign_deployment.v1`
+- `ck.profile.sovereign_client.v1`
+- `ck.profile.mls_governance_binding.full.v1`
 
 ## 3. OpenAPI 与 Transport 一致性
 
@@ -51,8 +51,8 @@ sidebar:
 
 每个实现必须通过以下验收：
 
-- `/api/v1` 下公开至少包含 `service/identity/events/account/snapshot/blob/authz` 关键 operation。
-- 服务 `operation_id` MUST 以 `artifacts/registry/contract-catalog.json#operation_registry` 为 canonical source，并通过生成的 `artifacts/registry/operation-registry.json` 供实现消费；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 generated registry view，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 generated registry view；标准 Event payload class MUST 以 `artifacts/schemas/event-payload.schema.json` 为唯一 source of truth。`service-api-schema.mdx`、OpenAPI 和非 HTTP binding 不得声明 catalog / registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `cx.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `ck:<kind>:` typed ID 前缀。
+- `/_cokret/` 下公开至少包含 `service/identity/events/account/snapshot/blob/authz` 关键 operation。
+- 服务 `operation_id` MUST 以 `artifacts/registry/contract-catalog.json#operation_registry` 为 canonical source，并通过生成的 `artifacts/registry/operation-registry.json` 供实现消费；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 generated registry view，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 generated registry view；标准 Event payload class MUST 以 `artifacts/schemas/event-payload.schema.json` 为唯一 source of truth。`service-api-schema.mdx`、OpenAPI 和非 HTTP binding 不得声明 catalog / registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `ck.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `ck:<kind>:` typed ID 前缀。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests
@@ -77,33 +77,33 @@ sidebar:
 
 v1 新增以下必测项：
 
-- `cx.vector.move_anchor_lattice.cas_bottom.v1`
+- `ck.vector.move_anchor_lattice.cas_bottom.v1`
   - 输入同一成员 state key 的并发冲突事件（join/invite/leave/ban）。
   - 期望 reducer 输出：授权链可解释、冲突记录完整、最终 state 可重建且可再现。
-- `cx.vector.move_anchor_lattice.multi_cell_ban_revoke.v1`
+- `ck.vector.move_anchor_lattice.multi_cell_ban_revoke.v1`
   - 输入 grant/revoke/regrant 并发链 + 依赖 auth state。
   - 期望输出：只允许 auth 通过者进入 winner；无授权候选回退到 base state。
-- `cx.vector.move_anchor_lattice.anchor_batch_pre_state.v1`
-  - `cx.realm.schema` 与 `cx.realm.policy_server` 的并发写入。
+- `ck.vector.move_anchor_lattice.anchor_batch_pre_state.v1`
+  - `ck.realm.schema` 与 `ck.realm.policy_server` 的并发写入。
   - 期望输出：按优先级类 + tie-break 顺序稳定收敛。
 
 ### 4.3 Redaction 向量
 
-- `cx.vector.redaction.preserve_fields.v1`
+- `ck.vector.redaction.preserve_fields.v1`
   - 输入 target event + redaction event（不同时序）。
   - 期望输出：仅保留被允许的字段，其余不可逆地清除；事件 envelope 不可被改写。
-- `cx.vector.redaction.policy_scope.v1`
+- `ck.vector.redaction.policy_scope.v1`
   - redaction 对已归档事件、加密事件、外部可见字段的影响。
   - 期望输出：索引与审计可见性一致，不可把 redaction 解读为物理删除。
 
 ### 4.4 Capability 向量
 
-- `cx.vector.capability.delegate_chain.v1`
+- `ck.vector.capability.delegate_chain.v1`
   - grant 链条（多层委派）与 selector 条件（时间、对象、速率）冲突场景。
   - 期望输出：可验证且具备时间边界的派生有效性。
-- `cx.vector.capability.revoke_rollback.v1`
+- `ck.vector.capability.revoke_rollback.v1`
   - 撤销后既有事件在历史范围内的生效/失效行为。
-- `cx.vector.capability.approval_constraint.v1`
+- `ck.vector.capability.approval_constraint.v1`
   - high risk action 未满足 approval 时应软拒绝或进入 proposal 流程。
 
 ## 5. 组件级测试矩阵（必测）

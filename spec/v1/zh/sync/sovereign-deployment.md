@@ -20,7 +20,7 @@ sidebar:
 
 - sovereign deployment 的边界
 - isolated federation domain
-- 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（`cx.profile.sovereign_deployment.v1`）
+- 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（`ck.profile.sovereign_deployment.v1`）
 - 外部主体进入高安全网络的验证、授权、加密、审计和退出规则
 - sovereign client 与 DID resolver policy
 
@@ -154,7 +154,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 ```json
 {
-  "kind": "cx.sovereign.did_policy",
+  "kind": "ck.sovereign.did_policy",
   "trust_domain": "ck:trust_domain:did.webvh.defense.example",
   "default_principal_method": "did:webvh",
   "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
@@ -183,17 +183,17 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 ## 4. External Collaboration Realm 在 sovereign deployment 下的强制 policy
 
-启用 `cx.profile.sovereign_deployment.v1` 的部署中，组织 MAY 创建 External Collaboration Realm，允许外部网络的人员或组织加入特定协作范围。该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。Realm 角色分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。
+启用 `ck.profile.sovereign_deployment.v1` 的部署中，组织 MAY 创建 External Collaboration Realm，允许外部网络的人员或组织加入特定协作范围。该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。Realm 角色分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。
 
 在该部署下 External Collaboration Realm SHOULD 使用：
 
 ```json
 {
-  "kind": "cx.realm.create",
+  "kind": "ck.realm.create",
   "payload": {
     "object": {
       "id": "ck:realm:019640ea-8000-7000-8000-000000000000",
-      "schema": "cx.schema.realm.v1",
+      "schema": "ck.schema.realm.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
       "created_by": "did:web:defense.example",
@@ -202,7 +202,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
         "did:web:defense.example"
       ],
       "schema_refs": [
-        "cx.schema.realm.v1"
+        "ck.schema.realm.v1"
       ],
       "default_discoverability": "unlisted",
       "default_join_rule": "restricted",
@@ -242,7 +242,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组
 2. 主组织验证 DID control、handle binding、organization authority chain。
 3. Policy Server 检查 allowlist、risk score、clearance claim、contract claim、device posture。
 4. Realm admin 或 delegated approval actor 发出 invite。
-5. 外部主体接受 invite，并提交 `cx.member.state` join event。
+5. 外部主体接受 invite，并提交 `ck.member.state` join event。
 6. 对 E2EE Realm，管理员客户端或 key service 只向该主体授权设备发 MLS Welcome。
 7. Directory 和客户端本地 projection 只暴露该 Realm 允许的 stripped preview 和加入后历史。
 
@@ -352,7 +352,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 
 ## 11. 一致性 Profile
 
-`cx.profile.sovereign_deployment.v1` SHOULD 测试：
+`ck.profile.sovereign_deployment.v1` SHOULD 测试：
 
 - 默认 closed federation
 - service DID allowlist
@@ -367,7 +367,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 
 ### 11.1 联邦 frontier 主动交换 (high-assurance)
 
-sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `cx.profile.federation.high_assurance.v1`，并满足 [`federation.md` §4.5.3](./federation.md) 中定义的硬性要求：
+sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ck.profile.federation.high_assurance.v1`，并满足 [`federation.md` §4.5.3](./federation.md) 中定义的硬性要求：
 
 - 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ 1 小时；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；

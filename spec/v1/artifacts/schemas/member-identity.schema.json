@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/member-identity.schema.json",
   "title": "Cokret Member Identity",
-  "description": "Realm-scoped, actor-scoped full member_identity segment. It is carried by cx.member.identity.update in plaintext or inside encrypted-envelope.schema.json. Replacement events that name segment=member_identity MUST carry this complete object. This object discloses subject_id and display_profile for Realm UI projection; handle lifecycle is intentionally excluded and is governed only by cx.schema.handle_claim.v1 issuer claims. Mention / reply / quote / actor attribution MUST use subject_id (the principal DID), never a handle string.",
+  "description": "Realm-scoped, actor-scoped full member_identity segment. It is carried by ck.member.identity.update in plaintext or inside encrypted-envelope.schema.json. Replacement events that name segment=member_identity MUST carry this complete object. This object discloses subject_id and display_profile for Realm UI projection; handle lifecycle is intentionally excluded and is governed only by ck.schema.handle_claim.v1 issuer claims. Mention / reply / quote / actor attribution MUST use subject_id (the principal DID), never a handle string.",
   "type": "object",
   "required": [
     "schema",
@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "cx.schema.member_identity.v1"
+      "const": "ck.schema.member_identity.v1"
     },
     "realm_id": {
       "$ref": "#/$defs/realm_id"

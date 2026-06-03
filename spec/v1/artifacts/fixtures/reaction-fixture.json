@@ -1,15 +1,15 @@
 {
   "suite": "reaction",
-  "profile": "cx.profile.reaction_vectors.v1",
+  "profile": "ck.profile.reaction_vectors.v1",
   "version": "2026-05-08",
-  "notes": "Reducer-level vectors for cx.reaction.add / cx.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/flow-and-message.md §9.8 (Reaction model + authoritative OR-Set semantics) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
+  "notes": "Reducer-level vectors for ck.reaction.add / ck.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/flow-and-message.md §9.8 (Reaction model + authoritative OR-Set semantics) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
   "cases": [
     {
       "name": "or_set_basic_add_then_remove",
       "events": [
         {
           "event_id": "ck:event:01964185-0400-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -18,7 +18,7 @@
         },
         {
           "event_id": "ck:event:0196418c-0400-7000-8000-000000000000",
-          "kind": "cx.reaction.remove",
+          "kind": "ck.reaction.remove",
           "actor_id": "did:web:alice.example",
           "causal_refs": [
             "ck:event:01964185-0400-7000-8000-000000000000"
@@ -45,7 +45,7 @@
       "events": [
         {
           "event_id": "ck:event:01964185-0800-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -54,7 +54,7 @@
         },
         {
           "event_id": "ck:event:01964185-0800-7000-8000-000000000001",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -81,11 +81,11 @@
     },
     {
       "name": "or_set_concurrent_add_remove_remove_wins_in_default_view",
-      "notes": "Two events from the same actor with no causal_refs between them; default view applies per-actor causal closure — concurrent (add, remove) collapses to the remove because the remove is itself a tombstone for the actor's adds in the concurrent past per OR-Set semantics chosen for cx.reaction.",
+      "notes": "Two events from the same actor with no causal_refs between them; default view applies per-actor causal closure — concurrent (add, remove) collapses to the remove because the remove is itself a tombstone for the actor's adds in the concurrent past per OR-Set semantics chosen for ck.reaction.",
       "events": [
         {
           "event_id": "ck:event:01964185-0c00-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:bob.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -94,7 +94,7 @@
         },
         {
           "event_id": "ck:event:0196418c-0c00-7000-8000-000000000000",
-          "kind": "cx.reaction.remove",
+          "kind": "ck.reaction.remove",
           "actor_id": "did:web:bob.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -118,7 +118,7 @@
       "events": [
         {
           "event_id": "ck:event:01964185-1000-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -127,7 +127,7 @@
         },
         {
           "event_id": "ck:event:01964185-1000-7000-8000-000000000001",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:bob.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -155,7 +155,7 @@
       "events": [
         {
           "event_id": "ck:event:01964185-1400-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:8238ad61-2055-7c9d-a502-b4e7844047ce",
@@ -180,7 +180,7 @@
       "events": [
         {
           "event_id": "ck:event:01964185-1800-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -189,7 +189,7 @@
         },
         {
           "event_id": "ck:event:01964147-0000-7000-8000-000000000129",
-          "kind": "cx.message.redact",
+          "kind": "ck.message.redact",
           "actor_id": "did:web:owner.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000"
@@ -216,7 +216,7 @@
       "events": [
         {
           "event_id": "ck:event:01964185-1c00-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
@@ -231,7 +231,7 @@
               "aad_visibility_event_id": "routing_digest",
               "aad": {
                 "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000129",
-                "event_kind": "cx.reaction.add",
+                "event_kind": "ck.reaction.add",
                 "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
@@ -245,7 +245,7 @@
         },
         {
           "event_id": "ck:event:01964185-1c00-7000-8000-000000000001",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
@@ -260,7 +260,7 @@
               "aad_visibility_event_id": "routing_digest",
               "aad": {
                 "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000129",
-                "event_kind": "cx.reaction.add",
+                "event_kind": "ck.reaction.add",
                 "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
@@ -301,7 +301,7 @@
       "events": [
         {
           "event_id": "ck:event:01964185-2000-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
@@ -316,7 +316,7 @@
               "aad_visibility_event_id": "hidden",
               "aad": {
                 "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000129",
-                "event_kind": "cx.reaction.add"
+                "event_kind": "ck.reaction.add"
               },
               "key_ref": {
                 "algorithm": "MLS",
@@ -329,7 +329,7 @@
         },
         {
           "event_id": "ck:event:01964185-2000-7000-8000-000000000001",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
@@ -344,7 +344,7 @@
               "aad_visibility_event_id": "hidden",
               "aad": {
                 "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000129",
-                "event_kind": "cx.reaction.add"
+                "event_kind": "ck.reaction.add"
               },
               "key_ref": {
                 "algorithm": "MLS",
@@ -372,11 +372,11 @@
     },
     {
       "name": "capability_revoked_blocks_subsequent_add",
-      "notes": "After cx.capability.revoke removes the actor's cx.reaction.add capability, the next add MUST be rejected before reducer state changes; in-flight events accepted before the revoke causal frontier remain in OR-Set state.",
+      "notes": "After ck.capability.revoke removes the actor's ck.reaction.add capability, the next add MUST be rejected before reducer state changes; in-flight events accepted before the revoke causal frontier remain in OR-Set state.",
       "events": [
         {
           "event_id": "ck:event:01964185-2400-7000-8000-000000000000",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
@@ -385,18 +385,18 @@
         },
         {
           "event_id": "ck:event:0196418d-a400-7000-8000-000000000000",
-          "kind": "cx.capability.revoke",
+          "kind": "ck.capability.revoke",
           "actor_id": "did:web:owner.example",
           "payload": {
             "target_ref": "did:web:alice.example",
             "actions": [
-              "cx.reaction.add"
+              "ck.reaction.add"
             ]
           }
         },
         {
           "event_id": "ck:event:01964185-2400-7000-8000-000000000001",
-          "kind": "cx.reaction.add",
+          "kind": "ck.reaction.add",
           "actor_id": "did:web:alice.example",
           "causal_refs": [
             "ck:event:0196418d-a400-7000-8000-000000000000"
@@ -426,7 +426,7 @@
     },
     {
       "name": "rate_limit_high_rate_reaction_burst",
-      "notes": "Servers MAY rate-limit cx.reaction.add per actor; the reducer MUST treat rate-limited events as either rate_limited or quarantine, never as accepted-then-silently-dropped.",
+      "notes": "Servers MAY rate-limit ck.reaction.add per actor; the reducer MUST treat rate-limited events as either rate_limited or quarantine, never as accepted-then-silently-dropped.",
       "events_meta": {
         "actor_id": "did:web:bot.example",
         "rate_per_second_observed": 200,

@@ -18,7 +18,7 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 
 ## 2. 基本规则
 
-1. Space hierarchy 使用 `cx.space.parent` 写入 `parent_space_id` cell。
+1. Space hierarchy 使用 `ck.space.parent` 写入 `parent_space_id` cell。
 2. 一个 Space MAY 有 0 或 1 个 active parent；需要多归属时使用 Relation / View，而不是多个 parent。
 3. Parent Space MAY 位于不同 Realm。跨 Realm parent 只表示导航，不级联任何安全语义。
 4. 遍历 Space tree 时，客户端 / 服务端 MUST 对每个 Space 的 `realm_id` 独立做授权检查。
@@ -26,11 +26,11 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 
 ## 3. Space Parent Event
 
-`cx.space.parent` payload：
+`ck.space.parent` payload：
 
 ```json
 {
-  "kind": "cx.space.parent",
+  "kind": "ck.space.parent",
   "payload": {
     "space_id": "ck:space:019640c0-8000-7000-8000-000000000000",
     "parent_space_id": "ck:space:019640a0-8000-7000-8000-000000000000",
@@ -42,7 +42,7 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 Reducer 编译为：
 
 ```text
-cell_id := ck:cell:cx.component.space.parent.v1:<space_id>
+cell_id := ck:cell:ck.component.space.parent.v1:<space_id>
 lattice := cas_register
 bottom  := reject
 effect  := set <parent_space_id | null>
@@ -52,7 +52,7 @@ precondition := head_eq <expected_parent_space_id | null>
 规则：
 
 - `space_id == parent_space_id` MUST `schema_violation`。
-- Reducer 在接受 `cx.space.parent` 前 MUST 以上移后的 parent 链为准自上而下检测 acyclic；若新 edge 会让 `space_id` 重新出现在自己的 ancestor 集合中，MUST 拒绝，reason=`space_parent_cycle`。跨 Realm parent 也必须参与该检测；无法读取某个 ancestor 时不得假设无环，必须 fail closed 或进入 pending until proof。
+- Reducer 在接受 `ck.space.parent` 前 MUST 以上移后的 parent 链为准自上而下检测 acyclic；若新 edge 会让 `space_id` 重新出现在自己的 ancestor 集合中，MUST 拒绝，reason=`space_parent_cycle`。跨 Realm parent 也必须参与该检测；无法读取某个 ancestor 时不得假设无环，必须 fail closed 或进入 pending until proof。
 - `parent_space_id = null` 表示移动到 root。
 - 并发 reparent 返回 `⊥`，依赖该 cell 的后续 Move fail closed。
 - 若 parent Space 不可读取，projection MAY 返回 `{ parent_space_id_hidden: true }`，但不得伪造 root。
@@ -79,7 +79,7 @@ effective_default_realm(space):
 
 客户端从某个 Space 创建 Flow / Morph / View 时，MUST 把解析结果显式写入新资源的 `realm_id`。服务端 / reducer 不得在签名后根据当前 tree 状态隐式改写资源 Realm。
 
-Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_realm_id` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_from`、`confidential_extension_of` 或 migration link（`split_from` / `replaces`），也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
+Effective default Realm 解析 MUST NOT 跨 `ck.realm.link` 跳转。`default_realm_id` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_from`、`confidential_extension_of` 或 migration link（`split_from` / `replaces`），也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
 
 ## 5. Cross-Realm Navigation
 
@@ -94,7 +94,7 @@ Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_re
 
 ## 6. Workflow Containers
 
-`kind=board` / `kind=list` 也是 Space。Flow 位置仍由 `cx.flow.move` / `cx.flow.reorder` 的 cas_register cell 维护；position cell 的 `cell_id` / value shape（`{ list_space_id, rank } | null`）与去重 / 唯一性规则的单一真源是 [`realm-and-space.md` §3.6](./realm-and-space.md#36-flow-位置)，本节不重复定义，只补充跨 Realm placement 约束。
+`kind=board` / `kind=list` 也是 Space。Flow 位置仍由 `ck.flow.move` / `ck.flow.reorder` 的 cas_register cell 维护；position cell 的 `cell_id` / value shape（`{ list_space_id, rank } | null`）与去重 / 唯一性规则的单一真源是 [`realm-and-space.md` §3.6](./realm-and-space.md#36-flow-位置)，本节不重复定义，只补充跨 Realm placement 约束。
 
 默认情况下，workflow placement MUST resolve to the same effective Realm as the Flow：
 

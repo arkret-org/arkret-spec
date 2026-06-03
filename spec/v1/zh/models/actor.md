@@ -49,7 +49,7 @@ Actor Profile 不替代 DID，也不成为权限主键。
 
 ### 3.2 Schema 与字段
 
-Schema id: `cx.schema.actor_profile.v1`
+Schema id: `ck.schema.actor_profile.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -61,7 +61,7 @@ Schema id: `cx.schema.actor_profile.v1`
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
 | `avatar_blob_ref` | no | `id:blob` |  | 头像。 |
 | `status` | no | `enum(active, soft_logged_out, locked, suspended, deactivated, erasure_pending)` | 账户生命周期 status 的 public projection，不复用 [`common-fields.md` §5](./common-fields.md) 的对象通用 state；具体语义、转移与允许的写入主体见 [`../identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)。 | 状态。 |
-| `accountable_principal_ids` | no | `array<did>` | agent/托管账号 SHOULD 设置；每个 DID 必须由对应 `cx.identity.accountability_grant` 背书，详见 §3.3.1。 | 责任主体。 |
+| `accountable_principal_ids` | no | `array<did>` | agent/托管账号 SHOULD 设置；每个 DID 必须由对应 `ck.identity.accountability_grant` 背书，详见 §3.3.1。 | 责任主体。 |
 | `profile_fields` | no | `object` | 不得包含未授权披露的私密 handle。 | 扩展展示字段。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
@@ -70,10 +70,10 @@ Schema id: `cx.schema.actor_profile.v1`
 
 `principal_id` 是授权、签名和审计归属的根；`actor_kind` 只是该 DID 在协作图中的展示和策略分类。
 
-- `actor_kind="device"`：表示该 DID 被作为设备级或 pairwise device principal 直接行动；若设备只是某个用户/组织 principal 的授权设备，则 Event 仍以用户/组织 DID 作为 `actor_id`，设备身份通过 proof `verification_method`、`device_id`、`cx.device.authorize` 或 session grant 表达。
+- `actor_kind="device"`：表示该 DID 被作为设备级或 pairwise device principal 直接行动；若设备只是某个用户/组织 principal 的授权设备，则 Event 仍以用户/组织 DID 作为 `actor_id`，设备身份通过 proof `verification_method`、`device_id`、`ck.device.authorize` 或 session grant 表达。
 - `team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_principal_ids` 指向控制/责任 principal；它们不会因为 `accountable_principal_ids` 自动继承权限。
 - `actor_kind` 的 wire enum 不包含 `agent_native`、`agent_ghost` 或 `ghost`。Native personal agent 使用 `actor_kind="agent"`，并由 CXP-0008 provisioning state 区分；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值（外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`）。Realm policy 必须能通过 Applet provenance、`accountable_principal_ids` / `accountability`、profile 与 capability 分别控制 native personal agent 与 Applet / Ghost Actor，不得合并为单一 "automation allowed" 开关：
-  - **Native personal agent**(CXP-0008):由 controller 通过 `cx.agent.provision` 直接创建的一等 Cokret actor principal,拥有独立 DID document、`cx.identity.accountability_grant` 指向 controller、`cx.agent.key.authorize` 绑定的运行时 key。可被 mention / grant / revoke / pause / deactivate。
+  - **Native personal agent**(CXP-0008):由 controller 通过 `ck.agent.provision` 直接创建的一等 Cokret actor principal,拥有独立 DID document、`ck.identity.accountability_grant` 指向 controller、`ck.agent.key.authorize` 绑定的运行时 key。可被 mention / grant / revoke / pause / deactivate。
   - **Ghost Actor**([`../extensions/applet-integration.md`](../extensions/applet-integration.md)):Applet 管辖 namespace 下的外部 / 集成 actor 镜像或 Applet 托管 automation。`actor_id` / Actor Profile `principal_id` MUST 是无 fragment 的 DID；DID URL fragment 只用于 `verification_method`。其 `accountable_principal_ids` / `accountability` 指向 Applet controller / 外部系统；生命周期由 Applet registration 管理。
 - Event Envelope 在 reducer 接受时 stamp `actor_kind` projection(见 [`event-and-patch.md`](./event-and-patch.md) §2.2),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可分类 event。该字段是 reducer-managed immutable,actor 提交侧 MUST NOT 携带。
 
@@ -83,13 +83,13 @@ Schema id: `cx.schema.actor_profile.v1`
 
 因此 reducer **MUST** 校验:
 
-1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时,reducer MUST 解析数组中**每个** DID,并检查是否存在已 anchored 的 `cx.identity.accountability_grant` event,其 `issuer = <该 DID>`、`subject = profile.principal_id`、`grant_status = "active"`、`not_before <= now <= expires_at`。
+1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时,reducer MUST 解析数组中**每个** DID,并检查是否存在已 anchored 的 `ck.identity.accountability_grant` event,其 `issuer = <该 DID>`、`subject = profile.principal_id`、`grant_status = "active"`、`not_before <= now <= expires_at`。
 2. 不存在对应 grant 的 DID 条目 MUST 被 reducer 从 accountable_principal_ids 中剔除(或整个 Event 以 `failed_precondition` reason=`accountability_grant_missing` 拒绝；部署 policy 可选其一，默认推荐"剔除 + audit log",见下方)。
 3. accountability grant 被签发方 revoke 后,reducer **SHOULD** 在 freshness 窗口(默认 ≤ 1 小时)内把对应 actor profile 的 `accountable_principal_ids[]` 中该条目降级为 `unverified`(projection 层标记),并在下次 actor profile update 时移除。
 
-**Profile-visible 选择**：deployment 若需要让选择 wire-visible，可声明 `cx.profile.accountable_principals.strict_reject.v1` profile（整 Realm 走 reject 路径，而非默认"strip + audit log"）；该 profile 在 [`../conformance/conformance-profiles.md` §17](../conformance/conformance-profiles.md) 与 `artifacts/profiles/conformance-profiles.json` 注册。
+**Profile-visible 选择**：deployment 若需要让选择 wire-visible，可声明 `ck.profile.accountable_principals.strict_reject.v1` profile（整 Realm 走 reject 路径，而非默认"strip + audit log"）；该 profile 在 [`../conformance/conformance-profiles.md` §17](../conformance/conformance-profiles.md) 与 `artifacts/profiles/conformance-profiles.json` 注册。
 
-`cx.identity.accountability_grant` 字段:
+`ck.identity.accountability_grant` 字段:
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
@@ -126,7 +126,7 @@ Actor 在协作图中通过：
 
 - **Capability Grant**（[`governance-objects.md`](./governance-objects.md)）：表达"谁能做什么"。
 - **Relation `assigned_to` / `mentions`**：表达"谁参与 / 被 cue"。
-- **Membership state event**（`cx.member.state`）：表达"谁在 Realm"，详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+- **Membership state event**（`ck.member.state`）：表达"谁在 Realm"，详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - **Identity claim / handle**：表达"对外可发现身份"，详见 [`../identity/identity-handles.md`](../identity/identity-handles.md)。
 
 `actor_profile` 只是上述结构在 UI 层的展示镜像。

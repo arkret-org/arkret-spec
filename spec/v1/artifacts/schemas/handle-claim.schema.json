@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "cx.schema.handle_claim.v1",
+      "const": "ck.schema.handle_claim.v1",
       "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators / contract-catalog consumers disambiguate this claim from other DID-bearing envelopes."
     },
     "handle": {

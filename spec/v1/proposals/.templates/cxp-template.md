@@ -36,13 +36,13 @@ authors:
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `cx.<kind>.<verb>` | yes/no | ... |
+| `ck.<kind>.<verb>` | yes/no | ... |
 
 ### 3.3 wire 形态示例
 
 ```json
 {
-  "kind": "cx.<kind>.<verb>",
+  "kind": "ck.<kind>.<verb>",
   "payload": { "...": "..." }
 }
 ```

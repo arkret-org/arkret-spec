@@ -41,7 +41,7 @@
       "source_role": "generated",
       "source_of_truth": false,
       "generated_from": "registry/contract-catalog.json",
-      "description": "Generated registry view for standard cx.* Event.kind values and wire scopes."
+      "description": "Generated registry view for standard ck.* Event.kind values and wire scopes."
     },
     {
       "name": "id_kinds",
@@ -84,7 +84,7 @@
       "kind": "conformance_vector_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical machine index of cx.vector.* conformance vector identifiers and their defining prose/fixture sources."
+      "description": "Canonical machine index of ck.vector.* conformance vector identifiers and their defining prose/fixture sources."
     },
     {
       "name": "schemas",

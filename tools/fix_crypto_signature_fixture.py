@@ -42,6 +42,21 @@ def regen_vector(v: dict) -> dict:
     payload_digest = "sha256:" + hashlib.sha256(canon).hexdigest()
     v["payload_digest"] = payload_digest
 
+    # event_digest is the digest of the canonical event payload (same bytes as
+    # payload_digest). It is embedded in the binding object, the proof, and the
+    # event_with_proof proofs, so propagate it before the binding is re-signed.
+    event_digest = payload_digest
+    v["event_digest"] = event_digest
+    if "binding_object" in v and isinstance(v["binding_object"], dict):
+        if "event_digest" in v["binding_object"]:
+            v["binding_object"]["event_digest"] = event_digest
+    if "proof" in v and isinstance(v["proof"], dict) and "event_digest" in v["proof"]:
+        v["proof"]["event_digest"] = event_digest
+    if "event_with_proof" in v and isinstance(v["event_with_proof"], dict):
+        for p in v["event_with_proof"].get("proofs", []):
+            if isinstance(p, dict) and "event_digest" in p:
+                p["event_digest"] = event_digest
+
     # binding_digest from canonical_binding_payload (independent, but recompute
     # to be safe)
     binding_canon = v["canonical_binding_payload"].encode("utf-8")

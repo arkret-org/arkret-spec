@@ -1,16 +1,16 @@
 {
   "suite": "security_closure_vectors",
-  "profile": "cx.profile.privacy_security_vectors.v1",
+  "profile": "ck.profile.privacy_security_vectors.v1",
   "version": "2026-05-20",
   "description": "Structured negative/edge-case fixtures for security vectors referenced by prose. tools/lint_artifacts.py validates vector_id closure and runner fields for implementation conformance tests.",
   "security_closure_vectors": [
     {
-      "vector_id": "cx.vector.federation.idempotency_after_key_revoke.v1",
+      "vector_id": "ck.vector.federation.idempotency_after_key_revoke.v1",
       "steps": [
         {
           "name": "accepted_original_push",
           "input": {
-            "operation_id": "cx.events.submit",
+            "operation_id": "ck.events.submit",
             "headers": {
               "Source-Service-DID": "did:web:alpha.example",
               "Destination-Service-DID": "did:web:beta.example",
@@ -29,9 +29,9 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.federation.idempotency_after_key_revoke.v1",
+              "vector_id": "ck.vector.federation.idempotency_after_key_revoke.v1",
               "preconditions": {
-                "operation_id": "cx.events.submit",
+                "operation_id": "ck.events.submit",
                 "headers": {
                   "Source-Service-DID": "did:web:alpha.example",
                   "Destination-Service-DID": "did:web:beta.example",
@@ -43,12 +43,12 @@
                 "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
-            "operation": "cx.events.submit",
+            "operation": "ck.events.submit",
             "transcript": {
               "step": "accepted_original_push",
               "canonicalization": "fixture_json_v1",
               "input": {
-                "operation_id": "cx.events.submit",
+                "operation_id": "ck.events.submit",
                 "headers": {
                   "Source-Service-DID": "did:web:alpha.example",
                   "Destination-Service-DID": "did:web:beta.example",
@@ -87,7 +87,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.federation.idempotency_after_key_revoke.v1",
+              "vector_id": "ck.vector.federation.idempotency_after_key_revoke.v1",
               "preconditions": {
                 "same_http_bytes_as": "accepted_original_push",
                 "origin_key_state_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
@@ -131,7 +131,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.federation.idempotency_after_key_revoke.v1",
+              "vector_id": "ck.vector.federation.idempotency_after_key_revoke.v1",
               "preconditions": {
                 "same_http_bytes_as": "accepted_original_push",
                 "realm_binding_state": "removed"
@@ -163,7 +163,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.webrtc.media_plaintext_downgrade.v1",
+      "vector_id": "ck.vector.webrtc.media_plaintext_downgrade.v1",
       "steps": [
         {
           "name": "policy_missing_media_service_decrypts",
@@ -179,7 +179,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.webrtc.media_plaintext_downgrade.v1",
+              "vector_id": "ck.vector.webrtc.media_plaintext_downgrade.v1",
               "preconditions": {
                 "policy_root_covers_media_service_decrypts": false
               }
@@ -222,7 +222,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.webrtc.media_plaintext_downgrade.v1",
+              "vector_id": "ck.vector.webrtc.media_plaintext_downgrade.v1",
               "preconditions": {
                 "media_service_decrypts": true,
                 "sfu_service_did": "did:web:sfu.example",
@@ -256,7 +256,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.identity_link.eager_invalidation.v1",
+      "vector_id": "ck.vector.identity_link.eager_invalidation.v1",
       "steps": [
         {
           "name": "ban_invalidates_active_link",
@@ -273,7 +273,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.identity_link.eager_invalidation.v1",
+              "vector_id": "ck.vector.identity_link.eager_invalidation.v1",
               "preconditions": {
                 "identity_link_state": "active",
                 "membership_transition": "ban"
@@ -305,7 +305,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.identity_link.policy_tightening_invalidation.v1",
+      "vector_id": "ck.vector.identity_link.policy_tightening_invalidation.v1",
       "steps": [
         {
           "name": "disclosure_policy_tightened",
@@ -322,7 +322,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.identity_link.policy_tightening_invalidation.v1",
+              "vector_id": "ck.vector.identity_link.policy_tightening_invalidation.v1",
               "preconditions": {
                 "identity_link_state": "active",
                 "policy_change": "disclosure_scope_tightened"
@@ -354,7 +354,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.late_key_recovery.removed_actor.v1",
+      "vector_id": "ck.vector.late_key_recovery.removed_actor.v1",
       "steps": [
         {
           "name": "receiver_not_visible_at_t0",
@@ -371,7 +371,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.late_key_recovery.removed_actor.v1",
+              "vector_id": "ck.vector.late_key_recovery.removed_actor.v1",
               "preconditions": {
                 "receiver_visible_at_t0": false,
                 "late_key_source": "backup_node"
@@ -416,7 +416,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.late_key_recovery.removed_actor.v1",
+              "vector_id": "ck.vector.late_key_recovery.removed_actor.v1",
               "preconditions": {
                 "receiver_visible_at_t0": true,
                 "current_membership": "removed",
@@ -450,7 +450,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.invite.oob_code_entropy.v1",
+      "vector_id": "ck.vector.invite.oob_code_entropy.v1",
       "steps": [
         {
           "name": "short_offline_token_rejected",
@@ -467,7 +467,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.invite.oob_code_entropy.v1",
+              "vector_id": "ck.vector.invite.oob_code_entropy.v1",
               "preconditions": {
                 "oob_code_kind": "offline_token",
                 "token_entropy_bits": 64
@@ -511,7 +511,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.invite.oob_code_entropy.v1",
+              "vector_id": "ck.vector.invite.oob_code_entropy.v1",
               "preconditions": {
                 "oob_code_kind": "lookup",
                 "failed_attempts": 3
@@ -543,7 +543,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.invite.failure_indistinguishable.v1",
+      "vector_id": "ck.vector.invite.failure_indistinguishable.v1",
       "steps": [
         {
           "name": "all_failure_causes_share_external_shape",
@@ -571,7 +571,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.invite.failure_indistinguishable.v1",
+              "vector_id": "ck.vector.invite.failure_indistinguishable.v1",
               "preconditions": {
                 "failure_causes": [
                   "not_found",
@@ -620,7 +620,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.consent.scope_cascade.v1",
+      "vector_id": "ck.vector.consent.scope_cascade.v1",
       "steps": [
         {
           "name": "any_revoke_cascades_to_scopes",
@@ -640,7 +640,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.consent.scope_cascade.v1",
+              "vector_id": "ck.vector.consent.scope_cascade.v1",
               "preconditions": {
                 "active_scopes": [
                   "any",
@@ -693,7 +693,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.consent.scope_cascade.v1",
+              "vector_id": "ck.vector.consent.scope_cascade.v1",
               "preconditions": {
                 "active_scopes": [
                   "any",
@@ -731,7 +731,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.consent.cache_invalidation.v1",
+      "vector_id": "ck.vector.consent.cache_invalidation.v1",
       "steps": [
         {
           "name": "revoke_invalidates_reachability_and_invite_cache",
@@ -754,7 +754,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.consent.cache_invalidation.v1",
+              "vector_id": "ck.vector.consent.cache_invalidation.v1",
               "preconditions": {
                 "consent_state": "revoked",
                 "cached_surfaces": [
@@ -796,7 +796,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.sync.soft_fail_reconcile.v1",
+      "vector_id": "ck.vector.sync.soft_fail_reconcile.v1",
       "steps": [
         {
           "name": "backfill_resolves_soft_fail",
@@ -812,7 +812,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.sync.soft_fail_reconcile.v1",
+              "vector_id": "ck.vector.sync.soft_fail_reconcile.v1",
               "preconditions": {
                 "initial_event_state": "soft_failed",
                 "backfill_result": "dependencies_available"
@@ -854,7 +854,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.sync.soft_fail_reconcile.v1",
+              "vector_id": "ck.vector.sync.soft_fail_reconcile.v1",
               "preconditions": {
                 "initial_event_state": "soft_failed",
                 "backfill_result": "permanent_conflict"
@@ -886,7 +886,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.lattice.lww_open_set.v1",
+      "vector_id": "ck.vector.lattice.lww_open_set.v1",
       "steps": [
         {
           "name": "input_order_independent_winner",
@@ -905,7 +905,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.lattice.lww_open_set.v1",
+              "vector_id": "ck.vector.lattice.lww_open_set.v1",
               "preconditions": {
                 "siblings": [
                   "ck:event:019a7360-0000-7000-8000-000000000001",
@@ -941,7 +941,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
+      "vector_id": "ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
       "steps": [
         {
           "name": "policy_write_exceeds_hard_ceiling",
@@ -957,7 +957,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
+              "vector_id": "ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
               "preconditions": {
                 "relaxed_window_max_ms": 300001
               }
@@ -999,7 +999,7 @@
           },
           "runner": {
             "given_state": {
-              "vector_id": "cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
+              "vector_id": "ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
               "preconditions": {
                 "declared_relaxed_window_max_ms": 120000,
                 "old_epoch_gap_ms": 120001

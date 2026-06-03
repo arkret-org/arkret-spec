@@ -1,24 +1,24 @@
 {
   "suite": "federation",
-  "profile": "cx.profile.federation_vectors.v1",
+  "profile": "ck.profile.federation_vectors.v1",
   "topology": {
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "principal_servers": [
       {
         "service_did": "did:web:server-alpha.example",
-        "endpoint": "https://server-alpha.example/api/v1",
+        "endpoint": "https://server-alpha.example",
         "role": "origin",
         "plaintext_visible": true
       },
       {
         "service_did": "did:web:server-beta.example",
-        "endpoint": "https://server-beta.example/api/v1",
+        "endpoint": "https://server-beta.example",
         "role": "participant",
         "plaintext_visible": false
       },
       {
         "service_did": "did:web:server-gamma.example",
-        "endpoint": "https://server-gamma.example/api/v1",
+        "endpoint": "https://server-gamma.example",
         "role": "witness",
         "plaintext_visible": false
       }
@@ -40,8 +40,8 @@
         "source_service_did": "did:web:server-alpha.example",
         "destination_service_did": "did:web:server-beta.example",
         "method": "POST",
-        "target_uri": "https://server-beta.example/api/v1/events",
-        "operation_id": "cx.events.submit",
+        "target_uri": "https://server-beta.example/_cokret/self/events",
+        "operation_id": "ck.events.submit",
         "content_digest_matches_canonical_body": true
       },
       "expected": "canonical_request_hash_matches_signature_input"

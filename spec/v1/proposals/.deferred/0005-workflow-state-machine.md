@@ -34,7 +34,7 @@ Open → In Progress → In Review → QA → Done
 
 ### 3.1 Workflow profile 对象
 
-Schema id: `cx.schema.workflow.v1`
+Schema id: `ck.schema.workflow.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -66,7 +66,7 @@ Schema id: `cx.schema.workflow.v1`
 
 - `key` create-locked,workflow 内唯一
 - `stage_category` ∈ common-fields §5.3.2 的 8 值之一;reducer 在 workflow transition 后**自动派生** Flow.stage 写入(单 transition 完成两件事:fine-grained 状态推进 + 协议级 stage 同步)
-- `is_initial=true` 的状态恰好一个;`cx.flow.create` 引用了本 workflow 时,Flow 起始状态为该 state
+- `is_initial=true` 的状态恰好一个;`ck.flow.create` 引用了本 workflow 时,Flow 起始状态为该 state
 - `is_terminal=true` 表示该状态是该 workflow 的"完结"(可有多个,如 `done` / `wont_fix` / `duplicate`)
 - `rank` 用于 picker 显示顺序
 
@@ -78,7 +78,7 @@ Schema id: `cx.schema.workflow.v1`
   "label": "Submit for Review",
   "from_state_keys": ["in_progress"],
   "to_state_key": "in_review",
-  "required_capability": "cx.workflow.transition",
+  "required_capability": "ck.workflow.transition",
   "preconditions": [
     {
       "kind": "relation_exists",
@@ -100,53 +100,53 @@ Schema id: `cx.schema.workflow.v1`
   - `relation_exists`:对象上有某种 Relation(如必须有 assignee)
   - `field_filled`:某个 field_def(CXP-0003)有非空值
   - `child_workflow_state`:所有 sub-task 都处于某状态(用于 parent 必须等子任务完成)
-- `required_capability`:除了 base `cx.flow.workflow.transition` 之外的额外 capability action(可空)
+- `required_capability`:除了 base `ck.flow.workflow.transition` 之外的额外 capability action(可空)
 - `on_enter_event`:profile-declared 副作用 event(可空;v1 不强制定义可触发集合,留作 profile 扩展)
 
 ### 3.4 Flow 顶层新增字段
 
 | 字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
-| `workflow_state_ref` | conditional | `{ workflow_key, state_key }` | 当 Flow 关联的 flow_type 声明 `allowed_workflow_key` 时必填;reducer 写入只能通过 `cx.flow.workflow.transition`。 |
+| `workflow_state_ref` | conditional | `{ workflow_key, state_key }` | 当 Flow 关联的 flow_type 声明 `allowed_workflow_key` 时必填;reducer 写入只能通过 `ck.flow.workflow.transition`。 |
 
 ### 3.5 Event 家族
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `cx.workflow.create` | yes | 创建 workflow |
-| `cx.workflow.update` | yes | patch states / transitions(限制:不可删除已被 Flow 引用的 state;改 transition 走 §3.6 规则) |
-| `cx.workflow.archive` | yes | active → archived |
-| `cx.workflow.restore` | yes | archived → active |
-| `cx.workflow.tombstone` | yes | terminal |
-| `cx.flow.workflow.transition` | yes | **核心**:推进 Flow 的 workflow_state_ref;reducer 校验合法 transition + preconditions;成功后自动派生 Flow.stage |
+| `ck.workflow.create` | yes | 创建 workflow |
+| `ck.workflow.update` | yes | patch states / transitions(限制:不可删除已被 Flow 引用的 state;改 transition 走 §3.6 规则) |
+| `ck.workflow.archive` | yes | active → archived |
+| `ck.workflow.restore` | yes | archived → active |
+| `ck.workflow.tombstone` | yes | terminal |
+| `ck.flow.workflow.transition` | yes | **核心**:推进 Flow 的 workflow_state_ref;reducer 校验合法 transition + preconditions;成功后自动派生 Flow.stage |
 
-### 3.6 Reducer 校验流程(`cx.flow.workflow.transition`)
+### 3.6 Reducer 校验流程(`ck.flow.workflow.transition`)
 
 1. 解析 payload: `{flow_id, transition_key, expected_state_key?}`
 2. 取 Flow.workflow_state_ref → 找当前 state
 3. 找 transition where `transition.key == payload.transition_key && current_state ∈ transition.from_state_keys`;否则 `failed_precondition`,`reason="workflow_transition_not_allowed"`
 4. 若 `expected_state_key` 提供 → 与当前 state CAS 比较,不匹配 `failed_precondition`,`reason="workflow_state_cas_mismatch"`
 5. 校验 `transition.preconditions[]` 全部满足;否则 `failed_precondition`,`reason="workflow_precondition_unmet"` + 具体哪条
-6. 校验 actor 持有 `cx.flow.workflow.transition` 基础 capability **AND** `transition.required_capability`(若有)
-7. 校验 Flow.state=active(共用 `cx.flow.update` 的 non-active 拒写规则)
-8. 写入 cell:`cx.component.flow.workflow_state.v1` cas_register,head_eq precondition
-9. 自动派生 `Flow.stage = target_state.stage_category`,通过同一 reducer transaction 触发"内部" stage 更新(**不**对外暴露为单独的 `cx.flow.stage.set` event;那个仍是 actor 直接推进 stage 的路径)
+6. 校验 actor 持有 `ck.flow.workflow.transition` 基础 capability **AND** `transition.required_capability`(若有)
+7. 校验 Flow.state=active(共用 `ck.flow.update` 的 non-active 拒写规则)
+8. 写入 cell:`ck.component.flow.workflow_state.v1` cas_register,head_eq precondition
+9. 自动派生 `Flow.stage = target_state.stage_category`,通过同一 reducer transaction 触发"内部" stage 更新(**不**对外暴露为单独的 `ck.flow.stage.set` event;那个仍是 actor 直接推进 stage 的路径)
 10. 写入 `Flow.workflow_state_ref.state_key = target_state.key`
 
 ### 3.7 与 stage 轴的关系
 
-- **未启用本提案的 Realm**:actor 直接 `cx.flow.stage.set` 推进 8 值 stage(common-fields §5.3)
+- **未启用本提案的 Realm**:actor 直接 `ck.flow.stage.set` 推进 8 值 stage(common-fields §5.3)
 - **启用本提案的 Realm 且 Flow 关联了 workflow**:
-  - 客户端 SHOULD 走 `cx.flow.workflow.transition`;此 event 推进 fine-grained state 并自动同步 stage
-  - 直接调用 `cx.flow.stage.set` 仍合法(protocol 不阻止),但 profile MAY 收紧拒绝(`cx.profile.workflow.strict_stage_routing.v1`),只允许 stage 通过 workflow transition 派生
+  - 客户端 SHOULD 走 `ck.flow.workflow.transition`;此 event 推进 fine-grained state 并自动同步 stage
+  - 直接调用 `ck.flow.stage.set` 仍合法(protocol 不阻止),但 profile MAY 收紧拒绝(`ck.profile.workflow.strict_stage_routing.v1`),只允许 stage 通过 workflow transition 派生
 - stage 8 值始终是 workflow_state 的**协议级粗投影**,跨 Realm 聚合不依赖业务命名
 
 ### 3.8 Capability
 
 | action | risk_tier | target event kinds |
 | --- | --- | --- |
-| `cx.workflow.manage` | medium | create / update / archive / restore / tombstone |
-| `cx.flow.workflow.transition` | low | `cx.flow.workflow.transition`(基础推进权限,profile 可叠加 transition-specific capability) |
+| `ck.workflow.manage` | medium | create / update / archive / restore / tombstone |
+| `ck.flow.workflow.transition` | low | `ck.flow.workflow.transition`(基础推进权限,profile 可叠加 transition-specific capability) |
 
 ## 4. Interactions with normative spec
 
@@ -154,7 +154,7 @@ Schema id: `cx.schema.workflow.v1`
 - 新增 schema:`workflow.schema.json`、`flow-workflow-transition-payload`。
 - 新增 id-kind:`workflow`。
 - 新增 event_kinds(6 条)+ capability actions(2 条 + profile 扩展位)。
-- 新增 profile:`cx.profile.workflow.v1`,strict variant `cx.profile.workflow.strict_stage_routing.v1`。
+- 新增 profile:`ck.profile.workflow.v1`,strict variant `ck.profile.workflow.strict_stage_routing.v1`。
 - `flow.schema.json` 增加 `workflow_state_ref` optional property。
 - common-fields §5.3.4 已经预留了"启用 workflow 后 stage 派生"的描述,本提案落地时补充具体引用。
 - forbidden-wire:`flow.fields.status`(可选;启用 workflow 后该字段保留为 free-form 元数据,reducer 仍允许,但 profile 可声明 strict reject)。
@@ -178,7 +178,7 @@ Schema id: `cx.schema.workflow.v1`
 - 没有 audit 区分"改字段" vs "推进状态"
 - 不能与协议级 stage 自动派生关联
 
-### 5.3 为什么 transition 是 first-class event 而不是 `cx.flow.update`?
+### 5.3 为什么 transition 是 first-class event 而不是 `ck.flow.update`?
 
 清洁 audit、capability 切分、reducer 校验流程分离。与 stage.set / tracks.update 同模式:状态机推进有自己的 event kind,patch 路径 forbidden。
 

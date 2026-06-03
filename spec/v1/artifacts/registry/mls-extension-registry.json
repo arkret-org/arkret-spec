@@ -12,7 +12,7 @@
       "name": "mls_governance_binding",
       "codepoint": "0xF1C0",
       "status": "active",
-      "profile_id": "cx.profile.mls_governance_binding.full.v1",
+      "profile_id": "ck.profile.mls_governance_binding.full.v1",
       "carries": "Cokret Realm/Circle governance binding inside the MLS GroupContext",
       "iana_codepoint": null,
       "migration": "If a network-wide registration is ever required, request a standard codepoint via the IETF MLS extensions registry (specification-required) and declare it in a new hardening profile as a separate wire version; do not override this binding with another codepoint inside v1.",

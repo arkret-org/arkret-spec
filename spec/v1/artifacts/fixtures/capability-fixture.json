@@ -1,5 +1,5 @@
 {
-  "profile": "cx.profile.capability_vectors.v1",
+  "profile": "ck.profile.capability_vectors.v1",
   "version": "2026-05-02",
   "fixtures": [
     {
@@ -10,8 +10,8 @@
           "issuer": "did:web:owner.example",
           "subject": "did:web:alice.example",
           "actions": [
-            "cx.flow.read",
-            "cx.flow.update"
+            "ck.flow.read",
+            "ck.flow.update"
           ],
           "resources": [
             {
@@ -24,7 +24,7 @@
       ],
       "request": {
         "actor": "did:web:alice.example",
-        "action": "cx.flow.update",
+        "action": "ck.flow.update",
         "resource": {
           "kind": "flow",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
@@ -46,8 +46,8 @@
           "issuer": "did:web:owner.example",
           "subject": "did:web:alice.example",
           "actions": [
-            "cx.flow.read",
-            "cx.flow.update"
+            "ck.flow.read",
+            "ck.flow.update"
           ],
           "resources": [
             {
@@ -60,7 +60,7 @@
       ],
       "request": {
         "actor": "did:web:alice.example",
-        "action": "cx.message.create",
+        "action": "ck.message.create",
         "resource": {
           "kind": "flow",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
@@ -78,13 +78,13 @@
       "events": [
         {
           "event_id": "ck:event:019640e8-0000-7000-8000-000000000000",
-          "kind": "cx.capability.grant",
+          "kind": "ck.capability.grant",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "payload": {
             "grant_id": "ck:grant:0196410c-0800-7000-8000-000000000000",
             "subject": "did:web:alice.example",
             "actions": [
-              "cx.flow.update"
+              "ck.flow.update"
             ],
             "resources": [
               {
@@ -96,7 +96,7 @@
         },
         {
           "event_id": "ck:event:019640ec-0000-7000-8000-000000000000",
-          "kind": "cx.capability.revoke",
+          "kind": "ck.capability.revoke",
           "hlc": "01970e589d22-0001-a13f9c2e",
           "payload": {
             "grant_ref": "ck:grant:0196410c-0800-7000-8000-000000000000"
@@ -104,7 +104,7 @@
         },
         {
           "event_id": "ck:event:019640ee-0000-7000-8000-000000000000",
-          "kind": "cx.flow.update",
+          "kind": "ck.flow.update",
           "hlc": "01970e589d23-0001-a13f9c2e",
           "refs": [
             {
@@ -137,7 +137,7 @@
         "issuer": "did:web:owner.example",
         "subject": "did:web:agent.example",
         "actions": [
-          "cx.agent.session.start"
+          "ck.agent.session.start"
         ],
         "resources": [
           {

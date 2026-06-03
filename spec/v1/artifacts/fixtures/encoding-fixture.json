@@ -1,10 +1,10 @@
 {
-  "profile": "cx.profile.encoding_vectors.v1",
+  "profile": "ck.profile.encoding_vectors.v1",
   "version": "2026-05-06",
   "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.12. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers hex-Base32 rank string ordering (LIST item placement).",
   "vectors": [
     {
-      "vector_id": "cx.vector.encoding.canonical_json.basic.v1",
+      "vector_id": "ck.vector.encoding.canonical_json.basic.v1",
       "kind": "canonical_json_digest",
       "input": {
         "b": 2,
@@ -14,7 +14,7 @@
       "expected_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
     },
     {
-      "vector_id": "cx.vector.encoding.canonical_json.nested.v1",
+      "vector_id": "ck.vector.encoding.canonical_json.nested.v1",
       "kind": "canonical_json",
       "input": {
         "z": {
@@ -36,7 +36,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.reject_noncanonical_numbers.v1",
+      "vector_id": "ck.vector.encoding.reject_noncanonical_numbers.v1",
       "kind": "canonical_json_reject",
       "rejected_inputs": [
         {
@@ -70,7 +70,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.reject_malformed_json.v1",
+      "vector_id": "ck.vector.encoding.reject_malformed_json.v1",
       "kind": "canonical_json_reject",
       "rejected_input_classes": [
         "malformed UTF-8",
@@ -86,11 +86,11 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.event_digest.v1",
+      "vector_id": "ck.vector.encoding.event_digest.v1",
       "kind": "canonical_json_digest",
       "input": {
         "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-        "kind": "cx.message.create",
+        "kind": "ck.message.create",
         "realm_id": "ck:realm:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:web:alice.example",
         "actor_seq": 1,
@@ -118,13 +118,13 @@
           "track_name": "discussion",
           "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
           "content": {
-            "kind": "cx.content.text",
+            "kind": "ck.content.text",
             "body": "hello"
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"anchor_ref\":\"ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"cx.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"cx.content.text\"},\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"preconditions\":[],\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[]}",
-      "expected_digest": "sha256:297487d820da12ad42ffffbbb82b53dd01ddf48911b650c38f5b19a127c587a4",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"anchor_ref\":\"ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"preconditions\":[],\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[]}",
+      "expected_digest": "sha256:fd7c884d9baf1fa7cd8fa0819b149fff2a26b069ce99515d05bcaf185fd2ea94",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",
@@ -133,10 +133,10 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.event_batch_receipt_digest.v1",
+      "vector_id": "ck.vector.encoding.event_batch_receipt_digest.v1",
       "kind": "canonical_json_digest",
       "input": {
-        "schema": "cx.schema.event_batch_receipt.v1",
+        "schema": "ck.schema.event_batch_receipt.v1",
         "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
         "issuer": "did:web:alice.example",
         "receipt_scope": {
@@ -151,8 +151,8 @@
         ],
         "created_at": "2026-04-26T00:00:00Z"
       },
-      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"ck:receipt:01964186-0000-7000-8000-000000000000\",\"receipt_scope\":{\"actor_id\":\"did:web:alice.example\"},\"schema\":\"cx.schema.event_batch_receipt.v1\"}",
-      "expected_digest": "sha256:2b0748e19647155acf1627f22cc4ca66acce025ec726b9ac309e30cd567d0f86",
+      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"ck:receipt:01964186-0000-7000-8000-000000000000\",\"receipt_scope\":{\"actor_id\":\"did:web:alice.example\"},\"schema\":\"ck.schema.event_batch_receipt.v1\"}",
+      "expected_digest": "sha256:d9a59246c869bcc59fbbb8615bdeed7987675ba8cc4134a3c0096a9e0ff80299",
       "fail_conditions": [
         "events array sorted or deduplicated before hashing",
         "proof field included in receipt digest",
@@ -161,7 +161,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.signature_binding_payload.v1",
+      "vector_id": "ck.vector.encoding.signature_binding_payload.v1",
       "kind": "canonical_json_digest",
       "input": {
         "actor_id": "did:web:alice.example",
@@ -178,7 +178,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.hlc_order.v1",
+      "vector_id": "ck.vector.encoding.hlc_order.v1",
       "kind": "ordering",
       "input": [
         "01970e589d21-0004-bbbbbbbb",
@@ -198,7 +198,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.hlc_logical_overflow.v1",
+      "vector_id": "ck.vector.encoding.hlc_logical_overflow.v1",
       "kind": "producer_constraint",
       "input": {
         "last_emitted_hlc": "01970e589d21-ffff-a13f9c2e",
@@ -216,7 +216,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.cursor_opaque.core.v1",
+      "vector_id": "ck.vector.encoding.cursor_opaque.core.v1",
       "kind": "cursor_opaqueness",
       "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9",
       "decoded_payload_canonical_bytes_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
@@ -236,21 +236,21 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.cursor_opaque.stateless_profile.v1",
+      "vector_id": "ck.vector.encoding.cursor_opaque.stateless_profile.v1",
       "kind": "cursor_opaqueness",
       "applies_to_profiles": [
-        "cx.profile.stateless_cursor.v1"
+        "ck.profile.stateless_cursor.v1"
       ],
       "input_cursor": "ck:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0",
       "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"issuer_kid\":\"did:web:sync.example#cursor-2026-05\",\"purpose\":\"stream\",\"s\":{\"ck:realm:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"ck:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
-      "fixture_freshness_note": "Profile-only stateless cursor vector. Core suites MUST skip this vector unless cx.profile.stateless_cursor.v1 is claimed.",
+      "fixture_freshness_note": "Profile-only stateless cursor vector. Core suites MUST skip this vector unless ck.profile.stateless_cursor.v1 is claimed.",
       "client_rules": [
         "MUST treat cursor as an opaque string and round-trip it verbatim",
         "MUST NOT parse s / x / _mac to construct the next page request"
       ],
       "server_rules": [
         "MUST validate the stateless profile overlay, issuer_kid, purpose, x, stream frontier fields, and _mac/_sig transcript",
-        "MUST reject the same body under v1 core schema when cx.profile.stateless_cursor.v1 is not claimed"
+        "MUST reject the same body under v1 core schema when ck.profile.stateless_cursor.v1 is not claimed"
       ],
       "fail_conditions": [
         "client parses s/x and rebuilds a request",
@@ -258,7 +258,7 @@
       ]
     },
     {
-      "vector_id": "cx.vector.encoding.encrypted_envelope_digest.v1",
+      "vector_id": "ck.vector.encoding.encrypted_envelope_digest.v1",
       "kind": "canonical_json_with_ciphertext_digest",
       "cleartext_metadata": {
         "content_type": "application/json",

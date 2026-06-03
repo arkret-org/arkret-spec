@@ -16,7 +16,7 @@ updated: 2026-05-25
 
 可执行向量数据集位于 [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/)；
 本文档把对应规范条款与文件入口集中呈现，便于一致性测试 runner 引用。
-所有 `cx.vector.*` 标识符的机器索引位于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；新增、删除或重命名向量时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 的闭包校验。
+所有 `ck.vector.*` 标识符的机器索引位于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；新增、删除或重命名向量时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 的闭包校验。
 
 ## 0. 规范语言
 
@@ -35,7 +35,7 @@ updated: 2026-05-25
 向量名称使用：
 
 ```text
-cx.vector.encoding.<name>.v1
+ck.vector.encoding.<name>.v1
 ```
 
 实现 MUST 对每个向量报告：
@@ -57,7 +57,7 @@ sha256:<lowercase_hex_digest>
 向量名称：
 
 ```text
-cx.vector.encoding.canonical_json.basic.v1
+ck.vector.encoding.canonical_json.basic.v1
 ```
 
 输入对象：
@@ -92,7 +92,7 @@ sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777
 向量名称：
 
 ```text
-cx.vector.encoding.canonical_json.nested.v1
+ck.vector.encoding.canonical_json.nested.v1
 ```
 
 输入对象：
@@ -125,7 +125,7 @@ cx.vector.encoding.canonical_json.nested.v1
 向量名称：
 
 ```text
-cx.vector.encoding.reject_noncanonical_numbers.v1
+ck.vector.encoding.reject_noncanonical_numbers.v1
 ```
 
 以下输入 MUST 被拒绝为签名/hash 输入：
@@ -154,7 +154,7 @@ cx.vector.encoding.reject_noncanonical_numbers.v1
 向量名称：
 
 ```text
-cx.vector.encoding.reject_malformed_json.v1
+ck.vector.encoding.reject_malformed_json.v1
 ```
 
 以下输入 MUST 在 canonicalization 前或 canonicalization 阶段失败，不能进入签名验证、hash 计算或 reducer：
@@ -176,7 +176,7 @@ cx.vector.encoding.reject_malformed_json.v1
 向量名称：
 
 ```text
-cx.vector.encoding.reject_duplicate_key.v1
+ck.vector.encoding.reject_duplicate_key.v1
 ```
 
 输入 bytes（UTF-8 文本，未经 parser 去重；同一层出现两个 `event_id`）：
@@ -200,7 +200,7 @@ cx.vector.encoding.reject_duplicate_key.v1
 向量名称：
 
 ```text
-cx.vector.encoding.reject_non_nfc_string.v1
+ck.vector.encoding.reject_non_nfc_string.v1
 ```
 
 输入对象（`display_name` 使用 decomposed 序列 `U+0065 U+0301`，即 `e` + combining acute，而非 precomposed `U+00E9` `é`）：
@@ -228,7 +228,7 @@ cx.vector.encoding.reject_non_nfc_string.v1
 向量名称：
 
 ```text
-cx.vector.encoding.reject_feff_injection.v1
+ck.vector.encoding.reject_feff_injection.v1
 ```
 
 输入对象（`title` string value 内部注入一个 `U+FEFF` zero-width no-break space，wire bytes 含 `ef bb bf`）：
@@ -256,7 +256,7 @@ cx.vector.encoding.reject_feff_injection.v1
 向量名称：
 
 ```text
-cx.vector.encoding.event_digest.v1
+ck.vector.encoding.event_digest.v1
 ```
 
 输入事件，不含 `proofs` 和 `unsigned`，但包含稳定 `event_id`：
@@ -264,7 +264,7 @@ cx.vector.encoding.event_digest.v1
 ```json
 {
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "kind": "cx.message.create",
+  "kind": "ck.message.create",
   "realm_id": "ck:realm:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 1,
@@ -292,7 +292,7 @@ cx.vector.encoding.event_digest.v1
     "track_name": "discussion",
     "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
     "content": {
-      "kind": "cx.content.text",
+      "kind": "ck.content.text",
       "body": "hello"
     }
   }
@@ -302,7 +302,7 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"anchor_ref":"ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222","created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"preconditions":[],"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[]}
+{"actor_id":"did:web:alice.example","actor_seq":1,"anchor_ref":"ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222","created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"preconditions":[],"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[]}
 ```
 
 期望 digest：
@@ -322,14 +322,14 @@ sha256:297487d820da12ad42ffffbbb82b53dd01ddf48911b650c38f5b19a127c587a4
 向量名称：
 
 ```text
-cx.vector.encoding.event_batch_receipt_digest.v1
+ck.vector.encoding.event_batch_receipt_digest.v1
 ```
 
 输入 Event Batch Receipt，不含 proof：
 
 ```json
 {
-  "schema": "cx.schema.event_batch_receipt.v1",
+  "schema": "ck.schema.event_batch_receipt.v1",
   "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
   "receipt_scope": {
@@ -349,7 +349,7 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"ck:receipt:01964186-0000-7000-8000-000000000000","receipt_scope":{"actor_id":"did:web:alice.example"},"schema":"cx.schema.event_batch_receipt.v1"}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"ck:receipt:01964186-0000-7000-8000-000000000000","receipt_scope":{"actor_id":"did:web:alice.example"},"schema":"ck.schema.event_batch_receipt.v1"}
 ```
 
 期望 digest：
@@ -370,7 +370,7 @@ sha256:a828dc768e814ca0be50b5014e1115612776fa342f66df849e8bdd7e72dfa9b4
 向量名称：
 
 ```text
-cx.vector.encoding.signature_binding_payload.v1
+ck.vector.encoding.signature_binding_payload.v1
 ```
 
 签名前的 binding object：
@@ -407,7 +407,7 @@ sha256:98d7da309a94b0d188404e649a81fa240e338d62a7848c0ce699c3bbf85f3c6c
 向量名称：
 
 ```text
-cx.vector.encoding.hlc_order.v1
+ck.vector.encoding.hlc_order.v1
 ```
 
 输入 HLC：
@@ -442,7 +442,7 @@ cx.vector.encoding.hlc_order.v1
 向量名称：
 
 ```text
-cx.vector.encoding.hlc_logical_overflow.v1
+ck.vector.encoding.hlc_logical_overflow.v1
 ```
 
 输入状态：
@@ -474,7 +474,7 @@ cx.vector.encoding.hlc_logical_overflow.v1
 向量名称：
 
 ```text
-cx.vector.encoding.reject_malformed_hlc.v1
+ck.vector.encoding.reject_malformed_hlc.v1
 ```
 
 实现 MUST 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式（见 [encoding.md](./encoding.md) §7.2），并额外拒绝 `unix_ms_hex > ffffffffffff` 的物理时间溢出值。下列每个 case 都 MUST 被拒绝：
@@ -504,7 +504,7 @@ cx.vector.encoding.reject_malformed_hlc.v1
 向量名称：
 
 ```text
-cx.vector.encoding.cursor_opaque.core.v1
+ck.vector.encoding.cursor_opaque.core.v1
 ```
 
 输入 cursor（schema-valid v1 core wire 形态；body 是 stateful opaque handle `{v,purpose,t,x,h}`）：
@@ -535,10 +535,10 @@ cursor base64url 解码后对应 canonical JSON：
 Profile-only stateless cursor 向量名称：
 
 ```text
-cx.vector.encoding.cursor_opaque.stateless_profile.v1
+ck.vector.encoding.cursor_opaque.stateless_profile.v1
 ```
 
-该向量 **仅** 在实现声明 `cx.profile.stateless_cursor.v1` 时运行；core conformance suite MUST 跳过它，并应通过 `schema-validation-fixture.json` 中的 negative case 验证缺 `h` 的 body 被 core schema 拒绝。
+该向量 **仅** 在实现声明 `ck.profile.stateless_cursor.v1` 时运行；core conformance suite MUST 跳过它，并应通过 `schema-validation-fixture.json` 中的 negative case 验证缺 `h` 的 body 被 core schema 拒绝。
 
 输入 cursor（stateless profile overlay 形态）：
 
@@ -553,7 +553,7 @@ stateless profile 服务端 MUST 验证 `issuer_kid`、`s` frontier、`x` 和 `_
 向量名称：
 
 ```text
-cx.vector.encoding.encrypted_envelope_digest.v1
+ck.vector.encoding.encrypted_envelope_digest.v1
 ```
 
 cleartext metadata canonical bytes 的 UTF-8 文本表示：
@@ -584,26 +584,26 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 
 | 向量 | Minimal Client | Full Client | E2EE Client | Events API | Principal Server |
 | --- | --- | --- | --- | --- | --- |
-| `cx.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.reject_noncanonical_numbers.v1` | MUST | MUST | MUST | MUST | SHOULD |
-| `cx.vector.encoding.reject_malformed_json.v1` | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.reject_duplicate_key.v1` | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.reject_non_nfc_string.v1` | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.reject_feff_injection.v1` | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.event_digest.v1` | SHOULD | MUST | MUST | MUST | SHOULD |
-| `cx.vector.encoding.event_batch_receipt_digest.v1` | MAY | SHOULD | SHOULD | SHOULD | MAY |
-| `cx.vector.encoding.signature_binding_payload.v1` | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.crypto.ed25519_detached_jws.v1` | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD |
-| `cx.vector.encoding.reject_malformed_hlc.v1` | MUST | MUST | MUST | MUST | SHOULD |
-| `cx.vector.encoding.cursor_opaque.core.v1` | MUST | MUST | MUST | MAY | SHOULD |
-| `cx.vector.encoding.cursor_opaque.stateless_profile.v1` | profile-only (`cx.profile.stateless_cursor.v1`) | profile-only | profile-only | MAY | SHOULD |
-| `cx.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST |
+| `ck.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.reject_noncanonical_numbers.v1` | MUST | MUST | MUST | MUST | SHOULD |
+| `ck.vector.encoding.reject_malformed_json.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.reject_duplicate_key.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.reject_non_nfc_string.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.reject_feff_injection.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.event_digest.v1` | SHOULD | MUST | MUST | MUST | SHOULD |
+| `ck.vector.encoding.event_batch_receipt_digest.v1` | MAY | SHOULD | SHOULD | SHOULD | MAY |
+| `ck.vector.encoding.signature_binding_payload.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.crypto.ed25519_detached_jws.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD |
+| `ck.vector.encoding.reject_malformed_hlc.v1` | MUST | MUST | MUST | MUST | SHOULD |
+| `ck.vector.encoding.cursor_opaque.core.v1` | MUST | MUST | MUST | MAY | SHOULD |
+| `ck.vector.encoding.cursor_opaque.stateless_profile.v1` | profile-only (`ck.profile.stateless_cursor.v1`) | profile-only | profile-only | MAY | SHOULD |
+| `ck.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST |
 
 ### 1.14 Crypto Fixture 要求
 
-自动化 conformance suite MUST 加载 `spec/v1/artifacts/fixtures/crypto-signature-fixture.json`。该 fixture 固定了 `cx.vector.encoding.crypto.ed25519_detached_jws.v1`：
+自动化 conformance suite MUST 加载 `spec/v1/artifacts/fixtures/crypto-signature-fixture.json`。该 fixture 固定了 `ck.vector.encoding.crypto.ed25519_detached_jws.v1`：
 
 - Ed25519 public key / private test key
 - detached JWS signature
@@ -636,7 +636,7 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 向量名称：
 
 ```text
-cx.vector.move_anchor_lattice.multi_cell_ban_revoke.v1
+ck.vector.move_anchor_lattice.multi_cell_ban_revoke.v1
 ```
 
 输入：
@@ -655,7 +655,7 @@ cx.vector.move_anchor_lattice.multi_cell_ban_revoke.v1
 向量名称：
 
 ```text
-cx.vector.move_anchor_lattice.cas_bottom.v1
+ck.vector.move_anchor_lattice.cas_bottom.v1
 ```
 
 输入：
@@ -673,7 +673,7 @@ cx.vector.move_anchor_lattice.cas_bottom.v1
 向量名称：
 
 ```text
-cx.vector.move_anchor_lattice.anchor_batch_pre_state.v1
+ck.vector.move_anchor_lattice.anchor_batch_pre_state.v1
 ```
 
 输入：
@@ -691,7 +691,7 @@ cx.vector.move_anchor_lattice.anchor_batch_pre_state.v1
 向量名称：
 
 ```text
-cx.vector.move_anchor_lattice.mls_covered_frontier.v1
+ck.vector.move_anchor_lattice.mls_covered_frontier.v1
 ```
 
 输入：
@@ -707,11 +707,11 @@ cx.vector.move_anchor_lattice.mls_covered_frontier.v1
 
 ### 2.5.1 Vector: MLS Governance Epoch Binding
 
-`vector_id`: `cx.vector.mls.governance_epoch_binding.v1`
+`vector_id`: `ck.vector.mls.governance_epoch_binding.v1`
 
 Steps：
 
-1. 构造 `cx.mls.commit`，`payload.base_epoch = 41`、`payload.next_epoch = 42`。
+1. 构造 `ck.mls.commit`，`payload.base_epoch = 41`、`payload.next_epoch = 42`。
 2. `payload.governance_binding.previous_epoch = 40` 或 `payload.governance_binding.next_epoch = 43`。
 3. 其它 signature、proposal refs、policy root 和 membership frontier 均有效。
 
@@ -722,25 +722,25 @@ Expected：
 
 ### 2.5.2 Vector: MLS Welcome KeyPackage Hash Binding
 
-`vector_id`: `cx.vector.mls.welcome_keypackage_hash.v1`
+`vector_id`: `ck.vector.mls.welcome_keypackage_hash.v1`
 
 Steps：
 
 1. KeyPackage claim response 返回 `keypackage_ref=K`、`keypackage_digest=H1`、`capabilities_digest=C`、`ssk_generation=G`。
-2. 攻击者提交 `cx.mls.welcome`，顶层 `keypackage_ref=K`，但 `payload.keypackage_digest=H2` 或 `payload.claim_ref.keypackage_digest=H2`。
+2. 攻击者提交 `ck.mls.welcome`，顶层 `keypackage_ref=K`，但 `payload.keypackage_digest=H2` 或 `payload.claim_ref.keypackage_digest=H2`。
 3. Welcome ciphertext、claim_id、capabilities_digest 和 signature envelope 其它字段均有效。
 
 Expected：
 
 - Receiver MUST reject before decrypting or accepting the Welcome。
-- `payload.keypackage_digest`、`payload.claim_ref.keypackage_digest`、claim record `keypackage_digest` 和已发布 `cx.mls.keypackage.payload.keypackage_digest` MUST 全部一致。
+- `payload.keypackage_digest`、`payload.claim_ref.keypackage_digest`、claim record `keypackage_digest` 和已发布 `ck.mls.keypackage.payload.keypackage_digest` MUST 全部一致。
 
 ### 2.6 Vector: Anchorer Cell ⊥ → Recovery Anchorer 上位
 
 向量名称：
 
 ```text
-cx.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1
+ck.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1
 ```
 
 输入：
@@ -760,7 +760,7 @@ cx.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1
 向量名称：
 
 ```text
-cx.vector.move_anchor_lattice.signed_compaction_equivalent.v1
+ck.vector.move_anchor_lattice.signed_compaction_equivalent.v1
 ```
 
 输入：
@@ -779,7 +779,7 @@ cx.vector.move_anchor_lattice.signed_compaction_equivalent.v1
 向量名称：
 
 ```text
-cx.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1
+ck.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1
 ```
 
 输入与期望（多 case 矩阵）：
@@ -794,7 +794,7 @@ cx.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1
 向量名称：
 
 ```text
-cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
+ck.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
 ```
 
 输入与期望（多 case 矩阵）：
@@ -816,7 +816,7 @@ cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
 向量名称：
 
 ```text
-cx.vector.state_root.incremental.v1
+ck.vector.state_root.incremental.v1
 ```
 
 输入：
@@ -849,20 +849,20 @@ cx.vector.state_root.incremental.v1
 
 实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.3 中"增量与全量必须等价"的要求。
 
-### 2.10 Vector: `cx.flow.tracks.update` 原子 patch
+### 2.10 Vector: `ck.flow.tracks.update` 原子 patch
 
 向量名称：
 
 ```text
-cx.vector.flow_tracks_update.atomic.v1
+ck.vector.flow_tracks_update.atomic.v1
 ```
 
 输入：
 
 - 一个已存在 Flow `F0`，`tracks = { "synthesis": { is_primary: true, enabled: true }, "discussion": { is_primary: false, enabled: true } }`。
-- Case A — 单字段 patch：一个 `cx.flow.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Flow `tracks` 在单个 Anchor batch 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
-- Case B — 新增 + 启停 + 移除：在 Flow 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `cx.flow.tracks.update` 同时 (1) 新增 `tracks.review.enabled=true` 子 map (profile 注册的扩展 track)，(2) 把 `tracks.discussion.enabled` 置为 false，(3) 把 `tracks.synthesis.is_primary` 置为 false，(4) 把 `tracks.review.is_primary` 置为 true。
-- Case C — invariant 违反：单条 `cx.flow.tracks.update` 把 `tracks.synthesis.is_primary` 与 `tracks.discussion.is_primary` 同时 set 为 `true`。
+- Case A — 单字段 patch：一个 `ck.flow.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Flow `tracks` 在单个 Anchor batch 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
+- Case B — 新增 + 启停 + 移除：在 Flow 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `ck.flow.tracks.update` 同时 (1) 新增 `tracks.review.enabled=true` 子 map (profile 注册的扩展 track)，(2) 把 `tracks.discussion.enabled` 置为 false，(3) 把 `tracks.synthesis.is_primary` 置为 false，(4) 把 `tracks.review.is_primary` 置为 true。
+- Case C — invariant 违反：单条 `ck.flow.tracks.update` 把 `tracks.synthesis.is_primary` 与 `tracks.discussion.is_primary` 同时 set 为 `true`。
 
 期望：
 
@@ -873,7 +873,7 @@ cx.vector.flow_tracks_update.atomic.v1
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`（`tracks` 是 map，不是 unique-key 数组）。
-- `cx.flow.tracks.update` 写入的 cell 是 `ck:cell:cx.component.flow.tracks.v1:<flow_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
+- `ck.flow.tracks.update` 写入的 cell 是 `ck:cell:ck.component.flow.tracks.v1:<flow_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
 
 失败条件：
 
@@ -893,7 +893,7 @@ cx.vector.flow_tracks_update.atomic.v1
 向量命名：
 
 ```text
-cx.vector.redaction.<scenario>.v1
+ck.vector.redaction.<scenario>.v1
 ```
 
 ### 3.2 Vector: 字段保留规则
@@ -901,7 +901,7 @@ cx.vector.redaction.<scenario>.v1
 向量名称：
 
 ```text
-cx.vector.redaction.preserve_fields.v1
+ck.vector.redaction.preserve_fields.v1
 ```
 
 输入：
@@ -910,7 +910,7 @@ cx.vector.redaction.preserve_fields.v1
 {
   "target_event": {
     "event_id": "ck:event:0196414c-3000-7000-8000-000000000000",
-    "kind": "cx.message.create",
+    "kind": "ck.message.create",
     "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:00Z",
@@ -920,7 +920,7 @@ cx.vector.redaction.preserve_fields.v1
     "payload": {
       "flow_id": "ck:flow:0196414c-3400-7000-8000-000000000000",
       "content": {
-        "kind": "cx.content.text",
+        "kind": "ck.content.text",
         "body": "private notes"
       },
       "mentions": [
@@ -941,7 +941,7 @@ cx.vector.redaction.preserve_fields.v1
   },
   "redaction_event": {
     "event_id": "ck:event:0196418a-0360-7000-8000-000000000000",
-    "kind": "cx.redaction",
+    "kind": "ck.redaction",
     "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:02Z",
@@ -1006,7 +1006,7 @@ cx.vector.redaction.preserve_fields.v1
 向量名称：
 
 ```text
-cx.vector.redaction.space_target_ref_schema.v1
+ck.vector.redaction.space_target_ref_schema.v1
 ```
 
 输入（payload 片段，必须通过 `event-payload.schema.json#/$defs/object_lifecycle_payload`）：
@@ -1020,7 +1020,7 @@ cx.vector.redaction.space_target_ref_schema.v1
 
 期望结果：
 
-- Payload schema MUST 接受 `ck:space:*` 作为 `cx.redaction` 的 `target_ref` / `object_ref`。
+- Payload schema MUST 接受 `ck:space:*` 作为 `ck.redaction` 的 `target_ref` / `object_ref`。
 - Reducer 语义仍按 Space 生命周期规则执行：Space 没有独立 `redacted` state，内容清理合并到 Space metadata cleanup / terminal transition；不得因 schema 漏洞把 Space cleanup 路径降级为实现私有扩展。
 
 ### 3.3 Vector: redaction 与 policy scope
@@ -1028,7 +1028,7 @@ cx.vector.redaction.space_target_ref_schema.v1
 向量名称：
 
 ```text
-cx.vector.redaction.policy_scope.v1
+ck.vector.redaction.policy_scope.v1
 ```
 
 输入序列（先后顺序如下）：
@@ -1043,21 +1043,21 @@ cx.vector.redaction.policy_scope.v1
   "timeline": [
     {
       "event_id": "ck:event:0196417d-8400-7000-8000-000000000000",
-      "kind": "cx.message.create",
+      "kind": "ck.message.create",
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "payload": {
         "flow_id": "ck:flow:0196417d-8400-7000-8000-000000000000",
         "content": {
-          "kind": "cx.content.text",
+          "kind": "ck.content.text",
           "body": "bad link: spam.example/phish"
         }
       }
     },
     {
       "event_id": "ck:event:0196417d-8980-7000-8000-000000000000",
-      "kind": "cx.policy.action",
+      "kind": "ck.policy.action",
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
@@ -1070,7 +1070,7 @@ cx.vector.redaction.policy_scope.v1
     },
     {
       "event_id": "ck:event:0196417d-8f00-7000-8000-000000000000",
-      "kind": "cx.redaction",
+      "kind": "ck.redaction",
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:policy-admin.example",
       "payload": {
@@ -1100,13 +1100,13 @@ cx.vector.redaction.policy_scope.v1
 向量名称：
 
 ```text
-cx.vector.redaction.hard_erasure_receipt.v1
+ck.vector.redaction.hard_erasure_receipt.v1
 ```
 
 期望：
 
 - hard erasure 在被测存储边界内删除 payload bytes 与派生明文。
-- 实现保留 verification stub：原始 event id、验证事件图所需的 Event envelope digest / proof `event_digest`、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。签名 receipt MUST 符合 `cx.schema.erasure_receipt.v1`；若作为历史事件发布，Event.kind MUST 为 `cx.audit.erasure_receipt`。
+- 实现保留 verification stub：原始 event id、验证事件图所需的 Event envelope digest / proof `event_digest`、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。签名 receipt MUST 符合 `ck.schema.erasure_receipt.v1`；若作为历史事件发布，Event.kind MUST 为 `ck.audit.erasure_receipt`。
 - stub 不得额外保留已擦除明文字段的 standalone content hash、payload-only digest 或未加盐搜索 fingerprint；若审计必须保留内容承诺，必须使用每事件 salt 或 HMAC/pepper commitment，并把 secret 留在 legal-hold 边界或按 erasure policy 销毁。
 - backfill 返回 redacted / erased stub，不伪造替代事件，也不静默造成历史缺口。
 - legal hold 存在时阻止 hard erasure，但默认展示仍应用 redaction。
@@ -1116,7 +1116,7 @@ cx.vector.redaction.hard_erasure_receipt.v1
 向量名称：
 
 ```text
-cx.vector.redaction.snapshot_pruning_stub.v1
+ck.vector.redaction.snapshot_pruning_stub.v1
 ```
 
 输入：
@@ -1137,7 +1137,7 @@ cx.vector.redaction.snapshot_pruning_stub.v1
 向量名称：
 
 ```text
-cx.vector.snapshot.inclusion_challenge.v1
+ck.vector.snapshot.inclusion_challenge.v1
 ```
 
 本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。fixture 中的 `commitment_root`、`samples[]`、`proofs[].merkle_branch` 等具体字节值由 fixture 生成器产出并以 `spec/v1/artifacts/fixtures/` 为权威；本节固定结构与断言。
@@ -1166,7 +1166,7 @@ cx.vector.snapshot.inclusion_challenge.v1
 向量命名：
 
 ```text
-cx.vector.capability.<scenario>.v1
+ck.vector.capability.<scenario>.v1
 ```
 
 每个向量应检查：
@@ -1180,7 +1180,7 @@ cx.vector.capability.<scenario>.v1
 向量名称：
 
 ```text
-cx.vector.capability.delegate_chain.v1
+ck.vector.capability.delegate_chain.v1
 ```
 
 输入事件链：
@@ -1188,17 +1188,17 @@ cx.vector.capability.delegate_chain.v1
 ```json
 {
   "base": {
-    "kind": "cx.capability.grant",
+    "kind": "ck.capability.grant",
     "subject": "did:web:root-admin.example.com",
     "actions": [
-      "cx.realm.admin"
+      "ck.realm.admin"
     ],
     "constraints": []
   },
   "delegations": [
     {
       "event_id": "ck:event:019640d0-c000-7000-8000-000000000000",
-      "kind": "cx.capability.delegate",
+      "kind": "ck.capability.delegate",
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:root-admin.example.com",
       "payload": {
@@ -1212,8 +1212,8 @@ cx.vector.capability.delegate_chain.v1
           }
         ],
         "actions": [
-          "cx.capability.delegate",
-          "cx.invite.create"
+          "ck.capability.delegate",
+          "ck.invite.create"
         ],
         "constraints": [
           {
@@ -1236,7 +1236,7 @@ cx.vector.capability.delegate_chain.v1
     },
     {
       "event_id": "ck:event:019640d0-c400-7000-8000-000000000000",
-      "kind": "cx.capability.delegate",
+      "kind": "ck.capability.delegate",
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:ops.example.com",
       "payload": {
@@ -1250,7 +1250,7 @@ cx.vector.capability.delegate_chain.v1
           }
         ],
         "actions": [
-          "cx.invite.create"
+          "ck.invite.create"
         ],
         "constraints": [
           {
@@ -1276,7 +1276,7 @@ cx.vector.capability.delegate_chain.v1
   ],
   "action_query": {
     "actor_id": "did:web:intern.example.com",
-    "action": "cx.invite.create",
+    "action": "ck.invite.create",
     "resource": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "request_time": "2026-04-26T01:00:00Z",
     "request_audience": "did:web:vendor.example"
@@ -1314,7 +1314,7 @@ cx.vector.capability.delegate_chain.v1
 向量名称：
 
 ```text
-cx.vector.capability.revoke_rollback.v1
+ck.vector.capability.revoke_rollback.v1
 ```
 
 输入：
@@ -1324,19 +1324,19 @@ cx.vector.capability.revoke_rollback.v1
   "events": [
     {
       "event_id": "ck:event:01964101-2800-7000-8000-000000000000",
-      "kind": "cx.capability.grant",
+      "kind": "ck.capability.grant",
       "payload": {
         "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000",
         "subject": "did:web:alice.example.com",
         "actions": [
-          "cx.message.create"
+          "ck.message.create"
         ]
       },
       "created_at": "2026-04-26T00:00:00Z"
     },
     {
       "event_id": "ck:event:01964181-2800-7000-8000-000000000000",
-      "kind": "cx.capability.revoke",
+      "kind": "ck.capability.revoke",
       "payload": {
         "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000"
       },
@@ -1344,7 +1344,7 @@ cx.vector.capability.revoke_rollback.v1
     },
     {
       "event_id": "ck:event:019641d1-2800-7000-8000-000000000000",
-      "kind": "cx.member.state",
+      "kind": "ck.member.state",
       "payload": {
         "actor_id": "did:web:alice.example.com",
         "membership": "leave"
@@ -1353,13 +1353,13 @@ cx.vector.capability.revoke_rollback.v1
     },
     {
       "event_id": "ck:event:0196414c-c04a-7000-8000-000000000000",
-      "kind": "cx.message.create",
+      "kind": "ck.message.create",
       "actor_id": "did:web:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
       "payload": {
         "flow_id": "ck:flow:0196418d-cc00-7000-8000-000000000000",
         "content": {
-          "kind": "cx.content.text",
+          "kind": "ck.content.text",
           "body": "should_fail_if_revoke_applies"
         }
       },
@@ -1391,7 +1391,7 @@ cx.vector.capability.revoke_rollback.v1
 向量名称：
 
 ```text
-cx.vector.capability.approval_constraint.v1
+ck.vector.capability.approval_constraint.v1
 ```
 
 输入：
@@ -1400,12 +1400,12 @@ cx.vector.capability.approval_constraint.v1
 {
   "event": {
     "event_id": "ck:event:01964148-a800-7000-8000-000000000000",
-    "kind": "cx.policy.action",
+    "kind": "ck.policy.action",
     "actor_id": "did:web:contractor.example",
     "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
-      "action": "cx.realm.admin",
+      "action": "ck.realm.admin",
       "approval_required": true,
       "approval_quorum": 2,
       "policy_scope": "realm:01js0ms000000000000000000"
@@ -1416,17 +1416,17 @@ cx.vector.capability.approval_constraint.v1
   },
   "capabilities": [
     {
-      "kind": "cx.capability.grant",
+      "kind": "ck.capability.grant",
       "subject": "did:web:contractor.example",
       "actions": [
-        "cx.realm.admin"
+        "ck.realm.admin"
       ]
     },
     {
-      "kind": "cx.capability.grant",
+      "kind": "ck.capability.grant",
       "subject": "did:web:approver-1.example.com",
       "actions": [
-        "cx.approval.vote"
+        "ck.approval.vote"
       ]
     }
   ]
@@ -1458,13 +1458,13 @@ cx.vector.capability.approval_constraint.v1
 
 实现声称支持以下 profile 时 SHOULD 运行本文对应向量：
 
-- `cx.profile.minimal_client.v1`
-- `cx.profile.chat_mvp.v1`
-- `cx.profile.kanban_mvp.v1`
-- `cx.profile.full_client.v1`
-- `cx.profile.e2ee_client.v1`
-- `cx.profile.principal_server_events_api.v1`
-- `cx.profile.principal_server.v1`
+- `ck.profile.minimal_client.v1`
+- `ck.profile.chat_mvp.v1`
+- `ck.profile.kanban_mvp.v1`
+- `ck.profile.full_client.v1`
+- `ck.profile.e2ee_client.v1`
+- `ck.profile.principal_server_events_api.v1`
+- `ck.profile.principal_server.v1`
 
 ### 5.2 通用约定
 
@@ -1478,7 +1478,7 @@ cx.vector.capability.approval_constraint.v1
   "hlc": "019b76daa800-0000-a0000000",
   "prev_refs": [],
   "refs": [],
-  "kind": "cx.flow.update",
+  "kind": "ck.flow.update",
   "unsigned": {
     "target_ref_hint": "ck:flow:019640c5-0000-7000-8000-000000000000"
   },
@@ -1498,13 +1498,13 @@ cx.vector.capability.approval_constraint.v1
 向量名称：
 
 ```text
-cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
+ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 ```
 
 输入：
 
 - 目标密文事件 `E1` 在 anchored history 的 deterministic pre-state `T0` 中对 `receiver` 可见，且 `receiver` 在 `T0` 是 Realm member。
-- `receiver` 在 `E1` accepted 之后、late key request 发出之前被 `cx.member.state{membership=ban}` 或等价 remove 事件移出 Realm。
+- `receiver` 在 `E1` accepted 之后、late key request 发出之前被 `ck.member.state{membership=ban}` 或等价 remove 事件移出 Realm。
 - 两个客户端以不同本地到达顺序观察同一组 anchored events：客户端 A 先看到 `E1` 后看到 ban；客户端 B 先同步到 ban，再通过 backfill 看到 `E1`。
 - key backup / archive node / peer share 在发 key 前重新计算 `E1` 的 `T0` membership、history visibility 和当前 share policy。
 
@@ -1524,14 +1524,14 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
-      "kind": "cx.space.create",
+      "kind": "ck.space.create",
       "unsigned": {
         "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
       },
       "payload": {
         "object": {
           "id": "ck:space:019640b6-8000-7000-8000-000000000000",
-          "schema": "cx.schema.space.v1",
+          "schema": "ck.schema.space.v1",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
@@ -1541,14 +1541,14 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
       }
     },
     {
-      "kind": "cx.space.create",
+      "kind": "ck.space.create",
       "unsigned": {
         "target_ref_hint": "ck:space:01964010-8400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
           "id": "ck:space:01964010-8400-7000-8000-000000000000",
-          "schema": "cx.schema.space.v1",
+          "schema": "ck.schema.space.v1",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "parent_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
           "kind": "list",
@@ -1560,14 +1560,14 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
       }
     },
     {
-      "kind": "cx.flow.create",
+      "kind": "ck.flow.create",
       "unsigned": {
         "target_ref_hint": "ck:flow:019640c5-0400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
           "id": "ck:flow:019640c5-0400-7000-8000-000000000000",
-          "schema": "cx.schema.flow.v1",
+          "schema": "ck.schema.flow.v1",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "metadata": {
             "title": "Release checklist"
@@ -1611,7 +1611,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 ```json
 {
   "write": {
-    "kind": "cx.flow.move",
+    "kind": "ck.flow.move",
     "unsigned": {
       "target_ref_hint": "ck:flow:019640c5-0400-7000-8000-000000000000"
     },
@@ -1666,7 +1666,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 {
   "flow_id": "ck:flow:01964195-8400-7000-8000-000000000000",
   "track_name": "discussion",
-  "viewer_grants": ["cx.flow.read"],
+  "viewer_grants": ["ck.flow.read"],
   "viewer_track_membership": "none"
 }
 ```
@@ -1686,14 +1686,14 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   "flow_id": "ck:flow:01964180-0400-7000-8000-000000000000",
   "events": [
     {
-      "kind": "cx.message.create",
+      "kind": "ck.message.create",
       "unsigned": {
         "target_ref_hint": "ck:message:01964147-0400-7000-8000-000000000000"
       },
       "payload": {
         "flow_id": "ck:flow:01964180-0400-7000-8000-000000000000",
         "content": {
-          "kind": "cx.content.text",
+          "kind": "ck.content.text",
           "body": "discussion message"
         }
       }
@@ -1715,9 +1715,9 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 实现声称支持以下 profile 时 SHOULD 运行本节向量：
 
-- `cx.profile.kanban_mvp.v1`
-- `cx.profile.full_client.v1`
-- `cx.profile.principal_server.v1`
+- `ck.profile.kanban_mvp.v1`
+- `ck.profile.full_client.v1`
+- `ck.profile.principal_server.v1`
 
 ### 6.2 Vector: Space Archive 然后 Restore（happy path）
 
@@ -1728,14 +1728,14 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
-      "kind": "cx.space.create",
+      "kind": "ck.space.create",
       "unsigned": {
         "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
       },
       "payload": {
         "object": {
           "id": "ck:space:019640b6-8000-7000-8000-000000000000",
-          "schema": "cx.schema.space.v1",
+          "schema": "ck.schema.space.v1",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
@@ -1745,7 +1745,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
       }
     },
     {
-      "kind": "cx.space.archive",
+      "kind": "ck.space.archive",
       "unsigned": {
         "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
       },
@@ -1756,7 +1756,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
       }
     },
     {
-      "kind": "cx.space.restore",
+      "kind": "ck.space.restore",
       "unsigned": {
         "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
       },
@@ -1772,8 +1772,8 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 期望：
 
-- 应用 `cx.space.archive` 后，Space 物化对象 MUST 有 `state == "archived"` 且 `state_changed_at == "2026-05-15T10:05:00Z"`。默认 collection projection（不显式包含 archived items）MUST NOT 返回该 Space；显式带 `include_states=["archived"]` 的查询 MUST 仍可返回它。
-- 应用 `cx.space.restore` 后，Space 物化对象 MUST 有 `state == "active"` 且 `state_changed_at == "2026-05-15T10:10:00Z"`。默认 projection MUST 重新展示该 Space。
+- 应用 `ck.space.archive` 后，Space 物化对象 MUST 有 `state == "archived"` 且 `state_changed_at == "2026-05-15T10:05:00Z"`。默认 collection projection（不显式包含 archived items）MUST NOT 返回该 Space；显式带 `include_states=["archived"]` 的查询 MUST 仍可返回它。
+- 应用 `ck.space.restore` 后，Space 物化对象 MUST 有 `state == "active"` 且 `state_changed_at == "2026-05-15T10:10:00Z"`。默认 projection MUST 重新展示该 Space。
 - Restore **不**级联——若该 Space 包含 child Space（如 List 在 Board 内）或内部 Flow 且它们各自处于 `archived`，restore parent MUST NOT 改变 children 的 state。
 - archive 期间未被擦除的 `contains` Relation、Flow position cell 与 `parent_space_id` cell MUST 在 restore 后保持原值；用户看到的内容与 archive 之前一致。
 
@@ -1791,7 +1791,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     }
   },
   "event": {
-    "kind": "cx.space.restore",
+    "kind": "ck.space.restore",
     "unsigned": {
       "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -1824,7 +1824,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     }
   },
   "event": {
-    "kind": "cx.space.restore",
+    "kind": "ck.space.restore",
     "unsigned": {
       "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -1840,7 +1840,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_not_archived"`（与 §6.3 同 reason；tombstoned 在状态机中不属于 `archived`，复活路径不存在）。
 - Space 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
-- 该向量是 `tombstoned` 不可逆终态约束（[`realm-and-space.md` §3.4](../models/realm-and-space.md)、[`space.schema.json#/properties/state`](../../artifacts/schemas/space.schema.json)）的 wire 级证据：实现 MUST NOT 提供任何"先 restore 再写入"的 tombstoned 复活路径。需要重新启用一个等价容器时，正确的做法是 `cx.space.create` 一个新 Space。
+- 该向量是 `tombstoned` 不可逆终态约束（[`realm-and-space.md` §3.4](../models/realm-and-space.md)、[`space.schema.json#/properties/state`](../../artifacts/schemas/space.schema.json)）的 wire 级证据：实现 MUST NOT 提供任何"先 restore 再写入"的 tombstoned 复活路径。需要重新启用一个等价容器时，正确的做法是 `ck.space.create` 一个新 Space。
 
 ### 6.5 Vector: Archive 在非 `active` 状态被拒绝
 
@@ -1857,7 +1857,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     }
   },
   "event": {
-    "kind": "cx.space.archive",
+    "kind": "ck.space.archive",
     "unsigned": {
       "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -1873,8 +1873,8 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_not_active"`（[common-fields.md §5.1](../models/common-fields.md) state-transition 表）。
 - Space 物化对象 MUST 保持 `state == "archived"` 与原 `state_changed_at`；same-state self-transition 不被当作 idempotent no-op。
-- 客户端如果意图是"重新 archive"，正确路径是先 `cx.space.restore` 再 `cx.space.archive`。
-- 该向量对 Flow / Morph 等价同形：`cx.flow.archive` 在 `state != "active"` 时 `flow_not_active`；`cx.morph.archive` 同理 `morph_not_active`。
+- 客户端如果意图是"重新 archive"，正确路径是先 `ck.space.restore` 再 `ck.space.archive`。
+- 该向量对 Flow / Morph 等价同形：`ck.flow.archive` 在 `state != "active"` 时 `flow_not_active`；`ck.morph.archive` 同理 `morph_not_active`。
 
 ### 6.6 Vector: Tombstone 在已 tombstoned 状态被拒绝
 
@@ -1891,7 +1891,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     }
   },
   "event": {
-    "kind": "cx.space.tombstone",
+    "kind": "ck.space.tombstone",
     "unsigned": {
       "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -1907,7 +1907,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_already_terminal"`（[common-fields.md §5.1](../models/common-fields.md) 终态等价规则）。
 - Space 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
-- 该向量对 Flow / Morph 等价同形：`cx.redaction` 指向已 `redacted` 的 Flow / Morph 时同样返回 `<kind>_already_terminal`。终态进入是单向、单次操作。
+- 该向量对 Flow / Morph 等价同形：`ck.redaction` 指向已 `redacted` 的 Flow / Morph 时同样返回 `<kind>_already_terminal`。终态进入是单向、单次操作。
 
 ### 6.7 Vector: Update 在非 `active` 状态被拒绝
 
@@ -1925,7 +1925,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
     }
   },
   "event": {
-    "kind": "cx.space.update",
+    "kind": "ck.space.update",
     "unsigned": {
       "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -1944,14 +1944,14 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_not_active"`（"update on non-active object" invariant，[common-fields.md §5.1](../models/common-fields.md)）。
 - Space 物化对象 MUST 保持原 `title="Release Board"` 与 `state == "archived"`；update **不**作为隐式 restore。
-- 客户端正确路径：先 `cx.space.restore`，update 通过后再决定是否 `cx.space.archive`。
+- 客户端正确路径：先 `ck.space.restore`，update 通过后再决定是否 `ck.space.archive`。
 - 该向量对 Flow / Morph `*.update` 等价同形。
 
 ## 7. Member Delivery Binding Vectors
 
 ### 7.1 目标
 
-验证 `cx.member.state{membership="join"}` 的 `delivery_binding` payload 是 Realm-scoped event 投递的唯一权威路由源：
+验证 `ck.member.state{membership="join"}` 的 `delivery_binding` payload 是 Realm-scoped event 投递的唯一权威路由源：
 - schema-level conditional required 字段强制执行；
 - DID Document service entry **不构成** fallback；
 - 路由失败时 sender fail-closed（quarantine + retry，不退回 DID Document）；
@@ -1962,7 +1962,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ### 7.2 Vector: `explicit` Binding 接受
 
-Input — `cx.member.state{membership="join"}` Move payload：
+Input — `ck.member.state{membership="join"}` Move payload：
 
 ```json
 {
@@ -1983,7 +1983,7 @@ Input — `cx.member.state{membership="join"}` Move payload：
 }
 ```
 
-预设：Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:web:principal.acme.example`、`required_endorsers` 含 `did:web:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:web:principal.acme.example` 签发且 scope 覆盖该 Realm。
+预设：Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:web:principal.acme.example`、`required_endorsers` 含 `did:web:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:web:principal.acme.example` 签发且 scope 覆盖该 Realm。
 
 期望：
 - reducer 接受 join Move；写入成员 cell。
@@ -1991,7 +1991,7 @@ Input — `cx.member.state{membership="join"}` Move payload：
 
 ### 7.3 Vector: `did_document_default` Fallback 物化
 
-Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `CokretPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
+Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `CokretPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
 
 客户端构造 join Move 时 MUST 先解析 DID Document 并物化进 binding：
 
@@ -2021,7 +2021,7 @@ Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_did_docu
 
 ### 7.4 Vector: `unroutable` 成员
 
-Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Move 携带：
+Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Move 携带：
 
 ```json
 {
@@ -2046,13 +2046,13 @@ Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_unroutab
 
 1. **Initial join**（`F0`）：Alice join with `recipient_service_did=did:web:personal.alice.example`，accepted。
 2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:web:personal.alice.example`。
-3. **Rebind**（`F1`）：Alice 提交同状态 `cx.member.state{membership="join"}` self-transition，新 binding 指向 `did:web:principal.acme.example`，签名按 `rebind_authorization` 规则。Move accepted。
+3. **Rebind**（`F1`）：Alice 提交同状态 `ck.member.state{membership="join"}` self-transition，新 binding 指向 `did:web:principal.acme.example`，签名按 `rebind_authorization` 规则。Move accepted。
 4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
    - sender frontier ≥ `F1` → 投递到 `did:web:principal.acme.example`；
    - sender frontier 仍 `< F1` 且投到旧 `did:web:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_did=did:web:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
    - sender frontier ≥ `F1` 但仍投到旧 → 旧服务 reject `delivery_binding_handed_over`。
 5. **Grace 结束**：旧服务停止接受新 Realm S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
-6. **撤销**：Alice 离职，Org-A 治理 key 提交 `cx.member.state{membership="leave"}` 或 `cx.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:web:principal.acme.example` 投递该 Realm 的内容；MUST NOT 转而退回 `did:web:personal.alice.example`（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
+6. **撤销**：Alice 离职，Org-A 治理 key 提交 `ck.member.state{membership="leave"}` 或 `ck.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:web:principal.acme.example` 投递该 Realm 的内容；MUST NOT 转而退回 `did:web:personal.alice.example`（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
 
 期望：
 - 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
@@ -2162,11 +2162,11 @@ Negative cases：
 
 ### 9.1 Vector: Federation Replay After Key Revoke
 
-`vector_id`: `cx.vector.federation.idempotency_after_key_revoke.v1`
+`vector_id`: `ck.vector.federation.idempotency_after_key_revoke.v1`
 
 Steps：
 
-1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /api/v1/events`，header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
+1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /_cokret/self/events`，header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
@@ -2178,7 +2178,7 @@ Expected：
 
 ### 9.2 Vector: WebRTC Media Plaintext Downgrade
 
-`vector_id`: `cx.vector.webrtc.media_plaintext_downgrade.v1`
+`vector_id`: `ck.vector.webrtc.media_plaintext_downgrade.v1`
 
 Steps：
 
@@ -2193,7 +2193,7 @@ Expected：
 
 ### 9.3 Vector: Identity Link Eager Invalidation
 
-`vector_id`: `cx.vector.identity_link.eager_invalidation.v1`
+`vector_id`: `ck.vector.identity_link.eager_invalidation.v1`
 
 Steps：
 
@@ -2208,7 +2208,7 @@ Expected：
 
 ### 9.4 Vector: Identity Link Policy Tightening Invalidation
 
-`vector_id`: `cx.vector.identity_link.policy_tightening_invalidation.v1`
+`vector_id`: `ck.vector.identity_link.policy_tightening_invalidation.v1`
 
 Steps：
 
@@ -2223,7 +2223,7 @@ Expected：
 
 ### 9.5 Vector: Late Key Recovery Removed Actor
 
-`vector_id`: `cx.vector.late_key_recovery.removed_actor.v1`
+`vector_id`: `ck.vector.late_key_recovery.removed_actor.v1`
 
 Steps：
 
@@ -2238,7 +2238,7 @@ Expected：
 
 ### 9.6 Vector: Invite OOB Code Entropy
 
-`vector_id`: `cx.vector.invite.oob_code_entropy.v1`
+`vector_id`: `ck.vector.invite.oob_code_entropy.v1`
 
 Steps：
 
@@ -2252,7 +2252,7 @@ Expected：
 
 ### 9.7 Vector: Invite Failure Indistinguishable
 
-`vector_id`: `cx.vector.invite.failure_indistinguishable.v1`
+`vector_id`: `ck.vector.invite.failure_indistinguishable.v1`
 
 Steps：
 
@@ -2266,7 +2266,7 @@ Expected：
 
 ### 9.8 Vector: Consent Scope Cascade
 
-`vector_id`: `cx.vector.consent.scope_cascade.v1`
+`vector_id`: `ck.vector.consent.scope_cascade.v1`
 
 Steps：
 
@@ -2283,7 +2283,7 @@ Expected：
 
 ### 9.9 Vector: Consent Cache Invalidation
 
-`vector_id`: `cx.vector.consent.cache_invalidation.v1`
+`vector_id`: `ck.vector.consent.cache_invalidation.v1`
 
 Steps：
 
@@ -2299,7 +2299,7 @@ Expected：
 
 ### 9.10 Vector: Sync Soft-Fail Reconcile
 
-`vector_id`: `cx.vector.sync.soft_fail_reconcile.v1`
+`vector_id`: `ck.vector.sync.soft_fail_reconcile.v1`
 
 Steps：
 
@@ -2314,7 +2314,7 @@ Expected：
 
 ### 9.11 Vector: Lattice LWW Open Set
 
-`vector_id`: `cx.vector.lattice.lww_open_set.v1`
+`vector_id`: `ck.vector.lattice.lww_open_set.v1`
 
 Steps：
 
@@ -2329,7 +2329,7 @@ Expected：
 
 ### 9.12 Vector: E2EE Relaxed Window Exceeds Ceiling
 
-`vector_id`: `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1`
+`vector_id`: `ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1`
 
 Steps：
 
@@ -2347,11 +2347,11 @@ Expected：
 
 ### 10.1 Vector: Ephemeral Capability And TTL
 
-`vector_id`: `cx.vector.ephemeral.capability_ttl.v1`
+`vector_id`: `ck.vector.ephemeral.capability_ttl.v1`
 
 Steps：
 
-1. Actor 对 `cx.typing` 提交 `cx.ephemeral.send`，但只持有 `cx.presence.broadcast`。
+1. Actor 对 `ck.typing` 提交 `ck.ephemeral.send`，但只持有 `ck.presence.broadcast`。
 2. Actor 持有正确 action 后，提交超出 advertised kind-specific TTL 的 envelope。
 3. Ephemeral channel 暂时不可用。
 
@@ -2363,11 +2363,11 @@ Expected：
 
 ### 10.2 Vector: Projection Pagination Shape
 
-`vector_id`: `cx.vector.projection.pagination_shape.v1`
+`vector_id`: `ck.vector.projection.pagination_shape.v1`
 
 Steps：
 
-1. 调用 `cx.projection.spaces` / `flows` / `morphs`，请求 `limit=1`。
+1. 调用 `ck.projection.spaces` / `flows` / `morphs`，请求 `limit=1`。
 2. 使用返回的 `next_cursor` 继续读取。
 3. 下游 service-call 返回缺失 `has_more` 或 cursor 形态不合法的响应。
 
@@ -2379,7 +2379,7 @@ Expected：
 
 ### 10.3 Vector: KeyPackage Exhaustion And Claim Limits
 
-`vector_id`: `cx.vector.keypackage.exhaustion_claim_limits.v1`
+`vector_id`: `ck.vector.keypackage.exhaustion_claim_limits.v1`
 
 Steps：
 
@@ -2395,7 +2395,7 @@ Expected：
 
 ### 10.4 Vector: Soft Logout DID Proof Required
 
-`vector_id`: `cx.vector.auth.soft_logout_did_proof.v1`
+`vector_id`: `ck.vector.auth.soft_logout_did_proof.v1`
 
 Steps：
 
@@ -2410,7 +2410,7 @@ Expected：
 
 ### 10.4.1 Vector: DID Proof Replay Window
 
-`vector_id`: `cx.vector.identity.did_proof_replay_window.v1`
+`vector_id`: `ck.vector.identity.did_proof_replay_window.v1`
 
 Steps：
 
@@ -2429,14 +2429,14 @@ Expected：
 
 ### 10.5 Vector: Session Grant Audience Binding
 
-`vector_id`: `cx.vector.auth.session_grant_audience_binding.v1`
+`vector_id`: `ck.vector.auth.session_grant_audience_binding.v1`
 
 Steps：
 
-1. Auth Server 收到 `cx.account.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
+1. Auth Server 收到 `ck.account.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
 2. 请求缺少 `request_canonical_digest` 或 hash 不覆盖 `principal_id`、`device_id?`、`requested_scope` 与 `audience`。
 3. 请求的 `expires_at` 超过 Auth Server 声明的 session grant TTL 上限。
-4. Auth Server 在 `development_mode=true` 时尝试把 `cx.profile.auth_server.v1` 放入 `verified_profiles[]`。
+4. Auth Server 在 `development_mode=true` 时尝试把 `ck.profile.auth_server.v1` 放入 `verified_profiles[]`。
 
 Expected：
 
@@ -2447,7 +2447,7 @@ Expected：
 
 ### 10.6 Vector: Witness Disagreement Quarantine
 
-`vector_id`: `cx.vector.range_completeness.witness_disagreement.v1`
+`vector_id`: `ck.vector.range_completeness.witness_disagreement.v1`
 
 Steps：
 
@@ -2463,13 +2463,13 @@ Expected：
 
 ### 10.7 Vector: Capability Revoke Downstream Recheck
 
-`vector_id`: `cx.vector.capability.revoke_downstream_recheck.v1`
+`vector_id`: `ck.vector.capability.revoke_downstream_recheck.v1`
 
 Steps：
 
 1. Grant G 授权 actor 写入，Event E 的 `refs[role="authorized_by"]` 指向 G。
 2. G 派生 child grant C，C 又授权 pending Event P。
-3. `cx.capability.revoke{grant_id=G}` accepted。
+3. `ck.capability.revoke{grant_id=G}` accepted。
 
 Expected：
 
@@ -2479,12 +2479,12 @@ Expected：
 
 ### 10.8 Vector: Cursor Revoke
 
-`vector_id`: `cx.vector.cursor.revoke_high_assurance.v1`
+`vector_id`: `ck.vector.cursor.revoke_high_assurance.v1`
 
 Steps：
 
-1. 服务签发 stream cursor 并随后接受 `/account/cursor/revoke`。
-2. 攻击者重放已撤销 cursor 到 `/account/subscribe?after=`。
+1. 服务签发 stream cursor 并随后接受 `/_cokret/self/account/cursor/revoke`。
+2. 攻击者重放已撤销 cursor 到 `/_cokret/self/account/subscribe?after=`。
 3. 攻击者提交篡改过但未撤销的 cursor。
 
 Expected：
@@ -2494,7 +2494,7 @@ Expected：
 
 ### 10.9 Vector: Device Recovery Lifecycle
 
-`vector_id`: `cx.vector.device_recovery.lifecycle.v1`
+`vector_id`: `ck.vector.device_recovery.lifecycle.v1`
 
 Steps：
 
@@ -2510,11 +2510,11 @@ Expected：
 
 ### 10.9.1 Vector: Device Revocation Frontier Binding
 
-`vector_id`: `cx.vector.device.revocation_frontier.v1`
+`vector_id`: `ck.vector.device.revocation_frontier.v1`
 
 Steps：
 
-1. `cx.device.revoke` 被 principal control stream 接受，payload 携带 `revocation_frontier=[R]`。
+1. `ck.device.revoke` 被 principal control stream 接受，payload 携带 `revocation_frontier=[R]`。
 2. 攻击者重放该设备在 R 之后签发的 session grant、KeyPackage publish 或 to-device write。
 3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖 R，也未覆盖导入 R 的 Realm governance Move。
 
@@ -2525,7 +2525,7 @@ Expected：
 
 ### 10.10 Vector: Push Wakeup Policy
 
-`vector_id`: `cx.vector.push.wakeup_policy.v1`
+`vector_id`: `ck.vector.push.wakeup_policy.v1`
 
 Steps：
 
@@ -2541,33 +2541,33 @@ Expected：
 
 ### 10.11 Vector: Audience Mention Controls
 
-`vector_id`: `cx.vector.push.broadcast_mention_controls.v1`
+`vector_id`: `ck.vector.push.broadcast_mention_controls.v1`
 
 Steps：
 
-1. 普通成员只持有 `cx.message.create`，在 Message content AST 中加入 `audience_mention{audience="effective_scope_members"}`。
-2. Realm policy 未声明 audience mention 策略；另一次提交中 sender 持有 `cx.message.mention.broadcast` 但 policy 仍缺失。
-3. Realm policy 允许 `effective_scope_members`，设置 `max_recipients=25` 和 rate window；sender 持有带 `rate_limit` 的 `cx.message.mention.broadcast`。
+1. 普通成员只持有 `ck.message.create`，在 Message content AST 中加入 `audience_mention{audience="effective_scope_members"}`。
+2. Realm policy 未声明 audience mention 策略；另一次提交中 sender 持有 `ck.message.mention.broadcast` 但 policy 仍缺失。
+3. Realm policy 允许 `effective_scope_members`，设置 `max_recipients=25` 和 rate window；sender 持有带 `rate_limit` 的 `ck.message.mention.broadcast`。
 4. 当前 effective scope 有 30 个可见成员；其中 1 个 receiver 显式 `level=muted`，1 个 receiver 被个人 blocklist / target policy 抑制。
 5. sender 在 rate window 内再次发送 audience mention。
 
 Expected：
 
 - 第 1 步不得产生 audience mention notification；实现 MAY 拒绝整条 message 或接受消息但把 audience mention 降级为普通文本 / 不通知，取决于 Realm policy 声明。
-- 第 2 步 MUST fail closed：缺少 effective audience mention policy 时，持有 `cx.message.mention.broadcast` 本身不足以 fanout。
+- 第 2 步 MUST fail closed：缺少 effective audience mention policy 时，持有 `ck.message.mention.broadcast` 本身不足以 fanout。
 - 第 3-4 步 recipient count 超过 `max_recipients` 时 MUST 在 fanout 前拒绝或进入 policy-declared review/quarantine；不得先发 push 再撤回。
 - `level=muted` 与 target policy 抑制的 receiver MUST 不收到 notification stub 或 push wakeup，且发送者不能通过 delivery response 区分原因。
 - 第 5 步 MUST 返回 `rate_limited` / `quota_exceeded` 或等价 policy denial；push payload 不得包含 audience 名称、recipient count、成员列表、Realm / Flow / Event 标识。
 
 ### 10.12 Vector: Flow Engaged Audience Mention
 
-`vector_id`: `cx.vector.push.flow_engaged_mention.v1`
+`vector_id`: `ck.vector.push.flow_engaged_mention.v1`
 
 Steps：
 
 1. Flow `F` 中 Alice 准备发送 Message，Message effective scope 包含 Bob、Carol、Dave、Erin、Frank，但不包含 Grace。
 2. Bob 在 `F` 的 discussion track 中有一条 active Message；Carol 的 effective watch level 为 `all`；Dave 为 `mentions_only`；Erin 为 `muted`；Frank 只有 active assignment；Grace 无读取权。
-3. Realm / Circle policy 允许 `audience="flow_engaged"`，声明有限 `max_recipients` 与 quota；Alice 同时持有 `cx.message.create` 与带 `max_operations` + `period` 的 `cx.message.mention.broadcast`。
+3. Realm / Circle policy 允许 `audience="flow_engaged"`，声明有限 `max_recipients` 与 quota；Alice 同时持有 `ck.message.create` 与带 `max_operations` + `period` 的 `ck.message.mention.broadcast`。
 4. Alice 发送 `audience_mention{audience="flow_engaged", mention_text_original="@here"}`。另一次测试中，Bob / Carol 的 presence 状态分别在 online / offline 间切换，但其他输入不变。
 
 Expected：
@@ -2581,14 +2581,14 @@ Expected：
 
 ### 11.1 Vector: Provisioning + Pairing + Effective Grant
 
-`vector_id`: `cx.vector.agent.provision.v1`
+`vector_id`: `ck.vector.agent.provision.v1`
 
 Steps:
 
-1. Controller 调用 `cx.agent.provision`,得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
-2. Agent runtime 生成 key pair,调用 `cx.account.agent_key_pair`。
+1. Controller 调用 `ck.agent.provision`,得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
+2. Agent runtime 生成 key pair,调用 `ck.account.agent_key_pair`。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_principal_id` bit-identical。
-4. 批准后写入 `cx.agent.key.authorize`,reducer 清除 effective_after_first_authorized_key flag。
+4. 批准后写入 `ck.agent.key.authorize`,reducer 清除 effective_after_first_authorized_key flag。
 
 Expected:
 
@@ -2598,26 +2598,26 @@ Expected:
 
 ### 11.2 Vector: Pairing Expiry Auto-Revoke
 
-`vector_id`: `cx.vector.agent.pairing_expiry.v1`
+`vector_id`: `ck.vector.agent.pairing_expiry.v1`
 
 Steps:
 
-1. Controller 调用 `cx.agent.provision`,pairing 窗口 12 小时,grant TTL 30 天。
-2. Pairing 12 小时窗口过期，未提交 `cx.account.agent_key_pair`。
+1. Controller 调用 `ck.agent.provision`,pairing 窗口 12 小时,grant TTL 30 天。
+2. Pairing 12 小时窗口过期，未提交 `ck.account.agent_key_pair`。
 
 Expected:
 
-- 服务 MUST 自动写入 `cx.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
-- 重放 `cx.account.agent_key_pair`(使用过期 pairing_request_id)MUST fail closed。
-- Controller 可重新发起 `cx.agent.provision`,得到新 pairing_request_id;旧 agent_principal_id 与新 provisioning 不复用。
+- 服务 MUST 自动写入 `ck.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
+- 重放 `ck.account.agent_key_pair`(使用过期 pairing_request_id)MUST fail closed。
+- Controller 可重新发起 `ck.agent.provision`,得到新 pairing_request_id;旧 agent_principal_id 与新 provisioning 不复用。
 
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
-`vector_id`: `cx.vector.agent.session_grant.replay.v1`
+`vector_id`: `ck.vector.agent.session_grant.replay.v1`
 
 Steps:
 
-1. Agent runtime 提交 `cx.account.issue_session_grant`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
+1. Agent runtime 提交 `ck.account.issue_session_grant`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
 2. 第二次提交同样的 proof(同样 challenge / digest / signature)。
 3. 提交一份 audience 改成另一 service 的 proof。
 4. 把 proof.signature 改写但 challenge 不变。
@@ -2631,7 +2631,7 @@ Expected:
 
 ### 11.4 Vector: Controller Deactivate → Agent Session Cascade
 
-`vector_id`: `cx.vector.agent.controller_lifecycle.v1`
+`vector_id`: `ck.vector.agent.controller_lifecycle.v1`
 
 Steps:
 
@@ -2641,34 +2641,34 @@ Steps:
 Expected:
 
 - A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
-- A 后续任何 `cx.account.issue_session_grant` MUST fail closed。
-- A 在已加入的 sidecar Circle 中由 reducer 主动 fan-out `cx.circle.member.state -> left`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。
+- A 后续任何 `ck.account.issue_session_grant` MUST fail closed。
+- A 在已加入的 sidecar Circle 中由 reducer 主动 fan-out `ck.circle.member.state -> left`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。
 
 ### 11.5 Vector: Act-on-behalf Attribution
 
-`vector_id`: `cx.vector.agent.act_on_behalf.v1`
+`vector_id`: `ck.vector.agent.act_on_behalf.v1`
 
 Steps:
 
-1. Agent A 持 act-on-behalf grant `G`(scope: `cx.message.create` on Flow F,approval_required=true, expiry < 15 min)。
+1. Agent A 持 act-on-behalf grant `G`(scope: `ck.message.create` on Flow F,approval_required=true, expiry < 15 min)。
 2. Agent A 提交 message,envelope `actor_id=controller`,`executed_by=A`,`authorization_ref=G`,`proof.verification_method` 解析到 A 的 agent key。
 3. Receiver 校验。
 4. 第二次重用同一 approval nonce。
 
 Expected:
 
-- 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `cx.message.create` + Flow F + 未过期；通过则接受。
+- 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `ck.message.create` + Flow F + 未过期；通过则接受。
 - Reducer 写入 `actor_kind="agent"` projection(注意是 reducer-stamped,actor 提交侧不携带)。
 - 第 4 步 MUST fail closed(`reason=approval_already_consumed`)。
 - 客户端渲染 "Controller via Agent" 双重署名；不显示为纯 controller 行为。
 
 ### 11.6 Vector: Sidecar Circle Idempotent Ensure
 
-`vector_id`: `cx.vector.sidecar.ensure_idempotent.v1`
+`vector_id`: `ck.vector.sidecar.ensure_idempotent.v1`
 
 Steps:
 
-1. Alice 的两台设备并发调用 `cx.agent.sidecar_thread.ensure` 同一 `context_ref`。
+1. Alice 的两台设备并发调用 `ck.agent.sidecar_thread.ensure` 同一 `context_ref`。
 2. 同一 Alice 第三次调用 `ensure`(同样 context_ref),`addressed_agent_principal_ids` 列表不同。
 3. Alice 在另一 context_ref 调用 ensure(同 Realm)。
 
@@ -2680,11 +2680,11 @@ Expected:
 
 ### 11.7 Vector: Existence Privacy
 
-`vector_id`: `cx.vector.sidecar.existence_privacy.v1`
+`vector_id`: `ck.vector.sidecar.existence_privacy.v1`
 
 Steps(均以 non-sidecar-member 视角):
 
-1. `cx.events.subscribe` / `cx.events.query` 目标 Realm。
+1. `ck.events.subscribe` / `ck.events.query` 目标 Realm。
 2. 对 `to_ref=<target_message_id>` 的 relation query。
 3. Realm directory 调用。
 4. 触发目标 Flow 的 notification fanout。
@@ -2695,34 +2695,34 @@ Expected:
 - 第 1 步返回 zero events referencing sidecar Circle / Flow / Relation。
 - 第 2 步看不到 `agent_sidecar_of` 边。
 - 第 3 步 zero hits for sidecar Circle title / display / short_name / member_count。
-- 第 4 步 sidecar 内 `cx.message.create` 不触发任何 target Flow member 的 notification。
+- 第 4 步 sidecar 内 `ck.message.create` 不触发任何 target Flow member 的 notification。
 - 第 5 步 sidecar `effective_scope=circle` event 不出现在 default anchor leaf 明文中；只能作为 opaque commitment。
 
 ### 11.8 Vector: Eligibility 三态 + Revocation 闭环
 
-`vector_id`: `cx.vector.sidecar.eligibility_states.v1`
+`vector_id`: `ck.vector.sidecar.eligibility_states.v1`
 
 Steps:
 
 1. Alice 有 agents `{S, R}`。S 已 paired (`active`),R 未发布 KeyPackage(eligible but pending join)。
 2. Alice 调用 ensure。
 3. R 发布 KeyPackage,服务端 async reconcile。
-4. Alice 调用 `cx.agent.deactivate` 对 R。
+4. Alice 调用 `ck.agent.deactivate` 对 R。
 
 Expected:
 
 - 第 2 步 ensure SHOULD succeed。MLS-backed sidecar Circle 的 response 携带 `pending_member_reconciliation: [{agent_principal_id: R, reason: missing_mls_keypackage}]`；plaintext sidecar Circle 不需要 KeyPackage，但仍必须等待 Circle membership active。
 - 第 3 步在 MLS-backed sidecar Circle 中，R 通过 MLS Welcome 加入，得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)；plaintext sidecar Circle 中，R 只获得从 membership active frontier 之后的投递 / 查询资格。
-- 第 4 步 reducer 主动 fan-out `cx.circle.member.state` 把 R 标记 left；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
+- 第 4 步 reducer 主动 fan-out `ck.circle.member.state` 把 R 标记 left；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
 
 ### 11.9 Vector: Multi-Agent Publish Attribution
 
-`vector_id`: `cx.vector.sidecar.multi_agent_publish.v1`
+`vector_id`: `ck.vector.sidecar.multi_agent_publish.v1`
 
 Steps:
 
 1. Sidecar Circle 含 Alice + `{S, R}`。S 与 R 都在 sidecar private Flow 中产生协作内容。
-2. S 调用 publish capability action,生成目标 Flow `cx.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
+2. S 调用 publish capability action,生成目标 Flow `ck.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
 3. R 同时尝试 publish 含 S 部分内容的另一条消息。
 
 Expected:
@@ -2732,16 +2732,16 @@ Expected:
 
 ## 12. Media Service Binding Vectors（CXP-0010）
 
-本节列出 `cx.profile.media_service_binding.v1` 的核心 conformance 向量。完整 fixture 与执行脚本在 candidate 阶段补完；以下为 normative steps + expected outcomes 的最小契约。详见 [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) §6.1 / §6.4 / §10 / §11。
+本节列出 `ck.profile.media_service_binding.v1` 的核心 conformance 向量。完整 fixture 与执行脚本在 candidate 阶段补完；以下为 normative steps + expected outcomes 的最小契约。详见 [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) §6.1 / §6.4 / §10 / §11。
 
 ### 12.1 Focus Selection — Oldest Membership Wins
 
-`vector_id`: `cx.vector.media_binding.focus_selection_oldest_membership.v1`
+`vector_id`: `ck.vector.media_binding.focus_selection_oldest_membership.v1`
 
 Steps:
 
 1. Alice 与 Bob 加入同一 call；Alice 早于 Bob，`Alice.foci_preferred=[fra-1, us-east-1]`，`Bob.foci_preferred=[us-east-1, fra-1]`。
-2. 首个 `cx.call.state` 事件 commit。
+2. 首个 `ck.call.state` 事件 commit。
 
 Expected:
 
@@ -2750,7 +2750,7 @@ Expected:
 
 ### 12.2 Session Focus — No Split Brain
 
-`vector_id`: `cx.vector.media_binding.session_focus_no_split_brain.v1`
+`vector_id`: `ck.vector.media_binding.session_focus_no_split_brain.v1`
 
 Steps:
 
@@ -2760,26 +2760,26 @@ Steps:
 Expected:
 
 - Carol MUST NOT silent fallback 到其它 focus；MUST 以 `focus_unavailable_for_client` 向用户暴露失败。
-- 任何后续 `cx.call.state` 事件试图改写 `session_focus` 为 `us-east-1` MUST 被 reducer 拒绝 `session_focus_already_committed`。
+- 任何后续 `ck.call.state` 事件试图改写 `session_focus` 为 `us-east-1` MUST 被 reducer 拒绝 `session_focus_already_committed`。
 
 ### 12.3 Token Exchange — Minimal Fields
 
-`vector_id`: `cx.vector.media_binding.token_exchange_minimal.v1`
+`vector_id`: `ck.vector.media_binding.token_exchange_minimal.v1`
 
 Steps:
 
-1. Client POST `/api/v1/rtc/token` with the minimum required fields `(realm_id, call_id, actor_id, device_id, focus_id)`。
+1. Client POST `/_cokret/self/rtc/token` with the minimum required fields `(realm_id, call_id, actor_id, device_id, focus_id)`。
 2. Issuer 返回 200 with `backend_token` / `participant_identity` / `participant_binding` / `expires_at` / `service_signature`。
 
 Expected:
 
 - `expires_at - now` MUST ≤ 600s（SHOULD ≤ 300s）。
-- `participant_binding.scheme` MUST = `cx.media.participant_binding.v1`。
-- `service_signature.kid` 与 `participant_binding.issuer_kid` MUST 解析到当前 epoch `cx.realm.media_service.service_id`。
+- `participant_binding.scheme` MUST = `ck.media.participant_binding.v1`。
+- `service_signature.kid` 与 `participant_binding.issuer_kid` MUST 解析到当前 epoch `ck.realm.media_service.service_id`。
 
 ### 12.4 Token Issuer — Unauthorised DID Rejected
 
-`vector_id`: `cx.vector.media_binding.token_issuer_unauthorised.v1`
+`vector_id`: `ck.vector.media_binding.token_issuer_unauthorised.v1`
 
 Steps:
 
@@ -2792,21 +2792,21 @@ Expected:
 
 ### 12.5 Participant Binding — Required
 
-`vector_id`: `cx.vector.media_binding.participant_binding_required.v1`
+`vector_id`: `ck.vector.media_binding.participant_binding_required.v1`
 
 Steps:
 
 1. Token issuer 返回 response 缺失 `participant_binding`，或 `participant_binding.sig` 无效。
-2. Client 试图把它写入 `cx.call.state.participants[]`。
+2. Client 试图把它写入 `ck.call.state.participants[]`。
 
 Expected:
 
-- Client MUST 拒绝该 token，不发起 `cx.call.state` 事件。
+- Client MUST 拒绝该 token，不发起 `ck.call.state` 事件。
 - 即便强行提交，reducer MUST `failed_precondition` `reason=participant_binding_invalid`。
 
 ### 12.6 Unknown Focus Type — Fail Closed
 
-`vector_id`: `cx.vector.media_binding.unknown_type_fail_closed.v1`
+`vector_id`: `ck.vector.media_binding.unknown_type_fail_closed.v1`
 
 Steps:
 
@@ -2819,7 +2819,7 @@ Expected:
 
 ### 12.7 E2EE Key Source — MLS Exporter Only
 
-`vector_id`: `cx.vector.media_binding.e2ee_key_source.v1`
+`vector_id`: `ck.vector.media_binding.e2ee_key_source.v1`
 
 Steps:
 
@@ -2833,11 +2833,11 @@ Expected:
 
 ### 12.8 Participant Identity — Cross-Check
 
-`vector_id`: `cx.vector.media_binding.participant_identity_unrecognised.v1`
+`vector_id`: `ck.vector.media_binding.participant_identity_unrecognised.v1`
 
 Steps:
 
-1. Backend signal `ParticipantConnected` with `participant_identity=ck:rtc_participant:<unknown>`，无对应 `cx.call.state.participants[]` 项。
+1. Backend signal `ParticipantConnected` with `participant_identity=ck:rtc_participant:<unknown>`，无对应 `ck.call.state.participants[]` 项。
 
 Expected:
 
@@ -2845,7 +2845,7 @@ Expected:
 
 ### 12.9 Recording Artifact — Via Cokret Blob Pipeline
 
-`vector_id`: `cx.vector.media_binding.recording_artifact_via_contrix_blob.v1`
+`vector_id`: `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1`
 
 Steps:
 
@@ -2855,11 +2855,11 @@ Steps:
 Expected:
 
 - Client MUST 检测 Egress destination 不是 Cokret media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
-- 合法路径：Egress → Cokret blob upload → `cx.call.state` lifecycle `state="recording_ready"` + blob hash。
+- 合法路径：Egress → Cokret blob upload → `ck.call.state` lifecycle `state="recording_ready"` + blob hash。
 
 ### 12.9.1 Recording Exporter Label — Dedicated Recording Context
 
-`vector_id`: `cx.vector.media_binding.recording_exporter_label.v1`
+`vector_id`: `ck.vector.media_binding.recording_exporter_label.v1`
 
 Steps:
 
@@ -2870,36 +2870,36 @@ Steps:
 Expected:
 
 - 第 2 步 MUST 拒绝；SFrame key 和 recording key 不得 label/Context 复用。
-- 第 3 步 MAY accepted，前提是 Cokret blob pipeline、capability proof 与 `cx.call.state` lifecycle 绑定同时通过。
+- 第 3 步 MAY accepted，前提是 Cokret blob pipeline、capability proof 与 `ck.call.state` lifecycle 绑定同时通过。
 
 ## 13. History Visibility / Preview / History Sharing
 
 ### 13.1 Joined Visibility Denies Pre-Join History
 
-`vector_id`: `cx.vector.history_visibility.joined_prejoin_denied.v1`
+`vector_id`: `ck.vector.history_visibility.joined_prejoin_denied.v1`
 
 Setup:
 
-1. Realm R 在 `T0` 的 effective `cx.realm.history_visibility.value = "joined"`。
+1. Realm R 在 `T0` 的 effective `ck.realm.history_visibility.value = "joined"`。
 2. Alice 是 active member 并提交 message `E_before`。
-3. Bob 在后续 Anchor `J` 才通过 `cx.member.state{membership=join}` 加入。
+3. Bob 在后续 Anchor `J` 才通过 `ck.member.state{membership=join}` 加入。
 4. Bob 调用 backfill，范围覆盖 `E_before`。
 
 Expected:
 
 - Events / Sync service MUST NOT 返回 `E_before` 的正文 payload 给 Bob；可以返回 redacted / locked stub 或 `history_not_visible`。
-- E2EE Realm 中，任何 `cx.realm_key.share` 覆盖 `E_before` epoch 且 recipient=Bob MUST 被拒绝或对应 `cx.realm_key.withheld{withheld_reason_code="history_not_visible"}`。
+- E2EE Realm 中，任何 `ck.realm_key.share` 覆盖 `E_before` epoch 且 recipient=Bob MUST 被拒绝或对应 `ck.realm_key.withheld{withheld_reason_code="history_not_visible"}`。
 - 如果 Realm 后续把 current visibility 改成 `shared`，该变化不 retroactively 重解释 `E_before` 的 `T0` 可见性；除非新 policy 明确声明受审计的 historical reclassification profile，否则 Bob 仍不能把 `E_before` 作为 verified timeline 明文展示。
 
 ### 13.2 Preview Token Is Stripped-State Only Unless Policy Allows More
 
-`vector_id`: `cx.vector.preview.token_scoped_stripped_state.v1`
+`vector_id`: `ck.vector.preview.token_scoped_stripped_state.v1`
 
 Setup:
 
 1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`link_type="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
-2. Effective `cx.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
-3. Bob 调用 `cx.directory.resolve_target`，携带 address 与 token。
+2. Effective `ck.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
+3. Bob 调用 `ck.directory.resolve_target`，携带 address 与 token。
 4. 攻击者 Mallory 把同一 token 放到另一个 Flow address，或把 URL `lt` 改为 `invite`。
 
 Expected:
@@ -2910,17 +2910,17 @@ Expected:
 
 ### 13.3 E2EE Pre-Join Key Share Requires History Sharing Policy
 
-`vector_id`: `cx.vector.history_sharing.e2ee_prejoin_key_share_policy.v1`
+`vector_id`: `ck.vector.history_sharing.e2ee_prejoin_key_share_policy.v1`
 
 Setup:
 
 1. Realm R 为 `encryption_profile="mls_rfc9420"`，`history_visibility.value = "shared"`。
 2. Alice 在 epoch 7 发送 `E_before`。
 3. Bob 在 epoch 9 加入并成功处理 Welcome。
-4. Key source S 尝试向 Bob 发送覆盖 epoch 7 的 `cx.realm_key.share`。
+4. Key source S 尝试向 Bob 发送覆盖 epoch 7 的 `ck.realm_key.share`。
 
 Expected:
 
-- 若 effective `cx.realm.history_sharing_policy` 缺失，或 `pre_join_history="deny"` / `rule_only` 且无匹配 rule，S MUST withhold，reason SHOULD 为 `history_not_visible` 或 `policy_denied`。
+- 若 effective `ck.realm.history_sharing_policy` 缺失，或 `pre_join_history="deny"` / `rule_only` 且无匹配 rule，S MUST withhold，reason SHOULD 为 `history_not_visible` 或 `policy_denied`。
 - 若 policy 明确允许 `pre_join_history="allow_if_visibility_allows"`、`allowed_key_sources` 包含 S 的来源类型、receiver state 合法且 audit 要求满足，S MAY 发送 key share；payload `key_scope.policy_digest` MUST 覆盖该 policy root，`membership_frontier_digest` SHOULD 覆盖 Bob join frontier。
 - Bob 客户端 MUST NOT 因 `history_visibility=shared` 自行推断 epoch 7 key；没有合法 key share 时，`E_before` 保持 `decryption_pending` / `decryption_failed`。

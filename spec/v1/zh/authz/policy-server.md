@@ -20,10 +20,10 @@ Realm 可通过 state event 声明策略服务：
 
 ```json
 {
-  "kind": "cx.realm.policy_server",
+  "kind": "ck.realm.policy_server",
   "payload": {
     "server_id": "did:web:policy.example.com",
-    "endpoint": "https://policy.example.com/api/v1/policy/check",
+    "endpoint": "https://policy.example.com/_cokret/self/policy/check",
     "public_keys": [
       "did:web:policy.example.com#key-1"
     ],
@@ -38,24 +38,24 @@ Realm 可通过 state event 声明策略服务：
       "federation"
     ],
     "policy_sources": [
-      {"kind": "cx.realm.moderation_policy"},
-      {"kind": "cx.organization.moderation_policy"}
+      {"kind": "ck.realm.moderation_policy"},
+      {"kind": "ck.organization.moderation_policy"}
     ],
-    "abuse_profile_ref": "cx.policy:abuse-v1",
+    "abuse_profile_ref": "ck.policy:abuse-v1",
     "fail_mode": "soft_deny",
     "cache_ttl_seconds": 300
   }
 }
 ```
 
-声明该事件需要 `cx.policy.manage` capability。
+声明该事件需要 `ck.policy.manage` capability。
 
 `policy_sources[]` 中每一项 MUST 是 `{"kind": "<event_kind>"}` 形态的 object（如示例所示）。Reducer / Policy Server canonical transcript 仅接受 object form；不接受裸字符串简写——若实现需要把字符串映射到 object，必须在客户端构造 Event 之前完成，使写到 wire 上的形态始终是 canonical object，避免 signature/hash transcript 在不同实现之间不一致。
 
 ## 3. Check Request
 
 ```http
-POST /api/v1/policy/check
+POST /_cokret/self/policy/check
 Authorization: Bearer <service_token>
 Content-Type: application/json
 ```
@@ -68,7 +68,7 @@ Content-Type: application/json
 | `request_id` | body | `string` | required | 请求 ID，用于日志和幂等追踪。 |
 | `realm_id` | body | `id` | required | 相关 Realm；进入 cache key、policy transcript 和 obligation `bound_to.realm_id`。纯账号级检查 MUST 使用 principal control Realm id。 |
 | `request_canonical_digest` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
-| `action` | body | `string` | required | 待检查动作，例如 `cx.message.create`。 |
+| `action` | body | `string` | required | 待检查动作，例如 `ck.message.create`。 |
 | `actor` | body | `did` | required | 发起动作的 Actor DID。 |
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
@@ -86,7 +86,7 @@ Content-Type: application/json
   "request_id": "polreq_01",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "action": "cx.message.create",
+  "action": "ck.message.create",
   "actor": "did:webvh:...",
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "source": {
@@ -96,7 +96,7 @@ Content-Type: application/json
     "signed_transport": true
   },
   "event_preview": {
-    "kind": "cx.message.create",
+    "kind": "ck.message.create",
     "content_digest": "sha256:...",
     "redacted_content": {
       "mentions": ["did:web:bob.example.com"],
@@ -146,7 +146,7 @@ Content-Type: application/json
   "bound_to": {
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "actor": "did:webvh:...",
-    "action": "cx.message.create",
+    "action": "ck.message.create",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "policy_server_id": "did:web:policy.example.com"
   },
@@ -222,11 +222,11 @@ Content-Type: application/json
 }
 ```
 
-> `bound_to.action` 必须等于被授权动作的规范名称。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate workflow concept/action 名称（不是 v1 wire `Event.kind`，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 candidate reducer 校验都用裸名。已注册的 Move（如 `cx.member.state`）则继续使用 `cx.*` 前缀。
+> `bound_to.action` 必须等于被授权动作的规范名称。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate workflow concept/action 名称（不是 v1 wire `Event.kind`，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 candidate reducer 校验都用裸名。已注册的 Move（如 `ck.member.state`）则继续使用 `ck.*` 前缀。
 
 `challenge` obligation 中的 `bound_to.request_canonical_digest` 是**被 challenge 的原始请求 hash**，不是包含 `challenge_proof` 自身的重提 Move hash。计算规则：
 
-1. 首次 `/policy/check` 时，调用方对原始 Move preview / application private record body 做 JCS canonical SHA-256，作为 `request_canonical_digest`。
+1. 首次 `/_cokret/self/policy/check` 时，调用方对原始 Move preview / application private record body 做 JCS canonical SHA-256，作为 `request_canonical_digest`。
 2. 客户端重提时可以在 `gate_proofs[]` 或 envelope proof 区追加 runtime challenge proof；reducer 重新计算 hash 时 MUST 先移除 runtime challenge proof 条目（`gate_id="runtime:<challenge_id>"` 或等价 envelope proof 字段），再按同一 JCS 规则计算。
 3. provider 签发的 proof MUST 绑定该原始 hash、`challenge_id`、`actor`、`action`、`realm_id?`、`device_id?`、`expires_at` 和 issuer。实现 MUST NOT 要求 proof 内 hash 等于“包含 proof 自身的最终 Move hash”，否则会形成自引用 transcript。
 
@@ -257,7 +257,7 @@ reducer 校验顺序：
 
 任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。
 
-Join 路径上 `challenge` proof 进入 `cx.member.state{join}.gate_proofs[]` 或 candidate `member.application.gate_proofs[]`（`member.application` 当前不是 v1 wire `Event.kind`），使用 `gate_id="runtime:<challenge_id>"`，并以 `challenge_proof.challenge_id` 作为唯一匹配键；历史占位 `gate_id="_runtime"` 只允许作为 UI/display 兼容标签，MUST NOT 参与 verifier 选择。运行时 challenge 与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../governance/join-policy.md` §11](../governance/join-policy.md)。
+Join 路径上 `challenge` proof 进入 `ck.member.state{join}.gate_proofs[]` 或 candidate `member.application.gate_proofs[]`（`member.application` 当前不是 v1 wire `Event.kind`），使用 `gate_id="runtime:<challenge_id>"`，并以 `challenge_proof.challenge_id` 作为唯一匹配键；历史占位 `gate_id="_runtime"` 只允许作为 UI/display 兼容标签，MUST NOT 参与 verifier 选择。运行时 challenge 与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../governance/join-policy.md` §11](../governance/join-policy.md)。
 
 ## 5. Signature and Replay Protection
 
@@ -288,9 +288,9 @@ Policy decision 签名输入 MUST 包含：
 2. `bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor` / `bound_to.action` / `bound_to.request_canonical_digest` 与本次 request 完全一致;
 3. `expires_at > now`;
 4. `auth_state_digest`、`policy_frontier_digest`、`membership_frontier_digest` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
-5. 该 decision 未被同一 policy_server 后续的 `cx.moderation.decision.lift` 或 anchored override 撤销。
+5. 该 decision 未被同一 policy_server 后续的 `ck.moderation.decision.lift` 或 anchored override 撤销。
 
-Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
+Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/_cokret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
 
 **Anchor batch pre-state 例外（normative）**:reducer 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 评估同一 Anchor batch 内的 Move 时，使用 `pre_state = joined_state(A.predecessor_refs)`——同批 Move 不读取彼此 effect。若同批内 revoke + 依赖该 grant 的 Move 都已落入同一 Anchor pre-state,reducer 接受 Move,但 policy-server fast-path cache(本节按 `auth_state_digest` post-state 索引)若已观察到 revoke 会 fail closed,造成 reducer accept 而 sync 层 deny 的 split-brain。为避免该分裂,policy-server fail-closed 仅适用于 *跨 Anchor batch* 的延迟 revoke;对已落入同一 Anchor pre-state 的 Move,policy-server MUST 按 reducer pre-state 模型评估，不得用 post-state revoke 直接 deny。实现 MAY 通过把 `auth_state_digest` 的 frontier 锚点对齐到 Anchor batch boundary 来达成该要求，或在收到同批 revoke + Move 时主动延迟 cache invalidation 至 Anchor commit 之后。
 
@@ -319,29 +319,29 @@ Policy server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate l
 
 Policy server decision 是 out-of-band 的签名决策，本身不进入 Realm anchor frontier。只有 `allow` 与 `soft_deny`（仅阻止 default client 提交）可以仅在本地或 fast path 上生效；任何会改变其他 peer 对事件可见性、可写性、可分发性判断的 decision——`hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入协议状态。否则不同 Principal Server 在同一 Realm 上对同一事件作出不一致决策，会形成跨 peer 的 split-brain：A 把消息 quarantine 隐藏，B 直接 allow，两边客户端看到的 Realm 状态从此分叉。
 
-为此 v1 引入 `cx.component.moderation_state.v1` cell family：
+为此 v1 引入 `ck.component.moderation_state.v1` cell family：
 
-- `cell_family = cx.component.moderation_state.v1`
+- `cell_family = ck.component.moderation_state.v1`
 - `cell_subject` = `target_event_id` 或 `target_object_id` 的 canonical 字符串。
 - `lattice = or_set`，`bottom = expose`。每个 add tag 形如 `<decision_kind>:<issuer_did>:<request_canonical_digest>`，确保不同 issuer 的同类决策可以并存且幂等。
 
 对应 wire event：
 
-- `cx.moderation.decision` — 由持有 `cx.realm.moderation_policy` 或 `cx.policy.manage` 的 actor 签发的 Move，在 `cx.component.moderation_state.v1:<target>` cell 上写一个 `or_set add` effect。
-- `cx.moderation.decision.lift` — 在同一 cell 上写 `or_set remove` effect，针对此前 add 的 tag。
-- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 policy server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。policy server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `cx.realm.moderation_policy` 或 `cx.policy.manage`。
+- `ck.moderation.decision` — 由持有 `ck.realm.moderation_policy` 或 `ck.policy.manage` 的 actor 签发的 Move，在 `ck.component.moderation_state.v1:<target>` cell 上写一个 `or_set add` effect。
+- `ck.moderation.decision.lift` — 在同一 cell 上写 `or_set remove` effect，针对此前 add 的 tag。
+- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 policy server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。policy server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `ck.realm.moderation_policy` 或 `ck.policy.manage`。
 
 Reducer 与所有读路径 MUST：
 
 - 在 reducer 的 `apply_anchor` 阶段把 moderation state cell 的当前 value 暴露给后续 Move 的 precondition 与 query / projection executor。
 - 对包含 `quarantine` / `hard_deny` 决策的目标，禁止派生层（search、inbox、notification、view）按未 quarantine 处理；命中时返回 `moderated_hidden` 占位符或省略，并保留 audit trail。
 - 对包含 `require_review` 决策的目标，按 review proposal 状态机展示，不允许默认渲染。
-- `cx.moderation.decision.lift` 解除决策时，受影响的 search / projection cache MUST 立即重算。
+- `ck.moderation.decision.lift` 解除决策时，受影响的 search / projection cache MUST 立即重算。
 
 Policy server fast path 与 anchored decision 的关系：
 
-- Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `cx.moderation.decision` Move 到该 Realm 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
-- 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `cx.realm.moderation_policy` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
+- Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Move 到该 Realm 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
+- 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `ck.realm.moderation_policy` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
 - Receiver 节点收到 fast-path quarantine signaling（policy server 签名）但无对应 anchored Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_pending_anchor` 并在 anchored decision 抵达后切换显示。
 
 **Fast-path 退回的 UX 规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：
@@ -358,7 +358,7 @@ Policy server fast path 与 anchored decision 的关系：
 引入 anchored moderation state 后，`reason_code` 集合扩展：
 
 - `moderation_anchor_pending` — fast-path quarantine 已记录，但 anchored Move 未到达。
-- `moderation_anchor_lifted` — 此前 anchored quarantine 已被 `cx.moderation.decision.lift` 解除。
+- `moderation_anchor_lifted` — 此前 anchored quarantine 已被 `ck.moderation.decision.lift` 解除。
 - `moderation_anchor_split` — moderation cell 在当前 anchor view 下出现 ⊥（或 expose 多 head）；所有引用该 cell 的 read / write / distribute / policy-check 路径 MUST fail closed，`reason="moderation_state_conflict"`，UI 应显式提示而不是默默选 winner。实现不得在冲突期间选择任一 head 作为临时 allow。
 
 ## 8. Antifraud Mapping from Server Abuse Practice

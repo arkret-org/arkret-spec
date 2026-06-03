@@ -18,7 +18,7 @@
       "const": "read"
     },
     "schema": {
-      "const": "cx.schema.read_receipt.v1"
+      "const": "ck.schema.read_receipt.v1"
     },
     "realm_id": {
       "type": "string",

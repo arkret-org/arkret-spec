@@ -18,6 +18,15 @@
   },
   "entries": [
     {
+      "id": "Contrix",
+      "context": "brand_name",
+      "since_revision": "2026-06-03",
+      "rejection_level": "hard_reject",
+      "replacement": "Cokret",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Contrix is the legacy brand name (lowercase `contrix`, wire prefixes `cx.` / `ck:`). Use Cokret / cokret / `ck.` / `ck:` in all current prose, identifiers, file names, and UI copy. See renames.json migration group brand_namespace_cx_to_ck."
+    },
+    {
       "id": "Room",
       "context": "core_model_name",
       "since_revision": "0a5ab85",

@@ -3,7 +3,7 @@ title: Cokret-Native SFU Binding (reference impl)
 status: candidate
 normative: true
 stability: v1
-profile: cx.profile.media_service_binding.contrix_native.v1
+profile: ck.profile.media_service_binding.cokret_native.v1
 updated: 2026-05-27
 sidebar:
   label: Cokret-native Binding
@@ -15,7 +15,7 @@ sidebar:
 
 ## 1. 范围与定位
 
-本附录定义 `cx.realm.media_service.foci[].type = "cokret-native"` 的 backend binding。它保留了 v1.0 早期单 SFU endpoint 形态下的 Cokret 自定义信令，作为：
+本附录定义 `ck.realm.media_service.foci[].type = "cokret-native"` 的 backend binding。它保留了 v1.0 早期单 SFU endpoint 形态下的 Cokret 自定义信令，作为：
 
 1. **Reference impl**：协议自洽性测试与教学用途；
 2. **Legacy migration**：v1.0 部署在升级到 multi-focus 框架后，仍能用同一 wire 与现有自研 SFU 互通；
@@ -23,7 +23,7 @@ sidebar:
 
 **不推荐生产使用**：自研 SFU 的工程负担（cascade、recording、E2EE SFrame 实现、scalability）超过维护 LiveKit / mediasoup binding 的成本。v1.1 起本附录可能转为 informative。
 
-声明 `cx.profile.media_service_binding.contrix_native.v1` 的部署 MUST 同时声明 `cx.profile.media_service_binding.v1`。
+声明 `ck.profile.media_service_binding.cokret_native.v1` 的部署 MUST 同时声明 `ck.profile.media_service_binding.v1`。
 
 ## 2. Token Exchange
 
@@ -47,21 +47,21 @@ sidebar:
 
 base64url-编码的 detached JWS，由 token issuer 用 service DID 的 `assertionMethod` key 签名。SFU 在每次 SDP 协商前 MUST 校验该 token：
 
-- `kid` 出现在当前 `cx.realm.media_service.service_id` 锚定的 DID 列表中（与 [`../webrtc-signaling.md` §6.4](../webrtc-signaling.md) issuer DID 锚定一致）；
+- `kid` 出现在当前 `ck.realm.media_service.service_id` 锚定的 DID 列表中（与 [`../webrtc-signaling.md` §6.4](../webrtc-signaling.md) issuer DID 锚定一致）；
 - `call_id` / `focus_id` 与 SFU 当前 session 一致；
 - `expires_at` 未过期；
 - `participant_identity` 唯一性（同 call、同 focus 内不复用）。
 
 ## 3. Connect Handshake
 
-`connect_url` 是 HTTPS endpoint（典型 `https://sfu.example.com/cokret/v1`）。客户端发送 SFU join request：
+`connect_url` 是 HTTPS endpoint（典型 `https://sfu.example.com`）。客户端发送 SFU join request：
 
 ```json
 {
   "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:...",
   "focus_id": "fra-1",
-  "participant_binding": { "scheme": "cx.media.participant_binding.v1", "...": "..." },
+  "participant_binding": { "scheme": "ck.media.participant_binding.v1", "...": "..." },
   "backend_token": "<token from §2>",
   "capability_refs": ["ck:grant:..."],
   "desired_media": { "audio": true, "video": true, "screen": false }
@@ -111,10 +111,10 @@ Cokret-native SFU 接受标准 WebRTC offer/answer。协议层不约束具体 co
 
 | Cokret capability | Cokret-native SFU 行为 |
 | --- | --- |
-| `cx.call.join` | 接受 SDP offer |
-| `cx.call.screen_share` | 接受 `screen` track 协商；否则拒绝并报 `capability_denied` |
-| `cx.call.record` | 录制由 Cokret-side recorder 触发；SFU 不直接产 artifact |
-| `cx.call.moderate` | SFU 接受 `mute_remote` / `kick_participant` 控制指令，但 MUST 校验 actor 持有该 capability |
+| `ck.call.join` | 接受 SDP offer |
+| `ck.call.screen_share` | 接受 `screen` track 协商；否则拒绝并报 `capability_denied` |
+| `ck.call.record` | 录制由 Cokret-side recorder 触发；SFU 不直接产 artifact |
+| `ck.call.moderate` | SFU 接受 `mute_remote` / `kick_participant` 控制指令，但 MUST 校验 actor 持有该 capability |
 
 ## 7. Cascading
 
@@ -132,9 +132,9 @@ Cokret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascad
 
 ## 9. Conformance Vectors
 
-实现声明 `cx.profile.media_service_binding.contrix_native.v1` 时，至少通过：
+实现声明 `ck.profile.media_service_binding.cokret_native.v1` 时，至少通过：
 
-- 上游 `cx.profile.media_service_binding.v1` 的 9 个核心 vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact）。
+- 上游 `ck.profile.media_service_binding.v1` 的 9 个核心 vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact）。
 - cokret-native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。
 
 具体向量编排见 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json)。

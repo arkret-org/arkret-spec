@@ -36,119 +36,119 @@ METHODS_NO_BODY = {"get", "head", "options"}
 #   presign_or_bearer       — bearer OR S2S OR presign query (blob.get / blob.head)
 OPERATIONS: dict[str, str] = {
     # service_discovery
-    "cx.server.describe": "public_no_auth",
+    "ck.server.describe": "public_no_auth",
 
     # identity_registry
-    "cx.identity.describe_registry": "public_no_auth",
-    "cx.identity.resolve": "user_or_service",          # conservative: private DID needs auth
-    "cx.identity.get_document": "user_or_service",     # conservative: same
-    "cx.identity.get_log": "user_or_service",
-    "cx.identity.get_receipts": "user_or_service",
-    "cx.identity.submit_did_operation": "service_only",  # witness / registry submission
+    "ck.identity.describe_registry": "public_no_auth",
+    "ck.identity.resolve": "user_or_service",          # conservative: private DID needs auth
+    "ck.identity.get_document": "user_or_service",     # conservative: same
+    "ck.identity.get_log": "user_or_service",
+    "ck.identity.get_receipts": "user_or_service",
+    "ck.identity.submit_did_operation": "service_only",  # witness / registry submission
 
     # events_sync
-    "cx.events.describe": "public_no_auth",
-    "cx.events.submit": "user_or_service",
-    "cx.events.get": "user_or_service",
-    "cx.events.resolve": "user_or_service",
-    "cx.events.query": "user_or_service",
-    "cx.events.query_post": "user_or_service",
-    "cx.events.subscribe": "user_or_service",
-    "cx.events.frontier": "user_or_service",
-    "cx.ephemeral.send": "user_or_service",
-    "cx.account.describe": "public_no_auth",
-    "cx.account.subscribe": "user_bearer",              # account-aggregate streaming; user only
-    "cx.account.cursor_revoke": "user_bearer",
-    "cx.snapshot.head": "user_or_service",
-    "cx.projection.spaces": "user_or_service",
-    "cx.projection.flows": "user_or_service",
-    "cx.projection.morphs": "user_or_service",
+    "ck.events.describe": "public_no_auth",
+    "ck.events.submit": "user_or_service",
+    "ck.events.get": "user_or_service",
+    "ck.events.resolve": "user_or_service",
+    "ck.events.query": "user_or_service",
+    "ck.events.query_post": "user_or_service",
+    "ck.events.subscribe": "user_or_service",
+    "ck.events.frontier": "user_or_service",
+    "ck.ephemeral.send": "user_or_service",
+    "ck.account.describe": "public_no_auth",
+    "ck.account.subscribe": "user_bearer",              # account-aggregate streaming; user only
+    "ck.account.cursor_revoke": "user_bearer",
+    "ck.snapshot.head": "user_or_service",
+    "ck.projection.spaces": "user_or_service",
+    "ck.projection.flows": "user_or_service",
+    "ck.projection.morphs": "user_or_service",
 
     # directory_discovery
-    "cx.directory.describe": "public_no_auth",
-    "cx.directory.search_realms": "user_or_service",
-    "cx.directory.resolve_realm": "user_or_service",
-    "cx.directory.search_organizations": "user_or_service",
-    "cx.directory.resolve_organization": "user_or_service",
-    "cx.directory.search_actors": "user_or_service",
-    "cx.directory.search_users": "user_or_service",
-    "cx.directory.resolve_handle": "user_or_service",
-    "cx.directory.private_contact_discovery": "user_bearer",  # PSI privacy
-    "cx.directory.announce": "user_or_service",
-    "cx.directory.withdraw": "user_or_service",
-    "cx.directory.push.register": "user_or_service",
+    "ck.directory.describe": "public_no_auth",
+    "ck.directory.search_realms": "user_or_service",
+    "ck.directory.resolve_realm": "user_or_service",
+    "ck.directory.search_organizations": "user_or_service",
+    "ck.directory.resolve_organization": "user_or_service",
+    "ck.directory.search_actors": "user_or_service",
+    "ck.directory.search_users": "user_or_service",
+    "ck.directory.resolve_handle": "user_or_service",
+    "ck.directory.private_contact_discovery": "user_bearer",  # PSI privacy
+    "ck.directory.announce": "user_or_service",
+    "ck.directory.withdraw": "user_or_service",
+    "ck.directory.push.register": "user_or_service",
 
     # blob_storage
-    "cx.blob.upload": "user_bearer",                   # conservative: no S2S upload
-    "cx.blob.head": "presign_or_bearer",
-    "cx.blob.get": "presign_or_bearer",
-    "cx.blob.presign": "user_bearer",                  # issuing presign needs full auth
+    "ck.blob.upload": "user_bearer",                   # conservative: no S2S upload
+    "ck.blob.head": "presign_or_bearer",
+    "ck.blob.get": "presign_or_bearer",
+    "ck.blob.presign": "user_bearer",                  # issuing presign needs full auth
 
     # realtime_media
-    "cx.media.ice_config": "user_bearer",
+    "ck.media.ice_config": "user_bearer",
 
     # authz_policy
-    "cx.authz.check": "user_or_service",
-    "cx.authz.get_effective_grants": "user_or_service",
-    "cx.authz.get_invites": "user_bearer",
-    "cx.policy.check": "user_or_service",
+    "ck.authz.check": "user_or_service",
+    "ck.authz.get_effective_grants": "user_or_service",
+    "ck.authz.get_invites": "user_bearer",
+    "ck.policy.check": "user_or_service",
 
     # moderation_reports
-    "cx.moderation.report": "user_bearer",             # conservative: no S2S report
+    "ck.moderation.report": "user_bearer",             # conservative: no S2S report
 
     # device_and_keys
-    "cx.device_messages.put": "user_or_service",       # S2S device routing
-    "cx.device_messages.get": "user_bearer",
-    "cx.keys.upload": "user_bearer",
-    "cx.keys.query": "user_or_service",
-    "cx.keys.claim": "user_or_service",
-    "cx.keys.keypackages.upload": "user_bearer",
-    "cx.keys.keypackages.claim": "user_or_service",
-    "cx.keys.keypackages.consume": "user_or_service",
-    "cx.keys.keypackages.revoke": "user_bearer",
-    "cx.keys.backups.put": "user_bearer",
-    "cx.keys.backups.list": "user_bearer",
-    "cx.keys.backups.get": "user_bearer",
-    "cx.keys.backups.delete": "user_bearer",
+    "ck.device_messages.put": "user_or_service",       # S2S device routing
+    "ck.device_messages.get": "user_bearer",
+    "ck.keys.upload": "user_bearer",
+    "ck.keys.query": "user_or_service",
+    "ck.keys.claim": "user_or_service",
+    "ck.keys.keypackages.upload": "user_bearer",
+    "ck.keys.keypackages.claim": "user_or_service",
+    "ck.keys.keypackages.consume": "user_or_service",
+    "ck.keys.keypackages.revoke": "user_bearer",
+    "ck.keys.backups.put": "user_bearer",
+    "ck.keys.backups.list": "user_bearer",
+    "ck.keys.backups.get": "user_bearer",
+    "ck.keys.backups.delete": "user_bearer",
 
     # push
-    "cx.push.register_device": "user_bearer",
-    "cx.push.unregister_device": "user_bearer",
-    "cx.push.notify": "service_only",                  # principal server → push gateway
+    "ck.push.register_device": "user_bearer",
+    "ck.push.unregister_device": "user_bearer",
+    "ck.push.notify": "service_only",                  # principal server → push gateway
 
     # applet (interop_bridge)
-    "cx.applet.ping": "service_only",
-    "cx.applet.describe": "public_no_auth",            # public service metadata
-    "cx.applet.transaction": "service_only",
-    "cx.applet.resolve_actor": "service_only",
-    "cx.applet.resolve_realm": "service_only",
-    "cx.applet.protocol_metadata": "public_no_auth",
-    "cx.applet.third_party_users": "service_only",
-    "cx.applet.third_party_locations": "service_only",
+    "ck.applet.ping": "service_only",
+    "ck.applet.describe": "public_no_auth",            # public service metadata
+    "ck.applet.transaction": "service_only",
+    "ck.applet.resolve_actor": "service_only",
+    "ck.applet.resolve_realm": "service_only",
+    "ck.applet.protocol_metadata": "public_no_auth",
+    "ck.applet.third_party_users": "service_only",
+    "ck.applet.third_party_locations": "service_only",
 
     # mimi_interop (interop_bridge)
-    "cx.mimi.provider_directory": "public_no_auth",
-    "cx.mimi.group_info": "service_only",
-    "cx.mimi.key_material": "service_only",
-    "cx.mimi.submit_message": "service_only",
-    "cx.mimi.room_update": "service_only",
-    "cx.mimi.request_consent": "service_only",
-    "cx.mimi.update_consent": "service_only",
-    "cx.mimi.identifier_query": "service_only",
-    "cx.mimi.notify": "service_only",
-    "cx.mimi.report_abuse": "service_only",
-    "cx.mimi.proxy_download": "service_only",
+    "ck.mimi.provider_directory": "public_no_auth",
+    "ck.mimi.group_info": "service_only",
+    "ck.mimi.key_material": "service_only",
+    "ck.mimi.submit_message": "service_only",
+    "ck.mimi.room_update": "service_only",
+    "ck.mimi.request_consent": "service_only",
+    "ck.mimi.update_consent": "service_only",
+    "ck.mimi.identifier_query": "service_only",
+    "ck.mimi.notify": "service_only",
+    "ck.mimi.report_abuse": "service_only",
+    "ck.mimi.proxy_download": "service_only",
 
     # account_auth (deployment_local)
-    "cx.account.device_pair": "user_bearer",
-    "cx.account.issue_session_grant": "public_no_auth",   # callback-style; body carries proof
-    "cx.account.oidc_callback": "public_no_auth",         # OIDC redirect with `code`
+    "ck.account.device_pair": "user_bearer",
+    "ck.account.issue_session_grant": "public_no_auth",   # callback-style; body carries proof
+    "ck.account.oidc_callback": "public_no_auth",         # OIDC redirect with `code`
 
     # admin_operator
-    "cx.admin.get_moderation_queue": "admin_bearer",
-    "cx.admin.get_server_status": "admin_bearer",
-    "cx.admin.revoke_device": "admin_bearer",
-    "cx.admin.update_account_status": "admin_bearer",
+    "ck.admin.get_moderation_queue": "admin_bearer",
+    "ck.admin.get_server_status": "admin_bearer",
+    "ck.admin.revoke_device": "admin_bearer",
+    "ck.admin.update_account_status": "admin_bearer",
 }
 
 

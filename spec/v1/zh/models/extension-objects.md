@@ -36,12 +36,12 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - 把外部事件转换为 Cokret event
 - 在获得明确授权时以受托 agent / device 方式执行操作
 
-> **状态：extension profile**。Cokret v1 core 互操作 **不要求** 实现 Applet profile；声称 v1 core 的实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。`cx.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json` 的 `profile_tiers.extension_profile_implementation`）。
+> **状态：extension profile**。Cokret v1 core 互操作 **不要求** 实现 Applet profile；声称 v1 core 的实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。`ck.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json` 的 `profile_tiers.extension_profile_implementation`）。
 
 ### 2.2 关键对象
 
 - `ck:applet:<uuid>`：Applet 对象 typed ID。
-- `cx.applet.registration`：Applet 注册 event；包含 `applet_id`、`service_did`、`controller_did`、`base_url`、`bot_actor_id`、`protocols`、`namespaces` 等。
+- `ck.applet.registration`：Applet 注册 event；包含 `applet_id`、`service_did`、`controller_did`、`base_url`、`bot_actor_id`、`protocols`、`namespaces` 等。
 - **Applet Service**：运行集成逻辑的服务端进程（独立 service DID）。
 - **Applet Controller**：管理该 Applet 的主体（组织、开发者、企业管理员）。
 - **Bot Actor**：Applet 的主要可见 Actor，可以加入 Realm、被 mention、发送消息或执行自动化。
@@ -78,7 +78,7 @@ Agent 的对象身份与 Applet 类似（独立 DID 或受托 device DID），�
 ### 3.2 关键对象
 
 - `actor_kind=agent` 的 Actor / Actor Profile（详见 [actor.md §3](./actor.md)）。
-- `cx.profile.agent_runtime.v1` extension profile（详见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）。
+- `ck.profile.agent_runtime.v1` extension profile（详见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）。
 - Agent policy（`policy_type=agent`）：见 [governance-objects.md §3](./governance-objects.md)。
 - `notification_type=agent`：见 [private-objects.md §3](./private-objects.md)。
 
@@ -95,7 +95,7 @@ Blob 是 Cokret 中由 **Blob Store** 管理的内容寻址数据：图片、视
 
 Blob 在协作图中通过 `ck:blob:<hash>` 引用：
 
-- Message `cx.content.image` / `cx.content.video` / `cx.content.audio` / `cx.content.file` 中的 `blob_ref`。
+- Message `ck.content.image` / `ck.content.video` / `ck.content.audio` / `ck.content.file` 中的 `blob_ref`。
 - Flow `content` Content Block 中的引用。
 - `Realm.avatar_blob_ref` / `Space.avatar_blob_ref` / `actor_profile.avatar_blob_ref`。
 - Relation `attached_to` 指向 blob 的边。

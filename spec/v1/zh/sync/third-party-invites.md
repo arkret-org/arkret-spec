@@ -20,7 +20,7 @@ updated: 2026-05-25
 
 由于外部的邮箱或手机号无法自己生成非对称密钥对和 DID，邀请流程 MUST 借助一个**身份验证服务 (Identity Verification Service)** 来充当代理。
 
-这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。该验证服务 DID 只负责 3PID claim；Bob 后续向哪台 Realm service 提交 invite-accept 由 `cx.directory.resolve_realm` 返回的 `join_candidates[]` 决定，二者不得混用。
+这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。该验证服务 DID 只负责 3PID claim；Bob 后续向哪台 Realm service 提交 invite-accept 由 `ck.directory.resolve_realm` 返回的 `join_candidates[]` 决定，二者不得混用。
 
 ## 3. 邀请流程
 
@@ -30,13 +30,13 @@ updated: 2026-05-25
 
 1. **发起盲化邀请**：Alice 的客户端向她的 Principal Server 或授权的 Identity Verification Service 提交一个针对 3PID 的邀请。公开持久化 Event 中 MUST NOT 写入明文邮箱、手机号或可枚举的未加盐哈希。
 2. **生成邀请令牌**：验证服务生成至少 128 bit 熵的随机 `invite_token`，并生成独立 `token_salt`。`invite_token` MUST 只通过外部通知渠道发送给被邀请人，不得写入公开 Event。
-3. **写入占位符 Event**：Alice 向 Realm 提交一个特殊的 `cx.invite.third_party` Event，其 `payload` 为：
+3. **写入占位符 Event**：Alice 向 Realm 提交一个特殊的 `ck.invite.third_party` Event，其 `payload` 为：
 
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
 {
   "invite": {
     "id": "ck:invite:0196419b-1000-7000-8000-000000000000",
-    "schema": "cx.schema.invite.v1",
+    "schema": "ck.schema.invite.v1",
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "inviter": "did:web:alice.example",
     "third_party_id": {
@@ -91,7 +91,7 @@ https://app.cokret.example/invite#token=<invite_token>
 > 1. **离线可校验形态**：与 URL `#token=` 等价，MUST ≥ 128-bit 真随机熵（即至少 22 个 base32 字符或等价编码）。短分隔符（破折号）允许出现以方便用户录入，但不计入熵；编码字母表 MUST 排除易混字符（去掉 `0/O/1/I/L`），熵下限按剩余字母表大小重算。
 > 2. **服务端 lookup 短码形态**：可以使用较短人类可读码（如示例 `XYZ-123-ABC`），但 MUST 全部满足：(a) 仅作为服务端私有 lookup 表的索引，token bytes 本身不参与 claim 校验；(b) 失败 claim 严格限速（每 IP / 设备 / 邀请者 同时 ≤ 5 次/分钟、≤ 50 次/天）；(c) 配合服务端 pepper / HMAC 存储，使短码无法离线枚举；(d) 短码 wire form 加入 `oob_code_kind="lookup"` 字段以便 wire-level 校验区分；(e) 同一短码命名空间下连续 3 次错误尝试 MUST invalidate 该 invite（强制邀请者重发）。
 >
-> 任何不能满足以上 (1) 或 (2) 全部条件的 OOB code 不得作为生产 wire 形态。conformance vector `cx.vector.invite.oob_code_entropy.v1` 覆盖短熵 OOB code claim 被拒、lookup 形态超限被 invalidate 两种情况。
+> 任何不能满足以上 (1) 或 (2) 全部条件的 OOB code 不得作为生产 wire 形态。conformance vector `ck.vector.invite.oob_code_entropy.v1` 覆盖短熵 OOB code claim 被拒、lookup 形态超限被 invalidate 两种情况。
 
 **禁止形态**（reducer / 服务端 MUST 拒绝 inbound claim 携带这种 token 来源声明）：
 
@@ -114,7 +114,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 
 ### 4.2 提交转换 Event
 
-身份验证服务（或 Bob 代理）将该证明连同 Bob 的签名，打包成一个 `cx.invite.claim` Event 提交到 Realm。`payload` 为：
+身份验证服务（或 Bob 代理）将该证明连同 Bob 的签名，打包成一个 `ck.invite.claim` Event 提交到 Realm。`payload` 为：
 
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
 {
@@ -144,16 +144,16 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 ### 4.3 状态机转换
 
 Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到该 Event 时：
-1. 匹配 `token_commitment` 与未过期、未撤销、未认领的 `cx.invite.third_party`。
+1. 匹配 `token_commitment` 与未过期、未撤销、未认领的 `ck.invite.third_party`。
 2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_id`、`realm_id`、audience、过期时间和 claim nonce。
-3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("cx.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"cokret.invite.claim", verification_service_did, binding_proof_digest})`，其中 `verification_service_did` 等于 `binding_proof.verification_service_did`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_service_did` / `binding_proof_digest` 的 subject proof MUST reject；`verification_service_did` 与 `binding_proof.verification_service_did` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
+3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("ck.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"cokret.invite.claim", verification_service_did, binding_proof_digest})`，其中 `verification_service_did` 等于 `binding_proof.verification_service_did`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_service_did` / `binding_proof_digest` 的 subject proof MUST reject；`verification_service_did` 与 `binding_proof.verification_service_did` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
 4. 原子标记 pending invite 为 `claimed`；同一个 `token_commitment` 的第二次认领 MUST reject。
-5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
-6. 随后 Bob 刷新 Realm 的 `join_candidates[]`，选择一个未过期候选并按照正常流程发送 `cx.invite.accept` 加入 Realm。
+5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `ck.invite.create` 或等价 membership proposal。
+6. 随后 Bob 刷新 Realm 的 `join_candidates[]`，选择一个未过期候选并按照正常流程发送 `ck.invite.accept` 加入 Realm。
 
 验证服务 / 接收 Sync Service MUST 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`。任一 nonce 一旦进入该 set，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 在进入 reducer 仲裁前拒绝，即使前一次 claim 最终因其它原因未成为 winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
 
-**v1 base wire 范围（normative）**：v1 base conformance 仅支持 `invite` / `restricted` join-rule Realm 的 third-party claim 接续到 `cx.invite.create`（或等价 membership proposal）路径，如上述步骤 5 所述。knock_restricted Realm 的 third-party 接续依赖 `cx.realm.join.review` candidate profile（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）以及 `member.application` candidate kind（见 [`operations-sync.md`](operations-sync.md)），**不属于 v1 base conformance**；部署 MUST 在 `cx.directory.describe` / `cx.account.describe` 中显式声明该 candidate profile 后才可在 `knock_restricted` Realm 上使用 third-party claim 流程，否则验证服务 MUST 以 `unsupported_join_rule` 拒绝该 token claim。
+**v1 base wire 范围（normative）**：v1 base conformance 仅支持 `invite` / `restricted` join-rule Realm 的 third-party claim 接续到 `ck.invite.create`（或等价 membership proposal）路径，如上述步骤 5 所述。knock_restricted Realm 的 third-party 接续依赖 `ck.realm.join.review` candidate profile（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）以及 `member.application` candidate kind（见 [`operations-sync.md`](operations-sync.md)），**不属于 v1 base conformance**；部署 MUST 在 `ck.directory.describe` / `ck.account.describe` 中显式声明该 candidate profile 后才可在 `knock_restricted` Realm 上使用 third-party claim 流程，否则验证服务 MUST 以 `unsupported_join_rule` 拒绝该 token claim。
 
 ## 5. E2EE 场景处理
 
@@ -164,8 +164,8 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 
 ## 6. 过期、撤销与隐私要求
 
-- 所有可被认领或接受的 invite MUST 携带 `expires_at`；`cx.invite.third_party` 的 v1 base profile 硬上限为 7 天，高安全 / audited / 企业 Realm 硬上限为 24 小时。需要更长生命周期的部署 MUST 声明扩展 profile，并要求额外 revalidation proof。
-- 邀请者、Realm 管理员或 policy server MAY 发布 `cx.invite.revoke` 撤销 pending invite。撤销后任何 claim MUST reject。
+- 所有可被认领或接受的 invite MUST 携带 `expires_at`；`ck.invite.third_party` 的 v1 base profile 硬上限为 7 天，高安全 / audited / 企业 Realm 硬上限为 24 小时。需要更长生命周期的部署 MUST 声明扩展 profile，并要求额外 revalidation proof。
+- 邀请者、Realm 管理员或 policy server MAY 发布 `ck.invite.revoke` 撤销 pending invite。撤销后任何 claim MUST reject。
 - 验证服务 MUST 对 token claim 做限速、IP / device 风险控制和重放检测；失败响应不得泄露 token 是否存在、Realm 是否存在或 3PID 是否被邀请。
 - Event 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。
 - `token_salt` MUST 按邀请或批次高熵生成，不能使用全局常量 salt。低熵 3PID 的承诺必须加入服务私有 pepper 或改用不公开的 lookup table，防止离线字典爆破。
@@ -179,12 +179,12 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 | --- | --- | --- |
 | `expires_at <= now` | `pending → expired` | 任何 claim MUST `expired_invite_token` 拒绝；服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录。 |
 | 邮件 / SMS 发送失败（gateway 5xx / bounce / DKIM fail） | `pending → send_failed`（携带 `send_failure_reason`） | 邀请者 UI MUST 显式提示发送失败；服务端 MUST NOT 假装成功；MAY 在 retry budget 内自动重试（建议 ≤ 3 次，指数退避）。retry 耗尽后 transition 为 `send_failed`，服务端 MUST 在 24h 内 zeroize token material；邀请者 MAY 手动重发（产生新 `invite_id` + 新 token + 新 commitment）。 |
-| 邀请者失去 `cx.invite.third_party` capability（grant revoke、role change） | `pending → revoked_by_capability_loss` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除，`token_salt` / lookup pepper material MUST 在 24h 内 zeroize。 |
-| 邀请者主动离开 Realm（`cx.member.state` → `leave`/`ban`/`remove`） | `pending → revoked_by_inviter_left` | 同上 capability loss 处理；邀请不随邀请者继承到其他成员。 |
-| token 泄漏 / 怀疑泄漏（邀请者或 admin 发起 `cx.invite.revoke`） | `pending → revoked` | 立即拒绝任何 claim；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；客户端 UI MUST 显示"邀请已撤销"。 |
+| 邀请者失去 `ck.invite.third_party` capability（grant revoke、role change） | `pending → revoked_by_capability_loss` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除，`token_salt` / lookup pepper material MUST 在 24h 内 zeroize。 |
+| 邀请者主动离开 Realm（`ck.member.state` → `leave`/`ban`/`remove`） | `pending → revoked_by_inviter_left` | 同上 capability loss 处理；邀请不随邀请者继承到其他成员。 |
+| token 泄漏 / 怀疑泄漏（邀请者或 admin 发起 `ck.invite.revoke`） | `pending → revoked` | 立即拒绝任何 claim；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；客户端 UI MUST 显示"邀请已撤销"。 |
 | claim 成功 | `pending → claimed` | 同一 `token_commitment` 第二次 claim MUST `duplicate_conflict`；claim 接受后 `token_salt` / lookup pepper material MUST 在 24h 内 zeroize，只保留不可枚举 audit receipt。 |
 | OOB lookup 形态失败次数超限（§3） | `pending → invalidated_by_rate_limit` | 强制邀请者重发；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；不暴露具体失败次数给攻击者。 |
 
 Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可以先进入 `claimed` / joined projection，但该成员对加密正文的客户端状态 MUST 走 [`client-sync.md` §15](./client-sync.md) 的 `decryption_pending` / timeout / recovery 机制；不得把 Welcome 缺失解释为 claim 回滚。若 KeyPackage 耗尽、过期或与 required capabilities 不匹配，邀请方或服务端 MUST 触发 `keypackage_refresh_required` 诊断/重试路径，并在新的 Welcome 到达后按普通 MLS governance binding 校验恢复。
 
-**统一不可枚举响应（normative）**：claim 失败响应 MUST 不区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`cx.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。
+**统一不可枚举响应（normative）**：claim 失败响应 MUST 不区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`ck.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。

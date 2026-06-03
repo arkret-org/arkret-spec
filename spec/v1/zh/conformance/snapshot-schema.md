@@ -24,9 +24,9 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
 {
   "id": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "reducer_profile": "cx.reducer.v1",
+  "reducer_profile": "ck.reducer.v1",
   "security_class": "high_assurance",
-  "schema_profile_refs": ["cx.profile.core_event_store.v1"],
+  "schema_profile_refs": ["ck.profile.core_event_store.v1"],
   "frontier": {
     "event_ids": ["ck:event:019640ed-8000-7000-8000-000000000000"],
     "timeline_hlc": "01970e589d21-0004-a13f9c2e"
@@ -91,7 +91,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
   "type": "snapshot_chunk",
   "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
   "index": 0,
-  "reducer_profile": "cx.reducer.v1",
+  "reducer_profile": "ck.reducer.v1",
   "items": [
     {
       "kind": "flow",
@@ -99,7 +99,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
       "object": {
         "id": "ck:flow:019640c5-0000-7000-8000-000000000000",
         "kind": "flow",
-        "schema": "cx.schema.flow.v1"
+        "schema": "ck.schema.flow.v1"
       },
       "source_event_id": "ck:event:019640ed-8000-7000-8000-000000000000"
     }
@@ -265,7 +265,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 5. **失败处理**：若任一采样到的 accepted Event 缺失、任一分支验证失败、任一缺口缺少归因，或签名验证失败，client MUST 以错误 `inclusion_proof_failed` 拒绝（见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；若签名者在 `created_at` 当时或之前已被撤销，client MUST 以 `snapshot_issuer_revoked` 拒绝。
 6. **新鲜度**：响应 MUST 在 manifest 的 `verification_hints.challenge_window_seconds` 内收到；过期响应 MUST 重试，MUST NOT 静默接受。
 
-> **可执行向量**：上述采样规则 1（`n ≥ max(20, ceil(log2(covered_event_count)))` 的 event_id 抽样、至少 3 段 `actor_seq_range`）与规则 2 的 merkle branch 验证由 [`conformance-vectors.md` §3.6](./conformance-vectors.md) `cx.vector.snapshot.inclusion_challenge.v1` 固化（结构与断言在 prose 中给定，`commitment_root` / `samples[]` / `proofs[].merkle_branch` / `gap_attribution` 等具体字节值以 `spec/v1/artifacts/fixtures/` 的 fixture 生成物为权威）。实现 MUST 按该向量与本节 prose 规则执行挑战，MUST NOT 以“缺向量/缺 fixture”为由跳过 high-assurance bootstrap 校验。
+> **可执行向量**：上述采样规则 1（`n ≥ max(20, ceil(log2(covered_event_count)))` 的 event_id 抽样、至少 3 段 `actor_seq_range`）与规则 2 的 merkle branch 验证由 [`conformance-vectors.md` §3.6](./conformance-vectors.md) `ck.vector.snapshot.inclusion_challenge.v1` 固化（结构与断言在 prose 中给定，`commitment_root` / `samples[]` / `proofs[].merkle_branch` / `gap_attribution` 等具体字节值以 `spec/v1/artifacts/fixtures/` 的 fixture 生成物为权威）。实现 MUST 按该向量与本节 prose 规则执行挑战，MUST NOT 以“缺向量/缺 fixture”为由跳过 high-assurance bootstrap 校验。
 
 `verification_hints.conflict_records_digest`、`soft_failed_digest` 与 `quarantined_digest` 承诺非 accepted 或未决输入的集合。snapshot MUST NOT 静默隐藏会影响授权、可见性、E2EE epoch 或对象状态的 conflict、soft-fail 或 quarantine 记录。
 
@@ -279,7 +279,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
   "epoch": 42,
   "cleartext_metadata": {
     "object_ref": "ck:message:...",
-    "event_kind": "cx.message.create"
+    "event_kind": "ck.message.create"
   },
   "ciphertext": "base64url...",
   "ciphertext_digest": "sha256:..."

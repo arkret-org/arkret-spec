@@ -35,7 +35,7 @@ Jira 截图左栏 "Components" 和 "Versions" 是 first-class 实体而不是 fr
 
 ### 3.1 `ck:component:` 对象
 
-Schema id: `cx.schema.component.v1`
+Schema id: `ck.schema.component.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -54,7 +54,7 @@ Schema id: `cx.schema.component.v1`
 
 ### 3.2 `ck:version:` 对象
 
-Schema id: `cx.schema.version.v1`
+Schema id: `ck.schema.version.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -65,8 +65,8 @@ Schema id: `cx.schema.version.v1`
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
 | `start_date` | no | `date` | — | 计划启动日。 |
 | `release_date` | no | `date` | — | 计划发布日;`released_at` 实际发布时填写。 |
-| `released_at` | conditional | `timestamp` | `release_state ∈ {released, archived}` 时必填;**reducer-derived**(由 `cx.version.release` event 写入)。 | 实际发布时刻。 |
-| `release_state` | yes | `enum(unreleased, released, archived)` | 转换:unreleased → released(`cx.version.release`)→ archived(`cx.version.archive`);archived 不可逆(用 tombstone 完全清除)。 | 发布状态机。**与对象 `state`(active/archived/tombstoned)正交**:对象 state 是物理生命周期,release_state 是发布周期。 |
+| `released_at` | conditional | `timestamp` | `release_state ∈ {released, archived}` 时必填;**reducer-derived**(由 `ck.version.release` event 写入)。 | 实际发布时刻。 |
+| `release_state` | yes | `enum(unreleased, released, archived)` | 转换:unreleased → released(`ck.version.release`)→ archived(`ck.version.archive`);archived 不可逆(用 tombstone 完全清除)。 | 发布状态机。**与对象 `state`(active/archived/tombstoned)正交**:对象 state 是物理生命周期,release_state 是发布周期。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 物理生命周期。 |
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | — |
 
@@ -80,21 +80,21 @@ Schema id: `cx.schema.version.v1`
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `cx.component.create` | yes | 创建 |
-| `cx.component.update` | yes | patch(不改 key) |
-| `cx.component.archive` | yes | active → archived |
-| `cx.component.restore` | yes | archived → active |
-| `cx.component.tombstone` | yes | terminal |
+| `ck.component.create` | yes | 创建 |
+| `ck.component.update` | yes | patch(不改 key) |
+| `ck.component.archive` | yes | active → archived |
+| `ck.component.restore` | yes | archived → active |
+| `ck.component.tombstone` | yes | terminal |
 
 #### Version
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `cx.version.create` | yes | 创建,默认 release_state=unreleased |
-| `cx.version.update` | yes | patch 元数据(不改 key、release_state、released_at) |
-| `cx.version.release` | yes | unreleased → released;reducer 写入 `released_at = event.created_at` |
-| `cx.version.archive` | yes | released → archived(release_state);object state 不变 |
-| `cx.version.tombstone` | yes | object state terminal,不可逆 |
+| `ck.version.create` | yes | 创建,默认 release_state=unreleased |
+| `ck.version.update` | yes | patch 元数据(不改 key、release_state、released_at) |
+| `ck.version.release` | yes | unreleased → released;reducer 写入 `released_at = event.created_at` |
+| `ck.version.archive` | yes | released → archived(release_state);object state 不变 |
+| `ck.version.tombstone` | yes | object state terminal,不可逆 |
 
 注:**release_state 与 object state 是两个独立 axis**(与 stage / state 正交的同模式)。release_state 是 component-spec scope 的"对外发布周期",state 是协议物理生命周期。
 
@@ -102,10 +102,10 @@ Schema id: `cx.schema.version.v1`
 
 | action | risk_tier | target event kinds |
 | --- | --- | --- |
-| `cx.component.manage` | medium | component.* |
-| `cx.version.manage` | medium | version.create / update / archive / tombstone |
-| `cx.version.release` | medium | `cx.version.release`(独立切分,因为发布是一次性高影响动作) |
-| `cx.flow.classify` | low | `cx.relation.create / delete` 限 `relation_kind ∈ {in_component, targets_version, fixed_in_version}` |
+| `ck.component.manage` | medium | component.* |
+| `ck.version.manage` | medium | version.create / update / archive / tombstone |
+| `ck.version.release` | medium | `ck.version.release`(独立切分,因为发布是一次性高影响动作) |
+| `ck.flow.classify` | low | `ck.relation.create / delete` 限 `relation_kind ∈ {in_component, targets_version, fixed_in_version}` |
 
 ## 4. Interactions with normative spec
 
@@ -114,7 +114,7 @@ Schema id: `cx.schema.version.v1`
 - 新增 id-kind:`component`、`version`。
 - 新增 event_kinds(component 5 + version 5 = 10 条)+ capability actions(4 条)。
 - 新增 Relation kinds:`in_component`、`targets_version`、`fixed_in_version`。
-- 新增 profile:`cx.profile.engineering_classifiers.v1`(打包 component + version,因为典型用例是工程 issue tracking)。
+- 新增 profile:`ck.profile.engineering_classifiers.v1`(打包 component + version,因为典型用例是工程 issue tracking)。
 
 ## 5. Rationale & alternatives
 

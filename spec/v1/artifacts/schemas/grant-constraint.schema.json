@@ -296,7 +296,7 @@
     },
     "allowed_circle_ids": {
       "type": "array",
-      "description": "Limits Circle-scoped capability actions to the listed Circle ids. Used by cx.circle.manage / cx.circle.member.manage style grants; unconstrained Realm-wide Circle management grants are not a normal permission shape.",
+      "description": "Limits Circle-scoped capability actions to the listed Circle ids. Used by ck.circle.manage / ck.circle.member.manage style grants; unconstrained Realm-wide Circle management grants are not a normal permission shape.",
       "items": {
         "type": "string",
         "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -420,11 +420,11 @@
       "type": "integer",
       "minimum": 1,
       "maximum": 3600,
-      "description": "Maximum TTL, in seconds, that this grant permits for cx.blob.presign. The service must clamp requested max_age_seconds to the smaller of this value and deployment policy."
+      "description": "Maximum TTL, in seconds, that this grant permits for ck.blob.presign. The service must clamp requested max_age_seconds to the smaller of this value and deployment policy."
     },
     "blob_presign_scope": {
       "type": "object",
-      "description": "Scope limiter for cx.blob.presign grants: allowed purposes plus optional blob/realm restrictions.",
+      "description": "Scope limiter for ck.blob.presign grants: allowed purposes plus optional blob/realm restrictions.",
       "properties": {
         "purpose_allow": {
           "type": "array",
@@ -698,7 +698,7 @@
     },
     "depends_on_moderation_state": {
       "type": "boolean",
-      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the cx.component.moderation_state.v1 cell (see policy-server.md §7.1 and capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that cell changes. Default false: ordinary grants (cx.flow.update / cx.message.create / org membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / cell). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint."
+      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the ck.component.moderation_state.v1 cell (see policy-server.md §7.1 and capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that cell changes. Default false: ordinary grants (ck.flow.update / ck.message.create / org membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / cell). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint."
     },
     "subtype": {
       "type": "string",
@@ -720,10 +720,10 @@
     },
     "applies_to_actions": {
       "type": "array",
-      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['cx.message.revise.own', 'cx.message.redact.own']). Replaces what used to be the dedicated edit_window constraint type.",
+      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ck.message.revise.own', 'ck.message.redact.own']). Replaces what used to be the dedicated edit_window constraint type.",
       "items": {
         "type": "string",
-        "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+        "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
       },
       "uniqueItems": true
     }

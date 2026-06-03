@@ -30,26 +30,42 @@ Operation 语义本身可映射到不同 transport；但 **v1 core wire conforma
 
 Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织，而不是按某个产品形态拆成固定的 Client API / Server API / Push API 包。客户端、Principal Server、Events API、Directory、Applet、Push Gateway 等都可以暴露自己的服务面；服务发现决定某个节点实际支持哪些命名空间。
 
+所有 path 都在 negative-space 根 `/_cokret/` 之下，且**不含版本段**。`/_cokret/` 之后的第一段是一个**信任同心圆**名字，编码"调用方↔服务"的信任关系，由内（最强）到外（最弱）：
+
+| 信任段 | 信任关系 | 承接命名空间 |
+| --- | --- | --- |
+| `self` | 本人已认证会话 | events·account·rtc·blob·keys·authz·policy·projection·agents·device_messages·moderation·snapshot·ephemeral |
+| `gate` | 认证入口 | account（auth / session-grant） |
+| `root` | 信任根：身份 / DID | identity |
+| `find` | 目录发现 | directory |
+| `peer` | 对等 Cokret 服务器 | federation server↔server wire（保留命名分支，见 `federation.md`；不承接这 101 个 client/service operation） |
+| `open` | 非 Cokret 外部厂商 | mimi |
+| `edge` | 推送 / 桥接网关 | push·applet |
+| `local` | 运营 / 部署本地面 | admin |
+
+读 URL 即读攻击面：`/_cokret/self/...` 是调用方本人的会话面，`/_cokret/open/...` 一眼就是在跟外部厂商打交道。pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.server.describe`）；其余 `*.describe` 各自跟随所在段。版本不进 path，由 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header）。versionless + 协议内协商如何支撑新旧实现互通，见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md) §6。
+
 默认 REST 命名空间如下：
 
 | 命名空间 | 主要调用方 | 语义 | 规范文件 |
 | --- | --- | --- | --- |
-| `/server/*` | 客户端与服务 | 服务描述、feature discovery、auth metadata。 | `service-surface.md`、`api-conventions.md` |
-| `/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
-| `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Realm 双向历史查询(query)、流式订阅(subscribe，含 bounded catch-up replay)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
-| `/account/*` | 客户端、Principal Server | account 聚合 streaming 订阅(`GET /account/subscribe`)、describe。逐 Realm 的事件流读取走 `/events/*`。 | `client-sync.md`、`service-surface.md` |
-| `/snapshot/*` | 客户端、Principal Server | Realm snapshot manifest 入口(`GET /snapshot/head`)。 | `client-sync.md`、`service-surface.md` |
-| `/projection/*` | 客户端、Principal Server | 派生 lifecycle projection 读取：Space / Flow / Morph 当前状态列表。 | `realm-and-space.md`、`flow-and-message.md`、`morph.md` |
-| `/directory/*` | 客户端、服务 | Realm / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
-| `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
-| `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
-| `/device_messages/*`、`/keys/*` | E2EE 客户端、Principal Server | to-device、one-time key、fallback key、device list 相关操作。 | `device-lifecycle.md` |
-| `/authz/*`、`/policy/check` | 客户端、Events API、Sync、Policy Server | capability 预检查、policy server 签名决策。Canonical path 是 `/api/v1/policy/check`(`cx.policy.check`)。 | `capabilities.md`、`policy-server.md` |
-| `/cokret/v1/ice-config` | 通话客户端、Media Service | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
-| `/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
-| `/applet/*` | Cokret 服务调用 Applet | applet ping / describe、transaction push、Ghost Actor / portal 查询。 | `applet-integration.md` |
+| `/_cokret/describe` | 客户端与服务 | 根级服务描述、feature discovery、auth metadata（pre-auth）。 | `service-surface.md`、`api-conventions.md` |
+| `/_cokret/gate/account/*` | 客户端、Principal Server | 账户认证入口：session-grant 签发、设备配对、OIDC 回调、agent key pairing。 | `service-surface.md`、`api-conventions.md` |
+| `/_cokret/root/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
+| `/_cokret/self/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Realm 双向历史查询(query)、流式订阅(subscribe，含 bounded catch-up replay)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
+| `/_cokret/self/account/*` | 客户端、Principal Server | account 聚合 streaming 订阅(`GET /_cokret/self/account/subscribe`)、describe。逐 Realm 的事件流读取走 `/_cokret/self/events/*`。 | `client-sync.md`、`service-surface.md` |
+| `/_cokret/self/snapshot/*` | 客户端、Principal Server | Realm snapshot manifest 入口(`GET /_cokret/self/snapshot/head`)。 | `client-sync.md`、`service-surface.md` |
+| `/_cokret/self/projection/*` | 客户端、Principal Server | 派生 lifecycle projection 读取：Space / Flow / Morph 当前状态列表。 | `realm-and-space.md`、`flow-and-message.md`、`morph.md` |
+| `/_cokret/find/directory/*` | 客户端、服务 | Realm / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
+| `/_cokret/self/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
+| `/_cokret/edge/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
+| `/_cokret/self/device_messages/*`、`/_cokret/self/keys/*` | E2EE 客户端、Principal Server | to-device、one-time key、fallback key、device list 相关操作。 | `device-lifecycle.md` |
+| `/_cokret/self/authz/*`、`/_cokret/self/policy/check` | 客户端、Events API、Sync、Policy Server | capability 预检查、policy server 签名决策。Canonical path 是 `/_cokret/self/policy/check`(`ck.policy.check`)。 | `capabilities.md`、`policy-server.md` |
+| `/_cokret/self/rtc/ice-config` | 通话客户端、Media Service | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
+| `/_cokret/self/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
+| `/_cokret/edge/applet/*` | Cokret 服务调用 Applet | applet ping / describe、transaction push、Ghost Actor / portal 查询。 | `applet-integration.md` |
 
-客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/account`、`/snapshot`、`/projection`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/events`、`/account`、`/authz`、`/policy/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；`/projection/*` 只暴露 Space / Flow / Morph lifecycle 派生读模型，且属于 extension surface，必须由服务显式声明支持。
+客户端视角的常用 API 集合通常包括 `/_cokret/describe`、`/_cokret/root/identity/*`、`/_cokret/self/events/*`、`/_cokret/self/account/*`、`/_cokret/self/snapshot/*`、`/_cokret/self/projection/*`、`/_cokret/find/directory/*`、`/_cokret/self/blob/*`、`/_cokret/edge/push/*`、`/_cokret/self/device_messages/*`、`/_cokret/self/keys/*`、`/_cokret/self/authz/*`。服务间 API 集合通常包括 `/_cokret/self/events/*`、`/_cokret/self/account/*`、`/_cokret/self/authz/*`、`/_cokret/self/policy/check`、`/_cokret/edge/applet/*` 和 `/_cokret/edge/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；`/_cokret/self/projection/*` 只暴露 Space / Flow / Morph lifecycle 派生读模型，且属于 extension surface，必须由服务显式声明支持。
 
 新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.mdx`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
@@ -76,7 +92,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 - 受保护 endpoint 不得接受 query string 中的 token、API key 或签名材料；临时下载 URL 只能使用短时效、单用途、可撤销的派生 token。
 - 返回 `not_found` 的 endpoint MUST 对“不存在”和“存在但不可见”保持一致失败语义，除非调用方已有管理权限。
 - 所有批量读取 MUST 支持 `limit` 上限，分页 cursor 必须是不透明 token。
-- 路由层 MUST 对 `/api/v1/*` 与 `/cokret/v1/*` 下的未知路径返回 `404 unrecognized_endpoint`，对已知路径的错误 method 返回 `405 method_not_allowed`，且不得进入业务逻辑。
+- 路由层 MUST 对 `/_cokret/*` 下的未知路径返回 `404 unrecognized_endpoint`，对已知路径的错误 method 返回 `405 method_not_allowed`，且不得进入业务逻辑。
 
 ### 2.3 端点契约清单
 
@@ -84,106 +100,106 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 | Endpoint | Request 类型 | Auth / 访问限制 | Success 类型 |
 | --- | --- | --- | --- |
-| `GET /api/v1/server/describe` | query: none 或 `service_type?` | `public_metadata`；不得返回私有 topology、secret 或未授权 internal endpoint。 | `ServiceDescribe`（`cx.schema.service_describe.v1`；必须含 `service_did`、`trust_domain`、claim-level 字段、`plaintext_visibility`、`development_mode`，且 `development_mode=true` 时 `verified_profiles=[]`） |
-| `GET /api/v1/identity/describe` | query: none | `public_metadata`；可限流。 | `ServiceDescribe`；identity-specific 能力通过 `supported_features` / `limits` / 扩展字段表达。 |
-| `POST /api/v1/identity/resolve` | body `{did: did, include?: string[]}` | `public_metadata`；private DID MAY require `user_session` 或 presentation proof。 | `{did_document, key_log_head?, seq?, receipts?, method_evidence?}` |
-| `GET /api/v1/identity/document` | query `{did: did, version?: string}` | 同 `identity.resolve`。 | `{did_document, head_event_digest?, seq?, receipts?}` |
-| `GET /api/v1/identity/log` | query `{did: did, cursor?: cursor, limit?: int}` | public DID 可公开；private / pairwise DID MUST require holder-approved proof。 | `{events[], next_cursor?, has_more}` |
-| `POST /api/v1/identity/submit-did-operation` | body `{did: did, did_method: string, seq?: int, prev_event_digest?: string, operation: object, proofs: proof[], policy_context?: object}` | `device_proof` 或 recovery proof；MUST 满足 DID method / key-log 授权；`operation` 是 DID-method-specific 原始操作，不是通用 JSON Patch。 | `{status, did, seq?, head_event_digest?, operation_ref?, receipts?}` |
-| `GET /api/v1/identity/receipts` | query `{did: did, head: string}` | 同 DID 可见性；witness 可公开最小 receipt。 | `{receipts[], threshold_met?: boolean}` |
-| `GET /api/v1/events/describe` | query none 或 `{actor_id?: did, realm_id?: id}` | `public_metadata` 或 `user_session`；私有 frontier 需认证。 | `ServiceDescribe`；event schema / reducer / signature 能力通过 `supported_features`、`supported_profiles`、`limits` 或扩展字段表达。 |
-| `POST /api/v1/events` | body 是 `EventSubmitEnvelope`（单事件）或 `{events: EventSubmitEnvelope[]}`（批量）；submit 输入 MUST NOT 携带 reducer-managed accepted-output 字段（如 `actor_kind` / `effective_scope`）。MUST NOT 使用 `{event: ...}` wrapper。 | `user_session` / `device_proof` / `service_signature`；MUST 验证 actor DID、签名、capability、Realm policy、`actor_seq`、`prev_refs`、`refs[role=authorized_by]`。 | `{status, accepted[], duplicate[]?, rejected[]?, actor_frontier?, realm_frontier?, cursor?}` |
-| `GET /api/v1/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Realm policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
-| `POST /api/v1/events/resolve` | body `{event_ids?: id[], event_digests?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Realm policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
-| `GET /api/v1/events` | query `{realms?: id[], actors?: did[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object}` | 调用方必须对每个 selector 元素满足读取约束：actor scope 走 actor history visibility；realm scope 走 membership frontier + history visibility + E2EE epoch policy。`realms[]` ∪ 内部、`actors[]` ∪ 内部、二者组合为交集。批次内顺序规则见 §3.3。 | `{events[], next_cursor?, prev_cursor?, has_more}` |
-| `GET /api/v1/events/subscribe` | query `{realms?: id[], actors?: did[], after?: cursor, catchup?: boolean}` | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-realm `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, realm_id?: id, cursor?: cursor, payload?: object, reconnect_after_ms?: int}` |
-| `GET /api/v1/events/frontier` | query `{actor_id?: did, realm_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Realm 或 private DID。 | `{frontier, receipts?}` |
-| `POST /api/v1/ephemeral` | body `cx.schema.ephemeral_envelope.v1` (`kind` ∈ `cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`) | `user_session` 或 service signature；actor 必须可在 `realm_id` 的 ephemeral channel 中广播该 kind，并持有对应 `cx.presence.broadcast` / `cx.typing.broadcast` / `cx.receipt.broadcast` / `cx.call.signal.send` action。 | `{accepted: true, kind, realm_id, dispatched_to?, server_received_at?}`；不生成 Event ID、不推进 actor_seq / Realm frontier。 |
-| `POST /api/v1/rtc/token` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, focus_id: string, capability_refs?: id[], desired_media?: object}` | `user_session` 或 device proof；调用方 MUST 持 `cx.call.join`，并根据 `desired_media` 持 `cx.call.screen_share` 等子 capability；token issuer DID MUST 出现在 `cx.realm.media_service.service_id` 锚定列表；当 `cx.call.state.session_focus` 已存在，请求的 `focus_id` MUST 等于该值（否则 `focus_mismatch`）。 | `{focus_id, type, connect_url, backend_token, participant_identity, participant_binding, expires_at, service_signature}`；`expires_at - now ≤ 600s`（SHOULD ≤ 300s）。`participant_binding.scheme="cx.media.participant_binding.v1"`，覆盖 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)`。CXP-0010 媒体服务 token exchange；详见 [`../crypto-media/webrtc-signaling.md` §6.4](../crypto-media/webrtc-signaling.md)。 |
-| `GET /api/v1/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object, set_presence?: enum}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts) streaming NDJSON 推送，不是裸事件读。 | `application/x-ndjson` AccountSubscribeFrame 流;frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`;`dropped` / `resync_required` 可带 `reconnect_after_ms`。 |
-| `POST /api/v1/account/cursor/revoke` | body `{cursor: cursor, reason_code: string, revoke_scope?: enum(this_cursor,same_device,same_session)}` | `user_session` bound to principal/device；high-assurance optional profile。 | `{revoked: boolean, expires_at: datetime}`；撤销命中后的 cursor 使用返回 `cursor_revoked`，不得推进任何 server-side state。 |
-| `GET /api/v1/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
-| `GET /api/v1/snapshot/head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`、`created_by`、`created_at`、`authority_binding`（与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）。high-assurance profile MUST 校验 `authority_binding` 证明 `created_by` 在 `created_at` 时被 Realm policy / witness quorum 授权。 | `{snapshot_ref, state_digest, frontier, event_set_commitment, created_by, created_at, authority_binding, verification_hints?, signature}` |
-| `GET /api/v1/projection/spaces` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | `user_session` 或服务签名；调用方必须满足该 Realm 的 metadata/read 可见性。 | `{realm_id, spaces[], total, next_cursor?, has_more}`；`spaces[]` 行含 `space_id, realm_id, kind, title, parent_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
-| `GET /api/v1/projection/flows` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, flows[], total, next_cursor?, has_more}`；`flows[]` 行可含从 plaintext-visible `metadata.title` / `metadata.summary` 派生的 `title?` / `summary?`，以及 `flow_id, realm_id, board_space_id?, list_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。`board_space_id/list_space_id/rank` 是从 `cx.component.flow.position.v1` cell 派生的只读 view 字段，不是 Flow object 的 canonical truth；当 metadata 加密且服务端不可见时 `title` / `summary` MUST 省略或为 `null`。 |
-| `GET /api/v1/projection/morphs` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, morphs[], total, next_cursor?, has_more}`；`morphs[]` 行含 `morph_id, realm_id, morph_type, title?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
-| `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `ServiceDescribe`；directory resource / discovery capability 放入 `supported_features` / `limits` / 扩展字段。 |
-| `POST /api/v1/directory/search-realms` | body `{query?: string, organization_did?: did, source_realm_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?, has_more}` |
-| `POST /api/v1/directory/resolve-realm` | body `{realm_id?: id, alias?: string, invite_token?: string, signed_link?: string, requester?: did, proofs?: proof[]}` | invite / restricted / secret Realm 按统一 `not_found` 失败。 | `{realm_preview, stripped_state?, join_rule?, join_candidates?}` |
-| `POST /api/v1/directory/resolve-target` | body `{address: string, requester?: did, proofs?: proof[], token?: string}` | 对象级地址解析（`resolve_realm` 泛化）；`invite` / `preview` token 必须按 target descriptor 与 effective link type 校验；未授权统一 `not_found`。详见 [`../discovery/object-addressing.md` §6](../discovery/object-addressing.md)。 | `{target_kind, realm_preview?, object_preview?, join_rule?, as_of, source_refs, join_candidates?, ...}`；preview token 成功时只返回 `cx.realm.preview_policy` 允许字段，除非另有 join routing 权限否则省略 `join_candidates[]`。 |
-| `POST /api/v1/directory/search-organizations` | body `{query?: string, claims?: object, cursor?: cursor, limit?: int}` | 仅返回公开或授权可发现组织。 | `{results[], next_cursor?, has_more}` |
-| `POST /api/v1/directory/resolve-organization` | body `{organization_did?: did, handle?: string, proofs?: proof[]}` | 公开组织 DID 可解析不表示成员或拓扑公开。 | `{organization_preview, did_document_ref?, endorsements?}` |
-| `POST /api/v1/directory/search-actors` | body `{query?: string, realm_id?: id, organization_did?: did, cursor?: cursor, limit?: int}` | 不得泄露 pairwise/private DID 或未披露组织账号。 | `{results[], next_cursor?, has_more}` |
-| `POST /api/v1/directory/search-users` | body `{query: string, realm_id?: id, limit?: int, intent?: "mention"\|"invite"\|"member_add"}` | `user_session`; 用于 mention autocomplete / 成员添加候选，必须受共同 Realm / directory policy 限制。请求词不得进入 URL、Referer 或明文 access log。 | `{results[], has_more}`；每项 MAY 含 `{handle, display_name?, verified?, subject?}`，但受限 handle 未授权时不得披露 DID / delivery binding。 |
-| `POST /api/v1/directory/resolve-handle` | body `{handle: string, expected_did?: did, proof_challenge?: string, intent?: "lookup"\|"mention"\|"invite"\|"member_add", realm_id?: id, requester?: did, proofs?: proof[]}` | 按 handle 双向验证规则；受限 / 组织 handle 需 presentation；返回 `member_delivery_binding` 时必须有 issuer claim / policy 证明。 | `{did, subject, handle, verified: boolean, claims?, member_delivery_binding?, source_refs?, expires_at?}` |
-| `POST /api/v1/directory/list-handles-for-subject` | body `{subject: did, realm_id?: id, intent?: "lookup"\|"mention"\|"invite"\|"member_add", requester?: did, proof_challenge?: string, proofs?: proof[], as_of?: datetime, cursor?: cursor, limit?: int}` | 按 subject visibility、issuer trust、audience、requester policy 和 Realm intent 过滤；不得因为共同 Realm membership 单独披露受限组织 handle。 | `cx.schema.list_handles_for_subject_response.v1`：`{subject, claims[], primary_handle?, as_of, next_cursor?, has_more}`；`claims[]` 是当前 context 可见 signed handle claims，且 `claims[].subject` MUST 等于响应 `subject`。 |
-| `POST /api/v1/blob/upload` | body binary/multipart + metadata `{realm_id?, content_digest?, size_bytes?, media_type?, filename?, purpose?}`；`Content-Type` optional | `user_session`; upload capability、quota、media policy；私有 blob 绑定 Realm / actor。 | `{blob_ref, size_bytes, media_type?, content_digest, upload_receipt?}` |
-| `HEAD/GET /api/v1/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Cokret-Wait-For?` | 公开 blob 可匿名；header auth 路径必须验证 actor/device/Realm/purpose/expiry；除 §5.4 `cx.blob.presign` 的短 TTL bearer URL 例外外，不得 query string 认证。 | bytes 或 headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
-| `POST /api/v1/push/register-device` | body `{device_id: id, push_gateway: url, push_key: string, platform?: string, app_id?: string, display_name?: string, recipient_service_did?: did}` | `user_session` for same principal/device；registration 作用域绑定当前 Principal Server service DID；push_key 必须被加密或最小披露存储。 | `{ok: true, registration_id?, expires_at?}` |
-| `POST /api/v1/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
-| `POST /api/v1/push/notify` | 默认 body `PushNotifyBlindRequest {notification: {push_target_id, wakeup_kind, push_hint?, counts?, devices[]}}`；可见通知必须使用互斥的 `PushNotifyVisibleRequest` profile-gated 形态。 | 来自被授权 Sync 或通知服务的 `service_signature`；默认 MUST 遵守 `cx.profile.push_gateway.blind_wakeup.v1`，不得携带 event / realm / sender 识别字段。`visible_notification` 只在 profile、Realm policy、设备 opt-in 和 UI disclosure 同时满足时允许。 | `{rejected[]}` |
-| `POST /api/v1/device_messages` | header `Idempotency-Key` body `DeviceMessagesPutRequest {messages: {principal_id: {device_id: DeviceMessageTarget {kind, content, expires_at}}}}` | sender `user_session` / device key；目标必须是授权 device；服务端入队前 MUST materialize `DeviceMessageEnvelope` 并绑定 `recipient_principal_id` / `recipient_device_id` / `expires_at`；按 `(sender, Idempotency-Key)` 幂等。验证消息使用 `cx.key.verification.*` kind，且不得作为持久 Event history；缺失、已过期或超过 TTL 上限的消息 MUST reject。 | `{ok: true, delivered?, unknown_devices?}` |
-| `GET /api/v1/device_messages` | query `{from?: cursor, limit?: int}` | `user_session` bound to current device；只返回该 device 队列。 | `{messages: DeviceMessageEnvelope[], next_cursor?, has_more, limited?}` |
-| `POST /api/v1/keys/upload` | body `{device_id: id, one_time_keys?: object, fallback_keys?: object, device_signature: signature}` | current device proof；key 必须链接 self-signing / principal key。 | `{one_time_key_counts, fallback_keys?}` |
-| `POST /api/v1/keys/query` | body `{device_keys: {principal_id: string[]}, timeout_ms?: int}` | `user_session`; 查询范围可按关系 / Realm 限制。 | `{device_keys, failures?}` |
-| `POST /api/v1/keys/claim` | body `{one_time_keys: {principal_id: {device_id: algorithm}}}` | `user_session`; one-time key MUST 原子消费。 | `{one_time_keys, failures?}` |
-| `PUT /api/v1/keys/backups/{backup_id}` | path `{backup_id}` body `cx.schema.key_backup.v1` | current device proof / DID proof / recovery proof；path 与 body backup id 必须一致。 | `{status, backup_id, ciphertext_digest}` |
-| `GET /api/v1/keys/backups` | query `{series_id?: id, backup_class?: string, cursor?: cursor, limit?: int}` | `user_session` bound to current principal/device 或 recovery proof。 | `{backups[], next_cursor?, has_more}` |
-| `GET /api/v1/keys/backups/{backup_id}` | path `{backup_id}` | 同 principal 当前授权 device、recovery policy 或授权组织恢复服务。 | `cx.schema.key_backup.v1` |
-| `DELETE /api/v1/keys/backups/{backup_id}` | path `{backup_id}` | 高风险 device proof、DID proof 或 recovery policy proof。 | `{deleted: true}` |
-| `POST /api/v1/identity/recovery-sessions` | body `cx.schema.recovery_session.v1#/$defs/create_request` | 创建 device recovery session；server MUST snapshot active recovery policy and accepted `ssk_generation`, issue a 256-bit one-time challenge, and set TTL <= 900s. | `cx.schema.recovery_session.v1` |
-| `GET /api/v1/identity/recovery-sessions/{recovery_session_id}` | path `{recovery_session_id}` | 仅 session principal / requesting device / authorized recovery coordinator 可见；不得枚举他人 session。 | `cx.schema.recovery_session.v1` |
-| `POST /api/v1/identity/recovery-sessions/{recovery_session_id}/proofs` | path `{recovery_session_id}` body `cx.schema.recovery_session.v1#/$defs/proof_submit_request` | proof MUST verify against the server-reconstructed canonical transcript and echo the session challenge. | `cx.schema.recovery_session.v1#/$defs/proof_submit_response` |
-| `POST /api/v1/identity/recovery-sessions/{recovery_session_id}/complete` | path `{recovery_session_id}` body `cx.schema.recovery_session.v1#/$defs/complete_request` | Requires `state=verified`; MUST emit accepted `cx.device.authorize` and `cx.device.list_update` before returning completed. | `cx.schema.recovery_session.v1#/$defs/complete_response` |
-| `GET /api/v1/authz/effective-grants` | query `{realm_id: id, subject: did, at?: string}` | subject 本人、Realm admin、authorized service；不得枚举无关 subject。 | `{grants[], state_digest?, evaluated_at}` |
-| `GET /api/v1/authz/invites` | query `{realm_id?: id, subject: did 或 string, cursor?: cursor}` | subject 本人或 inviter/admin；secret invites 不可枚举。 | `{invites[], next_cursor?, has_more}` |
-| `POST /api/v1/authz/check` | body `{actor_id: did, action: string, resource?: object, context?: object}` | caller 必须是相关 actor、Events/Sync 预检查服务或 policy-authorized service。 | `{decision, matched_grants?, applied_constraints?, policy_results?, missing_proofs?, frontier?, freshness_state?, last_known_frontier_age_ms?, anchorer_status?, cache_expires_at?, reason_code?, retry_after_ms?, obligations?}` |
-| `POST /api/v1/policy/check` | body `PolicyCheckRequest {request_id, realm_id, request_canonical_digest, action, actor, source, event_preview?, auth_context?}` | `policy_token` / `service_signature`; 只接收最小披露字段。 | `PolicyCheckResponse {request_id, bound_to, decision, reason_code, expires_at, auth_state_digest, policy_frontier_digest, membership_frontier_digest, obligations?, signature}`。 |
-| `POST /api/v1/moderation/report` | body `{realm_id: id, target_ref: id, report_reason_code: enum, description?: string, reporter: did, evidence_refs?: id[]}` | `user_session`; reporter 必须可见 target；report 仅对 moderators 可见。 | `{report_id, status, routed_to?}` |
-| `GET /api/v1/applet/ping` | query none | `public_metadata` 或 `service_signature`；不得泄露 private namespace。 | `{ok, applet_id, service_did, protocol_version}` |
-| `GET /api/v1/applet/describe` | query none | `service_signature` SHOULD；public mode 只返回公开 capabilities。 | `ServiceDescribe`；applet protocols / namespaces / auth capability 放入 `supported_features` / `limits` / 扩展字段。 |
-| `POST /api/v1/applet/transactions` | header `Idempotency-Key` body `{source_service_did, events: EventEnvelope[], ephemeral?}` | `service_signature`; Applet 必须验证每个 event signature、namespace 和 capability；按 `(source_service_did, Idempotency-Key)` 幂等。 | `{ok: true, rejected?, retry_after_ms?}` |
-| `GET /api/v1/applet/actors/{actor_id}` | path `{actor_id}` | `service_signature`; actor_id 必须命中 Applet actor namespace。 | `{exists, actor_id, display_name?, external_ref?}` 或 `not_found` |
-| `GET /api/v1/applet/realms/{realm_id_or_alias}` | path `{realm_id_or_alias}` | `service_signature`; 必须命中 portal namespace 或授权查询。 | `{exists, realm_id?, title?, external_ref?}` |
-| `GET /api/v1/applet/protocols/{protocol}` | path `{protocol}` | 可 public_metadata；实例列表可要求授权。 | `{protocol, display_name, icon_blob_ref?, field_types, instances?}` |
-| `GET /api/v1/applet/third_party/users` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 registration namespace 内。 | `{actor_id?, exists, external_ref?}` |
-| `GET /api/v1/applet/third_party/locations` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 portal namespace 内。 | `{realm_id?, exists, external_ref?}` |
-| `POST /cokret/v1/ice-config` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, mode: string}` | `user_session`; actor 必须有 call/media capability，Media Service 必须被 Realm policy 委托。 | `{ttl_seconds, refresh_lead_seconds, issued_at, issued_at_bucket, bucket_seconds, ice_servers[], constraints?, signature}` |
-| `POST /api/v1/keys/keypackages/upload` | body `{device_id, keypackages[]}` | `user_session` + 当前 device proof;每条 KeyPackage 必须 self-signed 并通过当前 device 签发。 | `{accepted, rejected?, available_count}` |
-| `POST /api/v1/keys/keypackages/claim` | body `{principal_id, count?: int}` | `user_session`;一次性 KeyPackage MUST 原子消费(同 `cx.keys.claim`)。 | `{keypackages[]}` |
-| `POST /api/v1/keys/keypackages/consume` | body `{keypackage_ref}` | `service_signature`(MLS group creator 通常是 service-side 调用) 或 `user_session`。 | `{ok: true, consumed_at}` |
-| `POST /api/v1/keys/keypackages/revoke` | body `{keypackage_ref, reason?}` | `user_session` + 当前 device proof;不可撤销已消费的 KeyPackage。 | `{ok: true, revoked_at}` |
-| `POST /api/v1/directory/announce` | body `{resource_kind, resource_id, discovery_state, source_refs, as_of, principal_server_did, ttl_seconds?, supersedes_announce_id?}` | `user_session` 或 `service_signature` 视 resource_kind；principal/server MUST 签发 discovery state 与 ingest request。 | `{announce_id, indexed_at, effective_ttl_seconds, next_revalidation_after, warnings?}` |
-| `POST /api/v1/directory/withdraw` | body `{resource_id, governance_proof, reason?, effective_at?}` | `user_session` 或 `service_signature`；必须由 resource governance key 证明撤销权。 | `{withdrawal_ref, acked_at}` |
-| `POST /auth/account/session-grants` | body `SessionGrantRequest {principal_id, device_id?, requested_scope?, proof}` | DID-bound signature / paired device proof / passkey assertion / OIDC code exchange proof；此 endpoint **不**挂在 `/api/v1` 下，SDK MUST 走 path-level `servers` 覆盖。请求体 proof MUST 绑定 challenge、audience、request canonical hash、principal 与 device。 | `SessionGrantResponse {principal_id, device_id?, session_grant, expires_at, granted_scope?}` |
-| `POST /auth/account/device-pair` | body `{pairing_code, new_device_pubkey, challenge_signature}` | `user_session` + existing device proof + freshly minted pairing code(短 TTL, one-time, audience-bound to this Auth Server origin); endpoint 与 session-grants 同一部署本地 namespace；服务端 MUST 对 `(principal_id, source_device_id, target_origin)` 限速并防重放。 | `{device_id, authorized_event_ref}` |
-| `POST /auth/account/agent-key-pair` | body `{agent_principal_id, verification_method, public_key, proof_of_possession, runtime_attestation?}` | `user_session` + pairing request；endpoint 不挂在 `/api/v1` 下。`verification_method` 的 DID 部分 MUST 与 `agent_principal_id` bit-identical，不匹配 `failed_precondition` / `verification_method_principal_mismatch`。 | `{ok: true, authorized_event_ref}` |
-| `GET /api/v1/agents` | query `{cursor?, limit?, state?}` | `user_session` bound to controller principal；只列出调用方可管理的 native personal agent。 | `{agents[], next_cursor?, has_more}` |
-| `POST /api/v1/agents` | body `{display_name?, requested_scope?, accountability?, pairing_ttl_ms?}` | controller `user_session`；编排 Actor Profile、accountability_grant、初始 capability grant 与 runtime pairing request。 | `{agent_principal_id, pairing_request_id, pairing_code?, expires_at}` |
-| `GET /api/v1/agents/{agent_principal_id}` | path `{agent_principal_id}` | controller `user_session` 或 policy-authorized admin。 | `{agent, status, grants?, key_state?}` |
-| `POST /api/v1/agents/{agent_principal_id}/pause` | path `{agent_principal_id}` body `{reason?}` | controller-only；暂停 agent 并拒绝新 agent session grant。 | `{ok: true, status: "paused"}` |
-| `POST /api/v1/agents/{agent_principal_id}/resume` | path `{agent_principal_id}` body `{sidecar_exposure_ack?}` | controller-only；必须重新校验 controller/agent/key/grant freshness，并在 pause 期间新增 sidecar exposure 时要求显式确认。 | `{ok: true, status: "active"}` |
-| `POST /api/v1/agents/{agent_principal_id}/deactivate` | path `{agent_principal_id}` body `{reason?}` | controller-only terminal transition；fan-out agent key revoke、capability revoke 与 runtime endpoint revoke。URL 路径与 op id `cx.agent.deactivate` 保持一致；旧 `/revoke` 路径不再绑定该 op。 | `{ok: true, status: "deactivated"}` |
-| `POST /api/v1/agents/{agent_principal_id}/rotate-key` | path `{agent_principal_id}` body `{replacement_key, proof_of_possession}` | controller + active agent key policy；不得扩大 agent key scope 或延长有效期。 | `{ok: true, authorized_event_ref}` |
-| `POST /api/v1/agents/{agent_principal_id}/grants` | path `{agent_principal_id}` body `{grant}` | controller grant authority；grant subject 必须是该 agent principal，且不得超过 controller 可委托范围。 | `{ok: true, grant_id}` |
-| `DELETE /api/v1/agents/{agent_principal_id}/grants/{grant_id}` | path `{agent_principal_id, grant_id}` | controller grant authority；撤销或解绑 agent grant，后续 agent action proof fail closed。 | `{ok: true, revoked_at}` |
-| `POST /api/v1/agent-sidecar-threads:ensure` | body `{realm_id, controller_principal_id, agent_principal_id}` | controller `user_session` + `cx.agent.sidecar_thread.ensure`；在 eligibility、Circle membership active，且若 Circle 为 MLS-backed 则 MLS membership active 后，才 fanout notification/context。 | `{ok: true, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliation?}` |
-| `POST /auth/account/oidc/callback` | body `AccountOidcCallbackRequest {state, code, nonce?, redirect_uri?}` | `public_metadata` 的回调入口(OIDC IdP 重定向);服务端 MUST 校验 `state` / `nonce` / `redirect_uri` 并把外部主体映射到 Cokret principal。 | `AccountOidcCallbackResponse {principal_id, session?}` 或 `{redirect_url}` |
-| `GET /admin/server/status` | query none | `admin_bearer`(MUST 是 admin role 的 user_session)。该 endpoint **不**挂在 `/api/v1` 下。 | `{service_did, build, uptime_seconds, registry_versions, queues?}` |
-| `POST /admin/accounts/{account_id}/status` | path `{account_id}` body `{action: enum(suspend, restore, ...), reason?}` | `admin_bearer`;reducer 同时写 `cx.account.status`(必须由 admin 签发)。 | `{ok: true, status, applied_at}` |
-| `POST /admin/devices/{device_id}/revoke` | path `{device_id}` body `{reason?}` | `admin_bearer`;触发 `cx.device.revoke` + capability fanout。 | `{ok: true, revoked_at}` |
-| `GET /admin/moderation/queue` | query `{realm_id?, status?, cursor?, limit?}` | `admin_bearer` 与 moderator capability;只返回调用方有 moderation scope 的 Realm。 | `{reports[], next_cursor?, has_more}` |
-| `GET /api/v1/mimi/provider-directory` | query `{provider_did?, capabilities?: string[]}` | `public_metadata`;provider 列表本身公开。 | `{providers[]}` |
-| `POST /api/v1/mimi/key-material` | body `{requester: did, flow_id: id, device_id: id, mimi_room_uri?: string, realm_id?: id, mls_group_id?: string, epoch?: int, proofs?: proof[]}` | `service_signature`(MIMI provider-to-provider) 或 `user_or_service`。 | `{key_packages?, group_info?, failures?, signature?}` |
-| `PUT /api/v1/mimi/flows/{flow_id}/update` | path `{flow_id}` body `cx.schema.mimi_interop.v1` room update | `service_signature`。 | `{ok: true, version}` |
-| `POST /api/v1/mimi/flows/{flow_id}/notify` | path `{flow_id}` body MIMI notify body | `service_signature`。 | `{accepted: true}` |
-| `POST /api/v1/mimi/flows/{flow_id}/messages` | path `{flow_id}` body `{events[]}` | `service_signature`;MIMI 跨 provider message。 | `{accepted[], rejected?[]}` |
-| `GET /api/v1/mimi/flows/{flow_id}/group-info` | path `{flow_id}` | `service_signature` 或 `user_session` (member proof)。 | `OperationResult.data.group_info`（字段对齐 `cx.schema.mimi_interop.v1` 的 MIMI provider directory profile） |
-| `POST /api/v1/mimi/consent/request` | body MIMI consent request body | `service_signature` 或 `user_session`。 | `{consent_id, status}` |
-| `POST /api/v1/mimi/consent/update` | body MIMI consent update body | `service_signature` 或 `user_session`。 | `{ok: true, applied_at}` |
-| `POST /api/v1/mimi/identifiers/query` | body `{identifiers[], proof?}` | `service_signature` 或 `user_session`;不得用于枚举攻击,query MUST 限速。 | `{results[], has_more}` |
-| `POST /api/v1/mimi/report-abuse` | body MIMI abuse report body | `user_session` 或 `service_signature`;同 `cx.moderation.report` 互补。 | `{report_id, routed_to?}` |
-| `POST /api/v1/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用；不接受 user_session。 | `{relayed: true, expires_at?}` |
+| `GET /_cokret/describe` | query: none 或 `service_type?` | `public_metadata`；不得返回私有 topology、secret 或未授权 internal endpoint。 | `ServiceDescribe`（`ck.schema.service_describe.v1`；必须含 `service_did`、`trust_domain`、claim-level 字段、`plaintext_visibility`、`development_mode`，且 `development_mode=true` 时 `verified_profiles=[]`） |
+| `GET /_cokret/root/identity/describe` | query: none | `public_metadata`；可限流。 | `ServiceDescribe`；identity-specific 能力通过 `supported_features` / `limits` / 扩展字段表达。 |
+| `POST /_cokret/root/identity/resolve` | body `{did: did, include?: string[]}` | `public_metadata`；private DID MAY require `user_session` 或 presentation proof。 | `{did_document, key_log_head?, seq?, receipts?, method_evidence?}` |
+| `GET /_cokret/root/identity/document` | query `{did: did, version?: string}` | 同 `identity.resolve`。 | `{did_document, head_event_digest?, seq?, receipts?}` |
+| `GET /_cokret/root/identity/log` | query `{did: did, cursor?: cursor, limit?: int}` | public DID 可公开；private / pairwise DID MUST require holder-approved proof。 | `{events[], next_cursor?, has_more}` |
+| `POST /_cokret/root/identity/submit-did-operation` | body `{did: did, did_method: string, seq?: int, prev_event_digest?: string, operation: object, proofs: proof[], policy_context?: object}` | `device_proof` 或 recovery proof；MUST 满足 DID method / key-log 授权；`operation` 是 DID-method-specific 原始操作，不是通用 JSON Patch。 | `{status, did, seq?, head_event_digest?, operation_ref?, receipts?}` |
+| `GET /_cokret/root/identity/receipts` | query `{did: did, head: string}` | 同 DID 可见性；witness 可公开最小 receipt。 | `{receipts[], threshold_met?: boolean}` |
+| `GET /_cokret/self/events/describe` | query none 或 `{actor_id?: did, realm_id?: id}` | `public_metadata` 或 `user_session`；私有 frontier 需认证。 | `ServiceDescribe`；event schema / reducer / signature 能力通过 `supported_features`、`supported_profiles`、`limits` 或扩展字段表达。 |
+| `POST /_cokret/self/events` | body 是 `EventSubmitEnvelope`（单事件）或 `{events: EventSubmitEnvelope[]}`（批量）；submit 输入 MUST NOT 携带 reducer-managed accepted-output 字段（如 `actor_kind` / `effective_scope`）。MUST NOT 使用 `{event: ...}` wrapper。 | `user_session` / `device_proof` / `service_signature`；MUST 验证 actor DID、签名、capability、Realm policy、`actor_seq`、`prev_refs`、`refs[role=authorized_by]`。 | `{status, accepted[], duplicate[]?, rejected[]?, actor_frontier?, realm_frontier?, cursor?}` |
+| `GET /_cokret/self/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Realm policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
+| `POST /_cokret/self/events/resolve` | body `{event_ids?: id[], event_digests?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Realm policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
+| `GET /_cokret/self/events` | query `{realms?: id[], actors?: did[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object}` | 调用方必须对每个 selector 元素满足读取约束：actor scope 走 actor history visibility；realm scope 走 membership frontier + history visibility + E2EE epoch policy。`realms[]` ∪ 内部、`actors[]` ∪ 内部、二者组合为交集。批次内顺序规则见 §3.3。 | `{events[], next_cursor?, prev_cursor?, has_more}` |
+| `GET /_cokret/self/events/subscribe` | query `{realms?: id[], actors?: did[], after?: cursor, catchup?: boolean}` | 同 `GET /_cokret/self/events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-realm `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, realm_id?: id, cursor?: cursor, payload?: object, reconnect_after_ms?: int}` |
+| `GET /_cokret/self/events/frontier` | query `{actor_id?: did, realm_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Realm 或 private DID。 | `{frontier, receipts?}` |
+| `POST /_cokret/self/ephemeral` | body `ck.schema.ephemeral_envelope.v1` (`kind` ∈ `ck.presence` / `ck.typing` / `ck.receipt.read` / `ck.call.signal`) | `user_session` 或 service signature；actor 必须可在 `realm_id` 的 ephemeral channel 中广播该 kind，并持有对应 `ck.presence.broadcast` / `ck.typing.broadcast` / `ck.receipt.broadcast` / `ck.call.signal.send` action。 | `{accepted: true, kind, realm_id, dispatched_to?, server_received_at?}`；不生成 Event ID、不推进 actor_seq / Realm frontier。 |
+| `POST /_cokret/self/rtc/token` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, focus_id: string, capability_refs?: id[], desired_media?: object}` | `user_session` 或 device proof；调用方 MUST 持 `ck.call.join`，并根据 `desired_media` 持 `ck.call.screen_share` 等子 capability；token issuer DID MUST 出现在 `ck.realm.media_service.service_id` 锚定列表；当 `ck.call.state.session_focus` 已存在，请求的 `focus_id` MUST 等于该值（否则 `focus_mismatch`）。 | `{focus_id, type, connect_url, backend_token, participant_identity, participant_binding, expires_at, service_signature}`；`expires_at - now ≤ 600s`（SHOULD ≤ 300s）。`participant_binding.scheme="ck.media.participant_binding.v1"`，覆盖 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)`。CXP-0010 媒体服务 token exchange；详见 [`../crypto-media/webrtc-signaling.md` §6.4](../crypto-media/webrtc-signaling.md)。 |
+| `GET /_cokret/self/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object, set_presence?: enum}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts) streaming NDJSON 推送，不是裸事件读。 | `application/x-ndjson` AccountSubscribeFrame 流;frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`;`dropped` / `resync_required` 可带 `reconnect_after_ms`。 |
+| `POST /_cokret/self/account/cursor/revoke` | body `{cursor: cursor, reason_code: string, revoke_scope?: enum(this_cursor,same_device,same_session)}` | `user_session` bound to principal/device；high-assurance optional profile。 | `{revoked: boolean, expires_at: datetime}`；撤销命中后的 cursor 使用返回 `cursor_revoked`，不得推进任何 server-side state。 |
+| `GET /_cokret/self/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
+| `GET /_cokret/self/snapshot/head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`、`created_by`、`created_at`、`authority_binding`（与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）。high-assurance profile MUST 校验 `authority_binding` 证明 `created_by` 在 `created_at` 时被 Realm policy / witness quorum 授权。 | `{snapshot_ref, state_digest, frontier, event_set_commitment, created_by, created_at, authority_binding, verification_hints?, signature}` |
+| `GET /_cokret/self/projection/spaces` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | `user_session` 或服务签名；调用方必须满足该 Realm 的 metadata/read 可见性。 | `{realm_id, spaces[], total, next_cursor?, has_more}`；`spaces[]` 行含 `space_id, realm_id, kind, title, parent_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
+| `GET /_cokret/self/projection/flows` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `ck.projection.spaces`。 | `{realm_id, flows[], total, next_cursor?, has_more}`；`flows[]` 行可含从 plaintext-visible `metadata.title` / `metadata.summary` 派生的 `title?` / `summary?`，以及 `flow_id, realm_id, board_space_id?, list_space_id?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。`board_space_id/list_space_id/rank` 是从 `ck.component.flow.position.v1` cell 派生的只读 view 字段，不是 Flow object 的 canonical truth；当 metadata 加密且服务端不可见时 `title` / `summary` MUST 省略或为 `null`。 |
+| `GET /_cokret/self/projection/morphs` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `ck.projection.spaces`。 | `{realm_id, morphs[], total, next_cursor?, has_more}`；`morphs[]` 行含 `morph_id, realm_id, morph_type, title?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
+| `GET /_cokret/find/directory/describe` | query none | `public_metadata`；可限流。 | `ServiceDescribe`；directory resource / discovery capability 放入 `supported_features` / `limits` / 扩展字段。 |
+| `POST /_cokret/find/directory/search-realms` | body `{query?: string, organization_did?: did, source_realm_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?, has_more}` |
+| `POST /_cokret/find/directory/resolve-realm` | body `{realm_id?: id, alias?: string, invite_token?: string, signed_link?: string, requester?: did, proofs?: proof[]}` | invite / restricted / secret Realm 按统一 `not_found` 失败。 | `{realm_preview, stripped_state?, join_rule?, join_candidates?}` |
+| `POST /_cokret/find/directory/resolve-target` | body `{address: string, requester?: did, proofs?: proof[], token?: string}` | 对象级地址解析（`resolve_realm` 泛化）；`invite` / `preview` token 必须按 target descriptor 与 effective link type 校验；未授权统一 `not_found`。详见 [`../discovery/object-addressing.md` §6](../discovery/object-addressing.md)。 | `{target_kind, realm_preview?, object_preview?, join_rule?, as_of, source_refs, join_candidates?, ...}`；preview token 成功时只返回 `ck.realm.preview_policy` 允许字段，除非另有 join routing 权限否则省略 `join_candidates[]`。 |
+| `POST /_cokret/find/directory/search-organizations` | body `{query?: string, claims?: object, cursor?: cursor, limit?: int}` | 仅返回公开或授权可发现组织。 | `{results[], next_cursor?, has_more}` |
+| `POST /_cokret/find/directory/resolve-organization` | body `{organization_did?: did, handle?: string, proofs?: proof[]}` | 公开组织 DID 可解析不表示成员或拓扑公开。 | `{organization_preview, did_document_ref?, endorsements?}` |
+| `POST /_cokret/find/directory/search-actors` | body `{query?: string, realm_id?: id, organization_did?: did, cursor?: cursor, limit?: int}` | 不得泄露 pairwise/private DID 或未披露组织账号。 | `{results[], next_cursor?, has_more}` |
+| `POST /_cokret/find/directory/search-users` | body `{query: string, realm_id?: id, limit?: int, intent?: "mention"\|"invite"\|"member_add"}` | `user_session`; 用于 mention autocomplete / 成员添加候选，必须受共同 Realm / directory policy 限制。请求词不得进入 URL、Referer 或明文 access log。 | `{results[], has_more}`；每项 MAY 含 `{handle, display_name?, verified?, subject?}`，但受限 handle 未授权时不得披露 DID / delivery binding。 |
+| `POST /_cokret/find/directory/resolve-handle` | body `{handle: string, expected_did?: did, proof_challenge?: string, intent?: "lookup"\|"mention"\|"invite"\|"member_add", realm_id?: id, requester?: did, proofs?: proof[]}` | 按 handle 双向验证规则；受限 / 组织 handle 需 presentation；返回 `member_delivery_binding` 时必须有 issuer claim / policy 证明。 | `{did, subject, handle, verified: boolean, claims?, member_delivery_binding?, source_refs?, expires_at?}` |
+| `POST /_cokret/find/directory/list-handles-for-subject` | body `{subject: did, realm_id?: id, intent?: "lookup"\|"mention"\|"invite"\|"member_add", requester?: did, proof_challenge?: string, proofs?: proof[], as_of?: datetime, cursor?: cursor, limit?: int}` | 按 subject visibility、issuer trust、audience、requester policy 和 Realm intent 过滤；不得因为共同 Realm membership 单独披露受限组织 handle。 | `ck.schema.list_handles_for_subject_response.v1`：`{subject, claims[], primary_handle?, as_of, next_cursor?, has_more}`；`claims[]` 是当前 context 可见 signed handle claims，且 `claims[].subject` MUST 等于响应 `subject`。 |
+| `POST /_cokret/self/blob/upload` | body binary/multipart + metadata `{realm_id?, content_digest?, size_bytes?, media_type?, filename?, purpose?}`；`Content-Type` optional | `user_session`; upload capability、quota、media policy；私有 blob 绑定 Realm / actor。 | `{blob_ref, size_bytes, media_type?, content_digest, upload_receipt?}` |
+| `HEAD/GET /_cokret/self/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Cokret-Wait-For?` | 公开 blob 可匿名；header auth 路径必须验证 actor/device/Realm/purpose/expiry；除 §5.4 `ck.blob.presign` 的短 TTL bearer URL 例外外，不得 query string 认证。 | bytes 或 headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
+| `POST /_cokret/edge/push/register-device` | body `{device_id: id, push_gateway: url, push_key: string, platform?: string, app_id?: string, display_name?: string, recipient_service_did?: did}` | `user_session` for same principal/device；registration 作用域绑定当前 Principal Server service DID；push_key 必须被加密或最小披露存储。 | `{ok: true, registration_id?, expires_at?}` |
+| `POST /_cokret/edge/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
+| `POST /_cokret/edge/push/notify` | 默认 body `PushNotifyBlindRequest {notification: {push_target_id, wakeup_kind, push_hint?, counts?, devices[]}}`；可见通知必须使用互斥的 `PushNotifyVisibleRequest` profile-gated 形态。 | 来自被授权 Sync 或通知服务的 `service_signature`；默认 MUST 遵守 `ck.profile.push_gateway.blind_wakeup.v1`，不得携带 event / realm / sender 识别字段。`visible_notification` 只在 profile、Realm policy、设备 opt-in 和 UI disclosure 同时满足时允许。 | `{rejected[]}` |
+| `POST /_cokret/self/device_messages` | header `Idempotency-Key` body `DeviceMessagesPutRequest {messages: {principal_id: {device_id: DeviceMessageTarget {kind, content, expires_at}}}}` | sender `user_session` / device key；目标必须是授权 device；服务端入队前 MUST materialize `DeviceMessageEnvelope` 并绑定 `recipient_principal_id` / `recipient_device_id` / `expires_at`；按 `(sender, Idempotency-Key)` 幂等。验证消息使用 `ck.key.verification.*` kind，且不得作为持久 Event history；缺失、已过期或超过 TTL 上限的消息 MUST reject。 | `{ok: true, delivered?, unknown_devices?}` |
+| `GET /_cokret/self/device_messages` | query `{from?: cursor, limit?: int}` | `user_session` bound to current device；只返回该 device 队列。 | `{messages: DeviceMessageEnvelope[], next_cursor?, has_more, limited?}` |
+| `POST /_cokret/self/keys/upload` | body `{device_id: id, one_time_keys?: object, fallback_keys?: object, device_signature: signature}` | current device proof；key 必须链接 self-signing / principal key。 | `{one_time_key_counts, fallback_keys?}` |
+| `POST /_cokret/self/keys/query` | body `{device_keys: {principal_id: string[]}, timeout_ms?: int}` | `user_session`; 查询范围可按关系 / Realm 限制。 | `{device_keys, failures?}` |
+| `POST /_cokret/self/keys/claim` | body `{one_time_keys: {principal_id: {device_id: algorithm}}}` | `user_session`; one-time key MUST 原子消费。 | `{one_time_keys, failures?}` |
+| `PUT /_cokret/self/keys/backups/{backup_id}` | path `{backup_id}` body `ck.schema.key_backup.v1` | current device proof / DID proof / recovery proof；path 与 body backup id 必须一致。 | `{status, backup_id, ciphertext_digest}` |
+| `GET /_cokret/self/keys/backups` | query `{series_id?: id, backup_class?: string, cursor?: cursor, limit?: int}` | `user_session` bound to current principal/device 或 recovery proof。 | `{backups[], next_cursor?, has_more}` |
+| `GET /_cokret/self/keys/backups/{backup_id}` | path `{backup_id}` | 同 principal 当前授权 device、recovery policy 或授权组织恢复服务。 | `ck.schema.key_backup.v1` |
+| `DELETE /_cokret/self/keys/backups/{backup_id}` | path `{backup_id}` | 高风险 device proof、DID proof 或 recovery policy proof。 | `{deleted: true}` |
+| `POST /_cokret/root/identity/recovery-sessions` | body `ck.schema.recovery_session.v1#/$defs/create_request` | 创建 device recovery session；server MUST snapshot active recovery policy and accepted `ssk_generation`, issue a 256-bit one-time challenge, and set TTL <= 900s. | `ck.schema.recovery_session.v1` |
+| `GET /_cokret/root/identity/recovery-sessions/{recovery_session_id}` | path `{recovery_session_id}` | 仅 session principal / requesting device / authorized recovery coordinator 可见；不得枚举他人 session。 | `ck.schema.recovery_session.v1` |
+| `POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs` | path `{recovery_session_id}` body `ck.schema.recovery_session.v1#/$defs/proof_submit_request` | proof MUST verify against the server-reconstructed canonical transcript and echo the session challenge. | `ck.schema.recovery_session.v1#/$defs/proof_submit_response` |
+| `POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete` | path `{recovery_session_id}` body `ck.schema.recovery_session.v1#/$defs/complete_request` | Requires `state=verified`; MUST emit accepted `ck.device.authorize` and `ck.device.list_update` before returning completed. | `ck.schema.recovery_session.v1#/$defs/complete_response` |
+| `GET /_cokret/self/authz/effective-grants` | query `{realm_id: id, subject: did, at?: string}` | subject 本人、Realm admin、authorized service；不得枚举无关 subject。 | `{grants[], state_digest?, evaluated_at}` |
+| `GET /_cokret/self/authz/invites` | query `{realm_id?: id, subject: did 或 string, cursor?: cursor}` | subject 本人或 inviter/admin；secret invites 不可枚举。 | `{invites[], next_cursor?, has_more}` |
+| `POST /_cokret/self/authz/check` | body `{actor_id: did, action: string, resource?: object, context?: object}` | caller 必须是相关 actor、Events/Sync 预检查服务或 policy-authorized service。 | `{decision, matched_grants?, applied_constraints?, policy_results?, missing_proofs?, frontier?, freshness_state?, last_known_frontier_age_ms?, anchorer_status?, cache_expires_at?, reason_code?, retry_after_ms?, obligations?}` |
+| `POST /_cokret/self/policy/check` | body `PolicyCheckRequest {request_id, realm_id, request_canonical_digest, action, actor, source, event_preview?, auth_context?}` | `policy_token` / `service_signature`; 只接收最小披露字段。 | `PolicyCheckResponse {request_id, bound_to, decision, reason_code, expires_at, auth_state_digest, policy_frontier_digest, membership_frontier_digest, obligations?, signature}`。 |
+| `POST /_cokret/self/moderation/report` | body `{realm_id: id, target_ref: id, report_reason_code: enum, description?: string, reporter: did, evidence_refs?: id[]}` | `user_session`; reporter 必须可见 target；report 仅对 moderators 可见。 | `{report_id, status, routed_to?}` |
+| `GET /_cokret/edge/applet/ping` | query none | `public_metadata` 或 `service_signature`；不得泄露 private namespace。 | `{ok, applet_id, service_did, protocol_version}` |
+| `GET /_cokret/edge/applet/describe` | query none | `service_signature` SHOULD；public mode 只返回公开 capabilities。 | `ServiceDescribe`；applet protocols / namespaces / auth capability 放入 `supported_features` / `limits` / 扩展字段。 |
+| `POST /_cokret/edge/applet/transactions` | header `Idempotency-Key` body `{source_service_did, events: EventEnvelope[], ephemeral?}` | `service_signature`; Applet 必须验证每个 event signature、namespace 和 capability；按 `(source_service_did, Idempotency-Key)` 幂等。 | `{ok: true, rejected?, retry_after_ms?}` |
+| `GET /_cokret/edge/applet/actors/{actor_id}` | path `{actor_id}` | `service_signature`; actor_id 必须命中 Applet actor namespace。 | `{exists, actor_id, display_name?, external_ref?}` 或 `not_found` |
+| `GET /_cokret/edge/applet/realms/{realm_id_or_alias}` | path `{realm_id_or_alias}` | `service_signature`; 必须命中 portal namespace 或授权查询。 | `{exists, realm_id?, title?, external_ref?}` |
+| `GET /_cokret/edge/applet/protocols/{protocol}` | path `{protocol}` | 可 public_metadata；实例列表可要求授权。 | `{protocol, display_name, icon_blob_ref?, field_types, instances?}` |
+| `GET /_cokret/edge/applet/third_party/users` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 registration namespace 内。 | `{actor_id?, exists, external_ref?}` |
+| `GET /_cokret/edge/applet/third_party/locations` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 portal namespace 内。 | `{realm_id?, exists, external_ref?}` |
+| `POST /_cokret/self/rtc/ice-config` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, mode: string}` | `user_session`; actor 必须有 call/media capability，Media Service 必须被 Realm policy 委托。 | `{ttl_seconds, refresh_lead_seconds, issued_at, issued_at_bucket, bucket_seconds, ice_servers[], constraints?, signature}` |
+| `POST /_cokret/self/keys/keypackages/upload` | body `{device_id, keypackages[]}` | `user_session` + 当前 device proof;每条 KeyPackage 必须 self-signed 并通过当前 device 签发。 | `{accepted, rejected?, available_count}` |
+| `POST /_cokret/self/keys/keypackages/claim` | body `{principal_id, count?: int}` | `user_session`;一次性 KeyPackage MUST 原子消费(同 `ck.keys.claim`)。 | `{keypackages[]}` |
+| `POST /_cokret/self/keys/keypackages/consume` | body `{keypackage_ref}` | `service_signature`(MLS group creator 通常是 service-side 调用) 或 `user_session`。 | `{ok: true, consumed_at}` |
+| `POST /_cokret/self/keys/keypackages/revoke` | body `{keypackage_ref, reason?}` | `user_session` + 当前 device proof;不可撤销已消费的 KeyPackage。 | `{ok: true, revoked_at}` |
+| `POST /_cokret/find/directory/announce` | body `{resource_kind, resource_id, discovery_state, source_refs, as_of, principal_server_did, ttl_seconds?, supersedes_announce_id?}` | `user_session` 或 `service_signature` 视 resource_kind；principal/server MUST 签发 discovery state 与 ingest request。 | `{announce_id, indexed_at, effective_ttl_seconds, next_revalidation_after, warnings?}` |
+| `POST /_cokret/find/directory/withdraw` | body `{resource_id, governance_proof, reason?, effective_at?}` | `user_session` 或 `service_signature`；必须由 resource governance key 证明撤销权。 | `{withdrawal_ref, acked_at}` |
+| `POST /_cokret/gate/account/session-grants` | body `SessionGrantRequest {principal_id, device_id?, requested_scope?, proof}` | DID-bound signature / paired device proof / passkey assertion / OIDC code exchange proof。请求体 proof MUST 绑定 challenge、audience、request canonical hash、principal 与 device。 | `SessionGrantResponse {principal_id, device_id?, session_grant, expires_at, granted_scope?}` |
+| `POST /_cokret/gate/account/device-pair` | body `{pairing_code, new_device_pubkey, challenge_signature}` | `user_session` + existing device proof + freshly minted pairing code(短 TTL, one-time, audience-bound to this Auth Server origin); endpoint 与 session-grants 同一部署本地 namespace；服务端 MUST 对 `(principal_id, source_device_id, target_origin)` 限速并防重放。 | `{device_id, authorized_event_ref}` |
+| `POST /_cokret/gate/account/agent-key-pair` | body `{agent_principal_id, verification_method, public_key, proof_of_possession, runtime_attestation?}` | `user_session` + pairing request。`verification_method` 的 DID 部分 MUST 与 `agent_principal_id` bit-identical，不匹配 `failed_precondition` / `verification_method_principal_mismatch`。 | `{ok: true, authorized_event_ref}` |
+| `GET /_cokret/self/agents` | query `{cursor?, limit?, state?}` | `user_session` bound to controller principal；只列出调用方可管理的 native personal agent。 | `{agents[], next_cursor?, has_more}` |
+| `POST /_cokret/self/agents` | body `{display_name?, requested_scope?, accountability?, pairing_ttl_ms?}` | controller `user_session`；编排 Actor Profile、accountability_grant、初始 capability grant 与 runtime pairing request。 | `{agent_principal_id, pairing_request_id, pairing_code?, expires_at}` |
+| `GET /_cokret/self/agents/{agent_principal_id}` | path `{agent_principal_id}` | controller `user_session` 或 policy-authorized admin。 | `{agent, status, grants?, key_state?}` |
+| `POST /_cokret/self/agents/{agent_principal_id}/pause` | path `{agent_principal_id}` body `{reason?}` | controller-only；暂停 agent 并拒绝新 agent session grant。 | `{ok: true, status: "paused"}` |
+| `POST /_cokret/self/agents/{agent_principal_id}/resume` | path `{agent_principal_id}` body `{sidecar_exposure_ack?}` | controller-only；必须重新校验 controller/agent/key/grant freshness，并在 pause 期间新增 sidecar exposure 时要求显式确认。 | `{ok: true, status: "active"}` |
+| `POST /_cokret/self/agents/{agent_principal_id}/deactivate` | path `{agent_principal_id}` body `{reason?}` | controller-only terminal transition；fan-out agent key revoke、capability revoke 与 runtime endpoint revoke。URL 路径与 op id `ck.agent.deactivate` 保持一致；旧 `/revoke` 路径不再绑定该 op。 | `{ok: true, status: "deactivated"}` |
+| `POST /_cokret/self/agents/{agent_principal_id}/rotate-key` | path `{agent_principal_id}` body `{replacement_key, proof_of_possession}` | controller + active agent key policy；不得扩大 agent key scope 或延长有效期。 | `{ok: true, authorized_event_ref}` |
+| `POST /_cokret/self/agents/{agent_principal_id}/grants` | path `{agent_principal_id}` body `{grant}` | controller grant authority；grant subject 必须是该 agent principal，且不得超过 controller 可委托范围。 | `{ok: true, grant_id}` |
+| `DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}` | path `{agent_principal_id, grant_id}` | controller grant authority；撤销或解绑 agent grant，后续 agent action proof fail closed。 | `{ok: true, revoked_at}` |
+| `POST /_cokret/self/agent-sidecar-threads:ensure` | body `{realm_id, controller_principal_id, agent_principal_id}` | controller `user_session` + `ck.agent.sidecar_thread.ensure`；在 eligibility、Circle membership active，且若 Circle 为 MLS-backed 则 MLS membership active 后，才 fanout notification/context。 | `{ok: true, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliation?}` |
+| `POST /_cokret/gate/account/oidc/callback` | body `AccountOidcCallbackRequest {state, code, nonce?, redirect_uri?}` | `public_metadata` 的回调入口(OIDC IdP 重定向);服务端 MUST 校验 `state` / `nonce` / `redirect_uri` 并把外部主体映射到 Cokret principal。 | `AccountOidcCallbackResponse {principal_id, session?}` 或 `{redirect_url}` |
+| `GET /_cokret/local/admin/server/status` | query none | `admin_bearer`(MUST 是 admin role 的 user_session)。 | `{service_did, build, uptime_seconds, registry_versions, queues?}` |
+| `POST /_cokret/local/admin/accounts/{account_id}/status` | path `{account_id}` body `{action: enum(suspend, restore, ...), reason?}` | `admin_bearer`;reducer 同时写 `ck.account.status`(必须由 admin 签发)。 | `{ok: true, status, applied_at}` |
+| `POST /_cokret/local/admin/devices/{device_id}/revoke` | path `{device_id}` body `{reason?}` | `admin_bearer`;触发 `ck.device.revoke` + capability fanout。 | `{ok: true, revoked_at}` |
+| `GET /_cokret/local/admin/moderation/queue` | query `{realm_id?, status?, cursor?, limit?}` | `admin_bearer` 与 moderator capability;只返回调用方有 moderation scope 的 Realm。 | `{reports[], next_cursor?, has_more}` |
+| `GET /_cokret/open/mimi/provider-directory` | query `{provider_did?, capabilities?: string[]}` | `public_metadata`;provider 列表本身公开。 | `{providers[]}` |
+| `POST /_cokret/open/mimi/key-material` | body `{requester: did, flow_id: id, device_id: id, mimi_room_uri?: string, realm_id?: id, mls_group_id?: string, epoch?: int, proofs?: proof[]}` | `service_signature`(MIMI provider-to-provider) 或 `user_or_service`。 | `{key_packages?, group_info?, failures?, signature?}` |
+| `PUT /_cokret/open/mimi/flows/{flow_id}/update` | path `{flow_id}` body `ck.schema.mimi_interop.v1` room update | `service_signature`。 | `{ok: true, version}` |
+| `POST /_cokret/open/mimi/flows/{flow_id}/notify` | path `{flow_id}` body MIMI notify body | `service_signature`。 | `{accepted: true}` |
+| `POST /_cokret/open/mimi/flows/{flow_id}/messages` | path `{flow_id}` body `{events[]}` | `service_signature`;MIMI 跨 provider message。 | `{accepted[], rejected?[]}` |
+| `GET /_cokret/open/mimi/flows/{flow_id}/group-info` | path `{flow_id}` | `service_signature` 或 `user_session` (member proof)。 | `OperationResult.data.group_info`（字段对齐 `ck.schema.mimi_interop.v1` 的 MIMI provider directory profile） |
+| `POST /_cokret/open/mimi/consent/request` | body MIMI consent request body | `service_signature` 或 `user_session`。 | `{consent_id, status}` |
+| `POST /_cokret/open/mimi/consent/update` | body MIMI consent update body | `service_signature` 或 `user_session`。 | `{ok: true, applied_at}` |
+| `POST /_cokret/open/mimi/identifiers/query` | body `{identifiers[], proof?}` | `service_signature` 或 `user_session`;不得用于枚举攻击,query MUST 限速。 | `{results[], has_more}` |
+| `POST /_cokret/open/mimi/report-abuse` | body MIMI abuse report body | `user_session` 或 `service_signature`;同 `ck.moderation.report` 互补。 | `{report_id, routed_to?}` |
+| `POST /_cokret/open/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用；不接受 user_session。 | `{relayed: true, expires_at?}` |
 
 > **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(operation_id 的权威计数由 generated registry 视图 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 维护，本文不硬编码数字；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中；之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
 
@@ -191,9 +207,9 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 #### 2.3.1 Wire-level JSON 示例
 
-以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-envelope.schema.json expect=valid`(canonical `cx.schema.event.v1` artifact),与 [`event-and-patch.md` §2.3](../models/event-and-patch.md) 的 canonical Event Envelope shape 一致。每条 envelope 均为 reducer-input event,因此携带顶层 `preconditions[]` / `effects[]` / `anchor_ref` 三件套(详见 [`event-and-patch.md` §2.2](../models/event-and-patch.md))。
+以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-envelope.schema.json expect=valid`(canonical `ck.schema.event.v1` artifact),与 [`event-and-patch.md` §2.3](../models/event-and-patch.md) 的 canonical Event Envelope shape 一致。每条 envelope 均为 reducer-input event,因此携带顶层 `preconditions[]` / `effects[]` / `anchor_ref` 三件套(详见 [`event-and-patch.md` §2.2](../models/event-and-patch.md))。
 
-**示例 A — `POST /api/v1/events`(单事件提交,`cx.message.create`)**:
+**示例 A — `POST /_cokret/self/events`(单事件提交,`ck.message.create`)**:
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
@@ -201,7 +217,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 4,
-  "kind": "cx.message.create",
+  "kind": "ck.message.create",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ck:event:019640ed-0000-7000-8000-000000000000"],
@@ -210,13 +226,13 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   ],
   "preconditions": [
     {
-      "cell": "ck:cell:cx.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "predicate": { "op": "head_eq", "value": { "head_event_id": "ck:event:019640ed-0000-7000-8000-000000000000" } }
     }
   ],
   "effects": [
     {
-      "cell": "ck:cell:cx.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "append", "value": { "message_id": "ck:message:019640ed-8000-7000-8000-000000000000" } }
     }
   ],
@@ -224,7 +240,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "payload": {
     "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "track_name": "discussion",
-    "content": { "kind": "cx.content.text", "body": "Sample message" }
+    "content": { "kind": "ck.content.text", "body": "Sample message" }
   },
   "proofs": [
     {
@@ -239,7 +255,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 }
 ```
 
-**示例 B — `GET /api/v1/events?realms=...&after=...&limit=2`(分页响应,`events[]` 中的一条 `cx.message.create`)**:
+**示例 B — `GET /_cokret/self/events?realms=...&after=...&limit=2`(分页响应,`events[]` 中的一条 `ck.message.create`)**:
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
@@ -247,7 +263,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:bob.example",
   "actor_seq": 7,
-  "kind": "cx.message.create",
+  "kind": "ck.message.create",
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e589d34-0001-c00ff00f",
   "prev_refs": ["ck:event:019640ed-8500-7000-8000-000000000000"],
@@ -256,13 +272,13 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   ],
   "preconditions": [
     {
-      "cell": "ck:cell:cx.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "predicate": { "op": "head_eq", "value": { "head_event_id": "ck:event:019640ed-8500-7000-8000-000000000000" } }
     }
   ],
   "effects": [
     {
-      "cell": "ck:cell:cx.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "append", "value": { "message_id": "ck:message:019640ed-9000-7000-8000-000000000000" } }
     }
   ],
@@ -270,7 +286,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "payload": {
     "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "track_name": "discussion",
-    "content": { "kind": "cx.content.text", "body": "Reply" }
+    "content": { "kind": "ck.content.text", "body": "Reply" }
   },
   "proofs": [
     {
@@ -287,7 +303,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 外层分页响应形如 `{events: [<示例 A>, <示例 B>], next_cursor: "<opaque>", has_more: true}`(`events[]` 顺序见 §3.3,`next_cursor` 永远朝更新方向)。
 
-**示例 C — `GET /api/v1/events/subscribe`(NDJSON stream frame 的 `cx.reaction.add` payload)**:
+**示例 C — `GET /_cokret/self/events/subscribe`(NDJSON stream frame 的 `ck.reaction.add` payload)**:
 
 每一帧为一行 JSON;`event` kind frame 携带完整 envelope:
 
@@ -297,7 +313,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:carol.example",
   "actor_seq": 12,
-  "kind": "cx.reaction.add",
+  "kind": "ck.reaction.add",
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e589d40-0002-c00fbeef",
   "prev_refs": ["ck:event:019640ed-9000-7000-8000-000000000000"],
@@ -307,13 +323,13 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   ],
   "preconditions": [
     {
-      "cell": "ck:cell:cx.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
       "predicate": { "op": "satisfies", "value": { "actor_id": "did:web:carol.example", "key": "+1", "absent": true } }
     }
   ],
   "effects": [
     {
-      "cell": "ck:cell:cx.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
       "op": { "kind": "add", "value": { "actor_id": "did:web:carol.example", "key": "+1" } }
     }
   ],
@@ -335,9 +351,9 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 }
 ```
 
-订阅外层帧形如 `{"kind":"event","realm_id":"ck:realm:...","cursor":"<opaque>","payload":<上面 envelope>}`,详见 §2.3 `cx.events.subscribe` 行与 [`client-sync.md`](./client-sync.md) §12。
+订阅外层帧形如 `{"kind":"event","realm_id":"ck:realm:...","cursor":"<opaque>","payload":<上面 envelope>}`,详见 §2.3 `ck.events.subscribe` 行与 [`client-sync.md`](./client-sync.md) §12。
 
-跨域 actor 验证响应（通过 `/api/v1/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy；不得把对端"验证通过"当成最终授权依据。
+跨域 actor 验证响应（通过 `/_cokret/root/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy；不得把对端"验证通过"当成最终授权依据。
 
 ### 2.4 字段级 Schema 索引
 
@@ -347,103 +363,103 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 | `operation_id` | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
-| `cx.server.describe` | 无 | `query.service_type: string - 过滤服务类型` | `ServiceDescribe` | `public_metadata`; 不得返回私有拓扑或 secret。`trust_domain` 与 `plaintext_visibility` 必填；缺失时 callers MUST fail closed。 |
-| `cx.identity.describe_registry` | 无 | 无 | `ServiceDescribe` | `public_metadata`; 可限流；identity-specific 字段只能作为扩展字段追加。 |
-| `cx.identity.resolve` | `did: did - 待解析 DID` | `include: string[] - 请求附加证据，如 key_log/receipts` | `did_document: object`; `key_log_head: id?`; `seq: int?`; `receipts: object[]?`; `method_evidence: object?` | private / pairwise DID 可要求 presentation proof。 |
-| `cx.identity.get_document` | `query.did: did` | `query.version: string - 指定版本或 head` | `did_document: object`; `head_event_digest: string?`; `seq: int?`; `receipts: object[]?` | 可见性同 `cx.identity.resolve`。 |
-| `cx.identity.get_log` | `query.did: did` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `next_cursor: cursor?`; `has_more: boolean` | private / pairwise DID MUST 要求 holder-approved proof。 |
-| `cx.identity.submit_did_operation` | `did: did`; `did_method: string`; `operation: object`; `proofs: proof[]` | `seq: int`; `prev_event_digest: string`; `policy_context: object` | `status: enum(accepted,duplicate,pending)`; `did: did`; `head_event_digest: string?`; `seq: int?`; `operation_ref: string?`; `receipts: object[]?` | MUST 满足 DID method / key-log 授权；`operation` 是 DID-method-specific 原始操作，统一 wrapper 不得把 DID 更新降格为通用 `patch`；幂等键由 DID method operation id / seq / canonical hash 决定。 |
-| `cx.identity.get_receipts` | `query.did: did`; `query.head: string` | 无 | `receipts: object[]`; `threshold_met: boolean?` | 只公开最小 witness receipt。 |
-| `cx.events.describe` | 无 | `query.actor_id: did`; `query.realm_id: id` | `ServiceDescribe` | public metadata 可公开；私有 frontier 需认证后作为扩展字段返回。 |
-| `cx.events.submit` | 单事件提交 body 是 `EventSubmitEnvelope` 对象（顶层 `event_id`/`actor_id`/`payload`/`proofs[]` ...，但不含 reducer-managed accepted-output 字段）；批量提交 body 是 `{events: EventSubmitEnvelope[]}`。MUST NOT 使用 `{event: ...}` wrapper。 | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `realm_frontier: object?`; `cursor: cursor?` | MUST 验证 Event signature、DID、capability、Realm policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`。`cursor` 是 barrier purpose（read-your-writes）。 |
-| `cx.events.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | 不可见时返回 `not_found`。 |
-| `cx.events.resolve` | 至少一个：`event_ids: id[]` 或 `event_digests: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Realm policy / E2EE envelope 判断。 |
-| `cx.events.query` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.before: cursor`; `query.after: cursor`; `query.order: enum(default,ascending,descending)=default`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `prev_cursor: cursor?`; `has_more: boolean` | `realms[]` 内部 union、`actors[]` 内部 union、二者组合为 intersection。每个 selector 元素都按对应可见性约束逐项检查：actor scope 走 actor history visibility；realm scope 走 membership frontier + history visibility + E2EE epoch policy。`before` / `after` 均为开区间（排除 cursor 自身），可单独或同时给出形成 `(after, before)` 区间。默认顺序：仅 `before` → descending，仅 `after` → ascending，两者皆给 → descending；`order=ascending\|descending` 显式覆盖。响应 `prev_cursor` 永远朝更旧方向、`next_cursor` 永远朝更新方向。仅支持 `before` / `after` / `order` 参数。详见 §3.3。 |
-| `cx.events.query_post` | body 至少一个：`realms: id[]` 或 `actors: did[]` | `before: cursor`; `after: cursor`; `order: enum(default,ascending,descending)=default`; `limit: int`; `filters: object` | 与 `cx.events.query` 同 | `cx.events.query` 的 HTTP POST/body binding variant（registry `binding_variant_of="cx.events.query"`）。语义、selector 规则、默认顺序、响应 cursor 含义、错误码与 GET 形态完全一致；仅 wire 形态从 query string 变为 JSON body。**何时使用**：`realms[]` / `actors[]` 较大、`filters` 较复杂、或部署侧记录 access log 时担心 query string 泄露 filter 内容。gRPC / MQ 不需要单独绑定（统一走 `Events/Query`）。 |
-| `cx.events.subscribe` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.after: cursor`; `query.catchup: boolean=false` | stream frame: `kind: enum(event,frontier,heartbeat,catchup_complete,epoch_rotation,dropped,resync_required,unauthorized)`; `realm_id: id?`; `cursor: cursor?`; `payload: object?`;`reconnect_after_ms: int?` | 同 `cx.events.query` 逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性。`after=<cursor>` 是订阅起点（不含 cursor 本身），与 `cx.events.query` 的 `after=` 同义；subscribe 天然只走未来方向，不接受 `before=` / `order=`。`catchup=true` 只表示从 `after=` 到当前 frontier 的追赶 replay，不表示全量历史；缺省或无 `after` 时只进入 live tail。某 realm 中途授权丢失 MUST 发出 `unauthorized` 帧并继续其他 realm；该帧 payload 至少包含 `reason_code`、`selector`、`retry_after_ms?`，不得包含不可见 Realm 标题、成员或 actor 集合。服务端因容量丢弃发出 `dropped` 帧，客户端必须 reconcile；`dropped` / `resync_required` MAY 携带 `reconnect_after_ms`，约束下一次同 scope 订阅重连。 |
-| `cx.events.frontier` | 至少一个：`query.actor_id: did` 或 `query.realm_id: id` | `query.peer_role: enum(account_client, federation_peer, anonymous_health) = account_client` | `frontier: object`; `receipts: object[]?`; `frontier_root: hash?`; `actor_seq_upper_bounds: object?`; `signature: object?`; `cache_expires_at: datetime?`; `retry_after_ms: int?` | 统一 operation 同时承载 public Events API 与 federation peer frontier probe（federation.md §4.5.1）；`peer_role=federation_peer` MUST 通过 §3 节点间认证 + Realm service binding（`sync_endpoints` 或等价 policy facet）中的 `federation_peer` 角色校验，响应携带完整 `frontier_root` / `actor_seq_upper_bounds` / `signature`；`peer_role=anonymous_health` MUST 仅返回 `frontier_root` 摘要，并携带 `cache_expires_at` 或 `retry_after_ms` 之一以约束轮询频率，服务端 MUST 对 `(realm_id, source_prefix)` 限速。普通 `account_client` 维持既有响应。不得泄露不可见 Realm 或 private DID。**`peer_role=anonymous_health` 例外**：不复用 `cx.events.query` 的 `realms[] OR actors[]` 强制规则；响应仅包含 `frontier_root` 摘要 + `cache_expires_at`。 |
-| `cx.account.subscribe` | 无 | `query.after: cursor`; `query.catchup: boolean=false`; `query.filter: object`; `query.set_presence: enum(online,offline,unavailable)` | NDJSON 流，每行一个 `AccountSubscribeFrame`(`kind: delta / catchup_complete / frontier / heartbeat / dropped / resync_required / unauthorized`,`delta` 含 `cursor` + `realms?` + `to_device?` + `account_data?` + `device_lists?` + `presence?` + `notifications?`;`dropped` / `resync_required` 可含 `reconnect_after_ms`) | `user_session` 必须绑定 principal/device。聚合账号视角 delta streaming push;裸事件读用 `cx.events.query` / `cx.events.subscribe`。`cursor` 是 stream purpose。Initial sync 使用 `catchup=true` 且省略 `after`;baseline 不是完整历史。 |
-| `cx.account.cursor_revoke` | `cursor: cursor` | `reason_code: string`; `revoke_scope: enum(this_cursor,same_device,same_session)=this_cursor` | `revoked: boolean`; `expires_at: datetime` | High-assurance optional profile；撤销 cursor authority，详见 [`client-sync.md` §12.2.1](./client-sync.md)。 |
-| `cx.account.describe` | 无 | 无 | `ServiceDescribe` | 私有 frontier 可认证后作为扩展字段返回。 |
-| `cx.ephemeral.send` | body `cx.schema.ephemeral_envelope.v1` | `proof: object`（按 kind 需要）；payload 内 kind-specific 字段 | `accepted: boolean`; `kind: string`; `realm_id: id`; `dispatched_to: int?`; `server_received_at: datetime?` | broadcast ephemeral channel；只承载 `cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`，并分别要求 `cx.presence.broadcast` / `cx.typing.broadcast` / `cx.receipt.broadcast` / `cx.call.signal.send`。MUST NOT 写入 durable Event history，MUST NOT 推进 actor_seq / Realm frontier。拒绝码包括 `ephemeral_kind_not_permitted`、`ephemeral_ttl_out_of_range`、`ephemeral_channel_unavailable`。 |
-| `cx.call.media.token_exchange` | body `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `focus_id: string` | `capability_refs: id[]`; `desired_media: object` | `focus_id: string`; `type: string`; `connect_url: string`; `backend_token: string`; `participant_identity: string`; `participant_binding: object`; `expires_at: datetime`; `service_signature: object` | CXP-0010 media token exchange，等价于 MSC4195 `lk-jwt-service`。TTL `expires_at ≤ 600s`；token issuer DID MUST 出现在 `cx.realm.media_service.service_id` 锚定列表。拒绝码：`focus_mismatch`、`unknown_focus_type`、`token_issuer_unauthorised`、`mls_governance_binding_stale`、`media_plaintext_service_not_authorised`、`capability_denied`、`legacy_single_endpoint_media_service`。详见 [`../crypto-media/webrtc-signaling.md` §6.4](../crypto-media/webrtc-signaling.md)。 |
-| `cx.snapshot.head` | `query.realm_id: id` | 无 | `snapshot_ref: id`; `state_digest: string`; `frontier: object`; `event_set_commitment: object`; `created_by: did`; `created_at: datetime`; `authority_binding: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；signer 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员（`created_by`、`created_at`、`authority_binding` 与签名 transcript 绑定，命名与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 对齐）；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
-| `cx.projection.spaces` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `spaces: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Space lifecycle read model，不是真相源；默认不得返回 tombstoned terminal rows。 |
-| `cx.projection.flows` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `flows: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Flow lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
-| `cx.projection.morphs` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `morphs: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Morph lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
-| `cx.directory.describe` | 无 | 无 | `ServiceDescribe` | `public_metadata`; 可限流。Directory-specific 字段可作为扩展字段返回；详见 `../discovery/discovery-directory.md` §8.9。 |
-| `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | hidden resource 不泄露存在性；每条 result MUST 含 `as_of`/`source_refs`/`policy_revision`/`stale?`/`divergent?`（discovery-directory.md §9.1）；`join_candidates[]` MAY 省略以避免在搜索结果泄露服务拓扑，客户端 join 前必须 resolve。 |
-| `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `join_candidates?: object[]` | secret/restricted Realm 使用统一 `not_found`；`join_candidates[]` 是规范 join ingress 列表，元素符合 `cx.schema.realm_join_candidate.v1`。支持结构化 candidate 且可披露 join 路由时 MUST 返回；没有 `join_candidates[]` 的响应不能直接用于提交 join material。 |
-| `cx.directory.resolve_target` | `address: string` | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; `as_of`/`source_refs`/`join_candidates?` 等 §9.1 通用字段 | `resolve_realm` 的对象级泛化，realm 解析委托 `resolve_realm` 并继承 candidate routing 语义；`invite` / `preview` token 按 target descriptor + effective link type 校验（[`../discovery/object-addressing.md` §4.2](../discovery/object-addressing.md)）；preview token 只授权 preview policy 允许字段；未授权统一 `not_found`。 |
-| `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅公开或授权可发现组织。 |
-| `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员或拓扑。 |
-| `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID。 |
-| `cx.directory.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)` | `results: object[]`; `has_more: boolean` | mention autocomplete / 成员添加候选；受共同 Realm / directory policy 限制；请求词不得进入 URL、Referer 或未脱敏 access log。结果 MAY 包含 handle preview，但未授权时不得披露 `subject` DID 或 `member_delivery_binding`。 |
-| `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；响应 `handle` 是 canonical `user:domain`；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回。 |
-| `cx.directory.list_handles_for_subject` | `subject: did` | `realm_id: id`; `intent: enum(lookup,mention,invite,member_add)`; `requester: did`; `proof_challenge: string`; `proofs: proof[]`; `as_of: datetime`; `cursor: cursor`; `limit: int` | `subject: did`; `claims: object[]`; `primary_handle: string?`; `as_of: datetime`; `next_cursor: cursor?`; `has_more: boolean` | holder/principal DID + context → current visible claims；`subject` 不是 Realm `actor_id`。必须按 disclosure policy、issuer trust、audience 和 Realm intent 过滤；不能因共同 Realm 单独披露受限 handle。 |
-| `cx.directory.private_contact_discovery` | `requester: did`; `contacts: object[]` | `proofs: proof[]`; `privacy_profile: string`; `padding: object` | `matches: object[]`; `proofs: object[]?`; `retry_after_ms: int?` | MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
-| `cx.directory.announce` | `resource_kind: enum(realm,organization,actor,applet,handle)`; `resource_id: id\|did\|handle`; `discovery_state: object`; `source_refs: id[]`; `as_of: timestamp`; `principal_server_did: did` | `ttl_seconds: int`; `supersedes_announce_id: ck:announce:<uuidv7>` | `announce_id: ck:announce:<uuidv7>`; `indexed_at: timestamp`; `effective_ttl_seconds: int`; `next_revalidation_after: timestamp`; `warnings: string[]?` | 资源 → Directory 的签名 ingest；`announce_id` 是 Directory-local typed ID，不是跨 Directory 全局对象权威；MUST 验签 + 双向 opt-in；详见 `../discovery/discovery-directory.md` §8.3 / §8.5 / §8.10。 |
-| `cx.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdrawal_ref: string`; `acked_at: timestamp` | 资源主动撤销 opt-in；`withdrawal_ref` 是 Directory-local audit reference，不是注册 typed ID。Directory MUST 在 ≤ 1h 内停止披露；详见 `../discovery/discovery-directory.md` §8.7。 |
-| `cx.directory.push.register` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | push webhook 注册；仅作为 pull 模式优化，不替代 freshness 协议（§8.6）。 |
-| `cx.blob.upload` | `size_bytes: int` | `realm_id: id`; `content_digest: string`; `media_type: string`; `filename: string`; `purpose: string`; binary/multipart body; `header.Content-Type: string` | `blob_ref: string`; `size_bytes: int`; `media_type: string?`; `content_digest: string`; `upload_receipt: object?` | upload capability、quota、media policy；`Content-Type` 缺省为 `application/octet-stream`。`size_bytes` 可由客户端声明，也可由服务端在响应中按实际接收字节计算后返回；二者不一致时 MUST `digest_mismatch` 或 `invalid_param`。 |
-| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token` 或 `query.presign: token`（与 `Authorization` 互斥）；`header.X-Cokret-Wait-For: cursor` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | Header auth 路径必须验证 actor/device/Realm/purpose/expiry；presign 路径验证 envelope、TTL、scope、Realm/blob 状态和 issuer service DID，但不能验证当前请求者 audience。不得通过 header 泄露不可见资源。`presign` 形态见 `cx.blob.presign`。 |
-| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token` 或 `query.presign: token`（与 `Authorization` 互斥）；`header.Range: string`; `header.X-Cokret-Wait-For: cursor` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | Header auth 路径必须验证 actor/device/Realm/purpose/expiry；presign 路径只接受 `cx.blob.presign` 发出的短 TTL 单对象 bearer token，验证 envelope、TTL、scope、Realm/blob 状态和 issuer service DID。Range 和 redirect 不得泄露不可见资源。两者同时出现 MUST 拒绝。详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
-| `cx.blob.presign` | `blob_ref: string` | `max_age_seconds: int (<=3600)`; `purpose: enum(media_inline, thumbnail, download)` | `url: uri`; `expires_at: timestamp`; `purpose: string` | 为单个 blob 签发短 TTL（默认 ≤ 5 min，硬上限 ≤ 1h）、单对象、只读、可撤销的 pre-signed URL。**仅用于让浏览器 `<img src>` / `<video src>` 等无法附 Authorization header 的原生标签渲染受保护媒体**。E2EE 附件 ciphertext MUST NOT 通过此机制下发。受 `cx.blob.presign` capability 控制；TTL / scope / purpose 由 grant constraint 收紧。详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
-| `cx.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string`; `recipient_service_did: did` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | 只能注册当前 principal/device，且 registration 作用域绑定当前 Principal Server service DID；如显式携带 `recipient_service_did`，MUST 等于目标服务 DID。 |
-| `cx.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | same device/principal 或 device revocation path。 |
-| `cx.push.notify` | `notification.push_target_id: string`; `notification.wakeup_kind: enum(message,mention,reaction,call_invite,generic)`; `notification.devices: object[]` | `notification.push_hint: string`; `notification.counts: object`; visible profile only: `notification.event_id: id`, `notification.realm_id: id`, `notification.sender_actor_id: did` | `rejected: object[]` | 来自授权 Sync 或 notification service；默认 blind wakeup 请求 MUST NOT 携带 event / realm / sender 字段。visible 字段只在 `cx.profile.push_gateway.visible_notification.v1` 且 Realm policy + device opt-in + UI disclosure 通过时允许。`service_signature` 的 transcript MUST 绑定 `push_target_id` 所对应 registration 的 registration service DID（即 `cx.push.register_device` 注册作用域绑定的 Principal Server service DID）；且发起 notify 的来源服务 DID MUST 出现在该设备 registration 的 `recipient_service_did` 投递链内。push gateway MUST 拒绝来源服务不在目标设备投递链内、或 transcript 未绑定该 registration service DID 的请求（`capability_denied`），以阻止跨 Realm / 跨 Principal Server 的 push 注入。 |
-| `cx.device_messages.put` | `header.Idempotency-Key: string`; `messages: object` | 每个 target 必须含 `kind`、`content`、`expires_at` | `ok: boolean`; `delivered: object?`; `unknown_devices: object?` | `(sender, Idempotency-Key)` 幂等；目标必须是授权 device；过期或超过 TTL 上限的消息必须拒绝或逐项 reject。 |
-| `cx.device_messages.get` | 无 | `query.from: cursor`; `query.limit: int` | `messages: object[]`; `next_cursor: cursor?`; `has_more: boolean`; `limited: boolean?` | 响应字段 `messages[]` 含 `DeviceMessageEnvelope` 对象, 不是 Event Envelope; 只返回当前 device 队列。 |
-| `cx.keys.upload` | `device_id: id`; `device_signature: signature` | `one_time_keys: object`; `fallback_keys: object` | `one_time_key_counts: object`; `fallback_keys: object?` | key 必须链接 self-signing / principal key。 |
-| `cx.keys.query` | `device_keys: object` | `timeout_ms: int` | `device_keys: object`; `failures: object?` | 查询范围可按关系 / Realm 限制。 |
-| `cx.keys.claim` | `one_time_keys: object` | 无 | `one_time_keys: object`; `failures: object?` | one-time key MUST 原子消费。 |
-| `cx.keys.keypackages.upload` | `device_id: id`; `key_packages: object[]`; `device_signature: signature` | `expires_at: datetime`; `flow_id: id`; `mls_group_id: string` | `accepted: int`; `rejected: object[]?`; `key_package_refs: id[]?`; `available_count: int?` | MLS KeyPackage MUST 绑定 device key、credential 和 supported cipher suites；服务 SHOULD 返回该 device 当前可见 `available_count` 以支持低水位补充。 |
-| `cx.keys.keypackages.claim` | `claims: object[]` | `timeout_ms: int`; `flow_id: id`; `mls_group_id: string` | `key_packages: object[]`; `failures: object?`; `available_count: int?` | KeyPackage claim MUST 原子保留，重复 claim 不得返回同一 one-time package；claimed 过期不得回到 published，claim path 按 `(requester_service_did, target_principal_id)` 限速并做反枚举。 |
-| `cx.keys.keypackages.consume` | `key_package_refs: id[]`; `consumer_device_id: id`; `signature: signature` | `flow_id: id`; `epoch: int` | `consumed: id[]`; `failures: object?` | consume MUST 校验 claim holder、epoch 和 package freshness。 |
-| `cx.keys.keypackages.revoke` | `key_package_refs: id[]`; `device_id: id`; `signature: signature` | `reason: string` | `revoked: id[]`; `failures: object?` | 只能由 owning device、principal 或授权 admin 撤销。 |
-| `cx.keys.backups.put` | `path.backup_id: id`; `backup: object` | `idempotency_key: string` | `status: enum(accepted,duplicate)`; `backup_id: id`; `ciphertext_digest: string` | body MUST validate `cx.schema.key_backup.v1`；path/body backup id 必须一致；服务端不得解密。 |
-| `cx.keys.backups.list` | 无 | `query.series_id: id?`; `query.backup_class: enum(cx.schema.key_backup.v1.backup_class)`; `query.cursor: cursor`; `query.limit: int` | `backups: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回调用方可见的最小 metadata；不得泄露无关 Realm / group membership。 |
-| `cx.keys.backups.get` | `path.backup_id: id` | 无 | `backup: object` | 只返回同 principal 授权 device、recovery policy 或授权恢复服务可见的 encrypted backup object。 |
-| `cx.keys.backups.delete` | `path.backup_id: id`; `proof: proof` | `reason: string` | `deleted: boolean` | 高风险删除；不等于 device revoke、DID recovery 或 MLS epoch rotation。 |
-| `cx.authz.get_effective_grants` | `query.realm_id: id`; `query.subject: did` | `query.at: string` | `grants: object[]`; `state_digest: string?`; `evaluated_at: datetime` | subject 本人、Realm admin 或授权服务。 |
-| `cx.authz.get_invites` | `query.subject: did 或 string` | `query.realm_id: id`; `query.cursor: cursor` | `invites: object[]`; `next_cursor: cursor?`; `has_more: boolean` | secret invite 不可枚举。 |
-| `cx.authz.check` | `actor_id: did`; `action: string` | `resource: object`; `context: object` | `decision: enum(allow,deny,quarantine,require_review,soft_fail)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `freshness_state: enum(fresh,stale,unknown)?`; `last_known_frontier_age_ms: int?`; `anchorer_status: enum(fresh,lagging,unreachable,unknown)?`; `cache_expires_at: datetime?`; `reason_code: string?`; `retry_after_ms: int?`; `obligations: object[]?` | Policy allow 不创建 capability；客户端不得把非标准 `allowed` 字段作为规范字段；`freshness_state=stale/unknown` 且高风险动作时 MUST fail closed，reason_code 使用 `revocation_freshness_unknown`。 |
-| `cx.policy.check` | `request_id: string`; `realm_id: id`; `request_canonical_digest: string`; `action: string`; `actor: did`; `source: object` | `device_id: id`; `event_preview: object`; `auth_context: object` | `request_id: string`; `bound_to: object`; `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `reason_code: string`; `expires_at: datetime`; `auth_state_digest: string`; `policy_frontier_digest: string`; `membership_frontier_digest: string`; `obligations: object[]?`; `signature: signature` | 只接收最小披露字段；decision 按 hash/cache frontier 绑定。Canonical HTTP 路径 `POST /api/v1/policy/check`。 |
-| `cx.moderation.report` | `realm_id: id`; `target_ref: id`; `report_reason_code: enum`; `reporter: did` | `description: string`; `evidence_refs: id[]` | `report_id: id`; `status: string`; `routed_to: did[]?` | reporter 必须可见 target；只对 moderators 可见。 |
-| `cx.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 不得泄露 private namespace。 |
-| `cx.applet.describe` | 无 | 无 | `ServiceDescribe` | public mode 只返回公开 capabilities；applet-specific 字段作为扩展字段返回。 |
-| `cx.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet 必须验证 event signature、namespace、capability；按 `(source_service_did, Idempotency-Key)` 幂等。 |
-| `cx.applet.resolve_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 namespace。 |
-| `cx.applet.resolve_realm` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
-| `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?` | instance list 可要求授权。 |
-| `cx.applet.third_party_users` | `query.protocol: string`; external ids | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
-| `cx.applet.third_party_locations` | `query.protocol: string`; external ids | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
-| `cx.mimi.provider_directory` | 无 | `query.provider_id: string`; `query.features: string[]` | `providers: object[]`; `features: object`; `expires_at: datetime?` | 只返回公开 provider capability，不泄露 Realm membership。 |
-| `cx.mimi.key_material` | `requester: did`; `flow_id: id`; `device_id: id` | `mls_group_id: string`; `epoch: int`; `proofs: proof[]` | `key_packages: object[]?`; `group_info: object?`; `failures: object?` | 必须存在 accepted `cx.mimi.room_binding` 且 requester 有对应 room / device 权限。 |
-| `cx.mimi.room_update` | `path.flow_id: id`; `mls_group_id: string`; `update: object` | `epoch: int`; `confirmed_transcript_hash: string`; `sender_actor_id: did` | `accepted: boolean`; `room_state_ref: id?`; `rejected: object[]?` | 更新必须映射到 Cokret Flow discussion track / Realm policy 授权范围内；`confirmed_transcript_hash` 沿用 MLS/MIMI 外部标准字段名。 |
-| `cx.mimi.notify` | `path.flow_id: id`; `notification: object` | `origin_provider: string`; `routing: object` | `accepted: boolean`; `retry_after_ms: int?` | 只可传递最小 fanout / delivery signal，不得携带未授权明文。 |
-| `cx.mimi.submit_message` | `path.flow_id: id`; `sender_actor_id: did`; `device_id: id`; `ciphertext: object` | `mls_group_id: string`; `epoch: int`; `associated_data: object` | `event_ref: id?`; `delivery: object`; `rejected: object[]?` | 必须校验 MLS epoch、有效 discussion access、capability 和 `cx.mimi.room_binding`。 |
-| `cx.mimi.group_info` | `path.flow_id: id` | `query.epoch: int`; `query.include_proof: boolean` | `group_info: object`; `room_binding_ref: id?`; `proofs: object[]?` | 只能返回 requester 授权可见的 MLS groupInfo / room projection。 |
-| `cx.mimi.request_consent` | `requester: did`; `target: object`; `purpose: string` | `flow_id: id`; `expires_at: datetime`; `proofs: proof[]` | `consent_id: id`; `status: string`; `challenge: string?` | consent 只表达联系 / invite 意图，不授予 Realm read/write。 |
-| `cx.mimi.update_consent` | `consent_id: id`; `decision: enum(accept,deny,revoke)`; `actor: did`; `signature: signature` | `reason: string`; `expires_at: datetime` | `status: string`; `updated_at: datetime`; `event_ref: id?` | 必须绑定原 request、target identity proof 和 replay protection。 |
-| `cx.mimi.identifier_query` | `identifiers: object[]` | `requester: did`; `privacy_profile: string`; `proofs: proof[]` | `results: object[]`; `proofs: object[]?`; `has_more: boolean` | SHOULD 使用 private contact discovery；不得返回原始通讯录或完整关系图谱。 |
-| `cx.mimi.report_abuse` | `flow_id: id`; `target_ref: id`; `reporter: did`; `abuse_reason_code: enum` | `evidence_package: object`; `franking_proof: object`; `description: string` | `report_id: id`; `status: string`; `routed_to: did[]?` | E2EE report 只能向授权 moderation recipient 解密 evidence。 |
-| `cx.mimi.proxy_download` | `asset_ref: string`; `requester: did` | `flow_id: id`; `ohttp_context: object`; `range: string` | `download_ref: string`; `headers: object?`; `expires_at: datetime?` | 当 Realm asset privacy policy 要求 proxy/OHTTP 时不得返回 direct object-store URL。 |
-| `cx.account.issue_session_grant` | `principal_id: did`; `proof: SessionGrantRequestProof` | `device_id: id`; `requested_scope: string[]` | `principal_id: did`; `device_id: id?`; `session_grant: string`; `expires_at: datetime`; `granted_scope: string[]?` | `proof` MUST 绑定 `proof_kind`、`challenge`、`request_canonical_digest`、`audience`、`expires_at?` 与签名；必须绑定 principal、device key、audience 和最小 scope。 |
-| `cx.account.device_pair` | `principal_id: did`; `new_device_key: object`; `pairing_proof: proof` | `display_name: string`; `device_metadata: object` | `device_id: id`; `device_grant: object`; `key_backup_hint: object?` | pairing code / proof 必须短期有效、一次性使用，并绑定目标 Auth Server audience / origin / request canonical hash；服务端 MUST 按 principal、授权源设备和目标 origin 限速。 |
-| `cx.account.oidc_callback` | `state: string`; `code: string` | `nonce: string`; `redirect_uri: url` | `principal_id: did?`; `session: SessionGrantResponse?`; `redirect_url: url?` | MUST 校验 state、nonce、服务端配置的 issuer binding 和 DID/account linkage。 |
-| `cx.admin.get_server_status` | 无 | `query.include: string[]` | `status: string`; `protocol_version: string`; `features: string[]`; `capacity: object?`; `warnings: string[]?` | 公开响应只能包含 operational metadata；敏感细节需要 admin session。 |
-| `cx.admin.update_account_status` | `path.account_id: id`; `status: string`; `moderator: did`; `proof: proof` | `reason: string`; `expires_at: datetime`; `notify: boolean` | `account_id: id`; `status: string`; `event_ref: id?`; `updated_at: datetime` | 必须生成可审计 account lifecycle 状态或 admin receipt。 |
-| `cx.admin.revoke_device` | `path.device_id: id`; `moderator: did`; `proof: proof` | `reason: string`; `revoke_sessions: boolean` | `device_id: id`; `revoked: boolean`; `event_ref: id?` | 必须撤销 device grant、session grant 和相关 key package。 |
-| `cx.admin.get_moderation_queue` | 无 | `query.realm_id: id`; `query.status: string`; `query.cursor: cursor`; `query.limit: int` | `items: object[]`; `next_cursor: cursor?`; `has_more: boolean`; `counts: object?` | 只对授权 moderator / compliance service 可见，证据按 policy 最小披露。 |
-| `cx.media.ice_config` | `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `mode: string` | 无 | `ttl_seconds: int`; `refresh_lead_seconds: int`; `issued_at: datetime`; `issued_at_bucket: datetime`; `bucket_seconds: int`; `ice_servers: object[]`; `constraints: object?`; `signature: signature` | actor 必须有 call/media capability；Media Service 必须被委托；TURN pseudonym bucket 固定 300s。 |
+| `ck.server.describe` | 无 | `query.service_type: string - 过滤服务类型` | `ServiceDescribe` | `public_metadata`; 不得返回私有拓扑或 secret。`trust_domain` 与 `plaintext_visibility` 必填；缺失时 callers MUST fail closed。 |
+| `ck.identity.describe_registry` | 无 | 无 | `ServiceDescribe` | `public_metadata`; 可限流；identity-specific 字段只能作为扩展字段追加。 |
+| `ck.identity.resolve` | `did: did - 待解析 DID` | `include: string[] - 请求附加证据，如 key_log/receipts` | `did_document: object`; `key_log_head: id?`; `seq: int?`; `receipts: object[]?`; `method_evidence: object?` | private / pairwise DID 可要求 presentation proof。 |
+| `ck.identity.get_document` | `query.did: did` | `query.version: string - 指定版本或 head` | `did_document: object`; `head_event_digest: string?`; `seq: int?`; `receipts: object[]?` | 可见性同 `ck.identity.resolve`。 |
+| `ck.identity.get_log` | `query.did: did` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `next_cursor: cursor?`; `has_more: boolean` | private / pairwise DID MUST 要求 holder-approved proof。 |
+| `ck.identity.submit_did_operation` | `did: did`; `did_method: string`; `operation: object`; `proofs: proof[]` | `seq: int`; `prev_event_digest: string`; `policy_context: object` | `status: enum(accepted,duplicate,pending)`; `did: did`; `head_event_digest: string?`; `seq: int?`; `operation_ref: string?`; `receipts: object[]?` | MUST 满足 DID method / key-log 授权；`operation` 是 DID-method-specific 原始操作，统一 wrapper 不得把 DID 更新降格为通用 `patch`；幂等键由 DID method operation id / seq / canonical hash 决定。 |
+| `ck.identity.get_receipts` | `query.did: did`; `query.head: string` | 无 | `receipts: object[]`; `threshold_met: boolean?` | 只公开最小 witness receipt。 |
+| `ck.events.describe` | 无 | `query.actor_id: did`; `query.realm_id: id` | `ServiceDescribe` | public metadata 可公开；私有 frontier 需认证后作为扩展字段返回。 |
+| `ck.events.submit` | 单事件提交 body 是 `EventSubmitEnvelope` 对象（顶层 `event_id`/`actor_id`/`payload`/`proofs[]` ...，但不含 reducer-managed accepted-output 字段）；批量提交 body 是 `{events: EventSubmitEnvelope[]}`。MUST NOT 使用 `{event: ...}` wrapper。 | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `realm_frontier: object?`; `cursor: cursor?` | MUST 验证 Event signature、DID、capability、Realm policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`。`cursor` 是 barrier purpose（read-your-writes）。 |
+| `ck.events.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | 不可见时返回 `not_found`。 |
+| `ck.events.resolve` | 至少一个：`event_ids: id[]` 或 `event_digests: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Realm policy / E2EE envelope 判断。 |
+| `ck.events.query` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.before: cursor`; `query.after: cursor`; `query.order: enum(default,ascending,descending)=default`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `prev_cursor: cursor?`; `has_more: boolean` | `realms[]` 内部 union、`actors[]` 内部 union、二者组合为 intersection。每个 selector 元素都按对应可见性约束逐项检查：actor scope 走 actor history visibility；realm scope 走 membership frontier + history visibility + E2EE epoch policy。`before` / `after` 均为开区间（排除 cursor 自身），可单独或同时给出形成 `(after, before)` 区间。默认顺序：仅 `before` → descending，仅 `after` → ascending，两者皆给 → descending；`order=ascending\|descending` 显式覆盖。响应 `prev_cursor` 永远朝更旧方向、`next_cursor` 永远朝更新方向。仅支持 `before` / `after` / `order` 参数。详见 §3.3。 |
+| `ck.events.query_post` | body 至少一个：`realms: id[]` 或 `actors: did[]` | `before: cursor`; `after: cursor`; `order: enum(default,ascending,descending)=default`; `limit: int`; `filters: object` | 与 `ck.events.query` 同 | `ck.events.query` 的 HTTP POST/body binding variant（registry `binding_variant_of="ck.events.query"`）。语义、selector 规则、默认顺序、响应 cursor 含义、错误码与 GET 形态完全一致；仅 wire 形态从 query string 变为 JSON body。**何时使用**：`realms[]` / `actors[]` 较大、`filters` 较复杂、或部署侧记录 access log 时担心 query string 泄露 filter 内容。gRPC / MQ 不需要单独绑定（统一走 `Events/Query`）。 |
+| `ck.events.subscribe` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.after: cursor`; `query.catchup: boolean=false` | stream frame: `kind: enum(event,frontier,heartbeat,catchup_complete,epoch_rotation,dropped,resync_required,unauthorized)`; `realm_id: id?`; `cursor: cursor?`; `payload: object?`;`reconnect_after_ms: int?` | 同 `ck.events.query` 逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性。`after=<cursor>` 是订阅起点（不含 cursor 本身），与 `ck.events.query` 的 `after=` 同义；subscribe 天然只走未来方向，不接受 `before=` / `order=`。`catchup=true` 只表示从 `after=` 到当前 frontier 的追赶 replay，不表示全量历史；缺省或无 `after` 时只进入 live tail。某 realm 中途授权丢失 MUST 发出 `unauthorized` 帧并继续其他 realm；该帧 payload 至少包含 `reason_code`、`selector`、`retry_after_ms?`，不得包含不可见 Realm 标题、成员或 actor 集合。服务端因容量丢弃发出 `dropped` 帧，客户端必须 reconcile；`dropped` / `resync_required` MAY 携带 `reconnect_after_ms`，约束下一次同 scope 订阅重连。 |
+| `ck.events.frontier` | 至少一个：`query.actor_id: did` 或 `query.realm_id: id` | `query.peer_role: enum(account_client, federation_peer, anonymous_health) = account_client` | `frontier: object`; `receipts: object[]?`; `frontier_root: hash?`; `actor_seq_upper_bounds: object?`; `signature: object?`; `cache_expires_at: datetime?`; `retry_after_ms: int?` | 统一 operation 同时承载 public Events API 与 federation peer frontier probe（federation.md §4.5.1）；`peer_role=federation_peer` MUST 通过 §3 节点间认证 + Realm service binding（`sync_endpoints` 或等价 policy facet）中的 `federation_peer` 角色校验，响应携带完整 `frontier_root` / `actor_seq_upper_bounds` / `signature`；`peer_role=anonymous_health` MUST 仅返回 `frontier_root` 摘要，并携带 `cache_expires_at` 或 `retry_after_ms` 之一以约束轮询频率，服务端 MUST 对 `(realm_id, source_prefix)` 限速。普通 `account_client` 维持既有响应。不得泄露不可见 Realm 或 private DID。**`peer_role=anonymous_health` 例外**：不复用 `ck.events.query` 的 `realms[] OR actors[]` 强制规则；响应仅包含 `frontier_root` 摘要 + `cache_expires_at`。 |
+| `ck.account.subscribe` | 无 | `query.after: cursor`; `query.catchup: boolean=false`; `query.filter: object`; `query.set_presence: enum(online,offline,unavailable)` | NDJSON 流，每行一个 `AccountSubscribeFrame`(`kind: delta / catchup_complete / frontier / heartbeat / dropped / resync_required / unauthorized`,`delta` 含 `cursor` + `realms?` + `to_device?` + `account_data?` + `device_lists?` + `presence?` + `notifications?`;`dropped` / `resync_required` 可含 `reconnect_after_ms`) | `user_session` 必须绑定 principal/device。聚合账号视角 delta streaming push;裸事件读用 `ck.events.query` / `ck.events.subscribe`。`cursor` 是 stream purpose。Initial sync 使用 `catchup=true` 且省略 `after`;baseline 不是完整历史。 |
+| `ck.account.cursor_revoke` | `cursor: cursor` | `reason_code: string`; `revoke_scope: enum(this_cursor,same_device,same_session)=this_cursor` | `revoked: boolean`; `expires_at: datetime` | High-assurance optional profile；撤销 cursor authority，详见 [`client-sync.md` §12.2.1](./client-sync.md)。 |
+| `ck.account.describe` | 无 | 无 | `ServiceDescribe` | 私有 frontier 可认证后作为扩展字段返回。 |
+| `ck.ephemeral.send` | body `ck.schema.ephemeral_envelope.v1` | `proof: object`（按 kind 需要）；payload 内 kind-specific 字段 | `accepted: boolean`; `kind: string`; `realm_id: id`; `dispatched_to: int?`; `server_received_at: datetime?` | broadcast ephemeral channel；只承载 `ck.presence` / `ck.typing` / `ck.receipt.read` / `ck.call.signal`，并分别要求 `ck.presence.broadcast` / `ck.typing.broadcast` / `ck.receipt.broadcast` / `ck.call.signal.send`。MUST NOT 写入 durable Event history，MUST NOT 推进 actor_seq / Realm frontier。拒绝码包括 `ephemeral_kind_not_permitted`、`ephemeral_ttl_out_of_range`、`ephemeral_channel_unavailable`。 |
+| `ck.call.media.token_exchange` | body `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `focus_id: string` | `capability_refs: id[]`; `desired_media: object` | `focus_id: string`; `type: string`; `connect_url: string`; `backend_token: string`; `participant_identity: string`; `participant_binding: object`; `expires_at: datetime`; `service_signature: object` | CXP-0010 media token exchange，等价于 MSC4195 `lk-jwt-service`。TTL `expires_at ≤ 600s`；token issuer DID MUST 出现在 `ck.realm.media_service.service_id` 锚定列表。拒绝码：`focus_mismatch`、`unknown_focus_type`、`token_issuer_unauthorised`、`mls_governance_binding_stale`、`media_plaintext_service_not_authorised`、`capability_denied`、`legacy_single_endpoint_media_service`。详见 [`../crypto-media/webrtc-signaling.md` §6.4](../crypto-media/webrtc-signaling.md)。 |
+| `ck.snapshot.head` | `query.realm_id: id` | 无 | `snapshot_ref: id`; `state_digest: string`; `frontier: object`; `event_set_commitment: object`; `created_by: did`; `created_at: datetime`; `authority_binding: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；signer 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员（`created_by`、`created_at`、`authority_binding` 与签名 transcript 绑定，命名与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 对齐）；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
+| `ck.projection.spaces` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `spaces: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Space lifecycle read model，不是真相源；默认不得返回 tombstoned terminal rows。 |
+| `ck.projection.flows` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `flows: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Flow lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
+| `ck.projection.morphs` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `morphs: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Morph lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
+| `ck.directory.describe` | 无 | 无 | `ServiceDescribe` | `public_metadata`; 可限流。Directory-specific 字段可作为扩展字段返回；详见 `../discovery/discovery-directory.md` §8.9。 |
+| `ck.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | hidden resource 不泄露存在性；每条 result MUST 含 `as_of`/`source_refs`/`policy_revision`/`stale?`/`divergent?`（discovery-directory.md §9.1）；`join_candidates[]` MAY 省略以避免在搜索结果泄露服务拓扑，客户端 join 前必须 resolve。 |
+| `ck.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `join_candidates?: object[]` | secret/restricted Realm 使用统一 `not_found`；`join_candidates[]` 是规范 join ingress 列表，元素符合 `ck.schema.realm_join_candidate.v1`。支持结构化 candidate 且可披露 join 路由时 MUST 返回；没有 `join_candidates[]` 的响应不能直接用于提交 join material。 |
+| `ck.directory.resolve_target` | `address: string` | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; `as_of`/`source_refs`/`join_candidates?` 等 §9.1 通用字段 | `resolve_realm` 的对象级泛化，realm 解析委托 `resolve_realm` 并继承 candidate routing 语义；`invite` / `preview` token 按 target descriptor + effective link type 校验（[`../discovery/object-addressing.md` §4.2](../discovery/object-addressing.md)）；preview token 只授权 preview policy 允许字段；未授权统一 `not_found`。 |
+| `ck.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅公开或授权可发现组织。 |
+| `ck.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员或拓扑。 |
+| `ck.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID。 |
+| `ck.directory.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)` | `results: object[]`; `has_more: boolean` | mention autocomplete / 成员添加候选；受共同 Realm / directory policy 限制；请求词不得进入 URL、Referer 或未脱敏 access log。结果 MAY 包含 handle preview，但未授权时不得披露 `subject` DID 或 `member_delivery_binding`。 |
+| `ck.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；响应 `handle` 是 canonical `user:domain`；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回。 |
+| `ck.directory.list_handles_for_subject` | `subject: did` | `realm_id: id`; `intent: enum(lookup,mention,invite,member_add)`; `requester: did`; `proof_challenge: string`; `proofs: proof[]`; `as_of: datetime`; `cursor: cursor`; `limit: int` | `subject: did`; `claims: object[]`; `primary_handle: string?`; `as_of: datetime`; `next_cursor: cursor?`; `has_more: boolean` | holder/principal DID + context → current visible claims；`subject` 不是 Realm `actor_id`。必须按 disclosure policy、issuer trust、audience 和 Realm intent 过滤；不能因共同 Realm 单独披露受限 handle。 |
+| `ck.directory.private_contact_discovery` | `requester: did`; `contacts: object[]` | `proofs: proof[]`; `privacy_profile: string`; `padding: object` | `matches: object[]`; `proofs: object[]?`; `retry_after_ms: int?` | MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
+| `ck.directory.announce` | `resource_kind: enum(realm,organization,actor,applet,handle)`; `resource_id: id\|did\|handle`; `discovery_state: object`; `source_refs: id[]`; `as_of: timestamp`; `principal_server_did: did` | `ttl_seconds: int`; `supersedes_announce_id: ck:announce:<uuidv7>` | `announce_id: ck:announce:<uuidv7>`; `indexed_at: timestamp`; `effective_ttl_seconds: int`; `next_revalidation_after: timestamp`; `warnings: string[]?` | 资源 → Directory 的签名 ingest；`announce_id` 是 Directory-local typed ID，不是跨 Directory 全局对象权威；MUST 验签 + 双向 opt-in；详见 `../discovery/discovery-directory.md` §8.3 / §8.5 / §8.10。 |
+| `ck.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdrawal_ref: string`; `acked_at: timestamp` | 资源主动撤销 opt-in；`withdrawal_ref` 是 Directory-local audit reference，不是注册 typed ID。Directory MUST 在 ≤ 1h 内停止披露；详见 `../discovery/discovery-directory.md` §8.7。 |
+| `ck.directory.push.register` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | push webhook 注册；仅作为 pull 模式优化，不替代 freshness 协议（§8.6）。 |
+| `ck.blob.upload` | `size_bytes: int` | `realm_id: id`; `content_digest: string`; `media_type: string`; `filename: string`; `purpose: string`; binary/multipart body; `header.Content-Type: string` | `blob_ref: string`; `size_bytes: int`; `media_type: string?`; `content_digest: string`; `upload_receipt: object?` | upload capability、quota、media policy；`Content-Type` 缺省为 `application/octet-stream`。`size_bytes` 可由客户端声明，也可由服务端在响应中按实际接收字节计算后返回；二者不一致时 MUST `digest_mismatch` 或 `invalid_param`。 |
+| `ck.blob.head` | `query.blob_ref: string` | `header.Authorization: token` 或 `query.presign: token`（与 `Authorization` 互斥）；`header.X-Cokret-Wait-For: cursor` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | Header auth 路径必须验证 actor/device/Realm/purpose/expiry；presign 路径验证 envelope、TTL、scope、Realm/blob 状态和 issuer service DID，但不能验证当前请求者 audience。不得通过 header 泄露不可见资源。`presign` 形态见 `ck.blob.presign`。 |
+| `ck.blob.get` | `query.blob_ref: string` | `header.Authorization: token` 或 `query.presign: token`（与 `Authorization` 互斥）；`header.Range: string`; `header.X-Cokret-Wait-For: cursor` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | Header auth 路径必须验证 actor/device/Realm/purpose/expiry；presign 路径只接受 `ck.blob.presign` 发出的短 TTL 单对象 bearer token，验证 envelope、TTL、scope、Realm/blob 状态和 issuer service DID。Range 和 redirect 不得泄露不可见资源。两者同时出现 MUST 拒绝。详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
+| `ck.blob.presign` | `blob_ref: string` | `max_age_seconds: int (<=3600)`; `purpose: enum(media_inline, thumbnail, download)` | `url: uri`; `expires_at: timestamp`; `purpose: string` | 为单个 blob 签发短 TTL（默认 ≤ 5 min，硬上限 ≤ 1h）、单对象、只读、可撤销的 pre-signed URL。**仅用于让浏览器 `<img src>` / `<video src>` 等无法附 Authorization header 的原生标签渲染受保护媒体**。E2EE 附件 ciphertext MUST NOT 通过此机制下发。受 `ck.blob.presign` capability 控制；TTL / scope / purpose 由 grant constraint 收紧。详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
+| `ck.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string`; `recipient_service_did: did` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | 只能注册当前 principal/device，且 registration 作用域绑定当前 Principal Server service DID；如显式携带 `recipient_service_did`，MUST 等于目标服务 DID。 |
+| `ck.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | same device/principal 或 device revocation path。 |
+| `ck.push.notify` | `notification.push_target_id: string`; `notification.wakeup_kind: enum(message,mention,reaction,call_invite,generic)`; `notification.devices: object[]` | `notification.push_hint: string`; `notification.counts: object`; visible profile only: `notification.event_id: id`, `notification.realm_id: id`, `notification.sender_actor_id: did` | `rejected: object[]` | 来自授权 Sync 或 notification service；默认 blind wakeup 请求 MUST NOT 携带 event / realm / sender 字段。visible 字段只在 `ck.profile.push_gateway.visible_notification.v1` 且 Realm policy + device opt-in + UI disclosure 通过时允许。`service_signature` 的 transcript MUST 绑定 `push_target_id` 所对应 registration 的 registration service DID（即 `ck.push.register_device` 注册作用域绑定的 Principal Server service DID）；且发起 notify 的来源服务 DID MUST 出现在该设备 registration 的 `recipient_service_did` 投递链内。push gateway MUST 拒绝来源服务不在目标设备投递链内、或 transcript 未绑定该 registration service DID 的请求（`capability_denied`），以阻止跨 Realm / 跨 Principal Server 的 push 注入。 |
+| `ck.device_messages.put` | `header.Idempotency-Key: string`; `messages: object` | 每个 target 必须含 `kind`、`content`、`expires_at` | `ok: boolean`; `delivered: object?`; `unknown_devices: object?` | `(sender, Idempotency-Key)` 幂等；目标必须是授权 device；过期或超过 TTL 上限的消息必须拒绝或逐项 reject。 |
+| `ck.device_messages.get` | 无 | `query.from: cursor`; `query.limit: int` | `messages: object[]`; `next_cursor: cursor?`; `has_more: boolean`; `limited: boolean?` | 响应字段 `messages[]` 含 `DeviceMessageEnvelope` 对象, 不是 Event Envelope; 只返回当前 device 队列。 |
+| `ck.keys.upload` | `device_id: id`; `device_signature: signature` | `one_time_keys: object`; `fallback_keys: object` | `one_time_key_counts: object`; `fallback_keys: object?` | key 必须链接 self-signing / principal key。 |
+| `ck.keys.query` | `device_keys: object` | `timeout_ms: int` | `device_keys: object`; `failures: object?` | 查询范围可按关系 / Realm 限制。 |
+| `ck.keys.claim` | `one_time_keys: object` | 无 | `one_time_keys: object`; `failures: object?` | one-time key MUST 原子消费。 |
+| `ck.keys.keypackages.upload` | `device_id: id`; `key_packages: object[]`; `device_signature: signature` | `expires_at: datetime`; `flow_id: id`; `mls_group_id: string` | `accepted: int`; `rejected: object[]?`; `key_package_refs: id[]?`; `available_count: int?` | MLS KeyPackage MUST 绑定 device key、credential 和 supported cipher suites；服务 SHOULD 返回该 device 当前可见 `available_count` 以支持低水位补充。 |
+| `ck.keys.keypackages.claim` | `claims: object[]` | `timeout_ms: int`; `flow_id: id`; `mls_group_id: string` | `key_packages: object[]`; `failures: object?`; `available_count: int?` | KeyPackage claim MUST 原子保留，重复 claim 不得返回同一 one-time package；claimed 过期不得回到 published，claim path 按 `(requester_service_did, target_principal_id)` 限速并做反枚举。 |
+| `ck.keys.keypackages.consume` | `key_package_refs: id[]`; `consumer_device_id: id`; `signature: signature` | `flow_id: id`; `epoch: int` | `consumed: id[]`; `failures: object?` | consume MUST 校验 claim holder、epoch 和 package freshness。 |
+| `ck.keys.keypackages.revoke` | `key_package_refs: id[]`; `device_id: id`; `signature: signature` | `reason: string` | `revoked: id[]`; `failures: object?` | 只能由 owning device、principal 或授权 admin 撤销。 |
+| `ck.keys.backups.put` | `path.backup_id: id`; `backup: object` | `idempotency_key: string` | `status: enum(accepted,duplicate)`; `backup_id: id`; `ciphertext_digest: string` | body MUST validate `ck.schema.key_backup.v1`；path/body backup id 必须一致；服务端不得解密。 |
+| `ck.keys.backups.list` | 无 | `query.series_id: id?`; `query.backup_class: enum(ck.schema.key_backup.v1.backup_class)`; `query.cursor: cursor`; `query.limit: int` | `backups: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回调用方可见的最小 metadata；不得泄露无关 Realm / group membership。 |
+| `ck.keys.backups.get` | `path.backup_id: id` | 无 | `backup: object` | 只返回同 principal 授权 device、recovery policy 或授权恢复服务可见的 encrypted backup object。 |
+| `ck.keys.backups.delete` | `path.backup_id: id`; `proof: proof` | `reason: string` | `deleted: boolean` | 高风险删除；不等于 device revoke、DID recovery 或 MLS epoch rotation。 |
+| `ck.authz.get_effective_grants` | `query.realm_id: id`; `query.subject: did` | `query.at: string` | `grants: object[]`; `state_digest: string?`; `evaluated_at: datetime` | subject 本人、Realm admin 或授权服务。 |
+| `ck.authz.get_invites` | `query.subject: did 或 string` | `query.realm_id: id`; `query.cursor: cursor` | `invites: object[]`; `next_cursor: cursor?`; `has_more: boolean` | secret invite 不可枚举。 |
+| `ck.authz.check` | `actor_id: did`; `action: string` | `resource: object`; `context: object` | `decision: enum(allow,deny,quarantine,require_review,soft_fail)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `freshness_state: enum(fresh,stale,unknown)?`; `last_known_frontier_age_ms: int?`; `anchorer_status: enum(fresh,lagging,unreachable,unknown)?`; `cache_expires_at: datetime?`; `reason_code: string?`; `retry_after_ms: int?`; `obligations: object[]?` | Policy allow 不创建 capability；客户端不得把非标准 `allowed` 字段作为规范字段；`freshness_state=stale/unknown` 且高风险动作时 MUST fail closed，reason_code 使用 `revocation_freshness_unknown`。 |
+| `ck.policy.check` | `request_id: string`; `realm_id: id`; `request_canonical_digest: string`; `action: string`; `actor: did`; `source: object` | `device_id: id`; `event_preview: object`; `auth_context: object` | `request_id: string`; `bound_to: object`; `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `reason_code: string`; `expires_at: datetime`; `auth_state_digest: string`; `policy_frontier_digest: string`; `membership_frontier_digest: string`; `obligations: object[]?`; `signature: signature` | 只接收最小披露字段；decision 按 hash/cache frontier 绑定。Canonical HTTP 路径 `POST /_cokret/self/policy/check`。 |
+| `ck.moderation.report` | `realm_id: id`; `target_ref: id`; `report_reason_code: enum`; `reporter: did` | `description: string`; `evidence_refs: id[]` | `report_id: id`; `status: string`; `routed_to: did[]?` | reporter 必须可见 target；只对 moderators 可见。 |
+| `ck.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 不得泄露 private namespace。 |
+| `ck.applet.describe` | 无 | 无 | `ServiceDescribe` | public mode 只返回公开 capabilities；applet-specific 字段作为扩展字段返回。 |
+| `ck.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet 必须验证 event signature、namespace、capability；按 `(source_service_did, Idempotency-Key)` 幂等。 |
+| `ck.applet.resolve_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 namespace。 |
+| `ck.applet.resolve_realm` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
+| `ck.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?` | instance list 可要求授权。 |
+| `ck.applet.third_party_users` | `query.protocol: string`; external ids | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
+| `ck.applet.third_party_locations` | `query.protocol: string`; external ids | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
+| `ck.mimi.provider_directory` | 无 | `query.provider_id: string`; `query.features: string[]` | `providers: object[]`; `features: object`; `expires_at: datetime?` | 只返回公开 provider capability，不泄露 Realm membership。 |
+| `ck.mimi.key_material` | `requester: did`; `flow_id: id`; `device_id: id` | `mls_group_id: string`; `epoch: int`; `proofs: proof[]` | `key_packages: object[]?`; `group_info: object?`; `failures: object?` | 必须存在 accepted `ck.mimi.room_binding` 且 requester 有对应 room / device 权限。 |
+| `ck.mimi.room_update` | `path.flow_id: id`; `mls_group_id: string`; `update: object` | `epoch: int`; `confirmed_transcript_hash: string`; `sender_actor_id: did` | `accepted: boolean`; `room_state_ref: id?`; `rejected: object[]?` | 更新必须映射到 Cokret Flow discussion track / Realm policy 授权范围内；`confirmed_transcript_hash` 沿用 MLS/MIMI 外部标准字段名。 |
+| `ck.mimi.notify` | `path.flow_id: id`; `notification: object` | `origin_provider: string`; `routing: object` | `accepted: boolean`; `retry_after_ms: int?` | 只可传递最小 fanout / delivery signal，不得携带未授权明文。 |
+| `ck.mimi.submit_message` | `path.flow_id: id`; `sender_actor_id: did`; `device_id: id`; `ciphertext: object` | `mls_group_id: string`; `epoch: int`; `associated_data: object` | `event_ref: id?`; `delivery: object`; `rejected: object[]?` | 必须校验 MLS epoch、有效 discussion access、capability 和 `ck.mimi.room_binding`。 |
+| `ck.mimi.group_info` | `path.flow_id: id` | `query.epoch: int`; `query.include_proof: boolean` | `group_info: object`; `room_binding_ref: id?`; `proofs: object[]?` | 只能返回 requester 授权可见的 MLS groupInfo / room projection。 |
+| `ck.mimi.request_consent` | `requester: did`; `target: object`; `purpose: string` | `flow_id: id`; `expires_at: datetime`; `proofs: proof[]` | `consent_id: id`; `status: string`; `challenge: string?` | consent 只表达联系 / invite 意图，不授予 Realm read/write。 |
+| `ck.mimi.update_consent` | `consent_id: id`; `decision: enum(accept,deny,revoke)`; `actor: did`; `signature: signature` | `reason: string`; `expires_at: datetime` | `status: string`; `updated_at: datetime`; `event_ref: id?` | 必须绑定原 request、target identity proof 和 replay protection。 |
+| `ck.mimi.identifier_query` | `identifiers: object[]` | `requester: did`; `privacy_profile: string`; `proofs: proof[]` | `results: object[]`; `proofs: object[]?`; `has_more: boolean` | SHOULD 使用 private contact discovery；不得返回原始通讯录或完整关系图谱。 |
+| `ck.mimi.report_abuse` | `flow_id: id`; `target_ref: id`; `reporter: did`; `abuse_reason_code: enum` | `evidence_package: object`; `franking_proof: object`; `description: string` | `report_id: id`; `status: string`; `routed_to: did[]?` | E2EE report 只能向授权 moderation recipient 解密 evidence。 |
+| `ck.mimi.proxy_download` | `asset_ref: string`; `requester: did` | `flow_id: id`; `ohttp_context: object`; `range: string` | `download_ref: string`; `headers: object?`; `expires_at: datetime?` | 当 Realm asset privacy policy 要求 proxy/OHTTP 时不得返回 direct object-store URL。 |
+| `ck.account.issue_session_grant` | `principal_id: did`; `proof: SessionGrantRequestProof` | `device_id: id`; `requested_scope: string[]` | `principal_id: did`; `device_id: id?`; `session_grant: string`; `expires_at: datetime`; `granted_scope: string[]?` | `proof` MUST 绑定 `proof_kind`、`challenge`、`request_canonical_digest`、`audience`、`expires_at?` 与签名；必须绑定 principal、device key、audience 和最小 scope。 |
+| `ck.account.device_pair` | `principal_id: did`; `new_device_key: object`; `pairing_proof: proof` | `display_name: string`; `device_metadata: object` | `device_id: id`; `device_grant: object`; `key_backup_hint: object?` | pairing code / proof 必须短期有效、一次性使用，并绑定目标 Auth Server audience / origin / request canonical hash；服务端 MUST 按 principal、授权源设备和目标 origin 限速。 |
+| `ck.account.oidc_callback` | `state: string`; `code: string` | `nonce: string`; `redirect_uri: url` | `principal_id: did?`; `session: SessionGrantResponse?`; `redirect_url: url?` | MUST 校验 state、nonce、服务端配置的 issuer binding 和 DID/account linkage。 |
+| `ck.admin.get_server_status` | 无 | `query.include: string[]` | `status: string`; `protocol_version: string`; `features: string[]`; `capacity: object?`; `warnings: string[]?` | 公开响应只能包含 operational metadata；敏感细节需要 admin session。 |
+| `ck.admin.update_account_status` | `path.account_id: id`; `status: string`; `moderator: did`; `proof: proof` | `reason: string`; `expires_at: datetime`; `notify: boolean` | `account_id: id`; `status: string`; `event_ref: id?`; `updated_at: datetime` | 必须生成可审计 account lifecycle 状态或 admin receipt。 |
+| `ck.admin.revoke_device` | `path.device_id: id`; `moderator: did`; `proof: proof` | `reason: string`; `revoke_sessions: boolean` | `device_id: id`; `revoked: boolean`; `event_ref: id?` | 必须撤销 device grant、session grant 和相关 key package。 |
+| `ck.admin.get_moderation_queue` | 无 | `query.realm_id: id`; `query.status: string`; `query.cursor: cursor`; `query.limit: int` | `items: object[]`; `next_cursor: cursor?`; `has_more: boolean`; `counts: object?` | 只对授权 moderator / compliance service 可见，证据按 policy 最小披露。 |
+| `ck.media.ice_config` | `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `mode: string` | 无 | `ttl_seconds: int`; `refresh_lead_seconds: int`; `issued_at: datetime`; `issued_at_bucket: datetime`; `bucket_seconds: int`; `ice_servers: object[]`; `constraints: object?`; `signature: signature` | actor 必须有 call/media capability；Media Service 必须被委托；TURN pseudonym bucket 固定 300s。 |
 
 ## 3. Events API
 
 ### 3.1 提交 Event
 
 ```text
-POST /api/v1/events
+POST /_cokret/self/events
 ```
 
 单事件提交 request body 直接是 `EventSubmitEnvelope` 对象（**不**用任何 `{event: ...}` wrapper）。批量提交 request body 是 `{events: EventSubmitEnvelope[]}`。服务接受后返回的 get/query/subscribe 路径暴露 accepted `EventEnvelope`；submit input 与 accepted/read envelope 不得混用。
@@ -456,7 +472,7 @@ POST /api/v1/events
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 42,
-  "kind": "cx.flow.update",
+  "kind": "ck.flow.update",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0007-a13f9c2e",
   "prev_refs": [
@@ -500,8 +516,8 @@ POST /api/v1/events
 ```json
 {
   "events": [
-    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:web:...", "actor_seq": 42, "kind": "cx.flow.update", "...": "..." },
-    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:web:...", "actor_seq": 43, "kind": "cx.message.create", "...": "..." }
+    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:web:...", "actor_seq": 42, "kind": "ck.flow.update", "...": "..." },
+    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:web:...", "actor_seq": 43, "kind": "ck.message.create", "...": "..." }
   ]
 }
 ```
@@ -521,7 +537,7 @@ POST /api/v1/events
 }
 ```
 
-若非 reducer 写入的乐观 `expected_frontier` 校验失败，返回 `409 cas_conflict`。Reducer-input Move 的 cell precondition / `head_eq` 失败按对应 reducer 语义返回 `failed_precondition`（例如 `cx.flow.move` / `cx.flow.reorder` 的 `expected_position` 不匹配），不得把这类失败旁路成 `cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、checkpoint 或 predecessor commit 才承认其 canonical history 地位。
+若非 reducer 写入的乐观 `expected_frontier` 校验失败，返回 `409 cas_conflict`。Reducer-input Move 的 cell precondition / `head_eq` 失败按对应 reducer 语义返回 `failed_precondition`（例如 `ck.flow.move` / `ck.flow.reorder` 的 `expected_position` 不匹配），不得把这类失败旁路成 `cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、checkpoint 或 predecessor commit 才承认其 canonical history 地位。
 
 `events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项用于解析 bytes、Event ID、actor chain、`prev_refs` 或显式 payload-level causal reference；但**授权可见性不因此提前生效**。`refs[role=authorized_by]` 只有在被引用的 grant / authority 已存在于该后续 Event 的 `anchor_ref` pre-state 中时，才能参与授权判定。同批前序 Event 若创建、delegate、恢复或扩权某个 grant，依赖该 grant 的后续 Event MUST 等到后续 Anchor 覆盖该 grant 后再提交，或被当前批次拒绝/隔离；`refs(role="after")` 只表达后续 Anchor 的排序约束，不让同一 Anchor 内的新 effect 被读取为授权状态。后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
 
@@ -536,7 +552,7 @@ POST /api/v1/events
 ### 3.2 批量获取 Event
 
 ```text
-POST /api/v1/events/resolve
+POST /_cokret/self/events/resolve
 ```
 
 请求示例（非完整 schema）：
@@ -558,12 +574,12 @@ POST /api/v1/events/resolve
 }
 ```
 
-### 3.3 查询 / 回填 Event（`cx.events.query`）
+### 3.3 查询 / 回填 Event（`ck.events.query`）
 
 ```text
-GET /api/v1/events?realms=<id>&before=<cursor>&limit=500          # 历史 backfill（最近未历史）
-GET /api/v1/events?actors=<did>&after=<cursor>&limit=500           # 从已知 frontier 追上（catch-up）
-GET /api/v1/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区间查询（Y, X）开区间
+GET /_cokret/self/events?realms=<id>&before=<cursor>&limit=500          # 历史 backfill（最近未历史）
+GET /_cokret/self/events?actors=<did>&after=<cursor>&limit=500           # 从已知 frontier 追上（catch-up）
+GET /_cokret/self/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区间查询（Y, X）开区间
 ```
 
 #### 3.3.1 Selector
@@ -624,10 +640,10 @@ GET /api/v1/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区间查�
 - **客户端到达 oldest accessible event**（不允许再往更旧拉）：`prev_cursor=null`、`has_more=false`。
 - **超过 visibility 边界**：返回 `not_found` 而不是空批次，避免泄露不可见 Realm 的存在性。
 
-#### 3.3.5 POST/body 形态（`cx.events.query_post`）
+#### 3.3.5 POST/body 形态（`ck.events.query_post`）
 
 ```text
-POST /api/v1/events/query
+POST /_cokret/self/events/query
 Content-Type: application/json
 
 {
@@ -637,7 +653,7 @@ Content-Type: application/json
   "after": "ck:cursor:...",
   "order": "default",
   "limit": 200,
-  "filters": { "kind": ["cx.message.create"] }
+  "filters": { "kind": ["ck.message.create"] }
 }
 ```
 
@@ -648,25 +664,25 @@ POST 形态与 GET 形态**完全等价**：参数集（`realms` / `actors` / `b
 - 隐私 / 日志风险：部署侧的 HTTP access log 通常会完整记录 URL；query string 中的 filter 字段（含可能的敏感 keyword、`actor_id` 列表）会被无差别采集
 - 兼容受限客户端：某些 HTTP 中间层会规范化或丢失复杂的 `style: deepObject` 参数
 
-`cx.events.query_post` 是 `cx.events.query` 的 **HTTP-专属 binding variant**，不是独立语义 operation。gRPC 与 MQ 的 wire 形态本就是 body-based，统一使用 `cx.events.query` / `Events/Query` / `events.query` 即可，不需要单独的 `_post` 命名。
+`ck.events.query_post` 是 `ck.events.query` 的 **HTTP-专属 binding variant**，不是独立语义 operation。gRPC 与 MQ 的 wire 形态本就是 body-based，统一使用 `ck.events.query` / `Events/Query` / `events.query` 即可，不需要单独的 `_post` 命名。
 
 **选择规则**：
-- 简单查询（仅 `before` / `after` / `limit`，少量 realms/actors）→ `GET /events`，cacheable、可被代理优化
-- 复杂查询（大型 selector / 复杂 filters）→ `POST /events/query`
+- 简单查询（仅 `before` / `after` / `limit`，少量 realms/actors）→ `GET /_cokret/self/events`，cacheable、可被代理优化
+- 复杂查询（大型 selector / 复杂 filters）→ `POST /_cokret/self/events/query`
 
-服务端 SHOULD 同时实现两个 endpoint；客户端可以按场景自由选择，**不需要协商**。`cx.events.query_post` 在注册表（`operation-registry.json`）中通过 `binding_variant_of="cx.events.query"` 标记，以保证 SDK 生成器、conformance 测试与 server.describe 能机器可读地枚举该 alternate binding，同时授权、审计和指标归并到 `cx.events.query`。
+服务端 SHOULD 同时实现两个 endpoint；客户端可以按场景自由选择，**不需要协商**。`ck.events.query_post` 在注册表（`operation-registry.json`）中通过 `binding_variant_of="ck.events.query"` 标记，以保证 SDK 生成器、conformance 测试与 server.describe 能机器可读地枚举该 alternate binding，同时授权、审计和指标归并到 `ck.events.query`。
 
 **`binding_variant_of` conformance 矩阵规则**：当 operation B 声明 `binding_variant_of=A` 时，B 与 A 共享 selector / cursor / cursor-direction / projection 测试集合，只独立测试 wire encoding（query string vs JSON body）。conformance suite 不需要为 variant 重复跑业务逻辑测试。
 
-### 3.4 流式订阅 Event（`cx.events.subscribe`）
+### 3.4 流式订阅 Event（`ck.events.subscribe`）
 
 ```text
-GET /api/v1/events/subscribe?realms=<id>&after=<cursor>&catchup=true
+GET /_cokret/self/events/subscribe?realms=<id>&after=<cursor>&catchup=true
 ```
 
-`after=<cursor>` 表示订阅起点：从该 cursor *之后*（排除）开始接收事件，与 [`cx.events.query`](#33-查询--回填-eventcxeventsquery) 的 `after=` 同义。Subscribe 天然只有"朝未来推进"一个方向，不接受 `before=` / `order=`；想要历史回填请用 `cx.events.query`。
+`after=<cursor>` 表示订阅起点：从该 cursor *之后*（排除）开始接收事件，与 [`ck.events.query`](#33-查询--回填-eventckeventsquery) 的 `after=` 同义。Subscribe 天然只有"朝未来推进"一个方向，不接受 `before=` / `order=`；想要历史回填请用 `ck.events.query`。
 
-支持多 realm / actor 一次订阅；`catchup=true` 时服务端只回放 `after=` 到当前 frontier 的追赶区间，再发出 `catchup_complete` 帧切到实时尾部。完整历史必须通过 `GET /events` 的 `before` / `after` 分页或区间查询读取。
+支持多 realm / actor 一次订阅；`catchup=true` 时服务端只回放 `after=` 到当前 frontier 的追赶区间，再发出 `catchup_complete` 帧切到实时尾部。完整历史必须通过 `GET /_cokret/self/events` 的 `before` / `after` 分页或区间查询读取。
 
 
 HTTP 200 response `Content-Type` MUST be `application/x-ndjson`。Frame 每行一个独立 JSON 对象：
@@ -682,14 +698,14 @@ HTTP 200 response `Content-Type` MUST be `application/x-ndjson`。Frame 每行�
 { "kind": "resync_required", "realm_id": "ck:realm:01...", "reconnect_after_ms": 10000 }
 ```
 
-客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `cx.events.query` 补齐，后者要求重建本地状态。`kind="dropped"` frame 的 `cursor` 为 REQUIRED；服务端没有可用补齐 cursor 时 MUST 发送 `resync_required`，不得发送无 cursor 的 `dropped`。
+客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `ck.events.query` 补齐，后者要求重建本地状态。`kind="dropped"` frame 的 `cursor` 为 REQUIRED；服务端没有可用补齐 cursor 时 MUST 发送 `resync_required`，不得发送无 cursor 的 `dropped`。
 
-Dropped / resync-required control frame MAY 携带顶层 `reconnect_after_ms`，表示客户端在为同一 authenticated caller + selector/filter scope 打开下一条 `cx.events.subscribe` 连接前必须等待的最小毫秒数。该字段不是错误响应的 `retry_after_ms`，不约束无关 API 调用；服务端一旦发送该字段，MUST 在对应 cooldown scope 内强制执行，过早重连 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 cursor、ack 或其它不可逆订阅状态。客户端 SHOULD 在该延迟上加入 jitter。
+Dropped / resync-required control frame MAY 携带顶层 `reconnect_after_ms`，表示客户端在为同一 authenticated caller + selector/filter scope 打开下一条 `ck.events.subscribe` 连接前必须等待的最小毫秒数。该字段不是错误响应的 `retry_after_ms`，不约束无关 API 调用；服务端一旦发送该字段，MUST 在对应 cooldown scope 内强制执行，过早重连 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 cursor、ack 或其它不可逆订阅状态。客户端 SHOULD 在该延迟上加入 jitter。
 
 ## 4. Identity API
 
 ```text
-POST /api/v1/identity/resolve
+POST /_cokret/root/identity/resolve
 ```
 
 请求示例（非完整 schema）：
@@ -718,46 +734,46 @@ Resolver MUST 返回足够的方法相关证据，使客户端能够验证 contr
 
 ## 5. Account API
 
-`/account/*` 承载当前 authenticated principal/device 的账号视角能力：account 聚合 streaming（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts）、account describe 与 cursor revoke。snapshot manifest 入口独立放在 `/snapshot/*`。逐 Realm 的事件读取与流式订阅走 `/events/*`（`cx.events.query`、`cx.events.subscribe`），见 §3.3 / §3.4。用户注册、handle 申请、审批、重签和管理员分配属于 issuer / coauth / 部署治理流程，v1 core 不定义对应 `/account/*` 或 `/admin/*` API。
+`/_cokret/self/account/*` 承载当前 authenticated principal/device 的账号视角能力：account 聚合 streaming（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts）、account describe 与 cursor revoke。snapshot manifest 入口独立放在 `/_cokret/self/snapshot/*`。逐 Realm 的事件读取与流式订阅走 `/_cokret/self/events/*`（`ck.events.query`、`ck.events.subscribe`），见 §3.3 / §3.4。用户注册、handle 申请、审批、重签和管理员分配属于 issuer / coauth / 部署治理流程，v1 core 不定义对应 `/_cokret/self/account/*` 或 `/_cokret/local/admin/*` API。
 
-### 5.1 账号聚合订阅（`cx.account.subscribe`）
+### 5.1 账号聚合订阅（`ck.account.subscribe`）
 
 ```text
-GET /api/v1/account/subscribe?catchup=true                         # initial account sync baseline
-GET /api/v1/account/subscribe?after=<cursor>                        # live tail after external reconciliation
-GET /api/v1/account/subscribe?after=<cursor>&catchup=true           # reconnect / dropped catch-up
+GET /_cokret/self/account/subscribe?catchup=true                         # initial account sync baseline
+GET /_cokret/self/account/subscribe?after=<cursor>                        # live tail after external reconciliation
+GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true           # reconnect / dropped catch-up
 ```
 
-该端点对应 `cx.account.subscribe`,wire 形态是长连接 NDJSON 流。客户端建立长连接后，服务端按 account / Realm filter 推送 `delta` frame(跨 Realm delta + to_device + account_data + device_lists + presence + notifications)与控制 frame(`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`)。请求参数、frame schema 与重连规则见 [`client-sync.md`](./client-sync.md) §2。
+该端点对应 `ck.account.subscribe`,wire 形态是长连接 NDJSON 流。客户端建立长连接后，服务端按 account / Realm filter 推送 `delta` frame(跨 Realm delta + to_device + account_data + device_lists + presence + notifications)与控制 frame(`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`)。请求参数、frame schema 与重连规则见 [`client-sync.md`](./client-sync.md) §2。
 
-它与 `cx.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log),共享 cursor / `dropped` / `resync_required` 控制模型，但恢复面不同:`account.subscribe` 的 `dropped` 用 `GET /account/subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;裸 Event 缺口才使用 `cx.events.query`。`catchup=true` 不表示全量历史；完整历史读取必须走 `cx.events.query`。它不是裸事件读取——裸事件读取请使用 `cx.events.query` / `cx.events.subscribe`。
+它与 `ck.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log),共享 cursor / `dropped` / `resync_required` 控制模型，但恢复面不同:`account.subscribe` 的 `dropped` 用 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;裸 Event 缺口才使用 `ck.events.query`。`catchup=true` 不表示全量历史；完整历史读取必须走 `ck.events.query`。它不是裸事件读取——裸事件读取请使用 `ck.events.query` / `ck.events.subscribe`。
 
-Dropped / resync-required control frame MAY 携带 `reconnect_after_ms`。客户端在同一 principal/device/filter scope 重新建立 `/account/subscribe` 之前 MUST 至少等待该时长；服务端 MUST 对过早重连返回 `429 rate_limited` + `Retry-After`，并且不得推进 to-device ack、account subscribe position 或 dropped recovery state。
+Dropped / resync-required control frame MAY 携带 `reconnect_after_ms`。客户端在同一 principal/device/filter scope 重新建立 `/_cokret/self/account/subscribe` 之前 MUST 至少等待该时长；服务端 MUST 对过早重连返回 `429 rate_limited` + `Retry-After`，并且不得推进 to-device ack、account subscribe position 或 dropped recovery state。
 
 ## 6. Snapshot API
 
-`/snapshot/*` 提供 Realm snapshot manifest 入口；snapshot 是派生的当前态缓存，客户端使用前 MUST 校验签名、签名者授权、`state_digest` 和每个 chunk digest（见 [`service-surface.md` §11](./service-surface.md)）。
+`/_cokret/self/snapshot/*` 提供 Realm snapshot manifest 入口；snapshot 是派生的当前态缓存，客户端使用前 MUST 校验签名、签名者授权、`state_digest` 和每个 chunk digest（见 [`service-surface.md` §11](./service-surface.md)）。
 
-### 6.1 当前 snapshot manifest（`cx.snapshot.head`）
+### 6.1 当前 snapshot manifest（`ck.snapshot.head`）
 
 ```text
-GET /api/v1/snapshot/head?realm_id=<id>
+GET /_cokret/self/snapshot/head?realm_id=<id>
 ```
 
-该端点对应 `cx.snapshot.head`，返回当前推荐 snapshot manifest 指针（不含 chunk bytes）。客户端通过 manifest 中的 `chunks[].chunk_ref` 走 blob surface 取实际数据。snapshot 不是真相源，校验失败时客户端 MUST 回退到 Event history replay。
+该端点对应 `ck.snapshot.head`，返回当前推荐 snapshot manifest 指针（不含 chunk bytes）。客户端通过 manifest 中的 `chunks[].chunk_ref` 走 blob surface 取实际数据。snapshot 不是真相源，校验失败时客户端 MUST 回退到 Event history replay。
 
 ## 7. Directory API
 
 ```text
-POST /api/v1/directory/search-realms
-POST /api/v1/directory/resolve-realm
-POST /api/v1/directory/resolve-target
-POST /api/v1/directory/search-organizations
-POST /api/v1/directory/resolve-organization
-POST /api/v1/directory/search-actors
-POST /api/v1/directory/search-users
-POST /api/v1/directory/resolve-handle
-POST /api/v1/directory/list-handles-for-subject
+POST /_cokret/find/directory/search-realms
+POST /_cokret/find/directory/resolve-realm
+POST /_cokret/find/directory/resolve-target
+POST /_cokret/find/directory/search-organizations
+POST /_cokret/find/directory/resolve-organization
+POST /_cokret/find/directory/search-actors
+POST /_cokret/find/directory/search-users
+POST /_cokret/find/directory/resolve-handle
+POST /_cokret/find/directory/list-handles-for-subject
 ```
 
 Directory 端点 MUST 在每个结果上分别应用资源可发现性、请求方证明、审核策略与授权过滤。
@@ -769,7 +785,7 @@ Directory 端点 MUST 在每个结果上分别应用资源可发现性、请求�
 ### 8.1 上传
 
 ```text
-POST /api/v1/blob/upload
+POST /_cokret/self/blob/upload
 ```
 
 Content type MAY 取 `application/octet-stream` 或 `multipart/form-data`。
@@ -788,8 +804,8 @@ Content type MAY 取 `application/octet-stream` 或 `multipart/form-data`。
 ### 8.2 下载
 
 ```text
-HEAD /api/v1/blob/get?blob_ref=<blob_ref>
-GET /api/v1/blob/get?blob_ref=<blob_ref>
+HEAD /_cokret/self/blob/get?blob_ref=<blob_ref>
+GET /_cokret/self/blob/get?blob_ref=<blob_ref>
 ```
 
 客户端 MUST 重新计算内容哈希并与 `blob_ref` 比对。
@@ -817,7 +833,7 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 实现使用规则：
 
 - 客户端收到 `429` MUST 优先遵守 `Retry-After` header；若缺失再使用 body 中的 `retry_after_ms`。`503` 在带有 `Retry-After` 时也必须按该时间退避。收到 `409` SHOULD 拉取最新状态后退避重试。
-- `unsupported_feature` 用于 `Event.requirements.features[]` / `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `cx.*` Event kind；二者不得互相替代。
+- `unsupported_feature` 用于 `Event.requirements.features[]` / `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ck.*` Event kind；二者不得互相替代。
 - 通用 `conflict` 仅作为抽象 base code 出现在 narrative；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `duplicate_conflict` / `epoch_mismatch` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `discussion_track_disabled` / `key_unavailable`）。
 
 ## 11. 安全与抗滥用

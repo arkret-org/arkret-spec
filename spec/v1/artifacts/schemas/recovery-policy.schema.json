@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/recovery-policy.schema.json",
   "title": "Cokret Recovery Policy",
-  "description": "Normative grammar for a principal's recovery policy. Bound to the Principal Control Realm via signed publish / rotate / revoke control events; receivers MUST reject `recover`, `rotate`, `cx.device.authorize` and Cross-Signing Reset evidence whose proof family / threshold / approval requirement is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §15.",
+  "description": "Normative grammar for a principal's recovery policy. Bound to the Principal Control Realm via signed publish / rotate / revoke control events; receivers MUST reject `recover`, `rotate`, `ck.device.authorize` and Cross-Signing Reset evidence whose proof family / threshold / approval requirement is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §15.",
   "type": "object",
   "required": [
     "schema",
@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "cx.schema.recovery_policy.v1"
+      "const": "ck.schema.recovery_policy.v1"
     },
     "policy_id": {
       "type": "string",
@@ -166,9 +166,9 @@
             "items": {
               "type": "string",
               "enum": [
-                "cx.device.authorize",
-                "cx.cross_signing.reset",
-                "cx.recovery_policy.rotate"
+                "ck.device.authorize",
+                "ck.cross_signing.reset",
+                "ck.recovery_policy.rotate"
               ]
             },
             "uniqueItems": true
@@ -209,7 +209,7 @@
         "receipt_required": {
           "type": "boolean",
           "default": true,
-          "description": "When true, recovery completion MUST produce a cx.schema.recovery_receipt.v1 record."
+          "description": "When true, recovery completion MUST produce a ck.schema.recovery_receipt.v1 record."
         }
       },
       "additionalProperties": false

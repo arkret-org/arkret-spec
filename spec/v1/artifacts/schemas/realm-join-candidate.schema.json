@@ -55,14 +55,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx\\.[a-z0-9][a-z0-9_.-]*$"
+        "pattern": "^ck\\.[a-z0-9][a-z0-9_.-]*$"
       },
       "contains": {
-        "const": "cx.events.submit"
+        "const": "ck.events.submit"
       },
       "uniqueItems": true,
       "minItems": 1,
-      "description": "Endpoint-callable operation ids available at this candidate. Join-side routing requires cx.events.submit."
+      "description": "Endpoint-callable operation ids available at this candidate. Join-side routing requires ck.events.submit."
     },
     "join_methods": {
       "type": "array",
