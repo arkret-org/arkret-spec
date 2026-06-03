@@ -2587,6 +2587,53 @@
         "schema_validation"
       ],
       "description": "A `recipient_method=hardware_wrapped_key` key-backup envelope, or any recovery / cross-signing proof requiring hardware attestation, lacks an `attestation` chain that the receiver can verify against the active recovery policy's `trusted_recovery_services[]`. See zh/identity/key-management.md §7.5.5."
+    },
+    {
+      "code": "selector_governance_wildcard_forbidden",
+      "applies_to": [
+        "authz",
+        "schema_violation"
+      ],
+      "description": "Governance-plane resource selector wildcard (e.g. policy:*, schema:*, or a governance object:* selector) was used without the required mitigation (denied by deployment policy, or constrained with max_delegation_depth=0 plus bounded expiry plus admin approval). Receiver MUST reject."
+    },
+    {
+      "code": "direct_download_disallowed_presign_forbidden",
+      "applies_to": [
+        "authz",
+        "service_call"
+      ],
+      "description": "A presigned blob URL was requested for a Realm whose policy sets direct_download_allowed=false. The service MUST deny presign and require access through the authenticated media proxy."
+    },
+    {
+      "code": "read_receipt_visibility_combination_invalid",
+      "applies_to": [
+        "schema_violation",
+        "state_resolution"
+      ],
+      "description": "Read receipt visibility=public was combined with history_visibility=world_readable without an explicit opt-in marker. Reducer MUST reject the combination to avoid leaking actor read positions to anonymous observers."
+    },
+    {
+      "code": "egress_policy_denied",
+      "applies_to": [
+        "agent_protocol",
+        "authz"
+      ],
+      "description": "An outbound agent-protocol handoff would emit E2EE Realm plaintext or derived content without a matching egress grant and data-class check. Session start MUST be rejected."
+    },
+    {
+      "code": "erasure_receipt_stub_digest_mismatch",
+      "applies_to": [
+        "account_status",
+        "identity_resolution"
+      ],
+      "description": "Retained erasure stub bytes do not match retained_stub_digest in the erasure receipt. Verifier MUST reject the receipt and treat the erasure as not completed (fail closed)."
+    },
+    {
+      "code": "webvh_cache_unavailable",
+      "applies_to": [
+        "identity_resolution"
+      ],
+      "description": "did:webvh resolution is in cache-only degraded mode and either the requested operation is outside the closed low-risk read-only set, or no anchored, controller-proof-verified cache evidence is available. Resolver MUST fail closed rather than treat unresolvable as valid."
     }
   ]
 }

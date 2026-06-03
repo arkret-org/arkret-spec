@@ -1132,6 +1132,30 @@ cx.vector.redaction.snapshot_pruning_stub.v1
 - audit view 能验证 target event id、原始 envelope digest / proof `event_digest`、redaction event id、执行服务 DID、执行时间和签名 receipt。
 - 若 active legal hold 存在，pruning MUST fail closed；snapshot 仍可隐藏普通视图明文，但不得物理删除 legal-hold 边界内要求保留的 payload。
 
+### 3.6 Vector: snapshot inclusion challenge
+
+向量名称：
+
+```text
+cx.vector.snapshot.inclusion_challenge.v1
+```
+
+本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。fixture 中的 `commitment_root`、`samples[]`、`proofs[].merkle_branch` 等具体字节值由 fixture 生成器产出并以 `spec/v1/artifacts/fixtures/` 为权威；本节固定结构与断言。
+
+输入：
+
+1. 一个已知 `event_set_commitment`（algorithm `merkle_event_set_v1`），其 `root` 覆盖 `covered_event_count` 个 event。
+2. 一组采样 `samples[]`，其数量 `n ≥ max(20, ceil(log2(covered_event_count)))`，且至少覆盖 3 段不同的 `actor_seq_range`。
+3. 每个 sample 配对一条 `proofs[].merkle_branch` 与声明的 `commitment_root`。
+4. 至少一个 `gap_attribution` 条目（标注某 actor / seq 区间在被声明范围内缺失）。
+
+期望：
+
+- 采样数不满足 `n ≥ max(20, ceil(log2(covered_event_count)))`，或未覆盖 ≥3 段 `actor_seq_range` 时，verifier MUST 拒绝该 challenge 为不充分，并 MUST NOT 据此通过 completeness gate。
+- 任一 `merkle_branch` 对其 sample 验证失败，或 `commitment_root` 与 manifest 声明的 root 不一致时，verifier MUST 拒绝该 snapshot。
+- `gap_attribution` 为空但声明范围内确有缺口时，MUST 视为 completeness 未证明（set-bound commitment 只给 integrity，不给 completeness）。
+- 两个 conformant verifier 对同一 fixture MUST 得到相同 accept/reject 结论。
+
 ## 4. Capability Vectors
 
 ### 4.1 目标

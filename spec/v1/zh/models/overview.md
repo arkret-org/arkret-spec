@@ -164,7 +164,7 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 
 ### 3.4 Relation 是一等对象
 
-跨对象语义 MUST 使用 `relation` 表达，而不是藏在对象字段里。Relation 连接的是对象引用：标准字段 `from_ref` / `to_ref` 可以指向 `flow`、`message`、`morph`、`space`、`realm` 或 `blob` 的 `cx:<kind>:` typed ID。Actor 端点没有 `cx:actor:` 对象（actor 的身份根是 DID，协作图展示镜像是 `cx:actor_profile:`）；因此当端点是 Actor 时，`from_ref` / `to_ref` 直接使用该 actor 的 DID（principal），而不是某个 `cx:actor:` ID（见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)）。
+跨对象语义 MUST 使用 `relation` 表达，而不是藏在对象字段里。Relation 连接的是对象引用：标准字段 `from_ref` / `to_ref` 可以指向 `flow`、`message`、`morph`、`space`、`realm` 或 `blob` 的 `cx:<kind>:` typed ID。Actor 端点没有对应的 actor typed-ID 对象（actor 的身份根是 DID，协作图展示镜像是 `cx:actor_profile:`）；因此当端点是 Actor 时，`from_ref` / `to_ref` 直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)）。
 
 跨 Realm 引用规则、结构性 Relation 的本地约束（如 `contains` / `belongs_to` 不可跨 Realm）见 [relation.md](./relation.md)。
 

@@ -442,11 +442,43 @@
       ]
     },
     {
+      "vector_id": "cx.vector.encoding.reject_duplicate_key.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.reject_feff_injection.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.reject_malformed_hlc.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "cx.vector.encoding.reject_malformed_json.v1",
       "status": "active",
       "domain": "encoding",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.encoding.reject_non_nfc_string.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -974,6 +1006,14 @@
       "vector_id": "cx.vector.sidecar.multi_agent_publish.v1",
       "status": "active",
       "domain": "sidecar",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.snapshot.inclusion_challenge.v1",
+      "status": "active",
+      "domain": "snapshot",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]

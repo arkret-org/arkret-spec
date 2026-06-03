@@ -26,16 +26,16 @@ updated: 2026-05-25
 
 当前仓库维护单一 `v1.0.0` 规范线（`v1.0.0` 是仓库发布 / release tag；它与 wire-level `protocol_version` 字段值 `"1.0"` 是不同维度，见 [`index.md` §5](../index.md)，两者 MUST NOT 互换）：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + public catalog snapshot hash/count gate + fixture digest gate + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式 v1 发布契约。仓库不同时维护 rc / stable 两套 public catalog；任何更新都只落在当前 v1 canonical catalog 与唯一 public v1 snapshot 上。
 
-`v1.0.0` 基线下，机器 registry 的当前覆盖范围由下表索引。**下表是生成视图（informative）**：计数列只是某次快照的近似值，权威数字以各 Canonical 文件为准，并由 `python tools/artifact_pipeline.py check` 在 CI 中自动校验；本表与该 CLI 输出不一致即视为 drift，必须在合并前修复（见 §3 末与本节后文）。引用本节时 MUST 引用 Canonical 文件，MUST NOT 把计数列硬编码为权威穷尽数字。
+`v1.0.0` 基线下，机器 registry 的当前覆盖范围由下表索引。**计数列由 `tools/lint_artifacts.py`（`check_release_readiness_counts`）对照各 Canonical registry 自动校验**：本表数字与 registry 不一致即为 drift，`artifact_pipeline.py check` 会失败，必须在合并前修复。引用本节时仍 MUST 以各 Canonical 文件为权威来源；本表是受 CI 校验的镜像快照，不得改为自由近似值（曾出现把计数写成 `~N` 导致校验器无法解析的回归）。
 
-| Registry | 计数（生成快照，informative） | Canonical 文件 |
+| Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | ~168 | `artifacts/registry/event-kind-registry.json` |
-| Schema | ~60 | `artifacts/registry/schema-registry.json` |
-| Typed ID kind | ~44 | `artifacts/registry/id-kind-registry.json` |
-| Service operation | ~101 | `artifacts/registry/operation-registry.json` |
-| Claimable conformance profile | ~68 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | ~89 | `artifacts/profiles/conformance-profiles.json` |
+| Event kind（active） | 168 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 60 | `artifacts/registry/schema-registry.json` |
+| Typed ID kind | 44 | `artifacts/registry/id-kind-registry.json` |
+| Service operation | 101 | `artifacts/registry/operation-registry.json` |
+| Claimable conformance profile | 68 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 89 | `artifacts/profiles/conformance-profiles.json` |
 
 上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数（快照约 60）以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 校验；其中 `cx.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 

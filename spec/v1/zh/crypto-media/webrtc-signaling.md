@@ -161,7 +161,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 - `foci[].focus_id`：focus 在该 Realm media service 内的稳定 ID；进入签名 canonical bytes 与 `session_focus` 选举（见 §11.1）。
 - `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`contrix-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
-- `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §6.4），差异只在 `backend_token` 形态。
+- `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §6.2），差异只在 `backend_token` 形态。
 - `foci[].connect_url`：backend 连接入口；具体协议由 type-specific 附录定义。
 - `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。
 - `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `cx.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
@@ -171,7 +171,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 修改该 state event 需要 `cx.call.configure_media_service` 或 `cx.policy.manage` capability。
 
-### 6.4 Token Exchange (normative)
+### 6.2 Token Exchange (normative)
 
 会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Contrix-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Contrix 的 capability / Realm policy / MLS governance binding。
 
@@ -224,7 +224,7 @@ Content-Type: application/json
 
 - **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` MUST ≤ 600s（10 分钟），SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
 - **Token issuer DID 锚定**：`service_signature.kid` 与 `participant_binding.issuer_kid` MUST 解析到一个出现在当前 epoch `cx.realm.media_service.service_id` 的 service DID；客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
-- **`participant_identity` 形态**：作为 SFU-local 短期 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 §6.2 pairwise pseudonym 规则对齐），且 MUST 至少绑定 `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` 派生。
+- **`participant_identity` 形态**：作为 SFU-local 短期 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 §6.3 pairwise pseudonym 规则对齐），且 MUST 至少绑定 `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` 派生。
 - **`participant_identity` 传播边界**：因为它本身不携带 actor 链接信息，客户端 **MUST** 把它写入 `cx.call.state.participants[].participant_identity`（用于 §10.4 cross-check）——这条嵌入是 Realm-encrypted control state，不构成 actor-身份外泄。但 `participant_identity` MUST NOT 进入下列三类 surface：(a) 任何 plaintext audit log / 服务方 access log（包括 backend SFU 自身的日志）；(b) 任何 unencrypted ephemeral / push / telemetry 通道；(c) backend 一侧对外的 metrics、tracing 标签或 cross-tenant 数据导出。Backend 内部允许保留它作为 SFU-local routing handle，但不应跨 call leg / 跨 tenant 复用。
 - **`participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺**。客户端 MUST 先验证该 binding，再把它写入 / 对照 `cx.call.state` membership（见 §11）。backend 只看到 `participant_identity` 与 `backend_token`，不应获得长期 actor 身份。
 
@@ -238,7 +238,7 @@ Token issuer MUST 在签发前校验：
 - MLS governance binding `policy_root` 与 `cx.realm.media_service` 当前 epoch 一致（防 stale policy）；不一致返回 `mls_governance_binding_stale`。
 - 如果 backend 将解密媒体（`media_service_decrypts=true`），完整执行 §10.5.1 的三层校验。
 
-### 6.2 ICE Config Endpoint
+### 6.3 ICE Config Endpoint
 
 默认 HTTP binding：
 
@@ -350,7 +350,7 @@ Content-Type: application/json
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Realm MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 
-### 6.3 In-call Credential Refresh
+### 6.4 In-call Credential Refresh
 
 通话进行中 TURN credential 可能在 `ttl_seconds` 之前到期或被 server 主动撤销。客户端 MUST 实现在通话期间的 credential refresh，避免 mid-call 失联：
 
@@ -494,7 +494,7 @@ SFU 在 v1 通过 [§6.1](#61-realm-media-service) 的 `foci[]` 声明，每个 
 - `type="contrix-native"`：见 [`bindings/contrix-native.md`](./bindings/contrix-native.md)（reference impl，不推荐生产使用）。
 - `type="mediasoup"` / `type="janus"` / `type="moq-relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `type` MUST fail closed，错误码 `unknown_focus_type`。
 
-不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§6.4 Token Exchange](#64-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 type-specific 附录定义。下面的 §10.2 / §10.3 / §10.4 是跨 backend 通用约束。
+不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§6.2 Token Exchange](#62-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 type-specific 附录定义。下面的 §10.2 / §10.3 / §10.4 是跨 backend 通用约束。
 
 ### 10.2 Focus Selection 与 Session 持久化（normative）
 
@@ -528,7 +528,7 @@ backend "X 加入会议" 通知到达客户端时，客户端 MUST：
 
 1. 从 backend 通知中提取 `participant_identity`。
 2. 在当前 `cx.call.state.participants[]` 中查找同一 `participant_identity`。
-3. 验证该 participant entry 内的 `participant_binding` 签名（[§6.4](#64-token-exchange-normative)），确认它覆盖同一 `(realm_id, call_id, session_focus, actor_id, device_id, participant_identity)`。
+3. 验证该 participant entry 内的 `participant_binding` 签名（[§6.2](#62-token-exchange-normative)），确认它覆盖同一 `(realm_id, call_id, session_focus, actor_id, device_id, participant_identity)`。
 4. 不匹配或签名无效 → 拒绝为该 participant 建立媒体流（不收音、不订阅 video），错误码 `participant_identity_unrecognised`。
 
 这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Contrix-side `cx.call.state` 真源。
@@ -564,7 +564,7 @@ Conformance vectors for the full media binding framework：
 
 - `cx.vector.media_binding.focus_selection_oldest_membership.v1` — §10.2 oldest_membership 选举正确性。
 - `cx.vector.media_binding.session_focus_no_split_brain.v1` — `session_focus` 写入后 connect 失败 MUST 暴露为不可用，不静默切 focus。
-- `cx.vector.media_binding.token_exchange_minimal.v1` — §6.4 token exchange 最小字段集 + TTL ≤ 600s。
+- `cx.vector.media_binding.token_exchange_minimal.v1` — §6.2 token exchange 最小字段集 + TTL ≤ 600s。
 - `cx.vector.media_binding.token_issuer_unauthorised.v1` — issuer DID 不在 service_id 锚定列表时拒绝。
 - `cx.vector.media_binding.participant_binding_required.v1` — 缺失或签名无效的 `participant_binding` 必须拒绝。
 - `cx.vector.media_binding.unknown_type_fail_closed.v1` — §6.1 未知 `foci[].type` MUST fail closed。
@@ -634,7 +634,7 @@ Conformance vectors for the full media binding framework：
 
 - `session_focus`：本 call 唯一 authoritative `focus_id`。**reducer 写入规则**：第一个 `cx.call.state` 事件根据 §10.2 选举规则把 oldest member 的 `foci_preferred[0]` 写入；后续 `cx.call.state` MUST 保持同值，任何改写 MUST `failed_precondition` `reason="session_focus_already_committed"`。session 结束（所有 participants 离开）后才重置。
 - `participants[].foci_preferred`：客户端本地排序的 focus 偏好列表，用于 §10.2 选举。后加入者写入的 `foci_preferred` 不影响已 committed 的 `session_focus`。
-- `participants[].participant_identity`：来自 token exchange 响应的 SFU-local handle（见 §6.4）；scope 限 `(call_id, focus_id, sfu_did)`。
+- `participants[].participant_identity`：来自 token exchange 响应的 SFU-local handle（见 §6.2）；scope 限 `(call_id, focus_id, sfu_did)`。
 - `participants[].participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺。reducer **MUST** 验证：
   1. `issuer_kid` 解析到的 service DID 出现在当前 epoch `cx.realm.media_service.service_id`；
   2. binding `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity` 与 participant entry 一致；

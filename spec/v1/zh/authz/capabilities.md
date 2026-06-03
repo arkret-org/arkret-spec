@@ -152,7 +152,7 @@ Contrix v1 支持以下 `kind`：
 
 ### 5.0 Action ↔ Event kind 偏离类别（normative reference）
 
-绝大多数 action 与其 `target_event_kinds` 单一同名映射（`cx.flow.create` action ↔ `cx.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，任何其它类型的偏离 **MUST NOT 被引入**；先前的"verb-noun 桥"类已于 v3 收敛废除（参见 §5.0a）：
+绝大多数 action 与其 `target_event_kinds` 单一同名映射（`cx.flow.create` action ↔ `cx.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，任何其它类型的偏离 **MUST NOT 被引入**；先前的"verb-noun 桥"类已于 v3 收敛废除（历史别名与 verb-noun 桥废除记录见[附录 A](#附录-a-action-命名迁移历史informative)）：
 
 | 类别 | 形态 | 标准示例 |
 | --- | --- | --- |
@@ -164,25 +164,6 @@ Contrix v1 支持以下 `kind`：
 `cx.mls.commit` action → `{cx.mls.commit, cx.mls.commit_failed}`、`cx.message.redact` → `{cx.message.redact, cx.redaction}`、`cx.moderation.appeal.review` → `{cx.moderation.appeal.review, cx.moderation.appeal.decision, cx.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
 
 新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
-
-#### 5.0a verb-noun 桥的废除（normative，2026-05-24）
-
-历史上 v1 早期为 action 名加上动词后缀（`.manage` / `.modify` / `create_` 前缀等）以保持"action 为动词"惯例，导致与 event kind 产生 6 处 verb-noun 桥；这些桥强迫每个 IAM 工具维护一张翻译表。
-
-v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机械收敛回 event kind 形态（见 `renames.json.migration_group: verb_noun_bridge_collapse`）：
-
-| 旧 action（已禁止，hard_reject） | 现行 canonical action | target event kind |
-| --- | --- | --- |
-| ~~`cx.invite.create_third_party`~~ | `cx.invite.third_party` | `cx.invite.third_party` |
-| ~~`cx.policy.rule.manage`~~ | `cx.policy.rule` | `cx.policy.rule` |
-| ~~`cx.policy.action.manage`~~ | `cx.policy.action` | `cx.policy.action` |
-| ~~`cx.realm.link.manage`~~ | `cx.realm.link` | `cx.realm.link` |
-| ~~`cx.realm.plaintext_visible_services.modify`~~ | `cx.realm.plaintext_visible_services` | `cx.realm.plaintext_visible_services` |
-| ~~`cx.realm.moderate`~~ | `cx.realm.moderation_policy` | `cx.realm.moderation_policy` |
-
-权衡：这放弃了"action 都是动词"的惯例换取"action 与 event kind 同名"的更强不变量。IAM 直接以 event kind 字符串作为 grant `actions[]` 元素，零翻译；动词形态由 capabilities.md prose 表达（例如 prose 描述"该 capability 授权写入 cx.invite.third_party 邀请事件"）。
-
-剩余"保留旧 wire 命名"类（agent.protocol_session / morph.schema_migrate / flow.tracks.update / realm.media_service）的 event kind 已发布且无法机械收敛，所以保留为冻结的 grandfather 桥；新条目 MUST NOT 落入此类。
 
 ### 5.1 通用动作
 
@@ -772,3 +753,26 @@ Contrix v1 固定：
 - Moderation policy MUST NOT 凭空授予 capability。
 - Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
 - Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 §16 的 presentation 规则。
+
+## 附录 A. Action 命名迁移历史（informative）
+
+> 本附录为 informative 迁移历史记录，不构成 normative 约束。当前 normative 规则是：action↔event 以 registry `target_event_kinds` 为准（见 §5、§5.0）。
+
+#### verb-noun 桥的废除（normative，2026-05-24）
+
+历史上 v1 早期为 action 名加上动词后缀（`.manage` / `.modify` / `create_` 前缀等）以保持"action 为动词"惯例，导致与 event kind 产生 6 处 verb-noun 桥；这些桥强迫每个 IAM 工具维护一张翻译表。
+
+v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机械收敛回 event kind 形态（见 `renames.json.migration_group: verb_noun_bridge_collapse`）：
+
+| 旧 action（已禁止，hard_reject） | 现行 canonical action | target event kind |
+| --- | --- | --- |
+| ~~`cx.invite.create_third_party`~~ | `cx.invite.third_party` | `cx.invite.third_party` |
+| ~~`cx.policy.rule.manage`~~ | `cx.policy.rule` | `cx.policy.rule` |
+| ~~`cx.policy.action.manage`~~ | `cx.policy.action` | `cx.policy.action` |
+| ~~`cx.realm.link.manage`~~ | `cx.realm.link` | `cx.realm.link` |
+| ~~`cx.realm.plaintext_visible_services.modify`~~ | `cx.realm.plaintext_visible_services` | `cx.realm.plaintext_visible_services` |
+| ~~`cx.realm.moderate`~~ | `cx.realm.moderation_policy` | `cx.realm.moderation_policy` |
+
+权衡：这放弃了"action 都是动词"的惯例换取"action 与 event kind 同名"的更强不变量。IAM 直接以 event kind 字符串作为 grant `actions[]` 元素，零翻译；动词形态由 capabilities.md prose 表达（例如 prose 描述"该 capability 授权写入 cx.invite.third_party 邀请事件"）。
+
+剩余"保留旧 wire 命名"类（agent.protocol_session / morph.schema_migrate / flow.tracks.update / realm.media_service）的 event kind 已发布且无法机械收敛，所以保留为冻结的 grandfather 桥；新条目 MUST NOT 落入此类。

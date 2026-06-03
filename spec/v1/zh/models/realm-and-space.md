@@ -92,7 +92,7 @@ Schema id: `cx.schema.realm.v1`
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `anchor_profile` | no | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Anchor finality profile。 |
 | `digest_algorithm` | no | `enum(sha256, sha512, sha3_256, blake3)` | create-locked，默认 `sha256`。 | Hash 算法 profile。 |
-| `anchorer` | conditional | `object` | Genesis anchorer cell 初值。其 discriminator 子字段使用 `kind`（取值与 `anchor_profile` 枚举同源，如 `single_did` / `threshold` / `open_set` / `mixed`），不使用 `type`。 | 当前 Anchor 授权规则。 |
+| `anchorer` | conditional | `object` | Genesis anchorer cell 初值。其 discriminator 子字段为 `type`（取值与 `anchor_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `anchorer.type`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Anchor 授权规则。 |
 | `max_anchor_staleness_ms` | no | `integer` | 默认 24h；这是 Realm 级兼容性硬上限，不是所有写入的推荐窗口。高风险 / 高频冲突写入 MUST 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的 action / cell / profile 有效窗口进一步收紧。 | Move `anchor_ref` freshness 上限。 |
 | `cell_lattices` | no | `array<CellLattice>` | `CellLattice` 结构（cell family / lattice / bottom 等）定义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Realm-specific 扩展 cell family。 |
 | `co_write_policy` | no | `array<array<component>>` | `component`（cell component 标识）语义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Move 原子写约束。 |
@@ -118,7 +118,7 @@ Schema id: `cx.schema.realm.v1`
   "encryption_profile": "mls_rfc9420",
   "anchor_profile": "single_did",
   "anchorer": {
-    "kind": "single_did",
+    "type": "single_did",
     "did": "did:web:anchorer.acme.example",
     "recovery_members": ["did:web:recovery-anchorer.example"],
     "controller_organization": "did:web:acme.example",
