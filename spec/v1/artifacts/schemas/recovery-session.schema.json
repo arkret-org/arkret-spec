@@ -381,14 +381,25 @@
         }
       }
     },
+    "event_id": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "complete_request": {
       "type": "object",
+      "description": "The recovering client first submits, to POST /events on the principal control realm, (1) a `cx.device.authorize` (shape per $defs/device_authorize_material, also event-payload.schema.json device_authorize_payload) signed with the SSK unlocked from the did_recovery backup, and (2) a `cx.device.list_update` for the new device — both as ordinary signed Event Envelopes carrying the next actor_seq on the principal control stream. Completion then REFERENCES the resulting durable event ids; the server resolves each from the event store and verifies it is the right kind, bound to this recovery_session_id + requesting_device_id, and (for authorize) that its cross_signing_binding verifies against the accepted SSK. The server does not author/sign control events on the principal's behalf.",
       "required": [
-        "device_authorize"
+        "authorization_event_id",
+        "device_list_update_event_id"
       ],
       "properties": {
-        "device_authorize": {
-          "$ref": "#/$defs/device_authorize_material"
+        "authorization_event_id": {
+          "$ref": "#/$defs/event_id",
+          "description": "event_id of the client-submitted, accepted cx.device.authorize."
+        },
+        "device_list_update_event_id": {
+          "$ref": "#/$defs/event_id",
+          "description": "event_id of the client-submitted, accepted cx.device.list_update."
         },
         "idempotency_key": {
           "type": "string",

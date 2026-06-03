@@ -873,29 +873,16 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
       "expect_valid": true,
       "instance": {
-        "device_authorize": {
-          "principal_id": "did:web:alice.example",
-          "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
-          "device_public_key": "z6MkDevicePublicKey",
-          "authorized_by": "did:web:alice.example",
-          "not_before": "2026-05-30T00:00:00Z",
-          "device_signature": "c2ln",
-          "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-          "cross_signing_binding": {
-            "verification_method": "did:web:alice.example#cx_self_signing_v1",
-            "alg": "EdDSA",
-            "ssk_generation": 1,
-            "signature": "c2ln"
-          }
-        }
+        "authorization_event_id": "cx:event:01964137-0000-7000-8000-00000000a111",
+        "device_list_update_event_id": "cx:event:01964137-0000-7000-8000-00000000a222"
       }
     },
     {
-      "name": "recovery_session_complete_request_missing_device_authorize_rejected",
+      "name": "recovery_session_complete_request_missing_event_ids_rejected",
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
       "expect_valid": false,
       "instance": {},
-      "first_expected_error": "$: 'device_authorize' is a required property"
+      "first_expected_error": "$: 'authorization_event_id' is a required property"
     },
     {
       "name": "recovery_session_principal_signing_transcript_valid",
