@@ -758,6 +758,258 @@
           "seq": 1
         }
       }
+    },
+    {
+      "name": "recovery_session_pending_valid",
+      "schema_ref": "schemas/recovery-session.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "cx.schema.recovery_session.v1",
+        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "principal_id": "did:web:alice.example",
+        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "cx:trust_domain:soland.local",
+        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "policy_version": 1,
+        "ssk_generation": 1,
+        "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "state": "pending",
+        "created_at": "2026-05-30T00:00:00Z",
+        "updated_at": "2026-05-30T00:00:00Z",
+        "expires_at": "2026-05-30T00:15:00Z"
+      }
+    },
+    {
+      "name": "recovery_session_missing_ssk_generation_rejected",
+      "schema_ref": "schemas/recovery-session.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "cx.schema.recovery_session.v1",
+        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "principal_id": "did:web:alice.example",
+        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "cx:trust_domain:soland.local",
+        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "policy_version": 1,
+        "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "state": "pending",
+        "created_at": "2026-05-30T00:00:00Z",
+        "updated_at": "2026-05-30T00:00:00Z",
+        "expires_at": "2026-05-30T00:15:00Z"
+      },
+      "first_expected_error": "$: 'ssk_generation' is a required property"
+    },
+    {
+      "name": "recovery_session_verified_requires_proof_summary_rejected",
+      "schema_ref": "schemas/recovery-session.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "cx.schema.recovery_session.v1",
+        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "principal_id": "did:web:alice.example",
+        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "cx:trust_domain:soland.local",
+        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "policy_version": 1,
+        "ssk_generation": 1,
+        "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "state": "verified",
+        "created_at": "2026-05-30T00:00:00Z",
+        "updated_at": "2026-05-30T00:00:00Z",
+        "expires_at": "2026-05-30T00:15:00Z"
+      },
+      "first_expected_error": "$: 'proof_summary' is a required property"
+    },
+    {
+      "name": "recovery_session_create_request_valid",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/create_request",
+      "expect_valid": true,
+      "instance": {
+        "principal_id": "did:web:alice.example",
+        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "cx:trust_domain:soland.local",
+        "ssk_generation": 1
+      }
+    },
+    {
+      "name": "recovery_session_create_request_extra_field_rejected",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/create_request",
+      "expect_valid": false,
+      "instance": {
+        "principal_id": "did:web:alice.example",
+        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "cx:trust_domain:soland.local",
+        "ssk_generation": 1,
+        "unexpected": "x"
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('unexpected' was unexpected)"
+    },
+    {
+      "name": "recovery_session_principal_signing_proof_valid",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_proof",
+      "expect_valid": true,
+      "instance": {
+        "kind": "principal_signing",
+        "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "verification_method": "did:web:alice.example#k",
+        "alg": "EdDSA",
+        "signature": "c2ln"
+      }
+    },
+    {
+      "name": "recovery_session_principal_signing_proof_missing_alg_rejected",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_proof",
+      "expect_valid": false,
+      "instance": {
+        "kind": "principal_signing",
+        "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "verification_method": "did:web:alice.example#k",
+        "signature": "c2ln"
+      },
+      "first_expected_error": "$: 'alg' is a required property"
+    },
+    {
+      "name": "recovery_session_complete_request_valid",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
+      "expect_valid": true,
+      "instance": {
+        "device_authorize": {
+          "principal_id": "did:web:alice.example",
+          "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+          "device_public_key": "z6MkDevicePublicKey",
+          "authorized_by": "did:web:alice.example",
+          "not_before": "2026-05-30T00:00:00Z",
+          "device_signature": "c2ln",
+          "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+          "cross_signing_binding": {
+            "verification_method": "did:web:alice.example#cx_self_signing_v1",
+            "alg": "EdDSA",
+            "ssk_generation": 1,
+            "signature": "c2ln"
+          }
+        }
+      }
+    },
+    {
+      "name": "recovery_session_complete_request_missing_device_authorize_rejected",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
+      "expect_valid": false,
+      "instance": {},
+      "first_expected_error": "$: 'device_authorize' is a required property"
+    },
+    {
+      "name": "recovery_session_principal_signing_transcript_valid",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_transcript",
+      "expect_valid": true,
+      "instance": {
+        "type": "cx.identity.recovery_proof.v1",
+        "kind": "principal_signing",
+        "principal_id": "did:web:alice.example",
+        "requesting_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "cx:trust_domain:soland.local",
+        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "policy_version": 1,
+        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "ssk_generation": 1,
+        "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "created_at": "2026-05-30T00:00:00Z",
+        "expires_at": "2026-05-30T00:15:00Z"
+      }
+    },
+    {
+      "name": "recovery_receipt_valid",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "cx.schema.recovery_receipt.v1",
+        "receipt_id": "cx:receipt:019a6aa0-0000-7000-8000-0000000000cc",
+        "principal_id": "did:web:alice.example",
+        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "policy_version": 1,
+        "trust_domain": "cx:trust_domain:soland.local",
+        "new_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "proof_summary": {
+          "kind": "principal_signing",
+          "proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "backup_classes_unlocked": [
+          {
+            "backup_class": "did_recovery",
+            "backup_id": "cx:backup:019a6aa0-0000-7000-8000-0000000000dd",
+            "series_id": "cx:backup_series:019a6aa0-0000-7000-8000-0000000000ee",
+            "ciphertext_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-05-30T00:00:00Z",
+        "completed_at": "2026-05-30T00:00:01Z",
+        "auth_data": {
+          "verification_method": "did:web:alice.example#cx:device:019a6aa0-0000-7000-8000-000000000099",
+          "signature_algorithm": "EdDSA",
+          "signature": "c2ln",
+          "signed_fields": [
+            "receipt_id",
+            "principal_id",
+            "recovery_session_id",
+            "policy_id",
+            "policy_version",
+            "trust_domain",
+            "new_device_id",
+            "proof_summary",
+            "backup_classes_unlocked",
+            "welcome_count",
+            "outcome",
+            "started_at",
+            "completed_at"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_receipt_missing_backup_classes_rejected",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "cx.schema.recovery_receipt.v1",
+        "receipt_id": "cx:receipt:019a6aa0-0000-7000-8000-0000000000cc",
+        "principal_id": "did:web:alice.example",
+        "recovery_session_id": "cx:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "policy_id": "cx:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "policy_version": 1,
+        "trust_domain": "cx:trust_domain:soland.local",
+        "new_device_id": "cx:device:019a6aa0-0000-7000-8000-000000000099",
+        "proof_summary": {
+          "kind": "principal_signing",
+          "proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-05-30T00:00:00Z",
+        "completed_at": "2026-05-30T00:00:01Z",
+        "auth_data": {
+          "verification_method": "did:web:alice.example#cx:device:019a6aa0-0000-7000-8000-000000000099",
+          "signature_algorithm": "EdDSA",
+          "signature": "c2ln",
+          "signed_fields": [
+            "receipt_id",
+            "principal_id",
+            "recovery_session_id",
+            "policy_id",
+            "policy_version",
+            "trust_domain",
+            "new_device_id",
+            "proof_summary",
+            "backup_classes_unlocked",
+            "welcome_count",
+            "outcome",
+            "started_at",
+            "completed_at"
+          ]
+        }
+      },
+      "first_expected_error": "$: 'backup_classes_unlocked' is a required property"
     }
   ]
 }
