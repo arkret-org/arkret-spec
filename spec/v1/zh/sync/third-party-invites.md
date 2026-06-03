@@ -22,6 +22,14 @@ updated: 2026-05-25
 
 这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。该验证服务 DID 只负责 3PID claim；Bob 后续向哪台 Realm service 提交 invite-accept 由 `ck.directory.resolve_realm` 返回的 `join_candidates[]` 决定，二者不得混用。
 
+### 2.1 验证服务威胁假设（normative）
+
+第三方邀请把"谁持有该 3PID"的判定**完全委托**给 `verification_service_did`。因此本机制的信任根中，`verification_service_did` 是一个**受信第三方**：
+
+- **威胁假设**：`verification_service_did` 的妥协（私钥失窃、运营方作恶、SMTP / SMS 投递链被控制）**等价于该 3PID 邀请被完全控制**——被妥协的验证服务可以把 token 绑定到攻击者 DID 并签发貌似合法的 `binding_proof`。`subject_proof`（§4.3 step 3）只能保证"binding_proof 中声明的 subject DID 同意被绑定"，无法在验证服务本身作恶时把 token 重新导回真实 3PID 持有人。实现与部署方 MUST 在威胁模型中把验证服务视为与该 3PID 邀请同等级别的信任主体，不得当作纯粹无信任的中继。
+- **Allowlist（SHOULD）**：Realm policy SHOULD 把可接受的 `verification_service_did` 限制到显式 allowlist（例如组织自有 Identity Verification Service 或 Realm policy 明确背书的第三方），而不是接受邀请者在 invite metadata 中任意指定的验证服务 DID。`ck.invite.claim` 的 `binding_proof.verification_service_did` 不在该 allowlist 内时，reducer / 接收 Sync Service SHOULD 拒绝该 claim（对外仍按 §6 不可枚举响应处理）。
+- **二次确认通道（高安全 Realm，SHOULD / MUST）**：高安全 / audited / 企业 Realm SHOULD 要求一条独立于验证服务的二次确认通道（例如已在该 Realm 中的成员对 Bob 身份的带外确认、组织目录核对、或独立信道的人工 approval），使单一验证服务的妥协不足以让攻击者完成加入；声明该要求的高安全 Realm policy 中此条为 MUST。
+
 ## 3. 邀请流程
 
 ### 3.1 创建待定邀请 (Pending Invite)
@@ -111,6 +119,8 @@ https://app.cokret.example/invite/<invite_token>                              �
 Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Realm 提交给 Alice 的身份验证服务。
 身份验证服务验证 token、过期时间、claim 次数和 Realm 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，声明：
 “持有该 Token 的人现在对应的 DID 是 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`”。
+
+**投递目标可审计（normative）**：由于验证服务是受信第三方（见 §2.1），其签发 `binding_proof` 时 MUST 在自身审计记录中记录该 token 在 §3.2 实际投递目标的 digest（例如 `delivery_target_digest = SHA-256(salt || canonical(3pid))`，使用与 `token_salt` 同级或独立的高熵 salt / pepper）。该 digest 不得写入公开持久化 Event（避免 3PID 枚举，与 §6 一致），但 MUST 进入验证服务的加密审计记录，使事后审计可以核对"该 token 是否被投递给 invite 声明的那个 3PID"。这样当验证服务被怀疑把 token 绑定到非声明 3PID（即把邀请重定向给攻击者）时，审计方可凭 invite 中声明的 3PID 重算 digest 与审计记录比对，检出该错配。
 
 ### 4.2 提交转换 Event
 

@@ -14,13 +14,13 @@ updated: 2026-05-25
 
 去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Cokret 把以下三件事分开处理：
 
-- **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程，或请求已有设备授权。
+- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程，或请求已有设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ck.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
 - **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
-### 1.1 认证服务器验证什么
+### 1.1 认证服务（Auth Server）验证什么
 
-Cokret 可以部署 Auth Service / Auth Gateway，但它不是协议身份根。它验证的是“某个登录会话是否可以被绑定到某个 DID principal / device”，而不是用用户名、密码、邮箱或 OIDC subject 直接定义主体所有权。
+Cokret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Gateway），但它不是协议身份根。它验证的是“某个登录会话是否可以被绑定到某个 DID principal / device”，而不是用用户名、密码、邮箱或 OIDC subject 直接定义主体所有权。
 
 实现 MAY 支持以下登录因子：
 
@@ -30,7 +30,7 @@ Cokret 可以部署 Auth Service / Auth Gateway，但它不是协议身份根。
 - 已授权设备配对，用于普通多设备加入。
 - Recovery key、门限恢复或受信恢复服务，用于全部设备丢失后的恢复。
 
-认证成功后，Auth Service MUST 产出以下至少一种可验证绑定：
+认证成功后，Auth Server MUST 产出以下至少一种可验证绑定：
 
 - `ck.session.grant`：把短期 `session_public_key` 委托给 DID principal / device。
 - `ck.device.authorize`：把新设备公钥加入当前设备集合。
@@ -44,7 +44,7 @@ Cokret 可以部署 Auth Service / Auth Gateway，但它不是协议身份根。
 
 Cokret v1 把三件事分开处理：
 
-- **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程，或请求已有设备授权。
+- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程，或请求已有设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ck.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
 - **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
@@ -1021,7 +1021,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
 通用规则：
 
-- 所有 proof 的 `alg` MUST 在 [`conformance/encoding.md`](../conformance/encoding.md) 的签名算法白名单内；未列入算法 MUST `unsupported_signature_alg`。
+- 所有 proof 的 `alg` MUST 在 [`conformance/encoding.md` §6.1](../conformance/encoding.md) 的 Signature Suite registered set（签名算法白名单）内；未列入算法 MUST `unsupported_signature_alg`。
 - `issued_at` 与 receiver 本地时钟偏差超出 [`ck.profile.cross_signing.reset.v1`](../../artifacts/profiles/conformance-profiles.json) 声明的 `parameters.max_clock_skew_seconds`（默认 300s，允许范围 60–900s）MUST `cross_signing_reset_clock_skew_exceeded`。
 - 同一 `(principal_id, previous_generation)` 已被某条 reset 消费后，新到达的 reset MUST 以 `cross_signing_reset_replayed` 拒绝；replay-rejection 缓存保留时间不得少于 profile `parameters.reset_replay_cache_min_retention_seconds`（默认 90000s，对应 24h + 1h slack），且必须覆盖 `parameters.publish_recovery_window_seconds`（默认 86400s）所定义的"reset → publish"窗口。
 - Receiver MUST 在接受 reset 后 `parameters.publish_recovery_window_seconds` 之内观察到对应的 `ck.cross_signing.publish`；超时未观察到 MUST 进入 §14.2 第 5 项的 "无可用 SSK / USK" 状态，并拒绝任何引用 `new_generation` 的设备授权事件。

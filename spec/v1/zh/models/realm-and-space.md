@@ -78,7 +78,6 @@ Schema id: `ck.schema.realm.v1`
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称；产品 UI MAY 隐藏或弱化它。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`。 | 安全等级标签。 |
-| `created_by` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `ck.schema.realm.v1`。 | 启用 schema / profile。 |
@@ -98,6 +97,7 @@ Schema id: `ck.schema.realm.v1`
 | `co_write_policy` | no | `array<array<component>>` | `component`（cell component 标识）语义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Move 原子写约束。 |
 | `retention_policy_id` | no | `id:policy` |  | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
+| `created_by` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
@@ -159,7 +159,7 @@ Realm 有两个终态 event，语义不同：
 | `ck.realm.tombstone` | "本 Realm 不再活跃" — 转移到 successor Realm（产品改版、组织重组等）。 | ❌ 但 successor 接续历史可达 | 必填 `successor_realm_id` |
 | `ck.realm.destroy` | "本 Realm 永久退役" — 终极去活。无 successor，等同于"该 Realm 在该 deployment 内永久关闭"。 | ❌ | MUST NOT 设 successor |
 
-`ck.realm.tombstone` 写入 `ck.component.realm.tombstone.v1`，`ck.realm.destroy` 写入 `ck.component.realm.destroy.v1`；二者均为 cas_register（bottom=reject），各自不可重复写入。capability：`ck.realm.tombstone` / `ck.realm.destroy`（high risk，capabilities.md §10）。
+`ck.realm.tombstone` 写入 `ck.component.realm.tombstone.v1`，`ck.realm.destroy` 写入 `ck.component.realm.destroy.v1`；二者均为 cas_register（bottom=reject），各自不可重复写入。capability：`ck.realm.tombstone` / `ck.realm.destroy`（action 定义见 [`../authz/capabilities.md` §5.1](../authz/capabilities.md)，high-risk 约束见 [`capabilities.md` §8](../authz/capabilities.md)）。
 
 #### 2.6.1 `ck.realm.destroy` 终态规则（normative）
 
@@ -189,7 +189,7 @@ Realm 有两个终态 event，语义不同：
 - 验证 receipt 签名链与 schema；
 - 如果 peer 本地存有该 erasure scope 内的 blob / projection / cache，按 receipt `scope.storage_boundary` 走本地删除流程，并发布自己的 `ck.audit.erasure_receipt` 反馈实际结果；
 - 失败（legal hold、retention 冲突、blob 已被备份到不可达存储）MUST 在 peer 自己的 receipt `outcome` 字段写 `partially_completed` 或 `blocked_by_legal_hold`，不得假装成功；
-- 任何 peer 未在 `erasure_propagation_window_ms`（默认 7 天）内回执，issuing server 在 `ck.audit.erasure_receipt.fanout_status` 上标 `incomplete`，并把 incomplete 状态暴露给 audit/UI；不得静默吞没。
+- 任何 peer 未在 `erasure_propagation_window_ms`（默认 7 天）内回执，issuing server MUST 在该 erasure receipt 的 `fanout_status` 字段标 `incomplete`（并在 `peer_receipts[]` 对应 peer 条目记 `status=timed_out`），把 incomplete 状态暴露给 audit/UI；不得静默吞没。`fanout_status` 与 per-peer `peer_receipts` 子结构定义见 `ck.schema.erasure_receipt.v1`（schema `artifacts/schemas/erasure-receipt.schema.json`）。
 
 **Hash chain 保护**：hard erasure 仍保留 event graph verification stub（`retained_stub_digest` 字段），允许后续 verifier 校验"该 event 曾合法存在但内容已擦除"，不破坏 hash chain。`retained_stub_digest` 的输入是 `canonical_json(retained_stub)`；`retained_stub` 使用 `ck.schema.erasure_verification_stub.v1` 结构，至少绑定 subject、scope、receipt_id、completed_at，并在适用时包含 event digest / proof `event_digest`、anchor inclusion、redaction authorization ref 与 legal-hold ref。Stub MUST NOT 保留已擦除 plaintext 或未加盐低熵 plaintext digest；若 receipt 不内联 `retained_stub`，签发服务必须在 erasure receipt endpoint 暴露同一 canonical stub。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
 

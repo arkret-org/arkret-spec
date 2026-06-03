@@ -1,26 +1,31 @@
 ---
-title: Cokret Protocol (English)
+title: Cokret Protocol (English entry)
 status: candidate
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-04
 normative: false
-translation_tracking: CXP-EN-MIRROR
 ---
 
-> Non-normative placeholder. Authority is `zh/`. Translation tracked in
-> CXP-EN-MIRROR.
+> Informative entry page. This is **not** a normative English translation.
 
-The English normative text for Cokret v1 is **not yet published**. The
-authoritative human-readable normative text for v1 is the Chinese version
-under [`spec/v1/zh/`](../zh/). Machine-readable contracts under
-[`spec/v1/artifacts/`](../artifacts/) are language-neutral and are the same
-across both locales.
+## Language policy
 
-Until the English text is regenerated, treat `spec/v1/zh/` plus
-`spec/v1/artifacts/` as the only maintained v1 source.
+The authoritative Cokret v1 specification is maintained **in Chinese**, under
+[`spec/v1/zh/`](../zh/). Cokret v1 follows a **single authoritative language**
+policy: the Chinese text under `zh/` is the only normative, human-readable
+source of protocol truth. There is **no complete English specification**, and
+none is promised.
 
-If the documentation site exposes additional `/en/v1/...` routes before the
-translation mirror is complete, those pages are locale fallback views and are
-not English normative translations. They must not be cited as an English v1
-contract until CXP-EN-MIRROR publishes the corresponding translated source
-files under `spec/v1/en/`.
+English readers should refer directly to the Chinese sources:
+
+- Specification map and reading order: [`spec/v1/zh/spec-map.md`](../zh/spec-map.md)
+- Top-level index and scope: [`spec/v1/zh/index.md`](../zh/index.md)
+- Glossary (canonical term names): [`spec/v1/zh/overview/glossary.md`](../zh/overview/glossary.md)
+
+Machine-readable contracts under [`spec/v1/artifacts/`](../artifacts/)
+(registries, schemas, conformance vectors) are language-neutral and are shared
+across locales; they may be consumed directly regardless of reading language.
+
+This page exists only to orient English readers. Do not cite it, or any
+`/en/...` route, as an English normative contract — the normative text lives in
+`zh/` and `artifacts/`.

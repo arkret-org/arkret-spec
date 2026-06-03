@@ -37,7 +37,7 @@ Sovereign deployment 是由单一组织或联盟控制的 Cokret 服务域。它
 - Blob Store
 - Policy Server
 - Push Gateway
-- TURN / SFU / Media Service
+- TURN / SFU / Realtime Media Server
 - Applet / Agent Runtime allowlist
 
 这些服务 SHOULD 使用 service DID，并由 Organization DID 或联盟治理 DID 明确委派。
@@ -124,27 +124,28 @@ Sovereign client MUST:
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。
 - 支持本地日志、审计导出和密钥擦除策略。
 
-Sovereign client SHOULD:
+Sovereign client(在 `ck.profile.sovereign_deployment.v1` 语境下)逐条强制度——数据外泄控制为 MUST,运营增强为 SHOULD/MAY:
 
-- 使用硬件密钥、平台安全模块或智能卡。
-- 支持离线/内网 resolver bundle。
-- 支持 policy-signed configuration update。
-- 对截屏、复制、批量导出、水印、外部分享实施本地 policy enforcement。
+- 对批量导出、外部分享实施本地 policy enforcement(MUST;安全关键项,防止未授权再分发)。
+- 支持 policy-signed configuration update(SHOULD)。
+- 支持离线/内网 resolver bundle(SHOULD)。
+- 使用硬件密钥、平台安全模块或智能卡(SHOULD)。
+- 对截屏、复制施加提示与水印(MAY,作为运营追溯手段;客户端平台能力受限时不强制)。
 
 ## 3. 默认安全姿态
 
-高安全部署 SHOULD 默认：
+高安全部署的默认姿态在 `ck.profile.sovereign_deployment.v1` 语境下逐条强制度如下——安全关键项为 MUST,可调运营默认为 SHOULD:
 
-- 禁止公共 federation。
-- 禁止公共 directory listing。
+- 禁止公共 federation(MUST)。
+- 禁止公共 directory listing(MUST)。
 - 默认关闭匿名 frontier 探测（`peer_role=anonymous_health`，见 [`federation.md` §4.5.1](federation.md)）：sovereign profile 下 MUST-off，避免 `frontier_root` 摘要被多次轮询推断 Realm 活跃度时间序列；frontier 交换只对 allowlist peer 开放。
-- Realm 默认 `discoverability=secret` 或 `invite_only`。
-- Realm 默认 `join_rule=invite` 或 `restricted`。
-- Policy Server 默认 `closed` 或 `quarantine` fail mode。
-- Sync Service / Directory 只接受 allowlist service DID。
-- Blob、snapshot、backup、audit log 存储在组织控制基础设施内。
-- 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Realm 明确开启。
-- E2EE 默认开启；需要合规审查时使用 auditable E2EE，且必须向成员显示。
+- Sync Service / Directory 只接受 allowlist service DID(MUST)。
+- Blob、snapshot、backup、audit log 存储在组织控制基础设施内(MUST)。
+- E2EE 默认开启(MUST);需要合规审查时使用 auditable E2EE，且必须向成员显示。
+- 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Realm 明确开启(MUST)。
+- Realm 默认 `discoverability=secret` 或 `invite_only`(SHOULD)。
+- Realm 默认 `join_rule=invite` 或 `restricted`(SHOULD)。
+- Policy Server 默认 `closed` 或 `quarantine` fail mode(SHOULD)。
 
 ## 3.1 DID Policy
 
@@ -256,7 +257,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组
 
 ## 6. 外部组织协作
 
-当外部组织加入时，建议使用组织级 trust chain：
+外部组织加入时 SHOULD 使用组织级 trust chain：
 
 ```json
 {
@@ -318,14 +319,14 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 
 外部成员 MAY 只在被授予的范围内读取或写入。
 
-导出控制 SHOULD 包括：
+导出控制在 `ck.profile.sovereign_deployment.v1` 语境下逐条强制度如下——安全关键项为 MUST,运营手段为 SHOULD/MAY:
 
-- 默认禁用批量导出
-- 对导出包加水印或留存审计
-- 附件与 snapshot 导出需审批
-- 保留 audience / classification 标签
-- 阻止公共目录索引
-- 阻止跨服务的未授权再分发
+- 阻止公共目录索引(MUST)
+- 阻止跨服务的未授权再分发(MUST)
+- 保留 audience / classification 标签(MUST)
+- 默认禁用批量导出(SHOULD;经审批的批量导出例外见下)
+- 附件与 snapshot 导出需审批(SHOULD)
+- 对导出包加水印或留存审计(MAY,作为运营追溯手段)
 
 若内容已加密，导出 MUST NOT 在预期接收者集合之外附带密钥。
 

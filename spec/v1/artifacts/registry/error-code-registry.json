@@ -1151,6 +1151,14 @@
       "description": "Cross-method principal upgrade evidence `inception_public_key_fingerprint` does not match the fingerprint derived from the matched inception `verificationMethod[]` entry of the canonicalised old DID Document — i.e. the entry whose signature verified in §5.0.5.3 step 3 (not necessarily index 0). See key-management.md §5.0.5."
     },
     {
+      "code": "inception_key_window_exceeded",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "The inception key age, computed independently by the receiver / Auth Server from the verifiable inception bootstrap timestamp (`did:webvh` entry-0 / continuity proof) against the local clock, exceeds the 24h protocol hard cap. The receiver MUST reject the `ck.device.authorize` / `ck.session.grant` / long-lived capability / ordinary DID update signed by that inception key regardless of any longer `inception_key_max_online_window` self-reported by deployment policy (key-management.md §5)."
+    },
+    {
       "code": "audit_agent_key_destruction_attestation_missing",
       "applies_to": [
         "event_envelope",

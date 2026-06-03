@@ -69,7 +69,7 @@ Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow
 Organization principal 可以：
 
 - 签发组织成员资格、组织角色、handle 绑定等 credential
-- 控制 Principal Server、Policy Server、Applet、Media Service 等 service DID
+- 控制 Principal Server、Policy Server、Applet、Realtime Media Server 等 service DID
 - 作为 Realm owner、policy issuer、trusted issuer 或 capability issuer
 - 托管多个 Realm，或与其他组织共同治理同一个 Realm
 
@@ -194,9 +194,9 @@ Principal Server
 
 Identity 部署常识（无法在 deployment profile 表中表达）：
 
-- v1 core 默认 principal DID method 为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth/Account Server 在自有子域代为托管。`did:web`（无历史链）只能作为 service DID 默认 method 与 `personal_node` profile 的可选 principal method；`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。
+- v1 core 默认 principal DID method 为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth Server 在自有子域代为托管。`did:web`（无历史链）只能作为 service DID 默认 method 与 `personal_node` profile 的可选 principal method；`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。
 - 服务 DID 使用 `did:web`；临时 / 测试 / 设备 / bootstrap 使用 `did:key`；KERI 部署使用 `did:keri`（interop extension profile）；AT Protocol interop 部署额外挂 `did:plc` adapter（interop extension profile）。
-- Auth / Account Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
+- Auth Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 
 某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /_cokret/describe`、`supported_operations`、conformance profile 和 Realm policy 共同声明。

@@ -53,15 +53,6 @@
       "description": "Space kind. v1 standard kinds include 'space', 'project', 'folder', 'board', and 'list'. Profile-defined kinds (e.g., 'swimlane', 'calendar_bucket', 'page_group') MAY be added via Realm schema/profile and MUST be registered. Unknown kind MUST schema_violation.",
       "minLength": 1
     },
-    "title": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 256
-    },
-    "summary": {
-      "type": "string",
-      "maxLength": 2048
-    },
     "rank": {
       "type": "string",
       "pattern": "^[0-9A-Za-z]{1,128}$",
@@ -74,6 +65,15 @@
       },
       "uniqueItems": true,
       "description": "Optional schema/profile references that further constrain this Space's contained Flow types, fields, or position invariants."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 2048
     },
     "fields": {
       "type": "object",

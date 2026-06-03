@@ -515,87 +515,31 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 本节只列出 Event-first 写路径中的代表性 durable Event kind，帮助读者理解类别边界；它不是穷举清单，也不替代 registry。完整、可实现的 active durable Event kind 集合 MUST 以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `status=active` 且 `wire_scope=durable_event` 的条目为准。若本节示例与 registry 不一致，registry 是机器可读 source of truth，实现不得因为本节没有列出某个 active kind 就静默拒绝或丢弃它。
 
+逐条 active kind 清单见 [`../conformance/schema-registry.md` §4](../conformance/schema-registry.md)（canonical prose 视图）或站点 `<EventKindTable/>`（直接渲染 `event-kind-registry.json`）。本节只描述各类别的写路径边界。
+
 ### 7.1 Realm / Schema / Policy / Discovery
 
-- `ck.realm.create`
-- `ck.realm.update`
-- `ck.realm.archive`
-- `ck.realm.freeze`
-- `ck.realm.tombstone`
-- `ck.realm.destroy`
-- `ck.realm.schema`
-- `ck.realm.policy`
-- `ck.realm.policy_server`
-- `ck.realm.policy_components`
-- `ck.realm.plaintext_visible_services`
-- `ck.realm.preview_policy`
-- `ck.realm.history_visibility`
-- `ck.realm.history_sharing_policy`
-- `ck.realm.join_rule`
-- `ck.realm.discovery`
-- `ck.organization.discovery`
-- `ck.schema.define`
-- `ck.schema.update`
-- `ck.policy.set`
+`ck.realm.*` 修改 Realm 自身的生命周期（create / archive / freeze / tombstone / destroy）、policy 与 policy component（policy、policy_server、policy_components、preview_policy、history_visibility、history_sharing_policy、join_rule、plaintext_visible_services 等）、schema 绑定以及 discoverability 状态。`ck.organization.*`、`ck.schema.*`、`ck.policy.*` 是同一治理类别的相邻写路径。这些 kind 的共同写路径约束：只能写入 Realm 级治理 / schema / policy state，MUST NOT 直接写入 Flow / Space / Message 等业务对象正文；policy component 类 kind 各自的 reducer cell 与授权语义见对应 governance / authz 文件。
 
 ### 7.2 Flow
 
-- `ck.flow.create`
-- `ck.flow.update`
-- `ck.flow.archive`
-- `ck.flow.restore`
-- `ck.flow.tracks.update`
-- `ck.flow.move`
-- `ck.flow.reorder`
-- `ck.flow.watch.set`
-
-`ck.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `ck.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / 投递裁剪或 E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md) 与 [`../models/circle.md`](../models/circle.md)）。`ck.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`ck.flow.watch.set` 写入 per-(flow, actor) cas_register cell `ck.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `ck.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
+`ck.flow.*`（create / update / archive / restore / tracks.update / move / reorder / watch.set 等）只修改 Flow 自身、track 配置或 Flow 在 Board / List Space 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `ck.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / 投递裁剪或 E2EE 时，把整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md) 与 [`../models/circle.md`](../models/circle.md)）。`ck.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`ck.flow.watch.set` 写入 per-(flow, actor) cas_register cell `ck.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `ck.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
 
 ### 7.3 Space
 
-- `ck.space.create`
-- `ck.space.update`
-- `ck.space.parent`
-- `ck.space.archive`
-- `ck.space.restore`
-- `ck.space.tombstone`
-
-`ck.space.*` 只修改 Space 自身的元数据与生命周期；`archive -> active` 的反向转换由 `ck.space.restore` 承担，不得通过 `ck.space.update` 直接 PATCH 顶层 `state`。`tombstoned` 是不可逆终态，MUST NOT 被 restore。Flow 在 Space 中的位置由 `ck.flow.move` / `ck.flow.reorder` 维护，不写入 `ck.space.*`。
+`ck.space.*`（create / update / parent / archive / restore / tombstone）只修改 Space 自身的元数据与生命周期；`archive -> active` 的反向转换由 `ck.space.restore` 承担，不得通过 `ck.space.update` 直接 PATCH 顶层 `state`。`tombstoned` 是不可逆终态，MUST NOT 被 restore。Flow 在 Space 中的位置由 `ck.flow.move` / `ck.flow.reorder` 维护，不写入 `ck.space.*`。
 
 ### 7.4 Message
 
-- `ck.message.create`
-- `ck.message.revise`
-- `ck.message.redact`
-- `ck.reaction.add`
-- `ck.reaction.remove`
+`ck.message.*`（create / revise / redact）与 `ck.reaction.*`（add / remove）写 Message timeline 与 reaction state，受 Realm / Circle effective scope、history visibility 与 E2EE 边界约束。
 
 ### 7.5 Morph / Relation / View
 
-- `ck.morph.create`
-- `ck.morph.update`
-- `ck.morph.archive`
-- `ck.morph.restore`
-- `ck.relation.create`
-- `ck.relation.update`
-- `ck.relation.tombstone`
-- `ck.container.move_item`
-- `ck.container.rebalance`
-- `ck.view.create`
-- `ck.view.update`
-- `ck.view.reconcile`
-
-`ck.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Flow 所属 List Space、Flow rank、List Space rank、discussion membership、Message timeline、Relation active state 或对象字段的唯一真相。
+`ck.morph.*`（create / update / archive / restore）、`ck.relation.*`（create / update / tombstone）、`ck.container.*`（move_item / rebalance）与 `ck.view.*`（create / update / reconcile）分别写 Morph 对象、Relation 边、facet container 排序与 View 定义。其中 `ck.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Flow 所属 List Space、Flow rank、List Space rank、discussion membership、Message timeline、Relation active state 或对象字段的唯一真相。
 
 ### 7.6 Membership / Invite / Capability
 
-- `ck.member.state`
-- `ck.invite.create`
-- `ck.invite.cancel`
-- `ck.invite.accept`
-- `ck.capability.grant`
-- `ck.capability.delegate`
-- `ck.capability.revoke`
+`ck.member.state` 承载成员 FSM 与 Realm-scoped delivery binding（见下）；`ck.invite.*`（create / cancel / accept）写 invite 生命周期；`ck.capability.*`（grant / delegate / revoke）写授权图。这些 kind 共同构成 Realm 成员与授权写路径，受 Join Policy / Realm policy 约束。
 
 > `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 **候选**（candidate）workflow concept/action 名称，不是 v1 wire `Event.kind`。它们尚未进入 v1 active conformance；实现声明 v1 base profile 时不强制支持。正式登记进入 v1 registry 前不得使用 `ck.*` 标准前缀，也不得作为 Event envelope 的 `kind`、active reducer 或 sync conformance 项。
 
@@ -603,20 +547,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 ### 7.7 Profile / Device / Realm Key
 
-- `ck.profile.update`
-- `ck.profile.space_override`
-- `ck.device.authorize`
-- `ck.device.revoke`
-- `ck.device.list_update`
-- `ck.mls.keypackage`
-- `ck.realm_key.share`
-- `ck.realm_key.withheld`
-- `ck.mls.proposal`
-- `ck.mls.commit`
-- `ck.mls.commit_failed`
-- `ck.mls.welcome`
-- `ck.audit.accessed`
-- `ck.redaction`
+本类别覆盖身份与加密写路径：`ck.profile.*`（update / space_override）、`ck.device.*`（authorize / revoke / list_update）、`ck.mls.*`（keypackage / proposal / commit / commit_failed / welcome）、`ck.realm_key.*`（share / withheld）、`ck.audit.accessed` 与 `ck.redaction`。其中 profile / device / session 控制事件的作用域是 Principal Control Realm，MLS 与 realm_key 事件承载 E2EE 群与历史 key 状态。
 
 `ck.profile.update`、`ck.device.*` 与 `ck.session.grant` 是 durable Event Envelope kind，但其规范作用域是 Principal Control Realm。生产者 MUST 使用目标 principal 的 `principal_control_realm_id` 作为 `realm_id`；普通 Collaboration Realm 只能通过 `refs[role="authorized_by"]`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入 Collaboration Realm history。Realm 角色分类（Principal Control Realm vs Collaboration Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。`ck.profile.space_override` 若作为共享 Realm history 传播，MUST 使用目标 Realm 的 `realm_id` 并通过该 Realm policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Realm。
 
@@ -738,7 +669,7 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 }
 ```
 
-`ck.flow.reorder` 不得改变 List Space。`expected_position` 编译为 cell `head_eq`；不一致时 cas_register 返回 `failed_precondition`，不再走单独的 `cas_conflict` 旁路。`expected_position` 缺失只在 Flow 尚未进入该 Board 的初始态合法（理论上此时也不该用 reorder），其他情况 MUST `failed_precondition`。
+`ck.flow.reorder` 不得改变 List Space。`expected_position` 编译为 cell `head_eq`；不一致时 cas_register 返回 `failed_precondition`，不再走单独的 `cas_conflict` 旁路。客户端 SHOULD NOT 在 Flow 尚未进入该 Board 时发起 reorder；reducer 仅在该初始态接受缺省 `expected_position`，其他情况 MUST 返回 `failed_precondition`。
 
 ### 9.3 List Space 排序
 

@@ -99,7 +99,7 @@ v1 conformance 锁定的 hash 算法集合：
 实现 MUST：
 
 - 默认按 `sha256:` 解析；遇到未识别的 algo prefix → 若位于 critical field（event_digest、state_root、prev_refs blob hash）→ fail closed (`unsupported_digest_algorithm`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
-- 在 `server/describe.crypto` 暴露支持的 hash algo 集合；client 可据此选择写入算法。
+- 在 `server/describe.crypto` 暴露支持的 hash algo 集合;client 可据此选择写入算法。`describe.crypto` MUST 同时暴露支持的**签名** algo 集合(见 §6.1 Signature Suite registered set),不得只暴露 hash。
 - MUST NOT "算法升级"已签名的 canonical bytes：一旦 Event 用 `sha256:` 发布，verify 路径永远按 sha256 重算；实现 MUST NOT 因为本地默认换成 blake3 就重算并替换。
 
 ### 3.3 State Root 与 Anchor Hash 编码
@@ -221,6 +221,24 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 
 
 **Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(event_without_proofs_unsigned)` 覆盖整个 envelope，而 envelope MUST 含 `realm_id` 字段（见 §1.6 event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `receipt_scope` 等价的保护：receipt 显式绑定 `receipt_scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
 
+### 6.1 Signature Suite registered set
+
+签名算法的 canonical 单一来源是本表(与 §3.2 Hash registered set 对称)。proof `alg` 字段 MUST 取自下表;散落于各 schema 的签名算法引用 MUST 收敛到此集合,MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519);非 JWS 形态(如 raw detached signature)按本表 canonical algo id 标识。
+
+| Algo | canonical id / JWS `alg` | v1 角色 | 抗量子 / future-ready 评估 |
+| --- | --- | --- | --- |
+| `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | **v1 default-MUST**;所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破);通过 `ck.profile.signature.pqc.v1` 迁移到后量子 suite。 |
+| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | v1 optional;声明 `ck.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破);选择仅出于生态互通。 |
+| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | v1 profile-gated;声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名,用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<algo>:<...>` 已为加法准备好,无需重写 wire。 |
+
+实现 MUST:
+
+- 默认按 `EdDSA`(Ed25519) 验证 event / receipt proof;遇到未识别的 `alg` → 若位于 critical proof(event_digest binding、device authorization、recovery)→ fail closed (`unsupported_signature_alg`);若位于非 critical metadata signature → MAY 记录为 unknown 并 preserve raw bytes。
+- 在 `server/describe.crypto` 暴露支持的签名 algo 集合(与 hash algo 集合并列),client 据此选择写入算法。
+- MUST NOT "算法升级"已签名的 canonical bytes:一旦 proof 用某 `alg` 发布,verify 路径永远按该 algo 重验;新算法走新 proof,不重写历史签名字节。
+
+**后量子 / hybrid 前瞻(未来)**:hybrid composite 签名(例如 `Ed25519+ML-DSA-65`,经典 + 后量子双签以在迁移期同时满足两类验证者)登记为 `ck.profile.signature.pqc.v1` 的扩展槽位。它复用本节"不重写历史签名字节、新算法走新 proof"原则——hybrid proof 作为追加的新 proof entry 出现,经典验证者验经典分量、后量子验证者验 ML-DSA 分量,历史 Ed25519 proof bytes 不被改写。该槽位在 v1 不强制,记为未来。
+
 ## 7. HLC
 
 > **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Move precondition 比较、或 Anchor finality 判断；这些都由 Move `preconditions[]`、Anchor frontier 与 Lattice `join` 决定。HLC 在 v1 的唯一规范用途是 **timeline 派生层**——当两个事件在 `prev_refs` / `refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。即便 HLC 进入 canonical event bytes 与 proof `event_digest`（出于 wire 兼容），实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.2 与 [`sync/operations-sync.md`](../sync/operations-sync.md) §6。
@@ -320,6 +338,8 @@ causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 客户端只有在已知 causal closure 足以判断两个 Event 在 `prev_refs` 与 `refs[role="after"]` 图中互不可达时，才可把 HLC 用作最终 timeline tie-breaker。若 backfill、dependency fetch 或 snapshot-assisted verification 尚未补齐到可判断互不可达，客户端 MUST 把排序标记为 provisional（例如 pending/backfilling），或使用 `created_at` / 本地接收序作为临时 UI 占位；MUST NOT 把 HLC 排序结果写入持久 projection、审计导出或任何声称“最终顺序”的视图。
 
 ## 8. Cursor
+
+> **Scope（normative）**：本节只定义 cursor 的**内部 canonical 结构、字段 schema、编码、验证规则与 TTL 硬上限数值**;cursor 在 HTTP/JSON binding 上的使用契约(出现位置、分页方向、purpose 语义)见 [`api-conventions.md` §7](../sync/api-conventions.md)。
 
 Cursor 是不透明字符串：
 
@@ -472,7 +492,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 - 支持每个 cursor 至少 50 个 realm。
 - **每 Realm 的 frontier (`s.<realm>.p`) 长度 MUST ≤ 1000 个 event_id**：超出时 issuing 服务 MUST 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再嵌入 cursor。该上限避免大并发 actor Realm (≥ 1000 active actor 各自有 head event) 让单个 cursor 膨胀到 MB 级。Receiver 收到超长 frontier 的 cursor MUST `invalid_param`。
 - **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，MUST NOT 直接产出超大 cursor；receiver 收到超大 cursor MUST `invalid_param`。
-- 支持最长 7 天（604,800,000 ms）的 stream cursor 过期时间；barrier cursor 上限 1 小时（3,600,000 ms），见 §8.3 规则 12。
+- 支持 stream cursor 与 barrier cursor 的过期时间;两者的 TTL 硬上限数值由 §8.3 规则 12 唯一定义,本节只引用不重复字面数值。
 - 以适当错误拒绝非法 cursor。
 
 ## 9. Rank
@@ -550,6 +570,18 @@ rank_between(left, right):
 非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Realm policy 用 Realm id）直接把规范化 subject 放入 `ck:cell:<component>:<subject>`，不需要 hash 化。
 
 接收方收到不符合本节定义的复合 subject components_array 时 MUST 返回 `schema_violation`。文档中若以管道分隔形态展示复合 subject，MUST 显式标注 "informational; canonical cell subject is base64url(sha256(canonical_json(...)))"。
+
+### 9.6 State / Cell 编码索引（导航）
+
+_Informative._ 本小节只做导航锚,不搬迁任何 normative 内容;各编码规则的 canonical 定义仍在所引小节。State / Cell 相关编码分散在多处,单点索引如下:
+
+| 编码对象 | canonical 定义位置 |
+| --- | --- |
+| Cell subject 编码(复合 subject hash 形态、标准复合 subject 表) | 本文 §9.5 |
+| `state_root` 的 Merkle 编码与 inclusion 规则 | [`authz/event-auth-state-resolution.md` §4.2](../authz/event-auth-state-resolution.md) |
+| `state_root` / Anchor hash 的 wire 形态与 algo 固定规则 | 本文 §3.3 |
+| Hash wire 形态(`<algo>:<hex>`)与 Hash registered set | 本文 §3.1 / §3.2 |
+| Cell tuple 引用形态(`ck:cell:<component>:<subject>`) | 本文 §4(special forms) |
 
 ## 10. Encrypted Envelope Digest
 

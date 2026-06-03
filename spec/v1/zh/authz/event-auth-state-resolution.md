@@ -380,6 +380,15 @@ v1 封闭核心集（core）：
 
 依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均 MUST NOT 进入协议授权根。
 
+Lattice type 分两层，授权语义与可用性截然不同；实现 MUST 按下表区分对待：
+
+| 分层 | type | 可用性 | 授权层定位 |
+| --- | --- | --- | --- |
+| **core 封闭集**（无条件可用） | `or_set` / `mv_register` / `cas_register` / `fsm` / `counter` / `ordered_log` | v1 base profile 一律 MUST 实现 | 可作授权 / policy / membership / anchorer cell（`mv_register` 除外，见上表「授权层禁用」列） |
+| **profile-gated 扩展集** | `lww_register` / `rga` | 仅当声明 [`ck.profile.collaborative_text.v1`](../conformance/conformance-profiles.md) 时可用；未声明的实现遇到这两种 type MUST fail closed（`unsupported_lattice_type`） | **MUST NOT 作授权 / policy / membership / anchorer / capability cell 根**；只用于 content / cosmetic cell（语义见 §5.0.1） |
+
+core 集是 `Lattice.type ∈ closed_core_set` 的封闭代数；扩展集不进入该封闭集，其 join / validate 语义集中定义在 §5.0.1 与 §5.3.7 / §5.3.8。
+
 Lattice 的作用不是让并发冲突消失，而是让同一输入集合的结果确定。对可合并类型（如 `or_set`、`counter`、`ordered_log`），所有 verifier 会得到同一个合并值；对不可安全自动选择的类型（如关键 `cas_register`、部分 `fsm`），并发或非法状态会收敛为同一个 `⊥`，而不是由某台服务器、HLC、actor id 或接收顺序挑一个 winner。依赖 `bottom=reject` cell 的后续 Move 必须 fail closed，直到 §8 的 conflict-recovery Move 把该 cell 恢复到明确 value。
 
 例如两个客户端基于同一旧 Anchor 同时把同一个 Flow 移到不同 List，二者都生成合法 signed Event / Move。如果这两个 Move 进入同一 effective Anchor view，`ck.component.flow.position.v1` 的 `cas_register` join 会在所有 verifier 上返回同一个 conflict bottom；正确实现不得在 server A 显示 List-1、server B 显示 List-2 作为最终协议状态。它们可以在 projection 层展示冲突诊断或本地 pending UI，但共享 effective state 必须是同一个 `⊥`，并要求后续 recovery Move 修复。

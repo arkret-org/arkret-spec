@@ -25,6 +25,7 @@ see_also:
 - `artifacts/openapi/cokret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
 - `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
+- 语言权威：本规范权威文本为 `zh/` 下中文；`en/` 仅提供说明性入口，非规范源。`artifacts/` 下机读契约语言中立、跨语言共享。
 
 ### 1.2 漂移检测 artifacts
 
@@ -142,7 +143,7 @@ see_also:
 | `overview/current-model.md` | Flow / track / board / list / view 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
-| `guides/migrating-from-matrix.md` | 与 Matrix 的核心区别、边界和取舍（面向 Matrix 实现者的迁移视角；旧路径 `overview/matrix-core-differences.md`）。 |
+| `guides/migrating-from-matrix.md` | 与 Matrix 的核心区别、边界和取舍（informative 对照，非真相源，详见 §4.10 实现指南组说明；面向 Matrix 实现者的迁移视角；旧路径 `overview/matrix-core-differences.md`）。 |
 
 ### 4.2 身份、组织与隐私
 
@@ -261,6 +262,7 @@ see_also:
 | --- | --- |
 | `guides/artifact-consumption.md` | SDK、cotest、yougen、soland 等下游如何消费 registry、OpenAPI、profiles 与 drift artifacts。 |
 | `guides/reference-implementation-guide.md` | 参考实现的模块边界、生成链路、测试入口和发布前检查顺序。 |
+| `guides/migrating-from-matrix.md` | 面向 Matrix 实现者的 informative 设计取舍对照（非真相源）；§4.1 同步列出便于概览读者定位。 |
 
 ## 5. 拆分原则
 

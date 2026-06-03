@@ -58,9 +58,9 @@ Current read-time member state 只决定服务是否可以继续提供 server-me
 | `shared` | 当前 active Realm member MAY 读取该值生效期间的历史，即使 Event 早于其 `join_frontier`。 | joined 后可读 join 前历史。 | invited 但未 joined 的 reader 默认不能读正文历史；只能按 preview policy 看 stripped state。 | 默认 DENY 给非 active member；policy MAY 允许对 T0 可见历史作受审计恢复。 | joined 后可按 history sharing policy 获得旧 epoch key；无 policy 时不能靠 visibility 自动补 key。 |
 | `invited` | reader 在 Event 的 `T0` 已处于 invited 或 joined 状态时 MAY 读取。 | joined 后最多回到自身有效 invite frontier；不能读 invite 前历史。 | invited reader MAY 读取 invite frontier 之后、policy 允许的 stripped state / history range。 | 默认 DENY；policy MAY 允许 T0 可见历史恢复。 | key share range MUST 从 invite frontier 起算，且必须写入 membership frontier digest。 |
 | `joined` | reader 在 Event 的 `T0` 已处于 joined 状态时 MAY 读取。 | 不允许读 join 前历史。 | invitee 未 joined 时不能读正文历史，只能看 preview policy 允许的 stripped metadata。 | 默认 DENY；policy MAY 允许 T0 joined 且 current policy 仍允许的恢复。 | Welcome 只授予 join 后 future epoch；join 前 key share MUST 被拒。 |
-| `restricted` | 不由 enum 自身定义；MUST 由 effective `ck.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；缺少 rule 或 proof 时 MUST withhold。 |
+| `restricted` | 不由 enum 自身定义；MUST 由 effective `ck.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；任一判定失败的 fail-closed 行为见 §3.1 末尾集中声明。 |
 
-Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 Anchor pre-state 或同一 ordered submit batch 的前序 Event 已接受一个有效 `ck.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`；如果 policy 存在但没有覆盖目标 scope / audience / range，读取或 key share MUST fail closed，原因 SHOULD 使用 `history_not_visible` 或 `policy_denied`。
+Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 Anchor pre-state 或同一 ordered submit batch 的前序 Event 已接受一个有效 `ck.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`。policy 存在但未覆盖目标 scope / audience / range 时的 fail-closed 行为见 §3.1 末尾「`restricted` fail-closed 集中声明」。
 
 ### 3.1 `restricted_rules[]` 结构
 
@@ -73,7 +73,9 @@ Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `
 | `allow_from_frontier` | yes | `enum(join_frontier, invite_frontier, anchor_ref) \| object` | 允许读取 / key share 的下界 frontier；`object` 形式 `{ anchor_ref }` 显式锚定某 Anchor。reader 只能读取该 frontier 之后、且 `match` 命中的 Event。 |
 | `effect` | no | `enum(allow_read, allow_key_share, allow_both)` | 默认 `allow_read`。`allow_key_share` / `allow_both` 才放行 §6 的 history key share；缺省不授予 key。 |
 
-匹配语义：reader 对某 Event 的 restricted 资格按 `restricted_rules[]` 逐条求值，命中**任一** `match` 且 Event 在对应 `allow_from_frontier` 之后即视为通过；无任何 rule 命中时 MUST fail closed（reason `history_not_visible`）。多条 rule 命中时取并集（最宽 `allow_from_frontier` 与最宽 `effect`），但仍受 §3 表与父 Realm floor 约束，绝不放宽到比 enclosing scope 更宽。
+匹配语义：reader 对某 Event 的 restricted 资格按 `restricted_rules[]` 逐条求值，命中**任一** `match` 且 Event 在对应 `allow_from_frontier` 之后即视为通过；无任何 rule 命中时 MUST fail closed（见下方集中声明）。多条 rule 命中时取并集（最宽 `allow_from_frontier` 与最宽 `effect`），但仍受 §3 表与父 Realm floor 约束，绝不放宽到比 enclosing scope 更宽。
+
+**`restricted` fail-closed 集中声明（normative）**：上述所有 `restricted` 判定的校验主体是执行读取 / key share 的服务（reducer 或 key source）；校验时点为每次读取 / backfill / key share 请求。任一判定失败 MUST fail closed——无匹配 rule 时返回 `history_not_visible`，policy 未覆盖目标 scope / audience / range 时返回 `policy_denied`，缺少 key share rule 或 proof 时 MUST withhold key material。本节其它处（§3 语义表 `restricted` 行、§3 末尾段落）对 restricted 的描述均引用本声明，不再各自重述 fail-closed 行为。
 
 ## 4. Preview / Peek
 

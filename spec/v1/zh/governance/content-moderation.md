@@ -271,7 +271,7 @@ SC = HMAC-SHA-256(
 6. 校验 `epoch` 是 reporter 提交的 envelope `sender_claim.epoch`：不一致 reason `sender_commitment_epoch_mismatch`。
 7. 上述全部通过后，verifier MAY 把该 plaintext 归因到 `sender_device_id` 在 `epoch` 内的承诺——但仍 MUST NOT 将该归因传递到 outside-of-group 的 non-repudiation 主张（profile 仍受 MLS 群密钥退出后的 deniability 边界限制）。
 
-**跨 epoch 与 forward secrecy**：MLS epoch 推进后，旧 epoch 的 exporter secret 被 MLS 协议销毁；verifier 若未在该 epoch active 期间持有 exporter secret，将无法重派生 SCK，从而无法验证 commitment。Profile 因此对 verifier 要求 *epoch-window persistence*：implementations MUST 文档化 verifier 持有 exporter secret 的最长窗口（默认 SHOULD ≤ 72h，超过窗口的 commitment 视为不可验证而非伪造）。
+**跨 epoch 与 forward secrecy**：MLS epoch 推进后，旧 epoch 的 exporter secret 被 MLS 协议销毁；verifier 若未在该 epoch active 期间持有 exporter secret，将无法重派生 SCK，从而无法验证 commitment。Profile 因此对 verifier 要求 *epoch-window persistence*：implementations MUST 文档化 verifier 持有 exporter secret 的最长窗口。该窗口 MUST ≤ 部署声明值，且无论部署如何声明 MUST ≤ 协议绝对上限 7d（超过窗口的 commitment 视为不可验证而非伪造）；持有时间一旦超过该上限，verifier MUST zeroize 对应 exporter secret。部署声明的窗口值 MUST 进入 Realm policy 的成员可见披露（与 §3.4.2 其它 audit-gated 披露同列），使成员无需信任 verifier 自报即可获知该窗口。
 
 **Verification receipt 固化（normative）**：上述窗口语义给恶意 sender 一条抵赖路径——只要拖到 exporter secret 销毁（默认 ≤ 72h 窗口之外）再被举报，commitment 就"不可验证"。为切断该路径，verifier 在 epoch active 窗口内**完成** §3.4.2 校验（步骤 1–7 全部通过）后 MUST 生成一条 verifier 签名的 **verification receipt**，至少固化 `{mls_group_id, epoch, sender_device_id, epoch_local_seq, plaintext_digest, ciphertext_digest, verdict, verified_at}` 并由 audit-gated verifier DID 签名。该 receipt 使归因结果**不随 exporter secret 销毁而失效**：窗口外的审核 / 申诉直接采信 receipt，无需重派生 SCK。与此对称：**"窗口外不可验证" MUST NOT 被任何实现解释为"commitment 已被证伪 / sender 未承诺该明文"**——它只表示 verifier 当前无法重新计算，既不构成正向归因，也不构成 sender 已抵赖的证据；正向归因唯一来源是窗口内生成的 verification receipt 或仍可重派生 SCK 的在窗口校验。
 

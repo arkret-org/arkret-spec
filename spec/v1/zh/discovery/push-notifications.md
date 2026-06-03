@@ -149,7 +149,7 @@ POST /_cokret/edge/push/unregister-device
       "kind": "underride",
       "enabled": true,
       "conditions": [
-        { "kind": "field_match", "field": "type", "pattern": "ck.message.create" },
+        { "kind": "field_match", "field": "kind", "pattern": "ck.message.create" },
         { "kind": "is_direct_message" }
       ],
       "actions": ["notify", "sound_default"]
@@ -444,8 +444,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 ### 6.2 安全约束
 
 - Sync Service MUST NOT 在推送中包含 `encrypted_content` / `encrypted_metadata` / `encrypted_payload` 的任何部分
-- `push_hint` 是发送方自愿提供的可选字段，接收方不应完全信任其内容
-- 推送网关应被视为不可信第三方，推送内容应尽量最小化
+- 推送网关被视为不可信第三方：`push_hint` 的白名单约束与 payload 最小化约束见 §2.2（line 36/38）与 §5.1，均为 MUST / MUST NOT，本节不重复其规范内容
 
 ## 7. 静默时段 (Do Not Disturb)
 

@@ -47,9 +47,6 @@
       ],
       "description": "Optional security class. 'high_assurance' forbids federation_policy=open and SHOULD use stricter resolver/E2EE/audit defaults. Omitted = 'standard'."
     },
-    "created_by": {
-      "$ref": "#/$defs/did"
-    },
     "trust_domain": {
       "$ref": "#/$defs/trust_domain",
       "description": "Immutable deployment trust domain captured by ck.realm.create. Receivers MUST require this to match the current Realm trust domain before accepting cross-domain replay-sensitive proofs."
@@ -352,6 +349,9 @@
     "avatar_blob_ref": {
       "type": "string",
       "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+    },
+    "created_by": {
+      "$ref": "#/$defs/did"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"

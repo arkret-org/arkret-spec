@@ -15,6 +15,8 @@ see_also:
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](./conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
+本规范权威文本为 `zh/` 下中文；`en/` 仅提供说明性入口，非规范源。`artifacts/` 下的机读契约为语言中立，跨语言共享。
+
 ## 1. 范围（Scope）
 
 `cokret-spec` 是 **Cokret v1 去中心化协作协议规范**。其核心不是界面，而是"可验证协作事实 + 可投影的对象语义"：

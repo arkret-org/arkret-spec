@@ -94,7 +94,7 @@ DID Document SHOULD 只负责：
 | --- | --- | --- | --- |
 | Principal Server | 普通用户或组织自建的核心入口 | `/server`, `/_cokret/self/events`, `/account`, `/snapshot`, `/federation`, 可代理 `/blob`, `/authz`, `/_cokret/self/device_messages`, `/keys` | 用户/组织的受控入口、Event 提交/读取、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/identity`, `/server` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
-| Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
+| Auth Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/account`, `/snapshot`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
@@ -111,8 +111,8 @@ DID Document SHOULD 只负责：
 推荐 deployment profile：
 
 - `principal_server_personal`：一个 Principal Server；内部合并 Events API + Sync/Federation + Blob + Device/Key + Authz；客户端可自行维护本地 search / projection；Identity Resolution Infrastructure、Directory、Push 和 TURN/Media 默认可用公共服务。
-- `principal_server_organization`：一个组织委托的 Principal Server；通常搭配 Auth / Account Server；需要统一授权和审计时增加 Policy Server；Blob、Directory、Push 可按规模和合规要求拆分。
-- `principal_server_secure_organization`：一个或多个组织委托的 Principal Server，搭配 Auth / Account Server、Identity Resolution Infrastructure、Policy/Authz、Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
+- `principal_server_organization`：一个组织委托的 Principal Server；通常搭配 Auth Server；需要统一授权和审计时增加 Policy Server；Blob、Directory、Push 可按规模和合规要求拆分。
+- `principal_server_secure_organization`：一个或多个组织委托的 Principal Server，搭配 Auth Server、Identity Resolution Infrastructure、Policy/Authz、Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Events/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_service`：Applet Server + Event writer + Authz precheck，只在授权 namespace 和 capability 内工作。

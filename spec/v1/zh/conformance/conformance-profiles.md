@@ -698,7 +698,7 @@ SHOULD 支持：
 - franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 Anchor state_root 独立，因为 franking proof 不进入 Realm anchor frontier（franking proof 是 service-side audit material，不改变协作状态）。
 - 显式 `franking_proof_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 franking proof（如 service downgrade / outage），而不是误以为消息根本未投递。
 
-## 19b. WebRTC Media Service
+## 19b. Realtime Media Server
 
 `ck.profile.webrtc_media.v1` 适用于提供 ICE config / TURN / SFU 等 RTC 基础设施的服务。
 

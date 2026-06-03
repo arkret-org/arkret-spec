@@ -51,8 +51,7 @@ updated: 2026-05-26
 - 加密群组密钥
 - 恢复密钥
 
-长期密钥 SHOULD 尽量少在线使用。  
-日常操作 SHOULD 由设备密钥或短期 session key 执行。
+长期身份锚点密钥 SHOULD NOT 用于日常签名；除 key rotation、recovery、device authorization 等明确生命周期事件外，MUST 由设备密钥或短期 session key 代替执行签名。
 
 ### 2.3 所有授权都必须可撤销
 
@@ -232,6 +231,8 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
    Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `ck.profile.principal_control_realm.v1`；缺一即按普通非 PCR Realm 处理（不再具备 control stream 的特殊语义）。
 4. **首台设备自授权**：客户端构造 `ck.device.authorize` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
 5. **Inception key 的归宿**：完成步骤 4 后，inception key 的在线签名角色 MUST 在 `inception_key_max_online_window` 内退出。推荐窗口为 ≤1h；24h 只是协议硬上限，deployment policy MUST NOT 配置更长窗口。`personal_node` / `small_team` profile 在首台 `ck.device.authorize` accepted 后 SHOULD 立即触发 `did:webvh` entry 1 写入或封存流程，不应等待硬上限。退出方式只能是：（a）写入 `did:webvh` entry 1 或等价 DID method operation，把日常 update / device authorization 权限轮换到新的 controller / device key，并从首台设备销毁 inception private key；或（b）把 inception key 封存为 recovery-only key，放入 secret storage / threshold recovery，记录 `sealed_at`、`expires_at?`、allowed recovery method，并禁止在线日常签名。窗口过期后，receiver / Auth Server MUST 拒绝 inception key 继续签发 `ck.device.authorize`、`ck.session.grant`、长期 capability 或 ordinary DID update，并写入安全审计；它只能按已声明 recovery policy 进入恢复流程。它 MUST NOT 长期作为日常 device signing key——暴露面应被限制到 inception bootstrap 与 recovery。
+
+   **接收端独立 enforce（normative，与 [`../crypto-media/encryption-and-audit.md` §2.4.1](../crypto-media/encryption-and-audit.md) 的 `relaxed_window` 接收端独立检查纪律对齐）**：receiver / Auth Server MUST NOT 静默采信 deployment 自报的更长 `inception_key_max_online_window`。它 MUST 以 inception bootstrap 证据（`did:webvh` entry-0 / 对应 continuity proof）中可验证的时间戳为锚，按本地时钟**独立计算** inception key age；当该 age 超过 24h 协议硬上限时，无论 deployment policy 声明的窗口为何，MUST 拒绝该 inception key 签发的 `ck.device.authorize` / `ck.session.grant` / 长期 capability / ordinary DID update，并为该拒绝分配专用 reason_code `inception_key_window_exceeded`。deployment policy 配置的更长窗口对接收端 24h 硬上限无效，receiver 不得据此放行。
 6. **First-backup gate（normative）**：inception key 退场（步骤 5）之前，客户端 MUST 完成以下二者之一，作为 inception 窗口关闭的硬前置条件：
    - 发布一条 `backup_class="did_recovery"` 的 `ck.schema.key_backup.v1` envelope，`series_seq=0`，加密给 `recovery_public_key` / `threshold_recovery` / `hardware_wrapped_key` 之一，并携带顶层 `recovery_policy_ref{policy_id, policy_version}` 绑定当前 accepted recovery policy（`auth_data.signed_fields` MUST 覆盖该字段）。`did_recovery` envelope **不得**使用 `passphrase_kdf`；单一口令不得控制 DID recovery。或
    - 写入一份带签名的 offline-sealed receipt（纸质 / 硬件钱包 / 物理离线 module），由 inception key 签发并记录 fingerprint、`sealed_at`、allowed recovery method；UI MUST 要求用户二次确认已离线持有该 receipt。

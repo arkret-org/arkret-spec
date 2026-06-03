@@ -195,12 +195,12 @@ sidebar:
 
 ## 5. 相关文档
 
-- `policy-server.md`（风险决策与 `reason_code`）
-- `governance/content-moderation.md`（blocklist / allowlist / quarantine）
-- `federation.md`（联邦放行与签名验证）
-- `api-conventions.md`（统一错误码、重放控制与出站网络目标策略）
-- `discovery-directory.md`（发现防枚举）
-- `identity-did.md`（resolver trust）
+- `../authz/policy-server.md`（风险决策与 `reason_code`）
+- `../governance/content-moderation.md`（blocklist / allowlist / quarantine）
+- `../sync/federation.md`（联邦放行与签名验证）
+- `../sync/api-conventions.md`（统一错误码、重放控制与出站网络目标策略）
+- `../discovery/discovery-directory.md`（发现防枚举）
+- `../identity/identity-did.md`（resolver trust）
 - `snapshot-schema.md`（snapshot integrity）
 - `third-party-invites.md`（邀请令牌生命周期）
 - `account-lifecycle.md`（设备与会话撤销）

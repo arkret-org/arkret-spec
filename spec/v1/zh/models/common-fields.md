@@ -207,13 +207,13 @@ expected_<role>_<kind>_id
 - `state_changed_at` MUST 紧跟 `state`；`stage_changed_at` MUST 紧跟 `stage`。
 - 开放扩展容器（`fields` / `metadata`）MUST 落在 content / config 区，紧邻对象内容字段，MUST NOT 混入 audit 字段簇。对 Realm 这类把 `fields` 置于审计字段之前的配置根对象，按本节"对象族例外"声明即可。
 
-**过程型 / private object 例外（FDC-05 / FO-05）**：第 3 类对象不套用 canonical materialized object 的 audit 字段簇规则——
+**过程型 / private object 例外**：第 3 类对象（见本节上方 private projection / process artifact 分类）不套用 canonical materialized object 的 audit 字段簇规则——
 
 - **Read Cursor** 是仅更新态 projection，必填 `updated_at` 而**无** `created_at`；这是有意设计，不是字段遗漏。读者 / 生成器 MUST NOT 据 §3.1 推断它缺 `created_at`。
 - **Capability Grant** 使用 grant 语义字段（签发 / 撤销相关）表达生命周期；其"创建时间"语义由 `issued_at`（而非通用 `created_at`）承载，retention / audit / 排序查询 MUST 使用 grant 自身的 `issued_at` / `expires_at` / `revoked_at`，不要回退到通用 `created_at`。
 - **Notification** 同属 actor-private projection，不暴露开放扩展容器（见 §3.1 附注）。
 
-> 说明：v1 暂未把上述顺序纳入 `lint_artifacts.py` 自动校验（仅校验 schema 语法与 registry 完整性）；本节作为 canonical ordering 规则先行确立，后续可由 schema formatter / lint 固化（详见审核项 FO-06 / ALT-08）。
+> 说明：v1 暂未把上述顺序纳入 `lint_artifacts.py` 自动校验（仅校验 schema 语法与 registry 完整性）；本节（§3.2 排序硬规则）作为 canonical ordering 规则先行确立，后续可由 schema formatter / lint 固化。
 
 ## 4. 主体引用字段交叉对照
 

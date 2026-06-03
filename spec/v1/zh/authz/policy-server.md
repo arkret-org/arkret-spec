@@ -341,7 +341,9 @@ Reducer 与所有读路径 MUST：
 Policy server fast path 与 anchored decision 的关系：
 
 - Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Move 到该 Realm 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
-- 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `ck.realm.moderation_policy` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
+- 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision，处理方式 MUST 按未能提升的根因分类，不得对所有失败统一静默解除：
+  - **(a) 传输 / 可用性类**——anchorer unreachable、`temporarily_unavailable`、anchorer paused、提交超时等纯可达性故障：窗口到期后 MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
+  - **(b) reducer 主动拒绝类**——Move 被 reducer 以 capability / 权限原因拒绝（例如 origin actor 失去 `ck.realm.moderation_policy` capability，或 `failed_precondition` 源于授权 / 前置条件不成立而非传输故障）：此时窗口到期 SHOULD 升级为 `require_review`，或保持隐藏并向 Realm 审核方告警，**不得**静默解除本地隐藏。理由是该类失败表明决策的授权基础本身存疑，静默解除会让一条可能合规的审核意图被悄悄丢弃。实现 MUST 能区分这两类原因（传输 / 可用性 vs reducer 授权拒绝），并据此选择解除或升级 / 保持隐藏。
 - Receiver 节点收到 fast-path quarantine signaling（policy server 签名）但无对应 anchored Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_pending_anchor` 并在 anchored decision 抵达后切换显示。
 
 **Fast-path 退回的 UX 规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：

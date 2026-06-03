@@ -227,6 +227,8 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 `decryption_pending` 是有界恢复状态，不是永久展示状态。默认 timeout 为 7 天；超时后客户端 MUST 降级为 metadata-only `decryption_failed` 占位。连续 epoch 缺口过大时，客户端 SHOULD 使用 range-based recovery，从授权 peer、key backup、Archive Node 或 policy 声明的 Key Recovery Service 获取最小必要 epoch material。
 
+任何 epoch material 交付（无论目标处于 `decryption_pending` 还是 `decryption_failed`）MUST 满足 §2.3.5 的 T₀ membership + policy + key-share-source 校验。
+
 #### 2.3.5 Late Key Recovery 状态机（normative）
 
 客户端 MAY 在 `decryption_failed` 之后接收到迟到的 key material（来自 key backup 同步、device 重新加入、Archive Node 回灌、history key share 等）。该 late material 重新解码受限历史的流程是受控状态机，**不是**静默解锁：
@@ -235,7 +237,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 | --- | --- | --- | --- |
 | `decryption_pending` | 在 timeout 内收到 key | `decrypted` | 正常解码，无额外 marker。 |
 | `decryption_pending` | timeout（默认 7 天） | `decryption_failed` | UI 标 metadata-only；不可恢复直到收到 late key。 |
-| `decryption_failed` | 收到 late key 且通过 (a)-(d) 校验 | `late_recovered` | UI MUST 显示 "历史内容已晚到解锁，原首次接收时刻 T₀" timeline marker（不静默替换 metadata-only 占位）；audit profile 下 MUST emit `ck.audit.accessed`，payload `access_kind="e2ee_late_recovery"` 且 `late_recovery_original_event_id` 指向原加密 Event；history key share scope MUST 与 receiver 当时的 membership scope 一致。 |
+| `decryption_failed` | 收到 late key 且通过 (a)-(d) 校验 | `late_recovered` | 客户端 MUST 将该 Event 标记为 `late_recovered` 并保留原 `T₀`，MUST NOT 用解锁内容静默覆盖原 metadata-only 占位的 metadata；呈现方式由实现决定。audit profile 下 MUST emit `ck.audit.accessed`，payload `access_kind="e2ee_late_recovery"` 且 `late_recovery_original_event_id` 指向原加密 Event；history key share scope MUST 与 receiver 当时的 membership scope 一致。 |
 | `decryption_failed` | 收到 late key 但 (a)-(d) 任一不过 | 保持 `decryption_failed` | 不解码、不显示明文；记 audit log。 |
 | `late_recovered` | 后续 redaction / erasure 触发 | `redacted_after_recovery` | 已恢复明文 MUST 按 redaction policy 移除；wire stub 保留。 |
 
@@ -698,7 +700,7 @@ Reaction 事件 (`ck.reaction.*`) 的可见性规则：
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
   - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定，即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
   - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Realm SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。
-- Minimal-metadata Realm (`ck.profile.mls.minimal_metadata_realm.v1`): 同上，且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_digest)` 三元组在服务侧也不直接暴露 principal。
+- Minimal-metadata Realm (`ck.profile.mls.minimal_metadata_realm.v1`): 同上，且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_digest)` 三元组在服务侧也不直接暴露 principal。对声明该 profile 的 Realm，上一条中针对 within-epoch 频次侧信道的两项缓解从 SHOULD 升为 MUST：客户端 / committer MUST 通过缩短 MLS epoch lifetime 限制单 epoch 内可观察的频次窗口，且 epoch lifetime MUST ≤ 1 小时（实现 MAY 声明更短）；同时该 Realm MUST 使用 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。
 - `ck.reaction.remove` 走相同规则；`encrypted_payload` 明文的 `remove_add_event_ids[]` MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛，但不得将该 id 暴露在外层明文。
 
 服务端 / sync service 处理 reaction 时:
@@ -802,14 +804,17 @@ Genesis 接受规则：
 
 ### 5.2 意图与生效的分离
 组员的增删改是两阶段流程：
-1. **意图上链 (Proposal)**：管理员 A 发出 `ck.mls.proposal` (意图移除用户 D)。这只是一条明文路由加上密码学签名的操作意图。**注意：此时群组 Epoch 并没有推进，先前密钥依然有效，用户 D 依然在群内**。
-2. **正式生效 (Commit)**：必须有成员针对上述 Proposal 打包并发起一个 `ck.mls.commit` 操作。一旦 Commit 落盘，Ratchet Tree 被重新洗牌，新密钥分发给剩余成员（不包含 D），此时 D 才被真正物理隔离。
+1. **意图上链 (Proposal)**：成员发出 `ck.mls.proposal`（例如移除某成员的意图）。这只是一条明文路由加上密码学签名的操作意图。此阶段 group epoch 尚未推进，先前密钥仍有效，被提议移除的成员仍在 group 内。
+2. **正式生效 (Commit)**：MUST 有成员针对上述 Proposal 构造并广播 `ck.mls.commit`。一旦 Commit 被 Anchor frontier 接受，epoch 推进，ratchet tree 据此更新，新 group secret 仅分发给剩余成员（不含被移除成员）；自该 epoch 起，被移除成员无法解密后续 application message。
 
-### 5.3 断网接力与挂起状态 (Takeover)
-如果管理员 A 在发出踢人 Proposal 后瞬间掉线，群组**不会因单一 committer 掉线而永久锁定 epoch 推进**（其它具备权限的成员可接力 Commit，见下文 Takeover）。
-- **挂起态的可用性**：在 Commit 被提交之前，群组处于“有待处理提案”的挂起状态，所有成员依然可以使用现有的 Epoch 密钥继续聊天通信。
+### 5.3 Committer 失联与 Commit 接管 (Takeover)
+单一 committer 失联 MUST NOT 永久锁定 epoch 推进：任一持有相应 commit 权限的成员 MAY 在 observe 到 pending `ck.mls.proposal` 后构造并广播 `ck.mls.commit` 接管该 proposal；commit 被 Anchor frontier 接受后，被移除成员 MUST 失去后续 epoch 的解密能力。
+
+_Informative._ 提议者在发出移除 Proposal 后失联时，其它具备权限的成员可接管 Commit（见下方 normative 规则）。
+
+- **挂起态的可用性**：在对应 Commit 被 Anchor frontier 接受前，scope 保持当前 epoch 与 group secret；尚未被移除的成员 MAY 继续使用当前 epoch 密钥收发 application message。
 - **Churn 合并**：committer SHOULD 在不超过 `max_mls_commit_delay_ms` 的前提下，把同一 `(scope, mls_group_id, base_epoch)` 上已可见且仍满足授权 / membership / policy freshness 的 pending membership proposals 合并进单个 Commit；实现不得为每个 join/leave 机械地产生独立 Commit。高隐私或大群 profile MAY 声明更严格的 epoch 推进速率上限，但 ban / revoke / device revoke 不得因此超过 §2.4.1 的发送暂停窗口。
-- **无缝接力 (Takeover)**：群组内其他具备足够权限的成员（如管理员 B 或普通成员 C）在侦测到未处理的 Proposal 后，可以主动“接手”。成员 B 的客户端会自动执行重新加密，打包移除 D 的逻辑，并广播出 `ck.mls.commit`。一旦 B 的 Commit 被接受，D 成功被踢出。
+- **Commit 接管 (Takeover)**：任一持有相应 commit 权限的成员在 observe 到未消费的 Proposal 后，MAY 构造消费该 proposal 的 `ck.mls.commit` 并广播。该 commit 被 Anchor frontier 接受后，epoch 推进，被移除成员自该 epoch 起 MUST 无法解密后续 application message。
 
 ### 5.4 并发 Commit
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：

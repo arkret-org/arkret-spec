@@ -346,7 +346,7 @@ paths:
 | `ck.keys.backups.put` / `ck.keys.backups.list` / `ck.keys.backups.get` / `ck.keys.backups.delete` | `PUT /_cokret/self/keys/backups/{backup_id}`, `GET /_cokret/self/keys/backups`, `GET /_cokret/self/keys/backups/{backup_id}`, `DELETE /_cokret/self/keys/backups/{backup_id}` | Encrypted key backup storage binding |
 | `ck.authz.check` / `ck.authz.get_effective_grants` / `ck.authz.get_invites` | `POST /_cokret/self/authz/check`, `GET /_cokret/self/authz/effective-grants`, `GET /_cokret/self/authz/invites` | gRPC / policy 插件回调 |
 | `ck.policy.check` | `POST /_cokret/self/policy/check` | policy 本地调用 |
-| `ck.media.ice_config` | `POST /_cokret/self/rtc/ice-config` | Media service / TURN credential adapter |
+| `ck.media.ice_config` | `POST /_cokret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |
 | `ck.moderation.report` | `POST /_cokret/self/moderation/report` | Moderation queue / local compliance workflow |
 | `ck.applet.transaction` / `ck.applet.resolve_actor` / `ck.applet.resolve_realm` | `POST /_cokret/edge/applet/transactions`, `GET /_cokret/edge/applet/actors/{actor_id}`, `GET /_cokret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 

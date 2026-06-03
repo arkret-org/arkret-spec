@@ -83,7 +83,7 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 
 ## 3. 认证
 
-API 调用 SHOULD 使用以下方式之一：
+受保护 endpoint 的请求 MUST 携带可验证的认证材料;认证方式 MAY 为以下之一:
 
 - `Authorization: Bearer <session_token>`
 - detached JWS request signature
@@ -130,7 +130,7 @@ API 调用 SHOULD 使用以下方式之一：
 规则：
 
 - `sub`、email、username 或 OAuth client id MUST NOT 直接作为 `actor_id`、grant subject 或 event sender。
-- 登录成功后，客户端或认证网关 MUST 产生可验证的 session grant、device binding 或 DID proof，把 OAuth/OIDC session 绑定到 DID principal / device。
+- 登录成功后，客户端或 Auth Server MUST 产生可验证的 session grant、device binding 或 DID proof，把 OAuth/OIDC session 绑定到 DID principal / device。
 - Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 session grant 状态。
 - `supported_auth_methods` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
 - 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
@@ -145,7 +145,7 @@ API 调用 SHOULD 使用以下方式之一：
 - **`{status: enum, ...payload}`** — 批量提交语义复杂时 (events.submit `status ∈ {accepted, duplicate, partial}`、keys.backups.put `status ∈ {accepted, duplicate}`)；
 - **裸字段直接返回** — 创建 / 解析类 (blob.upload `{blob_ref, size_bytes, ...}`、directory.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
 
-新增 endpoint 设计时建议:
+新增 endpoint SHOULD 按下列分类选择成功形态:
 - 简单 idempotent mutation 默认走 `{ok: true, ...payload}`；
 - 批量 / 多结果路径走 `{status, accepted[], rejected[], ...}`；
 - 创建 / 解析类直接返回构造好的对象，不另加包裹。
@@ -173,6 +173,8 @@ API 调用 SHOULD 使用以下方式之一：
 
 `message` 用于开发者诊断，不应用于稳定程序逻辑。  
 客户端 MUST 以 `code` 作为主要错误分类。
+
+_Informative（未来 / 可选）._ 实现 MAY 在 content negotiation 下额外提供一个对齐 [RFC 9457 problem+json](https://www.rfc-editor.org/rfc/rfc9457) 的错误投影(`Content-Type: application/problem+json`),字段映射为 `code → type`、`message → detail`、HTTP status → `status`、`request_id → instance`。该投影仅作为现有 `{ok: false, error: {...}}` 默认形态之上的可选 content-negotiation 对齐,默认形态保持不变;v1 不强制实现该投影。
 
 ### 5.1 标准错误码
 
@@ -219,6 +221,8 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 ## 7. Cursor（统一不透明 token）
 
+> **Scope（normative）**：本节只定义 cursor 在 HTTP/JSON binding 上的**使用契约**——出现位置、`purpose` 语义、分页方向（`before` / `after` / `prev_cursor` / `next_cursor`）与不透明性约束;cursor 的内部 canonical 结构、字段 schema、编码与 TTL 硬上限数值见 [`encoding.md` §8](../conformance/encoding.md)。
+
 Cokret v1 在所有需要不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `ck:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它统一承担增量同步、列表分页和写后读屏障所有用途。
 
 cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing 服务自检）：
@@ -244,7 +248,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 - 客户端 MUST 把 cursor 当作不透明字符串，禁止解析以推断排序、权限或服务身份。
 - 任何接受 cursor 的接口 MUST 把无效 cursor 返回 `invalid_param`，把已过期 cursor 返回 `cursor_expired`。
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
-- TTL 硬上限：barrier cursor `expires_at - issued_at` MUST ≤ 1 小时；stream cursor MUST ≤ 7 天。详见 [`encoding.md` §8.3 规则 12](../conformance/encoding.md)。
+- TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**见 [`encoding.md` §8.3 规则 12](../conformance/encoding.md)；本节不重复字面毫秒数值。
 - 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
 
 ### 7.1 列表分页（normative）

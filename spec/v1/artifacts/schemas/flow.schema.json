@@ -35,6 +35,11 @@
       "type": "string",
       "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "scope_circle_id": {
+      "type": "string",
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Flow's effective scope. When set, ALL Flow tracks (synthesis, discussion, etc.) share that Circle's membership, history visibility, delivery/query/projection boundary, and encryption_profile. When unset, the Flow lives in Realm-default scope. The referenced Circle MUST have realm_id == this Flow's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_circle_id is forbidden by default (failed_precondition reason=scope_rebind_forbidden). For 'wide synthesis + narrow discussion' scenarios use two Flows linked by a confidential_discussion_of Relation (circle.md §7.2)."
+    },
     "metadata": {
       "$ref": "#/$defs/flow_metadata"
     },
@@ -48,6 +53,17 @@
     "encrypted_content": {
       "$ref": "./encrypted-envelope.schema.json",
       "description": "Encrypted envelope whose plaintext is a ContentBlock for Flow synthesis content."
+    },
+    "tracks": {
+      "type": "object",
+      "description": "Active Flow tracks, keyed by track name. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. The entire Flow shares a single effective scope determined by Flow.scope_circle_id (see models/circle.md); there is no per-track security boundary. At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in models/flow-and-message.md §4.5. The map MUST contain at least one entry; track names are validated by propertyNames.",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/track_name"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/flow_track"
+      }
     },
     "state": {
       "type": "string",
@@ -79,22 +95,6 @@
     "stage_changed_at": {
       "$ref": "#/$defs/timestamp",
       "description": "Reducer-derived timestamp of the most recent stage transition. MUST be ignored when present on wire; reducer overwrites with the triggering ck.flow.stage.set event's created_at. Same-value self-transitions (stage value unchanged) MUST NOT update this field."
-    },
-    "tracks": {
-      "type": "object",
-      "description": "Active Flow tracks, keyed by track name. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. The entire Flow shares a single effective scope determined by Flow.scope_circle_id (see models/circle.md); there is no per-track security boundary. At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in models/flow-and-message.md §4.5. The map MUST contain at least one entry; track names are validated by propertyNames.",
-      "minProperties": 1,
-      "propertyNames": {
-        "$ref": "#/$defs/track_name"
-      },
-      "additionalProperties": {
-        "$ref": "#/$defs/flow_track"
-      }
-    },
-    "scope_circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Flow's effective scope. When set, ALL Flow tracks (synthesis, discussion, etc.) share that Circle's membership, history visibility, delivery/query/projection boundary, and encryption_profile. When unset, the Flow lives in Realm-default scope. The referenced Circle MUST have realm_id == this Flow's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_circle_id is forbidden by default (failed_precondition reason=scope_rebind_forbidden). For 'wide synthesis + narrow discussion' scenarios use two Flows linked by a confidential_discussion_of Relation (circle.md §7.2)."
     },
     "created_by": {
       "$ref": "#/$defs/did"

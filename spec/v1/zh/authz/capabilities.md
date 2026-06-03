@@ -177,6 +177,7 @@ Cokret v1 支持以下 `kind`：
 - `ck.object.read`
 - `ck.object.read_metadata`
 - `ck.object.read_content`
+- `ck.object.read_history`
 - `ck.object.archive`
 - `ck.object.restore`
 
@@ -574,7 +575,7 @@ Cokret v1 采用 allow-grant + explicit revoke 模型。
 
 ## 13. Invite、通知与已读状态
 
-这些人类友好能力必须进入权限模型，而不是留给产品私有后门：
+invite / notification / read-cursor 等用户可见操作 MUST 由对应 capability action 授权（见下列）；实现 MUST NOT 通过权限模型之外的私有通道授予这些操作。
 
 - 创建 / 取消 invite 需要 `ck.invite.create` / `ck.invite.revoke`
 - 接受发给自己的 invite 需要 `ck.invite.accept`
@@ -604,12 +605,12 @@ Cokret v1 采用 allow-grant + explicit revoke 模型。
 - 能否看到被撤回消息的元信息。
 - 能否读取附件内容。
 
-初版至少区分：
+初版至少区分以下四类读权限，每类在 capability-action-registry 中都有对应 action：
 
-- `discover`
-- `read_metadata`
-- `read_content`
-- `read_history`
+- `discover` → `ck.realm.discover`（能否发现对象存在）
+- `read_metadata` → `ck.object.read_metadata`（能否看到被撤回消息的元信息）
+- `read_content` → `ck.object.read_content`（能否读取附件内容）
+- `read_history` → `ck.object.read_history`（能否读取对象 discussion / 历史事件）
 
 ## 16. Flow / Discussion 场景下的权限建议
 
@@ -776,3 +777,18 @@ Cokret v1 固定：
 权衡：这放弃了"action 都是动词"的惯例换取"action 与 event kind 同名"的更强不变量。IAM 直接以 event kind 字符串作为 grant `actions[]` 元素，零翻译；动词形态由 capabilities.md prose 表达（例如 prose 描述"该 capability 授权写入 ck.invite.third_party 邀请事件"）。
 
 剩余"保留旧 wire 命名"类（agent.protocol_session / morph.schema_migrate / flow.tracks.update / realm.media_service）的 event kind 已发布且无法机械收敛，所以保留为冻结的 grandfather 桥；新条目 MUST NOT 落入此类。
+
+## 附录 B. 与 UCAN / ZCAP 的关系与差异（informative）
+
+> 本附录为 informative 设计背景说明，不构成 normative 约束。它解释 Cokret capability 模型为何采用 grant-as-signed-Event + lattice-revoke，而非 UCAN 风格的 JWT bearer 能力链，并不替换 §2–§12 定义的自有授权模型。
+
+UCAN 与 ZCAP-LD 以可携带的 bearer token / 能力链表达授权：持有者出示一条由 root 经 attenuation 逐级签发的 JWT（或 LD proof）链，验证方就地校验链上签名与 caveat 即可放行，无需中心化状态。这种"无状态 bearer 链"在离线签发与去中心信任路由上很优雅。
+
+Cokret 没有采用该路径，核心原因是 **revoke / attenuation 必须进入可重放的 Anchor / cell 收敛与 freshness 判定**：
+
+- Cokret 的 grant 是一条 **signed Event**，进入 reducer 后在 registry cell 上以 lattice 收敛；revoke 同样是 Event（`ck.capability.revoke`），其效果通过 cell 收敛对所有副本可重放、可定序、可审计。授权判定因此能绑定到具体 Anchor frontier，并施加 freshness 门槛（见 §18、common-fields freshness 约定）。
+- bearer-token 链对**集中收敛的 revocation freshness 支持较弱**:撤销一条已签发的 UCAN/ZCAP 链通常依赖短 TTL、外部 revocation list 或带外吊销服务,验证方无法仅凭链本身判断"此刻是否仍有效",也难以纳入统一的 frontier / freshness 收敛。对一个以可重放事件流为真相源、且需要分区下 fail-closed 的系统,这一点是关键短板。
+
+因此 Cokret 在核心层坚持 grant-as-signed-Event + lattice-revoke,使授权状态与对象状态共享同一套收敛与 freshness 语义。
+
+未来 Cokret MAY 提供 `ck.profile.ucan_interop.v1`,把外部 UCAN 作为 claim / attestation 输入桥接进自有模型（外部 UCAN 仅作为 §7 claim/attestation 一类证据被消费,而不替代内生 grant cell）。该 profile 标记为 staging extension / 未来工作,不在 v1 核心 normative 范围内;在其落地前,实现 MUST NOT 依赖外部 bearer 能力链直接授权。

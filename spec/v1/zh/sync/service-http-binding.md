@@ -61,7 +61,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `/_cokret/edge/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
 | `/_cokret/self/device_messages/*`、`/_cokret/self/keys/*` | E2EE 客户端、Principal Server | to-device、one-time key、fallback key、device list 相关操作。 | `device-lifecycle.md` |
 | `/_cokret/self/authz/*`、`/_cokret/self/policy/check` | 客户端、Events API、Sync、Policy Server | capability 预检查、policy server 签名决策。Canonical path 是 `/_cokret/self/policy/check`(`ck.policy.check`)。 | `capabilities.md`、`policy-server.md` |
-| `/_cokret/self/rtc/ice-config` | 通话客户端、Media Service | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
+| `/_cokret/self/rtc/ice-config` | 通话客户端、Realtime Media Server | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
 | `/_cokret/self/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
 | `/_cokret/edge/applet/*` | Cokret 服务调用 Applet | applet ping / describe、transaction push、Ghost Actor / portal 查询。 | `applet-integration.md` |
 
@@ -164,7 +164,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /_cokret/edge/applet/protocols/{protocol}` | path `{protocol}` | 可 public_metadata；实例列表可要求授权。 | `{protocol, display_name, icon_blob_ref?, field_types, instances?}` |
 | `GET /_cokret/edge/applet/third_party/users` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 registration namespace 内。 | `{actor_id?, exists, external_ref?}` |
 | `GET /_cokret/edge/applet/third_party/locations` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 portal namespace 内。 | `{realm_id?, exists, external_ref?}` |
-| `POST /_cokret/self/rtc/ice-config` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, mode: string}` | `user_session`; actor 必须有 call/media capability，Media Service 必须被 Realm policy 委托。 | `{ttl_seconds, refresh_lead_seconds, issued_at, issued_at_bucket, bucket_seconds, ice_servers[], constraints?, signature}` |
+| `POST /_cokret/self/rtc/ice-config` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, mode: string}` | `user_session`; actor 必须有 call/media capability，Realtime Media Server 必须被 Realm policy 委托。 | `{ttl_seconds, refresh_lead_seconds, issued_at, issued_at_bucket, bucket_seconds, ice_servers[], constraints?, signature}` |
 | `POST /_cokret/self/keys/keypackages/upload` | body `{device_id, keypackages[]}` | `user_session` + 当前 device proof;每条 KeyPackage 必须 self-signed 并通过当前 device 签发。 | `{accepted, rejected?, available_count}` |
 | `POST /_cokret/self/keys/keypackages/claim` | body `{principal_id, count?: int}` | `user_session`;一次性 KeyPackage MUST 原子消费(同 `ck.keys.claim`)。 | `{keypackages[]}` |
 | `POST /_cokret/self/keys/keypackages/consume` | body `{keypackage_ref}` | `service_signature`(MLS group creator 通常是 service-side 调用) 或 `user_session`。 | `{ok: true, consumed_at}` |
@@ -452,7 +452,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.admin.update_account_status` | `path.account_id: id`; `status: string`; `moderator: did`; `proof: proof` | `reason: string`; `expires_at: datetime`; `notify: boolean` | `account_id: id`; `status: string`; `event_ref: id?`; `updated_at: datetime` | 必须生成可审计 account lifecycle 状态或 admin receipt。 |
 | `ck.admin.revoke_device` | `path.device_id: id`; `moderator: did`; `proof: proof` | `reason: string`; `revoke_sessions: boolean` | `device_id: id`; `revoked: boolean`; `event_ref: id?` | 必须撤销 device grant、session grant 和相关 key package。 |
 | `ck.admin.get_moderation_queue` | 无 | `query.realm_id: id`; `query.status: string`; `query.cursor: cursor`; `query.limit: int` | `items: object[]`; `next_cursor: cursor?`; `has_more: boolean`; `counts: object?` | 只对授权 moderator / compliance service 可见，证据按 policy 最小披露。 |
-| `ck.media.ice_config` | `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `mode: string` | 无 | `ttl_seconds: int`; `refresh_lead_seconds: int`; `issued_at: datetime`; `issued_at_bucket: datetime`; `bucket_seconds: int`; `ice_servers: object[]`; `constraints: object?`; `signature: signature` | actor 必须有 call/media capability；Media Service 必须被委托；TURN pseudonym bucket 固定 300s。 |
+| `ck.media.ice_config` | `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `mode: string` | 无 | `ttl_seconds: int`; `refresh_lead_seconds: int`; `issued_at: datetime`; `issued_at_bucket: datetime`; `bucket_seconds: int`; `ice_servers: object[]`; `constraints: object?`; `signature: signature` | actor 必须有 call/media capability；Realtime Media Server 必须被委托；TURN pseudonym bucket 固定 300s。 |
 
 ## 3. Events API
 

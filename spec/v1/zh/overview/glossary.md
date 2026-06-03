@@ -90,6 +90,12 @@ see_also:
 | Blob Store | 二进制对象存储 | 附件、媒体、文件对象的存储与引用服务。 |
 | Directory Server | 目录服务 | 提供可发现的 Realm、组织、actor、Applet 信息。 |
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID 文档、method resolver、密钥材料与验证链路。 |
+| Auth Server | 认证服务（canonical, service role） | 负责登录因子验证（password / passkey / OIDC / SSO / recovery factor）、短期 `ck.session.grant` 签发与 session 生命周期管理的服务角色；profile `ck.profile.auth_server.v1`，运行时 `service_type=auth_server`。它**不是协议身份根**，验证结果只证明某登录会话可绑定到某 DID principal / device，MUST NOT 替代 DID 控制证明或直接定义主体所有权。认证服务角色全规范 canonical 专名即 **`Auth Server`**（中文「认证服务」）；`Auth Service` / `Auth Gateway` / `认证服务器` / `认证网关` 等写法 prose normative 段落 MUST NOT 用作另一术语，除 Auth Gateway（见下行）外均应理解为 Auth Server 的别称。详见 [`conformance/conformance-profiles.md` §9a](../conformance/conformance-profiles.md) 与 [`crypto-media/device-lifecycle.md` §1](../crypto-media/device-lifecycle.md)。 |
+| Auth Gateway | 认证网关（Auth Server 的企业 SSO 部署形态） | Auth Server 的一种**部署形态**，不是独立服务角色：部署在企业内网 / 受控云端、把企业 IdP（Okta、Google Workspace 等 OAuth2 / OIDC）作为登录因子并由组织 DID 声明为 session grant issuer 的高安全网关。它继承 Auth Server 的全部约束（不是协议身份根、只签发短期受众绑定 `ck.session.grant`、不替代 `ck.device.authorize` / DID 控制）；对普通个人 DID SHOULD 只签发短期 session grant，不托管 principal signing key 或 recovery key。prose 提到该企业 SSO 形态时 MAY 使用 `Auth Gateway`；泛指认证服务时 MUST 用 canonical `Auth Server`。详见 [`crypto-media/device-lifecycle.md` §3](../crypto-media/device-lifecycle.md)。 |
+| Device / Key Server | 设备 / 密钥服务（service role） | 承载 to-device 消息、one-time key、fallback key、MLS KeyPackage claim、device list 与 encrypted key backup metadata / ciphertext 的服务角色；E2EE profile 需要，个人部署通常内置于 Principal Server。服务角色 canonical 真源是 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1；密钥备份语义见 [`identity/key-management.md` §7](../identity/key-management.md)。 |
+| Realtime Media Server | 实时媒体服务（canonical, service role） | 通话 / 会议的可选服务角色，提供 ICE config、TURN/STUN、SFU/MCU、录制策略与短期媒体凭证。它属 media plane，MUST 有 service DID 且由 Realm policy 显式允许；SFU 不解密 E2EE 媒体、不获得 Realm 权限、不进入 MLS governance binding，MCU 混流形态若用于 E2EE 必须按 plaintext-visible service 披露。媒体后端 canonical 专名即 **`Realtime Media Server`**。详见 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1 与 [`crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md)。 |
+| Moderation Server | 审核 / 合规服务（service role） | 承载 report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow 的服务角色（service-surface 表中称 "Moderation / Compliance Server"），公共或组织部署建议独立。服务角色 canonical 真源是 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1；审核证据与流程见 [`governance/content-moderation.md`](../governance/content-moderation.md)。 |
+| Archive / Recovery Service | 归档 / 恢复服务（service role） | history sharing、late key recovery 或组织恢复场景的可选服务角色（含 Archive Node、Key Recovery Service、Recovery Service）；高安全部署 MUST 显式声明。只能按 Realm policy、history visibility、T0 membership 与 capability 返回最小必要 epoch material / backup envelope / recovery proof，MUST NOT 因持有归档副本自动获得明文读取权。服务角色 canonical 真源是 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1。 |
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
 | Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值；只可用于 timeline 诊断或兼容投影，不参与协议状态 winner。 |
@@ -166,7 +172,7 @@ see_also:
 
 本节给出术语在 prose 与 wire 形态间的 canonical 大小写规则。这些规则与 §1 的术语表维护规则叠加适用，不取代后者；§1 维护规则（canonical 唯一定义、别名标注、禁用词范围等）仍然有效。
 
-通用规则（CC-04 / SA-05）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Cokret 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名（`Policy Server`、`Principal Server`、`Directory Server`、`Applet Server`）；泛指"某个 policy 服务"时小写普通名词可接受。
+通用规则（本节 §3）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Cokret 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名（`Policy Server`、`Principal Server`、`Directory Server`、`Applet Server`、`Auth Server`）；泛指"某个 policy 服务"时小写普通名词可接受。
 
 - **KeyPackage（CC-01）**：prose 引用 MLS KeyPackage 时 MUST 写 `KeyPackage`（PascalCase）；wire 字段保留 `keypackage_` snake_case 前缀（如 `keypackage_id` / `keypackage_digest`）。prose 中 MUST NOT 写 `key package`（带空格）或 `keypackage`（全小写）。
 - **Welcome（CC-02）**：prose 引用 MLS Welcome 消息时 MUST 写 `Welcome`；字段名（如 `welcome_digest`）MUST 保持小写。

@@ -64,7 +64,7 @@ Schema id: `ck.schema.circle.v1`
 | --- | --- | --- | --- |
 | `short_name` | yes | `string` | `^[A-Z][A-Za-z0-9 _-]{0,23}$`;在 `(realm_id, short_name)` 上 reducer 强制唯一(case-insensitive)。 |
 | `color_token` | yes | `string` | 从受控 palette 选;v1 palette: `{slate, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, fuchsia, pink, gray_high_contrast}`。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。 |
-| `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`;二选一。`glyph` 取受控 snake_case 枚举（v1 canonical 集，与 `circle.schema.json` 同步）:`{lock, shield, eye, eye_off, diamond, star, flag, bell, bookmark, tag, key, fingerprint, briefcase, folder, inbox, megaphone, users, user_shield, globe, link, sparkles, beaker, gavel, heart}`;客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。 |
+| `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`;二选一。`glyph` 取受控 snake_case 枚举（v1 canonical 集）:`{lock, shield, eye, eye_off, user_shield, fingerprint, key, diamond, flame, leaf, anchor, compass, atom, bolt, moon, sun, star, globe, satellite, ring, chain, tag, flag, scroll, scale, hourglass, spark}`;客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。实现 MUST 保证本表 glyph 集合与 `circle.schema.json` 的 `$defs/display/properties/symbol/properties/glyph/enum` 逐一相等(便于未来 lint)。 |
 
 **颜色 token 与 symbol 必须在 spec 受控集中**,目的是同一 Circle 在 Alice 与 Bob 的客户端上呈现一致视觉，否则跨设备社会工程攻击成立。
 

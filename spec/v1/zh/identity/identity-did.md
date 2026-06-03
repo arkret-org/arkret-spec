@@ -45,7 +45,7 @@ Cokret v1 不定义、注册或推荐任何自有 DID method。实现和用户 M
 
 这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现接受任何持久 Event、capability grant、federation transaction、MLS membership 或 service delegation 前，MUST 将当前会话绑定到 principal DID 与 device，并按本地 trust policy 验证该绑定。
 
-如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID。Cokret v1 core 部署的默认 principal DID method 是 `did:webvh`（详见 §3）：Auth / Account Server 在自有域名（例如 `users.<org>.example`）下托管 `did.jsonl` 历史，并 SHOULD 接入至少一个 trusted witness。`did:web`（无历史链）仅作为 service DID 默认 method 与 `personal_node` deployment profile 的可选 principal method；`did:webvh` hosting domain 暂时不可达时只允许 §3.4 的 cache-only degraded mode，不得 live fallback 到 `did:web`。`did:web` 之所以不能作为 v1 core 默认 principal method，是因为它没有可审计 DID Document 历史——DNS 劫持或 TLS 证书失窃即可静默改写主体控制权而不留痕迹。托管 DID 的 controller、recovery policy、trust domain、method-specific history 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
+如果用户尚无显式 DID，Auth Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID。Cokret v1 core 部署的默认 principal DID method 是 `did:webvh`（详见 §3）：Auth Server 在自有域名（例如 `users.<org>.example`）下托管 `did.jsonl` 历史，并 SHOULD 接入至少一个 trusted witness。`did:web`（无历史链）仅作为 service DID 默认 method 与 `personal_node` deployment profile 的可选 principal method；`did:webvh` hosting domain 暂时不可达时只允许 §3.4 的 cache-only degraded mode，不得 live fallback 到 `did:web`。`did:web` 之所以不能作为 v1 core 默认 principal method，是因为它没有可审计 DID Document 历史——DNS 劫持或 TLS 证书失窃即可静默改写主体控制权而不留痕迹。托管 DID 的 controller、recovery policy、trust domain、method-specific history 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
 
 ### 2.2 DID 持久，密钥 SHOULD 可轮换
 
@@ -89,7 +89,7 @@ did:webvh:<scid>:<host-and-path>
 
 | 场景 | 默认 / 推荐 DID method | 说明 |
 | --- | --- | --- |
-| 普通个人 principal DID（`small_team` / `organization` / 更高 profile） | `did:webvh` | v1 core 默认 principal method。无域名用户由 Auth / Account Server 在组织子域代为托管 `did.jsonl`。 |
+| 普通个人 principal DID（`small_team` / `organization` / 更高 profile） | `did:webvh` | v1 core 默认 principal method。无域名用户由 Auth Server 在组织子域代为托管 `did.jsonl`。 |
 | `personal_node` profile principal DID（单人节点、低 stakes） | `did:webvh` SHOULD，`did:web` MAY | 单人自托管可降级为 `did:web`，但 deployment profile MUST 显式声明 `principal_method=did:web`。 |
 | 组织 DID | `did:webvh` | v1 core MUST-support；治理 / 合规部署强制可验证 history chain。 |
 | Service DID | `did:web` | 服务发现天然依赖域名和 HTTPS endpoint；可选升级到 `did:webvh`。 |
@@ -193,11 +193,14 @@ Cokret v1 core conformance 要求如下：
   - **evidence age ≤ 7 天**：构建该索引条目所依据的 `did:webvh` DID Document / SCID / entry hash chain / controller proof evidence 的 `cached_evidence_age_ms ≤ 7d`，且 controller-proof 在构建时已验证通过（与本节 per-entry 7 天 cache age 上限一致；过旧或 controller-proof 未验证的 evidence 不得支撑索引）。
   - **携带 build-time evidence 引用**：每条索引条目 MUST 记录其 build-time evidence 引用（被解析 DID、entry hash chain head / `versionId`、evidence 构建时间、controller-proof 验证结果摘要）；缺少该引用的索引条目视为"来源不可追溯"，degraded 期间 MUST 被拒绝。这关闭"在 outage 前用未经 controller-proof 验证或来源不明的数据建一份本地索引，再在 degraded 期间把它当作 verified 结果读出"的索引洗白路径——degraded 模式只能消费可回溯到 anchored、age 合格、controller-proof 已验证 evidence 的索引，而不是任何"碰巧已落地的本地表"。
 - Resolver MUST 把 cache-only degraded 状态作为 service health / diagnostics 信号暴露给同 Realm peers（例如 `resolver_state=webvh_cache_only_degraded`、`cached_evidence_age_ms`、受影响 DID 集合摘要）。Peer 收到来自 degraded resolver 的高风险写入、capability 变更、service delegation 或 membership 变更时 MUST fail closed 或要求非 degraded resolver / witness 复核。
+- **degraded / health 诊断信号的可验证性（normative）**：该 degraded / health 诊断信号 MUST 由 resolver 的 service DID 当前有效 verification method 签名，并在签名 transcript 中绑定 `resolver_service_did`、`as_of`（签发时间戳）、`trust_domain` 与一个 freshness nonce（防止旧的 "healthy" 信号被重放来掩盖当前 degraded 状态）。Peer MUST 先校验该签名链接到 Realm policy 授权的 resolver service DID（验证 service DID 控制权与 verification method 当前有效性），才可据此调整 fail-closed 决策。**缺失健康信号、或无法验证健康信号（签名失效、service DID 不在 Realm policy 授权集合、`as_of` 过旧 / freshness nonce 不可信、`trust_domain` 不匹配）时，peer MUST 按"该 resolver 可能 degraded"保守处理**——对高风险写入（grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite）fail closed，不得因"没收到 degraded 信号"就默认 resolver healthy。该保守纪律与 freshness `unknown` 的 fail-closed 纪律一致：信号缺失或不可验证一律向 degraded 方向取整，而不是向 healthy 方向取整。
 - 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复，或走部署 policy 明确允许的替代路径。
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达，仅显示本地缓存内容"),不得静默继续。
 - Fallback 总时长 MUST ≤ 24 小时（对应 §4.2.1 `degraded_no_witness` 健康状态）；部署 policy MAY 缩短该窗口，MUST NOT 延长到超过 24 小时。超时后即使是低风险只读也 MUST fail closed，resolver MUST 进入 §4.2.1 的 `stale_history` 或 `write_unavailable` 状态，强制用户等待恢复或切换 resolver。
 - 即使仍处于允许的 cache-only outage 窗口，单条 `did:webvh` cache entry 的 `cached_evidence_age_ms` 超过 7 天时也 MUST fail closed；resolver MUST 暴露 `webvh_cache_too_stale` diagnostic，不得把过旧 evidence 用于新的高风险写入、capability 重建、service delegation 或 snapshot witness 接收。**两个窗口是 AND 关系**：24 小时 outage fallback 上限与 7 天 per-entry cache age 上限互相独立成立，任一触发即 MUST fail-closed；resolver 不得通过"outage 窗口尚未到 24h"为理由继续使用 age > 7d 的 cache entry，亦不得通过"cache entry 仍 < 7d"为理由把 outage fallback 总时长延长到 24h 以上。
 - Cache entry 写入 / 刷新不能只信任单一 resolver 自报。`small_team`、`organization`、`high_security_organization` 与 `sovereign_deployment` profile 中，用于高风险写入（device grant、capability grant/revoke、service delegation、membership change、cross-signing reset）的 `did:webvh` cache entry MUST 绑定至少两个 witness signatures，或绑定来自两个 distinct controlling organization 的 witness / watcher evidence；只有一个 witness 的 entry MAY 用于低风险历史读取，但 MUST 标记 `single_witness_cache_degraded`，不得用于新的高风险控制判断。`personal_node` profile 可保留单 witness cache，但必须在 deployment profile 中显式声明并向用户暴露降级状态。
+
+> **前瞻（未来 / 可选增强，非 v1 baseline）**：当 `did:webvh` 上游 / 部署引入 transparency-log 风格 witness（append-only Merkle log + 第三方可独立审计 consistency / inclusion proof + 抗 split-view）时，可作为 `did:webvh` witness profile 的增强项。届时 high-assurance / sovereign profile MAY 优先要求 log-backed witness（相对仅基于离散签名的 witness 提供更强的不可分叉、可独立审计保证）。当前 v1 baseline 仍为"≥2 witness from distinct controlling org"，本前瞻不改变 v1 的强制要求，仅标记未来可选演进方向。
 
 > **为什么 fallback 是 "cache-only" 而不是 "did:web 等价行为"**(rationale):允许 fallback "退化为 `did:web` 等价行为(仅当前状态)" 实际等于默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制，如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-anchored 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 anchored 的 evidence 读取，无新信任根可被攻击者注入。`did:web` 作为 principal method 仅由部署侧主动选择(`personal_node`),不是 outage fallback。
 
@@ -350,10 +353,10 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 | 层次 | 负责什么 | 不负责什么 |
 | --- | --- | --- |
 | Identity Resolution Infrastructure | 把 DID 解析为 DID Document、key state、method history、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Realm / Event 数据访问权。 |
-| Auth / Account Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 DID / device。 | 不改变 DID 控制权；不替代 DID key proof；不决定所有组织授权。 |
+| Auth Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 DID / device。 | 不改变 DID 控制权；不替代 DID key proof；不决定所有组织授权。 |
 | Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Realm、Event、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
 
-一个组织 MAY 自建 Auth / Account Server，同时接受多种 DID method 的用户 DID。典型流程是：
+一个组织 MAY 自建 Auth Server，同时接受多种 DID method 的用户 DID。典型流程是：
 
 1. 用户提交 `did:webvh:...`（v1 core 默认）、`did:web:...`（service DID 或 `personal_node` profile principal）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
 2. 组织 Auth Server 按本地 trust policy 选择 resolver。v1 core 默认 principal 解析路径是 `did:webvh`（验证 `did.jsonl` 链 + SCID + entry hash chain + witness）；service DID 通常是 `did:web`；`personal_node` profile MAY 降级 principal 解析路径为 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
@@ -363,7 +366,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 ### 5.1 组织账号绑定的 DID Proof
 
-当用户用一个已有 DID 注册、认领或绑定组织 service account 时，Auth / Account Server MUST 验证调用方当前控制该 DID。仅提交 DID 字符串、handle、邮箱验证码、OIDC subject 或组织用户名不足以建立 DID 绑定。
+当用户用一个已有 DID 注册、认领或绑定组织 service account 时，Auth Server MUST 验证调用方当前控制该 DID。仅提交 DID 字符串、handle、邮箱验证码、OIDC subject 或组织用户名不足以建立 DID 绑定。
 
 推荐的 DID proof 是 challenge-response：
 

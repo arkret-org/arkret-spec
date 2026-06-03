@@ -113,7 +113,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 客户端通过 Realm policy、service discovery 或 media service 获取 ICE servers。
 
-### 6.1 Realm Media Service
+### 6.1 Realtime Media Server
 
 `ck.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**（参考 [CXP-0010](../../proposals/0010-media-service-binding-framework.md)）。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
 
@@ -222,7 +222,7 @@ Content-Type: application/json
 
 核心约束（normative）：
 
-- **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` MUST ≤ 600s（10 分钟），SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
+- **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` 的硬上限 MUST ≤ 600s（10 分钟）；推荐上限 SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
 - **Token issuer DID 锚定**：`service_signature.kid` 与 `participant_binding.issuer_kid` MUST 解析到一个出现在当前 epoch `ck.realm.media_service.service_id` 的 service DID；客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
 - **`participant_identity` 形态**：作为 SFU-local 短期 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 §6.3 pairwise pseudonym 规则对齐），且 MUST 至少绑定 `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` 派生。
 - **`participant_identity` 传播边界**：因为它本身不携带 actor 链接信息，客户端 **MUST** 把它写入 `ck.call.state.participants[].participant_identity`（用于 §10.4 cross-check）——这条嵌入是 Realm-encrypted control state，不构成 actor-身份外泄。但 `participant_identity` MUST NOT 进入下列三类 surface：(a) 任何 plaintext audit log / 服务方 access log（包括 backend SFU 自身的日志）；(b) 任何 unencrypted ephemeral / push / telemetry 通道；(c) backend 一侧对外的 metrics、tracing 标签或 cross-tenant 数据导出。Backend 内部允许保留它作为 SFU-local routing handle，但不应跨 call leg / 跨 tenant 复用。
@@ -582,7 +582,8 @@ Conformance vectors for the full media binding framework：
 2. **进入 `plaintext_visible_services`**：解密媒体的 SFU / MCU service DID MUST 在 Realm policy 的 `plaintext_visible_services[]`（或等价 media plaintext service policy）中显式列出，并标 `purpose=media_plaintext`。仅出现在 `media_services[]` 而未列入 `plaintext_visible_services[]` 的服务 MUST 被视为禁止解密媒体的 SFU；其试图协商解密角色时 MUST 返回 `media_plaintext_service_not_authorised`。
 3. **MLS Governance Binding 覆盖**：成员在 join 前 MUST 校验当前 epoch 的 governance binding `policy_root` 涵盖前两条规则的 cell value；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
 4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ck.realm.policy_components` 正常路径并伴随客户端 UI 显著二次确认；不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。在 governance binding 尚未 commit 新 policy_root 的窗口内，客户端 MUST 沿用旧 policy 视图判定，禁止根据 OOB 字段提前授权。
-5. **Conformance negative vector** `ck.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) policy_root 未覆盖 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入。
+5. **进入成员可见 metadata**：`media_service_decrypts=true` 这一"该 Realm 媒体可被服务解密"的事实 MUST 进入 governance binding 覆盖的成员可见 metadata（如 `discussion_metadata_digest`），使任意成员无需依赖客户端 UI 即可从 MLS transcript 独立复算该事实。该 digest MUST 由前 1–3 条所覆盖的 policy cell value 确定性派生；成员本地复算结果与 governance binding 覆盖值不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商。
+6. **Conformance negative vector** `ck.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) policy_root 未覆盖 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入；(d) 成员从 MLS transcript 独立复算的 `media_service_decrypts` 事实与 governance binding 覆盖的成员可见 metadata 不一致 ⇒ 拒绝媒体协商。
 
 实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来"切换成功"但未被 governance binding 覆盖的状态都是 attack，必须 fail closed。
 
