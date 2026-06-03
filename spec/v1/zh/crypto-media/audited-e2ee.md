@@ -166,7 +166,7 @@ Audit Agent profile MUST 满足：
    }
    ```
 3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的"假动作死锁"（即记录没发出去但明文已吐出），合规飞地 MUST 等待因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。回执 MUST 携带 `audit_assurance_class` 字段，且其值 MUST 与 Realm policy 声明的 `audit_assurance` 一致；不一致时接收方 MUST fail closed。
-   - **回执数量与 witness attestation**：`cx.profile.attested_audit.e2ee.v1` MUST 在解密前获得 ≥2 个 witness 联合 attested 的 RYW receipt（聚合规则见 §4.1.1）。`cx.profile.disclosed_audit.e2ee.v1` 在单签发者部署下 MAY 使用单源回执，但 receipt 的 `witness_attestation.kind` MUST 写为 `single_source`，且 `witness_attestation.witnesses[]` MUST 仅包含该唯一签发方；部署声明也 MUST 公开承认此降级。
+   - **回执数量与 witness attestation**：`cx.profile.attested_audit.e2ee.v1` MUST 在解密前获得 ≥2 个 witness 联合 attested 的 RYW receipt（聚合规则见 §4.1.1）。`cx.profile.disclosed_audit.e2ee.v1` 在单签发者部署下 MAY 使用单源回执，但 receipt 的 `witness_attestation.kind` MUST 写为 `single_source`，且 `witness_attestation.witnesses[]` MUST 仅包含该唯一签发方；部署声明也 MUST 公开承认此降级。**即便 `single_source`，签发方 MUST NOT 是 audit actor 本身**：`witnesses[0].issuer`（以及 receipt 顶层 `issuer`）MUST NOT 等于 `audit_actor_id`，且其 `controlling_organization` MUST NOT 与 audit actor 的 controlling organization 相同；单源 receipt 的唯一签发方 MUST 至少是独立的 Events API（`issuer_role="events_api"`）或 peer_node（`issuer_role="peer_node"`）。允许 Audit Agent 自签 RYW receipt 会使"先写审计记录"退化为审计方对自己的空头承诺——receipt 不再证明 `cx.audit.accessed` 已跨越本地边界进入他方 accepted history。违反时接收方 MUST `audit_receipt_invalidated`。
    - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、`audit_assurance_class` 与 Realm `audit_assurance` 不一致、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。`cx.profile.disclosed_audit.e2ee.v1` MUST 按同一顺序执行并记录证明，但**对恶意持钥客户端不提供密码学阻断**——这是该 profile 的本质局限，不是实现缺陷。
 
@@ -280,6 +280,8 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 4. **签发方授权**：每个 `witnesses[].issuer` MUST 都被 Realm policy 声明为合法 RYW witness（`cx.realm.policy_components` 下 `audit.ryw_witnesses[]`）。Policy 未列出的 issuer 即使签出有效 receipt 也不计入聚合。
 
 `kind` 取值与 `witnesses[]` 不匹配（例如 `kind="federation_witness_attested"` 但 `witnesses.length == 1`，或 `kind="single_source"` 但 `witnesses.length >= 2`）MUST 直接 `audit_receipt_invalidated`。本规则不依赖任何 receipt 内部字段的"自报值"，只看 `witnesses[]` 列表与签发证据；单签发者跨多 receipt 持续声称 `federation_witness_attested` 是误用，接收方 MUST 把这种情况视为 `single_source`。
+
+**`single_source` 的 issuer 独立性下限（normative）**：`kind="single_source"` 的唯一 `witnesses[0]` MUST 满足 §3 步骤 3 的约束——其 `issuer` 不等于 `audit_actor_id`，其 `controlling_organization` 不等于 audit actor 的 controlling organization，且 `issuer_role ∈ {events_api, peer_node}`。Audit Agent 自签 `single_source` receipt（issuer == audit actor）MUST `audit_receipt_invalidated`：单源放宽的只是 witness **数量**，不放宽"签发方必须独立于被审计的访问者"这一前提。
 
 ## 5. 审查透明公示
 

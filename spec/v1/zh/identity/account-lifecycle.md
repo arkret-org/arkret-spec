@@ -102,6 +102,7 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 
 1. 严格度高者优先：`erasure_pending` > `deactivated` > `suspended` > `locked` > `soft_logged_out` > `active`。
 2. 降低严格度的状态（例如 appeal 后回到 `active`）MUST 在 payload 中引用被解除的 status event id（`supersedes_status_event_id` 或等价审计字段），且该引用必须在当前 Anchor view 可见；否则它只是并发候选，不能覆盖更严格状态。
+3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：一旦某 `principal_id` 的 account status projection 进入 `erasure_pending`，它 MUST NOT 被任何 `supersedes_status_event_id` 引用降级回 `deactivated` / `suspended` / `locked` / `soft_logged_out` / `active` 中的任意一个。任何声称把 `erasure_pending` superseded 为较低严格度状态的 `cx.account.status` event MUST 被 reducer / projection 拒绝（`erasure_pending_is_terminal`），并保持 `erasure_pending` 为 current。理由：擦除流程一旦开始即对 blob bytes、account private state、受托 projection 执行不可逆的物理删除/最小化，把状态"恢复"为 active 会产生一个数据已被销毁却显示为正常的不一致账号。需要在擦除真正执行前撤销的，应在进入 `erasure_pending` 之前用较低严格度状态处理；进入 `erasure_pending` 之后只能继续完成擦除并发布 erasure receipt（§8）。`erasure_pending` 之上没有更严格状态，故规则 2 的"降低严格度"路径对它不适用。
 3. 同严格度并发时，以 `(effective_at, event_id)` 的 canonical order 取最大值作为 projection current，其他 head 仍保留在 ordered_log conflict/audit view 中。
 
 ## 4. Soft Logout
@@ -115,7 +116,7 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 
 服务端返回 `401 soft_logged_out` 时 MUST 不要求客户端删除本地 E2EE 密钥。
 
-`soft_logged_out -> active` 的恢复 MUST 绑定 fresh DID proof：refresh token、OIDC callback 或 re-auth 只能作为会话恢复材料，不能单独把账号状态恢复为 `active`。服务端 MUST 要求当前 principal DID 的授权 device key、account auth key、passkey 或 recovery policy 允许的密钥对一次性 challenge 签名，并把签名覆盖 `principal_id`、`device_id?`、`audience`、`request_canonical_digest`、`challenge` 与 `expires_at?`。缺失该证明时返回 `401 did_proof_required`；refresh token 单独有效时也不得静默签发新的 active session grant。
+`soft_logged_out -> active` 的恢复 MUST 绑定 fresh DID proof：refresh token、OIDC callback 或 re-auth 只能作为会话恢复材料，不能单独把账号状态恢复为 `active`。服务端 MUST 要求当前 principal DID 的授权 device key、account auth key、passkey 或 recovery policy 允许的密钥对一次性 challenge 签名，并把签名覆盖 `principal_id`、`device_id?`、`audience`、`request_canonical_digest`、`challenge`、`issued_at` 与 `expires_at`。其中 `issued_at` 与 `expires_at` 是 **必填**（不再是可选）：服务端 MUST 拒绝缺失任一字段、`expires_at` 已过当前时钟、`expires_at - issued_at > 300s`，或 `issued_at` 超出服务端 skew 容忍（SHOULD ≤ 300s）的 proof。这把 soft-logout 重放窗口的上界固定为 ≤ 300s，与 [`identity-did.md` §5.1](./identity-did.md) `cx.did.proof` 的 replay window（`expires_at - issued_at ≤ 300s` + skew ≤ 300s）对齐——否则签发方可把 `expires_at` 任意拉远，使一份 soft-logout 恢复 proof 在无上界的时间内反复重放。缺失该证明时返回 `401 did_proof_required`；`expires_at` 缺失或新鲜度超限时返回 `401 did_proof_required`（reason `did_proof_replay_window_exceeded`）；refresh token 单独有效时也 MUST NOT 静默签发新的 active session grant。
 
 ## 5. Locked
 
@@ -149,7 +150,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 - 标记 device 为 revoked。
 - 保留 signed event 历史，除非另有 erasure policy。
 
-客户端 SHOULD 提供本地密钥清除选项。Deactivation 不应伪造 redaction；历史事件如需隐藏，必须提交真实 `cx.redaction` 或遵循 retention policy。
+客户端 SHOULD 提供本地密钥清除选项。Deactivation MUST NOT 伪造 redaction；历史事件如需隐藏，必须提交真实 `cx.redaction` 或遵循 retention policy。
 
 ### 7.1 Deactivation Fanout（normative）
 
@@ -187,6 +188,8 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 - policy/audit record：按合规周期保留最小字段。
 
 擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `cx.schema.erasure_receipt.v1` payload，并可通过 `cx.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 `subject`、`erasure_scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_digest`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`。`retained_stub_digest` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留验证 event graph、signature event_digest、anchor inclusion、redaction authorization 与 receipt linkage 所需的最小字段，MUST NOT 保留已擦除明文或裸明文 digest。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
+
+**Fail-closed 校验（normative）**：verifier 在接受一份 `cx.schema.erasure_receipt.v1` 之前 MUST 重算 `hash(canonical_json(retained_stub))` 并与 receipt 的 `retained_stub_digest` 比对。当 stub（内联或经 endpoint 获取）与 `retained_stub_digest` **不一致** 时，verifier MUST 拒绝该 receipt（`erasure_receipt_stub_digest_mismatch`），并将该 erasure 视为 **未完成**（fail closed），不得据此把 subject 标记为已擦除、不得释放 legal hold、不得停止重试擦除流程。digest 不匹配意味着 stub 被替换、截断或与 receipt 不同源，无法证明声明的存储边界内删除已真正发生；默认结论是"擦除未完成"而非"擦除成功"。同理，receipt 缺失 `retained_stub_digest`、stub 无法获取，或 `proofs[]` 校验失败时，verifier MUST 同样 fail closed。
 
 ## 9. Session Revocation
 

@@ -43,9 +43,9 @@ updated: 2026-06-01
 - Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*` 或 profile 声明的 payload 字段。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的未知 non-critical payload 字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。未知 critical extension MUST fail closed。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `cx:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
-- 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<uuid>`，不得写成局部别名如 `dev_a` 或 `a`。
+- 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<uuid>`，MUST NOT 写成局部别名如 `dev_a` 或 `a`。
 - `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；Flow 的用户可读短摘要放在 `metadata.summary` 或 `encrypted_metadata`，不得作为顶层 `summary`。原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`；Flow 使用 `metadata.title` 或 `encrypted_metadata`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Flow 等 canonical object 的显示名。
-- Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），不得另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
+- Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），MUST NOT 另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
 - `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；原始 DID ecosystem material 使用 `_did`。字段后缀表达 wire value category，不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
 - `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。Morph 的 `morph_type` 是 Realm schema-defined 的开放领域分类，不参与 reducer event routing，故使用 `type`；Relation/View 等协议 registry 分类使用 `kind`。MLS `proposal_type` 属于外部 MLS taxonomy，保留 `type`。Handle Claim 自身的封闭协议分类使用 `claim_kind`；authorization/VC selector 中选择外部 credential taxonomy 的字段可继续使用 `claim_type`。
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。
@@ -124,7 +124,7 @@ expected_<role>_<kind>_id
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST 不早于 `created_at`。 | 最近更新时间。 |
-| `deleted_at` | no | `timestamp` | durable tombstone 可用。 | 逻辑删除时间。 |
+| `deleted_at` | no | `timestamp` | durable tombstone 可用。对没有独立 `deleted` / `tombstoned` 终态的对象（Flow / Morph，其不可逆终态是 `redacted`），`deleted_at` 仅表示该对象因 `cx.redaction` 进入 `redacted` 的逻辑删除时间，不暗示存在单独的 deleted 终态；对有 `tombstoned` / `deleted` 终态的对象（Space / Realm / Message 的相应终态），表示该终态发生时间。 | 逻辑删除时间。 |
 | `state_changed_at` | conditional | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Flow / Space / Message / Morph / Relation）当 `state != active` 时 MUST 写入;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 anchor 的 `anchored_at`,以两者中较晚者为准)覆盖写入。MUST 不早于 `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
 | `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时必填（v1 适用对象 = Flow / Morph，详见 §5.3）；取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Flow 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `cx.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST 不早于 `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
@@ -384,9 +384,14 @@ cx:invite:<uuid>
 cx:applet:<uuid>
 cx:blob:<hash>
 cx:receipt:<uuid>
+cx:trust_domain:<trust_domain_label>   # 非 UUID 形态，见下方说明
 ```
 
-UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；content-addressed form 使用对应 digest。上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
+UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；content-addressed form 使用对应 digest。
+
+并非所有 ID kind 都是 `cx:<kind>:<uuidv7>`。`cx:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为 `cx:trust_domain:<trust_domain_label>`，`<trust_domain_label>` 是稳定的部署信任域标签（例如 `cx:trust_domain:did.webvh.acme.example`），不是 UUID。它 create-locked 在 Realm `trust_domain` 字段上，MUST 匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context（见 [`realm-and-space.md` §2.3](./realm-and-space.md)）。
+
+上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
 
 ### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 
@@ -395,6 +400,7 @@ UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；conte
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"single_did"` / `"sha256"` / ...）。schema 内联约束，无需引用独立对象。变更需要新 event kind（如 hash-transition Anchor）或新 Realm。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 cell state 有交互。同样内联，不通过引用对象。
 - **`<axis>_policy_id`**：指向独立 Policy 对象（`cx:policy:<uuid>`）的 ID，pattern `^cx:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
+- **`<axis>_floor`**：某条加密 / 隐私轴上的**下限**字段，值与对应 `<axis>_profile` 取同一封闭 enum，但语义是"只能向上收紧、MUST NOT 放宽继承到的上游基线"。它用于子作用域声明比父作用域更严格的下限：父作用域（Realm）声明基线时用 `<axis>_profile`（例如 Realm 的 `metadata_encryption_profile`），子作用域（Circle、Space `child_scope_policy`）声明下限时用 `<axis>_floor`（例如 Circle 的 `metadata_encryption_floor`）。effective 值取上游 `_profile` 与各层 `_floor` 的更严格者（见 [`circle.md` §7](./circle.md)）。父字段保留 `_profile` 名、子字段使用 `_floor` 名是有意区分，不视为同义别名混用。
 
 判定流程：写新字段时若是**封闭 enum**（值集已知、协议级固定）用 `_profile` 或 `_policy`；若是**指向 Policy 对象**用 `_policy_id`；不得在同一对象上同时定义 `xxx_policy` 与 `xxx_policy_id` 表示同一个轴。若字段引用的是"授权该决策的 policy revision Event"，使用带 event 语义的 `_ref` 名称，例如 `policy_event_ref`，不得与 `policy_id` 混用。
 

@@ -248,7 +248,7 @@ flow_part            ::= flow_id | "*"
 
 实现 MUST 在解析入口先验证 byte-size 与 token-count 上限，再做语法解析；不得让恶意输入进入 EBNF 递归下降。`selector_too_complex` error 必须独立于 `invalid_param`，以便审计层将疑似 DoS 攻击与普通格式错误区分。
 
-`additionalProperties` / 未注册字段不计入嵌套深度，但实现 MUST 对未知字段总数同样设上限（建议同 selector_term 上限 256）以防止 schema 旁路放大攻击面。
+`additionalProperties` / 未注册字段不计入嵌套深度，但实现 MUST 把单个 grant 内未知字段总数限制为 ≤ 256（与 `selector_term` 上限一致）；超过即 `selector_too_complex`。此外，未知字段所占 byte **MUST** 同样计入上表的 64 KiB Selector JSON canonical form 总 byte 上限——实现 MUST NOT 因字段未注册就把它排除在 byte 预算之外，否则攻击者可用大量未知字段绕过 byte 上限放大攻击面。
 
 ## 4. Selector Terms
 
@@ -468,7 +468,14 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 ### 8.1 通配符扩展
 
-`*`、`realm:*` 和 `object:*:*` 可能匹配非预期资源。`actor:*` 因会把 subject 侧授权扩大到任意 principal / service / agent，v1 明确禁止；若需要跨 actor 群组授权，必须用 subject condition + claim / organization policy 表达，而不是 actor selector 通配。通配缓解措施：
+`*`、`realm:*` 和 `object:*:*` 可能匹配非预期资源。`actor:*` 因会把 subject 侧授权扩大到任意 principal / service / agent，v1 明确禁止；若需要跨 actor 群组授权，必须用 subject condition + claim / organization policy 表达，而不是 actor selector 通配。
+
+**治理面 wildcard 硬约束（normative）**：`policy:*`、`schema:*` 以及覆盖治理对象的 `object:*:policy` / `object:*:schema` 等通配，会把 policy / schema 管理面授权扩大到整个 Realm 的全部 policy / schema 对象，是与 `actor:*` 同级的高危授权放大面。因此这些治理面 wildcard **MUST** 满足以下二者之一，否则 receiver / reducer **MUST** 以 `schema_violation` + `selector_governance_wildcard_forbidden` 拒绝：
+
+- **被拒绝**：部署 policy 声明不允许治理面 wildcard 时，`policy:*` / `schema:*` / 治理 `object` wildcard 一律 **MUST** 拒绝；或
+- **被强收窄**：grant **MUST** 同时携带 `max_delegation_depth=0`（不可再委托）与有限 `effective_expires_at`（不得无限期），且 **MUST** 配管理员审批与审计理由。
+
+非治理面 wildcard（`realm:*`、`object:*:<非治理类型>` 等）的缓解措施：
 
 - 始终配合 `expires_at` 使用。
 - 与 `object_type_allow`、`space_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_tracks` 等约束组合（`realm_kind_allow` 在 v1 已无规范用途，组合时按 always-allow 处理）。

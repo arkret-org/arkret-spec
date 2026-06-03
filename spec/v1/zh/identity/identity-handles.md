@@ -562,7 +562,7 @@ holder DID Document: subject_id → handle   (列入 alsoKnownAs，holder 单方
 | Actor / 签名归因、审计 | Event envelope `actor_id` = DID 本身 |
 | Principal Server 搬迁、域名变更 | DID Document `service` entry + service delegation |
 | 受限 handle（组织内部账号） | issuer claim + audience + scope（§3.5 默认不进公开 DID Document） |
-| Pairwise / 设备 / agent / 临时 DID | 显式 SHOULD NOT 写入 `alsoKnownAs`（见上文与 [identity-did.md §6 / §9.9](./identity-did.md)） |
+| Pairwise / 设备 / agent / 临时 DID | 显式 SHOULD NOT 写入 `alsoKnownAs`（见上文与 [identity-did.md](./identity-did.md) §6 末段"Pairwise / private DID SHOULD NOT 包含公开 handle"，以及 §9 验证规则第 9 条） |
 | 跨上下文 unlinkability | pairwise DID 机制，正交于 handle 层（§3.6） |
 | Handle 重分配后的历史归因 | 历史 Event 内固化的 `subject` DID 与 display snapshot（§6.1.3） |
 

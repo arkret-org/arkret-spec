@@ -63,11 +63,12 @@ Consent state 写入 holder 控制的 Realm（默认是 holder 的 principal con
 ```text
 cell_id  = cx:cell:cx.component.consent.grant.v1:<consent_id>
 lattice  = or_set
-bottom   = reject  // or_set never produces ⊥; declared value follows registry
+bottom   = (registry-declared, inert for or_set)  // or_set join never produces ⊥
 ```
 
 - `consent_id` 是 consent 槽的 subject。同一 holder 对同一 peer 的不同 consent_scope 用不同 consent_id；同 consent_id 上所有 add / remove tag op 收敛于同一 cell。
-- 因 or_set 不会产生 ⊥，`bottom` 字段的 wire 值（registry 中为 `reject`）对 consent 行为不构成约束；effective consent 始终由 or_set join 决定。
+- or_set join 永不产生 ⊥，因此 `bottom` 字段只是 registry 声明的占位值（registry-declared），对 consent 行为 **inert**，不构成任何"reject"语义；effective consent 始终由 or_set join 决定，不读取 `bottom`。
+- **缺省判定（normative，唯一默认）**：一个 `(consent_id, peer, consent_scope)` 没有任何 active grant dot（`active_dots` 为空，或全部 dot 已被 `observed_dots` 撤销，或当前时间不在 `[not_before, expires_at]` 窗口内）时，**effective consent = no-consent**，invite / contact gate MUST 拒绝（`failed_precondition` / 进入 quarantine，按 §6.1 profile）。"无 active dot ⇒ no-consent ⇒ gate 拒绝"是 consent 的唯一默认判定——默认无授权而非默认放行；这不是来自 cell `bottom`，而是来自 §5 effective consent 的存在性要求（至少一条 active dot 才放行）。
 
 ### 3.2 `cx.consent.grant` Move
 
@@ -267,6 +268,13 @@ policy MAY 声明 `cx.realm.policy_components` 中的 `preauth` component 包含
 类似地，发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方 SHOULD 验证目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`）。
 
 `cx.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或 invite handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
+
+**Consent state hash 侧信道（normative，MUST 加盐或改 opaque token）**：裸 consent state hash（例如对 `(consent_id, peer, scope, granted/revoked)` 直接 SHA-256）是低熵、跨 requester 稳定的值——任意请求方可离线枚举有限的 consent 取值组合反查 holder 的真实 consent 状态，或跨多次/多 requester 比对 hash 是否相同来关联 holder 对不同 peer 的决策。因此当响应携带 consent state hash 时，该 hash MUST 满足以下之一，否则 MUST NOT 暴露：
+
+- **加盐**：hash 输入 MUST 混入 per-requester salt 或 per-session salt（例如 `HMAC(key = per_session_salt, data = canonical_consent_state)`，salt 至少 128-bit 随机、每个 requester / session 不同且不可由请求方预测），使同一 consent 状态对不同 requester / session 产生不同、不可反查、不可跨 requester 关联的值；裸的、跨 requester 稳定的 consent state hash MUST NOT 出现在 wire 上。
+- **或改为 holder-authorized opaque token**：用一个由 holder（或受托 contact discovery service）签发的、不透明、短期、单 audience 的 token 代替 hash，token 本身不泄露 consent 内容，只在该 requester 的下一步引导中被当作 grant/revoke 状态指示；token MUST 绑定 audience 与过期时间。
+
+实现 MUST NOT 把同一裸 hash 复用于多个 requester；conformance 检查 MUST 覆盖"同一 consent 状态对两个不同 requester / session 产生不同 hash/token"。
 
 ## 7. MIMI Interop
 

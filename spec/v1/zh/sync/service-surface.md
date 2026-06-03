@@ -224,7 +224,7 @@ GET /api/v1/server/describe
 服务类型命名规则：
 
 - DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixDirectory`。
-- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`、`archive_node`、`key_recovery_service`、`recovery_service`。
+- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`、`archive_node`、`key_recovery_service`、`recovery_service`。其中 `sync_node` 保留：它不是独立的 describe-only 角色，而是 `realm.schema.json` / `realm-join-candidate.schema.json` 的 service class 枚举值，仅当 Realm policy 授权其接收 join-side submission / delivery binding 时使用（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 

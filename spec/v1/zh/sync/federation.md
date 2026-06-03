@@ -98,7 +98,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - `Source-Trust-Domain` / `Destination-Trust-Domain` MUST 进入签名 transcript；若 body 或 `service_binding_ref` 中携带来源 / 目标 trust domain，必须与 header 完全一致。
 - `destination` MUST 是接收方 service DID；反向代理、多租户 host 或 shared ingress 不能只凭 `Host` 判断目的地。
 - `Destination-Trust-Domain` MUST 等于接收方当前 deployment 的 `ServiceDescribe.trust_domain`，并与被接收 Realm 的 `trust_domain` 一致；不一致 MUST 返回 `cross_domain_replay_rejected`。
-- 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 返回 `unauthorized`，`reason_code="federation_authority_mismatch"`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
+- 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 返回 `capability_denied`，`reason_code="federation_authority_mismatch"`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
 - shared ingress / 多租户反向代理场景下，TLS Server Name (SNI) 与 `Destination-Service-DID` DID Document 中声明的 service endpoint origin MUST 直接匹配，或该 exact origin MUST 出现在 Realm policy / service delegation 明确登记的 shared ingress allowlist 中。Wildcard host 不能隐式覆盖 service DID 列表；若 deployment 用同一 host 承载多个 service DID，发送方 MUST 携带 `Destination-Service-Endpoint-Digest` header（endpoint canonical URL 的 `sha256:` digest），该 header MUST 进入 HTTP Message Signature transcript，接收方 MUST 与 DID Document / allowlist 中的 endpoint digest 比对。
 - 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。
 - 请求携带 `Request-Canonical-Digest` 时，该值 MUST 等于 canonical request body 的 SHA-256 digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 body 一致。无 body 的 `GET` pull MAY 省略该 header，因为 `@method` / `@target-uri` 已绑定查询语义。
@@ -302,6 +302,8 @@ Rebind handover：
 
 - 接收方观察到自己已 accept rebind handover frontier `F`，而 sender 仍按 frontier 之前的旧 binding 投递时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did`、`handover_frontier` 与 `handover_proof`。`handover_proof` MUST 绑定产生新 `delivery_binding.recipient_service_did` 的 accepted `cx.member.state{membership="join"}` event digest / state witness / inclusion proof，且该证明的 `frontier == handover_frontier`、`recipient_service_did == new_recipient_service_did`、`actor_id == target_principal_id`。sender MUST 先验证该证明在 Realm Event graph 与 policy 下可达，并确认 `new_recipient_service_did` 属于当前 effective `allowed_recipient_services` / delivery binding policy 允许集合，再向新目标重试；验证失败 MUST 返回 `delivery_binding_handover_proof_invalid` 并停止重定向（不得回退到 DID Document）。
 - `delivery_binding_stale` 是高风险重定向信号。Sender 在切换到 `new_recipient_service_did` 前 MUST 至少用一个非 destination 的 trusted peer、anchorer witness 或 range-completeness witness 交叉验证 `handover_frontier` 可达；无法交叉验证时 MUST quarantine 并要求 backfill，而不是直接跟随旧 destination 的单方重定向。
+- `handover_proof` 引用的、产生新 `delivery_binding` 的 `cx.member.state{membership="join"}` rebind Move MUST 由 `target_principal_id` 自身的授权链（actor 自签，或 controller 对该 actor 的授权委托）签发；任何非该授权链签发的 rebind binding MUST 拒绝（`delivery_binding_handover_proof_invalid`）。该 rebind Move 还 MUST 已被 anchor frontier finalize（仅 soft-fail / 未 finalize 的 frontier 不足以触发重定向）；未 finalize 时 sender MUST 继续向旧 binding 投递并 quarantine，而不是跟随。
+- 当 `new_recipient_service_did` 所属信任域（`trust_domain`）≠ 当前 binding 的信任域时，sender MUST 拒绝该重定向，除非 `target_principal_id` actor 自身对该跨信任域 rebind 的签名证据在 Realm Event graph 中可见；缺该 actor 自签证据时 MUST NOT 跟随跨域重定向，MUST quarantine 并进入 operator diagnostic。
 - 对同一 `(target_principal_id, realm_id)`，sender 在 24h rolling window 内最多接受一次 successful handover。超过上限 MUST 返回 `delivery_binding_handover_rate_limited` 并进入 operator diagnostic；Realm policy 可以声明更短窗口，但不得放宽该默认上限。
 - `delivery_binding_stale` 重试是有界重定向，不是无限 fanout：sender 对同一 `(event_id, target_principal_id, handover_frontier)` 最多重试一次到 `new_recipient_service_did`；再次收到 stale / handed_over 时 MUST 停止投递并进入 backoff / operator diagnostic，避免跨服务循环。
 - 旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`。
@@ -384,6 +386,8 @@ Signature: ...
 
 > Federation pull 共用 `cx.events.query` operation；不另设独立 federation pull endpoint。`snapshot_bootstrap` 字段以 optional 形式出现在 `cx.events.query` 响应中（仅 service-to-service 调用、Realm policy 显式允许时）。
 
+**Pull 授权 freshness（normative，与 §8.5.1 对称）**：无 body 的 `GET` pull 省略 `Content-Digest` / `Request-Canonical-Digest`（§3.2），因此不像 push 那样把 canonical digest 纳入幂等缓存键，撤销后重放的窗口必须由授权侧关闭。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-DID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-DID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
+
 `snapshot_bootstrap` 字段（存在时）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
@@ -438,12 +442,12 @@ Signature: ...
 | --- | --- | --- | --- |
 | Public Events API | account holder / SDK client | 用户/服务 access token | 通常仅 `realm_frontier` 或 `actor_seq` 简要视图 |
 | Federation peer probe (本节) | 被 Realm service binding（`sync_endpoints` 或等价 policy facet）授权的 federation peer 服务 DID | §3 节点间认证 + Realm policy 列出的 `federation_peer` 角色 | 完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)` |
-| Anonymous / unauth health check | optional | 无 / 限速 token | 仅 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds；MUST 返回 `cache_expires_at` 或 `retry_after_ms` |
+| Anonymous / unauth health check | optional；baseline SHOULD NOT 暴露原始 `frontier_root`（sovereign profile MUST-off） | 无 / 限速 token | 若启用，仅暴露 per-window 加盐后的 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds；MUST 返回 `cache_expires_at` 或 `retry_after_ms` |
 
 Probe **MUST** 是 capability-gated：
 
 - 被 Realm service binding 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
-- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_expires_at` 或 `retry_after_ms`，且服务端返回的最小退避窗口 MUST ≥ 60 秒（`cache_expires_at - now >= 60s` 或 `retry_after_ms >= 60000`）；客户端在该时间前不得重复轮询同一 Realm，若收到低于 60 秒的值 MUST 按 60 秒处理。**侧信道告知**：`frontier_root` 摘要在多次轮询下可让观察者推断 Realm 活跃度时间序列（同一 hash 不变意味着无写入）。不接受该侧信道的部署 SHOULD 关闭 `peer_role=anonymous_health` 调用面，只保留 federation_peer 已认证路径。
+- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_expires_at` 或 `retry_after_ms`，且服务端返回的最小退避窗口 MUST ≥ 60 秒（`cache_expires_at - now >= 60s` 或 `retry_after_ms >= 60000`）；客户端在该时间前不得重复轮询同一 Realm，若收到低于 60 秒的值 MUST 按 60 秒处理。**活跃度侧信道（baseline 收紧）**：原始 `frontier_root` 摘要在多次匿名轮询下可让观察者重建 Realm 活跃度时间序列（同一 hash 不变意味着窗口内无写入，hash 变化即标记一次写入）。因此 baseline **SHOULD NOT** 在匿名 / 未授权路径暴露原始 `frontier_root`；sovereign / regulated 部署 **MUST** 关闭 `peer_role=anonymous_health` 调用面，只保留 federation_peer 已认证路径。若部署确需保留匿名健康检查，匿名响应 **MUST** 不返回原始 `frontier_root`，而是返回 `H(per_window_salt || frontier_root)`：`per_window_salt` 是按固定时间窗口（窗口长度 ≥ 退避窗口）随机生成、对同一窗口内所有匿名请求者相同、跨窗口不可预测且不对外暴露的盐；这样观察者无法跨窗口比较 hash 是否变化，从而无法重建逐写入活跃度时间线。salt MUST NOT 从 `frontier_root`、`observed_at` 或其它可被观察者复算的值派生。已认证 federation_peer 路径不加盐，仍返回 canonical `frontier_root` 以便比对。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
 
 Probe 响应 payload：
@@ -476,7 +480,7 @@ Probe 响应 payload：
 
 冲突检测规则：
 
-- 若两端历史包含相同 `event_id` 但不同 hash，接收方 MUST quarantine 并以 `duplicate_conflict` 报告。
+- 若两端历史包含相同 `event_id` 但不同 hash，接收方 MUST quarantine 并以 `duplicate_conflict` 报告。此处的 `duplicate_conflict` 是 **probe-detected fork 的 quarantine reason**（语义同 error-code-registry 的 `duplicate_conflict` reason_code，`applies_to=event_envelope`：两条 canonical-byte 不同的 event 共用同一 `event_id`，reducer MUST quarantine 并要求 operator / fork-resolution 处理），**不是** §8.5 / `cx.events.submit` 提交路径上"同一幂等键 + 不同 canonical body"那种可由调用方修正后重试的 submit 冲突。接收方 MUST NOT 把它当作可直接重试的提交错误返回给上游 sender，也不得通过简单重发解除；只能走 raw replay、quorum witness 或 operator-approved fork resolution。
 - 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 - 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
 - `actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异），但 SHOULD 触发 `cx.events.query` per-actor backfill，并在 backfill 后仍存在差异时升级为 fork suspect。
@@ -849,7 +853,7 @@ Authorization: <service_signature>
 - 默认不跨域、不中继地隐式级联。任何权限在跨域传递前都必须有明确 `cx.capability.grant` / `cx.capability.delegate` Event 表达，并绑定目标 `realm_id`、目标服务/主体、可见范围、时效和可撤销性。
 - 受权链必须可审计、可传递上限（如 depth / scope）并支持回收（revoke）。在未满足上限或超出范围时应 fail-closed。
 - 委托不得扩大被委托方可见范围；只能收窄或保持不变。`principal_server` 不能仅凭受托委托获得不在其角色定义内的明文访问。
-- 对级联场景，只允许显式 opt-in，且每一跳必须重复检查 policy 与签名。无法验明权利链的来源时必须视为 unauthorized。
+- 对级联场景，只允许显式 opt-in，且每一跳必须重复检查 policy 与签名。无法验明权利链的来源时必须 fail-closed 视为未授权（拒绝并按 `capability_denied` 处理）。
 
 ### 9.4 联邦节点声誉系统（可选项）
 

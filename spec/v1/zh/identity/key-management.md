@@ -630,17 +630,35 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 `auth_data.signature` 由上传设备的 device signing key 产生（`auth_data.verification_method` 指向该 device key）。仅设备签名只能证明“某个持有该 device key 的实体写了它”，无法独立抵御**恶意服务器联合一个被攻破 / 已撤销的旧 device key 注入或替换备份 envelope**。因此 receiver 在信任并使用一条 backup envelope（恢复或读取）前 MUST 把该签名锚定到 actor 的交叉签名信任根：
 
-- receiver MUST 验证 `auth_data.verification_method` 指向的 device key 在 envelope `created_at` 时点属于该 actor 的有效设备集，即存在由当前 self-signing key（§见 cross-signing publish）签发、链接到当前 published 交叉签名代际的 `cx.device.authorize`；
-- envelope SHOULD 携带对签发该设备授权的 self-signing key 代际的绑定（在 `auth_data` 中以 `x_ssk_generation` 扩展字段，或后续 schema 版本的专用 `ssk_generation` 字段）。receiver MUST 拒绝代际早于当前 published generation 且超出 rotation grace window 的 envelope（`stale_backup_trust_generation`）；
+- receiver MUST 验证 `auth_data.verification_method` 指向的 device key 在 envelope `created_at` 时点属于该 actor 的有效设备集，即存在由当前 self-signing key（SSK，定义与 `cx.cross_signing.publish` 见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）签发、链接到当前 published 交叉签名代际的 `cx.device.authorize`；
+- envelope SHOULD 携带对签发该设备授权的 self-signing key 代际的绑定（在 `auth_data` 中以 `x_ssk_generation` 扩展字段，或后续 schema 版本的专用 `ssk_generation` 字段）。这里的 `ssk_generation` / `x_ssk_generation` 与 `cx.device.authorize.payload.cross_signing_binding.ssk_generation`、`cx.cross_signing.publish.generation` 是同一 cross-signing 代际计数（reset 时 `generation += 1`），其权威定义与单调性规则见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)（cross-signing publish）与 [`§14`](../crypto-media/device-lifecycle.md)（cross-signing reset / generation 推进）。receiver MUST 拒绝代际早于当前 published generation 且超出 rotation grace window 的 envelope（`stale_backup_trust_generation`）；
 - 无法链接到当前交叉签名信任根的 envelope（设备未授权 / 已撤销 / 代际不符）MUST 被视为 `untrusted_backup_signature` 并拒绝用于恢复，即使其 series 链与 `ciphertext_digest` 自洽。
 
 这样 envelope 的真实性锚定在 actor 的交叉签名树，而不是“碰巧持有某个 device key”，与 series 链（§7.6，防回滚 / 扣留）正交：前者保证 authenticity，后者保证 freshness / 单调性。
 
-> Schema 影响：`cx.schema.key_backup.v1` 的 `auth_data` SHOULD 在后续版本新增可选 `ssk_generation`（绑定 `cross-signing-publish` 的 `generation`）。在该字段标准化前，实现 MAY 使用 `auth_data.x_ssk_generation` 扩展槽承载同等绑定。
+> Schema 影响：`cx.schema.key_backup.v1` 的 `auth_data` SHOULD 在后续版本新增可选 `ssk_generation`（绑定 [`cx.cross_signing.publish`](../crypto-media/device-lifecycle.md) 的 `generation`，见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）。在该字段标准化前，实现 MAY 使用 `auth_data.x_ssk_generation` 扩展槽承载同等绑定。
 
 ### 7.5 Recipient Method Profiles
 
 `cx.schema.key_backup.v1.encryption.recipient_method` 枚举 5 种解锁方式。每种方式 MUST 按下列 normative 约束实现；服务端遇到本节未定义的 `recipient_method` MUST fail closed。
+
+#### 7.5.0 `backup_class` × `recipient_method` 合法组合矩阵（normative）
+
+`backup_class`（仅 `did_recovery` / `secret_storage` / `mls_history` 三类，§7.1）与 `recipient_method` 的组合不是自由叉乘。下表是合法组合的**集中**声明；producer MUST NOT 写入标 ❌ 的组合，receiver / 服务端遇到 ❌ 组合或本表未列出的组合 MUST fail closed（reason 见各格），即作为兜底也不允许：
+
+| `backup_class` ＼ `recipient_method` | `passphrase_kdf` | `recovery_public_key` | `secret_storage_key` | `threshold_recovery` | `hardware_wrapped_key` |
+| --- | --- | --- | --- | --- | --- |
+| `did_recovery` | ❌ `did_recovery_passphrase_forbidden` | ✅ MUST 带顶层 `recovery_policy_ref{policy_id, policy_version}` == 当前 accepted recovery policy，否则 `recovery_policy_mismatch` | ❌ `did_recovery_secret_storage_key_forbidden`（DID recovery 不得依赖 device-local secret storage root） | ✅ MUST 带 `recovery_policy_ref` == 当前 accepted policy，否则 `recovery_policy_mismatch` | ✅ MUST 带 attestation evidence 且 hardware profile ∈ recovery policy `trusted_recovery_services`，否则 `attestation_missing` |
+| `secret_storage` | ✅（§7.2 / §7.5.1：Argon2id 或显式 degraded PBKDF2；声明 hardening profile 时满足机器下限） | ✅ | ✅（仅现有持有 root key 的设备本地缓存/同步，新设备 MUST NOT 直接 bootstrap，否则循环依赖） | ✅ | ✅ MUST 带 attestation，否则 `attestation_missing` |
+| `mls_history` | ❌ `mls_history_passphrase_forbidden` | ✅ | ✅（MAY 带 `recovery_policy_ref` hint；释放仍以 active-series record / frontier_ref / Realm-MLS 授权 / 设备状态为准） | ✅ | ✅ MUST 带 attestation，否则 `attestation_missing` |
+
+集中要点（与下列 §7.5.1–§7.5.5 的分散规则一致，本表为 normative summary）：
+
+- **`passphrase_kdf` 仅 `secret_storage`**：`did_recovery` 与 `mls_history` MUST NOT 使用 `passphrase_kdf`，即便作为 fallback 也不允许（单一口令不得直接控制 DID recovery 或解锁 MLS 历史）。需要口令参与时，口令只能先解锁 `secret_storage` root / recovery key / threshold share / hardware wrapper 的本地保护层，再由 `recovery_public_key` / `threshold_recovery` / `hardware_wrapped_key` / `secret_storage_key` 完成对应 `backup_class` 的释放。
+- **`did_recovery` 必须绑定 recovery policy**：`did_recovery` 的所有合法 `recipient_method`（`recovery_public_key` / `threshold_recovery` / `hardware_wrapped_key`）的 envelope 顶层 `recovery_policy_ref{policy_id, policy_version}` MUST 等于当前 accepted `cx.schema.recovery_policy.v1`，并进入 `auth_data.signed_fields`；不一致 MUST `recovery_policy_mismatch`（fail closed）。
+- **`secret_storage_key` 不可 bootstrap**：新设备 MUST NOT 通过 `secret_storage_key` envelope 直接 bootstrap，必须先用 `passphrase_kdf` / `recovery_public_key` / `threshold_recovery` 解出 root secret storage key（消除"新设备能解 wire envelope"的循环依赖）。
+- **`hardware_wrapped_key` 必须带 attestation**：任何 `backup_class` 使用 `hardware_wrapped_key` 而无 attestation chain 的 envelope MUST 被 receiver 视为 `attestation_missing` 并拒绝。
+- 所有 fail-closed 判定 MUST 在解密尝试之前完成；服务端 / receiver 不得对 ❌ 组合"先解密再检查"。
 
 #### 7.5.1 `passphrase_kdf`
 
@@ -655,7 +673,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 - HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_seq, actor_id, backup_class, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
 - 受 DID 轮换影响：recovery key 轮换后产生的新 envelope MUST 引用新 verification_method；旧 envelope 在轮换 grace window 之后 receiver MUST 拒绝用旧 key 完成的解锁证明。
 - 当 `backup_class="did_recovery"` 时，envelope 顶层 `recovery_policy_ref{policy_id, policy_version}` MUST 等于当前 accepted recovery policy；`recipient_key_ref` 必须解析到该 policy 或当前 DID Document recovery key agreement 声明中的接收 key。不匹配 MUST `recovery_policy_mismatch`。其它 `backup_class` 使用 `recovery_public_key` 时，`recovery_policy_ref` 只是可签名 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得把它作为 MLS 历史或 secret storage 授权的替代。
-- **备份接收密钥即恢复密钥（normative，CXP-0014）**：v1 NOT 引入独立于 recovery key 之外的"专用 backup keypair"。`recovery_public_key` 的 HPKE 接收方就是 recovery policy / DID Document 声明的 recovery 公钥；其私钥经 §8 recovery policy 解锁（passphrase / threshold / hardware）。实现 MUST NOT 假定存在一个单独存储在 `secret_storage` 中的 backup 私钥项；跨设备的 fresh-device 恢复统一通过解锁 recovery 私钥后 HPKE-open 完成。
+- **备份接收密钥即恢复密钥（normative，CXP-0014）**：v1 MUST NOT 引入独立于 recovery key 之外的"专用 backup keypair"。`recovery_public_key` 的 HPKE 接收方就是 recovery policy / DID Document 声明的 recovery 公钥；其私钥经 §8 recovery policy 解锁（passphrase / threshold / hardware）。实现 MUST NOT 假定存在一个单独存储在 `secret_storage` 中的 backup 私钥项；跨设备的 fresh-device 恢复统一通过解锁 recovery 私钥后 HPKE-open 完成。
 
 #### 7.5.3 `secret_storage_key`
 

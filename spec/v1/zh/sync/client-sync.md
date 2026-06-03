@@ -121,7 +121,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `cx:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。`join`、`invite`、`knock`、`leave` 是事件 payload / membership state，不再作为 `realms` 外层 bucket。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状:
+`realms` MUST 是以 `cx:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `cx.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状:
 
 ```json
 {
@@ -167,7 +167,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 ## 4. Realm Buckets
 
-`realms` 不按 membership 做外层分桶；它始终以 `cx:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `cx.member.state` projection，取值可为 `join`、`invite`、`knock` 或 `leave`，不得把这些值提升为 `realms` 的外层 key。
+`realms` 不按 membership 做外层分桶；它始终以 `cx:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `cx.member.state` projection，取值可为 `join`、`invite`、`knock`、`leave` 或 `ban`（完整枚举见 §2 首次定义），不得把这些值提升为 `realms` 的外层 key。
 
 每个 Realm 响应：
 
@@ -203,7 +203,11 @@ Account subscribe `delta` frame 包含以下 stream：
 }
 ```
 
-如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `cursor_expired`、`cursor_integrity_invalid`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。
+如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `cursor_expired`、`cursor_integrity_invalid`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。这些返回触发的恢复分支不同，客户端 MUST 区分处理：
+
+- `cursor_expired` / `cursor_integrity_invalid`：cursor 本端状态失效（TTL 超时或 tamper / 未知 handle / cross-binding）。客户端 MUST 清空本地 cursor 缓存并从 initial sync 重做（重新建立 `cx.account.subscribe`，`after=` 缺省 + `catchup=true`），与 §12.3 一致；不能用旧 cursor 继续 backfill。
+- `stale_frontier`：cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal frontier。客户端 MUST NOT 清 cursor 重做 initial sync，而是按 §12.3 等待 / backfill——先以 `account/describe` 或 `snapshot/head` 取当前 frontier，再从该 frontier 起点用现有 cursor backfill 补齐缺口。
+- `temporarily_unavailable`：可重试瞬态；按 `retry_after_ms` / `Retry-After` 退避后用同一 cursor 重试。
 
 `timeline.limited=true` 时，服务端 MUST 二选一返回 `state_at_window_start`（projection-only anchor 状态）或标记 `timeline.preview_only=true`；详见 §5.2。
 

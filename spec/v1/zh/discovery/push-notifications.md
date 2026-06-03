@@ -33,7 +33,7 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 - 推送上游（APNs / FCM / Push Gateway）只携带 **per-(recipient_service_did, principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Realm id、event id、device DID URL 或任何其它跨 Realm 稳定标识。具体规则见 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。同一 DID 在个人 Principal Server 与组织 Principal Server 上的推送注册必须不可链接。
 - `push_target_id` 派生 MUST 使用接收服务私有 secret salt / pepper：`HMAC-SHA256(service_push_secret[salt_epoch_id], canonical_json({recipient_service_did, principal_id, device_id, push_route_id, salt_epoch_id}))`，再编码为不含 DID / Realm / device 原文的 pseudonym。`service_push_secret` 原值绝不能上 wire；`cx.server.describe.privacy_derivation.push_target_id` 只发布 `derivation_profile`、`salt_epoch_id`、`salt_rotation_seconds` 和输入绑定元数据，供客户端和 conformance 工具确认不同 Principal Server / 组织 / push route 不会复用同一可链接命名空间。
 - 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容；本地通知文案在客户端解密后生成。
-- **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，但其 wire 形态 MUST 仅限以下封闭枚举字段——`wakeup_kind`（粗粒度类别，如 `message`/`mention`/`reaction`/`call_invite`）、`badge_count`（数字徽章计数）、`unread_increment`（增量计数）、本地化字符串 token（`l10n_key`，由客户端在解密后渲染）。**MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Realm id / 名称 / 头像、Flow id / 名称、Space id / 名称、Message id、reaction emoji 实际值、附件文件名、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Realm 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
+- **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，其封闭枚举的**权威定义在 §5.1**（取值 `new_message` / `incoming_call` / `mention_self`，或本地化字符串 token `l10n_key`，由客户端在解密后渲染）；本节及 §4.5 一律交叉引用 §5.1，不另列重复枚举。`push_hint` 与 `wakeup_kind` 是**两个独立字段**：`wakeup_kind`（封闭枚举 `message` / `mention` / `reaction` / `call_invite`）是独立的粗粒度唤醒类别字段，**不是** `push_hint` 的子内容，二者 MUST NOT 互相替代或嵌套。`push_hint` **MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Realm id / 名称 / 头像、Flow id / 名称、Space id / 名称、Message id、reaction emoji 实际值、附件文件名、badge / 未读绝对计数明文（计数走 `notification.counts`，且按 §5.1 / §6.x 最小化约束）、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Realm 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
 
 - **Sync Service 转发也必须执行同一白名单**：Sync / notification service 在调用 `/api/v1/push/notify` 前 MUST 校验将要转发给 Push Gateway 的字段集合。默认 `blind_wakeup` profile 下，超出 §5.1 枚举字段的 metadata MUST 被 strip，并写入最小化 audit 记录；若字段属于 event / realm / sender 识别字段且未满足 `visible_notification` profile gate，服务 MUST 拒绝该通知或降级为 blind wakeup，不得原样转发。
 
@@ -44,6 +44,11 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 ### 2.4 多订阅信道去重与 presence timing
 
 同一事件可能同时命中显式 watch、隐式参与订阅、mention rule、read-cursor badge recompute、presence-triggered foreground wakeup 或 notification projection。Sync Service / notification service 在调用 Push Gateway 前 MUST 在出口做去重：同一 `(recipient_service_did, device_id, push_route_id, source_event_digest)` 在一个 delivery window 内最多产生一条 push wakeup。默认 `blind_wakeup` profile 下，去重 key 是服务端内部状态，MUST NOT 出现在 push payload、日志导出、provider custom data 或客户端可见的 stable correlation key 中。
+
+**Provider 侧 collapse / dedup key 约束（normative）**：部分 provider（APNs `apns-collapse-id`、FCM `collapse_key`）需要服务端在 push 请求里附带一个 collapse / dedup key 以折叠同一目标的连续 wakeup。该 key 对 provider 可见，因此 MUST NOT 泄露稳定 correlation：
+
+- 若需要向 provider 提供 collapse key，服务端 MUST 使用对 `push_target_id` 与当前 delivery window 派生的、**跨 window 不可链接**的随机值（例如 `HMAC-SHA256(service_push_secret[salt_epoch_id], canonical_json({push_target_id, delivery_window_id}))` 截断编码），使同一 `push_target_id` 在不同 delivery window 得到互不关联的 collapse key。
+- collapse / dedup key **MUST NOT** 直接使用 `source_event_digest`、其前缀、event id、Realm id、Flow id 或任何跨 window 稳定的事件 / 资源派生值；上述出口 `source_event_digest` 仅作为服务端内部去重状态，不得离开服务端进入 provider 可见字段。
 
 Presence 不得作为精确 push timing oracle。服务端把 presence update、watch recompute 与 push activation 组合使用时，MUST 至少按 Realm policy 声明的 bucket 粒度（默认不小于 60s；高隐私部署 SHOULD 使用 5min 或更粗）批处理或延迟；不得在用户刚上线 / 刚离线的瞬间立即发出可被 provider 观察到的 per-event push burst。该规则不阻止本地客户端在已在线连接上立即显示通知；它只约束第三方 push provider 可见的出向时序。
 
@@ -78,7 +83,9 @@ POST /api/v1/push/register-device
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
 | `app_id` | string | SHOULD | 应用的包名 / Bundle ID |
 | `display_name` | string | MAY | 用户可读设备名 |
-| `client_rule_digest` | `sha256:<hex>` | optional | 客户端本地通知规则 canonical digest。Sync Service 不读取规则明文，只可把该 digest 与 Realm policy 允许的 server-side hint 组合，用于减少无差别 wakeup。 |
+| `client_rule_digest` | `sha256:<hex>` | optional | 客户端本地通知规则的 per-device keyed digest（见下方 normative 约束）。Sync Service 不读取规则明文，只可把该 digest 与 Realm policy 允许的 server-side hint 组合，用于减少无差别 wakeup。 |
+
+**`client_rule_digest` 派生与关联约束（normative）**：`client_rule_digest` MUST 经 per-`(device, salt_epoch)` 的 keyed HMAC 派生（例如 `HMAC-SHA256(device_local_rule_salt[salt_epoch], canonical_json(rules))`，salt 为设备本地私有、随 epoch 轮换），**MUST NOT** 直接使用规则 canonical JSON 的裸 hash。理由：裸 canonical hash 让持有相同规则集的不同设备产生相同 digest，使 Sync Service / 受托服务可据此跨设备、跨 route 关联同一用户的设备或推断规则集合。该 digest **MUST NOT** 被用于跨设备、跨 push route 或跨 Principal Server 上下文的关联；服务端只能在**同一 device 注册**范围内用它判断"规则是否变化"以避免重复 server-side hint 计算。
 
 Push registration 的作用域是接收该请求的 Sync Service / Principal Server service DID。客户端在个人 Principal Server 与组织 Principal Server 上同时登录同一 DID 时，MUST 分别注册互不相关的 push route / `push_target_id`；服务端不得把一个上下文中的 push token 或伪名复制到另一个上下文。实现若在请求中扩展携带 `recipient_service_did`，其值 MUST 与目标服务的 `cx.server.describe.service_did` 一致。
 
@@ -100,7 +107,7 @@ POST /api/v1/push/unregister-device
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `device_id` | id | required | 要注销的设备 ID |
+| `device_id` | string | required | 要注销的设备标识；形态与 §3.1 register 的 `device_id` 一致（设备 DID 片段标识，如 `did:web:alice.example.com#device-phone`），MUST byte-for-byte 等于注册时提交的值 |
 | `push_key` | string | optional | 指定要注销的 push token |
 | `app_id` | string | optional | 指定应用包名 / Bundle ID |
 
@@ -337,6 +344,15 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
 
     启用与否由 Realm policy 中 `mention_routing_hint` 与接收方 token 注册共同决定。minimal-metadata Realm 与 audited E2EE Realm 默认关闭；其他 E2EE Realm 未声明时默认关闭，除非接收方显式 opt-in 注册 token。关闭时 mention 走 §4.5 第 1-5 步降级,Sync Service 不做 `mentions_actor` server-side 匹配。
 
+    **`mention_routing_hint` policy 字段枚举（normative，权威定义）**：Realm policy 的 `mention_routing_hint` 字段是封闭枚举，完整取值与默认值集中定义如下，本文其它处一律引用本表：
+
+    | 取值 | 含义 |
+    | --- | --- |
+    | `disabled`（**默认**） | 不启用任何 mention routing hint。Sync Service MUST NOT 接收、比较或持久化任何 mention routing sidecar；mention 一律走 §4.5 第 1-5 步 blind / batch wakeup。字段缺省、未声明、取未知值时按 `disabled` fail-closed 处理。 |
+    | `recipient_registered_token` | 允许接收方按本节公式 opt-in 注册 opaque routing token；仅当接收方已注册时，Sync Service 才对 sidecar tag 与已注册 token 做等值比较。仍受本节全部安全属性约束（keyed HMAC、epoch 失效、不可离线枚举）。 |
+
+    minimal-metadata Realm 与 audited E2EE Realm MUST 保持 `disabled`，即使显式声明也不得启用 `recipient_registered_token`。
+
 明确禁止：
 
 - 实现 MUST NOT 在 E2EE Realm 中把 `contains_keyword` rule 提示让 Sync Service 持有 keyword 列表（即使加 hash）。Keyword 比 mention 高熵——hash 可被字典爆破。
@@ -360,7 +376,7 @@ POST /api/v1/push/notify
 | `notification.push_target_id` | string | required | per-(recipient_service_did, principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Realm / Principal Server 上下文关联的稳定 ID。 |
 | `notification.wakeup_kind` | string | required | 粗粒度唤醒类别，封闭枚举 `message` / `mention` / `reaction` / `call_invite`（与 §2.2 一致）；只是粗粒度提示，不带 Realm / sender 信息。 |
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或 `l10n_key` token；不得包含正文、sender DID / handle、Realm id / 名称、Flow / Message id、reaction 实际值或 stable correlation key。 |
-| `notification.counts` | object | optional | 未读数、未接来电数等计数。 |
+| `notification.counts` | object | optional | 未读数、未接来电数等计数。**`blind_wakeup` 下约束（normative）**：绝对未读数是活动侧信道，会让 provider 推断用户的累计活跃度。因此 `blind_wakeup` 下 SHOULD 优先使用粗粒度 badge（如"有/无新内容"布尔或 `unread_increment` 增量）而非绝对未读数；若必须携带绝对未读数，该值 SHOULD 按 Realm policy 声明的粒度 bucket 化（例如 `1` / `2-5` / `6+`）。无论何种形态，counts MUST NOT 跨 `push_target_id` 关联，也不得用于在 provider 侧重建跨 Realm 累计活动画像。 |
 | `notification.devices` | object[] | required | 目标设备数组。 |
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |

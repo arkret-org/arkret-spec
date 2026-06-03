@@ -94,13 +94,15 @@ updated: 2026-05-25
 ```json
 {
   "sidebar_collapsed": false,
-  "recent_spaces": [
+  "recent_realms": [
     "cx:realm:01964195-0000-7000-8000-000000000000",
     "cx:realm:01964195-8000-7000-8000-000000000000"
   ],
   "language": "zh-CN"
 }
 ```
+
+> **字段命名（normative）**：该数组承载的是 `cx:realm:` ID，因此 canonical 字段名为 `recent_realms`，与命名约定（值类型 = Realm）对齐。早期草稿曾使用 `recent_spaces`（语义错位：承载的是 realm id 而非 `cx:space:` 容器 id）。`cx.client.ui_state` 是 actor-private account data，不进入共享 wire 互操作面；客户端 SHOULD 写 `recent_realms`，读取时 MAY 兼容历史 `recent_spaces` 键并在下次写入时迁移为 `recent_realms`。两者语义相同，均为最近访问的 Realm id 列表。
 
 ### 3.5 个人屏蔽与过滤 (Personal Blocklist)
 

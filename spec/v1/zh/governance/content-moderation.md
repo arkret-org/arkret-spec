@@ -157,13 +157,14 @@ POST /api/v1/moderation/report
   },
   "received_by": "did:web:server.acme.example",
   "received_at": "2026-04-30T00:00:00Z",
+  "replay_nonce": "base64url...",
   "signature": "base64url..."
 }
 ```
 
 规则：
 
-- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID 与接收时间之上生成。
+- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce`（接收服务生成的一次性防重放值）之上生成。`replay_nonce` MUST 落在签名覆盖范围内，使 §3.4 信任链步骤 5 可独立校验其唯一性。
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash，除非 Realm policy 明确允许该字段。
 - 接收方客户端在解密消息后 SHOULD 保存 `franking_proof` 与明文的本地绑定证明；该绑定默认只在本地或 E2EE 私有报告中保存。
 - 举报 E2EE 内容时，`cx.moderation.report` MAY 携带 `plaintext_evidence` 的加密副本、原始 encrypted envelope、`franking_proof` 和 reporter 对明文/evidence package 的签名。
@@ -266,9 +267,13 @@ SC = HMAC-SHA-256(
 
 **跨 epoch 与 forward secrecy**：MLS epoch 推进后，旧 epoch 的 exporter secret 被 MLS 协议销毁；verifier 若未在该 epoch active 期间持有 exporter secret，将无法重派生 SCK，从而无法验证 commitment。Profile 因此对 verifier 要求 *epoch-window persistence*：implementations MUST 文档化 verifier 持有 exporter secret 的最长窗口（默认 SHOULD ≤ 72h，超过窗口的 commitment 视为不可验证而非伪造）。
 
+**Verification receipt 固化（normative）**：上述窗口语义给恶意 sender 一条抵赖路径——只要拖到 exporter secret 销毁（默认 ≤ 72h 窗口之外）再被举报，commitment 就"不可验证"。为切断该路径，verifier 在 epoch active 窗口内**完成** §3.4.2 校验（步骤 1–7 全部通过）后 MUST 生成一条 verifier 签名的 **verification receipt**，至少固化 `{mls_group_id, epoch, sender_device_id, epoch_local_seq, plaintext_digest, ciphertext_digest, verdict, verified_at}` 并由 audit-gated verifier DID 签名。该 receipt 使归因结果**不随 exporter secret 销毁而失效**：窗口外的审核 / 申诉直接采信 receipt，无需重派生 SCK。与此对称：**"窗口外不可验证" MUST NOT 被任何实现解释为"commitment 已被证伪 / sender 未承诺该明文"**——它只表示 verifier 当前无法重新计算，既不构成正向归因，也不构成 sender 已抵赖的证据；正向归因唯一来源是窗口内生成的 verification receipt 或仍可重派生 SCK 的在窗口校验。
+
 **Reporter 信任模型**：profile 提供的承诺**只**在 reporter 与 verifier 之间生效；profile 不解决"reporter 是否伪造 envelope"——因为 envelope 自身的签名仍由 core franking 与 MLS group signature 覆盖，reporter 必须提交真实 encrypted envelope。任何 plaintext 解释错误（如 reporter 截图、剪贴板伪造）不在 profile 范围内。
 
 **隐私泄露边界**：commitment_tag 是 128-bit 不可逆 HMAC，对未持 SCK 的服务（Sync Service / federation peer）不暴露 plaintext。但持 exporter secret 的 verifier 可以对 candidate plaintext 集合做线下 brute-force 验证——所以 profile **MUST NOT** 与允许 verifier 拥有任意 plaintext brute-force 能力的 governance 模型共用（典型例子：把 verifier 当作通用举报受理方而不做 audit gating）。详细 governance 约束见 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md)。
+
+**Verifier 资格 audit-gating（normative）**：sender_commitment verifier 是"持 exporter secret 即可对 candidate plaintext 集合做线下 brute-force"的高敏角色，其资格 MUST 由 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 **audit-gated role** 显式授予（受该文档的 audit obligation、披露范围与撤销规则约束）。实现 MUST NOT 把通用举报受理方（report ingestion service、普通 moderator、Sync Service operator 等）直接当作 sender_commitment verifier，也 MUST NOT 仅因某方"恰好能解出 exporter secret"就赋予其 verifier 权限——verifier 资格是显式 audit-gated grant，不是 exporter secret 持有的副产物。未经 audit gating 的 verifier 授予 MUST fail closed。
 
 启用本 profile 的部署 MUST 在 `cx.server.describe.supported_profiles[]` 中列出 `cx.profile.franking.sender_commitment.v1`；未列出的部署 MUST NOT 生成或验证 sender commitment sidecar。
 
@@ -650,6 +655,20 @@ Realm 与 Organization 的审核策略 SHOULD 通过 Policy Server 进行动态�
 - call invite
 
 Policy Server MAY 返回 `hard_deny`、`quarantine`、`require_review` 或 `soft_deny`，但 MUST NOT 自行授予 capability。
+
+### 8.1 Decision verb 与 §5.3 policy action 家族映射
+
+本文存在两套相关但不同前缀 / 粒度的词汇，易混淆，这里统一登记其关系。**Decision verb**（§2.5 判定流程图与 §8 Policy Server 返回值）是 *runtime 判定结果*，集合为 `allow` / `soft_deny` / `hard_deny` / `quarantine` / `require_review`（全小写、无 `deny_` 前缀）。**§5.3 `moderation_policy` action 家族**是 *持久化 Realm policy 规则的 effect*，集合为 `deny_join` / `deny_restricted_join` / `deny_invite` / `deny_write` / `deny_federation` / `quarantine_message` / `require_review` / `redact_on_accept` / `shadow_collapse`（`deny_*` 前缀 + 作用对象后缀）。二者映射：
+
+| Decision verb（runtime） | 对应 §5.3 policy action 家族 | 说明 |
+| --- | --- | --- |
+| `allow` | （无对应 deny action） | 放行，写入 canonical 历史。 |
+| `hard_deny` | `deny_join` / `deny_restricted_join` / `deny_invite` / `deny_write` / `deny_federation` 中按动作类型取一 | `deny_*` 是 hard_deny 按被拒动作维度的细分；命中即 fail closed。 |
+| `soft_deny` | （无持久化 action；仅 runtime 降级 / 限流上下文，常与 `rate_limit` obligation 同用） | 不写入 `moderation_state` cell。 |
+| `quarantine` | `quarantine_message` | 事件进 quarantine，不进 effective state。 |
+| `require_review` | `require_review` | 同名；进 review 队列。 |
+
+`redact_on_accept` / `shadow_collapse` 是 §5.3 特有的后处理 effect，不由 decision verb 直接表达；它们在 review / accept 阶段叠加，不属于上表的一对一 runtime verb。大小写约定：decision verb 与 policy action **均为全小写 snake_case**，实现 MUST NOT 引入大写或驼峰变体。
 
 ## 9. 服务端威胁借鉴
 

@@ -120,7 +120,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `timeline` | conditional | `TimelineConfig` | `kind="timeline"` 时 MUST 设置。 | 时间线配置。 |
 | `graph` | conditional | `GraphConfig` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
 | `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
-| `dashboard` | conditional | `DashboardConfig` | `kind="composite"` 时 MUST 设置。 | 仪表盘 widget 配置。 |
+| `dashboard` | conditional | `DashboardConfig` | `kind="composite"` 时 MUST 设置。命名说明：`composite` 是 response family（§2.2 五大 kind 之一），其 v1 唯一 typed config 是 `DashboardConfig`，故配置字段名取 `dashboard`（与 §4 表中 composite 的唯一 renderer `dashboard` 对齐）；composite 的非 dashboard 形态须由 profile-defined `custom` renderer 承载，v1 core 不再为 composite 引入第二个 typed config 字段。 | 仪表盘 widget 配置。 |
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

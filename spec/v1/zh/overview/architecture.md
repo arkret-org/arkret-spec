@@ -56,7 +56,7 @@ Contrix 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flo
 
 1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `cx:realm:`。
 2. Realm 内若需要独立 membership、history visibility、投递 / 查询裁剪或独立 MLS group，MUST 使用 `cx:circle:`，对象通过 `scope_circle_id` 引用。
-3. 仅用于导航 / 结构分组的容器 MUST 使用 `cx:space:`，不得借此获得 membership 或安全边界。
+3. 仅用于导航 / 结构分组的容器 MUST 使用 `cx:space:`，MUST NOT 借此获得 membership 或安全边界。
 4. 带协作语义的最小单元 MUST 使用 `cx:flow:`。
 5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../../proposals/) 留档。
 
@@ -117,12 +117,12 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 - 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Realm policy 明确委托的第三方服务。
 - 如果 Realm 声明了 shared anchorer / sync service，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
 - 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Realm policy 明确委托。
-- Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 只可在 join / rebind 时作为 Realm policy 明确允许的 `did_document_default` 物化来源，binding accepted 之后不得再作为投递 fallback。组织 Principal Server 上存在同一 DID 的内部账号，不自动获得该 DID 的其它 Realm 或个人上下文投递权。
+- Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 只可在 join / rebind 时作为 Realm policy 明确允许的 `did_document_default` 物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。组织 Principal Server 上存在同一 DID 的内部账号，MUST NOT 自动获得该 DID 的其它 Realm 或个人上下文投递权。
 - 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Realm policy 中声明为 `plaintext_visible_services`。
-- `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，不得单独作为明文授权依据。
-- 修改 `plaintext_visible_services` 的事件必须经 `cx.realm.plaintext_visible_services` 授权；普通 `cx.realm.update` 或服务自声明不得隐式扩大明文可见边界。
+- `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，MUST NOT 单独作为明文授权依据。
+- 修改 `plaintext_visible_services` 的事件必须经 `cx.realm.plaintext_visible_services` 授权；普通 `cx.realm.update` 或服务自声明 MUST NOT 隐式扩大明文可见边界。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
-- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项不得自动推导其它项。history snippet / public export 还必须受 `cx.realm.preview_policy` 或等价 export policy 约束。
+- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `cx.realm.preview_policy` 或等价 export policy 约束。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.4 Client Query / Projection
@@ -132,9 +132,9 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 协议只约束以下边界：
 
 - View 是可同步的投影定义，不拥有被投影对象的事实。
-- 查询、搜索和 projection 不得绕过 Realm policy、`allowed_tracks` action scope、history visibility、E2EE 可见性或 capability。`allowed_tracks` 只在已有 Realm / capability 授权内缩小 track 范围，不是独立 track-level ACL。
+- 查询、搜索和 projection MUST NOT 绕过 Realm policy、`allowed_tracks` action scope、history visibility、E2EE 可见性或 capability。`allowed_tracks` 只在已有 Realm / capability 授权内缩小 track 范围，不是独立 track-level ACL。
 - 任何受托 search / projection 服务若接收私有明文、正文摘要、embedding、通知摘要或可逆派生内容，MUST 被 Realm policy 列入 `plaintext_visible_services`。
-- 派生输出不得成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和 causal frontier 重新计算。
+- 派生输出 MUST NOT 成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和 causal frontier 重新计算。
 
 ### 2.5 Blob Store
 
@@ -166,7 +166,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 ### 2.8 Principal Server 部署形态
 
-Contrix 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署不得改变各角色的安全边界：service DID、`service_type`、capability、Realm policy、plaintext visibility 和 endpoint 契约仍必须可区分。
+Contrix 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：service DID、`service_type`、capability、Realm policy、plaintext visibility 和 endpoint 契约仍必须可区分。
 
 面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
@@ -194,10 +194,10 @@ Principal Server
 
 Identity 部署常识（无法在 deployment profile 表中表达）：
 
-- v1 core 默认 principal DID method 为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth/Account Server 在自有子域代为托管。`did:web`（无历史链）只能作为 service DID 默认 method 与 `personal_node` profile 的可选 principal method；`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，禁止 live `did:web` fallback。
+- v1 core 默认 principal DID method 为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth/Account Server 在自有子域代为托管。`did:web`（无历史链）只能作为 service DID 默认 method 与 `personal_node` profile 的可选 principal method；`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。
 - 服务 DID 使用 `did:web`；临时 / 测试 / 设备 / bootstrap 使用 `did:key`；KERI 部署使用 `did:keri`（interop extension profile）；AT Protocol interop 部署额外挂 `did:plc` adapter（interop extension profile）。
 - Auth / Account Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
-- 客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
+- 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 
 某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /api/v1/server/describe`、`supported_operations`、conformance profile 和 Realm policy 共同声明。
 
@@ -499,7 +499,7 @@ Principal Server 不可以：
 ### 6.5 物理隔离与跨域限制
 
 Realm 构成了协作图的硬性隔离边界：
-- 节点在处理深度 Graph/Tree 查询时，遇到跨 Realm 引用必须截断返回惰性链接 (Lazy Link)，严禁越权自动化拼接外部图谱。
+- 节点在处理深度 Graph/Tree 查询时，遇到跨 Realm 引用必须截断返回惰性链接 (Lazy Link)，MUST NOT 越权自动化拼接外部图谱。
 - 跨组织的级联图谱展示必须由拥有多域权限的客户端发起多次请求主动合成。
 
 ## 7. AI 与人类共用同一协议
@@ -521,7 +521,7 @@ Contrix 不打算做“两套系统”：
 - **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Flow / Message / Morph / Blob，进入 Realm 账本，与人类协作沉淀共用同一份事实层。
 - **受控外部知识访问**：agent 可读取的 Realm、对象或派生摘要 MUST 通过显式的 capability grant 声明 `scope`、`visibility` 与 retention 约束，受 capability 与 Realm policy 约束。
 
-Agent 代表人类或服务写入 Event 时，payload、`unsigned` 或 profile 注册的扩展字段中 MUST 携带可审计 `agent_context`（至少包含 `agent_id`、`operator_or_controller`、`authorization_ref`、`execution_purpose` 和可选 `tool_session_ref` / `model_ref`）。缺少 `agent_context` 的 agent-signed write MUST 被视为 `schema_violation` 或 `capability_denied`，不得把它伪装成人类直接写入。
+Agent 代表人类或服务写入 Event 时，payload、`unsigned` 或 profile 注册的扩展字段中 MUST 携带可审计 `agent_context`（至少包含 `agent_id`、`operator_or_controller`、`authorization_ref`、`execution_purpose` 和可选 `tool_session_ref` / `model_ref`）。缺少 `agent_context` 的 agent-signed write MUST 被视为 `schema_violation` 或 `capability_denied`，MUST NOT 把它伪装成人类直接写入。
 
 这意味着不存在协议层面的"agent 私有记忆库"。任何需要被审阅、引用或撤回的 agent 记忆都必须以标准对象形式落账；不需要被审阅的运行时状态留在 agent runtime 内部，不进入协议视野。
 
@@ -549,4 +549,4 @@ Contrix v1 不允许实现用单一“万能服务”隐藏协议边界。任何
 - Capability cache 只能作为优化。缓存命中必须绑定 causal frontier、grant / revoke / claim 状态和 policy version；上下文缺失、过期或发生分叉时 MUST fail closed 或重新执行完整 authz。
 - 多 Principal Server 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
 - 加密 envelope、device / key server、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`device-lifecycle.md`、`key-management.md` 与 `media-and-blob.md` 执行。
-- Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端不得仅信任外部 projection 或 search dump。
+- Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端 MUST NOT 仅信任外部 projection 或 search dump。

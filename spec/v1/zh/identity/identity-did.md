@@ -189,6 +189,9 @@ Contrix v1 core conformance 要求如下：
   - ❌ Snapshot witness 接收
   - ❌ 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `unknown_did`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
 - fallback 期间禁止任何 live DID Document 解析、handle re-resolution、capability subject 重映射或基于网络响应的缓存索引重建。允许的"本地搜索"只能读取进入 degraded mode 之前已经由 verified DID evidence 建好的本地索引；实现不得在 outage 期间用新的 DNS / HTTPS / handle 结果重建索引或补全 subject。
+- **"已建好的本地索引"的可信来源约束（normative，防索引洗白）**：degraded mode 期间可被读取的"已建好的本地索引"MUST 由满足以下两条的 anchored evidence 派生，否则 degraded 期间 resolver MUST 拒绝消费该索引（返回 `webvh_cache_unavailable` / `unknown_did`，按低风险只读失败处理），不得把它当作可信解析结果：
+  - **evidence age ≤ 7 天**：构建该索引条目所依据的 `did:webvh` DID Document / SCID / entry hash chain / controller proof evidence 的 `cached_evidence_age_ms ≤ 7d`，且 controller-proof 在构建时已验证通过（与本节 per-entry 7 天 cache age 上限一致；过旧或 controller-proof 未验证的 evidence 不得支撑索引）。
+  - **携带 build-time evidence 引用**：每条索引条目 MUST 记录其 build-time evidence 引用（被解析 DID、entry hash chain head / `versionId`、evidence 构建时间、controller-proof 验证结果摘要）；缺少该引用的索引条目视为"来源不可追溯"，degraded 期间 MUST 被拒绝。这关闭"在 outage 前用未经 controller-proof 验证或来源不明的数据建一份本地索引，再在 degraded 期间把它当作 verified 结果读出"的索引洗白路径——degraded 模式只能消费可回溯到 anchored、age 合格、controller-proof 已验证 evidence 的索引，而不是任何"碰巧已落地的本地表"。
 - Resolver MUST 把 cache-only degraded 状态作为 service health / diagnostics 信号暴露给同 Realm peers（例如 `resolver_state=webvh_cache_only_degraded`、`cached_evidence_age_ms`、受影响 DID 集合摘要）。Peer 收到来自 degraded resolver 的高风险写入、capability 变更、service delegation 或 membership 变更时 MUST fail closed 或要求非 degraded resolver / witness 复核。
 - 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复，或走部署 policy 明确允许的替代路径。
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达，仅显示本地缓存内容"),不得静默继续。
@@ -311,11 +314,11 @@ Resolver policy MUST 至少定义：
 
 DID method 或 registry 不可用时，节点 MUST NOT 把“暂时无法解析”解释为“身份仍然有效”。Resolver MUST fail closed，但实现还必须提供可恢复的用户路径：
 
-- 缓存解析结果只能在 resolver policy 声明的 TTL、document hash、history head 和 trust domain 内使用；超过 TTL 或 evidence 断链后，不得接受新的高风险写入。
-- `did:webvh` 的 hosting domain 不可用、`did.jsonl` 拉取失败或 witness evidence 断链时，resolver MAY 在 policy 允许的范围内使用本地缓存或镜像，但必须验证 SCID、entry hash chain head 与 controller proof；不得用 handle、DNS A/AAAA 记录、TLS 证书或 Auth Server 声明代替 DID method history。
+- 缓存解析结果只能在 resolver policy 声明的 TTL、document hash、history head 和 trust domain 内使用；超过 TTL 或 evidence 断链后，MUST NOT 接受新的高风险写入。
+- `did:webvh` 的 hosting domain 不可用、`did.jsonl` 拉取失败或 witness evidence 断链时，resolver MAY 在 policy 允许的范围内使用本地缓存或镜像，但必须验证 SCID、entry hash chain head 与 controller proof；MUST NOT 用 handle、DNS A/AAAA 记录、TLS 证书或 Auth Server 声明代替 DID method history。
 - 用户迁移到新 DID（同 method 或换 method）时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
 - 若原 DID 仍可解析，continuity proof SHOULD 由原 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Realm / service 范围。
-- 原 DID Document 若仍可解析，MUST 暴露 `service` entry `type="ContrixContinuityProof"`，其 `serviceEndpoint` 指向可获取 continuity proof 的 HTTPS URL 或 content-addressed ref。Verifier MUST 同时校验该 service entry、continuity proof 签名和 proof 中的 `old_did_document_digest`；缺少 service entry 或 hash 不匹配时不得把 Directory / Handle 返回的新 DID 当作连续身份。
+- 原 DID Document 若仍可解析，MUST 暴露 `service` entry `type="ContrixContinuityProof"`，其 `serviceEndpoint` 指向可获取 continuity proof 的 HTTPS URL 或 content-addressed ref。Verifier MUST 同时校验该 service entry、continuity proof 签名和 proof 中的 `old_did_document_digest`；缺少 service entry 或 hash 不匹配时 MUST NOT 把 Directory / Handle 返回的新 DID 当作连续身份。
 - 新 DID Document MUST 暴露反向 `ContrixContinuityAccepted` service entry 或等价 signed acceptance proof，绑定同一 `old_did` / `new_did` / `issued_at`。单向声明只能作为发现线索，不能完成 continuity。
 - 若原 method 永久不可用且无法验证原控制密钥，只能走 Realm / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
 - Principal Server、Directory 或 Handle 服务 MAY 帮助发现新 DID，但不得单独证明 DID continuity。
@@ -328,7 +331,7 @@ DID method 或 registry 不可用时，节点 MUST NOT 把“暂时无法解析�
 - 健康状态 MUST 区分 `healthy`、`degraded_no_witness`、`stale_history`、`write_unavailable` 和 `untrusted` 或等价状态。
 - `degraded_no_witness`（hosting 仍可达但 witness evidence 缺失或过期）只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待 witness evidence 恢复，或走部署 policy 明确允许的替代路径。该状态默认最长持续 24 小时；部署 policy MAY 缩短，MUST NOT 延长到超过 7 天。超过窗口后，resolver MUST 进入 `stale_history` 或 `write_unavailable`，并对新的高风险写入 fail closed。
 - Cache entry freshness MUST 独立于 outage 窗口校验：`cached_evidence_age_ms > 7d` 时 resolver MUST 进入 `stale_history` 或返回 `webvh_cache_too_stale`，即使 outage 刚开始也不得继续消费该条 cache。
-- `stale_history` 或 `untrusted` 时，resolver MUST fail closed；不得用缓存 handle、DNS、Principal Server 声明或用户登录态替代 DID 历史链。
+- `stale_history` 或 `untrusted` 时，resolver MUST fail closed；MUST NOT 用缓存 handle、DNS、Principal Server 声明或用户登录态替代 DID 历史链。
 - 客户端和服务端 SHOULD 暴露 outage diagnostics，包括使用的 hosting / mirror、entry head、witness 列表、evidence age 和下一次 retry 时间。
 
 #### 4.2.2 跨 method 迁移路径

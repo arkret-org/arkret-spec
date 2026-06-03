@@ -96,7 +96,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `format` | string | SHOULD | 格式化类型：`plain`, `markdown`, `prosemirror_json` |
-| `formatted_body` | string/object | 可选 | 结构化的富文本内容（当 format 不为 plain 时使用） |
+| `formatted_body` | string/object | MAY | 结构化的富文本内容（当 format 不为 plain 时使用） |
 
 ### 4.2 图片消息 `cx.content.image`
 
@@ -171,7 +171,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `waveform` | integer[] | 可选 | 波形预览数据（0-100 的整数数组，用于 UI 渲染） |
+| `waveform` | integer[] | MAY | 波形预览数据（0-100 的整数数组，用于 UI 渲染） |
 
 ### 4.5 文件消息 `cx.content.file`
 
@@ -206,7 +206,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 |------|------|------|------|
 | `geo_uri` | string | MUST | RFC 5870 Geo URI |
 | `label` | string | SHOULD | 地点名称 |
-| `description` | string | 可选 | 地点补充描述 |
+| `description` | string | MAY | 地点补充描述 |
 
 ### 4.7 代码块消息 `cx.content.code`
 
@@ -262,7 +262,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 }
 ```
 
-响应投票时，客户端发送 `cx.content.poll.response`，包含所选 `id`。
+响应投票时，客户端发送 `cx.content.poll.response` Content Block，最小形态为 `{ "kind": "cx.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`，其中 `poll_ref` 指向承载该 poll 的 Message，`selections` 列出所选 answer `id`（数量 MUST ≤ 对应 poll 的 `max_selections`）。该 block 的 canonical schema 与 `poll` block 一同定义在 `cx.content.poll` 的 content-block schema（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/` 下的 content-block schema）。投票的权威计票仍按 §9 v1 扩展规则由 `poll` Morph / Relation / event reducer 承担，content block 只作为入口或摘要。
 
 ### 4.10 复合消息 `cx.content.composite`
 

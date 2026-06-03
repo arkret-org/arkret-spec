@@ -25,7 +25,7 @@ Circle 可以是 plaintext delivery-only scope，也可以是 MLS-backed cryptog
 1. **平面化，不嵌套**:Circle 不允许 `parent_circle_ref`。需要交叉成员关系时,actor 同时属于多个 Circle 即可；不需要 hierarchy。这条沿用 [`realm-links.md` §2.1](./realm-links.md) "link graph not tree" 的教训。
 2. **真子集 membership**:`Circle.members ⊆ Realm.members`,reducer 硬约束。
 3. **加密不降级父 Realm floor**:Circle 的 `encryption_profile` 可为 `none` 或 `mls_rfc9420`，但不得低于父 Realm / policy 的内容加密下限；E2EE Realm 或 `content_encryption_floor=e2ee_required` 下 MUST 为 `mls_rfc9420`。
-4. **MLS 独立，不可派生**:当 Circle 为 `mls_rfc9420` 时，其 MLS group 是独立 epoch 链,**禁止**从 Realm-default MLS group key 派生 Circle key。
+4. **MLS 独立，不可派生**:当 Circle 为 `mls_rfc9420` 时，其 MLS group 是独立 epoch 链,**MUST NOT** 从 Realm-default MLS group key 派生 Circle key。
 5. **不放宽父 Realm policy**:Circle 的 history visibility / metadata encryption floor **只能收紧，不能放宽**父 Realm policy floor。
 6. **Circle ≠ Group**:[`realm-and-space.md` §4](./realm-and-space.md) 的 **Group** 表达 principal/actor 集合(capability subject)。Circle 表达资源 / 事件 scope。两个概念正交，不可混淆。
 
@@ -46,7 +46,7 @@ Schema id: `cx.schema.circle.v1`
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`../governance/history-visibility.md`](../governance/history-visibility.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `metadata_encryption_floor` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm floor。 | Circle 内对象的 metadata 加密下限；只能收紧，不得放宽父 Realm floor。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420)` | create-locked。父 Realm `encryption_profile=mls_rfc9420` 或 effective `content_encryption_floor=e2ee_required` 时 MUST 为 `mls_rfc9420`；父 Realm 允许明文时 MAY 为 `none`。未来 MLS 版本 / PQ-MLS / external provider 必须显式扩展 schema。 | Circle 内容加密形态。 |
-| `mls_group_ref` | derived | `ref:mls` | 仅当 `encryption_profile=mls_rfc9420` 时由 `cx.circle.create` reducer 派生,scope 绑定 `(realm_id, circle_id)`;actor-supplied create payload MUST NOT 携带。字段使用 `_ref` 是因为 `cx:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
+| `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `cx.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST 不存在。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `cx:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` | — | 创建者。 |
@@ -64,7 +64,7 @@ Schema id: `cx.schema.circle.v1`
 | --- | --- | --- | --- |
 | `short_name` | yes | `string` | `^[A-Z][A-Za-z0-9 _-]{0,23}$`;在 `(realm_id, short_name)` 上 reducer 强制唯一(case-insensitive)。 |
 | `color_token` | yes | `string` | 从受控 palette 选;v1 palette: `{slate, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, fuchsia, pink, gray_high_contrast}`。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。 |
-| `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`;`glyph` 从受控集 ~24 个 icon(lock/shield/eye/diamond/...);二选一。 |
+| `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`;二选一。`glyph` 取受控 snake_case 枚举（v1 canonical 集，与 `circle.schema.json` 同步）:`{lock, shield, eye, eye_off, diamond, star, flag, bell, bookmark, tag, key, fingerprint, briefcase, folder, inbox, megaphone, users, user_shield, globe, link, sparkles, beaker, gavel, heart}`;客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。 |
 
 **颜色 token 与 symbol 必须在 spec 受控集中**,目的是同一 Circle 在 Alice 与 Bob 的客户端上呈现一致视觉，否则跨设备社会工程攻击成立。
 
@@ -78,7 +78,7 @@ Schema id: `cx.schema.circle.v1`
 | `cx.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `cx.circle.tombstone` | yes | object_lifecycle_payload | terminal;触发 §8 cascade。 |
 | `cx.circle.member.state` | yes | `{circle_id, actor_id, membership: invited\|active\|left\|banned, ...}` | 平行 `cx.member.state`,但 reducer 先校验 actor 已是父 Realm `active` member。 |
-| `cx.circle.anchor_commit` | reducer-derived | `{circle_id, sub_anchor_head_digest, epoch}` | Circle sub-anchor 周期性向 Realm Anchor 提交不透明 commitment(§9)。 |
+| `cx.circle.anchor_commit` | no | `{circle_id, sub_anchor_head_digest, epoch}` | reducer-derived:Circle sub-anchor 按 profile cadence 周期性向 Realm Anchor 提交不透明 commitment(§9),由服务端 / anchor service 发出,actor 不直接提交。 |
 
 ## 6. 对象 scope 表达
 
@@ -316,7 +316,7 @@ Membership transition table:
 ### 10.1 Circle encryption profiles
 
 - `encryption_profile=none`:Circle 是 plaintext scoped event boundary。Sync / query / projection / notification / export MUST 按 Circle membership 裁剪；服务端或明文存储后端可能接触 plaintext，部署 MUST 在 UI / policy / service description 中披露这种保证边界。
-- `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group,独立 epoch,独立 key tree。**禁止**从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
+- `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group,独立 epoch,独立 key tree。**MUST NOT** 从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
 - Realm 移除某 actor MUST 触发该 actor 所在所有 Circle 的 membership cascade；对 MLS-backed Circle 还 MUST 触发对应 MLS `remove` proposal,并在 Realm-default 也是 MLS-backed 时触发 Realm-default rotate。这是必要的密码学卫生,reducer-enforced。已知运维代价见 §10.3。
 - Circle MLS handshake (commit/welcome/proposal) 投递严格限于 Circle 成员，不进入 Realm-default sync 流。
 - MLS governance binding 的 scope 从单 `realm_id` 扩展为 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；旧草案中的 Flow `track_name` 或 `flow_id` 不得参与 MLS key scope 判定。
@@ -337,7 +337,7 @@ Membership transition table:
 - **延迟 rotate 窗口**:profile MAY 声明 rotate 必须在 actor removal 后 ≤ X 完成。X 是该 profile 的 forward secrecy 窗口承诺,MUST 显式公开，且 MUST 不长于 profile 声明的最大可容忍泄露窗口(典型 ≤ 1 小时)。
 - **Circle 数量上限的运营建议**:产品上鼓励 Circle 少而稳定(参考 §11 UX 风险);profile MAY 软上限(例如单 Realm ≤ 64 Circle)以约束 delivery fanout 与 MLS rotate amplification 的最坏情况。
 
-对 MLS-backed Circle，替代方案(共享 Realm-default key 派生 Circle key、或惰性 rotate 直到下一次实际通信)会破坏 Circle 的密码学隔离前提，使其退化为 plaintext delivery-only scope,**禁止**在声明 MLS-backed 时采纳。
+对 MLS-backed Circle，替代方案(共享 Realm-default key 派生 Circle key、或惰性 rotate 直到下一次实际通信)会破坏 Circle 的密码学隔离前提，使其退化为 plaintext delivery-only scope,声明 MLS-backed 时 **MUST NOT** 采纳。
 
 ## 11. UX(为什么 `display` 字段必须 normativize)
 

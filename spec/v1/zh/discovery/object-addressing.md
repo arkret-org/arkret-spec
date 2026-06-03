@@ -134,6 +134,14 @@ HTTPS 落地链接中，`flow` / `m` / `via` / 尤其 `tok` **MUST** 放在 URL 
   - web handler 模板 **MUST** 把 `%s` 放进**自身 fragment**（例如 `https://app.example/open#%s`），使被替换的 URI 永远落在 fragment、不进服务端；**或**
   - web 客户端**只**走 HTTPS fragment 落地页，把 `web+contrix:` 留给原生 / 本地 handler，不自行注册 web protocol handler。
 
+### 5.1 Landing / handler 域名不是信任锚（normative）
+
+`<landing>` 域名与 web `registerProtocolHandler` handler 模板域名由部署方任意选定，本协议**不**赋予它们任何权威。客户端解析链接时：
+
+- 客户端 **MUST** 把**解析后**的 canonical 身份（`realm_id` 及 §4.2 target descriptor 中的 `flow_id` / `message_id`，经 §3.1 alias 规范化）作为唯一信任锚，所有后续 access gate / 身份比对一律绑定该 canonical target。
+- 客户端 **MUST NOT** 因 landing 域名、handler 模板域名、或链接外壳与某个已信任部署"看起来相同 / 不同"而授予任何额外权限、放大 token scope、跳过 §6 的 `resolve_target` 校验，或自动向该域名提交 `tok` / 任何授权 material。token 的兑换目标仍由其签名 payload 内的 target descriptor 决定，与承载它的 landing 域无关。
+- 对**未知 / 不在本地信任集合内**的 landing 域名，客户端 **SHOULD** 在解析或兑换前提示用户确认，避免任意域名借 Contrix 链接外壳诱导用户提交 token。
+
 ## 6. 解析 operation：`cx.directory.resolve_target`
 
 `cx.directory.resolve_target` 是 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 的对象级泛化。两者**共存**：`resolve_realm` 保留为 realm-only 入口；`resolve_target` 解析 realm 目标时 MUST 委托给同一 Realm 解析路径（不另发明 realm 解析语义，避免漂移）。
@@ -144,7 +152,7 @@ HTTPS 落地链接中，`flow` / `m` / `via` / 尤其 `tok` **MUST** 放在 URL 
 
 响应约束（normative）：
 
-- 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 通用字段（`as_of`、`source_refs`，可选 `policy_revision` / `stale` / `divergent`）；realm target 在调用方有权得到 join 路由时 MUST 同时返回 `join_candidates[]`。
+- 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 全部通用字段，按该节定义直接继承——本节不重述或弱化各字段的强度。其中 `as_of`、`source_refs`、`policy_revision` 在所有 search / resolve 结果上均为 **MUST**（与 [`discovery-directory.md` §7.3](./discovery-directory.md) 不变量 3 一致）；`stale` / `divergent` 为可选诊断标记。realm target 在调用方有权得到 join 路由时 MUST 同时返回 `join_candidates[]`。
 - invite / restricted / secret 资源对未授权请求使用与不存在不可区分的统一 `not_found`（复用 `resolve_realm` 的 blinding）。
 - 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, flow_id?, message_id?}` + 生效 link_type **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 invite 或 preview 的有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
 - `preview` token 校验通过时，响应 MUST 只包含 effective `cx.realm.preview_policy` 允许的 `realm_preview` / `object_preview` / stripped `history_preview` 字段。除非 caller 另行满足 join routing disclosure gate，响应 MUST 省略 `join_candidates[]`。

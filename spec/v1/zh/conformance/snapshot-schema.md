@@ -263,7 +263,9 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 3. **缺口归因**：对于采样范围内每个缺失的 `actor_seq`，响应 MUST 在 `verification_hints.{soft_failed_digest, quarantined_digest, conflict_records_digest}` 之一中给出对应条目（`digest_index` 是该 digest 承诺列表中的位置）——禁止静默缺口。
 4. **签名**：`issuer_signature` MUST 来自 §5 列出的 DID（Realm owner / creator / admin / trusted snapshot issuer / witness quorum），并 MUST 以 manifest `created_at` 为时点可验证。
 5. **失败处理**：若任一采样到的 accepted Event 缺失、任一分支验证失败、任一缺口缺少归因，或签名验证失败，client MUST 以错误 `inclusion_proof_failed` 拒绝（见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；若签名者在 `created_at` 当时或之前已被撤销，client MUST 以 `snapshot_issuer_revoked` 拒绝。
-6. **新鲜度**：响应 MUST 在 manifest 的 `verification_hints.challenge_window_seconds` 内收到；过期响应 MUST 重试，不得静默接受。
+6. **新鲜度**：响应 MUST 在 manifest 的 `verification_hints.challenge_window_seconds` 内收到；过期响应 MUST 重试，MUST NOT 静默接受。
+
+> **待补可执行向量（normative TODO）**：上述采样规则 1（`n ≥ max(20, ceil(log2(covered_event_count)))` 的 event_id 抽样、至少 3 段 `actor_seq_range`）与规则 2 的 merkle branch 验证目前缺少可执行 inclusion-challenge 向量。一致性 runner 应在 [`conformance-vectors.md`](./conformance-vectors.md) §6（Sync）下补一条 `cx.vector.snapshot.inclusion_challenge.v1` 向量：固定一个已知 `event_set_commitment.root`、一组采样 `samples[]`、对应 `proofs[].merkle_branch`、`commitment_root` 与至少一个 `gap_attribution` 条目，并断言采样数满足 `n ≥ max(20, ceil(log2(covered_event_count)))`、branch 验证通过、缺口归因非空。在该向量落地前，实现 MUST 仍按本节 prose 规则执行挑战，MUST NOT 以“无向量”为由跳过 high-assurance bootstrap 校验。
 
 `verification_hints.conflict_records_digest`、`soft_failed_digest` 与 `quarantined_digest` 承诺非 accepted 或未决输入的集合。snapshot MUST NOT 静默隐藏会影响授权、可见性、E2EE epoch 或对象状态的 conflict、soft-fail 或 quarantine 记录。
 

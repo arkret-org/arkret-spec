@@ -1,5 +1,5 @@
 ---
-title: Applet Schema and OpenAPI
+title: Applet Schema and Field Reference
 status: candidate
 normative: true
 stability: v1
@@ -9,6 +9,8 @@ updated: 2026-05-25
 ## 0. 规范语言
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+
+> **权威 schema / OpenAPI 来源**：本文是 Applet wire 对象与 HTTP 字段的人类可读参考；它**不**是机器可校验的权威定义。Applet registration / transaction / bridge-error 的权威 JSON Schema 见 `artifacts/schemas/applet.schema.json`，HTTP operation 的权威 OpenAPI 定义见 `artifacts/openapi/contrix-service-api.openapi.yaml`（两者由 artifact pipeline 从 contract catalog 生成）。本文与上述 artifacts 冲突时，**以 artifacts 为准**。
 
 ## 1. Applet Registration Schema
 
@@ -30,6 +32,7 @@ updated: 2026-05-25
   "receive_ephemeral": false,
   "rate_limited": true,
   "requested_scopes": [],
+  "registration_epoch": "sha256:<canonical-registration-epoch-hash>",
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
@@ -48,6 +51,8 @@ updated: 2026-05-25
 
 > **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `cx.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §5](./applet-integration.md)。
 
+> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical 形态（不含 `proof` 自身）取的稳定 epoch hash，唯一标识本次 registration 的版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`，registration 更新（namespace / endpoint / scope 变化）后该 hash MUST 变化，使旧 grant 不再匹配新 registration epoch，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。对无版本化 DID method，`registration_epoch` 与 service DID Document 的 fetch-time digest 共同构成 grant 的 epoch 证据；reducer MUST 以二者任一不匹配作为拒绝条件。该字段 required。
+
 ## 2. Namespace Pattern
 
 ```json
@@ -59,9 +64,15 @@ updated: 2026-05-25
 
 Pattern grammar:
 
-- `*` matches a single suffix segment
-- `**` matches multiple path-like segments
-- literal `*` MUST be escaped as `\\*`
+- `*` matches exactly one segment，且 `*` **不跨 segment 分隔符**。
+- `**` matches one or more path-like segments，且**仅对 `/` 分隔符**有 path-like 语义（即 `**` 只跨 `/`，不跨 `:`）。
+- literal `*` MUST be escaped as `\\*`。
+
+**Segment 分隔符（normative）**：segment 边界由 pattern 所属命名空间决定，匹配前 pattern 与目标字符串按相同分隔符集合切分：
+
+- **Actor namespace（DID pattern）**：分隔符为 `:`。`*` 匹配 DID 中由 `:` 分隔的**单一** segment，MUST NOT 跨越 `:`。例如 `did:web:slack-bridge.example:ghost:*` 匹配 `did:web:slack-bridge.example:ghost:u123`，但 MUST NOT 匹配 `did:web:slack-bridge.example:ghost:team:u123`（后者跨了一个额外 `:` segment）。DID pattern 中 `**` 同样不跨 `:`——DID 没有 path-like `/` 结构，因此 DID pattern MUST NOT 依赖 `**` 的跨段语义。`#fragment` 不参与 namespace 匹配。
+- **Realm / portal namespace pattern**：分隔符集合为 `:` 与 `/`。`*` 匹配由 `:` 或 `/` 分隔的单一 segment，不跨任一分隔符；`**` 只对 `/` 分隔的 path-like 尾段生效（匹配一个或多个 `/`-分隔 segment），MUST NOT 跨 `:`。例如 `slack:team:*:channel:*` 匹配 `slack:team:T123:channel:C456`；`slack.acme.example/*` 匹配单层 path，`slack.acme.example/**` 匹配多层 path。
+- 任一分隔符集合下，`*` / `**` MUST NOT 匹配空 segment；exclusive namespace 的冲突判定按 [`applet-integration.md` §4.1](./applet-integration.md) 在切分后的 segment 序列上进行。
 
 ## 3. Transaction Endpoint
 
@@ -166,9 +177,32 @@ GET /api/v1/applet/protocols/{protocol}
 {
   "kind": "cx.applet.bridge_error",
   "applet_id": "cx:applet:dd552c17-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
+  "failed_transaction_ref": "cx:event:019640ed-8000-7000-8000-000000000000",
   "external_ref": {},
   "error_code": "external_rate_limited",
+  "error_class": "external_network",
+  "retriable": true,
+  "visibility_scope": "realm_admins",
   "message": "external network rejected the message",
   "retry_after_ms": 1000
 }
 ```
+
+字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `kind` | `string` | required | 固定为 `cx.applet.bridge_error`（wire Event kind，进 Realm history）。 |
+| `applet_id` | `id` | required | 产生该错误的 Applet id。 |
+| `realm_id` | `id` | required | 该 bridge error 所属 Realm；reducer / 客户端据此做可见范围与授权判定。 |
+| `failed_transaction_ref` | `ref` | required | 指向失败的 transaction / 源 Event（如 push 中的 `event_id` 或 transaction idempotency 记录），用于审计回溯。MUST NOT 内联未授权外部正文。 |
+| `error_class` | `string` | required | 错误类别枚举（如 `external_network` / `auth` / `schema` / `rate_limit` / `policy`），供聚合与告警。 |
+| `error_code` | `string` | required | 具体错误码（如 `external_rate_limited`）。 |
+| `retriable` | `boolean` | required | 该错误是否可重试；发送方据此决定是否以相同 `Idempotency-Key` 重试（与 [`applet-integration.md` §14](./applet-integration.md) 重试规则一致）。 |
+| `visibility_scope` | `string` | required | 该 error event 的可见范围枚举（如 `realm_admins` / `applet_controller` / `realm_members`）；客户端 MUST 按此限制展示，MUST NOT 把 bridge 内部错误细节暴露给无关成员。 |
+| `external_ref` | `object` | optional | 外部网络引用（protocol / network id 等）；MUST NOT 包含未授权外部正文明文。 |
+| `message` | `string` | optional | 人类可读摘要；MUST NOT 泄露未授权外部正文。 |
+| `retry_after_ms` | `int` | optional | 建议重试延迟，仅当 `retriable=true` 时有意义。 |
+
+`cx.applet.bridge_error` MUST 绑定 `realm_id`、`failed_transaction_ref`、`retriable` 和 `visibility_scope`；缺少任一 required 字段的 bridge error event MUST 被以 `schema_violation` 拒绝。该 event MUST NOT 泄露未授权外部正文（与 [`applet-integration.md` §16](./applet-integration.md) 一致）。

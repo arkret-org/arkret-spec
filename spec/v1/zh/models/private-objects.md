@@ -39,7 +39,7 @@ Schema id: `cx.schema.read_cursor.v1`
 | `schema` | yes | `cx.schema.read_cursor.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `realm_id` | yes | `id:realm` |  | Realm。 |
-| `read_scope` | yes | `object` | `{kind, ref?, track_name?}`；`kind=realm` 时 `ref` 省略，其余 kind 必填对应对象 ref。 | 已读范围。 |
+| `read_scope` | yes | `object` | `{kind, ref?, track_name?}`。`kind ∈ enum(realm, circle, space, flow)`。ref 必填规则：`kind=realm` 时 `ref` MUST 省略（范围即本对象 `realm_id`）；`kind=circle` 时 `ref` MUST 是 `id:circle`；`kind=space` 时 `ref` MUST 是 `id:space`；`kind=flow` 时 `ref` MUST 是 `id:flow`。`track_name` 仅在 `kind=flow` 时 MAY 出现（限定到该 Flow 的某个 track 时间线，省略表示整个 Flow）；其余 kind MUST 省略 `track_name`。 | 已读范围。 |
 | `position` | yes | `object` | `{event_id, hlc}`。 | 已读位置。 |
 | `updated_at` | yes | `timestamp` |  | 更新时间。 |
 

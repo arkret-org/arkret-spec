@@ -56,7 +56,7 @@ Authorization condition: Claim / Attestation
 ID 语义：
 
 - `cx:grant:<uuid>` 是签名 Capability Grant object 的规范 ID，`cx.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
-- `cx:capability:<uuid>` 只表示抽象 capability definition 引用；不得作为签名 grant object ID 使用。
+- `cx:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为签名 grant object ID 使用。
 
 示例：
 
@@ -144,26 +144,26 @@ Contrix v1 支持以下 `kind`：
 
 ## 5. 动作集合
 
-动作名称与标准 event kind / operation id 的语义对齐，使用 `cx.<domain>.<action>` 点分记法。Wire 层 `actions[]` 字段 MUST 是具体动作字符串；**不接受任何 wildcard / segment 通配**（含 `*`、`cx.<domain>.*`、`cx.<domain>.<sub>.*`）。`capability-grant.schema.json` 已用 pattern 静态拒绝 wildcard。
+动作名称与标准 event kind / operation id 的语义对齐，使用 `cx.<domain>.<action>` 点分记法。Wire 层 `actions[]` 字段 MUST 是具体动作字符串；实现 **MUST NOT 接受任何 wildcard / segment 通配**（含 `*`、`cx.<domain>.*`、`cx.<domain>.<sub>.*`）。`capability-grant.schema.json` 已用 pattern 静态拒绝 wildcard。
 
 机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`required_evaluator_checks`、`target_event_kinds`、`event_mapping_kind`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
 
-裸名动作（例如 `realm.upgrade` 或 `realm.link.manage`）一律不接受。`cx.realm.admin` 覆盖普通 Realm 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者必须在 grant `actions[]` 中显式列出对应 high-risk 动作。
+裸名动作（例如 `realm.upgrade` 或 `realm.link.manage`）MUST NOT 被接受。`cx.realm.admin` 覆盖普通 Realm 管理动作，但 MUST NOT 自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者 MUST 在 grant `actions[]` 中显式列出对应 high-risk 动作。
 
 ### 5.0 Action ↔ Event kind 偏离类别（normative reference）
 
-绝大多数 action 与其 `target_event_kinds` 单一同名映射（`cx.flow.create` action ↔ `cx.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，**禁止任何其它类型的偏离**；先前的"verb-noun 桥"类已于 v3 收敛废除（参见 §5.0a）：
+绝大多数 action 与其 `target_event_kinds` 单一同名映射（`cx.flow.create` action ↔ `cx.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，任何其它类型的偏离 **MUST NOT 被引入**；先前的"verb-noun 桥"类已于 v3 收敛废除（参见 §5.0a）：
 
 | 类别 | 形态 | 标准示例 |
 | --- | --- | --- |
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `cx.realm.admin` → registry 中声明的 Realm policy facet events；`cx.policy.manage` → `cx.policy.*` 与 `cx.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Flow / Morph / Space 等同语义 event | `cx.object.archive` → `{cx.flow.archive, cx.morph.archive}`；`cx.object.restore` → `{cx.flow.restore, cx.morph.restore, cx.space.restore}`；`cx.object.stage.set` → `{cx.flow.stage.set, cx.morph.stage.set}` |
 | **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `cx.message.revise.own` → `cx.message.revise`；`cx.message.redact.own` → `cx.message.redact`；`cx.flow.watch.set.others` → `cx.flow.watch.set` |
-| **保留旧 wire 命名（`event_mapping_kind="wire_compat_grandfather"`）** | action 用收敛后命名、event kind 因已发布的 wire bytes 不可改名而保留旧前缀 / 旧 punctuation。本类**冻结**，**不允许新增条目**：所有现存条目都必须在 registry 中声明 `grandfathered_since` | `cx.agent.session.*` → `cx.agent.protocol_session.*`（namespace 折叠）；`cx.morph.schema.migrate` → `cx.morph.schema_migrate`（separator 差异）；`cx.flow.tracks.manage` → `cx.flow.tracks.update`（umbrella verb vs 具体 verb）；`cx.call.configure_media_service` → `cx.realm.media_service`（跨 namespace 语义） |
+| **保留旧 wire 命名（`event_mapping_kind="wire_compat_grandfather"`）** | action 用收敛后命名、event kind 因已发布的 wire bytes 不可改名而保留旧前缀 / 旧 punctuation。本类**冻结**，新增条目 **MUST NOT 落入此类**：所有现存条目都 MUST 在 registry 中声明 `grandfathered_since` | `cx.agent.session.*` → `cx.agent.protocol_session.*`（namespace 折叠）；`cx.morph.schema.migrate` → `cx.morph.schema_migrate`（separator 差异）；`cx.flow.tracks.manage` → `cx.flow.tracks.update`（umbrella verb vs 具体 verb）；`cx.call.configure_media_service` → `cx.realm.media_service`（跨 namespace 语义） |
 
 `cx.mls.commit` action → `{cx.mls.commit, cx.mls.commit_failed}`、`cx.message.redact` → `{cx.message.redact, cx.redaction}`、`cx.moderation.appeal.review` → `{cx.moderation.appeal.review, cx.moderation.appeal.decision, cx.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
 
-新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；不得通过 lint 例外或注释方式悄悄引入新桥**。
+新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
 
 #### 5.0a verb-noun 桥的废除（normative，2026-05-24）
 
@@ -182,7 +182,7 @@ v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机
 
 权衡：这放弃了"action 都是动词"的惯例换取"action 与 event kind 同名"的更强不变量。IAM 直接以 event kind 字符串作为 grant `actions[]` 元素，零翻译；动词形态由 capabilities.md prose 表达（例如 prose 描述"该 capability 授权写入 cx.invite.third_party 邀请事件"）。
 
-剩余"保留旧 wire 命名"类（agent.protocol_session / morph.schema_migrate / flow.tracks.update / realm.media_service）的 event kind 已发布且无法机械收敛，所以保留为冻结的 grandfather 桥；新条目禁止落入此类。
+剩余"保留旧 wire 命名"类（agent.protocol_session / morph.schema_migrate / flow.tracks.update / realm.media_service）的 event kind 已发布且无法机械收敛，所以保留为冻结的 grandfather 桥；新条目 MUST NOT 落入此类。
 
 ### 5.1 通用动作
 
@@ -208,7 +208,7 @@ v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机
 - `cx.flow.restore`
 - `cx.flow.move`
 - `cx.flow.reorder`
-- `cx.flow.tracks.manage`（Flow tracks map 写入入口，对应 event `cx.flow.tracks.update`）
+- `cx.flow.tracks.manage`（Flow tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，对应 event `cx.flow.tracks.update`。这是该 action 的权威定义；§5.3 仅交叉引用）
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.tombstone`
@@ -229,7 +229,7 @@ v3 起，**action 名 MUST 与 target event kind 同名**；6 处历史桥已机
 
 Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Flow 的 effective scope 判断：`Flow.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
-若 Circle membership cell 在当前 Anchor frontier 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 Move MUST 返回 `failed_precondition` / `reason=cell_in_bottom_state` 或等价 `failed_bottom` 诊断；实现不得把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
+若 Circle membership cell 在当前 Anchor frontier 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 Move MUST 返回 `failed_bottom`（`reason=cell_in_bottom_state`），而 `failed_precondition` 仅用于 predicate 本身不成立（cell 持有明确 value 但 predicate 求值为 false）的情形；实现 MUST NOT 把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
 
 Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morph.update` 对应 `cx.flow.read` / `cx.flow.create` / `cx.flow.update`),通过 `morph_type_allow` constraint 进一步限定可创建或操作的 `morph_type`。
 
@@ -244,7 +244,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.message.redact.own`
 - `cx.reaction.add`
 - `cx.reaction.remove`
-- `cx.flow.tracks.manage`（启用 / 关闭 track、切换 primary、修改 track profile，target=`cx.flow.tracks.update`）
+- `cx.flow.tracks.manage`（管理 track 启用 / primary / profile；权威定义见 §5.2，此处仅交叉引用，target=`cx.flow.tracks.update`）
 - `cx.flow.watch.set`（写入自己的 watch 订阅，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）
 - `cx.flow.watch.set.others`（high risk；为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
 
@@ -388,13 +388,13 @@ effective_not_before = max(grant.not_before?, temporal.not_before[]?)
 effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 ```
 
-缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但高风险、agent、service、delegated grant 仍按本文风险规则要求必须有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、delegation narrowing 和 revoke freshness 判断都 MUST 使用 effective window，不得分别按顶层字段和 temporal constraint 做两次不一致判断。
+缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但高风险、agent、service、delegated grant 仍按本文风险规则 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、delegation narrowing 和 revoke freshness 判断都 MUST 使用 effective window，MUST NOT 分别按顶层字段和 temporal constraint 做两次不一致判断。
 
-`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `object_type_allow=["flow"]` 和 `allowed_tracks=["discussion"]`；不得引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，不能单独授予读取、发送或成员权限。
+`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `object_type_allow=["flow"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
 
-Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍必须命中 `cx.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `cx.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身不得成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
+Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `cx.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `cx.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
 
-`requires_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。不得接受只有 `claim_type` 而无发行者边界的 claim grant。
+`requires_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。实现 MUST NOT 接受只有 `claim_type` 而无发行者边界的 claim grant。
 
 | 扁平名称 | Typed `constraint_type` | `subtype` | 对应字段 |
 |----------|------------------------|----------|----------|
@@ -471,7 +471,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 风险分层硬约束：
 
 - `risk_tier=high` 的 action MUST 有 `expires_at`、resource selector narrowing、authorization evidence ref 与 audit evidence。
-- 对需要更高保证的 high-risk action，profile MAY 要求显式 approval / proposal workflow、默认 `delegable=false`、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求不得通过 registry 未定义的第四级风险字符串表达。
+- 对需要更高保证的 high-risk action，profile MAY 要求显式 approval / proposal workflow、默认 `delegable=false`、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
 - Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有最大 TTL 与 resource selector；缺失时 reducer MUST `failed_precondition`。
 
 ### 8.1 Proposal 模式
@@ -506,11 +506,11 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 委托表示 subject 可以将其能力的一部分再授予第三方。
 
-若 `max_delegation_depth = 0`，则不可继续委托。  
+若 `max_delegation_depth = 0`，则 MUST NOT 继续委托。  
 若大于 0，则：
 
 - 每次再授权 MUST 递减深度。
-- 再授权不得扩大原始资源范围和动作范围。
+- 再授权 MUST NOT 扩大原始资源范围和动作范围。
 - 委托链 MUST 可验证。
 
 ### 10.1 时效收窄（normative）
@@ -528,14 +528,22 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 违反任何一项 reducer MUST 返回 `failed_precondition` reason=`delegation_expiry_widening`(对窗口),或 `schema_violation`(对 actions / resources / constraints 越界)。
 
+**固定 anchor 防滚动续期（normative）**：仅靠"child 自带 `expires_at` ≤ `now + max_delegation_lifetime_ms`"不足以约束无限期 parent——parent 可以每 `max_delegation_lifetime_ms` 自我 re-delegate 一次，每次都让 child 取得一个新的 `now + 24h`，从而把"无 finite upper bound 的 parent"漂白成事实无限期的 child 链。为关闭该面，无 finite effective upper bound 的 parent grant **MUST NOT** 直接作为 delegation source；任何从它派生的 child 链 MUST 绑定一个**固定 `delegation_expiry_anchor`**，且整条链每一级的 `effective_expires_at` **MUST** ≤ `delegation_expiry_anchor`，re-delegate **MUST NOT** 刷新该 anchor：
+
+- 若 parent grant 自身有 finite `effective_expires_at`，则 `delegation_expiry_anchor = parent.effective_expires_at`（与表中收窄规则一致）。
+- 若 parent grant 无 finite effective upper bound，则其第一次作为 delegation source 时，reducer **MUST** 冻结 `delegation_expiry_anchor = first_delegation_anchored_at + max_delegation_lifetime_ms`（默认 24 小时），并把该 anchor 作为不可变 child-chain 属性记录（`refs[role="delegation_expiry_anchor"]` 或 profile 声明的等价字段）。
+- 同一无限期 parent 的后续 re-delegate **MUST** 复用同一 `delegation_expiry_anchor`，**MUST NOT** 用新的 `now` 重新计算；child 的 `effective_expires_at` 超过该 anchor 时 reducer **MUST** 返回 `failed_precondition` reason=`delegation_expiry_widening`。
+
+本规则与 §8 "delegated grant MUST 有有限 expiry" 对齐：任何 child 链最终 expiry 都 MUST 可追溯到一个不随 re-delegate 推移的固定时点。
+
 ### 10.2 Cycle detection（normative）
 
 `cx.capability.delegate` event 的 `refs[]` 中包含 `role="parent_grant"` 引用作为父 grant id。Reducer **MUST** 把所有已 anchored 的 delegation 关系视为有向图，节点是 `grant_id`,边是 `(parent_grant_id, child_grant_id)`,并按下列算法做 cycle detection:
 
-Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / `auth_frontier`（可放入 `refs[role="auth_frontier"]`、grant audit metadata 或 profile 声明的等价字段）。该记录不替代实时 revoke/freshness 校验，但用于审计 child grant 是基于哪个 parent policy/auth frontier 派生的；缺失时实现仍 MUST 重新按当前 frontier 验证，不得把 child grant 当作不可追溯授权。
+Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / `auth_frontier`（可放入 `refs[role="auth_frontier"]`、grant audit metadata 或 profile 声明的等价字段）。该记录不替代实时 revoke/freshness 校验，但用于审计 child grant 是基于哪个 parent policy/auth frontier 派生的；缺失时实现仍 MUST 重新按当前 frontier 验证，MUST NOT 把 child grant 当作不可追溯授权。
 
 1. 收到新的 `cx.capability.delegate(child_grant_id, parent_grant_id)` 时,reducer 沿 parent chain 做 DFS,直到遇到无 parent 的 root grant 或深度 = `max_delegation_depth_observed`。
-2. 若在 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中(即新 grant 会 close 一条循环 path),reducer **MUST** 拒绝整条 delegation chain 上的本 Event,reason=`delegation_cycle`,不接受任何子 grant 即便它们单看 valid。
+2. 若在 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中(即新 grant 会 close 一条循环 path),reducer **MUST** 拒绝整条 delegation chain 上的本 Event,reason=`delegation_cycle`,MUST NOT 接受任何子 grant 即便它们单看 valid。
 3. DFS 深度上限 default 64,与 `actor_seq` causal chain 上限一致(`scalability-constraints.md`);超过深度的 chain 视作病态,reducer MUST 退化为拒绝。
 4. 当 parent grant 已被 revoke 但 freshness 未到达时,reducer 仍 MUST 把它视为 cycle detection 的 ancestor 节点(prevent 攻击者 revoke-then-re-delegate 构造环)。
 5. 同一 delegate event 携带的多 child grant(批量委托)MUST 整体 fail-or-pass;部分接受会产生不完整的图结构,reducer MUST NOT 部分接受。
@@ -548,12 +556,12 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Move MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或 Anchor frontier 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
-`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `cx:grant:<uuid>` 或 profile 注册的不可变 grant record id；不得指向一次 `/policy/check` decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
+`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `cx:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `/policy/check` decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 
 1. 该 grant 直接授权的 pending Event MUST fail closed；
-2. 该 grant 派生出的 child grant MUST 标记 `revoked_upstream`，除非 child grant 自身有另一条仍有效的 parent path；
+2. 该 grant 派生出的 child grant MUST 标记 `revoked_upstream`。child grant 的有效性 **MUST** 取其**所有** parent path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在该 child 的某条 parent path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 **MUST** 降级 fail-closed，**MUST NOT** 因为存在另一条"仍有效的 alternate parent path"而保持有效。实现 **MUST NOT** 把 multi-path delegation 当作可漂白单条 path 撤销的冗余授权；多 path 只增加约束、不放宽约束。child grant 仅当其**每一条** parent path 上的全部关键 ancestor 都仍有效时才保持有效；
 3. 依赖该 grant 的 allow cache、policy decision cache、projection shortcut 和 server-side cursor authority MUST 在同一 reducer transaction 内失效；
-4. 已 anchored 的历史 Event 保留审计事实，但后续 snapshot / range completeness / export 不能再把它作为“当前仍授权”的证据。
+4. 已 anchored 的历史 Event 保留审计事实，但后续 snapshot / range completeness / export MUST NOT 再把它作为“当前仍授权”的证据。
 
 ## 11. 有效权限集合
 
@@ -667,7 +675,7 @@ Contrix v1 至少区分：
 11. 若需要 approval，校验 responsible / guardian / controller approval 证据。
 12. 应用 revoke 和 superseding 规则。
 
-Facets 不属于独立授权输入。算法不得在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Realm schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机、RelationProfile 或 policy 条件；不得把 facets 本身当作状态机、动作或授权规则。
+Facets 不属于独立授权输入。算法 MUST NOT 在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Realm schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机、RelationProfile 或 policy 条件；MUST NOT 把 facets 本身当作状态机、动作或授权规则。
 
 ### 18.1 高频交互的 O(1) 快速路径
 
@@ -692,19 +700,20 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 规则：
 
-- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点本地 reducer 在 `apply_anchor` 完成的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**不得**作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `cx.member.state` event，但产生的 cell 变化同样属于"membership 变化"，MUST 触发 cache invalidation。
+- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点本地 reducer 在 `apply_anchor` 完成的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `cx.member.state` event，但产生的 cell 变化同样属于"membership 变化"，MUST 触发 cache invalidation。
 - **Moderation state cell 与 cache 的关系**：anchored moderation decision（写入 `cx.component.moderation_state.v1`，见 [`policy-server.md` §7.1](./policy-server.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation cell 标记的 actor 不在其中），则该 cell 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
   - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
     1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
     2. `actions[]` 包含 `cx.moderation.decision` / `cx.moderation.decision.lift` / `cx.realm.moderation_policy` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；
     3. `constraints[]` 中存在任何 typed constraint 引用 moderation state cell、moderation queue、moderation report 或 moderation tag。
-  - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；不接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
+  - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；实现 MUST NOT 接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
   - 不在上述条件内的普通 grant（典型如 `cx.flow.update`、`cx.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。
-- Cache entry 的 `auth_state_digest` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；不得继续用旧 grant 允许新写入。
-- 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现不得只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
-- 已被 GC 的 grant 仍必须保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现不得因为 grant payload 已压缩或归档而让旧 cache 重新生效。
-- `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态不得生成 allow cache；只能生成 deny / unknown / pending 诊断。
-- 多 Principal Server 部署中，cache TTL 只是额外保险，不得替代 revoke fanout、frontier 对账和 `auth_state_digest` 失效。
+- Cache entry 的 `auth_state_digest` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；MUST NOT 继续用旧 grant 允许新写入。
+- 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现 MUST NOT 只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
+- 已被 GC 的 grant 仍 MUST 保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现 MUST NOT 因为 grant payload 已压缩或归档而让旧 cache 重新生效。
+- `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。
+- fast path（capability 快照缓存）**MUST** 只适用于"该 grant 的全部 constraint 的 `evaluation_class` 均为 `stateless` 或 `grant_local`"的 grant；只要 grant 含任一 `external` 或 `realm_state` 类 constraint（见 [`constraint-schema.md` §2.3](./constraint-schema.md) evaluation_class 分类，典型如 `claim_based` / `quota.rate` / `confidentiality` / `field_access` 带 `condition` 等），该 grant 的判定 **MUST** 走完整授权判定，**MUST NOT** 仅凭 fast-path cache 命中放行。该绑定与 §18.1 fast-path cache 的 `auth_state_digest` 失效机制叠加生效，不互相替代。
+- 多 Principal Server 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、frontier 对账和 `auth_state_digest` 失效。
 
 ### 18.2 撤销新鲜度 (Revocation Freshness)
 
@@ -733,8 +742,8 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。任何 high-risk / cross-domain / delegated grant 相关动作的 `freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`；否则本地时钟偏差可覆盖整个 freshness window，receiver MUST 把配置视为 `schema_violation` / deployment misconfiguration。默认值：高风险 `freshness_required_ms = 180_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`；clock_skew_tolerance_ms = 60_000。
 - 在 `unknown` / `stale` 拒绝响应中返回 `freshness_state`、`last_known_frontier_age_ms`、`anchorer_status`、`retry_after_ms`，让客户端 UI 区分"被拒绝"和"暂时不能确认"。
 - 客户端在低风险 `unknown` 模式下 MUST 在 UI 中标记本地 pending 写入为 `pending_local`（例如灰色发送中状态），并暴露"分区恢复后可能丢弃"的提示。
-- 不得用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_digest` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
-- 不得通过把高风险动作降级为中风险（例如把 `cx.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 字段声明，不接受 grant-side override。
+- MUST NOT 用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_digest` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
+- MUST NOT 通过把高风险动作降级为中风险（例如把 `cx.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 字段声明，MUST NOT 接受 grant-side override。
 - 单个分区窗口内允许的本地 pending 数量 MUST 限制（默认 ≤ 1000 / Realm / 5 minutes），超过后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
 
 **默认 fail closed**：当实现无法确定动作风险等级、或动作来自尚未注册的 capability action 时，freshness 判定 MUST 默认按高风险处理（`stale` / `unknown` 即拒绝），而不是按低风险放行。这条 default 是为了让任何未来引入的高风险动作在进入 capability registry 前不会被旧实现误判为低风险路径。
@@ -760,6 +769,6 @@ Contrix v1 固定：
 - Resource selector 语法由 `resource-selector-grammar.md` 和 `resource-selector.schema.json` 固定。
 - Constraint schema 由 `constraint-schema.md` 固定。
 - 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交。
-- Moderation policy 不得凭空授予 capability。
+- Moderation policy MUST NOT 凭空授予 capability。
 - Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
 - Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 §16 的 presentation 规则。

@@ -110,7 +110,7 @@ Realm MAY 通过 `cx.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
-| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Flow 的 effective scope 可见性允许的全部观察者；`members` = Flow effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。**警告**：在 `history_visibility=world_readable` 的 Realm/Flow 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。 |
+| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Flow 的 effective scope 可见性允许的全部观察者；`members` = Flow effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。**警告**：在 `history_visibility=world_readable` 的 Realm/Flow 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。该组合的 reducer 级强制判定见 §2.5.1。 |
 | `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 必须同时满足两条规则：隐私上限允许 `optional -> disabled`，但合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。父 Realm `scope_overrides_allowed=true` 仅允许 Circle 在满足上述两条规则时进一步收紧；`scope_overrides_allowed=false` 要求 Circle 完全继承父 Realm 策略。任何放宽方向或违反合规下限的 child policy 声明 MUST reducer 拒绝。 |
 | `allow_child_privacy_tightening_against_required` | `bool` | `false` | 父 Realm 显式同意 child Realm 把 `disclosure=required` 进一步收紧为 `optional` 或 `disabled` 的合规例外开关。**仅当父 policy 把该字段显式声明为 `true` 时** child policy 才允许 `optional → disabled` 方向跨越合规下限；否则（字段缺省、为 `false` 或字段名拼写错误）reducer MUST 以 `read_receipt_compliance_floor_violated` 拒绝相应 child policy Move。该字段为 prose-defined 合规旁路，schema 必须 `additionalProperties=false` 防止"未识别字段被静默忽略"，writer 必须在该 cell 的 wire JSON 中按字面拼写出现该字段。 |
 
@@ -123,6 +123,20 @@ Realm MAY 通过 `cx.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
 - Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。放宽方向（例如父 `disabled` → 子 `required`、父 `private` → 子 `public`）MUST 被 reducer 拒绝，与 `scope_overrides_allowed` 取值无关——`scope_overrides_allowed=true` 仅允许 child 在上述限制内进一步收紧，`scope_overrides_allowed=false` 要求 child 完全继承父策略。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
+
+#### 2.5.1 `visibility × history_visibility` 组合约束（normative）
+
+`visibility` 与 Flow effective scope 的 `history_visibility` 的组合按下表判定，与 [`discovery-directory.md` §3.1](./discovery-directory.md) 的矩阵纪律同级（`✓` = 允许；`!` = 允许但 reducer MUST 在 accept 时附带警告诊断，客户端 SHOULD 在进入 scope 时显式提示；`✗` = reducer MUST 拒绝）：
+
+| visibility ↓ \ history_visibility → | `world_readable` | `shared` / `invited` / `joined` / `restricted` |
+| --- | --- | --- |
+| `private` | ✓ | ✓ |
+| `members` | ✓ | ✓ |
+| `public` | `!`（默认拒绝，见下） | ✓ |
+
+- `visibility="public"` + `history_visibility="world_readable"` 会让任意外部 world-readable 观察者读取 actor 的已读位置（活动侧信道）。该组合 MUST 是**显式 opt-in**：reducer MUST 拒绝（`read_receipt_visibility_combination_invalid`）该组合，**除非** receipt policy payload 显式声明 opt-in 标记 `allow_public_receipts_on_world_readable=true`；显式 opt-in 时 reducer MUST 仍附带警告诊断并要求客户端按 §2.4 / §2.5 在 UI 明示。该字段与 `allow_child_privacy_tightening_against_required` 同纪律，是 prose-defined 合规旁路：read_receipt_policy payload schema MUST `additionalProperties=false` 收录该字段，writer 必须在 wire JSON 中按字面拼写出现它，字段缺省 / 为 `false` / 拼写错误时 reducer MUST 按拒绝处理。
+- metadata-private 场景下 receipt policy MUST 收紧 `visibility` 为 `members` 或 `private`，不得依赖上述显式 opt-in 旁路。
+- 该表只约束 receipt `visibility` 与 history visibility 的组合，不替代 §2.5 字段表与 child-policy 收紧规则；冲突时更严格者优先。
 
 ## 3. Read Cursor (私有游标)
 

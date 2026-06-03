@@ -229,7 +229,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 |------|------|------|------|
 | `state` | string | MUST | 状态值 |
 | `actor_id` | did | MUST | 发送 presence 的 actor DID。 |
-| `last_active_at` | string | 可选 | 最后活跃时间；默认 SHOULD 省略或按 policy bucket 化（例如分钟/小时级），只有 presence policy 明确允许精确披露时才发送精确 timestamp。 |
+| `last_active_at` | string | 可选 | 最后活跃时间。默认 MUST 省略，或按 policy bucket 化为粗粒度（例如分钟 / 小时级）；**仅当** presence policy 显式允许精确披露时才发送精确（秒级）timestamp。精确秒级值会成为活动 timing 侧信道，因此不得作为默认行为。 |
 | `status_message` | string | 可选 | 当前状态消息（来自 Profile） |
 | `ttl_ms` | integer | SHOULD | 存活时间（毫秒），超时后客户端应将该用户视为 offline |
 
@@ -276,7 +276,9 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 
 ### 4.1 搜索接口
 
-Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现：
+Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现。
+
+> **Normative 源（normative）**：`search-users` 的 operation 形态、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `cx.directory.search_users` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（`results[].membership`、autocomplete intent 等）。下表字段与 directory §9 冲突时以 directory §9 为准。
 
 ```
 POST /api/v1/directory/search-users
@@ -304,7 +306,8 @@ POST /api/v1/directory/search-users
 | `results[].display_name` | `string` | optional | 显示名。 |
 | `results[].avatar_blob_ref` | `id:blob` | optional | 头像 Blob 引用；字段名与 Actor Profile canonical 字段保持一致。 |
 | `results[].membership` | `string` | optional | 与 `realm_id` 相关的成员状态。 |
-| `limited` | `boolean` | optional | 是否因 limit 截断。 |
+| `next_cursor` | `cursor` | optional | 下一页 cursor；分页语义与 [`discovery-directory.md` §9](./discovery-directory.md) `cx.directory.search_*` 一致。 |
+| `has_more` | `boolean` | optional | 是否还有更多结果（取代旧 `limited` 字段，统一对齐 directory §9 的 `has_more` 约定）。 |
 
 响应示例（非完整 schema）：
 
@@ -318,7 +321,8 @@ POST /api/v1/directory/search-users
       "membership": "joined"
     }
   ],
-  "limited": false
+  "has_more": false,
+  "next_cursor": null
 }
 ```
 

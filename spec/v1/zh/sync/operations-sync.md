@@ -301,6 +301,8 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 启用 `security_class=high_assurance`、`cx.profile.federation.high_assurance.v1` 或 sovereign / regulated federation profile 的 Realm，range completeness MUST 使用 `federation_witness_attested`；`single_source` 只能作为诊断 hint，不能解除 `dependency_missing`、`stale_peer`、snapshot bootstrap 或 progressive backfill 的 completeness gate。
 
+- 在上述 high_assurance / sovereign profile 下，witness quorum MUST 防止退化为单源背书：每个 witness 的 `controlling_organization` MUST 与该 Realm 的 anchorer（Realm anchor / recovery_anchorer 的 controlling_organization）以及彼此之间两两 distinct，且 SHOULD 跨信任域（不同 `trust_domain`）。任一 witness 与 anchorer（或与另一 witness）共享 `controlling_organization` 的 attestation MUST 拒绝（`audit_receipt_invalidated`），不得用于解除上述 completeness gate——否则名义上的 quorum 实际由单一组织控制，silent-fork 抗性形同虚设。
+
 #### 4.2.4 Verifier 协议
 
 接收方 verifier 验证 attestation 时 MUST：
@@ -740,7 +742,7 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 
 ### 9.3 List Space 排序
 
-List Space 在 Board Space 内的顺序通过 `cx.space.update` 修改 List Space 的 `rank` 字段（或 `cx.space.parent` 调整 `parent_space_id` + rank）来改变。它不得移动 Flow。**禁止**使用 `cx.realm.update` 修改 List 排序——Space 不是 Realm，不与 Realm 共享生命周期 / membership / E2EE 边界。
+List Space 在 Board Space 内的顺序通过 `cx.space.update` 修改 List Space 的 `rank` 字段（或 `cx.space.parent` 调整 `parent_space_id` + rank）来改变。它 MUST NOT 移动 Flow。实现 MUST NOT 使用 `cx.realm.update` 修改 List 排序——Space 不是 Realm，不与 Realm 共享生命周期 / membership / E2EE 边界。
 
 ### 9.4 切换 Flow 默认 track
 

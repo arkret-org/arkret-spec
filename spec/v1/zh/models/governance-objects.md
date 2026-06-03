@@ -65,18 +65,24 @@ Schema 引用的写入路径：
 
 ### 3.1 概念
 
-Policy 约束：
+Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 Policy 对象的分类由 §3.2 `policy_type` 字段表达；下表把 `policy_type` enum 的每个取值与它所约束的维度对齐（概念列表与 enum 取值一一对应，不再使用与 enum 脱节的粗粒度词）：
 
-- capability requirement
-- object type / facet requirement
-- encryption profile
-- retention
-- visibility
-- federation
-- moderation
-- quota
+| `policy_type` | 约束维度 |
+| --- | --- |
+| `access` | capability requirement、object type / facet requirement 等访问准入条件 |
+| `encryption` | encryption profile / metadata 加密下限 |
+| `retention` | 保留与擦除 |
+| `federation` | 联邦准入与传播 |
+| `moderation` | 举报 / 审核 / franking 流程 |
+| `discoverability` | Realm / 对象可发现性 |
+| `join` | 加入规则 |
+| `history_visibility` | 历史可见性 |
+| `plaintext_visibility` | plaintext-visible service 披露范围 |
+| `media` | 媒体 / Blob 准入与处理 |
+| `applet` | Applet 集成约束 |
+| `agent` | Agent 运行约束 |
 
-Policy 是 reducer 和服务节点判断请求是否可接受的输入。
+quota（速率 / 资源上限）不作为独立 `policy_type`，而是通过相关 policy（典型 `access` / `media`）的 `rules[]` 内 `quota` 约束表达。Policy 决策与 capability 决策的关系见 §3.3。
 
 ### 3.2 Schema 与字段
 

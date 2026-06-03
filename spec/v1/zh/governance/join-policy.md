@@ -24,7 +24,7 @@ updated: 2026-05-25
 | `cx.invite.*` + `refs[role="join_authorised_by"]` | active | 标准 invite / member refs | base v1 支持 invite 或 join-authorized grant 时必须校验引用仍有效 |
 | `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` | candidate | 裸名 design-time concept；不得作为 `Event.kind` | 仅 `cx.profile.candidate.join_policy.v1` 实现可用 profile-private signed receipt 或私有 Event kind 承载 |
 
-独立 join-policy Event.kind / schema 仍未进入 active registry。任何未声明 `cx.profile.candidate.join_policy.v1` 的实现 MUST 把 application / review workflow 当作未知高风险 surface，返回 `unsupported_feature`、`unsupported_event_kind`、`capability_denied` 或等价 fail-closed 结果；不得把未注册裸名 kind 写入 shared Realm history。
+独立 join-policy Event.kind / schema 仍未进入 active registry。任何未声明 `cx.profile.candidate.join_policy.v1` 的实现 MUST 把 application / review workflow 当作未知高风险 surface，返回 `unsupported_feature`、`unsupported_event_kind`、`capability_denied` 或等价 fail-closed 结果；MUST NOT 把未注册裸名 kind 写入 shared Realm history。
 
 `default_join_rule` 枚举（[`../models/realm-and-space.md` §2.3](../models/realm-and-space.md)）只表达粗粒度的入口模式：`public` 直接进、`invite` 必须有人邀、`knock` 可申请、`restricted` / `knock_restricted` 有附加条件、`closed` 不收新人。但是 `restricted` 的"条件"是什么、`knock` 申请里能否带结构化材料、人工审批的决策是否上链审计、CAPTCHA / proof-of-work 等运行时挑战如何接入——这些都需要本文件统一定义。
 
@@ -52,7 +52,7 @@ bottom      := reject
 value shape := JoinPolicy（见下）
 ```
 
-写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也不得作为 Event envelope 的 `kind` 上链或同步），需要 `cx.policy.manage` capability（与 `cx.realm.policy_server` / `cx.realm.policy_components` 同等级）。`cx.realm.create` 时 SHOULD 通过 `cx.realm.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
+写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `cx.policy.manage` capability（与 `cx.realm.policy_server` / `cx.realm.policy_components` 同等级）。`cx.realm.create` 时 SHOULD 通过 `cx.realm.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
 
 JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
@@ -60,7 +60,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- | --- | --- |
 | `gates` | yes | `array<Gate>` | 1..16 项；空数组 MUST schema_violation。 | 必须穿越的 gate 列表。 |
 | `combinator` | yes | `enum(all, any)` | 默认 `all`。 | gate 之间的组合语义。 |
-| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `cx.realm.join.review`。 | 审核所需 capability。[^review-capability-alias] |
+| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `cx.realm.join.review`。 | 审核所需 capability，取 **capability action token** 形态（如 `cx.realm.join.review`），不是 grant id 引用；与 §6.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
 
 [^review-capability-alias]: v1.1 候选 alias: `review_capability_action` — 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。当前字段名是历史保留（v1 已发布，避免 wire-breaking 重命名），推荐文档与 SDK 在 prose 中使用 `review_capability_action` 描述其语义；wire 字段名保持 `review_capability`。
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
@@ -96,13 +96,13 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §11。 | `true` |
 | `application_form` | `questions[]`（见 §3.3） | applicant MUST 在 `member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
 | `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
-| `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `cx.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估）。 | `true` |
+| `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `cx.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估）。此 gate 的语义是 **leave-cooldown**（按上次主动 leave 计时），prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
 
 未注册 `kind` MUST schema_violation；未注册的 `(kind, subfield)` 组合按 lattice `bottom=reject` 处理。
 
 ### 3.2 `directory_hint`
 
-为帮助 Discovery Directory（[`../discovery/discovery-directory.md`](../discovery/discovery-directory.md)）告知 applicant "进入这个 Realm 大概要做什么"，Realm MAY 声明 directory hint。该 hint 是公开投影，**不得**包含敏感问卷正文：
+为帮助 Discovery Directory（[`../discovery/discovery-directory.md`](../discovery/discovery-directory.md)）告知 applicant "进入这个 Realm 大概要做什么"，Realm MAY 声明 directory hint。该 hint 是公开投影，**MUST NOT** 包含敏感问卷正文：
 
 ```json
 {
@@ -396,9 +396,11 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | `reason_code` | yes | `string` | 稳定原因码：`ok` / `incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `other`。 |
 | `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
 | `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `cx.audit.*` 风险记录）。 |
-| `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability` 的 grant id 与当时 frontier digest；reducer 必须在写入时再校验一次。 |
+| `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability`（§3 中那个 capability **action token**）的 **grant id** 与当时 frontier digest；reducer 必须在写入时再校验一次。注意：本字段承载 grant id 引用，`review_capability` 承载 action token，二者勿混用。 |
 
 `reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。
+
+**review reason_code / reason_text 可见性（normative）**：§6.3 的细粒度 `reason_code` 与 `reason_text` 只在 applicant **已提交 stage 1 `cx.member.state{knock}`**（即进入半信任的申请-审核状态机）后，才 MAY 对该 applicant 自身可见。这与 §5 自动解析路径"外部 applicant 失败不可枚举"不冲突：尚未 knock 的外部探测者仍只能看到统一不可枚举错误，细粒度 review 原因 MUST NOT 出现在 directory hint、discovery surface、push / notification payload 或任何未经 knock 的 caller 可见响应中。换言之，半信任边界由"是否已 knock"划定——knock 之前等同自动路径的不可枚举约束，knock 之后才解锁面向本人的 review reason。
 
 ### 6.4 `member.application.cancel`
 
@@ -447,6 +449,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
 ```
 
 reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applicant 重提。
+
+**Envelope recipient capability 绑定（normative）**：`encryption_envelope.recipients[]` 中列出的每个 reviewer device，applicant / 提交服务在构造 envelope 时 MUST 校验其对应 reviewer DID 在该 Anchor pre-state 下仍持有有效 `review_capability`，且该 device 仍是该 reviewer 当前有效 device；MUST NOT 向已撤销 capability 或已退役 device 封装 `wrapped_key`。reducer / 投递服务在投递**新** envelope 时 SHOULD 拒绝向已失去 `review_capability` 的 device 投递，reason `reviewer_capability_revoked`。注意这是 best-effort 前向控制：**reviewer 退职前已经解密的历史 application 正文无法被协议回收**——一旦某 device 在持有有效 capability 期间收到并解出 `wrapped_key`，撤销 capability 只能阻止后续新 envelope 投递，不能撤销既有明文副本。需要严格前向保密的部署 SHOULD 改用 §7.2(1) Reviewer Sub-Group MLS 并在 reviewer 退职时 rotate epoch。
 
 申请正文 MUST NOT 进入 `cx.member.state{knock}` Move（该 Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Contrix 通过结构上禁止 knock Move 携带正文规避该缺陷。
 

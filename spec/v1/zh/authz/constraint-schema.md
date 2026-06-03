@@ -70,7 +70,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `cx.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `cx.profile.constraint.visibility_control.v1` |
 
-> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 表达：`edit_window` / `redact_window` 走 `temporal` (subtype 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`subtype=rate` / `resource`)；`approval_workflow` / `accountability` / `device_session` 走 `claim_based` (`subtype=approval` / `accountability` / `device_session`)；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`subtype=encryption` / `visibility`)。底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
+> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 表达：`edit_window` / `redact_window` 走 `temporal` (subtype 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`subtype=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`subtype=approval` / `accountability`)；device/session binding **不是独立 subtype**，并入 `claim_based` `subtype=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`subtype=encryption` / `visibility`)。底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 
 未注册的 `constraint_type` 或未注册的 `(constraint_type, subtype)` 组合 MUST fail closed。新增 family / subtype 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` 与 `subtype` enum 中注册。
 
@@ -95,8 +95,9 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `claim_based` (`subtype=claim`) | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
 | `claim_based` (`subtype=approval`) | `external` | 不可缓存 | 等待 approval event |
 | `claim_based` (`subtype=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
-| `claim_based` (`subtype=device_session`) | `realm_state` | (realm_id, frontier_digest, actor_device_id) | 设备 / session 状态来自 principal control stream |
-| `confidentiality` (`subtype=encryption`) | `realm_state` | (realm_id, frontier_digest) | 取 Realm `encryption_profile` / `audit_assurance` |
+| `claim_based` (`subtype=claim`，device/session binding 子情形：claim issuer = device cross-signing key) | `realm_state` | (realm_id, frontier_digest, actor_device_id) | device/session binding 不是独立 subtype（见 §2.2），它是 `subtype=claim` 的子情形；当需校验设备 / session 状态（来自 principal control stream）时该子判定为 `realm_state` |
+| `confidentiality` (`subtype=encryption`，纯静态声明：`encryption_required` / `min_encryption_level` / `allow_plaintext_fallback` / `require_audit_trail` / `approved_key_issuers` 列表成员比较) | `stateless` | (constraint_digest, op_target) | 仅做布尔标志与 issuer 列表集合比较，不读取 Realm state |
+| `confidentiality` (`subtype=encryption`，依赖 Realm 加密态：需对照 Realm `encryption_profile` / `audit_assurance` 或当前 MLS key schedule 的判定) | `realm_state` | (realm_id, frontier_digest) | 仅这些依赖项走 slow path |
 | `confidentiality` (`subtype=visibility`) | `realm_state` | (realm_id, frontier_digest) | 看 Realm `history_visibility` |
 
 落地要点：
@@ -504,6 +505,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
+**evaluation_class 拆分（normative）**：`confidentiality(encryption)` 约束不是整体 `realm_state`。其纯静态声明部分——`encryption_required` / `min_encryption_level` / `allow_plaintext_fallback` / `require_audit_trail` 这些布尔/枚举标志，以及 `approved_key_issuers` 的列表成员比较（"某 issuer DID 是否在列表中"是封闭集合比较）——只读取 grant 自身内容，求值器 MUST 按 `stateless` 对待，可走 fast path，不得仅因约束 family 是 `confidentiality(encryption)` 就把这些纯静态判定整体降级到 slow path。只有当判定真正需要对照 Realm 当前加密态时——即比较 Realm `encryption_profile` / `audit_assurance`，或对照当前 MLS key schedule 判断实际使用的 key issuer 是否落在 `approved_key_issuers` 内——该子判定才是 `realm_state`，按 §2.3 第二行处理。实现 MUST 按子判定的真实依赖分类，而不是按 family 一刀切。
+
 ## 13. 可见性控制（confidentiality, subtype=visibility）
 
 ### 13.1 对象可见性
@@ -513,12 +516,12 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "confidentiality",
   "subtype": "visibility",
   "effect": "allow",
-  "visibility_allow": ["world_readable", "shared", "joined"],
+  "visibility_allow": ["world_readable", "shared", "invited", "joined", "restricted"],
   "deny_redacted_history": true
 }
 ```
 
-`visibility_allow` 限制 actor 可访问的对象/消息可见性级别。取值与 `history_visibility` 枚举一致：`world_readable`、`shared`、`invited`、`joined`、`restricted`。
+`visibility_allow` 的取值 MUST 来自 `history_visibility` 权威枚举的完整集合：`world_readable`（注意是 `world_readable`，不是 `world`）、`shared`、`invited`、`joined`、`restricted`。上例列出全部五个合法值以展示权威枚举；实际 grant 中 `visibility_allow` 通常只声明该枚举的一个**子集**（例如 `["world_readable", "shared", "joined"]`）来限制 actor 可访问的对象/消息可见性级别，未列入的级别即不被该约束允许。出现枚举外的值（如 `world`）时 receiver MUST `schema_violation`。
 
 ## 14. 其它常用示例
 

@@ -268,7 +268,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 }
 ```
 
-除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事，否则 Applet MUST NOT 向 Realm 写入。
+除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事（此时 MUST 满足 [§11](#11-masquerading-与-delegated-agent) delegated agent 的全部字段 `executed_by` / `authorization_ref` / `applet_id` 与对应 reducer 校验），否则 Applet MUST NOT 向 Realm 写入。
 
 ## 7. Applet API
 
@@ -276,6 +276,13 @@ Applet API 是 Contrix 节点调用 Applet 的接口。
 Applet 调用 Contrix 节点时使用常规 Events API / sync service / authz API。
 
 Base URL 来自 registration 的 `base_url`。
+
+**`cx.applet.*` 标识符的两类用途（normative 区分）**：`cx.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
+
+- **Event kind（进 Realm history）**：`cx.applet.registration`、`cx.applet.transaction`（指其作为 wire `Event.kind` 的语义，例如 §4 的 registration event、§8 写入的 transaction-origin event）、`cx.applet.bridge_error`（见 `applet-schema.md` §7）。这些是 durable Contrix Event，进入 Realm history，由 reducer 按 schema 校验。
+- **operation_id（HTTP，不进 history）**：本节表中的 `cx.applet.ping`、`cx.applet.describe`、`cx.applet.transaction`、`cx.applet.resolve_actor`、`cx.applet.resolve_realm`、`cx.applet.protocol_metadata`、`cx.applet.third_party_users`、`cx.applet.third_party_locations` 是 HTTP API operation 标识符，只描述 Contrix 节点 ↔ Applet 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
+
+注意 `cx.applet.transaction` 同时出现在两类用途：作 operation_id 时指 §7.3 的 transaction push HTTP 调用；作 Event kind 概念时指该 push 携带 / 触发的 durable Event。二者通过本说明显式区分（与 [`agent-protocol-interop.md` §7](./agent-protocol-interop.md) 对 capability action 与 `cx.agent.protocol_session.*` event kind 的区分写法一致）。
 
 字段级接口索引：
 
@@ -579,7 +586,7 @@ Alice via Calendar Applet
   1. `executed_by` 必填，指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致;
   2. `authorization_ref` 必填，指向已 accepted 的 `cx.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
   3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet;
-  4. grant constraint MUST 绑定 `applet_id`、`executed_by` DID、`executed_by` DID Document canonical hash / method-specific version（若 DID method 提供）和 registration epoch hash。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。
+  4. grant constraint MUST 绑定 `applet_id`、`executed_by` DID、`executed_by` DID Document epoch 证据和 registration epoch hash。对支持版本化的 DID method，epoch 证据 MUST 包含 method-specific version / log entry id；对**无版本化的 DID method（如部分 `did:web` 部署）**，grant MUST 绑定 service DID Document 的 **fetch-time digest**（canonical document hash）外加 **registration epoch hash**，reducer MUST 以 fetch-time digest 或 registration epoch 不匹配作为拒绝条件，不得因为 method 不提供显式版本号而豁免该绑定。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。
 - 缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时,reducer MUST `schema_violation` 拒绝。该规则适用于所有 `cx.profile.applet_*` profile,客户端 / SDK 不得退回到 SHOULD 形态。
 
 Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示 `via applet`：UI 在渲染 mention、notification、audit log、moderation queue 等任何"who did this"上下文时,MUST 同时显示 native actor 与 `executed_by` 双重署名，不得仅显示 native actor 而隐藏 applet 身份。
@@ -599,6 +606,12 @@ Applet 参与 E2EE Realm 时有三种模式：
 - Applet 没有加入 MLS group 时 MUST NOT 获得明文。
 - Bridge 到不支持 E2EE 的外部网络时，客户端 MUST 明确提示加密边界在 bridge 处终止。
 - Applet 托管 ghost actor MLS state 时，必须将其视为高敏感密钥材料。
+
+**E2EE 加入授权（normative）**：Bot actor 或 Applet-managed ghost actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `cx.flow.create` / `cx.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
+
+- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 authz service 签发（参照 §4 的 `applet_registration_unauthorized` 门槛），并落为可审计的 Contrix Event（如 `cx.member.state` 加入 effect 携带 applet provenance），不得仅凭 Applet 自身 Welcome 入组。
+- 缺少该独立 E2EE 加入授权时，Contrix 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。
+- 成员加入后，客户端在 MLS group 的成员 roster（成员列表 UI 与 audit 视图）中 MUST 显式标注该成员为 **applet-managed**（区别于 native 人类成员），不得让 applet / ghost 成员在 roster 中表现为普通 native 成员。该标注与 §9 的 ghost actor 协议层可区分要求一致。
 
 ## 13. 安全要求
 
@@ -656,4 +669,24 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 - Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `cx.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。
-- Applet UI widget sandbox MUST 与 Realm capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Contrix session token 或未授权 Event history access。
+- Applet UI widget sandbox MUST 与 Realm capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Contrix session token 或未授权 Event history access。该 sandbox 的字段与约束在 [§17 Applet UI Widget](#17-applet-ui-widget) 定义。
+
+## 17. Applet UI Widget
+
+部分 Applet 在 Contrix 客户端内嵌入 UI widget（如 Slack-style 交互卡片、配置面板）。Widget 在 host 客户端的信任边界内渲染，因此 MUST 被沙箱隔离。本节定义 §16 引用的 widget sandbox 的最小 normative 形态。
+
+Widget 声明（registration 或 describe 响应内）SHOULD 包含：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `widget_origin` | `string`（origin） | required | Widget 内容来源 origin（scheme + host + port）。host 客户端 MUST 在隔离 origin（iframe sandbox 或等价机制）内加载 widget，MUST NOT 在 host 客户端自身 origin 下执行 widget 代码。 |
+| `csp` | `string` | required | 适用于 widget 文档的 Content-Security-Policy。host 客户端 MUST 强制该 CSP，并 MUST NOT 放宽到允许 widget 访问 host 客户端的 DOM、storage 或 session。 |
+| `token_scope` | `object` | required | Widget 可用 token 的 capability scope（action / resource selector / realm_ids / expiry）。该 token MUST 是为 widget 单独签发的 scoped token，scope MUST NOT 超出本字段声明的范围。 |
+| `requires_consent` | `boolean` | required | 是否需要在加载前向用户展示 consent / capability 摘要。 |
+
+约束（normative）：
+
+- **Origin 隔离**：widget MUST 在与 host 客户端隔离的 origin 中运行；host 客户端 MUST NOT 把自身 origin 的 cookie、localStorage、IndexedDB 或 in-memory session 暴露给 widget。
+- **Token scoping**：host 客户端 MUST NOT 把 Contrix 用户的 session token 或 device key 传给 widget；widget 只能拿到为其单独签发、scope 收敛到 `token_scope` 的短期 capability token，且该 token MUST NOT 超出 widget 声明的 scope。
+- **History 读取不可越权**：widget MUST NOT 通过任何接口读取超出其 capability scope 的 Event history；host 客户端 MUST 以 widget 的 scoped capability 为准做 history 访问授权，未授权范围 MUST 拒绝。
+- **Consent**：`requires_consent=true` 时，host 客户端 MUST 在加载 widget 前向用户展示其 origin 与请求 scope，未获 consent MUST NOT 加载。

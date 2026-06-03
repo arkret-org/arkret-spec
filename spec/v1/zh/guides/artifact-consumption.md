@@ -75,6 +75,6 @@ Cotest 应测实现对 artifact 的遵循，而不是维护另一份手写协议
 
 1. Spec artifact 新增或修改协议事实。
 2. SDK generated/artifact reader 更新并有 drift test。
-3. Soland/Yougen/Teabay/Floria/Chime 通过 SDK 或 embedded artifact 消费。
+3. 各下游实现（principal server、客户端、bridge、媒体服务等）通过 SDK 或 embedded artifact 消费。
 4. Cotest 增加默认或 soft-gated 断言。
 5. 删除项目内重复事实表或把它降级为 alias。

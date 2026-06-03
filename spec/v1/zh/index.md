@@ -20,11 +20,13 @@ see_also:
 `contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。其核心不是界面，而是"可验证协作事实 + 可投影的对象语义"：
 
 - 身份主键：DID principal
-- 数据主语：Realm / Space（含 Board/List）/ Flow / Message / Relation / Event / View / Capability
+- 数据主语（canonical 对象清单）：Realm / Circle / Space（含 Board/List）/ Flow / Message / Relation / Morph / Event / View / Capability
 - 审计主语：signed Event + per-actor event chain
 - 权限主语：capability
 - 呈现主语：views / projection
-- 扩展承载：Morph + schema / profile-defined facets
+- 扩展承载：Morph（同时是上面 canonical 对象清单中的开放对象）+ schema / profile-defined facets
+
+> 上面"数据主语"是本规范的 canonical 对象清单；§6 与其他章节引用对象集合时以此为准。Morph 既是 canonical 对象清单中的开放对象，也充当 schema / profile 扩展承载，两处指的是同一对象，不是两类东西。
 
 ### 1.1 5 分钟读法
 
@@ -99,8 +101,8 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - `principal_id = DID URI`，Handle 只作为可迁移的人类可读入口。
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
 - **v1 core 默认 principal DID method 为 `did:webvh`**：在 `did:web` 之上叠加 `did.jsonl` 历史链 + SCID + witness evidence，提供可审计的 DID 控制历史，抵御 DNS / TLS 单点失陷。
-- `did:web` 仅作为 **service DID 默认 method** 与 **`personal_node` deployment profile 的可选 principal method**；`did:webvh` hosting 暂时不可达时只允许 §3.4 定义的 cache-only degraded mode，不得 live fallback 到 `did:web`。
-- 临时、测试、设备、邀请、bootstrap 使用 `did:key`；不得作为默认长期主身份。
+- `did:web` 仅作为 **service DID 默认 method** 与 **`personal_node` deployment profile 的可选 principal method**；`did:webvh` hosting 暂时不可达时只允许 [`identity/identity-did.md`](./identity/identity-did.md) 定义的 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。
+- 临时、测试、设备、邀请、bootstrap 使用 `did:key`；MUST NOT 作为默认长期主身份。
 - 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 interop extension profile，不属于 v1 core 互操作必需。
 - DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。
 
@@ -146,17 +148,19 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 各实现声明支持范围时需同时给出：
 
-- `protocol_version`（v1 使用 `1.0`）
+- `protocol_version`（canonical 字段值固定为字符串 `"1.0"`；wire / describe 响应 MUST NOT 写成 `1.0.0` 或 `v1.0.0`）
 - conformance profile（如 `cx.profile.full_client.v1`）
 - schema / reducer profile（如 `cx.schema.event.v1` 与 `cx.profile.core_event_store.v1`）
 - 尺度与分页边界（默认见 `conformance/scalability-constraints.md`）
+
+> `protocol_version` 字段值（`"1.0"`）与发布 / release tag（`v1.0.0`，见 [`overview/release-readiness.md`](./overview/release-readiness.md)）是两个不同维度：前者是 wire-level 协议大版本标识，后者是仓库发布线标签。两者 MUST NOT 互换填入对方位置。
 
 新增能力优先通过 profile / 扩展章节 / registry 条目引入。
 
 ## 6. 当前覆盖范围
 
 - 身份、handle、组织主体、服务 DID 与进阶披露
-- Realm / Flow / Message / Morph / Relation / Event / View / Capability
+- 对象覆盖以 §1 的 canonical 对象清单为准：Realm / Circle / Space（含 Board/List）/ Flow / Message / Relation / Morph / Event / View / Capability
 - 字段级结构、必填性、枚举与约束
 - capability、delegation、claim 条件、policy 与 moderation policy
 - Event-first 发布、Principal Server 同步、客户端查询与投影

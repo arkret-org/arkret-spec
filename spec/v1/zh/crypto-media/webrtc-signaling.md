@@ -52,7 +52,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 | `p2p` | 1 对 1 或极小规模 | 双方直接 WebRTC 连接，必要时经 TURN server。 |
 | `mesh` | 3-4 人小会 | 每个客户端与其他客户端建连接，复杂度高，不建议默认。 |
 | `sfu` | 多方会议默认 | Selective Forwarding Unit 转发 RTP，不解密 E2EE 内容。 |
-| `mcu` | PSTN / 录制 / 低端设备 | Mixing Control Unit 混流，通常会接触明文或解密后媒体，必须强提示和审计。 |
+| `mcu` | PSTN / 录制 / 低端设备 | Multipoint Control Unit 混流，通常会接触明文或解密后媒体，MUST 强提示和审计。 |
 
 默认多人会议 SHOULD 使用 SFU。
 

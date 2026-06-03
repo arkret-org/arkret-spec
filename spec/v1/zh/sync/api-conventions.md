@@ -395,8 +395,9 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 默认策略 MUST fail closed，并至少拒绝下列地址类别：
 
-- IPv4 loopback、unspecified、private、link-local、carrier-grade NAT、benchmark、multicast、reserved 与 broadcast 地址段，包括 `0.0.0.0/8`、`10.0.0.0/8`、`100.64.0.0/10`、`127.0.0.0/8`、`169.254.0.0/16`、`172.16.0.0/12`、`192.168.0.0/16`、`198.18.0.0/15`、`224.0.0.0/4`、`240.0.0.0/4` 和 `255.255.255.255/32`。
+- IPv4 loopback、unspecified、private、link-local、carrier-grade NAT、benchmark、protocol-assignment、TEST-NET、multicast、reserved 与 broadcast 地址段，包括 `0.0.0.0/8`、`10.0.0.0/8`、`100.64.0.0/10`、`127.0.0.0/8`、`169.254.0.0/16`、`172.16.0.0/12`、`192.0.0.0/24`、`192.0.2.0/24`（TEST-NET-1）、`192.168.0.0/16`、`198.18.0.0/15`、`198.51.100.0/24`（TEST-NET-2）、`203.0.113.0/24`（TEST-NET-3）、`224.0.0.0/4`、`240.0.0.0/4` 和 `255.255.255.255/32`。
 - IPv6 unspecified、loopback、IPv4-mapped private/loopback、unique-local、link-local、multicast 与 reserved 地址段，包括 `::/128`、`::1/128`、`::ffff:0:0/96` 中映射到上述禁止 IPv4 段的地址、`fc00::/7`、`fe80::/10` 和 `ff00::/8`。
+- 用于承载 IPv4 的 IPv6 转换 / 隧道地址段，包括 `64:ff9b::/96`（NAT64 well-known prefix）、`2002::/16`（6to4）和 `2001::/32`（Teredo）。这些地址段内嵌 IPv4 目标，MUST 先解封内嵌的 IPv4 地址再按上述 IPv4 分类重新判定：NAT64 取低 32 bit、6to4 取 `2002:` 之后的 32 bit、Teredo 取末 32 bit（按位取反）作为映射的 IPv4 server/client 地址；解封后若命中任一禁止 IPv4 段（含 metadata endpoint）MUST fail-closed 拒绝，不得仅因外层 IPv6 前缀未在简单 denylist 中而放行。部署 policy 登记的其它 NAT64 prefix（非 well-known）MUST 同等解封并重新分类。
 - 云厂商或容器环境 metadata endpoint，包括 `169.254.169.254`、`169.254.170.2` 以及部署 policy 登记的等价 IPv6 / DNS metadata 名称。
 
 执行规则：

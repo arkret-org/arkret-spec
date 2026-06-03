@@ -127,9 +127,9 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 `cx.agent.protocol_session.start` 事件的提交 MUST 通过常规的 Realm 授权（capability action `cx.agent.session.start`）与 policy 校验。
 
-Session start MUST pin counterparty DID epoch：payload 或 `refs[]` evidence MUST 记录 counterparty DID Document canonical hash、method-specific version / log entry id（若 DID method 支持）、matched service entry id、service endpoint digest 和 verification method。`cx.agent.protocol_session.status` / `result` 回流时 reducer MUST 校验这些 pin 与 session start 一致；若外部 DID 在会话期间轮换到不同 endpoint 或 verification method，现有 session MUST 进入 `blocked` 或 `cancelled`，并以 `session_pinned_did_epoch_mismatch` 作为 reason，不能静默迁移到新 endpoint。
+Session start MUST pin counterparty DID epoch，规则见 [§5.5 DID Epoch Pinning (normative)](#55-did-epoch-pinning-normative)。
 
-Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `cx.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest` 标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `cx.agent.protocol_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch。
+Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `cx.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest` 标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `cx.agent.protocol_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch（见 §5.5）。
 
 ### 5.3 Status 回流
 
@@ -149,6 +149,8 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
   }
 }
 ```
+
+`progress_basis_points` 是可选的整数进度提示，取值域为 `0..10000` basis points（即 0% 到 100.00%，每 1 basis point = 0.01%）。它只表达外部任务的近似进度，不具授权或 canonical 状态语义；reducer MUST NOT 依据 `progress_basis_points` 改变 canonical task 状态（canonical 状态只由 `status` 与 `result` 决定）。超出 `0..10000` 的值 MUST 被拒绝或 clamp，并按 `agent_protocol_malformed_response` 处理。
 
 标准状态：
 
@@ -209,6 +211,26 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `cx.agent.sess
 
 Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm schema/profile、`metadata.fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
 
+### 5.5 DID Epoch Pinning (normative)
+
+本小节集中定义外部 agent DID 的 epoch pinning 规则。§5.2、§5.3、§5.4、§6 中所有提及 "pin DID epoch" / "DID epoch mismatch" 的位置均引用本小节，不再各自重复定义。
+
+`cx.agent.protocol_session.start` MUST pin counterparty DID epoch。payload 或 `refs[]` evidence MUST 记录：
+
+- counterparty DID Document canonical hash；
+- method-specific version / log entry id（若 DID method 支持版本化）；
+- matched service entry id；
+- service endpoint digest；
+- verification method。
+
+reducer normative：
+
+- 外部协议握手时 MUST 携带并签名同一组 pin digest。
+- `cx.agent.protocol_session.status` / `result` 回流时 reducer MUST 校验这些 pin 仍与 session start 一致。
+- 若外部 DID 在会话期间轮换到不同 service endpoint 或 verification method，现有 session MUST 进入 `blocked` 或 `cancelled`，reason `session_pinned_did_epoch_mismatch`，MUST NOT 静默迁移到新 endpoint；迁移必须重新 start 并重新 pin。
+
+> 对无版本化 DID method（如部分 `did:web` 部署），canonical hash + service endpoint digest 即构成该 method 可用的 epoch 证据；reducer MUST 以 fetch-time digest 不匹配作为 mismatch，不得因为 method 不提供显式版本号而跳过校验。
+
 ## 6. 协商流程
 
 下图把一次升级到外部 agent protocol 的握手画成时序图。**Contrix 始终持有身份 / capability / 任务登记 / 审计**，外部协议只承担高频实时执行通道。
@@ -249,9 +271,10 @@ sequenceDiagram
 3. Requesting agent 检查自己是否拥有 `cx.agent.session.start` capability。
 4. **Endpoint validation（normative MUST）**：Policy server MUST 验证目标 endpoint 与目标 agent DID 的 service binding 一致性，至少完成以下检查（任一失败 MUST 拒绝 session start）：
    - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
-   - 验证目标 endpoint 的 TLS 证书 / mutual TLS / HTTP Message Signature 与 DID Document 中声明的 verificationMethod 绑定（与 `federation.md` §3.1-§3.2 destination host pinning 同等强度）。
-   - 将 DID Document 的 method-specific version / log entry id（若 method 支持）、canonical document hash、matched service entry id 和 service entry digest 写入 session start 的 audit binding 或 policy decision evidence。外部协议握手时必须携带并签名同一组 digest；`status` / `result` 回流时 reducer MUST 校验它们仍匹配 session start。若 DID Document 在会话期间轮换到不同 service endpoint，现有 session 不得静默迁移，必须 cancel 或重新 start。
-   - 校验目标数据分类、跨域路由、E2EE 边界与外发风险，并依 `allowed_endpoints` constraint 收敛。
+   - 验证目标 endpoint 的 TLS 证书 / mutual TLS / HTTP Message Signature 与 DID Document 中声明的 verificationMethod 绑定（与 [`../sync/federation.md` §3.1-§3.2](../sync/federation.md) destination host pinning 同等强度）。
+   - 按 [§5.5 DID Epoch Pinning (normative)](#55-did-epoch-pinning-normative) 把 DID epoch pin（canonical document hash、method-specific version / log entry id（若 method 支持）、matched service entry id、service endpoint digest、verification method）写入 session start 的 audit binding 或 policy decision evidence，并在外部协议握手与 `status` / `result` 回流时按 §5.5 校验。
+   - **`allowed_endpoints` 只作 constraint 预筛，不替代精确匹配**：capability constraint 中的 `allowed_endpoints` 通配（如 `https://*.trusted.example`）只用于在 session start 之前粗粒度收敛候选 endpoint 集合；最终 session start MUST 仍满足上文的精确 DID-service-binding 匹配（`serviceEndpoint` URL 与 DID Document 的 `service` entry **完全匹配**）。通配命中本身 MUST NOT 被当作授权通过。实现 SHOULD 警告通配子域（`*.example`）会扩大 handoff 攻击面，并 SHOULD 把 `allowed_endpoints` 限为 host suffix 精确集合或显式 host 列表，而不是开放通配。
+   - **Egress policy（normative 失败条件）**：当目标是外发 E2EE Realm 明文或其派生明文时，session start MUST 命中显式 egress grant 并通过数据分类（`allowed_data_classes`）校验；任一不满足 MUST 拒绝 session start，reason=`egress_policy_denied`。详见 [§8 安全边界](#8-安全边界)。
    宽松的 MAY 路径会留下漏洞窗口——恶意中间人可在不被任何节点验证的情况下劫持 A2A handoff，因此本规范统一为 MUST。
 5. Requesting agent 提交 `cx.agent.protocol_session.start`。
 6. 双方通过选定外部协议建立 session。
@@ -304,7 +327,7 @@ Agent runtime 拥有 `cx.profile.agent_auth.v1` session grant **不**自动授�
 
 - 在启动前做 capability 检查。
 - 记录 endpoint、protocol、counterparty、task、grant 和数据分类。
-- 对 E2EE Realm 默认只外发用户明确授权的明文或派生摘要。
+- 外发 E2EE Realm 明文或其派生明文 / 摘要时，session start MUST 命中显式 egress grant（如 capability constraint 中的 `egress_policy` 配合具体 grant）并通过数据分类（`allowed_data_classes`）校验；任一不满足，实现 MUST 拒绝 session start，reason=`egress_policy_denied`，MUST NOT 退回到 SHOULD 形态或静默外发。
 - 对敏感 Realm 默认要求 human approval。
 - 对返回 artifact 做 hash、MIME、size、malware scan 和 policy check。
 - 不信任外部 task status；只有 Contrix result event accepted 后才改变 canonical task 状态。
@@ -359,6 +382,7 @@ Adapter MUST 声明：
 | `protocol_not_supported` | 双方没有共同协议。 |
 | `auth_failed` | 外部协议认证失败。 |
 | `policy_denied` | Contrix policy server 或 capability constraint 拒绝。 |
+| `egress_policy_denied` | 外发 E2EE Realm 明文 / 派生明文未命中显式 egress grant 或未通过数据分类校验；MUST 拒绝 session start（见 §6 步骤 4 与 §8）。 |
 | `remote_rejected` | 对端 agent 拒绝任务。 |
 | `timeout` | 超过最大执行时间。 |
 | `cancelled` | 主体或管理员取消。 |

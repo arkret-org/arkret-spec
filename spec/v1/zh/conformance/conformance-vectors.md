@@ -167,9 +167,89 @@ cx.vector.encoding.reject_malformed_json.v1
 
 判定规则：
 
-- duplicate key 不得按 parser 默认行为静默覆盖。
-- malformed string 不得被替换成 U+FFFD 后继续签名。
-- reject 结果 MUST 可审计，错误码 SHOULD 使用 `schema_violation`、`invalid_canonical_json` 或 `invalid_encoding`。
+- duplicate key MUST NOT 按 parser 默认行为静默覆盖。
+- malformed string MUST NOT 被替换成 U+FFFD 后继续签名。
+- reject 结果 MUST 可审计；canonical JSON 解析失败 MUST 使用单一错误码 `invalid_canonical_json`（不再在 `schema_violation` / `invalid_encoding` 间三选一），以保证跨实现错误码一致、可被 conformance runner 断言。
+
+#### 1.5.2 Vector: Reject Duplicate Key
+
+向量名称：
+
+```text
+cx.vector.encoding.reject_duplicate_key.v1
+```
+
+输入 bytes（UTF-8 文本，未经 parser 去重；同一层出现两个 `event_id`）：
+
+```text
+{"event_id":"cx:event:019640ed-8000-7000-8000-000000000000","event_id":"cx:event:019640ed-8000-7000-8000-000000000001"}
+```
+
+期望：
+
+- 实现 MUST 在 canonicalization 阶段 reject，错误码 `invalid_canonical_json`。
+- 实现 MUST NOT 采用 “最后一个 key wins” 或 “第一个 key wins” 后继续 canonicalize、hash 或验签（见 [encoding.md](./encoding.md) §2）。
+
+失败条件：
+
+- parser 静默保留其中一个 `event_id` 并产出合法 canonical bytes。
+- reject 但错误码不是 `invalid_canonical_json`。
+
+#### 1.5.3 Vector: Reject Non-NFC String
+
+向量名称：
+
+```text
+cx.vector.encoding.reject_non_nfc_string.v1
+```
+
+输入对象（`display_name` 使用 decomposed 序列 `U+0065 U+0301`，即 `e` + combining acute，而非 precomposed `U+00E9` `é`）：
+
+```json
+{
+  "display_name": "café"
+}
+```
+
+> 注（informative）：上方 `é` 的 wire bytes MUST 为 NFD 形态 `65 cc 81`（`e` + `U+0301`）；测试 runner 按 raw bytes 注入，加载时 MUST NOT 被编辑器隐式 NFC 化。
+
+期望：
+
+- receiver MUST 检测到 string value 不是 NFC 形态，并以 `schema_violation` 拒绝（见 [encoding.md](./encoding.md) §2.1 NFC 收紧规则）。
+- receiver MUST NOT 在 verify 阶段做隐式 NFC 化后继续签名/hash 比较。
+
+失败条件：
+
+- receiver 隐式把 `65 cc 81` 归一化为 `c3 a9` 后接受。
+- 接受非 NFC bytes 进入 event digest 或 proof binding。
+
+#### 1.5.4 Vector: Reject U+FEFF Injection
+
+向量名称：
+
+```text
+cx.vector.encoding.reject_feff_injection.v1
+```
+
+输入对象（`title` string value 内部注入一个 `U+FEFF` zero-width no-break space，wire bytes 含 `ef bb bf`）：
+
+```json
+{
+  "title": "he﻿llo"
+}
+```
+
+> 注：`﻿` 仅为本文档可读表示；测试向量的 wire bytes MUST 在 `he` 与 `llo` 之间直接含 `ef bb bf` 三字节。stream 起始处的 UTF-8 BOM 同样适用本向量。
+
+期望：
+
+- receiver MUST 拒绝任何出现 `U+FEFF` 的输入（无论位于 stream 起始还是 string value 内部），错误码 `schema_violation`（见 [encoding.md](./encoding.md) §2：`U+FEFF` 在 v1 canonical JSON 中一律拒绝）。
+- receiver MUST NOT 静默剥离 `U+FEFF` 后继续 canonicalize。
+
+失败条件：
+
+- receiver strip BOM / `U+FEFF` 后产出合法 canonical bytes 并验签。
+- 把 `U+FEFF` 当作普通可见字符纳入 digest 输入。
 
 ### 1.6 Vector: Event Digest
 
@@ -381,13 +461,43 @@ cx.vector.encoding.hlc_logical_overflow.v1
 - 生产者 MUST 选择以下两种结果之一：
   - 等待到更大的 `unix_ms_hex`，然后生成形如 `01970e589d22-0000-a13f9c2e` 的 HLC。
   - 在 canonical bytes 生成前返回本地临时错误，例如 `hlc_logical_overflow`，由调用方重试。
-- 重试或等待期间，事件的 `prev_refs`、`refs[role=authorized_by]` 与 `actor_seq` 约束不得被放松。
+- 重试或等待期间，事件的 `prev_refs`、`refs[role=authorized_by]` 与 `actor_seq` 约束 MUST NOT 被放松。
 
 失败条件：
 
 - 逻辑计数器回绕到更小值并继续发出事件。
 - 通过伪造更大的 wall clock skew 逃避 overflow，同时破坏本地 HLC 单调性或 causal 约束。
 - 消费者把上述回绕值当作正常排序输入接受并推进 accepted history。
+
+#### 1.10.1 Vector: Reject Malformed HLC Format
+
+向量名称：
+
+```text
+cx.vector.encoding.reject_malformed_hlc.v1
+```
+
+实现 MUST 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式（见 [encoding.md](./encoding.md) §7.2），并额外拒绝 `unix_ms_hex > ffffffffffff` 的物理时间溢出值。下列每个 case 都 MUST 被拒绝：
+
+| case | 输入 HLC | 违反点 | 期望错误码 |
+| --- | --- | --- | --- |
+| `physical_overflow` | `1000000000000-0004-a13f9c2e` | `unix_ms_hex` 13 位（> `ffffffffffff`），物理时间溢出 | `schema_violation` |
+| `logical_too_short` | `01970e589d21-004-a13f9c2e` | `logical_hex` 仅 3 位（必须恰 4 位） | `schema_violation` |
+| `logical_too_long` | `01970e589d21-00004-a13f9c2e` | `logical_hex` 5 位（必须恰 4 位） | `schema_violation` |
+| `node_too_short` | `01970e589d21-0004-a13f9c2` | `node_id_hash` 仅 7 位（必须恰 8 位） | `schema_violation` |
+| `node_too_long` | `01970e589d21-0004-a13f9c2e0` | `node_id_hash` 9 位（必须恰 8 位） | `schema_violation` |
+| `uppercase_hex` | `01970E589D21-0004-A13F9C2E` | 含大写十六进制（正则仅允许 `0-9a-f`） | `schema_violation` |
+
+期望：
+
+- 每个 case 实现 MUST reject 并报告对应 case；MUST NOT 在 verify 阶段隐式截断、补零或大小写折叠后接受。
+- `unix_ms_hex` 恰 12 位、`logical_hex` 恰 4 位、`node_id_hash` 恰 8 位且全部为小写 hex 的 HLC（如 `01970e589d21-0004-a13f9c2e`）MUST accept，作为对照正样本。
+
+失败条件：
+
+- 实现把 `00004` 解析为 `0004` 后接受。
+- 实现把大写 hex 归一化为小写后接受（HLC 是 wire 字符串，MUST NOT 在比较前改写）。
+- 实现接受 13 位 `unix_ms_hex` 并截断到 12 位。
 
 ### 1.11 Vector: Cursor Opaqueness
 
@@ -478,11 +588,15 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 | `cx.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.reject_noncanonical_numbers.v1` | MUST | MUST | MUST | MUST | SHOULD |
 | `cx.vector.encoding.reject_malformed_json.v1` | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.reject_duplicate_key.v1` | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.reject_non_nfc_string.v1` | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.reject_feff_injection.v1` | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.event_digest.v1` | SHOULD | MUST | MUST | MUST | SHOULD |
 | `cx.vector.encoding.event_batch_receipt_digest.v1` | MAY | SHOULD | SHOULD | SHOULD | MAY |
 | `cx.vector.encoding.signature_binding_payload.v1` | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.crypto.ed25519_detached_jws.v1` | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD |
+| `cx.vector.encoding.reject_malformed_hlc.v1` | MUST | MUST | MUST | MUST | SHOULD |
 | `cx.vector.encoding.cursor_opaque.core.v1` | MUST | MUST | MUST | MAY | SHOULD |
 | `cx.vector.encoding.cursor_opaque.stateless_profile.v1` | profile-only (`cx.profile.stateless_cursor.v1`) | profile-only | profile-only | MAY | SHOULD |
 | `cx.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST |

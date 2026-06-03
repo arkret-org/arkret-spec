@@ -234,9 +234,8 @@ see_also:
 | `extensions/agent-protocol-interop.md` | A2A / ACP / external agent protocol handoff。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领。 |
-| `models/realm-links.md` | Realm link graph、显式继承、治理 / mirror / confidential-extension 关系。 |
-| `models/space-hierarchy.md` | Space 产品结构层级与跨 Realm 导航。 |
-| `models/extension-objects.md` | Applet / Agent / Blob 等扩展对象在 models 层的入口与跳转。 |
+
+> `models/realm-links.md`、`models/space-hierarchy.md` 与 `models/extension-objects.md` 的权威登记在 [§4.3 对象模型与交互](#43-对象模型与交互)；扩展场景从那里跳转，本组不重复整行登记。
 
 ### 4.9 Schema、编码与一致性
 

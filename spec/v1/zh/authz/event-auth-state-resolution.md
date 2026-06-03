@@ -113,7 +113,7 @@ Move (reducer view of signed Event) {
 规则：
 
 1. canonical bytes MUST 覆盖 `event_id`、`actor_id`、`realm_id`、`preconditions`、`effects`、`anchor_ref`、`refs`、`hlc` 与所有其它 signed 顶层字段。`proofs` 与 `unsigned` MUST NOT 进入 canonical bytes（它们是对 canonical bytes 的签名或后置 advisory）。`realm_id` 必须进入以防止跨 Realm 重放。
-2. `preconditions[]` 与 `effects[]` 是 set；同一 Event 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Event FAIL，不能部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 reducer-input event 不存在）。
+2. `preconditions[]` 与 `effects[]` 是 set；同一 Event 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Event FAIL，MUST NOT 部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 reducer-input event 不存在）。
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Realm 声明的 `max_anchor_staleness_ms`。
 4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`audit_pair`（隐私敏感业务 Event 与 `cx.audit.accessed` 的同 batch 配对）、`recovery_capability`、`state_witness`（§8.1，conflict recovery Event 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Event 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。`role="authorized_by"` 的 `id` MUST 是 `cx:grant:<uuid>` 或 profile 明确注册的不可变 grant record id；不得引用裸 Event id、policy name、human-readable role 或可变 membership cell。reducer 必须能从该 id 反查 grant canonical digest、issuer、subject、actions、scope、parent grant 链和 revoke/supersede 状态。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
@@ -141,7 +141,7 @@ effective_anchor_staleness_ms =
 | 普通内容写入（message / comment / non-critical field patch） | 5–30min |
 | 弱网 / 移动端离线队列（低风险，提交前可自动 rebase） | 30min–2h |
 | 低频审计 / sovereign backfill / regulated diagnostic write | 6–24h |
-| 高风险或安全根 cell（`anchorer_root` / authorization / policy / membership / lifecycle） | 不得只依赖 24h 上限；必须按 capability freshness / policy freshness / profile gate 使用更短窗口，通常为分钟级或要求 current frontier fresh |
+| 高风险或安全根 cell（`anchorer_root` / authorization / policy / membership / lifecycle） | MUST NOT 只依赖 24h 上限；MUST 按 capability freshness / policy freshness / profile gate 使用更短窗口，通常为分钟级或要求 current frontier fresh |
 
 `max_anchor_staleness_ms` 不是恶意多 anchorer / 多 leaf 冲突放大的完整防线。`open_set` / `threshold` / federation profile 还 MUST 依赖 peer health、stale-peer quarantine、range completeness / witness、rate limit、compaction cadence 与 capability revocation 来限制攻击者用旧 basis Move 反复制造 `⊥`。缩短 staleness window 只能降低旧状态 Move 被接受的时间窗口，不能替代 signer 治理与 abuse control。
 
@@ -156,7 +156,7 @@ effective_anchor_staleness_ms =
 | `satisfies` | `predicate_id` | 当前 cell value 必须满足 schema 注册的 deterministic predicate（按 `predicate_id` 派发到该 cell schema 声明的可验证 predicate 实现）。仅允许引用封闭 Lattice 可验证的字段。 |
 | `contains` | `value`（单元素）或 `values`（子集检查） | 当前 set / OR-set / covered frontier 必须包含指定元素或 frontier subset。 |
 
-Predicate 不得读取本地数据库顺序、HTTP 到达时间、未签名服务端状态或外部 wall clock。
+Predicate MUST NOT 读取本地数据库顺序、HTTP 到达时间、未签名服务端状态或外部 wall clock。
 
 ### 3.2 Effect
 
@@ -226,7 +226,7 @@ d. 同一 wire bytes 在重排键顺序、注入额外 proof 字段或更换 `an
 3. Anchor 是持久承诺；它不修改 cell。Cell 变化只来自 frontier 内 Move 的 effects。
 4. `anchorer_signature` 的合法签发者由 anchorer cell 在 predecessor joined view 下的 effective value 决定。
 5. `state_root` MUST 是该 Anchor view 下所有 cell 当前 Lattice value / bottom diagnostics 的 canonical Merkle root。
-6. `anchored_at` MUST 由 anchorer 写入并被 `anchorer_signature` 覆盖。它只用于 freshness 诊断和 `state_changed_at` 等 reducer-derived 投影时间，不得参与 Lattice winner 选择。
+6. `anchored_at` MUST 由 anchorer 写入并被 `anchorer_signature` 覆盖。它只用于 freshness 诊断和 `state_changed_at` 等 reducer-derived 投影时间，MUST NOT 参与 Lattice winner 选择。
 7. 负向：任何尝试把 `id` 或 `anchorer_signature` 放进 canonical bytes 的实现 MUST 失败（test 见 §4 Anchor canonical 负向向量条目）；frontier 中含非 `<algo>:<hex>` 形态（例如 `cx:event:<uuid>`）的 Anchor MUST `schema_violation`。
 
 ### 4.1 Anchor View 与 Signed Compaction
@@ -311,7 +311,7 @@ Realm 一旦在 create event 中固定 `digest_algorithm`，所有后续 Anchor 
 1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `previous_state_root`（旧 algo）和 `state_root`（新 algo）。Receiver 用旧 algo 重算 frontier 验证 `previous_state_root` 与本地一致；用新 algo 重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
 2. **`digest_algorithm` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Realm 的 `digest_algorithm` cell（`cas_register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
 3. **后续 Anchor**：新 anchor 只用新 algo。客户端做长历史 inclusion proof 时，跨 transition Anchor 的 proof 由 transition Anchor 的双 root 桥接——proof 在 transition 之前用旧 algo 验证，之后用新 algo 验证。
-4. **降级禁止**：`digest_algorithm` 只允许从更弱 algo 升级到更强 algo（按 v1 hash registry 中声明的 strength order），不允许降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
+4. **禁止降级**：`digest_algorithm` 只允许从更弱 algo 升级到更强 algo（按 v1 hash registry 中声明的 strength order），MUST NOT 降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
 
 实现不强制支持 hash transition；声明 `cx.profile.hash_transition.v1` 的实现 MUST 支持。这条机制保证了未来 hash algorithm 升级路径不需要硬分叉。
 
@@ -330,7 +330,7 @@ post_state = apply_all_effects_atomically(pre_state, new_moves)
 assert merkle_root(post_state) == A.state_root
 ```
 
-同一 Anchor 内的 `new_moves` 视为并发批。一个 Move 不得通过读取同批另一个 Move 的 effect 满足 precondition。若需要顺序，提交方 MUST 分成多个 Anchor，或在 `refs(role="after")` 中声明并由 anchorer 按下一 Anchor 处理。
+同一 Anchor 内的 `new_moves` 视为并发批。一个 Move MUST NOT 通过读取同批另一个 Move 的 effect 满足 precondition。若需要顺序，提交方 MUST 分成多个 Anchor，或在 `refs(role="after")` 中声明并由 anchorer 按下一 Anchor 处理。
 
 同批配对 invariant 是例外形式的**批级验证**，不允许读取同批 effect：若业务 Event 携带 `refs[role="audit_pair"]`，anchorer / reducer MUST 在应用任何 effect 前验证该 ref 指向同一 Anchor batch 内的 `cx.audit.accessed` event，且 audit payload 的 `paired_event_id` 与 `paired_event_digest` 回指该业务 Event。配对失败时拒绝业务 Event；audit Event 自身仍可按普通 durable Event 入库，供失败审计和告警使用。该规则用于 `cx.flow.watch.set.others` 等 fail-closed 隐私门槛，不改变 precondition 读取模型。
 
@@ -351,9 +351,9 @@ bottom = reject
 - `open_set`: 允许集合内任一 DID 签发 leaf Anchor，DAG join 后收敛。
 - `mixed`: 主 anchorer + fallback recovery anchorer。
 
-变更 anchorer 是普通 Move，由旧 anchorer 签发的后续 Anchor finalize；新 anchorer 不得自签自己上位。
+变更 anchorer 是普通 Move，由旧 anchorer 签发的后续 Anchor finalize；新 anchorer MUST NOT 自签自己上位。
 
-如果 anchorer cell 在某个 effective view 下为 `⊥`，Anchor 层进入 Realm-wide pause：普通 Anchor 不得推进，只有 genesis 声明的 recovery anchorer / emergency quorum MAY 签发恢复 Anchor。该暂停不同于普通 cell-scoped bottom，必须在 API / UX 中明确暴露。
+如果 anchorer cell 在某个 effective view 下为 `⊥`，Anchor 层进入 Realm-wide pause：普通 Anchor MUST NOT 推进，只有 genesis 声明的 recovery anchorer / emergency quorum MAY 签发恢复 Anchor。该暂停不同于普通 cell-scoped bottom，MUST 在 API / UX 中明确暴露。
 
 ## 5. Lattice
 
@@ -372,13 +372,13 @@ v1 封闭核心集（core）：
 | Type | Join 语义 | 用途 | 授权层禁用 |
 | --- | --- | --- | --- |
 | `or_set` | observed-remove set；add/remove 通过唯一 tag 收敛。 | capability grant set、device list、凭证撤销集合。 | — |
-| `mv_register` | 并发 set 暴露多值；无单一 winner。 | 非安全草稿、可人工选择的偏好。 | 不得作授权根 |
+| `mv_register` | 并发 set 暴露多值；无单一 winner。 | 非安全草稿、可人工选择的偏好。 | MUST NOT 作授权根 |
 | `cas_register` | 严格 CAS；并发不同值返回 `⊥`。 | anchorer、关键 singleton policy、host 指针类状态。 | — |
 | `fsm` | 状态机迁移；非法迁移或并发不可合并迁移返回 `⊥`。 | membership、lifecycle、invite/approval。 | — |
 | `counter` | PN-counter 求和。 | 配额、审计计数。 | — |
 | `ordered_log` | append-only log；按 issuer chain 与 entry id 去重。 | 审计、消息历史、不可变操作日志。 | — |
 
-依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均不得进入协议授权根。
+依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均 MUST NOT 进入协议授权根。
 
 Lattice 的作用不是让并发冲突消失，而是让同一输入集合的结果确定。对可合并类型（如 `or_set`、`counter`、`ordered_log`），所有 verifier 会得到同一个合并值；对不可安全自动选择的类型（如关键 `cas_register`、部分 `fsm`），并发或非法状态会收敛为同一个 `⊥`，而不是由某台服务器、HLC、actor id 或接收顺序挑一个 winner。依赖 `bottom=reject` cell 的后续 Move 必须 fail closed，直到 §8 的 conflict-recovery Move 把该 cell 恢复到明确 value。
 
@@ -412,7 +412,7 @@ Bottom {
 }
 ```
 
-`bottom=reject` 的 cell 被 Move precondition 读取时，Move MUST fail closed（state code `failed_bottom`），错误至少包含 `cells[]` 与 `event_ids[]`。`bottom=expose` 的 cell MAY 返回 `{status:"conflict", heads:[...]}` 给 projection；它不得被授权路径当作 allow。
+`bottom=reject` 的 cell 被 Move precondition 读取时，Move MUST fail closed（state code `failed_bottom`），错误至少包含 `cells[]` 与 `event_ids[]`。`bottom=expose` 的 cell MAY 返回 `{status:"conflict", heads:[...]}` 给 projection；它 MUST NOT 被授权路径当作 allow。
 
 `bottom=reject` 不是可被普通 CAS 写入直接覆盖的临时值。只要当前 effective view 下 cell value 为 `⊥`，任何普通 Move（包括携带 `head_eq` 的 cas_register set）读取或写入该 cell 时都 MUST `failed_bottom` / `failed_precondition`，`reason_code=cell_in_bottom_state`；实现不得把 `⊥` 当作 `null`、空 head 或任一候选 head。修复只能通过 §8 的 conflict-recovery Move 完成：该 Move MUST 引用冲突前 `state_witness`、`inclusion_proof` 与被授权的 recovery capability，并在新的 Anchor view 中把 cell 收敛到明确 value。若某 cell family 需要更专门的 recovery 事件，profile 可以在自己的 event kind 上定义 payload，但不能绕过本段的 witness 与 capability 要求。
 
@@ -420,7 +420,7 @@ Bottom {
 
 #### 5.1.1 Bottom 影响范围
 
-`⊥` 是 cell state，不是默认的 Realm state。实现 MUST 按依赖闭包决定影响范围，不得因为任意业务 cell 进入 `⊥` 而停止整个 Realm 的 Anchor 推进。
+`⊥` 是 cell state，不是默认的 Realm state。实现 MUST 按依赖闭包决定影响范围，MUST NOT 因为任意业务 cell 进入 `⊥` 而停止整个 Realm 的 Anchor 推进。
 
 | 范围 | 触发 | 结果 |
 | --- | --- | --- |
@@ -428,7 +428,7 @@ Bottom {
 | Dependency bottom | 授权、policy、membership、capability、lifecycle 等治理 cell 为 `⊥`，并且某个 Move 的 precondition / authz check / reducer invariant 需要读取它。 | 依赖该 cell 的 Move MUST fail closed。这可能阻塞大量业务写入，但它仍是依赖链阻塞，不等同于 Anchor 层 Realm-wide pause。 |
 | Realm-wide Anchor pause | `cx:cell:cx.component.anchorer.v1:<realm_id>` 为 `⊥`（`anchorer_split`）。 | 普通 Anchor MUST 停止推进；只有 genesis 声明的 recovery anchorer / emergency quorum MAY 签发恢复 Anchor。 |
 
-Flow position 冲突的影响是第一类：该 Flow 的 canonical placement 未决，后续普通 position Move 不能继续；Flow 的 `metadata.title` / content / comments / watch 等独立 cell 仍可按各自 Lattice 和授权规则继续更新，其他 Flow 的更新也不得被阻塞。只有当某个后续 Move 显式读取该 position cell（例如“只允许移动当前位于 List-X 的 Flow”）时，才因 `cell_in_bottom_state` fail closed。
+Flow position 冲突的影响是第一类：该 Flow 的 canonical placement 未决，后续普通 position Move 不能继续；Flow 的 `metadata.title` / content / comments / watch 等独立 cell 仍可按各自 Lattice 和授权规则继续更新，其他 Flow 的更新也 MUST NOT 被阻塞。只有当某个后续 Move 显式读取该 position cell（例如“只允许移动当前位于 List-X 的 Flow”）时，才因 `cell_in_bottom_state` fail closed。
 
 `bottom_escalation_after_ms` 只改变告警和 recovery 提示，不会把普通业务 cell 的 `⊥` 自动升级成 Realm-wide pause。Realm lifecycle 的 terminal state（例如 tombstoned / destroyed）属于 lifecycle reducer 语义，见 [`realm-and-space.md`](../models/realm-and-space.md)，不是本节定义的 Lattice bottom pause。
 
@@ -437,12 +437,12 @@ Flow position 冲突的影响是第一类：该 Flow 的 canonical placement 未
 | Lattice type | bottom 是否出现 | bottom 配置语义 |
 | --- | --- | --- |
 | `or_set` | 永不 | bottom=expose 仅用于多 head 场景的 add/remove 并发可视化 |
-| `mv_register` | 永不 reject；多值即 expose | bottom=expose 是常态：projection 暴露多个 head 给 UI，授权路径不得据此选 winner |
+| `mv_register` | 永不 reject；多值即 expose | bottom=expose 是常态：projection 暴露多个 head 给 UI，授权路径 MUST NOT 据此选 winner |
 | `cas_register` | 出现：并发不同 set + 不同 basis 时返回 ⊥ | bottom=reject 是标准（anchorer / 关键 singleton）；依赖该 cell 的 Move fail closed |
 | `fsm` | 出现：非法 transition / 并发 divergent next_state 时返回 ⊥ | bottom=reject 是标准（membership / lifecycle / invite-approval）|
 | `counter` | 永不 | bottom=expose 仅在配额跨界等场景作诊断 |
 | `ordered_log` | 永不 | bottom=expose 用于审计、消息历史；并发 append 不阻塞 |
-| `lww_register` | **永不出现于 value path**——并发 sibling 由 §5.3.7 deterministic tiebreaker 选 winner | bottom=expose 仅由诊断层暴露 lost siblings；**授权层不得据此选 winner**（schema 已静态禁止 lww_register 作授权根）|
+| `lww_register` | **永不出现于 value path**——并发 sibling 由 §5.3.7 deterministic tiebreaker 选 winner | bottom=expose 仅由诊断层暴露 lost siblings；**授权层 MUST NOT 据此选 winner**（schema 已静态禁止 lww_register 作授权根）|
 | `rga` | **永不**——RGA 总有合法 deterministic order | bottom=expose 用于把并发 insert/delete 多值反馈给 projection，不阻塞协议判断 |
 
 ### 5.2 序内因果
@@ -509,7 +509,7 @@ validate_op(op):
   op.value satisfies schema
 ```
 
-`bottom=expose` 是 mv_register 的常态：projection 以 `{status:"conflict", heads:[...]}` 暴露多值。授权路径不得用 mv_register 表达。
+`bottom=expose` 是 mv_register 的常态：projection 以 `{status:"conflict", heads:[...]}` 暴露多值。授权路径 MUST NOT 用 mv_register 表达。
 
 #### 5.3.3 `cas_register`
 
@@ -741,7 +741,7 @@ validate_op(op):
 
 RGA 的开销：每个未 GC 的 element 持续占空间。Realm 可声明 `rga_compaction_after_anchors`（默认 10000）触发 compaction Anchor，把 fully-deleted、无后继 reference 的 tombstone 物理移除并签入压缩 state_root。
 
-### 5.4 Profile 不得引入新 Lattice type
+### 5.4 Profile MUST NOT 引入新 Lattice type
 
 接收方不识别核心或已注册扩展 Lattice type MUST fail closed；扩展 cell family MUST 通过 schema/profile 显式声明并声明 fall-back 行为；任何引入新 lattice type 的 profile 必须先经过 v1 protocol-amendment 流程才能被 normative 集成（避免 implicit 协议分叉）。
 
@@ -749,7 +749,7 @@ v1 已注册扩展 Lattice type：
 
 - `lww_register` / `rga` — `cx.profile.collaborative_text.v1`（§5.0.1、§5.3.7、§5.3.8）。
 
-未声明 `cx.profile.collaborative_text.v1` 的实现遇到使用这两种 type 的 cell schema 时 MUST 返回 `unsupported_lattice_type` 并拒绝写入对应 cell；既有 Move 已被 anchored 的 RGA / lww 历史 SHOULD 仍能 backfill 但只能透出诊断态，不得参与新 Move 的 reducer 决策。
+未声明 `cx.profile.collaborative_text.v1` 的实现遇到使用这两种 type 的 cell schema 时 MUST 返回 `unsupported_lattice_type` 并拒绝写入对应 cell；既有 Move 已被 anchored 的 RGA / lww 历史 SHOULD 仍能 backfill 但只能透出诊断态，MUST NOT 参与新 Move 的 reducer 决策。
 
 ## 6. Move 验证
 
@@ -785,7 +785,7 @@ apply_anchor(A):
   6. state_root 匹配则接受 Anchor；否则拒绝 Anchor 并生成 anchor_fault 诊断。
 ```
 
-Anchor 被拒绝时，其 frontier 内 Move 不因此变成 effective。节点 MAY 保留这些 Move 作为 pending / diagnostic 输入，但不得让它们推进 query 或授权。
+Anchor 被拒绝时，其 frontier 内 Move 不因此变成 effective。节点 MAY 保留这些 Move 作为 pending / diagnostic 输入，但 MUST NOT 让它们推进 query 或授权。
 
 ## 8. 冲突修复
 
@@ -807,7 +807,7 @@ Move {
 }
 ```
 
-修复权威来自冲突前 effective state 中的 governance / recovery capability。不得用冲突候选本身声明的新 policy、new anchorer 或 new admin 来授权修复。
+修复权威来自冲突前 effective state 中的 governance / recovery capability。实现 MUST NOT 用冲突候选本身声明的新 policy、new anchorer 或 new admin 来授权修复。
 
 ### 8.1 Pre-conflict State Witness 强制要求
 
@@ -831,7 +831,20 @@ Receiver 在 verify_move(M) 时，对 critical role ∈ {`state_witness`, `inclu
 - 若 inclusion proof 不能重算出 witness 的 `state_root` → `failed_precondition`（`reason="recovery_witness_invalid"`）。
 - 若 witness frontier 与触发 ⊥ 的 sibling Move 之一存在因果路径（即 witness 不在冲突前）→ `failed_precondition`（`reason="recovery_witness_post_conflict"`）。
 - 若 witness 的 state_root 不包含 recovery_capability cell 或包含的 cell value 与 grant 引用不一致 → `failed_precondition`（`reason="recovery_capability_not_anchored"`）。
-- 若 witness 的 anchor frontier 早于本地 anchor head 超过 `recovery_witness_freshness_window`（默认 ≤ 6 anchor cadence，与 §9 anchor cadence 一致），或本地 frontier 在 witness 之后已观察到任何针对 `recovery_capability` 所引用 cell 的 accepted revoke / supersede event → `failed_precondition`（`reason="recovery_witness_revoke_lagging"`）。该检查关闭"持有合法旧 witness + 等待 recovery_capability 被 revoke 后重放"的 stale-witness 攻击面：witness 自身的签名时点是合法的，但若它无法反映已 anchored 的 revoke，receiver 不得据它接受 recovery Move。Realm 部署 MAY 在 deployment policy 内收紧窗口，但 MUST NOT 放宽到 6 anchor cadence 以上。
+- 若 witness 的 anchor frontier 早于本地 anchor head 超过 `recovery_witness_freshness_window`，或本地 frontier 在 witness 之后已观察到任何针对 `recovery_capability` 所引用 cell 的 accepted revoke / supersede event → `failed_precondition`（`reason="recovery_witness_revoke_lagging"`）。
+
+  `recovery_witness_freshness_window` **MUST NOT** 固定为单纯的 "6 anchor cadence"：在低频 Realm 下 6 个 anchor cadence 的挂钟时长可达数天，会给"持有合法旧 witness + 等待 recovery_capability 被 revoke 后重放"的 stale-witness 攻击留下数天窗口。因此该窗口 **MUST** 取下列两项中**更严格**（更短挂钟时长）的一项：
+
+  ```text
+  recovery_witness_freshness_window =
+    min(
+      6 anchor cadence 对应的挂钟时长,
+      recovery_capability 所引用 cell 关联 capability 的 revocation freshness window
+        （见 capabilities.md §18.2 freshness_required_ms / freshness_hard_limit_ms）
+    )
+  ```
+
+  即 witness 的新鲜度要求 **MUST NOT** 弱于其所证明的 capability 自身的 revocation freshness 约束。低频 Realm 下 anchor cadence 很长时，该 min 收敛到 capability 的 revocation freshness window（通常分钟级），强制 recovery witness 足够新鲜。该检查关闭上述 stale-witness 攻击面：witness 自身的签名时点是合法的，但若它无法反映已 anchored 的 revoke，receiver **MUST NOT** 据它接受 recovery Move。Realm 部署 MAY 在 deployment policy 内进一步收紧窗口，但 **MUST NOT** 放宽到上述 `min` 结果以上。
 
 `single_did` Anchor profile 下，由于 anchor view 全网唯一，该机制等价于自然成立——但 wire 上仍 MUST 携带 witness ref，便于审计回放。这避免实现因为"现在用的是 single_did 就跳过校验"而在未来 anchorer 升级到 `open_set` 时无声留下盲区。
 
@@ -923,8 +936,8 @@ Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须�
 
 1. 未被任何 Anchor frontier 覆盖、且未被 active pending Move / recovery Move 引用的 Move MAY GC。
 2. 已 Anchor 的 Move MUST 保留审计 stub；payload 可按 retention / erasure 规则裁剪。
-3. Anchor DAG 可通过 signed compaction Anchor 压缩；压缩不得丢失 frontier、state_root、签名验证链或必要 bottom diagnostics。
-4. Snapshot 是 Anchor view 的 materialized state_root 证明，不是独立真相源。没有可验证 Anchor / Move inclusion proof 的 snapshot 不得用于授权 allow。
+3. Anchor DAG 可通过 signed compaction Anchor 压缩；压缩 MUST NOT 丢失 frontier、state_root、签名验证链或必要 bottom diagnostics。
+4. Snapshot 是 Anchor view 的 materialized state_root 证明，不是独立真相源。没有可验证 Anchor / Move inclusion proof 的 snapshot MUST NOT 用于授权 allow。
 
 ## 13. 失败状态
 
@@ -947,6 +960,6 @@ Move/Anchor/Lattice 必须受 [`scalability-constraints.md`](../conformance/scal
 - 单个 Move 的 `preconditions + effects` 默认不超过 256。
 - 单个 Anchor 新增 Move 默认不超过 1,000。
 - Anchor DAG leaf 数超过实现声明上限时，节点 SHOULD 请求或生成 compaction Anchor。
-- 单次 Lattice join 超过预算时，节点 MUST 返回可恢复错误或使用可验证 state_root + inclusion proof；不得用本地接收顺序替代。
+- 单次 Lattice join 超过预算时，节点 MUST 返回可恢复错误或使用可验证 state_root + inclusion proof；MUST NOT 用本地接收顺序替代。
 
 实现 SHOULD 为每个 core lattice type 提供增量 API，但 wire 互操作只依赖 deterministic full join 语义。

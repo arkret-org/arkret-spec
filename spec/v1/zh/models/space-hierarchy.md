@@ -94,12 +94,7 @@ Effective default Realm 解析 MUST NOT 跨 `cx.realm.link` 跳转。`default_re
 
 ## 6. Workflow Containers
 
-`kind=board` / `kind=list` 也是 Space。Flow 位置仍由 `cx.flow.move` / `cx.flow.reorder` 的 cas_register cell 维护：
-
-```text
-cell_id := cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>
-value   := { "list_space_id": id:space, "rank": string } | null
-```
+`kind=board` / `kind=list` 也是 Space。Flow 位置仍由 `cx.flow.move` / `cx.flow.reorder` 的 cas_register cell 维护；position cell 的 `cell_id` / value shape（`{ list_space_id, rank } | null`）与去重 / 唯一性规则的单一真源是 [`realm-and-space.md` §3.6](./realm-and-space.md#36-flow-位置)，本节不重复定义，只补充跨 Realm placement 约束。
 
 默认情况下，workflow placement MUST resolve to the same effective Realm as the Flow：
 

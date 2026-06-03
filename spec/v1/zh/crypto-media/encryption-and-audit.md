@@ -280,12 +280,12 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 部署 profile 在 conformance 声明中**显式列出** `cx.profile.e2ee_relaxed.v1`,否则降级声明 MUST 被 reducer 拒绝(`profile_unsupported` reason)
   - 客户端 UI 在该 Realm 中 MUST 展示明确的"该 Realm 使用降级 E2EE,踢/ban 非密码学即时生效"banner-level 警示(详见 §2.4.2 / `cx.profile.e2ee_relaxed.v1` 规范)
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗，超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
-  - **`relaxed_window_max_ms` 硬上限 = 300,000 ms（5 分钟）**：部署不得通过 `cx.realm.policy_components` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。Negative vector `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
+  - **`relaxed_window_max_ms` 默认值 = 30,000 ms（30 秒），硬上限 = 300,000 ms（5 分钟）**：两者语义不同，不得混淆。**默认值**是部署未在 `cx.realm.policy_components` 显式声明 `relaxed_window_max_ms` 时 reducer / 接收端 MUST 采用的值，固定为 30,000 ms（与 §2.4.2 profile 行为表"被踢者继续解密窗口默认 30s"及 `max_mls_commit_delay_ms` 默认 30,000 ms 对齐，使"踢出后被踢者继续可读窗口"与"正常 commit roundtrip 上限"在默认配置下同量级）。**硬上限**是部署即使显式声明也不得超过的天花板 300,000 ms：部署不得通过 `cx.realm.policy_components` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。部署 MAY 在 `(0, 300000]` 区间内显式覆盖默认 30000；缺省即 30000。Negative vector `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
   - **合规 profile 互斥**：声明 `cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 或 `audit_assurance >= disclosed_policy` 的部署 MUST NOT 同时启用 `cx.profile.e2ee_relaxed.v1`；reducer MUST 用 `e2ee_relaxed_disallowed_in_compliance_profile` 拒绝。合规 / 监管 profile 的核心承诺是"踢出即时密码学生效"，relaxed 窗口与之矛盾。
   - **Federation guard**：`cx.profile.e2ee_relaxed.v1` MUST NOT 与 `federation_policy="open"` 或 `"quarantine"` 同时启用；reducer MUST 用 `e2ee_relaxed_federation_policy_unsupported` 拒绝。`federation_policy="restricted"` 只允许在 Realm policy 同时声明 `relaxed_fanout_deadline_ms <= relaxed_window_max_ms`、`max_federation_delivery_delay_ms <= relaxed_window_max_ms` 且 federation peers 在 `cx.server.describe.limits` 中公开不超过该 deadline 的 fanout SLA 时启用；否则 MUST fail closed。`federation_policy="closed"` 不需要额外 federation guard。
   
   声明 advisory 但未声明 `cx.profile.e2ee_relaxed.v1` profile 的 Realm create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
-- Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
+- Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`，**默认 30,000 ms**；profile MAY 覆盖（交互式 profile SHOULD 不超过 30,000 ms，高延迟 / 批量 profile MAY 声明更大值）。客户端在 commit 滞后超过该 effective 值后 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
 - 网络分区期间可以继续 backfill 旧 epoch 历史，但不得把旧 epoch 下的新消息展示为已满足最新 membership policy 的消息。
 
 该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Contrix 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
@@ -411,7 +411,9 @@ MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_i
 }
 ```
 
-MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**不存在 per-track MLS group**——整个 Flow 共享单一安全边界（见 [`flow-and-message.md`](../models/flow-and-message.md) §3）。`governance_binding` 是封闭对象，不携带 `flow_id` 或 `track_name`；Flow 级上下文只能出现在 application message AAD 或外层 payload 中，且不得据此派生独立 membership、history visibility 或 MLS group。验证边界是 Realm/Circle membership、history visibility、policy state 与 `allowed_tracks` action scope；`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
+MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**不存在 per-track MLS group**——整个 Flow 共享单一安全边界（见 [`flow-and-message.md`](../models/flow-and-message.md) §3）。`governance_binding` 是封闭对象，不携带 `flow_id` 或 `track_name`；
+
+**顶层 `circle_id` 的出现条件（normative，与 §2.5.3 冗余表一致）**：`governance_binding` 顶层的可选 `circle_id` 字段 MUST **当且仅当** `effective_scope.kind == "circle"` 时出现，且 MUST 等于 `effective_scope.circle_id`；`effective_scope.kind == "realm"` 时顶层 MUST NOT 携带 `circle_id`。上面的 JSON 示例 `effective_scope.kind="realm"`，故顶层不含 `circle_id`；Circle-scoped commit 的 `governance_binding` 顶层 MUST 同时含 `realm_id` 与 `circle_id`，二者均与 `effective_scope` 内对应字段 bit-identical。该顶层字段是离线审计冗余字段（CBOR 编码见 §2.5.3，标 `optional, only when effective_scope.kind="circle"`），不一致时 receiver MUST 拒绝该 commit（governance_binding 可能被错误重绑定到不同 Circle）。Flow 级上下文只能出现在 application message AAD 或外层 payload 中，且不得据此派生独立 membership、history visibility 或 MLS group。验证边界是 Realm/Circle membership、history visibility、policy state 与 `allowed_tracks` action scope；`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
 
 **E2EE Realm MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Realm 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
@@ -431,6 +433,21 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 - `mls_epoch_cell`
 - `key_schedule_cell`
 - `covered_frontier_cell`（把本次 commit 的 `governance_binding` 所断言的 governance frontier 加入或-set）
+
+**`bottom=expose` 语义（normative，默认态等价 fail-closed）**：本 cell 的 `bottom`（⊥，即一个 governance frontier 元素**尚未**被任何 accepted commit attest 覆盖的状态）定义为 `expose`。在 precondition accumulator 上下文中，"expose" 指该 frontier 仍**暴露在 governance 覆盖之外**——它代表"该 membership / policy / capability 变更尚未被 MLS epoch 覆盖"，**不是**"允许发送"。E2EE application message Move 的 `contains` precondition 把 `expose` 求值为 **precondition 不满足 → 发送暂停**。真值表：
+
+| frontier 元素在 `covered_frontier_cell` 中的状态 | join 值 | `contains` 求值 | message Move 结果 |
+| --- | --- | --- | --- |
+| 已被某 accepted commit 的 `governance_binding` attest（add dot 在 or_set 中） | `covered` | true | 允许发送该 epoch |
+| 从未被 attest，或被 attest 后又被新 frontier 取代而未重新覆盖 | `expose`（= ⊥） | false | **MUST 暂停发送**（`encryption_transition_pending` / `epoch_update_required`） |
+
+因此 cell 的**默认态**（任何尚未被 commit 覆盖的 governance frontier）求值为 `expose=false=暂停`，等价 fail-closed：只有显式的、不可伪造的 commit attestation 才能把某个 frontier 元素从默认 `expose` 翻转为 `covered`，缺失证据时系统停在"不发送"而不是"发送"。这与 §2.4.1 "发现 `epoch_update_required` 后 MUST 暂停" 同构——没有 commit 覆盖 = 默认拒绝。
+
+**message Move 的 `contains` precondition 求值规则（normative）**：E2EE application message Move 的 precondition 是 `covered_frontier_cell contains M`，其中 `M` 是该消息在其 `anchor_ref` pre-state 下所依赖的 governance Anchor frontier 元素集合（membership / policy / capability frontier）。求值规则：
+
+- precondition 满足 **当且仅当** `M` 中**每一个**元素都在该 pre-state 下的 `covered_frontier_cell` `active_dots` 的 attested-frontier 并集内（全称量化，不是存在量化）；任一元素求值为 `expose` → 整个 precondition false → message Move `failed_precondition`，reducer 不接受该消息进入 verified timeline。
+- `contains` 在 or_set pre-state 上求值，不读取本地未锚定的 pending commit；客户端不得用"我本地已构造但尚未 anchored 的 commit"来满足该 precondition。
+- `M` 单调增长：governance frontier 推进后，旧 covered 集合不自动覆盖新元素；新元素回到默认 `expose`，直到后续 commit 重新 attest——这正是 ban / revoke 在新消息上生效的机制。
 
 规则：
 
@@ -789,7 +806,7 @@ Genesis 接受规则：
 2. **正式生效 (Commit)**：必须有成员针对上述 Proposal 打包并发起一个 `cx.mls.commit` 操作。一旦 Commit 落盘，Ratchet Tree 被重新洗牌，新密钥分发给剩余成员（不包含 D），此时 D 才被真正物理隔离。
 
 ### 5.3 断网接力与挂起状态 (Takeover)
-如果管理员 A 在发出踢人 Proposal 后瞬间掉线，群组**绝对不会瘫痪**。
+如果管理员 A 在发出踢人 Proposal 后瞬间掉线，群组**不会因单一 committer 掉线而永久锁定 epoch 推进**（其它具备权限的成员可接力 Commit，见下文 Takeover）。
 - **挂起态的可用性**：在 Commit 被提交之前，群组处于“有待处理提案”的挂起状态，所有成员依然可以使用现有的 Epoch 密钥继续聊天通信。
 - **Churn 合并**：committer SHOULD 在不超过 `max_mls_commit_delay_ms` 的前提下，把同一 `(scope, mls_group_id, base_epoch)` 上已可见且仍满足授权 / membership / policy freshness 的 pending membership proposals 合并进单个 Commit；实现不得为每个 join/leave 机械地产生独立 Commit。高隐私或大群 profile MAY 声明更严格的 epoch 推进速率上限，但 ban / revoke / device revoke 不得因此超过 §2.4.1 的发送暂停窗口。
 - **无缝接力 (Takeover)**：群组内其他具备足够权限的成员（如管理员 B 或普通成员 C）在侦测到未处理的 Proposal 后，可以主动“接手”。成员 B 的客户端会自动执行重新加密，打包移除 D 的逻辑，并广播出 `cx.mls.commit`。一旦 B 的 Commit 被接受，D 成功被踢出。
@@ -846,3 +863,5 @@ v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epo
 - KeyPackage 在 DID Document 或 Device / Key Server 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
 - 当 Realm 声明 `audit_assurance = "attested_hardware"`（profile = `cx.profile.attested_audit.e2ee.v1`）时，Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `cx.audit.accessed` 先写后解密要求。`cx.profile.disclosed_audit.e2ee.v1` 不得伪造或暗示存在 TEE attestation；client UI 必须按 [`audited-e2ee.md` §2.1](./audited-e2ee.md) 的两套 normative join warning 文案区分展示，不得合并、省略关键限定词，并 MUST 完整呈现"协议层不能阻止恶意合规客户端…"段（详见 [`audited-e2ee.md` §6](./audited-e2ee.md) 关于 protocol-layer normative 边界与 governance hand-off 的说明）。
 - Signal / Double Ratchet 私信互操作只能作为 profile-specific fallback。fallback 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和迁移边界；不得在 MLS Realm 内静默降级。
+
+> **PQ 迁移（informative，占位）**：v1 core 的 MLS cipher suite 与 KEM 仍是经典（X25519 / P-256）。后量子（PQ）抵抗——例如 PQ-MLS、ML-KEM（Kyber）与经典 KEM 的混合（hybrid）KEM——作为**未来 hardening profile** 规划，不属于 v1 core 互操作必需。迁移路径与 wire 版本化机制对齐：新 cipher suite / KEM 通过新的 `cx.profile.mls_governance_binding.full.v<n>` 配套 profile 与 envelope `scheme` / `version` 协商引入，作为可观察的 wire 版本切换，而不是在 v1 wire 内静默替换；KeyPackage `cipher_suites[]`、key backup 的 `cx.aead.hybrid_kem.*` 保留 namespace（见 [`key-management.md` §7.9](../identity/key-management.md)）为该迁移预留协商位。在该 profile 发布前，receiver 收到未注册的 PQ / hybrid cipher suite MUST fail closed。
