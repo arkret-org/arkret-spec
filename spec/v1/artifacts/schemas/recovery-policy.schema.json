@@ -217,14 +217,14 @@
     "not_before": {
       "$ref": "#/$defs/timestamp"
     },
+    "issued_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "expires_at": {
       "oneOf": [
         { "type": "null" },
         { "$ref": "#/$defs/timestamp" }
       ]
-    },
-    "issued_at": {
-      "$ref": "#/$defs/timestamp"
     },
     "auth_data": {
       "type": "object",

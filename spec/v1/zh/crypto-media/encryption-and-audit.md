@@ -577,7 +577,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 | `keypackage_ref` | hash | 被消费的 KeyPackage 的 `keypackage_ref`。 |
 | `keypackage_digest` | hash | 被消费 KeyPackage canonical bytes 的 hash；MUST 等于 Welcome 顶层 `keypackage_digest` 与 `claim_ref.keypackage_digest`。 |
 | `intended_realm_id` | id | Welcome 真正加入的 Realm ID (与 Realm governance state 同源)。 |
-| `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_space, nonce, expiry)。 |
+| `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_realm_id, nonce, expiry)。 |
 | `requester_did` | did | Welcome 发送方 principal DID。 |
 | `ssk_generation` | integer | claim 签发时接收端 principal 当前 accepted cross-signing generation；MUST 与 `claim_ref.ssk_generation` 相同。 |
 | `nonce` | string | per-Welcome 唯一的 ≥ 128 bit 随机串。 |

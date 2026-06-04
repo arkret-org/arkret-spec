@@ -73,8 +73,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 [^review-capability-alias]: v1.1 候选 alias: `review_capability_action` — 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。当前字段名是历史保留（v1 已发布，避免 wire-breaking 重命名），推荐文档与 SDK 在 prose 中使用 `review_capability_action` 描述其语义；wire 字段名保持 `review_capability`。
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
-| `application_ttl` | no | `duration` | 默认 `168h`，最小 `1h`，最大 `8760h`（1y）。 | 申请未决超时即失效。 |
-| `cooldown_after_reject` | no | `duration` | 默认 `72h`。 | 拒绝后同一 actor 重新申请的最短间隔。 |
+| `application_ttl` | no | `duration` | 默认 `PT168H`，最小 `PT1H`，最大 `P1Y`。 | 申请未决超时即失效。 |
+| `cooldown_after_reject` | no | `duration` | 默认 `PT72H`。 | 拒绝后同一 actor 重新申请的最短间隔。 |
 | `max_open_applications_per_actor` | no | `integer` | 默认 `1`，最大 `5`。 | 同一 actor 在本 Realm 同时未决申请上限。 |
 | `applicant_visibility` | no | `enum(reviewer_only, members_after_join, public)` | 默认 `reviewer_only`。 | 申请正文谁可见；`members_after_join` 表示 join 成功后开放给 Realm 成员（用于自我介绍场景）。 |
 | `directory_hint` | no | `object` | 见 §3.2。 | Discovery Directory 公开投影所需 hint。 |
@@ -528,8 +528,8 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 
 | 控制项 | 默认 | 强制要求 |
 | --- | --- | --- |
-| `application_ttl` | 168h | reducer 到期自动转 `rejected_reason="ttl_expired"`；不计 cooldown。 |
-| `cooldown_after_reject` | 72h | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
+| `application_ttl` | PT168H | reducer 到期自动转 `rejected_reason="ttl_expired"`；不计 cooldown。 |
+| `cooldown_after_reject` | PT72H | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
 | Quota constraint | 由 Realm `ck.realm.policy_components` 声明 | 推荐对 `ck.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
 | Policy Server `challenge` | 高风险 Realm 推荐 | Sync Service 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |

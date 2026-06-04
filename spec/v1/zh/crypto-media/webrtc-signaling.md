@@ -154,13 +154,14 @@ Content-Type: application/json
       "credential_type": "password"
     }
   ],
-  "policy": {
-    "force_turn": false,
+  "force_turn": false,
+  "constraints": {
     "allow_udp": true,
     "allow_tcp": true,
     "allow_ipv6": true
   },
   "signature": {
+    "alg": "EdDSA",
     "kid": "did:web:media.example.com#key-1",
     "sig": "base64url..."
   }

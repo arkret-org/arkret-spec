@@ -219,7 +219,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 
 - `ck.event.read`
 - `ck.message.create`
-- `ck.message.mention.broadcast`（high risk；允许在 `ck.message.create` / `ck.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operations` + `period`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="flow_engaged"` 且不使用 presence / online 状态；详见 [`../models/flow-and-message.md` §9.4.3](../models/flow-and-message.md)）
+- `ck.message.mention.broadcast`（high risk；允许在 `ck.message.create` / `ck.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operations` + `period`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="flow_engaged"` 且不使用 presence / online 状态；详见 [`../models/flow-and-message.md` §9.4.4](../models/flow-and-message.md)）
 - `ck.message.revise`
 - `ck.message.revise.own`
 - `ck.message.redact`

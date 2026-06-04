@@ -30,7 +30,7 @@ sidebar:
 | `nbf` / `iat` | token 签发时刻 | — |
 | `exp` | `expires_at` Unix epoch | MUST ≤ 600s after `iat`（media-service-binding §3 TTL 上限） |
 | `name` | optional display label | MUST NOT 携带可关联 actor 身份信息（与 [`../media-service-binding.md` §3](../media-service-binding.md) pairwise pseudonym 对齐）；推荐留空或使用 `participant_identity` |
-| `video.room` | `call_id` | MUST 等于请求的 `call_id`；LiveKit room name 由 issuer 派生（建议 `cx_call_<call_id_short_hash>`，不暴露 raw Realm/call id 到 LiveKit logs） |
+| `video.room` | `call_id` | MUST 等于请求的 `call_id`；LiveKit room name 由 issuer 派生（建议 `ck_call_<call_id_short_hash>`，不暴露 raw Realm/call id 到 LiveKit logs） |
 | `video.roomJoin` | `true` | join 权限 |
 | `video.canPublish` | `desired_media.audio ∨ video ∨ screen` | issuer 按 capability 派生 |
 | `video.canPublishSources[]` | `["microphone","camera","screen_share"]` 子集 | 与 `ck.call.screen_share` 等子 capability 对齐 |

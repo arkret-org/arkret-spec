@@ -664,7 +664,7 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 
 DID 暂时无法解析时按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) fallback 序列降级：`display_name_at_time`（若存在）作为 "name only" 兜底；都没有则显示 truncated DID。任何 fallback 渲染 MUST 有视觉降级标识，不得与正常解析无差别显示。
 
-#### 9.4.1 普通 mention 的通知派生
+#### 9.4.2 普通 mention 的通知派生
 
 普通 mention 是面向单个主体的定向引用。Notification dispatcher 在从 Message 派生 `notification_type=mention` 时 MUST 使用下列规则：
 
@@ -677,7 +677,7 @@ DID 暂时无法解析时按 [`identity/identity-handles.md` §3.8.2](../identit
 
 当 reply、assignment、reaction、watch 与 mention 同时命中同一 actor / device 时，dispatcher SHOULD 合并为单个 inbox row 或单个 push wakeup，并保留内部 reason set；若实现返回多条 inbox projection，也 MUST 在 push 出口按 [`push-notifications.md` §2.4](../discovery/push-notifications.md) 去重。
 
-#### 9.4.2 Audience mention (`@all`)
+#### 9.4.3 Audience mention (`@all`)
 
 v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有成员展开成多个普通 `mention` 节点，也不在共享 history 中持久化展开后的收件人列表。典型 UI token `@all` 映射为 `audience="effective_scope_members"`：
 
@@ -700,7 +700,7 @@ v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有
 
 Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST 不收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
 
-#### 9.4.3 Audience mention 授权与防滥用
+#### 9.4.4 Audience mention 授权与防滥用
 
 包含 `audience_mention` 节点的 `ck.message.create` 或会新增 audience mention 的 `ck.message.revise`，MUST 同时满足：
 

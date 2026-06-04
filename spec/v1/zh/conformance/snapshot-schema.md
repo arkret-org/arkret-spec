@@ -274,7 +274,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 ```json
 {
   "type": "encrypted_envelope",
-  "encryption_profile": "mls_rfc9420",
+  "encryption_profile": "mls-rfc9420",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "epoch": 42,
   "cleartext_metadata": {

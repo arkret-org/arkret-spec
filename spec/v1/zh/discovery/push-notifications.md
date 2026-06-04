@@ -289,7 +289,7 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 
 #### 4.3.3 Audience mention fanout
 
-Audience mention（例如 `@all` / `@here`）的规范性节点形态、允许的 audience 集合和授权规则定义在 [`../models/flow-and-message.md` §9.4.2-§9.4.3](../models/flow-and-message.md)。Push rule 引擎只看到 receiver-side 结果：若当前 receiver 是该 audience mention 在 source event causal frontier 下展开后的合法接收者，则 `mentions_actor` 为 true；否则为 false。
+Audience mention（例如 `@all` / `@here`）的规范性节点形态、允许的 audience 集合和授权规则定义在 [`../models/flow-and-message.md` §9.4.3-§9.4.4](../models/flow-and-message.md)。Push rule 引擎只看到 receiver-side 结果：若当前 receiver 是该 audience mention 在 source event causal frontier 下展开后的合法接收者，则 `mentions_actor` 为 true；否则为 false。
 
 Dispatcher 在把 audience mention 转换为 notification / push 前 MUST 先完成以下 gate，且任一失败都不得产生 push wakeup：
 

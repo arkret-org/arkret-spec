@@ -609,7 +609,7 @@ POST /_cokret/self/events/resolve
 ### 3.3 查询 / 回填 Event（`ck.events.query`）
 
 ```text
-GET /_cokret/self/events?realms=<id>&before=<cursor>&limit=500          # 历史 backfill（最近未历史）
+GET /_cokret/self/events?realms=<id>&before=<cursor>&limit=500          # 历史 backfill（cursor 之前最近的一批历史事件，向更旧方向取一页）
 GET /_cokret/self/events?actors=<did>&after=<cursor>&limit=500           # 从已知 frontier 追上（catch-up）
 GET /_cokret/self/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区间查询（Y, X）开区间
 ```

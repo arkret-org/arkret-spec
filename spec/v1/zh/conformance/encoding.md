@@ -180,7 +180,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 }
 ```
 
-`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`receipt_scope`、`frontier`、`events`、`schema` 和 `type` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
+`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`receipt_scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
 
 ## 6. Signature
 

@@ -1,11 +1,20 @@
 ---
 title: Service API Schema（统一 OpenAPI）
+status: candidate
+normative: false
+stability: v1
+updated: 2026-06-05
+see_also:
+  - sync/service-http-binding.md
+  - sync/api-conventions.md
 ---
 
 import OperationTable from "~/components/OperationTable.astro";
 
 
 ## 1. 目标
+
+本页是 OpenAPI binding 的说明视图（informative）；其中复述的 MUST 规则其权威来源为 `sync/service-http-binding.md` 与 `sync/api-conventions.md`。
 
 `service-api-schema.mdx` 是 Cokret **canonical operation** 的说明性服务清单。  
 HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其它 transport（gRPC、WebSocket、SSE、MQ、libp2p、IPC）。
