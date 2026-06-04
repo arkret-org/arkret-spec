@@ -42,6 +42,22 @@
 
 ## [Unreleased]
 
+### 移除 `/_cokret/local/*` 协议管理面(2026-06-04)
+
+协议命名空间不再定义 `local` 信任段或 `ck.admin.*` operation。部署本地管理面属于具体服务器产品 surface，必须使用各自的 negative-space root（例如 `/_soland/admin/*`），不得注册到 `/_cokret/` Cokret protocol namespace。
+
+- **变更类型**: remove
+- **影响 artifact**: registry（contract-catalog / operation-registry / removed-operation-ids）/ openapi / non-http binding / profile / prose / tooling
+- **canonical 变更**: 从 `contract-catalog.json#operation_registry` 删除 `admin_operator` surface group 以及 `ck.admin.get_moderation_queue`、`ck.admin.get_server_status`、`ck.admin.revoke_device`、`ck.admin.update_account_status`；这些 operation 已登记到 `removed-operation-ids.json` hard_reject。
+- **派生 artifact 同步**: 已同步 `operation-registry.json`、public catalog snapshot、OpenAPI、non-http binding、`service-http-binding.md` 与 `service-api-schema.mdx`。
+- **conformance impact**:
+  - 受影响 profile: `ck.profile.organization.v1`、`ck.profile.high_security_organization.v1` 的 required_endpoints 移除 `ck.admin.*`。
+  - wire 兼容性: breaking（协议尚未公开发布，单一 v1 线，允许 pre-release breaking）。
+  - reader / writer 行为要求: Cokret 服务 MUST NOT advertise `ck.admin.*` 或 `/_cokret/local/*`；实现如需管理 API，MUST 在自有产品前缀下声明和治理。
+- **fixture / vector 变化**: 无。
+- **prose 同步**: `sync/service-http-binding.md`、`sync/service-api-schema.mdx`。
+- **迁移指南**: soland 等实现把管理 API 放入 `/_soland/admin/*` 等自有路径，不通过 `supported_operations` 宣称为 Cokret protocol operation。
+
 ### 拆分 webrtc-signaling.md 为三文件(STR-001,2026-06-04)
 
 把承载过多协议面的 `crypto-media/webrtc-signaling.md` 物理拆分为三个单一职责文件,消除 schema / profile / vector / anchor 漂移的结构性根因。详见 `_delay_todos.md`。
@@ -67,7 +83,7 @@
 - **影响 artifact**: registry（contract-catalog / 全部派生视图 / operations-error-mapping / error-code / renames / forbidden-model-terms）/ schema / fixture / openapi / non-http binding / prose / site metadata / tooling
 - **canonical 变更**:
   - 全部 wire token 前缀 `cx.`→`ck.`、typed-id 前缀 `ck:`→`ck:`、品牌串 `contrix`/`Contrix`→`cokret`/`Cokret`（含实体文件 `cokret-service-api.openapi.yaml`、`cokret-native.md`）。
-  - 每个 operation 的 `http` binding 重写为 `/_cokret/<信任段>/...`（段：`self`/`gate`/`root`/`find`/`peer`/`open`/`edge`/`local`），顶层 `ck.server.describe` 落根 meta 位 `GET /_cokret/describe`。
+  - 每个 operation 的 `http` binding 重写为 `/_cokret/<信任段>/...`（段：`self`/`gate`/`root`/`find`/`peer`/`open`/`edge`），顶层 `ck.server.describe` 落根 meta 位 `GET /_cokret/describe`。
   - **去 path 版本**：删除所有 `/v1/`、`/api/v1`、`/cokret/v1` 片段；`servers` 仅 `https://{host}`；版本改由 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header）。
 - **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 重生成全部派生 registry 视图与 public catalog snapshot；OpenAPI path、`operations-error-mapping.http_alias`、prose 路径表已同步；fixture 内嵌 digest 经 `tools/fix_crypto_signature_fixture.py` 与 digest 重算更新，`tools/check_fixture_digests.py --write-reference` 刷新引用。
 - **conformance impact**:

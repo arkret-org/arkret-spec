@@ -2050,15 +2050,8 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         "ck.account.oidc_callback": ("AccountOidcCallbackRequest", "AccountOidcCallbackResponse"),
         "ck.directory.announce": ("DirectoryAnnounceRequest", "DirectoryAnnounceResponse"),
         "ck.directory.withdraw": ("DirectoryWithdrawRequest", "DirectoryWithdrawResponse"),
-        "ck.admin.update_account_status": (
-            "AdminUpdateAccountStatusRequest",
-            "AdminUpdateAccountStatusResponse",
-        ),
-        "ck.admin.revoke_device": ("AdminRevokeDeviceRequest", "AdminRevokeDeviceResponse"),
     }
-    expected_response_only = {
-        "ck.admin.get_server_status": "AdminServerStatusResponse",
-    }
+    expected_response_only = {}
     dedicated_schema_refs = {
         f"#/components/schemas/{name}"
         for pair in expected.values()
@@ -2284,14 +2277,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     for operation_id, operation in operations.items():
         if not operation_id.startswith("ck.admin."):
             continue
-        groups = security_groups(operation)
-        if any("bearerAuth" in group for group in groups):
-            lint.fail(openapi_path, f"{operation_id} must not use ordinary bearerAuth on admin surface")
-        if operation_id == "ck.admin.get_moderation_queue":
-            if not any({"adminBearer", "moderatorCapability"}.issubset(group.keys()) for group in groups):
-                lint.fail(openapi_path, "ck.admin.get_moderation_queue must require adminBearer and moderatorCapability")
-        elif not any(set(group.keys()) == {"adminBearer"} for group in groups):
-            lint.fail(openapi_path, f"{operation_id} must require adminBearer")
+        lint.fail(openapi_path, f"{operation_id} is product-local and must not be registered in Cokret OpenAPI")
 
 
 def check_read_scope_schema_closure(lint: Lint) -> None:

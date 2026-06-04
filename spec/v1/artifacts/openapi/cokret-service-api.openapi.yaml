@@ -53,9 +53,9 @@ info:
 
     Applet install preview/commit also carry typed DTO schemas. Remaining
 
-    extension / interop / deployment-local operations (directory, applet, MIMI,
+    extension / interop operations (directory, applet, MIMI,
 
-    push, moderation, admin, etc.) continue to use the
+    push, moderation, etc.) continue to use the
 
     generic `OperationRequest` / `OperationResult` envelope as their HTTP
 
@@ -95,7 +95,7 @@ info:
 
     wire; reserved namespace branch), `open` (non-cokret external vendors, e.g. MIMI),
 
-    `edge` (push / bridge gateways), `local` (operator / deployment-local surfaces).
+    `edge` (push / bridge gateways).
 
     Reading the URL therefore reveals the attack surface. The pre-auth capability
 
@@ -134,21 +134,6 @@ components:
         auth material for S2S federation / inter-service calls — those MUST
         also satisfy the httpMessageSignature + sourceServiceDid +
         destinationServiceDid AND group (see service-http-binding.md §2.2).
-    adminBearer:
-      type: http
-      scheme: bearer
-      description: |
-        Deployment-local administrator bearer token. This is distinct from
-        ordinary bearerAuth: the token MUST bind an admin role and the target
-        operator surface before the request reaches business logic.
-    moderatorCapability:
-      type: apiKey
-      in: header
-      name: X-Cokret-Moderator-Capability
-      description: |
-        Capability proof for moderation queue reads. Deployments may encode
-        this as a grant reference, signed presentation, or equivalent local
-        proof, but it MUST be evaluated in addition to adminBearer.
     httpMessageSignature:
       type: apiKey
       in: header
@@ -232,8 +217,8 @@ components:
       description: |
         Reserved for deployment-controlled internal channels (sovereign /
         enclave operator surfaces). Not used by any registered v1 operation
-        in this OpenAPI document; deployments MAY require it as an additional
-        AND constraint on admin endpoints via deployment-local profile.
+        in this OpenAPI document; deployments MAY require it on product-local
+        management APIs outside the Cokret protocol namespace.
   headers:
     XCokretRequestId:
       description: Stable request identifier.
@@ -3638,82 +3623,6 @@ components:
         acked_at:
           type: string
           format: date-time
-    AdminServerStatusResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - service_did
-      - build
-      - uptime_seconds
-      - registry_versions
-      properties:
-        service_did:
-          $ref: '#/components/schemas/ServiceDid'
-        build:
-          type: object
-          additionalProperties: true
-        uptime_seconds:
-          type: integer
-          minimum: 0
-        registry_versions:
-          type: object
-          additionalProperties:
-            type: string
-        queues:
-          type: object
-          additionalProperties: true
-    AdminUpdateAccountStatusRequest:
-      type: object
-      additionalProperties: false
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          enum:
-          - suspend
-          - restore
-          - lock
-          - unlock
-          - soft_logout
-          - erase
-        reason:
-          type: string
-          maxLength: 512
-    AdminUpdateAccountStatusResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - ok
-      - status
-      - applied_at
-      properties:
-        ok:
-          const: true
-        status:
-          type: string
-        applied_at:
-          type: string
-          format: date-time
-    AdminRevokeDeviceRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        reason:
-          type: string
-          maxLength: 512
-    AdminRevokeDeviceResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - ok
-      - revoked_at
-      properties:
-        ok:
-          const: true
-        revoked_at:
-          type: string
-          format: date-time
     OperationRequest:
       type: object
       description: Operation-specific JSON request object. Required fields and profile gates are defined by the operation
@@ -6537,96 +6446,3 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountOidcCallbackRequest'
-  /_cokret/local/admin/server/status:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    get:
-      operationId: ck.admin.get_server_status
-      security:
-      - adminBearer: []
-      responses:
-        '200':
-          description: Server admin status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminServerStatusResponse'
-  /_cokret/local/admin/accounts/{account_id}/status:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ck.admin.update_account_status
-      security:
-      - adminBearer: []
-      parameters:
-      - in: path
-        name: account_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/AccountId'
-      responses:
-        '200':
-          description: Account lifecycle state updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUpdateAccountStatusResponse'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUpdateAccountStatusRequest'
-  /_cokret/local/admin/devices/{device_id}/revoke:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ck.admin.revoke_device
-      security:
-      - adminBearer: []
-      parameters:
-      - in: path
-        name: device_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/DeviceId'
-      responses:
-        '200':
-          description: Device revoked
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminRevokeDeviceResponse'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminRevokeDeviceRequest'
-  /_cokret/local/admin/moderation/queue:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    get:
-      operationId: ck.admin.get_moderation_queue
-      security:
-      - adminBearer: []
-        moderatorCapability: []
-      responses:
-        '200':
-          description: Moderation queue
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ModerationQueueResponse'

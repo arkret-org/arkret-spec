@@ -72,7 +72,6 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | Applet | `ck.applet.*` | `/_cokret/edge/applet/*` |
 | MIMI 互操作 | `ck.mimi.*` | `/_cokret/open/mimi/*` |
 | 账户登录与设备配对 | `ck.account.{issue_session_grant,device_pair,oidc_callback}` | `/_cokret/gate/account/*` |
-| 管理员与运维 | `ck.admin.*` | `/_cokret/local/admin/*` |
 
 ## 3. OpenAPI 参考快照（非穷尽示例）
 
@@ -282,18 +281,6 @@ paths:
   /_cokret/self/moderation/report:
     post:
       operationId: ck.moderation.report
-  /_cokret/local/admin/server/status:
-    get:
-      operationId: ck.admin.get_server_status
-  /_cokret/local/admin/moderation/queue:
-    get:
-      operationId: ck.admin.get_moderation_queue
-  /_cokret/local/admin/devices/{device_id}/revoke:
-    post:
-      operationId: ck.admin.revoke_device
-  /_cokret/local/admin/accounts/{account_id}/status:
-    post:
-      operationId: ck.admin.update_account_status
 
   /_cokret/edge/applet/ping:
     get:

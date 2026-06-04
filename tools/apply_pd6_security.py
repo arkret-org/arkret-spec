@@ -143,12 +143,6 @@ OPERATIONS: dict[str, str] = {
     "ck.account.device_pair": "user_bearer",
     "ck.account.issue_session_grant": "public_no_auth",   # callback-style; body carries proof
     "ck.account.oidc_callback": "public_no_auth",         # OIDC redirect with `code`
-
-    # admin_operator
-    "ck.admin.get_moderation_queue": "admin_bearer",
-    "ck.admin.get_server_status": "admin_bearer",
-    "ck.admin.revoke_device": "admin_bearer",
-    "ck.admin.update_account_status": "admin_bearer",
 }
 
 

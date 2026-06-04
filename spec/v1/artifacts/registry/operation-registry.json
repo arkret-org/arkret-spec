@@ -231,16 +231,6 @@
         "ck.agent.grant.detach",
         "ck.agent.sidecar_thread.ensure"
       ]
-    },
-    {
-      "surface": "admin_operator",
-      "tier": "deployment_local",
-      "operations": [
-        "ck.admin.get_moderation_queue",
-        "ck.admin.get_server_status",
-        "ck.admin.revoke_device",
-        "ck.admin.update_account_status"
-      ]
     }
   ],
   "operations": [
@@ -436,34 +426,6 @@
       "http": "POST /_cokret/gate/account/oidc/callback",
       "grpc": "Account/OidcCallback",
       "mq": "account.oidc_callback",
-      "success_shape_kind": "typed_response"
-    },
-    {
-      "operation_id": "ck.admin.get_moderation_queue",
-      "http": "GET /_cokret/local/admin/moderation/queue",
-      "grpc": "Admin/GetModerationQueue",
-      "mq": "admin.get_moderation_queue",
-      "success_shape_kind": "typed_response"
-    },
-    {
-      "operation_id": "ck.admin.get_server_status",
-      "http": "GET /_cokret/local/admin/server/status",
-      "grpc": "Admin/GetServerStatus",
-      "mq": "admin.get_server_status",
-      "success_shape_kind": "typed_response"
-    },
-    {
-      "operation_id": "ck.admin.revoke_device",
-      "http": "POST /_cokret/local/admin/devices/{device_id}/revoke",
-      "grpc": "Admin/RevokeDevice",
-      "mq": "admin.revoke_device",
-      "success_shape_kind": "typed_response"
-    },
-    {
-      "operation_id": "ck.admin.update_account_status",
-      "http": "POST /_cokret/local/admin/accounts/{account_id}/status",
-      "grpc": "Admin/UpdateAccountStatus",
-      "mq": "admin.update_account_status",
       "success_shape_kind": "typed_response"
     },
     {

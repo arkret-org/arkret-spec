@@ -41,7 +41,6 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `peer` | 对等 Cokret 服务器 | federation server↔server wire（保留命名分支，见 `federation.md`；不承接这 101 个 client/service operation） |
 | `open` | 非 Cokret 外部厂商 | mimi |
 | `edge` | 推送 / 桥接网关 | push·applet |
-| `local` | 运营 / 部署本地面 | admin |
 
 读 URL 即读攻击面：`/_cokret/self/...` 是调用方本人的会话面，`/_cokret/open/...` 一眼就是在跟外部厂商打交道。pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.server.describe`）；其余 `*.describe` 各自跟随所在段。版本不进 path，由 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header）。versionless + 协议内协商如何支撑新旧实现互通，见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md) §6。
 
@@ -185,10 +184,6 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}` | path `{agent_principal_id, grant_id}` | controller grant authority；撤销或解绑 agent grant，后续 agent action proof fail closed。 | `{ok: true, revoked_at}` |
 | `POST /_cokret/self/agent-sidecar-threads:ensure` | body `{realm_id, controller_principal_id, agent_principal_id}` | controller `user_session` + `ck.agent.sidecar_thread.ensure`；在 eligibility、Circle membership active，且若 Circle 为 MLS-backed 则 MLS membership active 后，才 fanout notification/context。 | `{ok: true, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliation?}` |
 | `POST /_cokret/gate/account/oidc/callback` | body `AccountOidcCallbackRequest {state, code, nonce?, redirect_uri?}` | `public_metadata` 的回调入口(OIDC IdP 重定向);服务端 MUST 校验 `state` / `nonce` / `redirect_uri` 并把外部主体映射到 Cokret principal。 | `AccountOidcCallbackResponse {principal_id, session?}` 或 `{redirect_url}` |
-| `GET /_cokret/local/admin/server/status` | query none | `admin_bearer`(MUST 是 admin role 的 user_session)。 | `{service_did, build, uptime_seconds, registry_versions, queues?}` |
-| `POST /_cokret/local/admin/accounts/{account_id}/status` | path `{account_id}` body `{action: enum(suspend, restore, ...), reason?}` | `admin_bearer`;reducer 同时写 `ck.account.status`(必须由 admin 签发)。 | `{ok: true, status, applied_at}` |
-| `POST /_cokret/local/admin/devices/{device_id}/revoke` | path `{device_id}` body `{reason?}` | `admin_bearer`;触发 `ck.device.revoke` + capability fanout。 | `{ok: true, revoked_at}` |
-| `GET /_cokret/local/admin/moderation/queue` | query `{realm_id?, status?, cursor?, limit?}` | `admin_bearer` 与 moderator capability;只返回调用方有 moderation scope 的 Realm。 | `{reports[], next_cursor?, has_more}` |
 | `GET /_cokret/open/mimi/provider-directory` | query `{provider_did?, capabilities?: string[]}` | `public_metadata`;provider 列表本身公开。 | `{providers[]}` |
 | `POST /_cokret/open/mimi/key-material` | body `{requester: did, flow_id: id, device_id: id, mimi_room_uri?: string, realm_id?: id, mls_group_id?: string, epoch?: int, proofs?: proof[]}` | `service_signature`(MIMI provider-to-provider) 或 `user_or_service`。 | `{key_packages?, group_info?, failures?, signature?}` |
 | `PUT /_cokret/open/mimi/flows/{flow_id}/update` | path `{flow_id}` body `ck.schema.mimi_interop.v1` room update | `service_signature`。 | `{ok: true, version}` |
@@ -201,7 +196,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /_cokret/open/mimi/report-abuse` | body MIMI abuse report body | `user_session` 或 `service_signature`;同 `ck.moderation.report` 互补。 | `{report_id, routed_to?}` |
 | `POST /_cokret/open/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用；不接受 user_session。 | `{relayed: true, expires_at?}` |
 
-> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(operation_id 的权威计数由 generated registry 视图 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 维护，本文不硬编码数字；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中；先前版本曾把部分子表面留在独立章节，现已合并回 §2.3 以保证 operation discovery 完整。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
+> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(operation_id 的权威计数由 generated registry 视图 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 维护，本文不硬编码数字；一个 operation_id 对应多个 HTTP 别名时合并展示)。Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中；先前版本曾把部分子表面留在独立章节，现已合并回 §2.3 以保证 operation discovery 完整。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry。本表是人类阅读视图。
 
 > **错误码映射**: 每个 operation_id 的 operation-specific 错误码集合（在通用 `unauthenticated` / `auth_expired` / `schema_violation` / `rate_limited` / `internal_error` / `service_unavailable` 等通用失败面之外）由 [`artifacts/registry/operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 给出。错误码语义见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。
 
@@ -513,10 +508,6 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.account.issue_session_grant` | `principal_id: did`; `proof: SessionGrantRequestProof` | `device_id: id`; `requested_scope: string[]` | `principal_id: did`; `device_id: id?`; `session_grant: string`; `expires_at: datetime`; `granted_scope: string[]?` | `proof` MUST 绑定 `proof_kind`、`challenge`、`request_canonical_digest`、`audience`、`expires_at?` 与签名；必须绑定 principal、device key、audience 和最小 scope。 |
 | `ck.account.device_pair` | `principal_id: did`; `new_device_key: object`; `pairing_proof: proof` | `display_name: string`; `device_metadata: object` | `device_id: id`; `device_grant: object`; `key_backup_hint: object?` | pairing code / proof 必须短期有效、一次性使用，并绑定目标 Auth Server audience / origin / request canonical hash；服务端 MUST 按 principal、授权源设备和目标 origin 限速。 |
 | `ck.account.oidc_callback` | `state: string`; `code: string` | `nonce: string`; `redirect_uri: url` | `principal_id: did?`; `session: SessionGrantResponse?`; `redirect_url: url?` | MUST 校验 state、nonce、服务端配置的 issuer binding 和 DID/account linkage。 |
-| `ck.admin.get_server_status` | 无 | `query.include: string[]` | `status: string`; `protocol_version: string`; `features: string[]`; `capacity: object?`; `warnings: string[]?` | 公开响应只能包含 operational metadata；敏感细节需要 admin session。 |
-| `ck.admin.update_account_status` | `path.account_id: id`; `status: string`; `moderator: did`; `proof: proof` | `reason: string`; `expires_at: datetime`; `notify: boolean` | `account_id: id`; `status: string`; `event_ref: id?`; `updated_at: datetime` | 必须生成可审计 account lifecycle 状态或 admin receipt。 |
-| `ck.admin.revoke_device` | `path.device_id: id`; `moderator: did`; `proof: proof` | `reason: string`; `revoke_sessions: boolean` | `device_id: id`; `revoked: boolean`; `event_ref: id?` | 必须撤销 device grant、session grant 和相关 key package。 |
-| `ck.admin.get_moderation_queue` | 无 | `query.realm_id: id`; `query.status: string`; `query.cursor: cursor`; `query.limit: int` | `items: object[]`; `next_cursor: cursor?`; `has_more: boolean`; `counts: object?` | 只对授权 moderator / compliance service 可见，证据按 policy 最小披露。 |
 | `ck.media.ice_config` | `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `mode: string` | 无 | `ttl_seconds: int`; `refresh_lead_seconds: int`; `issued_at: datetime`; `issued_at_bucket: datetime`; `bucket_seconds: int`; `ice_servers: object[]`; `constraints: object?`; `signature: signature` | actor 必须有 call/media capability；Realtime Media Server 必须被委托；TURN pseudonym bucket 固定 300s。 |
 
 ## 3. Events API
@@ -799,7 +790,7 @@ Resolver MUST 返回足够的方法相关证据，使客户端能够验证 contr
 
 ## 5. Account API
 
-`/_cokret/self/account/*` 承载当前 authenticated principal/device 的账号视角能力：account 聚合 streaming（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts）、account describe 与 cursor revoke。snapshot manifest 入口独立放在 `/_cokret/self/snapshot/*`。逐 Realm 的事件读取与流式订阅走 `/_cokret/self/events/*`（`ck.events.query`、`ck.events.subscribe`），见 §3.3 / §3.4。用户注册、handle 申请、审批、重签和管理员分配属于 issuer / coauth / 部署治理流程，v1 core 不定义对应 `/_cokret/self/account/*` 或 `/_cokret/local/admin/*` API。
+`/_cokret/self/account/*` 承载当前 authenticated principal/device 的账号视角能力：account 聚合 streaming（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts）、account describe 与 cursor revoke。snapshot manifest 入口独立放在 `/_cokret/self/snapshot/*`。逐 Realm 的事件读取与流式订阅走 `/_cokret/self/events/*`（`ck.events.query`、`ck.events.subscribe`），见 §3.3 / §3.4。用户注册、handle 申请、审批、重签和管理员分配属于 issuer / coauth / 部署治理流程，v1 core 不定义对应 `/_cokret/self/account/*` 或任何 Cokret 管理 API；实现如需管理面 MUST 使用自己的 negative-space root（例如 `/_soland/admin/*`），不得放在 `/_cokret/` 协议命名空间下。
 
 ### 5.1 账号聚合订阅（`ck.account.subscribe`）
 

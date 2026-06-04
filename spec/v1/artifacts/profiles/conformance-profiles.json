@@ -2193,8 +2193,7 @@
       ],
       "required_endpoints": [
         "ck.directory.resolve_organization",
-        "ck.authz.get_effective_grants",
-        "ck.admin.get_server_status"
+        "ck.authz.get_effective_grants"
       ],
       "required_event_kinds": [
         "ck.organization.discovery",
@@ -2241,8 +2240,7 @@
       ],
       "required_endpoints": [
         "ck.snapshot.head",
-        "ck.keys.keypackages.revoke",
-        "ck.admin.revoke_device"
+        "ck.keys.keypackages.revoke"
       ],
       "required_event_kinds": [
         "ck.device.revoke",

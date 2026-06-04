@@ -164,11 +164,6 @@ grpc:
       GrantAttach: ck.agent.grant.attach
       GrantDetach: ck.agent.grant.detach
       SidecarThreadEnsure: ck.agent.sidecar_thread.ensure
-    Admin:
-      GetServerStatus: ck.admin.get_server_status
-      UpdateAccountStatus: ck.admin.update_account_status
-      RevokeDevice: ck.admin.revoke_device
-      GetModerationQueue: ck.admin.get_moderation_queue
 mq:
   envelope:
     required:
