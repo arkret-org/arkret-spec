@@ -415,6 +415,39 @@ components:
               type: object
         request_id:
           type: string
+    Problem:
+      type: object
+      description: |
+        RFC 9457 (application/problem+json) projection of the default
+        ErrorEnvelope, returned by HTTP-binding services only when the request
+        carries `Accept: application/problem+json`. This is a content-negotiated
+        view over the default `{ok:false, error:{...}}` wire, not a new error
+        namespace: `type` carries the same standard `error.code` string from
+        artifacts/registry/error-code-registry.json. Field mapping:
+        `error.code → type`, `error.message → detail`, HTTP status → `status`,
+        `request_id → instance`. See zh/sync/api-conventions.md §5.
+      properties:
+        type:
+          type: string
+          description: |
+            Problem type identifier. Carries the standard `error.code` string
+            (MAY be expressed as a URN or relative URI). Clients MUST treat
+            unknown values as forward-compatible failures.
+        title:
+          type: string
+          description: Optional short, human-readable summary of the problem type.
+        status:
+          type: integer
+          description: HTTP status code, mirroring the response status line.
+          minimum: 100
+          maximum: 599
+        detail:
+          type: string
+          description: Developer-facing diagnostic text (from `error.message`); MUST NOT be used for stable program logic.
+        instance:
+          type: string
+          description: Request identifier (from `request_id`).
+      additionalProperties: true
     ServiceDescribe:
       type: object
       description: |
@@ -3667,6 +3700,9 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorEnvelope'
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
     MethodNotAllowed:
       description: Method not allowed.
       headers:
@@ -3677,6 +3713,9 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorEnvelope'
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
     RateLimited:
       description: Rate limited.
       headers:

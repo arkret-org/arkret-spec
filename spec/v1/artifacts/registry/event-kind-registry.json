@@ -401,7 +401,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle membership state (parallel to ck.member.state). Reducer MUST first validate the target actor is parent Realm active member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+      "payload": "Circle membership state. Uses the same membership_state enum as ck.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
       "cell_family": "ck.component.circle.member.v1",
       "cell_subject": {
         "type": "composite",

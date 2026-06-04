@@ -72,7 +72,7 @@ Schema id: `ck.schema.circle.v1`
 | `summary` | no | `string` | ≤2048 chars。 | 简短说明(渲染在 banner / 详情)。 |
 | `display` | yes | `object` | 见 §3.2。 | **跨客户端一致**的视觉身份字段;只对 `directory_visibility` 允许的 actor 投影。 |
 | `directory_visibility` | yes | `enum(members, realm_members)` | 默认 `members`。 | Circle 元数据可发现性。`members` 时非成员不得看到 title / display / member_count;`realm_members` 仅披露目录元数据,不授予事件或历史访问。 |
-| `join_rule` | yes | `enum(invite, request, open)` | 默认 `invite`。 | Circle 加入规则。`open` 仅允许父 Realm active member 自助加入;`request` 需要 profile 定义申请/批准流程;`invite` 只能由 Circle 管理员加入或邀请。 |
+| `join_rule` | yes | `enum(invite, request, open)` | 默认 `invite`。 | Circle 加入规则。`open` 仅允许父 Realm `join` 成员自助加入;`request` 触发 `knock` 申请/批准流;`invite` 只能由 Circle 管理员加入或邀请。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`event-auth-state-resolution.md` §6](../zh/authz/event-auth-state-resolution.md)。 | Circle 自己的历史可见性,但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `metadata_encryption_floor` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm floor。 | Circle 内对象的 metadata 加密下限;只能收紧,不得放宽父 Realm floor。 |
 | `encryption_profile` | yes | `enum(mls_rfc9420, ...)` | create-locked。v1 仅允许 `mls_rfc9420`;enum 形态预留未来 MLS 版本 / PQ-MLS 扩展位。Circle 必须拥有独立 MLS group;不得复用 Realm-default MLS group 或从其导出密钥。 | 加密形态。 |
@@ -105,7 +105,7 @@ Circle v1 不提供 `plaintext_inherit` 或 "authorization-only Circle"。这条
 | `ck.circle.archive` | yes | object_lifecycle_payload | active → archived。 |
 | `ck.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ck.circle.tombstone` | yes | object_lifecycle_payload | terminal;触发 §3.7 cascade。 |
-| `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invited\|active\|left\|banned, ...}` | 平行 `ck.member.state`,但 reducer 先校验 actor 已是父 Realm `active` member。 |
+| `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invite\|join\|knock\|leave\|ban, ...}` | 复用 `ck.member.state` 的 `membership_state` 枚举(scope 限 Circle),reducer 先校验 actor 已是父 Realm `join` 成员;`knock` 仅在 `join_rule=request` 下允许。 |
 | `ck.circle.anchor_commit` | reducer-derived | `{circle_id, sub_anchor_head_digest, epoch}` | Circle sub-anchor 周期性向 Realm Anchor 提交不透明 commitment(§3.9)。 |
 
 ### 3.4 对象 scope 表达
@@ -253,8 +253,8 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_refs` / `circle_id` 
 
 **硬不变量**:
 
-1. `Circle.members ⊆ Realm.members`。reducer 在 `ck.circle.member.state -> active` 时,若 target actor 不是父 Realm `active` member,MUST `failed_precondition` `reason="circle_member_must_be_realm_member"`。
-2. 父 Realm `ck.member.state -> left/banned` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `left`,并触发各 Circle 的 MLS `remove` proposal。不需要 actor 显式写。
+1. `Circle.members ⊆ Realm.members`。reducer 在 `ck.circle.member.state -> join` 时,若 target actor 的父 Realm `ck.member.state` 不是 `join`,MUST `failed_precondition` `reason="circle_member_must_be_realm_member"`。
+2. 父 Realm `ck.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`,并触发各 Circle 的 MLS `remove` proposal。不需要 actor 显式写。
 3. **Circle 平面化,不允许嵌套**(`parent_circle_ref` 不存在)。需要交叉成员关系时,actor 同时属于多个 Circle 即可;不需要 hierarchy。本约束沿用 [`realm-links.md` §2.1](../zh/models/realm-links.md) "link graph not tree" 的教训。
 4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时,必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_refs` selector 的 capability grant 表达;v1 不注册单独的 `ck.circle.admin` action。
 
@@ -262,12 +262,15 @@ Membership transition table:
 
 | from | to | writer |
 | --- | --- | --- |
-| none / left | invited | `ck.circle.member.manage` |
-| invited | active | target actor (`ck.circle.member.add`) 或 `ck.circle.member.manage` |
-| none / left | active | target actor only when `join_rule=open`; otherwise `ck.circle.member.manage` |
-| active | left | target actor or `ck.circle.member.manage` |
-| none / invited / active / left | banned | `ck.circle.member.manage` |
-| banned | left / invited | `ck.circle.member.manage` only; self-service MUST fail closed |
+| none / leave | invite | `ck.circle.member.manage` |
+| none / leave | knock | target actor，仅当 `join_rule=request`(自助申请，正文不入该 Move) |
+| knock | invite / join | `ck.circle.member.manage`(批准) |
+| knock | leave | target actor(撤回)或 `ck.circle.member.manage`(拒绝) |
+| invite | join | target actor (`ck.circle.member.add`) 或 `ck.circle.member.manage` |
+| none / leave | join | target actor only when `join_rule=open`; otherwise `ck.circle.member.manage` |
+| join | leave | target actor or `ck.circle.member.manage` |
+| none / invite / knock / join / leave | ban | `ck.circle.member.manage` |
+| ban | leave / invite | `ck.circle.member.manage` only; self-service MUST fail closed |
 
 ### 3.7 Lifecycle cascade
 

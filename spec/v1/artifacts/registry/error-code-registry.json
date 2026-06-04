@@ -2443,7 +2443,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition on ck.circle.member.state -> active when target actor is not yet an active member of the parent Realm. Circle.members ⊆ Realm.members is a hard invariant. See zh/models/circle.md §9.1."
+      "description": "Sub-reason for failed_precondition on ck.circle.member.state -> join when target actor is not yet a `join` member of the parent Realm. Circle.members ⊆ Realm.members is a hard invariant. See zh/models/circle.md §9.1."
     },
     {
       "code": "circle_encryption_below_realm_floor",

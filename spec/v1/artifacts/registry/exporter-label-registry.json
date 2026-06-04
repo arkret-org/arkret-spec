@@ -1,0 +1,53 @@
+{
+  "version": "2026-06-04",
+  "source_of_truth": true,
+  "description": "Canonical registry of MLS-Exporter labels used for media key derivation (SFrame per-sender frame keys and backend recording-artifact keys). Each label is a wire-breaking security-domain-separation parameter: implementations MUST use the exact label string and Context field shape registered here, MUST NOT derive with an empty Context, and MUST NOT migrate or reuse keys across labels without declaring a new profile. See zh/crypto-media/webrtc-signaling.md §10.5 and conformance/conformance-vectors.md §12.7.",
+  "labels": [
+    {
+      "label": "cx-rtc-frame-key/v1",
+      "purpose": "SFrame per-sender media frame key (E2EE media frames)",
+      "context_fields": [
+        "realm_id",
+        "call_id",
+        "focus_id",
+        "epoch_id",
+        "participant_identity",
+        "device_id"
+      ],
+      "output_length": 32,
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "grandfathered": true,
+      "grandfathered_note": "The cx- prefix is an intentionally retained grandfathered stable wire label (early media-binding naming), not naming residue. MUST NOT be migrated to a ck- form or mixed with another label without declaring a new profile.",
+      "empty_context_forbidden": true,
+      "empty_context_error": "e2ee_key_source_unauthorised",
+      "forbid_reuse_with": [
+        "cx-rtc-recording-key/v1"
+      ]
+    },
+    {
+      "label": "cx-rtc-recording-key/v1",
+      "purpose": "Backend-generated recording artifact encryption key",
+      "context_fields": [
+        "realm_id",
+        "call_id",
+        "focus_id",
+        "recording_id",
+        "media_service_did",
+        "recording_start_event_id"
+      ],
+      "output_length": 32,
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "grandfathered": true,
+      "grandfathered_note": "The cx- prefix is an intentionally retained grandfathered stable wire label, not naming residue. MUST NOT be migrated to a ck- form or mixed with another label without declaring a new profile.",
+      "empty_context_forbidden": true,
+      "empty_context_error": "e2ee_key_source_unauthorised",
+      "forbid_reuse_with": [
+        "cx-rtc-frame-key/v1"
+      ]
+    }
+  ]
+}

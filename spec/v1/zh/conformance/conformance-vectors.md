@@ -2642,7 +2642,7 @@ Expected:
 
 - A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
 - A 后续任何 `ck.account.issue_session_grant` MUST fail closed。
-- A 在已加入的 sidecar Circle 中由 reducer 主动 fan-out `ck.circle.member.state -> left`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。
+- A 在已加入的 sidecar Circle 中由 reducer 主动 fan-out `ck.circle.member.state -> leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。
 
 ### 11.5 Vector: Act-on-behalf Attribution
 
@@ -2713,7 +2713,7 @@ Expected:
 
 - 第 2 步 ensure SHOULD succeed。MLS-backed sidecar Circle 的 response 携带 `pending_member_reconciliation: [{agent_principal_id: R, reason: missing_mls_keypackage}]`；plaintext sidecar Circle 不需要 KeyPackage，但仍必须等待 Circle membership active。
 - 第 3 步在 MLS-backed sidecar Circle 中，R 通过 MLS Welcome 加入，得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)；plaintext sidecar Circle 中，R 只获得从 membership active frontier 之后的投递 / 查询资格。
-- 第 4 步 reducer 主动 fan-out `ck.circle.member.state` 把 R 标记 left；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
+- 第 4 步 reducer 主动 fan-out `ck.circle.member.state` 把 R 标记为 `leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
 
 ### 11.9 Vector: Multi-Agent Publish Attribution
 
@@ -2872,6 +2872,25 @@ Expected:
 
 - 第 2 步 MUST 拒绝；SFrame key 和 recording key 不得 label/Context 复用。
 - 第 3 步 MAY accepted，前提是 Cokret blob pipeline、capability proof 与 `ck.call.state` lifecycle 绑定同时通过。
+
+### 12.10 Call State — Participant Binding Invalid
+
+`vector_id`: `ck.vector.call_state.participant_binding_invalid.v1`
+
+Steps:
+
+1. Producer 构造一个 schema 合法的 `ck.call.state` 事件（payload 通过 `call_state_payload` typed schema），其 `participants[0].participant_binding` 含全部必填字段。
+2. 依次构造四个变体，每个仅破坏 §11.1 reducer 校验中的一项：
+   - (a) `participant_binding.issuer_kid` 解析到的 service DID 不在当前 epoch `ck.realm.media_service.service_id`；
+   - (b) `participant_binding` 的 `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity` 中某一项与该 participant entry 不一致；
+   - (c) `participant_binding.expires_at` ≤ 事件 `created_at`（已过期 binding）；
+   - (d) `participant_binding.sig` 验签失败。
+3. 各变体分别提交 reducer。
+
+Expected:
+
+- 每个变体 MUST `failed_precondition` `reason=participant_binding_invalid`；wire-level typed schema 通过不豁免 reducer 的语义校验。
+- 反例（control）：四项全部满足时，同一事件 MUST accepted。
 
 ## 13. History Visibility / Preview / History Sharing
 

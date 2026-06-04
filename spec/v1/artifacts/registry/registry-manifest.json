@@ -35,6 +35,14 @@
       "description": "Canonical registry of Cokret-defined MLS GroupContext extension codepoints in the private-use range."
     },
     {
+      "name": "exporter_labels",
+      "file": "registry/exporter-label-registry.json",
+      "kind": "exporter_label_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical registry of media-key MLS-Exporter labels (Context field shape, output length, applicable profiles, grandfathering, no-reuse rules)."
+    },
+    {
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
       "kind": "event_kind_registry",

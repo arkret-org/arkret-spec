@@ -1488,10 +1488,20 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ck.call.state",
-              "ck.call.recording.start"
-            ]
+            "const": "ck.call.state"
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/call_state_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.call.recording.start"
           }
         },
         "required": ["kind"]

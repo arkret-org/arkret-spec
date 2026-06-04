@@ -1410,7 +1410,7 @@
     },
     "circle_member_state_payload": {
       "type": "object",
-      "description": "Payload for ck.circle.member.state. Parallel to ck.member.state but scoped to a Circle; reducer MUST verify actor_id is an active member of the parent Realm before any transition to active, and MUST reject self-unban/self-unremove paths.",
+      "description": "Payload for ck.circle.member.state. Uses the same membership_state enum as ck.member.state (Realm), scoped to a Circle; reducer MUST verify actor_id is a `join` member of the parent Realm before any transition to `join`, MUST gate `knock` on Circle join_rule=request, and MUST reject self-unban/self-unremove paths.",
       "required": [
         "circle_id",
         "actor_id",
@@ -1424,13 +1424,7 @@
           "$ref": "#/$defs/did"
         },
         "membership": {
-          "type": "string",
-          "enum": [
-            "invited",
-            "active",
-            "left",
-            "banned"
-          ]
+          "$ref": "#/$defs/membership_state"
         },
         "reason": {
           "type": "string"
@@ -1439,16 +1433,13 @@
           "$ref": "#/$defs/timestamp"
         },
         "expected_membership": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "enum": [
-            "invited",
-            "active",
-            "left",
-            "banned",
-            null
+          "oneOf": [
+            {
+              "$ref": "#/$defs/membership_state"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       },
@@ -2068,6 +2059,17 @@
       },
       "additionalProperties": false
     },
+    "membership_state": {
+      "type": "string",
+      "description": "Canonical membership state enum shared by ck.member.state (Realm) and ck.circle.member.state (Circle). Single source of truth: Realm and Circle membership use the identical value set; they MUST NOT diverge. `knock` denotes a pending join request (Realm Join Policy / Circle join_rule=request); see governance/join-policy.md §9 and models/circle.md §9.1.",
+      "enum": [
+        "join",
+        "invite",
+        "knock",
+        "leave",
+        "ban"
+      ]
+    },
     "membership_payload": {
       "type": "object",
       "required": [
@@ -2081,14 +2083,7 @@
           "$ref": "#/$defs/did"
         },
         "membership": {
-          "type": "string",
-          "enum": [
-            "join",
-            "invite",
-            "knock",
-            "leave",
-            "ban"
-          ]
+          "$ref": "#/$defs/membership_state"
         },
         "delivery_status": {
           "type": "string",
@@ -5887,6 +5882,185 @@
         },
         "signal": {
           "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "participant_binding": {
+      "type": "object",
+      "description": "Token issuer's signed commitment over (realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at) for a media participant. See crypto-media/webrtc-signaling.md §6.2/§11.1. v1 uses the single scheme ck.media.participant_binding.v1.",
+      "required": [
+        "scheme",
+        "realm_id",
+        "call_id",
+        "focus_id",
+        "actor_id",
+        "device_id",
+        "participant_identity",
+        "issued_at",
+        "expires_at",
+        "issuer_kid",
+        "sig"
+      ],
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "const": "ck.media.participant_binding.v1"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "call_id": {
+          "type": "string",
+          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "focus_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "participant_identity": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "issuer_kid": {
+          "type": "string",
+          "description": "DID URL (with fragment) of the token issuer service signing key. MUST resolve to a service DID present in the current-epoch ck.realm.media_service.service_id.",
+          "pattern": "^did:[a-z0-9]+:[^\\s?]+#[^\\s#?]+$"
+        },
+        "sig": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_participant": {
+      "type": "object",
+      "description": "A single participant entry in ck.call.state.payload.participants[]. See crypto-media/webrtc-signaling.md §11/§11.1.",
+      "required": [
+        "actor_id",
+        "device_id",
+        "participant_identity",
+        "participant_binding"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "joined_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "foci_preferred": {
+          "type": "array",
+          "description": "Client-local ordered focus preference list used for the §10.2 session_focus election.",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "participant_identity": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "participant_binding": {
+          "$ref": "#/$defs/participant_binding"
+        },
+        "media": {
+          "type": "object",
+          "properties": {
+            "audio": {
+              "type": "boolean"
+            },
+            "video": {
+              "type": "boolean"
+            },
+            "screen": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_state_payload": {
+      "type": "object",
+      "description": "Typed payload for ck.call.state (durable call lifecycle state). Replaces the broad call_payload for this kind: state is a controlled enum, participants carry machine-checkable participant_binding, and recording results are carried in a typed recording_result object rather than untyped fields. See crypto-media/webrtc-signaling.md §11/§11.1/§13.",
+      "required": [
+        "call_id",
+        "state"
+      ],
+      "properties": {
+        "call_id": {
+          "type": "string",
+          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "scheduled",
+            "ringing",
+            "connecting",
+            "active",
+            "ended",
+            "missed",
+            "failed",
+            "cancelled",
+            "recording_ready",
+            "recording_failed"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "p2p",
+            "mesh",
+            "sfu",
+            "mcu"
+          ]
+        },
+        "session_focus": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Single authoritative focus_id for this call. reducer write rule per §11.1: committed once, any rewrite MUST failed_precondition reason=session_focus_already_committed."
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/call_participant"
+          }
+        },
+        "recording_result": {
+          "type": "object",
+          "description": "Typed recording outcome, present only with state=recording_ready / recording_failed. See §13: the durable ck.call.state carries blob hash, duration, media type, retention policy and recording_start_event_id rather than stuffing them into untyped fields (resolves SEM-004). All fields optional.",
+          "properties": {
+            "blob_hash": {
+              "$ref": "#/$defs/hash"
+            },
+            "duration_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "media_type": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "retention_policy_id": {
+              "$ref": "#/$defs/object_ref"
+            },
+            "recording_start_event_id": {
+              "$ref": "#/$defs/event_ref"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

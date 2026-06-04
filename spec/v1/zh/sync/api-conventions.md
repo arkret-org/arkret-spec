@@ -174,7 +174,11 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 `message` 用于开发者诊断，不应用于稳定程序逻辑。  
 客户端 MUST 以 `code` 作为主要错误分类。
 
-_Informative（未来 / 可选）._ 实现 MAY 在 content negotiation 下额外提供一个对齐 [RFC 9457 problem+json](https://www.rfc-editor.org/rfc/rfc9457) 的错误投影(`Content-Type: application/problem+json`),字段映射为 `code → type`、`message → detail`、HTTP status → `status`、`request_id → instance`。该投影仅作为现有 `{ok: false, error: {...}}` 默认形态之上的可选 content-negotiation 对齐，默认形态保持不变;v1 不强制实现该投影。
+**RFC 9457 problem+json 可协商投影（normative）.** 默认错误 wire 仍是上文的 `{ok: false, error: {...}}` 形态，**不变**。在此之上，本规范定义一个与 [RFC 9457 problem+json](https://www.rfc-editor.org/rfc/rfc9457) 对齐的、可经 content negotiation 协商的标准错误投影：
+
+- 支持 HTTP binding 的 server 在请求携带 `Accept: application/problem+json` 时 **MUST** 返回符合 RFC 9457 的 problem 对象，并 **MUST** 设置 `Content-Type: application/problem+json`。该 problem 对象的字段由默认错误形态确定性映射而来：`error.code → type`（`type` MAY 为 URN 或相对 URI 形式的 type 标识）、`error.message → detail`、HTTP status → `status`、`request_id → instance`；server MAY 额外附带 `title`。
+- 不支持 HTTP binding，或客户端未通过 `Accept` 协商该 media type 时，server **MUST** 维持默认 `{ok: false, error: {...}}` 形态，不得改变默认 wire。
+- 该投影是默认形态之上的确定性 content-negotiation 对齐，不引入新的错误码命名空间：`type` 承载的仍是 §5.1 标准 `error.code` 字符串，客户端 MUST 以其作为主要错误分类，`detail` 仅用于开发者诊断，不应用于稳定程序逻辑。
 
 ### 5.1 标准错误码
 

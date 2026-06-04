@@ -42,7 +42,7 @@ Schema id: `ck.schema.circle.v1`
 | `summary` | no | `string` | ≤2048 chars。 | 简短说明(渲染在 banner / 详情)。 |
 | `display` | yes | `object` | 见 §4。 | **跨客户端一致**的视觉身份字段；只对 `directory_visibility` 允许的 actor 投影。 |
 | `directory_visibility` | yes | `enum(members, realm_members)` | 默认 `members`。 | Circle 元数据可发现性。`members` 时非成员不得看到 title / display / member_count;`realm_members` 仅披露目录元数据，不授予事件或历史访问。 |
-| `join_rule` | yes | `enum(invite, request, open)` | 默认 `invite`。 | Circle 加入规则。`open` 仅允许父 Realm active member 自助加入;`request` 需要 profile 定义申请/批准流程;`invite` 只能由 Circle 管理员加入或邀请。 |
+| `join_rule` | yes | `enum(invite, request, open)` | 默认 `invite`。 | Circle 加入规则。`open` 仅允许父 Realm `join` 成员自助加入(`membership=join`);`request` 触发 `knock` 申请/批准流(见 §9.1 transition table);`invite` 只能由 Circle 管理员加入或邀请。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`../governance/history-visibility.md`](../governance/history-visibility.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `metadata_encryption_floor` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm floor。 | Circle 内对象的 metadata 加密下限；只能收紧，不得放宽父 Realm floor。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420)` | create-locked。父 Realm `encryption_profile=mls_rfc9420` 或 effective `content_encryption_floor=e2ee_required` 时 MUST 为 `mls_rfc9420`；父 Realm 允许明文时 MAY 为 `none`。未来 MLS 版本 / PQ-MLS / external provider 必须显式扩展 schema。 | Circle 内容加密形态。 |
@@ -77,7 +77,7 @@ Schema id: `ck.schema.circle.v1`
 | `ck.circle.archive` | yes | object_lifecycle_payload | active → archived。 |
 | `ck.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ck.circle.tombstone` | yes | object_lifecycle_payload | terminal;触发 §8 cascade。 |
-| `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invited\|active\|left\|banned, ...}` | 与 `ck.member.state` 语义对应，但词形不同：Circle 用状态词形 `invited/active/left/banned`,Realm 用动作词形 `invite/join/leave/ban`,二者 wire 值不可互换。reducer 先校验 actor 已是父 Realm `join` 成员。 |
+| `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invite\|join\|knock\|leave\|ban, ...}` | 与 `ck.member.state` 复用同一 `membership_state` 枚举(`invite / join / knock / leave / ban`),仅 scope 限定到 Circle;二者 wire 取值完全一致，不存在独立词形。reducer 先校验 actor 已是父 Realm `join` 成员;`knock` 仅在 `join_rule=request` 下允许(见 §9.1)。 |
 | `ck.circle.anchor_commit` | no | `{circle_id, sub_anchor_head_digest, epoch}` | reducer-derived:Circle sub-anchor 按 profile cadence 周期性向 Realm Anchor 提交不透明 commitment(§9),由服务端 / anchor service 发出,actor 不直接提交。 |
 
 ## 6. 对象 scope 表达
@@ -271,21 +271,27 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 
 **硬不变量**:
 
-1. `Circle.members ⊆ Realm.members`。reducer 在 `ck.circle.member.state -> active` 时，若 target actor 的父 Realm `ck.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
-2. 父 Realm `ck.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `left`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
+1. `Circle.members ⊆ Realm.members`。reducer 在 `ck.circle.member.state -> join` 时，若 target actor 的父 Realm `ck.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
+2. 父 Realm `ck.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时,actor 同时属于多个 Circle 即可。
 4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ck.circle.admin` action。
 
-Membership transition table:
+Membership transition table（`membership` 复用 `ck.member.state` 的 `membership_state` 枚举 `invite / join / knock / leave / ban`）:
 
 | from | to | writer |
 | --- | --- | --- |
-| none / left | invited | `ck.circle.member.manage` |
-| invited | active | target actor (`ck.circle.member.add`) 或 `ck.circle.member.manage` |
-| none / left | active | target actor only when `join_rule=open`; otherwise `ck.circle.member.manage` |
-| active | left | target actor or `ck.circle.member.manage` |
-| none / invited / active / left | banned | `ck.circle.member.manage` |
-| banned | left / invited | `ck.circle.member.manage` only; self-service MUST fail closed |
+| none / leave | invite | `ck.circle.member.manage` |
+| none / leave | knock | target actor，仅当 `join_rule=request`(自助申请；申请正文 MUST NOT 进入该 Move，沿用 [`../governance/join-policy.md` §8](../governance/join-policy.md) 的加密 envelope 约定) |
+| knock | invite | `ck.circle.member.manage`(批准申请转为邀请) |
+| knock | join | `ck.circle.member.manage`(直接批准加入) |
+| knock | leave | target actor(撤回)或 `ck.circle.member.manage`(拒绝) |
+| invite | join | target actor (`ck.circle.member.add`) 或 `ck.circle.member.manage` |
+| none / leave | join | target actor only when `join_rule=open`; otherwise `ck.circle.member.manage` |
+| join | leave | target actor or `ck.circle.member.manage` |
+| none / invite / knock / join / leave | ban | `ck.circle.member.manage` |
+| ban | leave / invite | `ck.circle.member.manage` only; self-service MUST fail closed |
+
+> **枚举统一（normative）**:Circle membership 与 Realm `ck.member.state` 共用 schema `$defs/membership_state`(`invite / join / knock / leave / ban`),是单一真源，二者 MUST NOT 出现取值分叉。早期草案曾使用状态词形 `invited / active / left / banned`,其与 canonical 值的对应仅作为迁移说明、**不**构成 v1 reducer 语义:`invited→invite`、`active→join`、`left→leave`、`banned→ban`(草案无 `knock`,新值无旧对应)。v1 wire MUST 仅使用 canonical 值。
 
 ### 9.2 Lifecycle cascade
 
@@ -364,7 +370,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 `ck.profile.agent_sidecar_thread.v1` 把 Circle 作为 controller 与 controller 的 native personal agents 之间的私聊 scoped event boundary。该 profile 依赖 Circle 的 membership / delivery / query / projection 隔离；是否提供密码学隔离由 Circle `encryption_profile` 与父 Realm floor 决定。父 Realm 要求 E2EE 时 sidecar Circle MUST 为 `mls_rfc9420`；父 Realm 明文且允许 plaintext content 时，sidecar Circle MAY 为 `none`，但 UI / service description MUST 明确披露其不是 E2EE。该 profile 对 Circle 形态加了若干 sidecar-specific 约束:
 
 - **Reuse key**:每个 `(realm_id, controller_principal_id)` 在本 profile 下有且仅有一个 sidecar Circle(profile constant `per_realm_controller_agent_pool`)。reducer 以该 tuple 作为 idempotency key,并发 `ck.circle.create` 的 sidecar 路径 MUST 收敛到单一 Circle。
-- **Membership**:active membership 由 `eligible_sidecar_agent(realm, controller, agent)` predicate 派生(详见 CXP-0009 §4.5)。当 agent 因 pause / deactivate / revoke / pairing_expired / accountability grant 失效等任何原因转出 eligible 集合时，reducer / service layer MUST **主动** fan-out 写入 `ck.circle.member.state`(membership: `left` 或 `banned`)，不得等被动 reconcile，以消除 stale-membership 窗口。
+- **Membership**:active membership 由 `eligible_sidecar_agent(realm, controller, agent)` predicate 派生(详见 CXP-0009 §4.5)。当 agent 因 pause / deactivate / revoke / pairing_expired / accountability grant 失效等任何原因转出 eligible 集合时，reducer / service layer MUST **主动** fan-out 写入 `ck.circle.member.state`(membership: `leave` 或 `ban`)，不得等被动 reconcile，以消除 stale-membership 窗口。
 - **`display.short_name`** MUST 由 profile 派生(`"AI-" + base32(sha256(canonical("ck.agent_sidecar_circle.v1\n" + realm_id + "\n" + controller_principal_id)))[:12].upper()`)，不接受 caller 提供任意字符串。short_name 碰撞且 caller 不是已有 Circle member 时，reducer MUST 返回 generic `failed_precondition` `reason=sidecar_create_denied`(不暴露 `short_name_already_taken` 这类可区分错误)，避免存在性侧信道。
 - **`directory_visibility="members"`**，non-member 不可见任何 sidecar Circle metadata。MLS-backed sidecar Circle SHOULD 设置 `metadata_encryption_floor="full_encrypted"`；plaintext sidecar Circle 不得宣称 full metadata E2EE，只能承诺 non-member delivery / query / projection 裁剪。
 - **Membership 闭集**:实现 MUST NOT 把其它 human actor、非 accountable agent、Applet Ghost Actor 或外部 service principal 加入 controller-Realm sidecar Circle。

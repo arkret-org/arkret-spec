@@ -3166,7 +3166,7 @@
         "canonical_reducer_output_must": "Reducer MUST stamp tagged effective_scope on accepted Event envelope and materialized object cell. effective_scope is immutable per-event; later scope_circle_id rebinds MUST NOT re-interpret historical events.",
         "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit ck.audit.accessed pairing.",
         "circle_encryption_profile_floor_must": "Circle.encryption_profile may be none or mls_rfc9420. Reducer MUST reject plaintext Circle creation or update when the parent Realm encryption_profile is mls_rfc9420 or the effective content_encryption_floor is e2ee_required (reason=circle_encryption_below_realm_floor).",
-        "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ck.circle.member.state -> active when the target actor is not a Realm active member (reason=circle_member_must_be_realm_member).",
+        "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ck.circle.member.state -> join when the target actor is not a `join` member of the parent Realm (reason=circle_member_must_be_realm_member).",
         "scope_invariant_must": "Sync Service MUST NOT deliver events with effective_scope.kind=circle to actors not in that Circle's member frontier at the event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }
     }

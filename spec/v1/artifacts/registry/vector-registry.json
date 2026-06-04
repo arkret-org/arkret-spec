@@ -92,6 +92,18 @@
       ]
     },
     {
+      "vector_id": "ck.vector.call_state.participant_binding_invalid.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.consent.cache_invalidation.v1",
       "status": "active",
       "domain": "consent",

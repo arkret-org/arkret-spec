@@ -3870,6 +3870,91 @@ def check_text_files_utf8_no_nul(lint: Lint) -> None:
             lint.fail(path, f"text contract file is not valid UTF-8: {exc}")
 
 
+def check_field_order(lint: Lint) -> None:
+    """Canonical field ordering gate (models/common-fields.md §3.2).
+
+    Machine-enforces the ordering hard rules previously left un-automated:
+      - created_by MUST precede created_at; created_at MUST precede updated_at;
+        updated_by MUST precede updated_at.
+      - state_changed_at MUST immediately follow state; stage_changed_at MUST
+        immediately follow stage.
+    Rules are presence-conditional, so intended exceptions (Read Cursor has no
+    created_at, Capability Grant uses issued_at) never trigger. Recurses into
+    every object's properties in all schema files.
+    """
+
+    def check_props(path: Path, json_path: str, props: dict) -> None:
+        keys = list(props.keys())
+        index = {key: position for position, key in enumerate(keys)}
+
+        def must_precede(earlier: str, later: str) -> None:
+            if earlier in index and later in index and index[earlier] > index[later]:
+                lint.fail(
+                    path,
+                    f"{json_path}.properties: field order: '{earlier}' MUST precede '{later}'",
+                )
+
+        must_precede("created_by", "created_at")
+        must_precede("created_at", "updated_at")
+        must_precede("updated_by", "updated_at")
+        for anchor, marker in (("state", "state_changed_at"), ("stage", "stage_changed_at")):
+            if anchor in index and marker in index and index[marker] != index[anchor] + 1:
+                lint.fail(
+                    path,
+                    f"{json_path}.properties: '{marker}' MUST immediately follow '{anchor}'",
+                )
+
+    def recurse(path: Path, json_path: str, node: Any) -> None:
+        if isinstance(node, dict):
+            props = node.get("properties")
+            if isinstance(props, dict):
+                check_props(path, json_path, props)
+            for key, child in node.items():
+                recurse(path, f"{json_path}.{key}", child)
+        elif isinstance(node, list):
+            for position, child in enumerate(node):
+                recurse(path, f"{json_path}[{position}]", child)
+
+    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+        data = load_json(lint, schema_path)
+        if data is not None:
+            recurse(schema_path, "$", data)
+
+
+def check_exporter_label_registry(lint: Lint) -> None:
+    """Validate the media exporter-label registry (OPT-003 / TERM-006).
+
+    Each label is a wire-breaking key-derivation domain separation parameter;
+    the registry is the single source of truth for label string, Context field
+    shape, output length, applicable profiles, and grandfathering.
+    """
+    path = ARTIFACTS / "registry" / "exporter-label-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        lint.fail(path, "exporter-label-registry.json must be a JSON object")
+        return
+    labels = data.get("labels")
+    if not isinstance(labels, list) or not labels:
+        lint.fail(path, "exporter-label-registry.json: labels MUST be a non-empty list")
+        return
+    required = {"label", "context_fields", "output_length", "applies_to_profiles", "grandfathered"}
+    seen: set[str] = set()
+    for index, entry in enumerate(labels):
+        if not isinstance(entry, dict):
+            lint.fail(path, f"labels[{index}] must be an object")
+            continue
+        for missing in sorted(required - set(entry.keys())):
+            lint.fail(path, f"labels[{index}] missing required key: {missing}")
+        label = entry.get("label")
+        if isinstance(label, str):
+            if label in seen:
+                lint.fail(path, f"duplicate exporter label: {label}")
+            seen.add(label)
+        context_fields = entry.get("context_fields")
+        if not isinstance(context_fields, list) or not context_fields:
+            lint.fail(path, f"labels[{index}] context_fields MUST be a non-empty list")
+
+
 def main() -> int:
     lint = Lint()
     check_text_files_utf8_no_nul(lint)
@@ -3924,6 +4009,8 @@ def main() -> int:
     check_cross_doc_anchors(lint)
     check_openapi_no_floating_number(lint)
     check_canonical_digest_fixtures(lint)
+    check_field_order(lint)
+    check_exporter_label_registry(lint)
 
     if lint.errors:
         print("Artifact registry lint failed:", file=sys.stderr)
