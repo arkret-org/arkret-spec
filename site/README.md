@@ -86,7 +86,7 @@ site/
 ## 演进
 
 - 多版本：将来加 `spec/v1.1/zh/`，`docsLoader` 自动收录为 `/zh/v1.1/...`。
-- 英文：写 `spec/v1/en/<topic>.md`，路由自动生效；CXP-EN-MIRROR 完成前，
+- 英文：写 `spec/v1/en/<topic>.md`，路由自动生效；CKP-EN-MIRROR 完成前，
   不得把 `/en/v1/...` fallback 页面当作英文 normative mirror 发布。
 - 新构件类型：在 `src/lib/artifacts.ts` 加 typed 入口 + 在 `src/components/` 加组件 +
   在 `src/pages/catalog/` 加 index/[param] 路由。crossref 脚本只需在 `checks` 数组里加一行。

@@ -94,7 +94,7 @@ did:web:slack-bridge.example:ghost:u123
 
 Ghost Actor MUST 带有 `accountability`，指向 Applet controller 和外部网络来源。
 
-#### 3.4.1 Ghost Actor vs Native Personal Agent(CXP-0008 边界)
+#### 3.4.1 Ghost Actor vs Native Personal Agent(CKP-0008 边界)
 
 `actor_kind` 不定义 `agent_native`、`agent_ghost` 或 `ghost` wire enum。Native personal AI agent 使用 `actor_kind="agent"`；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值：外部人类/账号镜像 SHOULD 使用 `actor_kind="integration"`，Applet 托管的 AI/automation ghost MAY 使用 `actor_kind="agent"`。二者必须通过 Applet provenance、`accountable_principal_ids` / `accountability` 和 profile/capability 约束与 native personal agent 区分，不能依赖新增 `actor_kind` 值区分。
 
@@ -111,7 +111,7 @@ Native personal AI agent(由 controller 通过 `ck.agent.provision` 创建，见
 
 **Realm policy MUST 至少能分别控制 native personal agent 与 Applet / Ghost Actor**:部署可以禁止普通用户创建或使用 personal agents 同时允许管理员安装的 Applet + Ghost Actor,也可以反向配置;**二者不得被合并为一个不可区分的 "automation allowed" 开关**。
 
-CXP-0008 / CXP-0009 只覆盖 native personal agent 路径;Ghost Actor / Applet Bot Actor 不走 CXP-0008 provisioning 或 CXP-0009 sidecar thread profile。
+CKP-0008 / CKP-0009 只覆盖 native personal agent 路径;Ghost Actor / Applet Bot Actor 不走 CKP-0008 provisioning 或 CKP-0009 sidecar thread profile。
 
 ### 3.5 Portal Realm
 

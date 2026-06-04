@@ -99,7 +99,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 - fixture 与 Markdown JSON 示例 MUST NOT 使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，MUST NOT 被更早的 schema 错误掩盖。
 - 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；MUST NOT 让 schema `$id` 解析到 HTML 文档。
 - Public catalog snapshot MUST 与发布说明中的语义一致：`site/src/lib/site-meta.ts#specReleaseTag` 指向当前 `v1.0.0`；仓库只保留 `site/public/v1/contract-catalog-1.0.0.json` 这一个当前 v1 snapshot，并由 `python tools/artifact_pipeline.py check` 的 hash/count/Circle-presence gate 校验它与 `artifacts/registry/contract-catalog.json` byte-identical。
-- CXP-0007 stable gate MUST 闭合 `effective_scope` submit-input / reducer-output schema 角色、Message / Anchor output shape、Anchor leaf canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle/effective-scope conformance vector cluster；否则 release notes 必须明确 de-scope，且 MUST NOT 把这些项当作 v1.0 wire contract 宣布。
+- CKP-0007 stable gate MUST 闭合 `effective_scope` submit-input / reducer-output schema 角色、Message / Anchor output shape、Anchor leaf canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle/effective-scope conformance vector cluster；否则 release notes 必须明确 de-scope，且 MUST NOT 把这些项当作 v1.0 wire contract 宣布。
 - 英文 mirror 完成前，`/en/v1/...` fallback 页面 MUST NOT 作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。
 - 站点生产依赖 MUST NOT 存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。
 

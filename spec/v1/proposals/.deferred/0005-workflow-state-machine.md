@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0005
+ckp: CKP-0005
 title: Workflow State Machine (per-Realm status)
 normative: false
 stability: v1
@@ -8,7 +8,7 @@ status: deferred-to-v1.1
 created: 2026-05-23
 authors:
   - did:web:cokret.example
-depends_on: [CXP-0002]
+depends_on: [CKP-0002]
 ---
 
 ## 1. Summary
@@ -42,7 +42,7 @@ Schema id: `ck.schema.workflow.v1`
 | `realm_id` | yes | `id:realm` | — | 归属 Realm。 |
 | `name` | yes | `string` | 1..128 chars。 | Workflow 显示名。 |
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
-| `target_flow_type_ref` | no | `id:flow_type` | 见 [CXP-0002](./0002-flow-type.md)。 | 本 workflow 绑定的 flow_type。一个 flow_type 可有多个 workflow,但 flow_type profile 的 `allowed_workflow_key` 声明默认 / 唯一允许的那个。 |
+| `target_flow_type_ref` | no | `id:flow_type` | 见 [CKP-0002](./0002-flow-type.md)。 | 本 workflow 绑定的 flow_type。一个 flow_type 可有多个 workflow,但 flow_type profile 的 `allowed_workflow_key` 声明默认 / 唯一允许的那个。 |
 | `states` | yes | `array<WorkflowState>` | 至少 2 个;包含恰好 1 个 `is_initial=true`。 | 见 §3.2。 |
 | `transitions` | yes | `array<Transition>` | 至少 1 条。 | 见 §3.3。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | workflow 自身的物理生命周期。 |
@@ -98,7 +98,7 @@ Schema id: `ck.schema.workflow.v1`
 - `from_state_keys[]` 允许从多个源状态进入同一目标
 - `preconditions` 是 reducer-evaluated 的事实条件:
   - `relation_exists`:对象上有某种 Relation(如必须有 assignee)
-  - `field_filled`:某个 field_def(CXP-0003)有非空值
+  - `field_filled`:某个 field_def(CKP-0003)有非空值
   - `child_workflow_state`:所有 sub-task 都处于某状态(用于 parent 必须等子任务完成)
 - `required_capability`:除了 base `ck.flow.workflow.transition` 之外的额外 capability action(可空)
 - `on_enter_event`:profile-declared 副作用 event(可空;v1 不强制定义可触发集合,留作 profile 扩展)
@@ -199,5 +199,5 @@ Schema id: `ck.schema.workflow.v1`
 - Jira Workflows: <https://support.atlassian.com/jira-cloud-administration/docs/work-with-issue-workflows/>
 - Linear Workflows: <https://linear.app/docs/configuring-workflows>
 - GitHub Projects status field
-- CXP-0002 Flow Type(workflow 的 type 锚点)
+- CKP-0002 Flow Type(workflow 的 type 锚点)
 - common-fields.md §5.3 stage 轴(workflow 的协议级 stage 派生目标)

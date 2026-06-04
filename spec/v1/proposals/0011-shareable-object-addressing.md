@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0011
+ckp: CKP-0011
 title: Shareable Object Addressing — web+cokret URI scheme & deep-link resolution
 normative: false
 stability: v1
@@ -8,7 +8,7 @@ status: accepted
 created: 2026-05-28
 authors:
   - chris@acroidea.com
-depends_on: [CXP-0007]
+depends_on: [CKP-0007]
 merged_into: spec/v1/zh/discovery/object-addressing.md
 ---
 
@@ -77,7 +77,7 @@ web+cokret:realm/<realm>/flow/<flow>?via=<did>&lt=invite&tok=<token>   # invite 
 
 规则:
 
-- **realm 是身份,进 path;via 是路由,进 query。** realm 脱离 path 则 flow 无法定位(authz/解析以 Realm 为根,见 [CXP-0007](./0007-circle-primitive.md));via 是"此刻哪台 server 托管该 Realm",可增删过期、不影响身份。
+- **realm 是身份,进 path;via 是路由,进 query。** realm 脱离 path 则 flow 无法定位(authz/解析以 Realm 为根,见 [CKP-0007](./0007-circle-primitive.md));via 是"此刻哪台 server 托管该 Realm",可增删过期、不影响身份。
 - `<realm>` 接受 `realm_id`(裸 uuid)或 **alias**(域名样式)。消歧:含 `.` 且非 UUIDv7 shape → alias;UUIDv7 shape → id。`<flow>` / `<msg>` 只接受裸 uuid。path 内裸 uuid 只是 URI 压缩形态;进入 token target descriptor 前,解析方 **MUST** 按 path keyword 重建 typed canonical ID(`ck:realm:<uuid>` / `ck:flow:<uuid>` / `ck:message:<uuid>`)。alias 只作为解析输入形态;带 token 的地址在验 token 前 **MUST** 先按常规 Realm 解析路径(必要时使用 `via`)解析出 canonical `realm_id`,后续 target digest 一律绑定 `realm_id` 而不是 alias 字符串。
 - Flow / Message 地址 **MUST** 携带 `realm/<realm>` + 至少一个 `via`;两者缺一,解析方 fail-closed(不做全网 flow_id 猜测)。
 - **未知 path keyword fail-closed**:v1 合法 keyword 只有 `realm` / `flow` / `m`,且层级顺序必须是 `realm` ⊃ `flow` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 **MUST** 返回 `not_found`,不得猜测。未来扩展对象类型(`morph` / `space` / `circle` 等)**MUST** 显式扩 keyword 表;旧客户端遇到新 keyword 一律按 fail-closed 处理,保证 forward-compat 下不分叉。
@@ -159,7 +159,7 @@ HTTPS 落地链接中,`flow` / `m` / `via` / 尤其授权 token **MUST** 放在 
 - **artifact**:source of truth 是 `contract-catalog.json`(`source_of_truth: true`)——`resolve_target` operation_id 先在此新增;`operation-registry.json` 等 `generated_registries` 由 `tools/artifact_pipeline.py generate` 派生,**不得手工改**。`openapi/cokret-service-api.openapi.yaml`(`POST /_cokret/find/directory/resolve-target`)与 HTTP binding / prose 表是对齐 artifact,需要在同一 accepted patch 中同步更新,再由 `tools/artifact_pipeline.py check` 校验它们与 catalog/registry 一致。`id-kind-registry.json` 若需"address grammar"附注,也应通过 `contract-catalog.json` 的 id-kind source 更新后生成(非新 id kind)。
 - **Invite token 生命周期复用**:`invite` token 的签发 / 过期 / 吊销复用 [`join-policy.md`](../zh/governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期,本提案**不另发明** revocation 机制;`resolve_target` 在 §3.4 target descriptor 校验通过后,仍 **MUST** 走 join-policy 的 token 有效性 / 吊销检查。`preview` token 的授权与吊销归属属于未决设计点,见 §6。
 - **不触碰** event-kind / capability / schema 的 wire 约束;**不需要** forbidden-wire 守卫(没有新 on-wire 字段进对象 / payload)。
-- **隐私**:地址 grammar 与 anti-enumeration、Circle 存在性隐私([CXP-0007](./0007-circle-primitive.md))、handle 可迁移原则([`identity-handles.md` §3.8](../zh/identity/identity-handles.md))一致——realm alias 是可迁移 label,历史链接靠 realm_id + via 仍可解析。
+- **隐私**:地址 grammar 与 anti-enumeration、Circle 存在性隐私([CKP-0007](./0007-circle-primitive.md))、handle 可迁移原则([`identity-handles.md` §3.8](../zh/identity/identity-handles.md))一致——realm alias 是可迁移 label,历史链接靠 realm_id + via 仍可解析。
 
 ## 5. Rationale & alternatives
 
@@ -197,7 +197,7 @@ HTTPS 落地链接中,`flow` / `m` / `via` / 尤其授权 token **MUST** 放在 
 
 ## 8. References
 
-- [CXP-0007](./0007-circle-primitive.md) — Circle scope / 存在性隐私(本提案 `depends_on`)。
+- [CKP-0007](./0007-circle-primitive.md) — Circle scope / 存在性隐私(本提案 `depends_on`)。
 - [`discovery-directory.md` §9](../zh/discovery/discovery-directory.md) — `resolve_realm` / `via_services` / anti-enumeration。
 - [`identity-handles.md` §3.8](../zh/identity/identity-handles.md) — handle/alias 可迁移、DID-anchored 寻址原则。
 - Matrix `matrix:` URI scheme(MSC2312)与 matrix.to 三件套设计。

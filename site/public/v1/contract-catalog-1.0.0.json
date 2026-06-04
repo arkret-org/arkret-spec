@@ -1080,7 +1080,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle transition to paused state (CXP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ck.agent.resume.",
+        "payload": "Agent lifecycle transition to paused state (CKP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ck.agent.resume.",
         "cell_family": "ck.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1095,7 +1095,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle transition from paused to active (CXP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+        "payload": "Agent lifecycle transition from paused to active (CKP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
         "cell_family": "ck.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1110,7 +1110,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle terminal state (CXP-0008 §4.11). MUST fan-out ck.agent.key.revoke for all active agent keys, ck.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
+        "payload": "Agent lifecycle terminal state (CKP-0008 §4.11). MUST fan-out ck.agent.key.revoke for all active agent keys, ck.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
         "cell_family": "ck.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1125,7 +1125,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated draft proposal (CXP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ck.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
+        "payload": "Agent-initiated draft proposal (CKP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ck.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
       },
       {
         "event_kind": "ck.agent.action_request",
@@ -1133,7 +1133,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated action request (CXP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
+        "payload": "Agent-initiated action request (CKP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
       },
       {
         "event_kind": "ck.agent.action_approve",
@@ -1141,7 +1141,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Controller approval of a draft / action request (CXP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
+        "payload": "Controller approval of a draft / action request (CKP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
       },
       {
         "event_kind": "ck.agent.action_reject",
@@ -1149,7 +1149,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Controller rejection of a draft / action request (CXP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
+        "payload": "Controller rejection of a draft / action request (CKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
       },
       {
         "event_kind": "ck.agent.protocol_session.start",
@@ -1921,7 +1921,7 @@
       {
         "schema_id": "ck.schema.circle.v1",
         "file": "schemas/circle.schema.json",
-        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
+        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
       },
       {
         "schema_id": "ck.schema.flow.v1",
@@ -2360,7 +2360,7 @@
         "category": "media",
         "status": "active",
         "wire_form": "ck:rtc_participant:<uuid>",
-        "description": "SFU-local participant handle (CXP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ck:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
+        "description": "SFU-local participant handle (CKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ck:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
       },
       {
         "kind": "capability",
@@ -3548,7 +3548,7 @@
         "http": "POST /_cokret/self/rtc/token",
         "grpc": "CallMedia/TokenExchange",
         "mq": "call.media.token_exchange",
-        "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
+        "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
         "success_shape_kind": "inline_response"
       },
       {
@@ -5012,7 +5012,7 @@
           "ck.capability.grant"
         ],
         "profile": "ck.profile.personal_agent_provisioning.v1",
-        "migration_group": "cxp_0008_agent_provisioning",
+        "migration_group": "ckp_0008_agent_provisioning",
         "event_mapping_kind": "aggregate_admin"
       },
       {
@@ -5108,7 +5108,7 @@
           "ck.relation.create"
         ],
         "profile": "ck.profile.agent_sidecar_thread.v1",
-        "migration_group": "cxp_0009_sidecar_ensure",
+        "migration_group": "ckp_0009_sidecar_ensure",
         "event_mapping_kind": "aggregate_admin"
       },
       {

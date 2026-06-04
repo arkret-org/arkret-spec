@@ -267,7 +267,7 @@
   - `zh/governance/join-policy.md`：明确 join candidate 与 member delivery binding 不得互相推导。
 - **迁移指南**: Directory / Principal Server 在 `resolve_realm` 输出 `join_candidates[]`；客户端在提交 join material 前必须先取得未过期 candidate，不从 URL、邀请者服务 DID 或成员投递绑定推导 ingress。
 
-### Shareable object addressing & `resolve_target`(CXP-0011)(2026-05-28)
+### Shareable object addressing & `resolve_target`(CKP-0011)(2026-05-28)
 
 引入客户端无关的可分享对象地址(Flow / Message / Realm 深链):一套 path-表身份 / query-表提示的 grammar、三种 envelope(逻辑 ID / `web+cokret:` URI scheme / HTTPS fragment 落地),以及对象级解析 operation `cx.directory.resolve_target`。地址层纯寻址,授权由绑定 canonical target 的签名 token 承载,分 `reference` / `invite` 两型(`preview` 保留不实现)。
 
@@ -296,7 +296,7 @@
   3. 客户端实现 `web+cokret:` 注册(web handler 模板 fragment-only)与 HTTPS fragment 落地解析。
   4. invite token 复用 join-policy `invite_token` / `signed_link` 生命周期,签发时绑定 target descriptor digest。
 
-### Personal AI Agent provisioning & sidecar threads(CXP-0008 / CXP-0009)(2026-05-26)
+### Personal AI Agent provisioning & sidecar threads(CKP-0008 / CKP-0009)(2026-05-26)
 
 引入 native personal AI agent 的端到端创建、运行时认证、capability 委托、生命周期管理路径,以及 controller 与其 native agents 之间的私聊上下文线程(sidecar thread)。Native agent 与 Applet-managed Ghost AI agent 是两类不同 actor,Realm policy 必须能分别控制。
 
@@ -335,8 +335,8 @@
   2. 实现 `cx.account.agent_key_pair` 与 `SessionGrantRequest` 的 `agent_key_proof` 分支,独立 schema branch + 独立 proof validator。
   3. 实现 `cx.agent.provision` orchestration 与 lifecycle operations。
   4. 实现 sidecar `cx.agent.sidecar_thread.ensure` 与 controller_agent_circle_key 派生。
-  5. UI 实现 sidecar exposure 披露(CXP-0009 §3 invariant 10 / CXP-0008 §4.5)。
-- **CXP**: [`spec/v1/proposals/0008-personal-agent-provisioning.md`](spec/v1/proposals/0008-personal-agent-provisioning.md) / [`spec/v1/proposals/0009-agent-sidecar-thread.md`](spec/v1/proposals/0009-agent-sidecar-thread.md)。
+  5. UI 实现 sidecar exposure 披露(CKP-0009 §3 invariant 10 / CKP-0008 §4.5)。
+- **CKP**: [`spec/v1/proposals/0008-personal-agent-provisioning.md`](spec/v1/proposals/0008-personal-agent-provisioning.md) / [`spec/v1/proposals/0009-agent-sidecar-thread.md`](spec/v1/proposals/0009-agent-sidecar-thread.md)。
 
 ### Naming consistency pass for id/ref/content/size fields（2026-05-26）
 
@@ -432,7 +432,7 @@
 - **prose 同步**: 仅 `zh/identity/identity-handles.md` §4.1（新增）/ §6 顶层（改写）/ §6.0（新增）；其它章节通过既有引用链自然受益。
 - **迁移指南**: 实现侧无 wire / API 变更。若实现把 `alsoKnownAs` 用作 mention 索引、Directory 主键、缓存键、投递路径或 actor 归因依据，应按 §4.1 表格迁回对应权威字段（`delivery_binding.recipient_service_did` / `MemberDeliveryBindingCandidate` / issuer claim / event `actor_id`）。
 
-### CXP-0007: introduce Circle primitive; remove Flow.discussion_realm_ref（2026-05-25）
+### CKP-0007: introduce Circle primitive; remove Flow.discussion_realm_ref（2026-05-25）
 
 引入 **Circle**（`ck:circle:`）作为 Realm 内的密码学子边界（独立 MLS group / 子集成员 / 独立 history visibility），同时**彻底删除** `Flow.discussion_realm_ref` 字段及其全部补丁规则（§5.0.1 跨 Realm lifecycle 级联表、§8.9 watch 跨 Realm 投影、改绑禁令等）。Flow 永远只有一个 effective encryption scope —— "一对象一安全边界"成为协议级硬不变量。
 
@@ -461,11 +461,11 @@
     - `capability-action-registry.json`: 新增 6 条 capability actions（`cx.circle.create` / `cx.circle.manage` / `cx.circle.member.add` / `cx.circle.member.manage` / `cx.circle.member.add.others` / `cx.circle.audit`）。
     - `forbidden-wire-fields.json`: 新增 `discussion_realm_ref` 进入 reserved-name guard（`hard_reject`，reason=`discussion_realm_ref_removed`）；更新既有 `discussion_space_ref` 条目的 replacement 指向 `scope_ref`。
     - `error-code-registry.json`: 新增 6 条 reason codes（`circle_realm_mismatch` / `circle_not_active` / `circle_member_must_be_realm_member` / `scope_rebind_forbidden` / `metadata_encryption_floor_violation` / `discussion_realm_ref_removed`）。
-    - `renames.json`: 新增 `discussion_realm_ref`（object_field, replacement=null）与 `Linked Discussion Realm`（glossary_term, replacement=Circle），migration_group=`cxp_0007_circle_introduction`。
+    - `renames.json`: 新增 `discussion_realm_ref`（object_field, replacement=null）与 `Linked Discussion Realm`（glossary_term, replacement=Circle），migration_group=`ckp_0007_circle_introduction`。
     - `forbidden-model-terms.json`: 修订 `Room` / `track members` 条目，从"linked discussion Realm" 改为 "Circle (intra-Realm cryptographic sub-boundary)"。
     - `removed-event-kinds.json`: 修订 `cx.flow.track.member` / `cx.flow.track.history_visibility` / `cx.flow.track.policy_components` 三条 notes。
 - **canonical 变更**: Flow 顶层字段 `discussion_realm_ref` 删除；Flow 顶层字段 `scope_ref`（id:circle, optional, null = Realm-default scope）新增。Event envelope / payload / AAD / Anchor leaf 新增 reducer-stamped immutable tagged `effective_scope`（`{kind:"realm"|"circle", realm_id, circle_id?}`）。
-- **派生 artifact 同步**: canonical registry 已重新生成并通过 `python tools/artifact_pipeline.py check`：`159 event kinds, 54 schemas, 41 typed ID kinds, 87 operations, 58 claimable profiles, 79 profile id references`，`registry diff: clean`。Circle schema / event kind / typed ID / capability action / error code / rename / forbidden-field artifacts 已落地。v1.0 stable promotion 前仍必须关闭 CXP-0007 §8.1 机器契约缺口：`effective_scope` submit-input 与 reducer-output schema 角色需显式区分，Message / Anchor output shape 与 Anchor leaf canonical bytes 需绑定 `effective_scope`，`content_encryption_floor` 需机器化，`confidential_discussion_of` Relation 需注册并验证，Circle sub-anchor + `cx.circle.anchor_commit` 固定节拍 profile 与 completion conformance vector cluster 需落地或被正式 de-scope。
+- **派生 artifact 同步**: canonical registry 已重新生成并通过 `python tools/artifact_pipeline.py check`：`159 event kinds, 54 schemas, 41 typed ID kinds, 87 operations, 58 claimable profiles, 79 profile id references`，`registry diff: clean`。Circle schema / event kind / typed ID / capability action / error code / rename / forbidden-field artifacts 已落地。v1.0 stable promotion 前仍必须关闭 CKP-0007 §8.1 机器契约缺口：`effective_scope` submit-input 与 reducer-output schema 角色需显式区分，Message / Anchor output shape 与 Anchor leaf canonical bytes 需绑定 `effective_scope`，`content_encryption_floor` 需机器化，`confidential_discussion_of` Relation 需注册并验证，Circle sub-anchor + `cx.circle.anchor_commit` 固定节拍 profile 与 completion conformance vector cluster 需落地或被正式 de-scope。
 - **conformance impact**:
   - 受影响 profile: `core_event_store`（新增 Circle event kinds 与 effective_scope canonical bytes）、`chat_mvp`（讨论可见性改按 effective scope 判断）、`e2ee_v1`（Realm-default 与 Circle 独立 MLS group；Realm-member-removal 触发 N+1 rotate amplification，详见 [`zh/models/circle.md` §10.3](spec/v1/zh/models/circle.md)）。
   - profile tier 变化: 尚未同步 Circle/effective-scope vector/profile 要求；除非在 freeze 前明确 de-scope，否则属于 stable release blocker。
@@ -475,8 +475,8 @@
     - Reader MUST reject `discussion_realm_ref` with `schema_violation reason=discussion_realm_ref_removed`.
     - Reader MUST stamp / verify `effective_scope` on every Event envelope (cryptographically bound; subsequent rebinds MUST NOT reinterpret prior events).
     - Sync Service MUST filter Circle-scoped events at delivery time per `effective_scope` membership (zh/models/circle.md §9.3).
-- **fixture / vector 变化**: 尚未同步 Circle/effective-scope fixture / vector cluster；当前 `vector-registry.json`、`fixtures/` 与 `conformance-profiles.json` 未形成可执行的 Circle coverage。CXP-0007 §8.1 第 8 步必须在 v1.0 stable 前落地，或在 release notes 中明确降级为 post-freeze 非 v1.0 contract。
-- **迁移指南**: 见 [CXP-0007 §8](spec/v1/proposals/0007-circle-primitive.md) Migration plan 与 [renames.json](spec/v1/artifacts/registry/renames.json) `cxp_0007_circle_introduction` migration group。对"宽 synthesis + 窄 discussion" 业务诉求，改用两个 Flow + `confidential_discussion_of` Relation（见 [`zh/models/circle.md` §7.2](spec/v1/zh/models/circle.md)）。
+- **fixture / vector 变化**: 尚未同步 Circle/effective-scope fixture / vector cluster；当前 `vector-registry.json`、`fixtures/` 与 `conformance-profiles.json` 未形成可执行的 Circle coverage。CKP-0007 §8.1 第 8 步必须在 v1.0 stable 前落地，或在 release notes 中明确降级为 post-freeze 非 v1.0 contract。
+- **迁移指南**: 见 [CKP-0007 §8](spec/v1/proposals/0007-circle-primitive.md) Migration plan 与 [renames.json](spec/v1/artifacts/registry/renames.json) `ckp_0007_circle_introduction` migration group。对"宽 synthesis + 窄 discussion" 业务诉求，改用两个 Flow + `confidential_discussion_of` Relation（见 [`zh/models/circle.md` §7.2](spec/v1/zh/models/circle.md)）。
 
 ### Description-only doc enhancements from `_simple_report_claude.md` review（2026-05-24）
 

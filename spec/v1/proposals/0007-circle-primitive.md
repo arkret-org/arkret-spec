@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0007
+ckp: CKP-0007
 title: Circle — intra-Realm cryptographic sub-boundary primitive
 normative: false
 stability: v1
@@ -13,7 +13,7 @@ merged_into: spec/v1/zh/models/circle.md
 
 > **Status: accepted, merged into v1 normative spec on 2026-05-25.**
 >
-> Normative entry point: [`spec/v1/zh/models/circle.md`](../zh/models/circle.md). Schema artifact: [`spec/v1/artifacts/schemas/circle.schema.json`](../artifacts/schemas/circle.schema.json). The `Flow.discussion_realm_ref` field is removed; see [`forbidden-wire-fields.json`](../artifacts/registry/forbidden-wire-fields.json) entry `discussion_realm_ref` and [`renames.json`](../artifacts/registry/renames.json) `cxp_0007_circle_introduction` migration group. CHANGELOG entry under 2026-05-25.
+> Normative entry point: [`spec/v1/zh/models/circle.md`](../zh/models/circle.md). Schema artifact: [`spec/v1/artifacts/schemas/circle.schema.json`](../artifacts/schemas/circle.schema.json). The `Flow.discussion_realm_ref` field is removed; see [`forbidden-wire-fields.json`](../artifacts/registry/forbidden-wire-fields.json) entry `discussion_realm_ref` and [`renames.json`](../artifacts/registry/renames.json) `ckp_0007_circle_introduction` migration group. CHANGELOG entry under 2026-05-25.
 >
 > This proposal file is retained as historical design rationale. Future updates to the Circle primitive MUST land directly on normative files, not here.
 
@@ -339,7 +339,7 @@ Membership transition table:
 - [`zh/overview/architecture.md` §2.0](../zh/overview/architecture.md):容器选型表:
   - 追加 Circle 行:`| 在已有 Realm 内做"密码学子圈"(独立 MLS group / 独立成员 / 独立 history),但共享 federation/policy/capability registry | **Circle**(`ck:circle:`),对象 `scope_circle_id` 引用 | Circle 是 Realm 内的密码学子边界;父 Realm 仍承担 federation identity / policy / capability registry。 |`
   - **删除** `Flow + discussion_realm_ref` 行;改写"宽 synthesis + 窄 discussion"指引到"两 Flow + Relation"形态(见 §3.4.3)。
-  - 修订 §2.0 末尾"不得自行造第四类"为"第四类(Circle)由 CXP-0007 引入;新增容器型概念仍 MUST 先验证是否可分解为 Realm / Space / Flow / Circle"。
+  - 修订 §2.0 末尾"不得自行造第四类"为"第四类(Circle)由 CKP-0007 引入;新增容器型概念仍 MUST 先验证是否可分解为 Realm / Space / Flow / Circle"。
 
 - [`zh/models/realm-and-space.md` §2.1](../zh/models/realm-and-space.md):删除"强保密差异**必须**切分 Realm"的硬约束,改为"强保密差异 MAY 通过 Circle 表达;跨 federation/policy 边界的差异 MUST 切 Realm"。
 - [`zh/models/realm-and-space.md` §2.2](../zh/models/realm-and-space.md):正式化"辅助 MLS group" 为 Circle;`ck.circle.*` 是其唯一 wire 入口;新增 Realm-default encryption scope 说明,明确 Realm 不自动创建默认 Circle。
@@ -514,7 +514,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - [ ] **Watch cell 的 Circle 归属**:scope_circle_id 指向 Circle 的 Flow,其 watch cell 应落在父 Realm namespace 还是 Circle namespace?倾向 **Circle namespace**(单源,且 watch 见解直接受 Circle membership 约束,不需要单独投影裁剪规则)。这与原 §8.3 watch cell 在 source Realm 的设计相反,需要在 [`flow-and-message.md` §8](../zh/models/flow-and-message.md) 重写。
 - [ ] **历史成员 / "前成员能否看历史消息"**:与 MLS welcome 包是否携带历史 key 的 profile 选项有关,是否在 Circle 创建时就锁定?
 - [x] **`encryption_profile=plaintext_inherit` 是否保留**:不保留。Circle v1 只表示独立 MLS 密码学边界;授权窄化继续使用 Group / capability constraint / selector。
-- [ ] **`discussion_realm_ref` 历史数据 migration**:如果有已部署的 pre-CXP-0007 数据已经使用 `discussion_realm_ref`,如何迁移?方案:迁移工具把"Flow F 带 discussion_realm_ref=R'"拆为"Flow F 与 Flow F' (在 R')"+ Relation。需要工具支持还是 hand-migration?**前提**是 v1 freeze 前接受本提案;若 freeze 后,问题质性升级。
+- [ ] **`discussion_realm_ref` 历史数据 migration**:如果有已部署的 pre-CKP-0007 数据已经使用 `discussion_realm_ref`,如何迁移?方案:迁移工具把"Flow F 带 discussion_realm_ref=R'"拆为"Flow F 与 Flow F' (在 R')"+ Relation。需要工具支持还是 hand-migration?**前提**是 v1 freeze 前接受本提案;若 freeze 后,问题质性升级。
 - [ ] **MLS rotate amplification profile 参数**(配合 §5.9):default profile 的 forward secrecy 窗口具体值、批量 rotate window 大小、单 Realm Circle 数量软上限是否需要写进 protocol-level conformance,还是完全留给 profile 自行声明?倾向**留给 profile 但要求 floor profile 必须显式公开窗口承诺**,避免不透明 SLA。
 
 ### 7.1 Post-acceptance status（accepted 后状态归档）
@@ -566,7 +566,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 
 ### 8.4 历史数据迁移(若适用)
 
-14. 若存在 pre-CXP-0007 部署使用 `discussion_realm_ref`,提供一次性迁移工具:把 "Flow F 带 discussion_realm_ref=R'" 拆为 "Flow F + Flow F' (在 R') + Relation(F → F')"。这条只在已经有 pre-spec 部署数据时需要;新部署不涉及。
+14. 若存在 pre-CKP-0007 部署使用 `discussion_realm_ref`,提供一次性迁移工具:把 "Flow F 带 discussion_realm_ref=R'" 拆为 "Flow F + Flow F' (在 R') + Relation(F → F')"。这条只在已经有 pre-spec 部署数据时需要;新部署不涉及。
 
 ## 9. References
 

@@ -2577,7 +2577,7 @@ Expected：
 - Presence / online 状态 MUST 不影响 `flow_engaged` 的 receiver set；实现不得把 `@here` 解释成 presence-filtered audience。
 - Sender、普通 Realm 成员、push gateway、公开日志与 delivery response MUST NOT 暴露 recipient count、watcher 列表、watch level、命中原因，且不得区分 Bob 是参与者命中还是 Carol 是 watcher 命中。
 
-## 11. Personal Agent & Sidecar Vectors(CXP-0008 / CXP-0009)
+## 11. Personal Agent & Sidecar Vectors(CKP-0008 / CKP-0009)
 
 ### 11.1 Vector: Provisioning + Pairing + Effective Grant
 
@@ -2730,7 +2730,7 @@ Expected:
 - 第 2 步 `actor_id` / `executed_by` MUST 是 S 单一 DID,而非 "agent group"。
 - 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布，但 attribution 仍是 R 单一 DID;不得复合 S+R。
 
-## 12. Media Service Binding Vectors（CXP-0010）
+## 12. Media Service Binding Vectors（CKP-0010）
 
 本节列出 `ck.profile.media_service_binding.v1` 的核心 conformance 向量。完整 fixture 与执行脚本在 candidate 阶段补完；以下为 normative steps + expected outcomes 的最小契约。详见 [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) §2 / §3 / §5–§8 与 [`../crypto-media/call-state.md`](../crypto-media/call-state.md) §4。
 

@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0000
+ckp: CKP-0000
 title: Proposal Template (Do Not Edit)
 normative: false
 stability: v1
@@ -10,7 +10,7 @@ authors:
   - did:web:cokret.example
 ---
 
-> **本文件是模板,不要直接修改**。新提案 `cp .templates/cxp-template.md NNNN-<slug>.md` 之后填写(`NNNN-<slug>.md` 放在 `spec/v1/proposals/` 顶层)。
+> **本文件是模板,不要直接修改**。新提案 `cp .templates/ckp-template.md NNNN-<slug>.md` 之后填写(`NNNN-<slug>.md` 放在 `spec/v1/proposals/` 顶层)。
 
 ## 1. Summary
 
@@ -77,5 +77,5 @@ authors:
 ## 8. References
 
 - 外部产品截图 / 文档链接
-- 相关 CXP(supersedes / depends_on)
+- 相关 CKP(supersedes / depends_on)
 - 相关 issue / PR

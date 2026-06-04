@@ -552,7 +552,7 @@ SHOULD 支持：
 - deterministic replay metadata
 - tool call audit envelope
 
-### 18.1 Personal Agent Provisioning (CXP-0008)
+### 18.1 Personal Agent Provisioning (CKP-0008)
 
 `ck.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ck.profile.agent_runtime.v1`。
 
@@ -567,14 +567,14 @@ MUST 支持:
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - Controller deactivate / suspend 时,accountable native agents 的 active sessions revocation 链失效
-- Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 CXP-0009)
+- Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 CKP-0009)
 
 MUST NOT:
 - 注册独立 `ck.agent.provision` aggregate durable event(provisioning operation fan-out 到既有子事件)
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`cokret://` 等)
 
-### 18.2 Agent Auth (CXP-0008)
+### 18.2 Agent Auth (CKP-0008)
 
 `ck.profile.agent_auth.v1` 注册 agent runtime 的 authentication surface,与 `ck.profile.personal_agent_provisioning.v1` 解耦。
 
@@ -582,7 +582,7 @@ MUST 支持:
 - 复用 `POST /_cokret/gate/account/session-grants` 通过 `proof.proof_kind="agent_key_proof"` 分支
 - 独立 schema branch、独立 proof validator、独立 returned scope(交集 from agent key authorization / capability grant / Realm policy / requested scope)
 - `agent_scope_request` overlay 与 `scope_details` response overlay
-- key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段——CXP-0008 §4.6 proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
+- key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段——CKP-0008 §4.6 proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
 - Structured human approval request 返回(`code=claim_required` / `reason_code=human_approval_required` / `approval_request_id`),不向 agent runtime 展示 CAPTCHA / OTP
@@ -592,7 +592,7 @@ MUST NOT:
 - 在 session grant 中授予 E2EE history key、secret storage 或长期 device 权限
 - 把 controller 进入 `deactivated` / `suspended` 后的 agent session 视为有效
 
-### 18.3 Agent Delegation Policy (CXP-0008)
+### 18.3 Agent Delegation Policy (CKP-0008)
 
 `ck.profile.agent_delegation_policy.v1` 注册 capability vocabulary 与 act-on-behalf attribution 规则。
 
@@ -607,9 +607,9 @@ MUST NOT:
 - 让 agent 自动继承 controller 在 Realm 内的最大权限
 - 把 `act_on_behalf_allowed` 当作 constraint;它由 attribution + capability + approval 组合表达
 
-### 18.4 Agent Sidecar Thread (CXP-0009)
+### 18.4 Agent Sidecar Thread (CKP-0009)
 
-`ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 CXP-0007 / CXP-0008。
+`ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 CKP-0007 / CKP-0008。
 
 MUST 支持:
 - `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.agent.sidecar_thread.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliation?}`

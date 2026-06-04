@@ -8,8 +8,8 @@ extend-exclude = [
 [default.extend-words]
 Cokret = "Cokret"
 cokret = "cokret"
-CXP = "CXP"
-CXPs = "CXPs"
+CKP = "CKP"
+CKPs = "CKPs"
 WebVH = "WebVH"
 webvh = "webvh"
 Soflare = "Soflare"

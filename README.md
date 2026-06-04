@@ -19,7 +19,7 @@ recorded in `CHANGELOG.md` and the machine-readable drift artifacts under
   - 中文 normative 正文：[`spec/v1/zh/index.md`](./spec/v1/zh/index.md)
   - 英文翻译：占位（未发布，非 normative）
   - 机器构件：[`spec/v1/artifacts/`](./spec/v1/artifacts/)
-  - **提案（非 normative）**：[`spec/v1/proposals/`](./spec/v1/proposals/) — Cokret Proposal (CXP) 草案，未 accepted 前不构成 wire contract
+  - **提案（非 normative）**：[`spec/v1/proposals/`](./spec/v1/proposals/) — Cokret Proposal (CKP) 草案，未 accepted 前不构成 wire contract
 - 协议站源码：[`site/`](./site/) — Astro Starlight + Scalar(OpenAPI) + 自定义 JSON Schema 渲染器
 - 工具：[`tools/`](./tools/) — registry 生成 / lint 流水线
 
@@ -28,7 +28,7 @@ recorded in `CHANGELOG.md` and the machine-readable drift artifacts under
 ```
 spec/v1/
 ├── zh/   en/                      # zh 为 normative prose；en 为未发布占位
-├── proposals/                     # Cokret Proposals (CXP) — 非 normative
+├── proposals/                     # Cokret Proposals (CKP) — 非 normative
 └── artifacts/
     ├── registry/                  # contract-catalog (canonical) + 派生 view
     ├── profiles/                  # conformance-profiles.json

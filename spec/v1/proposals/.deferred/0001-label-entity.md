@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0001
+ckp: CKP-0001
 title: Label as first-class entity
 normative: false
 stability: v1

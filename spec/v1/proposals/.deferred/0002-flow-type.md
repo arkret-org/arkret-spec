@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0002
+ckp: CKP-0002
 title: Flow Type (Work Item Type)
 normative: false
 stability: v1
@@ -8,7 +8,7 @@ status: deferred-to-v1.1
 created: 2026-05-23
 authors:
   - did:web:cokret.example
-depends_on: [CXP-0003]
+depends_on: [CKP-0003]
 ---
 
 ## 1. Summary
@@ -40,10 +40,10 @@ Schema id: `ck.schema.flow_type.v1`
 | `name` | yes | `string` | 1..64 chars。 | 显示名。 |
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
 | `icon` | no | `object` | `{emoji?, blob_ref?}` | 类型图标。 |
-| `color` | no | `object` | 同 [CXP-0001](./0001-label-entity.md) `color`。 | 类型主题色(用于 UI tag 渲染)。 |
+| `color` | no | `object` | 同 [CKP-0001](./0001-label-entity.md) `color`。 | 类型主题色(用于 UI tag 渲染)。 |
 | `parent_type_refs` | no | `array<id:flow_type>` | 允许多个父类型(例如 `subtask` 的父可以是 `task` 也可以是 `bug`)。 | 父子层级:本 type 的 Flow MUST 有 `ck.flow.parent --> flow` Relation 指向一个 `flow_type ∈ parent_type_refs` 的 Flow。 |
-| `field_requirements` | no | `array<FieldRequirement>` | 见 §3.2。 | 字段必填 / 推荐 / 禁止表;**依赖 [CXP-0003 Field Catalog](./0003-field-catalog.md) 的 `ck:field_def:`**。 |
-| `allowed_workflow_ref` | no | `id:workflow` | 见 [CXP-0005](./0005-workflow-state-machine.md)。 | 本 type 默认 / 唯一允许的 workflow。 |
+| `field_requirements` | no | `array<FieldRequirement>` | 见 §3.2。 | 字段必填 / 推荐 / 禁止表;**依赖 [CKP-0003 Field Catalog](./0003-field-catalog.md) 的 `ck:field_def:`**。 |
+| `allowed_workflow_ref` | no | `id:workflow` | 见 [CKP-0005](./0005-workflow-state-machine.md)。 | 本 type 默认 / 唯一允许的 workflow。 |
 | `allowed_relation_kinds` | no | `array<string>` | — | 本 type 的 Flow 允许出现哪些 outgoing Relation kind(白名单收紧)。 |
 | `default_stage` | no | `enum(common-fields §5.3.2 的 8 值)` | — | `ck.flow.create` 未指定 stage 时的 fallback。**注意**:协议级 stage 仍要求 actor 必填(common-fields §5.3.1),本字段仅供 client 端 picker 预填。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。archive 后已用该 type 的 Flow 不脱钩,但 picker 隐藏。 | 生命周期。 |
@@ -91,7 +91,7 @@ Schema id: `ck.schema.flow_type.v1`
 3. 对每个 `forbidden` field_def → `fields[<field_def.key>]` 不得出现。
 4. 若 type 声明 `parent_type_refs[]` 非空 → 必须在同一事件 batch 中或事先存在 `ck.relation.create relation_kind=ck.flow.parent` 指向合法父类型 Flow。
 5. 若 type 声明 `allowed_relation_kinds[]` → 后续 `ck.relation.create` 若超出白名单 MUST `schema_violation`。
-6. 若 type 声明 `allowed_workflow_ref` → Flow 的 workflow_state_ref(参见 [CXP-0005](./0005-workflow-state-machine.md))MUST 来自该 workflow。
+6. 若 type 声明 `allowed_workflow_ref` → Flow 的 workflow_state_ref(参见 [CKP-0005](./0005-workflow-state-machine.md))MUST 来自该 workflow。
 
 ## 4. Interactions with normative spec
 
@@ -147,5 +147,5 @@ Schema id: `ck.schema.flow_type.v1`
 - Jira work item type(用户提供截图,2026-05-23):Sub-task / Task tab,parent / subtask 层级
 - Linear issue creation / type context: <https://linear.app/docs/creating-issues>
 - Asana Custom Item Types
-- CXP-0003 Field Catalog(本提案的 field-level 依赖)
-- CXP-0005 Workflow(本提案的 workflow-level 依赖)
+- CKP-0003 Field Catalog(本提案的 field-level 依赖)
+- CKP-0005 Workflow(本提案的 workflow-level 依赖)

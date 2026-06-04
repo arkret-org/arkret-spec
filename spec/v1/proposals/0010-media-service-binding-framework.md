@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0010
+ckp: CKP-0010
 title: Media Service Binding Framework（媒体服务 Backend 绑定框架）
 status: accepted
 created: 2026-05-27

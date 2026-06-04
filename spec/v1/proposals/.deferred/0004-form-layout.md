@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0004
+ckp: CKP-0004
 title: Form Layout (per-type detail view arrangement)
 normative: false
 stability: v1
@@ -8,7 +8,7 @@ status: deferred-to-v1.1
 created: 2026-05-23
 authors:
   - did:web:cokret.example
-depends_on: [CXP-0002, CXP-0003]
+depends_on: [CKP-0002, CKP-0003]
 ---
 
 ## 1. Summary
@@ -152,5 +152,5 @@ layout 是纯 hint,引用的 field_def / flow_type 在 layout 写入时存在即
 - Jira "Work item layout"(用户提供截图,2026-05-23):drag-fields 排列、"Hide when empty" 分隔、Sub-task / Task tab、"Copy work item layout" 按钮、右侧 Fields 边栏 + custom fields 跳转
 - Notion database template
 - Asana task templates
-- CXP-0002 Flow Type(layout 的 type 锚点)
-- CXP-0003 Field Catalog(layout 的字段引用对象)
+- CKP-0002 Flow Type(layout 的 type 锚点)
+- CKP-0003 Field Catalog(layout 的字段引用对象)

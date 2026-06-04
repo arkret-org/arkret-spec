@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0003
+ckp: CKP-0003
 title: Field Catalog (typed custom fields)
 normative: false
 stability: v1
@@ -12,7 +12,7 @@ authors:
 
 ## 1. Summary
 
-引入 `ck:field_def:` 一等对象,把 Realm 内的扩展字段从 `fields: object` 黑盒升级为**有类型 / 有校验 / 有显示元数据 / 可在多个 Flow type 之间复用**的目录。CXP-0002 Flow Type、CXP-0004 Form Layout、CXP-0005 Workflow 都建立在此基础上。
+引入 `ck:field_def:` 一等对象,把 Realm 内的扩展字段从 `fields: object` 黑盒升级为**有类型 / 有校验 / 有显示元数据 / 可在多个 Flow type 之间复用**的目录。CKP-0002 Flow Type、CKP-0004 Form Layout、CKP-0005 Workflow 都建立在此基础上。
 
 ## 2. Motivation
 

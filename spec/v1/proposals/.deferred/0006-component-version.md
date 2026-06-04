@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0006
+ckp: CKP-0006
 title: Component & Version classifiers
 normative: false
 stability: v1
@@ -45,7 +45,7 @@ Schema id: `ck.schema.component.v1`
 | `name` | yes | `string` | 1..128 chars。 | 显示名。 |
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
 | `icon` | no | `object` | `{emoji?, blob_ref?}` | 图标。 |
-| `color` | no | `object` | 同 [CXP-0001](./0001-label-entity.md) `color`。 | 主题色。 |
+| `color` | no | `object` | 同 [CKP-0001](./0001-label-entity.md) `color`。 | 主题色。 |
 | `lead_actor_id` | no | `did` | 必须解析到 active actor。 | 组件负责人 DID。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 生命周期。 |
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | — |
@@ -138,7 +138,7 @@ Schema id: `ck.schema.version.v1`
 
 ### 5.4 为什么 release_state 与 object state 是两个 axis?
 
-与 CXP-0004 之前讨论过的 stage / state 正交是同一原则。released 的 version 仍可被对象 archive(物理停用),archived 物理 state 的 version 也可保留 released_at(历史记录)。两个 axis 不可坍缩。
+与 CKP-0004 之前讨论过的 stage / state 正交是同一原则。released 的 version 仍可被对象 archive(物理停用),archived 物理 state 的 version 也可保留 released_at(历史记录)。两个 axis 不可坍缩。
 
 ## 6. Open questions
 
@@ -146,7 +146,7 @@ Schema id: `ck.schema.version.v1`
 - [ ] Version 是否需要 dependencies(`blocks_release_of`)?engineering team 常用。建议作为 Relation 而非内嵌字段。
 - [ ] release_state archived 是否需要 unarchive?(发布的 version 已是事实,反向只能用 tombstone)
 - [ ] 跨 Realm dashboard 引用 component / version:同 Realm 限制,还是允许 organization-level shared?postpone。
-- [ ] Bug 模板 + component / version 的联动:`ck:flow_type:` 是否声明默认 component / version?这把 CXP-0002 / CXP-0003 / CXP-0006 都耦合起来,留给 form_layout 表达 picker default,不在 schema 层面强联动。
+- [ ] Bug 模板 + component / version 的联动:`ck:flow_type:` 是否声明默认 component / version?这把 CKP-0002 / CKP-0003 / CKP-0006 都耦合起来,留给 form_layout 表达 picker default,不在 schema 层面强联动。
 
 ## 7. Migration plan
 
@@ -157,4 +157,4 @@ Schema id: `ck.schema.version.v1`
 - Jira Components: <https://support.atlassian.com/jira-software-cloud/docs/configure-jira-components/>
 - Jira Versions: <https://support.atlassian.com/jira-cloud-administration/docs/manage-versions/>
 - 用户提供 Jira "Components" / "Versions" 左栏截图,2026-05-23
-- CXP-0001 Label(对照:component / version vs label 的差异)
+- CKP-0001 Label(对照:component / version vs label 的差异)

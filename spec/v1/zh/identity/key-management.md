@@ -146,7 +146,7 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 
 #### 3.6.1 Personal agent runtime pairing 与 session(normative)
 
-CXP-0008 定义了一条面向普通用户的 personal native agent 流程，以现有 agent key 原语为基础:
+CKP-0008 定义了一条面向普通用户的 personal native agent 流程，以现有 agent key 原语为基础:
 
 - **Provisioning** (`POST /_cokret/self/agents`, operation `ck.agent.provision`):service operation 编排 Actor Profile 创建、`ck.identity.accountability_grant`、初始 `ck.capability.grant`(标 `effective_after_first_authorized_key=true`),并返回一次性 `pairing_request_id` + `pairing_code`。不写入独立 `ck.agent.provision` event。
 - **Runtime key pairing** (`POST /_cokret/gate/account/agent-key-pair`, operation `ck.account.agent_key_pair`):agent runtime 本地生成 key pair、提交 public key + proof-of-possession + 可选 `runtime_attestation`(v1 baseline `kind="self_asserted"`)。Pairing endpoint MUST 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与请求体中 `agent_principal_id` bit-identical;不匹配 fail closed(`reason="verification_method_principal_mismatch"`)。批准后写入 `ck.agent.key.authorize`,reducer 清除该 agent principal 名下所有 `effective_after_first_authorized_key=true` flag。
@@ -155,7 +155,7 @@ CXP-0008 定义了一条面向普通用户的 personal native agent 流程，以
 - **Session TTL**:Agent session grant 默认最大 TTL SHOULD 为 15 分钟；若 deployment profile 显式声明更长，不应超过 60 分钟。Controller 进入 `deactivated` / `suspended` 后，其 accountable agent 的 active sessions MUST 通过 account lifecycle / revocation 链失效。
 - **High-risk approval**:Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面；需要人类批准时返回 structured error `code=claim_required`、`reason_code=human_approval_required`、`approval_request_id=<opaque>`。Controller 在带外 UI 完成批准，产生 capability / delegation / approval event,agent retry 时引用该 event。
 - **E2EE access**:Agent MUST 作为独立 MLS member 参与，不得伪装成 controller 的 delegated device;agent MLS KeyPackage SHOULD 由 active `ck.agent.key.authorize.verification_method` 签发或绑定，使 key authorization、session proof 与 MLS membership 落在同一审计链。
-- **Sidecar exposure 披露**:pairing approval UI 上，若该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `ck.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(见 CXP-0009 §3 invariant 10)。
+- **Sidecar exposure 披露**:pairing approval UI 上，若该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `ck.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(见 CKP-0009 §3 invariant 10)。
 - **Lifecycle**:`ck.agent.pause` / `ck.agent.resume` / `ck.agent.deactivate` 是 agent lifecycle 写入。Pause 保留 durable state 但拒绝新 session;Auth Server SHOULD 在 revocation freshness window(≤ session 最大 TTL)内对已签发 session token fail closed。Revoke 是 terminal,fan-out `ck.agent.key.revoke` / `ck.capability.revoke` / runtime endpoint revocation。
 - **Resume 时 sidecar exposure 重新披露(normative)**:`ck.agent.resume` 提交前，实现 MUST 重新执行上一条 "Sidecar exposure 披露" 流程，把 agent 在 pause 期间 controller 在 eligible Realm 中**新建或新加入**的 `ck.profile.agent_sidecar_thread.v1` sidecar Circle 列出；若该集合非空,resume MUST 在 controller 显式再次同意之前拒绝执行(不得 silent resume),并把该确认作为 audit 事件留底。仅当 pause 期间无新 sidecar 进入 agent 的 eligibility 集合时,resume 可不重复披露。该规则关闭"pairing 期完成一次披露后,pause 期新建 sidecar 在 resume 时被 agent 静默继承访问权"的暴露面。
 
@@ -627,7 +627,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 DID method history、key log、`recover`、`rotate`、`ck.device.authorize` 或等价 signed event。
 
-#### 7.4.1 备份签名的交叉签名信任根锚定（normative，CXP-0013）
+#### 7.4.1 备份签名的交叉签名信任根锚定（normative，CKP-0013）
 
 `auth_data.signature` 由上传设备的 device signing key 产生（`auth_data.verification_method` 指向该 device key）。仅设备签名只能证明“某个持有该 device key 的实体写了它”，无法独立抵御**恶意服务器联合一个被攻破 / 已撤销的旧 device key 注入或替换备份 envelope**。因此 receiver 在信任并使用一条 backup envelope（恢复或读取）前 MUST 把该签名锚定到 actor 的交叉签名信任根：
 
@@ -674,7 +674,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 - HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_seq, actor_id, backup_class, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
 - 受 DID 轮换影响：recovery key 轮换后产生的新 envelope MUST 引用新 verification_method；旧 envelope 在轮换 grace window 之后 receiver MUST 拒绝用旧 key 完成的解锁证明。
 - 当 `backup_class="did_recovery"` 时，envelope 顶层 `recovery_policy_ref{policy_id, policy_version}` MUST 等于当前 accepted recovery policy；`recipient_key_ref` 必须解析到该 policy 或当前 DID Document recovery key agreement 声明中的接收 key。不匹配 MUST `recovery_policy_mismatch`。其它 `backup_class` 使用 `recovery_public_key` 时，`recovery_policy_ref` 只是可签名 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得把它作为 MLS 历史或 secret storage 授权的替代。
-- **备份接收密钥即恢复密钥（normative，CXP-0014）**：v1 MUST NOT 引入独立于 recovery key 之外的"专用 backup keypair"。`recovery_public_key` 的 HPKE 接收方就是 recovery policy / DID Document 声明的 recovery 公钥；其私钥经 §8 recovery policy 解锁（passphrase / threshold / hardware）。实现 MUST NOT 假定存在一个单独存储在 `secret_storage` 中的 backup 私钥项；跨设备的 fresh-device 恢复统一通过解锁 recovery 私钥后 HPKE-open 完成。
+- **备份接收密钥即恢复密钥（normative，CKP-0014）**：v1 MUST NOT 引入独立于 recovery key 之外的"专用 backup keypair"。`recovery_public_key` 的 HPKE 接收方就是 recovery policy / DID Document 声明的 recovery 公钥；其私钥经 §8 recovery policy 解锁（passphrase / threshold / hardware）。实现 MUST NOT 假定存在一个单独存储在 `secret_storage` 中的 backup 私钥项；跨设备的 fresh-device 恢复统一通过解锁 recovery 私钥后 HPKE-open 完成。
 
 #### 7.5.3 `secret_storage_key`
 
@@ -853,7 +853,7 @@ share holder（无论是个人 DID、托管服务 DID，还是 hardware module�
 如果 principal signing key 泄露但 recovery key 安全，MUST 通过 recovery policy 重建当前控制密钥。  
 如果 recovery key 也泄露，SHOULD deactivate 原 DID 并执行身份重建。
 
-### 9.1 备份子系统泄露的组合恢复流程（normative，CXP-0015）
+### 9.1 备份子系统泄露的组合恢复流程（normative，CKP-0015）
 
 设备/身份泄露的步骤(上)与备份子系统的轮换/删除/PCS 之前是分散定义的。当怀疑**备份接收密钥（recovery key / `mls_group_secrets_backup_key`）或某个 backup envelope 的解锁材料泄露**时，实现 MUST 把以下三件事作为**一个组合流程**执行，而不是各自孤立：
 

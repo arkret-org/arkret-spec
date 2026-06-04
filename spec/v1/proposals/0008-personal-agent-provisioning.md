@@ -1,5 +1,5 @@
 ---
-cxp: CXP-0008
+ckp: CKP-0008
 title: 个人 AI Agent 创建与运行时认证
 normative: false
 stability: v1
@@ -55,7 +55,7 @@ merged_into:
 
 非目标:本提案不取代 Applet + Ghost Actor。管理员安装的桥接服务、外部系统托管的 actor 池和 Applet 管理的虚拟身份仍应使用 Applet + Ghost Actor。本提案只处理 native personal / workspace AI agent。
 
-非目标:本提案不定义"在某个 Flow / Message 上下文中,controller 与自己的 agent 开启私有持续对话"的 sidecar thread。该能力由 CXP-0009 单独处理。
+非目标:本提案不定义"在某个 Flow / Message 上下文中,controller 与自己的 agent 开启私有持续对话"的 sidecar thread。该能力由 CKP-0009 单独处理。
 
 ## 2. 动机
 
@@ -345,7 +345,7 @@ profile: ck.profile.personal_agent_provisioning.v1
 - 写入的 `agent_key_scope` MUST 不宽于 controller 已批准的初始 capability 与 Realm policy。
 - `approval_evidence` SHOULD 引用 pairing request 或 controller approval event。
 - v1 `runtime_attestation.kind` 的最低 baseline 是 `self_asserted`。Accepted profile SHOULD 把批准后的 runtime attestation 摘要写入 `ck.agent.key.authorize` payload 或可验证 refs,使 grant validator 能执行 attestation constraint。实现遇到无法解析的 attestation kind MUST fail closed。后续 TEE / SLSA / hosted workload attestation 可以作为更高级 profile 进入同一 slot,不需要再改 agent key authorization 的主线 wire。
-- **Sidecar exposure 披露(与 CXP-0009 §3 invariant 10 联动)**:在写入 `ck.agent.key.authorize` 之前的 controller approval UI 上,如果该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `ck.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 向 controller 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(以及涉及的 Realm 列表与 sidecar 数量)。该披露是 pairing approval 的必备信息项,不能折叠进通用 capability 列表。Controller 必须能在不批准 pairing 的前提下取消该流程。
+- **Sidecar exposure 披露(与 CKP-0009 §3 invariant 10 联动)**:在写入 `ck.agent.key.authorize` 之前的 controller approval UI 上,如果该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `ck.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 向 controller 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(以及涉及的 Realm 列表与 sidecar 数量)。该披露是 pairing approval 的必备信息项,不能折叠进通用 capability 列表。Controller 必须能在不批准 pairing 的前提下取消该流程。
 
 ### 4.6 Agent runtime 认证
 
@@ -455,7 +455,7 @@ controller 通过人类 UI 在带外批准。批准会产生新的 capability / 
 
 上述模式只用于 UI / SDK 预设。Server 接收和持久化的是 §4.9 中的 capability actions、resource selectors、constraints 与 TTL;模式名本身不进入 canonical wire。
 
-Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本身不是"在当前 Flow 内开一个隐形私聊"。若产品需要 controller 与 agent 围绕某个 Flow / Message 位置持续对话,见 CXP-0009 `Agent Sidecar Thread`。
+Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本身不是"在当前 Flow 内开一个隐形私聊"。若产品需要 controller 与 agent 围绕某个 Flow / Message 位置持续对话,见 CKP-0009 `Agent Sidecar Thread`。
 
 本 profile 标准化 draft-only 的最小互操作面。它们必须是 private/account-data 语义,不应被命名或实现成共享 message event。候选方向:
 
@@ -696,9 +696,9 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 - `zh/authz/capabilities.md`: 增加 agent provisioning / management actions,并明确 personal agent 复用现有 `allowed_tracks`、`allowed_flow_refs`、`allowed_data_classes`、`allowed_endpoints`、`rate_limit` 与 approval/accountability constraints。
 - `zh/models/private-objects.md`、`zh/sync/client-sync.md` 与 `zh/sync/operations-sync.md`: 澄清 draft-only 使用 encrypted account data / actor-private stream,不得进入 shared Realm history。
 - `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段、canonicalization、Anchor 输入与校验规则。同时 SHOULD 在 Event Envelope 上 cache 一个 `actor_kind` projection(由 reducer 在写入时从 Actor Profile 解析),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断 event 是 agent 行为或 controller 行为。该 projection 是 reducer-stamped immutable 字段,不进入 actor-supplied submit payload。
-- `zh/extensions/applet-integration.md`: 澄清管理员管理的 Ghost AI agents 是 Applet-managed external/integration actors,而本 CXP 覆盖 native personal agents。
+- `zh/extensions/applet-integration.md`: 澄清管理员管理的 Ghost AI agents 是 Applet-managed external/integration actors,而本 CKP 覆盖 native personal agents。
 - `zh/extensions/agent-protocol-interop.md`: 确保 agent runtime session 不暗示支持外部 A2A / ACP session。
-- `zh/sync/service-surface.md` 与 `service-http-binding.md`: 增加 profile operations。本 CXP 不引入 custom URI scheme;客户端 deep-link 由 OS Universal Links / App Links 拦截标准 HTTPS URL(host 来自 deployment 已知的 `cokret_base_url`)。
+- `zh/sync/service-surface.md` 与 `service-http-binding.md`: 增加 profile operations。本 CKP 不引入 custom URI scheme;客户端 deep-link 由 OS Universal Links / App Links 拦截标准 HTTPS URL(host 来自 deployment 已知的 `cokret_base_url`)。
 - `zh/conformance/conformance-profiles.md`: 增加三个新 profile 与测试期望。
 
 ### 5.2 Accepted 后可能需要的 artifact 改动
@@ -756,7 +756,7 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 - [x] Runtime key pairing 放在 account/auth namespace,候选 path 为 `POST /auth/account/agent-key-pair`。
 - [x] Agent session grant 默认最大 TTL 收敛为 15 分钟;更长 TTL 必须 profile 声明额外风险控制,且不应超过 60 分钟。
 - [x] Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor。
-- [x] Flow-context private agent chat 不放入本提案;拆分到 CXP-0009 `Agent Sidecar Thread`。
+- [x] Flow-context private agent chat 不放入本提案;拆分到 CKP-0009 `Agent Sidecar Thread`。
 - [x] `ck.agent.provision` 只作 service operation;durable audit 由 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant` 等 fan-out 子事件承载。
 - [x] Draft-only 标准化为 `ck.agent.draft.propose` / `ck.agent.action_request` family + controller-owned `ck.agent.draft.v1` encrypted account data。
 - [x] Track-level grant 复用现有 `allowed_tracks`;不引入 `allowed_track_names` 或其它并行 vocabulary。
@@ -764,7 +764,7 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 - [x] Agent E2EE access 表达为独立 MLS member,默认无 E2EE access;不得作为 controller delegated device 继承 history keys。
 - [x] `act_on_behalf` 默认 fresh approval 粒度为 `(action, target_flow)` + 短期 window,通过现有 approval/accountability constraints 表达。
 - [x] `did:webvh` deployment SHOULD 为 personal agent 分配独立 SCID,并 MAY 在 `did:webvh:<scid>:<host-and-path>` 的 `<host-and-path>` 中采用 `agents/<slug>` 可读路径约定;规范信任来源是独立 DID document 与显式 accountability grant,不是路径继承。
-- [x] Lifecycle event kinds 注册为 `ck.agent.pause` / `ck.agent.resume` / `ck.agent.deactivate`(已在 accepted artifact 中作为 active event kinds,FSM lattice / `bottom=reject`,payload schema 已 wire 在 `event-payload.schema.json`)。不复用未来可能的通用 `ck.principal.status.set`——principal type 之间的 status 字段语义差异(agent freshness frontier vs human soft_logged_out vs service endpoint revoke)足以让单一 lifecycle event 反而增加 reducer 复杂度。该决议关闭后任何统一 lifecycle event 提案需要独立 CXP。
+- [x] Lifecycle event kinds 注册为 `ck.agent.pause` / `ck.agent.resume` / `ck.agent.deactivate`(已在 accepted artifact 中作为 active event kinds,FSM lattice / `bottom=reject`,payload schema 已 wire 在 `event-payload.schema.json`)。不复用未来可能的通用 `ck.principal.status.set`——principal type 之间的 status 字段语义差异(agent freshness frontier vs human soft_logged_out vs service endpoint revoke)足以让单一 lifecycle event 反而增加 reducer 复杂度。该决议关闭后任何统一 lifecycle event 提案需要独立 CKP。
 
 ### 7.2 仍需讨论
 

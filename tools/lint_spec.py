@@ -240,7 +240,7 @@ def lint_proposal_file(path: Path) -> list[Finding]:
     fm, _body_offset = parse_frontmatter(text)
 
     if fm is None:
-        findings.append(Finding(path, 1, "CXP004", "proposal missing frontmatter", "error"))
+        findings.append(Finding(path, 1, "CKP004", "proposal missing frontmatter", "error"))
         fm = {}
 
     status = fm.get("status")
@@ -249,22 +249,22 @@ def lint_proposal_file(path: Path) -> list[Finding]:
             Finding(
                 path,
                 1,
-                "CXP005",
+                "CKP005",
                 f"proposal status '{status}' not in {sorted(ALLOWED_PROPOSAL_STATUS)}",
                 "error",
             )
         )
 
     match = PROPOSAL_FILE_RE.match(path.name)
-    expected_cxp = f"CXP-{match.group('num')}" if match else None
-    actual_cxp = fm.get("cxp")
-    if expected_cxp is not None and actual_cxp != expected_cxp:
+    expected_ckp = f"CKP-{match.group('num')}" if match else None
+    actual_ckp = fm.get("ckp")
+    if expected_ckp is not None and actual_ckp != expected_ckp:
         findings.append(
             Finding(
                 path,
                 1,
-                "CXP003",
-                f"proposal cxp '{actual_cxp}' does not match filename '{expected_cxp}'",
+                "CKP003",
+                f"proposal ckp '{actual_ckp}' does not match filename '{expected_ckp}'",
                 "error",
             )
         )
@@ -274,7 +274,7 @@ def lint_proposal_file(path: Path) -> list[Finding]:
             Finding(
                 path,
                 1,
-                "CXP001",
+                "CKP001",
                 "review status MUST carry a discussion: frontmatter link",
                 "warn",
             )
@@ -285,7 +285,7 @@ def lint_proposal_file(path: Path) -> list[Finding]:
             Finding(
                 path,
                 1,
-                "CXP002",
+                "CKP002",
                 "accepted proposal MUST declare merged_into: target path or merged_to: target paths",
                 "warn",
             )
