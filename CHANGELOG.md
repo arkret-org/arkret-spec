@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### 拆分 webrtc-signaling.md 为三文件(STR-001,2026-06-04)
+
+把承载过多协议面的 `crypto-media/webrtc-signaling.md` 物理拆分为三个单一职责文件,消除 schema / profile / vector / anchor 漂移的结构性根因。详见 `_delay_todos.md`。
+
+- **变更类型**: modify(纯结构/文档重组,无 wire / 语义变更)
+- **影响 artifact**: prose(新增 `crypto-media/call-state.md`、`crypto-media/media-service-binding.md`;trim 并重编号 `webrtc-signaling.md`)/ registry 描述(error-code / operation / vector source_refs / conformance-profiles / exporter-label / operations-error-mapping 中的章节引用)/ schema 描述(event-payload / ice-config-response / ephemeral-envelope)/ openapi 描述。
+- **canonical 变更**:
+  - `call-state.md` = durable `ck.call.state` payload、状态机、录制 / 转写生命周期(原 §3/§4/§11/§11.1/§13)。
+  - `media-service-binding.md` = `ck.realm.media_service` foci、token / participant binding、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定(原 §6.1/§6.2/§10.x)。
+  - `webrtc-signaling.md` = 仅保留 ephemeral 信令 + ICE/TURN + WebRTC binding,重编号为 §1–§12。
+  - 所有入站章节引用按内容主题重定向到新文件;`vector-registry.json` 的 media_binding 向量 `source_refs` 改指 `media-service-binding.md`。
+- **派生 artifact 同步**: `contract-catalog.json` 中 token-exchange notes 章节引用更新,已 `python tools/artifact_pipeline.py generate` 重生成 operation-registry 与 public catalog snapshot;`release_gate.py` 5/5 全绿。
+- **conformance impact**:
+  - 受影响 profile: `ck.profile.media_service_binding.v1`(及 livekit / cokret-native sub-profile)、`ck.profile.webrtc_media.v1` —— 仅文档定位变化,要求不变。
+  - wire 兼容性: backward-compatible(无 token / schema / vector id 变化)。
+  - reader / writer 行为要求: 无新增 MUST;仅规范文档位置变更。下游 soland / yougen / cokret-rust-sdk / cotest 的 spec 锚点注释已同步。
+
 ### 品牌命名空间 cx→ck 与 API 信任同心圆改名(2026-06-03)
 
 把半迁移的 `contrix`→`cokret` 品牌收尾，并把 HTTP API 命名空间从扁平功能模块改为去版本的"信任同心圆"。详见 `_rename.md`。

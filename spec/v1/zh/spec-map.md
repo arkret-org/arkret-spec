@@ -226,7 +226,9 @@ see_also:
 | `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Governance Binding（`governance_binding` payload + `covered_frontier_cell`）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
 | `crypto-media/audited-e2ee.md` | 可选 hardening profile：`ck.profile.attested_audit.e2ee.v1` / `ck.profile.disclosed_audit.e2ee.v1` 的 audit policy、join warning、强制留痕、RYW receipt、forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
-| `crypto-media/webrtc-signaling.md` | 音视频通话、会议、TURN/STUN/ICE、SFU/MCU。 |
+| `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |
+| `crypto-media/media-service-binding.md` | 媒体服务发现（`ck.realm.media_service` foci）、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定。 |
+| `crypto-media/call-state.md` | 通话模型与状态机、durable `ck.call.state` 字段语义、录制 / 转写生命周期。 |
 
 ### 4.8 扩展、Agent 与集成
 

@@ -906,7 +906,7 @@
       "http": "POST /_cokret/self/rtc/token",
       "grpc": "CallMedia/TokenExchange",
       "mq": "call.media.token_exchange",
-      "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/webrtc-signaling.md §6.4.",
+      "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
       "success_shape_kind": "inline_response"
     },
     {

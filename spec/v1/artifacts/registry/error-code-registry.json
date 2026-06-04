@@ -704,7 +704,7 @@
       "code": "turn_credential_expired",
       "http_status": 401,
       "scope": "endpoint",
-      "description": "TURN REST-style ephemeral credential is past its TTL; client MUST request a fresh credential. See zh/crypto-media/webrtc-signaling.md §6.1."
+      "description": "TURN REST-style ephemeral credential is past its TTL; client MUST request a fresh credential. See zh/crypto-media/webrtc-signaling.md §4.1."
     },
     {
       "code": "delivery_binding_stale",
@@ -1574,7 +1574,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "Media token exchange (ck.call.media.token_exchange) requested a `focus_id` different from the already-committed `ck.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/webrtc-signaling.md §6.4 and §10.2."
+      "description": "Media token exchange (ck.call.media.token_exchange) requested a `focus_id` different from the already-committed `ck.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/media-service-binding.md §3 and §5."
     },
     {
       "code": "unknown_focus_type",
@@ -1582,7 +1582,7 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "A `ck.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `cokret-native` / `moq-relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/webrtc-signaling.md §6.1."
+      "description": "A `ck.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `cokret-native` / `moq-relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/media-service-binding.md §2."
     },
     {
       "code": "token_issuer_unauthorised",
@@ -1590,7 +1590,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A media token's `service_signature.kid` or `participant_binding.issuer_kid` resolves to a service DID that does NOT appear in the current epoch `ck.realm.media_service.service_id` (or the foci[]-aligned token endpoint anchor). Clients MUST reject — this closes the attack where any service can forge a focus join token. See zh/crypto-media/webrtc-signaling.md §6.4."
+      "description": "A media token's `service_signature.kid` or `participant_binding.issuer_kid` resolves to a service DID that does NOT appear in the current epoch `ck.realm.media_service.service_id` (or the foci[]-aligned token endpoint anchor). Clients MUST reject — this closes the attack where any service can forge a focus join token. See zh/crypto-media/media-service-binding.md §3."
     },
     {
       "code": "participant_binding_invalid",
@@ -1598,35 +1598,35 @@
         "event_envelope",
         "service_call"
       ],
-      "description": "A `ck.call.state` participant's `participant_binding` failed one of: (a) issuer_kid resolution against current `ck.realm.media_service.service_id`; (b) field consistency with the participant entry (`realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity`); (c) `expires_at` freshness vs event `created_at`; (d) signature verification. Reducer MUST `failed_precondition`. See zh/crypto-media/webrtc-signaling.md §11.1."
+      "description": "A `ck.call.state` participant's `participant_binding` failed one of: (a) issuer_kid resolution against current `ck.realm.media_service.service_id`; (b) field consistency with the participant entry (`realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity`); (c) `expires_at` freshness vs event `created_at`; (d) signature verification. Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §4.1."
     },
     {
       "code": "participant_identity_unrecognised",
       "applies_to": [
         "service_call"
       ],
-      "description": "Backend (LiveKit / SFU / etc.) signalled `ParticipantConnected` with a `participant_identity` that has no matching entry in `ck.call.state.participants[]` (or matches an entry whose `participant_binding` fails verification). Client MUST refuse to establish media streams for that participant — this closes the attack where a compromised backend tries to inject unauthorized participants into the conference. See zh/crypto-media/webrtc-signaling.md §10.4."
+      "description": "Backend (LiveKit / SFU / etc.) signalled `ParticipantConnected` with a `participant_identity` that has no matching entry in `ck.call.state.participants[]` (or matches an entry whose `participant_binding` fails verification). Client MUST refuse to establish media streams for that participant — this closes the attack where a compromised backend tries to inject unauthorized participants into the conference. See zh/crypto-media/media-service-binding.md §7."
     },
     {
       "code": "session_focus_already_committed",
       "applies_to": [
         "event_envelope"
       ],
-      "description": "A subsequent `ck.call.state` event attempted to write a `session_focus` value different from the already-committed one. The reducer MUST `failed_precondition` — `session_focus` is write-once per call lifecycle; in-session focus migration is not supported in v1. See zh/crypto-media/webrtc-signaling.md §11.1."
+      "description": "A subsequent `ck.call.state` event attempted to write a `session_focus` value different from the already-committed one. The reducer MUST `failed_precondition` — `session_focus` is write-once per call lifecycle; in-session focus migration is not supported in v1. See zh/crypto-media/call-state.md §4.1."
     },
     {
       "code": "e2ee_key_source_unauthorised",
       "applies_to": [
         "service_call"
       ],
-      "description": "A backend media SDK supplied an SFrame / frame encryption key from a source other than the Cokret MLS exporter (label `cx-rtc-frame-key/v1`). Clients MUST reject and refuse to publish / subscribe media. Closes the attack where backend cloud key escrow could intercept ostensibly-E2EE media. See zh/crypto-media/webrtc-signaling.md §10.5.0."
+      "description": "A backend media SDK supplied an SFrame / frame encryption key from a source other than the Cokret MLS exporter (label `cx-rtc-frame-key/v1`). Clients MUST reject and refuse to publish / subscribe media. Closes the attack where backend cloud key escrow could intercept ostensibly-E2EE media. See zh/crypto-media/media-service-binding.md §8.1."
     },
     {
       "code": "recording_artifact_pipeline_bypassed",
       "applies_to": [
         "service_call"
       ],
-      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Cokret-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Cokret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/webrtc-signaling.md §13 and proposals/0010-media-service-binding-framework.md §4.7."
+      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Cokret-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Cokret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/call-state.md §5 and proposals/0010-media-service-binding-framework.md §4.7."
     },
     {
       "code": "legacy_single_endpoint_media_service",
@@ -1634,14 +1634,14 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "A `ck.realm.media_service` event still uses the v1.0 legacy single-`sfu_endpoint` shape after v1.1. In v1 cycle servers SHOULD normalize the legacy shape to `foci=[{focus_id:\"legacy\", type:\"cokret-native\", ...}]` with audit log; starting v1.1 this MUST be rejected with `failed_precondition` and this `reason`. See zh/crypto-media/webrtc-signaling.md §6.1."
+      "description": "A `ck.realm.media_service` event still uses the v1.0 legacy single-`sfu_endpoint` shape after v1.1. In v1 cycle servers SHOULD normalize the legacy shape to `foci=[{focus_id:\"legacy\", type:\"cokret-native\", ...}]` with audit log; starting v1.1 this MUST be rejected with `failed_precondition` and this `reason`. See zh/crypto-media/media-service-binding.md §2."
     },
     {
       "code": "focus_unavailable_for_client",
       "applies_to": [
         "service_call"
       ],
-      "description": "Client cannot use the committed `session_focus` (e.g. focus not in local `foci_preferred[]`, region restricted, capability mismatch). Client MAY fail closed without joining the call rather than silently degrading; clients MUST NOT pick a different focus to bypass `session_focus_no_split_brain`. See zh/crypto-media/webrtc-signaling.md §10.2."
+      "description": "Client cannot use the committed `session_focus` (e.g. focus not in local `foci_preferred[]`, region restricted, capability mismatch). Client MAY fail closed without joining the call rather than silently degrading; clients MUST NOT pick a different focus to bypass `session_focus_no_split_brain`. See zh/crypto-media/media-service-binding.md §5."
     },
     {
       "code": "verification_method_principal_mismatch",
@@ -2249,7 +2249,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without being listed in Realm policy plaintext_visible_services[] with purpose=media_plaintext, OR without policy_root covering media_service_decrypts=true. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/webrtc-signaling.md §10.5.1."
+      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without being listed in Realm policy plaintext_visible_services[] with purpose=media_plaintext, OR without policy_root covering media_service_decrypts=true. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/media-service-binding.md §8.2."
     },
     {
       "code": "mls_governance_binding_stale",
@@ -2257,7 +2257,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Current MLS epoch's governance binding policy_root does not cover the Realm policy components the client wants to act on (e.g. media_service_decrypts toggle, plaintext_visible_services). Receivers MUST refuse to act until a fresh commit updates policy_root. See zh/crypto-media/webrtc-signaling.md §10.5.1 and zh/crypto-media/encryption-and-audit.md §3.2."
+      "description": "Current MLS epoch's governance binding policy_root does not cover the Realm policy components the client wants to act on (e.g. media_service_decrypts toggle, plaintext_visible_services). Receivers MUST refuse to act until a fresh commit updates policy_root. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §3.2."
     },
     {
       "code": "mimi_governance_binding_missing",

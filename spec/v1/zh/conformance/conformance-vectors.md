@@ -2732,7 +2732,7 @@ Expected:
 
 ## 12. Media Service Binding Vectors（CXP-0010）
 
-本节列出 `ck.profile.media_service_binding.v1` 的核心 conformance 向量。完整 fixture 与执行脚本在 candidate 阶段补完；以下为 normative steps + expected outcomes 的最小契约。详见 [`../crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) §6.1 / §6.4 / §10 / §11。
+本节列出 `ck.profile.media_service_binding.v1` 的核心 conformance 向量。完整 fixture 与执行脚本在 candidate 阶段补完；以下为 normative steps + expected outcomes 的最小契约。详见 [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) §2 / §3 / §5–§8 与 [`../crypto-media/call-state.md`](../crypto-media/call-state.md) §4。
 
 ### 12.1 Focus Selection — Oldest Membership Wins
 

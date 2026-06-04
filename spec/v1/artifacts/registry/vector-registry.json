@@ -631,7 +631,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -643,7 +643,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -655,7 +655,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -667,7 +667,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -679,7 +679,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -693,7 +693,7 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/bindings/livekit.md",
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -705,7 +705,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -717,7 +717,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -729,7 +729,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -741,7 +741,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

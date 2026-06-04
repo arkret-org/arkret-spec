@@ -1823,7 +1823,7 @@
     },
     "ck.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework (CXP-0010). Upgrades ck.realm.media_service from a single sfu_endpoint to a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/webrtc-signaling.md §6.1 / §6.4 / §10 / §11.",
+      "description": "Transport-agnostic media backend binding framework (CXP-0010). Upgrades ck.realm.media_service from a single sfu_endpoint to a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
       "depends_on": [
         "ck.profile.webrtc_media.v1"
       ],

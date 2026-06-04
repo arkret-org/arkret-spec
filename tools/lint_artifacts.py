@@ -3955,6 +3955,73 @@ def check_exporter_label_registry(lint: Lint) -> None:
             lint.fail(path, f"labels[{index}] context_fields MUST be a non-empty list")
 
 
+# --- STR-002 / OPT-005: action prose-reference closure ------------------------
+# (ck.profile.*.vN prose closure is already enforced for all markdown by
+# check_markdown_examples; only the hand-maintained action list lacked a gate.)
+
+# Action tokens that legitimately appear as a `- `ck.<...>`` bullet in
+# capabilities.md §5 but are intentionally NOT capability-action-registry
+# entries. Keep empty unless a real exception exists; every addition MUST carry
+# a one-line reason.
+ALLOWED_PROSE_ACTIONS: set[str] = set()
+
+_ACTION_TOKEN_RE = re.compile(r"^ck\.[a-z0-9_]+(?:\.[a-z0-9_]+)*$")
+_PROSE_ACTION_BULLET_RE = re.compile(r"^\s*-\s+`(ck\.[a-z0-9_.]+)`")
+
+
+def check_action_reference_closure(lint: Lint) -> None:
+    """STR-002 / OPT-005: every action declared in capabilities.md §5 (动作集合)
+    bullet lists MUST resolve in capability-action-registry.json (the canonical
+    action set generated from contract-catalog.json). Scope is deliberately
+    restricted to the §5 action-declaration bullets (`- `ck.<...>``) so that
+    event kinds, grandfathered old names in the §5.0 deviation table, and prose
+    `ck.*` tokens elsewhere cannot produce false positives — closing the
+    hand-maintained-list drift (e.g. ck.object.read_history) at its root."""
+    registry_path = ARTIFACTS / "registry" / "capability-action-registry.json"
+    data = load_json(lint, registry_path)
+    if not isinstance(data, dict):
+        return
+    known = {
+        a.get("action")
+        for a in data.get("actions", [])
+        if isinstance(a, dict) and isinstance(a.get("action"), str)
+    }
+    path = SPEC_ROOT / "zh" / "authz" / "capabilities.md"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        lint.fail(path, "capabilities.md not readable for action-reference closure")
+        return
+    in_section = False
+    in_code = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        if stripped.startswith("## "):
+            # Enter the action catalogue on "## 5." and leave on the next H2.
+            in_section = stripped.startswith("## 5.") or stripped.startswith("## 5 ")
+            continue
+        if not in_section:
+            continue
+        match = _PROSE_ACTION_BULLET_RE.match(line)
+        if not match:
+            continue
+        action = match.group(1)
+        if not _ACTION_TOKEN_RE.match(action):
+            continue
+        if action in known or action in ALLOWED_PROSE_ACTIONS:
+            continue
+        lint.fail(
+            path,
+            f"capabilities.md §5 declares action {action!r} not present in "
+            f"capability-action-registry.json (hand-list drift)",
+        )
+
+
 def main() -> int:
     lint = Lint()
     check_text_files_utf8_no_nul(lint)
@@ -4011,6 +4078,7 @@ def main() -> int:
     check_canonical_digest_fixtures(lint)
     check_field_order(lint)
     check_exporter_label_registry(lint)
+    check_action_reference_closure(lint)
 
     if lint.errors:
         print("Artifact registry lint failed:", file=sys.stderr)

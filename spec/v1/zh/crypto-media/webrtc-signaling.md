@@ -3,7 +3,7 @@ title: WebRTC Calls and Meetings
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-04
 sidebar:
   label: WebRTC Calls
 ---
@@ -16,13 +16,17 @@ sidebar:
 
 Cokret 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Realm Event history；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
 
-本文件定义：
+本文件定义 **ephemeral 信令与 WebRTC 传输面**：
 
 - 一对一 WebRTC P2P 通话
-- 多方会议的 Mesh / SFU / MCU 模式
-- TURN / STUN / ICE server 动态发现
-- 会议 membership、权限、E2EE、push、recording 和审计边界
-- 信令事件、会议状态事件和服务发现
+- TURN / STUN / ICE server 动态发现与 in-call 凭证刷新
+- 信令 envelope（offer/answer/candidate/renegotiate 等）、多设备冲突处理
+- 屏幕共享、推送集成、信令层安全与隐私
+
+相邻规范：
+
+- 媒体服务发现、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定，见 [`media-service-binding.md`](./media-service-binding.md)。
+- 通话模型与状态机、durable `ck.call.state` 字段语义、录制 / 转写生命周期，见 [`call-state.md`](./call-state.md)。
 
 ## 2. 设计原则
 
@@ -45,49 +49,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 媒体可能经过 TURN、SFU 或 MCU。它们可以转发包或混流，但不得因此获得 Realm 权限。媒体服务 MUST 有 service DID，并由 Realm policy 显式允许。
 
-## 3. 通话模型
-
-| 模式 | 适用 | 说明 |
-| --- | --- | --- |
-| `p2p` | 1 对 1 或极小规模 | 双方直接 WebRTC 连接，必要时经 TURN server。 |
-| `mesh` | 3-4 人小会 | 每个客户端与其他客户端建连接，复杂度高，不建议默认。 |
-| `sfu` | 多方会议默认 | Selective Forwarding Unit 转发 RTP，不解密 E2EE 内容。 |
-| `mcu` | PSTN / 录制 / 低端设备 | Multipoint Control Unit 混流，通常会接触明文或解密后媒体，MUST 强提示和审计。 |
-
-默认多人会议 SHOULD 使用 SFU。
-
-## 4. Call Morph
-
-会议或通话 SHOULD 用标准 Morph 表示：
-
-```json
-{
-  "morph_type": "call",
-  "realm_id": "ck:realm:...",
-  "title": "Design review",
-  "fields": {
-    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
-    "mode": "sfu",
-    "state": "ringing",
-    "started_at": null,
-    "ended_at": null,
-    "recording_policy": "disabled"
-  }
-}
-```
-
-`state`：
-
-- `scheduled`
-- `ringing`
-- `connecting`
-- `active`
-- `ended`
-- `missed`
-- `failed`
-- `cancelled`
-
-## 5. 权限模型
+## 3. 权限模型
 
 标准 actions（canonical 命名以 capability registry / `contract-catalog.json` 为唯一真源；正文与实现 MUST 使用带 `ck.` 前缀的形态，MUST NOT 接受裸 `call.*` 名）：
 
@@ -107,136 +69,11 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) 若 call scoped 到某 Circle，该 actor 还必须是该 Circle 的活跃成员；(c) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(d) 发起设备的 device grant MUST NOT 被 revoked，且其 `ck.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 
-## 6. ICE Server Discovery
+## 4. ICE Server Discovery
 
-客户端通过 Realm policy、service discovery 或 media service 获取 ICE servers。
+客户端通过 Realm policy、service discovery 或 media service 获取 ICE servers。媒体服务本身的 multi-focus 声明（`ck.realm.media_service`）见 [`media-service-binding.md` §2](./media-service-binding.md)。
 
-### 6.1 Realtime Media Server
-
-`ck.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**（参考 [CXP-0010](../../proposals/0010-media-service-binding-framework.md)）。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
-
-```json
-{
-  "kind": "ck.realm.media_service",
-  "payload": {
-    "service_id": "did:web:media.example.com",
-    "modes": [
-      "turn",
-      "sfu"
-    ],
-    "ice_config_endpoint": "https://media.example.com/_cokret/self/rtc/ice-config",
-    "foci": [
-      {
-        "focus_id": "fra-1",
-        "type": "livekit",
-        "region": "eu-fra",
-        "token_endpoint": "https://media.example.com/_cokret/self/rtc/token",
-        "connect_url": "wss://livekit-fra.example.com",
-        "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-        "health_endpoint": "https://media.example.com/_cokret/self/rtc/health/fra-1"
-      },
-      {
-        "focus_id": "us-east-1",
-        "type": "livekit",
-        "region": "us-east",
-        "token_endpoint": "https://media.example.com/_cokret/self/rtc/token",
-        "connect_url": "wss://livekit-use.example.com",
-        "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-        "cascade_group": "livekit-cloud-mesh-a"
-      }
-    ],
-    "default_call_mode": "sfu",
-    "allowed_call_modes": [
-      "p2p",
-      "sfu"
-    ],
-    "recording_supported": false
-  }
-}
-```
-
-字段语义（normative）：
-
-- `foci[].focus_id`：focus 在该 Realm media service 内的稳定 ID；进入签名 canonical bytes 与 `session_focus` 选举（见 §11.1）。
-- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`cokret-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
-- `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §6.2），差异只在 `backend_token` 形态。
-- `foci[].connect_url`：backend 连接入口；具体协议由 type-specific 附录定义。
-- `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。
-- `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `ck.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
-- `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议——每个 backend 自行实现 mesh，详见 [CXP-0010 §4.6](../../proposals/0010-media-service-binding-framework.md)。
-
-兼容性（v1 当前行为）：服务端 SHOULD 接受遗留单 `sfu_endpoint` 形态并 normalize 为 `foci=[{focus_id:"legacy", type:"cokret-native", connect_url:<sfu_endpoint>, ...}]`，同时打 audit log。_Informative：未来 hardening 版本可将单 endpoint 形态升级为 `failed_precondition` `reason="legacy_single_endpoint_media_service"`；该收紧属迁移建议，不是 v1 规范要求。_
-
-修改该 state event 需要 `ck.call.configure_media_service` 或 `ck.policy.manage` capability。
-
-### 6.2 Token Exchange (normative)
-
-会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Cokret-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Cokret 的 capability / Realm policy / MLS governance binding。
-
-请求：
-
-```http
-POST {token_endpoint}
-Authorization: <device proof | bearer>
-Content-Type: application/json
-
-{
-  "realm_id": "ck:realm:...",
-  "call_id": "ck:call:...",
-  "actor_id": "did:web:alice.example.com",
-  "device_id": "ck:device:...",
-  "focus_id": "fra-1",
-  "capability_refs": ["ck:grant:..."],
-  "desired_media": { "audio": true, "video": true, "screen": false }
-}
-```
-
-响应（`scheme="ck.media.participant_binding.v1"` 是 v1 唯一 participant binding scheme）：
-
-```json
-{
-  "focus_id": "fra-1",
-  "type": "livekit",
-  "connect_url": "wss://livekit-fra.example.com",
-  "backend_token": "<opaque to Cokret protocol — type-specific>",
-  "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-  "participant_binding": {
-    "scheme": "ck.media.participant_binding.v1",
-    "realm_id": "ck:realm:...",
-    "call_id": "ck:call:...",
-    "focus_id": "fra-1",
-    "actor_id": "did:web:alice.example.com",
-    "device_id": "ck:device:...",
-    "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-    "issued_at": "2026-05-27T12:29:56Z",
-    "expires_at": "2026-05-27T12:34:56Z",
-    "issuer_kid": "did:web:media.example#key-1",
-    "sig": "base64url..."
-  },
-  "expires_at": "2026-05-27T12:34:56Z",
-  "service_signature": { "kid": "did:web:media.example#key-1", "sig": "base64url..." }
-}
-```
-
-核心约束（normative）：
-
-- **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` 的硬上限 MUST ≤ 600s（10 分钟）；推荐上限 SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
-- **Token issuer DID 锚定**：`service_signature.kid` 与 `participant_binding.issuer_kid` MUST 解析到一个出现在当前 epoch `ck.realm.media_service.service_id` 的 service DID；客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
-- **`participant_identity` 形态**：作为 SFU-local 短期 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 §6.3 pairwise pseudonym 规则对齐），且 MUST 至少绑定 `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` 派生。
-- **`participant_identity` 传播边界**：因为它本身不携带 actor 链接信息，客户端 **MUST** 把它写入 `ck.call.state.participants[].participant_identity`（用于 §10.4 cross-check）——这条嵌入是 Realm-encrypted control state，不构成 actor-身份外泄。但 `participant_identity` MUST NOT 进入下列三类 surface：(a) 任何 plaintext audit log / 服务方 access log（包括 backend SFU 自身的日志）；(b) 任何 unencrypted ephemeral / push / telemetry 通道；(c) backend 一侧对外的 metrics、tracing 标签或 cross-tenant 数据导出。Backend 内部允许保留它作为 SFU-local routing handle，但不应跨 call leg / 跨 tenant 复用。
-- **`participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺**。客户端 MUST 先验证该 binding，再把它写入 / 对照 `ck.call.state` membership（见 §11）。backend 只看到 `participant_identity` 与 `backend_token`，不应获得长期 actor 身份。
-
-Token issuer MUST 在签发前校验：
-
-- 调用者 device proof / bearer 有效，未 revoked。
-- Actor 在 `realm_id` 拥有 `ck.call.join` capability；`desired_media` 不超过授权（`ck.call.screen_share` 等子 capability 检查）。
-- Realm policy 允许该 `focus_id`（即 focus 出现在当前 `ck.realm.media_service.foci[]` 中）。
-- 如果 `ck.call.state.session_focus` 已存在，请求的 `focus_id` 与其完全一致；不一致 MUST 返回 `focus_mismatch`。
-- call state 允许新 participant；且按分层 predicate 校验该 `(actor_id, device_id)`：actor 在 `realm_id` 的 Realm membership 为 `join`（若 scoped 到 Circle 则同时为该 Circle 活跃成员）、account status 不为 `suspended` / `deactivated` / `erasure_pending`、`device_id` 的 device grant 未 revoked。
-- MLS governance binding `policy_root` 与 `ck.realm.media_service` 当前 epoch 一致（防 stale policy）；不一致返回 `mls_governance_binding_stale`。
-- 如果 backend 将解密媒体（`media_service_decrypts=true`），完整执行 §10.5.1 的三层校验。
-
-### 6.3 ICE Config Endpoint
+### 4.1 ICE Config Endpoint
 
 默认 HTTP binding：
 
@@ -348,7 +185,7 @@ Content-Type: application/json
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Realm MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 
-### 6.4 In-call Credential Refresh
+### 4.2 In-call Credential Refresh
 
 通话进行中 TURN credential 可能在 `ttl_seconds` 之前到期或被 server 主动撤销。客户端 MUST 实现在通话期间的 credential refresh，避免 mid-call 失联：
 
@@ -371,7 +208,7 @@ Content-Type: application/json
 - TURN shared secret MUST 周期轮换（默认 ≤ 24 小时）；轮换时 server MUST 同时接受新旧 secret 一段时间（grace ≥ `ttl_seconds`）以避免 in-call 集体失败。
 - `turn_credential_expired` 响应 MUST 包含 `next_retry_at`；不得让客户端进入 tight retry loop。
 
-## 7. Signaling Envelope
+## 5. Signaling Envelope
 
 所有 call signaling frame 使用 `ck.schema.ephemeral_envelope.v1` 的 broadcast envelope；`ck.call.signal` 分支 MUST 携带 `device_id` 与 `proof`，并在 `payload` 中携带 call 级字段：
 
@@ -411,7 +248,7 @@ Receiver MUST verify `proof` over the canonical envelope bytes (excluding `proof
 - `error`
 - `ack`
 
-## 8. 一对一通话
+## 6. 一对一通话
 
 Invite payload:
 
@@ -471,7 +308,7 @@ Candidate payload:
 
 字段名在 Cokret envelope 中使用 snake_case；浏览器原生 `sdpMid` / `sdpMLineIndex` MUST 映射为 `sdp_mid` / `sdp_m_line_index`。
 
-## 9. 多设备冲突处理
+## 7. 多设备冲突处理
 
 同一 actor 的多个设备 MAY 同时收到 invite。
 
@@ -482,168 +319,7 @@ Candidate payload:
 - 发起端收到同 actor 多个 answer 时，只接受第一个通过签名和 device validity 验证的 answer。
 - 被拒绝或超时的设备 SHOULD 发送 `reject`，reason 为 `answered_elsewhere` 或 `timeout`。
 
-## 10. SFU 会议
-
-### 10.1 SFU Service
-
-SFU 在 v1 通过 [§6.1](#61-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：
-
-- `type="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
-- `type="cokret-native"`：见 [`bindings/cokret-native.md`](./bindings/cokret-native.md)（reference impl，不推荐生产使用）。
-- `type="mediasoup"` / `type="janus"` / `type="moq-relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `type` MUST fail closed，错误码 `unknown_focus_type`。
-
-不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§6.2 Token Exchange](#62-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 type-specific 附录定义。下面的 §10.2 / §10.3 / §10.4 是跨 backend 通用约束。
-
-### 10.2 Focus Selection 与 Session 持久化（normative）
-
-会议第一次 join 时由客户端排序 `foci_preferred[]` 写入 `ck.call.state.participants[].foci_preferred`；之后用 **deterministic, no-vote** 规则收敛为单一 `session_focus`：
-
-1. 若 `ck.call.state.session_focus` 已存在，它就是唯一 authoritative focus；客户端和 token issuer MUST 使用它。
-2. 若 `session_focus` 尚不存在，收集所有当前 active member 的 `(joined_at, actor_id, device_id, foci_preferred)` 元组；按 `(joined_at, actor_id, device_id)` 升序，**oldest_membership 的 `foci_preferred[0]` 被写入 `session_focus`**。
-3. 后加入者 MUST 使用同一 `session_focus`，无论自己的偏好；如果该 focus 在自己的 preferred 列表中不存在，客户端 MAY 拒绝加入（fail closed），错误码 `focus_unavailable_for_client`。
-4. Token issuer MUST 拒绝任何 `focus_id != session_focus` 的 token exchange，错误码 `focus_mismatch`；该规则优先于 health check、region preference 和 load balancing。
-5. 当 oldest member 离开，focus **不自动迁移**（避免媒体路径中断）；session 持续到所有人离开后才重置。v1 不提供 in-session focus migration。
-
-### 10.3 SFU 权限
-
-SFU MUST verify:
-
-- Realm media service policy allows this `(focus_id, service_id)` 组合（即 focus 出现在当前 `ck.realm.media_service.foci[]`）。
-- actor has `ck.call.join`（capability registry canonical 命名，参见 [`../authz/capabilities.md`](../authz/capabilities.md) §5）。
-- actor/device is not revoked。
-- call state accepts new participants。
-- media request does not exceed grants, e.g. screen share requires `ck.call.screen_share`。
-
-客户端 MUST 校验：
-
-- token issuer service DID 出现在当前 `ck.realm.media_service.service_id` / `foci[].token_endpoint` 锚定的 service DID 列表；
-- token exchange 响应的 `service_signature` 与 `participant_binding.sig` 通过；
-- backend 通知 "X 加入会议" 时携带的 `participant_identity` 与 `ck.call.state.participants[].participant_identity` 一致（见 §10.4 cross-check）。
-
-### 10.4 Participant Identity 交叉校验（normative）
-
-backend "X 加入会议" 通知到达客户端时，客户端 MUST：
-
-1. 从 backend 通知中提取 `participant_identity`。
-2. 在当前 `ck.call.state.participants[]` 中查找同一 `participant_identity`。
-3. 验证该 participant entry 内的 `participant_binding` 签名（[§6.2](#62-token-exchange-normative)），确认它覆盖同一 `(realm_id, call_id, session_focus, actor_id, device_id, participant_identity)`。
-4. 不匹配或签名无效 → 拒绝为该 participant 建立媒体流（不收音、不订阅 video），错误码 `participant_identity_unrecognised`。
-
-这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Cokret-side `ck.call.state` 真源。
-
-### 10.5 E2EE with SFU
-
-SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实现端到端媒体加密。SFU 可转发 RTP 包和处理转发层 metadata，但不应获得明文媒体。
-
-若 SFU 或 MCU 会解密媒体，客户端 MUST 显示明确安全边界，并且 Realm policy MUST 允许 `media_service_decrypts=true`。
-
-#### 10.5.0 E2EE Key Injection 通用契约（normative）
-
-无论 backend 自身是否支持 E2EE，所有 binding 附录的 E2EE 章节 MUST 规定一个最小契约，使得 **客户端侧 binding adapter / media SDK** 能从 Cokret 协议层接收 frame key，而不从 backend 自带密钥分发机制取。最小契约：
-
-```text
-inject_frame_key(key_bytes: 32-byte secret,
-                 epoch_id: u64,
-                 sender_binding: canonical_json{
-                   realm_id, call_id, focus_id,
-                   participant_identity, device_id
-                 },
-                 rotation_trigger: enum{member_join, member_leave, manual, scheduled})
-```
-
-约束：
-
-- `key_bytes` MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。`cx-rtc-frame-key/v1` / `cx-rtc-recording-key/v1` 的 `cx-` 前缀是**有意保留的 grandfathered 稳定 wire label**(媒体绑定早期遗留命名，作为密钥派生的安全域分离参数),并非待清理的命名残留；实现 MUST NOT 私自将其迁移为 `ck-` 形态或与其它 label 混用。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking，必须开新 profile。
-- `epoch_id` 与 Realm MLS epoch 一一对应。
-- backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §10.5.1 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
-- Conformance negative vector `ck.vector.media_binding.e2ee_key_source.v1`：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
-
-Conformance vectors for the full media binding framework：
-
-- `ck.vector.media_binding.focus_selection_oldest_membership.v1` — §10.2 oldest_membership 选举正确性。
-- `ck.vector.media_binding.session_focus_no_split_brain.v1` — `session_focus` 写入后 connect 失败 MUST 暴露为不可用，不静默切 focus。
-- `ck.vector.media_binding.token_exchange_minimal.v1` — §6.2 token exchange 最小字段集 + TTL ≤ 600s。
-- `ck.vector.media_binding.token_issuer_unauthorised.v1` — issuer DID 不在 service_id 锚定列表时拒绝。
-- `ck.vector.media_binding.participant_binding_required.v1` — 缺失或签名无效的 `participant_binding` 必须拒绝。
-- `ck.vector.media_binding.unknown_type_fail_closed.v1` — §6.1 未知 `foci[].type` MUST fail closed。
-- `ck.vector.media_binding.participant_identity_unrecognised.v1` — §10.4 backend 通知的 participant 不在 `ck.call.state` 时拒绝该流。
-- `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1` — §13 backend-generated recording 必须经 Cokret blob pipeline。
-- `ck.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"cx-rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
-
-#### 10.5.1 治理绑定（normative）
-
-**三层关系**: `ck.realm.media_service` declares SFU existence; `plaintext_visible_services` grants decryption authority; `ck.realm.policy_components.media_service_decrypts=true` carries the boolean toggle — 三者 MUST 同时成立才能让 media service 解密。
-
-`media_service_decrypts=true` **不**是一个可单独由 SFU 服务自报或客户端配置的开关。它 MUST 同时满足下列约束，否则客户端 MUST 拒绝加入会议、SFU MUST 拒绝媒体协商：
-
-1. **进入 `ck.realm.policy_components`**：`media_service_decrypts=true` MUST 由一条 `ck.realm.policy_components`（或对应 Realm policy facet event）显式写入，受 capability `ck.realm.policy.manage` 控制，并随 Realm policy `policy_root` 一同被 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md) 的 MLS governance binding 覆盖。policy_root 未包含该开关时 MUST 视为未开启。
-2. **进入 `plaintext_visible_services`**：解密媒体的 SFU / MCU service DID MUST 在 Realm policy 的 `plaintext_visible_services[]`（或等价 media plaintext service policy）中显式列出，并标 `purpose=media_plaintext`。仅出现在 `media_services[]` 而未列入 `plaintext_visible_services[]` 的服务 MUST 被视为禁止解密媒体的 SFU；其试图协商解密角色时 MUST 返回 `media_plaintext_service_not_authorised`。
-3. **MLS Governance Binding 覆盖**：成员在 join 前 MUST 校验当前 epoch 的 governance binding `policy_root` 涵盖前两条规则的 cell value；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
-4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ck.realm.policy_components` 正常路径并伴随客户端 UI 显著二次确认；不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。在 governance binding 尚未 commit 新 policy_root 的窗口内，客户端 MUST 沿用旧 policy 视图判定，禁止根据 OOB 字段提前授权。
-5. **进入成员可见 metadata**：`media_service_decrypts=true` 这一"该 Realm 媒体可被服务解密"的事实 MUST 进入 governance binding 覆盖的成员可见 metadata（如 `discussion_metadata_digest`），使任意成员无需依赖客户端 UI 即可从 MLS transcript 独立复算该事实。该 digest MUST 由前 1–3 条所覆盖的 policy cell value 确定性派生；成员本地复算结果与 governance binding 覆盖值不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商。
-6. **Conformance negative vector** `ck.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) policy_root 未覆盖 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入；(d) 成员从 MLS transcript 独立复算的 `media_service_decrypts` 事实与 governance binding 覆盖的成员可见 metadata 不一致 ⇒ 拒绝媒体协商。
-
-实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来"切换成功"但未被 governance binding 覆盖的状态都是 attack，必须 fail closed。
-
-## 11. 会议状态事件
-
-会议状态可作为 durable event 记录：
-
-```json
-{
-  "kind": "ck.call.state",
-  "realm_id": "ck:realm:...",
-  "payload": {
-    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
-    "state": "active",
-    "mode": "sfu",
-    "session_focus": "fra-1",
-    "participants": [
-      {
-        "actor_id": "did:web:alice.example.com",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
-        "joined_at": "2026-04-26T00:00:00Z",
-        "foci_preferred": ["fra-1", "us-east-1"],
-        "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-        "participant_binding": {
-          "scheme": "ck.media.participant_binding.v1",
-          "realm_id": "ck:realm:...",
-          "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
-          "focus_id": "fra-1",
-          "actor_id": "did:web:alice.example.com",
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
-          "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-          "issued_at": "2026-04-26T00:00:00Z",
-          "expires_at": "2026-04-26T00:05:00Z",
-          "issuer_kid": "did:web:media.example#key-1",
-          "sig": "base64url..."
-        },
-        "media": {
-          "audio": true,
-          "video": true,
-          "screen": false
-        }
-      }
-    ]
-  }
-}
-```
-
-### 11.1 字段语义（normative）
-
-- `session_focus`：本 call 唯一 authoritative `focus_id`。**reducer 写入规则**：第一个 `ck.call.state` 事件根据 §10.2 选举规则把 oldest member 的 `foci_preferred[0]` 写入；后续 `ck.call.state` MUST 保持同值，任何改写 MUST `failed_precondition` `reason="session_focus_already_committed"`。session 结束（所有 participants 离开）后才重置。
-- `participants[].foci_preferred`：客户端本地排序的 focus 偏好列表，用于 §10.2 选举。后加入者写入的 `foci_preferred` 不影响已 committed 的 `session_focus`。
-- `participants[].participant_identity`：来自 token exchange 响应的 SFU-local handle（见 §6.2）；scope 限 `(call_id, focus_id, sfu_did)`。
-- `participants[].participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺。reducer **MUST** 验证：
-  1. `issuer_kid` 解析到的 service DID 出现在当前 epoch `ck.realm.media_service.service_id`；
-  2. binding `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity` 与 participant entry 一致；
-  3. `expires_at` > event `created_at`（不接受已过期 binding）；
-  4. `sig` 通过签名验证。
-  任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
-
-高频 speaking/mute/video 状态 SHOULD 走 ephemeral channel；会议开始、结束、参与者加入/离开 MAY 采样或摘要写入 durable state。
-
-## 12. 屏幕共享
+## 8. 屏幕共享
 
 屏幕共享是一种独立 media source：
 
@@ -666,42 +342,7 @@ Conformance vectors for the full media binding framework：
 - 客户端 MUST 在本地展示正在共享状态。
 - 会议主持人 MAY 使用 `ck.call.moderate` 请求停止某人的 screen share。
 
-## 13. 录制与转写
-
-录制和转写默认关闭，必须由 Realm policy 和 call capability 显式允许。
-
-启动录制：
-
-```json
-{
-  "kind": "ck.call.recording.start",
-  "realm_id": "ck:realm:...",
-  "payload": {
-    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
-    "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
-    "recording_agent": "did:web:recorder.example",
-    "mode": "audio_video",
-    "visible_notice": true
-  }
-}
-```
-
-要求：
-
-- 需要 `ck.call.record` capability。
-- 客户端 MUST 对所有参会者显示录制中。
-- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ck:*` typed ID；最终持久化产物仍通过 Cokret blob / Morph / artifact 引用暴露。
-- 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
-- **Backend-generated recording 必经 Cokret blob pipeline**（参见 [CXP-0010 §4.7](../../proposals/0010-media-service-binding-framework.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
-  1. 作为加密 blob 上传到 Cokret media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
-  2. 上传请求携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `ck.call.record` 的 actor 发起。
-  3. 加密 key MUST 由 Cokret 协议层提供（与 §10.5.0 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"cx-rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"cx-rtc-frame-key/v1"` 或空 Context。
-  4. 入库后通过 `ck.call.state` 发布 lifecycle state，引用 blob hash、duration、media type、retention policy 与 `recording_start_event_id`。
-  绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
-- 录制结果 MUST 通过已注册的 `ck.call.state` 写入 call lifecycle state（例如 `state="recording_ready"` / `state="recording_failed"`），并在 payload 中引用 blob hash、duration、media type、retention policy 和 `recording_start_event_id`。v1 不注册独立的 `ck.call.recording.result` event kind；实现不得把该裸名写入 Event Envelope。
-- 转写需要 `ck.call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。
-
-## 14. 推送集成
+## 9. 推送集成
 
 `ck.call.signal` 中 `kind=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Realm id、call id 或 sender DID。
 
@@ -718,11 +359,11 @@ Conformance vectors for the full media binding framework：
 
 设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ck.call.signal{kind=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
-Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；只允许 §14 上面 4 个脱敏字段，其它一切信息必须通过本地解密获得。
+Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；只允许 §9 上面 4 个脱敏字段，其它一切信息必须通过本地解密获得。
 
 **Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新 `call_invite` 流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
 
-## 15. 安全与隐私
+## 10. 安全与隐私
 
 实现 MUST：
 
@@ -741,7 +382,7 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 - 对会议服务做 region / data residency 限制。
 - 对呼叫滥用做 rate limit 和 block。
 
-## 16. 错误码
+## 11. 错误码
 
 | code | 含义 |
 | --- | --- |
@@ -755,7 +396,9 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 | `e2ee_required` | Realm 要求 E2EE，但当前媒体路径不满足。 |
 | `recording_denied` | 录制未授权或 policy 禁止。 |
 
-## 17. 与 Matrix Call 的关系
+媒体服务绑定相关错误码（`unknown_focus_type`、`focus_mismatch`、`token_issuer_unauthorised`、`participant_identity_unrecognised`、`e2ee_key_source_unauthorised`、`media_plaintext_service_not_authorised`、`mls_governance_binding_stale` 等）见 [`media-service-binding.md`](./media-service-binding.md) 与 `error-code-registry.json`。
+
+## 12. 与 Matrix Call 的关系
 
 Cokret 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、policy server 和 transport binding 模型。
 

@@ -4308,7 +4308,7 @@ paths:
       summary: Exchange Cokret capability proof for a backend media token.
       description: |
         Media service token exchange operation (CXP-0010,
-        zh/crypto-media/webrtc-signaling.md §6.4). Issues a short-lived
+        zh/crypto-media/media-service-binding.md §3). Issues a short-lived
         (TTL ≤ 600s, SHOULD ≤ 300s) backend_token + participant_binding for
         joining a focus declared in `ck.realm.media_service.foci[]`.
 

@@ -1,7 +1,7 @@
 {
   "version": "2026-06-04",
   "source_of_truth": true,
-  "description": "Canonical registry of MLS-Exporter labels used for media key derivation (SFrame per-sender frame keys and backend recording-artifact keys). Each label is a wire-breaking security-domain-separation parameter: implementations MUST use the exact label string and Context field shape registered here, MUST NOT derive with an empty Context, and MUST NOT migrate or reuse keys across labels without declaring a new profile. See zh/crypto-media/webrtc-signaling.md §10.5 and conformance/conformance-vectors.md §12.7.",
+  "description": "Canonical registry of MLS-Exporter labels used for media key derivation (SFrame per-sender frame keys and backend recording-artifact keys). Each label is a wire-breaking security-domain-separation parameter: implementations MUST use the exact label string and Context field shape registered here, MUST NOT derive with an empty Context, and MUST NOT migrate or reuse keys across labels without declaring a new profile. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
     {
       "label": "cx-rtc-frame-key/v1",

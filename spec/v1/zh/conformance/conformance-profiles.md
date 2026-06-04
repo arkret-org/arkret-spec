@@ -702,7 +702,7 @@ SHOULD 支持：
 
 `ck.profile.webrtc_media.v1` 适用于提供 ICE config / TURN / SFU 等 RTC 基础设施的服务。
 
-参考：[`crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) §6–§13。
+参考：[`crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md)（ICE config / TURN）、[`crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md)（SFU / 媒体服务绑定）与 [`crypto-media/call-state.md`](../crypto-media/call-state.md)（通话状态）。
 
 MUST 支持：
 

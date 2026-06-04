@@ -5888,7 +5888,7 @@
     },
     "participant_binding": {
       "type": "object",
-      "description": "Token issuer's signed commitment over (realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at) for a media participant. See crypto-media/webrtc-signaling.md §6.2/§11.1. v1 uses the single scheme ck.media.participant_binding.v1.",
+      "description": "Token issuer's signed commitment over (realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at) for a media participant. See crypto-media/media-service-binding.md §3 and crypto-media/call-state.md §4.1. v1 uses the single scheme ck.media.participant_binding.v1.",
       "required": [
         "scheme",
         "realm_id",
@@ -5945,7 +5945,7 @@
     },
     "call_participant": {
       "type": "object",
-      "description": "A single participant entry in ck.call.state.payload.participants[]. See crypto-media/webrtc-signaling.md §11/§11.1.",
+      "description": "A single participant entry in ck.call.state.payload.participants[]. See crypto-media/call-state.md §4/§4.1.",
       "required": [
         "actor_id",
         "device_id",
@@ -5995,7 +5995,7 @@
     },
     "call_state_payload": {
       "type": "object",
-      "description": "Typed payload for ck.call.state (durable call lifecycle state). Replaces the broad call_payload for this kind: state is a controlled enum, participants carry machine-checkable participant_binding, and recording results are carried in a typed recording_result object rather than untyped fields. See crypto-media/webrtc-signaling.md §11/§11.1/§13.",
+      "description": "Typed payload for ck.call.state (durable call lifecycle state). Replaces the broad call_payload for this kind: state is a controlled enum, participants carry machine-checkable participant_binding, and recording results are carried in a typed recording_result object rather than untyped fields. See crypto-media/call-state.md §4/§4.1/§5.",
       "required": [
         "call_id",
         "state"

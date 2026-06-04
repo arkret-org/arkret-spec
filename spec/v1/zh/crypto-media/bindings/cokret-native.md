@@ -27,7 +27,7 @@ sidebar:
 
 ## 2. Token Exchange
 
-按 [`../webrtc-signaling.md` §6.4](../webrtc-signaling.md) 通用契约。`backend_token` 形态：
+按 [`../media-service-binding.md` §3](../media-service-binding.md) 通用契约。`backend_token` 形态：
 
 ```json
 {
@@ -47,7 +47,7 @@ sidebar:
 
 base64url-编码的 detached JWS，由 token issuer 用 service DID 的 `assertionMethod` key 签名。SFU 在每次 SDP 协商前 MUST 校验该 token：
 
-- `kid` 出现在当前 `ck.realm.media_service.service_id` 锚定的 DID 列表中（与 [`../webrtc-signaling.md` §6.4](../webrtc-signaling.md) issuer DID 锚定一致）；
+- `kid` 出现在当前 `ck.realm.media_service.service_id` 锚定的 DID 列表中（与 [`../media-service-binding.md` §3](../media-service-binding.md) issuer DID 锚定一致）；
 - `call_id` / `focus_id` 与 SFU 当前 session 一致；
 - `expires_at` 未过期；
 - `participant_identity` 唯一性（同 call、同 focus 内不复用）。
@@ -96,16 +96,16 @@ SFU MUST 在 response 中回显 token exchange 阶段已 issued 的同一 `parti
 
 Cokret-native SFU 接受标准 WebRTC offer/answer。协议层不约束具体 codec / extension 集合，但：
 
-- SFrame ([RFC 9605](https://www.rfc-editor.org/rfc/rfc9605.html)) MUST 在 SDP 中协商；客户端 MUST 拒绝缺 SFrame extension 的 answer，除非 `media_service_decrypts=true` 经 [`../webrtc-signaling.md` §10.5.1](../webrtc-signaling.md) 三层校验通过。
+- SFrame ([RFC 9605](https://www.rfc-editor.org/rfc/rfc9605.html)) MUST 在 SDP 中协商；客户端 MUST 拒绝缺 SFrame extension 的 answer，除非 `media_service_decrypts=true` 经 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验通过。
 - SDP `a=fingerprint` MUST 与 token exchange 中绑定的 device cert 一致。
 
 ## 5. E2EE Key Injection
 
-按 [`../webrtc-signaling.md` §10.5.0](../webrtc-signaling.md) 通用契约。Cokret-native SFU 的 reference adapter 直接调 WebRTC Insertable Streams API，把 `key_bytes` 装载到 RTP frame encryptor。
+按 [`../media-service-binding.md` §8.1](../media-service-binding.md) 通用契约。Cokret-native SFU 的 reference adapter 直接调 WebRTC Insertable Streams API，把 `key_bytes` 装载到 RTP frame encryptor。
 
 `media_service_decrypts=false`（默认）：`key_bytes` 不离开客户端，SFU 只看到密文 RTP payload。
 
-`media_service_decrypts=true`（需 §10.5.1 三层校验）：客户端把 `key_bytes` 通过 Cokret-controlled keying path 提交给 SFU；SFU 在受控边界内解密，不得 forward key 到 backend cluster 外。
+`media_service_decrypts=true`（需 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验）：客户端把 `key_bytes` 通过 Cokret-controlled keying path 提交给 SFU；SFU 在受控边界内解密，不得 forward key 到 backend cluster 外。
 
 ## 6. Capability Mapping
 
