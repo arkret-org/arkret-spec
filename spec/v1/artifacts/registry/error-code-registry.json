@@ -769,6 +769,46 @@
         "auth_decision"
       ],
       "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ck.applet.revoke / ck.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b."
+    },
+    {
+      "code": "invalid_avatar_blob_ref",
+      "http_status": 422,
+      "scope": "endpoint",
+      "applies_to": [
+        "schema_validation",
+        "service_call"
+      ],
+      "description": "`ck.account.update_profile` received an `avatar_blob_ref` that is not a valid Cokret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is only a compatibility-layer input outside the Cokret protocol path."
+    },
+    {
+      "code": "unsupported_profile_patch_path",
+      "http_status": 422,
+      "scope": "endpoint",
+      "applies_to": [
+        "schema_validation",
+        "service_call"
+      ],
+      "description": "`ck.account.update_profile` received a patch path outside the account self-service allowlist (`display_name`, `avatar_blob_ref`, `profile_fields.<key>`). Handle, lifecycle, principal, actor_kind, accountability, authorization, and handle-claim paths MUST be rejected instead of silently ignored."
+    },
+    {
+      "code": "session_grant_not_found",
+      "http_status": 404,
+      "scope": "endpoint",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "`ck.account.session_revoke` targeted a session grant that is unknown, already inactive, or not owned by the current principal. Implementations SHOULD use a uniform response shape that does not disclose another principal's session grant existence."
+    },
+    {
+      "code": "session_revoke_selector_conflict",
+      "http_status": 422,
+      "scope": "endpoint",
+      "applies_to": [
+        "schema_validation",
+        "service_call"
+      ],
+      "description": "`ck.account.session_revoke` supplied more than one mutually exclusive selector (`target_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly."
     }
   ],
   "reason_codes": [

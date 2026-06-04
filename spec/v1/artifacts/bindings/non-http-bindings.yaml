@@ -147,9 +147,13 @@ grpc:
       GetInvites: ck.authz.get_invites
     Account:
       Describe: ck.account.describe
+      Viewer: ck.account.viewer
       Subscribe: ck.account.subscribe
+      UpdateProfile: ck.account.update_profile
       CursorRevoke: ck.account.cursor_revoke
+      Register: ck.account.register
       IssueSessionGrant: ck.account.issue_session_grant
+      SessionRevoke: ck.account.session_revoke
       AgentKeyPair: ck.account.agent_key_pair
       DevicePair: ck.account.device_pair
       OidcCallback: ck.account.oidc_callback
@@ -193,7 +197,11 @@ mq:
     ephemeral.send: ck.ephemeral.send
     call.media.token_exchange: ck.call.media.token_exchange
     account.subscribe: ck.account.subscribe
+    account.viewer: ck.account.viewer
+    account.update_profile: ck.account.update_profile
     account.cursor_revoke: ck.account.cursor_revoke
+    account.register: ck.account.register
+    account.session_revoke: ck.account.session_revoke
     account.agent_key_pair: ck.account.agent_key_pair
     agent.provision: ck.agent.provision
     agent.list: ck.agent.list

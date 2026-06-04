@@ -2241,6 +2241,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ck.applet.protocol_metadata",
     }
     proof_in_body_operations = {
+        "ck.account.register",
         "ck.account.issue_session_grant",
         "ck.account.oidc_callback",
     }

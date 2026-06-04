@@ -27,7 +27,8 @@ info:
 
     prose. The typed surface currently covers `ck.events.{submit, get, resolve,
 
-    query, query_post, frontier}`, `ck.account.subscribe`, `ck.snapshot.head`,
+    query, query_post, frontier}`, `ck.account.{viewer, subscribe,
+    update_profile, register, session_revoke}`, `ck.snapshot.head`,
 
     `ck.identity.{resolve, get_document, get_receipts, submit_did_operation}`, `ck.authz.{check,
 
@@ -296,17 +297,30 @@ components:
               - schema_violation
               - missing_param
               - invalid_param
+              - invalid_response
               - unauthenticated
               - auth_expired
               - soft_logged_out
               - did_proof_required
               - invalid_signature
+              - directory_not_authorized
+              - accept_policy_denied
+              - signature_invalid
+              - signature_stale
+              - source_refs_unverifiable
+              - governance_key_invalid
+              - ttl_out_of_range
+              - takedown_in_force
+              - policy_revision_rollback
               - capability_denied
               - realm_frozen
               - claim_required
               - policy_violation
               - policy_denied
               - read_receipt_compliance_floor_violated
+              - ephemeral_kind_not_permitted
+              - ephemeral_ttl_out_of_range
+              - ephemeral_channel_unavailable
               - not_found
               - unrecognized_endpoint
               - method_not_allowed
@@ -315,6 +329,8 @@ components:
               - causal_conflict
               - dependency_missing
               - discussion_track_disabled
+              - reaction_target_unsupported
+              - reaction_scope_mismatch
               - epoch_mismatch
               - duplicate_conflict
               - rank_exhausted
@@ -331,6 +347,7 @@ components:
               - rate_limited
               - timeout
               - stale_frontier
+              - stale_peer
               - authorized_grant_revoked
               - device_recovery_ssk_generation_mismatch
               - cursor_expired
@@ -382,6 +399,7 @@ components:
               - policy_combination_invalid
               - history_sharing_policy_missing
               - history_not_visible
+              - preview_policy_denied
               - anchorer_recovery_missing
               - unsupported_lattice_type
               - profile_unsupported
@@ -399,6 +417,10 @@ components:
               - applet_install_plan_mismatch
               - applet_e2ee_join_unauthorized
               - applet_revoked
+              - invalid_avatar_blob_ref
+              - unsupported_profile_patch_path
+              - session_grant_not_found
+              - session_revoke_selector_conflict
             message:
               type: string
             retry_after_ms:
@@ -763,6 +785,24 @@ components:
             $ref: ../schemas/identity-receipt.schema.json
     AccountSubscribeFrame:
       $ref: ../schemas/account-subscribe-frame.schema.json
+    ActorProfile:
+      $ref: ../schemas/actor-profile.schema.json
+    HandleClaim:
+      $ref: ../schemas/handle-claim.schema.json
+    AccountViewerResponse:
+      $ref: ../schemas/account-operations.schema.json#/$defs/viewer_response
+    AccountRegisterRequest:
+      $ref: ../schemas/account-operations.schema.json#/$defs/register_request
+    AccountResponse:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_response
+    UpdateProfileRequest:
+      $ref: ../schemas/account-operations.schema.json#/$defs/update_profile_request
+    UpdateProfileResponse:
+      $ref: ../schemas/account-operations.schema.json#/$defs/update_profile_response
+    SessionRevokeRequest:
+      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request
+    SessionRevokeResponse:
+      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_response
     BottomDiagnostic:
       $ref: ../schemas/bottom.schema.json
     KeysUploadRequest:
@@ -4600,6 +4640,30 @@ paths:
             whose `type` is unsupported by this token issuer; or
             `media_service_foci_required` when `ck.realm.media_service` does
             not declare explicit media foci.
+  /_cokret/self/account/viewer:
+    get:
+      operationId: ck.account.viewer
+      security:
+      - bearerAuth: []
+      summary: Holder-bound one-shot read of the current account projection.
+      description: |
+        Returns the authenticated principal's account projection: principal_id,
+        lifecycle state, device summaries, optional ActorProfile, and signed
+        handle-claim evidence or refs. This endpoint is distinct from
+        ck.account.describe, which describes service capabilities.
+
+        The response MUST NOT use an unsigned bare handle as authoritative
+        identity. When present, primary_handle_claim is a complete
+        ck.schema.handle_claim.v1 object; otherwise clients use
+        primary_handle_claim_ref and handle_claim_digests to refresh their
+        local claim cache.
+      responses:
+        '200':
+          description: Current account viewer projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountViewerResponse'
   /_cokret/self/account/subscribe:
     get:
       operationId: ck.account.subscribe
@@ -4682,6 +4746,36 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
+  /_cokret/self/account/profile:
+    post:
+      operationId: ck.account.update_profile
+      security:
+      - bearerAuth: []
+      summary: Update the authenticated principal's Actor Profile projection.
+      description: |
+        Holder-bound service wrapper around ck.profile.update / Actor Profile
+        projection. The request body is UpdateProfileRequest {patch}; patch
+        paths are limited to display_name, avatar_blob_ref, and
+        profile_fields.<key>. Existing bio fields migrate to profile_fields.bio.
+
+        The Cokret protocol path rejects avatar_url and any handle, lifecycle,
+        principal, actor_kind, accountability, authorization, or handle-claim
+        path. Implementations that need avatar_url compatibility must resolve or
+        upload it to a Blob in a compatibility layer before writing
+        avatar_blob_ref.
+      responses:
+        '200':
+          description: Profile update accepted and projected.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateProfileResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
   /_cokret/self/account/cursor/revoke:
     post:
       operationId: ck.account.cursor_revoke
@@ -6354,6 +6448,43 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MediaIceConfigRequest'
+  /_cokret/gate/account/register:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ck.account.register
+      security: []
+      x-cokret-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: proof
+        notes: Request is unauthenticated at the transport bearer layer when bootstrapping, but the body proof or an equivalent holder-bound Authorization/DPoP/HTTP Message Signature MUST bind principal_id, device_id, audience, request canonical digest, challenge, issued_at and expires_at.
+      summary: Bind or create a deployment-local account record for a principal.
+      description: |
+        Auth Server lifecycle operation. The request uses principal_id rather
+        than did and never accepts a bare handle. display_name is only a
+        bootstrap display field; if persisted it lands in Actor Profile
+        display_name via the canonical profile path.
+
+        Register MAY return signed handle-claim evidence or digest/ref in the
+        AccountResponse, but handle issuance, approval, assignment, re-signing,
+        and revocation remain issuer/coauth/deployment-governance flows.
+      responses:
+        '200':
+          description: Account record bound or created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRegisterRequest'
   /_cokret/gate/account/session-grants:
     servers:
     - url: https://{host}
@@ -6381,6 +6512,39 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantRequest'
+  /_cokret/gate/account/session-grants/revoke:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ck.account.session_revoke
+      security:
+      - bearerAuth: []
+      summary: Revoke session grant or access-token authority.
+      description: |
+        Revokes session grant / access-token authority, not device
+        authorization and not durable ck.account.status. An omitted request body
+        revokes the current request's session grant. target_grant_id,
+        target_device_id and all_sessions=true are mutually exclusive selectors.
+
+        Cross grant, cross device, and all_sessions=true revocation requires a
+        fresh DID/device proof or explicit capability; a bearer access token
+        alone is not enough to revoke other devices or all sessions.
+      responses:
+        '200':
+          description: Session revocation completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionRevokeResponse'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionRevokeRequest'
   /_cokret/gate/account/device-pair:
     servers:
     - url: https://{host}

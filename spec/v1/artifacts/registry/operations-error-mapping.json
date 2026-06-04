@@ -86,6 +86,24 @@
       ]
     },
     {
+      "operation_id": "ck.account.viewer",
+      "http_alias": "GET /_cokret/self/account/viewer",
+      "operation_specific": [
+        "source_refs_unverifiable"
+      ],
+      "description": "Holder-bound account self-read. If signed handle-claim evidence or profile/device source refs cannot be verified, the service MUST fail or omit the unverifiable evidence according to disclosure policy; it MUST NOT return an unsigned bare handle as authoritative identity."
+    },
+    {
+      "operation_id": "ck.account.update_profile",
+      "http_alias": "POST /_cokret/self/account/profile",
+      "operation_specific": [
+        "invalid_avatar_blob_ref",
+        "unsupported_profile_patch_path",
+        "failed_precondition"
+      ],
+      "description": "Profile self-service update. The protocol request body is UpdateProfileRequest {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Cokret protocol path."
+    },
+    {
       "operation_id": "ck.account.cursor_revoke",
       "http_alias": "POST /_cokret/self/account/cursor/revoke",
       "operation_specific": [
@@ -377,6 +395,28 @@
         "accountability_grant_missing"
       ],
       "description": "Session grant issuance. Shared by human user_session and agent runtime branches (CXP-0008 §4.6): when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
+    },
+    {
+      "operation_id": "ck.account.register",
+      "http_alias": "POST /_cokret/gate/account/register",
+      "operation_specific": [
+        "did_proof_required",
+        "proof_invalid",
+        "duplicate_conflict",
+        "failed_precondition"
+      ],
+      "description": "Account registration creates or binds a deployment-local account record to principal_id. The request uses principal_id rather than did, does not accept handle, and handle evidence can only be returned as signed ck.schema.handle_claim.v1 data or digest/ref."
+    },
+    {
+      "operation_id": "ck.account.session_revoke",
+      "http_alias": "POST /_cokret/gate/account/session-grants/revoke",
+      "operation_specific": [
+        "session_grant_not_found",
+        "session_revoke_selector_conflict",
+        "did_proof_required",
+        "proof_invalid"
+      ],
+      "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ck.account.status."
     },
     {
       "operation_id": "ck.account.agent_key_pair",

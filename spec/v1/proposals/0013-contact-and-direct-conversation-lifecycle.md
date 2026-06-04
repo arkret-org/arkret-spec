@@ -1,6 +1,6 @@
 ---
 ckp: CKP-0013
-title: Contact & Direct Conversation Lifecycle — 把"加联系人 → 找他聊天"端到端定义在既有 consent / discovery / realm / flow 原语之上
+title: Contact & Direct Conversation Lifecycle — 把"加联系人 → 找他聊天"端到端定义在 contact fact / consent gate / direct conversation binding / Flow 之上
 normative: false
 stability: v1
 updated: 2026-06-04
@@ -14,118 +14,217 @@ merged_into: null
 
 > **Status: draft.** 本提案尚未合入 normative spec。合入前 operation 注册以 `contract-catalog.json#operation_registry` 为准。
 >
-> 从 **[CKP-0012](./0012-account-and-contact-self-operations.md)** 分拆而来:0012 处理无歧义的 account self-service;联系人因横跨多个 normative spec、且与既有 consent 模型语义重叠,单列于此。
+> 从 **[CKP-0012](./0012-account-and-contact-self-operations.md)** 分拆而来:0012 处理无歧义的 account self-service;联系人因横跨 consent / discovery / realm / flow 多个 normative spec,单列于此。
 
 ## 1. Summary
 
-定义"**联系人**"这一产品概念在协议层的完整生命周期,**从加联系人(关系建立)一直到找他聊天(发起 1:1 直接会话)**,并把它**编排在既有协议原语之上**,而不是另起一套并行模型。
+本提案定义"**加联系人 → 找他聊天**"的协议级生命周期,并把相关状态拆成四个互不替代的事实源:
 
-关键判断:Cokret 协议里"联系人 + 私聊"所需的零件**大部分已经存在**,但**没有一个端到端的 source of truth** 把它们串起来:
+1. **Contact fact log** 是"双方是不是联系人 / 请求是否 pending / 是否被拒绝或终止"的真源。它是 principal-scoped、跨 Realm 的 signed fact,不归属普通 Collaboration Realm,也不是 `ck.relation.*`。
+2. **Consent cell** 是"某个 peer 是否被 holder 允许发起 invite / direct_message / call / presence"的 gate。它不保存 pending/rejected/tombstoned,因此不能作为联系人关系真源。
+3. **Direct conversation binding + DM Realm** 是"这对联系人当前聊天入口在哪里"的真源。它不决定双方是不是联系人。
+4. **DM 主 Flow** 是消息时间线载体。Cokret 没有独立"消息表";聊天仍然是 Flow 的 `discussion` track 上的 `ck.message.create`。
 
-- **联系同意**:`consent-model.md` §5/§6(`consent_scope = direct_message / voice_call / video_call / presence / invite` + 发起前 gate);
-- **可达发现**:`ck.directory.private_contact_discovery`(PSI 命中 + invite handoff stub);
-- **会话承载**:1:1 DM Realm(目前靠"普通 Realm + 成员数=2 + `mls_dm` 加密 + `is_direct_message` metadata"拼出,无专门创建编排,见 push-notifications.md §、identity-handles.md §);
-- **消息载体**:聊天没有独立"消息表"——Cokret 用 **Flow 的 `discussion` track** 统一承载会话(`Room` 已 deprecated,见 glossary;Message 必须挂在某 Flow 的 discussion 时间线,见 [`flow-and-message.md`](../zh/models/flow-and-message.md) §1)。私聊 = DM Realm 内一个 **discussion-primary 的 Flow**。
+关键收敛:
 
-soland 的 `/_soland/self/contacts/*`(request / respond / list)是把这几块封装成产品化"联系人 API",yougen 硬编码调用之(见 [`yougen/src/api/account.rs`](../../../../yougen/src/api/account.rs))。本提案把这层编排提升为协议面,定义清楚"联系人"映射到哪些既有原语、谁是关系状态的 source of truth。
+- `ck.contact.request` **不能**编译成目标 holder 的 `ck.consent.grant`:requester 无权替 target 写 consent。request 只能写 requester 自己的 contact request fact,并把签名请求投递给 target。
+- `ck.contact.respond(action="accept")` 由 target 执行。accept 写 target 的 contact accepted fact,并显式写 target 控制的 consent grant。这样 contact relation 与 consent gate 都有合法 issuer。
+- `ck.contact.list` 从 contact fact log 投影关系状态,并另外附带由 consent cell 派生的 `effective_scopes`。列表不得把"有 DM Realm"或"有 consent grant"误判成 accepted contact。
+- Direct conversation 创建使用 `encryption_profile="mls_rfc9420"` 的普通 Realm 加 MLS,不得把 `mls_dm` 当作 Realm `encryption_profile` 的新枚举值。`mls_dm` 只能作为 profile/用途标签在后续 normative binding 中定义。
+- 本提案不修改 Flow `stage` 的 v1 必填不变量。DM 主 Flow 在当前 v1 下仍必须携带 `stage`。UI 可隐藏该 stage,但 wire/reducer 不开 profile-gated 例外;若要让 conversation Flow 省略 stage,应另起 Flow schema 提案。
 
 ## 2. Motivation
 
 ### 2.1 现状是碎片,不是空白
 
-"加联系人之后找他聊天"今天能跑,但它分散在四份 normative spec 里,没有任何一处定义这条端到端流程:
+"加联系人之后找他聊天"今天能跑,但它分散在多份 normative spec 与实现私有 API 中:
 
 1. Bob 发现 Alice 可达 → `ck.directory.private_contact_discovery`。
-2. Bob 想联系 Alice → 受 `consent-model.md` §6.1 gate:`require_explicit_consent` profile 下 invite 被 reject 直到 Alice 显式同意;default profile 下进 Alice 的"陌生人邀请" quarantine inbox(**这已经是 request/respond 双边握手**)。
-3. Alice 同意 → consent cell 记 `(peer=Bob, consent_scope=direct_message|invite)` active dot。
-4. Bob 发起私聊 → 创建 1:1 DM Realm(成员数 2 + `mls_dm` + `is_direct_message`),走通用 MLS 建群 + KeyPackage claim。
-5. 聊天 → 普通 `ck.message.create` Flow。
+2. Bob 想联系 Alice → 需要给 Alice 发送一个可审计的 contact request。
+3. Alice 接受 → Alice 写 contact accepted fact,并写 `consent_scope=direct_message` grant 给 Bob。
+4. Bob 发起私聊 → resolver 查找或创建这对 actor 的 direct conversation binding / DM Realm / 主 Flow。
+5. 聊天 → `ck.message.create` 写入 DM 主 Flow 的 `discussion` track。
 
-问题:**第 2–4 步之间没有 canonical 编排**。"Bob 和 Alice 是不是联系人"这个状态既能从 consent cell 推、又能从是否存在共享 DM Realm 推、还能从 soland 私有 `contacts` 表推——**三个来源,无权威**。通用客户端无法回答"列出我的联系人"而不绑定某实现。
+问题在于第 2-4 步以前没有 canonical 编排。"Bob 和 Alice 是不是联系人"现在可能被实现从 consent cell、共享 DM Realm 或 soland 私有 `contacts` 表推断出来。三个来源互相覆盖会导致通用客户端无法可靠列出联系人,也无法解释 pending / rejected / removed 这类关系状态。
 
-### 2.2 与既有 `ck.contacts.*` / `ck.relation.*` 撞名、撞概念
+### 2.2 不能把 contact 压进既有相近概念
 
-协议中已有两个名字/语义相近的结构,联系人关系是**第三层**,三者 MUST 不混用(见 §3.1)。不澄清三层边界,实现必然误用。
+协议已有 `ck.contacts.*` account-data 与 `ck.relation.*`。它们都不能表达本提案的 L3 联系人关系:
+
+- `ck.contacts.actor.<did>` 是 holder-private 备注/tag/pin,单边且不通知对方。
+- `ck.relation.*` 是 Realm 内协作图边,`realm_id` 必填,无 pending/accepted 双边握手。
+- `ck.consent.*` 是 holder-controlled action gate,只有 active/no-consent/revoke,无关系请求状态机。
 
 ## 3. Specification
 
-### 3.1 三层关系模型(先钉死边界)
+### 3.1 分层模型与边界
 
-| 层 | 标识 | 作用域 | 语义 | 状态机 |
+| 层 | 标识 | 作用域 | 真源问题 | 不得替代 |
 | --- | --- | --- | --- | --- |
-| L1 holder-private 备注 | `ck.contacts.actor.<did>` account-data(**已存在**) | holder 本地私有(encrypted account-data) | 对某 DID 的 remark / tag / pin,**单边、不通知对方** | 无;`ck.account_data.set` 覆写 |
-| L2 协作图关系 | `ck.relation.*`(**已存在**) | **Realm 内**(`realm_id` 必填) | Flow/Space/Message/Actor 间协作图边 | `active` / `tombstoned`,无双边握手 |
-| **L3 联系人关系(本提案)** | `ck.contact.*` | **principal 级、跨 Realm**(不归属任何 Realm) | actor↔actor 社交关系,**双边握手** | `pending → accepted / rejected → tombstoned` |
+| L1 holder-private 备注 | `ck.contacts.actor.<did>` account-data | holder 本地私有 | "我本地怎么备注/置顶/过滤这个 DID" | 不表示对方接受 |
+| L2 协作图关系 | `ck.relation.*` | Realm 内 | "这个 Realm 里的 Flow/Message/Actor/Object 如何相连" | 不表示跨 Realm 社交关系 |
+| **L3 联系人关系** | `ck.contact.*` fact / operation | principal 级、跨 Realm | "双方请求、接受、拒绝、终止联系人关系到了哪一步" | 不表示 action 授权本身 |
+| L4 action gate | `ck.consent.*` | holder principal control Realm | "peer 是否可发起 direct_message/invite/call/presence" | 不表示 pending/rejected/tombstoned |
+| L5 会话载体 | direct conversation binding + DM Realm + 主 Flow | Realm / Flow | "这对 actor 的 1:1 消息写到哪里" | 不表示双方仍是联系人 |
 
-不复用 L2:relation `realm_id` 必填、`relation_kind` 闭合注册表无 `contact`、状态机无 pending→accepted;联系人无自然归属 Realm 且需双边同意(见 [`relation.md`](../zh/models/relation.md) §2、§4)。不复用 L1:account-data 是单边私有偏好,无法表达"对方已接受"。
+`ck.contact.*` 作为 operation id 使用单数 `contact`,而 account-data key 保持既有复数 `ck.contacts.*`。catalog `description` MUST 明确写出二者差异;实现文档不得把 account-data contact note 称为 contact relation truth source。
 
-> **命名消歧**:operation id `ck.contact.*`(单数)与 account-data key `ck.contacts.*`(复数)字面极近,catalog `description` MUST 显著标注区别。
+### 3.2 Contact fact log:关系真源
 
-### 3.2 联系人关系生命周期 operation
+联系人关系的真源是 principal-scoped contact fact log。默认写入 holder 的 principal control Realm;普通 Collaboration Realm 不承载 contact relation truth。规范合入时需要注册 closed fact/event payload,本提案暂定下列语义名:
 
-| operation | HTTP | Body | 说明 |
+| fact kind | issuer | 主要字段 | 语义 |
 | --- | --- | --- | --- |
-| `ck.contact.request` | `POST /_cokret/self/contacts/request` | `{ target: did, scope?: string }` | 发起 pending 关系;`scope` 对齐 consent_scope |
-| `ck.contact.respond` | `POST /_cokret/self/contacts/respond` | `{ requester: did, action: "accept"\|"reject" }` | 应答 |
-| `ck.contact.list` | `GET /_cokret/self/contacts` | — | 列举当前 actor 的联系人及关系状态 |
-| `ck.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `{ contact: did }` | 终止关系 |
+| `ck.contact.requested` | requester | `request_id`, `target`, `requested_scopes[]`, `requester_consent_refs[]?` | 发出请求;在 requester 侧形成 `pending_outgoing`,投递到 target 后形成 `pending_incoming` |
+| `ck.contact.accepted` | request target | `request_id`, `requester`, `granted_scopes[]`, `consent_grant_refs[]` | 接受请求;必须引用原 request;写 target 控制的 consent grant |
+| `ck.contact.rejected` | request target | `request_id`, `requester` | 拒绝请求;不写 consent grant |
+| `ck.contact.tombstoned` | 任一参与方 holder | `peer`, `revoke_scopes[]`, `consent_revoke_refs[]?` | holder 终止自己这一侧的联系人关系;通常同时撤销 holder 给 peer 的 consent |
 
-全部 `user_session`,落 `/_cokret/self/contacts/*`。
+Issuer 约束是硬边界:
 
-**与 consent 模型的关系(本提案最核心的设计决策,见 §6 Q1)**:`ck.contact.request/respond` 在语义上**几乎等同**于 `consent-model.md` §6.1 的 invite/consent 双边握手。本提案的立场是:**contact 是 consent 之上的一个具名、可列举的关系视图**,而非平行机制——`ck.contact.request` SHOULD 编译为既有 consent grant Move,`ck.contact.list` SHOULD 是对 holder consent cell + 既有关系事实的投影。是否需要独立的 contact 状态存储(而非纯投影)取决于 Q2。
+- requester 可以声明"我请求联系 target",也可以预先给 target 写 requester 侧 consent grant。
+- target 才能声明"我接受/拒绝 requester"。requester 不能替 target 写 accepted/rejected,更不能替 target 写 consent。
+- 任一 holder 都可以 tombstone 自己与 peer 的关系视图。tombstone 不会修改 peer 的 contact fact log;peer 只能在收到 tombstone fact 后把关系投影降级。
 
-### 3.3 Direct conversation(找他聊天)编排
+`request_id` SHOULD 使用 `ck.contact.requested` 的 event id。实现 MAY 用 `(holder, peer, outstanding_request)` 做幂等去重,但不得把重复 request 折叠成 consent grant。
 
-定义 contact accepted 之后发起 1:1 会话的 canonical 步骤,**全部复用既有原语**,本提案只补"编排契约 + DM Realm 的 well-known 形态":
+### 3.3 Contact 与 consent 的关系
 
-1. **前置 gate**:发起方 MUST 满足目标 `consent_scope=direct_message`(consent-model §6.2)。
-2. **DM Realm 解析或创建**:1:1 DM Realm 是 well-known 形态——`member_count=2`、`encryption_profile=mls_dm`、metadata `is_direct_message=true`。**同一对 (A,B) 至多一个 active DM Realm**(去重 key `unordered_pair(A_did, B_did)`),避免重复建群。
-3. **MLS 建群**:走既有 `ck.self.keys.keypackages.claim` + MLS group create(无新原语)。
-4. **DM 主 Flow 解析或创建**:聊天消息必须挂在 Flow 的 discussion track(`flow-and-message.md` §1),因此 DM Realm 内 MUST 有一个 **well-known 的 discussion-primary Flow** 承载主聊天时间线。**同一 DM Realm 至多一个 active 主 Flow**(避免"一个私聊出现两条时间线");DM Realm 内 MAY 另有普通 Flow(把某个话题升级成独立议题),但默认聊天落主 Flow。该主 Flow `scope_circle_id=null`(见下方加密边界 note)。
-5. **消息**:`ck.message.create` 落该主 Flow 的 discussion track。
+Contact 与 consent 是两层不同事实:
 
-> **加密边界(为什么 DM 不需要 Circle)**:DM 私聊的隐私由两层闭合——(a) DM Realm 双人专属(`member_count=2`),Realm 边界即隐私边界;(b) Realm-default MLS group(`mls_dm`)提供 E2EE。主 Flow `scope_circle_id=null` 落 Realm-default MLS group(`effective_scope={kind:"realm"}`,见 [`encryption-and-audit.md`](../zh/crypto-media/encryption-and-audit.md) §5.1)。**MUST NOT 给 DM 主 Flow 套 Circle**——`Circle.members ⊆ Realm.members` 在双人 Realm 里子集==全集,Circle 切不出更窄边界(circle.md §1)。Circle 只用于**另一种**私聊:多成员 Realm 内给真子集开私密讨论时,那个 Flow 才用 `scope_circle_id` 指向独立 Circle MLS group,把同 Realm 的其余成员挡在外面。
+- Contact 负责关系状态:pending / accepted / rejected / tombstoned。
+- Consent 负责 action gate:direct_message / invite / voice_call / video_call / presence 是否允许。
 
-> 现状缺口:第 2 步的"well-known DM Realm 形态 + 去重不变量"、第 4 步的"DM 主 Flow well-known 约定"今天都只在 push-notifications.md / identity-handles.md / flow-and-message.md 被**间接**支撑,无 canonical 定义把它们串成"私聊"。本提案把这两层钉死(见 §6 Q3)。
+`ck.contact.request` 默认请求 `requested_scopes=["direct_message"]`。若 request 请求某个 scope,requester MUST 在自己的 principal control Realm 同步写一条给 target 的 consent grant,并在 `requester_consent_refs[]` 中引用它;若该 grant 写入失败,request MUST fail closed 或移除该 scope 后重新签名。这样 target 接受后,双方都具备发起同类动作的对称 consent,`effective_scopes` 不会出现"关系 accepted 但 requester 侧 gate 未开"的半状态。
 
-### 3.4 对话 Flow 的 `stage`:允许为空
+`ck.contact.respond(action="accept")` MUST:
 
-Flow 的 `stage`(`draft / proposed / planned / in_progress / blocked / done / cancelled / superseded`)是**工作项进度**语义,对两人私聊不适用——对话不是一件"有进度、会完成"的事。
+1. 验证 request 存在、target 是当前 holder、request 未被 target 已拒绝/接受/终止。
+2. 写 `ck.contact.accepted` fact。
+3. 对每个 `granted_scopes[]` 写 target 控制的 `ck.consent.grant`,并把 event refs 写入 `consent_grant_refs[]`。
 
-**决定:对话类 Flow(DM 主 Flow 及一般 conversation-profile Flow)的 `stage` 允许为空(省略)。**
+`ck.contact.respond(action="reject")` MUST 只写 `ck.contact.rejected`,不得隐式写 consent。
 
-代价(必须在 §4 标明):`stage` 在 [`flow-and-message.md`](../zh/models/flow-and-message.md) §3 当前是**硬必填、无默认值**。本决定要求 normative 为对话类 Flow 开一个 **profile-gated 例外**——在 conversation profile 下 `stage` 可省略,reducer 不再对该类 Flow 强制 `stage` 必填;非对话 Flow 维持原必填约束不变。**不**改成全局可空(会松动所有工作项 Flow 的不变量)。空 `stage` 在投影 / UI 上表示"无进度语义",不参与 stage bucket 聚合。
+`ck.contact.tombstone` MUST 写 `ck.contact.tombstoned`。`revoke_scopes` 缺省为该 contact 曾由 holder grant 给 peer 的全部 contact-related scopes;operation MUST 枚举并 revoke holder 给 peer 的这些 active consent dots,并把 revoke refs 写入 tombstone fact。若实现无法枚举完整 dots,必须返回 partial/fail-closed 结果,不得报告完整 tombstone。consent revoke 与 contact tombstone 仍是两条显式事实:单独 revoke consent 只会减少 `effective_scopes`,不得自动删除 accepted contact;tombstone 也不得伪造不存在的 revoke event。
+
+### 3.4 Contact operation surface
+
+全部 operation 要求 `user_session`,落 `/_cokret/self/...`。
+
+| operation | HTTP | Body / Response | 说明 |
+| --- | --- | --- | --- |
+| `ck.contact.request` | `POST /_cokret/self/contacts/request` | `{ target: did, requested_scopes?: consent_scope[], idempotency_key?: string }` | 写 requester 侧 request fact,并投递签名请求给 target |
+| `ck.contact.respond` | `POST /_cokret/self/contacts/respond` | `{ request_id, requester: did, action: "accept"|"reject", granted_scopes?: consent_scope[] }` | 由 target 接受/拒绝 request;accept 同步写 target consent grants |
+| `ck.contact.list` | `GET /_cokret/self/contacts` | `ContactListResponse` | 从 contact facts 投影,并附带 consent-derived `effective_scopes` |
+| `ck.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `{ contact: did, revoke_scopes?: consent_scope[] }` | 写 holder 侧 tombstone;默认 revoke holder 给 peer 的全部 contact-related consent |
+
+`ContactListRow` MUST 至少区分:
+
+- `pending_outgoing`:本 holder 发出 request,尚未看到 target accept/reject。
+- `pending_incoming`:本 holder 收到 request,尚未 respond。
+- `accepted`:已看到合法 `ck.contact.accepted`,且本 holder 未 tombstone。
+- `rejected`:已看到合法 `ck.contact.rejected`。
+- `tombstoned`:本 holder 已 tombstone,或已看到 peer tombstone 且投影选择暴露该状态。
+
+列表 MAY 包含 `direct_conversation` 摘要,但该字段只能来自 direct conversation binding,不得反向决定 contact state。
+
+### 3.5 Private contact discovery 只负责发现入口
+
+`ck.directory.private_contact_discovery` 只回答"哪些本地 connection identifier 在 provider 的可联系集合里"。按现行 [`discovery-directory.md`](../zh/discovery/discovery-directory.md) §6.2/v1 core,PSI 响应是布尔位图,不得夹带 profile、reachability proof、成员资格或关系图谱。
+
+因此本提案不再把 "invite handoff stub" 当作 v1 core 依赖。若未来需要 discovery 直接返回 contact request handoff token,必须先修改 discovery normative spec 并注册单独 profile/response schema。在那之前,用户选择联系某个 PSI 命中后,客户端才向目标 principal 披露自己的 DID/pairwise DID 并调用 `ck.contact.request`。
+
+### 3.6 Direct conversation resolver
+
+联系人 accepted 后,"找他聊天"不应由客户端手拼 Realm/Flow。协议需要一个 idempotent resolver:
+
+| operation | HTTP | Body / Response | 说明 |
+| --- | --- | --- | --- |
+| `ck.direct_conversation.resolve` | `POST /_cokret/self/direct-conversations/resolve` | `{ peer: did, create?: boolean }` → `{ realm_id?, main_flow_id?, state, created?: boolean }` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
+
+Resolver MUST:
+
+1. 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。若没有,返回 `failed_precondition` / `contact_consent_missing`。
+2. 查询 direct conversation binding。若已有 active canonical binding,返回其 `realm_id` + `main_flow_id`。
+3. 若 `create=false` 且不存在 binding,返回 `not_found`。
+4. 若 `create=true`,走既有 KeyPackage claim、Realm create/member add、MLS group create、Flow create,然后写 direct conversation binding fact。
+
+Direct conversation binding 是 pair → `(realm_id, main_flow_id)` 的 principal-scoped signed fact/projection,不是 server 私有表。并发创建同一 pair 时,实现 MUST 以 deterministic tie-break 选择 canonical binding(例如 first accepted binding by causal order/event id),并把 loser 标为 duplicate/non-canonical;`ck.direct_conversation.resolve` 不得随机返回两个不同 Realm。
+
+### 3.7 DM Realm well-known 形态
+
+1:1 DM Realm 是普通 Realm 的受约束形态,不是新的 Realm 类型。
+
+MUST:
+
+- `encryption_profile="mls_rfc9420"`。不得把 `mls_dm` 注册为 Realm `encryption_profile` 新枚举。
+- Realm schema/profile 明确声明 direct conversation profile,例如 `schema_refs` 包含后续注册的 `ck.profile.direct_conversation.v1`,并在 Realm `fields` 中使用已注册的 direct-conversation discriminator。不得使用 `fields.purpose="direct_message"`,因为 `fields.purpose` 已被 principal control Realm 语义占用。
+- active member count 必须等于 2。不得向 active DM Realm 加第三人;升级多人聊天必须创建新的普通 Realm/Flow,再用 Relation 或 Message 引用旧 DM 内容。
+- `default_join_rule` MUST 是 `closed` 或等价 fail-closed policy;第三方 invite/member_add 必须被拒绝。
+- 同一 unordered participant pair 至多一个 active canonical DM Realm。pair key 的精确 canonical encoding 需要在 normative binding 中注册;它必须基于稳定 subject/pairwise DID 与 trust domain,并避免把 handle 字符串作为权威输入。
+
+MAY:
+
+- 为 push/server-side rule 暴露最小 `is_direct_message` projection。该 projection 可由 direct conversation profile + active member count 派生,不得要求 server 解密用户内容。
+- 保留非 canonical duplicate Realm 的历史可读性,但它不得作为默认聊天入口。
+
+### 3.8 DM 主 Flow well-known 形态
+
+消息必须挂在 Flow 的 `discussion` track 上,所以 direct conversation binding 必须同时绑定 `main_flow_id`。
+
+DM 主 Flow MUST:
+
+- 位于 DM Realm 内。
+- `scope_circle_id=null`,继承 DM Realm 的 Realm-default MLS group。DM 主 Flow MUST NOT 再套 Circle;双人 Realm 的 Circle 子集切不出更窄隐私边界。
+- 声明 `tracks.discussion.is_primary=true`,且 discussion track active。
+- 在当前 v1 Flow schema 下携带合法 `stage`。推荐使用 `stage="in_progress"` 作为 wire 兼容值;direct conversation UI MUST NOT 把该 stage 当成待办进度展示,也 SHOULD 禁用普通 `ck.flow.stage.set` 控件。
+- 通过 direct conversation binding 标识为该 Realm 的 main Flow。`discussion.is_primary=true` 只是 Flow 内默认入口,不能单独证明"这是 DM 主 Flow"。
+
+同一 DM Realm 至多一个 active canonical main Flow。DM Realm 内 MAY 有其它普通 Flow,用于把某个话题升级成独立议题;默认聊天消息必须写入 binding 指向的 main Flow。
 
 ## 4. Interactions with normative spec
 
-- `zh/identity/consent-model.md`:§5 consent_scope、§6 invite/contact gate — contact operation 与之的 source-of-truth 关系(Q1)。
-- `zh/discovery/discovery-directory.md`:`private_contact_discovery` 作为发现入口。
-- `zh/models/realm-and-space.md`:DM Realm well-known 形态与去重不变量(新增小节)。
-- `zh/models/flow-and-message.md`:§1 Message 必挂 Flow discussion track(私聊载体);§3 **`stage` 必填约束需为 conversation profile 开 stage-optional 例外**(§3.4),DM 主 Flow well-known 约定。
-- `zh/models/relation.md` / `account-data-type-registry.json`:三层边界澄清,避免与 L1/L2 混用。
-- `zh/crypto-media/encryption-and-audit.md` / `identity-handles.md`:`mls_dm` 加密形态。
-- artifacts:`contract-catalog.json` operation_registry(+`operation-registry.json`)、OpenAPI、`operations-error-mapping.json`(contact 状态机错误)。
-- 是否需要新 event_kind / 新 forbidden-wire 守卫:取决于 Q2。
+- `zh/identity/consent-model.md`:保留 consent 作为 action gate;补充 contact accept/tombstone 如何显式 grant/revoke consent,并强调 consent 不是 contact state truth source。
+- `zh/discovery/discovery-directory.md`:保持 v1 private contact discovery 的 PSI-only 语义;任何 handoff stub 必须另行 profile 化。
+- `zh/models/realm-and-space.md`:新增 direct conversation Realm profile、member_count=2、join closed、pair canonical binding 与 duplicate 处理。
+- `zh/models/flow-and-message.md`:新增 DM main Flow binding 约定;本提案不修改 `stage` 必填规则。
+- `zh/models/relation.md` / `account-data-type-registry.json`:补充 L1/L2/L3 边界,防止把 contact relation 写入 `ck.relation.*` 或 holder-private account-data。
+- `zh/crypto-media/encryption-and-audit.md` / `identity-handles.md`:明确 DM 使用 `mls_rfc9420` Realm-default MLS;`mls_dm` 只能是 profile/用途标签,不是 Realm encryption enum。
+- artifacts:注册 contact fact payload、direct conversation binding payload、operation schemas、OpenAPI、`operations-error-mapping.json`、conformance vectors。
 
 ## 5. Rationale & alternatives
 
-- **备选 A:纯产品面,不进协议**(维持 soland `/_soland/self/contacts/*`)。否决理由:通用客户端无法跨实现回答"我的联系人",正是 0012/0013 要消除的耦合债。
-- **备选 B:做成 L2 `ck.relation.*` 的一个 relation_kind**。否决理由:破坏 relation 的 Realm-scoped 不变量(§3.1)。
-- **备选 C:完全等同 consent,不要 contact 这层**。部分采纳——contact 确实应建在 consent 之上(§3.2),但 consent cell 不提供"具名、可列举、带 DM 入口的关系视图",故仍需 contact 投影/编排层。
+- **否决:contact 纯由 consent projection 得出。** consent 无 pending/rejected/tombstoned,且 requester 不能替 target 写 consent grant。把 request 编译成 target consent 在 issuer 模型上不合法。
+- **否决:contact 纯产品面,维持 `/_soland/self/contacts/*`。** 通用客户端无法跨实现列出联系人,也无法解释 accepted contact 与 DM/call/presence gate 的关系。
+- **否决:contact 作为 `ck.relation.* relation_kind=contact`。** Relation 是 Realm-scoped 协作图边;contact 是 principal-scoped 双边社交关系。
+- **否决:用 DM Realm 存在性反推联系人。** 聊天历史可能保留、重复 Realm 可能存在、contact tombstone 不追溯删除历史;因此 DM Realm 只能说明有过或可用的会话载体。
+- **否决:本提案顺手让 conversation Flow 省略 `stage`。** 这会触动 Flow schema required 字段、reducer、artifact 与 conformance。联系人生命周期不应夹带 Flow 基础模型变更。
 
-## 6. Open questions
+## 6. Resolved decisions
 
-- [ ] **Q1(核心)** contact 关系的 source of truth:是既有 **consent cell 的投影**(contact.request == consent grant Move),还是**独立的 contact 状态**?倾向"consent 之上的投影 + DM 编排",但需确认 consent cell 能否承载 pending/rejected/tombstoned 全状态机。
-- [ ] **Q2** contact 关系事实是否进 **principal 级 signed log**(可被对端 / 多设备验证的双边事实、可移植),还是纯 server-side projection?进 signed log 需定义新的 principal-scoped fact kind 与其 reducer/可见性。明确排除 Realm `ck.relation.*`。
-- [ ] **Q3** 1:1 私聊的两层 well-known 形态是否钉死、落哪:(a) DM Realm 形态 + `unordered_pair` 去重(§3.3 第 2 步);(b) DM 主 Flow 的 well-known 约定 + 单一主时间线不变量(§3.3 第 4 步,因 Message 必挂 Flow discussion track)。落 `realm-and-space.md` + `flow-and-message.md` 还是单独 binding?
-- [ ] **Q4** `ck.contact.*`(单数)与 `ck.contacts.*`(复数 account-data)命名消歧:是否改名以彻底避免混淆?
+- **Q1 source of truth:** contact 关系真源是 principal-scoped contact fact log;consent 只做 action gate。
+- **Q2 signed log:** contact request/accept/reject/tombstone 与 direct conversation binding 都必须可被多设备/对端验证,不能只存在 server 私有 projection。
+- **Q3 DM well-known 形态:** DM Realm 与 DM 主 Flow 都要钉死,分别落在 `realm-and-space.md` 与 `flow-and-message.md`;pair → realm/main_flow 的 binding 是 resolver 真源。
+- **Q4 命名:** operation 继续使用 `ck.contact.*` 单数;account-data 继续使用 `ck.contacts.*` 复数。通过 catalog description 与 spec 边界消歧,不重命名既有 account-data。
 
 ## 7. Migration plan
 
-> draft 阶段 placeholder。accepted 后再展开迁入 normative 的 PR 顺序(预计:先定 Q1/Q2 → consent-model 增补 → realm-and-space 增补 DM 形态 → catalog 注册 contact operation → soland/yougen/cotest 迁移)。
+1. 在 normative spec 中先合入 contact fact model 与 consent 边界,注册 fact/event payload 与错误码。
+2. 增补 direct conversation binding、DM Realm profile、DM main Flow binding。
+3. 注册 `ck.contact.*` 与 `ck.direct_conversation.resolve` operation,同步 OpenAPI、operation registry、error mapping。
+4. soland 将 `/_soland/self/contacts/*` 迁移到 `/_cokret/self/contacts/*`,内部 contacts 表降级为 projection/cache,不得再作为真源。
+5. yougen 从硬编码 `_soland` endpoint 迁移到 catalog operation;联系人列表展示 `state` 与 `effective_scopes` 两层。
+6. cotest 增加 conformance:
+   - requester 不能替 target 写 contact accepted 或 consent grant;
+   - pending/rejected/tombstoned 不得从 consent active/no-consent 伪造;
+   - consent revoke 不自动 tombstone contact;
+   - contact tombstone 不隐式删除既有 DM Realm/历史;
+   - `ck.direct_conversation.resolve` 幂等,并发 duplicate deterministic 收敛;
+   - DM Realm 使用 `encryption_profile="mls_rfc9420"`,出现 `mls_dm` enum 必须 schema fail;
+   - DM main Flow 必须有 binding,不能只靠 `discussion.is_primary` 推断。
 
 ## 8. References
 
 - 姊妹提案:[CKP-0012 Account Self-Service Operations](./0012-account-and-contact-self-operations.md)(分拆来源)。
-- `zh/identity/consent-model.md`、`zh/discovery/discovery-directory.md`、`zh/models/relation.md`、`zh/models/realm-and-space.md`。
+- `zh/identity/consent-model.md`、`zh/discovery/discovery-directory.md`、`zh/models/relation.md`、`zh/models/realm-and-space.md`、`zh/models/flow-and-message.md`。
 - 下游:[`yougen/src/api/account.rs`](../../../../yougen/src/api/account.rs)(`_soland/self/contacts/*` 硬编码现状)。
