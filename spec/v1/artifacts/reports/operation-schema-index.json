@@ -9,6 +9,43 @@
   "description": "Generated DTO index for registered operations with request_schema_ref/response_schema_ref. JSON Schema files remain the canonical source; this report is a machine-readable summary for SDK/conformance tooling and prose drift review.",
   "operations": [
     {
+      "operation_id": "ck.account.register",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/register_request",
+        "schema_kind": "object",
+        "required": [
+          "principal_id"
+        ],
+        "properties": [
+          "principal_id",
+          "display_name",
+          "device_id",
+          "proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_response",
+        "schema_kind": "object",
+        "required": [
+          "principal_id",
+          "state",
+          "devices"
+        ],
+        "properties": [
+          "principal_id",
+          "state",
+          "devices",
+          "primary_handle_claim",
+          "primary_handle_claim_ref",
+          "handle_claim_digests",
+          "profile"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.account.device_pair",
       "success_shape_kind": "typed_response",
       "request": {
@@ -40,6 +77,34 @@
           "authorized_event_ref",
           "device_grant",
           "key_backup_hint"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.account.session_revoke",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "target_grant_id",
+          "target_device_id",
+          "all_sessions",
+          "proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_response",
+        "schema_kind": "object",
+        "required": [
+          "revoked_count"
+        ],
+        "properties": [
+          "revoked_count",
+          "revoked_grant_ids"
         ],
         "closed": true
       }
@@ -1857,6 +1922,55 @@
         ],
         "properties": [
           "ok"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.account.viewer",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/viewer_response",
+        "schema_kind": "object",
+        "required": [
+          "principal_id",
+          "state",
+          "devices"
+        ],
+        "properties": [
+          "principal_id",
+          "primary_handle_claim",
+          "primary_handle_claim_ref",
+          "handle_claim_digests",
+          "state",
+          "devices",
+          "profile"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.account.update_profile",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/update_profile_request",
+        "schema_kind": "object",
+        "required": [
+          "patch"
+        ],
+        "properties": [
+          "patch"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/update_profile_response",
+        "schema_kind": "object",
+        "required": [
+          "profile"
+        ],
+        "properties": [
+          "profile"
         ],
         "closed": true
       }

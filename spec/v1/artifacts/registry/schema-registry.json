@@ -111,6 +111,12 @@
       "file": "schemas/account-subscribe-frame.schema.json"
     },
     {
+      "schema_id": "ck.schema.account_operations.v1",
+      "file": "schemas/account-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for account self-service operations: viewer, register, profile update, and session revocation."
+    },
+    {
       "schema_id": "ck.schema.device_message.v1",
       "file": "schemas/device-message.schema.json"
     },

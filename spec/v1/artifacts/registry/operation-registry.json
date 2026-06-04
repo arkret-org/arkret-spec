@@ -68,6 +68,8 @@
         "ck.events.subscribe",
         "ck.events.frontier",
         "ck.account.describe",
+        "ck.account.viewer",
+        "ck.account.update_profile",
         "ck.account.subscribe",
         "ck.account.cursor_revoke",
         "ck.ephemeral.send",
@@ -210,8 +212,10 @@
       "surface": "account_auth",
       "tier": "deployment_local",
       "operations": [
+        "ck.account.register",
         "ck.account.device_pair",
         "ck.account.issue_session_grant",
+        "ck.account.session_revoke",
         "ck.account.oidc_callback"
       ]
     },
@@ -235,6 +239,15 @@
   ],
   "operations": [
     {
+      "operation_id": "ck.account.register",
+      "http": "POST /_cokret/gate/account/register",
+      "grpc": "Account/Register",
+      "mq": "account.register",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/register_request",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_response"
+    },
+    {
       "operation_id": "ck.account.device_pair",
       "http": "POST /_cokret/gate/account/device-pair",
       "grpc": "Account/DevicePair",
@@ -249,6 +262,15 @@
       "grpc": "Account/IssueSessionGrant",
       "mq": "account.issue_session_grant",
       "success_shape_kind": "typed_response"
+    },
+    {
+      "operation_id": "ck.account.session_revoke",
+      "http": "POST /_cokret/gate/account/session-grants/revoke",
+      "grpc": "Account/SessionRevoke",
+      "mq": "account.session_revoke",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_response"
     },
     {
       "operation_id": "ck.account.agent_key_pair",
@@ -1030,6 +1052,25 @@
       "grpc": "Account/Describe",
       "mq": "account.describe",
       "success_shape_kind": "service_describe"
+    },
+    {
+      "operation_id": "ck.account.viewer",
+      "http": "GET /_cokret/self/account/viewer",
+      "grpc": "Account/Viewer",
+      "mq": "account.viewer",
+      "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. It MUST NOT return an unsigned bare handle as authoritative identity.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/viewer_response"
+    },
+    {
+      "operation_id": "ck.account.update_profile",
+      "http": "POST /_cokret/self/account/profile",
+      "grpc": "Account/UpdateProfile",
+      "mq": "account.update_profile",
+      "notes": "Holder-bound service wrapper around ck.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; bio migrates to profile_fields.bio and avatar_url is not accepted on the Cokret protocol path.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/update_profile_request",
+      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/update_profile_response"
     },
     {
       "operation_id": "ck.account.subscribe",

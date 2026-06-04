@@ -62,7 +62,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 服务发现 | `ck.server.*` | `/_cokret/describe` |
 | 身份信任根与 registry | `ck.identity.*` | `/_cokret/root/identity/*` |
 | Events | `ck.events.*` | `/_cokret/self/events/*` |
-| 账号视角聚合订阅 | `ck.account.subscribe`、`ck.account.describe`、`ck.account.cursor_revoke` | `/_cokret/self/account/*` |
+| 账号自服务与聚合同步 | `ck.account.viewer`、`ck.account.update_profile`、`ck.account.subscribe`、`ck.account.describe`、`ck.account.cursor_revoke` | `/_cokret/self/account/*` |
 | Realm snapshot 入口 | `ck.snapshot.*` | `/_cokret/self/snapshot/*` |
 | 目录发现 | `ck.directory.*` | `/_cokret/find/directory/*` |
 | Blob / media | `ck.blob.*` | `/_cokret/self/blob/*` |
@@ -73,7 +73,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 审核 | `ck.moderation.*` | `/_cokret/self/moderation/*` |
 | Applet | `ck.applet.*` | `/_cokret/edge/applet/*` |
 | MIMI 外部协议互操作 | `ck.mimi.*` | `/_cokret/open/mimi/*` |
-| 账户登录与设备配对 | `ck.account.{issue_session_grant,device_pair,oidc_callback}` | `/_cokret/gate/account/*` |
+| 账户注册、登录与设备配对 | `ck.account.{register,issue_session_grant,session_revoke,device_pair,oidc_callback}` | `/_cokret/gate/account/*` |
 
 ## 3. OpenAPI 参考快照（非穷尽示例）
 
@@ -144,6 +144,12 @@ paths:
     get:
       operationId: ck.events.frontier
 
+  /_cokret/self/account/viewer:
+    get:
+      operationId: ck.account.viewer
+  /_cokret/self/account/profile:
+    post:
+      operationId: ck.account.update_profile
   /_cokret/self/account/subscribe:
     get:
       operationId: ck.account.subscribe
@@ -253,9 +259,15 @@ paths:
     get:
       operationId: ck.keys.backups.list
 
+  /_cokret/gate/account/register:
+    post:
+      operationId: ck.account.register
   /_cokret/gate/account/session-grants:
     post:
       operationId: ck.account.issue_session_grant
+  /_cokret/gate/account/session-grants/revoke:
+    post:
+      operationId: ck.account.session_revoke
   /_cokret/gate/account/device-pair:
     post:
       operationId: ck.account.device_pair
@@ -320,8 +332,12 @@ paths:
 | `ck.events.submit` | `POST /_cokret/self/events` | gRPC `Events/Submit` / 队列 `events.submit` |
 | `ck.events.get` / `ck.events.resolve` / `ck.events.query` / `ck.events.frontier` | `GET /_cokret/self/events/{event_id}`, `POST /_cokret/self/events/resolve`, `GET /_cokret/self/events`, `GET /_cokret/self/events/frontier` | gRPC `Events/Get` / `Events/Resolve` / `Events/Query` / `Events/Frontier` |
 | `ck.events.subscribe` | `GET /_cokret/self/events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
+| `ck.account.viewer` | `GET /_cokret/self/account/viewer` | gRPC `Account/Viewer` / MQ `account.viewer`；响应使用 signed handle claim / ref / digest，不返回未签名裸 handle 作为账号权威字段。 |
+| `ck.account.update_profile` | `POST /_cokret/self/account/profile` | gRPC `Account/UpdateProfile` / MQ `account.update_profile`；`bio` 映射到 `profile_fields.bio`，不接受 `avatar_url`。 |
 | `ck.account.subscribe` | `GET /_cokret/self/account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
 | `ck.account.cursor_revoke` | `POST /_cokret/self/account/cursor/revoke` | gRPC `Account/CursorRevoke` / MQ `account.cursor_revoke` |
+| `ck.account.register` | `POST /_cokret/gate/account/register` | gRPC `Account/Register` / MQ `account.register`；request 字段为 `principal_id`，旧 `did` 字段需迁移，`handle` 经 signed claim 链路。 |
+| `ck.account.session_revoke` | `POST /_cokret/gate/account/session-grants/revoke` | gRPC `Account/SessionRevoke` / MQ `account.session_revoke` |
 | `ck.ephemeral.send` | `POST /_cokret/self/ephemeral` | gRPC `Ephemeral/Send` / MQ `ephemeral.send`；承载 `ck.schema.ephemeral_envelope.v1`，不写 durable Event |
 | `ck.snapshot.head` | `GET /_cokret/self/snapshot/head` | snapshot pointer |
 | `ck.projection.spaces` / `ck.projection.flows` / `ck.projection.morphs` | `GET /_cokret/self/projection/spaces`, `GET /_cokret/self/projection/flows`, `GET /_cokret/self/projection/morphs` | gRPC `Projection/Spaces` / `Projection/Flows` / `Projection/Morphs`; MQ `projection.*` |

@@ -3,7 +3,7 @@ title: 实现就绪与发布门槛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-04
 ---
 
 ## 0. 规范语言
@@ -31,13 +31,13 @@ updated: 2026-05-25
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
 | Event kind（active） | 173 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 76 | `artifacts/registry/schema-registry.json` |
+| Schema | 77 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 47 | `artifacts/registry/id-kind-registry.json` |
-| Service operation | 100 | `artifacts/registry/operation-registry.json` |
+| Service operation | 104 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 72 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 96 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数（快照约 76）以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 校验；其中 `ck.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数（快照约 77）以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 校验；其中 `ck.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含两个 wire-breaking cleanup：`ck.schema.handle_claim.v1.claim_kind` 不再允许 draft-era `service_handle`（服务 / 资源可读名必须迁移到独立服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`），并且 `ck.member.identity.update` payload 中旧草案字段 `identity_state_digest` 已更名为 `identity_payload_digest`，以避免与 roster `member_display_state_digest` 混淆。实现者 MUST NOT 同时接受旧名和新名作为等价字段，除非在本地迁移层先把旧草案数据正规化后再进入 v1 validator。
 

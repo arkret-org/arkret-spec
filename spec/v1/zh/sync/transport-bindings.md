@@ -75,7 +75,11 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.events.query` | 按 actor / Realm / cursor 双向查询 Event。 |
 | `ck.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
 | `ck.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
+| `ck.account.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
+| `ck.account.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |
 | `ck.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `ck.events.subscribe` 对称)。 |
+| `ck.account.register` | 注册 / account binding；request 使用 `principal_id`，不接受旧 `did` 或裸 `handle` 字段。 |
+| `ck.account.session_revoke` | 撤销 session grant / access token；不撤销 device authorization。 |
 | Federation push（复用 `ck.events.submit` + service_signature） | 联邦推送复用 `POST /_cokret/self/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
 | Federation pull / backfill（复用 `ck.events.query` + service_signature） | 跨域历史回补复用 `GET /_cokret/self/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
 | `ck.directory.search_realms` / `ck.directory.search_organizations` / `ck.directory.search_actors` / `ck.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |
@@ -140,7 +144,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
     {
       "kind": "http_json",
       "base_url": "https://server.example",
-      "operations": ["ck.account.subscribe", "ck.snapshot.head"],
+      "operations": ["ck.account.viewer", "ck.account.update_profile", "ck.account.subscribe", "ck.snapshot.head"],
       "extension_profile_required": null
     }
   ]

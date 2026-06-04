@@ -92,9 +92,9 @@ DID Document SHOULD 只负责：
 
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
-| Principal Server | 普通用户或组织自建的核心入口 | `/_cokret/describe`, `/_cokret/self/events/*`, `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, 可代理 `/_cokret/self/blob/*`, `/_cokret/self/authz/*`, `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*`; federation wire 见 `federation.md` | 用户/组织的受控入口、Event 提交/读取、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
+| Principal Server | 普通用户或组织自建的核心入口 | `/_cokret/describe`, `/_cokret/self/events/*`, `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, 可代理 `/_cokret/self/blob/*`, `/_cokret/self/authz/*`, `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*`; federation wire 见 `federation.md` | 用户/组织的受控入口、Event 提交/读取、account viewer / profile 自服务、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/_cokret/root/identity/*`, `/_cokret/describe` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
-| Auth Server | 个人部署可内置；组织通常独立或接入 SSO | `/_cokret/gate/account/*` 与 `/_cokret/describe.auth_metadata`；具体登录 UI 路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
+| Auth Server | 个人部署可内置；组织通常独立或接入 SSO | `/_cokret/gate/account/*` 与 `/_cokret/describe.auth_metadata`；具体登录 UI 路径 MAY 由部署定义 | 注册 / account binding、登录、passkey/OIDC/SSO、session grant 签发与撤销、device pairing、账户恢复；不得直接替代 DID 控制权。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, `/_cokret/describe`; federation wire 见 `federation.md` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/_cokret/find/directory/*`, `/_cokret/describe` | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/_cokret/self/blob/*`, `/_cokret/self/rtc/*`, `/_cokret/describe` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
@@ -144,6 +144,8 @@ GET /_cokret/describe
     "ck.server.describe",
     "ck.events.submit",
     "ck.events.query",
+    "ck.account.viewer",
+    "ck.account.update_profile",
     "ck.account.subscribe"
   ],
   "supported_bindings": [
@@ -433,8 +435,14 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
+- `GET /_cokret/self/account/viewer`：当前 holder 的账号主体自读（`ck.account.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
+- `POST /_cokret/self/account/profile`：当前账号 profile 更新（`ck.account.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；legacy `bio` 映射为 `profile_fields.bio`。
 - `GET /_cokret/self/account/subscribe`：客户端账号视角聚合同步（`ck.account.subscribe`），见 `client-sync.md`。
+- `GET /_cokret/self/account/describe`：account aggregate service describe（`ck.account.describe`）。
+- `POST /_cokret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ck.account.cursor_revoke`）。
 - `GET /_cokret/self/snapshot/head`：snapshot manifest 入口。
+
+`ck.account.update_profile` 不隐式替代 directory 或 cross-device account-data fan-out。实现若仍需维持可发现性或跨设备头像/简介同步，必须显式调用 `ck.directory.announce`、`ck.account_data.set` 或等价已声明 operation。
 
 事件流读取统一在：
 
@@ -443,10 +451,13 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 
 实现不得把账号聚合 (`/_cokret/self/account/subscribe`) 和裸事件读 (`/_cokret/self/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
 
-### 5.1 描述 account aggregate service
+### 5.1 Account 自服务与描述
 
 ```text
+GET /_cokret/self/account/viewer
+POST /_cokret/self/account/profile
 GET /_cokret/self/account/describe
+POST /_cokret/self/account/cursor/revoke
 ```
 
 ### 5.2 snapshot 入口
