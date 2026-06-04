@@ -30,19 +30,19 @@ Operation 语义本身可映射到不同 transport；但 **v1 core wire conforma
 
 Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织，而不是按某个产品形态拆成固定的 Client API / Server API / Push API 包。客户端、Principal Server、Events API、Directory、Applet、Push Gateway 等都可以暴露自己的服务面；服务发现决定某个节点实际支持哪些命名空间。
 
-所有 path 都在 negative-space 根 `/_cokret/` 之下，且**不含版本段**。`/_cokret/` 之后的第一段是一个**信任同心圆**名字，编码"调用方↔服务"的信任关系，由内（最强）到外（最弱）：
+所有 path 都在 negative-space 根 `/_cokret/` 之下，且**不含版本段**。`/_cokret/` 之后的第一段是 **trust-surface classifier（信任面分类器）**：它编码"调用方↔服务"的信任关系和攻击面类别。本文保留"信任同心圆"作为解释隐喻，但正式规则是"第一段 = 信任面分类"，不是授权结论。
 
-| 信任段 | 信任关系 | 承接命名空间 |
+| 信任面段 | 信任关系 | 承接命名空间 |
 | --- | --- | --- |
 | `self` | 本人已认证会话 | events·account·rtc·blob·keys·authz·policy·projection·agents·device_messages·moderation·snapshot·ephemeral |
 | `gate` | 认证入口 | account（auth / session-grant） |
-| `root` | 信任根：身份 / DID | identity |
+| `root` | 身份信任根：DID / key log / receipt；不是 Unix/root 管理员权限 | identity |
 | `find` | 目录发现 | directory |
 | `peer` | 对等 Cokret 服务器 | federation server↔server wire（保留命名分支，见 `federation.md`；不承接这 101 个 client/service operation） |
-| `open` | 非 Cokret 外部厂商 | mimi |
+| `open` | 外部协议互通面；表示 non-Cokret protocol interop，不表示 public / no-auth access | mimi |
 | `edge` | 推送 / 桥接网关 | push·applet |
 
-读 URL 即读攻击面：`/_cokret/self/...` 是调用方本人的会话面，`/_cokret/open/...` 一眼就是在跟外部厂商打交道。pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.server.describe`）；其余 `*.describe` 各自跟随所在段。版本不进 path，由 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header）。versionless + 协议内协商如何支撑新旧实现互通，见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md) §6。
+读 URL 即读攻击面：`/_cokret/self/...` 是调用方本人的会话面，`/_cokret/open/...` 一眼就是在跟外部协议或外部 provider 打交道。但信任面段本身 **MUST NOT** 被实现解释为授权通过、安全级别达标或明文可见许可。每个 operation 仍必须按自身契约执行 session、capability、DID proof、Realm policy、history visibility、service delegation、rate limit 和最小披露校验；路径段只帮助路由、审计、中间件和读者快速识别攻击面。pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.server.describe`）；其余 `*.describe` 各自跟随所在段。版本不进 path，由 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header）。versionless + 协议内协商如何支撑新旧实现互通，见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md) §6。
 
 默认 REST 命名空间如下：
 
@@ -50,7 +50,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | --- | --- | --- | --- |
 | `/_cokret/describe` | 客户端与服务 | 根级服务描述、feature discovery、auth metadata（pre-auth）。 | `service-surface.md`、`api-conventions.md` |
 | `/_cokret/gate/account/*` | 客户端、Principal Server | 账户认证入口：session-grant 签发、设备配对、OIDC 回调、agent key pairing。 | `service-surface.md`、`api-conventions.md` |
-| `/_cokret/root/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
+| `/_cokret/root/identity/*` | 客户端、服务、registry | 身份信任根：DID 文档、key log、DID operation、receipt；`root` 不是管理员权限面。 | `service-surface.md`、`identity-did.md` |
 | `/_cokret/self/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Realm 双向历史查询(query)、流式订阅(subscribe，含 bounded catch-up replay)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
 | `/_cokret/self/account/*` | 客户端、Principal Server | account 聚合 streaming 订阅(`GET /_cokret/self/account/subscribe`)、describe。逐 Realm 的事件流读取走 `/_cokret/self/events/*`。 | `client-sync.md`、`service-surface.md` |
 | `/_cokret/self/snapshot/*` | 客户端、Principal Server | Realm snapshot manifest 入口(`GET /_cokret/self/snapshot/head`)。 | `client-sync.md`、`service-surface.md` |
@@ -63,8 +63,11 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `/_cokret/self/rtc/ice-config` | 通话客户端、Realtime Media Server | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
 | `/_cokret/self/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
 | `/_cokret/edge/applet/*` | Cokret 服务调用 Applet | applet ping / describe、transaction push、Ghost Actor / portal 查询。 | `applet-integration.md` |
+| `/_cokret/open/mimi/*` | Cokret 服务、MIMI provider facade | 外部协议互通；`open` 表示 interop surface，不表示公开免认证访问。 | `mimi-interop.md` |
 
 客户端视角的常用 API 集合通常包括 `/_cokret/describe`、`/_cokret/root/identity/*`、`/_cokret/self/events/*`、`/_cokret/self/account/*`、`/_cokret/self/snapshot/*`、`/_cokret/self/projection/*`、`/_cokret/find/directory/*`、`/_cokret/self/blob/*`、`/_cokret/edge/push/*`、`/_cokret/self/device_messages/*`、`/_cokret/self/keys/*`、`/_cokret/self/authz/*`。服务间 API 集合通常包括 `/_cokret/self/events/*`、`/_cokret/self/account/*`、`/_cokret/self/authz/*`、`/_cokret/self/policy/check`、`/_cokret/edge/applet/*` 和 `/_cokret/edge/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；`/_cokret/self/projection/*` 只暴露 Space / Flow / Morph lifecycle 派生读模型，且属于 extension surface，必须由服务显式声明支持。
+
+路径风格约束：新增 HTTP path SHOULD 使用 kebab-case 资源名和清晰的资源/动作边界。现有 `/_cokret/self/device_messages`、`/_cokret/self/blob/get`、`/_cokret/self/agent-sidecar-threads:ensure` 是已注册 v1 binding 的兼容性例外；它们不构成新路径的命名模板。新增例外必须先进入 canonical operation catalog，并在本文件说明为什么不能使用常规资源路径。
 
 新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.mdx`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 

@@ -85,19 +85,24 @@ info:
 
     root `/_cokret/` and carries NO version segment. The first segment after
 
-    `/_cokret/` is a trust-circle name encoding the caller-to-server trust
+    `/_cokret/` is a trust-surface classifier encoding the caller-to-server trust
 
-    relationship, from inner (strongest) to outer (weakest): `self` (the
+    relationship and attack-surface class. The "trust circle" terminology is an
 
-    authenticated session of the caller), `gate` (authentication entry), `root` (identity /
+    explanatory metaphor, not an authorization result. The current classifiers are:
+    `self` (the authenticated session of the caller), `gate` (authentication entry), `root` (identity /
 
-    DID trust root), `find` (directory discovery), `peer` (federation server-to-server
+    DID trust root; not root/admin privilege), `find` (directory discovery), `peer` (federation server-to-server
 
-    wire; reserved namespace branch), `open` (non-cokret external vendors, e.g. MIMI),
+    wire; reserved namespace branch), `open` (external protocol interop, e.g. MIMI; not public/no-auth access),
 
     `edge` (push / bridge gateways).
 
-    Reading the URL therefore reveals the attack surface. The pre-auth capability
+    Reading the URL therefore reveals the attack surface, but each operation still
+
+    enforces its own session, capability, DID proof, Realm policy, visibility,
+
+    service-delegation, rate-limit, and disclosure checks. The pre-auth capability
 
     advertisement lives at the root meta position `/_cokret/describe`.
 

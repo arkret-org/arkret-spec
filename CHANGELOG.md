@@ -75,9 +75,9 @@
   - wire 兼容性: backward-compatible(无 token / schema / vector id 变化)。
   - reader / writer 行为要求: 无新增 MUST;仅规范文档位置变更。下游 soland / yougen / cokret-rust-sdk / cotest 的 spec 锚点注释已同步。
 
-### 品牌命名空间 cx→ck 与 API 信任同心圆改名(2026-06-03)
+### 品牌命名空间 cx→ck 与 API 信任面命名空间改名(2026-06-03)
 
-把半迁移的 `contrix`→`cokret` 品牌收尾，并把 HTTP API 命名空间从扁平功能模块改为去版本的"信任同心圆"。详见 `_rename.md`。
+把半迁移的 `contrix`→`cokret` 品牌收尾，并把 HTTP API 命名空间从扁平功能模块改为去版本的 trust-surface namespace（信任面命名空间）；"信任同心圆"保留为解释隐喻。详见 `_rename.md`。
 
 - **变更类型**: modify
 - **影响 artifact**: registry（contract-catalog / 全部派生视图 / operations-error-mapping / error-code / renames / forbidden-model-terms）/ schema / fixture / openapi / non-http binding / prose / site metadata / tooling

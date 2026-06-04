@@ -82,7 +82,7 @@ DID Document SHOULD 只负责：
 
 ### 2.5 实际服务器与服务面组合
 
-实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `server/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
+实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `GET /_cokret/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
 
 协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
 
@@ -92,21 +92,21 @@ DID Document SHOULD 只负责：
 
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
-| Principal Server | 普通用户或组织自建的核心入口 | `/server`, `/_cokret/self/events`, `/account`, `/snapshot`, `/federation`, 可代理 `/blob`, `/authz`, `/_cokret/self/device_messages`, `/keys` | 用户/组织的受控入口、Event 提交/读取、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
-| Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/identity`, `/server` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
-| Auth Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
-| Sync / Federation Server | 普通用户通常内置在 Principal Server | `/account`, `/snapshot`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
-| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
-| Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
-| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/_cokret/self/device_messages`, `/keys`, `/_cokret/self/keys/keypackages`, `/_cokret/self/keys/backups`, `/server` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
-| Authz / Policy Server | 个人可内置；共享 Realm 和组织治理建议独立 | `/authz`, `/_cokret/self/policy/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
-| Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
-| Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
-| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、anchorer service 或 Applet Bridge 承载 | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
+| Principal Server | 普通用户或组织自建的核心入口 | `/_cokret/describe`, `/_cokret/self/events/*`, `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, 可代理 `/_cokret/self/blob/*`, `/_cokret/self/authz/*`, `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*`; federation wire 见 `federation.md` | 用户/组织的受控入口、Event 提交/读取、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
+| Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/_cokret/root/identity/*`, `/_cokret/describe` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
+| Auth Server | 个人部署可内置；组织通常独立或接入 SSO | `/_cokret/gate/account/*` 与 `/_cokret/describe.auth_metadata`；具体登录 UI 路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
+| Sync / Federation Server | 普通用户通常内置在 Principal Server | `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, `/_cokret/describe`; federation wire 见 `federation.md` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
+| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/_cokret/find/directory/*`, `/_cokret/describe` | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
+| Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/_cokret/self/blob/*`, `/_cokret/self/rtc/*`, `/_cokret/describe` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
+| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*`, `/_cokret/self/keys/keypackages/*`, `/_cokret/self/keys/backups/*`, `/_cokret/describe` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
+| Authz / Policy Server | 个人可内置；共享 Realm 和组织治理建议独立 | `/_cokret/self/authz/*`, `/_cokret/self/policy/check`, `/_cokret/describe` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
+| Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/_cokret/edge/push/*`, `/_cokret/describe` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
+| Applet Server | 集成/桥接/自动化可选 | `/_cokret/edge/applet/*`, `/_cokret/describe` | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
+| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、anchorer service 或 Applet Bridge 承载 | `/_cokret/open/mimi/*`, `/.well-known/mimi-protocol-directory`, `/_cokret/describe` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/_cokret/self/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/_cokret/self/rtc/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
-| Moderation / Compliance Server | 公共或组织部署建议独立 | `/moderation`, `/server` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 |
-| Archive / Recovery Service | history sharing、late key recovery 或组织恢复场景可选；高安全部署必须显式声明 | `/server` + `supported_operations` 中的 keys / blob / events 子集 | Archive Node、Key Recovery Service 或 Recovery Service。只能按 Realm policy、history visibility、T0 membership 和 capability 返回最小必要 epoch material / backup envelope / recovery proof；不得因持有归档副本自动获得明文读取权。 |
+| Moderation / Compliance Server | 公共或组织部署建议独立 | `/_cokret/self/moderation/*`, `/_cokret/describe` | report、审核队列或扩展审核入口、server ACL、policy list、appeal、legal hold / erasure workflow。 |
+| Archive / Recovery Service | history sharing、late key recovery 或组织恢复场景可选；高安全部署必须显式声明 | `/_cokret/describe` + `supported_operations` 中的 keys / blob / events 子集 | Archive Node、Key Recovery Service 或 Recovery Service。只能按 Realm policy、history visibility、T0 membership 和 capability 返回最小必要 epoch material / backup envelope / recovery proof；不得因持有归档副本自动获得明文读取权。 |
 
 推荐 deployment profile：
 

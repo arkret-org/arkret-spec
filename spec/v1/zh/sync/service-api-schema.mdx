@@ -55,10 +55,12 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 
 统一 API schema 按 canonical operation 分组。HTTP 路径只是默认 binding：
 
+HTTP 路径的第一段是 trust-surface classifier（信任面分类器），用于表达调用方与服务之间的信任关系和攻击面类别；它不是授权结论。尤其是 `root` 只表示身份信任根（DID / key log / receipt），不是管理员/root user 权限；`open` 只表示外部协议互通面，不表示 public / no-auth access。
+
 | 分组 | `operation_id` 前缀 | 默认 HTTP 命名空间 |
 | --- | --- | --- |
-| 服务发现 | `ck.server.*` | `/server/*` |
-| 身份与 registry | `ck.identity.*` | `/_cokret/root/identity/*` |
+| 服务发现 | `ck.server.*` | `/_cokret/describe` |
+| 身份信任根与 registry | `ck.identity.*` | `/_cokret/root/identity/*` |
 | Events | `ck.events.*` | `/_cokret/self/events/*` |
 | 账号视角聚合订阅 | `ck.account.subscribe`、`ck.account.describe`、`ck.account.cursor_revoke` | `/_cokret/self/account/*` |
 | Realm snapshot 入口 | `ck.snapshot.*` | `/_cokret/self/snapshot/*` |
@@ -70,7 +72,7 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | 媒体服务 | `ck.media.*` | `/_cokret/self/rtc/ice-config` |
 | 审核 | `ck.moderation.*` | `/_cokret/self/moderation/*` |
 | Applet | `ck.applet.*` | `/_cokret/edge/applet/*` |
-| MIMI 互操作 | `ck.mimi.*` | `/_cokret/open/mimi/*` |
+| MIMI 外部协议互操作 | `ck.mimi.*` | `/_cokret/open/mimi/*` |
 | 账户登录与设备配对 | `ck.account.{issue_session_grant,device_pair,oidc_callback}` | `/_cokret/gate/account/*` |
 
 ## 3. OpenAPI 参考快照（非穷尽示例）
