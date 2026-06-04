@@ -117,6 +117,12 @@
       "description": "Closed request/response DTO bundle for account self-service operations: viewer, register, profile update, and session revocation."
     },
     {
+      "schema_id": "ck.schema.contact_operations.v1",
+      "file": "schemas/contact-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for contact lifecycle operations and direct conversation resolver."
+    },
+    {
       "schema_id": "ck.schema.device_message.v1",
       "file": "schemas/device-message.schema.json"
     },

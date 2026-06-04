@@ -388,6 +388,8 @@ components:
               - profile_unsupported
               - unsupported_join_rule
               - failed_precondition
+              - contact_not_accepted
+              - contact_consent_missing
               - unsupported_digest_algorithm
               - anchor_incomplete
               - franking_proof_unavailable
@@ -778,6 +780,24 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/register_request
     AccountResponse:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_response
+    ContactRequestRequest:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_request
+    ContactRequestResponse:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_response
+    ContactRespondRequest:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_request
+    ContactRespondResponse:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_response
+    ContactListResponse:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list_response
+    ContactTombstoneRequest:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request
+    ContactTombstoneResponse:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_response
+    DirectConversationResolveRequest:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request
+    DirectConversationResolveResponse:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_response
     UpdateProfileRequest:
       $ref: ../schemas/account-operations.schema.json#/$defs/update_profile_request
     UpdateProfileResponse:
@@ -4809,6 +4829,134 @@ paths:
                   expires_at:
                     type: string
                     format: date-time
+  /_cokret/self/contacts/request:
+    post:
+      operationId: ck.contact.request
+      security:
+      - bearerAuth: []
+      summary: Submit a contact request to another principal.
+      description: |
+        Writes requester-side contact request fact and requester-side consent
+        grants for requested scopes. The requester MUST NOT write target consent
+        or target accepted state.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRequestRequest'
+      responses:
+        '200':
+          description: Contact request fact accepted for delivery.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactRequestResponse'
+  /_cokret/self/contacts/respond:
+    post:
+      operationId: ck.contact.respond
+      security:
+      - bearerAuth: []
+      summary: Accept or reject an incoming contact request.
+      description: |
+        Only the request target may respond. Accept writes target-controlled
+        consent grants; reject writes no consent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRespondRequest'
+      responses:
+        '200':
+          description: Contact response fact accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactRespondResponse'
+  /_cokret/self/contacts:
+    get:
+      operationId: ck.contact.list
+      security:
+      - bearerAuth: []
+      summary: List the holder's contact projection.
+      parameters:
+      - name: state
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - pending_outgoing
+          - pending_incoming
+          - accepted
+          - rejected
+          - tombstoned
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+      responses:
+        '200':
+          description: Contact projection rows visible to the holder.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactListResponse'
+  /_cokret/self/contacts/tombstone:
+    post:
+      operationId: ck.contact.tombstone
+      security:
+      - bearerAuth: []
+      summary: Tombstone the holder's side of a contact relation.
+      description: |
+        Writes holder-side tombstone fact. Default revocation is limited to
+        contact-managed active consent dots.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactTombstoneRequest'
+      responses:
+        '200':
+          description: Contact tombstone fact accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactTombstoneResponse'
+  /_cokret/self/direct-conversations/resolve:
+    post:
+      operationId: ck.direct_conversation.resolve
+      security:
+      - bearerAuth: []
+      summary: Resolve or create the canonical 1:1 DM entry for an accepted contact.
+      description: |
+        Requires accepted contact projection and active direct_message consent.
+        With create=true, creates or repairs the canonical DM Realm, main Flow,
+        and direct conversation binding.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectConversationResolveRequest'
+      responses:
+        '200':
+          description: Direct conversation resolver result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectConversationResolveResponse'
   /_cokret/self/snapshot/head:
     get:
       operationId: ck.snapshot.head

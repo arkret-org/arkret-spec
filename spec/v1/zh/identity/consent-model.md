@@ -38,9 +38,11 @@ Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holde
 - 可见方：默认仅 holder；MAY 通过 holder 主动 disclose 给 peer 作为"green light"信号。
 - 不进入 Collaboration Realm：consent 状态不暴露 holder 的隐私偏好给 Realm 内的其他成员。
 
-### 2.2 Consent 不授予 Realm 权限
+### 2.2 Consent 不授予 Realm 权限，也不是联系人关系真源
 
-Consent 表达"我接受联系"，但加入 Realm、写入 Realm、解密 E2EE 内容仍需独立的 capability + membership。Consent 是 invite 流程上游的过滤器，不替代下游授权。
+Consent 表达"我允许某个 peer 发起某类联系动作"，但加入 Realm、写入 Realm、解密 E2EE 内容仍需独立的 capability + membership。Consent 是 invite / direct-message / call / presence 流程上游的 action gate，不替代下游授权。
+
+联系人关系的 pending / accepted / rejected / tombstoned 状态不属于 consent cell。它们的真源是 [`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md) 定义的 principal-scoped contact fact log。Consent 的有效状态只有 `active` / `no-consent`；`revoke` 是撤销操作，不是联系人关系状态。
 
 ### 2.3 Consent 与 capability 正交
 
@@ -267,7 +269,9 @@ policy MAY 声明 `ck.realm.policy_components` 中的 `preauth` component 包含
 
 类似地，发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方 SHOULD 验证目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`）。
 
-`ck.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或 invite handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
+`ck.direct_conversation.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。只有 consent、没有 accepted contact 时，resolver MUST fail closed（`failed_precondition` / `contact_not_accepted`）；只有 accepted contact、没有可验证 consent 时，resolver MUST fail closed（`failed_precondition` / `contact_consent_missing`）。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
+
+`ck.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 
 **PSI 命中位时序侧信道（normative）**：contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防止请求方通过高频探测观测 holder 命中 bit 的翻转时刻（grant/revoke 时点）形成时序侧信道。命中位图 MUST 引入粗粒度时间 bucket（类似 presence `last_active_at` 的 bucket 化），使命中状态变化只在 bucket 边界对外可见，而非实时反映 holder 决策的精确时刻。此外，PSI 探测 MUST 纳入 holder 可审计的访问记录，使 holder 可事后发现针对自己的反复探测。
 

@@ -111,6 +111,55 @@
       ]
     },
     {
+      "operation_id": "ck.contact.request",
+      "http_alias": "POST /_cokret/self/contacts/request",
+      "operation_specific": [
+        "failed_precondition",
+        "duplicate_conflict",
+        "source_refs_unverifiable"
+      ],
+      "description": "Contact request writes requester-side contact fact and requester-side consent grants. The requester cannot write target-side consent or accepted state."
+    },
+    {
+      "operation_id": "ck.contact.respond",
+      "http_alias": "POST /_cokret/self/contacts/respond",
+      "operation_specific": [
+        "not_found",
+        "failed_precondition",
+        "source_refs_unverifiable"
+      ],
+      "description": "Only the request target may accept/reject a contact request. Accept writes target-controlled consent grants; reject writes no consent."
+    },
+    {
+      "operation_id": "ck.contact.list",
+      "http_alias": "GET /_cokret/self/contacts",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked"
+      ],
+      "description": "Holder contact projection from contact facts plus consent-derived directional scopes."
+    },
+    {
+      "operation_id": "ck.contact.tombstone",
+      "http_alias": "POST /_cokret/self/contacts/tombstone",
+      "operation_specific": [
+        "failed_precondition",
+        "source_refs_unverifiable"
+      ],
+      "description": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots."
+    },
+    {
+      "operation_id": "ck.direct_conversation.resolve",
+      "http_alias": "POST /_cokret/self/direct-conversations/resolve",
+      "operation_specific": [
+        "not_found",
+        "failed_precondition",
+        "contact_not_accepted",
+        "contact_consent_missing"
+      ],
+      "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Flow/binding."
+    },
+    {
       "operation_id": "ck.snapshot.head",
       "http_alias": "GET /_cokret/self/snapshot/head",
       "operation_specific": [

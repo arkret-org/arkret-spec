@@ -1281,6 +1281,81 @@
         "bottom": "reject"
       },
       {
+        "event_kind": "ck.contact.requested",
+        "category": "contact",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Principal-scoped contact request fact. Issuer is requester; target holder must respond with accepted/rejected.",
+        "cell_family": "ck.component.contact.fact_log.v1",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.target"
+        },
+        "lattice": "ordered_log",
+        "bottom": "expose"
+      },
+      {
+        "event_kind": "ck.contact.accepted",
+        "category": "contact",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Principal-scoped contact acceptance fact. Issuer is original request target and MUST reference target-controlled consent grants.",
+        "cell_family": "ck.component.contact.fact_log.v1",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.requester"
+        },
+        "lattice": "ordered_log",
+        "bottom": "expose"
+      },
+      {
+        "event_kind": "ck.contact.rejected",
+        "category": "contact",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Principal-scoped contact rejection fact. Issuer is original request target and does not write consent.",
+        "cell_family": "ck.component.contact.fact_log.v1",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.requester"
+        },
+        "lattice": "ordered_log",
+        "bottom": "expose"
+      },
+      {
+        "event_kind": "ck.contact.tombstoned",
+        "category": "contact",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Principal-scoped contact tombstone fact. Issuer ends their own side of a contact and may revoke contact-managed consent dots.",
+        "cell_family": "ck.component.contact.fact_log.v1",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.peer"
+        },
+        "lattice": "ordered_log",
+        "bottom": "expose"
+      },
+      {
+        "event_kind": "ck.direct_conversation.bound",
+        "category": "contact",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Flow.",
+        "cell_family": "ck.component.direct_conversation.binding.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.pair_key"
+        },
+        "lattice": "ordered_log",
+        "bottom": "expose"
+      },
+      {
         "event_kind": "ck.account.status",
         "category": "account",
         "status": "active",
@@ -2046,6 +2121,12 @@
         "description": "Closed request/response DTO bundle for account self-service operations: viewer, register, profile update, and session revocation."
       },
       {
+        "schema_id": "ck.schema.contact_operations.v1",
+        "file": "schemas/contact-operations.schema.json",
+        "status": "active",
+        "description": "Closed request/response DTO bundle for contact lifecycle operations and direct conversation resolver."
+      },
+      {
         "schema_id": "ck.schema.device_message.v1",
         "file": "schemas/device-message.schema.json"
       },
@@ -2809,6 +2890,17 @@
         ]
       },
       {
+        "surface": "contact_lifecycle",
+        "tier": "extension",
+        "operations": [
+          "ck.contact.request",
+          "ck.contact.respond",
+          "ck.contact.list",
+          "ck.contact.tombstone",
+          "ck.direct_conversation.resolve"
+        ]
+      },
+      {
         "surface": "blob_storage",
         "tier": "extension",
         "operations": [
@@ -3243,6 +3335,55 @@
         "grpc": "DeviceMessages/Put",
         "mq": "device_messages.put",
         "success_shape_kind": "typed_response"
+      },
+      {
+        "operation_id": "ck.contact.request",
+        "http": "POST /_cokret/self/contacts/request",
+        "grpc": "Contact/Request",
+        "mq": "contact.request",
+        "notes": "Writes requester-side ck.contact.requested fact and requester-side consent grants for requested scopes; MUST NOT write target consent or accepted fact.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_response"
+      },
+      {
+        "operation_id": "ck.contact.respond",
+        "http": "POST /_cokret/self/contacts/respond",
+        "grpc": "Contact/Respond",
+        "mq": "contact.respond",
+        "notes": "Target-side accept/reject of a contact request. Accept writes target-controlled consent grants; reject writes no consent.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_response"
+      },
+      {
+        "operation_id": "ck.contact.list",
+        "http": "GET /_cokret/self/contacts",
+        "grpc": "Contact/List",
+        "mq": "contact.list",
+        "notes": "Holder contact projection from contact facts plus consent-derived directional scopes; account-data contact notes are local decoration only.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_response"
+      },
+      {
+        "operation_id": "ck.contact.tombstone",
+        "http": "POST /_cokret/self/contacts/tombstone",
+        "grpc": "Contact/Tombstone",
+        "mq": "contact.tombstone",
+        "notes": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_response"
+      },
+      {
+        "operation_id": "ck.direct_conversation.resolve",
+        "http": "POST /_cokret/self/direct-conversations/resolve",
+        "grpc": "DirectConversation/Resolve",
+        "mq": "direct_conversation.resolve",
+        "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Flow, and binding.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request",
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_response"
       },
       {
         "operation_id": "ck.directory.announce",

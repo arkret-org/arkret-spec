@@ -703,7 +703,7 @@ Actor / handle directory MUST NOT return pairwise DID、private DID、private ha
 POST /_cokret/find/directory/private-contact-discovery
 ```
 
-该操作用于 `ck.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 PSI set-membership 命中位图与最小 invite/consent handoff stub；MUST NOT 返回 time-bound reachability proof、原始 connection identifier、完整 profile、成员列表或关系图谱。
+该操作用于 `ck.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 PSI set-membership 命中位图与最小 invite/consent handoff stub；MUST NOT 返回 contact request handoff token、time-bound reachability proof、原始 connection identifier、完整 profile、成员列表、Realm membership 或关系图谱。联系人请求与 direct conversation resolver 的正式语义见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
 
 ## 9. MIMI Provider Facade Surface（extension profile）
 

@@ -476,6 +476,35 @@
       },
       "additionalProperties": false
     },
+    "invite_consent_handoff_stub": {
+      "type": "object",
+      "description": "Minimal invite/consent handoff stub allowed beside PSI match bits. It declares state or next-step guidance only; it MUST NOT carry a contact request token, reachability proof, profile, membership, or read grant.",
+      "required": ["kind", "state"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["invite", "consent"]
+        },
+        "consent_scope": {
+          "type": "string",
+          "enum": ["invite", "direct_message", "voice_call", "video_call", "presence", "any"]
+        },
+        "state": {
+          "type": "string",
+          "enum": ["grant_active", "revoked", "no_consent", "unknown"]
+        },
+        "state_digest": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "If present, MUST be salted per requester/session or replaced by an audience-bound opaque token per consent-model.md §6.2."
+        },
+        "next_step": {
+          "type": "string",
+          "enum": ["request_consent", "open_invite_flow", "no_action", "try_later"]
+        },
+        "expires_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
     "private_contact_match": {
       "type": "object",
       "required": ["contact_ref", "match_kind"],
@@ -488,7 +517,8 @@
         "handle": { "$ref": "#/$defs/handle" },
         "subject": { "$ref": "#/$defs/did" },
         "organization_did": { "$ref": "#/$defs/did" },
-        "source_refs": { "$ref": "#/$defs/source_refs" }
+        "source_refs": { "$ref": "#/$defs/source_refs" },
+        "handoff_stub": { "$ref": "#/$defs/invite_consent_handoff_stub" }
       },
       "additionalProperties": false
     },

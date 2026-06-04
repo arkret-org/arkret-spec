@@ -18,6 +18,8 @@ Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，�
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
+联系人关系不是 Relation。`ck.relation.*` 是 Realm-scoped 协作图边，`realm_id` 必填；跨 Realm 的联系人请求、接受、拒绝、tombstone 与 direct conversation binding 的真源是 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 principal-scoped facts。实现 MUST NOT 用 `relation_kind=contact` 或等价自定义 Relation 替代 `ck.contact.*`。
+
 ## 2. Schema 与字段
 
 Schema id: `ck.schema.relation.v1`

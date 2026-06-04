@@ -617,6 +617,20 @@ Schema id: `ck.schema.message.v1`
 > `ck.flow.create` 的 payload 已在 `tracks.discussion` 中声明该 track 启用，无需额外事件。
 > Flow 创建后想新增 / 重新启用某个被 disable 过的 track 时通过 `ck.flow.tracks.update` 完成（见 §4.8）。
 
+#### 9.4.1 Direct Conversation 主 Flow
+
+1:1 私聊仍然是 Flow discussion track 上的 Message，不存在独立"消息表"或不经过 Flow 的 DM timeline。Direct conversation 的完整关系模型见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
+
+DM 主 Flow MUST：
+
+- 位于 direct conversation Realm 内。
+- `scope_circle_id=null`，继承 DM Realm 的 Realm-default MLS group。双人 DM Realm 内不得再用 Circle 包一层主聊天，因为 Circle 子集无法提供比两人 Realm 更窄的隐私边界。
+- 启用 `tracks.discussion` 且 `tracks.discussion.is_primary=true`。
+- 在当前 v1 Flow schema 下携带合法 `stage`。推荐 wire 值为 `stage="in_progress"`；UI MUST NOT 把该 stage 当成待办进度展示，也 SHOULD 禁用普通 `ck.flow.stage.set` 控件。
+- 由 `ck.direct_conversation.bound` fact 的 `main_flow_id` 标识为该 pair 的 canonical main Flow。`discussion.is_primary=true` 只是 Flow 内默认入口，不能单独证明"这是 DM 主 Flow"。
+
+同一 DM Realm 至多一个 active canonical main Flow。DM Realm 内 MAY 有其它普通 Flow 用于把某个话题升级成独立议题；默认聊天消息必须写入 binding 指向的 main Flow。
+
 `@mention` 与 reference：消息正文 SHOULD 使用结构化 AST 或带 DID/object ref 的
 Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention 关系和通知，
 但派生关系不得扩大权限。跨 Realm 引用按 [relation.md](./relation.md) §4 的跨 Realm

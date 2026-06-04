@@ -287,6 +287,10 @@
               "ck.circle.update",
               "ck.consent.grant",
               "ck.consent.revoke",
+              "ck.contact.accepted",
+              "ck.contact.rejected",
+              "ck.contact.requested",
+              "ck.contact.tombstoned",
               "ck.container.move_item",
               "ck.container.rebalance",
               "ck.cross_signing.publish",
@@ -295,6 +299,7 @@
               "ck.device.list_update",
               "ck.device.revoke",
               "ck.did.proof",
+              "ck.direct_conversation.bound",
               "ck.flow.archive",
               "ck.flow.create",
               "ck.flow.move",
@@ -1268,6 +1273,51 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/consent_revoke_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "ck.contact.requested" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/contact_requested_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "ck.contact.accepted" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/contact_accepted_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "ck.contact.rejected" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/contact_rejected_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "ck.contact.tombstoned" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/contact_tombstoned_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "ck.direct_conversation.bound" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload" } }
       }
     },
     {

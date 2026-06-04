@@ -262,12 +262,12 @@ Actor / Principal 发现 MUST 尊重 holder 隐私：
 
 ### 6.2 v1 core 形态：Set-Membership PSI（双轮 OPRF）
 
-v1 core `ck.private_contact_discovery.v1` profile 明确限定为 **set-membership PSI**：客户端只能问"我已知的 connection identifier 集合中，哪些在 provider 的可联系集合内？"，回答严格是布尔位图，不附带任何额外 reachability claim、profile 或 metadata。
+v1 core `ck.private_contact_discovery.v1` profile 明确限定为 **set-membership PSI**：客户端只能问"我已知的 connection identifier 集合中，哪些在 provider 的可联系集合内？"核心回答是命中位图。响应 MAY 在每个命中旁附带最小 invite/consent handoff stub，但该 stub 只能声明 consent state hash、grant/revoke 状态或下一步引导，且必须与未命中 / policy-denied 响应保持同样的 padding 与字段形态。响应 MUST NOT 附带 contact request handoff token、reachability claim、完整 profile、成员资格、Realm membership、读取权限或关系图谱。
 
 实现 MUST 使用基于 OPRF（Oblivious Pseudorandom Function）的两轮协议（推荐 RFC 9497 VOPRF 或 Signal CDSI 风格）：
 
 1. **Round 1 — Blind**：客户端按 RFC 9497 OPRF 流程对每个本地 connection identifier 计算 `blind = OPRF.Blind(identifier_canonical_bytes)`；提交 `{batch_id, blinded[]}` 给 provider。Provider 对每个 `blinded[i]` 用其 OPRF secret key 计算 `evaluation[i] = OPRF.BlindEvaluate(sk, blinded[i])` 并返回。Provider 看不到 raw identifier；客户端 unblind 后得到 `derived[i]`。`batch_size`、dummy padding 与失败延迟由 Provider policy 强制，不由客户端自报决定。
-2. **Round 2 — Match**：客户端在第二个独立请求中提交 `{batch_id, derived_digest_prefix[]}`（每条发送 derived digest 的固定前缀，长度由 provider 在第一轮响应中声明）。Provider 仅在自己的 OPRF-evaluated 可联系集合中按前缀比较，返回固定基数（dummy padding 到 batch size）的命中位图；无论命中数为 0、部分命中还是全部命中，response frame 数量、字段集合、排序和 padding 形态 MUST 相同。
+2. **Round 2 — Match**：客户端在第二个独立请求中提交 `{batch_id, derived_digest_prefix[]}`（每条发送 derived digest 的固定前缀，长度由 provider 在第一轮响应中声明）。Provider 仅在自己的 OPRF-evaluated 可联系集合中按前缀比较，返回固定基数（dummy padding 到 batch size）的命中位图；若 profile 返回最小 invite/consent handoff stub，该 stub 也 MUST 被 dummy padding 到相同 shape。无论命中数为 0、部分命中还是全部命中，response frame 数量、字段集合、排序和 padding 形态 MUST 相同。
 3. **披露**：客户端只在 user 在 UI 中显式确认联系或发起邀请时，才向目标 principal 的 provider 披露自己的 DID、pairwise DID、presentation 或 connection identifier 原文。该披露走 §6 / consent-model 的 invite + consent 流程，不在 PSI 协议范围内。
 
 OPRF 选择：
@@ -307,7 +307,7 @@ OPRF 选择：
 
 - Raw email、phone number、address-book label、local contact name 和未加盐低熵 hash MUST NOT 被发送给公共 Directory，包括第一轮的 OPRF input（OPRF Blind 已经做了 unlinkable 化，但实现仍 MUST 在客户端先做 normalization + canonical encoding，杜绝把明文写入 audit log）。
 - Provider MUST 对 batch 大小、dummy padding、失败响应、计时和 result cardinality 做反枚举处理；不存在、不可发现、policy-denied 和 OPRF mismatch 在 wire 上 MUST 保持相同响应形态与延迟分布。客户端提交的 padding hint（若 profile 扩展保留该字段）只能作为上限内的偏好，Provider MUST 按自身 policy 重写为固定 `batch_size`。
-- Provider MUST NOT 在第二轮返回 reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。这些声明只能通过后续 invite + consent 流程获得。
+- Provider MUST NOT 在第二轮返回 contact request handoff token、reachability proof、handle verified claim、完整 profile、组织成员资格、Realm membership 或读取权限。这些声明只能通过后续 contact / invite + consent 流程获得。既有最小 invite/consent handoff stub 只可声明 consent state hash、grant/revoke 状态或下一步引导，不得成为可直接创建 contact relation 的凭据。
 - Private discovery 结果**仅** 证明"在 provider 当前可联系集合中存在 OPRF derived 与某项匹配的条目"——不证明该条目对应的真实身份、handle、活跃度或意愿。客户端 UI MUST 把它表述为"可能可联系"而不是"已确认存在"。
 - 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
 - 实现 MUST NOT 在同一 quota window 内允许同一 authenticable principal / device credential 提交超过 `max_psi_queries_per_window`（默认 1）次 batch；默认 quota window 为 24h，且 MUST 与 OPRF key epoch 解耦。超过后 provider 返回与其它 policy-denied 情况等形态的 `psi_quota_exhausted`。IP 只能作为辅助限速维度，不能作为唯一 quota key。新 OPRF key epoch 不得单独重置 quota；只有 quota window 滚动或 operator 明确的反滥用解封才能重置。

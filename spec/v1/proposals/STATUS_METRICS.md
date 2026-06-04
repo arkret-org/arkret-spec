@@ -28,7 +28,7 @@ CKP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 | [CKP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | `accepted` | 2026-05-27 | 2026-05-27 → accepted (merged → `zh/crypto-media/webrtc-signaling.md` 与 `bindings/`) | `<pending>` |
 | [CKP-0011](./0011-shareable-object-addressing.md) | Shareable Object Addressing — web+cokret URI scheme & deep-link resolution | `accepted` | 2026-05-28 | 2026-05-28 → accepted (merged → `zh/discovery/object-addressing.md`) | — |
 | [CKP-0012](./0012-account-and-contact-self-operations.md) | Account Self-Service Operations | `accepted` | 2026-06-04 | 2026-06-04 → accepted (merged → `zh/sync/` + `artifacts/`) | — |
-| [CKP-0013](./0013-contact-and-direct-conversation-lifecycle.md) | Contact & Direct Conversation Lifecycle | `draft` | 2026-06-04 | 2026-06-04 → draft (spun off from CKP-0012) | — |
+| [CKP-0013](./0013-contact-and-direct-conversation-lifecycle.md) | Contact & Direct Conversation Lifecycle | `accepted` | 2026-06-04 | 2026-06-04 → accepted (merged → `zh/identity/contact-and-direct-conversation.md` + `artifacts/`) | — |
 
 ## 3. 状态转移汇总
 
@@ -50,15 +50,15 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 - `0010`: `draft` → `accepted` (2026-05-27 merged into `zh/crypto-media/webrtc-signaling.md` 与 `zh/crypto-media/bindings/`)
 - `0011`: `draft` → `accepted` (2026-05-28 created and merged into `zh/discovery/object-addressing.md`; 客户端无关可分享对象地址 + `web+cokret:` scheme + `resolve_target`)
 - `0012`: `draft` → `accepted` (2026-06-04 merged into `zh/sync/` + `artifacts/`; account self-service 四项 — viewer/update_profile/register/session_revoke)
-- `0013`: `draft` (2026-06-04 spun off from CKP-0012; contact 关系生命周期 + DM 编排)
+- `0013`: `draft` → `accepted` (2026-06-04 merged into `zh/identity/contact-and-direct-conversation.md` + `artifacts/`; contact 关系生命周期 + DM 编排)
 
 ## 4. 状态健康度指标
 
 | 指标 | 当前值 | 阈值 / 备注 |
 | --- | --- | --- |
 | `total_proposals` | 13 | — |
-| `active_count` (`draft` + `review`) | 1 | CKP-0013 (Contact & Direct Conversation) |
-| `accepted_count` | 6 | CKP-0007 (Circle), CKP-0008 (Personal Agent), CKP-0009 (Agent Sidecar Thread), CKP-0010 (Media Service Binding Framework), CKP-0011 (Shareable Object Addressing), CKP-0012 (Account Self-Service) |
+| `active_count` (`draft` + `review`) | 0 | — |
+| `accepted_count` | 7 | CKP-0007 (Circle), CKP-0008 (Personal Agent), CKP-0009 (Agent Sidecar Thread), CKP-0010 (Media Service Binding Framework), CKP-0011 (Shareable Object Addressing), CKP-0012 (Account Self-Service), CKP-0013 (Contact & Direct Conversation) |
 | `deferred_to_v11_count` | 6 | 0001–0006 |
 | `rejected_count` | 0 | — |
 | `withdrawn_count` | 0 | — |

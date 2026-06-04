@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/contact-operations.schema.json",
+  "title": "Cokret Contact and Direct Conversation Operation DTOs",
+  "description": "Closed request/response DTOs for contact lifecycle operations and direct conversation resolver.",
+  "anyOf": [
+    { "$ref": "#/$defs/contact_request_request" },
+    { "$ref": "#/$defs/contact_request_response" },
+    { "$ref": "#/$defs/contact_respond_request" },
+    { "$ref": "#/$defs/contact_respond_response" },
+    { "$ref": "#/$defs/contact_list_response" },
+    { "$ref": "#/$defs/contact_tombstone_request" },
+    { "$ref": "#/$defs/contact_tombstone_response" },
+    { "$ref": "#/$defs/direct_conversation_resolve_request" },
+    { "$ref": "#/$defs/direct_conversation_resolve_response" }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "cursor": {
+      "type": "string",
+      "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "consent_scope": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "direct_message",
+        "voice_call",
+        "video_call",
+        "presence",
+        "any"
+      ]
+    },
+    "consent_scopes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/consent_scope" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "consent_scope_list": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/consent_scope" },
+      "uniqueItems": true
+    },
+    "event_refs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/event_id" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "contact_state": {
+      "type": "string",
+      "enum": [
+        "pending_outgoing",
+        "pending_incoming",
+        "accepted",
+        "rejected",
+        "tombstoned"
+      ]
+    },
+    "direct_conversation_summary": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "main_flow_id",
+        "state"
+      ],
+      "properties": {
+        "realm_id": { "$ref": "#/$defs/realm_id" },
+        "main_flow_id": { "$ref": "#/$defs/flow_id" },
+        "binding_event_ref": { "$ref": "#/$defs/event_id" },
+        "state": {
+          "type": "string",
+          "enum": ["active", "retired", "duplicate", "non_canonical"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "contact_list_row": {
+      "type": "object",
+      "required": [
+        "peer",
+        "state",
+        "granted_by_me",
+        "granted_to_me",
+        "bidirectional_scopes"
+      ],
+      "properties": {
+        "peer": { "$ref": "#/$defs/did" },
+        "state": { "$ref": "#/$defs/contact_state" },
+        "request_event_ref": { "$ref": "#/$defs/event_id" },
+        "response_event_ref": { "$ref": "#/$defs/event_id" },
+        "tombstone_event_ref": { "$ref": "#/$defs/event_id" },
+        "granted_by_me": { "$ref": "#/$defs/consent_scope_list" },
+        "granted_to_me": { "$ref": "#/$defs/consent_scope_list" },
+        "bidirectional_scopes": { "$ref": "#/$defs/consent_scope_list" },
+        "effective_scopes": {
+          "$ref": "#/$defs/consent_scope_list",
+          "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
+        },
+        "direct_conversation": { "$ref": "#/$defs/direct_conversation_summary" }
+      },
+      "additionalProperties": false
+    },
+    "contact_request_request": {
+      "type": "object",
+      "required": [
+        "target",
+        "requested_scopes"
+      ],
+      "properties": {
+        "target": { "$ref": "#/$defs/did" },
+        "requested_scopes": { "$ref": "#/$defs/consent_scopes" },
+        "idempotency_key": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "contact_request_response": {
+      "type": "object",
+      "required": [
+        "request_event_ref",
+        "requester_consent_refs",
+        "state"
+      ],
+      "properties": {
+        "request_event_ref": { "$ref": "#/$defs/event_id" },
+        "requester_consent_refs": { "$ref": "#/$defs/event_refs" },
+        "state": { "const": "pending_outgoing" }
+      },
+      "additionalProperties": false
+    },
+    "contact_respond_request": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "requester",
+        "action"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/event_id" },
+        "requester": { "$ref": "#/$defs/did" },
+        "action": {
+          "type": "string",
+          "enum": ["accept", "reject"]
+        },
+        "granted_scopes": { "$ref": "#/$defs/consent_scopes" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "action": { "const": "accept" } },
+            "required": ["action"]
+          },
+          "then": {
+            "required": ["granted_scopes"]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "contact_respond_response": {
+      "type": "object",
+      "required": [
+        "response_event_ref",
+        "state"
+      ],
+      "properties": {
+        "response_event_ref": { "$ref": "#/$defs/event_id" },
+        "consent_grant_refs": { "$ref": "#/$defs/event_refs" },
+        "state": {
+          "type": "string",
+          "enum": ["accepted", "rejected"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "contact_list_response": {
+      "type": "object",
+      "required": [
+        "contacts",
+        "has_more"
+      ],
+      "properties": {
+        "contacts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contact_list_row" }
+        },
+        "next_cursor": { "$ref": "#/$defs/cursor" },
+        "has_more": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "contact_tombstone_request": {
+      "type": "object",
+      "required": [
+        "contact"
+      ],
+      "properties": {
+        "contact": { "$ref": "#/$defs/did" },
+        "revoke_scopes": { "$ref": "#/$defs/consent_scopes" },
+        "full_peer_revoke": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, UI/admin explicitly requested revocation beyond contact-managed grant dots."
+        }
+      },
+      "additionalProperties": false
+    },
+    "contact_tombstone_response": {
+      "type": "object",
+      "required": [
+        "tombstone_event_ref",
+        "state"
+      ],
+      "properties": {
+        "tombstone_event_ref": { "$ref": "#/$defs/event_id" },
+        "consent_revoke_refs": { "$ref": "#/$defs/event_refs" },
+        "state": { "const": "tombstoned" },
+        "partial_revoke": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_resolve_request": {
+      "type": "object",
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "peer": { "$ref": "#/$defs/did" },
+        "create": {
+          "type": "boolean",
+          "default": false
+        },
+        "idempotency_key": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_resolve_response": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "found",
+            "created",
+            "not_found",
+            "retired",
+            "non_canonical"
+          ]
+        },
+        "realm_id": { "$ref": "#/$defs/realm_id" },
+        "main_flow_id": { "$ref": "#/$defs/flow_id" },
+        "binding_event_ref": { "$ref": "#/$defs/event_id" },
+        "created": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

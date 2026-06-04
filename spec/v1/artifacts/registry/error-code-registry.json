@@ -683,6 +683,18 @@
       "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {flow,space,morph,message,relation}_not_active / _not_archived / _already_terminal family, or with object-specific reasons like space_parent_cycle. See zh/models/common-fields.md §5.1."
     },
     {
+      "code": "contact_not_accepted",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Sub-reason for failed_precondition when ck.direct_conversation.resolve is called for a peer without an accepted contact projection, or after the requester has tombstoned that contact. Consent alone is not sufficient for the contact direct-conversation resolver. See zh/identity/contact-and-direct-conversation.md."
+    },
+    {
+      "code": "contact_consent_missing",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Sub-reason for failed_precondition when ck.direct_conversation.resolve has an accepted contact but cannot verify target-holder active consent_scope=direct_message or any for the requester. See zh/identity/contact-and-direct-conversation.md and zh/identity/consent-model.md §6.2."
+    },
+    {
       "code": "unsupported_digest_algorithm",
       "http_status": 422,
       "scope": "both",

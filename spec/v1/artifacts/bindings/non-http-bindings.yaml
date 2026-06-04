@@ -103,6 +103,13 @@ grpc:
     DeviceMessages:
       Put: ck.device_messages.put
       Get: ck.device_messages.get
+    Contact:
+      Request: ck.contact.request
+      Respond: ck.contact.respond
+      List: ck.contact.list
+      Tombstone: ck.contact.tombstone
+    DirectConversation:
+      Resolve: ck.direct_conversation.resolve
     Moderation:
       Report: ck.moderation.report
     Projection:
@@ -213,6 +220,11 @@ mq:
     agent.grant.attach: ck.agent.grant.attach
     agent.grant.detach: ck.agent.grant.detach
     agent.sidecar_thread.ensure: ck.agent.sidecar_thread.ensure
+    contact.request: ck.contact.request
+    contact.respond: ck.contact.respond
+    contact.list: ck.contact.list
+    contact.tombstone: ck.contact.tombstone
+    direct_conversation.resolve: ck.direct_conversation.resolve
     directory.private_contact_discovery: ck.directory.private_contact_discovery
     directory.list_handles_for_subject: ck.directory.list_handles_for_subject
     directory.announce: ck.directory.announce

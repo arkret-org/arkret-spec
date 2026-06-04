@@ -202,7 +202,7 @@ Realm（ck.schema.realm.v1，schema 层统一）
 ├── Collaboration Realm        ← 多方业务协作（Flow / Message / Space / Morph / Relation）
 │   ├── Internal Collaboration Realm   ← 仅本信任域成员
 │   └── External Collaboration Realm   ← 含跨信任域成员
-└── Principal Control Realm    ← 单 principal 身份基础设施流（device / session / KeyPackage / profile / consent）
+└── Principal Control Realm    ← 单 principal 身份基础设施流（device / session / KeyPackage / profile / consent / contact fact / DM binding）
 ```
 
 #### 2.7.1 Principal Control Realm（PCR）
@@ -213,7 +213,7 @@ Realm（ck.schema.realm.v1，schema 层统一）
   - `schema_refs` 包含 `ck.profile.principal_control_realm.v1`
   - `created_by = <principal DID>`，`anchorer = <principal DID>`，`anchor_profile = "single_did"`
   - `security_class = "high_assurance"`，`federation_policy ∈ {closed, restricted, quarantine}`
-- 事件类型由 `ck.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 device / session / KeyPackage / recovery / profile / consent 等身份基础设施 event；普通 Message / Flow / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。
+- 事件类型由 `ck.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Flow / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist** 锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
 
@@ -246,6 +246,20 @@ Realm（ck.schema.realm.v1，schema 层统一）
 - PCR 永远是 Internal 的，不存在 "External PCR"：principal DID 与其 control Realm 1:1 绑定，跨域 PCR 在结构上不存在。
 - `security_class=high_assurance` 是横切标签，可叠加在 Internal / External Collaboration Realm 与 PCR 上，不属于本分类的一层节点。
 - 这套分类是 **prose / glossary 层** 的角色术语，便于跨章节统一指代；底层 schema、reducer、Anchor pipeline、Move 处理对三类一视同仁。
+
+#### 2.7.4 Direct Conversation Realm（1:1 DM）
+
+Direct Conversation Realm 是 Collaboration Realm 的受约束形态，不是新的 Realm 类型。完整生命周期见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
+
+Direct Conversation Realm MUST：
+
+- 使用 `encryption_profile="mls_rfc9420"`；`mls_dm` 不得作为 Realm `encryption_profile` 枚举值出现。
+- 声明已注册的 direct conversation profile，并使用已注册的 direct-conversation discriminator；不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于 Principal Control Realm。
+- active member count 等于 2；向 active DM Realm 加第三人 MUST 被拒绝。升级多人聊天必须创建新的普通 Realm / Flow，再用 Relation 或 Message 引用旧 DM 内容。
+- `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
+- 通过 principal-scoped `ck.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_flow_id`。同一 pair 至多一个 active canonical DM Realm；并发 duplicate 必须用 deterministic tie-break 收敛。
+
+任一参与方主动离开或被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。Resolver MUST NOT 为了继续同一个私聊把退出方重新加入旧 Realm；后续 `ck.direct_conversation.resolve(create=true)` MUST 创建新的 DM Realm、main Flow 与 binding。旧 Realm MAY 作为历史归档存在，但不得接收新的默认聊天消息。
 
 ## 3. Space
 

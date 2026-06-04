@@ -4041,6 +4041,148 @@
       },
       "additionalProperties": false
     },
+    "contact_consent_scope": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "direct_message",
+        "voice_call",
+        "video_call",
+        "presence",
+        "any"
+      ]
+    },
+    "contact_consent_scopes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contact_consent_scope" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "contact_event_refs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/event_ref" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "contact_requested_payload": {
+      "type": "object",
+      "description": "Principal-scoped contact request fact. Issuer is the requester; target is the holder being asked to accept. This fact lives in the requester's Principal Control Realm and may be mirrored by the target as the original signed envelope.",
+      "required": [
+        "request_id",
+        "target",
+        "requested_scopes",
+        "requester_consent_refs"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/event_ref",
+          "description": "SHOULD equal the enclosing ck.contact.requested event_id."
+        },
+        "target": { "$ref": "#/$defs/did" },
+        "requested_scopes": { "$ref": "#/$defs/contact_consent_scopes" },
+        "requester_consent_refs": {
+          "$ref": "#/$defs/contact_event_refs",
+          "description": "Consent grant event refs written by requester for every requested scope."
+        },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "contact_accepted_payload": {
+      "type": "object",
+      "description": "Principal-scoped contact accept fact. Issuer is the original request target; requester is the peer whose request was accepted. Accepting writes target-controlled consent grants and references them here.",
+      "required": [
+        "request_id",
+        "requester",
+        "granted_scopes",
+        "consent_grant_refs"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/event_ref" },
+        "requester": { "$ref": "#/$defs/did" },
+        "granted_scopes": { "$ref": "#/$defs/contact_consent_scopes" },
+        "consent_grant_refs": { "$ref": "#/$defs/contact_event_refs" },
+        "expanded_scope_reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "contact_rejected_payload": {
+      "type": "object",
+      "description": "Principal-scoped contact rejection fact. Issuer is the original request target. Rejecting does not grant or revoke consent by itself.",
+      "required": [
+        "request_id",
+        "requester"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/event_ref" },
+        "requester": { "$ref": "#/$defs/did" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "contact_tombstoned_payload": {
+      "type": "object",
+      "description": "Principal-scoped holder tombstone for one contact relation view. Issuer is the holder ending their side of the contact. Default revocation scope is contact-managed active consent dots only.",
+      "required": [
+        "peer",
+        "revoke_scopes"
+      ],
+      "properties": {
+        "peer": { "$ref": "#/$defs/did" },
+        "revoke_scopes": { "$ref": "#/$defs/contact_consent_scopes" },
+        "consent_revoke_refs": { "$ref": "#/$defs/contact_event_refs" },
+        "full_peer_revoke": {
+          "type": "boolean",
+          "default": false
+        },
+        "partial_revoke": { "type": "boolean" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_bound_payload": {
+      "type": "object",
+      "description": "Principal-scoped signed binding from an unordered participant pair to the canonical DM Realm and main Flow. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant.",
+      "required": [
+        "pair_key",
+        "participants_unordered",
+        "realm_id",
+        "main_flow_id",
+        "contact_refs",
+        "member_event_refs",
+        "main_flow_create_ref",
+        "created_at"
+      ],
+      "properties": {
+        "pair_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Canonical unordered pair key; must be based on stable subject/pairwise DID normalization and trust domain, never on handle strings."
+        },
+        "participants_unordered": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/did" },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "realm_id": { "$ref": "#/$defs/realm_id" },
+        "main_flow_id": { "$ref": "#/$defs/flow_id" },
+        "contact_refs": { "$ref": "#/$defs/contact_event_refs" },
+        "member_event_refs": {
+          "$ref": "#/$defs/contact_event_refs",
+          "description": "Membership event refs proving both participants are active members of the DM Realm."
+        },
+        "main_flow_create_ref": { "$ref": "#/$defs/event_ref" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "binding_state": {
+          "type": "string",
+          "enum": ["active", "retired", "duplicate", "non_canonical"],
+          "default": "active"
+        },
+        "supersedes_binding_ref": { "$ref": "#/$defs/event_ref" }
+      },
+      "additionalProperties": false
+    },
     "session_grant_payload": {
       "type": "object",
       "required": [

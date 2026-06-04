@@ -4,15 +4,25 @@ title: Contact & Direct Conversation Lifecycle — 把"加联系人 → 找他�
 normative: false
 stability: v1
 updated: 2026-06-04
-status: draft
+status: accepted
 created: 2026-06-04
 authors:
   - chris@acroidea.com
 depends_on: []
-merged_into: null
+merged_to:
+  - spec/v1/zh/identity/contact-and-direct-conversation.md
+  - spec/v1/zh/identity/consent-model.md
+  - spec/v1/zh/discovery/discovery-directory.md
+  - spec/v1/zh/models/realm-and-space.md
+  - spec/v1/zh/models/flow-and-message.md
+  - spec/v1/zh/sync/service-http-binding.md
+  - spec/v1/artifacts/registry/contract-catalog.json
+  - spec/v1/artifacts/schemas/contact-operations.schema.json
 ---
 
-> **Status: draft.** 本提案尚未合入 normative spec。合入前 operation 注册以 `contract-catalog.json#operation_registry` 为准。
+> **Status: accepted, merged into v1 normative spec on 2026-06-04.**
+>
+> Normative entry point: [`spec/v1/zh/identity/contact-and-direct-conversation.md`](../zh/identity/contact-and-direct-conversation.md)。Operation / Event.kind 注册见 [`contract-catalog.json`](../artifacts/registry/contract-catalog.json)，HTTP/OpenAPI、operation schema 与 error mapping 已同步。本文件保留为历史设计 rationale；联系人和 direct conversation 的后续变更 MUST 落到 normative 文件与 artifacts，不在此处。
 >
 > 从 **[CKP-0012](./0012-account-and-contact-self-operations.md)** 分拆而来:0012 处理无歧义的 account self-service;联系人因横跨 consent / discovery / realm / flow 多个 normative spec,单列于此。
 

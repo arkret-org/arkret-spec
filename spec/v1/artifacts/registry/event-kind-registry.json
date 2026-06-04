@@ -1249,6 +1249,81 @@
       "bottom": "reject"
     },
     {
+      "event_kind": "ck.contact.requested",
+      "category": "contact",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Principal-scoped contact request fact. Issuer is requester; target holder must respond with accepted/rejected.",
+      "cell_family": "ck.component.contact.fact_log.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.target"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
+    },
+    {
+      "event_kind": "ck.contact.accepted",
+      "category": "contact",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Principal-scoped contact acceptance fact. Issuer is original request target and MUST reference target-controlled consent grants.",
+      "cell_family": "ck.component.contact.fact_log.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.requester"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
+    },
+    {
+      "event_kind": "ck.contact.rejected",
+      "category": "contact",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Principal-scoped contact rejection fact. Issuer is original request target and does not write consent.",
+      "cell_family": "ck.component.contact.fact_log.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.requester"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
+    },
+    {
+      "event_kind": "ck.contact.tombstoned",
+      "category": "contact",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Principal-scoped contact tombstone fact. Issuer ends their own side of a contact and may revoke contact-managed consent dots.",
+      "cell_family": "ck.component.contact.fact_log.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.peer"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
+    },
+    {
+      "event_kind": "ck.direct_conversation.bound",
+      "category": "contact",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Flow.",
+      "cell_family": "ck.component.direct_conversation.binding.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.pair_key"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
+    },
+    {
       "event_kind": "ck.account.status",
       "category": "account",
       "status": "active",

@@ -118,6 +118,8 @@ see_also:
 | Anchorer Cell | 锚定者 Cell | 定义下一批 Anchor 由谁授权的 `cas_register + bottom=reject` cell；冲突时产生 Realm-wide Anchor pause。 |
 | Consent | 同意 | Holder-private 决策："我同意接收来自 X 的某种联系"。表达为 consent cell 上的 Move effect，是 invite / contact 路径的前置 gate。 |
 | Consent Scope | 同意范围 | Consent grant 适用的联系类型枚举：`invite` / `direct_message` / `voice_call` / `video_call` / `presence` / `any`。 |
+| Contact Relation | 联系人关系 | Principal-scoped 双边关系投影，状态来自 `ck.contact.requested` / `accepted` / `rejected` / `tombstoned` facts；不是 `ck.contacts.*` account-data、不是 `ck.relation.*`，也不是 consent cell。详见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。 |
+| Direct Conversation | 1:1 私聊入口 | 一对 accepted contacts 的 canonical DM 入口，由 `ck.direct_conversation.bound` fact 绑定 unordered participant pair、DM Realm 与 main Flow。任一成员退出旧 DM Realm 后，下一次 create 必须产生新的 Realm / Flow / binding。 |
 | Reducer | 归约器 | 确定性纯函数，将 Anchor frontier 中的 Move effects 归约为 cell values、state_root、bottom diagnostics 与产品 projection。 |
 | Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Flow、Relation、View。 |
 | Frontier | 前沿 | Move / Anchor / Actor / Realm 已验证的最远同步边界。 |

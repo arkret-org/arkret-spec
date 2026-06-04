@@ -9,7 +9,8 @@
       "CKP-0008",
       "CKP-0009",
       "CKP-0010",
-      "CKP-0011"
+      "CKP-0011",
+      "CKP-0013"
     ],
     "normative_source_rule": "Once a CKP is accepted and merged, implementation requirements live only in zh/, artifacts/schemas, artifacts/registry, artifacts/openapi, artifacts/profiles, and artifacts/fixtures. Proposal files remain rationale and history."
   },
@@ -140,6 +141,43 @@
             "zh/discovery/object-addressing.md",
             "zh/sync/service-http-binding.md",
             "artifacts/registry/contract-catalog.json"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0013",
+      "title": "Contact & Direct Conversation Lifecycle",
+      "status": "accepted_merged",
+      "merged_on": "2026-06-04",
+      "proposal_file": "proposals/0013-contact-and-direct-conversation-lifecycle.md",
+      "merged_sections": [
+        {
+          "topic": "contact fact model, consent gate, and direct conversation lifecycle",
+          "targets": [
+            "zh/identity/contact-and-direct-conversation.md",
+            "zh/identity/consent-model.md",
+            "zh/discovery/discovery-directory.md",
+            "zh/discovery/client-preferences.md",
+            "zh/models/relation.md",
+            "zh/models/realm-and-space.md",
+            "zh/models/flow-and-message.md",
+            "zh/sync/service-surface.md",
+            "zh/sync/service-http-binding.md"
+          ]
+        },
+        {
+          "topic": "contact/direct conversation machine contracts",
+          "targets": [
+            "artifacts/schemas/contact-operations.schema.json",
+            "artifacts/schemas/directory-operations.schema.json",
+            "artifacts/schemas/event-payload.schema.json",
+            "artifacts/schemas/event-envelope.schema.json",
+            "artifacts/registry/contract-catalog.json",
+            "artifacts/registry/error-code-registry.json",
+            "artifacts/registry/operations-error-mapping.json",
+            "artifacts/openapi/cokret-service-api.openapi.yaml",
+            "artifacts/bindings/non-http-bindings.yaml"
           ]
         }
       ]

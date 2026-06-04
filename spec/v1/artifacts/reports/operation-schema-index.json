@@ -735,6 +735,155 @@
       }
     },
     {
+      "operation_id": "ck.contact.request",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request",
+        "schema_kind": "object",
+        "required": [
+          "target",
+          "requested_scopes"
+        ],
+        "properties": [
+          "target",
+          "requested_scopes",
+          "idempotency_key"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_response",
+        "schema_kind": "object",
+        "required": [
+          "request_event_ref",
+          "requester_consent_refs",
+          "state"
+        ],
+        "properties": [
+          "request_event_ref",
+          "requester_consent_refs",
+          "state"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.contact.respond",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "requester",
+          "action"
+        ],
+        "properties": [
+          "request_id",
+          "requester",
+          "action",
+          "granted_scopes"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_response",
+        "schema_kind": "object",
+        "required": [
+          "response_event_ref",
+          "state"
+        ],
+        "properties": [
+          "response_event_ref",
+          "consent_grant_refs",
+          "state"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.contact.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_response",
+        "schema_kind": "object",
+        "required": [
+          "contacts",
+          "has_more"
+        ],
+        "properties": [
+          "contacts",
+          "next_cursor",
+          "has_more"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.contact.tombstone",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+        "schema_kind": "object",
+        "required": [
+          "contact"
+        ],
+        "properties": [
+          "contact",
+          "revoke_scopes",
+          "full_peer_revoke"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_response",
+        "schema_kind": "object",
+        "required": [
+          "tombstone_event_ref",
+          "state"
+        ],
+        "properties": [
+          "tombstone_event_ref",
+          "consent_revoke_refs",
+          "state",
+          "partial_revoke"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.direct_conversation.resolve",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request",
+        "schema_kind": "object",
+        "required": [
+          "peer"
+        ],
+        "properties": [
+          "peer",
+          "create",
+          "idempotency_key"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_response",
+        "schema_kind": "object",
+        "required": [
+          "state"
+        ],
+        "properties": [
+          "state",
+          "realm_id",
+          "main_flow_id",
+          "binding_event_ref",
+          "created"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.directory.private_contact_discovery",
       "success_shape_kind": "typed_response",
       "request": {

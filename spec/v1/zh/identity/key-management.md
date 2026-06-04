@@ -628,7 +628,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 DID method history、key log、`recover`、`rotate`、`ck.device.authorize` 或等价 signed event。
 
-#### 7.4.1 备份签名的交叉签名信任根锚定（normative，CKP-0013）
+#### 7.4.1 备份签名的交叉签名信任根锚定（normative）
 
 `auth_data.signature` 由上传设备的 device signing key 产生（`auth_data.verification_method` 指向该 device key）。仅设备签名只能证明“某个持有该 device key 的实体写了它”，无法独立抵御**恶意服务器联合一个被攻破 / 已撤销的旧 device key 注入或替换备份 envelope**。因此 receiver 在信任并使用一条 backup envelope（恢复或读取）前 MUST 把该签名锚定到 actor 的交叉签名信任根：
 

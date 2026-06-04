@@ -71,7 +71,7 @@ see_also:
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Realm / Event / Principal Server。
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/flow-and-message.md` 等专项文件，理解协作图和标准对象。
-5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`：理解身份、handle、设备/备份密钥和隐私披露（progressive disclosure 在 `identity-handles.md` §16）。
+5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、consent gate、联系人关系和 1:1 私聊入口。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Realm 状态机。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
 8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm 和 E2EE history key share 的共同边界。
@@ -152,6 +152,7 @@ see_also:
 | `identity/identity-did.md` | DID、v1 core 默认 principal method `did:webvh`、`did:web` 仅作为 service DID 默认 / `personal_node` profile 可选、`did:webvh` outage 的 cache-only degraded mode、DID Document、Organization ownership。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation、`MemberDeliveryBindingCandidate`（§3.7）。 |
 | `identity/consent-model.md` | 用户同意、披露边界、撤回语义和跨服务 consent proof。 |
+| `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、contact-managed consent、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Flow 形态。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
 

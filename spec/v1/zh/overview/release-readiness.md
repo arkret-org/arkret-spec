@@ -30,10 +30,10 @@ updated: 2026-06-04
 
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 173 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 77 | `artifacts/registry/schema-registry.json` |
+| Event kind（active） | 178 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 78 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 47 | `artifacts/registry/id-kind-registry.json` |
-| Service operation | 104 | `artifacts/registry/operation-registry.json` |
+| Service operation | 109 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 72 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 96 | `artifacts/profiles/conformance-profiles.json` |
 

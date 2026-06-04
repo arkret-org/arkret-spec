@@ -98,6 +98,17 @@
       ]
     },
     {
+      "surface": "contact_lifecycle",
+      "tier": "extension",
+      "operations": [
+        "ck.contact.request",
+        "ck.contact.respond",
+        "ck.contact.list",
+        "ck.contact.tombstone",
+        "ck.direct_conversation.resolve"
+      ]
+    },
+    {
       "surface": "blob_storage",
       "tier": "extension",
       "operations": [
@@ -532,6 +543,55 @@
       "grpc": "DeviceMessages/Put",
       "mq": "device_messages.put",
       "success_shape_kind": "typed_response"
+    },
+    {
+      "operation_id": "ck.contact.request",
+      "http": "POST /_cokret/self/contacts/request",
+      "grpc": "Contact/Request",
+      "mq": "contact.request",
+      "notes": "Writes requester-side ck.contact.requested fact and requester-side consent grants for requested scopes; MUST NOT write target consent or accepted fact.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_response"
+    },
+    {
+      "operation_id": "ck.contact.respond",
+      "http": "POST /_cokret/self/contacts/respond",
+      "grpc": "Contact/Respond",
+      "mq": "contact.respond",
+      "notes": "Target-side accept/reject of a contact request. Accept writes target-controlled consent grants; reject writes no consent.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_response"
+    },
+    {
+      "operation_id": "ck.contact.list",
+      "http": "GET /_cokret/self/contacts",
+      "grpc": "Contact/List",
+      "mq": "contact.list",
+      "notes": "Holder contact projection from contact facts plus consent-derived directional scopes; account-data contact notes are local decoration only.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_response"
+    },
+    {
+      "operation_id": "ck.contact.tombstone",
+      "http": "POST /_cokret/self/contacts/tombstone",
+      "grpc": "Contact/Tombstone",
+      "mq": "contact.tombstone",
+      "notes": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_response"
+    },
+    {
+      "operation_id": "ck.direct_conversation.resolve",
+      "http": "POST /_cokret/self/direct-conversations/resolve",
+      "grpc": "DirectConversation/Resolve",
+      "mq": "direct_conversation.resolve",
+      "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Flow, and binding.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request",
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_response"
     },
     {
       "operation_id": "ck.directory.announce",
