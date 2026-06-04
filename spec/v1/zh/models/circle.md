@@ -365,7 +365,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 6. 跨 Circle 引用以虚线框 + "另一信任圈"标识展示,**不**预览内容。
 7. "宽 anchor Flow + 窄 discussion Flow" 的组合形态(§7.2)在 UI 上 MAY 渲染为单卡片 + tab 切换,**但** tab 之间切换 MUST 表现为跨 scope 转场(banner 颜色变化 + compose scope 指示更新),不是同 Flow 内不同视图。
 
-## 11.1 Agent sidecar Circle(CKP-0009 profile)
+## 11.1 Agent sidecar Circle profile
 
 `ck.profile.agent_sidecar_thread.v1` 把 Circle 作为 controller 与 controller 的 native personal agents 之间的私聊 scoped event boundary。该 profile 依赖 Circle 的 membership / delivery / query / projection 隔离；是否提供密码学隔离由 Circle `encryption_profile` 与父 Realm floor 决定。父 Realm 要求 E2EE 时 sidecar Circle MUST 为 `mls_rfc9420`；父 Realm 明文且允许 plaintext content 时，sidecar Circle MAY 为 `none`，但 UI / service description MUST 明确披露其不是 E2EE。该 profile 对 Circle 形态加了若干 sidecar-specific 约束:
 
@@ -381,7 +381,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - **History backfill**:新 eligible agent 加入既有 sidecar Circle 时,MLS-backed Circle 不允许转移过去 epoch group secrets。controller 显式同意 sidecar history backfill 时，实现 MUST 通过 application-level message resend 完成(controller 设备解密 plaintext 在新 epoch 下重新加密)，不得通过共享 MLS exporter secret / past commit secret 或等价手段。Plaintext sidecar Circle 同样 MUST 把历史 backfill 视为显式 plaintext 披露，受同等 capability / approval / audit 约束。
 - **Epoch / scope granularity**:同一 sidecar Circle 可承载多个 sidecar private Flow;MLS-backed Circle 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Flow,不可按 Flow 独立 rotate(任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Flow 的未来 epoch)。Plaintext Circle 没有 epoch,但 membership 变更后的投递 / 查询 eligibility 仍适用于该 Circle scope 下所有 sidecar private Flow。
 - **Sidecar Flow projection**:以 sidecar Circle 为 `scope_circle_id` 的 Flow MUST NOT 出现在 Realm-wide navigation / board / list / public search / public relation expansion / 目标 Flow projections。该 invariant 由 sidecar profile-specific reducer rule enforce,而不是给 Flow schema 加 `navigation_visibility` 字段。
-- **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时，客户端 UI MUST 在 CKP-0008 §4.5 pairing approval 流程中显式披露 "该 agent 将自动获得现有 sidecar 私聊访问权"。
+- **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时，客户端 UI MUST 在 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 的 pairing approval 流程中显式披露 "该 agent 将自动获得现有 sidecar 私聊访问权"。
 
 ## 12. 与既有概念的区分
 

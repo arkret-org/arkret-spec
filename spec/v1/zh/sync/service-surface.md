@@ -723,7 +723,7 @@ POST /_cokret/self/authz/check
 - sync service 分发前快速过滤
 - client 发送前本地 UX 提示
 
-## 10.1 Personal Agent Surface(CKP-0008 / CKP-0009)
+## 10.1 Personal Agent Surface
 
 Native personal agent 的 management 与 sidecar operations 落在 `/_cokret/self/agents/*` 与 `/_cokret/self/agent-sidecar-threads*`,pairing 与 session grant 复用 `/_cokret/gate/account/*`:
 
@@ -739,11 +739,11 @@ Native personal agent 的 management 与 sidecar operations 落在 `/_cokret/sel
 
 约束:
 
-- 本 CKP 不引入 custom URI scheme(`cokret://` 等);所有 deep-link 由客户端用 deployment 已知的 `cokret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
+- 本 surface 不引入 custom URI scheme(`cokret://` 等);所有 deep-link 由客户端用 deployment 已知的 `cokret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
 - `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ck:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
 - `{agent_principal_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
 
-详细 wire 规则见 CKP-0008 §4 / CKP-0009 §4。
+详细 wire 规则见 [`service-http-binding.md` §2.4](./service-http-binding.md)、[`../identity/key-management.md` §3.6.1](../identity/key-management.md)、[`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md)、[`../models/circle.md` §11.1](../models/circle.md)、[`../models/private-objects.md` §4.1](../models/private-objects.md) 与 [`../authz/capabilities.md` §5](../authz/capabilities.md)。
 
 ## 11. Realm Bootstrap Flow
 

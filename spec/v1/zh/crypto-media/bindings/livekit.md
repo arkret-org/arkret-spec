@@ -75,7 +75,7 @@ LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 fram
 
 ## 6. Recording
 
-Cokret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoint MUST 是 Cokret-side proxy；录制 artifact 流向严格按 [`../call-state.md` §5](../call-state.md) 与 [CKP-0010 §4.7](../../../proposals/0010-media-service-binding-framework.md)：
+Cokret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoint MUST 是 Cokret-side proxy；录制 artifact 流向严格按 [`../call-state.md` §5](../call-state.md) 与 [`../media-service-binding.md` §8.1](../media-service-binding.md)：
 
 - Egress destination MUST 是 Cokret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
 - 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"cx-rtc-recording-key/v1"`（与 SFrame `"cx-rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。

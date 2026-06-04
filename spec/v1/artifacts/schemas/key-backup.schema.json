@@ -141,9 +141,7 @@
           "enum": [
             "passphrase_kdf",
             "recovery_public_key",
-            "secret_storage_key",
-            "threshold_recovery",
-            "hardware_wrapped_key"
+            "secret_storage_key"
           ]
         },
         "recipient_key_ref": {
@@ -196,7 +194,10 @@
                   "hash"
                 ]
               },
-              "additionalProperties": true
+              "patternProperties": {
+                "^x_[a-z][a-z0-9_]{0,63}$": true
+              },
+              "additionalProperties": false
             },
             "degraded_profile_reason": {
               "type": "string"
@@ -280,7 +281,10 @@
               }
             }
           ],
-          "additionalProperties": true
+          "patternProperties": {
+            "^x_[a-z][a-z0-9_]{0,63}$": true
+          },
+          "additionalProperties": false
         },
         "aead": {
           "type": "object",
@@ -317,7 +321,10 @@
               "description": "base64url HPKE KEM encapsulated key. Required for recipient_method=recovery_public_key (HPKE base mode, DHKEM(X25519,HKDF-SHA256)); absent for the symmetric methods."
             }
           },
-          "additionalProperties": true
+          "patternProperties": {
+            "^x_[a-z][a-z0-9_]{0,63}$": true
+          },
+          "additionalProperties": false
         },
         "key_commitment": {
           "type": "string",
@@ -400,7 +407,10 @@
           }
         }
       ],
-      "additionalProperties": true
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
     },
     "contents": {
       "type": "array",
@@ -450,7 +460,10 @@
             "pattern": "^[A-Za-z0-9_.-]+$"
           }
         },
-        "additionalProperties": true
+        "patternProperties": {
+          "^x_[a-z][a-z0-9_]{0,63}$": true
+        },
+        "additionalProperties": false
       }
     },
     "ciphertext": {
@@ -515,6 +528,11 @@
           { "contains": { "const": "ciphertext_digest" } }
         ],
           "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest, frontier_ref, and recovery_policy_ref."
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Accepted ck.cross_signing.publish.generation of the self-signing key generation that authorized the device signing this backup. This field replaces the temporary auth_data.x_ssk_generation extension for v1 final; hardening profiles require receivers to reject envelopes whose generation is below the current accepted generation outside the rotation grace window."
         }
       },
       "patternProperties": {
@@ -563,7 +581,7 @@
             }
           }
         },
-        "description": "mls_history backups MUST use secret_storage_key or recovery_public_key (key-management.md §7.5.2 / §7.5.3 and device-lifecycle.md §12); passphrase_kdf and the removed device_snapshot_secret are rejected. recovery_policy_ref MAY appear as a signed hint, but is not required for mls_history."
+        "description": "mls_history backups MUST use secret_storage_key or recovery_public_key (key-management.md §7.5.2 / §7.5.3 and device-lifecycle.md §12); passphrase_kdf, threshold_recovery, hardware_wrapped_key, and the removed device_snapshot_secret are rejected. recovery_policy_ref MAY appear as a signed hint, but is not required for mls_history."
       }
     },
     {
@@ -584,9 +602,7 @@
             "properties": {
               "recipient_method": {
                 "enum": [
-                  "recovery_public_key",
-                  "threshold_recovery",
-                  "hardware_wrapped_key"
+                  "recovery_public_key"
                 ]
               }
             }
@@ -601,7 +617,7 @@
             }
           }
         },
-        "description": "did_recovery backups MUST use recovery_public_key / threshold_recovery / hardware_wrapped_key (key-management.md §5.0.1 first-backup gate), MUST carry recovery_policy_ref matching the active recovery policy, and MUST cover that field in auth_data.signed_fields. passphrase_kdf is forbidden for did_recovery — a single passphrase must not control DID recovery."
+        "description": "did_recovery backups MUST use recovery_public_key (key-management.md §5.0.1 first-backup gate), MUST carry recovery_policy_ref matching the active recovery policy, and MUST cover that field in auth_data.signed_fields. passphrase_kdf and secret_storage_key are forbidden for did_recovery; threshold_recovery and hardware_wrapped_key are recovery policy / proof-layer factors, not key-backup recipient methods."
       }
     },
     {

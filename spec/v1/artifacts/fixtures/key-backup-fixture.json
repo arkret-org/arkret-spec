@@ -196,7 +196,7 @@
       "name": "device_snapshot_secret_method_rejected",
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.encryption.recipient_method: 'device_snapshot_secret' is not one of ['passphrase_kdf', 'recovery_public_key', 'secret_storage_key', 'threshold_recovery', 'hardware_wrapped_key']",
+      "first_expected_error": "$.encryption.recipient_method: 'device_snapshot_secret' is not one of ['passphrase_kdf', 'recovery_public_key', 'secret_storage_key']",
       "instance": {
         "backup_id": "ck:backup:01964138-0000-7000-8000-000000000012",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
@@ -364,7 +364,7 @@
       "name": "did_recovery_passphrase_kdf_rejected",
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.encryption.recipient_method: 'passphrase_kdf' is not one of ['recovery_public_key', 'threshold_recovery', 'hardware_wrapped_key']",
+      "first_expected_error": "$.encryption.recipient_method: 'passphrase_kdf' is not one of ['recovery_public_key']",
       "instance": {
         "backup_id": "ck:backup:01964138-0000-7000-8000-000000000015",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
@@ -1194,6 +1194,94 @@
             "completed_at"
           ]
         }
+      }
+    },
+    {
+      "name": "key_backup_active_series_valid",
+      "schema_ref": "schemas/key-backup-active-series.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ck.schema.key_backup_active_series.v1",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "backup_class": "secret_storage",
+        "active_series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "previous_series_ids": [
+          "ck:backup_series:01964137-1000-7000-8000-000000000001"
+        ],
+        "frontier_ref": {
+          "frontier_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "ssk_generation": 2
+        },
+        "issued_at": "2026-04-27T00:00:00Z",
+        "auth_data": {
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+          "signature_algorithm": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "actor_id",
+            "backup_class",
+            "active_series_id",
+            "previous_series_ids",
+            "frontier_ref",
+            "issued_at"
+          ],
+          "ssk_generation": 2
+        }
+      }
+    },
+    {
+      "name": "key_backup_unlock_proof_valid",
+      "schema_ref": "schemas/key-backup-unlock-proof.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ck.schema.key_backup_unlock_proof.v1",
+        "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000002",
+        "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "requesting_device_id": "ck:device:01964139-0000-7000-8000-000000000000",
+        "backup_id": "ck:backup:01964137-1000-7000-8000-000000000001",
+        "backup_class": "secret_storage",
+        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "proof_kind": "threshold_recovery",
+        "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "issued_at": "2026-04-27T00:04:00Z",
+        "auth_data": {
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964139",
+          "signature_algorithm": "EdDSA",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "recovery_session_id",
+            "principal_id",
+            "requesting_device_id",
+            "backup_id",
+            "backup_class",
+            "series_id",
+            "ciphertext_digest",
+            "proof_kind",
+            "proof_digest",
+            "issued_at"
+          ]
+        }
+      }
+    },
+    {
+      "name": "key_backup_plaintext_valid",
+      "schema_ref": "schemas/key-backup-plaintext.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ck.schema.key_backup_plaintext.v1",
+        "backup_id": "ck:backup:01964137-1000-7000-8000-000000000001",
+        "backup_class": "secret_storage",
+        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_seq": 1,
+        "items": [
+          {
+            "item_type": "self_signing_key",
+            "secret_id": "self_signing_key",
+            "secret_b64u": "c2VjcmV0",
+            "secret_generation": 2
+          }
+        ]
       }
     }
   ]

@@ -123,6 +123,24 @@
       "file": "schemas/key-backup.schema.json"
     },
     {
+      "schema_id": "ck.schema.key_backup_active_series.v1",
+      "file": "schemas/key-backup-active-series.schema.json",
+      "status": "active",
+      "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_class)."
+    },
+    {
+      "schema_id": "ck.schema.key_backup_plaintext.v1",
+      "file": "schemas/key-backup-plaintext.schema.json",
+      "status": "active",
+      "description": "Canonical plaintext keybag opened from a ck.schema.key_backup.v1 envelope."
+    },
+    {
+      "schema_id": "ck.schema.key_backup_unlock_proof.v1",
+      "file": "schemas/key-backup-unlock-proof.schema.json",
+      "status": "active",
+      "description": "Proof binding a key-backup read/decrypt action to one recovery session, requesting device, backup object, selected series, ciphertext digest, and accepted proof transcript."
+    },
+    {
       "schema_id": "ck.schema.recovery_policy.v1",
       "file": "schemas/recovery-policy.schema.json",
       "status": "active",
@@ -241,6 +259,18 @@
       "description": "Controller-signed package used by ck.applet.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
     },
     {
+      "schema_id": "ck.schema.applet_install_plan.v1",
+      "file": "schemas/applet-install-plan.schema.json",
+      "status": "active",
+      "description": "Canonical Applet InstallPlan returned by ck.applet.install.preview and recomputed by ck.applet.install before commit. plan_digest is calculated over this object with plan_digest omitted."
+    },
+    {
+      "schema_id": "ck.schema.applet_install_operations.v1",
+      "file": "schemas/applet-install-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for ck.applet.install.preview and ck.applet.install."
+    },
+    {
       "schema_id": "ck.schema.agent.v1",
       "file": "schemas/agent.schema.json",
       "status": "active",
@@ -285,6 +315,12 @@
       "file": "schemas/bottom.schema.json",
       "status": "active",
       "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
+    },
+    {
+      "schema_id": "ck.schema.keypackage_operations.v1",
+      "file": "schemas/keypackage-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for ck.keys.keypackages.upload, claim, consume, and revoke."
     },
     {
       "schema_id": "ck.schema.service_describe.v1",

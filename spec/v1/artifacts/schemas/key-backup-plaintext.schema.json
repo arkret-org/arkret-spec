@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/key-backup-plaintext.schema.json",
+  "title": "Cokret Key Backup Plaintext Keybag",
+  "description": "Canonical plaintext carried inside ck.schema.key_backup.v1 ciphertext after AEAD/HPKE open. The public envelope contents[] is only an index; this keybag is the import truth source.",
+  "type": "object",
+  "required": [
+    "schema",
+    "backup_id",
+    "backup_class",
+    "series_id",
+    "series_seq",
+    "items"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ck.schema.key_backup_plaintext.v1"
+    },
+    "backup_id": {
+      "$ref": "#/$defs/backup_id"
+    },
+    "backup_class": {
+      "$ref": "#/$defs/backup_class"
+    },
+    "series_id": {
+      "$ref": "#/$defs/backup_series_id"
+    },
+    "series_seq": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/plaintext_item"
+      }
+    }
+  },
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "backup_id": {
+      "type": "string",
+      "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_series_id": {
+      "type": "string",
+      "pattern": "^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_class": {
+      "type": "string",
+      "enum": [
+        "did_recovery",
+        "secret_storage",
+        "mls_history"
+      ]
+    },
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "recovery_key_share",
+        "self_signing_key",
+        "user_signing_key",
+        "recovery_secret",
+        "mls_group_secrets_backup_key",
+        "mls_group_state",
+        "mls_epoch_secret",
+        "pending_welcome",
+        "private_account_state"
+      ]
+    },
+    "plaintext_item": {
+      "type": "object",
+      "required": [
+        "item_type",
+        "secret_id",
+        "secret_b64u"
+      ],
+      "properties": {
+        "item_type": {
+          "$ref": "#/$defs/item_type"
+        },
+        "secret_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "secret_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "base64url(no padding) encoded secret bytes. The item_type and metadata define how receivers import the bytes."
+        },
+        "secret_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_event_id": {
+          "type": "string",
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "last_event_id": {
+          "type": "string",
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    }
+  }
+}

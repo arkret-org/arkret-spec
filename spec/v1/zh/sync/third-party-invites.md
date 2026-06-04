@@ -105,8 +105,8 @@ https://app.cokret.example/invite#token=<invite_token>
 **禁止形态**（reducer / 服务端 MUST 拒绝 inbound claim 携带这种 token 来源声明）：
 
 ```text
-https://app.cokret.example/invite?token=<invite_token>&realm=ck:realm:...    ❌ token in query
-https://app.cokret.example/invite/<invite_token>                              ❌ token in path
+forbidden: https://app.cokret.example/invite?token=<invite_token>&realm=ck:realm:...    token in query
+forbidden: https://app.cokret.example/invite/<invite_token>                              token in path
 ```
 
 邮件/SMS 内容不得包含 Realm 私密名称、成员列表、历史摘要或其他未授权预览。验证服务 MUST 在 SMTP 网关上启用 sender domain restriction (SPF/DKIM/DMARC) 以防 token-bearing link 被 phishing 重用。

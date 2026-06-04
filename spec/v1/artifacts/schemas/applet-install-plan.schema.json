@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/applet-install-plan.schema.json",
+  "title": "Cokret Applet InstallPlan",
+  "description": "Canonical plan returned by ck.applet.install.preview and recomputed by ck.applet.install before commit. plan_digest is calculated over the canonical InstallPlan object with plan_digest omitted.",
+  "type": "object",
+  "required": [
+    "schema",
+    "plan_id",
+    "applet_id",
+    "package_digest",
+    "registration_epoch",
+    "effective_scope",
+    "requested_scopes",
+    "approved_scopes",
+    "denied_scopes",
+    "events_to_submit",
+    "capability_constraints",
+    "namespace_conflicts",
+    "e2ee_effect",
+    "widget_effect",
+    "warnings",
+    "plan_digest"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ck.schema.applet_install_plan.v1"
+    },
+    "plan_id": {
+      "type": "string",
+      "pattern": "^ck:plan:[A-Za-z0-9_-]+$"
+    },
+    "applet_id": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/did"
+        },
+        {
+          "$ref": "#/$defs/applet_id"
+        }
+      ]
+    },
+    "package_digest": {
+      "$ref": "#/$defs/hash"
+    },
+    "registration_epoch": {
+      "$ref": "#/$defs/hash"
+    },
+    "effective_scope": {
+      "$ref": "#/$defs/effective_scope"
+    },
+    "requested_scopes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/non_empty_string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "approved_scopes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scope_grant"
+      }
+    },
+    "denied_scopes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/denied_scope"
+      }
+    },
+    "events_to_submit": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event_submission"
+      }
+    },
+    "capability_constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/capability_constraint"
+      }
+    },
+    "namespace_conflicts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/namespace_conflict"
+      }
+    },
+    "e2ee_effect": {
+      "$ref": "#/$defs/e2ee_effect"
+    },
+    "widget_effect": {
+      "$ref": "#/$defs/widget_effect"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/non_empty_string"
+      }
+    },
+    "plan_digest": {
+      "$ref": "#/$defs/hash"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "applet_id": {
+      "type": "string",
+      "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "circle_id": {
+      "type": "string",
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "grant_id": {
+      "type": "string",
+      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "effective_scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            },
+            "circle_id": {
+              "$ref": "#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "scope_grant": {
+      "type": "object",
+      "required": [
+        "actions",
+        "realm_ids",
+        "constraints"
+      ],
+      "properties": {
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "realm_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/realm_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "circle_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/circle_id"
+          },
+          "uniqueItems": true
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "denied_scope": {
+      "type": "object",
+      "required": [
+        "requested_scope",
+        "reason_code"
+      ],
+      "properties": {
+        "requested_scope": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "event_submission": {
+      "type": "object",
+      "required": [
+        "event_kind",
+        "payload"
+      ],
+      "properties": {
+        "event_kind": {
+          "type": "string",
+          "pattern": "^ck\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)+$"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "capability_constraint": {
+      "type": "object",
+      "required": [
+        "constraint_type"
+      ],
+      "properties": {
+        "constraint_type": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "namespace_conflict": {
+      "type": "object",
+      "required": [
+        "namespace",
+        "resolution"
+      ],
+      "properties": {
+        "namespace": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "existing_owner": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "resolution": {
+          "type": "string",
+          "enum": [
+            "deny",
+            "require_admin_approval",
+            "override"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "e2ee_effect": {
+      "type": "object",
+      "required": [
+        "requires_mls_join",
+        "plaintext_access"
+      ],
+      "properties": {
+        "requires_mls_join": {
+          "type": "boolean"
+        },
+        "plaintext_access": {
+          "type": "string",
+          "enum": [
+            "none",
+            "metadata_only",
+            "policy_declared"
+          ]
+        },
+        "authorization_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "widget_effect": {
+      "type": "object",
+      "required": [
+        "allow_widget"
+      ],
+      "properties": {
+        "allow_widget": {
+          "type": "boolean"
+        },
+        "policy_event_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/event_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

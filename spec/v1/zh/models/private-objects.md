@@ -95,12 +95,12 @@ Schema id: `ck.schema.notification.v1`
 
 Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠等本地状态都属于 **actor-private account data** 类别。完整 account data 模型、私有标签、个人 blocklist 见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)。
 
-### 4.1 Agent draft 与 sidecar projection account data(CKP-0008 / CKP-0009)
+### 4.1 Agent draft 与 sidecar projection account data
 
 两类 controller-owned encrypted account data 类型在 `ck.agent.*` 命名空间下:
 
-- **`ck.agent.draft.v1`**(CKP-0008 §4.8 draft-only):agent 通过 `ck.agent.draft.propose` / `ck.agent.action_request`(actor_private_event)提议候选内容,Principal Server 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `ck.agent.draft.v1` account-data。Key pattern 建议 `ck.agent.draft.v1:<agent_principal_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `ck.message.create` / `ck.flow.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `flow_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
-- **`ck.agent.sidecar_projection.v1`**(CKP-0009 §4.14 personal track projection):controller-private UI projection,跨设备同步 "My AI" tab 顺序、pin / 折叠状态、addressed agents list 等。Key pattern `ck.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>`。它**不**修改目标 Flow `tracks` map,不写入 target metadata / target-side Relation / watch cell / unread cell / search index / notification state。
+- **`ck.agent.draft.v1`**:agent 通过 `ck.agent.draft.propose` / `ck.agent.action_request`(actor_private_event)提议候选内容,Principal Server 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `ck.agent.draft.v1` account-data。Key pattern 建议 `ck.agent.draft.v1:<agent_principal_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `ck.message.create` / `ck.flow.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `flow_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
+- **`ck.agent.sidecar_projection.v1`**:controller-private UI projection,跨设备同步 "My AI" tab 顺序、pin / 折叠状态、addressed agents list 等。Key pattern `ck.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>`。它**不**修改目标 Flow `tracks` map,不写入 target metadata / target-side Relation / watch cell / unread cell / search index / notification state。
 
 二者 key 前缀不同、key 第二段语义不同(controller vs agent),不会在 `ck.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-type-registry.json` 显式声明 key pattern 与 owner principal,reducer 据此做归属校验。
 

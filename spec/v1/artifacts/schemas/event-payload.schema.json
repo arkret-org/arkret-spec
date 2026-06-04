@@ -4466,6 +4466,14 @@
       },
       "additionalProperties": false
     },
+    "key_backup_active_series_payload": {
+      "description": "Payload for ck.key_backup.active_series. The standalone ck.schema.key_backup_active_series.v1 schema carries the authoritative signed active-series record shape.",
+      "allOf": [
+        {
+          "$ref": "./key-backup-active-series.schema.json"
+        }
+      ]
+    },
     "cross_signing_publish_payload": {
       "type": "object",
       "description": "Payload for ck.cross_signing.publish. Schema ck.schema.cross_signing_publish.v1 (cross-signing-publish.schema.json) carries the authoritative shape; this payload entry mirrors the required-field set so the kind-specific payload class is wired into event-payload.schema.json dispatch. See device-lifecycle.md §5.1.",

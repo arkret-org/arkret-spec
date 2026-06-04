@@ -199,18 +199,18 @@ Anchor {
 - `anchorer_signature` **不**进入 `anchor_canonical_bytes`：anchor 签名覆盖 canonical bytes，本身不是 canonical bytes 的成员。
 - canonical bytes 由下表"transcript fields"列出的字段按 canonical JSON 编码（[`conformance/encoding.md`](../conformance/encoding.md) §2）形成，**不含** `id` 与 `anchorer_signature`，**包含** `realm_id` / `predecessor_refs` / `frontier` / `state_root` / `anchored_at` / `hlc` 与所有其它 signed 顶层字段（如 hash transition 下的 `previous_state_root` / `previous_digest_algorithm`）。
 
-| 字段 | 进入 canonical bytes？ | 进入 anchorer_signature transcript？ | 来源 |
+| 字段 | canonical bytes | anchorer_signature transcript | 来源 |
 | --- | --- | --- | --- |
-| `id` | ❌（是 H 的输出） | ❌ | wire-derived |
-| `realm_id` | ✅ | ✅ | anchor body |
-| `predecessor_refs` | ✅ | ✅ | anchor body |
-| `frontier` | ✅ | ✅ | anchor body |
-| `state_root` | ✅ | ✅ | anchor body |
-| `previous_state_root` (transition only) | ✅ | ✅ | anchor body |
-| `previous_digest_algorithm` (transition only) | ✅ | ✅ | anchor body |
-| `anchored_at` | ✅ | ✅ | anchor body |
-| `hlc` | ✅ | ✅ | anchor body |
-| `anchorer_signature` | ❌（覆盖 canonical bytes） | ❌（不签自己） | wire signature |
+| `id` | excluded: H output | excluded | wire-derived |
+| `realm_id` | included | included | anchor body |
+| `predecessor_refs` | included | included | anchor body |
+| `frontier` | included | included | anchor body |
+| `state_root` | included | included | anchor body |
+| `previous_state_root` (transition only) | included | included | anchor body |
+| `previous_digest_algorithm` (transition only) | included | included | anchor body |
+| `anchored_at` | included | included | anchor body |
+| `hlc` | included | included | anchor body |
+| `anchorer_signature` | excluded: covers canonical bytes | excluded: does not sign itself | wire signature |
 
 接收方 verifier MUST：
 

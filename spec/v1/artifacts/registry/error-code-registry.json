@@ -1667,7 +1667,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Cokret-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Cokret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/call-state.md §5 and proposals/0010-media-service-binding-framework.md §4.7."
+      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Cokret-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Cokret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/call-state.md §5 and zh/crypto-media/media-service-binding.md §8.1."
     },
     {
       "code": "legacy_single_endpoint_media_service",

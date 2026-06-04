@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标与范围
 
-本文件定义 Cokret 多人会议的 **transport-agnostic 媒体服务 backend 绑定**：媒体服务发现（`ck.realm.media_service` 的 multi-focus 描述符）、token / participant binding 兑换、focus 选举与 session 持久化、SFU 权限与 participant identity 交叉校验，以及媒体 E2EE 帧密钥注入与治理绑定（参考 [CKP-0010](../../proposals/0010-media-service-binding-framework.md)）。LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+本文件定义 Cokret 多人会议的 **transport-agnostic 媒体服务 backend 绑定**：媒体服务发现（`ck.realm.media_service` 的 multi-focus 描述符）、token / participant binding 兑换、focus 选举与 session 持久化、SFU 权限与 participant identity 交叉校验，以及媒体 E2EE 帧密钥注入与治理绑定。LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
 
 边界：
 
@@ -23,7 +23,7 @@ sidebar:
 
 ## 2. Realtime Media Server
 
-`ck.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**（参考 [CKP-0010](../../proposals/0010-media-service-binding-framework.md)）。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+`ck.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
 
 ```json
 {
@@ -73,7 +73,7 @@ sidebar:
 - `foci[].connect_url`：backend 连接入口；具体协议由 type-specific 附录定义。
 - `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。
 - `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `ck.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
-- `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议——每个 backend 自行实现 mesh，详见 [CKP-0010 §4.6](../../proposals/0010-media-service-binding-framework.md)。
+- `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议；每个 backend 自行实现 mesh，正式 Cokret wire 只公开 `foci[].cascade_group` 与用户可见披露语义。
 
 兼容性（v1 当前行为）：服务端 SHOULD 接受遗留单 `sfu_endpoint` 形态并 normalize 为 `foci=[{focus_id:"legacy", type:"cokret-native", connect_url:<sfu_endpoint>, ...}]`，同时打 audit log。_Informative：未来 hardening 版本可将单 endpoint 形态升级为 `failed_precondition` `reason="legacy_single_endpoint_media_service"`；该收紧属迁移建议，不是 v1 规范要求。_
 

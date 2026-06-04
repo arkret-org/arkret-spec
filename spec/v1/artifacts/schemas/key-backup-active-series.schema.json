@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/key-backup-active-series.schema.json",
+  "title": "Cokret Key Backup Active Series Record",
+  "description": "Signed principal-control record selecting the canonical backup series for one (actor_id, backup_class). This closes the rollback gap when multiple series exist after compromise rotation or migration. Receivers MUST verify this record before choosing a series from list results.",
+  "type": "object",
+  "required": [
+    "schema",
+    "actor_id",
+    "backup_class",
+    "active_series_id",
+    "issued_at",
+    "previous_series_ids",
+    "frontier_ref",
+    "auth_data"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ck.schema.key_backup_active_series.v1"
+    },
+    "actor_id": {
+      "$ref": "#/$defs/did"
+    },
+    "backup_class": {
+      "$ref": "#/$defs/backup_class"
+    },
+    "active_series_id": {
+      "$ref": "#/$defs/backup_series_id"
+    },
+    "previous_series_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/backup_series_id"
+      },
+      "description": "Retained old series used only for read-old-data or erasure transition. MUST NOT be treated as a primary recovery source."
+    },
+    "frontier_ref": {
+      "$ref": "#/$defs/frontier_ref",
+      "description": "Principal control stream frontier under which active_series_id was selected."
+    },
+    "issued_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "auth_data": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signature_algorithm",
+        "signature",
+        "signed_fields",
+        "ssk_generation"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256"
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "base64url signature over canonical_json(record without auth_data.signature)."
+        },
+        "signed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "allOf": [
+            { "contains": { "const": "actor_id" } },
+            { "contains": { "const": "backup_class" } },
+            { "contains": { "const": "active_series_id" } },
+            { "contains": { "const": "previous_series_ids" } },
+            { "contains": { "const": "frontier_ref" } },
+            { "contains": { "const": "issued_at" } }
+          ]
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Accepted ck.cross_signing.publish.generation used to authorize this active-series selection."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "backup_class": {
+      "type": "string",
+      "enum": [
+        "did_recovery",
+        "secret_storage",
+        "mls_history"
+      ]
+    },
+    "backup_series_id": {
+      "type": "string",
+      "pattern": "^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "frontier_ref": {
+      "type": "object",
+      "required": [
+        "frontier_digest",
+        "ssk_generation"
+      ],
+      "properties": {
+        "frontier_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "anchor_ref": {
+          "type": "string",
+          "pattern": "^ck:anchor:sha256:[0-9a-f]{64}$"
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1385,6 +1385,33 @@
       "bottom": "reject"
     },
     {
+      "event_kind": "ck.key_backup.active_series",
+      "category": "device",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Key backup active series selection for one principal and backup_class.",
+      "payload_schema": "ck.schema.key_backup_active_series.v1",
+      "cell_family": "ck.component.key_backup.active_series.v1",
+      "cell_subject": {
+        "type": "tuple",
+        "components": [
+          {
+            "name": "actor_id",
+            "type": "did",
+            "field": "payload.actor_id"
+          },
+          {
+            "name": "backup_class",
+            "type": "string",
+            "field": "payload.backup_class"
+          }
+        ]
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
       "event_kind": "ck.device.push_route",
       "category": "device",
       "status": "active",

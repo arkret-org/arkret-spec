@@ -223,7 +223,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 
 
 ### 6.1 Signature Suite registered set
 
-签名算法的 canonical 单一来源是本表(与 §3.2 Hash registered set 对称)。proof `alg` 字段 MUST 取自下表；散落于各 schema 的签名算法引用 MUST 收敛到此集合,MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519);非 JWS 形态(如 raw detached signature)按本表 canonical algo id 标识。
+签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自 registry active row 的 `proof_alg`；raw / non-JWS `signature_algorithm` 字段 MUST 取自 active row 的 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 由该 registry 校验，MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519);非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
 
 | Algo | canonical id / JWS `alg` | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | --- | --- | --- |

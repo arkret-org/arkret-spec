@@ -316,6 +316,7 @@
               "ck.invite.create",
               "ck.invite.revoke",
               "ck.invite.third_party",
+              "ck.key_backup.active_series",
               "ck.member.identity.update",
               "ck.member.state",
               "ck.message.create",
@@ -1294,6 +1295,15 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_list_update_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "ck.key_backup.active_series" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/key_backup_active_series_payload" } }
       }
     },
     {

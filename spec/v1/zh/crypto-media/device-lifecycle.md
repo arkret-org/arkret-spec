@@ -534,6 +534,8 @@ POST /_cokret/self/keys/claim
 
 MLS KeyPackage 使用独立的 single-use claim API，而不是复用 one-time prekey 语义。
 
+本节四个 HTTP operation 的闭合 DTO schema 见 [`schemas/keypackage-operations.schema.json`](../../artifacts/schemas/keypackage-operations.schema.json)。OpenAPI 与 `sync/service-http-binding.md` 的字段表 MUST 引用同一 schema fragment；不得再以开放 `OperationRequest` / `OperationResult` 作为这些安全敏感路径的 generated-SDK 契约。
+
 推荐操作：
 
 ```http
@@ -573,7 +575,7 @@ POST /_cokret/self/keys/keypackages/revoke
 | `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、`keypackage_digest`、device binding、expiry、capabilities 和 `capabilities_digest = sha256(JCS(capabilities))`。 |
 | `failures` | `object[]` | optional | 不可领取设备与原因；不得泄露不可见用户或设备。 |
 
-`consume` MUST 由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `claim_id`、`welcome_ref`、`realm_id` 和 device proof。`revoke` 可由设备、principal controller 或 policy 授权服务发起。
+`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/consume_request`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `key_package_refs[]`、`consumer_device_id`、`signature`，以及可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`flow_id`、`mls_group_id`、`epoch`。`revoke` request MUST validate `#/$defs/revoke_request`，可由设备、principal controller 或 policy 授权服务发起。
 
 规则：
 
@@ -806,20 +808,20 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 
 > **Recipient method 与 fresh-device 恢复（normative，CKP-0012）**：上例的 `recipient_method="secret_storage_key"` 仅适用于**已经持有 secret_storage root key 的现有设备**（见 `identity/key-management.md` §7.5.3）。**全新设备 / 新浏览器**在尚未解锁 secret_storage root 之前 MUST NOT 直接用 `secret_storage_key` envelope 恢复 `mls_history`；它 MUST 走以下两步之一：
 > 1. **recovery_public_key（推荐，HPKE）**：`mls_history` envelope 直接加密给 actor 的 recovery public key（`recipient_method="recovery_public_key"`，HPKE base mode，参数见 §7.5.2）。新设备用经 recovery policy 解锁的 recovery 私钥即可 HPKE-open，无需先持有 secret_storage root。这是 fresh-browser same-account MLS 恢复的规范路径。
-> 2. **先解 root，再用 secret_storage_key**：新设备先用 `passphrase_kdf` / `recovery_public_key` / `threshold_recovery` 解出 `secret_storage` 域的 root（取得 `mls_group_secrets_backup_key`），之后才能解 `secret_storage_key` 的 `mls_history` envelope。
+> 2. **先解 root，再用 secret_storage_key**：新设备先用 `passphrase_kdf`，或经 recovery policy 释放 recovery private key 后用 `recovery_public_key` 解出 `secret_storage` 域的 root（取得 `mls_group_secrets_backup_key`），之后才能解 `secret_storage_key` 的 `mls_history` envelope。
 >
-> `recipient_method` 取值 MUST 来自 `ck.schema.key_backup.v1` 的枚举（`passphrase_kdf` / `recovery_public_key` / `secret_storage_key` / `threshold_recovery` / `hardware_wrapped_key`）。实现 MUST NOT 发出枚举外的值（例如历史实现中的 `device_snapshot_secret` 不是合法 wire 值，receiver/validator MUST fail closed）。
+> `recipient_method` 取值 MUST 来自 `ck.schema.key_backup.v1` 的枚举（`passphrase_kdf` / `recovery_public_key` / `secret_storage_key`）。实现 MUST NOT 发出枚举外的值（例如历史实现中的 `device_snapshot_secret`、`threshold_recovery`、`hardware_wrapped_key` 不是合法 wire 值，receiver/validator MUST fail closed）。threshold / hardware / trusted recovery service 是 recovery policy / proof 层的 unlock factor，不是 backup envelope recipient method。
 
 规则：
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- `backup_class="did_recovery"` 的 wire envelope MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}`，并与当前 accepted recovery policy 一致；不一致 MUST `recovery_policy_mismatch`。`mls_history` 与 `secret_storage` envelope MAY 携带 `recovery_policy_ref` 作为恢复流程 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得用它替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
-- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名；`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
+- `backup_class="did_recovery"` 的 wire envelope MUST 使用 `recipient_method="recovery_public_key"`，并携带顶层 `recovery_policy_ref{policy_id, policy_version}`，且与当前 accepted recovery policy 一致；不一致 MUST `recovery_policy_mismatch`。`mls_history` 与 `secret_storage` envelope MAY 携带 `recovery_policy_ref` 作为恢复流程 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得用它替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
+- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并携带 `auth_data.ssk_generation` 绑定当前 accepted `ck.cross_signing.publish.generation`。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
-- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 先用 signed active-series record 确认 canonical `series_id`（当同一 `(actor_id, backup_class)` 存在多个 series 时），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
+- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 先用 `ck.key_backup.active_series` / `ck.schema.key_backup_active_series.v1` signed active-series record 确认 canonical `series_id`（当同一 `(actor_id, backup_class)` 存在多个 series 时），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
 
 ### 12.1 Backup API
 
@@ -836,9 +838,9 @@ DELETE /_cokret/self/keys/backups/{backup_id}
 
 `PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
 
-`GET /_cokret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 §7.8 的限速。
+`GET /_cokret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ck.key_backup.active_series` / `ck.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 §7.8 的限速。
 
-`get` 返回完整 encrypted backup object，并受 §7.8 的 fresh device proof 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）。
+`get` 返回完整 encrypted backup object，并受 §7.8 的 fresh device proof、`ck.schema.key_backup_unlock_proof.v1` 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；active series 内的非尾部 envelope MUST NOT 被单独删除，删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入高风险审计。
 
 ### 12.2 Retention and Erasure
 
@@ -855,7 +857,7 @@ DELETE /_cokret/self/keys/backups/{backup_id}
 - 服务端 MUST 在收到 user erasure 请求（参见 `ck.audit.erasure_receipt` / `ck.schema.erasure_receipt.v1`）时，按 erasure receipt 的 `erasure_scope` 与 `subject` 处理对应 backup envelope：若 `subject.kind="principal"` 且 `erasure_scope.storage_boundary` 涵盖 `device_secret_store`，相应 `did_recovery` / `secret_storage` envelope MUST 被删除并产出 `ck.schema.erasure_receipt.v1` 子条目。
 - 用户主动删除自身备份与 erasure 流程区分清晰：常规 `DELETE` 不写 erasure receipt，但 §7.8 的高风险审计仍要求落地 `ck.audit.accessed` (`access_kind="key_backup_delete"`).
 - `legal_hold=true` 的 envelope MUST 被服务端拒绝删除（即便提供 high-risk proof）；解除 hold MUST 由声明该 hold 的 policy server 通过 policy update 完成，并写入审计。
-- 同一 series 内的 retention 必须保证链不被打破：服务端 MUST NOT 删除非尾部 envelope，除非整个 series 已经被新 series 取代且旧 series 的尾部已被合法删除。
+- 同一 series 内的 retention 必须保证链不被打破：服务端 MUST NOT 删除 active series 的非尾部 envelope；旧 series 只有在已经被 active-series record 移出 primary source 后，才 MAY 按 retention / erasure 策略整组删除或迁移。
 - erasure 完成后保留的 `retained_stub_digest` MUST 仅含 metadata 哈希，不含密文与 KDF 参数，以避免间接成为离线爆破证据。
 
 ## 13. Realm Key Share and Withholding
@@ -1059,7 +1061,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
    3. 组装完整 `ck.device.authorize` payload（[`event-payload.schema.json#/$defs/device_authorize_payload`](../../artifacts/schemas/event-payload.schema.json)），其中 `recovery_session_id` MUST 等于本 session（供 step 7 receipt 审计对账），并通过 recovery 完成端点提交（[`recovery-session.schema.json#/$defs/complete_request`](../../artifacts/schemas/recovery-session.schema.json) 的 `device_authorize`）。
 
    服务端在 `/complete` MUST 校验：`device_id == session.requesting_device_id`、`principal_id == session.principal_id`、`recovery_session_id == 本 session`，以及 `cross_signing_binding.ssk_generation == session.ssk_generation`；任一不符 MUST 拒绝（generation 不符时 reason=`device_recovery_ssk_generation_mismatch`）。校验通过后，服务端 MUST 把 `ck.device.authorize` accept 进 principal control stream，随后发布 `ck.device.list_update`，在 `complete_response` 回 `authorization_event_id` 与 `device_list_update_event_id`，并把 session 置为 `completed`。恢复不是 bootstrap-first-device 情形，MUST 用 `cross_signing_binding` 而非 `bootstrap_binding`。reducer 同样 MUST 在当前 accepted `ck.cross_signing.publish.generation` 与 `ssk_generation` 不一致时拒绝（`device_recovery_ssk_generation_mismatch`）。
-4. **Key backup / Secret storage unlock**：新设备只能拉取 policy 允许的 backup class（`did_recovery` / `secret_storage` / `mls_history`），每个 backup decrypt proof MUST 绑定 `recovery_session_id` 和新设备 key。**解锁次序是 normative 的**：承载 SSK / recovery key 的 `did_recovery` backup MUST 在 step 3 签发 `ck.device.authorize` **之前**解锁（否则没有 SSK 去签 `cross_signing_binding`）；`secret_storage` 与 `mls_history` 等其余 class MUST 在设备授权 accepted **之后**、用已授权的新设备 key 解锁。服务端不得把恢复 proof 当作长期 bearer token。
+4. **Key backup / Secret storage unlock**：新设备只能拉取 policy 允许的 backup class（`did_recovery` / `secret_storage` / `mls_history`）。每个 backup decrypt proof MUST validate as `ck.schema.key_backup_unlock_proof.v1`，并绑定 `recovery_session_id`、新设备 key、active-series record、`backup_id`、`backup_class`、`series_id` 与 `ciphertext_digest`；解密后的明文 keybag MUST validate as `ck.schema.key_backup_plaintext.v1`，且外层 envelope 字段必须与明文字段一致。**解锁次序是 normative 的**：承载 SSK / recovery key 的 `did_recovery` backup MUST 在 step 3 签发 `ck.device.authorize` **之前**解锁（否则没有 SSK 去签 `cross_signing_binding`）；`secret_storage` 与 `mls_history` 等其余 class MUST 在设备授权 accepted **之后**、用已授权的新设备 key 解锁。服务端不得把恢复 proof 当作长期 bearer token。
 5. **MLS Welcome replay**：对每个可恢复 Realm，授权 peer / key service 重新发 Welcome 或 history key share；Welcome 的 `claim_ref.ssk_generation` MUST 等于当前 accepted cross-signing generation。旧 generation 的 Welcome MUST `claim_generation_mismatch`。
 6. **Secret storage ready**：客户端在本地 secret storage 解锁、device list 同步、关键 Realm Welcome 完成前，只能进入 `recovery_pending`；不得把设备显示为 fully verified。
 7. **Finalize / audit**：`ck.device.authorize` accepted 之后，新设备 key 才成为 principal 控制下的签名者。恢复完成后 MUST 按 `ck.schema.recovery_receipt.v1`（[`recovery-receipt.schema.json`](../../artifacts/schemas/recovery-receipt.schema.json)）写入恢复 receipt（可为 actor-private 或 audit Event，取决于 profile），且 `auth_data.verification_method` MUST 解析到 `new_device_id` 对应的 accepted device key；服务端 key 或尚未授权的新设备 key MUST NOT 签正式 recovery receipt。receipt MUST 绑定 `recovery_session_id`、`policy_id`、`policy_version`、`trust_domain`、`new_device_id`、`proof_summary`（含 proof_digest）、`backup_classes_unlocked[]`（每条记录 `backup_class` / `backup_id` / `series_id` / `ciphertext_digest`）、`welcome_count` / `welcome_realm_summary?`、`outcome` 与 `started_at` / `completed_at`；`outcome != completed` 时 MUST 携带 `outcome_reason_code`。`auth_data.signed_fields` MUST 覆盖上述全部 normative 字段（schema 在 `signed_fields.allOf.contains` 中强制）。同一 `recovery_session_id` 上的重复 receipt MUST 被 receiver 拒绝。若流程在设备授权 accepted 前失败、中止或过期，实现 MUST 写服务端 outcome / audit evidence，并用 `recovery_session_id` 对账；不得让服务端或未授权设备伪造正式 `ck.schema.recovery_receipt.v1`。

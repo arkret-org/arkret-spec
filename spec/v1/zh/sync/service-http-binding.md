@@ -115,7 +115,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /_cokret/self/events/subscribe` | query `{realms?: id[], actors?: did[], after?: cursor, catchup?: boolean}` | 同 `GET /_cokret/self/events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-realm `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, realm_id?: id, cursor?: cursor, payload?: object, reconnect_after_ms?: int}` |
 | `GET /_cokret/self/events/frontier` | query `{actor_id?: did, realm_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Realm 或 private DID。 | `{frontier, receipts?}` |
 | `POST /_cokret/self/ephemeral` | body `ck.schema.ephemeral_envelope.v1` (`kind` ∈ `ck.presence` / `ck.typing` / `ck.receipt.read` / `ck.call.signal`) | `user_session` 或 service signature；actor 必须可在 `realm_id` 的 ephemeral channel 中广播该 kind，并持有对应 `ck.presence.broadcast` / `ck.typing.broadcast` / `ck.receipt.broadcast` / `ck.call.signal.send` action。 | `{accepted: true, kind, realm_id, dispatched_to?, server_received_at?}`；不生成 Event ID、不推进 actor_seq / Realm frontier。 |
-| `POST /_cokret/self/rtc/token` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, focus_id: string, capability_refs?: id[], desired_media?: object}` | `user_session` 或 device proof；调用方 MUST 持 `ck.call.join`，并根据 `desired_media` 持 `ck.call.screen_share` 等子 capability；token issuer DID MUST 出现在 `ck.realm.media_service.service_id` 锚定列表；当 `ck.call.state.session_focus` 已存在，请求的 `focus_id` MUST 等于该值（否则 `focus_mismatch`）。 | `{focus_id, type, connect_url, backend_token, participant_identity, participant_binding, expires_at, service_signature}`；`expires_at - now ≤ 600s`（SHOULD ≤ 300s）。`participant_binding.scheme="ck.media.participant_binding.v1"`，覆盖 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)`。CKP-0010 媒体服务 token exchange；详见 [`../crypto-media/media-service-binding.md` §3](../crypto-media/media-service-binding.md)。 |
+| `POST /_cokret/self/rtc/token` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, focus_id: string, capability_refs?: id[], desired_media?: object}` | `user_session` 或 device proof；调用方 MUST 持 `ck.call.join`，并根据 `desired_media` 持 `ck.call.screen_share` 等子 capability；token issuer DID MUST 出现在 `ck.realm.media_service.service_id` 锚定列表；当 `ck.call.state.session_focus` 已存在，请求的 `focus_id` MUST 等于该值（否则 `focus_mismatch`）。 | `{focus_id, type, connect_url, backend_token, participant_identity, participant_binding, expires_at, service_signature}`；`expires_at - now ≤ 600s`（SHOULD ≤ 300s）。`participant_binding.scheme="ck.media.participant_binding.v1"`，覆盖 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)`。媒体服务 token exchange；详见 [`../crypto-media/media-service-binding.md` §3](../crypto-media/media-service-binding.md)。 |
 | `GET /_cokret/self/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object, set_presence?: enum}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts) streaming NDJSON 推送，不是裸事件读。 | `application/x-ndjson` AccountSubscribeFrame 流;frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`;`dropped` / `resync_required` 可带 `reconnect_after_ms`。 |
 | `POST /_cokret/self/account/cursor/revoke` | body `{cursor: cursor, reason_code: string, revoke_scope?: enum(this_cursor,same_device,same_session)}` | `user_session` bound to principal/device；high-assurance optional profile。 | `{revoked: boolean, expires_at: datetime}`；撤销命中后的 cursor 使用返回 `cursor_revoked`，不得推进任何 server-side state。 |
 | `GET /_cokret/self/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
@@ -165,8 +165,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /_cokret/edge/applet/third_party/users` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 registration namespace 内。 | `{actor_id?, exists, external_ref?}` |
 | `GET /_cokret/edge/applet/third_party/locations` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 portal namespace 内。 | `{realm_id?, exists, external_ref?}` |
 | `POST /_cokret/self/rtc/ice-config` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, mode: string}` | `user_session`; actor 必须有 call/media capability，Realtime Media Server 必须被 Realm policy 委托。 | `{ttl_seconds, refresh_lead_seconds, issued_at, issued_at_bucket, bucket_seconds, ice_servers[], constraints?, signature}` |
-| `POST /_cokret/self/keys/keypackages/upload` | body `{device_id, key_packages[], device_signature, expires_at?, flow_id?, mls_group_id?}` | `user_session` + 当前 device proof;每条 KeyPackage 必须 self-signed 并通过当前 device 签发。 | `{accepted, rejected?, key_package_refs?, available_count?}` |
-| `POST /_cokret/self/keys/keypackages/claim` | body `{claims[], timeout_ms?, flow_id?, mls_group_id?}` | `user_session`;一次性 KeyPackage MUST 原子消费(同 `ck.keys.claim`)。 | `{key_packages[], failures?, available_count?}` |
+| `POST /_cokret/self/keys/keypackages/upload` | body `{principal_id, device_id, key_packages[], device_signature, expires_at?, flow_id?, mls_group_id?}` | `user_session` + 当前 device proof;每条 KeyPackage 必须 self-signed 并通过当前 device 签发。 | `{accepted, rejected?, key_package_refs?, available_count?}` |
+| `POST /_cokret/self/keys/keypackages/claim` | body `{target_principal_id, intended_realm_id, requester, required_capabilities[], claim_nonce, expires_at, target_device_ids?, minimal_metadata_allowed?, timeout_ms?, flow_id?, mls_group_id?, proofs?}` | `user_session`;一次性 KeyPackage MUST 原子 claim(同 `ck.keys.claim`)。 | `{claims[], failures?, available_count?}` |
 | `POST /_cokret/self/keys/keypackages/consume` | body `{key_package_refs[], consumer_device_id, signature, flow_id?, epoch?}` | `service_signature`(MLS group creator 通常是 service-side 调用) 或 `user_session`。 | `{consumed[], failures?}` |
 | `POST /_cokret/self/keys/keypackages/revoke` | body `{key_package_refs[], device_id, signature, reason?}` | `user_session` + 当前 device proof;不可撤销已消费的 KeyPackage。 | `{revoked[], failures?}` |
 | `POST /_cokret/find/directory/announce` | body `{resource_kind, resource_id, discovery_state, source_refs, as_of, principal_server_did, ttl_seconds?, supersedes_announce_id?}` | `user_session` 或 `service_signature` 视 resource_kind；principal/server MUST 签发 discovery state 与 ingest request。 | `{announce_id, indexed_at, effective_ttl_seconds, next_revalidation_after, warnings?}` |
@@ -357,9 +357,71 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 ### 2.4 字段级 Schema 索引
 
-本节是 REST 端点的字段级 schema 索引。字段写法为 `name: type - 说明`。出现在“必填字段”列的字段为 required；出现在“可选字段”列的字段为 optional。位置若非 body，会显式标注为 `path.`、`query.` 或 `header.`。
+本节是 REST 端点的字段级 schema 索引。字段写法为 `name: type - 说明`。出现在“必填字段”列的字段为 required；出现在“可选字段”列的字段为 optional。位置若非 body，会显式标注为 `path.`、`query.` 或 `header.`。机器契约已存在时，“约束”列必须指向 `schema_ref`；字段顺序按 operation DTO 顺序：target / identity 字段、scope 字段、auth/proof 字段、option 字段、body/content 字段、result 字段、audit/time 字段。
 
 规范性 operation contract 以 `artifacts/registry/contract-catalog.json#operation_registry` 为 canonical source；`artifacts/registry/operation-registry.json` 是其生成视图。本表、OpenAPI 与非 HTTP binding 均 MUST 从 canonical source 生成或通过 CI 校验；不得新增 catalog 中不存在的 `operation_id`，也不得在声明支持某 operation 时遗漏对应 catalog 条目。
+
+#### 2.4.1 Binding completeness index
+
+`binding_completeness` 由 operation registry 派生：声明 `request_schema_ref` / `response_schema_ref` 且 OpenAPI 指向同一 schema fragment 的 operation 为 `typed_schema`；仍绑定 `OperationRequest` / `OperationResult` 的 operation 为 `generic_binding`；若该 generic row 带 `migration_plan`，则对实现者显式标为 `migration_required`。`migration_required` operation 不得被宣称为 generated-SDK complete；SDK、gateway validator 与 conformance runner MUST 继续读取对应字段表、profile gate、capability、policy 和 canonical digest 规则，直到 dedicated DTO schema 落地。
+
+当前仍为 `migration_required` 的 operation 如下；未列出的 operation 在 registry 中已经是 `typed_schema`、无 body 的 status response，或不使用 generic operation envelope。
+
+| operation_id | binding_completeness | reason | surface |
+| --- | --- | --- | --- |
+| `ck.account.device_pair` | `migration_required` | `deployment_local_surface` | `account_auth` |
+| `ck.account.agent_key_pair` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.provision` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.list` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.get` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.pause` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.resume` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.deactivate` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.rotate_key` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.grant.attach` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.grant.detach` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.agent.sidecar_thread.ensure` | `migration_required` | `extension_profile_surface` | `agent_runtime` |
+| `ck.applet.ping` | `migration_required` | `interop_bridge_surface` | `applet` |
+| `ck.applet.protocol_metadata` | `migration_required` | `interop_bridge_surface` | `applet` |
+| `ck.applet.resolve_actor` | `migration_required` | `interop_bridge_surface` | `applet` |
+| `ck.applet.resolve_realm` | `migration_required` | `interop_bridge_surface` | `applet` |
+| `ck.applet.revoke` | `migration_required` | `extension_profile_surface` | `applet_install` |
+| `ck.applet.third_party_locations` | `migration_required` | `interop_bridge_surface` | `applet` |
+| `ck.applet.third_party_users` | `migration_required` | `interop_bridge_surface` | `applet` |
+| `ck.applet.transaction` | `migration_required` | `interop_bridge_surface` | `applet` |
+| `ck.authz.get_invites` | `migration_required` | `extension_profile_surface` | `authz_policy` |
+| `ck.blob.upload` | `migration_required` | `extension_profile_surface` | `blob_storage` |
+| `ck.directory.private_contact_discovery` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.resolve_handle` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.list_handles_for_subject` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.resolve_organization` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.resolve_realm` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.resolve_target` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.search_actors` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.search_organizations` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.search_realms` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.search_users` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.directory.push.register` | `migration_required` | `extension_profile_surface` | `directory_discovery` |
+| `ck.keys.claim` | `migration_required` | `extension_profile_surface` | `device_and_keys` |
+| `ck.keys.backups.delete` | `migration_required` | `extension_profile_surface` | `device_and_keys` |
+| `ck.keys.backups.list` | `migration_required` | `extension_profile_surface` | `device_and_keys` |
+| `ck.keys.backups.put` | `migration_required` | `extension_profile_surface` | `device_and_keys` |
+| `ck.keys.query` | `migration_required` | `extension_profile_surface` | `device_and_keys` |
+| `ck.keys.upload` | `migration_required` | `extension_profile_surface` | `device_and_keys` |
+| `ck.media.ice_config` | `migration_required` | `extension_profile_surface` | `realtime_media` |
+| `ck.mimi.group_info` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.identifier_query` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.key_material` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.notify` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.proxy_download` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.report_abuse` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.request_consent` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.room_update` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.submit_message` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.mimi.update_consent` | `migration_required` | `interop_bridge_surface` | `mimi_interop` |
+| `ck.push.notify` | `migration_required` | `extension_profile_surface` | `push` |
+| `ck.push.register_device` | `migration_required` | `extension_profile_surface` | `push` |
+| `ck.push.unregister_device` | `migration_required` | `extension_profile_surface` | `push` |
 
 | `operation_id` | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
@@ -382,7 +444,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.account.cursor_revoke` | `cursor: cursor` | `reason_code: string`; `revoke_scope: enum(this_cursor,same_device,same_session)=this_cursor` | `revoked: boolean`; `expires_at: datetime` | High-assurance optional profile；撤销 cursor authority，详见 [`client-sync.md` §12.2.1](./client-sync.md)。 |
 | `ck.account.describe` | 无 | 无 | `ServiceDescribe` | 私有 frontier 可认证后作为扩展字段返回。 |
 | `ck.ephemeral.send` | body `ck.schema.ephemeral_envelope.v1` | `proof: object`（按 kind 需要）；payload 内 kind-specific 字段 | `accepted: boolean`; `kind: string`; `realm_id: id`; `dispatched_to: int?`; `server_received_at: datetime?` | broadcast ephemeral channel；只承载 `ck.presence` / `ck.typing` / `ck.receipt.read` / `ck.call.signal`，并分别要求 `ck.presence.broadcast` / `ck.typing.broadcast` / `ck.receipt.broadcast` / `ck.call.signal.send`。MUST NOT 写入 durable Event history，MUST NOT 推进 actor_seq / Realm frontier。拒绝码包括 `ephemeral_kind_not_permitted`、`ephemeral_ttl_out_of_range`、`ephemeral_channel_unavailable`。 |
-| `ck.call.media.token_exchange` | body `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `focus_id: string` | `capability_refs: id[]`; `desired_media: object` | `focus_id: string`; `type: string`; `connect_url: string`; `backend_token: string`; `participant_identity: string`; `participant_binding: object`; `expires_at: datetime`; `service_signature: object` | CKP-0010 media token exchange，等价于 MSC4195 `lk-jwt-service`。TTL `expires_at ≤ 600s`；token issuer DID MUST 出现在 `ck.realm.media_service.service_id` 锚定列表。拒绝码：`focus_mismatch`、`unknown_focus_type`、`token_issuer_unauthorised`、`mls_governance_binding_stale`、`media_plaintext_service_not_authorised`、`capability_denied`、`legacy_single_endpoint_media_service`。详见 [`../crypto-media/media-service-binding.md` §3](../crypto-media/media-service-binding.md)。 |
+| `ck.call.media.token_exchange` | body `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `focus_id: string` | `capability_refs: id[]`; `desired_media: object` | `focus_id: string`; `type: string`; `connect_url: string`; `backend_token: string`; `participant_identity: string`; `participant_binding: object`; `expires_at: datetime`; `service_signature: object` | Media service token exchange，等价于 MSC4195 `lk-jwt-service`。TTL `expires_at ≤ 600s`；token issuer DID MUST 出现在 `ck.realm.media_service.service_id` 锚定列表。拒绝码：`focus_mismatch`、`unknown_focus_type`、`token_issuer_unauthorised`、`mls_governance_binding_stale`、`media_plaintext_service_not_authorised`、`capability_denied`、`legacy_single_endpoint_media_service`。详见 [`../crypto-media/media-service-binding.md` §3](../crypto-media/media-service-binding.md)。 |
 | `ck.snapshot.head` | `query.realm_id: id` | 无 | `snapshot_ref: id`; `state_digest: string`; `frontier: object`; `event_set_commitment: object`; `created_by: did`; `created_at: datetime`; `authority_binding: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；signer 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员（`created_by`、`created_at`、`authority_binding` 与签名 transcript 绑定，命名与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 对齐）；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
 | `ck.projection.spaces` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `spaces: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Space lifecycle read model，不是真相源；默认不得返回 tombstoned terminal rows。 |
 | `ck.projection.flows` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `flows: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Flow lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
@@ -413,10 +475,10 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.keys.upload` | `device_id: id`; `device_signature: signature` | `one_time_keys: object`; `fallback_keys: object` | `one_time_key_counts: object`; `fallback_keys: object?` | key 必须链接 self-signing / principal key。 |
 | `ck.keys.query` | `device_keys: object` | `timeout_ms: int` | `device_keys: object`; `failures: object?` | 查询范围可按关系 / Realm 限制。 |
 | `ck.keys.claim` | `one_time_keys: object` | 无 | `one_time_keys: object`; `failures: object?` | one-time key MUST 原子消费。 |
-| `ck.keys.keypackages.upload` | `device_id: id`; `key_packages: object[]`; `device_signature: signature` | `expires_at: datetime`; `flow_id: id`; `mls_group_id: string` | `accepted: int`; `rejected: object[]?`; `key_package_refs: id[]?`; `available_count: int?` | MLS KeyPackage MUST 绑定 device key、credential 和 supported cipher suites；服务 SHOULD 返回该 device 当前可见 `available_count` 以支持低水位补充。 |
-| `ck.keys.keypackages.claim` | `claims: object[]` | `timeout_ms: int`; `flow_id: id`; `mls_group_id: string` | `key_packages: object[]`; `failures: object?`; `available_count: int?` | KeyPackage claim MUST 原子保留，重复 claim 不得返回同一 one-time package；claimed 过期不得回到 published，claim path 按 `(requester_service_did, target_principal_id)` 限速并做反枚举。 |
-| `ck.keys.keypackages.consume` | `key_package_refs: id[]`; `consumer_device_id: id`; `signature: signature` | `flow_id: id`; `epoch: int` | `consumed: id[]`; `failures: object?` | consume MUST 校验 claim holder、epoch 和 package freshness。 |
-| `ck.keys.keypackages.revoke` | `key_package_refs: id[]`; `device_id: id`; `signature: signature` | `reason: string` | `revoked: id[]`; `failures: object?` | 只能由 owning device、principal 或授权 admin 撤销。 |
+| `ck.keys.keypackages.upload` | `principal_id: did`; `device_id: id`; `key_packages: object[]`; `device_signature: signature` | `expires_at: datetime`; `flow_id: id`; `mls_group_id: string` | `accepted: int`; `rejected: object[]?`; `key_package_refs: id[]?`; `available_count: int?` | `schema_ref=schemas/keypackage-operations.schema.json#/$defs/upload_request` / `#/$defs/upload_response`。MLS KeyPackage MUST 绑定 device key、credential 和 supported cipher suites；服务 SHOULD 返回该 device 当前可见 `available_count` 以支持低水位补充。 |
+| `ck.keys.keypackages.claim` | `target_principal_id: did`; `intended_realm_id: id`; `requester: did`; `required_capabilities: string[]`; `claim_nonce: string`; `expires_at: datetime` | `target_device_ids: id[]`; `minimal_metadata_allowed: boolean`; `timeout_ms: int`; `flow_id: id`; `mls_group_id: string`; `proofs: proof[]` | `claims: object[]`; `failures: object[]?`; `available_count: int?` | `schema_ref=schemas/keypackage-operations.schema.json#/$defs/claim_request` / `#/$defs/claim_response`。KeyPackage claim MUST 原子保留，重复 claim 不得返回同一 one-time package；claimed 过期不得回到 published，claim path 按 `(requester_service_did, target_principal_id)` 限速并做反枚举。 |
+| `ck.keys.keypackages.consume` | `key_package_refs: id[]`; `consumer_device_id: id`; `signature: signature` | `claim_ids: string[]`; `welcome_ref: ref`; `realm_id: id`; `flow_id: id`; `mls_group_id: string`; `epoch: int` | `consumed: id[]`; `failures: object[]?` | `schema_ref=schemas/keypackage-operations.schema.json#/$defs/consume_request` / `#/$defs/consume_response`。consume MUST 校验 claim holder、epoch 和 package freshness。 |
+| `ck.keys.keypackages.revoke` | `key_package_refs: id[]`; `device_id: id`; `signature: signature` | `reason: string` | `revoked: id[]`; `failures: object[]?` | `schema_ref=schemas/keypackage-operations.schema.json#/$defs/revoke_request` / `#/$defs/revoke_response`。只能由 owning device、principal 或授权 admin 撤销。 |
 | `ck.keys.backups.put` | `path.backup_id: id`; `backup: object` | `idempotency_key: string` | `status: enum(accepted,duplicate)`; `backup_id: id`; `ciphertext_digest: string` | body MUST validate `ck.schema.key_backup.v1`；path/body backup id 必须一致；服务端不得解密。 |
 | `ck.keys.backups.list` | 无 | `query.series_id: id?`; `query.backup_class: enum(ck.schema.key_backup.v1.backup_class)`; `query.cursor: cursor`; `query.limit: int` | `backups: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回调用方可见的最小 metadata；不得泄露无关 Realm / group membership。 |
 | `ck.keys.backups.get` | `path.backup_id: id` | 无 | `backup: object` | 只返回同 principal 授权 device、recovery policy 或授权恢复服务可见的 encrypted backup object。 |
@@ -428,8 +490,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.moderation.report` | `realm_id: id`; `target_ref: id`; `report_reason_code: enum`; `reporter: did` | `description: string`; `evidence_refs: id[]` | `report_id: id`; `status: string`; `routed_to: did[]?` | reporter 必须可见 target；只对 moderators 可见。 |
 | `ck.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 不得泄露 private namespace。 |
 | `ck.applet.describe` | 无 | 无 | `ServiceDescribe` | public mode 只返回公开 capabilities；applet-specific 字段作为扩展字段返回。 |
-| `ck.applet.install.preview` | `applet_package: object`; `effective_scope: object`; `approval_request: object` | 无 | `InstallPlan` / `OperationResult` | self/admin aggregate operation；只读预览，不写 Realm history；返回 canonical `plan_digest`。 |
-| `ck.applet.install` | `header.Idempotency-Key: string`; `plan_digest: hash`; `applet_package: object`; `effective_scope: object`; `approved_scopes: object[]` | `actor_policy: object`; `e2ee_policy: object`; `widget_policy: object` | `install_id: string`; `registration_event_ref: ref?`; `capability_grant_refs: ref[]`; `effective_status: enum(installed,partially_installed,rejected)` | self/admin aggregate operation；MUST 重新计算 plan，`plan_digest` 不匹配返回 `applet_install_plan_mismatch`；不创建 durable `ck.applet.install` event。 |
+| `ck.applet.install.preview` | `applet_package: object`; `effective_scope: object`; `approval_request: object` | 无 | `InstallPlan` | `schema_ref=schemas/applet-install-operations.schema.json#/$defs/preview_request` / `schemas/applet-install-plan.schema.json`。self/admin aggregate operation；只读预览，不写 Realm history；返回 canonical `plan_digest`。 |
+| `ck.applet.install` | `header.Idempotency-Key: string`; `plan_digest: hash`; `applet_package: object`; `effective_scope: object`; `approved_scopes: object[]` | `actor_policy: object`; `e2ee_policy: object`; `widget_policy: object` | `ok: boolean`; `install_id: string`; `registration_event_ref: ref?`; `registration_epoch: hash`; `bot_actor_id: did`; `capability_grant_refs: ref[]`; `membership_event_refs: ref[]`; `e2ee_authorization_refs: ref[]`; `widget_policy_ref: ref?`; `effective_status: enum(installed,partially_installed,rejected)`; `rejected: object[]` | `schema_ref=schemas/applet-install-operations.schema.json#/$defs/install_request` / `#/$defs/install_response`。self/admin aggregate operation；MUST 重新计算 plan，`plan_digest` 不匹配返回 `applet_install_plan_mismatch`；不创建 durable `ck.applet.install` event。 |
 | `ck.applet.revoke` | `header.Idempotency-Key: string`; `path.applet_id: id`; `effective_scope: object`; `reason_code: string`; `revoke_mode: string` | 无 | `ok: boolean`; `revoked_refs: ref[]?`; `rejected: object[]?` | self/admin aggregate operation；撤销 bound grants / widget tokens / delegated sessions；revoke 后未来写入返回 `applet_revoked` 或更细 reason。 |
 | `ck.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet 必须验证 event signature、namespace、capability；按 `(source_service_did, Idempotency-Key)` 幂等。 |
 | `ck.applet.resolve_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 namespace。 |

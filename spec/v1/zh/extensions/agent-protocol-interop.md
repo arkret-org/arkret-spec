@@ -307,11 +307,11 @@ Capability constraint SHOULD 支持：
 }
 ```
 
-## 7.1 与 Personal Agent Runtime Session 的边界(CKP-0008)
+## 7.1 与 Personal Agent Runtime Session 的边界
 
-本文档定义的是与 **外部 A2A / ACP / MCP agent protocol** 互操作的 session 模型(`ck.agent.protocol_session.start/status/result`)。它与 CKP-0008 §4.6 定义的 **personal agent runtime authentication session**(`/_cokret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"`)是**两个不同的 session 概念**:
+本文档定义的是与 **外部 A2A / ACP / MCP agent protocol** 互操作的 session 模型(`ck.agent.protocol_session.start/status/result`)。它与 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 定义的 **personal agent runtime authentication session**(`/_cokret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"`)是**两个不同的 session 概念**:
 
-| 维度 | Personal agent runtime session(CKP-0008) | External agent protocol session(本文档) |
+| 维度 | Personal agent runtime session | External agent protocol session(本文档) |
 | --- | --- | --- |
 | 用途 | Cokret 内部 native agent runtime 认证 Auth Server 与 Events API | 与外部 A2A / ACP / MCP endpoint 协商执行 task |
 | Endpoint | `/_cokret/gate/account/session-grants` | `ck.agent.protocol_session.start` Event + 外部 protocol endpoint |

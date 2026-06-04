@@ -1,0 +1,148 @@
+{
+  "version": "2026-06-04",
+  "source_of_truth": true,
+  "scope": "accepted_merged_ckp_v1",
+  "policy": {
+    "accepted_proposals_are_historical": true,
+    "formal_zh_refs_forbidden": [
+      "CKP-0007",
+      "CKP-0008",
+      "CKP-0009",
+      "CKP-0010",
+      "CKP-0011"
+    ],
+    "normative_source_rule": "Once a CKP is accepted and merged, implementation requirements live only in zh/, artifacts/schemas, artifacts/registry, artifacts/openapi, artifacts/profiles, and artifacts/fixtures. Proposal files remain rationale and history."
+  },
+  "merged_proposals": [
+    {
+      "ckp": "CKP-0007",
+      "title": "Circle primitive",
+      "status": "accepted_merged",
+      "merged_on": "2026-05-25",
+      "proposal_file": "proposals/0007-circle-primitive.md",
+      "merged_sections": [
+        {
+          "topic": "Circle model and scoped event boundary",
+          "targets": [
+            "zh/models/circle.md",
+            "zh/models/realm-and-space.md",
+            "zh/models/relation.md",
+            "artifacts/schemas/circle.schema.json",
+            "artifacts/registry/contract-catalog.json"
+          ]
+        },
+        {
+          "topic": "effective_scope, delivery, and conformance",
+          "targets": [
+            "zh/models/event-and-patch.md",
+            "zh/conformance/conformance-profiles.md",
+            "zh/conformance/conformance-vectors.md",
+            "artifacts/schemas/event-envelope.schema.json"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0008",
+      "title": "Personal agent provisioning",
+      "status": "accepted_merged",
+      "merged_on": "2026-05-26",
+      "proposal_file": "proposals/0008-personal-agent-provisioning.md",
+      "merged_sections": [
+        {
+          "topic": "agent provisioning, pairing, auth, and lifecycle",
+          "targets": [
+            "zh/identity/key-management.md",
+            "zh/identity/account-lifecycle.md",
+            "zh/sync/service-surface.md",
+            "zh/sync/service-http-binding.md",
+            "zh/conformance/conformance-profiles.md"
+          ]
+        },
+        {
+          "topic": "agent actions, attribution, private account data, and schema",
+          "targets": [
+            "zh/authz/capabilities.md",
+            "zh/models/actor.md",
+            "zh/models/event-and-patch.md",
+            "zh/models/private-objects.md",
+            "artifacts/schemas/event-payload.schema.json",
+            "artifacts/registry/contract-catalog.json"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0009",
+      "title": "Agent sidecar thread",
+      "status": "accepted_merged",
+      "merged_on": "2026-05-26",
+      "proposal_file": "proposals/0009-agent-sidecar-thread.md",
+      "merged_sections": [
+        {
+          "topic": "sidecar circle, relation, projection, and operation surface",
+          "targets": [
+            "zh/models/circle.md",
+            "zh/models/relation.md",
+            "zh/models/private-objects.md",
+            "zh/sync/service-surface.md",
+            "zh/sync/service-http-binding.md",
+            "artifacts/registry/contract-catalog.json"
+          ]
+        },
+        {
+          "topic": "sidecar conformance and privacy boundaries",
+          "targets": [
+            "zh/conformance/conformance-profiles.md",
+            "zh/conformance/conformance-vectors.md",
+            "zh/identity/key-management.md"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0010",
+      "title": "Media service binding framework",
+      "status": "accepted_merged",
+      "merged_on": "2026-05-27",
+      "proposal_file": "proposals/0010-media-service-binding-framework.md",
+      "merged_sections": [
+        {
+          "topic": "media service discovery, token exchange, focus, and participant binding",
+          "targets": [
+            "zh/crypto-media/media-service-binding.md",
+            "zh/crypto-media/call-state.md",
+            "zh/crypto-media/bindings/livekit.md",
+            "zh/sync/service-http-binding.md",
+            "artifacts/registry/contract-catalog.json"
+          ]
+        },
+        {
+          "topic": "media service errors and conformance vectors",
+          "targets": [
+            "zh/conformance/conformance-profiles.md",
+            "zh/conformance/conformance-vectors.md",
+            "artifacts/registry/error-code-registry.json"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0011",
+      "title": "Shareable object addressing",
+      "status": "accepted_merged",
+      "merged_on": "2026-05-28",
+      "proposal_file": "proposals/0011-shareable-object-addressing.md",
+      "merged_sections": [
+        {
+          "topic": "object addressing and deep-link resolution",
+          "targets": [
+            "zh/discovery/object-addressing.md",
+            "zh/sync/service-http-binding.md",
+            "artifacts/registry/contract-catalog.json"
+          ]
+        }
+      ]
+    }
+  ]
+}

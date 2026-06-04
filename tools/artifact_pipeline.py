@@ -42,6 +42,7 @@ REGISTRY = ARTIFACTS / "registry"
 CONTRACT_CATALOG_PATH = REGISTRY / "contract-catalog.json"
 PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
 LINT_SCRIPT = Path(__file__).with_name("lint_artifacts.py")
+PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
 FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
@@ -247,6 +248,11 @@ def run_lint() -> int:
     return result.returncode
 
 
+def run_prose_lint() -> int:
+    result = subprocess.run([sys.executable, str(PROSE_LINT_SCRIPT)], cwd=ROOT)
+    return result.returncode
+
+
 def run_fixture_digest_check() -> int:
     result = subprocess.run([sys.executable, str(FIXTURE_DIGEST_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -272,7 +278,8 @@ def cmd_check(_: argparse.Namespace) -> int:
     print_contract_status()
     fixture_status = run_fixture_digest_check()
     lint_status = run_lint()
-    return fixture_status or lint_status
+    prose_lint_status = run_prose_lint()
+    return fixture_status or lint_status or prose_lint_status
 
 
 def build_parser() -> argparse.ArgumentParser:

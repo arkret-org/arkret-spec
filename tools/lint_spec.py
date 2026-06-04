@@ -73,6 +73,14 @@ MIXED_PUNCT_RE = re.compile(r"[一-鿿][,;][一-鿿]")
 
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 PROPOSAL_FILE_RE = re.compile(r"^(?P<num>[0-9]{4})-[A-Za-z0-9_.-]+\.md$")
+OLD_CHINESE_NORMATIVE_DISCLAIMER_RE = re.compile(r"中文.*(?:不构成规范要求|只供阅读理解)")
+REQUIRED_CHINESE_NORMATIVE_ROWS = {
+    "必须 / 要求": "`MUST` / `REQUIRED`",
+    "不得 / 禁止 / 不允许 / 不可": "`MUST NOT`",
+    "应当 / 建议 / 推荐": "`SHOULD` / `RECOMMENDED`",
+    "不应 / 不建议 / 不推荐": "`SHOULD NOT` / `NOT RECOMMENDED`",
+    "可以 / 可选": "`MAY` / `OPTIONAL`",
+}
 
 
 @dataclass
@@ -147,6 +155,28 @@ def lint_file(path: Path) -> list[Finding]:
                 "warn",
             )
         )
+    if OLD_CHINESE_NORMATIVE_DISCLAIMER_RE.search(text):
+        findings.append(
+            Finding(
+                path,
+                1,
+                "NL002",
+                "old Chinese normative-keyword disclaimer found; Chinese normative keywords are registered in normative-language.md",
+                "error",
+            )
+        )
+    if is_self_normative_language:
+        for chinese_terms, rfc_terms in REQUIRED_CHINESE_NORMATIVE_ROWS.items():
+            if chinese_terms not in text or rfc_terms not in text:
+                findings.append(
+                    Finding(
+                        path,
+                        1,
+                        "NL003",
+                        f"normative-language.md must register {chinese_terms} as {rfc_terms}",
+                        "error",
+                    )
+                )
 
     for idx, raw in enumerate(text.splitlines(), start=1):
         # Skip lines inside fenced code blocks heuristically: tracked below.

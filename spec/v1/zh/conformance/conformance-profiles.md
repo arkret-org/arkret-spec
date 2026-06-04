@@ -368,6 +368,21 @@ SHOULD 支持：
 - token 分片或短期授权
 - 高优先级与静音规则透传
 
+## 11.1 Traffic Metadata Hardening
+
+`ck.profile.traffic_metadata_hardened.v1` 是部署 / Realm 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务或 Realm MUST 在 `ServiceDescribe.claimed_profiles` / Realm policy profile 集合中暴露其参数，并按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。
+
+MUST 支持：
+
+- `federation_batch_padding`：outbound federation fanout MUST 使用固定或下限 batch size；空批次 / padding entries 计入可观察 batch size。
+- `welcome_padding_bucket`：MLS Welcome / GroupInfo blob MUST round up 到声明的 padding bucket（默认 4KiB / 16KiB / 64KiB），不得泄露精确 leaf count。
+- `bounded_send_jitter`：fanout 与 retry MUST 使用声明的随机抖动窗口；实现不得用窗口边界编码活动。
+- `blind_or_batch_wakeup`：push 默认 MUST 是 `blind_wakeup`、`batch_wakeup` 或 `no_notification`；`visible_notification` 与本 profile 默认不兼容，除非 Realm policy 对该 recipient route 显式 opt out。
+- `retry_cadence_padding`：重试节奏 MUST 使用同一 padding / jitter policy，不得让失败原因产生稳定可测的时间形态。
+- 至少一种 cross-domain route indirection：`ohttp`、`trusted_relay` 或 `decoy_traffic`。
+
+conformance runner MUST 能观测：batch size bucket、Welcome size bucket、jitter 上下界、push payload disclosure class、retry cadence bucket 与 relay/decoy 开关。实现如果不能提供这些可观测参数，MUST NOT 声明 `ck.profile.traffic_metadata_hardened.v1`。
+
 ## 12. Applet Service / Bridge（概要）
 
 详见第 19 节完整定义。
@@ -552,7 +567,7 @@ SHOULD 支持：
 - deterministic replay metadata
 - tool call audit envelope
 
-### 18.1 Personal Agent Provisioning (CKP-0008)
+### 18.1 Personal Agent Provisioning
 
 `ck.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ck.profile.agent_runtime.v1`。
 
@@ -567,14 +582,14 @@ MUST 支持:
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - Controller deactivate / suspend 时,accountable native agents 的 active sessions revocation 链失效
-- Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 CKP-0009)
+- Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 `ck.profile.agent_sidecar_thread.v1`)
 
 MUST NOT:
 - 注册独立 `ck.agent.provision` aggregate durable event(provisioning operation fan-out 到既有子事件)
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`cokret://` 等)
 
-### 18.2 Agent Auth (CKP-0008)
+### 18.2 Agent Auth
 
 `ck.profile.agent_auth.v1` 注册 agent runtime 的 authentication surface,与 `ck.profile.personal_agent_provisioning.v1` 解耦。
 
@@ -582,7 +597,7 @@ MUST 支持:
 - 复用 `POST /_cokret/gate/account/session-grants` 通过 `proof.proof_kind="agent_key_proof"` 分支
 - 独立 schema branch、独立 proof validator、独立 returned scope(交集 from agent key authorization / capability grant / Realm policy / requested scope)
 - `agent_scope_request` overlay 与 `scope_details` response overlay
-- key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段——CKP-0008 §4.6 proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
+- key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段；agent proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
 - Structured human approval request 返回(`code=claim_required` / `reason_code=human_approval_required` / `approval_request_id`),不向 agent runtime 展示 CAPTCHA / OTP
@@ -592,7 +607,7 @@ MUST NOT:
 - 在 session grant 中授予 E2EE history key、secret storage 或长期 device 权限
 - 把 controller 进入 `deactivated` / `suspended` 后的 agent session 视为有效
 
-### 18.3 Agent Delegation Policy (CKP-0008)
+### 18.3 Agent Delegation Policy
 
 `ck.profile.agent_delegation_policy.v1` 注册 capability vocabulary 与 act-on-behalf attribution 规则。
 
@@ -607,9 +622,9 @@ MUST NOT:
 - 让 agent 自动继承 controller 在 Realm 内的最大权限
 - 把 `act_on_behalf_allowed` 当作 constraint;它由 attribution + capability + approval 组合表达
 
-### 18.4 Agent Sidecar Thread (CKP-0009)
+### 18.4 Agent Sidecar Thread
 
-`ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 CKP-0007 / CKP-0008。
+`ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 Circle profile 与 personal agent provisioning / auth profiles。
 
 MUST 支持:
 - `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.agent.sidecar_thread.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliation?}`

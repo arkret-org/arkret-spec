@@ -177,17 +177,17 @@ Cokret v1 core conformance 要求如下：
 
 - **Cache-only,不解析 live `did:web` document**:fallback 期间 resolver MAY 返回 `did:webvh` 主体此前已验证的本地 cache(含 cache age 元数据);MUST NOT 退化为对 `did:web:<同 hosting domain>` 的 live resolve,即使该 hosting domain 此刻返回 200。`did:web` fallback 仅当 §3.1 表格中明确允许 `did:web` 作 principal method 的 deployment profile(目前仅 `personal_node`)显式声明 `principal_method=did:web` 时才生效——那是 deployment profile 选择，不是 outage fallback 路径。
 - 该 fallback **仅**适用于**低风险只读**操作。本规范定义的"低风险只读"集合是**封闭的**:
-  - ✅ 已缓存 DID Document 的本地展示(handle 解析、display name 渲染)
-  - ✅ 已缓存对象的本地展示(已存在的 Flow / Message / Space / Morph 渲染)
-  - ✅ 已缓存对象的本地搜索 / 本地索引查询
-  - ✅ 已收到 snapshot / Anchor 的 state_root 重算(用于本地一致性自检)
-  - ❌ 接收新到达的 Event Envelope / Move / Anchor 并写入本地 store(即使是只读 store)
-  - ❌ 联邦 transaction 接收(`POST /_cokret/self/events` 的 service-to-service 形态:含 `Source-Service-DID` / `Destination-Service-DID` header)
-  - ❌ Push notification wakeup 后的 client sync 拉取
-  - ❌ 任何 capability cache 重建或 freshness check
-  - ❌ 任何 `ck.session.grant` 验证或登录态续期
-  - ❌ Snapshot witness 接收
-  - ❌ 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `unknown_did`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
+  - Allowed: 已缓存 DID Document 的本地展示(handle 解析、display name 渲染)
+  - Allowed: 已缓存对象的本地展示(已存在的 Flow / Message / Space / Morph 渲染)
+  - Allowed: 已缓存对象的本地搜索 / 本地索引查询
+  - Allowed: 已收到 snapshot / Anchor 的 state_root 重算(用于本地一致性自检)
+  - Forbidden: 接收新到达的 Event Envelope / Move / Anchor 并写入本地 store(即使是只读 store)
+  - Forbidden: 联邦 transaction 接收(`POST /_cokret/self/events` 的 service-to-service 形态:含 `Source-Service-DID` / `Destination-Service-DID` header)
+  - Forbidden: Push notification wakeup 后的 client sync 拉取
+  - Forbidden: 任何 capability cache 重建或 freshness check
+  - Forbidden: 任何 `ck.session.grant` 验证或登录态续期
+  - Forbidden: Snapshot witness 接收
+  - Forbidden: 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `unknown_did`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
 - fallback 期间禁止任何 live DID Document 解析、handle re-resolution、capability subject 重映射或基于网络响应的缓存索引重建。允许的"本地搜索"只能读取进入 degraded mode 之前已经由 verified DID evidence 建好的本地索引；实现不得在 outage 期间用新的 DNS / HTTPS / handle 结果重建索引或补全 subject。
 - **"已建好的本地索引"的可信来源约束（normative，防索引洗白）**：degraded mode 期间可被读取的"已建好的本地索引"MUST 由满足以下两条的 anchored evidence 派生，否则 degraded 期间 resolver MUST 拒绝消费该索引（返回 `webvh_cache_unavailable` / `unknown_did`，按低风险只读失败处理），不得把它当作可信解析结果：
   - **evidence age ≤ 7 天**：构建该索引条目所依据的 `did:webvh` DID Document / SCID / entry hash chain / controller proof evidence 的 `cached_evidence_age_ms ≤ 7d`，且 controller-proof 在构建时已验证通过（与本节 per-entry 7 天 cache age 上限一致；过旧或 controller-proof 未验证的 evidence 不得支撑索引）。

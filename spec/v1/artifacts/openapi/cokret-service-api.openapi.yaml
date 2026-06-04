@@ -49,7 +49,11 @@ info:
     `ServiceDescribe`.
 
 
-    Extension / interop / deployment-local operations (directory, applet, MIMI,
+    Security-sensitive extension operations such as MLS KeyPackage lifecycle and
+
+    Applet install preview/commit also carry typed DTO schemas. Remaining
+
+    extension / interop / deployment-local operations (directory, applet, MIMI,
 
     push, moderation, admin, etc.) continue to use the
 
@@ -777,6 +781,30 @@ components:
       $ref: ../schemas/account-subscribe-frame.schema.json
     BottomDiagnostic:
       $ref: ../schemas/bottom.schema.json
+    KeyPackagesUploadRequest:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/upload_request
+    KeyPackagesUploadResponse:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/upload_response
+    KeyPackagesClaimRequest:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/claim_request
+    KeyPackagesClaimResponse:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/claim_response
+    KeyPackagesConsumeRequest:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/consume_request
+    KeyPackagesConsumeResponse:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/consume_response
+    KeyPackagesRevokeRequest:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/revoke_request
+    KeyPackagesRevokeResponse:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/revoke_response
+    AppletInstallPreviewRequest:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/preview_request
+    AppletInstallPlan:
+      $ref: ../schemas/applet-install-plan.schema.json
+    AppletInstallRequest:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/install_request
+    AppletInstallResponse:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/install_response
 
     # =========================================================================
     # Typed request / response schemas for stable core operations.
@@ -5236,13 +5264,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeyPackagesUploadResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/KeyPackagesUploadRequest'
   /_cokret/self/keys/keypackages/claim:
     post:
       operationId: ck.keys.keypackages.claim
@@ -5258,13 +5286,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeyPackagesClaimResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/KeyPackagesClaimRequest'
   /_cokret/self/keys/keypackages/consume:
     post:
       operationId: ck.keys.keypackages.consume
@@ -5280,13 +5308,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeyPackagesConsumeResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/KeyPackagesConsumeRequest'
   /_cokret/self/keys/keypackages/revoke:
     post:
       operationId: ck.keys.keypackages.revoke
@@ -5298,13 +5326,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeyPackagesRevokeResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/KeyPackagesRevokeRequest'
   /_cokret/self/keys/backups/{backup_id}:
     put:
       operationId: ck.keys.backups.put
@@ -6065,13 +6093,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletInstallPlan'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AppletInstallPreviewRequest'
   /_cokret/self/applets/install:
     post:
       operationId: ck.applet.install
@@ -6091,13 +6119,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletInstallResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AppletInstallRequest'
   /_cokret/self/applets/{applet_id}/revoke:
     post:
       operationId: ck.applet.revoke

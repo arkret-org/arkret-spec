@@ -242,6 +242,7 @@
     "ck.profile.disclosed_audit.e2ee.v1": "admin",
     "ck.profile.cross_signing.reset.v1": "admin",
     "ck.profile.mls.minimal_metadata_realm.v1": "admin",
+    "ck.profile.traffic_metadata_hardened.v1": "admin",
     "ck.profile.key_backup.memory_hard.v1": "admin",
     "ck.profile.circle_anchor_cadence.fixed_5m.v1": "admin",
     "ck.profile.accountable_principals.strict_reject.v1": "admin",
@@ -285,6 +286,7 @@
     "asset_download_privacy_policy",
     "private_contact_discovery",
     "connection_identifier_separation",
+    "ck.profile.traffic_metadata_hardened.v1",
     "history_sharing_policy",
     "preview_policy"
   ],
@@ -306,6 +308,7 @@
     "ck.profile.disclosed_audit.e2ee.v1",
     "ck.profile.cross_signing.reset.v1",
     "ck.profile.mls.minimal_metadata_realm.v1",
+    "ck.profile.traffic_metadata_hardened.v1",
     "ck.profile.key_backup.memory_hard.v1",
     "ck.profile.circle_anchor_cadence.fixed_5m.v1",
     "ck.profile.accountable_principals.strict_reject.v1"
@@ -2393,6 +2396,106 @@
           "minimal_metadata_presign_forbidden"
         ],
         "unsupported_optional": "fail closed before joining minimal-metadata encrypted Realm"
+      }
+    },
+    "ck.profile.traffic_metadata_hardened.v1": {
+      "role": "admin",
+      "description": "Deployment hardening profile for high-privacy traffic metadata. When declared for a Realm, deployment, or service route, federation fanout timing, batch size, Welcome size, push wakeups, and retry cadence MUST be padded or randomized enough to satisfy the declared observable bounds.",
+      "required_endpoints": [
+        "ck.events.submit",
+        "ck.events.subscribe",
+        "ck.push.notify"
+      ],
+      "required_event_kinds": [
+        "ck.message.create",
+        "ck.mls.welcome",
+        "ck.mls.commit"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.encrypted_envelope.v1",
+        "ck.schema.notification.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json",
+        "federation-fixture.json"
+      ],
+      "optional_extensions": [
+        "ohttp_relay",
+        "relay_indirection",
+        "decoy_wakeup"
+      ],
+      "feature_discovery": {
+        "required": [
+          "federation_batch_padding",
+          "welcome_padding_bucket",
+          "bounded_send_jitter",
+          "blind_or_batch_wakeup",
+          "retry_cadence_padding",
+          "traffic_metadata_observability_bounds"
+        ],
+        "unsupported_optional": "fail closed before claiming traffic metadata hardening"
+      },
+      "profile_parameters": {
+        "federation_batch_min_size": {
+          "type": "integer",
+          "minimum": 2,
+          "default": 8,
+          "description": "Minimum outbound federation batch size before padding. Empty/padded batches count toward the observable batch size."
+        },
+        "welcome_padding_buckets_bytes": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 4096
+          },
+          "default": [
+            4096,
+            16384,
+            65536
+          ],
+          "description": "Allowed padded Welcome / GroupInfo blob sizes. Sender MUST round up to the smallest bucket that fits and MUST NOT leak exact leaf count by raw ciphertext length."
+        },
+        "send_jitter_ms": {
+          "type": "object",
+          "required": [
+            "min",
+            "max"
+          ],
+          "properties": {
+            "min": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 250
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 3000
+            }
+          },
+          "description": "Bounded randomized delay added before federation fanout and retry scheduling. Implementations MUST NOT encode activity by selecting deterministic edge values."
+        },
+        "push_wakeup_mode": {
+          "type": "string",
+          "enum": [
+            "blind_wakeup",
+            "batch_wakeup",
+            "no_notification"
+          ],
+          "default": "batch_wakeup",
+          "description": "High-privacy push default. visible_notification is incompatible unless Realm policy explicitly opts out of this hardening profile for that recipient route."
+        },
+        "relay_requirement": {
+          "type": "string",
+          "enum": [
+            "ohttp",
+            "trusted_relay",
+            "decoy_traffic"
+          ],
+          "description": "At least one relay/indirection/decoy mechanism MUST be enabled for cross-domain high-privacy routes."
+        }
       }
     },
     "ck.profile.accountable_principals.strict_reject.v1": {

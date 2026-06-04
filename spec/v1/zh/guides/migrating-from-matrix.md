@@ -188,14 +188,14 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 
 按 Matrix device-key 模型逐项比对，Cokret v1 已经覆盖：
 
-- ✅ device identity key（Ed25519 / X25519）
-- ✅ OTK / fallback key
-- ✅ cross-signing 三层
-- ✅ to-device 验证状态机 + cancel code
-- ✅ server-side key backup（并增加域隔离）
-- ✅ device list sync + 撤销
-- ✅ secret storage（降为 client-local，wire 走 backup envelope）
-- ✅ 群组加密（以 MLS 取代 Megolm，绑定 governance lattice）
+- covered: device identity key（Ed25519 / X25519）
+- covered: OTK / fallback key
+- covered: cross-signing 三层
+- covered: to-device 验证状态机 + cancel code
+- covered: server-side key backup（并增加域隔离）
+- covered: device list sync + 撤销
+- covered: secret storage（降为 client-local，wire 走 backup envelope）
+- covered: 群组加密（以 MLS 取代 Megolm，绑定 governance lattice）
 
 Cokret 比 Matrix 多覆盖的：DID-rooted inception、principal control event stream、`ck.session.grant`、agent key、applet delegated device、push 伪名（`push_target_id`）、KeyPackage capability-subset rule、域隔离 backup、解密能力 ≠ 所有权证明的明确禁令。
 

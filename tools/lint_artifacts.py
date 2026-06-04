@@ -57,6 +57,8 @@ JSON_FENCE_EXPECT_ATTR_RE = re.compile(r"\bexpect=(valid|invalid)\b")
 JSON_FENCE_FIRST_ERROR_ATTR_RE = re.compile(r"\bfirst_error=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
 TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bck:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
+RULE_MARKER_EMOJI_RE = re.compile(r"[✅❌]")
+CKP_ID_RE = re.compile(r"^CKP-[0-9]{4}$")
 TEXT_ARTIFACT_REF_RE = re.compile(
     r"(?<![A-Za-z0-9_./-])("
     r"zh/[A-Za-z0-9_./-]+\.mdx?|"
@@ -947,6 +949,119 @@ def check_markdown_links(lint: Lint) -> None:
                 continue
             if not resolved.exists():
                 lint.fail(path, f"markdown link target does not exist: {target}")
+
+
+def check_no_rule_marker_emoji(lint: Lint) -> None:
+    for path in markdown_files():
+        text = path.read_text(encoding="utf-8")
+        for line_number, line in enumerate(text.splitlines(), 1):
+            if RULE_MARKER_EMOJI_RE.search(line):
+                lint.fail(
+                    path,
+                    f"line {line_number} uses emoji rule marker; use textual allowed/forbidden/included/excluded",
+                )
+
+
+def check_proposal_merge_manifest(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "proposal-merge-manifest.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    if data.get("source_of_truth") is not True:
+        lint.fail(path, "source_of_truth must be true")
+    if data.get("scope") != "accepted_merged_ckp_v1":
+        lint.fail(path, "scope must be accepted_merged_ckp_v1")
+
+    policy = data.get("policy")
+    if not isinstance(policy, dict):
+        lint.fail(path, "policy must be an object")
+        policy = {}
+    if policy.get("accepted_proposals_are_historical") is not True:
+        lint.fail(path, "policy.accepted_proposals_are_historical must be true")
+
+    forbidden = policy.get("formal_zh_refs_forbidden")
+    forbidden_ckps: set[str] = set()
+    if not isinstance(forbidden, list) or not forbidden:
+        lint.fail(path, "policy.formal_zh_refs_forbidden must be a non-empty list")
+    else:
+        for index, value in enumerate(forbidden):
+            if not isinstance(value, str) or not CKP_ID_RE.fullmatch(value):
+                lint.fail(path, f"policy.formal_zh_refs_forbidden[{index}] must be CKP-NNNN")
+                continue
+            forbidden_ckps.add(value)
+
+    rows = data.get("merged_proposals")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "merged_proposals must be a non-empty list")
+        return
+
+    seen: set[str] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            lint.fail(path, f"merged_proposals[{index}] must be an object")
+            continue
+        ckp = row.get("ckp")
+        if not isinstance(ckp, str) or not CKP_ID_RE.fullmatch(ckp):
+            lint.fail(path, f"merged_proposals[{index}].ckp must be CKP-NNNN")
+            continue
+        if ckp in seen:
+            lint.fail(path, f"duplicate proposal merge row for {ckp}")
+        seen.add(ckp)
+        if row.get("status") != "accepted_merged":
+            lint.fail(path, f"{ckp}.status must be accepted_merged")
+
+        proposal_file = row.get("proposal_file")
+        if not isinstance(proposal_file, str) or not proposal_file.startswith("proposals/"):
+            lint.fail(path, f"{ckp}.proposal_file must be a proposals/ path")
+        elif Path(proposal_file).is_absolute() or ".." in Path(proposal_file).parts:
+            lint.fail(path, f"{ckp}.proposal_file escapes spec/v1: {proposal_file}")
+        elif not (SPEC_ROOT / proposal_file).exists():
+            lint.fail(path, f"{ckp}.proposal_file does not exist: {proposal_file}")
+
+        sections = row.get("merged_sections")
+        if not isinstance(sections, list) or not sections:
+            lint.fail(path, f"{ckp}.merged_sections must be a non-empty list")
+            continue
+        for section_index, section in enumerate(sections):
+            if not isinstance(section, dict):
+                lint.fail(path, f"{ckp}.merged_sections[{section_index}] must be an object")
+                continue
+            targets = section.get("targets")
+            if not isinstance(targets, list) or not targets:
+                lint.fail(path, f"{ckp}.merged_sections[{section_index}].targets must be non-empty")
+                continue
+            for target in targets:
+                if not isinstance(target, str) or not target:
+                    lint.fail(path, f"{ckp}.merged_sections[{section_index}] has non-string target")
+                    continue
+                if Path(target).is_absolute() or ".." in Path(target).parts:
+                    lint.fail(path, f"{ckp} target escapes spec/v1: {target}")
+                    continue
+                if not (SPEC_ROOT / target).exists():
+                    lint.fail(path, f"{ckp} target does not exist: {target}")
+
+    if forbidden_ckps != seen:
+        lint.fail(
+            path,
+            "policy.formal_zh_refs_forbidden must match merged_proposals ckps: "
+            f"forbidden-only={sorted(forbidden_ckps - seen)}, rows-only={sorted(seen - forbidden_ckps)}",
+        )
+
+    for zh_path in sorted((SPEC_ROOT / "zh").rglob("*.md")):
+        try:
+            text = zh_path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for line_number, line in enumerate(text.splitlines(), 1):
+            for ckp in sorted(forbidden_ckps):
+                if ckp in line:
+                    lint.fail(
+                        zh_path,
+                        f"line {line_number}: accepted merged proposal {ckp} must not be "
+                        "referenced from formal zh/ normative text; use proposal-merge-manifest.json "
+                        "for history and link formal v1 sections instead.",
+                    )
 
 
 
@@ -2472,6 +2587,58 @@ def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> 
     return "empty_response"
 
 
+def normalize_artifact_schema_ref(ref: str | None) -> str | None:
+    if not isinstance(ref, str) or not ref:
+        return None
+    if ref.startswith("../schemas/"):
+        return "schemas/" + ref.removeprefix("../schemas/")
+    if ref.startswith("./schemas/"):
+        return "schemas/" + ref.removeprefix("./schemas/")
+    if ref.startswith("schemas/"):
+        return ref
+    return ref
+
+
+def openapi_artifact_schema_ref(schema: Any, components: dict[str, Any]) -> str | None:
+    if not isinstance(schema, dict):
+        return None
+    ref = schema.get("$ref")
+    if not isinstance(ref, str):
+        return None
+    if ref.startswith("#/components/schemas/"):
+        component_name = ref.rsplit("/", 1)[-1]
+        component_schema = components.get(component_name)
+        if isinstance(component_schema, dict):
+            component_ref = component_schema.get("$ref")
+            if isinstance(component_ref, str):
+                return normalize_artifact_schema_ref(component_ref)
+        return ref
+    return normalize_artifact_schema_ref(ref)
+
+
+def check_artifact_schema_ref(lint: Lint, owner: Path, label: str, ref: Any) -> None:
+    if not isinstance(ref, str) or not ref:
+        lint.fail(owner, f"{label} must be a non-empty artifact schema ref")
+        return
+    file_ref, _, fragment = ref.partition("#")
+    if not file_ref.startswith("schemas/"):
+        lint.fail(owner, f"{label} must reference artifacts/schemas: {ref}")
+        return
+    target = ARTIFACTS / file_ref
+    data = load_json(lint, target)
+    if not isinstance(data, dict):
+        return
+    if fragment:
+        current: Any = data
+        for token in fragment.removeprefix("/").split("/"):
+            token = token.replace("~1", "/").replace("~0", "~")
+            if isinstance(current, dict) and token in current:
+                current = current[token]
+            else:
+                lint.fail(owner, f"{label} fragment does not exist: {ref}")
+                return
+
+
 def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str, dict[str, Any]]:
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
@@ -2480,6 +2647,9 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
     if not isinstance(paths, dict):
         lint.fail(openapi_path, "OpenAPI paths missing")
         return {}
+    components = openapi.get("components", {}).get("schemas", {})
+    if not isinstance(components, dict):
+        components = {}
 
     facts: dict[str, dict[str, Any]] = {}
     for path_item in paths.values():
@@ -2510,6 +2680,8 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
                 and request_schema.get("$ref") == GENERIC_OPERATION_REQUEST_REF,
                 "generic_response": isinstance(response_schema, dict)
                 and response_schema.get("$ref") == GENERIC_OPERATION_RESULT_REF,
+                "request_schema_ref": openapi_artifact_schema_ref(request_schema, components),
+                "response_schema_ref": openapi_artifact_schema_ref(response_schema, components),
                 "success_shape_kind": infer_openapi_success_shape(operation_id, method, response_schema),
             }
     return facts
@@ -2560,6 +2732,19 @@ def check_operation_binding_metadata(lint: Lint) -> None:
 
         uses_generic = facts["generic_request"] or facts["generic_response"]
         generic_binding = row.get("generic_binding")
+        for schema_field, fact_field in (
+            ("request_schema_ref", "request_schema_ref"),
+            ("response_schema_ref", "response_schema_ref"),
+        ):
+            if schema_field in row:
+                expected_ref = row.get(schema_field)
+                check_artifact_schema_ref(lint, operation_path, f"{operation_id}.{schema_field}", expected_ref)
+                if facts.get(fact_field) != expected_ref:
+                    lint.fail(
+                        operation_path,
+                        f"{operation_id} {schema_field}={expected_ref!r} "
+                        f"but OpenAPI references {facts.get(fact_field)!r}",
+                    )
         if uses_generic:
             if tier_by_operation.get(operation_id) == "core":
                 lint.fail(operation_path, f"{operation_id} is core tier and must not use generic OpenAPI bindings")
@@ -2577,6 +2762,42 @@ def check_operation_binding_metadata(lint: Lint) -> None:
                     lint.fail(operation_path, f"{operation_id} generic_binding.{field} must be a non-empty string")
         elif generic_binding is not None:
             lint.fail(operation_path, f"{operation_id} declares generic_binding but OpenAPI uses dedicated schemas")
+
+
+def check_binding_completeness_index(lint: Lint) -> None:
+    catalog_path = ARTIFACTS / "registry" / "contract-catalog.json"
+    binding_path = SPEC_ROOT / "zh" / "sync" / "service-http-binding.md"
+    catalog = load_json(lint, catalog_path)
+    if not isinstance(catalog, dict):
+        return
+    operation_registry = catalog.get("operation_registry")
+    if not isinstance(operation_registry, dict):
+        lint.fail(catalog_path, "operation_registry missing")
+        return
+    try:
+        text = binding_path.read_text(encoding="utf-8")
+    except Exception as exc:
+        lint.fail(binding_path, f"unable to read binding completeness index: {exc}")
+        return
+    if "#### 2.4.1 Binding completeness index" not in text:
+        lint.fail(binding_path, "missing §2.4.1 Binding completeness index")
+        return
+    for row in operation_registry.get("operations", []) if isinstance(operation_registry.get("operations"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        generic_binding = row.get("generic_binding")
+        if not isinstance(generic_binding, dict) or not generic_binding.get("migration_plan"):
+            continue
+        operation_id = row.get("operation_id")
+        if not isinstance(operation_id, str):
+            continue
+        expected = f"| `{operation_id}` | `migration_required` |"
+        if expected not in text:
+            lint.fail(
+                binding_path,
+                f"generic operation {operation_id} with migration_plan must be listed "
+                "in Binding completeness index as migration_required",
+            )
 
 
 def check_capability_action_event_mapping(lint: Lint) -> None:
@@ -3955,6 +4176,81 @@ def check_exporter_label_registry(lint: Lint) -> None:
             lint.fail(path, f"labels[{index}] context_fields MUST be a non-empty list")
 
 
+def json_pointer_get(data: Any, pointer: str) -> Any:
+    current = data
+    for token in pointer.removeprefix("/").split("/"):
+        token = token.replace("~1", "/").replace("~0", "~")
+        if isinstance(current, dict) and token in current:
+            current = current[token]
+            continue
+        return None
+    return current
+
+
+def check_signature_algorithm_registry(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "signature-alg-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    algorithms = data.get("algorithms")
+    if not isinstance(algorithms, list) or not algorithms:
+        lint.fail(path, "algorithms must be a non-empty array")
+        return
+
+    proof_algs: set[str] = set()
+    raw_algs: set[str] = set()
+    canonical_ids: set[str] = set()
+    for index, row in enumerate(algorithms):
+        label = f"algorithms[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+        canonical_id = row.get("canonical_id")
+        proof_alg = row.get("proof_alg")
+        raw_alg = row.get("signature_algorithm")
+        status = row.get("status")
+        if not isinstance(canonical_id, str) or not canonical_id:
+            lint.fail(path, f"{label}.canonical_id must be a non-empty string")
+            continue
+        if canonical_id in canonical_ids:
+            lint.fail(path, f"duplicate canonical_id: {canonical_id}")
+        canonical_ids.add(canonical_id)
+        if status == "active":
+            if not isinstance(proof_alg, str) or not proof_alg:
+                lint.fail(path, f"{label}.proof_alg must be a non-empty string")
+            else:
+                proof_algs.add(proof_alg)
+            if not isinstance(raw_alg, str) or not raw_alg:
+                lint.fail(path, f"{label}.signature_algorithm must be a non-empty string")
+            else:
+                raw_algs.add(raw_alg)
+
+    expected_proof = sorted(proof_algs)
+    expected_raw = sorted(raw_algs)
+    proof_enum_locations = [
+        ("schemas/event-envelope.schema.json", "/$defs/event_proof/properties/alg/enum"),
+        ("schemas/event-envelope.schema.json", "/$defs/proof/properties/alg/enum"),
+        ("schemas/anchor.schema.json", "/$defs/signature/properties/alg/enum"),
+        ("schemas/ice-config-response.schema.json", "/$defs/signature/properties/alg/enum"),
+        ("schemas/attestation-evidence.schema.json", "/properties/attestation_key/properties/alg/enum"),
+    ]
+    raw_enum_locations = [
+        ("schemas/member-identity.schema.json", "/properties/proof/properties/signature_algorithm/enum"),
+    ]
+    for file_ref, pointer in proof_enum_locations:
+        schema_path = ARTIFACTS / file_ref
+        schema = load_json(lint, schema_path)
+        actual = json_pointer_get(schema, pointer) if isinstance(schema, dict) else None
+        if sorted(actual or []) != expected_proof:
+            lint.fail(schema_path, f"{pointer} must match signature-alg-registry proof_alg values {expected_proof}")
+    for file_ref, pointer in raw_enum_locations:
+        schema_path = ARTIFACTS / file_ref
+        schema = load_json(lint, schema_path)
+        actual = json_pointer_get(schema, pointer) if isinstance(schema, dict) else None
+        if sorted(actual or []) != expected_raw:
+            lint.fail(schema_path, f"{pointer} must match signature-alg-registry signature_algorithm values {expected_raw}")
+
+
 # --- STR-002 / OPT-005: action prose-reference closure ------------------------
 # (ck.profile.*.vN prose closure is already enforced for all markdown by
 # check_markdown_examples; only the hand-maintained action list lacked a gate.)
@@ -4032,6 +4328,7 @@ def main() -> int:
         return 1
 
     check_registry_manifest(lint)
+    check_proposal_merge_manifest(lint)
     known = check_registries(lint)
     check_schema_refs(lint, known)
     check_profile_requirements(lint, known)
@@ -4049,6 +4346,7 @@ def main() -> int:
     check_reducer_payload_closure(lint)
     check_did_and_device_constraints(lint)
     check_operation_binding_metadata(lint)
+    check_binding_completeness_index(lint)
     check_binding_variant_non_http(lint)
     check_capability_action_event_mapping(lint)
     check_text_reference_targets(lint)
@@ -4060,6 +4358,7 @@ def main() -> int:
     check_fixtures(lint, known)
     check_crypto_signature_fixture(lint)
     check_markdown_links(lint)
+    check_no_rule_marker_emoji(lint)
     check_markdown_examples(lint, known)
     check_legacy_wire_fields(lint)
     check_forbidden_naming_aliases(lint)
@@ -4078,6 +4377,7 @@ def main() -> int:
     check_canonical_digest_fixtures(lint)
     check_field_order(lint)
     check_exporter_label_registry(lint)
+    check_signature_algorithm_registry(lint)
     check_action_reference_closure(lint)
 
     if lint.errors:

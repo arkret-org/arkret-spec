@@ -235,7 +235,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "kind": "ck.content.notice",
   "body": "Agent completed task: Review legal docs",
   "format": "markdown",
-  "formatted_body": "Agent completed task: **Review legal docs** ✅"
+  "formatted_body": "Agent completed task: **Review legal docs** [done]"
 }
 ```
 

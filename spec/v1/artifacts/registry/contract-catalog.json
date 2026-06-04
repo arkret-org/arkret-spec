@@ -1417,6 +1417,33 @@
         "bottom": "reject"
       },
       {
+        "event_kind": "ck.key_backup.active_series",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Key backup active series selection for one principal and backup_class.",
+        "payload_schema": "ck.schema.key_backup_active_series.v1",
+        "cell_family": "ck.component.key_backup.active_series.v1",
+        "cell_subject": {
+          "type": "tuple",
+          "components": [
+            {
+              "name": "actor_id",
+              "type": "did",
+              "field": "payload.actor_id"
+            },
+            {
+              "name": "backup_class",
+              "type": "string",
+              "field": "payload.backup_class"
+            }
+          ]
+        },
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
         "event_kind": "ck.device.push_route",
         "category": "device",
         "status": "active",
@@ -2025,6 +2052,24 @@
         "file": "schemas/key-backup.schema.json"
       },
       {
+        "schema_id": "ck.schema.key_backup_active_series.v1",
+        "file": "schemas/key-backup-active-series.schema.json",
+        "status": "active",
+        "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_class)."
+      },
+      {
+        "schema_id": "ck.schema.key_backup_plaintext.v1",
+        "file": "schemas/key-backup-plaintext.schema.json",
+        "status": "active",
+        "description": "Canonical plaintext keybag opened from a ck.schema.key_backup.v1 envelope."
+      },
+      {
+        "schema_id": "ck.schema.key_backup_unlock_proof.v1",
+        "file": "schemas/key-backup-unlock-proof.schema.json",
+        "status": "active",
+        "description": "Proof binding a key-backup read/decrypt action to one recovery session, requesting device, backup object, selected series, ciphertext digest, and accepted proof transcript."
+      },
+      {
         "schema_id": "ck.schema.recovery_policy.v1",
         "file": "schemas/recovery-policy.schema.json",
         "status": "active",
@@ -2143,6 +2188,18 @@
         "description": "Controller-signed package used by ck.applet.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
       },
       {
+        "schema_id": "ck.schema.applet_install_plan.v1",
+        "file": "schemas/applet-install-plan.schema.json",
+        "status": "active",
+        "description": "Canonical Applet InstallPlan returned by ck.applet.install.preview and recomputed by ck.applet.install before commit. plan_digest is calculated over this object with plan_digest omitted."
+      },
+      {
+        "schema_id": "ck.schema.applet_install_operations.v1",
+        "file": "schemas/applet-install-operations.schema.json",
+        "status": "active",
+        "description": "Closed request/response DTO bundle for ck.applet.install.preview and ck.applet.install."
+      },
+      {
         "schema_id": "ck.schema.agent.v1",
         "file": "schemas/agent.schema.json",
         "status": "active",
@@ -2187,6 +2244,12 @@
         "file": "schemas/bottom.schema.json",
         "status": "active",
         "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
+      },
+      {
+        "schema_id": "ck.schema.keypackage_operations.v1",
+        "file": "schemas/keypackage-operations.schema.json",
+        "status": "active",
+        "description": "Closed request/response DTO bundle for ck.keys.keypackages.upload, claim, consume, and revoke."
       },
       {
         "schema_id": "ck.schema.service_describe.v1",
@@ -2614,6 +2677,7 @@
       "Each surface_groups entry carries a tier (see capability_tiers); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
       "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
       "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
+      "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
       "Operations that still bind OpenAPI request/response bodies to OperationRequest or OperationResult MUST declare generic_binding with request/response booleans, reason, profile_gate, and migration_plan; core-tier operations MUST NOT use generic bindings."
     ],
     "capability_tiers": {
@@ -3065,30 +3129,18 @@
         "http": "POST /_cokret/self/applets/install/preview",
         "grpc": "Applet/InstallPreview",
         "mq": "applet.install.preview",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "extension_profile_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated AppletInstallPreviewRequest/AppletInstallPlan schemas before this surface is treated as generated-SDK complete.",
-          "surface": "applet_install"
-        }
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/preview_request",
+        "response_schema_ref": "schemas/applet-install-plan.schema.json"
       },
       {
         "operation_id": "ck.applet.install",
         "http": "POST /_cokret/self/applets/install",
         "grpc": "Applet/Install",
         "mq": "applet.install",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "extension_profile_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated AppletInstallRequest/AppletInstallResponse schemas before this surface is treated as generated-SDK complete.",
-          "surface": "applet_install"
-        }
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/install_request",
+        "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/install_response"
       },
       {
         "operation_id": "ck.applet.ping",
@@ -3665,60 +3717,36 @@
         "http": "POST /_cokret/self/keys/keypackages/claim",
         "grpc": "Keys/KeyPackagesClaim",
         "mq": "keys.keypackages.claim",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "extension_profile_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "device_and_keys"
-        }
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/claim_request",
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/claim_response"
       },
       {
         "operation_id": "ck.keys.keypackages.consume",
         "http": "POST /_cokret/self/keys/keypackages/consume",
         "grpc": "Keys/KeyPackagesConsume",
         "mq": "keys.keypackages.consume",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "extension_profile_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "device_and_keys"
-        }
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/consume_request",
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/consume_response"
       },
       {
         "operation_id": "ck.keys.keypackages.revoke",
         "http": "POST /_cokret/self/keys/keypackages/revoke",
         "grpc": "Keys/KeyPackagesRevoke",
         "mq": "keys.keypackages.revoke",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "extension_profile_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "device_and_keys"
-        }
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/revoke_request",
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/revoke_response"
       },
       {
         "operation_id": "ck.keys.keypackages.upload",
         "http": "POST /_cokret/self/keys/keypackages/upload",
         "grpc": "Keys/KeyPackagesUpload",
         "mq": "keys.keypackages.upload",
-        "success_shape_kind": "operation_result",
-        "generic_binding": {
-          "request": true,
-          "response": true,
-          "reason": "extension_profile_surface",
-          "profile_gate": true,
-          "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-          "surface": "device_and_keys"
-        }
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/upload_request",
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/upload_response"
       },
       {
         "operation_id": "ck.keys.query",

@@ -256,7 +256,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.agent.key.authorize`（high risk；授权 agent key，target=`ck.agent.key.authorize`）
 - `ck.agent.key.rotate`（high risk；轮换 agent key，target=`ck.agent.key.rotate`）
 - `ck.agent.key.revoke`（high risk；撤销 agent key，target=`ck.agent.key.revoke`）
-- `ck.agent.provision`(CKP-0008;aggregate admin action,`target_event_kinds=[ck.profile.create, ck.identity.accountability_grant, ck.agent.key.authorize, ck.capability.grant]`,migration_group=`ckp_0008_agent_provisioning`)
+- `ck.agent.provision`(aggregate admin action,`target_event_kinds=[ck.profile.create, ck.identity.accountability_grant, ck.agent.key.authorize, ck.capability.grant]`,profile=`ck.profile.personal_agent_provisioning.v1`)
 - `ck.agent.pause`(controller-only;target=`ck.agent.pause`)
 - `ck.agent.resume`(controller-only;target=`ck.agent.resume`)
 - `ck.agent.deactivate`(controller-only,terminal;target=`ck.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
@@ -264,7 +264,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.agent.action_request`(agent-initiated action request;target=`ck.agent.action_request`)
 - `ck.agent.action_approve`(controller-only;target=`ck.agent.action_approve`)
 - `ck.agent.action_reject`(controller-only;target=`ck.agent.action_reject`)
-- `ck.agent.sidecar_thread.ensure`(CKP-0009;aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.flow.create, ck.relation.create]`,migration_group=`ckp_0009_sidecar_ensure`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
+- `ck.agent.sidecar_thread.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.flow.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
 - `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Flow)
 - `ck.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `ck.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
 - `ck.policy.manage`

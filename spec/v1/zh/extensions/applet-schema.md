@@ -157,7 +157,7 @@ Install preview request:
 }
 ```
 
-`InstallPlan` MUST include `plan_id`、`applet_id`、`package_digest`、`registration_epoch`、`effective_scope`、`requested_scopes`、`approved_scopes`、`denied_scopes`、`events_to_submit`、`capability_constraints`、`namespace_conflicts`、`e2ee_effect`、`widget_effect`、`warnings`、`plan_digest`。
+`InstallPlan` 的机器契约是 [`schemas/applet-install-plan.schema.json`](../../artifacts/schemas/applet-install-plan.schema.json)。它 MUST include `schema="ck.schema.applet_install_plan.v1"`、`plan_id`、`applet_id`、`package_digest`、`registration_epoch`、`effective_scope`、`requested_scopes`、`approved_scopes`、`denied_scopes`、`events_to_submit`、`capability_constraints`、`namespace_conflicts`、`e2ee_effect`、`widget_effect`、`warnings`、`plan_digest`。`plan_digest` 的 canonical input 是按 [`encoding.md`](../conformance/encoding.md) canonical JSON 编码的 InstallPlan object，且在计算输入中省略 `plan_digest` 字段本身。
 
 Install commit request:
 
@@ -189,7 +189,7 @@ Install commit request:
 }
 ```
 
-Commit response MUST include `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
+Commit response MUST validate [`schemas/applet-install-operations.schema.json#/$defs/install_response`](../../artifacts/schemas/applet-install-operations.schema.json) and include `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
 
 `effective_scope.kind="realm"` MUST only contain `kind` and `realm_id`。`effective_scope.kind="circle"` MUST contain `kind`、`realm_id` and `circle_id`。单次 install operation MUST only target one effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
 

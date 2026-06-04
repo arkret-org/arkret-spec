@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/recovery-session.schema.json",
   "title": "Cokret Recovery Session",
-  "description": "Wire contract for the device recovery session state machine. The root object is the create/get response shape; request/response helper shapes and the principal_signing proof transcript live in $defs. See zh/crypto-media/device-lifecycle.md §15.",
+  "description": "Wire contract for the device recovery session state machine. The root object is the create/get response shape; request/response helper shapes and kind-specific recovery proof transcripts live in $defs. See zh/crypto-media/device-lifecycle.md §15.",
   "$ref": "#/$defs/session",
   "$defs": {
     "did": {
@@ -273,6 +273,205 @@
       },
       "additionalProperties": false
     },
+    "recovery_unlock_proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "challenge",
+        "recovery_secret_ref",
+        "verification_method",
+        "alg",
+        "unlock_commitment",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "const": "recovery_unlock"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "recovery_secret_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "DID URL or recovery-policy key ref for the recovery key entry authorized at the session's created_at."
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "alg": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unlock_commitment": {
+          "$ref": "#/$defs/hash",
+          "description": "Public binding hash over the session transcript and recovery_secret_ref. Possession is proven by signature; this commitment prevents proof-shell substitution."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_quorum_proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "challenge",
+        "threshold",
+        "signatures"
+      ],
+      "properties": {
+        "kind": {
+          "const": "device_quorum"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "signatures": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "device_id",
+              "verification_method",
+              "alg",
+              "signature"
+            ],
+            "properties": {
+              "device_id": {
+                "$ref": "#/$defs/device_id"
+              },
+              "verification_method": {
+                "$ref": "#/$defs/did_url"
+              },
+              "alg": {
+                "type": "string",
+                "minLength": 1
+              },
+              "signature": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "trusted_recovery_service_proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "challenge",
+        "service_did",
+        "audience",
+        "verification_method",
+        "alg",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "const": "trusted_recovery_service"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "audience": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "alg": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attestation_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Reference to service attestation evidence when required by the active recovery policy."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "threshold_recovery_proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "challenge",
+        "threshold",
+        "share_releases"
+      ],
+      "properties": {
+        "kind": {
+          "const": "threshold_recovery"
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "share_releases": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "share_id",
+              "holder",
+              "transcript_digest",
+              "verification_method",
+              "alg",
+              "signature"
+            ],
+            "properties": {
+              "share_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{1,64}$"
+              },
+              "holder": {
+                "$ref": "#/$defs/did"
+              },
+              "transcript_digest": {
+                "$ref": "#/$defs/hash",
+                "description": "Digest of the holder's share release transcript bound to share_id, holder, recovery_session_id, requesting_device_id, audience, and issued_at."
+              },
+              "verification_method": {
+                "$ref": "#/$defs/did_url"
+              },
+              "alg": {
+                "type": "string",
+                "minLength": 1
+              },
+              "signature": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "proof_submit_request": {
       "type": "object",
       "required": [
@@ -283,9 +482,21 @@
           "oneOf": [
             {
               "$ref": "#/$defs/principal_signing_proof"
+            },
+            {
+              "$ref": "#/$defs/recovery_unlock_proof"
+            },
+            {
+              "$ref": "#/$defs/device_quorum_proof"
+            },
+            {
+              "$ref": "#/$defs/trusted_recovery_service_proof"
+            },
+            {
+              "$ref": "#/$defs/threshold_recovery_proof"
             }
           ],
-          "description": "v1 schema defines principal_signing now. Other proof kinds reuse the session binding rules and receive kind-specific schemas when implemented."
+          "description": "Kind-specific recovery proof. Receivers reconstruct the canonical transcript from stored session state and the proof body, then verify that the active recovery policy allows this proof kind and its threshold/service/share constraints."
         }
       },
       "additionalProperties": false
@@ -499,6 +710,70 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "generic_recovery_transcript": {
+      "type": "object",
+      "description": "Canonical transcript field set shared by recovery_unlock, device_quorum, trusted_recovery_service, and threshold_recovery proofs before adding kind-specific proof_body. Producers and receivers MUST bind exactly this session tuple.",
+      "required": [
+        "type",
+        "kind",
+        "principal_id",
+        "requesting_device_id",
+        "trust_domain",
+        "policy_id",
+        "policy_version",
+        "recovery_session_id",
+        "ssk_generation",
+        "challenge",
+        "created_at",
+        "expires_at",
+        "proof_body"
+      ],
+      "properties": {
+        "type": {
+          "const": "ck.identity.recovery_proof.v1"
+        },
+        "kind": {
+          "$ref": "#/$defs/proof_kind"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "requesting_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "trust_domain": {
+          "$ref": "#/$defs/trust_domain"
+        },
+        "policy_id": {
+          "$ref": "#/$defs/policy_id"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "challenge": {
+          "$ref": "#/$defs/challenge"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof_body": {
+          "type": "object",
+          "description": "The selected proof object with signature bytes omitted where the kind-specific verification rule says so."
         }
       },
       "additionalProperties": false

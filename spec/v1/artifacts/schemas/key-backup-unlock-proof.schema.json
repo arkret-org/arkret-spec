@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/key-backup-unlock-proof.schema.json",
+  "title": "Cokret Key Backup Unlock Proof",
+  "description": "Proof presented before a recovery flow downloads or unlocks a key-backup envelope. It binds a backup read/decrypt action to one recovery_session_id, requesting device, backup object, selected series, ciphertext digest, and the proof transcript accepted by the recovery session.",
+  "type": "object",
+  "required": [
+    "schema",
+    "recovery_session_id",
+    "principal_id",
+    "requesting_device_id",
+    "backup_id",
+    "backup_class",
+    "series_id",
+    "ciphertext_digest",
+    "proof_kind",
+    "proof_digest",
+    "issued_at",
+    "auth_data"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ck.schema.key_backup_unlock_proof.v1"
+    },
+    "recovery_session_id": {
+      "$ref": "#/$defs/recovery_session_id"
+    },
+    "principal_id": {
+      "$ref": "#/$defs/did"
+    },
+    "requesting_device_id": {
+      "$ref": "#/$defs/device_id"
+    },
+    "backup_id": {
+      "$ref": "#/$defs/backup_id"
+    },
+    "backup_class": {
+      "$ref": "#/$defs/backup_class"
+    },
+    "series_id": {
+      "$ref": "#/$defs/backup_series_id"
+    },
+    "ciphertext_digest": {
+      "$ref": "#/$defs/hash"
+    },
+    "proof_kind": {
+      "$ref": "#/$defs/proof_kind"
+    },
+    "proof_digest": {
+      "$ref": "#/$defs/hash",
+      "description": "Digest of the canonical recovery proof transcript that moved the session to verified."
+    },
+    "challenge": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "Optional echo of the recovery-session challenge; when present it MUST match the session snapshot."
+    },
+    "issued_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "auth_data": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signature_algorithm",
+        "signature",
+        "signed_fields"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "#/$defs/did_url",
+          "description": "DID URL for either the accepted requesting device key after authorization, or the recovery-session proof key before did_recovery unlock."
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256"
+          ]
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "base64url signature over canonical_json(unlock proof without auth_data.signature)."
+        },
+        "signed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "allOf": [
+            { "contains": { "const": "recovery_session_id" } },
+            { "contains": { "const": "principal_id" } },
+            { "contains": { "const": "requesting_device_id" } },
+            { "contains": { "const": "backup_id" } },
+            { "contains": { "const": "backup_class" } },
+            { "contains": { "const": "series_id" } },
+            { "contains": { "const": "ciphertext_digest" } },
+            { "contains": { "const": "proof_kind" } },
+            { "contains": { "const": "proof_digest" } },
+            { "contains": { "const": "issued_at" } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "backup_id": {
+      "type": "string",
+      "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_series_id": {
+      "type": "string",
+      "pattern": "^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "recovery_session_id": {
+      "type": "string",
+      "pattern": "^ck:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_class": {
+      "type": "string",
+      "enum": [
+        "did_recovery",
+        "secret_storage",
+        "mls_history"
+      ]
+    },
+    "proof_kind": {
+      "type": "string",
+      "enum": [
+        "principal_signing",
+        "recovery_unlock",
+        "device_quorum",
+        "trusted_recovery_service",
+        "threshold_recovery"
+      ]
+    }
+  }
+}

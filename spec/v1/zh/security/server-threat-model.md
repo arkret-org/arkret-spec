@@ -90,7 +90,7 @@ sidebar:
     通过 `HEAD`、`Range`、`Content-Length`、`Content-Type`、`Content-Disposition` 或 redirect 差异推断私有 blob 是否存在、大小、类型或文件名。
 
 23. **联邦流量模式旁观（Federation Traffic-Pattern Observer）**
-    即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。高隐私部署 SHOULD 使用 OHTTP / relay indirection、批处理 padding、发送延迟抖动、固定大小 federation batch 和 decoy wakeup 流量来降低可关联性；不得把 E2EE 误表述为隐藏 federation traffic metadata。
+    即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。高隐私部署 SHOULD 声明 `ck.profile.traffic_metadata_hardened.v1`；一旦声明，该部署 MUST 使用 OHTTP / relay indirection / decoy traffic 之一，并对批处理 padding、发送延迟抖动、固定大小 federation batch、retry cadence padding 和 blind / batch wakeup 执行该 profile 的可测试参数。未声明该 profile 时，不得把 E2EE 误表述为隐藏 federation traffic metadata。
 
 24. **出站 URL / SSRF（Server-Side Request Forgery）**
     攻击者通过 DID Document serviceEndpoint、媒体 URL、snapshot chunk、Policy Server endpoint、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。

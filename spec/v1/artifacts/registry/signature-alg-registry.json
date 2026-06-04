@@ -1,0 +1,55 @@
+{
+  "version": "2026-06-04",
+  "source_of_truth": true,
+  "description": "Canonical signature algorithm vocabulary for v1 proof alg and raw signature_algorithm fields.",
+  "registry_rules": [
+    "Schema enum values for proof alg fields MUST be generated from active rows' proof_alg.",
+    "Schema enum values for raw signature_algorithm fields MUST be generated from active rows' signature_algorithm.",
+    "Algorithms not present as active rows MUST fail closed with unsupported_signature_alg on critical proofs."
+  ],
+  "algorithms": [
+    {
+      "canonical_id": "Ed25519",
+      "proof_alg": "EdDSA",
+      "signature_algorithm": "Ed25519",
+      "jwk_kty": "OKP",
+      "jwk_crv": "Ed25519",
+      "status": "active",
+      "role": "v1_default_must",
+      "profile_gate": null,
+      "proof_kinds": [
+        "detached_jws",
+        "raw_detached_signature"
+      ],
+      "security_note": "Classical Ed25519 default signature suite; not post-quantum."
+    },
+    {
+      "canonical_id": "ECDSA-P256-SHA256",
+      "proof_alg": "ES256",
+      "signature_algorithm": "ES256",
+      "jwk_kty": "EC",
+      "jwk_crv": "P-256",
+      "status": "active",
+      "role": "v1_optional_interop",
+      "profile_gate": "ck.profile.signature.ecdsa_p256.v1",
+      "proof_kinds": [
+        "detached_jws"
+      ],
+      "security_note": "Classical ECDSA P-256 suite for WebAuthn/FIDO2 and PKI interop."
+    },
+    {
+      "canonical_id": "ML-DSA-65",
+      "proof_alg": "ML-DSA-65",
+      "signature_algorithm": "ML-DSA-65",
+      "jwk_kty": null,
+      "jwk_crv": null,
+      "status": "active",
+      "role": "v1_profile_gated_pqc",
+      "profile_gate": "ck.profile.signature.pqc.v1",
+      "proof_kinds": [
+        "raw_detached_signature"
+      ],
+      "security_note": "NIST FIPS 204 ML-DSA category 3 suite for post-quantum hardening profiles."
+    }
+  ]
+}

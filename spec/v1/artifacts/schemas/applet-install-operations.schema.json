@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/applet-install-operations.schema.json",
+  "title": "Cokret Applet Install Operation DTOs",
+  "description": "Closed request/response DTOs for ck.applet.install.preview and ck.applet.install. The InstallPlan body itself is defined in applet-install-plan.schema.json.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/preview_request"
+    },
+    {
+      "$ref": "../schemas/applet-install-plan.schema.json"
+    },
+    {
+      "$ref": "#/$defs/install_request"
+    },
+    {
+      "$ref": "#/$defs/install_response"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "applet_id": {
+      "type": "string",
+      "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "grant_id": {
+      "type": "string",
+      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "applet_package": {
+      "$ref": "../schemas/applet-package.schema.json"
+    },
+    "effective_scope": {
+      "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
+    },
+    "scope_grant": {
+      "$ref": "../schemas/applet-install-plan.schema.json#/$defs/scope_grant"
+    },
+    "approval_request": {
+      "type": "object",
+      "required": [
+        "approve_actions",
+        "allow_ghost_actors",
+        "allow_delegated_native_actors",
+        "allow_e2ee_join",
+        "allow_widget"
+      ],
+      "properties": {
+        "approve_actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "allow_ghost_actors": {
+          "type": "boolean"
+        },
+        "allow_delegated_native_actors": {
+          "type": "boolean"
+        },
+        "allow_e2ee_join": {
+          "type": "boolean"
+        },
+        "allow_widget": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "actor_policy": {
+      "type": "object",
+      "properties": {
+        "bot_membership": {
+          "type": "string",
+          "enum": [
+            "invite",
+            "join",
+            "disabled"
+          ]
+        },
+        "ghost_actor_mode": {
+          "type": "string",
+          "enum": [
+            "disallowed",
+            "controller_approved",
+            "policy_declared"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "e2ee_policy": {
+      "type": "object",
+      "properties": {
+        "allow_mls_join": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "widget_policy": {
+      "type": "object",
+      "properties": {
+        "allow_widget": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rejected_item": {
+      "type": "object",
+      "required": [
+        "reason_code"
+      ],
+      "properties": {
+        "requested_scope": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "preview_request": {
+      "type": "object",
+      "required": [
+        "applet_package",
+        "effective_scope",
+        "approval_request"
+      ],
+      "properties": {
+        "applet_package": {
+          "$ref": "#/$defs/applet_package"
+        },
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "approval_request": {
+          "$ref": "#/$defs/approval_request"
+        }
+      },
+      "additionalProperties": false
+    },
+    "install_request": {
+      "type": "object",
+      "required": [
+        "plan_digest",
+        "applet_package",
+        "effective_scope",
+        "approved_scopes"
+      ],
+      "properties": {
+        "plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "applet_package": {
+          "$ref": "#/$defs/applet_package"
+        },
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "approved_scopes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scope_grant"
+          }
+        },
+        "actor_policy": {
+          "$ref": "#/$defs/actor_policy"
+        },
+        "e2ee_policy": {
+          "$ref": "#/$defs/e2ee_policy"
+        },
+        "widget_policy": {
+          "$ref": "#/$defs/widget_policy"
+        }
+      },
+      "additionalProperties": false
+    },
+    "install_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "install_id",
+        "applet_id",
+        "registration_event_ref",
+        "registration_epoch",
+        "bot_actor_id",
+        "capability_grant_refs",
+        "membership_event_refs",
+        "e2ee_authorization_refs",
+        "widget_policy_ref",
+        "effective_status",
+        "rejected"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "install_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "applet_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "$ref": "#/$defs/applet_id"
+            }
+          ]
+        },
+        "registration_event_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/event_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "registration_epoch": {
+          "$ref": "#/$defs/hash"
+        },
+        "bot_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "capability_grant_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/grant_id"
+          },
+          "uniqueItems": true
+        },
+        "membership_event_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "uniqueItems": true
+        },
+        "e2ee_authorization_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "uniqueItems": true
+        },
+        "widget_policy_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/event_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective_status": {
+          "type": "string",
+          "enum": [
+            "installed",
+            "partially_installed",
+            "rejected"
+          ]
+        },
+        "rejected": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rejected_item"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
