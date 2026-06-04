@@ -192,30 +192,6 @@
         "type": "string"
       }
     },
-    "realm_kind_allow": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "collaboration"
-        ]
-      },
-      "uniqueItems": true,
-      "deprecated": true,
-      "description": "DEPRECATED no-op (v1): all v1 Realms share one security-boundary kind, so this field carries no authorization meaning. New producers MUST NOT emit it; receivers MUST ignore it (treat as always-allow; it does not contribute to deny / quarantine / require_review and MUST NOT be relied on to narrow scope). Property kept only for historical-read compatibility. Board/list are Space kinds — use space_kind_allow."
-    },
-    "realm_kind_deny": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "collaboration"
-        ]
-      },
-      "uniqueItems": true,
-      "deprecated": true,
-      "description": "DEPRECATED no-op (v1): carries no authorization meaning. New producers MUST NOT emit it; receivers MUST ignore it (it does not contribute to deny / quarantine / require_review and MUST NOT be relied on to narrow scope). Property kept only for historical-read compatibility."
-    },
     "morph_type_allow": {
       "type": "array",
       "items": {

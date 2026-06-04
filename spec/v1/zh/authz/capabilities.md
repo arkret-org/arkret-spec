@@ -333,7 +333,6 @@ Cokret v1 支持：
 - `fields_read_deny`
 - `sensitive_fields`
 - `sensitive_handling`
-- `realm_kind_allow`（v1 reserved / deprecated no-op：v1 中所有 Realm 同属一种安全边界，无 kind 区分,producer SHOULD NOT 发送；receiver MUST 忽略（等价 always-allow，不参与 deny / quarantine / require_review 裁决）；权威定义见 [`constraint-schema.md`](./constraint-schema.md) §5）
 - `space_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
@@ -398,7 +397,6 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `fields_read_deny` | `field_access` | — | `fields_read_deny`（读取面字段拒绝列表，§16.2 算法消费） |
 | `sensitive_fields` | `field_access` | — | `sensitive_fields`（读取时需特殊处理的敏感字段集） |
 | `sensitive_handling` | `field_access` | — | `sensitive_handling`（敏感字段处理方式：`redact` / `hash` / `omit`） |
-| `realm_kind_allow` | `type_restriction` | — | `realm_kind_allow`（v1 reserved / deprecated no-op；producer SHOULD NOT 发送；receiver MUST 忽略 = always-allow，权威定义见 [`constraint-schema.md` §5](./constraint-schema.md)） |
 | `space_kind_allow` | `type_restriction` | — | `space_kind_allow`（限定 Space 的 kind，例如 board / list / swimlane）|
 | `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
 | `facet_allow` | `type_restriction` | — | `facet_allow` |
