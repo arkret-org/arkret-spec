@@ -53,16 +53,6 @@
       "notes": "Legacy contrix-brand wire token prefix. Every `cx.`-prefixed operation_id / event_kind / schema_id / capability action / error code / vector id / profile id is renamed to the `ck.` prefix. The `cx.` prefix MUST NOT appear on the current wire or in current identifiers."
     },
     {
-      "id": "ck:",
-      "kind_class": "typed_id_prefix",
-      "migration_group": "brand_namespace_cx_to_ck",
-      "since_revision": "2026-06-03",
-      "rejection_level": "hard_reject",
-      "replacement": "ck:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Legacy contrix-brand typed-id prefix. `ck:<kind>:` is renamed to `ck:<kind>:` across every typed identifier."
-    },
-    {
       "id": "contrix",
       "kind_class": "normative_prose_identifier",
       "migration_group": "brand_namespace_cx_to_ck",
@@ -1714,45 +1704,6 @@
       "migration_group": "realm_lifecycle_segment_realignment"
     },
     {
-      "id": "cx.invite.third_party",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.invite.third_party",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "Capability action renamed from noun form 'third_party' to verb form 'create_third_party'. Sibling actions cx.invite.create / cancel / claim / revoke / accept are all verbs; third_party was an outlier. The event kind cx.invite.third_party is preserved unchanged; action ↔ event kind bridging lives in target_event_kinds."
-    },
-    {
-      "id": "cx.policy.rule",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.policy.rule",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "Capability action renamed from noun form 'rule' to '<noun>.manage' verb form. Sibling actions cx.policy.manage / set are verb forms. Event kind cx.policy.rule is preserved."
-    },
-    {
-      "id": "cx.policy.action",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.policy.action",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "See cx.policy.rule entry. Event kind cx.policy.action is preserved."
-    },
-    {
       "id": "cx.read.cursor",
       "kind_class": "event_kind_or_capability_action",
       "since_revision": "2026-05-24",
@@ -2851,66 +2802,6 @@
       ],
       "notes": "Error code returned when a typed digest carries an unsupported algorithm prefix. Aligns with the renamed digest_algorithm field.",
       "migration_group": "hash_to_digest_vocabulary"
-    },
-    {
-      "id": "cx.invite.third_party",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.invite.third_party",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Capability action converged back to noun form to match its target event kind. The earlier verb-form rename (cx.invite.third_party → cx.invite.third_party) is reverted; v3 rule (capabilities.md §5.0a) is 'action name MUST equal event kind name' — IAM tools use the event kind string verbatim as the action token, no bridge table.",
-      "migration_group": "verb_noun_bridge_collapse"
-    },
-    {
-      "id": "cx.policy.rule",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.policy.rule",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Capability action converged to match event kind cx.policy.rule. See verb_noun_bridge_collapse migration group.",
-      "migration_group": "verb_noun_bridge_collapse"
-    },
-    {
-      "id": "cx.policy.action",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.policy.action",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Capability action converged to match event kind cx.policy.action. See verb_noun_bridge_collapse migration group.",
-      "migration_group": "verb_noun_bridge_collapse"
-    },
-    {
-      "id": "cx.realm.link",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.realm.link",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Capability action converged to match event kind cx.realm.link. See verb_noun_bridge_collapse migration group.",
-      "migration_group": "verb_noun_bridge_collapse"
-    },
-    {
-      "id": "cx.realm.plaintext_visible_services",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.realm.plaintext_visible_services",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Capability action converged to match event kind cx.realm.plaintext_visible_services. See verb_noun_bridge_collapse migration group.",
-      "migration_group": "verb_noun_bridge_collapse"
-    },
-    {
-      "id": "cx.realm.moderation_policy",
-      "kind_class": "capability_action",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "cx.realm.moderation_policy",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Capability action converged to match event kind cx.realm.moderation_policy. See verb_noun_bridge_collapse migration group.",
-      "migration_group": "verb_noun_bridge_collapse"
     },
     {
       "id": "signed_payload_hash",

@@ -126,6 +126,7 @@ FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
 class Lint:
     def __init__(self) -> None:
         self.errors: list[str] = []
+        self.warnings: list[str] = []
 
     def rel(self, path: Path) -> str:
         try:
@@ -135,6 +136,9 @@ class Lint:
 
     def fail(self, path: Path, message: str) -> None:
         self.errors.append(f"{self.rel(path)}: {message}")
+
+    def warn(self, path: Path, message: str) -> None:
+        self.warnings.append(f"{self.rel(path)}: {message}")
 
 
 def load_json(lint: Lint, path: Path) -> Any:
@@ -4221,45 +4225,142 @@ def check_text_files_utf8_no_nul(lint: Lint) -> None:
             lint.fail(path, f"text contract file is not valid UTF-8: {exc}")
 
 
-def check_field_order(lint: Lint) -> None:
-    """Canonical field ordering gate (models/common-fields.md §3.2).
+FIELD_ORDER_RULES_PATH = Path(__file__).with_name("field-order-rules.json")
 
-    Machine-enforces the ordering hard rules previously left un-automated:
-      - created_by MUST precede created_at; created_at MUST precede updated_at;
-        updated_by MUST precede updated_at.
-      - state_changed_at MUST immediately follow state; stage_changed_at MUST
-        immediately follow stage.
-    Rules are presence-conditional, so intended exceptions (Read Cursor has no
-    created_at, Capability Grant uses issued_at) never trigger. Recurses into
-    every object's properties in all schema files.
+
+def _load_field_order_rules(lint: Lint) -> dict[str, Any]:
+    """Load the declarative field-ordering rule config (C-BET-03).
+
+    Falls back to the historical hard-coded rule set if the config is missing or
+    malformed, so the gate never silently stops enforcing ordering.
+    """
+    default = {
+        "hard_precedence": [
+            {"earlier": "created_by", "later": "created_at"},
+            {"earlier": "created_at", "later": "updated_at"},
+            {"earlier": "updated_by", "later": "updated_at"},
+        ],
+        "hard_immediate_follow": [
+            {"anchor": "state", "marker": "state_changed_at"},
+            {"anchor": "stage", "marker": "stage_changed_at"},
+        ],
+        "ordered_groups": {},
+        "role_after_subject": {},
+    }
+    if not FIELD_ORDER_RULES_PATH.exists():
+        return default
+    try:
+        data = json.loads(FIELD_ORDER_RULES_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:  # pragma: no cover - config corruption
+        lint.fail(FIELD_ORDER_RULES_PATH, f"invalid field-order rule config: {exc}")
+        return default
+    if not isinstance(data, dict):
+        lint.fail(FIELD_ORDER_RULES_PATH, "field-order rule config must be a JSON object")
+        return default
+    return {**default, **data}
+
+
+def check_field_order(lint: Lint) -> None:
+    """Canonical field ordering gate (models/common-fields.md §3.2; C-BET-03).
+
+    Rules are loaded from the declarative ``tools/field-order-rules.json`` config
+    and applied recursively to every object's ``properties`` in all schema files
+    (and to the relative order of ``required`` entries against ``properties``).
+
+    Two enforcement tiers:
+
+    * Hard rules (errors) — wire-stable precedence and immediate-follow rules
+      that already hold across every current schema:
+        - created_by MUST precede created_at; created_at MUST precede updated_at;
+          updated_by MUST precede updated_at.
+        - state_changed_at MUST immediately follow state; stage_changed_at MUST
+          immediately follow stage.
+
+    * Ordered-group rules (warnings) — the broadened C-BET-03 coverage for the
+      validity / issuance / audit-tail member fields (issued_at, not_before,
+      effective_at, expires_at, revoked_*, updated_*) and ``role`` placement.
+      Several existing schemas serialize these members in a still-valid but
+      different order; emitting warnings (not errors) keeps the gate green while
+      surfacing the deviations rather than forcing a wire-affecting reorder.
+
+    All checks are presence-conditional, so intended exceptions (Read Cursor has
+    no created_at, Capability Grant uses issued_at) never trigger.
     """
 
-    def check_props(path: Path, json_path: str, props: dict) -> None:
-        keys = list(props.keys())
+    rules = _load_field_order_rules(lint)
+    hard_precedence = rules.get("hard_precedence") or []
+    hard_immediate = rules.get("hard_immediate_follow") or []
+    ordered_groups = rules.get("ordered_groups") or {}
+    role_rule = rules.get("role_after_subject") or {}
+    subject_anchors = set(role_rule.get("subject_anchors") or [])
+    role_field = role_rule.get("role_field")
+
+    def check_order_of_keys(path: Path, json_path: str, keys: list[str], where: str) -> None:
         index = {key: position for position, key in enumerate(keys)}
 
-        def must_precede(earlier: str, later: str) -> None:
+        # Hard precedence (errors).
+        for rule in hard_precedence:
+            earlier = rule.get("earlier")
+            later = rule.get("later")
             if earlier in index and later in index and index[earlier] > index[later]:
                 lint.fail(
                     path,
-                    f"{json_path}.properties: field order: '{earlier}' MUST precede '{later}'",
+                    f"{json_path}.{where}: field order: '{earlier}' MUST precede '{later}'",
                 )
 
-        must_precede("created_by", "created_at")
-        must_precede("created_at", "updated_at")
-        must_precede("updated_by", "updated_at")
-        for anchor, marker in (("state", "state_changed_at"), ("stage", "stage_changed_at")):
-            if anchor in index and marker in index and index[marker] != index[anchor] + 1:
-                lint.fail(
-                    path,
-                    f"{json_path}.properties: '{marker}' MUST immediately follow '{anchor}'",
-                )
+        # Hard immediate-follow (errors). Only meaningful for properties ordering.
+        if where == "properties":
+            for rule in hard_immediate:
+                anchor = rule.get("anchor")
+                marker = rule.get("marker")
+                if anchor in index and marker in index and index[marker] != index[anchor] + 1:
+                    lint.fail(
+                        path,
+                        f"{json_path}.{where}: '{marker}' MUST immediately follow '{anchor}'",
+                    )
+
+        # Ordered-group relative ordering (warnings).
+        for group_name, members in ordered_groups.items():
+            if group_name.startswith("$") or not isinstance(members, list):
+                continue
+            present = [m for m in members if m in index]
+            for i in range(len(present)):
+                for j in range(i + 1, len(present)):
+                    earlier, later = present[i], present[j]
+                    if index[earlier] > index[later]:
+                        lint.warn(
+                            path,
+                            f"{json_path}.{where}: group '{group_name}' ordering: "
+                            f"'{earlier}' SHOULD precede '{later}'",
+                        )
+
+        # role placement relative to subject/issuer anchor (warning).
+        if role_field and role_field in index:
+            anchors_present = [a for a in subject_anchors if a in index]
+            if anchors_present:
+                earliest_anchor = min(index[a] for a in anchors_present)
+                if index[role_field] < earliest_anchor:
+                    lint.warn(
+                        path,
+                        f"{json_path}.{where}: '{role_field}' SHOULD follow its "
+                        f"subject/issuer identity field",
+                    )
+
+    def check_node(path: Path, json_path: str, node: dict) -> None:
+        props = node.get("properties")
+        if isinstance(props, dict):
+            check_order_of_keys(path, json_path, list(props.keys()), "properties")
+            required = node.get("required")
+            if isinstance(required, list):
+                # Check required entries in the order they are declared. A field
+                # listed in required but absent from properties is left to the
+                # existing schema-shape checks; we only order known property keys.
+                req_keys = [r for r in required if isinstance(r, str)]
+                check_order_of_keys(path, json_path, req_keys, "required")
 
     def recurse(path: Path, json_path: str, node: Any) -> None:
         if isinstance(node, dict):
-            props = node.get("properties")
-            if isinstance(props, dict):
-                check_props(path, json_path, props)
+            check_node(path, json_path, node)
             for key, child in node.items():
                 recurse(path, f"{json_path}.{key}", child)
         elif isinstance(node, list):
@@ -4448,6 +4549,135 @@ def check_action_reference_closure(lint: Lint) -> None:
         )
 
 
+# --- C-BET-04: non-normative frontmatter sanity gate -------------------------
+
+# Files that declare `normative: false` yet legitimately surface RFC 2119
+# keywords (informative guides quoting requirements, the spec map, the OpenAPI
+# view) are waived here. Each entry records why the exemption exists so the
+# waiver list can shrink as the underlying _spec_review findings are resolved.
+NON_NORMATIVE_KEYWORD_WAIVERS: dict[str, str] = {
+    # C-CON-01: spec-map.md declares normative:false but carries a
+    # `(normative)` Parser-layering subsection and MUST/SHOULD prose. Tracked
+    # separately; waived here so C-BET-04 does not double-report it.
+    "spec/v1/zh/spec-map.md": "待 C-CON-01 处理（normative:false 却含 (normative) 小节与 MUST/SHOULD）",
+    # Informative migration/consumption/reference guides that quote the wire
+    # contract's MUST/SHOULD requirements as reading aids, not as the
+    # authoritative source (authority stays in the referenced normative docs).
+    "spec/v1/zh/guides/artifact-consumption.md": "informative 指南，引用规范要求作为阅读辅助",
+    "spec/v1/zh/guides/migrating-from-matrix.md": "informative 迁移指南，明确以正式规范小节的 MUST/SHOULD 为准",
+    "spec/v1/zh/guides/reference-implementation-guide.md": "informative 参考实现指南，引用规范要求",
+    # OpenAPI binding view; the mdx itself states authority is
+    # service-http-binding.md / api-conventions.md.
+    "spec/v1/zh/sync/service-api-schema.mdx": "OpenAPI binding 视图（informative），权威来源为 service-http-binding.md / api-conventions.md",
+}
+
+_NORMATIVE_KEYWORD_RE = re.compile(r"\b(MUST NOT|MUST|SHOULD NOT|SHOULD)\b")
+_NORMATIVE_HEADING_RE = re.compile(r"^#{1,6}\s+.*normative", re.IGNORECASE)
+_FRONTMATTER_BLOCK_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
+C_BET_04_REQUIRED_FRONTMATTER = {"title", "status", "normative", "stability", "updated"}
+
+
+def _parse_frontmatter_block(text: str) -> tuple[dict[str, Any] | None, str]:
+    """Return (frontmatter dict or None, body-after-frontmatter)."""
+    match = _FRONTMATTER_BLOCK_RE.match(text)
+    if not match:
+        return None, text
+    body = text[match.end():]
+    if yaml is None:
+        return {}, body
+    try:
+        data = yaml.safe_load(match.group(1)) or {}
+    except Exception:
+        return {}, body
+    return (data if isinstance(data, dict) else {}), body
+
+
+def _strip_code_for_keyword_scan(body: str) -> tuple[str, list[str]]:
+    """Drop fenced code blocks and inline code; keep heading lines separately."""
+    kept: list[str] = []
+    heading_lines: list[str] = []
+    in_code = False
+    for line in body.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        if _NORMATIVE_HEADING_RE.match(line):
+            heading_lines.append(line.strip())
+        kept.append(re.sub(r"`[^`]*`", "", line))
+    return "\n".join(kept), heading_lines
+
+
+def check_non_normative_frontmatter(lint: Lint) -> None:
+    """C-BET-04: guard `normative: false` prose against undeclared requirements.
+
+    Scans every ``spec/v1/zh/**/*.md`` and ``*.mdx`` file's frontmatter. A file
+    that declares ``normative: false`` but contains RFC 2119 keywords
+    (MUST / MUST NOT / SHOULD / SHOULD NOT, outside code spans) or a heading that
+    declares a ``normative`` subsection MUST appear on the waiver list
+    (``NON_NORMATIVE_KEYWORD_WAIVERS``) or it is an error. Files missing the
+    required spec frontmatter metadata are also errors.
+
+    The waiver mechanism keeps this gate green on the current tree (the known
+    C-CON-01 finding on spec-map.md plus the informative guides and the OpenAPI
+    view) while still catching *new* non-normative files that drift into carrying
+    unscoped normative language.
+    """
+    zh_root = SPEC_ROOT / "zh"
+    if not zh_root.exists():
+        return
+    files = sorted(set(zh_root.rglob("*.md")) | set(zh_root.rglob("*.mdx")))
+    for path in files:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        rel = lint.rel(path)
+        fm, body = _parse_frontmatter_block(text)
+
+        if fm is None:
+            lint.fail(path, "C-BET-04: missing frontmatter (spec metadata required)")
+            continue
+
+        missing = C_BET_04_REQUIRED_FRONTMATTER - set(fm.keys())
+        for key in sorted(missing):
+            lint.fail(path, f"C-BET-04: frontmatter missing required field '{key}'")
+
+        # `normative` must be present and boolean-typed.
+        normative_value = fm.get("normative")
+        if "normative" in fm and not isinstance(normative_value, bool):
+            lint.fail(
+                path,
+                f"C-BET-04: frontmatter 'normative' must be a boolean, got {normative_value!r}",
+            )
+
+        if normative_value is not False:
+            continue
+
+        scrubbed, heading_lines = _strip_code_for_keyword_scan(body)
+        keywords = sorted(set(_NORMATIVE_KEYWORD_RE.findall(scrubbed)))
+        if not keywords and not heading_lines:
+            continue
+
+        if rel in NON_NORMATIVE_KEYWORD_WAIVERS:
+            continue
+
+        detail_parts: list[str] = []
+        if keywords:
+            detail_parts.append(f"RFC 2119 keyword(s) {keywords}")
+        if heading_lines:
+            detail_parts.append(f"normative section heading(s) {heading_lines}")
+        lint.fail(
+            path,
+            "C-BET-04: normative:false document contains "
+            + " and ".join(detail_parts)
+            + " -- scope the requirement to a normative doc or add an explicit "
+            "waiver in NON_NORMATIVE_KEYWORD_WAIVERS.",
+        )
+
+
 def main() -> int:
     lint = Lint()
     check_text_files_utf8_no_nul(lint)
@@ -4511,6 +4741,12 @@ def main() -> int:
     check_exporter_label_registry(lint)
     check_signature_algorithm_registry(lint)
     check_action_reference_closure(lint)
+    check_non_normative_frontmatter(lint)
+
+    if lint.warnings:
+        print("Artifact registry lint warnings:", file=sys.stderr)
+        for warning in lint.warnings:
+            print(f"- {warning}", file=sys.stderr)
 
     if lint.errors:
         print("Artifact registry lint failed:", file=sys.stderr)

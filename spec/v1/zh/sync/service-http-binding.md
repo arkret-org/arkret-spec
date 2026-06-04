@@ -709,6 +709,16 @@ POST 形态与 GET 形态**完全等价**：参数集（`realms` / `actors` / `b
 - 简单查询（仅 `before` / `after` / `limit`，少量 realms/actors）→ `GET /_cokret/self/events`，cacheable、可被代理优化
 - 复杂查询（大型 selector / 复杂 filters）→ `POST /_cokret/self/events/query`
 
+**可测试的 GET / POST 边界**：客户端在满足以下任一条件时 **SHOULD** 使用 `ck.events.query_post` 而非 GET 形态，而不是依赖主观判断：
+
+- (a) 请求含 `filters` object；
+- (b) `realms[]` / `actors[]` 及其它 selector 项合计超过实现声明的 GET selector 上限（默认阈值 8）；
+- (c) selector / filter 含敏感主体关系（如可暴露联系人图谱的 `actor_id` 列表或敏感 keyword）。
+
+当部署侧在 `ServiceDescribe` / feature discovery 标记 query-logging 风险（如反向代理会完整记录 query string）时，客户端 **MUST** 使用 POST。GET query 仅适用于无 `filters`、selector 项少且不敏感的简单查询。
+
+> 上述"GET selector 上限"目前没有专用的 `ServiceDescribe.limits` 子字段承载。`limits` 是开放对象（`additionalProperties: true`），实现可在其中声明该上限；阈值缺省为 8。是否在 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json) 中补一个具名字段（如 `limits.max_get_query_selectors`）为 **artifact 待补**项。
+
 服务端 SHOULD 同时实现两个 endpoint；客户端可以按场景自由选择，**不需要协商**。`ck.events.query_post` 在注册表（`operation-registry.json`）中通过 `binding_variant_of="ck.events.query"` 标记，以保证 SDK 生成器、conformance 测试与 server.describe 能机器可读地枚举该 alternate binding，同时授权、审计和指标归并到 `ck.events.query`。
 
 **`binding_variant_of` conformance 矩阵规则**：当 operation B 声明 `binding_variant_of=A` 时，B 与 A 共享 selector / cursor / cursor-direction / projection 测试集合，只独立测试 wire encoding（query string vs JSON body）。conformance suite 不需要为 variant 重复跑业务逻辑测试。

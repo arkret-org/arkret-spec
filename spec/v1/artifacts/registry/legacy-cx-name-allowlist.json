@@ -1,0 +1,117 @@
+{
+  "version": "2026-06-05",
+  "source_of_truth": true,
+  "description": "Canonical allowlist of legacy / wire-breaking identifiers that retain the cx- / cx_ prefix. Per zh/models/common-fields.md §2, new or recommended canonical naming MUST use the ck- / ck_ positive prefix; the cx- / cx_ prefix is permitted only for (a) the entries registered here (historical wire-breaking names whose byte form cannot be migrated without a new profile / extension codepoint) and (b) illustrative example placeholder values inside spec prose / fixtures. Exporter-label cx-rtc-* names are NOT duplicated here: their canonical registration lives in registry/exporter-label-registry.json. Example-only placeholder IDs (cx_device_*, cx_chal_*, cx_pseudonym_call_*, cx_push_pseudo_*, cx-challenge-*) are intentionally NOT enumerated: the naming rule exempts documentation example values.",
+  "prefix_rule_ref": "spec/v1/zh/models/common-fields.md#2-类型记法",
+  "kinds": {
+    "wire_extension": "Cokret-defined wire extension type carried on the wire (e.g. MLS GroupContext ExtensionType IANA name); migrating the name is wire-breaking.",
+    "exporter_label": "MLS-Exporter label string for media key derivation; canonical registration is in exporter-label-registry.json (listed here only by cross-reference).",
+    "domain_separation_label": "Fixed domain-separation / signing-transcript prefix string mixed into a hash or signature input; changing it is wire-breaking.",
+    "key_handle": "Stable DID URL key fragment (verification_method handle) naming convention used across identity / device documents.",
+    "example_only": "Illustrative placeholder value appearing only in prose / fixtures; not a canonical wire name (exempted by rule, not enumerated)."
+  },
+  "entries": [
+    {
+      "name": "cx_governance_binding",
+      "kind": "wire_extension",
+      "where": "MLS GroupContext extension ExtensionType (IANA name), codepoint 0xF1C0",
+      "notes": "Active wire extension. Canonical codepoint registration is registry/mls-extension-registry.json (extension name `mls_governance_binding`, codepoint 0xF1C0); `cx_governance_binding` is the on-the-wire ExtensionType / IANA name string carried in the MLS transcript and MUST NOT be migrated to a ck_ form without declaring a new hardening profile / codepoint.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/encryption-and-audit.md",
+        "spec/v1/zh/overview/glossary.md"
+      ]
+    },
+    {
+      "name": "cx-rtc-frame-key/v1",
+      "kind": "exporter_label",
+      "where": "MLS-Exporter label for SFrame per-sender media frame key",
+      "notes": "Canonical registration in registry/exporter-label-registry.json (grandfathered=true). Listed here only as a cross-reference; the exporter-label registry is the source of truth for its context shape.",
+      "source_refs": [
+        "spec/v1/artifacts/registry/exporter-label-registry.json"
+      ]
+    },
+    {
+      "name": "cx-rtc-recording-key/v1",
+      "kind": "exporter_label",
+      "where": "MLS-Exporter label for backend recording-artifact encryption key",
+      "notes": "Canonical registration in registry/exporter-label-registry.json (grandfathered=true). Listed here only as a cross-reference.",
+      "source_refs": [
+        "spec/v1/artifacts/registry/exporter-label-registry.json"
+      ]
+    },
+    {
+      "name": "cx-aad-event-ref-v1",
+      "kind": "domain_separation_label",
+      "where": "encryption-and-audit.md AAD event-ref routing digest domain-separation prefix",
+      "notes": "Fixed domain-separation string mixed into sha256(\"cx-aad-event-ref-v1\" || event_id || realm_id || policy_nonce). Wire-breaking constant; MUST NOT be renamed without a new profile.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    },
+    {
+      "name": "cx-did-continuity-proof-v1",
+      "kind": "domain_separation_label",
+      "where": "did-continuity-proof.schema.json DID continuity proof hash domain-separation prefix",
+      "notes": "Fixed domain-separation prefix mixed into hash(utf8(\"cx-did-continuity-proof-v1\\n\") || canonical_json(proof object)). Wire-breaking constant; MUST NOT be renamed without a new profile.",
+      "source_refs": [
+        "spec/v1/artifacts/schemas/did-continuity-proof.schema.json"
+      ]
+    },
+    {
+      "name": "cx-identity-link-v1",
+      "kind": "domain_separation_label",
+      "where": "encryption-and-audit.md ck.identity_link signature transcript prefix",
+      "notes": "Fixed signature domain-separation prefix utf8(\"cx-identity-link-v1\\n\") || canonical bytes. Wire-breaking constant.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    },
+    {
+      "name": "cx-cross-signing-bind-v1",
+      "kind": "domain_separation_label",
+      "where": "device-lifecycle.md § cross-signing bind transcript prefix",
+      "notes": "Fixed signature domain-separation prefix \"cx-cross-signing-bind-v1\\n\" || canonical_json(...). Wire-breaking constant.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "name": "cx-device-trust-bind-v1",
+      "kind": "domain_separation_label",
+      "where": "device-lifecycle.md § device-trust bind transcript prefix",
+      "notes": "Fixed signature domain-separation prefix \"cx-device-trust-bind-v1\\n\" || canonical_json(...). Wire-breaking constant.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "name": "cx_principal_signing_v1",
+      "kind": "key_handle",
+      "where": "DID URL key fragment (verification_method handle) for the principal signing key",
+      "notes": "Stable DID document key fragment naming convention (e.g. did:webvh:...#cx_principal_signing_v1) used as verification_method in key-management / device-lifecycle examples and auth_data. Grandfathered handle naming; not migrated to ck_ to keep DID URL fragments stable.",
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "name": "cx_self_signing_v1",
+      "kind": "key_handle",
+      "where": "DID URL key fragment for the self-signing (cross-signing) key",
+      "notes": "Stable DID document key fragment naming convention. Grandfathered handle naming.",
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "name": "cx_user_signing_v1",
+      "kind": "key_handle",
+      "where": "DID URL key fragment for the user-signing key",
+      "notes": "Stable DID document key fragment naming convention. Grandfathered handle naming.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    }
+  ]
+}

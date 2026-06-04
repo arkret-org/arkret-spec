@@ -41,7 +41,7 @@ see_also:
 
 DID Document SHOULD 只负责：
 
-- 声明 principal server、identity registry、events、sync service、blob、capability 服务入口
+- 声明 Principal Server、identity registry、events、sync service、blob、capability 服务入口
 - 声明服务 DID 或服务 endpoint
 
 它不应直接塞入：
@@ -826,7 +826,7 @@ Cokret v1 的首次加入流程：
 
 Cokret v1 固定：
 
-- 定义最小 principal server / identity registry / events / account / snapshot / blob / authz 服务面
+- 定义最小 Principal Server / identity registry / events / account / snapshot / blob / authz 服务面
 - v1 core 互操作 transport 锁定为 HTTP/JSON（见 [`transport-bindings.md` §1](./transport-bindings.md)）；gRPC / WebSocket / SSE / MQ / libp2p 等其他 binding 仅为 extension profile，本节列出的 operation 形态与字段以 HTTP/JSON 为唯一权威。其他 binding 必须语义等价但不构成 v1 core 一致性。
 - 写接口必须幂等
 - DID 写入采用多 registry / witness receipt，而不是区块链

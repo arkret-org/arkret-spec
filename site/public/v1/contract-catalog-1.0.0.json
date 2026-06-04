@@ -3645,7 +3645,8 @@
         "http": "GET /_cokret/self/keys/backups/{backup_id}",
         "grpc": "Keys/BackupsGet",
         "mq": "keys.backups.get",
-        "success_shape_kind": "schema_resource"
+        "success_shape_kind": "schema_resource",
+        "response_schema_ref": "schemas/key-backup.schema.json"
       },
       {
         "operation_id": "ck.keys.backups.list",

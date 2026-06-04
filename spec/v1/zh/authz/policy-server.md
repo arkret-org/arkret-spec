@@ -275,7 +275,7 @@ Policy decision 签名输入 MUST 包含：
 - auth_state_digest
 - policy_frontier_digest
 - membership_frontier_digest
-- policy server id
+- Policy Server id
 - key id
 
 `request_canonical_digest` MUST 是 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致；任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通，且 MUST 不声明通过 v1 conformance。
@@ -329,7 +329,7 @@ Policy Server decision 是 out-of-band 的签名决策，本身不进入 Realm a
 
 - `ck.moderation.decision` — 由持有 `ck.realm.moderation_policy` 或 `ck.policy.manage` 的 actor 签发的 Move，在 `ck.component.moderation_state.v1:<target>` cell 上写一个 `or_set add` effect。
 - `ck.moderation.decision.lift` — 在同一 cell 上写 `or_set remove` effect，针对此前 add 的 tag。
-- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 policy server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。policy server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `ck.realm.moderation_policy` 或 `ck.policy.manage`。
+- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 Policy Server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。Policy Server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `ck.realm.moderation_policy` 或 `ck.policy.manage`。
 
 Reducer 与所有读路径 MUST：
 
@@ -340,11 +340,11 @@ Reducer 与所有读路径 MUST：
 
 Policy Server fast path 与 anchored decision 的关系：
 
-- Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Move 到该 Realm 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
+- Fast path 上，Policy Server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Move 到该 Realm 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
 - 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision，处理方式 MUST 按未能提升的根因分类，不得对所有失败统一静默解除：
   - **(a) 传输 / 可用性类**——anchorer unreachable、`temporarily_unavailable`、anchorer paused、提交超时等纯可达性故障：窗口到期后 MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
   - **(b) reducer 主动拒绝类**——Move 被 reducer 以 capability / 权限原因拒绝（例如 origin actor 失去 `ck.realm.moderation_policy` capability，或 `failed_precondition` 源于授权 / 前置条件不成立而非传输故障）：此时窗口到期 SHOULD 升级为 `require_review`，或保持隐藏并向 Realm 审核方告警，**不得**静默解除本地隐藏。理由是该类失败表明决策的授权基础本身存疑，静默解除会让一条可能合规的审核意图被悄悄丢弃。实现 MUST 能区分这两类原因（传输 / 可用性 vs reducer 授权拒绝），并据此选择解除或升级 / 保持隐藏。
-- Receiver 节点收到 fast-path quarantine signaling（policy server 签名）但无对应 anchored Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_pending_anchor` 并在 anchored decision 抵达后切换显示。
+- Receiver 节点收到 fast-path quarantine signaling（Policy Server 签名）但无对应 anchored Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_pending_anchor` 并在 anchored decision 抵达后切换显示。
 
 **Fast-path 退回的 UX 规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：
 
@@ -381,7 +381,7 @@ Policy Server fast path 与 anchored decision 的关系：
 跨域事件的 origin service MAY 附带 policy decision。接收方：
 
 - MUST 验证 decision 签名。
-- MAY 运行本地 policy server 再次检查。
+- MAY 运行本地 Policy Server 再次检查。
 - MUST 保留所有 hard_deny/quarantine decision 的 audit record。
 - MUST NOT 因 origin policy allow 而跳过本地 capability/auth 验证。
 
@@ -392,4 +392,4 @@ Policy Server 默认不是内容接收者。实现 MUST：
 - 对 E2EE Realm 默认只发送 metadata。
 - 对媒体默认发送 hash、MIME、尺寸、扫描标签，不发送原始 bytes。
 - 对 handle、email、phone 等标识符使用 blinded token，除非用户或管理员明确授权。
-- 在 audit log 中记录向 policy server 披露了哪些字段。
+- 在 audit log 中记录向 Policy Server 披露了哪些字段。

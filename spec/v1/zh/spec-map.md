@@ -51,17 +51,19 @@ see_also:
 可选字段：`migration_group`（同一设计决策的批量条目归并标签，见 `renames.json.migration_group_definitions`）、
 `migration_tool_only: true`（仅离线 migration / replay 工具可消费的 disambiguation entry）。
 
-新增、移除或重命名标准 ck.* 概念时 MUST 同步更新这组 artifacts；CHANGELOG 条目和这些 artifacts 是
-"机器可发现的协议演化记录"的两面。
+新增、移除或重命名标准 ck.* 概念时需同步更新这组 artifacts；CHANGELOG 条目和这些 artifacts 是
+"机器可发现的协议演化记录"的两面。该同步要求的规范效力由各 drift artifact 自身及 conformance 文档承载，本文仅作导航说明。
 
-#### 1.2.1 Parser 分层（normative）
+#### 1.2.1 Parser 分层（导航摘要）
 
-`renames.json` 的条目按消费方分两层，分别由 `renames.json.parser_tier_definitions` 定义：
+> 本小节是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。Parser 分层的 normative 定义（含各层 MUST / MUST NOT 约束）由权威源 [`artifacts/registry/renames.json`](../artifacts/registry/renames.json) 的 `parser_tier_definitions` 承载；如本摘要与该权威源有出入，以 `renames.json.parser_tier_definitions` 为准。
 
-- **Current parser**：sync service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。MUST 把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目都视作输入禁止；**MUST NOT 做 payload-shape disambiguation**；遇到旧 id MUST 直接返回 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误，**不得在线静默重写**。
-- **Migration tool**：离线批处理工具，读取 pre-v1 / pre-inversion bytes 并改写成 canonical v1 形态。MAY 消费带 `migration_tool_only: true` 的 entry（例如 `ck.space.create#pre_inversion_security_boundary`），按 `disambiguation_payload_shape` 规则鉴别。MUST NOT 嵌入实时 parser 表面（无 inline transform；无 "auto-accept legacy and quietly rewrite"）。
+`renames.json` 的条目按消费方分两层（规范定义见 `renames.json.parser_tier_definitions`）：
 
-这条规则把 Realm/Space inversion 时引入的"payload-shape 鉴别"复杂度严格限制在迁移工具内：当前 v1 sync / federation / snapshot 路径不需要也不允许实现这条 fallback。新增的 `migration_tool_only` 标志使该约束机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。
+- **Current parser**：sync service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目视作输入禁止，不做 payload-shape disambiguation，遇到旧 id 直接返回 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误而不在线静默重写（规范约束见 `renames.json.parser_tier_definitions.current_parser`）。
+- **Migration tool**：离线批处理工具，读取 pre-v1 / pre-inversion bytes 并改写成 canonical v1 形态。可消费带 `migration_tool_only: true` 的 entry（例如 `ck.space.create#pre_inversion_security_boundary`），按 `disambiguation_payload_shape` 规则鉴别；不得嵌入实时 parser 表面（规范约束见 `renames.json.parser_tier_definitions.migration_tool`）。
+
+这条分层把 Realm/Space inversion 时引入的"payload-shape 鉴别"复杂度限制在迁移工具内：当前 v1 sync / federation / snapshot 路径不实现这条 fallback。`migration_tool_only` 标志使该约束机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。规范效力来自上述权威源，本文不重复承载独立 MUST。
 
 ## 2. 推荐阅读顺序
 

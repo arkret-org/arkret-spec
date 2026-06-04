@@ -34,7 +34,9 @@ updated: 2026-06-01
 | `cursor` | `ck:cursor:<base64url>` opaque string。 |
 | `patch` | `ck.patch.v1` 形态的 JSON patch 片段，具体路径与 op 规则见 [`event-and-patch.md`](./event-and-patch.md)。 |
 
-注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ck:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ck:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。
+注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ck:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ck:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 的连字符长前缀 `rtc-recording-`（形如 `rtc-recording-<uuid>`）是已登记的领域前缀例外：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ck:*` typed ID（见 [`crypto-media/call-state.md`](../crypto-media/call-state.md) 录制生命周期一节）。
+
+`cx-` / `cx_` 前缀命名约定（normative）：`ck-` / `ck_` 是 Cokret 的正命名前缀。除 [`artifacts/registry/legacy-cx-name-allowlist.json`](../../artifacts/registry/legacy-cx-name-allowlist.json) 登记的历史 / wire-breaking 名（如 wire extension `cx_governance_binding`、exporter label `cx-rtc-*`、域分隔标签 `cx-*-v1`、DID key handle fragment `cx_*_signing_v1`）与**文档示例占位值**（prose / fixture 中仅作举例的 `cx_device_*`、`cx_chal_*`、`cx_pseudonym_call_*`、`cx-challenge-*` 等）外，新增或推荐的 canonical 命名 **MUST NOT** 使用 `cx-` / `cx_` 前缀。需要保留某个带 `cx` 前缀的历史 / wire 名时，MUST 先在该允许表登记（字段含 `name` / `kind` / `where` / `notes`）。
 
 字段默认规则：
 
@@ -205,9 +207,12 @@ expected_<role>_<kind>_id
 
 - `created_at` MUST 排在 `updated_at` 之前；`created_by` MUST 排在 `created_at` 之前；`updated_by` MUST 排在 `updated_at` 之前。
 - `state_changed_at` MUST 紧跟 `state`；`stage_changed_at` MUST 紧跟 `stage`。
+- 对承载有效期 / 签发语义的 protocol artifact / proof 对象（第 2 / 3 类，含 `not_before` / `issued_at` / `expires_at` 的 validity 字段簇），字段排序 MUST 满足：`not_before` MUST 排在 `expires_at` 之前、`issued_at` MUST 排在 `expires_at` 之前（即签发 / 生效下界先于有效期上界），除非对象语义明确要求先表上界（此时 MUST 在对应 schema description 或本节显式注明该例外）。当 `not_before` 与 `issued_at` 同时存在时，二者相对顺序不在本规则强制范围内，按对象语义择一在前即可。（lint 强制覆盖待 `check_field_order` 扩展。）
 - 开放扩展容器（`fields` / `metadata`）MUST 落在 content / config 区，紧邻对象内容字段，MUST NOT 混入 audit 字段簇。对 Realm 这类把 `fields` 置于审计字段之前的配置根对象，按本节"对象族例外"声明即可。
 
 对象族例外 MUST 在对应 schema description 或本节列明。Realm 是配置根对象：`title` / `summary` / `security_class` 可在 `trust_domain` / `schema_refs` 之前展示，以便管理端先呈现人类可读身份和安全等级；`trust_domain` 仍是 create-locked replay boundary，`schema_refs` 仍是字段验证引用，不改变其语义。
+
+**role ordering guidance（说明性，非强制改 schema）**：identity / scope / subject role 字段（`realm_id` / `actor_id` / `event_id` 等）的相对顺序按对象语义选择，并 MUST 在对应 schema description 或本节显式化例外——event 主体对象 MAY 采用 event-first（`event_id` 先，如 `event-envelope.schema.json` 的 `event_id` → `realm_id` → `actor_id`）；receipt / projection 类 MAY 采用 scope-first（`realm_id` 先，如 `read-receipt.schema.json` 的 `realm_id` → `actor_id` → `event_id`）；actor 私有 / actor 维度对象 MAY 采用 actor-first（`actor_id` 先，如 `notification.schema.json` 的 `actor_id` → `realm_id`）。这三种排列是依对象语义的有意例外、非漂移；审查与 lint MUST NOT 据单一全局 role 顺序判错。本节的硬排序规则（`created_*` / `updated_*`、`state_changed_at` / `stage_changed_at` 紧邻、validity 字段簇顺序）仍对全部三类生效，不受本 guidance 影响。
 
 **过程型 / private object 例外**：第 3 类对象（见本节上方 private projection / process artifact 分类）不套用 canonical materialized object 的 audit 字段簇规则——
 
