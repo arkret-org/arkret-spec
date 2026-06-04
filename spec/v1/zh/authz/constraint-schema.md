@@ -40,6 +40,7 @@ updated: 2026-05-25
 字段语义：
 
 - `constraint_id`：可选稳定标识，用于审计、UI diff 和局部更新；未提供时，评估器可用 constraint 在 grant 内的数组位置和 canonical hash 作为诊断标识。
+- `effect`：封闭枚举，取值 ∈ `{allow, deny, quarantine, require_review}`。`allow` 声明约束满足时的允许条件；`deny` / `quarantine` / `require_review` 声明命中即生效的拒绝 / 隔离 / 待审条件。未注册的 `effect` 值 MUST fail closed。完整求值规则（任一 deny / quarantine / require_review 命中即生效，所有 allow 命中才 ALLOWED）见 §15。
 - `evaluation_class`：可缓存性/依赖范围 hint，决定授权评估器能否走 fast path。每个 `constraint_type` 在 §2.3 有 canonical evaluation_class；实现 MAY 在不破坏正确性的前提下收紧（如把声明的 `grant_local` 实际当 `stateless` 缓存），但 MUST NOT 放宽（不得把 `external` 当 `stateless` 缓存）。
 
 授权评估按 §15 "任一 deny / quarantine / require_review 命中即生效" 裁决；多条 allow 同时通过时，审计 UI 基于 constraint id / 数组位置归因。
@@ -58,7 +59,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
 | `temporal` | `edit_window` | extension | `applies_to_actions=["ck.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `ck.profile.chat_mvp.v1` |
 | `temporal` | `redact_window` | extension | `applies_to_actions=["ck.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ck.profile.chat_mvp.v1` |
-| `field_access` | （省略 = 列表比较） | core | `fields_write_allow` / `fields_write_deny` 等。 | core |
+| `field_access` | （省略 = 列表比较） | core | 写入面 `fields_write_allow` / `fields_write_deny`（§4.1 / §4.2）与读取面 `fields_read_allow` / `fields_read_deny` / `sensitive_fields` / `sensitive_handling`（§4.3）。 | core |
 | `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Flow / View / track 范围。 | core |
 | `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ck.profile.kanban_mvp.v1` |
@@ -187,10 +188,13 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "field_access",
   "effect": "allow",
   "fields_read_allow": ["metadata.title", "metadata.fields.review_status"],
+  "fields_read_deny": ["metadata.fields.internal_note"],
   "sensitive_fields": ["metadata.fields.ssn", "metadata.fields.salary"],
   "sensitive_handling": "redact|hash|omit"
 }
 ```
+
+`fields_read_allow` / `fields_read_deny` / `sensitive_fields` / `sensitive_handling` 与 §4.1 / §4.2 的写入字段同属 `field_access` core family（effect=`allow`），表达读取面的字段裁剪与敏感字段处理；其求值见 §16.2（读模式消费 `fields_read_allow` / `fields_read_deny`）。这四个读字段在 capabilities §6 中有对应扁平别名。
 
 ## 5. 类型限制
 
@@ -208,7 +212,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。`realm_kind_allow` / `realm_kind_deny` 在 v1 没有规范用途——v1 中所有 Realm 都是同一种安全边界，无 kind 区分。该字段仅作为 reserved / deprecated no-op 保留在 schema 中以避免旧数据立刻失效；producer SHOULD NOT 发送，receiver MUST 忽略。未来如果真的引入 Realm kind，必须注册新约束版本或明确 profile 语义，不能把 v1 no-op 静默改成有效约束。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `space_kind_allow` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；space_kind_allow 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`realm_kind_allow` / `realm_kind_deny` 在 v1 没有规范用途——v1 中所有 Realm 都是同一种安全边界，无 kind 区分。该字段仅作为 reserved / deprecated no-op 保留在 schema 中以避免旧数据立刻失效；producer SHOULD NOT 发送，receiver MUST 忽略（等价 always-allow，不参与 deny / quarantine / require_review 裁决）。本节为该字段语义的权威定义处。未来如果真的引入 Realm kind，必须注册新约束版本或明确 profile 语义，不能把 v1 no-op 静默改成有效约束。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `space_kind_allow` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；space_kind_allow 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
@@ -380,6 +384,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 ```
 
 ### 9.3 Approval signature replay protection（normative）
+
+本节的 **approval signature** 与 [`policy-server.md` §5](./policy-server.md) 的 **policy decision signature** 是两套独立的 replay 防护证据，各有独立的 nonce 命名空间与绑定字段，MUST NOT 互相替代或共享 nonce：approval signature 由 approver DID 签发、绑定 `(grant_id 或 proposal_id, nonce, ...)`，证明"某 approver 批准了该 Move"；policy decision signature 由 Policy Server 签发、绑定 `(request_id, request_canonical_digest, auth_state_digest, ...)`，证明"Policy Server 对该请求给出了某 decision"。一次授权可同时需要两者。
 
 无论是 §9.1 预审批还是 §9.2 提案模式，每个 approval signature 都是 reducer 在判定"目标 Move 是否被批准"时直接消费的密码学证据。为防止同一个 approver 的同一份签名被跨 grant、跨 proposal、跨 request body 重放，approval signature 的 canonical signing input **MUST** 绑定下列字段（缺一即 `invalid_signature`）：
 
@@ -703,11 +709,10 @@ function matches_field_access(operation, constraint):
 
 ### 18.1 约束缓存
 
-缓存约束求值结果：
+约束求值结果的可缓存性 MUST 按 §2.3 的 `evaluation_class` 分类决定缓存键，并与 fast-path capability cache 共用授权状态绑定规则：缓存 entry MUST 绑定确定性 `auth_state_digest`（覆盖当前 accepted grant/revoke、membership、policy、必要 claim status、device/session checkpoint 等），MUST NOT 仅以 `(grant_id, operation_type, resource_type)` 之类的 subject/action/resource 三元组为键——后者无法在底层授权状态变化时失效，是 [`capabilities.md` §18.1](./capabilities.md) 明令禁止的反模式。
 
-- 键：(grant_id, operation_type, resource_type)
-- TTL：基于约束时间边界
-- 失效：约束变更时
+- 缓存键、TTL 与失效语义以 §2.3 evaluation_class 表与 [`capabilities.md` §18.1](./capabilities.md) 的 `auth_state_digest` 绑定为准。
+- `external` 类约束 MUST NOT 缓存（见 §2.3 / §15.3）。
 
 ### 18.2 优化策略
 
@@ -768,14 +773,14 @@ function matches_field_access(operation, constraint):
     },
     {
       "constraint_type": "claim_based",
-  "subtype": "accountability",
+      "subtype": "accountability",
       "effect": "allow",
       "accountability_required": true,
       "responsible_actor": "did:web:owner.example.com"
     },
     {
       "constraint_type": "claim_based",
-  "subtype": "approval",
+      "subtype": "approval",
       "effect": "require_review",
       "approval_required": true,
       "approval_mode": "after_commit_review"

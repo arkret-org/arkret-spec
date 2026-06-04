@@ -79,6 +79,12 @@
       "type": "string",
       "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Grant issuance time — carries the 'creation time' semantics for a Capability Grant in place of the generic created_at (models/common-fields.md §3.2). Retention / audit / ordering queries MUST use issued_at / expires_at / revoked_at rather than falling back to created_at."
+    },
     "not_before": {
       "type": "string",
       "format": "date-time",

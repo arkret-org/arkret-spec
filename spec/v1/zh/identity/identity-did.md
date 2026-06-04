@@ -400,7 +400,8 @@ Auth Server 在以下情况下 MUST NOT 接受 DID proof：
 - 验证方法当前未被授权用于身份认证或所声明的 device/session 路径
 - 签名未覆盖完整的 challenge payload
 - challenge 已过期、已使用、audience 不匹配或 origin 不匹配
-- `issued_at` 相对 Auth Server 时钟的偏移超过 skew 容忍（SHOULD ≤ 300s），或 `expires_at - issued_at` 超过最大新鲜度窗口（SHOULD ≤ 300s）——否则签发方可任意拉宽重放窗口
+- `issued_at` 相对 Auth Server 时钟的偏移（双向）超过 skew 容忍（SHOULD ≤ 300s），或 `expires_at - issued_at` 超过最大新鲜度窗口（窗口上界 MUST ≤ 300s）——否则签发方可任意拉宽重放窗口
+- `issued_at` 晚于 Auth Server 当前时钟加 skew 容忍（即 proof 自称在未来签发）——此情况 MUST 拒绝，防止签发方把整个 `[issued_at, expires_at]` 窗口推到未来以延长可重放区间
 - DID 已停用或 method history 无效
 
 Conformance vector `ck.vector.identity.did_proof_replay_window.v1` 固定该 replay 边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 DID proof。

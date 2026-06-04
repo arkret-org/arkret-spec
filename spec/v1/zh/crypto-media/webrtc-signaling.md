@@ -115,7 +115,7 @@ Content-Type: application/json
 | `actor_id` | `did` | required | 回显请求 actor，进入签名 canonical bytes。 |
 | `device_id` | `id` | required | 回显请求设备，进入签名 canonical bytes。 |
 | `ttl_seconds` | `int` | required | ICE 配置有效期（秒）。建议 ≤ 1 小时。 |
-| `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`，下限 60s 上限 1800s。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
+| `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`。schema 合法范围为 `minimum=10`、`maximum=1800`；**推荐 floor 为 60s**（即正常部署 SHOULD ≥ 60s，schema 仅为容纳极短 TTL 测试/特例放宽到 10s 下限）。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
 | `issued_at` | `timestamp` | required | 服务端签发时间，进入签名 canonical bytes。 |
 | `issued_at_bucket` | `timestamp` | required | TURN pseudonym 派生的粗粒度 bucket 起点；MUST 等于 `floor(issued_at / bucket_seconds) * bucket_seconds`，进入签名 canonical bytes。 |
 | `bucket_seconds` | `int` | required | v1 固定为 `300` 秒；客户端 SHOULD 在跨越下一 bucket 前 refresh。 |

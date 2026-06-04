@@ -189,13 +189,13 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.sess
       {
         "artifact_type": "text",
         "object_ref": "ck:morph:0ecec3a6-8180-7000-8000-000000000000",
-        "hash": "sha256:..."
+        "artifact_digest": "sha256:..."
       }
     ],
     "external_transcript_digest": "sha256:...",
     "artifact_retention": "retain_by_policy",
     "external_artifact_stub": {
-      "hash": "sha256:...",
+      "artifact_digest": "sha256:...",
       "remote_id_digest": "sha256:...",
       "retention_reason": "realm_policy",
       "cleanup_retry_policy": "not_applicable"
@@ -207,7 +207,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.sess
 
 `ck.agent.protocol_session.result` 的 `content` MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
 
-外部 artifact 清理职责：若 start / status / result 暴露了外部 transcript、临时文件、tool output 或 remote task handle，result 终态 MUST 明确 `artifact_retention`（`retain_by_policy` / `delete_requested` / `deleted` / `unknown`）以及 hash / deletion receipt。`cancelled`、`failed`、`expired` 终态若未能删除外部 artifact，必须保留最小 `external_artifact_stub`（hash、remote id digest、retention reason、cleanup retry policy），不得把未验证的外部删除当成已完成。
+外部 artifact 清理职责：若 start / status / result 暴露了外部 transcript、临时文件、tool output 或 remote task handle，result 终态 MUST 明确 `artifact_retention`（`retain_by_policy` / `delete_requested` / `deleted` / `unknown`）以及 `artifact_digest` / deletion receipt。`cancelled`、`failed`、`expired` 终态若未能删除外部 artifact，必须保留最小 `external_artifact_stub`（`artifact_digest`、`remote_id_digest`、retention reason、cleanup retry policy），不得把未验证的外部删除当成已完成。
 
 Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm schema/profile、`metadata.fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
 

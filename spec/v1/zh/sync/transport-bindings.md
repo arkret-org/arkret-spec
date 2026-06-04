@@ -80,9 +80,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `ck.events.subscribe` 对称)。 |
 | `ck.account.register` | 注册 / account binding；request 使用 `principal_id`，不接受旧 `did` 或裸 `handle` 字段。 |
 | `ck.account.session_revoke` | 撤销 session grant / access token；不撤销 device authorization。 |
-| Federation push（复用 `ck.events.submit` + service_signature） | 联邦推送复用 `POST /_cokret/self/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
-| Federation pull / backfill（复用 `ck.events.query` + service_signature） | 跨域历史回补复用 `GET /_cokret/self/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
-| `ck.directory.search_realms` / `ck.directory.search_organizations` / `ck.directory.search_actors` / `ck.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |
+| `ck.directory.search_realms` / `ck.directory.search_organizations` / `ck.directory.search_actors` / `ck.directory.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
 | `ck.directory.resolve_realm` / `ck.directory.resolve_organization` / `ck.directory.resolve_handle` / `ck.directory.list_handles_for_subject` | 精确解析 Realm / Organization / handle，以及列出已知 subject 的当前可见 handle claims。 |
 | `ck.directory.announce` / `ck.directory.withdraw` / `ck.directory.push.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
 | `ck.blob.upload` | 上传 blob。 |
@@ -97,6 +95,13 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.device_messages.put` | 发送 to-device message。 |
 | `ck.keys.upload` / `ck.keys.query` / `ck.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
 | `ck.keys.backups.put` / `ck.keys.backups.list` / `ck.keys.backups.get` / `ck.keys.backups.delete` | 加密密钥备份对象存储、枚举、读取与删除。 |
+
+> **Federation 复用说明（非独立 operation）**：v1 联邦不再注册独立的 federation operation_id，而是**复用**上表已有的 operation，并在认证层切换形态：
+>
+> - **Federation push**：复用 `ck.events.submit`（`POST /_cokret/self/events`）；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。
+> - **Federation pull / backfill**：复用 `ck.events.query`（`GET /_cokret/self/events?before=<cursor>`，取该 cursor 之前最近一批，默认 descending）；认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。
+>
+> 这两项是同一 canonical operation 的 federation auth-class 使用形态，不是新的 `operation_id`，因此不出现在上表的 operation 列中。
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 

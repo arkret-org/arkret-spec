@@ -282,7 +282,7 @@ v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
 
 两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Realm-level fanout 不走 member binding。
 
-针对 member-level delivery，sender 的解析算法是确定性的：
+针对 member-level delivery，sender 的解析算法是确定性的（其中 `delivery_status ∈ {routable, unroutable}` 的定义见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 与 [`governance/join-policy.md` §5.1](../governance/join-policy.md)，`unroutable` 表示该成员不接受服务端推送 / 同步 / to-device / push / key-package 投递）：
 
 ```
 for each member m of Realm S that needs to receive event E:
@@ -311,6 +311,20 @@ Rebind handover：
 - 对同一 `(target_principal_id, realm_id)`，sender 在 24h rolling window 内最多接受一次 successful handover。超过上限 MUST 返回 `delivery_binding_handover_rate_limited` 并进入 operator diagnostic；Realm policy 可以声明更短窗口，但不得放宽该默认上限。
 - `delivery_binding_stale` 重试是有界重定向，不是无限 fanout：sender 对同一 `(event_id, target_principal_id, handover_frontier)` 最多重试一次到 `new_recipient_service_did`；再次收到 stale / handed_over 时 MUST 停止投递并进入 backoff / operator diagnostic，避免跨服务循环。
 - 旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`。
+
+`delivery_binding_stale` 响应体（normative 字段表；schema 待补）：以下字段当前仅在散文与 fixtures / `error-code-registry` 中出现，尚未在 `artifacts/schemas` 与 `contract-catalog` 登记 canonical schema。在补齐 schema 前，符合规范的实现 MUST 按下表产出 / 校验响应结构。
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `new_recipient_service_did` | `did` | required | rebind 后的目标 Principal Server service DID；MUST ∈ 当前 effective `allowed_recipient_services` / delivery binding policy 允许集合。 |
+| `handover_frontier` | `id[]` | required | 触发该 rebind 的 handover frontier `F`；MUST 与 `handover_proof.frontier` 相等。 |
+| `handover_proof` | `object` | required | 绑定产生新 binding 的 accepted `ck.member.state{membership="join"}` Move 的可验证证明（见下）。 |
+| `handover_proof.frontier` | `id[]` | required | MUST `== handover_frontier`。 |
+| `handover_proof.recipient_service_did` | `did` | required | MUST `== new_recipient_service_did`。 |
+| `handover_proof.actor_id` | `did` | required | rebind 目标主体；MUST `== target_principal_id`。 |
+| `handover_proof.witness` | `object` | required | 该 rebind Move 的 event digest / state witness / inclusion proof；sender MUST 验证其在 Realm Event graph 与 policy 下可达，且对应 Move 已被 anchor frontier finalize。 |
+
+> `handover_grace_seconds`（默认 `86400`）是该 handover 路径的部署常量，与 `allowed_recipient_services` 一并属于待登记到 `artifacts/schemas` / `contract-catalog` 的 federation delivery-binding 常量与字段；在登记前，本表与本节散文是其唯一 normative 来源。**artifact 待补**：`delivery_binding_stale` 响应体 schema 与 `handover_proof` 字段尚未进入 `artifacts/schemas` 与 `contract-catalog`，仅存在于 fixtures 与 `error-code-registry`。
 
 撤销 / 移除 cascading：
 
@@ -390,7 +404,7 @@ Signature: ...
 
 > Federation pull 共用 `ck.events.query` operation；不另设独立 federation pull endpoint。`snapshot_bootstrap` 字段以 optional 形式出现在 `ck.events.query` 响应中（仅 service-to-service 调用、Realm policy 显式允许时）。
 
-**Pull 授权 freshness（normative，与 §8.5.1 对称）**：无 body 的 `GET` pull 省略 `Content-Digest` / `Request-Canonical-Digest`（§3.2），因此不像 push 那样把 canonical digest 纳入幂等缓存键，撤销后重放的窗口必须由授权侧关闭。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-DID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-DID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
+**Pull 授权 freshness（normative，与 §8.5.1 互补）**：§8.5.1 处理的是 push 路径——把 service key state 一起进入 idempotency cache key，从而在 cache hit 时仍重做授权检查；而 pull 路径根本**不进幂等缓存**：无 body 的 `GET` pull 省略 `Content-Digest` / `Request-Canonical-Digest`（§3.2），因此不像 push 那样把 canonical digest 纳入幂等缓存键。两条路径用**不同机制**关闭同一个"撤销后重放"窗口（push 靠 cache-key 绑定 + cache hit 重校验，pull 靠每次请求强制重新解析 service binding freshness），互为补充而非镜像对称。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-DID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-DID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
 
 `snapshot_bootstrap` 字段（存在时）：
 
@@ -451,7 +465,7 @@ Signature: ...
 Probe **MUST** 是 capability-gated：
 
 - 被 Realm service binding 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
-- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_expires_at` 或 `retry_after_ms`，且服务端返回的最小退避窗口 MUST ≥ 60 秒（`cache_expires_at - now >= 60s` 或 `retry_after_ms >= 60000`）；客户端在该时间前不得重复轮询同一 Realm，若收到低于 60 秒的值 MUST 按 60 秒处理。**活跃度侧信道（baseline 收紧）**：原始 `frontier_root` 摘要在多次匿名轮询下可让观察者重建 Realm 活跃度时间序列（同一 hash 不变意味着窗口内无写入，hash 变化即标记一次写入）。因此 baseline **SHOULD NOT** 在匿名 / 未授权路径暴露原始 `frontier_root`；sovereign / regulated 部署 **MUST** 关闭 `peer_role=anonymous_health` 调用面，只保留 federation_peer 已认证路径。若部署确需保留匿名健康检查，匿名响应 **MUST** 不返回原始 `frontier_root`，而是返回 `H(per_window_salt || frontier_root)`：`per_window_salt` 是按固定时间窗口（窗口长度 ≥ 退避窗口）随机生成、对同一窗口内所有匿名请求者相同、跨窗口不可预测且不对外暴露的盐；这样观察者无法跨窗口比较 hash 是否变化，从而无法重建逐写入活跃度时间线。salt MUST NOT 从 `frontier_root`、`observed_at` 或其它可被观察者复算的值派生。已认证 federation_peer 路径不加盐，仍返回 canonical `frontier_root` 以便比对。
+- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_expires_at` 或 `retry_after_ms`，且服务端返回的最小退避窗口 MUST ≥ 60 秒（`cache_expires_at - now >= 60s` 或 `retry_after_ms >= 60000`）；客户端在该时间前不得重复轮询同一 Realm，若收到低于 60 秒的值 MUST 按 60 秒处理。**活跃度侧信道（baseline 收紧）**：原始 `frontier_root` 摘要在多次匿名轮询下可让观察者重建细粒度的 Realm 活跃度时间序列（同一 hash 不变意味着窗口内无写入，hash 变化即标记一次写入）。因此 baseline **SHOULD NOT** 在匿名 / 未授权路径暴露原始 `frontier_root`；sovereign / regulated 部署 **MUST** 关闭 `peer_role=anonymous_health` 调用面，只保留 federation_peer 已认证路径。若部署确需保留匿名健康检查，匿名响应 **MUST** 不返回原始 `frontier_root`，而是返回 `H(per_window_salt || frontier_root)`：`per_window_salt` 是按固定时间窗口随机生成、对同一窗口内所有匿名请求者相同、跨窗口不可预测且不对外暴露的盐；这样观察者无法跨窗口比较 hash 是否变化，从而无法重建**细于 salt 窗口粒度**的活跃度时间线。salt 窗口长度 **MUST** ≥ 退避窗口（下限 60 秒），且 **SHOULD** 显著大于退避窗口（建议 ≥ 1 小时）：取等于退避窗口时，观察者仍可在每个窗口边界恰好轮询一次，从而保留约一个退避窗口粒度的残余活跃度侧信道；把 salt 窗口拉大到远超退避窗口可把该残余信道的时间分辨率压到窗口粒度。对活跃度时间线特别敏感的部署 **SHOULD** 改为对匿名响应加固定延迟 / random padding，或直接按本节关闭 `peer_role=anonymous_health` 调用面。salt MUST NOT 从 `frontier_root`、`observed_at` 或其它可被观察者复算的值派生。已认证 federation_peer 路径不加盐，仍返回 canonical `frontier_root` 以便比对。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
 
 Probe 响应 payload：

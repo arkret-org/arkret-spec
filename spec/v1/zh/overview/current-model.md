@@ -70,7 +70,6 @@ Flow 在 `Board Space` / `List Space` 中的位置通过 `contains` relation 与
 - View filter / columns / layout 变化写入 `ck.view.update`
 - 拖拽 Flow、切换 List、修改 rank 写入真实对象事件：`ck.flow.move` / `ck.flow.reorder` / `ck.space.update`
 
-
 ## 6. 权限与成员边界
 
 Realm membership、Flow 更新权限与 discussion timeline 可见性使用统一授权模型裁剪：

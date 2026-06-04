@@ -161,6 +161,17 @@ Realm 有两个终态 event，语义不同：
 
 `ck.realm.tombstone` 写入 `ck.component.realm.tombstone.v1`，`ck.realm.destroy` 写入 `ck.component.realm.destroy.v1`；二者均为 cas_register（bottom=reject），各自不可重复写入。capability：`ck.realm.tombstone` / `ck.realm.destroy`（action 定义见 [`../authz/capabilities.md` §5.1](../authz/capabilities.md)，high-risk 约束见 [`capabilities.md` §8](../authz/capabilities.md)）。
 
+#### 2.6.0 Realm 可逆 lifecycle facet（`ck.realm.archive` / `ck.realm.freeze`）
+
+除上述两个终态外，Realm 还有两个**可逆** lifecycle facet，与终态正交，且对应 [`common-fields.md` §5](./common-fields.md) 状态对齐表 Realm 行支持的 `archived`：
+
+| Event | 语义 | lifecycle_modality | cell family |
+| --- | --- | --- | --- |
+| `ck.realm.archive` | 把 Realm 设为 `archived`（软隐藏，UI 默认不展示，可撤销）。 | reversible | `ck.component.realm.archive.v1` |
+| `ck.realm.freeze` | 把 Realm 冻结为只读（暂停普通写入，可撤销）。 | reversible | `ck.component.realm.freeze.v1` |
+
+二者均为 cas_register（bottom=reject）durable event，承载一个 **reversible boolean** facet：**同一个 `ck.realm.archive` 写 `true` 进入 `archived`、写 `false` 复原**，**不走独立 `ck.realm.restore` event**；`ck.realm.freeze` 同理用单一 reversible boolean facet 在 frozen / 非 frozen 之间切换。这区别于 [`common-fields.md` §5.2](./common-fields.md) 模板中 `ck.<kind>.archive` + `ck.<kind>.restore` 成对的形态——Realm 的可逆性由 facet boolean 表达，registry `lifecycle_modality=reversible` 是真源。capability：`ck.realm.archive` / `ck.realm.freeze`（action 见 [`../authz/capabilities.md`](../authz/capabilities.md)）。
+
 #### 2.6.1 `ck.realm.destroy` 终态规则（normative）
 
 `ck.realm.destroy` accepted 进入 frontier 之后：

@@ -373,7 +373,7 @@ sha256:a828dc768e814ca0be50b5014e1115612776fa342f66df849e8bdd7e72dfa9b4
 ck.vector.encoding.signature_binding_payload.v1
 ```
 
-签名前的 binding object：
+签名前的 binding object（其中 `event_digest` 仅为占位值，取自 §1.3 `ck.vector.encoding.canonical_json.basic.v1` 的 digest `sha256:43258cff...`，用于固定本向量的 binding canonical 形态；它**不是** §1.6 真实 event digest `sha256:297487d8...`。本向量只断言 binding object 的 canonical bytes 与 digest，不要求该 `event_digest` 与任一具体 event 一致）：
 
 ```json
 {
@@ -1161,7 +1161,7 @@ ck.vector.snapshot.inclusion_challenge.v1
 ### 4.1 目标
 
 本文件将 capability 的链式授权、撤销回滚与审批约束固定为跨实现向量。  
-适配对象：`identity-registry`, `principal_server_events_api`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
+适配对象（下列为 profile 短名，统一用下划线；canonical id 形如 `ck.profile.<短名>.v1`，见 [`conformance-profiles.md`](./conformance-profiles.md)）：`identity_registry`, `principal_server_events_api`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
 
 向量命名：
 
@@ -1491,7 +1491,7 @@ ck.vector.capability.approval_constraint.v1
 - `event_id` 是内容寻址或签名绑定后的稳定 ID。
 - `actor_seq` 在同一 actor 的单条因果路径上严格递增；并发 sibling fork 可出现相同高度。
 - `hlc` 是 Hybrid Logical Clock，不能单独决定因果顺序。
-- `unsigned.target_ref_hint` MAY 指向标准对象、Morph、Relation、View、Space 或 Realm，仅作为测试向量的阅读辅助；规范性目标必须来自 `payload.*` 字段、`payload.object.id`、precondition/effect cell key 或 reducer 规则。标准 Event envelope 顶层 `target_ref` 是 legacy 字段，MUST NOT 出现。
+- `unsigned.target_ref_hint` MAY 指向标准对象、Morph、Relation、View、Space 或 Realm，仅作为测试向量的阅读辅助；规范性目标必须来自 `payload.*` 字段、`payload.object.id`、precondition/effect cell key 或 reducer 规则。标准 Event envelope **top-level**（与 `kind` / `actor_id` / `payload` 同级）的 `target_ref` 是 legacy 字段，MUST NOT 出现；该禁令仅针对 envelope 顶层，**不**适用于 payload 内部合法使用的 `target_ref`（如 §3.2.1 redaction payload 的顶层 `target_ref`）。
 
 ### 5.2.1 Vector: Late Key Recovery T0 Determinism
 
@@ -1512,8 +1512,13 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 - 两个客户端对 `E1` 的 late recovery 结果一致，且只取决于 anchored `T0` effective view，不取决于本地到达顺序或 wall clock。
 - 若 `receiver` 在 `T0` 可见且当前 share policy 仍允许历史恢复，late key 可以发放；后续 ban/remove 不 retroactively 改写 `E1` 的 verified timeline。
-- 若 `receiver` 在 `T0` 不可见，或 key source 未在发 key 前重新执行 `T0` 校验，必须拒绝并返回 `key_unavailable` / `policy_denied` 类错误；这才是 removed_actor negative path。
+- 若 `receiver` 在 `T0` 不可见，或 key source 未在发 key 前重新执行 `T0` 校验，必须拒绝并返回 `key_unavailable` / `policy_denied` 类错误。
 - 测试不得把“`T0` 后被 ban”单独作为拒绝理由；拒绝理由必须落在 `T0` 不可见或 key source unauthorized。
+
+本节固化两个**独立**向量，各对应 `vector-registry.json` 的不同 id，MUST NOT 合并：
+
+- `ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1`（本节主向量）——断言两客户端对 `E1` late recovery 结果只取决于 anchored `T0` effective view，与本地到达顺序 / wall clock 无关；正路径（`T0` 可见且 share policy 允许）发放、`T0` 不可见拒绝。
+- `ck.vector.late_key_recovery.removed_actor.v1`（无 `e2ee.` 段，独立 registry id）——removed_actor negative path 专项：`receiver` 在 `T0` 不可见 / key source unauthorized 时 MUST 拒绝，且拒绝理由 MUST NOT 仅为“`T0` 后被 ban”。
 
 ### 5.3 Vector: Board Collection Projection
 

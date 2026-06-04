@@ -54,7 +54,7 @@ updated: 2026-06-04
 > 字段，且 `payload_digest` 覆盖整个 canonical registration object（不含 `proof` 自身）。
 > 空 `"proof": {}` 形态 MUST 被 receiver 以 `schema_violation` 拒绝。
 
-> **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ck.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §5](./applet-integration.md)。
+> **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ck.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §11](./applet-integration.md)（末段）与 §4.1。
 
 > **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security evidence（不含 `proof` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。该 epoch 的 canonical 输入 MUST 包含 derived registration object、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material、bot actor/base URL 等安全相关字段。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 epoch evidence，重新解析或按 method-specific version evidence 读取 service DID Document，并确认当前 DID Document digest、accepted signing key set 与 epoch 捕获值一致。无版本化 `did:web` MUST re-fetch canonical document 并比对 digest。该字段 required。
 
@@ -319,11 +319,11 @@ GET /_cokret/edge/applet/protocols/{protocol}
   "applet_id": "ck:applet:dd552c17-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
   "failed_transaction_ref": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "external_ref": {},
-  "error_code": "external_rate_limited",
   "error_class": "external_network",
+  "error_code": "external_rate_limited",
   "retriable": true,
   "visibility_scope": "realm_admins",
+  "external_ref": {},
   "message": "external network rejected the message",
   "retry_after_ms": 1000
 }

@@ -108,6 +108,8 @@ DID Document SHOULD 只负责：
 | Moderation / Compliance Server | 公共或组织部署建议独立 | `/_cokret/self/moderation/*`, `/_cokret/describe` | report、审核队列或扩展审核入口、server ACL、policy list、appeal、legal hold / erasure workflow。 |
 | Archive / Recovery Service | history sharing、late key recovery 或组织恢复场景可选；高安全部署必须显式声明 | `/_cokret/describe` + `supported_operations` 中的 keys / blob / events 子集 | Archive Node、Key Recovery Service 或 Recovery Service。只能按 Realm policy、history visibility、T0 membership 和 capability 返回最小必要 epoch material / backup envelope / recovery proof；不得因持有归档副本自动获得明文读取权。 |
 
+上表 namespace 一栏的第一段路径（`self` / `gate` / `root` / `find` / `peer` / `open` / `edge`）是 **trust-surface classifier（信任面分类器）**，编码"调用方↔服务"的攻击面类别，**不是授权结论**；实现 MUST NOT 把信任面段本身解释为授权通过、安全级别达标或明文可见许可。每个 operation 仍按自身契约执行 session / capability / DID proof / Realm policy / history visibility / rate limit 校验。完整规则见 [service-http-binding.md §2.1](./service-http-binding.md)。
+
 推荐 deployment profile：
 
 - `principal_server_personal`：一个 Principal Server；内部合并 Events API + Sync/Federation + Blob + Device/Key + Authz；客户端可自行维护本地 search / projection；Identity Resolution Infrastructure、Directory、Push 和 TURN/Media 默认可用公共服务。
@@ -466,7 +468,7 @@ POST /_cokret/self/account/cursor/revoke
 GET /_cokret/self/snapshot/head?realm_id=<id>
 ```
 
-用于拿到当前推荐 snapshot manifest。
+用于拿到当前推荐 snapshot manifest。v1 的 `snapshot` namespace 仅 `ck.snapshot.head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。
 
 ### 5.3 Move / Anchor 状态与 Bottom 暴露
 

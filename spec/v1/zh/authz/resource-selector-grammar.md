@@ -184,7 +184,8 @@ view_selector        ::= "view" ":" realm_part ":" (view_id | "*")
 
 event_selector       ::= "event" ":" realm_part ":" (event_id | "*")
 
-actor_selector       ::= "actor" ":" (did | "*")
+actor_selector       ::= "actor" ":" did
+                      (* actor wildcard 非法：`actor:*` MUST schema_violation，见 §4.8 / §8.1 *)
 
 schema_selector      ::= "schema" ":" (schema_id | "*")
 
@@ -459,7 +460,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须逐字出现在授权 `actions[]` 中；`actions[]` 不存在 wildcard / segment 通配。通配只适用于资源 selector，不适用于 action token。
-3. **约束匹配**：`space_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。`realm_kind_allow` 在 v1 没有规范用途（v1 中所有 Realm 同属一种安全边界），v1 实现 MUST 忽略该约束并把它视为 always-allow（详见 [`constraint-schema.md` §5](./constraint-schema.md)）。
+3. **约束匹配**：`space_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。`realm_kind_allow` 在 v1 没有规范用途（v1 中所有 Realm 同属一种安全边界），v1 实现 MUST 忽略该约束（等价 always-allow，不参与 deny / quarantine / require_review 裁决）；权威定义见 [`constraint-schema.md` §5](./constraint-schema.md)。
 4. **Track scope 检查**：Message 和 discussion track 访问必须在已有 Realm / capability 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility；track 本身不授予 membership、history 或 E2EE key。
 5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
@@ -478,7 +479,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 非治理面 wildcard（`realm:*`、`object:*:<非治理类型>` 等）的缓解措施：
 
 - 始终配合 `expires_at` 使用。
-- 与 `object_type_allow`、`space_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_tracks` 等约束组合（`realm_kind_allow` 在 v1 已无规范用途，组合时按 always-allow 处理）。
+- 与 `object_type_allow`、`space_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_tracks` 等约束组合（`realm_kind_allow` 在 v1 已无规范用途，MUST 忽略 = always-allow，权威定义见 [`constraint-schema.md` §5](./constraint-schema.md)）。
 - 要求管理员审批与审计理由。
 - `max_delegation_depth` SHOULD 为 0。
 

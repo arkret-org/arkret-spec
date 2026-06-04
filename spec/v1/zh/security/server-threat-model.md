@@ -89,11 +89,17 @@ sidebar:
 22. **媒体侧信道探测（Media Header / Range Probe）**
     通过 `HEAD`、`Range`、`Content-Length`、`Content-Type`、`Content-Disposition` 或 redirect 差异推断私有 blob 是否存在、大小、类型或文件名。
 
-23. **联邦流量模式旁观（Federation Traffic-Pattern Observer）**
-    即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。高隐私部署 SHOULD 声明 `ck.profile.traffic_metadata_hardened.v1`；一旦声明，该部署 MUST 使用 OHTTP / relay indirection / decoy traffic 之一，并对批处理 padding、发送延迟抖动、固定大小 federation batch、retry cadence padding 和 blind / batch wakeup 执行该 profile 的可测试参数。未声明该 profile 时，不得把 E2EE 误表述为隐藏 federation traffic metadata。
+23. **联邦流量模式旁观（Federation Traffic-Pattern Observer）** —— *conditional：base v1 不直接防御，仅在声明 `ck.profile.traffic_metadata_hardened.v1` 时缓解（见 §2.1a）。*
+    即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。base v1 不提供针对该侧信道的直接防御。高隐私部署 SHOULD 声明 `ck.profile.traffic_metadata_hardened.v1`（profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)）；一旦声明，该部署 MUST 使用 OHTTP / relay indirection / decoy traffic 之一，并对批处理 padding、发送延迟抖动、固定大小 federation batch、retry cadence padding 和 blind / batch wakeup 执行该 profile 的可测试参数。未声明该 profile 时，不得把 E2EE 误表述为隐藏 federation traffic metadata。
 
 24. **出站 URL / SSRF（Server-Side Request Forgery）**
     攻击者通过 DID Document serviceEndpoint、媒体 URL、snapshot chunk、Policy Server endpoint、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
+
+### 2.1a 需 profile 才能缓解的攻击项（base v1 不直接防御）
+
+§2.1 中以 *conditional* 标注的条目不属于 base v1 可直接防御范围，只有在显式声明对应 hardening profile 时才能缓解：
+
+- **#23 联邦流量模式旁观** —— base v1 不防御 fanout 时间 / batch 大小 / retry 节奏 / 跨 Realm burst 等元数据侧信道；仅在声明 `ck.profile.traffic_metadata_hardened.v1`（[`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)）时，按该 profile 的 federation batch padding、send jitter、welcome padding bucket、retry cadence padding、blind / batch wakeup 与 OHTTP / relay / decoy 之一缓解。未声明时 MUST NOT 把 E2EE 宣传为隐藏 federation traffic metadata。
 
 ### 2.2 当前协议中不成立的攻击项
 

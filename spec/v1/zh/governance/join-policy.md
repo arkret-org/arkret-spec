@@ -21,7 +21,7 @@ updated: 2026-05-25
 | **Join Policy** | 章节 / 策略域总称 | 本文定义的 gate 组合、解析顺序、加密语义与反滥用约束的统称；不是单一 wire `Event.kind`。 |
 | `ck.realm.join_rule` | wire event / cell（active） | `default_join_rule` 入口模式策略事件，写入 `ck.component.realm.join_rule.v1` cell。 |
 | `ck.realm.delivery_binding_policy` | wire event / cell（active） | 成员投递绑定策略事件，写入 `ck.component.realm.delivery_binding_policy.v1` cell（§6.3）；约束成员 `delivery_binding.binding_source`，与 join gate 正交。 |
-| `RealmJoinCandidate`（`realm-join-candidate.schema.json`） | 候选请求 / 评估对象 | 描述本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service；方向与 `delivery_binding` 相反（见 §6.2）。 |
+| `RealmJoinCandidate`（`realm-join-candidate.schema.json`） | 候选请求 / 评估对象 | 描述本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service；方向与 `delivery_binding` 相反（见 §6.1 末尾注意段）。 |
 
 当前 v1 的 active 与 candidate surface 分层如下，base v1 实现只需要实现 active surface；application / review workflow 只在实现声明 `ck.profile.candidate.join_policy.v1` 时成为该实现的自愿承诺。
 
@@ -61,9 +61,13 @@ bottom      := reject
 value shape := JoinPolicy（见下）
 ```
 
+本 cell 的 `cell_subject` 取 `<realm_id>`（每 Realm 一个单例），与 §6.3 `ck.component.realm.delivery_binding_policy.v1` 使用 `cell_subject=null` 的写法在语义上等价——二者都表达"per-Realm 单例 policy"，差异仅是历史保留的 subject 编码约定：join_policy cell 把 `realm_id` 编入 `cell_subject`，delivery_binding_policy cell 把 Realm 归属隐含在 cell family 并以 `null` subject 标记单例。实现 MUST NOT 据此推断二者作用域不同。
+
 写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ck.policy.manage` capability（与 `ck.realm.policy_server` / `ck.realm.policy_components` 同等级）。`ck.realm.create` 时 SHOULD 通过 `ck.realm.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
 
 JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
+
+**`candidate_kind` 信封字段（normative）**：§3 与 §14 示例顶层出现的 `candidate_kind`（如 `"candidate_kind": "realm.join_policy"`）是 **candidate surface 专用的 profile-private 信封字段**，用于在实现自有承载（signed receipt / profile-private Event kind）中标注该 payload 对应哪个 candidate concept。它**不是** Event envelope 的 `kind`（[`../models/event-and-patch.md`](../models/event-and-patch.md)），在 [`../models/common-fields.md`](../models/common-fields.md) / [`../overview/glossary.md`](../overview/glossary.md) 中无登记，也 MUST NOT 作为 `Event.kind` 上链或进入 shared Realm wire / federation。`candidate_kind` 取裸名 candidate concept（`realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel`），仅在声明 `ck.profile.candidate.join_policy.v1` 的实现内部、其 profile-private 承载层有效。§7.2 / §7.3 在 prose 中直接用裸名引用同一组 candidate concept，二者指向一致；区别仅是 §3 / §14 给出带 `candidate_kind` 包装的具体 payload 示例形态。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -105,7 +109,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §12。 | `true` |
 | `application_form` | `questions[]`（见 §3.3） | applicant MUST 在 `member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
 | `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
-| `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `ck.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估）。此 gate 的语义是 **leave-cooldown**（按上次主动 leave 计时），prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
+| `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `ck.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估；亦不计入 §5 "applicant 拟使用的 gate 子集"的 `auto_resolve` 全称校验，见 §5）。此 gate 的语义是 **leave-cooldown**（按上次主动 leave 计时），prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
 
 未注册 `kind` MUST schema_violation；未注册的 `(kind, subfield)` 组合按 lattice `bottom=reject` 处理。
 
@@ -165,6 +169,8 @@ reducer 在 `ck.realm.join_rule` 与 join-policy cell 任一变更时 MUST 重�
 ## 5. 自动解析路径
 
 适用条件：`default_join_rule ∈ {public, restricted, knock_restricted}` 且 applicant 拟使用的 gate 子集全部 `auto_resolve=true`。
+
+**deny-only gate 不计入"拟使用子集"（normative）**：`cooldown` 这类 deny-only gate（§3.1）始终独立、强制评估，applicant 无法选择"使用 / 不使用"，因此**不计入**上述"applicant 拟使用的 gate 子集"的 `auto_resolve` 全称校验；它们虽标注 `auto_resolve=true`，但其角色是 pre-evaluation deny，不是 applicant 可选的解析门。相应地，§4 中 `restricted` 生效时"`gates[*].auto_resolve == true` 全为 true"与"含 `manual_review` / `application_form` MUST schema_violation"的 schema 校验只针对 **non-deny gate**——deny-only gate 始终独立评估，既不破坏 restricted 的全称约束，也不被计入 applicant 子集。
 
 applicant 直接提交：
 
@@ -401,8 +407,8 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` |  |
 | `application_ref` | yes | `receipt_digest` 或 profile-private `event_ref` | 指向 §7.2 的 signed application receipt；若实现 profile 已注册私有 application Event kind，MAY 指向该私有 Event id。不得引用未注册的裸名 `member.application`。 |
-| `decision` | yes | `enum(accept, reject, request_changes)` | `request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
-| `reason_code` | yes | `string` | 稳定原因码：`ok` / `incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `other`。 |
+| `decision` | yes | `enum(accept, reject, request_changes)` | review **结果**由本字段承载（accept / reject / request_changes），等价于本文件族 §5.5 appeal 的 `verdict` 角色。`request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
+| `reason_code` | conditional | `string` | 稳定**拒绝 / 变更细分原因码**：`incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `ttl_expired`（reducer 自动超时拒绝，见 §12）/ `other`。`decision ∈ {reject, request_changes}` 时必填；`decision=accept` 时省略或取保留值 `ok`（`ok` 不承载独立语义，成功结果由 `decision=accept` 表达，保留 `ok` 仅为 candidate 承载层向后兼容）。本字段遵循 [`../models/common-fields.md` §2](../models/common-fields.md)（受控枚举用 `_code` 后缀），仅承载拒绝 / 变更细分，不兼表成功裁决。 |
 | `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
 | `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `ck.audit.*` 风险记录）。 |
 | `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability`（§3 中那个 capability **action token**）的 **grant id** 与当时 frontier digest；reducer 必须在写入时再校验一次。注意：本字段承载 grant id 引用，`review_capability` 承载 action token，二者勿混用。 |
@@ -442,6 +448,11 @@ application 进入 `accepted` 状态后：
 Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不能直接走 Realm MLS group。MUST 使用以下机制之一：
 
 1. **Reviewer Sub-Group MLS**：Realm 维护一个独立 MLS group `ck:mls:reviewer_subgroup:<realm_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `ck.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
+
+   **applicant 单向投递约束（normative）**：applicant 未 join Realm、不应成为 reviewer sub-group 的持久成员，也 MUST NOT 因投递申请而获得读取该 sub-group 后续 epoch（其他 applicant 申请、reviewer 间通信）的能力。因此：
+   - applicant 加入 reviewer sub-group 的 commit 与将其移出的 commit MUST 在**同一或紧邻的 commit**内完成——投递正文后 applicant MUST 立刻被 remove，sub-group MUST 推进到不含该 applicant 的新 epoch；reducer / sub-group 维护方 MUST NOT 让 applicant 停留在 roster 中跨越多个 epoch。
+   - MLS forward secrecy MUST 保证 applicant 仅能解密自己投递的那条 application message 所在 epoch 的密钥材料，不能解密其加入之前或被移出之后的任何 sub-group epoch。
+   - 若实现无法保证上述单向移出（例如批处理无法在同一 Anchor batch 内完成 add+remove），SHOULD 改用 §8.2(2) Envelope Encryption 路径——后者天然单向，applicant 只持有面向 reviewer 的封装能力、无任何 sub-group 解密能力。
 2. **Envelope Encryption to Reviewer Devices**：当 reviewer 数小于阈值（默认 `<=5`）或 sub-group 维护成本不可接受时，applicant 可使用 `encryption_envelope` 字段对 reviewer 当前已 published `ck.mls.keypackage` 的接收方公钥逐一封装：
 
 ```json
@@ -473,7 +484,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
             ├─ review.accept ──▶ invite (via ck.invite.create) ──▶ join (via ck.invite.accept)
             ├─ review.reject ──▶ leave  (with rejected_at + cooldown_until projection)
             ├─ application.cancel ──▶ leave
-            └─ application_ttl 到期 ──▶ leave (reducer 自动转换，rejected_reason="ttl_expired")
+            └─ application_ttl 到期 ──▶ leave (reducer 自动转换，reason_code="ttl_expired")
 ```
 
 派生 view `ck.view.realm.applications.v1`（[`../models/views.md`](../models/views.md)）SHOULD 提供：
@@ -528,7 +539,7 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 
 | 控制项 | 默认 | 强制要求 |
 | --- | --- | --- |
-| `application_ttl` | PT168H | reducer 到期自动转 `rejected_reason="ttl_expired"`；不计 cooldown。 |
+| `application_ttl` | PT168H | reducer 到期自动转 `reason_code="ttl_expired"`（统一走 §7.3 受控枚举命名约定，`ttl_expired` 见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)；不再使用 `rejected_reason` 别名）；不计 cooldown。 |
 | `cooldown_after_reject` | PT72H | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
 | Quota constraint | 由 Realm `ck.realm.policy_components` 声明 | 推荐对 `ck.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
@@ -598,6 +609,8 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 ```
 
 对应 `ck.realm.join_rule.value="knock_restricted"`：凭 VC 自动通过的走自动解析路径，其余走申请-审核路径。
+
+> 注：本示例 `cooldown_after_reject` 显式收紧为 `PT168H`（7 天），高于 §3 字段表默认 `PT72H`；此处恰与 `application_ttl` 取同值仅为示例简洁，二者计时锚点与作用对象不同（`application_ttl` 按申请未决超时，`cooldown_after_reject` 按上次 review reject 计时），并非要求二者相等。生产部署应按需独立取值或回落默认 `PT72H`。
 
 ## 15. 规范性引用
 

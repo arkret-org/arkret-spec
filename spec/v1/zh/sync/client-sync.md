@@ -86,6 +86,8 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 
 frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json)(`ck.schema.account_subscribe_frame.v1`)。
 
+> **与 `ck.events.subscribe` 帧集合的差异**：account-aggregate 流**有意不**包含 `ck.events.subscribe` 的 `event` 与 `epoch_rotation` 控制帧。account.subscribe 是跨 Realm 聚合视角，MLS epoch 变化不作为独立控制帧出现，而是在各 Realm `delta` 内通过 `state_after` / `state_at_window_start.e2ee_epoch`（见 §5）表达；需要逐 Realm 的 `epoch_rotation` 边界提示时使用 `ck.events.subscribe`。其余控制帧（`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`）与 `ck.events.subscribe` 对齐。
+
 `delta` frame 示例:
 
 ```json
@@ -598,7 +600,7 @@ POST /_cokret/self/account/cursor/revoke
 - `same_device`：撤销与当前 cursor 同 `(principal_id, device_id)` 的所有未过期 cursor（跨会话）。
 - 当 cursor 来自浏览器或其它无稳定 `device_id` 的环境时，`same_device` MUST 在效果上退化为 `this_cursor`（服务端不得猜测设备同一性），并在响应 `revoke_scope_effective="this_cursor"` 中显式回执，以避免客户端误以为全设备已撤销。
 
-服务端接受后 MUST 将对应 cursor 写入 cursor revocation set（核心：按 stateful handle 匹配；可选 `ck.profile.stateless_cursor.v1`：还按 `_mac` / `_sig` digest 匹配），保留时间不少于该服务声明的最长 cursor TTL（stream cursor 默认 7 天，barrier cursor 1 小时）。撤销命中时，任何 endpoint MUST 返回 `cursor_revoked`，并且不得推进 to-device ack、subscription position、barrier wait 或 dropped recovery state。
+服务端接受后 MUST 将对应 cursor 写入 cursor revocation set（核心：按 stateful handle 匹配；可选 `ck.profile.stateless_cursor.v1`：还按 `_mac` / `_sig` digest 匹配），保留时间不少于该服务声明的最长 cursor TTL（stream / barrier cursor 的 TTL 硬上限唯一 canonical 数值见 [`encoding.md` §8.3 规则 12](../conformance/encoding.md)，本节不重复字面数值）。撤销命中时，任何 endpoint MUST 返回 `cursor_revoked`，并且不得推进 to-device ack、subscription position、barrier wait 或 dropped recovery state。
 
 Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 完整性校验；完整性失败返回 `cursor_integrity_invalid`，不泄露该 cursor 是否曾被 revoke。
 

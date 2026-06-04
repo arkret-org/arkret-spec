@@ -90,8 +90,7 @@
               "public",
               "realm_bound",
               "actor_private",
-              "device_bound",
-              "presigned"
+              "device_bound"
             ]
           },
           "derivation_profile": {
@@ -115,8 +114,7 @@
             "public",
             "realm_bound",
             "actor_private",
-            "device_bound",
-            "presigned"
+            "device_bound"
           ]
         },
         "range_supported": {

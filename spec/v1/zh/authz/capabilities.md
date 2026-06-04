@@ -291,6 +291,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.blob.upload`
 - `ck.blob.get`
 - `ck.blob.head`
+- `ck.blob.presign`（签发预签名 blob URL；必需 constraint `blob_presign_scope` + `blob_presign_max_ttl_seconds`）
 - `ck.call.configure_media_service`
 - `ck.mls.genesis`
 - `ck.mls.proposal`
@@ -328,7 +329,11 @@ Cokret v1 支持：
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `realm_kind_allow`（v1 reserved / deprecated no-op：v1 中所有 Realm 同属一种安全边界，无 kind 区分,producer SHOULD NOT 发送；receiver MUST 忽略；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
+- `fields_read_allow`
+- `fields_read_deny`
+- `sensitive_fields`
+- `sensitive_handling`
+- `realm_kind_allow`（v1 reserved / deprecated no-op：v1 中所有 Realm 同属一种安全边界，无 kind 区分,producer SHOULD NOT 发送；receiver MUST 忽略（等价 always-allow，不参与 deny / quarantine / require_review 裁决）；权威定义见 [`constraint-schema.md`](./constraint-schema.md) §5）
 - `space_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
@@ -389,7 +394,11 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `not_before` | `temporal` | — | `not_before` |
 | `fields_write_allow` | `field_access` | — | `fields_write_allow` |
 | `fields_write_deny` | `field_access` | — | `fields_write_deny` |
-| `realm_kind_allow` | `type_restriction` | — | `realm_kind_allow`（v1 reserved / deprecated no-op；producer SHOULD NOT 发送） |
+| `fields_read_allow` | `field_access` | — | `fields_read_allow`（读取面字段允许列表，见 [`constraint-schema.md` §4.3](./constraint-schema.md)） |
+| `fields_read_deny` | `field_access` | — | `fields_read_deny`（读取面字段拒绝列表，§16.2 算法消费） |
+| `sensitive_fields` | `field_access` | — | `sensitive_fields`（读取时需特殊处理的敏感字段集） |
+| `sensitive_handling` | `field_access` | — | `sensitive_handling`（敏感字段处理方式：`redact` / `hash` / `omit`） |
+| `realm_kind_allow` | `type_restriction` | — | `realm_kind_allow`（v1 reserved / deprecated no-op；producer SHOULD NOT 发送；receiver MUST 忽略 = always-allow，权威定义见 [`constraint-schema.md` §5](./constraint-schema.md)） |
 | `space_kind_allow` | `type_restriction` | — | `space_kind_allow`（限定 Space 的 kind，例如 board / list / swimlane）|
 | `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
 | `facet_allow` | `type_restriction` | — | `facet_allow` |
@@ -507,7 +516,7 @@ system/human -> `ck.flow.update` 或 `ck.morph.update`
 | 子 grant 字段 | 与 parent grant 关系 |
 | --- | --- |
 | `effective_not_before` | MUST ≥ `parent.effective_not_before` |
-| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent 在 v1 中不允许；若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `expires_at` 或 temporal `expires_at`，且 `effective_expires_at` ≤ `now + max_delegation_lifetime_ms`,默认 24 小时) |
+| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent 在 v1 中不允许；若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `expires_at` 或 temporal `expires_at`)。**注意：仅"child 自带 `expires_at` ≤ `now + max_delegation_lifetime_ms`"不足以防滚动续期；整条 child 链每一级的 `effective_expires_at` 还 MUST ≤ 不可刷新的固定 `delegation_expiry_anchor`，见下方"固定 anchor 防滚动续期"段。** |
 | `max_delegation_depth` | MUST ≤ `parent.max_delegation_depth - 1` |
 | `actions[]` | MUST ⊆ `parent.actions[]` |
 | `resources[]` | MUST 是 `parent.resources[]` 的 selector-narrowing 子集(见 `resource-selector-grammar.md`) |
@@ -695,6 +704,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
     3. `constraints[]` 中存在任何 typed constraint 引用 moderation state cell、moderation queue、moderation report 或 moderation tag。
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；实现 MUST NOT 接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
   - 不在上述条件内的普通 grant（典型如 `ck.flow.update`、`ck.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。
+  - **条件 2 的保守取舍（normative rationale）**：条件 2 按 `actions[]` 是否含 moderation 写入动作触发，即使 subject 是固定 DID 的 admin / moderator grant（其"谁是 moderator"并不真正依赖 moderation cell）也强制 `depends_on_moderation_state=true`，因而该 grant 的 fast-path cache 会被无关 moderation cell 变化抖动失效。这是**有意的 fail-safe 设计**：lint 是 schema / reducer 层的静态规则，无法廉价区分"固定 DID admin"与"依赖 moderation state 的 condition-selector moderator"，而漏失效（已被 moderation 降权的 moderator 仍走 fast-path allow）的安全代价远高于多失效一次 cache 的性能代价。真正精确依赖 moderation state 的 grant 由条件 1、条件 3 覆盖；条件 2 是对"moderation 动作持有者"的额外保守网，**不收窄**。
 - Cache entry 的 `auth_state_digest` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；MUST NOT 继续用旧 grant 允许新写入。
 - 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现 MUST NOT 只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
 - 已被 GC 的 grant 仍 MUST 保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现 MUST NOT 因为 grant payload 已压缩或归档而让旧 cache 重新生效。

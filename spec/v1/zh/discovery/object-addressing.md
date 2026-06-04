@@ -121,7 +121,14 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 
 `invite` token 的签发 / 过期 / 吊销复用 [`governance/join-policy.md`](../governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期，本文**不另发明** revocation 机制。`resolve_target` 在 §4.2 target descriptor 校验通过后，仍 MUST 走 join-policy 的 token 有效性 / 吊销检查。
 
-`preview` token 使用同一 target descriptor discipline，但生命周期由 `ck.realm.preview_policy` 约束。签名 payload MUST 至少包含 `aud`、`exp`、`nonce`、`target_digest`、`link_type="preview"`、`preview_policy_digest`，并 SHOULD 包含允许的 preview mode / max events 摘要。解析方 MUST 校验 `preview_policy_digest` 指向当前 effective preview policy，或指向 policy 允许的 still-valid previous digest；否则返回统一 `not_found`。
+`preview` token 使用同一 target descriptor discipline，但生命周期由 `ck.realm.preview_policy` 约束。签名 payload MUST 至少包含 `aud`、`exp`、`nonce`、`target_digest`、`link_type="preview"`、`preview_policy_digest`，并 SHOULD 包含允许的 preview mode / max events 摘要。解析方 MUST 校验 `preview_policy_digest` 指向当前 effective preview policy，或指向 effective policy **显式枚举**的、仍接受的 previous digest；否则返回统一 `not_found`。
+
+**`preview_policy_digest` allowlist 边界（normative）**：为避免 "still-valid previous" 含义不清形成 policy downgrade 窗口（旧、已收紧前的 preview policy 被无限期接受），其边界 MUST 由 policy 自身显式声明，不得由解析方自行推断版本数 / 时间窗口：
+
+- effective `ck.realm.preview_policy` MUST 显式枚举它仍接受的 previous `preview_policy_digest` 集合（`accepted_previous_policy_digests[]`），每个条目 MUST 携带各自的过期时间（`expires_at`）。
+- 解析方 MUST 仅接受 `preview_policy_digest` 等于当前 effective digest、或命中该 allowlist 且 `now < expires_at` 的 previous digest；不在 allowlist 内、或已过期者一律按未授权返回统一 `not_found`。
+- 解析方 MUST NOT 用"最近 N 个版本""固定时间窗口"等隐式规则代替 allowlist。
+- policy 收紧时，签发端 MUST 能即时清空 / 重写 `accepted_previous_policy_digests[]`（例如置空数组），使被收紧前签发的 preview token 立即失效，不依赖各条目自然过期。
 
 ## 5. 隐私：target 与 token 放 fragment
 

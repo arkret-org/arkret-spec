@@ -40,7 +40,7 @@ Reader 的成员时点：
 
 | 名称 | 定义 |
 | --- | --- |
-| `invite_frontier(reader)` | 最近一次有效 `ck.member.state{membership=invite}` 或等价 invite accept / claim 使 reader 成为 invited 的 Anchor frontier；被 revoke / expire / reject 后失效。 |
+| `invite_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次有效 `ck.member.state{membership=invite}`（或等价 invite accept / claim）所确立的 Anchor frontier；被 revoke / expire / reject 后失效。reader 历史上若有多次 invite / revoke，`invite_frontier(reader)` 取**导致其当前 invited / joined 状态的那一次** invite 的 frontier，而非任意一次历史 invite——已失效或与当前成员资格无因果链的旧 invite frontier MUST NOT 被采用。 |
 | `join_frontier(reader)` | 最近一次有效 `ck.member.state{membership=join}` 使 reader 成为 active member 的 Anchor frontier。 |
 | `remove_frontier(reader)` | 最近一次有效 leave / ban / remove / account deactivation cascade 使 reader 不再是 active member 的 Anchor frontier。 |
 
@@ -56,7 +56,7 @@ Current read-time member state 只决定服务是否可以继续提供 server-me
 | --- | --- | --- | --- | --- | --- |
 | `world_readable` | 任何通过 discoverability / reference disclosure 的 reader MAY 读取该 Event 的授权视图。 | 允许读取该值生效期间的历史。 | MAY 按 preview policy 返回 stripped state 或历史 stub；MUST NOT 自动披露成员列表 / policy 原文。 | 默认 MAY 返回 redacted / public projection；明文 backfill 受 current safety policy。 | 不自动发 key；必须由 `ck.realm.history_sharing_policy` 明确允许 public / token holder key share，否则只返回密文或占位。 |
 | `shared` | 当前 active Realm member MAY 读取该值生效期间的历史，即使 Event 早于其 `join_frontier`。 | joined 后可读 join 前历史。 | invited 但未 joined 的 reader 默认不能读正文历史；只能按 preview policy 看 stripped state。 | 默认 DENY 给非 active member；policy MAY 允许对 T0 可见历史作受审计恢复。 | joined 后可按 history sharing policy 获得旧 epoch key；无 policy 时不能靠 visibility 自动补 key。 |
-| `invited` | reader 在 Event 的 `T0` 已处于 invited 或 joined 状态时 MAY 读取。 | joined 后最多回到自身有效 invite frontier；不能读 invite 前历史。 | invited reader MAY 读取 invite frontier 之后、policy 允许的 stripped state / history range。 | 默认 DENY；policy MAY 允许 T0 可见历史恢复。 | key share range MUST 从 invite frontier 起算，且必须写入 membership frontier digest。 |
+| `invited` | reader 在 Event 的 `T0` 已处于 invited 或 joined 状态时 MAY 读取。 | joined 后最多回到与当前成员资格因果相连的那次 invite frontier（§2 定义）；不能读该 invite 前历史。 | invited reader MAY 读取 invite frontier 之后、policy 允许的 stripped state / history range。 | 默认 DENY；policy MAY 允许 T0 可见历史恢复。 | key share range MUST 从 invite frontier 起算，且必须写入 membership frontier digest。 |
 | `joined` | reader 在 Event 的 `T0` 已处于 joined 状态时 MAY 读取。 | 不允许读 join 前历史。 | invitee 未 joined 时不能读正文历史，只能看 preview policy 允许的 stripped metadata。 | 默认 DENY；policy MAY 允许 T0 joined 且 current policy 仍允许的恢复。 | Welcome 只授予 join 后 future epoch；join 前 key share MUST 被拒。 |
 | `restricted` | 不由 enum 自身定义；MUST 由 effective `ck.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；任一判定失败的 fail-closed 行为见 §3.1 末尾集中声明。 |
 

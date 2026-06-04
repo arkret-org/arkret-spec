@@ -14,7 +14,7 @@ updated: 2026-06-01
 
 `relation`（`ck:relation:`）是 Cokret 协作图的**一等关系对象**。跨对象语义 MUST 使用 Relation 表达，而不是藏在对象字段里。
 
-Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `flow`、`message`、`morph`、`actor`、`space`、`realm` 或 `blob`。
+Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`flow`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ck:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -28,6 +28,8 @@ Schema id: `ck.schema.relation.v1`
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:relation` | 以 `ck:relation:` 开头。 | Relation ID。 |
 | `realm_id` | yes | `id:realm` | Relation 所在 Realm。 | 所属 Realm。 |
+| `scope_circle_id` | no | `id:circle` | submit payload 提供的 Realm 内 Circle scope；弱语义隐私边（`agent_sidecar_of` / `confidential_discussion_of`）按 §3.1 MUST 提交，指向 private Flow 的 Circle，使 `effective_scope = circle`，non-member 无法从公开端点枚举该边（见 [`circle.md` §6.1](./circle.md)）。 | 该 Relation 事实的 Circle 作用域。 |
+| `effective_scope` | no | `object` | **Reducer-stamped immutable，actor MUST NOT 提交**（reducer-managed，`reason=effective_scope_reducer_managed`）。create 时由 `scope_circle_id` 物化；结构关系 MUST NOT 宽于参与端点中最窄的作用域，且后续 rebind 不变（见 [`circle.md` §6.1-§6.2](./circle.md)）。 | 派生的有效作用域。 |
 | `relation_kind` | yes | `string` | 标准值见 §3。 | 关系语义。 |
 | `from_ref` | yes | `string` | MUST 是 `ck:<kind>:...` 或 DID。 | 起点对象/Actor/Realm 引用。 |
 | `to_ref` | yes | `string` | MUST 是 `ck:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |

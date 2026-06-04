@@ -140,7 +140,7 @@ Schema id: `ck.schema.flow.v1`
 
 **Reducer 硬约束**（来自 [common-fields.md §5.3.3](./common-fields.md)）：
 
-1. `state ∈ {redacted}` → `failed_precondition` `reason=flow_already_terminal`
+1. `state ∈ {redacted}` → `failed_precondition` `reason=flow_already_terminal`（这是 [common-fields.md §5.3.3](./common-fields.md) 通用规则 `state ∈ {redacted, tombstoned, deleted}` 在 Flow 上的实例化：Flow 的 state 枚举只有 `active` / `archived` / `redacted`，故其物理终态仅 `redacted`，此处复述等价于上游规则，并非窄化）
 2. `state = archived` → `failed_precondition` `reason=flow_not_active`
 3. `stage_changed_at` reducer-derived，忽略 wire 上 actor-supplied 值
 4. same-value self-transition → reducer 接受但不更新 `stage_changed_at`、不产生审计变更
@@ -519,7 +519,7 @@ Message 是 Flow `discussion` track 时间线中的原子消息对象。
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ck.message.create` / `ck.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`，不再使用顶层 `fields`。
+未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ck.message.create` / `ck.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`flow_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；回复关系不走标量字段，由 `replies_to` Relation 表达。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`，不再使用顶层 `fields`。
 
 Message MAY reply to another Message, mention Actor or object, reference Flow / Morph / Realm, or be redacted.
 
@@ -548,7 +548,7 @@ Schema id: `ck.schema.message.v1`
 | `updated_by` | no | `did` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-> `revision_root` / `visible_state` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中。`state` 顶层枚举表达对象生命周期状态。`metadata.fields.revision_root` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
+> `revision_root` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中；可见性由顶层 `state` 枚举（`active` / `redacted`）表达，不存在独立的 `visible_state` 顶层字段。`metadata.fields.revision_root` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 
 ### 9.3 最小示例
 

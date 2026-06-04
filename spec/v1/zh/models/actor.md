@@ -64,6 +64,7 @@ Schema id: `ck.schema.actor_profile.v1`
 | `accountable_principal_ids` | no | `array<did>` | agent/托管账号 SHOULD 设置；每个 DID 必须由对应 `ck.identity.accountability_grant` 背书，详见 §3.3.1。 | 责任主体。 |
 | `profile_fields` | no | `object` | 不得包含未授权披露的私密 handle。 | 扩展展示字段。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `updated_by` | no | `did` |  | 最近更新主体。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 ### 3.3 `principal_id` 与 `actor_kind` 的语义

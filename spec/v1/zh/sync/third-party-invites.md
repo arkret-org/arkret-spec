@@ -197,6 +197,12 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 | claim 成功 | `pending → claimed` | 同一 `token_commitment` 第二次 claim MUST `duplicate_conflict`；claim 接受后 `token_salt` / lookup pepper material MUST 在 24h 内 zeroize，只保留不可枚举 audit receipt。 |
 | OOB lookup 形态失败次数超限（§3） | `pending → invalidated_by_rate_limit` | 强制邀请者重发；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；不暴露具体失败次数给攻击者。 |
 
+**两个消费点的悬挂态（normative）**：第三方邀请有**两个不同信任域的消费点**，二者之间无强一致：§4.1 验证服务端**原子消费 token**（签发 `binding_proof` 后该 token 即用尽），与 §4.3 step 4 reducer 侧**原子标记 pending invite 为 `claimed`**。当 token 已在验证服务侧消费、但承载该 `binding_proof` 的 `ck.invite.claim` Event 投递失败、被 reducer 拒绝或进入 quarantine（reducer 侧 invite 仍停留在 `pending`）时，二者处于不一致的悬挂态。规范要求：
+
+- 一旦验证服务消费了某 token 并签发了 `binding_proof`，该 token MUST 被验证服务视为**已用尽**，即使后续未观察到对应 `ck.invite.claim` 在 Realm 落地为 `claimed`。验证服务 MUST NOT 对同一 token 重新签发第二份指向不同 / 相同 subject 的 `binding_proof`。
+- 因此 claim 在 reducer 侧未落地（被拒 / quarantine / 投递丢失）时，该 invite 不能仅靠重发原 token 恢复；与 §6.1 状态机一致，邀请者 MUST 通过重发**新 `invite_id` + 新 token + 新 commitment** 来重试（等同于 §6.1 `send_failed` / `revoked` 后的重发路径），不得复用已消费 token。
+- 验证服务 MAY 为该已消费 token 保留一个**可恢复窗口**（仅用于把同一份已签发 `binding_proof` 幂等重投递给 Realm，例如网络瞬断后的重试），但该窗口 MUST 绑定同一 `(invite_id, claim_nonce, subject_id, binding_proof_digest)`，不得用于把 token 重新绑定到其它 subject；窗口耗尽后 MUST 按上一条要求邀请者重发新 invite。
+
 Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可以先进入 `claimed` / joined projection，但该成员对加密正文的客户端状态 MUST 走 [`client-sync.md` §15](./client-sync.md) 的 `decryption_pending` / timeout / recovery 机制；不得把 Welcome 缺失解释为 claim 回滚。若 KeyPackage 耗尽、过期或与 required capabilities 不匹配，邀请方或服务端 MUST 触发 `keypackage_refresh_required` 诊断/重试路径，并在新的 Welcome 到达后按普通 MLS governance binding 校验恢复。
 
 **统一不可枚举响应（normative）**：claim 失败响应 MUST 不区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`ck.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。

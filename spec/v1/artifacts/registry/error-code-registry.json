@@ -2162,6 +2162,22 @@
       "description": "A bounded-lifetime artefact (member application, reservation cell, presign envelope, runtime gate proof, etc.) is past its declared `expires_at` / TTL window. See per-feature spec sections."
     },
     {
+      "code": "challenge_failed",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A join-policy challenge gate answer (e.g. CAPTCHA / proof-of-work / knowledge challenge) submitted with a member application failed verification. Used as a `reason_code` in member.application.review reject decisions. See zh/governance/join-policy.md §7.3."
+    },
+    {
+      "code": "claim_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A claim, attestation, or invite / binding proof submitted with a member application is malformed, unverifiable, or fails policy checks. Used as a `reason_code` in member.application.review reject decisions. See zh/governance/join-policy.md §7.3."
+    },
+    {
       "code": "not_provisioned",
       "applies_to": [
         "service_call"

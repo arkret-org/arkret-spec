@@ -99,7 +99,7 @@ v1 conformance 锁定的 hash 算法集合：
 实现 MUST：
 
 - 默认按 `sha256:` 解析；遇到未识别的 algo prefix → 若位于 critical field（event_digest、state_root、prev_refs blob hash）→ fail closed (`unsupported_digest_algorithm`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
-- 在 `server/describe.crypto` 暴露支持的 hash algo 集合;client 可据此选择写入算法。`describe.crypto` MUST 同时暴露支持的**签名** algo 集合(见 §6.1 Signature Suite registered set),不得只暴露 hash。
+- 在 `server/describe.crypto` 暴露支持的 hash algo 集合;client 可据此选择写入算法。（`describe.crypto` 还 MUST 暴露支持的**签名** algo 集合，该 MUST 的权威声明集中在 §6.1 Signature Suite registered set。）
 - MUST NOT "算法升级"已签名的 canonical bytes：一旦 Event 用 `sha256:` 发布，verify 路径永远按 sha256 重算；实现 MUST NOT 因为本地默认换成 blake3 就重算并替换。
 
 ### 3.3 State Root 与 Anchor Hash 编码
@@ -225,11 +225,13 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 
 
 签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自 registry active row 的 `proof_alg`；raw / non-JWS `signature_algorithm` 字段 MUST 取自 active row 的 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 由该 registry 校验，MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519);非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
 
-| Algo | canonical id / JWS `alg` | v1 角色 | 抗量子 / future-ready 评估 |
-| --- | --- | --- | --- |
-| `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | **v1 default-MUST**;所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破);通过 `ck.profile.signature.pqc.v1` 迁移到后量子 suite。 |
-| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | v1 optional;声明 `ck.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破);选择仅出于生态互通。 |
-| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | v1 profile-gated;声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<algo>:<...>` 已为加法准备好，无需重写 wire。 |
+表列与 registry active row 字段一一对应:`canonical_id`(下表 `Algo`)、`proof_alg`(JWS `alg`，detached_jws 形态用)、`signature_algorithm`(raw / non-JWS detached signature 形态用)。`Ed25519` 行的 `proof_alg`(`EdDSA`)与 `signature_algorithm`(`Ed25519`)不同，二者 MUST 分别取自对应列，不可互相替代。
+
+| Algo（`canonical_id`） | `proof_alg`（JWS `alg`） | `signature_algorithm`（raw / non-JWS） | v1 角色 | 抗量子 / future-ready 评估 |
+| --- | --- | --- | --- | --- |
+| `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | `Ed25519` | **v1 default-MUST**;所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破);通过 `ck.profile.signature.pqc.v1` 迁移到后量子 suite。 |
+| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `ES256` | v1 optional;声明 `ck.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破);选择仅出于生态互通。 |
+| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | `ML-DSA-65` | v1 profile-gated;声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<algo>:<...>` 已为加法准备好，无需重写 wire。 |
 
 实现 MUST:
 
@@ -450,7 +452,7 @@ Barrier 形态：
 
 - `_mac` MUST 是 HMAC over canonical bytes（除 `_mac` 自身外的所有字段，按 §2 RFC 8785 JCS 规则）；算法 MUST 是 HMAC-SHA-256 或更强；密钥由 issuing service 持有并按 `issuer_kid` 标识。
 - `_sig` MUST 是 detached signature over same canonical bytes；签名密钥使用 issuing service 的 cursor-signing key。
-- transcript MUST 绑定：`purpose`、`principal_id`、`device_id`、`service_did` / `service_id`、`filter_digest`、stream positions（`s` / `d`，如出现）、`target`（barrier 时）、`x`、`issuer_kid`。
+- transcript MUST 绑定：`purpose`、`principal_id`、`device_id`、`service_did` / `service_id`、`filter_digest`、stream positions（`s` / `d`，如出现）、`target`（barrier 时）、`x`、`issuer_kid`，以及服务端按 §8.2 添加的所有 `_` 前缀私有字段（如 `_compression`，但 `_mac` / `_sig` 自身除外）。等价表述：transcript 覆盖 cursor canonical bytes 中除 `_mac` / `_sig` 之外的全部字段。
 - 服务端 MUST 用当前 cursor key 重算 transcript 并与 `_mac` / `_sig` 比较；任一字段不匹配当前 authenticated request 的 principal / device / service / `filter_digest` / purpose → `cursor_integrity_invalid`。
 
 **Stateful 形态（含 `h`）**：
@@ -590,6 +592,8 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 ```text
 payload_digest = sha256(canonical_json(cleartext_metadata) || ciphertext_bytes)
 ```
+
+上式产出 32 字节 raw digest;其 wire 形态 MUST 为 `sha256:<lowercase_hex>`，与 §3.1 一致（见 `conformance-vectors.md` §1.12 的期望值 `sha256:3bef5270...`）。
 
 `cleartext_metadata` 至少包含 `encryption`、`epoch` 与 `content_type`；当 envelope 带 `aad` 时，`aad` MUST 进入 `cleartext_metadata` 后一起参与 digest。实现 MUST NOT 使用明文 payload 作为 `payload_digest` 输入。
 

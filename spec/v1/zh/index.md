@@ -77,6 +77,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 
 - `overview/architecture.md`：架构、服务角色、部署与信任边界。
 - `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Principal Server 等术语。
+- `overview/evolution-and-compatibility.md`：协议演进与向后兼容总纲、版本承载与破坏性变更收敛、profile / capability 协商角色。
 - `models/overview.md`：对象总览、typed-id 一览、设计原则。
 - `models/common-fields.md`、`models/realm-and-space.md`、`models/flow-and-message.md`：公共字段、Realm/Space、Flow/Message 等核心对象。
 - `models/relation.md`、`models/morph.md`、`models/event-and-patch.md`：关系、Morph 扩展、事件与字段增量。

@@ -167,12 +167,11 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     "ck.message.create",
     "ck.relation.create"
   ],
+  "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "webhook_auth": {
     "type": "http_message_signature",
     "key_ref": "did:web:slack-bridge.example#server-key-1"
   },
-  "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-  "created_at": "2026-04-26T00:00:00Z",
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
@@ -180,7 +179,8 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
-  }
+  },
+  "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
@@ -358,13 +358,14 @@ Handle namespace 适用于外部用户或 location 的人类入口。
     {
       "constraint_type": "scope_limitation",
       "effect": "allow",
-      "via_applet_id": "ck:applet:21532600-0000-7000-8000-000000000000",
-      "allowed_actor_namespace": "did:web:slack-bridge.example:ghost:*"
+      "allowed_data_classes": ["public", "internal"]
     }
   ],
   "expires_at": "2026-07-26T00:00:00Z"
 }
 ```
+
+constraint 内 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_classes` / `allowed_endpoints` / `allowed_*_container_refs` 等）。该 capability 与具体 applet 的绑定不写在 constraint 里，而是由 §5.1 registration 的 `namespaces.actors[].pattern`（声明可代理的 ghost actor 命名空间）与 §11 delegated agent 的 `applet_id` / `authorization_ref` 在 Event 层校验。
 
 除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事（此时 MUST 满足 [§11](#11-masquerading-与-delegated-agent) delegated agent 的全部字段 `executed_by` / `authorization_ref` / `applet_id` 与对应 reducer 校验），否则 Applet MUST NOT 向 Realm 写入。
 

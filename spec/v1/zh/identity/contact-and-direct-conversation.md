@@ -62,6 +62,8 @@ Contact 负责关系状态：`pending_outgoing` / `pending_incoming` / `accepted
 
 `ck.contact.request` 默认请求 `requested_scopes=["direct_message"]`。若 request 请求某个 scope，requester MUST 在自己的 PCR 同步写一条给 target 的 `ck.consent.grant`，并在 `requester_consent_refs[]` 中引用它。若该 grant 写入失败，request MUST fail closed，或移除该 scope 后重新签名。该 requester-side grant 在 contact accepted 前只表示 requester 允许 target 发起对应动作；`ck.direct_conversation.resolve` 仍 MUST 检查 accepted contact，不得只凭 consent grant 创建联系人 DM。
 
+该 requester-side grant 的生命周期 MUST 与 request 绑定，不得在 request 终结后长期残留为开放的反向 consent gate：当 requester 看到该 request 对应的 `ck.contact.rejected`，或 request 在 `contact_request_pending_ttl`（部署可配，默认 SHOULD ≤ 14 天）内仍处 `pending_outgoing` 而超时（无论先到者），requester 的 PCR MUST 自动对 `requester_consent_refs[]` 引用的 active grant dots 发 `ck.consent.revoke`。这些 dots 同时是 contact-managed consent，故也纳入 §3 / `ck.contact.tombstone` 的级联枚举范围；若 requester 无法枚举完整 dots，MUST 按 partial / fail-closed 处理并标记，不得报告完整撤销。该自动 revoke 不依赖 target 配合，目的是关闭"已死 request 留下长期开放的 requester→target 反向 consent gate"的暴露面。
+
 `ck.contact.respond(action="accept")` MUST：
 
 1. 验证 request 存在、target 是当前 holder、request 未被 target 已拒绝 / 接受 / 终止。

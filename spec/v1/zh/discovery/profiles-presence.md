@@ -42,9 +42,13 @@ updated: 2026-05-25
     "title": "Senior Engineer",
     "organization": "Acme Corp"
   },
-  "created_at": "2026-04-26T00:00:00Z"
+  "created_at": "2026-04-26T00:00:00Z",
+  "updated_by": "did:web:alice.example.com",
+  "updated_at": "2026-04-26T00:01:00Z"
 }
 ```
+
+字段顺序与 §2.2 表 / canonical schema property ordering 一致（…`status`、`profile_fields`、`created_at`、`updated_by`、`updated_at`）；`updated_by` / `updated_at` 为可选字段，初始 `ck.profile.create` 后尚未发生更新时 MAY 省略。
 
 ### 2.2 标准 Profile 字段
 
@@ -232,6 +236,20 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 | `last_active_at` | string | 可选 | 最后活跃时间。默认 MUST 省略，或按 policy bucket 化为粗粒度（例如分钟 / 小时级）；**仅当** presence policy 显式允许精确披露时才发送精确（秒级）timestamp。精确秒级值会成为活动 timing 侧信道，因此不得作为默认行为。 |
 | `status_message` | string | 可选 | 当前状态消息（来自 Profile）。MUST ≤ 256 字符（Unicode code point 计），按 [`conformance/encoding.md` §2.1](../conformance/encoding.md) NFC 规范化，MUST NOT 含除 `U+0009`/`U+000A` 外的 C0/C1 控制字符。presence 广播的 `status_message` MAY 与 Profile 的 `profile_fields.status_message` 不同（presence 可为临时覆盖值），但两者受同一长度与规范化约束。 |
 | `ttl_ms` | integer | SHOULD | 存活时间（毫秒），超时后客户端应将该用户视为 offline |
+
+当 presence policy 未显式允许精确披露时，`last_active_at` 默认省略；若 policy 要求携带粗粒度活跃度，MUST 以 bucket 化形态发送，bucket 边界（分钟 / 小时级）按 policy 声明，确定性编码，不得发送秒级精确 timestamp。bucket 化广播示例：
+
+```json
+{
+  "kind": "ck.presence",
+  "actor_id": "did:web:alice.example.com",
+  "state": "idle",
+  "last_active_at": "2026-04-26T10:00:00Z/PT1H",
+  "ttl_ms": 60000
+}
+```
+
+该 wire 值表示"最后活跃落在以 `2026-04-26T10:00:00Z` 为起点、粒度 `PT1H`（1 小时）的 bucket 内"，bucket 起点 MUST 按 policy 声明的粒度向下取整对齐（同一 bucket 内任意精确时间映射到同一 wire 值），使接收方无法据此还原秒级活动 timing。
 
 ### 3.4 隐私控制
 

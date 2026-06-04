@@ -278,7 +278,7 @@ Cache-Control: public, immutable, max-age=31536000
 - 缩略图 descriptor MUST 至少绑定 `source_blob_ref`、`source_ciphertext_digest?`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by_service_did?`、`visibility` 和 `derivation_profile`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，推荐 `purpose="thumbnail"` 并把 `source_blob_ref`、`thumbnail_blob_ref`、尺寸和生成参数纳入 key derivation / AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
 - `media-metadata.schema.json` 的 `preview_blob_ref` 只是 legacy shorthand；新 producer SHOULD 使用 `thumbnails[]` 数组表达上述绑定。Consumer 收到只有 `preview_blob_ref` 的旧 metadata 时，必须按源 blob 的最严格可见性处理，不得因缺少 descriptor 而放宽访问或缓存。
 
-`media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound` / `presigned`。`realm_bound` 表示访问受 owning Realm、Circle scope 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。旧草案的 ~~`space_bound`~~ 不是 v1 wire 值。
+`media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound`。`realm_bound` 表示访问受 owning Realm、Circle scope 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。旧草案的 ~~`space_bound`~~ 不是 v1 wire 值。`presign` 是 §5.4 定义的**下载通道机制**（发放短 TTL bearer URL），不是 visibility 维度上的取值；blob 的 visibility 仍按上述四值之一判定，是否允许 presign 由 §5.4.4.1 的 fail-closed 规则按 visibility 与 Realm policy 决定（例如 `actor_private` MUST NOT 走 presign）。因此 `presigned` ~~不是~~ 合法 visibility 枚举值。
 
 ### 5.4 Pre-Signed URL（浏览器原生标签兼容性例外）
 
@@ -370,6 +370,7 @@ Cache-Control: public, immutable, max-age=31536000
 - envelope 不得包含可重用 credential（refresh token、session token、long-lived capability 等）
 - envelope 由 blob service DID 签发，**不能**由 user device key 签发——这是 server-issued capability，不是 user delegation
 - 已 revoked / redacted / erased blob 即使 envelope 仍有效 MUST 拒绝
+- presign nonce 撤销 / 失效索引 MUST 至少保留到该 envelope 的 `expires_at`。普通 `media_inline` / `thumbnail` presign 在短 TTL 内多次可用（§5.4.3 步骤 8），其撤销条目若在 `expires_at` 前被清理，§5.4.4.1 对已签发但 TTL 未到的 presign 的即时拒绝（如 redacted blob）就会失效；因此撤销索引的保留下界 MUST 覆盖 envelope 的整个有效期。
 - presign URL 不得通过普通 redirect / 反向代理透传到第三方 origin
 
 **MUST NOT**：

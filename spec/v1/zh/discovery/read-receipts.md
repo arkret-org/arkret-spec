@@ -126,7 +126,7 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 #### 2.5.1 `visibility × history_visibility` 组合约束（normative）
 
-`visibility` 与 Flow effective scope 的 `history_visibility` 的组合按下表判定，与 [`discovery-directory.md` §3.1](./discovery-directory.md) 的矩阵纪律同级（`✓` = 允许；`!` = 允许但 reducer MUST 在 accept 时附带警告诊断，客户端 SHOULD 在进入 scope 时显式提示；`✗` = reducer MUST 拒绝）：
+`visibility` 与 Flow effective scope 的 `history_visibility` 的组合按下表判定，采用与 [`discovery-directory.md` §3.1](./discovery-directory.md) 兼容矩阵**相同的三态记号约定**（`✓` / `!` / `✗`），但各记号在本表的强度与时点以下方定义为准（与 directory §3.1 的 `!` = "SHOULD 在 Realm create 时显示警告"不同）：`✓` = 允许；`!` = 允许但 reducer MUST 在 accept 时附带警告诊断，客户端 SHOULD 在进入 scope 时显式提示；`✗` = reducer MUST 拒绝：
 
 | visibility ↓ \ history_visibility → | `world_readable` | `shared` / `invited` / `joined` / `restricted` |
 | --- | --- | --- |
