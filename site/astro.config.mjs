@@ -24,9 +24,28 @@ const specRoot = resolve(here, "../spec/v1");
  *
  * The reference locale (zh) is the source of truth for which entries exist.
  * Starlight auto-localizes the slug to the active locale at render time.
+ *
+ * Ordering: pass `order` — an array of basenames (no extension) — to pin the
+ * reading order of a group. Listed files appear in that exact order; any file
+ * not in `order` falls back after them, entry-page-first then alphabetical, so
+ * a newly-added doc degrades gracefully instead of being dropped. The intended
+ * order mirrors the document grouping in `spec/v1/zh/spec-map.md` §4 (the
+ * authoritative reading-path reference) rather than raw filename alphabetical,
+ * which would otherwise float optional/advanced docs above the foundations.
  */
-function planeItems(plane) {
+function planeItems(plane, order = []) {
   const dir = resolve(specRoot, "zh", plane);
+  const rank = (slug) => {
+    const name = slug.split("/").pop();
+    const i = order.indexOf(name);
+    // Unlisted files sort after every explicitly-ordered one.
+    return i === -1 ? order.length : i;
+  };
+  // Convention: a file named `overview` (or `index`) is the plane's entry
+  // page and SHOULD appear at the top of the sidebar group. Avoid `index.md`
+  // though — Starlight routes it as the directory landing page, which
+  // conflicts with explicit slug items.
+  const isEntry = (s) => /\/(overview|index)$/.test(s);
   return readdirSync(dir, { withFileTypes: true })
     .filter(
       (e) =>
@@ -38,11 +57,9 @@ function planeItems(plane) {
       slug: `v1/${plane}/${e.name.replace(/\.(md|mdx)$/, "")}`,
     }))
     .sort((a, b) => {
-      // Convention: a file named `overview` (or `index`) is the plane's entry
-      // page and SHOULD appear at the top of the sidebar group regardless of
-      // alphabetical order. Avoid `index.md` though — Starlight routes it as
-      // the directory landing page, which conflicts with explicit slug items.
-      const isEntry = (s) => /\/(overview|index)$/.test(s);
+      const ra = rank(a.slug);
+      const rb = rank(b.slug);
+      if (ra !== rb) return ra - rb;
       const aEntry = isEntry(a.slug);
       const bEntry = isEntry(b.slug);
       if (aEntry && !bEntry) return -1;
@@ -196,18 +213,139 @@ document.addEventListener("astro:after-swap", boot);
           label: "v1",
           collapsed: false,
           items: [
-            { label: "概览", items: planeItems("overview") },
-            { label: "身份与组织", items: planeItems("identity") },
-            { label: "对象模型", items: planeItems("models") },
-            { label: "授权与状态", items: planeItems("authz") },
-            { label: "同步与服务", items: planeItems("sync") },
-            { label: "发现与目录", items: planeItems("discovery") },
-            { label: "加密与媒体", items: planeItems("crypto-media") },
-            { label: "扩展", items: planeItems("extensions") },
-            { label: "治理", items: planeItems("governance") },
+            // Reading order follows spec-map.md §4 document grouping, not raw
+            // filename alphabetical. See planeItems() for the fallback rule.
+            {
+              label: "概览",
+              items: planeItems("overview", [
+                "architecture",
+                "glossary",
+                "current-model",
+                "release-readiness",
+                "evolution-and-compatibility",
+              ]),
+            },
+            {
+              label: "身份与组织",
+              items: planeItems("identity", [
+                "identity-did",
+                "identity-handles",
+                "key-management",
+                "consent-model",
+                "contact-and-direct-conversation",
+                "account-lifecycle",
+                "tsp-integration",
+              ]),
+            },
+            {
+              label: "对象模型",
+              items: planeItems("models", [
+                "overview",
+                "common-fields",
+                "realm-and-space",
+                "flow-and-message",
+                "circle",
+                "morph",
+                "relation",
+                "actor",
+                "governance-objects",
+                "private-objects",
+                "event-and-patch",
+                "extension-objects",
+                "views",
+                "content-types",
+                "realm-links",
+                "space-hierarchy",
+              ]),
+            },
+            {
+              label: "授权与状态",
+              items: planeItems("authz", [
+                "capabilities",
+                "constraint-schema",
+                "resource-selector-grammar",
+                "event-auth-state-resolution",
+                "policy-server",
+              ]),
+            },
+            {
+              label: "同步与服务",
+              items: planeItems("sync", [
+                "operations-sync",
+                "client-sync",
+                "service-surface",
+                "service-http-binding",
+                "service-api-schema",
+                "api-conventions",
+                "transport-bindings",
+                "federation",
+                "sovereign-deployment",
+                "third-party-invites",
+              ]),
+            },
+            {
+              label: "发现与目录",
+              items: planeItems("discovery", [
+                "discovery-directory",
+                "object-addressing",
+                "profiles-presence",
+                "client-preferences",
+                "push-notifications",
+                "read-receipts",
+              ]),
+            },
+            {
+              label: "加密与媒体",
+              items: planeItems("crypto-media", [
+                "device-lifecycle",
+                "encryption-and-audit",
+                "media-and-blob",
+                "webrtc-signaling",
+                "media-service-binding",
+                "call-state",
+                "audited-e2ee",
+              ]),
+            },
+            {
+              label: "扩展",
+              items: planeItems("extensions", [
+                "applet-integration",
+                "applet-schema",
+                "agent-protocol-interop",
+                "mimi-interop",
+              ]),
+            },
+            {
+              label: "治理",
+              items: planeItems("governance", [
+                "join-policy",
+                "history-visibility",
+                "content-moderation",
+              ]),
+            },
             { label: "安全", items: planeItems("security") },
-            { label: "一致性", items: planeItems("conformance") },
-            { label: "实施指南", items: planeItems("guides") },
+            {
+              label: "一致性",
+              items: planeItems("conformance", [
+                "normative-language",
+                "encoding",
+                "schema-registry",
+                "query-schema",
+                "snapshot-schema",
+                "conformance-vectors",
+                "scalability-constraints",
+                "conformance-suite",
+                "conformance-profiles",
+              ]),
+            },
+            {
+              label: "实施指南",
+              items: planeItems("guides", [
+                "artifact-consumption",
+                "reference-implementation-guide",
+                "migrating-from-matrix",
+              ]),
+            },
           ],
         },
         {
