@@ -99,8 +99,8 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/crypto-media/webrtc-signaling.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/webrtc-signaling.md"
       ]
     },
     {

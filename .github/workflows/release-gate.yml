@@ -1,0 +1,28 @@
+name: Release gate
+
+# Unified release gate (spec-review STR-005): a single job that blocks the
+# release if ANY of artifact pipeline / artifact lint / spec lint / crossref /
+# fixture-digest checks fail. Mirrors `python tools/release_gate.py`.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install lint dependencies
+        run: python -m pip install jsonschema pyyaml
+      - name: Run unified release gate
+        run: python tools/release_gate.py
