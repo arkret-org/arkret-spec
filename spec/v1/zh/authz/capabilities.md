@@ -239,7 +239,8 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.circle.member.add.others`（high risk；代他人写入 Circle membership，MUST 与 `ck.audit.accessed` 配对）
 - `ck.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `ck.audit.accessed` 配对）
 - `ck.realm.admin`
-- `ck.realm.audit_policy_downgrade`（high risk；把 Realm 从 `attested_hardware` 降级到 `disclosed_policy` 等审计降级，MUST 与 `ck.audit.accessed` 配对；**不**被 `ck.realm.admin` 自动覆盖，必须在 grant `actions[]` 中显式列出，target=`ck.realm.audit_policy_downgrade`）
+- `ck.audit.applet_binding`（high risk；新增、暂停或撤销 Audit Applet Binding；target=`ck.audit.applet_binding`）
+- `ck.audit.session.authorize`（high risk；授权某个 Audit Applet release session；Circle-scoped session 必须由覆盖该 Circle 的 grant 授权）
 - `ck.realm.link`（管理 Realm 间关系图，target=`ck.realm.link`）
 - `ck.realm.upgrade`
 - `ck.realm.moderation_policy`（管理 Realm 审核策略，target=`ck.realm.moderation_policy`）
@@ -297,6 +298,10 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.mls.welcome`
 - `ck.mls.keypackage`
 - `ck.audit.accessed`
+- `ck.audit.session.request`
+- `ck.audit.session.notice`
+- `ck.audit.release`
+- `ck.audit.session.close`
 - `ck.audit.query`
 - `ck.audit.export`
 - `ck.presence.broadcast`
@@ -306,7 +311,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 
 v1 不再注册独立的 `ck.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ck.mls.commit` payload 中的 `next_epoch` 和对应 `ck.component.mls_epoch.v1` cell reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
 
-Audit action 只授权受控审计代理执行“先记录后解密”、读取审计视图或导出审计材料。若 Audit Agent 已经是 MLS group 成员，持有 epoch key 本身不受 capability 系统密码学约束；Realm policy 必须同时声明 auditable E2EE profile、审计代理身份、plaintext-visible service disclosure、成员可见提示和 `ck.audit.accessed` 写入要求。
+Audit action 只授权受控审计 applet / release service 执行绑定、阶段性 session、成员通知、sealed historical release、审计视图读取或审计材料导出。审计 applet 不是 MLS group 成员，也不会因 capability 获得实时消息 fanout；E2EE 合规 release 必须走 active `ck.audit.applet_binding`、`ck.audit.session.*`、`ck.audit.release` 和 RYW receipt。普通 Realm/Circle 治理举报不使用这些 action，举报只路由给 scoped 管理员 / moderator。
 
 ### 5.6 人类界面与个人状态动作
 

@@ -30,12 +30,12 @@ updated: 2026-05-25
 
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 168 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 60 | `artifacts/registry/schema-registry.json` |
-| Typed ID kind | 44 | `artifacts/registry/id-kind-registry.json` |
-| Service operation | 101 | `artifacts/registry/operation-registry.json` |
-| Claimable conformance profile | 68 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | 92 | `artifacts/profiles/conformance-profiles.json` |
+| Event kind（active） | 172 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 61 | `artifacts/registry/schema-registry.json` |
+| Typed ID kind | 47 | `artifacts/registry/id-kind-registry.json` |
+| Service operation | 104 | `artifacts/registry/operation-registry.json` |
+| Claimable conformance profile | 71 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 95 | `artifacts/profiles/conformance-profiles.json` |
 
 上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数（快照约 60）以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 校验；其中 `ck.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 

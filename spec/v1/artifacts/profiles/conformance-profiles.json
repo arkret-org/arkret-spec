@@ -63,6 +63,10 @@
     "ck.profile.push_gateway.visible_notification.v1",
     "ck.profile.push_gateway.matrix_passthrough.v1",
     "ck.profile.applet_service.v1",
+    "ck.profile.applet_bridge.v1",
+    "ck.profile.applet_delegated.v1",
+    "ck.profile.applet_e2ee_join.v1",
+    "ck.profile.applet_widget.v1",
     "ck.profile.agent_runtime.v1",
     "ck.profile.personal_agent_provisioning.v1",
     "ck.profile.agent_auth.v1",
@@ -74,7 +78,6 @@
     "ck.profile.mimi_interop.v1",
     "ck.profile.sovereign_client.v1",
     "ck.profile.franking.v1",
-    "ck.profile.franking.sender_commitment.v1",
     "ck.profile.morph.schema_migration_transformations.v1",
     "ck.profile.webrtc_media.v1",
     "ck.profile.stateless_cursor.v1",
@@ -103,7 +106,6 @@
       "ck.profile.push_gateway.matrix_passthrough.v1",
       "ck.profile.sovereign_client.v1",
       "ck.profile.franking.v1",
-      "ck.profile.franking.sender_commitment.v1",
       "ck.profile.morph.schema_migration_transformations.v1",
       "ck.profile.webrtc_media.v1",
       "ck.profile.stateless_cursor.v1",
@@ -114,6 +116,10 @@
     ],
     "extension_profile_implementation": [
       "ck.profile.applet_service.v1",
+      "ck.profile.applet_bridge.v1",
+      "ck.profile.applet_delegated.v1",
+      "ck.profile.applet_e2ee_join.v1",
+      "ck.profile.applet_widget.v1",
       "ck.profile.agent_runtime.v1",
       "ck.profile.mimi_interop.v1"
     ],
@@ -198,10 +204,13 @@
     "ck.profile.media_service_binding.livekit.v1": "server",
     "ck.profile.media_service_binding.cokret_native.v1": "server",
     "ck.profile.applet_service.v1": "server",
+    "ck.profile.applet_bridge.v1": "server",
+    "ck.profile.applet_delegated.v1": "server",
+    "ck.profile.applet_e2ee_join.v1": "server",
+    "ck.profile.applet_widget.v1": "server",
     "ck.profile.agent_runtime.v1": "server",
     "ck.profile.mimi_interop.v1": "interop",
     "ck.profile.franking.v1": "server",
-    "ck.profile.franking.sender_commitment.v1": "client",
     "ck.profile.morph.schema_migration_transformations.v1": "server",
     "ck.profile.webrtc_media.v1": "gateway",
     "ck.profile.stateless_cursor.v1": "server",
@@ -765,7 +774,7 @@
         "absolute_hard_ceiling_ms": 300000,
         "rationale": "Receiving client refuses to admit a message into verified timeline if the gap between receive_at and the most recent membership_change_at exceeds this window with old-epoch decryption.",
         "receiver_enforcement": "Receiver MUST enforce the hard ceiling independently of any declared deployment value: if a Realm policy event sets relaxed_window_max_ms > absolute_hard_ceiling_ms (300000 ms / 5 min), the reducer MUST reject the policy update with reason_code `relaxed_window_exceeds_ceiling` (mapped from `schema_violation`), and the receiver MUST treat the policy event as failed_precondition. Receivers MUST NOT silently clamp the value to the ceiling, because a silent clamp would let a deployment publish a longer window than receivers honor and split visible policy state across implementations. Negative vector: `ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1` covers (a) reducer reject on policy write > 300000 ms, (b) receiver reject on old-epoch decrypt admission when the gap exceeds the per-policy declared window, and (c) reject when any deployment tries to redefine the ceiling via an unrelated profile.",
-        "compliance_profile_disabled": "Profiles in the compliance / audited tier (ck.profile.attested_audit.e2ee.v1, ck.profile.disclosed_audit.e2ee.v1, and any deployment declaring `audit_assurance >= disclosed_policy`) MUST NOT enable ck.profile.e2ee_relaxed.v1. Reducer MUST reject the combination with reason_code `e2ee_relaxed_disallowed_in_compliance_profile`. Rationale: compliance assurance presumes the kick-out semantic is cryptographically immediate; the relaxed window contradicts that presumption."
+        "compliance_profile_disabled": "Profiles in the compliance / audited tier (ck.profile.attested_audit.e2ee.v1, ck.profile.disclosed_audit.e2ee.v1, and any deployment with active Audit Applet Binding) MUST NOT enable ck.profile.e2ee_relaxed.v1. Reducer MUST reject the combination with reason_code `e2ee_relaxed_disallowed_in_compliance_profile`. Rationale: compliance assurance presumes the kick-out semantic is cryptographically immediate; the relaxed window contradicts that presumption."
       },
       "federation_guard": {
         "forbidden_federation_policy": [
@@ -1371,13 +1380,44 @@
       "required_endpoints": [
         "ck.applet.describe",
         "ck.applet.ping",
-        "ck.applet.transaction",
+        "ck.applet.transaction"
+      ],
+      "required_event_kinds": [
+        "ck.applet.registration"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.anchor.v1",
+        "ck.schema.applet_package.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json",
+        "federation-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "claimed_profiles",
+          "supported_protocols",
+          "namespace",
+          "service_did",
+          "bot_actor_id"
+        ],
+        "unsupported_optional": "return unsupported_feature"
+      }
+    },
+    "ck.profile.applet_bridge.v1": {
+      "inherits": [
+        "ck.profile.applet_service.v1"
+      ],
+      "required_endpoints": [
         "ck.applet.resolve_actor",
         "ck.applet.resolve_realm",
         "ck.applet.protocol_metadata"
       ],
       "required_event_kinds": [
-        "ck.applet.registration",
         "ck.applet.protocol_session.start",
         "ck.applet.protocol_session.status",
         "ck.applet.bridge_error"
@@ -1398,9 +1438,83 @@
       ],
       "feature_discovery": {
         "required": [
-          "supported_protocols",
-          "namespace",
-          "service_did"
+          "ghost_actor_accountability",
+          "portal_realm_namespace",
+          "external_event_deduplication"
+        ],
+        "unsupported_optional": "return unsupported_feature"
+      }
+    },
+    "ck.profile.applet_delegated.v1": {
+      "inherits": [
+        "ck.profile.applet_service.v1"
+      ],
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.capability.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "executed_by_attribution",
+          "authorization_ref_binding",
+          "registration_epoch_evidence"
+        ],
+        "unsupported_optional": "return unsupported_feature"
+      }
+    },
+    "ck.profile.applet_e2ee_join.v1": {
+      "inherits": [
+        "ck.profile.applet_service.v1"
+      ],
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "independent_e2ee_join_authorization",
+          "mls_roster_applet_managed_marker",
+          "applet_e2ee_join_unauthorized"
+        ],
+        "unsupported_optional": "return unsupported_feature"
+      }
+    },
+    "ck.profile.applet_widget.v1": {
+      "inherits": [
+        "ck.profile.applet_service.v1"
+      ],
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "widget_origin_isolation",
+          "widget_csp",
+          "widget_scoped_token",
+          "widget_consent"
         ],
         "unsupported_optional": "return unsupported_feature"
       }
@@ -1729,38 +1843,6 @@
           "frank_canonical_fields"
         ],
         "unsupported_optional": "return franking_proof_unavailable rather than silently dropping"
-      }
-    },
-    "ck.profile.franking.sender_commitment.v1": {
-      "inherits": [
-        "ck.profile.franking.v1"
-      ],
-      "description": "Opt-in sender-bound plaintext commitment for E2EE Realms. Adds a sidecar (unsigned.franking.sender_commitment) carrying an HMAC-SHA-256 tag derived from per-device-per-epoch MLS exporter secret over plaintext+aad+ciphertext+epoch_local_seq, enabling audit verifiers to independently attribute plaintext to (sender_device_id, epoch). Does NOT change core franking wire shape (sidecar lives in unsigned scope). Does NOT provide outside-of-group non-repudiation — verifier attribution is bounded by MLS epoch deniability and verifier's exporter-secret retention window (default <= 72h). Plaintext sender attribution from reporter evidence MUST go through §3.4.2 verification flow. See zh/governance/content-moderation.md §3.4.2.",
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "optional_extensions": [
-        "sender_commitment_replay_persistence",
-        "sender_commitment_window_policy"
-      ],
-      "feature_discovery": {
-        "required": [
-          "sender_commitment_alg",
-          "sender_commitment_exporter_label",
-          "sender_commitment_max_verifier_window_hours"
-        ],
-        "unsupported_optional": "deployments not implementing this profile MUST NOT emit unsigned.franking.sender_commitment and MUST treat received sender_commitment as unknown extension"
-      },
-      "additional_requirements": {
-        "key_derivation_must": "Sender Commitment Key MUST be HKDF-Expand-Label over the MLS epoch exporter_secret with label='cx franking sender commitment v1' and context binding {mls_group_id, epoch, sender_device_id}.",
-        "commitment_tag_must": "HMAC-SHA-256 over canonical bytes binding plaintext_digest, aad_digest, sender_device_id, mls_group_id, epoch, epoch_local_seq, ciphertext_digest; truncated to 128-bit tag.",
-        "epoch_local_seq_must": "Unique per (sender_device_id, epoch); reducer/verifier MUST persist a seen-set or equivalent exact replay filter and reject duplicate seq values (reason sender_commitment_seq_replay). Out-of-order report submission MUST NOT be rejected solely because seq is lower than a later observed value.",
-        "verifier_window_must": "Implementations MUST document their verifier exporter-secret retention window; commitments outside that window are unverifiable, NOT forged.",
-        "plaintext_brute_force_must": "Deployments MUST NOT combine this profile with governance models where verifiers can offline-brute-force candidate plaintexts against the commitment without prior gating."
       }
     },
     "ck.profile.morph.schema_migration_transformations.v1": {
@@ -2349,7 +2431,12 @@
         "ck.account.subscribe"
       ],
       "required_event_kinds": [
-        "ck.audit.accessed",
+        "ck.audit.applet_binding",
+        "ck.audit.session.request",
+        "ck.audit.session.authorize",
+        "ck.audit.session.notice",
+        "ck.audit.release",
+        "ck.audit.session.close",
         "ck.audit.ryw_receipt",
         "ck.mls.commit"
       ],
@@ -2367,9 +2454,10 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "audit_agent_attestation",
-          "audit_access_ryw_receipt",
-          "audit_actor_membership_visible",
+          "audit_applet_binding_visible",
+          "audit_release_service_attestation",
+          "audit_release_ryw_receipt",
+          "audit_release_session_notice",
           "audit_assurance_class_attested_hardware"
         ],
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
@@ -2384,7 +2472,12 @@
         "ck.account.subscribe"
       ],
       "required_event_kinds": [
-        "ck.audit.accessed",
+        "ck.audit.applet_binding",
+        "ck.audit.session.request",
+        "ck.audit.session.authorize",
+        "ck.audit.session.notice",
+        "ck.audit.release",
+        "ck.audit.session.close",
         "ck.audit.ryw_receipt",
         "ck.mls.commit"
       ],
@@ -2401,9 +2494,9 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "audit_profile_disclosure",
-          "audit_access_ryw_receipt",
-          "audit_actor_membership_visible",
+          "audit_applet_binding_visible",
+          "audit_release_ryw_receipt",
+          "audit_release_session_notice",
           "audit_assurance_class_disclosed_policy",
           "forbidden_marketing_terms_check"
         ],

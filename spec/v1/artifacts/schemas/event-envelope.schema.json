@@ -266,8 +266,13 @@
               "ck.applet.protocol_session.status",
               "ck.applet.registration",
               "ck.audit.accessed",
+              "ck.audit.applet_binding",
               "ck.audit.erasure_receipt",
-              "ck.audit.epoch_key_destruction",
+              "ck.audit.release",
+              "ck.audit.session.authorize",
+              "ck.audit.session.close",
+              "ck.audit.session.notice",
+              "ck.audit.session.request",
               "ck.call.recording.start",
               "ck.call.state",
               "ck.capability.delegate",
@@ -363,7 +368,6 @@
               "ck.sovereign.did_policy",
               "ck.realm.archive",
               "ck.realm.asset_privacy_policy",
-              "ck.realm.audit_policy_downgrade",
               "ck.realm.link",
               "ck.realm.create",
               "ck.realm.delivery_binding_policy",
@@ -1468,11 +1472,75 @@
     {
       "if": {
         "properties": {
+          "kind": { "const": "ck.audit.applet_binding" }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_applet_binding_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "ck.audit.session.request" }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_session_request_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "ck.audit.session.authorize" }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_session_authorize_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "ck.audit.session.notice" }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_session_notice_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "ck.audit.session.close" }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_session_close_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "ck.audit.release" }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_release_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
           "kind": {
             "enum": [
               "ck.audit.ryw_receipt",
-              "ck.audit.epoch_key_destruction",
-              "ck.realm.audit_policy_downgrade",
               "ck.moderation.franking_proof",
               "ck.attestation.range_completeness"
             ]

@@ -283,7 +283,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 客户端 UI 在该 Realm 中 MUST 展示明确的"该 Realm 使用降级 E2EE,踢/ban 非密码学即时生效"banner-level 警示(详见 §2.4.2 / `ck.profile.e2ee_relaxed.v1` 规范)
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗，超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
   - **`relaxed_window_max_ms` 默认值 = 30,000 ms（30 秒），硬上限 = 300,000 ms（5 分钟）**：两者语义不同，不得混淆。**默认值**是部署未在 `ck.realm.policy_components` 显式声明 `relaxed_window_max_ms` 时 reducer / 接收端 MUST 采用的值，固定为 30,000 ms（与 §2.4.2 profile 行为表"被踢者继续解密窗口默认 30s"及 `max_mls_commit_delay_ms` 默认 30,000 ms 对齐，使"踢出后被踢者继续可读窗口"与"正常 commit roundtrip 上限"在默认配置下同量级）。**硬上限**是部署即使显式声明也不得超过的天花板 300,000 ms：部署不得通过 `ck.realm.policy_components` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。部署 MAY 在 `(0, 300000]` 区间内显式覆盖默认 30000；缺省即 30000。Negative vector `ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
-  - **合规 profile 互斥**：声明 `ck.profile.attested_audit.e2ee.v1` / `ck.profile.disclosed_audit.e2ee.v1` 或 `audit_assurance >= disclosed_policy` 的部署 MUST NOT 同时启用 `ck.profile.e2ee_relaxed.v1`；reducer MUST 用 `e2ee_relaxed_disallowed_in_compliance_profile` 拒绝。合规 / 监管 profile 的核心承诺是"踢出即时密码学生效"，relaxed 窗口与之矛盾。
+  - **合规 profile 互斥**：声明 `ck.profile.attested_audit.e2ee.v1` / `ck.profile.disclosed_audit.e2ee.v1` 或存在 active Audit Applet Binding 的部署 MUST NOT 同时启用 `ck.profile.e2ee_relaxed.v1`；reducer MUST 用 `e2ee_relaxed_disallowed_in_compliance_profile` 拒绝。合规 / 监管 profile 的核心承诺是"踢出即时密码学生效"，relaxed 窗口与之矛盾。
   - **Federation guard**：`ck.profile.e2ee_relaxed.v1` MUST NOT 与 `federation_policy="open"` 或 `"quarantine"` 同时启用；reducer MUST 用 `e2ee_relaxed_federation_policy_unsupported` 拒绝。`federation_policy="restricted"` 只允许在 Realm policy 同时声明 `relaxed_fanout_deadline_ms <= relaxed_window_max_ms`、`max_federation_delivery_delay_ms <= relaxed_window_max_ms` 且 federation peers 在 `ck.server.describe.limits` 中公开不超过该 deadline 的 fanout SLA 时启用；否则 MUST fail closed。`federation_policy="closed"` 不需要额外 federation guard。
   
   声明 advisory 但未声明 `ck.profile.e2ee_relaxed.v1` profile 的 Realm create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
@@ -684,7 +684,7 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 Reaction 事件 (`ck.reaction.*`) 的可见性规则：
 
 - 非 E2EE Realm：`reaction_payload.key` 直接携带 emoji（单 Unicode cluster 或 profile 注册的短 tag），可选 `annotation` 同样为明文。这与 Matrix `m.reaction` 行为一致。
-- E2EE Realm (`audit_assurance ∈ {disclosed_policy, attested_hardware}` 或任何 `aad_visibility != opaque_id` 的 profile)：
+- E2EE Realm（存在 active Audit Applet Binding 或任何 `aad_visibility != opaque_id` 的 profile）：
   - 真正的 emoji / annotation MUST 通过 `reaction_payload.encrypted_payload` 携带，envelope 复用 §2.3 的 MLS application key 流程。解密后的 plaintext JSON MUST validate as `event-payload.schema.json#/$defs/reaction_encrypted_payload_plaintext`，其中 plaintext `key` 是真实 emoji / 短 tag，不是外层 routing tag。
   - 明文 `reaction_payload.key` MUST 为 **keyed HMAC routing tag**:
 
@@ -714,25 +714,23 @@ Reaction 事件的 `aad.event_kind` 始终为明文 (`ck.reaction.add` / `ck.rea
 ## 3. 受审计的端到端加密 (Audited E2EE) — 可选 hardening profile
 
 > **完整规范见 [`audited-e2ee.md`](./audited-e2ee.md)**。本节只提供概览；详细 schema、
-> RYW receipt 流程、join warning 文案、disclosed/attested 区分、forbidden marketing terms
+> Audit Applet Binding、release session、RYW receipt 流程、disclosed/attested 区分、forbidden marketing terms
 > 全部由独立的 audited-e2ee profile 文档承载。
 
-Cokret 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制，划分为两类正交保证 hardening profile：
+Cokret 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制。审计 applet 是控制面绑定，不是 MLS 成员，也不接收实时 sync fanout；需要访问历史材料时，必须走 active `ck.audit.applet_binding`、`ck.audit.session.request`、`ck.audit.session.authorize`、`ck.audit.session.notice`、`ck.audit.release` 和 `ck.audit.session.close`。Audit Applet Binding 不得追溯生效：消息是否可被审计在加密时由当时已被 MLS commit 覆盖的 binding / release window policy 固定，后续新增 applet 或扩大窗口不得覆盖既有消息。
 
-- **`ck.profile.attested_audit.e2ee.v1`**（`audit_assurance="attested_hardware"`）：通过
-  TEE / HSM / 等价硬件隔离把 key release 或明文输出**密码学绑定**到先写审计记录。
-- **`ck.profile.disclosed_audit.e2ee.v1`**（`audit_assurance="disclosed_policy"`）：仅在
-  Realm policy 中**公开声明**审计代理在场并约定流程，**不提供密码学/硬件强制**。
+该机制划分为两类正交保证 hardening profile：
+
+- **`ck.profile.attested_audit.e2ee.v1`**（`audit_assurance_class="attested_hardware"`）：通过
+  TEE / HSM / 等价硬件隔离把 release service 输出**密码学绑定**到 accepted `ck.audit.release` 与 RYW receipt。
+- **`ck.profile.disclosed_audit.e2ee.v1`**（`audit_assurance_class="disclosed_policy"`）：仅在
+  Realm / Circle policy 中**公开声明**审计 applet、审批和通知流程，**不提供密码学/硬件强制**。
 
 两者**不是强弱不同的同一保证**，而是不同 family 的保证。任何把两者混称为 "Auditable E2EE"
 或暗示二者等价的措辞都不符合本规范——禁止措辞清单与 join warning canonical 文案见
 [`audited-e2ee.md` §6](./audited-e2ee.md) 与 §2.1。
 
-v1 core 互操作 **不要求** 实现这两个 profile；只有在 Realm policy 显式声明 `audit_disclosure`
-对象时启用。需要审计 / 合规能力的部署可以按所在 audit profile 申明 RYW receipt、Audit Agent
-入群规则、强制留痕 (`ck.audit.accessed`) 与 transparency surface。普通 E2EE Realm 不进入
-该 profile 时，所有相关 event kind (`ck.audit.accessed` / `ck.audit.ryw_receipt`) MUST NOT
-出现。
+v1 core 互操作 **不要求** 实现这两个 profile；只有在 Realm / Circle 显式存在 active Audit Applet Binding 且对应 activation frontier 已被 MLS commit 覆盖后才启用。需要审计 / 合规能力的部署可以按所在 audit profile 声明 RYW receipt、release service attestation、阶段性通知和 sealed historical release。普通 E2EE Realm 不进入该 profile 时，不得产生 `ck.audit.applet_binding`、`ck.audit.session.*` 或 `ck.audit.release`；进入 profile 前已经加密的消息也不得被后续 binding 追溯 release。
 
 下面继续描述与 audit profile 正交的核心 E2EE 机制。
 
@@ -866,7 +864,7 @@ v1 协议不再注册独立的 `ck.mls.epoch` event。每个 group 的当前 epo
 ## 7. v1 集成要求
 
 - KeyPackage 在 DID Document 或 Device / Key Server 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
-- 当 Realm 声明 `audit_assurance = "attested_hardware"`（profile = `ck.profile.attested_audit.e2ee.v1`）时，Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `ck.audit.accessed` 先写后解密要求。`ck.profile.disclosed_audit.e2ee.v1` 不得伪造或暗示存在 TEE attestation；client UI 必须按 [`audited-e2ee.md` §2.1](./audited-e2ee.md) 的两套 normative join warning 文案区分展示，不得合并、省略关键限定词，并 MUST 完整呈现"协议层不能阻止恶意合规客户端…"段（详见 [`audited-e2ee.md` §6](./audited-e2ee.md) 关于 protocol-layer normative 边界与 governance hand-off 的说明）。
+- 当 Audit Applet Binding 声明 `audit_assurance_class = "attested_hardware"`（profile = `ck.profile.attested_audit.e2ee.v1`）时，release service remote attestation MUST 绑定 measurement、service DID、`audit_service_actor_id`、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明受控输出路径和代码身份，不能绕过 `ck.audit.release`、notice 与 RYW receipt 要求。`ck.profile.disclosed_audit.e2ee.v1` 不得伪造或暗示存在 TEE attestation；client UI 必须按 [`audited-e2ee.md`](./audited-e2ee.md) 的两类提示区分展示，不得合并、省略关键限定词。
 - Signal / Double Ratchet 私信互操作只能作为 profile-specific fallback。fallback 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和迁移边界；不得在 MLS Realm 内静默降级。
 
 > **PQ 迁移（informative，占位）**：v1 core 的 MLS cipher suite 与 KEM 仍是经典（X25519 / P-256）。后量子（PQ）抵抗——例如 PQ-MLS、ML-KEM（Kyber）与经典 KEM 的混合（hybrid）KEM——作为**未来 hardening profile** 规划，不属于 v1 core 互操作必需。迁移路径与 wire 版本化机制对齐：新 cipher suite / KEM 通过新的 `ck.profile.mls_governance_binding.full.v<n>` 配套 profile 与 envelope `scheme` / `version` 协商引入，作为可观察的 wire 版本切换，而不是在 v1 wire 内静默替换；KeyPackage `cipher_suites[]`、key backup 的 `ck.aead.hybrid_kem.*` 保留 namespace（见 [`key-management.md` §7.9](../identity/key-management.md)）为该迁移预留协商位。在该 profile 发布前，receiver 收到未注册的 PQ / hybrid cipher suite MUST fail closed。

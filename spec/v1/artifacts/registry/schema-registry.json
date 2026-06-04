@@ -235,6 +235,12 @@
       "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ck.applet.* use typed payload definitions in event-payload.schema.json."
     },
     {
+      "schema_id": "ck.schema.applet_package.v1",
+      "file": "schemas/applet-package.schema.json",
+      "status": "active",
+      "description": "Controller-signed package used by ck.applet.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
+    },
+    {
       "schema_id": "ck.schema.agent.v1",
       "file": "schemas/agent.schema.json",
       "status": "active",

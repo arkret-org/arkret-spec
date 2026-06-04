@@ -242,6 +242,24 @@
       "type": "string",
       "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "mls_epoch_range": {
+      "type": "object",
+      "required": [
+        "first_epoch",
+        "last_epoch"
+      ],
+      "properties": {
+        "first_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "last_epoch": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
     "effective_scope": {
       "oneOf": [
         {
@@ -500,7 +518,19 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(ck:(realm|circle|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(ck:(realm|circle|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+    },
+    "audit_binding_id": {
+      "type": "string",
+      "pattern": "^ck:audit_binding:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "audit_session_id": {
+      "type": "string",
+      "pattern": "^ck:audit_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "audit_release_id": {
+      "type": "string",
+      "pattern": "^ck:audit_release:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "device_or_principal_ref": {
       "oneOf": [
@@ -5263,7 +5293,19 @@
       "required": [
         "applet_id",
         "service_did",
-        "controller_did"
+        "controller_did",
+        "base_url",
+        "bot_actor_id",
+        "protocols",
+        "namespaces",
+        "receive_events",
+        "receive_ephemeral",
+        "rate_limited",
+        "requested_scopes",
+        "registration_epoch",
+        "webhook_auth",
+        "proof",
+        "created_at"
       ],
       "properties": {
         "applet_id": {
@@ -5576,6 +5618,10 @@
         "realm_id": {
           "$ref": "#/$defs/realm_id"
         },
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope",
+          "description": "Governance boundary for the report. Defaults to the Realm scope when absent; Circle-scoped targets MUST resolve to the target Circle and route only to scoped moderators/admins."
+        },
         "target_ref": {
           "$ref": "#/$defs/object_ref"
         },
@@ -5725,6 +5771,584 @@
       },
       "additionalProperties": false
     },
+    "audit_applet_binding_payload": {
+      "type": "object",
+      "description": "Payload for ck.audit.applet_binding. Declares a non-retroactive audit applet/service binding for a Realm or Circle effective_scope. Binding is control-plane only and does not make the applet an MLS member or realtime sync recipient. Messages encrypted before activation_frontier_digest / first_auditable_epoch are never eligible for this binding's ck.audit.release.",
+      "required": [
+        "binding_id",
+        "realm_id",
+        "effective_scope",
+        "applet_id",
+        "service_did",
+        "status",
+        "purpose_classes",
+        "allowed_release_modes",
+        "audit_assurance_class",
+        "notice_policy",
+        "activation_frontier_digest",
+        "first_auditable_epoch",
+        "release_window_policy",
+        "policy_version_digest",
+        "created_at"
+      ],
+      "properties": {
+        "binding_id": {
+          "$ref": "#/$defs/audit_binding_id"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "applet_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "type": "string",
+              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          ]
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "suspended",
+            "revoked"
+          ]
+        },
+        "purpose_classes": {
+          "$ref": "#/$defs/string_list"
+        },
+        "allowed_release_modes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "targeted_evidence_release",
+              "sealed_epoch_key_release"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "audit_assurance_class": {
+          "type": "string",
+          "enum": [
+            "attested_hardware",
+            "disclosed_policy"
+          ]
+        },
+        "notice_policy": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true
+        },
+        "approver_policy": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "activation_frontier_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Accepted Anchor frontier digest at which this binding/policy became member-visible. Release requests MUST NOT cover messages or epochs before this frontier."
+        },
+        "first_auditable_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "First MLS epoch eligible for this binding. Reducers MUST verify it is the epoch created by a ck.mls.commit covering activation_frontier_digest; earlier epochs are permanently ineligible."
+        },
+        "release_window_policy": {
+          "type": "object",
+          "required": [
+            "retroactive_release",
+            "eligibility_basis"
+          ],
+          "properties": {
+            "retroactive_release": {
+              "const": "forbidden",
+              "description": "v1 audited E2EE never permits a later binding or policy expansion to make pre-activation messages auditable."
+            },
+            "eligibility_basis": {
+              "const": "encrypted_after_binding_activation",
+              "description": "A message is eligible only if it was encrypted after a commit covering this binding/policy frontier."
+            },
+            "max_lookback_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Optional maximum age, measured from session request/authorization time, for otherwise eligible material. Later policy changes may narrow this for future messages but MUST NOT expand already encrypted messages."
+            },
+            "max_epoch_span": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Optional cap on the number of sealed historical epochs a single session/release may cover."
+            },
+            "allowed_target_classes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "uniqueItems": true,
+              "description": "Optional target class allow-list for targeted_evidence_release."
+            }
+          },
+          "additionalProperties": false
+        },
+        "policy_version_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit_session_payload": {
+      "type": "object",
+      "description": "Shared payload class for ck.audit.session.request / authorize / notice / close. The stage field identifies which lifecycle step this event represents; reducers validate the step-specific state machine against the enclosing Event.kind.",
+      "required": [
+        "session_id",
+        "binding_id",
+        "realm_id",
+        "effective_scope",
+        "stage",
+        "occurred_at"
+      ],
+      "properties": {
+        "session_id": {
+          "$ref": "#/$defs/audit_session_id"
+        },
+        "binding_id": {
+          "$ref": "#/$defs/audit_binding_id"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "request",
+            "authorize",
+            "notice",
+            "close"
+          ]
+        },
+        "applet_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "type": "string",
+              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          ]
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "requested_by": {
+          "$ref": "#/$defs/did"
+        },
+        "approver_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "closer_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "purpose_class": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "legal_basis_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "requested_release_mode": {
+          "type": "string",
+          "enum": [
+            "targeted_evidence_release",
+            "sealed_epoch_key_release"
+          ]
+        },
+        "approved_release_mode": {
+          "type": "string",
+          "enum": [
+            "targeted_evidence_release",
+            "sealed_epoch_key_release"
+          ]
+        },
+        "requested_epoch_range": {
+          "$ref": "#/$defs/mls_epoch_range"
+        },
+        "approved_epoch_range": {
+          "$ref": "#/$defs/mls_epoch_range"
+        },
+        "target_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/object_ref"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "request_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "authorize_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "notice_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "notice_policy": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "member_notice_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "release_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/audit_release_id"
+          },
+          "uniqueItems": true
+        },
+        "close_reason": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "policy_version_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit_session_request_payload": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/audit_session_payload"
+        },
+        {
+          "required": [
+            "requested_by",
+            "purpose_class",
+            "legal_basis_ref",
+            "requested_release_mode",
+            "request_digest"
+          ],
+          "properties": {
+            "stage": {
+              "const": "request"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "requested_epoch_range"
+              ]
+            },
+            {
+              "required": [
+                "target_refs"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "audit_session_authorize_payload": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/audit_session_payload"
+        },
+        {
+          "required": [
+            "request_ref",
+            "approver_actor_id",
+            "approved_release_mode",
+            "notice_policy",
+            "expires_at"
+          ],
+          "properties": {
+            "stage": {
+              "const": "authorize"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "approved_epoch_range"
+              ]
+            },
+            {
+              "required": [
+                "target_refs"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "audit_session_notice_payload": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/audit_session_payload"
+        },
+        {
+          "required": [
+            "authorize_ref",
+            "service_did",
+            "purpose_class",
+            "approved_release_mode",
+            "approver_actor_id",
+            "member_notice_digest"
+          ],
+          "properties": {
+            "stage": {
+              "const": "notice"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "approved_epoch_range"
+              ]
+            },
+            {
+              "required": [
+                "target_refs"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "audit_session_close_payload": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/audit_session_payload"
+        },
+        {
+          "required": [
+            "closer_actor_id",
+            "close_reason",
+            "release_refs"
+          ],
+          "properties": {
+            "stage": {
+              "const": "close"
+            }
+          }
+        }
+      ]
+    },
+    "audit_release_payload": {
+      "type": "object",
+      "description": "Payload for ck.audit.release. A sealed audit release manifest for a bounded historical window. It records release metadata and wrapped material digests only; plaintext MUST NOT be inlined.",
+      "required": [
+        "release_id",
+        "session_id",
+        "binding_id",
+        "realm_id",
+        "effective_scope",
+        "applet_id",
+        "service_did",
+        "release_mode",
+        "checkpoint_digest",
+        "recipient_audit_actor_id",
+        "recipient_public_key_ref",
+        "approver_actor_id",
+        "notice_ref",
+        "purpose_class",
+        "legal_basis_ref",
+        "policy_version_digest",
+        "eligibility_proof",
+        "wrapped_material_digest",
+        "released_at"
+      ],
+      "properties": {
+        "release_id": {
+          "$ref": "#/$defs/audit_release_id"
+        },
+        "session_id": {
+          "$ref": "#/$defs/audit_session_id"
+        },
+        "binding_id": {
+          "$ref": "#/$defs/audit_binding_id"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "applet_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "type": "string",
+              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          ]
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "release_mode": {
+          "type": "string",
+          "enum": [
+            "targeted_evidence_release",
+            "sealed_epoch_key_release"
+          ]
+        },
+        "sealed_epoch_range": {
+          "$ref": "#/$defs/mls_epoch_range"
+        },
+        "target_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/object_ref"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "checkpoint_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "checkpoint_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "recipient_audit_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "recipient_public_key_ref": {
+          "$ref": "#/$defs/verification_method"
+        },
+        "approver_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "notice_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "purpose_class": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "legal_basis_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "policy_version_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "eligibility_proof": {
+          "type": "object",
+          "description": "Proof summary that the requested release is inside the binding activation frontier, first_auditable_epoch, release_window_policy, and the targets' encryption-time eligibility snapshots.",
+          "required": [
+            "binding_activation_frontier_digest",
+            "first_auditable_epoch",
+            "policy_snapshot_digest",
+            "target_eligibility_digest"
+          ],
+          "properties": {
+            "binding_activation_frontier_digest": {
+              "$ref": "#/$defs/hash"
+            },
+            "first_auditable_epoch": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "activation_commit_ref": {
+              "$ref": "#/$defs/event_ref",
+              "description": "ck.mls.commit that covered the activation frontier and created first_auditable_epoch, when the release covers MLS epoch material."
+            },
+            "policy_snapshot_digest": {
+              "$ref": "#/$defs/hash",
+              "description": "Digest of the binding/release window policy snapshot used when authorizing this release."
+            },
+            "target_eligibility_digest": {
+              "$ref": "#/$defs/hash",
+              "description": "Digest of the deterministic per-target/per-epoch eligibility set proving no pre-activation material is included."
+            }
+          },
+          "additionalProperties": false
+        },
+        "sealed_by_commit_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "wrapped_material_digest": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hash"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "released_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "release_mode": {
+                "const": "targeted_evidence_release"
+              }
+            },
+            "required": [
+              "release_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "target_refs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "release_mode": {
+                "const": "sealed_epoch_key_release"
+              }
+            },
+            "required": [
+              "release_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "sealed_epoch_range",
+              "sealed_by_commit_ref"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "audit_accessed_payload": {
       "type": "object",
       "description": "Strict payload for ck.audit.accessed. It records a specific access or paired privacy-sensitive write. Reducers MUST reject business events that require an audit pair unless this payload identifies the same writer, target, and object/cell in the same Anchor batch or in an accepted pre-read event with RYW receipt.",
@@ -5741,7 +6365,6 @@
           "enum": [
             "watch_set_others",
             "watch_audit_read",
-            "e2ee_plaintext_release",
             "e2ee_late_recovery",
             "cross_signing_reset",
             "join_application_review",

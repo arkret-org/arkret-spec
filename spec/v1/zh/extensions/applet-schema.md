@@ -3,7 +3,7 @@ title: Applet Schema and Field Reference
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-04
 ---
 
 ## 0. 规范语言
@@ -33,6 +33,10 @@ updated: 2026-05-25
   "rate_limited": true,
   "requested_scopes": [],
   "registration_epoch": "sha256:<canonical-registration-epoch-hash>",
+  "webhook_auth": {
+    "type": "http_message_signature",
+    "key_ref": "did:web:applet.example#server-key-1"
+  },
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
@@ -40,7 +44,8 @@ updated: 2026-05-25
     "payload_digest": "sha256:<canonical-registration-hash>",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "<detached-jws-signature>"
-  }
+  },
+  "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
@@ -51,7 +56,142 @@ updated: 2026-05-25
 
 > **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ck.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §5](./applet-integration.md)。
 
-> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical 形态（不含 `proof` 自身）取的稳定 epoch hash，唯一标识本次 registration 的版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`，registration 更新（namespace / endpoint / scope 变化）后该 hash MUST 变化，使旧 grant 不再匹配新 registration epoch，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。对无版本化 DID method，`registration_epoch` 与 service DID Document 的 fetch-time digest 共同构成 grant 的 epoch 证据；reducer MUST 以二者任一不匹配作为拒绝条件。该字段 required。
+> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security evidence（不含 `proof` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。该 epoch 的 canonical 输入 MUST 包含 derived registration object、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material、bot actor/base URL 等安全相关字段。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 epoch evidence，重新解析或按 method-specific version evidence 读取 service DID Document，并确认当前 DID Document digest、accepted signing key set 与 epoch 捕获值一致。无版本化 `did:web` MUST re-fetch canonical document 并比对 digest。该字段 required。
+
+`applet_registration_payload.required` 的顺序 MUST 与 schema properties 字段出现顺序一致:
+
+```json
+[
+  "applet_id",
+  "service_did",
+  "controller_did",
+  "base_url",
+  "bot_actor_id",
+  "protocols",
+  "namespaces",
+  "receive_events",
+  "receive_ephemeral",
+  "rate_limited",
+  "requested_scopes",
+  "registration_epoch",
+  "webhook_auth",
+  "proof",
+  "created_at"
+]
+```
+
+## 1a. Applet Package Schema
+
+`ck.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Principal Server / authz service MUST 从 package 派生 canonical `ck.applet.registration` payload，再根据管理员批准生成 grant。
+
+字段参考:
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `schema` | yes | 固定 `ck.schema.applet_package.v1`。 |
+| `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
+| `applet_id` | yes | DID 或 `ck:applet:<uuidv7>`。 |
+| `service_did` | yes | Applet runtime DID。 |
+| `controller_did` | yes | 对 package / registration 负责的 controller DID。 |
+| `base_url` | yes | Applet API base URL。 |
+| `bot_actor_id` | yes | 可见 bot actor DID；不得含 `#fragment`。 |
+| `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ck.profile.applet_service.v1`。 |
+| `protocols` | yes | 外部协议标识数组。 |
+| `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
+| `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
+| `endpoint_set` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
+| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms。 |
+| `receive_events` | yes | 派生 registration 的接收事件声明。 |
+| `receive_ephemeral` | yes | 派生 registration 的 ephemeral 接收声明。 |
+| `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
+| `limits` | yes | max transaction events、payload bytes、rate limit hint。 |
+| `ghost_policy` | yes | Ghost Actor 支持与 accountability 模板。 |
+| `delegation_policy` | yes | delegated native-user acting 请求；默认 false。 |
+| `e2ee_policy` | yes | MLS join 请求；默认 false。 |
+| `widget` | optional | widget origin / CSP / token scope / consent。 |
+| `package_digest` | yes | canonical package hash。 |
+| `registration_epoch` | yes | canonical security epoch hash。 |
+| `created_at` | yes | package 创建时间。 |
+| `expires_at` | optional | package 可安装截止时间。 |
+| `proof` | yes | controller DID detached proof。 |
+
+Package -> registration 派生映射:
+
+| `ck.applet.registration` 字段 | Package 来源 | 规则 |
+| --- | --- | --- |
+| `applet_id` | `applet_id` | 原样复制；只接受 DID 或 `ck:applet:<uuidv7>`。 |
+| `service_did` | `service_did` | 原样复制；必须可解析并绑定 Applet endpoint。 |
+| `controller_did` | `controller_did` | 原样复制；必须验证 controller proof。 |
+| `base_url` | `base_url` | 原样复制；必须与 service DID Document binding 一致。 |
+| `bot_actor_id` | `bot_actor_id` | 原样复制；不得含 `#fragment`。 |
+| `protocols` | `protocols` | 原样复制；空数组非法。 |
+| `namespaces` | `namespaces` | canonicalize 后复制；只接受对象形态。 |
+| `receive_events` | `receive_events` | 原样复制；不得从 `endpoint_set` 猜测默认值。 |
+| `receive_ephemeral` | `receive_ephemeral` | 原样复制；不得省略。 |
+| `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
+| `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
+| `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
+| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。 |
+| `manifest` | `claimed_profiles` + `limits` + policies + optional widget | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段。 |
+| `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object。 |
+| `created_at` | `created_at` | 原样复制。 |
+
+## 1b. Applet Install Operation Objects
+
+Install preview request:
+
+```json
+{
+  "applet_package": {},
+  "effective_scope": {
+    "kind": "realm",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+  },
+  "approval_request": {
+    "approve_actions": ["ck.message.create"],
+    "allow_ghost_actors": false,
+    "allow_delegated_native_actors": false,
+    "allow_e2ee_join": false,
+    "allow_widget": false
+  }
+}
+```
+
+`InstallPlan` MUST include `plan_id`、`applet_id`、`package_digest`、`registration_epoch`、`effective_scope`、`requested_scopes`、`approved_scopes`、`denied_scopes`、`events_to_submit`、`capability_constraints`、`namespace_conflicts`、`e2ee_effect`、`widget_effect`、`warnings`、`plan_digest`。
+
+Install commit request:
+
+```json
+{
+  "plan_digest": "sha256:<install-plan-hash>",
+  "applet_package": {},
+  "effective_scope": {
+    "kind": "realm",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+  },
+  "approved_scopes": [
+    {
+      "actions": ["ck.message.create"],
+      "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"],
+      "constraints": []
+    }
+  ],
+  "actor_policy": {
+    "bot_membership": "invite",
+    "ghost_actor_mode": "disallowed"
+  },
+  "e2ee_policy": {
+    "allow_mls_join": false
+  },
+  "widget_policy": {
+    "allow_widget": false
+  }
+}
+```
+
+Commit response MUST include `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
+
+`effective_scope.kind="realm"` MUST only contain `kind` and `realm_id`。`effective_scope.kind="circle"` MUST contain `kind`、`realm_id` and `circle_id`。单次 install operation MUST only target one effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
 
 ## 2. Namespace Pattern
 

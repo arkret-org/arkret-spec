@@ -1589,7 +1589,55 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Auditable access"
+      "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ck.audit.release; ck.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads."
+    },
+    {
+      "event_kind": "ck.audit.applet_binding",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to realtime sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages."
+    },
+    {
+      "event_kind": "ck.audit.session.request",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Audit release session request. Must reference an active ck.audit.applet_binding and a bounded historical target range or target_refs."
+    },
+    {
+      "event_kind": "ck.audit.session.authorize",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope."
+    },
+    {
+      "event_kind": "ck.audit.session.notice",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins."
+    },
+    {
+      "event_kind": "ck.audit.release",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Sealed audit release manifest. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref."
+    },
+    {
+      "event_kind": "ck.audit.session.close",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Close an audit release session and freeze its final release_refs."
     },
     {
       "event_kind": "ck.audit.ryw_receipt",
@@ -1821,22 +1869,6 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Sovereign DID resolver policy state"
-    },
-    {
-      "event_kind": "ck.audit.epoch_key_destruction",
-      "category": "audit",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Attested_hardware Audit Agent removal — enclave-signed attestation that historical epoch / exporter secrets held by the removed Audit Agent have been cryptographically destroyed. MUST be in the same anchor batch as the paired ck.mls.commit that removes the Audit Agent (see crypto-media/audited-e2ee.md §3.1.1). Wire schema versioning expressed via `requirements.features` (e.g. `ck.feature.audit_destruction_v1`), not via a `.v<n>` suffix on the kind name."
-    },
-    {
-      "event_kind": "ck.realm.audit_policy_downgrade",
-      "category": "audit",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Explicit downgrade of Realm audit_assurance from attested_hardware to disclosed_policy before future audit operations proceed. This event rewrites Realm audit policy and triggers the UI banner, but MUST NOT be accepted as delayed remediation for an Audit Agent remove batch that lacked the same-batch ck.audit.epoch_key_destruction attestation. Wire schema versioning expressed via `requirements.features`."
     }
   ]
 }

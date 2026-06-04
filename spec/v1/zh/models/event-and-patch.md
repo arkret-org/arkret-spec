@@ -343,10 +343,10 @@ Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承
 
 > **概念分层**（normative）：`ck.event_batch_receipt` 是 **receipt object 名称**（不是 Event Envelope `kind`）。它的唯一 wire 形态是带 `schema = "ck.schema.event_batch_receipt.v1"` 字段的独立对象；它**不**出现在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中，**不**会作为 `Event.kind` 出现在 Events API 提交路径上，也**不**进入 reducer 输入。任何试图把 `ck.event_batch_receipt` 当作 Event kind 提交给 `ck.events.submit` 的实现 MUST `schema_violation`，因为 Event schema 的 `kind` enum 与 event-kind-registry 同步且不含此名。下游 SDK / cotest scanner 在 prose / fixture 中遇到 `ck.event_batch_receipt` 时 MUST 把它当 schema-id-prefix / receipt-object-name 处理，不进入 active event-kind 检查表。
 
-与之对照：`ck.audit.ryw_receipt` 既是 receipt object 名（schema `ck.schema.audit_ryw_receipt.v1`），同时是 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `status="active"` 的 **durable event kind**。其 object form 与 durable Event form 的触发条件：
+与之对照：`ck.audit.ryw_receipt` 既是 receipt object 名（schema `ck.schema.audit_ryw_receipt.v1`），同时是 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `status="active"` 的 **durable event kind**。其 object form 与 durable Event form 的触发条件由 Audit Applet Binding / release policy 决定：
 >
-> - `ck.profile.disclosed_audit.e2ee.v1`：仅 object form，actor-private / ephemeral，不进入 audit log Event 流。
-> - `ck.profile.attested_audit.e2ee.v1`：同一 receipt object 也作为 durable Event（`Event.kind = "ck.audit.ryw_receipt"`）写入 audit log，便于事后调查。详见 [`../crypto-media/audited-e2ee.md` §4.1](../crypto-media/audited-e2ee.md)。
+> - `disclosed_policy` release MAY 只使用 object form，并把 receipt 作为 actor-private / scoped audit evidence 保存。
+> - `attested_hardware` release SHOULD 将同一 receipt object 也作为 durable Event（`Event.kind = "ck.audit.ryw_receipt"`）写入 audit log，便于事后验证 release service 是否先见到 accepted `ck.audit.release`。详见 [`../crypto-media/audited-e2ee.md` §6](../crypto-media/audited-e2ee.md)。
 
 ### 5.2 Schema 与字段
 

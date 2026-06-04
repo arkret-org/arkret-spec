@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/attestation-evidence.schema.json",
-  "title": "Cokret Attested Audit Hardware Evidence",
-  "description": "Structured remote-attestation evidence envelope for Audit Agents joining an audited E2EE Realm under ck.profile.attested_audit.e2ee.v1. This is the wire form behind audit_assurance_class=attested_hardware: a verifier MUST be able to validate enclave measurement, attestation chain trust root, attestation key freshness, operator identity, Realm binding, and audit policy hash without trusting prose declarations. Used at join time (Audit Agent MLS Welcome) and by reducer when validating ck.audit.epoch_key_destruction (whose enclave_measurement and realm_id MUST equal this evidence's measurement and realm_id — mismatch → audit_agent_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §2 (attested_hardware binding) and §3.1.1.2 (epoch key destruction).",
+  "title": "Cokret Attested Audit Release Evidence",
+  "description": "Structured remote-attestation evidence envelope for an audit applet release service under ck.profile.attested_audit.e2ee.v1. This is the wire form behind audit_assurance_class=attested_hardware: a verifier MUST be able to validate release-service measurement, attestation chain trust root, attestation key freshness, operator identity, Realm/Circle binding, and audit release policy hash without trusting prose declarations. Evidence binds the controlled output path for ck.audit.release; it does not add the applet to MLS and does not grant realtime plaintext access. See zh/crypto-media/audited-e2ee.md §6.",
   "type": "object",
   "required": [
     "evidence_id",
     "realm_id",
-    "audit_agent_principal_id",
+    "audit_service_actor_id",
     "service_did",
     "platform",
     "measurement",
@@ -31,13 +31,13 @@
       "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable."
     },
-    "audit_agent_principal_id": {
+    "audit_service_actor_id": {
       "$ref": "#/$defs/did",
-      "description": "DID of the Audit Agent service this evidence attests. MUST equal the join Welcome's leaf credential DID."
+      "description": "DID of the audit release service / applet actor whose controlled output path this evidence attests. MUST match the recipient_audit_actor_id or service actor accepted by the active ck.audit.applet_binding."
     },
     "service_did": {
       "$ref": "#/$defs/did",
-      "description": "Operating service DID hosting the Audit Agent (typically the Principal Server or a dedicated audit service). MUST match the actor identity that signs ck.audit.epoch_key_destruction."
+      "description": "Operating service DID hosting the audit applet or release service. MUST match the service_did in the active ck.audit.applet_binding / ck.audit.release chain."
     },
     "platform": {
       "type": "object",
@@ -57,21 +57,21 @@
     "measurement": {
       "type": "object",
       "required": ["code_digest", "policy_version"],
-      "description": "What is actually running inside the enclave. MUST be identical to the measurement recorded in ck.audit.epoch_key_destruction.enclave_measurement.",
+      "description": "What is actually running inside the enclave / HSM / equivalent controlled output boundary. Verifiers compare this measurement to the measurement allowed by the active audit applet binding and release policy.",
       "properties": {
         "code_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Hash of the audit agent binary / image / policy bundle that the enclave loads. MUST be reproducible (signed by vendor build pipeline)."
+          "description": "Hash of the audit release service binary / image / policy bundle that the enclave loads. MUST be reproducible (signed by vendor build pipeline)."
         },
         "policy_version": {
           "type": "string",
           "minLength": 1,
-          "description": "Audit agent's compiled-in policy version (e.g. semantic version or git tag). MUST appear in the Realm's allowed_audit_agent_policy_versions allowlist at issued_at."
+          "description": "Release service's compiled-in policy version (e.g. semantic version or git tag). MUST appear in the Realm/Circle audit binding's allowed release-service policy versions at issued_at."
         },
         "report_data": {
           "type": "string",
           "pattern": "^(?:[0-9a-f]{2}){32,64}$",
-          "description": "Optional REPORTDATA-equivalent that binds the attestation to the Audit Agent's MLS leaf public key. Lowercase hex encoding of a 32–64 byte byte-string (pattern enforces an even hex length: each byte is exactly two hex characters; total 64–128 hex characters). Typical sizes: 32 bytes (SHA-256 of LeafNode signature key, used by SGX/TDX-class envelopes) or 64 bytes for platforms that expose a wider REPORTDATA slot. Receivers MUST validate this binding when present."
+          "description": "Optional REPORTDATA-equivalent that binds the attestation to the release service public key or output-encryption key. Lowercase hex encoding of a 32–64 byte byte-string (pattern enforces an even hex length: each byte is exactly two hex characters; total 64–128 hex characters). Receivers MUST validate this binding when present."
         }
       },
       "additionalProperties": false
@@ -100,7 +100,7 @@
     "attestation_key": {
       "type": "object",
       "required": ["alg", "public_key_b64u"],
-      "description": "The attestation public key (extracted from the leaf of attestation_chain). ck.audit.epoch_key_destruction.proofs[*].verification_method MUST be cryptographically verifiable against this key — the destruction event's signature root and the join-time attestation chain share root of trust.",
+      "description": "The attestation public key (extracted from the leaf of attestation_chain). ck.audit.release proofs and RYW receipt validation MUST be cryptographically bound to this attested output path when audit_assurance_class=attested_hardware.",
       "properties": {
         "alg": { "type": "string", "enum": ["EdDSA", "ES256", "ES384"] },
         "public_key_b64u": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
@@ -111,7 +111,7 @@
     "verification_method": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$",
-      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_agent_principal_id's DID Document. Fragment characters are constrained to RFC 3986 unreserved + `:` for stable key ids. DID method-name normalized to lowercase per W3C DID 1.0."
+      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_service_actor_id's DID Document or a DID Document explicitly delegated by the active audit binding. Fragment characters are constrained to RFC 3986 unreserved + `:` for stable key ids. DID method-name normalized to lowercase per W3C DID 1.0."
     },
     "validity": {
       "type": "object",
@@ -144,11 +144,11 @@
     "audit_purpose": {
       "type": "string",
       "enum": ["compliance_lawful_access", "regulatory_record_keeping", "incident_investigation", "internal_policy_audit"],
-      "description": "Why this Audit Agent is joining the Realm. MUST match the Realm policy's declared audit_purpose; mismatch → audit_purpose_mismatch."
+      "description": "Why this audit applet release service may output audit material. MUST match the active binding/session purpose; mismatch → audit_purpose_mismatch."
     },
     "audit_policy_version_digest": {
       "$ref": "#/$defs/sha256_digest",
-      "description": "Same definition as ck.audit.ryw_receipt.audit_policy_version_digest — fixed sha256 over canonical JSON {realm_id, trust_domain, audit_disclosure, audit_assurance} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was joined under matches the current policy state and is not reused across Realms. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile. See encoding.md §2 (canonical JSON) and audited-e2ee.md §4.1."
+      "description": "Same definition as ck.audit.ryw_receipt.audit_policy_version_digest — fixed sha256 over canonical JSON {realm_id, trust_domain, audit_binding, release_policy, release_window_policy, activation_frontier_digest, first_auditable_epoch} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was issued under matches the current binding/session state, cannot be reused across Realms, and cannot retroactively expand eligibility for already encrypted messages. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile. See encoding.md §2 (canonical JSON) and audited-e2ee.md §6."
     },
     "created_at": { "$ref": "#/$defs/timestamp" },
     "proofs": {

@@ -143,7 +143,7 @@
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
       "deprecated": true,
-      "description": "FORBIDDEN in v1: top-level `not: { required: ['cleartext_commitment'] }` rejects this field at schema level. Property kept here only so validators report a precise error rather than 'unknown field'. Rationale: low-entropy plaintext can be dictionary-tested offline. Receivers MUST reject envelopes carrying it (schema_violation). Future profiles that need plaintext commitment MUST define a keyed/salted object form (for example the sender_commitment HMAC profile in content-moderation.md) rather than this bare hash."
+      "description": "FORBIDDEN in v1: top-level `not: { required: ['cleartext_commitment'] }` rejects this field at schema level. Property kept here only so validators report a precise error rather than 'unknown field'. Rationale: low-entropy plaintext can be dictionary-tested offline. Receivers MUST reject envelopes carrying it (schema_violation). Future profiles that need plaintext commitment MUST define a keyed/salted object form rather than this bare hash."
     }
   },
   "allOf": [

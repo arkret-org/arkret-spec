@@ -3,14 +3,17 @@ title: Applet Integration
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-04
 ---
 
 > **状态：extension profile（非 v1 core 互操作必需）**。Applet registry、审核 SLA 与 capability
 > 注入流程仍在演进。Cokret v1 core 互操作 **不要求** 实现本 profile；声称 v1 core 的
 > 实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。
 > `ck.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json`
-> 的 `profile_tiers.extension_profile_implementation`）。
+> 的 `profile_tiers.extension_profile_implementation`）。Applet v1 家族用 `inherits` 分层:
+> base bot-only 使用 `ck.profile.applet_service.v1`，bridge / delegated / E2EE join / widget
+> 分别通过 `ck.profile.applet_bridge.v1`、`ck.profile.applet_delegated.v1`、
+> `ck.profile.applet_e2ee_join.v1`、`ck.profile.applet_widget.v1` 叠加。
 
 ## 0. 规范语言
 
@@ -104,7 +107,7 @@ Native personal AI agent(由 controller 通过 `ck.agent.provision` 创建，见
 | Runtime credential | 通过 `POST /_cokret/gate/account/agent-key-pair` pairing 得到 `ck.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /_cokret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ck.applet.transaction` 与 Applet 的 delegated session |
 | 撤销 | `ck.agent.pause` / `ck.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;Ghost Actor 跟随 Applet 生命周期 |
-| Realm policy | Realm policy MUST 单独允许 native personal agent(`ck.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet + Ghost Actor(`ck.profile.applet_service.v1`) |
+| Realm policy | Realm policy MUST 单独允许 native personal agent(`ck.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet base bot-only(`ck.profile.applet_service.v1`)；Ghost Actor / portal bridge 需额外声明 `ck.profile.applet_bridge.v1` |
 
 **Realm policy MUST 至少能分别控制 native personal agent 与 Applet / Ghost Actor**:部署可以禁止普通用户创建或使用 personal agents 同时允许管理员安装的 Applet + Ghost Actor,也可以反向配置;**二者不得被合并为一个不可区分的 "automation allowed" 开关**。
 
@@ -118,7 +121,7 @@ CXP-0008 / CXP-0009 只覆盖 native personal agent 路径;Ghost Actor / Applet 
 
 Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员、registry 或 authz service 接受。
 
-Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin 或 Realm policy 明确授权的 registry/authz service 签发。仅凭 Applet 自签 registration、namespace claim 或外部 registry 收录不得写入 Realm；缺少该 grant 时，任何 `ck.applet.registration` / `ck.applet.transaction` 引入的 Realm 写入 MUST 拒绝，reason=`applet_registration_unauthorized`。
+Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin 或 Realm policy 明确授权的 registry/authz service 签发。仅凭 Applet 自签 registration、namespace claim 或外部 registry 收录不得写入 Realm；缺少该 grant 时，任何 Applet 通过 transaction push、Event submit 或 delegated signing 引入的 Realm 写入 MUST 拒绝，reason=`applet_registration_unauthorized`。
 
 示例：
 
@@ -168,6 +171,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     "type": "http_message_signature",
     "key_ref": "did:web:slack-bridge.example#server-key-1"
   },
+  "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "created_at": "2026-04-26T00:00:00Z",
   "proof": {
     "kind": "detached_jws",
@@ -189,6 +193,100 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 - exclusive namespace 冲突时，registry / authz service MUST 拒绝后注册者。
 - `requested_scopes` 只是请求权限，不是实际授权。
 - 实际权限 MUST 通过 capability grant 授予。
+- `registration_epoch` MUST 进入 payload required 字段，并覆盖 canonical derived registration、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 epoch evidence，校验当前 DID Document digest / signing key 与 epoch 捕获值一致。
+- `proof` MUST 是 controller DID detached proof，覆盖 canonical registration object（不含 `proof` 自身）；空对象 MUST 以 `schema_violation` 拒绝。
+
+## 4a. Applet Package 与安装聚合操作
+
+开发者发布 Applet 时 SHOULD 发布 controller-signed **Applet Package**。Package 是分发对象，不是 Realm history event；进入协议事实前 MUST 派生为 `ck.applet.registration` payload，并由 Realm owner/admin/authz service 通过安装聚合操作签发实际 grant。
+
+Package 最小字段:
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `schema` | yes | 固定 `ck.schema.applet_package.v1`。 |
+| `package_id` | yes | typed id 或 DID URL；仅用于 package 分发，不是 grant subject。 |
+| `applet_id` | yes | DID 或 `ck:applet:<uuidv7>`；opaque alias（如 `applet:bridge:*`）不是合法生产 wire id。 |
+| `service_did` | yes | Applet runtime DID。 |
+| `controller_did` | yes | 对 package / registration 负责的 controller DID。 |
+| `base_url` | yes | Applet API base URL。 |
+| `bot_actor_id` | yes | 可见 bot actor DID；不得含 `#fragment`。 |
+| `claimed_profiles[]` | yes | v1 Applet profile 声明；MUST 至少包含 `ck.profile.applet_service.v1`。 |
+| `protocols[]` | yes | 外部协议标识。 |
+| `namespaces` | yes | `actors[]` / `realms[]` / `handles[]` 对象形态 namespace。 |
+| `requested_scopes[]` | yes | capability action 请求列表；只用于审批 UI，不授权。 |
+| `endpoint_set` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
+| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms。 |
+| `receive_events` | yes | 派生 registration 的接收事件声明。 |
+| `receive_ephemeral` | yes | 派生 registration 的 ephemeral 接收声明。 |
+| `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
+| `limits` | yes | max transaction events、payload bytes、rate limit hint。 |
+| `ghost_policy` | yes | 是否支持 Ghost Actor、外部 id 去重键构成、accountability 模板。 |
+| `delegation_policy` | yes | 是否请求 delegated native-user acting；默认 false。 |
+| `e2ee_policy` | yes | 是否请求 MLS join；默认 false。 |
+| `widget` | optional | widget origin / CSP / requested token scope / consent flag。 |
+| `package_digest` | yes | canonical package hash。 |
+| `registration_epoch` | yes | canonical security epoch hash，不含 proof。 |
+| `created_at` | yes | package 创建时间。 |
+| `expires_at` | optional | package 可安装截止时间。 |
+| `proof` | yes | controller DID detached proof。 |
+
+Package MUST NOT 自行授权写入 Realm。Package 接受、registry 收录、namespace claim 或 `requested_scopes[]` 出现某 action 都不得被 reducer 解释为 grant。`registration_epoch` MUST 随 claimed profiles、namespace、base URL、webhook auth、endpoint key、requested scopes、widget origin、E2EE request、receive/rate-limit 行为或 DID/key evidence 改变而改变。
+
+Package -> registration 派生映射:
+
+| `ck.applet.registration` 字段 | Package 来源 | 规则 |
+| --- | --- | --- |
+| `applet_id` | `applet_id` | 原样复制；只接受 DID 或 `ck:applet:<uuidv7>`。 |
+| `service_did` | `service_did` | 原样复制；必须可解析并绑定 Applet endpoint。 |
+| `controller_did` | `controller_did` | 原样复制；必须验证 controller proof。 |
+| `base_url` | `base_url` | 原样复制；必须与 service DID Document binding 一致。 |
+| `bot_actor_id` | `bot_actor_id` | 原样复制；不得含 `#fragment`。 |
+| `protocols` | `protocols[]` | 原样复制；空数组非法。 |
+| `namespaces` | `namespaces` | canonicalize 后复制；只接受对象形态。 |
+| `receive_events` | `receive_events` | 原样复制；不得从 `endpoint_set` 猜测默认值。 |
+| `receive_ephemeral` | `receive_ephemeral` | 原样复制；不得省略。 |
+| `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
+| `requested_scopes` | `requested_scopes[]` | 原样复制；仍只是请求声明。 |
+| `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
+| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。 |
+| `manifest` | `claimed_profiles[]` + `limits` + policies + optional widget | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段。 |
+| `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object；空对象非法。 |
+| `created_at` | `created_at` | 原样复制。 |
+
+## 4b. Install Preview / Commit / Revoke
+
+Applet 安装使用 self/admin aggregate operation。它不创建 durable `ck.applet.install` event；它 fan-out 的协议事实仍是 `ck.applet.registration`、`ck.capability.grant`、`ck.profile.create`、`ck.member.state`、E2EE join authorization / MLS commit requirement、widget scoped token policy 等既有对象。
+
+新增 operation:
+
+| operation_id | HTTP | 语义 |
+| --- | --- | --- |
+| `ck.applet.install.preview` | `POST /_cokret/self/applets/install/preview` | 只读预览，返回 canonical `InstallPlan` 与 `plan_digest`。 |
+| `ck.applet.install` | `POST /_cokret/self/applets/install` | 提交安装，必须带 `Idempotency-Key` 与 preview 得到的 `plan_digest`。 |
+| `ck.applet.revoke` | `POST /_cokret/self/applets/{applet_id}/revoke` | 撤销 effective install。 |
+
+`effective_scope` 是单次 install 的唯一目标:
+
+- `kind="realm"` MUST 只包含 `kind` 与 `realm_id`，并约束为 Realm-wide grant。
+- `kind="circle"` MUST 同时包含 `kind`、`realm_id` 与 `circle_id`，并约束为该 Circle grant；不得由 Circle install 推导 Realm-wide grant。
+- 单次 install operation 只处理一个 `effective_scope`。多 Realm、多 Circle 批量安装和跨 sovereign server 的 install 事务聚合不是 v1 目标。
+- install preview/commit MUST 由目标 Realm 的 controlling Principal Server 或 Realm policy 明确授权的 authz service 承载；联邦投递只传播 fan-out 后的正式 events，不把 install operation 本身变成跨 server 分布式事务。
+
+Preview MUST fail closed when controller proof 无效、DID Document 不可解析或 key ref 不匹配、namespace pattern 非法、exclusive namespace 与 active install 冲突、requested action 不在 capability registry、effective_scope 所属 Realm policy 禁止 Applet/Ghost Actor/widget/E2EE、或 package 已过期。
+
+Commit MUST:
+
+- 在 fan-out 前持久化 install execution record:`(principal_service_id, admin_actor_id, Idempotency-Key, body_hash, submitted_plan_digest, status, produced_event_refs[])`。
+- 对同一 `Idempotency-Key` + 同一 body canonical hash 重试返回同一结果和同一批 accepted event refs；同一 key + 不同 body MUST 返回 `duplicate_conflict`。
+- 每个 fan-out step 提交前先记录 `step_index`、canonical event body hash、目标 event kind 与 `pending` 状态；accepted 后先把 event ref 写回 record，再继续后续 fan-out 或响应客户端。若进程在 submit accepted 与 ref 写回之间崩溃，重试 MUST 先按 deterministic event id 或 canonical body hash 查询是否已有 accepted event，补写 ref 后继续，不得直接重提。
+- 重新计算 plan；不得盲信客户端传回的 `InstallPlan`。
+- 将 package requested scopes、commit `approved_scopes`、当前 Realm/Circle policy 取交集后生成候选 Approved Capability Set。`approved_scopes` 是管理员意图，不是 grant truth。
+- 当 recomputed plan canonical `plan_digest` 与提交的 `plan_digest` 不一致时 MUST fail closed，返回 `applet_install_plan_mismatch`，并要求管理员重新 preview/approve。
+
+多事件 fan-out 不是分布式原子事务；安全性依赖 registration 无 grant 即无授权。preview-time reject MUST 不提交任何 durable event。reduce-time reject MUST 把 accepted refs 与 rejected refs 写入 install execution record 和 audit/projection。registration 成功但所有 grant 失败时 MUST 返回 rejected，标记 registration 无 effective install，并在 local projection / audit 显式显示 orphan registration。
+
+Revoke MUST revoke all active grants bound to applet + effective_scope + registration_epoch, revoke widget scoped token, revoke delegated session/device（若有），并在需要时触发 bot/ghost membership leave/remove 与 E2EE epoch rotation requirement。`remove_ghost_membership` 依赖 active ghost projection 能枚举该 effective_scope 下仍 active 的 applet-managed ghost member；若 projection 不完整，MUST fail closed 并要求先重建 projection，不得按 namespace pattern 猜测成员。revoked effective install 继续尝试未来写入或调用 MUST fail closed，reason=`applet_revoked` 或更细 reason。
 
 ## 5. Namespace
 
@@ -279,10 +377,10 @@ Base URL 来自 registration 的 `base_url`。
 
 **`ck.applet.*` 标识符的两类用途（normative 区分）**：`ck.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
 
-- **Event kind（进 Realm history）**：`ck.applet.registration`、`ck.applet.transaction`（指其作为 wire `Event.kind` 的语义，例如 §4 的 registration event、§8 写入的 transaction-origin event）、`ck.applet.bridge_error`（见 `applet-schema.md` §7）。这些是 durable Cokret Event，进入 Realm history，由 reducer 按 schema 校验。
-- **operation_id（HTTP，不进 history）**：本节表中的 `ck.applet.ping`、`ck.applet.describe`、`ck.applet.transaction`、`ck.applet.resolve_actor`、`ck.applet.resolve_realm`、`ck.applet.protocol_metadata`、`ck.applet.third_party_users`、`ck.applet.third_party_locations` 是 HTTP API operation 标识符，只描述 Cokret 节点 ↔ Applet 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
+- **Event kind（进 Realm history）**：`ck.applet.registration`、`ck.applet.protocol_session.start`、`ck.applet.protocol_session.status`、`ck.applet.bridge_error`（见 `applet-schema.md` §7）。这些是 durable Cokret Event，进入 Realm history，由 reducer 按 schema 校验。
+- **operation_id（HTTP，不进 history）**：本节表中的 `ck.applet.ping`、`ck.applet.describe`、`ck.applet.transaction`、`ck.applet.resolve_actor`、`ck.applet.resolve_realm`、`ck.applet.protocol_metadata`、`ck.applet.third_party_users`、`ck.applet.third_party_locations` 以及 §4b 的 `ck.applet.install.preview` / `ck.applet.install` / `ck.applet.revoke` 是 HTTP API operation 标识符，只描述 Cokret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
 
-注意 `ck.applet.transaction` 同时出现在两类用途：作 operation_id 时指 §7.3 的 transaction push HTTP 调用；作 Event kind 概念时指该 push 携带 / 触发的 durable Event。二者通过本说明显式区分（与 [`agent-protocol-interop.md` §7](./agent-protocol-interop.md) 对 capability action 与 `ck.agent.protocol_session.*` event kind 的区分写法一致）。
+`ck.applet.transaction` 在 v1 artifacts 中只作为 operation_id 存在，指 §7.3 的 transaction push HTTP 调用；它 MUST NOT 作为 durable Event kind 或 transaction-origin Event 写入 Realm history。transaction push 的幂等记录属于 Applet service / transport audit log；Applet 写入 Cokret 的事实由具体 Event 的 `applet_id`、`external_ref`、`authorization_ref`、event signature 与 capability grant 表达。
 
 字段级接口索引：
 
@@ -586,7 +684,7 @@ Alice via Calendar Applet
   1. `executed_by` 必填，指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致;
   2. `authorization_ref` 必填，指向已 accepted 的 `ck.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
   3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet;
-  4. grant constraint MUST 绑定 `applet_id`、`executed_by` DID、`executed_by` DID Document epoch 证据和 registration epoch hash。对支持版本化的 DID method，epoch 证据 MUST 包含 method-specific version / log entry id；对**无版本化的 DID method（如部分 `did:web` 部署）**，grant MUST 绑定 service DID Document 的 **fetch-time digest**（canonical document hash）外加 **registration epoch hash**，reducer MUST 以 fetch-time digest 或 registration epoch 不匹配作为拒绝条件，不得因为 method 不提供显式版本号而豁免该绑定。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key，除非 grant 明确声明可接受的 epoch range 并由 reducer 验证。
+  4. grant constraint MUST 绑定 `applet_id`、`executed_by` 与 `registration_epoch`。`registration_epoch` 是 grant 的唯一安全 epoch 绑定键；service DID Document digest/version evidence、accepted signing key set、endpoint/auth material、bot actor / base URL 等安全相关字段都必须进入该 epoch 的 canonical evidence。reducer/verifier 不能只做字符串等值比较后放行：它 MUST 展开 referenced registration 的 epoch evidence，重新解析或按 method-specific version evidence 读取 service DID Document，并确认当前 DID Document digest、accepted signing key set 与 epoch 捕获值一致。无版本化 `did:web` MUST re-fetch canonical document 并比对 digest；不一致时旧 grant fail closed。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key。
 - 缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时,reducer MUST `schema_violation` 拒绝。该规则适用于所有 `ck.profile.applet_*` profile,客户端 / SDK 不得退回到 SHOULD 形态。
 
 Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示 `via applet`：UI 在渲染 mention、notification、audit log、moderation queue 等任何"who did this"上下文时,MUST 同时显示 native actor 与 `executed_by` 双重署名，不得仅显示 native actor 而隐藏 applet 身份。
@@ -648,24 +746,39 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 
 ## 15. Conformance
 
-`ck.profile.applet_service.v1` MUST 测试：
+Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUST 测试该 profile 的 required endpoints / event kinds；未声明的 profile/add-on surface MUST 返回 `unsupported_feature` 或 policy-denied，不得静默放行。
+
+`ck.profile.applet_service.v1` base bot-only MUST 测试：
 
 - registration signature
 - namespace matching
 - transaction idempotency
+- capability enforcement
+- bot actor attribution
+- install preview / commit / revoke aggregate operation idempotency, when the implementation exposes self/admin Applet install
+- `ck.applet.transaction` only as operation_id, never as durable Event kind
+
+`ck.profile.applet_bridge.v1` inherits `ck.profile.applet_service.v1` and MUST additionally test:
+
 - resolve actor
 - resolve realm
 - protocol metadata
 - Ghost Actor accountability
-- capability enforcement
+- portal Realm metadata
 - duplicate external event handling
-- E2EE boundary warning metadata
+- bridge error event visibility
+
+`ck.profile.applet_delegated.v1` inherits `ck.profile.applet_service.v1` and MUST additionally test delegated grant binding, `executed_by` / `authorization_ref` / `applet_id`, dual-signature UI attribution, and `registration_epoch` evidence verification.
+
+`ck.profile.applet_e2ee_join.v1` inherits `ck.profile.applet_service.v1` and MUST additionally test independent E2EE join authorization, MLS roster applet-managed marking, and `applet_e2ee_join_unauthorized`.
+
+`ck.profile.applet_widget.v1` inherits `ck.profile.applet_service.v1` and MUST additionally test widget origin isolation, CSP, scoped token, consent, and host session/device-key non-disclosure.
 
 ## 16. v1 互操作要求
 
 - `applet_registration` JSON Schema 由 `applet-schema.md` 和 `schema-registry.md` 固定，必须包含 service DID、endpoint、namespace、protocol、capability refs、signing method 和 expiry。
 - Namespace pattern grammar MUST 明确 actor、realm、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
-- Transaction schema MUST 包含 source network、external event id、mapped actor、target Realm、operation refs、`Idempotency-Key`、signature 和 received_at。
+- Transaction push operation MUST 包含 `source_service_did`、`events[]`、`Idempotency-Key`、HTTP message signature 与 received_at audit metadata；外部 source network、external event id、mapped actor、target Realm / Circle 与 operation refs 必须落在具体 Cokret Event 的 `external_ref` / provenance / capability refs 中，不得通过 durable `ck.applet.transaction` event 表达。
 - Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `ck.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。

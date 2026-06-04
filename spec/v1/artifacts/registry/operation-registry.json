@@ -180,6 +180,15 @@
       ]
     },
     {
+      "surface": "applet_install",
+      "tier": "extension",
+      "operations": [
+        "ck.applet.install.preview",
+        "ck.applet.install",
+        "ck.applet.revoke"
+      ]
+    },
+    {
       "surface": "mimi_interop",
       "tier": "interop_bridge",
       "operations": [
@@ -464,6 +473,36 @@
       "success_shape_kind": "service_describe"
     },
     {
+      "operation_id": "ck.applet.install.preview",
+      "http": "POST /_cokret/self/applets/install/preview",
+      "grpc": "Applet/InstallPreview",
+      "mq": "applet.install.preview",
+      "success_shape_kind": "operation_result",
+      "generic_binding": {
+        "request": true,
+        "response": true,
+        "reason": "extension_profile_surface",
+        "profile_gate": true,
+        "migration_plan": "Replace with dedicated AppletInstallPreviewRequest/AppletInstallPlan schemas before this surface is treated as generated-SDK complete.",
+        "surface": "applet_install"
+      }
+    },
+    {
+      "operation_id": "ck.applet.install",
+      "http": "POST /_cokret/self/applets/install",
+      "grpc": "Applet/Install",
+      "mq": "applet.install",
+      "success_shape_kind": "operation_result",
+      "generic_binding": {
+        "request": true,
+        "response": true,
+        "reason": "extension_profile_surface",
+        "profile_gate": true,
+        "migration_plan": "Replace with dedicated AppletInstallRequest/AppletInstallResponse schemas before this surface is treated as generated-SDK complete.",
+        "surface": "applet_install"
+      }
+    },
+    {
       "operation_id": "ck.applet.ping",
       "http": "GET /_cokret/edge/applet/ping",
       "grpc": "Applet/Ping",
@@ -521,6 +560,21 @@
         "profile_gate": true,
         "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
         "surface": "applet"
+      }
+    },
+    {
+      "operation_id": "ck.applet.revoke",
+      "http": "POST /_cokret/self/applets/{applet_id}/revoke",
+      "grpc": "Applet/Revoke",
+      "mq": "applet.revoke",
+      "success_shape_kind": "operation_result",
+      "generic_binding": {
+        "request": true,
+        "response": true,
+        "reason": "extension_profile_surface",
+        "profile_gate": true,
+        "migration_plan": "Replace with dedicated AppletRevokeRequest/AppletRevokeResponse schemas before this surface is treated as generated-SDK complete.",
+        "surface": "applet_install"
       }
     },
     {

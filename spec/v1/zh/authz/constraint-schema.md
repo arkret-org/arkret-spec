@@ -97,7 +97,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `claim_based` (`subtype=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
 | `claim_based` (`subtype=claim`，device/session binding 子情形：claim issuer = device cross-signing key) | `realm_state` | (realm_id, frontier_digest, actor_device_id) | device/session binding 不是独立 subtype（见 §2.2），它是 `subtype=claim` 的子情形；当需校验设备 / session 状态（来自 principal control stream）时该子判定为 `realm_state` |
 | `confidentiality` (`subtype=encryption`，纯静态声明：`encryption_required` / `min_encryption_level` / `allow_plaintext_fallback` / `require_audit_trail` / `approved_key_issuers` 列表成员比较) | `stateless` | (constraint_digest, op_target) | 仅做布尔标志与 issuer 列表集合比较，不读取 Realm state |
-| `confidentiality` (`subtype=encryption`，依赖 Realm 加密态：需对照 Realm `encryption_profile` / `audit_assurance` 或当前 MLS key schedule 的判定) | `realm_state` | (realm_id, frontier_digest) | 仅这些依赖项走 slow path |
+| `confidentiality` (`subtype=encryption`，依赖 Realm 加密态：需对照 Realm `encryption_profile`、active Audit Applet Binding 或当前 MLS key schedule 的判定) | `realm_state` | (realm_id, frontier_digest) | 仅这些依赖项走 slow path |
 | `confidentiality` (`subtype=visibility`) | `realm_state` | (realm_id, frontier_digest) | 看 Realm `history_visibility` |
 
 落地要点：
@@ -505,7 +505,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-**evaluation_class 拆分（normative）**：`confidentiality(encryption)` 约束不是整体 `realm_state`。其纯静态声明部分——`encryption_required` / `min_encryption_level` / `allow_plaintext_fallback` / `require_audit_trail` 这些布尔/枚举标志，以及 `approved_key_issuers` 的列表成员比较（"某 issuer DID 是否在列表中"是封闭集合比较）——只读取 grant 自身内容，求值器 MUST 按 `stateless` 对待，可走 fast path，不得仅因约束 family 是 `confidentiality(encryption)` 就把这些纯静态判定整体降级到 slow path。只有当判定真正需要对照 Realm 当前加密态时——即比较 Realm `encryption_profile` / `audit_assurance`，或对照当前 MLS key schedule 判断实际使用的 key issuer 是否落在 `approved_key_issuers` 内——该子判定才是 `realm_state`，按 §2.3 第二行处理。实现 MUST 按子判定的真实依赖分类，而不是按 family 一刀切。
+**evaluation_class 拆分（normative）**：`confidentiality(encryption)` 约束不是整体 `realm_state`。其纯静态声明部分——`encryption_required` / `min_encryption_level` / `allow_plaintext_fallback` / `require_audit_trail` 这些布尔/枚举标志，以及 `approved_key_issuers` 的列表成员比较（"某 issuer DID 是否在列表中"是封闭集合比较）——只读取 grant 自身内容，求值器 MUST 按 `stateless` 对待，可走 fast path，不得仅因约束 family 是 `confidentiality(encryption)` 就把这些纯静态判定整体降级到 slow path。只有当判定真正需要对照 Realm 当前加密态时——即比较 Realm `encryption_profile` / active Audit Applet Binding，或对照当前 MLS key schedule 判断实际使用的 key issuer 是否落在 `approved_key_issuers` 内——该子判定才是 `realm_state`，按 §2.3 第二行处理。实现 MUST 按子判定的真实依赖分类，而不是按 family 一刀切。
 
 ## 13. 可见性控制（confidentiality, subtype=visibility）
 

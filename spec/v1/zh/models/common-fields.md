@@ -107,7 +107,7 @@ expected_<role>_<kind>_id
 
 `_did` 只用于必须强调原始 DID ecosystem material 的字段，例如 service endpoint DID、pairwise DID、DID continuity proof 或外部验证服务 DID。例：`service_did`、`recipient_service_did`、`pairwise_did`、`old_did`、`new_did`、`verification_service_did`、`operator_did`、`push_gateway_did`。
 
-普通协议责任主体不得使用 `_did`；使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_principal_id`、`audit_agent_principal_id` 等 `_id` 字段。
+普通协议责任主体不得使用 `_did`；使用 `actor_id`、`principal_id`、`subject_id`、`recipient_principal_id`、`agent_principal_id`、`audit_service_actor_id` 等 `_id` 字段。
 
 `verification_method` 保留 W3C DID 规范字段名，承载 DID URL，不改名为 `_id` 或 `_did`。
 
@@ -251,7 +251,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 | `subject_id` | Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic / raw handle claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
 | `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
 | `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal DID（每个条目须有对应 active `ck.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
-| `agent_principal_id` / `audit_agent_principal_id` | Agent key payload、Audit evidence | agent / audit agent 作为协议责任主体时使用 DID-as-id；承载运行或托管服务身份时另用 `service_did`。 |
+| `agent_principal_id` / `audit_service_actor_id` | Agent key payload、Audit release evidence | agent / audit release service 作为协议责任主体时使用 DID-as-id；承载运行或托管服务身份时另用 `service_did`。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 

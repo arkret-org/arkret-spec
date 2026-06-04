@@ -3127,9 +3127,9 @@
       "kind_class": "wire_field_name",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "audit_agent_principal_id",
+      "replacement": "audit_service_actor_id",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Audit Agent evidence names the attested agent as a protocol responsibility principal; hosting service identity remains service_did.",
+      "notes": "Audit release evidence names the attested release actor as a protocol responsibility principal; hosting service identity remains service_did.",
       "migration_group": "did_id_suffix"
     },
     {

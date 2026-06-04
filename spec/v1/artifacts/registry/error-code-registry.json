@@ -729,6 +729,46 @@
       "http_status": 200,
       "scope": "endpoint",
       "description": "Idempotency cache replay is served only as a historical diagnostic after key or binding state changed; receivers MUST NOT perform new reducer side effects."
+    },
+    {
+      "code": "applet_registration_unauthorized",
+      "http_status": 403,
+      "scope": "endpoint",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "An Applet registration or transaction attempted to enter a Realm without an explicit grant from the Realm owner, Realm admin, or Realm-policy-authorized registry/authz service. Namespace claims and self-signed applet registration are insufficient. See zh/extensions/applet-integration.md §4."
+    },
+    {
+      "code": "applet_install_plan_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "ck.applet.install recomputed the canonical InstallPlan from the submitted Applet Package, approved_scopes, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before fan-out. See zh/extensions/applet-integration.md §4b."
+    },
+    {
+      "code": "applet_e2ee_join_unauthorized",
+      "http_status": 403,
+      "scope": "endpoint",
+      "applies_to": [
+        "service_call",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "An Applet, bot actor, or Applet-managed Ghost Actor attempted to join an E2EE Realm / MLS group without the independent E2EE join authorization required by ck.profile.applet_e2ee_join.v1. Ordinary message/write capability grants do not imply MLS join authority. See zh/extensions/applet-integration.md §12."
+    },
+    {
+      "code": "applet_revoked",
+      "http_status": 403,
+      "scope": "endpoint",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ck.applet.revoke / ck.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b."
     }
   ],
   "reason_codes": [
@@ -849,7 +889,7 @@
       "applies_to": [
         "audit_decision"
       ],
-      "description": "A previously valid Read-Your-Writes receipt has been invalidated by subsequent backfill, witness disagreement, or audit_assurance mismatch (see zh/crypto-media/audited-e2ee.md §4)."
+      "description": "A previously valid Read-Your-Writes receipt has been invalidated by subsequent backfill, witness disagreement, or audit_assurance_class / Audit Applet Binding mismatch (see zh/crypto-media/audited-e2ee.md §6)."
     },
     {
       "code": "duplicate_conflict",
@@ -1159,59 +1199,60 @@
       "description": "The inception key age, computed independently by the receiver / Auth Server from the verifiable inception bootstrap timestamp (`did:webvh` entry-0 / continuity proof) against the local clock, exceeds the 24h protocol hard cap. The receiver MUST reject the `ck.device.authorize` / `ck.session.grant` / long-lived capability / ordinary DID update signed by that inception key regardless of any longer `inception_key_max_online_window` self-reported by deployment policy (key-management.md §5)."
     },
     {
-      "code": "audit_agent_key_destruction_attestation_missing",
+      "code": "audit_release_binding_missing",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An `attested_hardware` audit profile removed an Audit Agent without the enclave-signed epoch key destruction attestation required by audited-e2ee.md. The Audit Agent is treated as still holding historical epoch keys; the Realm MUST drop the `attested_hardware` claim and surface a downgrade banner."
+      "description": "A ck.audit.session.* or ck.audit.release event referenced no active ck.audit.applet_binding for the target Realm/Circle effective_scope. Audit release MUST fail closed without an active binding."
     },
     {
-      "code": "audit_agent_remove_requires_paired_destruction_attestation",
+      "code": "audit_release_scope_mismatch",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An attested_hardware Audit Agent was removed via ck.mls.commit but the same anchor batch lacks the required ck.audit.epoch_key_destruction attestation. Reducer MUST reject the batch (audited-e2ee.md §3.1.1.3)."
+      "description": "The audit request / authorization / notice / release effective_scope does not match the active binding or attempts to cover a Circle without a Circle-scoped binding."
     },
     {
-      "code": "audit_agent_epoch_range_incomplete",
+      "code": "audit_release_notice_missing",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.audit.epoch_key_destruction `epoch_range` does not cover the full range of epochs the removed Audit Agent is known to have held secrets for."
+      "description": "ck.audit.release lacks a valid prior ck.audit.session.notice for the same session, binding, scope, purpose, and approved range."
     },
     {
-      "code": "audit_agent_destruction_not_covered_by_commit",
+      "code": "audit_release_current_epoch_forbidden",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A later MLS Commit failed to cover an already-accepted Audit Agent `ck.audit.epoch_key_destruction` state, so the destruction is not cryptographically carried forward in the governance frontier. Reducer rejects per zh/crypto-media/audited-e2ee.md §3.1.1.3."
+      "description": "ck.audit.release attempted to release the current active MLS epoch. Releases may cover only sealed historical epochs and MUST reference sealed_by_commit_ref when epoch material is involved."
     },
     {
-      "code": "audit_agent_destroyed_epoch_accessed",
-      "applies_to": [
-        "audit_decision"
-      ],
-      "description": "Fraud-detection flag: after a destruction attestation is anchored, the same Audit Agent / enclave measurement issued a ck.audit.accessed, RYW receipt, or external export proof for an epoch whose keys were already destroyed. Verifier MUST flag, quarantine the access chain, and trigger Realm audit_assurance downgrade or operator incident. See zh/crypto-media/audited-e2ee.md §3.1.1.4."
-    },
-    {
-      "code": "audit_agent_destruction_proof_not_enclave_signed",
+      "code": "audit_release_retroactive_scope_forbidden",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.audit.epoch_key_destruction proofs[] do not chain to the enclave / HSM attestation key; only enclave-internal attestation keys are accepted."
+      "description": "ck.audit.session.* or ck.audit.release attempted to cover messages, targets, or epochs before the binding activation frontier / first_auditable_epoch, or attempted to apply a later-expanded release_window_policy to already encrypted messages. Audit Applet Binding is non-retroactive; reducers MUST fail closed."
     },
     {
-      "code": "audit_agent_destruction_not_paired_with_remove",
+      "code": "audit_release_manifest_invalid",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.audit.epoch_key_destruction `remove_commit_ref` points to a ck.mls.commit that is not in the same anchor batch as the attestation."
+      "description": "ck.audit.release manifest is inconsistent with the authorized session, binding policy, release mode, target_refs, sealed_epoch_range, recipient key, or wrapped_material_digest set."
+    },
+    {
+      "code": "audit_release_attestation_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Attested audit release evidence does not validate against the active binding/release policy, service DID, measurement, validity window, or attestation trust root."
     },
     {
       "code": "cardinality_violation",
@@ -2098,46 +2139,6 @@
       "description": "A reducer-input event targeting an evolvable-schema object (typically a Morph) did not include the active schema profile id(s) in requirements.schema[]. Reader cannot resolve which schema version to validate the event against. See zh/models/morph.md §4.1 S1 and zh/models/event-and-patch.md §2.7."
     },
     {
-      "code": "sender_commitment_missing",
-      "applies_to": [
-        "audit_decision",
-        "service_call"
-      ],
-      "description": "An event declared ck.profile.franking.sender_commitment.v1 in signed requirements.features[] but the unsigned.franking.sender_commitment sidecar was absent when plaintext-level sender attribution was requested. The message may remain valid as a core E2EE event, but sender attribution MUST fail closed. See zh/governance/content-moderation.md §3.4.2."
-    },
-    {
-      "code": "sender_commitment_invalid",
-      "applies_to": [
-        "audit_decision",
-        "service_call"
-      ],
-      "description": "A reporter-submitted sender commitment sidecar digest did not match the signed payload commitment, or its tag did not verify against the recomputed HMAC under the derived Sender Commitment Key. See zh/governance/content-moderation.md §3.4.2."
-    },
-    {
-      "code": "sender_commitment_seq_replay",
-      "applies_to": [
-        "audit_decision",
-        "service_call"
-      ],
-      "description": "A sender_commitment (sender_device_id, epoch, epoch_local_seq) seq was already present in the persisted seen-set for that (sender_device_id, epoch). See zh/governance/content-moderation.md §3.4.2 step 3."
-    },
-    {
-      "code": "sender_commitment_ciphertext_mismatch",
-      "applies_to": [
-        "audit_decision",
-        "service_call"
-      ],
-      "description": "The ciphertext_digest bound in the sender_commitment does not match the digest of the encrypted envelope the reporter submitted; cannot attribute plaintext to the claimed sender. See zh/governance/content-moderation.md §3.4.2 step 4."
-    },
-    {
-      "code": "sender_commitment_epoch_mismatch",
-      "applies_to": [
-        "audit_decision",
-        "service_call"
-      ],
-      "description": "The MLS epoch bound in the sender_commitment does not match the envelope's sender_claim.epoch; commitments are per-epoch and MUST NOT be carried across epochs. See zh/governance/content-moderation.md §3.4.2 step 5."
-    },
-    {
       "code": "range_completeness_root_mismatch",
       "applies_to": [
         "audit_decision",
@@ -2175,7 +2176,7 @@
         "schema_violation",
         "state_resolution"
       ],
-      "description": "A deployment attempted to enable ck.profile.e2ee_relaxed.v1 alongside a compliance-tier profile (ck.profile.attested_audit.e2ee.v1 / ck.profile.disclosed_audit.e2ee.v1 / any audit_assurance >= disclosed_policy). The relaxed window contradicts the compliance presumption that kick-out is cryptographically immediate; the combination MUST be rejected by the reducer. See artifacts/profiles/conformance-profiles.json#ck.profile.e2ee_relaxed.v1.downgrade_window_constraint.compliance_profile_disabled."
+      "description": "A deployment attempted to enable ck.profile.e2ee_relaxed.v1 alongside a compliance-tier profile (ck.profile.attested_audit.e2ee.v1 / ck.profile.disclosed_audit.e2ee.v1 / any active Audit Applet Binding). The relaxed window contradicts the compliance presumption that kick-out is cryptographically immediate; the combination MUST be rejected by the reducer. See artifacts/profiles/conformance-profiles.json#ck.profile.e2ee_relaxed.v1.downgrade_window_constraint.compliance_profile_disabled."
     },
     {
       "code": "cross_domain_replay_rejected",
@@ -2215,20 +2216,20 @@
       "description": "Realm has accepted ck.realm.destroy (or equivalent terminal decommission marker) and cannot accept new ordinary writes. Only audit-class events (ck.audit.*, ck.audit.erasure_receipt) are still acceptable. Receivers MUST reject ck.events.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.6."
     },
     {
-      "code": "audit_agent_attestation_mismatch",
+      "code": "audit_release_attestation_mismatch",
       "applies_to": [
         "schema_violation",
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Audit Agent's join-time attestation evidence (ck.schema.attestation_evidence.v1) measurement does not match the enclave_measurement recorded in ck.audit.epoch_key_destruction. The two share root of trust; mismatch indicates code / policy_version drift between join and destruction. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md §3.1.1.2."
+      "description": "Audit release service attestation evidence (ck.schema.attestation_evidence.v1) does not match the active ck.audit.applet_binding, ck.audit.release service_did, measurement, or policy digest. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md §6."
     },
     {
       "code": "audit_purpose_mismatch",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "Audit Agent's attestation_evidence.audit_purpose does not match the Realm policy's declared audit_purpose at join time. Verifier MUST reject the Welcome; the Audit Agent MAY re-attest with the correct purpose. See zh/crypto-media/audited-e2ee.md §2."
+      "description": "Audit release service attestation_evidence.audit_purpose does not match the active binding/session purpose. Verifier MUST reject the release evidence; the service MAY re-attest with the correct purpose. See zh/crypto-media/audited-e2ee.md §6."
     },
     {
       "code": "legal_hold_active",
@@ -2305,14 +2306,6 @@
         "schema_validation"
       ],
       "description": "Counterparty declared a MIMI Internet-Draft version not supported by this interop profile. Facade MUST reject instead of guessing a nearby draft shape. See zh/extensions/mimi-interop.md §4.1."
-    },
-    {
-      "code": "applet_registration_unauthorized",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "An Applet registration or transaction attempted to enter a Realm without an explicit grant from the Realm owner, Realm admin, or Realm-policy-authorized registry/authz service. Namespace claims and self-signed applet registration are insufficient. See zh/extensions/applet-integration.md §4."
     },
     {
       "code": "expired_invite_token",

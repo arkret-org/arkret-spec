@@ -348,6 +348,7 @@ paths:
 | `ck.policy.check` | `POST /_cokret/self/policy/check` | policy 本地调用 |
 | `ck.media.ice_config` | `POST /_cokret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |
 | `ck.moderation.report` | `POST /_cokret/self/moderation/report` | Moderation queue / local compliance workflow |
+| `ck.applet.install.preview` / `ck.applet.install` / `ck.applet.revoke` | `POST /_cokret/self/applets/install/preview`, `POST /_cokret/self/applets/install`, `POST /_cokret/self/applets/{applet_id}/revoke` | Applet self/admin aggregate operation；fan-out registration/grant/profile/membership facts，不写 durable install event |
 | `ck.applet.transaction` / `ck.applet.resolve_actor` / `ck.applet.resolve_realm` | `POST /_cokret/edge/applet/transactions`, `GET /_cokret/edge/applet/actors/{actor_id}`, `GET /_cokret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 
 ### 4.1 Generated Full Inventory

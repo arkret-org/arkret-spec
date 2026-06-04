@@ -18,6 +18,10 @@
       "type": "string",
       "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "effective_scope": {
+      "$ref": "#/$defs/effective_scope",
+      "description": "Governance boundary for this report. When absent, the report is Realm-default. Circle-scoped targets MUST resolve to the target Circle and route only to scoped moderators/admins."
+    },
     "target_ref": {
       "type": "string",
       "pattern": "^(ck:(event|flow|realm|message|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64})$"
@@ -75,7 +79,7 @@
     },
     "franking_proof": {
       "$ref": "#/$defs/franking_proof",
-      "description": "Optional franking proof metadata block. Mirrors the franking_proof object spec'd in zh/governance/content-moderation.md §3.4. It proves service receipt of ciphertext metadata; it does not prove plaintext authorship unless a separate sender-commitment profile is enabled."
+      "description": "Optional franking proof metadata block. Mirrors the franking_proof object spec'd in zh/governance/content-moderation.md §3.4. It proves service receipt of ciphertext metadata; it does not prove plaintext authorship and does not grant moderators any MLS epoch/exporter secret."
     },
     "created_at": {
       "type": "string",
@@ -139,6 +143,54 @@
     "event_ref": {
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "circle_id": {
+      "type": "string",
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "effective_scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            },
+            "circle_id": {
+              "$ref": "#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "franking_proof": {
       "type": "object",

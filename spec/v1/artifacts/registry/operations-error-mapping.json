@@ -390,6 +390,41 @@
       "description": "Native personal agent runtime key pairing (CXP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
     },
     {
+      "operation_id": "ck.applet.install.preview",
+      "http_alias": "POST /_cokret/self/applets/install/preview",
+      "operation_specific": [
+        "applet_registration_unauthorized",
+        "unsupported_feature",
+        "schema_violation",
+        "conflict"
+      ],
+      "description": "Applet install preview validates controller proof, package schema, DID/key binding, namespace conflicts, requested capability actions, and Realm/Circle policy before returning an InstallPlan."
+    },
+    {
+      "operation_id": "ck.applet.install",
+      "http_alias": "POST /_cokret/self/applets/install",
+      "operation_specific": [
+        "duplicate_conflict",
+        "applet_install_plan_mismatch",
+        "applet_registration_unauthorized",
+        "unsupported_feature",
+        "schema_violation",
+        "conflict"
+      ],
+      "description": "Applet install commit recomputes the InstallPlan, binds approval to plan_digest, persists fan-out idempotency state, and emits registration/grant/profile/membership facts."
+    },
+    {
+      "operation_id": "ck.applet.revoke",
+      "http_alias": "POST /_cokret/self/applets/{applet_id}/revoke",
+      "operation_specific": [
+        "duplicate_conflict",
+        "applet_revoked",
+        "not_found",
+        "failed_precondition"
+      ],
+      "description": "Applet revoke stops future writes by revoking active grants and scoped tokens for the effective install; repeated revoke attempts may surface applet_revoked."
+    },
+    {
       "operation_id": "ck.agent.provision",
       "http_alias": "POST /_cokret/self/agents",
       "operation_specific": [

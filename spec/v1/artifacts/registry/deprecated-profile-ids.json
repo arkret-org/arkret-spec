@@ -72,6 +72,14 @@
       "replacement": "ck.profile.mls.minimal_metadata_realm.v1",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Realm/Space inversion cleanup. Current v1 uses ck.profile.mls.minimal_metadata_realm.v1 because the profile scope is the Realm E2EE / routing boundary."
+    },
+    {
+      "id": "ck.profile.franking.sender_commitment.v1",
+      "since_revision": "2026-06-04",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed from v1 governance. Realm/Circle moderation reports route to scoped administrators with reporter-supplied encrypted evidence and optional franking proof; they MUST NOT depend on exporter-secret verifiers or sender-bound plaintext commitment."
     }
   ]
 }

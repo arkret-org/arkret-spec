@@ -22,9 +22,13 @@ updated: 2026-05-25
 
 ## 2. 设计原则
 
-### 2.1 审核权由 Realm Owner 行使
+### 2.1 审核权由 Realm / Circle 管理员行使
 
-去中心化环境中没有"全网管理员"。内容审核的权限由 Realm 的 Capability 体系决定。只有拥有 `ck.realm.moderation_policy` 权限的 Actor 才能执行审核操作。
+去中心化环境中没有"全网管理员"。内容审核的权限由 Realm / Circle 的 Capability 体系决定：
+
+- Realm-default 内容由持有 `ck.realm.moderation_policy` 或等价 Realm-scoped moderation grant 的 Actor 处理。
+- Circle-scoped 内容由该 Circle 的管理员 / moderator 处理；Realm 管理员只有在 grant 明确覆盖目标 Circle 时才可以处理该 Circle 的举报。
+- 普通用户举报不会触发合规审计、历史 key release 或外部审查方密钥访问。
 
 ### 2.2 屏蔽是本地行为
 
@@ -32,7 +36,7 @@ updated: 2026-05-25
 
 ### 2.3 举报留痕但不公开
 
-举报记录应被安全送达 Realm 管理员，但不应暴露给被举报人或其他普通成员。
+举报记录应被安全送达目标 `effective_scope` 的管理员 / moderator，但不应暴露给被举报人或其他普通成员。Circle 举报不得泄露给无权知道该 Circle 内容的 Realm 普通成员。
 
 ### 2.4 黑名单不是 capability grant
 
@@ -79,7 +83,7 @@ flowchart TB
 
 ### 3.1 举报操作
 
-用户可以举报 Realm 中的任何可见对象（Message、Flow、Morph、Relation 等）：
+用户可以举报自己可见的 Realm / Circle 对象（Message、Flow、Morph、Relation 等）：
 
 ```
 POST /_cokret/self/moderation/report
@@ -90,11 +94,14 @@ POST /_cokret/self/moderation/report
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `realm_id` | id | required | 被举报对象所在 Realm。 |
+| `effective_scope` | object | optional | 举报目标的实际治理边界；缺省为 `{kind:"realm", realm_id}`。Circle 内容 MUST 填 `{kind:"circle", realm_id, circle_id}` 或由服务端从 target 解析得到。 |
 | `target_ref` | id | required | 被举报 Object / Event 引用；若提交 Operation 引用，服务必须先映射到对应 `event_id`。 |
-| `report_reason_code` | enum | required | 举报原因码，取值见 3.2。 |
+| `report_reason_code` | enum | required | 举报原因码，取值见 §3.2。 |
 | `description` | string | optional；`report_reason_code=other` 时 required | 举报说明；服务端 MAY 限制长度。 |
 | `reporter` | did | required | 举报人 DID，MUST 与认证 session / device proof 一致。 |
 | `evidence_refs` | id[] | optional | 可见证据引用。 |
+| `evidence_package` | object | optional | E2EE 或私有证据包；见 §3.4。 |
+| `franking_proof` | object | optional | 密文投递证明；见 §3.4。 |
 
 响应字段：
 
@@ -102,13 +109,18 @@ POST /_cokret/self/moderation/report
 |------|------|------|------|
 | `report_id` | id | required | 举报记录 ID。 |
 | `status` | string | required | 初始处理状态，例如 `submitted`。 |
-| `routed_to` | did[] | optional | 被路由到的审核服务或 moderator DID。 |
+| `routed_to` | did[] | optional | 被路由到的 scoped moderator / 管理员 DID。 |
 
 请求示例（非完整 schema）：
 
 ```json
 {
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "effective_scope": {
+    "kind": "circle",
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "circle_id": "ck:circle:01964200-0000-7000-8000-000000000001"
+  },
   "target_ref": "ck:message:01964200-0000-7000-8000-000000000002",
   "report_reason_code": "harassment",
   "description": "This message contains targeted personal attacks.",
@@ -130,14 +142,25 @@ POST /_cokret/self/moderation/report
 
 ### 3.3 举报的处理
 
-- 举报会生成一个 `ck.moderation.report` 事件，写入 Realm Event history
-- 该事件仅对拥有 `ck.realm.moderation_policy` 权限的 Actor 可见
-- 被举报人不会收到通知
-- 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）
+- 举报会生成一个 `ck.moderation.report` 事件，写入 Realm Event history；Circle 举报的 cleartext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
+- 该事件仅对目标 scope 的管理员 / moderator 可见；Realm-default 内容是 Realm moderator，Circle 内容是 Circle moderator 或显式覆盖该 Circle 的 Realm grant 持有者。
+- 被举报人不会收到通知。
+- 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）。
+- 举报不会授予 moderator 历史 key、epoch key、审计 applet release 权限或外部 verifier 权限。
 
-### 3.4 E2EE 举报 Franking
+### 3.4 E2EE 举报 Evidence Package 与 Franking
 
-在 E2EE Realm 中，服务端无法读取正文，但审核方仍需要验证“被举报明文确实对应某条已投递消息”。实现 SHOULD 支持 message franking：服务在接收密文事件时生成不可伪造的收讫证明，而不保存明文。
+在 E2EE Realm / Circle 中，服务端无法读取正文。举报 E2EE 内容时，reporter MAY 提交一个加密 evidence package 给目标 scope 的 moderator；实现 SHOULD 支持 `franking_proof`，用于证明某条密文 envelope 曾被接收服务投递，而不保存明文。
+
+Evidence package SHOULD 包含 reporter 自己可见并愿意提交的最小证据，例如：
+
+- 被举报消息明文或必要 excerpt；
+- 原始 encrypted envelope；
+- plaintext / ciphertext / AAD digest；
+- reporter 对 evidence package 的签名；
+- 可选 `franking_proof`。
+
+Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。它 MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料。
 
 推荐 franking proof 结构：
 
@@ -164,124 +187,17 @@ POST /_cokret/self/moderation/report
 
 规则：
 
-- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce`（接收服务生成的一次性防重放值）之上生成。`replay_nonce` MUST 落在签名覆盖范围内，使 §3.4 信任链步骤 5 可独立校验其唯一性。
-- `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash，除非 Realm policy 明确允许该字段。
-- 接收方客户端在解密消息后 SHOULD 保存 `franking_proof` 与明文的本地绑定证明；该绑定默认只在本地或 E2EE 私有报告中保存。
-- 举报 E2EE 内容时，`ck.moderation.report` MAY 携带 `plaintext_evidence` 的加密副本、原始 encrypted envelope、`franking_proof` 和 reporter 对明文/evidence package 的签名。
-- 审核方验证时 MUST 检查：`franking_proof` 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
-- `franking_proof` 只证明服务接收过对应密文事件，不单独证明明文含义。审核决定仍必须落成 signed moderation decision，并受 Realm policy、capability 和 appeal 规则约束。
+- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce` 之上生成。
+- `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
+- `franking_proof` 只证明服务接收过对应密文事件；它不证明 reporter 提交的明文与密文一致，也不证明 sender 在群外不可抵赖地 authored 该明文。
+- Moderator 验证时 MUST 检查 reporter 可见性、目标消息 accepted state、encrypted envelope digest、franking service signature、AAD / ciphertext digest 和 evidence package 签名。
+- 若任一环节缺失，moderator MAY 把材料作为人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。
 
-> _Informative — 外部参考与设计取舍。_ 本注记仅为实现者提供背景，不引入新约束；规范级要求以本节上文 normative 段（以及 §3.4.1 / §3.4.2）为准。
->
-> E2EE message franking 的公开研究为本节设计提供了参照系。Grubbs、Lu 与 Ristenpart 在 "Message Franking via Committing Authenticated Encryption"（CRYPTO 2017）中提出 committing AEAD 思路：让加密同时输出一个对明文与 AAD 的承诺，使收件人能向第三方举报方证明"被举报明文确实是发件人加密发送的那条"，而无需把消息内容预先暴露给中转服务。Facebook Message Franking 是该思路的早期工程化部署，其核心是把"举报可验证性"建立在密文层的承诺上，而非依赖服务端读取明文。后续 asymmetric message franking 一类工作进一步针对 metadata-private 传输与第三方举报场景，把承诺/举报凭据从对称设置推广到收发双方与举报受理方身份分离的设置。
->
-> 与上述方案相比，Cokret 当前 franking 设计的取舍是：core `franking_proof`（本节主体）只承担 service-side delivery proof，即证明某条密文 envelope 在接收服务处被投递，而刻意不在 wire 上强制 committing AEAD 式的明文承诺——明文级 sender attribution 被隔离到 opt-in 的 `ck.profile.franking.sender_commitment.v1`（§3.4.2），由 per-device-per-epoch 的 sender commitment 单独提供，且只在 audit-gated verifier 与发件人之间生效。这样未启用该 profile 的部署仍保留 MLS 群外 deniability，而需要更强举报可验证性的部署可以在不改动 core envelope 形态的前提下叠加承诺层。实现者在评估自身威胁模型时，可把上述外部方案作为"承诺放在何处、归因暴露给谁"这一权衡的背景读物。
+#### 3.4.1 不存在治理密钥释放
 
-#### 3.4.1 `franking_proof` 不证明的事实 (Normative Non-Properties)
+Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ck.moderation.report` 自动升级为 `ck.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Sync Service 或外部 verifier release 历史 key / epoch key。
 
-`franking_proof` 是 service-side delivery proof for ciphertext，**不是**明文归因凭据。为防止 moderation pipeline 误把 `franking_proof` 当作明文级证据，本节明确列出它不证明的事实：
-
-- `franking_proof` MUST NOT 被实现解释为“reporter 提交的明文与 sender 加密的明文一致”——除非额外验证流程（reporter 提交的 encrypted envelope 与 `franking_proof` 中 `ciphertext_digest` 匹配，且审核方能独立解密或验证 sender-bound content commitment）通过。
-- `franking_proof` MUST NOT 被实现解释为“sender authored the plaintext”。它只能归因 *密文 envelope* 由 `sender_claim` 中声明的 device 在 receiving service 处投递；plaintext 与该 envelope 的绑定不在 `franking_proof` 覆盖范围内。
-- `franking_proof` MUST NOT 被实现解释为“sender 对该明文内容在群外仍负 non-repudiation 责任”。MLS 等 group messaging 协议默认不为群外审核提供 plaintext non-repudiation；`franking_proof` 不改变这一边界。
-- Reporter 提交的 `plaintext_evidence` 在以下任一条件不满足时，MUST NOT 与 sender identity 自动绑定：(a) 审核方有独立解密能力并完成解密一致性校验；或 (b) 存在该 Realm 启用的 `ck.profile.franking.sender_commitment.v1` profile 且 §3.4.2 校验通过；或 (c) reporter 自身的明文签名/承诺与该 Realm 协议绑定（明确归因 reporter 而非 sender）。
-
-Sender 级 plaintext attribution 由独立的 opt-in profile `ck.profile.franking.sender_commitment.v1` 提供（见 §3.4.2）。该 profile 不改变 core franking 的 wire 形态：sender commitment 走独立 sidecar 字段；未启用该 profile 的部署 plaintext-level sender attribution 依旧不可用。
-
-#### 3.4.2 `ck.profile.franking.sender_commitment.v1` (Normative, opt-in)
-
-本 profile 在 core franking 之上增加 **sender-bound plaintext commitment**：允许审核方在仅持有 plaintext + commitment + MLS epoch metadata 的情况下，独立验证"sender 该 device 在该 epoch 内确实承诺了该明文"。Profile 是 opt-in，Realm policy MUST 显式声明启用；未声明则发送端不得产生 sender commitment sidecar，接收端遇到 sidecar 字段 MUST 视为 unknown extension 处理。
-
-**派生密钥**：每个 MLS epoch 内，sender 的每个 device 从 MLS exporter secret 派生 **sender commitment key**（per-device-per-epoch）：
-
-```text
-SCK = HKDF-Expand-Label(
-        exporter_secret,
-        label = "cx franking sender commitment v1",
-        context = canonical_bytes({
-          mls_group_id, epoch, sender_device_id,
-        }),
-        length = 32
-      )
-```
-
-`exporter_secret` 取自 MLS epoch 的 `exporter_secret`（RFC 9420 §8.5）。`SCK` MUST 仅在 sender device 与 audit verifier（在该 epoch 内被授权能解出对应 exporter secret 的方）之间存在；任何转发服务（Sync Service / federation peer / moderation pipeline）MUST NOT 见到 `SCK`。
-
-**承诺值**：sender 在 encrypt 明文前为该明文计算 commitment：
-
-```text
-SC = HMAC-SHA-256(
-        key   = SCK,
-        data  = canonical_bytes({
-          plaintext_digest:      sha256(canonical_plaintext_bytes),
-          aad_digest:            sha256(canonical_aad_bytes),
-          sender_device_id,
-          mls_group_id,
-          epoch,
-          epoch_local_seq:       <strictly-monotonic per (sender_device_id, epoch)>,
-          ciphertext_digest:     sha256(mls_ciphertext_bytes)
-        })
-      )[0:16]   ; truncated to 128-bit tag
-```
-
-`canonical_plaintext_bytes` 取 RFC 8785 JCS over 该 message 标准 plaintext envelope（去除 ephemeral 字段）。`epoch_local_seq` 是 sender device 在当前 epoch 内为 sender_commitment 维护的单调序列号；重启或 fork 不得回退（实现 SHOULD 使用 secure-erase counter）。
-
-**Sidecar 字段**：当 profile 启用时，message 加密事件 envelope 在 `unsigned.franking.sender_commitment` 位置携带：
-
-```json
-{
-  "unsigned": {
-    "franking": {
-      "sender_commitment": {
-        "profile": "ck.profile.franking.sender_commitment.v1",
-        "epoch_local_seq": 17,
-        "commitment_tag": "base64url:..."
-      }
-    }
-  }
-}
-```
-
-`unsigned.*` MUST NOT 进入 event digest 与签名（core envelope 规则不变）；commitment binding 由 `commitment_tag` 自身覆盖 `ciphertext_digest` 与 `aad_digest` 保护——发送方对 envelope 的签名间接锁定 ciphertext，commitment 锁定 plaintext。这种分层让 core franking pipeline 不需要解释 sidecar 也能继续工作。
-
-**Presence binding（防剥离）**：因为 `unsigned.*` 不受 event digest / 签名保护，启用本 profile 的 message Event 还 MUST 在签名覆盖的 canonical payload 中加入 sidecar presence commitment：
-
-```json
-{
-  "requirements": {
-    "features": ["ck.profile.franking.sender_commitment.v1"]
-  },
-  "payload": {
-    "franking": {
-      "sender_commitment_digest": "sha256:<JCS(unsigned.franking.sender_commitment)>"
-    }
-  }
-}
-```
-
-`sender_commitment_digest` 是对 `unsigned.franking.sender_commitment` 对象按 RFC 8785 JCS canonicalize 后的 SHA-256。接收端看到 `requirements.features[]` 含 `ck.profile.franking.sender_commitment.v1` 时，MUST 要求 sidecar 存在且 digest 匹配；sidecar 缺失或 digest 不匹配时，该 Event 仍可按 core E2EE 消息处理，但 plaintext-level sender attribution MUST fail closed，reason 分别为 `sender_commitment_missing` / `sender_commitment_invalid`。这样中继或服务端剥离 sidecar 会被降级为可检测的审核能力缺失，而不是静默降低归责保证。
-
-**接收端 / 审核端校验**（reporter 提交 plaintext + envelope + claimed commitment 时）：
-
-1. 取得该 message 的 MLS epoch metadata（`mls_group_id`, `epoch`, `sender_device_id`），通过 verifier 在该 epoch 仍持有的 exporter secret 派生候选 `SCK`。
-2. 若 Event 声明 `ck.profile.franking.sender_commitment.v1`，校验 `payload.franking.sender_commitment_digest` 与 `unsigned.franking.sender_commitment` 的 JCS SHA-256 一致；sidecar 缺失 reason `sender_commitment_missing`，digest 不一致 reason `sender_commitment_invalid`。
-3. 重算 `SC'` 并按 constant-time 比较 `SC' == commitment_tag`：不一致 MUST 拒绝（reason `sender_commitment_invalid`），不进入 plaintext attribution。
-4. 校验 `(sender_device_id, epoch, epoch_local_seq)` 唯一性：verifier MUST 在持久化的 `(sender_device_id, epoch)` 已见 seq 集合中检查该 `epoch_local_seq` 未出现；重复则拒绝，reason `sender_commitment_seq_replay`。不得使用单一 high-water 拒绝低于最大值但尚未见过的 seq，因为举报和审核提交可以乱序到达。
-5. 校验 `ciphertext_digest` 与 reporter 提交的 encrypted envelope 实际 digest 一致；不通过 reason `sender_commitment_ciphertext_mismatch`。
-6. 校验 `epoch` 是 reporter 提交的 envelope `sender_claim.epoch`：不一致 reason `sender_commitment_epoch_mismatch`。
-7. 上述全部通过后，verifier MAY 把该 plaintext 归因到 `sender_device_id` 在 `epoch` 内的承诺——但仍 MUST NOT 将该归因传递到 outside-of-group 的 non-repudiation 主张（profile 仍受 MLS 群密钥退出后的 deniability 边界限制）。
-
-**跨 epoch 与 forward secrecy**：MLS epoch 推进后，旧 epoch 的 exporter secret 被 MLS 协议销毁；verifier 若未在该 epoch active 期间持有 exporter secret，将无法重派生 SCK，从而无法验证 commitment。Profile 因此对 verifier 要求 *epoch-window persistence*：implementations MUST 文档化 verifier 持有 exporter secret 的最长窗口。该窗口 MUST ≤ 部署声明值，且无论部署如何声明 MUST ≤ 协议绝对上限 7d（超过窗口的 commitment 视为不可验证而非伪造）；持有时间一旦超过该上限，verifier MUST zeroize 对应 exporter secret。部署声明的窗口值 MUST 进入 Realm policy 的成员可见披露（与 §3.4.2 其它 audit-gated 披露同列），使成员无需信任 verifier 自报即可获知该窗口。
-
-**Verification receipt 固化（normative）**：上述窗口语义给恶意 sender 一条抵赖路径——只要拖到 exporter secret 销毁（默认 ≤ 72h 窗口之外）再被举报，commitment 就"不可验证"。为切断该路径，verifier 在 epoch active 窗口内**完成** §3.4.2 校验（步骤 1–7 全部通过）后 MUST 生成一条 verifier 签名的 **verification receipt**，至少固化 `{mls_group_id, epoch, sender_device_id, epoch_local_seq, plaintext_digest, ciphertext_digest, verdict, verified_at}` 并由 audit-gated verifier DID 签名。该 receipt 使归因结果**不随 exporter secret 销毁而失效**：窗口外的审核 / 申诉直接采信 receipt，无需重派生 SCK。与此对称：**"窗口外不可验证" MUST NOT 被任何实现解释为"commitment 已被证伪 / sender 未承诺该明文"**——它只表示 verifier 当前无法重新计算，既不构成正向归因，也不构成 sender 已抵赖的证据；正向归因唯一来源是窗口内生成的 verification receipt 或仍可重派生 SCK 的在窗口校验。
-
-**Reporter 信任模型**：profile 提供的承诺**只**在 reporter 与 verifier 之间生效；profile 不解决"reporter 是否伪造 envelope"——因为 envelope 自身的签名仍由 core franking 与 MLS group signature 覆盖，reporter 必须提交真实 encrypted envelope。任何 plaintext 解释错误（如 reporter 截图、剪贴板伪造）不在 profile 范围内。
-
-**隐私泄露边界**：commitment_tag 是 128-bit 不可逆 HMAC，对未持 SCK 的服务（Sync Service / federation peer）不暴露 plaintext。但持 exporter secret 的 verifier 可以对 candidate plaintext 集合做线下 brute-force 验证——所以 profile **MUST NOT** 与允许 verifier 拥有任意 plaintext brute-force 能力的 governance 模型共用（典型例子：把 verifier 当作通用举报受理方而不做 audit gating）。详细 governance 约束见 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md)。
-
-**Verifier 资格 audit-gating（normative）**：sender_commitment verifier 是"持 exporter secret 即可对 candidate plaintext 集合做线下 brute-force"的高敏角色，其资格 MUST 由 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 **audit-gated role** 显式授予（受该文档的 audit obligation、披露范围与撤销规则约束）。实现 MUST NOT 把通用举报受理方（report ingestion service、普通 moderator、Sync Service operator 等）直接当作 sender_commitment verifier，也 MUST NOT 仅因某方"恰好能解出 exporter secret"就赋予其 verifier 权限——verifier 资格是显式 audit-gated grant，不是 exporter secret 持有的副产物。未经 audit gating 的 verifier 授予 MUST fail closed。
-
-启用本 profile 的部署 MUST 在 `ck.server.describe.supported_profiles[]` 中列出 `ck.profile.franking.sender_commitment.v1`；未列出的部署 MUST NOT 生成或验证 sender commitment sidecar。
+需要政府 / 企业合规审计时，必须走 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 Audit Applet Binding + sealed release session；这与用户举报是不同协议流程。
 
 Franking 信任链：
 
@@ -290,7 +206,6 @@ Franking 信任链：
 3. 验证该 service DID 在目标 Realm 的 policy / service binding 中被授权为 Sync、Federation、MIMI facade 或 moderation ingestion 服务。
 4. 验证 DID service endpoint、HTTP Message Signature / federation binding 与实际接收服务一致，防止把其他服务签名重放到本 Realm。
 5. 验证 `franking_proof` payload hash 覆盖 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、received time 和 replay nonce。
-6. 若任一环节缺失，审核方 MAY 接收举报材料作人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。
 
 ## 4. 用户屏蔽 (Ignore/Block)
 
@@ -514,7 +429,7 @@ Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/mod
 
 #### 5.5.3 审计与可见性
 
-- 全部四个 event 进入 audit log（durable_event），同时受 Realm policy 的 `audit_disclosure` 控制可见范围。
+- 全部四个 event 进入 moderation audit log（durable_event），同时受 moderation / appeal policy 的 evidence visibility 控制可见范围；它们不触发 Audit Applet release。
 - `evidence_visibility`（submit payload 字段）控制 reason text / evidence_refs 的明文可见范围（`appellant_only` / `reviewers_only` / `realm_admins` / `realm_members`），默认 `reviewers_only`。这只影响明文 audience，不改变 wire envelope 加密。
 - 与 §10 v1 流程要求一致：appeal 流程"形成可审计事件"现在由这四个事件原生承担，不再需要平台外通道。
 

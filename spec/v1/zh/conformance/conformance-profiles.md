@@ -194,7 +194,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 声明 `ck.profile.mls_governance_binding.full.v1`（即 MLS Governance Binding 的 full 形态，见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 额外验证 commit 携带的 `governance_binding` 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier，并 MUST 通过 `covered_frontier_cell` precondition gate E2EE message Move。无法验证 `governance_binding` 指向的 Anchor view 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
 
-声明 `ck.profile.attested_audit.e2ee.v1` 时，Audit Agent MUST 提供可验证 remote attestation，并执行 `ck.audit.accessed` 先写后解密、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ck.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm policy 和加入 UI MUST 明确展示该降级（按 `encryption-and-audit.md §3.1.1` 的 disclosed 文案）；同样不得绕过 `ck.audit.accessed` 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3.5` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
+声明 `ck.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、sealed `ck.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ck.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
 MUST NOT：
 
@@ -635,26 +635,22 @@ MUST NOT:
 - 接受 `participant_model` 等替代 reuse 字段;invariant 9 是 v1 取舍
 - 为单个 sidecar 静默创建第二个 Circle 以绕开 invariant 9
 
-## 19. Applet Service / Bridge
+## 19. Applet Service Family
 
-`ck.profile.applet_service.v1` 适用于桥接外部系统和运行 Applet 集成服务。
+Applet v1 家族适用于运行 Applet 集成服务。`ck.profile.applet_service.v1` 是 base bot-only profile；桥接外部系统、Ghost Actor、portal Realm、delegated acting、E2EE join 和 widget 能力必须通过继承 profile 显式声明。
 
-MUST 支持：
+`ck.profile.applet_service.v1` MUST 支持：
 
 - signed `applet_registration`
 - namespace declaration and matching
 - ping / describe endpoint
 - transaction push endpoint
 - transaction idempotency
-- resolve actor endpoint
-- resolve realm endpoint
-- protocol metadata endpoint
-- Ghost Actor accountability metadata
-- portal Realm metadata
 - capability enforcement
 - HTTP message signature verification
 - event signature verification
-- external event deduplication
+- bot actor attribution
+- `ck.applet.transaction` as operation_id only, never as durable Event kind
 
 MUST NOT：
 
@@ -663,10 +659,25 @@ MUST NOT：
 - 在无授权时接收全网 sync stream
 - 在未提示边界的情况下把 E2EE 内容桥接到非 E2EE 网络
 
-SHOULD 支持：
+`ck.profile.applet_bridge.v1` inherits `ck.profile.applet_service.v1` and MUST 支持：
+
+- resolve actor endpoint
+- resolve realm endpoint
+- protocol metadata endpoint
+- Ghost Actor accountability metadata
+- portal Realm metadata
+- external event deduplication
+- bridge error event
+
+`ck.profile.applet_delegated.v1` inherits `ck.profile.applet_service.v1` and MUST 支持 delegated native-user acting 的 `executed_by` / `authorization_ref` / `applet_id` 校验、dual-signature attribution 与 `registration_epoch` evidence verification。
+
+`ck.profile.applet_e2ee_join.v1` inherits `ck.profile.applet_service.v1` and MUST 支持独立 E2EE join authorization、MLS roster applet-managed 标注，并在缺少授权时 fail closed with `applet_e2ee_join_unauthorized`。
+
+`ck.profile.applet_widget.v1` inherits `ck.profile.applet_service.v1` and MUST 支持 widget origin isolation、CSP、scoped token、consent 与 host session/device-key non-disclosure。
+
+Applet bridge SHOULD 支持：
 
 - third-party user / location lookup
-- bridge error event
 - admin revoke / pause
 - per-Realm bridge policy
 - Applet health and lag metrics

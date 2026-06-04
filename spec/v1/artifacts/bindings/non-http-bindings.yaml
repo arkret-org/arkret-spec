@@ -116,9 +116,12 @@ grpc:
     Applet:
       Ping: ck.applet.ping
       Describe: ck.applet.describe
+      InstallPreview: ck.applet.install.preview
+      Install: ck.applet.install
       Transaction: ck.applet.transaction
       ResolveActor: ck.applet.resolve_actor
       ResolveRealm: ck.applet.resolve_realm
+      Revoke: ck.applet.revoke
       ProtocolMetadata: ck.applet.protocol_metadata
       ThirdPartyUsers: ck.applet.third_party_users
       ThirdPartyLocations: ck.applet.third_party_locations

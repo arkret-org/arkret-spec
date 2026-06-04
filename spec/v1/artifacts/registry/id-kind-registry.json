@@ -99,6 +99,27 @@
       "description": "Applet registration/service ID"
     },
     {
+      "kind": "audit_binding",
+      "category": "audit",
+      "status": "active",
+      "wire_form": "ck:audit_binding:<uuid>",
+      "description": "Audit Applet Binding ID. Created by ck.audit.applet_binding and referenced by audit session request/authorize/notice/release events."
+    },
+    {
+      "kind": "audit_session",
+      "category": "audit",
+      "status": "active",
+      "wire_form": "ck:audit_session:<uuid>",
+      "description": "Audit release session ID. Threads ck.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window."
+    },
+    {
+      "kind": "audit_release",
+      "category": "audit",
+      "status": "active",
+      "wire_form": "ck:audit_release:<uuid>",
+      "description": "Audit release manifest ID. Created by ck.audit.release for a sealed historical release under an active audit binding/session."
+    },
+    {
       "kind": "backup",
       "category": "identity",
       "status": "active",
