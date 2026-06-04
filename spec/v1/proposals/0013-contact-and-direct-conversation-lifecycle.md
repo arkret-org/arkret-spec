@@ -81,8 +81,10 @@ soland 的 `/_soland/self/contacts/*`(request / respond / list)是把这几块�
 1. **前置 gate**:发起方 MUST 满足目标 `consent_scope=direct_message`(consent-model §6.2)。
 2. **DM Realm 解析或创建**:1:1 DM Realm 是 well-known 形态——`member_count=2`、`encryption_profile=mls_dm`、metadata `is_direct_message=true`。**同一对 (A,B) 至多一个 active DM Realm**(去重 key `unordered_pair(A_did, B_did)`),避免重复建群。
 3. **MLS 建群**:走既有 `ck.self.keys.keypackages.claim` + MLS group create(无新原语)。
-4. **DM 主 Flow 解析或创建**:聊天消息必须挂在 Flow 的 discussion track(`flow-and-message.md` §1),因此 DM Realm 内 MUST 有一个 **well-known 的 discussion-primary Flow** 承载主聊天时间线。**同一 DM Realm 至多一个 active 主 Flow**(避免"一个私聊出现两条时间线");DM Realm 内 MAY 另有普通 Flow(把某个话题升级成独立议题),但默认聊天落主 Flow。
+4. **DM 主 Flow 解析或创建**:聊天消息必须挂在 Flow 的 discussion track(`flow-and-message.md` §1),因此 DM Realm 内 MUST 有一个 **well-known 的 discussion-primary Flow** 承载主聊天时间线。**同一 DM Realm 至多一个 active 主 Flow**(避免"一个私聊出现两条时间线");DM Realm 内 MAY 另有普通 Flow(把某个话题升级成独立议题),但默认聊天落主 Flow。该主 Flow `scope_circle_id=null`(见下方加密边界 note)。
 5. **消息**:`ck.message.create` 落该主 Flow 的 discussion track。
+
+> **加密边界(为什么 DM 不需要 Circle)**:DM 私聊的隐私由两层闭合——(a) DM Realm 双人专属(`member_count=2`),Realm 边界即隐私边界;(b) Realm-default MLS group(`mls_dm`)提供 E2EE。主 Flow `scope_circle_id=null` 落 Realm-default MLS group(`effective_scope={kind:"realm"}`,见 [`encryption-and-audit.md`](../zh/crypto-media/encryption-and-audit.md) §5.1)。**MUST NOT 给 DM 主 Flow 套 Circle**——`Circle.members ⊆ Realm.members` 在双人 Realm 里子集==全集,Circle 切不出更窄边界(circle.md §1)。Circle 只用于**另一种**私聊:多成员 Realm 内给真子集开私密讨论时,那个 Flow 才用 `scope_circle_id` 指向独立 Circle MLS group,把同 Realm 的其余成员挡在外面。
 
 > 现状缺口:第 2 步的"well-known DM Realm 形态 + 去重不变量"、第 4 步的"DM 主 Flow well-known 约定"今天都只在 push-notifications.md / identity-handles.md / flow-and-message.md 被**间接**支撑,无 canonical 定义把它们串成"私聊"。本提案把这两层钉死(见 §6 Q3)。
 
