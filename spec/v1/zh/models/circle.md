@@ -77,7 +77,7 @@ Schema id: `ck.schema.circle.v1`
 | `ck.circle.archive` | yes | object_lifecycle_payload | active → archived。 |
 | `ck.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ck.circle.tombstone` | yes | object_lifecycle_payload | terminal;触发 §8 cascade。 |
-| `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invited\|active\|left\|banned, ...}` | 平行 `ck.member.state`,但 reducer 先校验 actor 已是父 Realm `active` member。 |
+| `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invited\|active\|left\|banned, ...}` | 与 `ck.member.state` 语义对应，但词形不同：Circle 用状态词形 `invited/active/left/banned`,Realm 用动作词形 `invite/join/leave/ban`,二者 wire 值不可互换。reducer 先校验 actor 已是父 Realm `join` 成员。 |
 | `ck.circle.anchor_commit` | no | `{circle_id, sub_anchor_head_digest, epoch}` | reducer-derived:Circle sub-anchor 按 profile cadence 周期性向 Realm Anchor 提交不透明 commitment(§9),由服务端 / anchor service 发出,actor 不直接提交。 |
 
 ## 6. 对象 scope 表达
@@ -271,8 +271,8 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 
 **硬不变量**:
 
-1. `Circle.members ⊆ Realm.members`。reducer 在 `ck.circle.member.state -> active` 时，若 target actor 不是父 Realm `active` member,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
-2. 父 Realm `ck.member.state -> left/banned` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `left`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
+1. `Circle.members ⊆ Realm.members`。reducer 在 `ck.circle.member.state -> active` 时，若 target actor 的父 Realm `ck.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
+2. 父 Realm `ck.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `left`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时,actor 同时属于多个 Circle 即可。
 4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ck.circle.admin` action。
 
@@ -346,7 +346,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 要让 UI 能可靠区分，以下信号 **MUST** 在 spec 层统一,**不**留给客户端各自发明:
 
 - **颜色 token**:同一 Circle 在 Alice 与 Bob 的客户端上必须呈现一致颜色，否则跨设备 social engineering 攻击成立。
-- **短名**:`HR-Conf` 比 `ck:circle:01964...` 可读性高几个量级，且能进入 compose bar 实时显示。
+- **短名**:`short_name`(如 `HR-Conf`)相比裸 Circle ID（如 `ck:circle:01964...`）更易人工识别；客户端 SHOULD 显示 `short_name` 以辅助 scope 识别。
 - **符号 / glyph**:无障碍 / 色盲场景的第二信号。
 
 客户端实现 SHOULD 至少做到:

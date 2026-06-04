@@ -89,24 +89,22 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ## 5. 权限模型
 
-标准 actions：
+标准 actions（canonical 命名以 capability registry / `contract-catalog.json` 为唯一真源；正文与实现 MUST 使用带 `ck.` 前缀的形态，MUST NOT 接受裸 `call.*` 名）：
 
-- `call.start`
-- `call.join`
-- `call.invite`
-- `call.moderate`
-- `call.screen_share`
-- `call.record`
-- `call.transcribe`
-- `call.end_for_all`
+- `ck.call.join` —— 加入并发起 call。v1 不注册独立的 `call.start`：call 的发起由首个具备 `ck.call.join` 的 actor 写入首个 `ck.call.state` 完成。
+- `ck.call.signal.send` —— 发送 call signaling frame，含邀请（`ck.call.signal{kind=invite}`）。v1 不注册独立的 `call.invite`，邀请通过该 signaling action 表达。
+- `ck.call.screen_share`
+- `ck.call.record`
+- `ck.call.transcribe`
+- `ck.call.moderate` —— 主持 / 管理操作，含对全体结束 call。v1 不注册独立的 `call.end_for_all`，end-for-all 由 `ck.call.moderate` 授权。
 - `ck.call.configure_media_service`
 
 默认规则：
 
-- Realm 成员不自动拥有 `call.record`。
-- `call.screen_share` SHOULD 独立授权。
+- Realm 成员不自动拥有 `ck.call.record`。
+- `ck.call.screen_share` SHOULD 独立授权。
 - `ck.call.configure_media_service` 只应授予管理员或受信服务。
-- 被 ban / suspended 的 actor MUST NOT 加入 call。
+- Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) 若 call scoped 到某 Circle，该 actor 还必须是该 Circle 的活跃成员；(c) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(d) 发起设备的 device grant MUST NOT 被 revoked，且其 `ck.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 
 ## 6. ICE Server Discovery
@@ -234,7 +232,7 @@ Token issuer MUST 在签发前校验：
 - Actor 在 `realm_id` 拥有 `ck.call.join` capability；`desired_media` 不超过授权（`ck.call.screen_share` 等子 capability 检查）。
 - Realm policy 允许该 `focus_id`（即 focus 出现在当前 `ck.realm.media_service.foci[]` 中）。
 - 如果 `ck.call.state.session_focus` 已存在，请求的 `focus_id` 与其完全一致；不一致 MUST 返回 `focus_mismatch`。
-- call state 允许新 participant，且该 `(actor_id, device_id)` 未被 revoked / banned / suspended。
+- call state 允许新 participant；且按分层 predicate 校验该 `(actor_id, device_id)`：actor 在 `realm_id` 的 Realm membership 为 `join`（若 scoped 到 Circle 则同时为该 Circle 活跃成员）、account status 不为 `suspended` / `deactivated` / `erasure_pending`、`device_id` 的 device grant 未 revoked。
 - MLS governance binding `policy_root` 与 `ck.realm.media_service` 当前 epoch 一致（防 stale policy）；不一致返回 `mls_governance_binding_stale`。
 - 如果 backend 将解密媒体（`media_service_decrypts=true`），完整执行 §10.5.1 的三层校验。
 
@@ -488,7 +486,7 @@ Candidate payload:
 
 ### 10.1 SFU Service
 
-SFU 在 v1 通过 [§6.1](#61-realm-media-service) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：
+SFU 在 v1 通过 [§6.1](#61-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：
 
 - `type="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
 - `type="cokret-native"`：见 [`bindings/cokret-native.md`](./bindings/cokret-native.md)（reference impl，不推荐生产使用）。
@@ -555,7 +553,7 @@ inject_frame_key(key_bytes: 32-byte secret,
 
 约束：
 
-- `key_bytes` MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking，必须开新 profile。
+- `key_bytes` MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。`cx-rtc-frame-key/v1` / `cx-rtc-recording-key/v1` 的 `cx-` 前缀是**有意保留的 grandfathered 稳定 wire label**(媒体绑定早期遗留命名，作为密钥派生的安全域分离参数),并非待清理的命名残留；实现 MUST NOT 私自将其迁移为 `ck-` 形态或与其它 label 混用。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
 - backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §10.5.1 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
 - Conformance negative vector `ck.vector.media_binding.e2ee_key_source.v1`：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
@@ -664,9 +662,9 @@ Conformance vectors for the full media binding framework：
 
 规则：
 
-- 需要 `call.screen_share` capability。
+- 需要 `ck.call.screen_share` capability。
 - 客户端 MUST 在本地展示正在共享状态。
-- 会议主持人 MAY 使用 `call.moderate` 请求停止某人的 screen share。
+- 会议主持人 MAY 使用 `ck.call.moderate` 请求停止某人的 screen share。
 
 ## 13. 录制与转写
 

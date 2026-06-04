@@ -4152,6 +4152,16 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
+        "action": "ck.object.read_history",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null,
+        "event_mapping_kind": "non_event_surface",
+        "notes": "Authorizes reading an object's discussion / history events (message timeline, redacted-message metainfo, prior revisions). Read / projection surface only; emits no durable reducer event."
+      },
+      {
         "action": "ck.object.archive",
         "category": "general",
         "risk_tier": "medium",

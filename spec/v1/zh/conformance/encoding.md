@@ -223,21 +223,21 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 
 
 ### 6.1 Signature Suite registered set
 
-签名算法的 canonical 单一来源是本表(与 §3.2 Hash registered set 对称)。proof `alg` 字段 MUST 取自下表;散落于各 schema 的签名算法引用 MUST 收敛到此集合,MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519);非 JWS 形态(如 raw detached signature)按本表 canonical algo id 标识。
+签名算法的 canonical 单一来源是本表(与 §3.2 Hash registered set 对称)。proof `alg` 字段 MUST 取自下表；散落于各 schema 的签名算法引用 MUST 收敛到此集合,MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519);非 JWS 形态(如 raw detached signature)按本表 canonical algo id 标识。
 
 | Algo | canonical id / JWS `alg` | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | --- | --- | --- |
 | `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | **v1 default-MUST**;所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破);通过 `ck.profile.signature.pqc.v1` 迁移到后量子 suite。 |
 | `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | v1 optional;声明 `ck.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破);选择仅出于生态互通。 |
-| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | v1 profile-gated;声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名,用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<algo>:<...>` 已为加法准备好,无需重写 wire。 |
+| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | v1 profile-gated;声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<algo>:<...>` 已为加法准备好，无需重写 wire。 |
 
 实现 MUST:
 
 - 默认按 `EdDSA`(Ed25519) 验证 event / receipt proof;遇到未识别的 `alg` → 若位于 critical proof(event_digest binding、device authorization、recovery)→ fail closed (`unsupported_signature_alg`);若位于非 critical metadata signature → MAY 记录为 unknown 并 preserve raw bytes。
 - 在 `server/describe.crypto` 暴露支持的签名 algo 集合(与 hash algo 集合并列),client 据此选择写入算法。
-- MUST NOT "算法升级"已签名的 canonical bytes:一旦 proof 用某 `alg` 发布,verify 路径永远按该 algo 重验;新算法走新 proof,不重写历史签名字节。
+- MUST NOT "算法升级"已签名的 canonical bytes:一旦 proof 用某 `alg` 发布,verify 路径永远按该 algo 重验；新算法走新 proof,不重写历史签名字节。
 
-**后量子 / hybrid 前瞻(未来)**:hybrid composite 签名(例如 `Ed25519+ML-DSA-65`,经典 + 后量子双签以在迁移期同时满足两类验证者)登记为 `ck.profile.signature.pqc.v1` 的扩展槽位。它复用本节"不重写历史签名字节、新算法走新 proof"原则——hybrid proof 作为追加的新 proof entry 出现,经典验证者验经典分量、后量子验证者验 ML-DSA 分量,历史 Ed25519 proof bytes 不被改写。该槽位在 v1 不强制,记为未来。
+**后量子 / hybrid 前瞻(未来)**:hybrid composite 签名(例如 `Ed25519+ML-DSA-65`,经典 + 后量子双签以在迁移期同时满足两类验证者)登记为 `ck.profile.signature.pqc.v1` 的扩展槽位。它复用本节"不重写历史签名字节、新算法走新 proof"原则——hybrid proof 作为追加的新 proof entry 出现，经典验证者验经典分量、后量子验证者验 ML-DSA 分量，历史 Ed25519 proof bytes 不被改写。该槽位在 v1 不强制，记为未来。
 
 ## 7. HLC
 
@@ -492,7 +492,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 - 支持每个 cursor 至少 50 个 realm。
 - **每 Realm 的 frontier (`s.<realm>.p`) 长度 MUST ≤ 1000 个 event_id**：超出时 issuing 服务 MUST 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再嵌入 cursor。该上限避免大并发 actor Realm (≥ 1000 active actor 各自有 head event) 让单个 cursor 膨胀到 MB 级。Receiver 收到超长 frontier 的 cursor MUST `invalid_param`。
 - **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，MUST NOT 直接产出超大 cursor；receiver 收到超大 cursor MUST `invalid_param`。
-- 支持 stream cursor 与 barrier cursor 的过期时间;两者的 TTL 硬上限数值由 §8.3 规则 12 唯一定义,本节只引用不重复字面数值。
+- 支持 stream cursor 与 barrier cursor 的过期时间；两者的 TTL 硬上限数值由 §8.3 规则 12 唯一定义，本节只引用不重复字面数值。
 - 以适当错误拒绝非法 cursor。
 
 ## 9. Rank
@@ -573,7 +573,7 @@ rank_between(left, right):
 
 ### 9.6 State / Cell 编码索引（导航）
 
-_Informative._ 本小节只做导航锚,不搬迁任何 normative 内容;各编码规则的 canonical 定义仍在所引小节。State / Cell 相关编码分散在多处,单点索引如下:
+_Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各编码规则的 canonical 定义仍在所引小节。State / Cell 相关编码分散在多处，单点索引如下:
 
 | 编码对象 | canonical 定义位置 |
 | --- | --- |

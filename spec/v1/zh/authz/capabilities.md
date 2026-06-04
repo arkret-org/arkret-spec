@@ -787,8 +787,8 @@ UCAN 与 ZCAP-LD 以可携带的 bearer token / 能力链表达授权：持有�
 Cokret 没有采用该路径，核心原因是 **revoke / attenuation 必须进入可重放的 Anchor / cell 收敛与 freshness 判定**：
 
 - Cokret 的 grant 是一条 **signed Event**，进入 reducer 后在 registry cell 上以 lattice 收敛；revoke 同样是 Event（`ck.capability.revoke`），其效果通过 cell 收敛对所有副本可重放、可定序、可审计。授权判定因此能绑定到具体 Anchor frontier，并施加 freshness 门槛（见 §18、common-fields freshness 约定）。
-- bearer-token 链对**集中收敛的 revocation freshness 支持较弱**:撤销一条已签发的 UCAN/ZCAP 链通常依赖短 TTL、外部 revocation list 或带外吊销服务,验证方无法仅凭链本身判断"此刻是否仍有效",也难以纳入统一的 frontier / freshness 收敛。对一个以可重放事件流为真相源、且需要分区下 fail-closed 的系统,这一点是关键短板。
+- bearer-token 链对**集中收敛的 revocation freshness 支持较弱**:撤销一条已签发的 UCAN/ZCAP 链通常依赖短 TTL、外部 revocation list 或带外吊销服务，验证方无法仅凭链本身判断"此刻是否仍有效",也难以纳入统一的 frontier / freshness 收敛。对一个以可重放事件流为真相源、且需要分区下 fail-closed 的系统，这一点是关键短板。
 
 因此 Cokret 在核心层坚持 grant-as-signed-Event + lattice-revoke,使授权状态与对象状态共享同一套收敛与 freshness 语义。
 
-未来 Cokret MAY 提供 `ck.profile.ucan_interop.v1`,把外部 UCAN 作为 claim / attestation 输入桥接进自有模型（外部 UCAN 仅作为 §7 claim/attestation 一类证据被消费,而不替代内生 grant cell）。该 profile 标记为 staging extension / 未来工作,不在 v1 核心 normative 范围内;在其落地前,实现 MUST NOT 依赖外部 bearer 能力链直接授权。
+未来 Cokret MAY 提供 `ck.profile.ucan_interop.v1`,把外部 UCAN 作为 claim / attestation 输入桥接进自有模型（外部 UCAN 仅作为 §7 claim/attestation 一类证据被消费，而不替代内生 grant cell）。该 profile 标记为 staging extension / 未来工作，不在 v1 核心 normative 范围内；在其落地前，实现 MUST NOT 依赖外部 bearer 能力链直接授权。

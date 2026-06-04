@@ -2829,7 +2829,8 @@ Steps:
 Expected:
 
 - Client MUST 拒绝该 key 并报 `e2ee_key_source_unauthorised`。
-- 唯一合法 key 来源是 MLS-Exporter（label `cx-rtc-frame-key/v1`, length=19 bytes, Context="", KDF.Nh=32 bytes）。
+- 唯一合法 key 来源是 MLS-Exporter（label `cx-rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`, KDF.Nh=32 bytes），其中 `participant_identity` / `device_id` 取自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。
+- 负向覆盖：以下派生 MUST 同样 fail closed 报 `e2ee_key_source_unauthorised`——(a) `Context=""`（空 Context）；(b) 缺少 sender 字段（`participant_identity` / `device_id`）；(c) 仅绑定 `epoch_id` 而不含完整 sender-bound Context。
 
 ### 12.8 Participant Identity — Cross-Check
 

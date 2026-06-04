@@ -83,7 +83,7 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 
 ## 3. 认证
 
-受保护 endpoint 的请求 MUST 携带可验证的认证材料;认证方式 MAY 为以下之一:
+受保护 endpoint 的请求 MUST 携带可验证的认证材料；认证方式 MAY 为以下之一:
 
 - `Authorization: Bearer <session_token>`
 - detached JWS request signature
@@ -174,7 +174,7 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 `message` 用于开发者诊断，不应用于稳定程序逻辑。  
 客户端 MUST 以 `code` 作为主要错误分类。
 
-_Informative（未来 / 可选）._ 实现 MAY 在 content negotiation 下额外提供一个对齐 [RFC 9457 problem+json](https://www.rfc-editor.org/rfc/rfc9457) 的错误投影(`Content-Type: application/problem+json`),字段映射为 `code → type`、`message → detail`、HTTP status → `status`、`request_id → instance`。该投影仅作为现有 `{ok: false, error: {...}}` 默认形态之上的可选 content-negotiation 对齐,默认形态保持不变;v1 不强制实现该投影。
+_Informative（未来 / 可选）._ 实现 MAY 在 content negotiation 下额外提供一个对齐 [RFC 9457 problem+json](https://www.rfc-editor.org/rfc/rfc9457) 的错误投影(`Content-Type: application/problem+json`),字段映射为 `code → type`、`message → detail`、HTTP status → `status`、`request_id → instance`。该投影仅作为现有 `{ok: false, error: {...}}` 默认形态之上的可选 content-negotiation 对齐，默认形态保持不变;v1 不强制实现该投影。
 
 ### 5.1 标准错误码
 

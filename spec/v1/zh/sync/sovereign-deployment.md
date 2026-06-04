@@ -126,11 +126,11 @@ Sovereign client MUST:
 
 Sovereign client(在 `ck.profile.sovereign_deployment.v1` 语境下)逐条强制度——数据外泄控制为 MUST,运营增强为 SHOULD/MAY:
 
-- 对批量导出、外部分享实施本地 policy enforcement(MUST;安全关键项,防止未授权再分发)。
+- 对批量导出、外部分享实施本地 policy enforcement(MUST;安全关键项，防止未授权再分发)。
 - 支持 policy-signed configuration update(SHOULD)。
 - 支持离线/内网 resolver bundle(SHOULD)。
 - 使用硬件密钥、平台安全模块或智能卡(SHOULD)。
-- 对截屏、复制施加提示与水印(MAY,作为运营追溯手段;客户端平台能力受限时不强制)。
+- 对截屏、复制施加提示与水印(MAY,作为运营追溯手段；客户端平台能力受限时不强制)。
 
 ## 3. 默认安全姿态
 
