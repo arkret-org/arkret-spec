@@ -36,7 +36,7 @@ Cokret 采用 **principal server + signed Event + identity registry + client-sid
 
 Cokret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
-协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Flow、Space、Message 等标准对象；看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
+协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Flow、Space、Message 等标准对象；看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
 
 ### 2.0 容器选型参考（Container Selection Reference）
 
@@ -541,7 +541,7 @@ Cokret v1 固定以下方向：
 
 ## 9. 可落地性要求
 
-Cokret v1 不允许实现用单一“万能服务”隐藏协议边界。任何声称支持 `ck.profile.principal_server.v1` 或 `ck.profile.full_client.v1` 的实现 MUST 满足以下要求：
+Cokret v1 不允许实现用单一聚合服务隐藏已声明的 Principal Server / Policy Server / Directory / Blob / Media / Applet 等协议边界。任何声称支持 `ck.profile.principal_server.v1` 或 `ck.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `conformance-vectors.md` 执行。
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。

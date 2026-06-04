@@ -70,7 +70,7 @@
           "enum": [
             "Ed25519",
             "ES256",
-            "ES384"
+            "ML-DSA-65"
           ]
         },
         "payload_digest": {

@@ -13,19 +13,27 @@ see_also:
 
 本文集中定义 Cokret v1 规范使用的规范关键字（normative keywords）。其他规范文档 SHOULD 通过一行引用本文，而不再重复关键字解释。
 
-## 2. RFC 2119 / RFC 8174 关键字
+## 2. RFC 2119 / RFC 8174 关键字与中文规范词
 
 本规范中的关键字 **MUST**、**MUST NOT**、**REQUIRED**、**SHALL**、**SHALL NOT**、**SHOULD**、**SHOULD NOT**、**RECOMMENDED**、**NOT RECOMMENDED**、**MAY**、**OPTIONAL** 按 [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) 与 [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) 解释，并且**仅在全部大写形式下**具有规范约束力。
 
-其他形态（包括小写 "must" / "should" / "may"、首字母大写形式、以及中文 "不得 / 应当 / 建议 / 推荐"）仅供阅读理解，不构成规范要求。
+英文小写 "must" / "should" / "may"、首字母大写形式，以及未列入下表的自然语言建议，仅供阅读理解，不构成规范要求。
+
+由于 v1 中文正文是规范真源，以下中文规范词在 normative 段落、normative 表格和字段约束中具有与对应 RFC 2119 / RFC 8174 关键字相同的规范力。新增或重写规范要求时 SHOULD 优先同时给出英文关键字，以便下游 SDK、cotest 与翻译版本机械识别。
+
+| 中文规范词 | 等价关键字 | 说明 |
+| --- | --- | --- |
+| 必须 / 要求 | `MUST` / `REQUIRED` | 绝对要求。 |
+| 不得 / 禁止 / 不允许 / 不可 | `MUST NOT` | 绝对禁止。 |
+| 应当 / 建议 / 推荐 | `SHOULD` / `RECOMMENDED` | 有强理由时可偏离，但实现需能解释。 |
+| 不应 / 不建议 / 不推荐 | `SHOULD NOT` / `NOT RECOMMENDED` | 有强理由时可偏离。 |
+| 可以 / 可选 | `MAY` / `OPTIONAL` | 可选能力或许可。 |
 
 ## 3. 否定与禁止
 
-规范级别的禁止 MUST 使用 `MUST NOT`，不得在 normative 段落混用以下中文形态作为同义禁止：
+规范级别的英文禁止 MUST 使用 `MUST NOT`。中文 normative 正文可使用 §2 表中的“不得 / 禁止 / 不允许 / 不可”，其规范力等同 `MUST NOT`；同一句中若同时出现中文禁止和 `MUST NOT`，两者表达同一约束，不得引入不同范围。
 
-- "不得"、"禁止"、"不允许"、"不可"——只允许出现在 informative 解释段、callout 或注释中。
-
-若编辑性指导本意是 "建议不要"，MUST 使用 `SHOULD NOT` 而不是 "不应"。
+若编辑性指导本意是 "建议不要"，SHOULD 使用 `SHOULD NOT` 或 §2 表中的“不应 / 不建议 / 不推荐”，并避免和 `MUST NOT` 混用。
 
 ## 4. Normative 与 Informative 切分
 

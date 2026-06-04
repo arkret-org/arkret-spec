@@ -47,7 +47,7 @@ updated: 2026-06-01
 - `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；Flow 的用户可读短摘要放在 `metadata.summary` 或 `encrypted_metadata`，不得作为顶层 `summary`。原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`；Flow 使用 `metadata.title` 或 `encrypted_metadata`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Flow 等 canonical object 的显示名。
 - Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），MUST NOT 另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
 - `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；原始 DID ecosystem material 使用 `_did`。字段后缀表达 wire value category，不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
-- `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。Morph 的 `morph_type` 是 Realm schema-defined 的开放领域分类，不参与 reducer event routing，故使用 `type`；Relation/View 等协议 registry 分类使用 `kind`。MLS `proposal_type` 属于外部 MLS taxonomy，保留 `type`。Genesis `anchorer` 对象的 finality-profile discriminator 是已登记的 `type` 例外（schema `realm.schema.json` 锁定 `anchorer.type`，取值与 `anchor_profile` 枚举同源），不改名为 `kind`。Handle Claim 自身的封闭协议分类使用 `claim_kind`；authorization/VC selector 中选择外部 credential taxonomy 的字段可继续使用 `claim_type`。
+- `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。Morph 的 `morph_type` 是 Realm schema-defined 的开放领域分类，不参与 reducer event routing，故使用 `_type` 后缀且字段名固定为 `morph_type`，不得使用裸 `type`；Relation/View 等协议 registry 分类使用 `kind`。MLS `proposal_type` 属于外部 MLS taxonomy，保留 `type`。Genesis `anchorer` 对象的 finality-profile discriminator 是已登记的 `type` 例外（schema `realm.schema.json` 锁定 `anchorer.type`，取值与 `anchor_profile` 枚举同源），不改名为 `kind`。Handle Claim 自身的封闭协议分类使用 `claim_kind`；authorization/VC selector 中选择外部 credential taxonomy 的字段可继续使用 `claim_type`。
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。
 - `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Flow / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只用于外部协议或加密 transcript 自身的创建者 tuple（例如 MLS group creator），不得作为 object 创建主体字段的别名。
@@ -190,7 +190,7 @@ expected_<role>_<kind>_id
 
 按结构角色把对象分三类，各自的顺序如下：
 
-1. **canonical materialized object**（Realm / Circle / Space / Flow / Message / Morph / Relation / View / Policy / Actor Profile 等）字段簇顺序 MUST 为：
+1. **canonical materialized object**（Realm / Circle / Space / Flow / Message / Morph / Relation / View / Policy / Actor Profile 等）字段簇顺序 SHOULD 为：
    1. identity：`id`、`schema`
    2. scope / container：`realm_id`、`space_id`、`flow_id`、其它 parent refs（如 `parent_space_id`、`scope_circle_id`）
    3. object discriminator / 引用：`kind`、`rank`、`schema_refs`
@@ -206,6 +206,8 @@ expected_<role>_<kind>_id
 - `created_at` MUST 排在 `updated_at` 之前；`created_by` MUST 排在 `created_at` 之前；`updated_by` MUST 排在 `updated_at` 之前。
 - `state_changed_at` MUST 紧跟 `state`；`stage_changed_at` MUST 紧跟 `stage`。
 - 开放扩展容器（`fields` / `metadata`）MUST 落在 content / config 区，紧邻对象内容字段，MUST NOT 混入 audit 字段簇。对 Realm 这类把 `fields` 置于审计字段之前的配置根对象，按本节"对象族例外"声明即可。
+
+对象族例外 MUST 在对应 schema description 或本节列明。Realm 是配置根对象：`title` / `summary` / `security_class` 可在 `trust_domain` / `schema_refs` 之前展示，以便管理端先呈现人类可读身份和安全等级；`trust_domain` 仍是 create-locked replay boundary，`schema_refs` 仍是字段验证引用，不改变其语义。
 
 **过程型 / private object 例外**：第 3 类对象（见本节上方 private projection / process artifact 分类）不套用 canonical materialized object 的 audit 字段簇规则——
 

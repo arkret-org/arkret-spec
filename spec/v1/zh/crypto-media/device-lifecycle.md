@@ -549,7 +549,7 @@ POST /_cokret/self/keys/keypackages/revoke
 | --- | --- | --- | --- |
 | `principal_id` | `did` | required | KeyPackage 所属 principal。 |
 | `device_id` | `id:device` | required | KeyPackage 所属设备。 |
-| `keypackages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。 |
+| `key_packages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。旧字段名 `keypackages` 不是 v1 canonical wire 字段，receiver MUST 以 `schema_violation` 拒绝。 |
 | `device_signature` | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。 |
 
 `claim` 请求字段：

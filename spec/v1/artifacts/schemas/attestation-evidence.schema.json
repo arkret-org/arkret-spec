@@ -102,7 +102,7 @@
       "required": ["alg", "public_key_b64u"],
       "description": "The attestation public key (extracted from the leaf of attestation_chain). ck.audit.release proofs and RYW receipt validation MUST be cryptographically bound to this attested output path when audit_assurance_class=attested_hardware.",
       "properties": {
-        "alg": { "type": "string", "enum": ["EdDSA", "ES256", "ES384"] },
+        "alg": { "type": "string", "enum": ["EdDSA", "ES256", "ML-DSA-65"] },
         "public_key_b64u": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
         "kid": { "type": "string" }
       },

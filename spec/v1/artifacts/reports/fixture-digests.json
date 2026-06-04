@@ -26,7 +26,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "5641a9f490940356c2e5c80f0b21c6807dd24338077753d730e1ce8b583acc7a"
+      "sha256": "02af37444b7196f97763fcc8ebe824cb6988eb16f34a71f4630dbcdf9601acad"
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",

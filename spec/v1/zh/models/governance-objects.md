@@ -106,7 +106,7 @@ Schema id: `ck.schema.policy.v1`
 
 ### 3.3 Policy Server 与决策
 
-Policy server 风险判断与签名决策见 [`../authz/policy-server.md`](../authz/policy-server.md)；moderation policy（举报、franking、审核流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
+Policy Server 风险判断与签名决策见 [`../authz/policy-server.md`](../authz/policy-server.md)；moderation policy（举报、franking、审核流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
 
 ## 4. Capability Grant
 
@@ -180,7 +180,7 @@ Schema id: `ck.schema.invite.v1`
 - 公共字段：[common-fields.md](./common-fields.md)。
 - Capability 详细模型：[`../authz/capabilities.md`](../authz/capabilities.md)。
 - Constraint schema：[`../authz/constraint-schema.md`](../authz/constraint-schema.md)。
-- Policy server 决策：[`../authz/policy-server.md`](../authz/policy-server.md)。
+- Policy Server 决策：[`../authz/policy-server.md`](../authz/policy-server.md)。
 - Moderation policy：[`../governance/content-moderation.md`](../governance/content-moderation.md)。
 - Realm-Realm 继承：[`realm-links.md`](./realm-links.md)。
 - Schema registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。

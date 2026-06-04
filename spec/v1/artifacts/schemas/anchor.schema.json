@@ -132,8 +132,7 @@
           "enum": [
             "EdDSA",
             "ES256",
-            "ES384",
-            "ES512"
+            "ML-DSA-65"
           ]
         },
         "verification_method": {

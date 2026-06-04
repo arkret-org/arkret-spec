@@ -39,7 +39,7 @@
     },
     "executed_by": {
       "$ref": "#/$defs/did",
-      "description": "Optional. Present only when an agent acts on behalf of the controller actor. actor_id is the principal of record (controller), executed_by is the agent principal that actually issued the wire write. MUST be a registered native personal agent principal accountable to actor_id (CXP-0008 §4.10). When present, MUST appear together with authorization_ref. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) when this field is present."
+      "description": "Optional. Present only when an agent acts on behalf of the controller actor. actor_id is the principal of record (controller), executed_by is the agent principal that actually issued the wire write. MUST be a registered native personal agent principal accountable to actor_id (see zh/models/event-and-patch.md and zh/identity/key-management.md agent accountability rules). When present, MUST appear together with authorization_ref. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) when this field is present."
     },
     "authorization_ref": {
       "oneOf": [
@@ -51,7 +51,7 @@
     "actor_kind": {
       "type": "string",
       "enum": ["user", "org", "team", "agent", "service", "device", "integration"],
-      "description": "Reducer-stamped projection of the actor_id Actor Profile's actor_kind at write time (CXP-0008 §5.1). Lets audit/forensic/offline readers classify the event without resolving Actor Profile. MUST NOT appear in actor-supplied submit payload (schema_violation reason=actor_kind_reducer_managed); reducer stamps it during accept. Immutable once written."
+      "description": "Reducer-stamped projection of the actor_id Actor Profile's actor_kind at write time (see zh/models/event-and-patch.md and zh/models/actor.md). Lets audit/forensic/offline readers classify the event without resolving Actor Profile. MUST NOT appear in actor-supplied submit payload (schema_violation reason=actor_kind_reducer_managed); reducer stamps it during accept. Immutable once written."
     },
     "actor_seq": {
       "type": "integer",
@@ -1949,7 +1949,7 @@
         },
         "alg": {
           "type": "string",
-          "enum": ["EdDSA", "ES256", "ES384", "ES512"]
+          "enum": ["EdDSA", "ES256", "ML-DSA-65"]
         },
         "verification_method": {
           "type": "string",
@@ -1991,7 +1991,7 @@
         },
         "alg": {
           "type": "string",
-          "enum": ["EdDSA", "ES256", "ES384", "ES512"]
+          "enum": ["EdDSA", "ES256", "ML-DSA-65"]
         },
         "verification_method": {
           "type": "string",

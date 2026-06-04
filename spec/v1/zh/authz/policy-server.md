@@ -307,17 +307,17 @@ Frontier 比较必须区分“本地落后”和“本地更新”。若本地 a
 
 ## 7. Relationship to Capability Authorization
 
-Policy server 不创建权限。事件必须先通过 capability authorization，再考虑 policy decision。即：
+Policy Server 不创建权限。事件必须先通过 capability authorization，再考虑 policy decision。即：
 
 - 无 capability + policy allow = reject。
 - 有 capability + policy hard_deny = reject 或 quarantine。
 - 有 capability + policy unavailable = 按 fail_mode。
 
-Policy server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate limit、滥用声誉与内容风险标签。除非 holder 明确使用其自控的私有 policy 服务，Policy server MUST NOT 检查个人 blocklist。
+Policy Server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate limit、滥用声誉与内容风险标签。除非 holder 明确使用其自控的私有 policy 服务，Policy Server MUST NOT 检查个人 blocklist。
 
 ### 7.1 Moderation State 必须进入 Anchor Frontier
 
-Policy server decision 是 out-of-band 的签名决策，本身不进入 Realm anchor frontier。只有 `allow` 与 `soft_deny`（仅阻止 default client 提交）可以仅在本地或 fast path 上生效；任何会改变其他 peer 对事件可见性、可写性、可分发性判断的 decision——`hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入协议状态。否则不同 Principal Server 在同一 Realm 上对同一事件作出不一致决策，会形成跨 peer 的 split-brain：A 把消息 quarantine 隐藏，B 直接 allow，两边客户端看到的 Realm 状态从此分叉。
+Policy Server decision 是 out-of-band 的签名决策，本身不进入 Realm anchor frontier。只有 `allow` 与 `soft_deny`（仅阻止 default client 提交）可以仅在本地或 fast path 上生效；任何会改变其他 peer 对事件可见性、可写性、可分发性判断的 decision——`hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入协议状态。否则不同 Principal Server 在同一 Realm 上对同一事件作出不一致决策，会形成跨 peer 的 split-brain：A 把消息 quarantine 隐藏，B 直接 allow，两边客户端看到的 Realm 状态从此分叉。
 
 为此 v1 引入 `ck.component.moderation_state.v1` cell family：
 
@@ -338,7 +338,7 @@ Reducer 与所有读路径 MUST：
 - 对包含 `require_review` 决策的目标，按 review proposal 状态机展示，不允许默认渲染。
 - `ck.moderation.decision.lift` 解除决策时，受影响的 search / projection cache MUST 立即重算。
 
-Policy server fast path 与 anchored decision 的关系：
+Policy Server fast path 与 anchored decision 的关系：
 
 - Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Move 到该 Realm 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
 - 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision，处理方式 MUST 按未能提升的根因分类，不得对所有失败统一静默解除：
@@ -387,7 +387,7 @@ Policy server fast path 与 anchored decision 的关系：
 
 ## 10. Privacy
 
-Policy server 默认不是内容接收者。实现 MUST：
+Policy Server 默认不是内容接收者。实现 MUST：
 
 - 对 E2EE Realm 默认只发送 metadata。
 - 对媒体默认发送 hash、MIME、尺寸、扫描标签，不发送原始 bytes。

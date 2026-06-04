@@ -63,6 +63,7 @@ python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图
 - Markdown fenced JSON 可以用 ````json schema=schemas/<name>.schema.json` 声明 schema；lint 会对该 JSON 块运行 JSON Schema validation
 - `artifacts/fixtures/*.json` 可声明 `schema_validation_cases[]`，对 EventEnvelope、Anchor、Cursor、Invite、ServiceDescribe 等核心对象执行正/负 schema validation
 - fixture 中若包含规范正文硬编码 digest（canonical bytes hash、event_digest、range completeness root、governance binding hash 等），CI SHOULD 通过参考实现脚本重算并比对；新增 vector 不得只在 prose 中声明 digest 而无可复算来源。
+- 只验证 JSON Schema 形态、而不验证密码学 transcript 的 fixture MUST 声明 `fixture_kind="schema_only"`，并在 description 中明确占位 nonce / ciphertext / signature 不构成 cryptographic conformance vector。`fixture_kind="schema_only"` 的占位值不得被 release 文案宣传为真实加密、签名或 digest 向量。
 
 ### 2.1 JSON Schema 校验边界
 
