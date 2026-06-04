@@ -49,12 +49,15 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob 内容 digest 统一使用 `content_digest`，不得新增裸 `sha256` 字段；内容寻址 `blob_ref` 继续可携带 `ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 这类 typed-id 形态。
 
+上传请求 schema 见 [`blob-operations.schema.json#/$defs/upload_request`](../../artifacts/schemas/blob-operations.schema.json)，响应 schema 见 [`blob-operations.schema.json#/$defs/upload_response`](../../artifacts/schemas/blob-operations.schema.json)。
+
 上传规则：
 
-- 上传请求的 `Content-Type` header 是 optional；缺省值为 `application/octet-stream`。
+- Canonical HTTP upload body MUST be `multipart/form-data` with a required `content` binary part and required `size_bytes` metadata field. The `content` part `Content-Type` is optional; its default value is `application/octet-stream`.
 - 客户端 SHOULD 提供准确 `Content-Type`，但服务端 MUST 把上传声明的 MIME 和文件名视为不可信 metadata。
 - 如果服务端发现声明 MIME 与内容明显冲突，MAY 把 `media_type` 降级为 `application/octet-stream`，并记录安全标记。
 - 文件名 MUST 做控制字符、路径分隔符和过长字段清理；不得影响 `blob_ref` 或存储路径。
+- `upload_receipt` 若返回，MUST 绑定 `blob_ref`、`content_digest`、`size_bytes`、`received_at` 与 `issuer_service_did`，并由 Blob Service DID 对 receipt canonical bytes 签名；不得作为开放实现私有对象返回。
 
 ## 3. Encrypted Attachment
 

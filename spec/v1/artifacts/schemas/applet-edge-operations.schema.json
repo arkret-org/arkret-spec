@@ -1,0 +1,368 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/applet-edge-operations.schema.json",
+  "title": "Cokret Applet Edge Operation DTOs",
+  "description": "Closed request/response DTOs for Applet edge and bridge operations.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/ping_response"
+    },
+    {
+      "$ref": "#/$defs/transaction_request"
+    },
+    {
+      "$ref": "#/$defs/transaction_response"
+    },
+    {
+      "$ref": "#/$defs/resolve_actor_response"
+    },
+    {
+      "$ref": "#/$defs/resolve_realm_response"
+    },
+    {
+      "$ref": "#/$defs/protocol_metadata_response"
+    },
+    {
+      "$ref": "#/$defs/third_party_query"
+    },
+    {
+      "$ref": "#/$defs/third_party_user_response"
+    },
+    {
+      "$ref": "#/$defs/third_party_location_response"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "applet_id": {
+      "type": "string",
+      "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "blob_ref": {
+      "type": "string",
+      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "protocol": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+    },
+    "external_ref": {
+      "type": "object",
+      "required": [
+        "protocol",
+        "external_id"
+      ],
+      "properties": {
+        "protocol": {
+          "$ref": "#/$defs/protocol"
+        },
+        "external_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "instance_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rejected_item": {
+      "type": "object",
+      "required": [
+        "reason_code"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "field_type": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "datetime",
+            "external_ref",
+            "url",
+            "enum"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "enum_values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "description": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "protocol_instance": {
+      "type": "object",
+      "required": [
+        "instance_id",
+        "display_name"
+      ],
+      "properties": {
+        "instance_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "external_ref": {
+          "$ref": "#/$defs/external_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ping_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "applet_id",
+        "service_did",
+        "protocol_version"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "applet_id": {
+          "$ref": "#/$defs/applet_id"
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "protocol_version": {
+          "type": "string",
+          "const": "1.0"
+        }
+      },
+      "additionalProperties": false
+    },
+    "transaction_request": {
+      "type": "object",
+      "required": [
+        "source_service_did",
+        "events"
+      ],
+      "properties": {
+        "source_service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          }
+        },
+        "ephemeral": {
+          "type": "array",
+          "items": {
+            "$ref": "./ephemeral-envelope.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "transaction_response": {
+      "type": "object",
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "rejected": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rejected_item"
+          }
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolve_actor_response": {
+      "type": "object",
+      "required": [
+        "exists"
+      ],
+      "properties": {
+        "exists": {
+          "type": "boolean"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "external_ref": {
+          "$ref": "#/$defs/external_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolve_realm_response": {
+      "type": "object",
+      "required": [
+        "exists"
+      ],
+      "properties": {
+        "exists": {
+          "type": "boolean"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "title": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "external_ref": {
+          "$ref": "#/$defs/external_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "protocol_metadata_response": {
+      "type": "object",
+      "required": [
+        "protocol",
+        "display_name",
+        "field_types"
+      ],
+      "properties": {
+        "protocol": {
+          "$ref": "#/$defs/protocol"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "icon_blob_ref": {
+          "$ref": "#/$defs/blob_ref"
+        },
+        "field_types": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/field_type"
+          }
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocol_instance"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_query": {
+      "type": "object",
+      "required": [
+        "protocol",
+        "external_id"
+      ],
+      "properties": {
+        "protocol": {
+          "$ref": "#/$defs/protocol"
+        },
+        "external_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "instance_id": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_user_response": {
+      "type": "object",
+      "required": [
+        "exists"
+      ],
+      "properties": {
+        "exists": {
+          "type": "boolean"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "external_ref": {
+          "$ref": "#/$defs/external_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "third_party_location_response": {
+      "type": "object",
+      "required": [
+        "exists"
+      ],
+      "properties": {
+        "exists": {
+          "type": "boolean"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "external_ref": {
+          "$ref": "#/$defs/external_ref"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

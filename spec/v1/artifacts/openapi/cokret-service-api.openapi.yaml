@@ -49,13 +49,11 @@ info:
     `ServiceDescribe`.
 
 
-    Security-sensitive extension operations such as MLS KeyPackage lifecycle and
+    Security-sensitive extension operations such as MLS KeyPackage lifecycle,
 
-    Applet install preview/commit also carry typed DTO schemas. Remaining
+    Directory, Applet, MIMI, Push, Blob and media bindings also carry typed DTO
 
-    extension / interop operations (directory, applet, MIMI,
-
-    push, moderation, etc.) continue to use the
+    schemas. Remaining extension / deployment-local operations continue to use the
 
     generic `OperationRequest` / `OperationResult` envelope as their HTTP
 
@@ -65,11 +63,9 @@ info:
 
     the normative sections under `zh/sync/` and by the referenced JSON Schemas;
 
-    when an extension surface stabilizes (e.g. graduates from interop_bridge
+    when an extension surface stabilizes, its OpenAPI binding SHOULD be tightened
 
-    tier toward extension), its OpenAPI binding SHOULD be tightened to a typed
-
-    schema.
+    to a typed schema.
 
 
     Default authentication: bearer token plus HTTP Message Signature for
@@ -729,10 +725,10 @@ components:
         compat_surfaces:
           type: array
           description: |
-            Legacy or external-interop surfaces this service exposes for
-            compatibility, not as part of its claimed Cokret v1 conformance.
+            External-interop surfaces this service exposes outside its
+            claimed Cokret v1 conformance.
             `kind` is one of `matrix_passthrough`, `mimi_passthrough`,
-            `legacy_alias`, `external_interop`, `deprecated_alias`.
+            `external_interop`.
           items:
             type: object
             required:
@@ -746,9 +742,7 @@ components:
                 enum:
                 - matrix_passthrough
                 - mimi_passthrough
-                - legacy_alias
                 - external_interop
-                - deprecated_alias
         development_mode:
           type: boolean
           description: |
@@ -771,6 +765,26 @@ components:
       $ref: ../schemas/account-subscribe-frame.schema.json
     BottomDiagnostic:
       $ref: ../schemas/bottom.schema.json
+    KeysUploadRequest:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/upload_request
+    KeysUploadResponse:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/upload_response
+    KeysQueryRequest:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/query_request
+    KeysQueryResponse:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/query_response
+    KeysClaimRequest:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/claim_request
+    KeysClaimResponse:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/claim_response
+    KeysBackupsPutResponse:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/backups_put_response
+    KeysBackupsListResponse:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/backups_list_response
+    KeysBackupsDeleteRequest:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/backups_delete_request
+    KeysBackupsDeleteResponse:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/backups_delete_response
     KeyPackagesUploadRequest:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/upload_request
     KeyPackagesUploadResponse:
@@ -795,6 +809,128 @@ components:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/install_request
     AppletInstallResponse:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/install_response
+    AppletRevokeRequest:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/revoke_request
+    AppletRevokeResponse:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/revoke_response
+    AppletPingResponse:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/ping_response
+    AppletTransactionRequest:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/transaction_request
+    AppletTransactionResponse:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/transaction_response
+    AppletResolveActorResponse:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/resolve_actor_response
+    AppletResolveRealmResponse:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/resolve_realm_response
+    AppletProtocolMetadataResponse:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/protocol_metadata_response
+    AppletThirdPartyUserResponse:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/third_party_user_response
+    AppletThirdPartyLocationResponse:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/third_party_location_response
+    PushRegisterDeviceRequest:
+      $ref: ../schemas/push-operations.schema.json#/$defs/register_device_request
+    PushRegisterDeviceResponse:
+      $ref: ../schemas/push-operations.schema.json#/$defs/register_device_response
+    PushUnregisterDeviceRequest:
+      $ref: ../schemas/push-operations.schema.json#/$defs/unregister_device_request
+    PushUnregisterDeviceResponse:
+      $ref: ../schemas/push-operations.schema.json#/$defs/unregister_device_response
+    PushNotifyRequest:
+      $ref: ../schemas/push-operations.schema.json#/$defs/notify_request
+    PushNotifyResponse:
+      $ref: ../schemas/push-operations.schema.json#/$defs/notify_response
+    MediaIceConfigRequest:
+      $ref: ../schemas/media-operations.schema.json#/$defs/ice_config_request
+    MediaIceConfigResponse:
+      $ref: ../schemas/ice-config-response.schema.json
+    BlobUploadRequest:
+      $ref: ../schemas/blob-operations.schema.json#/$defs/upload_request
+    BlobUploadResponse:
+      $ref: ../schemas/blob-operations.schema.json#/$defs/upload_response
+    DirectorySearchRealmsRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/search_realms_request
+    DirectorySearchRealmsResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/search_realms_response
+    DirectoryResolveRealmRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_realm_request
+    DirectoryResolveRealmResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_realm_response
+    DirectoryResolveTargetRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_target_request
+    DirectoryResolveTargetResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_target_response
+    DirectorySearchOrganizationsRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/search_organizations_request
+    DirectorySearchOrganizationsResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/search_organizations_response
+    DirectoryResolveOrganizationRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_organization_request
+    DirectoryResolveOrganizationResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_organization_response
+    DirectorySearchActorsRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/search_actors_request
+    DirectorySearchActorsResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/search_actors_response
+    DirectorySearchUsersRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/search_users_request
+    DirectorySearchUsersResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/search_users_response
+    DirectoryResolveHandleRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_handle_request
+    DirectoryResolveHandleResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_handle_response
+    DirectoryListHandlesForSubjectRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/list_handles_for_subject_request
+    ListHandlesForSubjectResponse:
+      $ref: ../schemas/list-handles-for-subject-response.schema.json
+    DirectoryPrivateContactDiscoveryRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/private_contact_discovery_request
+    DirectoryPrivateContactDiscoveryResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/private_contact_discovery_response
+    DirectoryPushRegisterRequest:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/push_register_request
+    DirectoryPushRegisterResponse:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/push_register_response
+    MimiKeyMaterialRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/key_material_request
+    MimiKeyMaterialResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/key_material_response
+    MimiRoomUpdateRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/room_update_request
+    MimiRoomUpdateResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/room_update_response
+    MimiNotifyRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/notify_request
+    MimiNotifyResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/notify_response
+    MimiSubmitMessageRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/submit_message_request
+    MimiSubmitMessageResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/submit_message_response
+    MimiGroupInfoResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/group_info_response
+    MimiRequestConsentRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/request_consent_request
+    MimiRequestConsentResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/request_consent_response
+    MimiUpdateConsentRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/update_consent_request
+    MimiUpdateConsentResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/update_consent_response
+    MimiIdentifierQueryRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/identifier_query_request
+    MimiIdentifierQueryResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/identifier_query_response
+    MimiReportAbuseRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/report_abuse_request
+    MimiReportAbuseResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/report_abuse_response
+    MimiProxyDownloadRequest:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/proxy_download_request
+    MimiProxyDownloadResponse:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/proxy_download_response
 
     # =========================================================================
     # Typed request / response schemas for stable core operations.
@@ -802,9 +938,10 @@ components:
     # Per OpenAPI binding policy in info.description: events / account /
     # snapshot / identity / authz core surfaces carry typed schemas so SDK
     # generators can derive
-    # operation-specific required fields without consulting prose. Extension /
-    # interop / deployment-local surfaces continue to use generic
-    # OperationRequest / OperationResult envelopes.
+    # operation-specific required fields without consulting prose. Remaining
+    # extension / deployment-local surfaces use generic OperationRequest /
+    # OperationResult only when the operation-registry row declares
+    # generic_binding.
     # =========================================================================
     FederationServiceBindingRef:
       type: object
@@ -1415,6 +1552,8 @@ components:
           type: string
         evaluated_at:
           type: string
+    AuthzInvitesResponse:
+      $ref: ../schemas/authz-operations.schema.json#/$defs/get_invites_response
     AuthzCheckRequest:
       type: object
       description: |
@@ -2784,25 +2923,6 @@ components:
         stale:
           type: boolean
       additionalProperties: false
-    AppletTransactionRequest:
-      type: object
-      required:
-      - source_service_did
-      - events
-      properties:
-        source_service_did:
-          type: string
-          pattern: ^did:[a-z0-9]+:[^\s#?]+$
-        events:
-          type: array
-          minItems: 1
-          items:
-            $ref: ../schemas/event-envelope.schema.json
-        ephemeral:
-          type: array
-          items:
-            type: object
-      additionalProperties: false
     PolicyCheckRequest:
       type: object
       description: ck.policy.check input bound to a Realm authorization context.
@@ -3127,6 +3247,44 @@ components:
               items:
                 type: string
                 minLength: 1
+    AccountDevicePairRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/device_pair_request
+    AccountDevicePairResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/device_pair_response
+    AgentKeyPairRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_request
+    AgentKeyPairResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_response
+    AgentProvisionRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/provision_request
+    AgentProvisionResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/provision_response
+    AgentListResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/list_response
+    AgentGetResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/get_response
+    AgentPauseRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/pause_request
+    AgentResumeRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/resume_request
+    AgentDeactivateRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/deactivate_request
+    AgentLifecycleResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/lifecycle_response
+    AgentRotateKeyRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/rotate_key_request
+    AgentRotateKeyResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/rotate_key_response
+    AgentGrantAttachRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/grant_attach_request
+    AgentGrantAttachResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/grant_attach_response
+    AgentGrantDetachResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/grant_detach_response
+    AgentSidecarThreadEnsureRequest:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/sidecar_thread_ensure_request
+    AgentSidecarThreadEnsureResponse:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/sidecar_thread_ensure_response
     AccountOidcCallbackRequest:
       type: object
       additionalProperties: false
@@ -4440,8 +4598,8 @@ paths:
           description: |
             `unknown_focus_type` — `focus_id` resolves to a `foci[]` entry
             whose `type` is unsupported by this token issuer; or
-            `legacy_single_endpoint_media_service` (v1.1+) when the Realm
-            still uses the deprecated single-`sfu_endpoint` shape.
+            `media_service_foci_required` when `ck.realm.media_service` does
+            not declare explicit media foci.
   /_cokret/self/account/subscribe:
     get:
       operationId: ck.account.subscribe
@@ -4758,13 +4916,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/handle-claim.schema.json
+                $ref: '#/components/schemas/DirectoryResolveHandleResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryResolveHandleRequest'
   /_cokret/find/directory/list-handles-for-subject:
     post:
       operationId: ck.directory.list_handles_for_subject
@@ -4780,14 +4938,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryListHandlesForSubjectRequest'
       responses:
         '200':
           description: Subject handle claims visible to the requester.
           content:
             application/json:
               schema:
-                $ref: ../schemas/list-handles-for-subject-response.schema.json
+                $ref: '#/components/schemas/ListHandlesForSubjectResponse'
   /_cokret/find/directory/private-contact-discovery:
     post:
       operationId: ck.directory.private_contact_discovery
@@ -4798,14 +4956,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryRequest'
       responses:
         '200':
           description: Time-bound private contact discovery result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryResponse'
   /_cokret/self/blob/upload:
     post:
       operationId: ck.blob.upload
@@ -4820,13 +4978,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/blob.schema.json
+                $ref: '#/components/schemas/BlobUploadResponse'
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/BlobUploadRequest'
+            encoding:
+              content:
+                contentType: application/octet-stream
   /_cokret/self/blob/get:
     head:
       operationId: ck.blob.head
@@ -4978,13 +5139,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/PushRegisterDeviceResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/PushRegisterDeviceRequest'
   /_cokret/edge/push/unregister-device:
     post:
       operationId: ck.push.unregister_device
@@ -4996,13 +5157,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/PushUnregisterDeviceResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/PushUnregisterDeviceRequest'
   /_cokret/edge/push/notify:
     post:
       operationId: ck.push.notify
@@ -5017,18 +5178,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  rejected:
-                    type: array
-                    items:
-                      type: object
+                $ref: '#/components/schemas/PushNotifyResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/PushNotifyRequest'
   /_cokret/self/authz/check:
     post:
       operationId: ck.authz.check
@@ -5116,13 +5272,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeysUploadResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/KeysUploadRequest'
   /_cokret/self/keys/query:
     post:
       operationId: ck.keys.query
@@ -5138,13 +5294,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeysQueryResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/KeysQueryRequest'
   /_cokret/self/keys/claim:
     post:
       operationId: ck.keys.claim
@@ -5160,13 +5316,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeysClaimResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/KeysClaimRequest'
   /_cokret/self/keys/keypackages/upload:
     post:
       operationId: ck.keys.keypackages.upload
@@ -5271,7 +5427,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeysBackupsPutResponse'
     get:
       operationId: ck.keys.backups.get
       security:
@@ -5301,13 +5457,19 @@ paths:
         schema:
           type: string
           pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeysBackupsDeleteRequest'
       responses:
         '200':
           description: Encrypted key backup deleted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeysBackupsDeleteResponse'
   /_cokret/self/keys/backups:
     get:
       operationId: ck.keys.backups.list
@@ -5337,7 +5499,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/KeysBackupsListResponse'
   /_cokret/self/moderation/report:
     post:
       operationId: ck.moderation.report
@@ -5381,13 +5543,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiKeyMaterialResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiKeyMaterialRequest'
   /_cokret/open/mimi/flows/{flow_id}/update:
     put:
       operationId: ck.mimi.room_update
@@ -5408,13 +5570,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiRoomUpdateResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiRoomUpdateRequest'
   /_cokret/open/mimi/flows/{flow_id}/notify:
     post:
       operationId: ck.mimi.notify
@@ -5435,13 +5597,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiNotifyResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiNotifyRequest'
   /_cokret/open/mimi/flows/{flow_id}/messages:
     post:
       operationId: ck.mimi.submit_message
@@ -5462,13 +5624,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiSubmitMessageResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiSubmitMessageRequest'
   /_cokret/open/mimi/flows/{flow_id}/group-info:
     get:
       operationId: ck.mimi.group_info
@@ -5482,13 +5644,24 @@ paths:
         required: true
         schema:
           type: string
+      - in: query
+        name: epoch
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: include_proof
+        required: false
+        schema:
+          type: boolean
       responses:
         '200':
           description: MIMI groupInfo projection
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiGroupInfoResponse'
   /_cokret/open/mimi/consent/request:
     post:
       operationId: ck.mimi.request_consent
@@ -5503,13 +5676,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiRequestConsentResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiRequestConsentRequest'
   /_cokret/open/mimi/consent/update:
     post:
       operationId: ck.mimi.update_consent
@@ -5524,13 +5697,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiUpdateConsentResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiUpdateConsentRequest'
   /_cokret/open/mimi/identifiers/query:
     post:
       operationId: ck.mimi.identifier_query
@@ -5545,13 +5718,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiIdentifierQueryResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiIdentifierQueryRequest'
   /_cokret/open/mimi/report-abuse:
     post:
       operationId: ck.mimi.report_abuse
@@ -5566,13 +5739,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiReportAbuseResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiReportAbuseRequest'
   /_cokret/open/mimi/proxy-download:
     post:
       operationId: ck.mimi.proxy_download
@@ -5587,13 +5760,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MimiProxyDownloadResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MimiProxyDownloadRequest'
   /_cokret/root/identity/describe:
     get:
       operationId: ck.identity.describe_registry
@@ -5686,13 +5859,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectorySearchRealmsResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectorySearchRealmsRequest'
   /_cokret/find/directory/resolve-realm:
     post:
       operationId: ck.directory.resolve_realm
@@ -5708,13 +5881,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectoryResolveRealmResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryResolveRealmRequest'
   /_cokret/find/directory/resolve-target:
     post:
       operationId: ck.directory.resolve_target
@@ -5730,13 +5903,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectoryResolveTargetResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryResolveTargetRequest'
   /_cokret/find/directory/search-organizations:
     post:
       operationId: ck.directory.search_organizations
@@ -5752,13 +5925,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectorySearchOrganizationsResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectorySearchOrganizationsRequest'
   /_cokret/find/directory/resolve-organization:
     post:
       operationId: ck.directory.resolve_organization
@@ -5774,13 +5947,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectoryResolveOrganizationResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryResolveOrganizationRequest'
   /_cokret/find/directory/search-actors:
     post:
       operationId: ck.directory.search_actors
@@ -5796,13 +5969,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectorySearchActorsResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectorySearchActorsRequest'
   /_cokret/find/directory/search-users:
     post:
       operationId: ck.directory.search_users
@@ -5818,13 +5991,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectorySearchUsersResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectorySearchUsersRequest'
   /_cokret/find/directory/push/register:
     post:
       operationId: ck.directory.push.register
@@ -5840,25 +6013,45 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/DirectoryPushRegisterResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/DirectoryPushRegisterRequest'
   /_cokret/self/authz/invites:
     get:
       operationId: ck.authz.get_invites
       security:
       - bearerAuth: []
+      parameters:
+      - in: query
+        name: subject
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: Subject DID or approved opaque invite lookup subject. Secret invites remain non-enumerable.
+      - in: query
+        name: realm_id
+        required: false
+        schema:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
       responses:
         '200':
           description: Authorized invite query
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AuthzInvitesResponse'
   /_cokret/edge/applet/ping:
     get:
       operationId: ck.applet.ping
@@ -5872,7 +6065,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletPingResponse'
   /_cokret/edge/applet/describe:
     get:
       operationId: ck.applet.describe
@@ -5904,7 +6097,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletTransactionResponse'
       requestBody:
         required: true
         content:
@@ -5924,13 +6117,14 @@ paths:
         required: true
         schema:
           type: string
+          pattern: ^did:[a-z0-9]+:[^\s#?]+$
       responses:
         '200':
           description: Applet actor namespace resolve
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletResolveActorResponse'
   /_cokret/edge/applet/realms/{realm_id_or_alias}:
     get:
       operationId: ck.applet.resolve_realm
@@ -5944,13 +6138,14 @@ paths:
         required: true
         schema:
           type: string
+          minLength: 1
       responses:
         '200':
           description: Applet Realm namespace resolve
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletResolveRealmResponse'
   /_cokret/edge/applet/protocols/{protocol}:
     get:
       operationId: ck.applet.protocol_metadata
@@ -5961,13 +6156,14 @@ paths:
         required: true
         schema:
           type: string
+          pattern: ^[a-z][a-z0-9_.-]{0,63}$
       responses:
         '200':
           description: Applet external protocol metadata
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletProtocolMetadataResponse'
   /_cokret/edge/applet/third_party/users:
     get:
       operationId: ck.applet.third_party_users
@@ -5975,13 +6171,32 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+      parameters:
+      - in: query
+        name: protocol
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-z][a-z0-9_.-]{0,63}$
+      - in: query
+        name: external_id
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: instance_id
+        required: false
+        schema:
+          type: string
+          minLength: 1
       responses:
         '200':
           description: Applet third-party user mapping
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletThirdPartyUserResponse'
   /_cokret/edge/applet/third_party/locations:
     get:
       operationId: ck.applet.third_party_locations
@@ -5989,13 +6204,32 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+      parameters:
+      - in: query
+        name: protocol
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-z][a-z0-9_.-]{0,63}$
+      - in: query
+        name: external_id
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: instance_id
+        required: false
+        schema:
+          type: string
+          minLength: 1
       responses:
         '200':
           description: Applet third-party location mapping
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletThirdPartyLocationResponse'
   /_cokret/self/applets/install/preview:
     post:
       operationId: ck.applet.install.preview
@@ -6064,13 +6298,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AppletRevokeResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AppletRevokeRequest'
   /_cokret/self/policy/check:
     post:
       operationId: ck.policy.check
@@ -6113,13 +6347,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/MediaIceConfigResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/MediaIceConfigRequest'
   /_cokret/gate/account/session-grants:
     servers:
     - url: https://{host}
@@ -6163,13 +6397,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AccountDevicePairResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AccountDevicePairRequest'
   /_cokret/gate/account/agent-key-pair:
     servers:
     - url: https://{host}
@@ -6187,7 +6421,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentKeyPairResponse'
         '412':
           description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)
       requestBody:
@@ -6195,7 +6429,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AgentKeyPairRequest'
   /_cokret/self/agents:
     get:
       operationId: ck.agent.list
@@ -6208,7 +6442,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentListResponse'
     post:
       operationId: ck.agent.provision
       description: Provision a native personal agent principal (CXP-0008).
@@ -6220,13 +6454,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentProvisionResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AgentProvisionRequest'
   /_cokret/self/agents/{agent_principal_id}:
     get:
       operationId: ck.agent.get
@@ -6245,7 +6479,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentGetResponse'
   /_cokret/self/agents/{agent_principal_id}/pause:
     post:
       operationId: ck.agent.pause
@@ -6264,13 +6498,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentLifecycleResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AgentPauseRequest'
   /_cokret/self/agents/{agent_principal_id}/resume:
     post:
       operationId: ck.agent.resume
@@ -6289,13 +6523,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentLifecycleResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AgentResumeRequest'
   /_cokret/self/agents/{agent_principal_id}/deactivate:
     post:
       operationId: ck.agent.deactivate
@@ -6314,13 +6548,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentLifecycleResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AgentDeactivateRequest'
   /_cokret/self/agents/{agent_principal_id}/rotate-key:
     post:
       operationId: ck.agent.rotate_key
@@ -6339,13 +6573,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentRotateKeyResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AgentRotateKeyRequest'
   /_cokret/self/agents/{agent_principal_id}/grants:
     post:
       operationId: ck.agent.grant.attach
@@ -6364,13 +6598,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentGrantAttachResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AgentGrantAttachRequest'
   /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}:
     delete:
       operationId: ck.agent.grant.detach
@@ -6394,7 +6628,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentGrantDetachResponse'
   /_cokret/self/agent-sidecar-threads:ensure:
     post:
       operationId: ck.agent.sidecar_thread.ensure
@@ -6417,13 +6651,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AgentSidecarThreadEnsureResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AgentSidecarThreadEnsureRequest'
   /_cokret/gate/account/oidc/callback:
     servers:
     - url: https://{host}

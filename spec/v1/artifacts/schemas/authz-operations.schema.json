@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/authz-operations.schema.json",
+  "title": "Cokret Authorization Operation DTOs",
+  "description": "Closed response DTOs for authorization query operations that need operation-specific list envelopes.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/get_invites_response"
+    }
+  ],
+  "$defs": {
+    "cursor": {
+      "type": "string",
+      "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+    },
+    "get_invites_response": {
+      "type": "object",
+      "required": [
+        "invites",
+        "has_more"
+      ],
+      "properties": {
+        "invites": {
+          "type": "array",
+          "items": {
+            "$ref": "./invite.schema.json"
+          }
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

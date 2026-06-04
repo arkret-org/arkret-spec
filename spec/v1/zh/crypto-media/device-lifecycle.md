@@ -551,7 +551,7 @@ POST /_cokret/self/keys/keypackages/revoke
 | --- | --- | --- | --- |
 | `principal_id` | `did` | required | KeyPackage 所属 principal。 |
 | `device_id` | `id:device` | required | KeyPackage 所属设备。 |
-| `key_packages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。旧字段名 `keypackages` 不是 v1 canonical wire 字段，receiver MUST 以 `schema_violation` 拒绝。 |
+| `key_packages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。 |
 | `device_signature` | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。 |
 
 `claim` 请求字段：
@@ -728,9 +728,9 @@ Secret storage 用于保存：
 - MLS group secrets backup key
 - applet delegated device secret
 
-`ck.secret_storage.v1` 是 **client-local** envelope，仅用于设备本地或可信操作系统 keychain；**不再作为线级 (wire) 上传格式**。
+`ck.secret_storage.v1` 是 **client-local** envelope，仅用于设备本地或可信操作系统 keychain；**不得作为线级 (wire) 上传格式**。
 
-> **Wire deprecation（normative）**：Device / Key Server 的 `ck.keys.backups.*` endpoint MUST 在收到 envelope 顶层 `schema == "ck.secret_storage.v1"` 或与该 schema 等价的旧版字段时返回 `schema_violation`，原因码 `legacy_secret_storage_wire_form`。具体而言，wire endpoint MUST 拒绝任何不符合 `ck.schema.key_backup.v1` 顶层 `required`（含 `series_id` / `series_seq`）的请求体；现存的 client-local `ck.secret_storage.v1` 存储不受影响，但 MUST NOT 通过 `PUT /_cokret/self/keys/backups/{backup_id}` 同步。clients 在升级到 v1 final 之前的现存远端 `ck.secret_storage.v1` envelope SHOULD 由客户端在首次启动时迁移为 §12 wire 形态（`backup_class` 按下表映射，`series_seq=0` 新建系列），原对象 MUST 被服务端拒绝继续 GET。
+Device / Key Server 的 `ck.keys.backups.*` endpoint MUST 只接受 `ck.schema.key_backup.v1` wire envelope。任何不符合 `ck.schema.key_backup.v1` 顶层 `required`（含 `series_id` / `series_seq`）的请求体 MUST 返回 `schema_violation`，原因码 `key_backup_wire_schema_required`。Client-local `ck.secret_storage.v1` 存储不受影响，但 MUST NOT 通过 `PUT /_cokret/self/keys/backups/{backup_id}` 同步。
 
 任何同步到 Device / Key Server 或其它远端服务的 secret，MUST 使用 §12 的 `ck.schema.key_backup.v1` envelope，并设置对应 `backup_class`：
 

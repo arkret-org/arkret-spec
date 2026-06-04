@@ -1,0 +1,452 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/agent-operations.schema.json",
+  "title": "Cokret Account Pairing and Agent Operation DTOs",
+  "description": "Closed request and response DTOs for account pairing and native personal agent management operations.",
+  "oneOf": [
+    { "$ref": "#/$defs/device_pair_request" },
+    { "$ref": "#/$defs/device_pair_response" },
+    { "$ref": "#/$defs/agent_key_pair_request" },
+    { "$ref": "#/$defs/agent_key_pair_response" },
+    { "$ref": "#/$defs/provision_request" },
+    { "$ref": "#/$defs/provision_response" },
+    { "$ref": "#/$defs/list_response" },
+    { "$ref": "#/$defs/get_response" },
+    { "$ref": "#/$defs/pause_request" },
+    { "$ref": "#/$defs/lifecycle_response" },
+    { "$ref": "#/$defs/resume_request" },
+    { "$ref": "#/$defs/deactivate_request" },
+    { "$ref": "#/$defs/rotate_key_request" },
+    { "$ref": "#/$defs/rotate_key_response" },
+    { "$ref": "#/$defs/grant_attach_request" },
+    { "$ref": "#/$defs/grant_attach_response" },
+    { "$ref": "#/$defs/grant_detach_response" },
+    { "$ref": "#/$defs/sidecar_thread_ensure_request" },
+    { "$ref": "#/$defs/sidecar_thread_ensure_response" }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "grant_id": {
+      "type": "string",
+      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "circle_id": {
+      "type": "string",
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "relation_id": {
+      "type": "string",
+      "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base64url": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1
+    },
+    "opaque_local_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+      "description": "Deployment-local short-lived account/auth artifact id. It is not a ck:<kind> protocol object id."
+    },
+    "proof": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "public_key": {
+      "type": "object",
+      "required": [
+        "kty",
+        "alg",
+        "key"
+      ],
+      "properties": {
+        "kty": { "$ref": "#/$defs/non_empty_string" },
+        "alg": { "$ref": "#/$defs/non_empty_string" },
+        "key": { "$ref": "#/$defs/base64url" },
+        "kid": { "$ref": "#/$defs/non_empty_string" },
+        "key_digest": { "$ref": "#/$defs/hash" }
+      },
+      "additionalProperties": false
+    },
+    "device_metadata": {
+      "type": "object",
+      "properties": {
+        "display_name": { "$ref": "#/$defs/non_empty_string" },
+        "platform": { "$ref": "#/$defs/non_empty_string" },
+        "app_id": { "$ref": "#/$defs/non_empty_string" },
+        "app_version": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "agent_status": {
+      "type": "string",
+      "enum": [
+        "pending_runtime_key",
+        "active",
+        "pairing_expired",
+        "paused",
+        "deactivated"
+      ]
+    },
+    "agent_projection": {
+      "type": "object",
+      "required": [
+        "agent_principal_id",
+        "status"
+      ],
+      "properties": {
+        "agent_principal_id": { "$ref": "#/$defs/did" },
+        "display_name": { "$ref": "#/$defs/non_empty_string" },
+        "status": { "$ref": "#/$defs/agent_status" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "updated_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "grant_snapshot": {
+      "type": "object",
+      "required": [
+        "grant_id"
+      ],
+      "properties": {
+        "grant_id": { "$ref": "#/$defs/grant_id" },
+        "status": { "$ref": "#/$defs/non_empty_string" },
+        "grant_digest": { "$ref": "#/$defs/hash" },
+        "expires_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "key_state": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "status"
+      ],
+      "properties": {
+        "verification_method": { "$ref": "#/$defs/did_url" },
+        "status": { "$ref": "#/$defs/non_empty_string" },
+        "authorized_event_ref": { "$ref": "#/$defs/event_id" },
+        "expires_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "runtime_attestation": {
+      "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload/properties/runtime_attestation"
+    },
+    "agent_key_scope": {
+      "$ref": "./event-payload.schema.json#/$defs/agent_key_scope"
+    },
+    "sidecar_exposure_ack": {
+      "$ref": "./event-payload.schema.json#/$defs/agent_sidecar_exposure_ack"
+    },
+    "operation_status_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "status"
+      ],
+      "properties": {
+        "ok": { "type": "boolean", "const": true },
+        "status": { "$ref": "#/$defs/agent_status" }
+      },
+      "additionalProperties": false
+    },
+    "device_pair_request": {
+      "type": "object",
+      "required": [
+        "pairing_code",
+        "new_device_pubkey",
+        "challenge_signature"
+      ],
+      "properties": {
+        "pairing_code": { "$ref": "#/$defs/non_empty_string" },
+        "new_device_pubkey": { "$ref": "#/$defs/public_key" },
+        "challenge_signature": { "$ref": "#/$defs/base64url" },
+        "display_name": { "$ref": "#/$defs/non_empty_string" },
+        "device_metadata": { "$ref": "#/$defs/device_metadata" }
+      },
+      "additionalProperties": false
+    },
+    "device_pair_response": {
+      "type": "object",
+      "required": [
+        "device_id",
+        "authorized_event_ref"
+      ],
+      "properties": {
+        "device_id": { "$ref": "#/$defs/device_id" },
+        "authorized_event_ref": { "$ref": "#/$defs/event_id" },
+        "device_grant": { "$ref": "#/$defs/grant_snapshot" },
+        "key_backup_hint": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_pair_request": {
+      "type": "object",
+      "required": [
+        "agent_principal_id",
+        "verification_method",
+        "public_key",
+        "proof_of_possession"
+      ],
+      "properties": {
+        "agent_principal_id": { "$ref": "#/$defs/did" },
+        "verification_method": { "$ref": "#/$defs/did_url" },
+        "public_key": { "$ref": "#/$defs/public_key" },
+        "proof_of_possession": { "$ref": "#/$defs/proof" },
+        "runtime_attestation": { "$ref": "#/$defs/runtime_attestation" }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_pair_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "authorized_event_ref"
+      ],
+      "properties": {
+        "ok": { "type": "boolean", "const": true },
+        "authorized_event_ref": { "$ref": "#/$defs/event_id" }
+      },
+      "additionalProperties": false
+    },
+    "provision_request": {
+      "type": "object",
+      "properties": {
+        "display_name": { "$ref": "#/$defs/non_empty_string" },
+        "requested_scope": { "$ref": "#/$defs/agent_key_scope" },
+        "accountability": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "pairing_ttl_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 43200000
+        }
+      },
+      "additionalProperties": false
+    },
+    "provision_response": {
+      "type": "object",
+      "required": [
+        "agent_principal_id",
+        "pairing_request_id",
+        "expires_at"
+      ],
+      "properties": {
+        "agent_principal_id": { "$ref": "#/$defs/did" },
+        "pairing_request_id": { "$ref": "#/$defs/opaque_local_id" },
+        "pairing_code": { "$ref": "#/$defs/non_empty_string" },
+        "expires_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "list_response": {
+      "type": "object",
+      "required": [
+        "agents",
+        "has_more"
+      ],
+      "properties": {
+        "agents": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/agent_projection" }
+        },
+        "next_cursor": {
+          "type": "string",
+          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+        },
+        "has_more": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "get_response": {
+      "type": "object",
+      "required": [
+        "agent",
+        "status"
+      ],
+      "properties": {
+        "agent": { "$ref": "#/$defs/agent_projection" },
+        "status": { "$ref": "#/$defs/agent_status" },
+        "grants": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/grant_snapshot" }
+        },
+        "key_state": { "$ref": "#/$defs/key_state" }
+      },
+      "additionalProperties": false
+    },
+    "pause_request": {
+      "type": "object",
+      "properties": {
+        "reason": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "resume_request": {
+      "type": "object",
+      "properties": {
+        "sidecar_exposure_ack": { "$ref": "#/$defs/sidecar_exposure_ack" }
+      },
+      "additionalProperties": false
+    },
+    "deactivate_request": {
+      "type": "object",
+      "properties": {
+        "reason": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "lifecycle_response": {
+      "$ref": "#/$defs/operation_status_response"
+    },
+    "rotate_key_request": {
+      "type": "object",
+      "required": [
+        "replacement_key",
+        "proof_of_possession"
+      ],
+      "properties": {
+        "replacement_key": { "$ref": "#/$defs/public_key" },
+        "proof_of_possession": { "$ref": "#/$defs/proof" }
+      },
+      "additionalProperties": false
+    },
+    "rotate_key_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "authorized_event_ref"
+      ],
+      "properties": {
+        "ok": { "type": "boolean", "const": true },
+        "authorized_event_ref": { "$ref": "#/$defs/event_id" }
+      },
+      "additionalProperties": false
+    },
+    "grant_attach_request": {
+      "type": "object",
+      "required": [
+        "grant"
+      ],
+      "properties": {
+        "grant": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "grant_attach_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "grant_id"
+      ],
+      "properties": {
+        "ok": { "type": "boolean", "const": true },
+        "grant_id": { "$ref": "#/$defs/grant_id" }
+      },
+      "additionalProperties": false
+    },
+    "grant_detach_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "revoked_at"
+      ],
+      "properties": {
+        "ok": { "type": "boolean", "const": true },
+        "revoked_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "sidecar_thread_ensure_request": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "controller_principal_id",
+        "agent_principal_id"
+      ],
+      "properties": {
+        "realm_id": { "$ref": "#/$defs/realm_id" },
+        "controller_principal_id": { "$ref": "#/$defs/did" },
+        "agent_principal_id": { "$ref": "#/$defs/did" }
+      },
+      "additionalProperties": false
+    },
+    "pending_member_reconciliation": {
+      "type": "object",
+      "required": [
+        "agent_principal_id",
+        "reason"
+      ],
+      "properties": {
+        "agent_principal_id": { "$ref": "#/$defs/did" },
+        "reason": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "sidecar_thread_ensure_response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "private_circle_id",
+        "private_flow_id",
+        "private_relation_id"
+      ],
+      "properties": {
+        "ok": { "type": "boolean", "const": true },
+        "private_circle_id": { "$ref": "#/$defs/circle_id" },
+        "private_flow_id": { "$ref": "#/$defs/flow_id" },
+        "private_relation_id": { "$ref": "#/$defs/relation_id" },
+        "pending_member_reconciliation": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/pending_member_reconciliation" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/applet-install-operations.schema.json",
   "title": "Cokret Applet Install Operation DTOs",
-  "description": "Closed request/response DTOs for ck.applet.install.preview and ck.applet.install. The InstallPlan body itself is defined in applet-install-plan.schema.json.",
+  "description": "Closed request/response DTOs for ck.applet.install.preview, ck.applet.install, and ck.applet.revoke. The InstallPlan body itself is defined in applet-install-plan.schema.json.",
   "oneOf": [
     {
       "$ref": "#/$defs/preview_request"
@@ -15,6 +15,12 @@
     },
     {
       "$ref": "#/$defs/install_response"
+    },
+    {
+      "$ref": "#/$defs/revoke_request"
+    },
+    {
+      "$ref": "#/$defs/revoke_response"
     }
   ],
   "$defs": {
@@ -37,6 +43,10 @@
     "grant_id": {
       "type": "string",
       "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "typed_ref": {
+      "type": "string",
+      "pattern": "^ck:[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$"
     },
     "hash": {
       "type": "string",
@@ -286,6 +296,57 @@
             "partially_installed",
             "rejected"
           ]
+        },
+        "rejected": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rejected_item"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "revoke_request": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "reason_code",
+        "revoke_mode"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "revoke_mode": {
+          "type": "string",
+          "enum": [
+            "revoke_all",
+            "revoke_runtime_only",
+            "revoke_widget_only",
+            "revoke_delegated_sessions"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "revoke_response": {
+      "type": "object",
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "revoked_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/typed_ref"
+          },
+          "uniqueItems": true
         },
         "rejected": {
           "type": "array",

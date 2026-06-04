@@ -46,6 +46,7 @@ PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
 FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
+OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
 
 
 def load_json(path: Path) -> Any:
@@ -137,6 +138,80 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
     return payloads
 
 
+def resolve_schema_pointer(document: Any, fragment: str) -> Any:
+    if not fragment or fragment == "#":
+        return document
+    if not fragment.startswith("#/"):
+        raise KeyError(fragment)
+    current = document
+    for token in fragment[2:].split("/"):
+        token = token.replace("~1", "/").replace("~0", "~")
+        if isinstance(current, dict) and token in current:
+            current = current[token]
+        else:
+            raise KeyError(fragment)
+    return current
+
+
+def schema_summary(schema_ref: str) -> dict[str, Any]:
+    file_ref, _, fragment = schema_ref.partition("#")
+    schema_path = ARTIFACTS / file_ref
+    schema = resolve_schema_pointer(load_json(schema_path), f"#{fragment}" if fragment else "#")
+    if not isinstance(schema, dict):
+        schema = {}
+    properties = schema.get("properties")
+    required = schema.get("required")
+    additional_properties = schema.get("additionalProperties")
+    return {
+        "schema_ref": schema_ref,
+        "schema_kind": schema.get("type") if isinstance(schema.get("type"), str) else None,
+        "required": [field for field in required if isinstance(field, str)] if isinstance(required, list) else [],
+        "properties": list(properties.keys()) if isinstance(properties, dict) else [],
+        "closed": additional_properties is False,
+    }
+
+
+def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
+    version = catalog.get("version")
+    operation_registry = catalog.get("operation_registry")
+    if not isinstance(version, str) or not version:
+        raise SystemExit("contract catalog missing version")
+    if not isinstance(operation_registry, dict):
+        raise SystemExit("contract catalog missing operation_registry")
+
+    operations: list[dict[str, Any]] = []
+    for row in operation_registry.get("operations", []):
+        if not isinstance(row, dict):
+            continue
+        operation_id = row.get("operation_id")
+        if not isinstance(operation_id, str) or not operation_id:
+            continue
+        entry: dict[str, Any] = {
+            "operation_id": operation_id,
+            "success_shape_kind": row.get("success_shape_kind"),
+        }
+        request_schema_ref = row.get("request_schema_ref")
+        if isinstance(request_schema_ref, str) and request_schema_ref:
+            entry["request"] = schema_summary(request_schema_ref)
+        response_schema_ref = row.get("response_schema_ref")
+        if isinstance(response_schema_ref, str) and response_schema_ref:
+            entry["response"] = schema_summary(response_schema_ref)
+        if "request" in entry or "response" in entry:
+            operations.append(entry)
+
+    return {
+        "version": version,
+        "source_of_truth": False,
+        "generated_from": [
+            "registry/contract-catalog.json",
+            "schemas/*.schema.json"
+        ],
+        "generated_by": "tools/artifact_pipeline.py",
+        "description": "Generated DTO index for registered operations with request_schema_ref/response_schema_ref. JSON Schema files remain the canonical source; this report is a machine-readable summary for SDK/conformance tooling and prose drift review.",
+        "operations": operations,
+    }
+
+
 def profile_summary_text() -> str:
     data = load_json(PROFILE_REGISTRY_PATH)
     if not isinstance(data, dict):
@@ -175,6 +250,15 @@ def write_generated_registries() -> None:
         print(f"updated {path.relative_to(ROOT).as_posix()}")
 
 
+def write_operation_schema_index() -> None:
+    OPERATION_SCHEMA_INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OPERATION_SCHEMA_INDEX_PATH.write_text(
+        dump_json(operation_schema_index_payload(load_contract_catalog())),
+        encoding="utf-8",
+    )
+    print(f"updated {OPERATION_SCHEMA_INDEX_PATH.relative_to(ROOT).as_posix()}")
+
+
 def write_public_catalog_snapshot() -> None:
     canonical_bytes = CONTRACT_CATALOG_PATH.read_bytes()
     PUBLIC_V1.mkdir(parents=True, exist_ok=True)
@@ -195,6 +279,24 @@ def check_generated_registries() -> list[str]:
             errors.append(
                 f"generated registry drift: {path.relative_to(ROOT).as_posix()} (run python tools/artifact_pipeline.py generate)"
             )
+    return errors
+
+
+def check_operation_schema_index() -> list[str]:
+    errors: list[str] = []
+    expected = dump_json(operation_schema_index_payload(load_contract_catalog()))
+    if not OPERATION_SCHEMA_INDEX_PATH.exists():
+        errors.append(
+            f"missing operation schema index {OPERATION_SCHEMA_INDEX_PATH.relative_to(ROOT).as_posix()} "
+            "(run python tools/artifact_pipeline.py generate)"
+        )
+        return errors
+    actual = OPERATION_SCHEMA_INDEX_PATH.read_text(encoding="utf-8")
+    if actual != expected:
+        errors.append(
+            f"operation schema index drift: {OPERATION_SCHEMA_INDEX_PATH.relative_to(ROOT).as_posix()} "
+            "(run python tools/artifact_pipeline.py generate)"
+        )
     return errors
 
 
@@ -260,6 +362,7 @@ def run_fixture_digest_check() -> int:
 
 def cmd_generate(_: argparse.Namespace) -> int:
     write_generated_registries()
+    write_operation_schema_index()
     write_public_catalog_snapshot()
     print_contract_status()
     return 0
@@ -267,6 +370,7 @@ def cmd_generate(_: argparse.Namespace) -> int:
 
 def cmd_check(_: argparse.Namespace) -> int:
     errors = check_generated_registries()
+    errors.extend(check_operation_schema_index())
     errors.extend(check_public_catalog_snapshot())
     if errors:
         for error in errors:

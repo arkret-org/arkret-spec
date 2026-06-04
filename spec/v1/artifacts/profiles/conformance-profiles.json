@@ -1908,7 +1908,7 @@
     },
     "ck.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework (CXP-0010). Upgrades ck.realm.media_service from a single sfu_endpoint to a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
+      "description": "Transport-agnostic media backend binding framework (CXP-0010). Requires ck.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
       "depends_on": [
         "ck.profile.webrtc_media.v1"
       ],
@@ -1943,7 +1943,7 @@
           "mls_exporter_label_cx_rtc_frame_key_v1",
           "recording_exporter_label_cx_rtc_recording_key_v1"
         ],
-        "unsupported_optional": "MUST fail closed with unknown_focus_type for unsupported foci[].type values; MUST NOT silently fall back to legacy single-endpoint shape"
+        "unsupported_optional": "MUST fail closed with unknown_focus_type for unsupported foci[].type values; MUST NOT infer a focus when foci[] is missing"
       },
       "additional_requirements": {
         "token_ttl_must": "Token issuer MUST cap backend_token / participant_binding expires_at at 600s after issuance; SHOULD use ≤ 300s.",

@@ -295,7 +295,7 @@
       "operation_id": "ck.keys.backups.put",
       "http_alias": "PUT /_cokret/self/keys/backups/{backup_id}",
       "operation_specific": [
-        "legacy_secret_storage_wire_form",
+        "key_backup_wire_schema_required",
         "series_chain_broken",
         "series_seq_not_monotonic",
         "series_predecessor_not_found",
@@ -358,9 +358,9 @@
         "mls_governance_binding_stale",
         "media_plaintext_service_not_authorised",
         "capability_denied",
-        "legacy_single_endpoint_media_service"
+        "media_service_foci_required"
       ],
-      "description": "Media service token exchange (CXP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ck.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. v1.1 servers also return legacy_single_endpoint_media_service when callers reference a remnant sfu_endpoint ck.realm.media_service shape; in v1 cycle servers MAY auto-normalize and proceed."
+      "description": "Media service token exchange (CXP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ck.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ck.realm.media_service does not declare explicit foci[]."
     },
     {
       "operation_id": "ck.account.issue_session_grant",

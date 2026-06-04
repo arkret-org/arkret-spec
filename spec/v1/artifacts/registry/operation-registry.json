@@ -239,15 +239,9 @@
       "http": "POST /_cokret/gate/account/device-pair",
       "grpc": "Account/DevicePair",
       "mq": "account.device_pair",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "deployment_local_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "account_auth"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/device_pair_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/device_pair_response"
     },
     {
       "operation_id": "ck.account.issue_session_grant",
@@ -261,165 +255,96 @@
       "http": "POST /_cokret/gate/account/agent-key-pair",
       "grpc": "Account/AgentKeyPair",
       "mq": "account.agent_key_pair",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_response"
     },
     {
       "operation_id": "ck.agent.provision",
       "http": "POST /_cokret/self/agents",
       "grpc": "Agent/Provision",
       "mq": "agent.provision",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/provision_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/provision_response"
     },
     {
       "operation_id": "ck.agent.list",
       "http": "GET /_cokret/self/agents",
       "grpc": "Agent/List",
       "mq": "agent.list",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/list_response"
     },
     {
       "operation_id": "ck.agent.get",
       "http": "GET /_cokret/self/agents/{agent_principal_id}",
       "grpc": "Agent/Get",
       "mq": "agent.get",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/get_response"
     },
     {
       "operation_id": "ck.agent.pause",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/pause",
       "grpc": "Agent/Pause",
       "mq": "agent.pause",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/pause_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/lifecycle_response"
     },
     {
       "operation_id": "ck.agent.resume",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/resume",
       "grpc": "Agent/Resume",
       "mq": "agent.resume",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/resume_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/lifecycle_response"
     },
     {
       "operation_id": "ck.agent.deactivate",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/deactivate",
       "grpc": "Agent/Deactivate",
       "mq": "agent.deactivate",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/deactivate_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/lifecycle_response"
     },
     {
       "operation_id": "ck.agent.rotate_key",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/rotate-key",
       "grpc": "Agent/RotateKey",
       "mq": "agent.rotate_key",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/rotate_key_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/rotate_key_response"
     },
     {
       "operation_id": "ck.agent.grant.attach",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/grants",
       "grpc": "Agent/GrantAttach",
       "mq": "agent.grant.attach",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/grant_attach_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/grant_attach_response"
     },
     {
       "operation_id": "ck.agent.grant.detach",
       "http": "DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}",
       "grpc": "Agent/GrantDetach",
       "mq": "agent.grant.detach",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/grant_detach_response"
     },
     {
       "operation_id": "ck.agent.sidecar_thread.ensure",
       "http": "POST /_cokret/self/agent-sidecar-threads:ensure",
       "grpc": "Agent/SidecarThreadEnsure",
       "mq": "agent.sidecar_thread.ensure",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "agent_runtime"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/sidecar_thread_ensure_request",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/sidecar_thread_ensure_response"
     },
     {
       "operation_id": "ck.account.oidc_callback",
@@ -458,120 +383,66 @@
       "http": "GET /_cokret/edge/applet/ping",
       "grpc": "Applet/Ping",
       "mq": "applet.ping",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "applet"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/ping_response"
     },
     {
       "operation_id": "ck.applet.protocol_metadata",
       "http": "GET /_cokret/edge/applet/protocols/{protocol}",
       "grpc": "Applet/ProtocolMetadata",
       "mq": "applet.protocol_metadata",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "applet"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/protocol_metadata_response"
     },
     {
       "operation_id": "ck.applet.resolve_actor",
       "http": "GET /_cokret/edge/applet/actors/{actor_id}",
       "grpc": "Applet/ResolveActor",
       "mq": "applet.resolve_actor",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "applet"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/resolve_actor_response"
     },
     {
       "operation_id": "ck.applet.resolve_realm",
       "http": "GET /_cokret/edge/applet/realms/{realm_id_or_alias}",
       "grpc": "Applet/ResolveRealm",
       "mq": "applet.resolve_realm",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "applet"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/resolve_realm_response"
     },
     {
       "operation_id": "ck.applet.revoke",
       "http": "POST /_cokret/self/applets/{applet_id}/revoke",
       "grpc": "Applet/Revoke",
       "mq": "applet.revoke",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated AppletRevokeRequest/AppletRevokeResponse schemas before this surface is treated as generated-SDK complete.",
-        "surface": "applet_install"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/revoke_request",
+      "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/revoke_response"
     },
     {
       "operation_id": "ck.applet.third_party_locations",
       "http": "GET /_cokret/edge/applet/third_party/locations",
       "grpc": "Applet/ThirdPartyLocations",
       "mq": "applet.third_party_locations",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "applet"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/third_party_location_response"
     },
     {
       "operation_id": "ck.applet.third_party_users",
       "http": "GET /_cokret/edge/applet/third_party/users",
       "grpc": "Applet/ThirdPartyUsers",
       "mq": "applet.third_party_users",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "applet"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/third_party_user_response"
     },
     {
       "operation_id": "ck.applet.transaction",
       "http": "POST /_cokret/edge/applet/transactions",
       "grpc": "Applet/Transaction",
       "mq": "applet.transaction",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "applet"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/transaction_request",
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/transaction_response"
     },
     {
       "operation_id": "ck.authz.check",
@@ -592,15 +463,8 @@
       "http": "GET /_cokret/self/authz/invites",
       "grpc": "Authz/GetInvites",
       "mq": "authz.get_invites",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "authz_policy"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/authz-operations.schema.json#/$defs/get_invites_response"
     },
     {
       "operation_id": "ck.blob.get",
@@ -621,15 +485,9 @@
       "http": "POST /_cokret/self/blob/upload",
       "grpc": "Blob/Upload",
       "mq": "blob.upload",
-      "success_shape_kind": "schema_resource",
-      "generic_binding": {
-        "request": true,
-        "response": false,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "blob_storage"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/blob-operations.schema.json#/$defs/upload_request",
+      "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/upload_response"
     },
     {
       "operation_id": "ck.blob.presign",
@@ -672,165 +530,99 @@
       "http": "POST /_cokret/find/directory/private-contact-discovery",
       "grpc": "Directory/PrivateContactDiscovery",
       "mq": "directory.private_contact_discovery",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/private_contact_discovery_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/private_contact_discovery_response"
     },
     {
       "operation_id": "ck.directory.resolve_handle",
       "http": "POST /_cokret/find/directory/resolve-handle",
       "grpc": "Directory/ResolveHandle",
       "mq": "directory.resolve_handle",
-      "success_shape_kind": "schema_resource",
-      "generic_binding": {
-        "request": true,
-        "response": false,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/resolve_handle_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/resolve_handle_response"
     },
     {
       "operation_id": "ck.directory.list_handles_for_subject",
       "http": "POST /_cokret/find/directory/list-handles-for-subject",
       "grpc": "Directory/ListHandlesForSubject",
       "mq": "directory.list_handles_for_subject",
-      "success_shape_kind": "schema_resource",
-      "generic_binding": {
-        "request": true,
-        "response": false,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/list_handles_for_subject_request",
+      "response_schema_ref": "schemas/list-handles-for-subject-response.schema.json"
     },
     {
       "operation_id": "ck.directory.resolve_organization",
       "http": "POST /_cokret/find/directory/resolve-organization",
       "grpc": "Directory/ResolveOrganization",
       "mq": "directory.resolve_organization",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/resolve_organization_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/resolve_organization_response"
     },
     {
       "operation_id": "ck.directory.resolve_realm",
       "http": "POST /_cokret/find/directory/resolve-realm",
       "grpc": "Directory/ResolveRealm",
       "mq": "directory.resolve_realm",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/resolve_realm_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/resolve_realm_response"
     },
     {
       "operation_id": "ck.directory.resolve_target",
       "http": "POST /_cokret/find/directory/resolve-target",
       "grpc": "Directory/ResolveTarget",
       "mq": "directory.resolve_target",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/resolve_target_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/resolve_target_response"
     },
     {
       "operation_id": "ck.directory.search_actors",
       "http": "POST /_cokret/find/directory/search-actors",
       "grpc": "Directory/SearchActors",
       "mq": "directory.search_actors",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/search_actors_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/search_actors_response"
     },
     {
       "operation_id": "ck.directory.search_organizations",
       "http": "POST /_cokret/find/directory/search-organizations",
       "grpc": "Directory/SearchOrganizations",
       "mq": "directory.search_organizations",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/search_organizations_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/search_organizations_response"
     },
     {
       "operation_id": "ck.directory.search_realms",
       "http": "POST /_cokret/find/directory/search-realms",
       "grpc": "Directory/SearchRealms",
       "mq": "directory.search_realms",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/search_realms_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/search_realms_response"
     },
     {
       "operation_id": "ck.directory.search_users",
       "http": "POST /_cokret/find/directory/search-users",
       "grpc": "Directory/SearchUsers",
       "mq": "directory.search_users",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/search_users_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/search_users_response"
     },
     {
       "operation_id": "ck.directory.push.register",
       "http": "POST /_cokret/find/directory/push/register",
       "grpc": "Directory/PushRegister",
       "mq": "directory.push.register",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "directory_discovery"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/push_register_request",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/push_register_response"
     },
     {
       "operation_id": "ck.directory.withdraw",
@@ -961,30 +753,18 @@
       "http": "POST /_cokret/self/keys/claim",
       "grpc": "Keys/Claim",
       "mq": "keys.claim",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "device_and_keys"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/claim_request",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/claim_response"
     },
     {
       "operation_id": "ck.keys.backups.delete",
       "http": "DELETE /_cokret/self/keys/backups/{backup_id}",
       "grpc": "Keys/BackupsDelete",
       "mq": "keys.backups.delete",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "device_and_keys"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/backups_delete_request",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backups_delete_response"
     },
     {
       "operation_id": "ck.keys.backups.get",
@@ -998,30 +778,17 @@
       "http": "GET /_cokret/self/keys/backups",
       "grpc": "Keys/BackupsList",
       "mq": "keys.backups.list",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "device_and_keys"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backups_list_response"
     },
     {
       "operation_id": "ck.keys.backups.put",
       "http": "PUT /_cokret/self/keys/backups/{backup_id}",
       "grpc": "Keys/BackupsPut",
       "mq": "keys.backups.put",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "device_and_keys"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/key-backup.schema.json",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backups_put_response"
     },
     {
       "operation_id": "ck.keys.keypackages.claim",
@@ -1064,105 +831,62 @@
       "http": "POST /_cokret/self/keys/query",
       "grpc": "Keys/Query",
       "mq": "keys.query",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "device_and_keys"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/query_request",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/query_response"
     },
     {
       "operation_id": "ck.keys.upload",
       "http": "POST /_cokret/self/keys/upload",
       "grpc": "Keys/Upload",
       "mq": "keys.upload",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "device_and_keys"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/upload_request",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/upload_response"
     },
     {
       "operation_id": "ck.media.ice_config",
       "http": "POST /_cokret/self/rtc/ice-config",
       "grpc": "Media/IceConfig",
       "mq": "media.ice_config",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "realtime_media"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/media-operations.schema.json#/$defs/ice_config_request",
+      "response_schema_ref": "schemas/ice-config-response.schema.json"
     },
     {
       "operation_id": "ck.mimi.group_info",
       "http": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
       "grpc": "Mimi/GroupInfo",
       "mq": "mimi.group_info",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": false,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/group_info_response"
     },
     {
       "operation_id": "ck.mimi.identifier_query",
       "http": "POST /_cokret/open/mimi/identifiers/query",
       "grpc": "Mimi/IdentifierQuery",
       "mq": "mimi.identifier_query",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/identifier_query_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/identifier_query_response"
     },
     {
       "operation_id": "ck.mimi.key_material",
       "http": "POST /_cokret/open/mimi/key-material",
       "grpc": "Mimi/KeyMaterial",
       "mq": "mimi.key_material",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/key_material_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/key_material_response"
     },
     {
       "operation_id": "ck.mimi.notify",
       "http": "POST /_cokret/open/mimi/flows/{flow_id}/notify",
       "grpc": "Mimi/Notify",
       "mq": "mimi.notify",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/notify_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/notify_response"
     },
     {
       "operation_id": "ck.mimi.provider_directory",
@@ -1177,15 +901,9 @@
       "grpc": "Mimi/ProxyDownload",
       "mq": "mimi.proxy_download",
       "bridges_to": "ck.blob.get",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/proxy_download_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/proxy_download_response"
     },
     {
       "operation_id": "ck.mimi.report_abuse",
@@ -1193,75 +911,45 @@
       "grpc": "Mimi/ReportAbuse",
       "mq": "mimi.report_abuse",
       "bridges_to": "ck.moderation.report",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/report_abuse_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/report_abuse_response"
     },
     {
       "operation_id": "ck.mimi.request_consent",
       "http": "POST /_cokret/open/mimi/consent/request",
       "grpc": "Mimi/RequestConsent",
       "mq": "mimi.request_consent",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/request_consent_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/request_consent_response"
     },
     {
       "operation_id": "ck.mimi.room_update",
       "http": "PUT /_cokret/open/mimi/flows/{flow_id}/update",
       "grpc": "Mimi/RoomUpdate",
       "mq": "mimi.room_update",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/room_update_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/room_update_response"
     },
     {
       "operation_id": "ck.mimi.submit_message",
       "http": "POST /_cokret/open/mimi/flows/{flow_id}/messages",
       "grpc": "Mimi/SubmitMessage",
       "mq": "mimi.submit_message",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/submit_message_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/submit_message_response"
     },
     {
       "operation_id": "ck.mimi.update_consent",
       "http": "POST /_cokret/open/mimi/consent/update",
       "grpc": "Mimi/UpdateConsent",
       "mq": "mimi.update_consent",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "interop_bridge_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "mimi_interop"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/update_consent_request",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/update_consent_response"
     },
     {
       "operation_id": "ck.moderation.report",
@@ -1307,45 +995,27 @@
       "http": "POST /_cokret/edge/push/notify",
       "grpc": "Push/Notify",
       "mq": "push.notify",
-      "success_shape_kind": "inline_response",
-      "generic_binding": {
-        "request": true,
-        "response": false,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "push"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/push-operations.schema.json#/$defs/notify_request",
+      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/notify_response"
     },
     {
       "operation_id": "ck.push.register_device",
       "http": "POST /_cokret/edge/push/register-device",
       "grpc": "Push/RegisterDevice",
       "mq": "push.register_device",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "push"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/push-operations.schema.json#/$defs/register_device_request",
+      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/register_device_response"
     },
     {
       "operation_id": "ck.push.unregister_device",
       "http": "POST /_cokret/edge/push/unregister-device",
       "grpc": "Push/UnregisterDevice",
       "mq": "push.unregister_device",
-      "success_shape_kind": "operation_result",
-      "generic_binding": {
-        "request": true,
-        "response": true,
-        "reason": "extension_profile_surface",
-        "profile_gate": true,
-        "migration_plan": "Replace with dedicated request/response schemas before this surface is treated as generated-SDK complete.",
-        "surface": "push"
-      }
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/push-operations.schema.json#/$defs/unregister_device_request",
+      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/unregister_device_response"
     },
     {
       "operation_id": "ck.server.describe",
@@ -1390,7 +1060,7 @@
     "typed_response": "Dedicated OpenAPI component response schema.",
     "schema_resource": "Response body is a canonical artifact JSON Schema resource.",
     "inline_response": "Endpoint-specific inline object schema in OpenAPI.",
-    "operation_result": "Legacy generic OperationResult envelope; operation row MUST carry generic_binding.",
+    "operation_result": "Generic OperationResult envelope; operation row MUST carry generic_binding.",
     "event_stream": "Long-lived event stream rather than a single JSON success body.",
     "binary_stream": "Binary or octet-stream response body.",
     "metadata_headers": "Metadata-only success expressed through HTTP headers.",

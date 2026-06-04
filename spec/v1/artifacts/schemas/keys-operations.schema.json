@@ -1,0 +1,502 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/keys-operations.schema.json",
+  "title": "Cokret Device Key Operation DTOs",
+  "description": "Closed request and response DTOs for ck.keys.{upload,query,claim} and ck.keys.backups.{put,list,delete}. Individual OpenAPI components reference the $defs entries in this bundle.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/upload_request"
+    },
+    {
+      "$ref": "#/$defs/upload_response"
+    },
+    {
+      "$ref": "#/$defs/query_request"
+    },
+    {
+      "$ref": "#/$defs/query_response"
+    },
+    {
+      "$ref": "#/$defs/claim_request"
+    },
+    {
+      "$ref": "#/$defs/claim_response"
+    },
+    {
+      "$ref": "#/$defs/backups_put_response"
+    },
+    {
+      "$ref": "#/$defs/backups_list_response"
+    },
+    {
+      "$ref": "#/$defs/backups_delete_request"
+    },
+    {
+      "$ref": "#/$defs/backups_delete_response"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_id": {
+      "type": "string",
+      "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_series_id": {
+      "type": "string",
+      "pattern": "^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "cursor": {
+      "type": "string",
+      "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base64url": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "kid",
+        "sig"
+      ],
+      "properties": {
+        "kid": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "alg": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "sig": {
+          "$ref": "#/$defs/base64url"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proof": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "algorithm_counts": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/non_empty_string"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "algorithm_key_records": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/non_empty_string"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/key_record"
+      }
+    },
+    "device_key_records": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/device_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/algorithm_key_records"
+      }
+    },
+    "principal_device_key_records": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/did"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/device_key_records"
+      }
+    },
+    "device_algorithm_map": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/device_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/non_empty_string"
+      }
+    },
+    "principal_device_algorithm_map": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/did"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/device_algorithm_map"
+      }
+    },
+    "query_device_map": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/did"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/device_id"
+        },
+        "minItems": 1,
+        "uniqueItems": true
+      }
+    },
+    "key_record": {
+      "type": "object",
+      "required": [
+        "key",
+        "algorithm",
+        "signature"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/base64url"
+        },
+        "algorithm": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "signature": {
+          "$ref": "#/$defs/signature"
+        },
+        "key_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "key_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "fallback": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "failure": {
+      "type": "object",
+      "required": [
+        "reason_code"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "algorithm": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "backup_class": {
+      "type": "string",
+      "enum": [
+        "did_recovery",
+        "secret_storage",
+        "mls_history"
+      ]
+    },
+    "backup_metadata": {
+      "type": "object",
+      "required": [
+        "backup_id",
+        "actor_id",
+        "backup_class",
+        "backup_version",
+        "series_id",
+        "series_seq",
+        "created_at",
+        "ciphertext_digest"
+      ],
+      "properties": {
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "backup_class": {
+          "$ref": "#/$defs/backup_class"
+        },
+        "backup_version": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "series_id": {
+          "$ref": "#/$defs/backup_series_id"
+        },
+        "series_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "supersedes": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/backup_id"
+            }
+          ]
+        },
+        "supersedes_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "frontier_ref": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "recovery_policy_ref": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "retention": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "upload_request": {
+      "type": "object",
+      "required": [
+        "device_id",
+        "device_signature"
+      ],
+      "properties": {
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "device_signature": {
+          "$ref": "#/$defs/signature"
+        },
+        "one_time_keys": {
+          "$ref": "#/$defs/algorithm_key_records"
+        },
+        "fallback_keys": {
+          "$ref": "#/$defs/algorithm_key_records"
+        }
+      },
+      "additionalProperties": false
+    },
+    "upload_response": {
+      "type": "object",
+      "required": [
+        "one_time_key_counts"
+      ],
+      "properties": {
+        "one_time_key_counts": {
+          "$ref": "#/$defs/algorithm_counts"
+        },
+        "fallback_keys": {
+          "$ref": "#/$defs/algorithm_key_records"
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_request": {
+      "type": "object",
+      "required": [
+        "device_keys"
+      ],
+      "properties": {
+        "device_keys": {
+          "$ref": "#/$defs/query_device_map"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_response": {
+      "type": "object",
+      "required": [
+        "device_keys"
+      ],
+      "properties": {
+        "device_keys": {
+          "$ref": "#/$defs/principal_device_key_records"
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/failure"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "claim_request": {
+      "type": "object",
+      "required": [
+        "one_time_keys"
+      ],
+      "properties": {
+        "one_time_keys": {
+          "$ref": "#/$defs/principal_device_algorithm_map"
+        }
+      },
+      "additionalProperties": false
+    },
+    "claim_response": {
+      "type": "object",
+      "required": [
+        "one_time_keys"
+      ],
+      "properties": {
+        "one_time_keys": {
+          "$ref": "#/$defs/principal_device_key_records"
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/failure"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "backups_put_response": {
+      "type": "object",
+      "required": [
+        "status",
+        "backup_id",
+        "ciphertext_digest"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate"
+          ]
+        },
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "backups_list_response": {
+      "type": "object",
+      "required": [
+        "backups",
+        "has_more"
+      ],
+      "properties": {
+        "backups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/backup_metadata"
+          }
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "backups_delete_request": {
+      "type": "object",
+      "required": [
+        "proof"
+      ],
+      "properties": {
+        "proof": {
+          "$ref": "#/$defs/proof"
+        },
+        "reason": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "backups_delete_response": {
+      "type": "object",
+      "required": [
+        "deleted"
+      ],
+      "properties": {
+        "deleted": {
+          "type": "boolean",
+          "const": true
+        },
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -83,7 +83,7 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
-请求字段：
+请求 schema 见 [`media-operations.schema.json#/$defs/ice_config_request`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |

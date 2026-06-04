@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/blob-operations.schema.json",
+  "title": "Cokret Blob Operation DTOs",
+  "description": "Closed request/response DTOs for blob service operations whose wire shape is not the full blob metadata resource.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/upload_request"
+    },
+    {
+      "$ref": "#/$defs/upload_response"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "blob_ref": {
+      "type": "string",
+      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "media_type": {
+      "type": "string",
+      "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "alg",
+        "kid",
+        "sig"
+      ],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
+        },
+        "kid": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "sig": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+={0,2}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "upload_receipt": {
+      "type": "object",
+      "required": [
+        "blob_ref",
+        "content_digest",
+        "size_bytes",
+        "received_at",
+        "issuer_service_did",
+        "signature"
+      ],
+      "properties": {
+        "blob_ref": {
+          "$ref": "#/$defs/blob_ref"
+        },
+        "content_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "received_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "issuer_service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "signature": {
+          "$ref": "#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "upload_request": {
+      "type": "object",
+      "required": [
+        "content",
+        "size_bytes"
+      ],
+      "properties": {
+        "content": {
+          "type": "string",
+          "format": "binary",
+          "description": "The binary blob content part in multipart/form-data. This field is not JCS-canonicalized as JSON; content_digest covers the bytes."
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "content_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "media_type": {
+          "$ref": "#/$defs/media_type"
+        },
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "upload_response": {
+      "type": "object",
+      "required": [
+        "blob_ref",
+        "size_bytes",
+        "content_digest"
+      ],
+      "properties": {
+        "blob_ref": {
+          "$ref": "#/$defs/blob_ref"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "media_type": {
+          "$ref": "#/$defs/media_type"
+        },
+        "content_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "upload_receipt": {
+          "$ref": "#/$defs/upload_receipt"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

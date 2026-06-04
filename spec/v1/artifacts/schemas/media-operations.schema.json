@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/media-operations.schema.json",
+  "title": "Cokret Realtime Media Operation DTOs",
+  "description": "Closed request DTOs for realtime media service operations. ck.media.ice_config responses use ice-config-response.schema.json.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/ice_config_request"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "call_id": {
+      "type": "string",
+      "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "ice_config_request": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "call_id",
+        "actor_id",
+        "device_id",
+        "mode"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "call_id": {
+          "$ref": "#/$defs/call_id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "p2p",
+            "sfu",
+            "turn"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

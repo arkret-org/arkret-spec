@@ -1670,12 +1670,12 @@
       "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Cokret-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Cokret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/call-state.md §5 and zh/crypto-media/media-service-binding.md §8.1."
     },
     {
-      "code": "legacy_single_endpoint_media_service",
+      "code": "media_service_foci_required",
       "applies_to": [
         "service_call",
         "schema_validation"
       ],
-      "description": "A `ck.realm.media_service` event still uses the v1.0 legacy single-`sfu_endpoint` shape after v1.1. In v1 cycle servers SHOULD normalize the legacy shape to `foci=[{focus_id:\"legacy\", type:\"cokret-native\", ...}]` with audit log; starting v1.1 this MUST be rejected with `failed_precondition` and this `reason`. See zh/crypto-media/media-service-binding.md §2."
+      "description": "`ck.realm.media_service` is missing the required non-empty `foci[]` list. Services MUST reject payloads that do not declare explicit media foci and MUST NOT infer a focus from unrelated endpoint fields. See zh/crypto-media/media-service-binding.md §2."
     },
     {
       "code": "focus_unavailable_for_client",
@@ -2558,11 +2558,11 @@
       "description": "A key-backup envelope signature verifies cryptographically but the signer device key cannot be linked to the current actor cross-signing trust root, or the signer is revoked, unauthorized, or generation-mismatched. Receivers MUST reject it even if the series chain and ciphertext_digest are self-consistent. See zh/identity/key-management.md §7.4.1."
     },
     {
-      "code": "legacy_secret_storage_wire_form",
+      "code": "key_backup_wire_schema_required",
       "applies_to": [
         "schema_validation"
       ],
-      "description": "Device / Key Server received a request body whose top-level `schema == \"ck.secret_storage.v1\"` or that otherwise matches the deprecated client-local secret-storage envelope shape on the `ck.keys.backups.*` wire endpoints. Wire MUST use `ck.schema.key_backup.v1`. See zh/crypto-media/device-lifecycle.md §11."
+      "description": "Device / Key Server received a `ck.keys.backups.*` request body that does not validate as `ck.schema.key_backup.v1`. Wire backups MUST carry the dedicated key-backup envelope with `series_id` and `series_seq`; client-local secret-storage envelopes are not accepted on wire endpoints. See zh/crypto-media/device-lifecycle.md §11."
     },
     {
       "code": "recovery_evidence_unbound",

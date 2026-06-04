@@ -2602,6 +2602,24 @@ def openapi_artifact_schema_ref(schema: Any, components: dict[str, Any]) -> str 
     return normalize_artifact_schema_ref(ref)
 
 
+def openapi_request_schema(operation: dict[str, Any]) -> Any:
+    content = (
+        operation.get("requestBody", {})
+        .get("content", {})
+    )
+    if not isinstance(content, dict):
+        return None
+    for media_type in ("application/json", "multipart/form-data", "application/octet-stream"):
+        schema = content.get(media_type, {}).get("schema") if isinstance(content.get(media_type), dict) else None
+        if isinstance(schema, dict):
+            return schema
+    for media in content.values():
+        schema = media.get("schema") if isinstance(media, dict) else None
+        if isinstance(schema, dict):
+            return schema
+    return None
+
+
 def check_artifact_schema_ref(lint: Lint, owner: Path, label: str, ref: Any) -> None:
     if not isinstance(ref, str) or not ref:
         lint.fail(owner, f"{label} must be a non-empty artifact schema ref")
@@ -2648,12 +2666,7 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
             operation_id = operation.get("operationId")
             if not isinstance(operation_id, str) or not operation_id:
                 continue
-            request_schema = (
-                operation.get("requestBody", {})
-                .get("content", {})
-                .get("application/json", {})
-                .get("schema")
-            )
+            request_schema = openapi_request_schema(operation)
             response_schema = (
                 operation.get("responses", {})
                 .get("200", {})
@@ -2768,6 +2781,12 @@ def check_binding_completeness_index(lint: Lint) -> None:
     if "#### 2.4.1 Binding completeness index" not in text:
         lint.fail(binding_path, "missing §2.4.1 Binding completeness index")
         return
+    section = text.split("#### 2.4.1 Binding completeness index", 1)[1].split("\n#### ", 1)[0]
+    listed = {
+        match.group(1)
+        for match in re.finditer(r"^\|\s*`([^`]+)`\s*\|\s*`migration_required`\s*\|", section, re.MULTILINE)
+    }
+    expected_migration: set[str] = set()
     for row in operation_registry.get("operations", []) if isinstance(operation_registry.get("operations"), list) else []:
         if not isinstance(row, dict):
             continue
@@ -2777,6 +2796,7 @@ def check_binding_completeness_index(lint: Lint) -> None:
         operation_id = row.get("operation_id")
         if not isinstance(operation_id, str):
             continue
+        expected_migration.add(operation_id)
         expected = f"| `{operation_id}` | `migration_required` |"
         if expected not in text:
             lint.fail(
@@ -2784,6 +2804,129 @@ def check_binding_completeness_index(lint: Lint) -> None:
                 f"generic operation {operation_id} with migration_plan must be listed "
                 "in Binding completeness index as migration_required",
             )
+    stale = sorted(listed - expected_migration)
+    if stale:
+        lint.fail(
+            binding_path,
+            "Binding completeness index lists non-generic operation(s) as migration_required: "
+            + ", ".join(stale),
+        )
+
+
+def schema_ref_mentioned_in_field_constraints(constraints: str, schema_ref: str) -> bool:
+    if schema_ref in constraints:
+        return True
+    file_ref, _, fragment = schema_ref.partition("#")
+    return bool(fragment and file_ref in constraints and f"#{fragment}" in constraints)
+
+
+def collect_operation_field_table_constraints(text: str) -> dict[str, str]:
+    rows: dict[str, str] = {}
+    for line in text.splitlines():
+        if not line.startswith("| `ck."):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 5:
+            continue
+        operation_id = cells[0].strip("`")
+        if operation_id.startswith("ck."):
+            rows[operation_id] = cells[4]
+    return rows
+
+
+def check_operation_field_table_schema_refs(lint: Lint) -> None:
+    """Operation field table rows must mention registry-declared schema refs."""
+    catalog_path = ARTIFACTS / "registry" / "contract-catalog.json"
+    binding_path = SPEC_ROOT / "zh" / "sync" / "service-http-binding.md"
+    catalog = load_json(lint, catalog_path)
+    if not isinstance(catalog, dict):
+        return
+    operation_registry = catalog.get("operation_registry")
+    if not isinstance(operation_registry, dict):
+        lint.fail(catalog_path, "operation_registry missing")
+        return
+    try:
+        text = binding_path.read_text(encoding="utf-8")
+    except Exception as exc:
+        lint.fail(binding_path, f"unable to read operation field table: {exc}")
+        return
+    field_rows = collect_operation_field_table_constraints(text)
+    for row in operation_registry.get("operations", []) if isinstance(operation_registry.get("operations"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        operation_id = row.get("operation_id")
+        if not isinstance(operation_id, str):
+            continue
+        refs = [
+            ref
+            for ref in (row.get("request_schema_ref"), row.get("response_schema_ref"))
+            if isinstance(ref, str) and ref
+        ]
+        if not refs:
+            continue
+        constraints = field_rows.get(operation_id)
+        if constraints is None:
+            lint.fail(binding_path, f"{operation_id} declares schema refs but is missing from the operation field table")
+            continue
+        for schema_ref in refs:
+            if not schema_ref_mentioned_in_field_constraints(constraints, schema_ref):
+                lint.fail(
+                    binding_path,
+                    f"{operation_id} field table constraints must mention schema_ref {schema_ref}",
+                )
+
+
+def check_design_phase_legacy_compat_removed(lint: Lint) -> None:
+    """Reject legacy wire compatibility hooks removed while v1 is still in design."""
+    forbidden_by_path = {
+        ARTIFACTS / "registry" / "error-code-registry.json": [
+            "legacy_single_endpoint_media_service",
+            "legacy_secret_storage_wire_form",
+        ],
+        ARTIFACTS / "registry" / "operations-error-mapping.json": [
+            "legacy_single_endpoint_media_service",
+            "legacy_secret_storage_wire_form",
+        ],
+        ARTIFACTS / "schemas" / "service-describe.schema.json": [
+            "legacy_alias",
+            "deprecated_alias",
+        ],
+        ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml": [
+            "legacy_single_endpoint_media_service",
+            "legacy_secret_storage_wire_form",
+            "legacy_alias",
+            "deprecated_alias",
+            "deprecated single-`sfu_endpoint`",
+        ],
+        ARTIFACTS / "profiles" / "conformance-profiles.json": [
+            "legacy single-endpoint",
+            "single sfu_endpoint",
+        ],
+        SPEC_ROOT / "zh" / "crypto-media" / "media-service-binding.md": [
+            "服务端 SHOULD 接受遗留单 `sfu_endpoint`",
+            "legacy_single_endpoint_media_service",
+        ],
+        SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md": [
+            "legacy_secret_storage_wire_form",
+            "Wire deprecation",
+            "现存远端 `ck.secret_storage.v1`",
+        ],
+        SPEC_ROOT / "zh" / "sync" / "service-surface.md": [
+            "legacy_alias",
+            "deprecated_alias",
+            "旧版本只暴露 `supported_operations`",
+            "向后兼容地追加",
+        ],
+    }
+    for path, tokens in forbidden_by_path.items():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception as exc:
+            lint.fail(path, f"unable to read for legacy compatibility lint: {exc}")
+            continue
+        for token in tokens:
+            if token in text:
+                lint.fail(path, f"design-phase legacy compatibility token remains: {token}")
 
 
 def check_capability_action_event_mapping(lint: Lint) -> None:
@@ -4333,6 +4476,8 @@ def main() -> int:
     check_did_and_device_constraints(lint)
     check_operation_binding_metadata(lint)
     check_binding_completeness_index(lint)
+    check_operation_field_table_schema_refs(lint)
+    check_design_phase_legacy_compat_removed(lint)
     check_binding_variant_non_http(lint)
     check_capability_action_event_mapping(lint)
     check_text_reference_targets(lint)

@@ -246,16 +246,15 @@ GET /_cokret/describe
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
   把它当成协议级决策的依据，也不得继承到 `claimed_profiles`。
-- `compat_surfaces: [{name, kind, ...}]` — 仅为兼容性而暴露的 legacy / external interop surface
-  （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `legacy_alias`, `external_interop`, `deprecated_alias`}）。
+- `compat_surfaces: [{name, kind, ...}]` — Cokret v1 conformance 之外的 external interop surface
+  （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `external_interop`}）。
   这些 surface **不构成** Cokret v1 conformance 的一部分。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
 - `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Policy Server、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
 
-旧版本只暴露 `supported_operations`，把 endpoint 可达性、feature 实现、profile claim 混在一起。
-本次区分要求实现：
+实现 MUST 明确区分 endpoint 可达性、feature 实现、profile claim 与 conformance verification：
 
-1. 在 describe 响应中同时输出上述六个字段（向后兼容地追加在原有字段之后）。
+1. 在 describe 响应中同时输出上述 claim-level 字段。
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
 3. cotest 与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`cotest_verified`、
    `experimental`、`compat`、`not_claimed`。
@@ -492,7 +491,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 - `event_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Realm-wide pause。
 - `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
 
-`/_cokret/self/account/subscribe` / `/_cokret/self/events` / `/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（位置与精确 wire 形态见 [`service-api-schema.mdx`](service-api-schema.mdx) `ck.schema.bottom.v1` 引用）。
+`/_cokret/self/account/subscribe` / `/_cokret/self/events` / `/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（精确 wire 形态见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；HTTP 字段位置以 [`service-http-binding.md`](service-http-binding.md) 与 OpenAPI 为准）。
 
 ### 5.4 明文与服务信任
 

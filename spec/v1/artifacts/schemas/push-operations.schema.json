@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/push-operations.schema.json",
+  "title": "Cokret Push Gateway Operation DTOs",
+  "description": "Closed request and response DTOs for ck.push.register_device, ck.push.unregister_device, and ck.push.notify.",
+  "anyOf": [
+    { "$ref": "#/$defs/register_device_request" },
+    { "$ref": "#/$defs/register_device_response" },
+    { "$ref": "#/$defs/unregister_device_request" },
+    { "$ref": "#/$defs/unregister_device_response" },
+    { "$ref": "#/$defs/notify_request" },
+    { "$ref": "#/$defs/notify_response" }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "push_target_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{16,256}$",
+      "description": "Pairwise pseudonym for one (recipient_service_did, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Flow id, Message id, Event id, or stable cross-Realm correlation key."
+    },
+    "registration_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+      "description": "Push gateway local registration id. It is not a registered ck:<kind> protocol object id."
+    },
+    "push_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "badge": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "integer", "minimum": 0 },
+            { "type": "string", "enum": ["1", "2-5", "6+"] }
+          ]
+        },
+        "unread_increment": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99
+        },
+        "missed_call": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_route": {
+      "type": "object",
+      "required": [
+        "device_id"
+      ],
+      "properties": {
+        "device_id": { "$ref": "#/$defs/device_id" },
+        "push_key": { "$ref": "#/$defs/push_key" },
+        "app_id": { "$ref": "#/$defs/non_empty_string" },
+        "platform": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "blind_notification": {
+      "type": "object",
+      "required": [
+        "push_target_id",
+        "wakeup_kind",
+        "devices"
+      ],
+      "properties": {
+        "push_target_id": { "$ref": "#/$defs/push_target_id" },
+        "wakeup_kind": {
+          "type": "string",
+          "enum": [
+            "message",
+            "mention",
+            "reaction",
+            "call_invite",
+            "generic"
+          ]
+        },
+        "push_hint": {
+          "type": "string",
+          "enum": [
+            "new_message",
+            "incoming_call",
+            "mention_self",
+            "l10n_key"
+          ]
+        },
+        "counts": { "$ref": "#/$defs/counts" },
+        "devices": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/device_route" }
+        }
+      },
+      "not": {
+        "anyOf": [
+          { "required": ["event_id"] },
+          { "required": ["realm_id"] },
+          { "required": ["sender_actor_id"] },
+          { "required": ["sender_actor_display_name"] },
+          { "required": ["realm_title"] },
+          { "required": ["flow_title"] }
+        ]
+      },
+      "additionalProperties": false
+    },
+    "visible_notification": {
+      "type": "object",
+      "required": [
+        "push_target_id",
+        "wakeup_kind",
+        "devices",
+        "event_id",
+        "realm_id",
+        "sender_actor_id"
+      ],
+      "properties": {
+        "push_target_id": { "$ref": "#/$defs/push_target_id" },
+        "wakeup_kind": {
+          "type": "string",
+          "enum": [
+            "message",
+            "mention",
+            "reaction",
+            "call_invite",
+            "generic"
+          ]
+        },
+        "push_hint": {
+          "type": "string",
+          "enum": [
+            "new_message",
+            "incoming_call",
+            "mention_self",
+            "l10n_key"
+          ]
+        },
+        "counts": { "$ref": "#/$defs/counts" },
+        "devices": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/device_route" }
+        },
+        "event_id": { "$ref": "#/$defs/event_id" },
+        "realm_id": { "$ref": "#/$defs/realm_id" },
+        "sender_actor_id": { "$ref": "#/$defs/did" }
+      },
+      "additionalProperties": false
+    },
+    "notify_rejection": {
+      "type": "object",
+      "required": [
+        "push_target_id",
+        "reason_code"
+      ],
+      "properties": {
+        "push_target_id": { "$ref": "#/$defs/push_target_id" },
+        "device_id": { "$ref": "#/$defs/device_id" },
+        "reason_code": { "$ref": "#/$defs/non_empty_string" },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "register_device_request": {
+      "type": "object",
+      "required": [
+        "device_id",
+        "push_gateway",
+        "push_key"
+      ],
+      "properties": {
+        "device_id": { "$ref": "#/$defs/device_id" },
+        "push_gateway": { "$ref": "#/$defs/url" },
+        "push_key": { "$ref": "#/$defs/push_key" },
+        "platform": { "$ref": "#/$defs/non_empty_string" },
+        "app_id": { "$ref": "#/$defs/non_empty_string" },
+        "display_name": { "$ref": "#/$defs/non_empty_string" },
+        "recipient_service_did": { "$ref": "#/$defs/did" }
+      },
+      "additionalProperties": false
+    },
+    "register_device_response": {
+      "type": "object",
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": { "type": "boolean", "const": true },
+        "registration_id": { "$ref": "#/$defs/registration_id" },
+        "expires_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "unregister_device_request": {
+      "type": "object",
+      "required": [
+        "device_id"
+      ],
+      "properties": {
+        "device_id": { "$ref": "#/$defs/device_id" },
+        "push_key": { "$ref": "#/$defs/push_key" },
+        "app_id": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "unregister_device_response": {
+      "type": "object",
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": { "type": "boolean", "const": true }
+      },
+      "additionalProperties": false
+    },
+    "notify_request": {
+      "type": "object",
+      "required": [
+        "notification"
+      ],
+      "properties": {
+        "notification": {
+          "oneOf": [
+            { "$ref": "#/$defs/blind_notification" },
+            { "$ref": "#/$defs/visible_notification" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "notify_response": {
+      "type": "object",
+      "required": [
+        "rejected"
+      ],
+      "properties": {
+        "rejected": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/notify_rejection" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

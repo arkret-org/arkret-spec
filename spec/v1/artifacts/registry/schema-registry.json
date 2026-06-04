@@ -55,6 +55,12 @@
       "file": "schemas/invite.schema.json"
     },
     {
+      "schema_id": "ck.schema.authz_operations.v1",
+      "file": "schemas/authz-operations.schema.json",
+      "status": "active",
+      "description": "Closed response DTO bundle for authorization query operations."
+    },
+    {
       "schema_id": "ck.schema.event.v1",
       "file": "schemas/event-envelope.schema.json"
     },
@@ -83,6 +89,12 @@
       "file": "schemas/ice-config-response.schema.json"
     },
     {
+      "schema_id": "ck.schema.media_operations.v1",
+      "file": "schemas/media-operations.schema.json",
+      "status": "active",
+      "description": "Closed request DTO bundle for realtime media service operations."
+    },
+    {
       "schema_id": "ck.schema.capability.v1",
       "file": "schemas/capability-grant.schema.json"
     },
@@ -109,6 +121,12 @@
     {
       "schema_id": "ck.schema.blob.v1",
       "file": "schemas/blob.schema.json"
+    },
+    {
+      "schema_id": "ck.schema.blob_operations.v1",
+      "file": "schemas/blob-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for Blob service operations."
     },
     {
       "schema_id": "ck.schema.media_metadata.v1",
@@ -163,6 +181,12 @@
       "file": "schemas/notification.schema.json"
     },
     {
+      "schema_id": "ck.schema.push_operations.v1",
+      "file": "schemas/push-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for push device registration and push wakeup delivery."
+    },
+    {
       "schema_id": "ck.schema.read_cursor.v1",
       "file": "schemas/read-cursor.schema.json"
     },
@@ -173,6 +197,12 @@
     {
       "schema_id": "ck.schema.did_key_log_entry.v1",
       "file": "schemas/did-key-log-entry.schema.json"
+    },
+    {
+      "schema_id": "ck.schema.directory_operations.v1",
+      "file": "schemas/directory-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, and push webhook registration operations."
     },
     {
       "schema_id": "ck.schema.did_continuity_proof.v1",
@@ -229,6 +259,12 @@
     {
       "schema_id": "ck.schema.mimi_interop.v1",
       "file": "schemas/mimi-interop.schema.json"
+    },
+    {
+      "schema_id": "ck.schema.mimi_operations.v1",
+      "file": "schemas/mimi-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for MIMI provider interop operations."
     },
     {
       "schema_id": "ck.schema.moderation_report.v1",
@@ -311,6 +347,18 @@
       "description": "Anchor DAG finality commitment schema"
     },
     {
+      "schema_id": "ck.schema.agent_operations.v1",
+      "file": "schemas/agent-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for account pairing and native personal agent management operations."
+    },
+    {
+      "schema_id": "ck.schema.applet_edge_operations.v1",
+      "file": "schemas/applet-edge-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for Applet edge and bridge operations."
+    },
+    {
       "schema_id": "ck.schema.bottom.v1",
       "file": "schemas/bottom.schema.json",
       "status": "active",
@@ -323,10 +371,16 @@
       "description": "Closed request/response DTO bundle for ck.keys.keypackages.upload, claim, consume, and revoke."
     },
     {
+      "schema_id": "ck.schema.keys_operations.v1",
+      "file": "schemas/keys-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for ck.keys.upload, query, claim, and key backup put/list/delete responses."
+    },
+    {
       "schema_id": "ck.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ck.server.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. See service-surface.md §3.0."
+      "description": "Canonical ServiceDescribe response for ck.server.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0."
     }
   ]
 }

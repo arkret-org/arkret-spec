@@ -75,7 +75,7 @@ sidebar:
 - `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `ck.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
 - `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议；每个 backend 自行实现 mesh，正式 Cokret wire 只公开 `foci[].cascade_group` 与用户可见披露语义。
 
-兼容性（v1 当前行为）：服务端 SHOULD 接受遗留单 `sfu_endpoint` 形态并 normalize 为 `foci=[{focus_id:"legacy", type:"cokret-native", connect_url:<sfu_endpoint>, ...}]`，同时打 audit log。_Informative：未来 hardening 版本可将单 endpoint 形态升级为 `failed_precondition` `reason="legacy_single_endpoint_media_service"`；该收紧属迁移建议，不是 v1 规范要求。_
+`ck.realm.media_service` MUST 声明非空 `foci[]`。只提供单个 `sfu_endpoint` 或缺少 `foci[]` 的 payload MUST fail closed，返回 `schema_violation` 或 `failed_precondition`，原因码 `media_service_foci_required`；服务端不得在实时路径中自动补写、normalize 或推断 focus。
 
 修改该 state event 需要 `ck.call.configure_media_service` 或 `ck.policy.manage` capability。
 
