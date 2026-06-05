@@ -162,7 +162,7 @@ see_also:
 
 ### 4.3 对象模型与交互
 
-`models/` 目录按对象类别组织，每个对象只在一个文件里讲完语义、字段、行为和示例；index.md 是入口与 typed-id 索引。
+`models/` 目录按对象类别组织，每个对象只在一个文件里讲完语义、字段、行为和示例；`models/overview.md` 是入口与 typed-id 索引。
 
 | 文档 | 内容 |
 | --- | --- |
@@ -235,6 +235,8 @@ see_also:
 | `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |
 | `crypto-media/media-service-binding.md` | 媒体服务发现（`ck.realm.media_service` foci）、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定。 |
 | `crypto-media/call-state.md` | 通话模型与状态机、durable `ck.call.state` 字段语义、录制 / 转写生命周期。 |
+| `crypto-media/bindings/cokret-native.md` | （optional sub-profile）Cokret 原生媒体后端 binding，定义 `ck.profile.media_service_binding.cokret_native.v1`，由 `media-service-binding.md` 引用。 |
+| `crypto-media/bindings/livekit.md` | （optional sub-profile）LiveKit 媒体后端 binding，定义 `ck.profile.media_service_binding.livekit.v1`，由 `media-service-binding.md` 引用。 |
 
 ### 4.8 扩展、Agent 与集成
 
@@ -253,8 +255,9 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `conformance/README.md` | conformance 目录入口、阅读顺序和 artifact/向量使用说明。 |
+| `conformance/normative-language.md` | RFC 2119 / 8174 规范关键字（MUST / SHOULD / MAY 等）的 canonical 定义与中英对照；几乎所有文档 §0 与 frontmatter `see_also` 引用。 |
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
-| `conformance/conformance-vectors.md` | 合并的一致性测试向量：§1 Encoding & crypto（canonical JSON / digest / signature binding / HLC / cursor / encrypted envelope）、§2 State resolution（并发 membership / capability / governance）、§3 Redaction（约束与可见性）、§4 Capability（delegation / revoke / approval）、§5 Sync（client sync / pagination / snapshot / MLS epoch backfill）。 |
+| `conformance/conformance-vectors.md` | 合并的一致性测试向量，共 §1–§13 个向量域：§1 Encoding & Crypto、§2 Move · Anchor · Lattice、§3 Redaction、§4 Capability、§5 Sync、§6 Space Lifecycle、§7 Member Delivery Binding、§8 Handle、§9 Security Closure、§10 Service Closure、§11 Personal Agent & Sidecar、§12 Media Service Binding、§13 History Visibility / Preview / History Sharing；逐域 vector 清单以文件章节目录与 `artifacts/registry/vector-registry.json` 为准。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
 | `conformance/snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |

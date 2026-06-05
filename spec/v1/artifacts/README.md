@@ -29,7 +29,7 @@ updated: 2026-05-25
 - `artifacts/fixtures/*.json`
   - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、Move/Anchor/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
 - `artifacts/reports/*`
-  - 具体实现的本地 / CI conformance baseline 报告；不作为协议规范来源，但用于发布前审计和实现成熟度追踪。
+  - 含两类性质不同的报告：(a) **协议契约派生报告**（如 `operation-schema-index.json`、`operation-completeness-report.json`、`fixture-digests.json`，头部带 `source_of_truth: false` + `generated_from` / `generated_by`，是从 `contract-catalog.json` 等契约真源派生的生成视图）；(b) **实现 / 发布 baseline 报告**（如 `teabay-*-baseline-*`、`release-readiness-*`，记录具体实现的本地 / CI conformance 证据与发布审计）。两类均不作为协议规范来源；(a) 类随契约真源由 pipeline 重生成，(b) 类用于发布前审计和实现成熟度追踪。
 
 ### 1.2 生成视图（Generated）
 

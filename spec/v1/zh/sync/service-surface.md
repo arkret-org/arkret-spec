@@ -53,7 +53,7 @@ DID Document SHOULD 只负责：
 ### 2.2 没有任何单一服务是唯一真相源
 
 - signed Event 是 actor 发布和协作事实真相源
-- sync service 是 Principal Server 上的受控同步入口
+- Sync Service 是 Principal Server 上的受控同步入口
 - search、inbox、notification 和 View projection 是派生体验，可以由客户端本地计算，也可以由显式受托服务计算
 - blob 是内容层
 
@@ -739,7 +739,7 @@ POST /_cokret/self/authz/check
 `check` 接口适合：
 
 - Events API 接收写入前预检查
-- sync service 分发前快速过滤
+- Sync Service 分发前快速过滤
 - client 发送前本地 UX 提示
 
 ## 10.1 Personal Agent Surface
@@ -814,7 +814,7 @@ Cokret v1 的首次加入流程：
 
 如果 payload 已按 `policy.encryption_profile` 加密，则：
 
-- Events / sync service MAY 不解密正文
+- Events / Sync Service MAY 不解密正文
 - 但仍 SHOULD 保留 hash、cursor、causal 与目标引用
 
 ## 14. 防滥用与配额机制 (Anti-Spam & Quota)

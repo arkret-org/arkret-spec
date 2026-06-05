@@ -3,7 +3,7 @@
   "source_of_truth": false,
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
-  "namespace": "cx",
+  "namespace": "ck",
   "storage_rules": [
     "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form ck:<kind>:<uuid> unless a special form below applies.",
     "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ck:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",

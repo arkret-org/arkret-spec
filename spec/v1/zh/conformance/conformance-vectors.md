@@ -6,13 +6,21 @@ stability: v1
 updated: 2026-05-25
 ---
 
-本文整合所有 v1 conformance 测试向量，按域分组：
+本文整合所有 v1 conformance 测试向量，按域分组（共 §1–§13 个向量域；以下为各域索引，逐域 vector 清单以本文件章节目录与 `artifacts/registry/vector-registry.json` 为准）：
 
-1. Encoding & crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
-2. State resolution（并发 membership / capability / governance state 收敛）
+1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
+2. Move · Anchor · Lattice（并发 membership / capability / governance state 收敛、cas_register、Anchor DAG）
 3. Redaction（约束与可见性）
 4. Capability（delegation、revoke、approval）
 5. Sync（client sync、pagination、snapshot、MLS epoch backfill）
+6. Space Lifecycle
+7. Member Delivery Binding
+8. Handle
+9. Security Closure
+10. Service Closure
+11. Personal Agent & Sidecar
+12. Media Service Binding
+13. History Visibility / Preview / History Sharing
 
 可执行向量数据集位于 [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/)；
 本文档把对应规范条款与文件入口集中呈现，便于一致性测试 runner 引用。
@@ -2974,7 +2982,7 @@ Setup:
 
 Expected:
 
-- Events / Sync service MUST NOT 返回 `E_before` 的正文 payload 给 Bob；可以返回 redacted / locked stub 或 `history_not_visible`。
+- Events / Sync Service MUST NOT 返回 `E_before` 的正文 payload 给 Bob；可以返回 redacted / locked stub 或 `history_not_visible`。
 - E2EE Realm 中，任何 `ck.realm_key.share` 覆盖 `E_before` epoch 且 recipient=Bob MUST 被拒绝或对应 `ck.realm_key.withheld{withheld_reason_code="history_not_visible"}`。
 - 如果 Realm 后续把 current visibility 改成 `shared`，该变化不 retroactively 重解释 `E_before` 的 `T0` 可见性；除非新 policy 明确声明受审计的 historical reclassification profile，否则 Bob 仍不能把 `E_before` 作为 verified timeline 明文展示。
 

@@ -75,7 +75,7 @@ Actor-private state 是独立层，不是“弱 durable Event”。标准规则�
 
 ### 2.1.1 Wire-Scope 边界（normative）
 
-为避免 ephemeral 信号意外进入持久 Event 流，event-envelope.schema.json 与 ck.self.events.submit MUST 按下表 fail-closed：
+为避免 ephemeral 信号意外进入持久 Event 流，event-envelope.schema.json 与 ck.self.events.submit MUST 按下表 fail closed：
 
 | `wire_scope`（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)） | 允许使用的 envelope schema | 允许的提交路径 |
 | --- | --- | --- |

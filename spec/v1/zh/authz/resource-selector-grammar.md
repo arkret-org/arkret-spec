@@ -449,8 +449,34 @@ function matches(target, selector):
             selector.schema_ref == "*" or selector.schema_ref == target.schema
         )
 
+    if selector.kind == "space":
+        return target.type == "space" and (
+            not selector.space_id or selector.space_id == target.id
+        )
+
+    if selector.kind == "circle":
+        return target.type == "circle" and (
+            not selector.circle_id or selector.circle_id == target.id
+        )
+
+    if selector.kind == "blob":
+        return target.type == "blob" and (
+            not selector.blob_ref or selector.blob_ref == target.id
+        )
+
+    if selector.kind == "notification":
+        # realm-scoped, *-only：schema 强制 realm_id required 且无 notification_id；
+        # realm 裁剪已由顶部 realm_id guard 完成，此处只判类型。
+        return target.type == "notification"
+
+    if selector.kind == "read_cursor":
+        # realm-scoped, *-only：同 notification，realm 裁剪由顶部 guard 完成。
+        return target.type == "read_cursor"
+
     return false
 ```
+
+> `space` / `circle` 配合 `space_kind_allow` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
 
 Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 检查。
 
@@ -520,7 +546,7 @@ Facet 是 Realm schema / Morph profile 声明后的 hint 或查询标签，不�
 实现 MUST：
 
 - 接受本规范定义的 JSON resource selector。
-- 支持精确 ID、Realm、Flow、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema 和 Object 匹配。
+- 支持精确 ID、Realm、Space、Circle、Flow、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema、Blob、Notification、Read Cursor 和 Object 匹配。
 - 拒绝非 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
 - 对非法 selector 返回清晰错误。
 - 在 selector 命中后继续执行 action、constraint、claim、policy、`allowed_tracks` action scope 和 E2EE 检查。

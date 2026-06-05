@@ -6929,7 +6929,7 @@
         },
         "foci_preferred": {
           "type": "array",
-          "description": "Client-local ordered focus preference list used for the §10.2 session_focus election.",
+          "description": "Client-local ordered focus preference list used for the session_focus election (see crypto-media/call-state.md §4.1 and media-service-binding.md §5).",
           "items": {
             "$ref": "#/$defs/non_empty_string"
           }
@@ -6994,7 +6994,7 @@
         },
         "session_focus": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Single authoritative focus_id for this call. reducer write rule per §11.1: committed once, any rewrite MUST failed_precondition reason=session_focus_already_committed."
+          "description": "Single authoritative focus_id for this call. reducer write rule per crypto-media/call-state.md §4.1: committed once, any rewrite MUST failed_precondition reason=session_focus_already_committed."
         },
         "participants": {
           "type": "array",
@@ -7013,7 +7013,7 @@
         },
         "recording_result": {
           "type": "object",
-          "description": "Typed recording outcome, present only when recording_state ∈ {ready, failed}. See §13: the durable ck.call.state carries blob hash, duration, media type, retention policy and recording_start_event_id rather than stuffing them into untyped fields (resolves SEM-004). All fields optional.",
+          "description": "Typed recording outcome, present only when recording_state ∈ {ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries blob hash, duration, media type, retention policy and recording_start_event_id rather than stuffing them into untyped fields (resolves SEM-004). All fields optional.",
           "properties": {
             "blob_hash": {
               "$ref": "#/$defs/hash"
