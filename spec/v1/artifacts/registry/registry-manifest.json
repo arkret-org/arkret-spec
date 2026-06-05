@@ -44,11 +44,11 @@
     },
     {
       "name": "legacy_cx_name_allowlist",
-      "file": "registry/legacy-cx-name-allowlist.json",
+      "file": "registry/legacy-ck-name-allowlist.json",
       "kind": "legacy_cx_name_allowlist",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical allowlist of legacy / wire-breaking identifiers that retain the cx- / cx_ prefix (wire extensions, exporter labels by cross-reference, domain-separation labels, DID key-handle fragments); new canonical naming MUST use ck- / ck_ per common-fields.md §2."
+      "description": "Canonical allowlist of legacy / wire-breaking identifiers that retain the ck- / cx_ prefix (wire extensions, exporter labels by cross-reference, domain-separation labels, DID key-handle fragments); new canonical naming MUST use ck- / ck_ per common-fields.md §2."
     },
     {
       "name": "signature_algorithms",

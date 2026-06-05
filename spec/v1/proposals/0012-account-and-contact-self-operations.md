@@ -185,6 +185,6 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 ## 6. Open questions
 
 - **~~Q1~~(已收敛)** `ck.self.account.viewer` 独立 operation,不并入 `describe`——鉴权与缓存语义不同。已写入 §3.1。
-- **~~Q2~~(已收敛)** session_revoke **不复用** device revoke:logout 撤 session token,`ck.device.revoke`(正式名,非旧名 `cx.device.revoke`)撤设备授权。已写入 §3.4,落 `gate` 与签发端对称。
+- **~~Q2~~(已收敛)** session_revoke **不复用** device revoke:logout 撤 session token,`ck.device.revoke`(正式名,非旧名 `ck.device.revoke`)撤设备授权。已写入 §3.4,落 `gate` 与签发端对称。
 - **~~旧 Q4~~(已收敛)** `register` 落 `gate`、proof 与 `session-grants` 同面同词汇,消除双入口。已写入 §3.2。
 - **~~Q3~~(已收敛)** `ck.self.account.update_profile` 不隐式 fan-out 到 `ck.find.directory.announce` 或 `ck.account_data.set`;该 operation 只承诺更新 server canonical profile。需要 directory / account-data 同步时,客户端或服务显式调用对应路径。已写入 §3.3 和正式 `zh/sync/service-http-binding.md`。

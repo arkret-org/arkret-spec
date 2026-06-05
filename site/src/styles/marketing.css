@@ -8,11 +8,11 @@
  * holds non-theme tokens (fonts, sizing) only. */
 
 :root {
-  --cx-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
+  --ck-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
     monospace;
-  --cx-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, "Helvetica Neue",
+  --ck-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, "Helvetica Neue",
     Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
-  --cx-max: 1400px;
+  --ck-max: 1400px;
 }
 
 :root[data-theme="dark"],
@@ -21,93 +21,93 @@
   /* Deeper, slightly cooler page background — the elevated tiers carry a
    * faint indigo cast so card surfaces lift off the page instead of
    * blending into a single flat slab. */
-  --cx-bg: #08090f;
-  --cx-bg-elevated: #11141e;
-  --cx-bg-elevated-strong: #161a26;
-  --cx-bg-overlay: rgba(255, 255, 255, 0.035);
-  --cx-bg-overlay-strong: rgba(255, 255, 255, 0.06);
-  --cx-bg-nav: rgba(10, 11, 17, 0.72);
-  --cx-border: rgba(255, 255, 255, 0.07);
-  --cx-border-strong: rgba(255, 255, 255, 0.16);
-  --cx-fg: #ecedf2;
-  --cx-fg-muted: #8d93a3;
-  --cx-fg-subtle: #6b7180;
-  --cx-accent: #a78bfa;
-  --cx-accent-strong: #c4b5fd;
-  --cx-accent-2: #60a5fa;
-  --cx-accent-soft: rgba(167, 139, 250, 0.14);
-  --cx-success: #4ade80;
-  --cx-warn: #f59e0b;
-  --cx-hero-glow: rgba(167, 139, 250, 0.22);
-  --cx-hero-glow-2: rgba(96, 165, 250, 0.16);
-  --cx-on-accent: #0a0b11;
+  --ck-bg: #08090f;
+  --ck-bg-elevated: #11141e;
+  --ck-bg-elevated-strong: #161a26;
+  --ck-bg-overlay: rgba(255, 255, 255, 0.035);
+  --ck-bg-overlay-strong: rgba(255, 255, 255, 0.06);
+  --ck-bg-nav: rgba(10, 11, 17, 0.72);
+  --ck-border: rgba(255, 255, 255, 0.07);
+  --ck-border-strong: rgba(255, 255, 255, 0.16);
+  --ck-fg: #ecedf2;
+  --ck-fg-muted: #8d93a3;
+  --ck-fg-subtle: #6b7180;
+  --ck-accent: #a78bfa;
+  --ck-accent-strong: #c4b5fd;
+  --ck-accent-2: #60a5fa;
+  --ck-accent-soft: rgba(167, 139, 250, 0.14);
+  --ck-success: #4ade80;
+  --ck-warn: #f59e0b;
+  --ck-hero-glow: rgba(167, 139, 250, 0.22);
+  --ck-hero-glow-2: rgba(96, 165, 250, 0.16);
+  --ck-on-accent: #0a0b11;
   /* Layered shadow tokens — soft halo + grounded edge instead of one stamp. */
-  --cx-shadow-card:
+  --ck-shadow-card:
     0 0 0 1px rgba(255, 255, 255, 0.02),
     0 8px 24px -12px rgba(0, 0, 0, 0.6);
-  --cx-shadow-card-hover:
-    0 0 0 1px color-mix(in srgb, var(--cx-accent) 18%, transparent),
+  --ck-shadow-card-hover:
+    0 0 0 1px color-mix(in srgb, var(--ck-accent) 18%, transparent),
     0 18px 40px -20px rgba(0, 0, 0, 0.7),
-    0 0 60px -20px color-mix(in srgb, var(--cx-accent) 20%, transparent);
-  --cx-noise-opacity: 0.04;
+    0 0 60px -20px color-mix(in srgb, var(--ck-accent) 20%, transparent);
+  --ck-noise-opacity: 0.04;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
   /* Slightly off-white page with a hint of warm grey, so accents and
    * elevated surfaces feel layered rather than glaring. */
-  --cx-bg: #fbfbfd;
-  --cx-bg-elevated: #ffffff;
-  --cx-bg-elevated-strong: #f4f5f9;
-  --cx-bg-overlay: rgba(15, 23, 42, 0.03);
-  --cx-bg-overlay-strong: rgba(15, 23, 42, 0.05);
-  --cx-bg-nav: rgba(252, 252, 254, 0.85);
-  --cx-border: rgba(15, 23, 42, 0.08);
-  --cx-border-strong: rgba(15, 23, 42, 0.18);
-  --cx-fg: #0e1322;
-  --cx-fg-muted: #555c6c;
-  --cx-fg-subtle: #7a8190;
-  --cx-accent: #6d28d9;
-  --cx-accent-strong: #5b21b6;
-  --cx-accent-2: #2563eb;
-  --cx-accent-soft: rgba(109, 40, 217, 0.08);
-  --cx-success: #16a34a;
-  --cx-warn: #d97706;
-  --cx-hero-glow: rgba(109, 40, 217, 0.14);
-  --cx-hero-glow-2: rgba(37, 99, 235, 0.1);
-  --cx-on-accent: #ffffff;
-  --cx-shadow-card:
+  --ck-bg: #fbfbfd;
+  --ck-bg-elevated: #ffffff;
+  --ck-bg-elevated-strong: #f4f5f9;
+  --ck-bg-overlay: rgba(15, 23, 42, 0.03);
+  --ck-bg-overlay-strong: rgba(15, 23, 42, 0.05);
+  --ck-bg-nav: rgba(252, 252, 254, 0.85);
+  --ck-border: rgba(15, 23, 42, 0.08);
+  --ck-border-strong: rgba(15, 23, 42, 0.18);
+  --ck-fg: #0e1322;
+  --ck-fg-muted: #555c6c;
+  --ck-fg-subtle: #7a8190;
+  --ck-accent: #6d28d9;
+  --ck-accent-strong: #5b21b6;
+  --ck-accent-2: #2563eb;
+  --ck-accent-soft: rgba(109, 40, 217, 0.08);
+  --ck-success: #16a34a;
+  --ck-warn: #d97706;
+  --ck-hero-glow: rgba(109, 40, 217, 0.14);
+  --ck-hero-glow-2: rgba(37, 99, 235, 0.1);
+  --ck-on-accent: #ffffff;
+  --ck-shadow-card:
     0 1px 0 rgba(15, 23, 42, 0.02),
     0 8px 24px -16px rgba(15, 23, 42, 0.15);
-  --cx-shadow-card-hover:
-    0 0 0 1px color-mix(in srgb, var(--cx-accent) 22%, transparent),
+  --ck-shadow-card-hover:
+    0 0 0 1px color-mix(in srgb, var(--ck-accent) 22%, transparent),
     0 14px 36px -18px rgba(15, 23, 42, 0.18),
-    0 0 50px -20px color-mix(in srgb, var(--cx-accent) 22%, transparent);
-  --cx-noise-opacity: 0.025;
+    0 0 50px -20px color-mix(in srgb, var(--ck-accent) 22%, transparent);
+  --ck-noise-opacity: 0.025;
 }
 
 /* Scope marketing chrome resets to the marketing pages only. The Starlight
  * Header override renders SiteNav inside Starlight's own document, where the
  * Starlight stylesheet already controls `body` margin / font.  */
-body.cx-marketing {
+body.ck-marketing {
   margin: 0;
   background:
     /* Two soft accent halos in the top portion of the page so the dark
      * background feels lit rather than flat. */
     radial-gradient(
       900px 520px at 18% -10%,
-      var(--cx-hero-glow),
+      var(--ck-hero-glow),
       transparent 70%
     ),
     radial-gradient(
       720px 420px at 90% 8%,
-      var(--cx-hero-glow-2),
+      var(--ck-hero-glow-2),
       transparent 70%
     ),
-    var(--cx-bg);
+    var(--ck-bg);
   background-attachment: fixed, fixed, fixed;
-  color: var(--cx-fg);
-  font-family: var(--cx-sans);
+  color: var(--ck-fg);
+  font-family: var(--ck-sans);
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -118,7 +118,7 @@ body.cx-marketing {
 /* Very subtle grid texture overlay — gives the dark theme a printed-spec
  * feel without competing with content. Disabled at very small viewports
  * so the grid lines don't read as noise on phones. */
-body.cx-marketing::before {
+body.ck-marketing::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -127,12 +127,12 @@ body.cx-marketing::before {
   background-image:
     linear-gradient(
       to right,
-      color-mix(in srgb, var(--cx-fg) 4%, transparent) 1px,
+      color-mix(in srgb, var(--ck-fg) 4%, transparent) 1px,
       transparent 1px
     ),
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--cx-fg) 4%, transparent) 1px,
+      color-mix(in srgb, var(--ck-fg) 4%, transparent) 1px,
       transparent 1px
     );
   background-size: 56px 56px;
@@ -150,49 +150,49 @@ body.cx-marketing::before {
 }
 
 @media (max-width: 720px) {
-  body.cx-marketing::before {
+  body.ck-marketing::before {
     display: none;
   }
 }
 
-body.cx-marketing > * {
+body.ck-marketing > * {
   position: relative;
   z-index: 1;
 }
 
-body.cx-marketing * {
+body.ck-marketing * {
   box-sizing: border-box;
 }
 
-body.cx-marketing a {
-  color: var(--cx-accent);
+body.ck-marketing a {
+  color: var(--ck-accent);
   text-decoration: none;
 }
-body.cx-marketing a:hover {
-  color: var(--cx-accent-strong);
+body.ck-marketing a:hover {
+  color: var(--ck-accent-strong);
 }
 
-body.cx-marketing code,
-body.cx-marketing .cx-mono {
-  font-family: var(--cx-mono);
+body.ck-marketing code,
+body.ck-marketing .ck-mono {
+  font-family: var(--ck-mono);
 }
 
-.cx-shell {
-  max-width: var(--cx-max);
+.ck-shell {
+  max-width: var(--ck-max);
   margin: 0 auto;
   padding: 0 1.5rem;
 }
 
 /* ---------- Top nav ----------------------------------------------------- */
 
-.cx-nav {
+.ck-nav {
   z-index: 50;
   backdrop-filter: blur(12px);
-  background: var(--cx-bg-nav);
-  border-bottom: 1px solid var(--cx-border);
+  background: var(--ck-bg-nav);
+  border-bottom: 1px solid var(--ck-border);
 }
 
-.cx-nav--marketing {
+.ck-nav--marketing {
   position: sticky;
   top: 0;
 }
@@ -200,33 +200,33 @@ body.cx-marketing .cx-mono {
 /* When rendered inside Starlight's fixed-height `<header class="header">`,
  * we want SiteNav to look flush with Starlight's nav background and span
  * the full bar height (no double border, no double backdrop blur). */
-.cx-nav--docs {
+.ck-nav--docs {
   background: transparent;
   backdrop-filter: none;
   border-bottom: none;
 }
 
-.cx-nav-row {
+.ck-nav-row {
   display: flex;
   align-items: center;
   gap: 2rem;
   height: 60px;
 }
 
-.cx-brand {
+.ck-brand {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
   font-size: 1.05rem;
-  color: var(--cx-fg);
+  color: var(--ck-fg);
   letter-spacing: 0.01em;
 }
-.cx-brand:hover {
-  color: var(--cx-fg);
+.ck-brand:hover {
+  color: var(--ck-fg);
 }
 
-.cx-brand-mark {
+.ck-brand-mark {
   width: 24px;
   height: 24px;
   border-radius: 7px;
@@ -236,14 +236,14 @@ body.cx-marketing .cx-mono {
       rgba(255, 255, 255, 0.45),
       transparent 55%
     ),
-    linear-gradient(135deg, var(--cx-accent) 0%, var(--cx-accent-2) 100%);
+    linear-gradient(135deg, var(--ck-accent) 0%, var(--ck-accent-2) 100%);
   display: inline-block;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-    0 6px 18px -8px color-mix(in srgb, var(--cx-accent) 55%, transparent);
+    0 6px 18px -8px color-mix(in srgb, var(--ck-accent) 55%, transparent);
 }
 
-.cx-nav-links {
+.ck-nav-links {
   display: flex;
   gap: 1.4rem;
   flex: 1;
@@ -253,56 +253,56 @@ body.cx-marketing .cx-mono {
   font-size: 0.95rem;
 }
 
-.cx-nav a,
-.cx-nav a:hover {
+.ck-nav a,
+.ck-nav a:hover {
   text-decoration: none;
 }
-.cx-nav-links a,
-.cx-nav-links span {
-  color: var(--cx-fg-muted);
+.ck-nav-links a,
+.ck-nav-links span {
+  color: var(--ck-fg-muted);
   transition: color 0.15s ease;
 }
-.cx-nav-links a:hover,
-.cx-nav-links a[aria-current="page"] {
-  color: var(--cx-fg);
+.ck-nav-links a:hover,
+.ck-nav-links a[aria-current="page"] {
+  color: var(--ck-fg);
 }
-.cx-nav-links span[aria-disabled="true"] {
+.ck-nav-links span[aria-disabled="true"] {
   cursor: default;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-.cx-nav-tools {
+.ck-nav-tools {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   font-size: 0.9rem;
 }
 
-.cx-soon {
+.ck-soon {
   font-size: 0.7rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 0.05rem 0.4rem;
   border-radius: 4px;
-  background: var(--cx-bg-elevated);
-  color: var(--cx-fg-muted);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  color: var(--ck-fg-muted);
+  border: 1px solid var(--ck-border);
 }
 
 /* ---------- Theme toggle ----------------------------------------------- */
 
-.cx-theme-toggle {
+.ck-theme-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  border: 1px solid var(--cx-border);
-  background: var(--cx-bg-elevated);
-  color: var(--cx-fg-muted);
+  border: 1px solid var(--ck-border);
+  background: var(--ck-bg-elevated);
+  color: var(--ck-fg-muted);
   cursor: pointer;
   transition:
     color 0.18s ease,
@@ -311,43 +311,43 @@ body.cx-marketing .cx-mono {
     box-shadow 0.18s ease;
 }
 
-.cx-theme-toggle:hover {
-  color: var(--cx-fg);
-  background: var(--cx-bg-overlay-strong);
-  border-color: var(--cx-border-strong);
+.ck-theme-toggle:hover {
+  color: var(--ck-fg);
+  background: var(--ck-bg-overlay-strong);
+  border-color: var(--ck-border-strong);
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--cx-accent) 12%, transparent);
+    0 0 0 3px color-mix(in srgb, var(--ck-accent) 12%, transparent);
 }
 
-.cx-theme-icon {
+.ck-theme-icon {
   width: 18px;
   height: 18px;
 }
 
-:root[data-theme="dark"] .cx-theme-icon--sun,
-:root:not([data-theme]) .cx-theme-icon--sun {
+:root[data-theme="dark"] .ck-theme-icon--sun,
+:root:not([data-theme]) .ck-theme-icon--sun {
   display: block;
 }
-:root[data-theme="dark"] .cx-theme-icon--moon,
-:root:not([data-theme]) .cx-theme-icon--moon {
+:root[data-theme="dark"] .ck-theme-icon--moon,
+:root:not([data-theme]) .ck-theme-icon--moon {
   display: none;
 }
-:root[data-theme="light"] .cx-theme-icon--sun {
+:root[data-theme="light"] .ck-theme-icon--sun {
   display: none;
 }
-:root[data-theme="light"] .cx-theme-icon--moon {
+:root[data-theme="light"] .ck-theme-icon--moon {
   display: block;
 }
 
 /* ---------- Hero -------------------------------------------------------- */
 
-.cx-hero {
+.ck-hero {
   padding: 6.5rem 0 4.5rem;
   position: relative;
   overflow: hidden;
 }
 
-.cx-hero::before {
+.ck-hero::before {
   content: "";
   position: absolute;
   inset: -20% -10% auto auto;
@@ -355,14 +355,14 @@ body.cx-marketing .cx-mono {
   height: 720px;
   background: radial-gradient(
     closest-side,
-    var(--cx-hero-glow),
+    var(--ck-hero-glow),
     transparent 70%
   );
   pointer-events: none;
   z-index: 0;
 }
 
-.cx-hero::after {
+.ck-hero::after {
   content: "";
   position: absolute;
   left: -10%;
@@ -371,20 +371,20 @@ body.cx-marketing .cx-mono {
   height: 620px;
   background: radial-gradient(
     closest-side,
-    var(--cx-hero-glow-2),
+    var(--ck-hero-glow-2),
     transparent 70%
   );
   pointer-events: none;
   z-index: 0;
 }
 
-.cx-hero-inner {
+.ck-hero-inner {
   position: relative;
   z-index: 1;
   max-width: min(1080px, calc(100vw - 3rem));
 }
 
-.cx-hero h1 {
+.ck-hero h1 {
   font-size: clamp(2.4rem, 5.4vw, 4.05rem);
   line-height: 1.08;
   margin: 0 0 1.25rem;
@@ -393,26 +393,26 @@ body.cx-marketing .cx-mono {
   text-wrap: balance;
 }
 
-.cx-home-hero {
+.ck-home-hero {
   padding: 1rem 0;
   display: flex;
   flex-direction: column;
 }
 
-.cx-kicker {
+.ck-kicker {
   margin: 0 0 0.4rem;
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
 }
 
-.cx-hero h1 .cx-h1-accent {
+.ck-hero h1 .ck-h1-accent {
   background: linear-gradient(
     115deg,
-    var(--cx-accent) 0%,
-    var(--cx-accent-2) 50%,
-    var(--cx-accent-strong) 100%
+    var(--ck-accent) 0%,
+    var(--ck-accent-2) 50%,
+    var(--ck-accent-strong) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -422,100 +422,100 @@ body.cx-marketing .cx-mono {
   -webkit-text-fill-color: transparent;
 }
 
-.cx-hero p.cx-lead {
+.ck-hero p.ck-lead {
   font-size: 1.18rem;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   max-width: 780px;
   margin: 0 0 1.5rem;
   line-height: 1.55;
 }
 
-.cx-hero-highlights {
+.ck-hero-highlights {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 0.75rem;
   margin: 0 0 1.8rem;
 }
 
-.cx-hero-highlight {
+.ck-hero-highlight {
   padding: 1rem 1rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 10px;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
 }
 
-.cx-hero-highlight h3 {
+.ck-hero-highlight h3 {
   margin: 0 0 0.35rem;
   font-size: 0.96rem;
-  color: var(--cx-fg);
+  color: var(--ck-fg);
 }
 
-.cx-hero-highlight p {
+.ck-hero-highlight p {
   margin: 0;
   font-size: 0.86rem;
   line-height: 1.5;
 }
 
-.cx-feature-grid {
+.ck-feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
 }
 
-.cx-feature-card {
+.ck-feature-card {
   padding: 1.3rem 1.2rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 12px;
 }
 
-.cx-feature-card h3 {
+.ck-feature-card h3 {
   margin: 0 0 0.55rem;
   font-size: 1rem;
   font-weight: 600;
 }
 
-.cx-feature-card p {
+.ck-feature-card p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.9rem;
   line-height: 1.55;
 }
 
-.cx-section-elevated {
+.ck-section-elevated {
   position: relative;
   background:
     radial-gradient(
       900px 480px at 80% 0%,
-      color-mix(in srgb, var(--cx-accent) 7%, transparent),
+      color-mix(in srgb, var(--ck-accent) 7%, transparent),
       transparent 70%
     ),
     linear-gradient(
       to bottom,
       transparent,
-      var(--cx-bg-elevated) 38%,
-      var(--cx-bg-elevated) 100%
+      var(--ck-bg-elevated) 38%,
+      var(--ck-bg-elevated) 100%
     );
-  border-top: 1px solid var(--cx-border);
-  border-bottom: 1px solid var(--cx-border);
+  border-top: 1px solid var(--ck-border);
+  border-bottom: 1px solid var(--ck-border);
 }
 
-.cx-flow {
+.ck-flow {
   display: grid;
   gap: 0.8rem;
 }
 
-.cx-flow-step {
+.ck-flow-step {
   display: flex;
   gap: 0.8rem;
   padding: 1rem 1.1rem;
-  background: var(--cx-bg);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg);
+  border: 1px solid var(--ck-border);
   border-radius: 10px;
 }
 
-.cx-flow-step-no {
+.ck-flow-step-no {
   width: 2.05rem;
   height: 2.05rem;
   border-radius: 999px;
@@ -524,56 +524,56 @@ body.cx-marketing .cx-mono {
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
-  font-family: var(--cx-mono);
-  background: var(--cx-accent-soft);
-  border: 1px solid color-mix(in srgb, var(--cx-accent) 25%, transparent);
-  color: var(--cx-accent);
+  font-family: var(--ck-mono);
+  background: var(--ck-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--ck-accent) 25%, transparent);
+  color: var(--ck-accent);
 }
 
-.cx-flow-body h3 {
+.ck-flow-body h3 {
   margin: 0 0 0.32rem;
   font-size: 1rem;
   font-weight: 600;
 }
 
-.cx-flow-body p {
+.ck-flow-body p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.89rem;
 }
 
-.cx-home-grid-2 {
+.ck-home-grid-2 {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: 1.5rem;
   align-items: start;
 }
 
-.cx-entry-grid {
+.ck-entry-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.7rem;
 }
 
-.cx-resource {
+.ck-resource {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   padding: 1rem 1.1rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 10px;
-  color: var(--cx-fg);
+  color: var(--ck-fg);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.cx-resource:hover {
-  border-color: var(--cx-accent);
-  background: var(--cx-accent-soft);
-  color: var(--cx-fg);
+.ck-resource:hover {
+  border-color: var(--ck-accent);
+  background: var(--ck-accent-soft);
+  color: var(--ck-fg);
 }
 
-.cx-resource-title {
+.ck-resource-title {
   font-weight: 600;
   font-size: 0.98rem;
   display: flex;
@@ -581,31 +581,31 @@ body.cx-marketing .cx-mono {
   gap: 0.4rem;
 }
 
-.cx-resource-desc {
-  color: var(--cx-fg-muted);
+.ck-resource-desc {
+  color: var(--ck-fg-muted);
   font-size: 0.86rem;
 }
 
-.cx-case-list {
+.ck-case-list {
   margin: 0;
   padding: 0 0 0 1.05rem;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   display: grid;
   gap: 0.55rem;
 }
 
-.cx-case-list li {
+.ck-case-list li {
   line-height: 1.6;
   font-size: 0.95rem;
 }
 
-.cx-cta-row {
+.ck-cta-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
 
-.cx-btn {
+.ck-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -617,59 +617,59 @@ body.cx-marketing .cx-mono {
   transition: transform 0.1s ease, background 0.15s ease;
 }
 
-.cx-btn:hover {
+.ck-btn:hover {
   transform: translateY(-1px);
 }
 
-/* Selectors are scoped through `body.cx-marketing` so they out-specify the
- * global `body.cx-marketing a { color: var(--cx-accent) }` link rule. Without
+/* Selectors are scoped through `body.ck-marketing` so they out-specify the
+ * global `body.ck-marketing a { color: var(--ck-accent) }` link rule. Without
  * the extra class on the body selector, the link color wins and the primary
  * button text becomes invisible (text color === background). */
-body.cx-marketing a.cx-btn-primary,
-.cx-btn-primary {
+body.ck-marketing a.ck-btn-primary,
+.ck-btn-primary {
   background: linear-gradient(
     135deg,
-    var(--cx-accent) 0%,
-    var(--cx-accent-2) 100%
+    var(--ck-accent) 0%,
+    var(--ck-accent-2) 100%
   );
-  color: var(--cx-on-accent);
+  color: var(--ck-on-accent);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.18) inset,
-    0 10px 24px -10px color-mix(in srgb, var(--cx-accent) 65%, transparent);
+    0 10px 24px -10px color-mix(in srgb, var(--ck-accent) 65%, transparent);
 }
-body.cx-marketing a.cx-btn-primary:hover,
-.cx-btn-primary:hover {
+body.ck-marketing a.ck-btn-primary:hover,
+.ck-btn-primary:hover {
   background: linear-gradient(
     135deg,
-    var(--cx-accent-strong) 0%,
-    var(--cx-accent-2) 100%
+    var(--ck-accent-strong) 0%,
+    var(--ck-accent-2) 100%
   );
-  color: var(--cx-on-accent);
+  color: var(--ck-on-accent);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.22) inset,
-    0 14px 32px -10px color-mix(in srgb, var(--cx-accent) 80%, transparent);
+    0 14px 32px -10px color-mix(in srgb, var(--ck-accent) 80%, transparent);
 }
 
-body.cx-marketing a.cx-btn-ghost,
-.cx-btn-ghost {
+body.ck-marketing a.ck-btn-ghost,
+.ck-btn-ghost {
   background: transparent;
-  color: var(--cx-fg);
-  border-color: var(--cx-border-strong);
+  color: var(--ck-fg);
+  border-color: var(--ck-border-strong);
 }
-body.cx-marketing a.cx-btn-ghost:hover,
-.cx-btn-ghost:hover {
-  background: var(--cx-bg-overlay);
-  color: var(--cx-fg);
+body.ck-marketing a.ck-btn-ghost:hover,
+.ck-btn-ghost:hover {
+  background: var(--ck-bg-overlay);
+  color: var(--ck-fg);
 }
 
 /* ---------- Sections ---------------------------------------------------- */
 
-section.cx-section {
+section.ck-section {
   padding: 4rem 0;
-  border-top: 1px solid var(--cx-border);
+  border-top: 1px solid var(--ck-border);
 }
 
-.cx-section-head {
+.ck-section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -678,229 +678,229 @@ section.cx-section {
   margin-bottom: 2rem;
 }
 
-.cx-section-head h2 {
+.ck-section-head h2 {
   font-size: 1.7rem;
   margin: 0;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-.cx-section-head p {
+.ck-section-head p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.95rem;
 }
 
 /* ---------- Intro three-column ----------------------------------------- */
 
-.cx-pillars {
+.ck-pillars {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.25rem;
 }
 
-.cx-pillar {
+.ck-pillar {
   padding: 1.5rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 12px;
 }
 
-.cx-pillar h3 {
+.ck-pillar h3 {
   margin: 0 0 0.5rem;
   font-size: 1.05rem;
   font-weight: 600;
 }
 
-.cx-pillar p {
+.ck-pillar p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.93rem;
   line-height: 1.55;
 }
 
 /* ---------- Concept grid ----------------------------------------------- */
 
-.cx-concepts {
+.ck-concepts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1rem;
 }
 
-.cx-concept {
+.ck-concept {
   padding: 1.25rem 1.4rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 12px;
   position: relative;
   overflow: hidden;
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
-.cx-concept:hover {
-  border-color: var(--cx-border-strong);
+.ck-concept:hover {
+  border-color: var(--ck-border-strong);
   transform: translateY(-2px);
 }
 
-.cx-concept-tag {
-  font-family: var(--cx-mono);
+.ck-concept-tag {
+  font-family: var(--ck-mono);
   font-size: 0.75rem;
-  color: var(--cx-accent);
+  color: var(--ck-accent);
   letter-spacing: 0.02em;
   margin-bottom: 0.4rem;
 }
 
-.cx-concept h3 {
+.ck-concept h3 {
   margin: 0 0 0.4rem;
   font-size: 1rem;
   font-weight: 600;
 }
 
-.cx-concept p {
+.ck-concept p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.88rem;
   line-height: 1.55;
 }
 
 /* ---------- Ecosystem page --------------------------------------------- */
 
-.cx-eco-grid {
+.ck-eco-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
 }
 
-.cx-eco-card {
+.ck-eco-card {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.25rem 1.4rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 12px;
-  color: var(--cx-fg);
+  color: var(--ck-fg);
   transition:
     border-color 0.15s ease,
     transform 0.15s ease,
     background 0.15s ease;
 }
 
-.cx-eco-card--link:hover {
-  border-color: var(--cx-accent);
-  background: var(--cx-accent-soft);
-  color: var(--cx-fg);
+.ck-eco-card--link:hover {
+  border-color: var(--ck-accent);
+  background: var(--ck-accent-soft);
+  color: var(--ck-fg);
   transform: translateY(-2px);
 }
 
-.cx-eco-card-head {
+.ck-eco-card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.cx-eco-name {
-  font-family: var(--cx-mono);
+.ck-eco-name {
+  font-family: var(--ck-mono);
   font-size: 1rem;
   font-weight: 600;
-  color: var(--cx-fg);
+  color: var(--ck-fg);
   letter-spacing: -0.01em;
 }
 
-.cx-eco-tag {
-  font-family: var(--cx-mono);
+.ck-eco-tag {
+  font-family: var(--ck-mono);
   font-size: 0.74rem;
-  color: var(--cx-accent);
+  color: var(--ck-accent);
   letter-spacing: 0.02em;
 }
 
-.cx-eco-body {
+.ck-eco-body {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
-.cx-eco-more {
+.ck-eco-more {
   margin-top: 0.2rem;
   font-size: 0.85rem;
-  color: var(--cx-accent);
+  color: var(--ck-accent);
 }
 
-.cx-eco-status {
+.ck-eco-status {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-family: var(--cx-mono);
+  font-family: var(--ck-mono);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.18rem 0.5rem;
   border-radius: 999px;
-  background: var(--cx-bg-overlay);
-  border: 1px solid var(--cx-border);
-  color: var(--cx-fg-muted);
+  background: var(--ck-bg-overlay);
+  border: 1px solid var(--ck-border);
+  color: var(--ck-fg-muted);
   white-space: nowrap;
 }
 
-.cx-eco-status-dot {
+.ck-eco-status-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
 
-.cx-eco-status--stable {
-  color: var(--cx-success);
-  border-color: color-mix(in srgb, var(--cx-success) 35%, transparent);
-  background: color-mix(in srgb, var(--cx-success) 12%, transparent);
+.ck-eco-status--stable {
+  color: var(--ck-success);
+  border-color: color-mix(in srgb, var(--ck-success) 35%, transparent);
+  background: color-mix(in srgb, var(--ck-success) 12%, transparent);
 }
 
-.cx-eco-status--wip {
-  color: var(--cx-accent);
-  border-color: color-mix(in srgb, var(--cx-accent) 35%, transparent);
-  background: var(--cx-accent-soft);
+.ck-eco-status--wip {
+  color: var(--ck-accent);
+  border-color: color-mix(in srgb, var(--ck-accent) 35%, transparent);
+  background: var(--ck-accent-soft);
 }
 
-.cx-eco-status--planned {
-  color: var(--cx-fg-muted);
+.ck-eco-status--planned {
+  color: var(--ck-fg-muted);
 }
 
 /* ---------- Footer ------------------------------------------------------ */
 
-.cx-foot {
-  border-top: 1px solid var(--cx-border);
+.ck-foot {
+  border-top: 1px solid var(--ck-border);
   padding: 2.5rem 0 3rem;
   margin-top: 4rem;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.88rem;
 }
 
-.cx-foot-row {
+.ck-foot-row {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.cx-foot a {
-  color: var(--cx-fg-muted);
+.ck-foot a {
+  color: var(--ck-fg-muted);
 }
-.cx-foot a:hover {
-  color: var(--cx-fg);
+.ck-foot a:hover {
+  color: var(--ck-fg);
 }
 
 /* ---------- Hero eyebrow + stats --------------------------------------- */
 
-.cx-hero-eyebrow {
+.ck-hero-eyebrow {
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
   margin: 0 0 1.5rem;
 }
 
-.cx-pill {
+.ck-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -908,33 +908,33 @@ section.cx-section {
   font-size: 0.78rem;
   letter-spacing: 0.02em;
   border-radius: 999px;
-  border: 1px solid var(--cx-border);
-  background: var(--cx-bg-elevated);
-  color: var(--cx-fg-muted);
+  border: 1px solid var(--ck-border);
+  background: var(--ck-bg-elevated);
+  color: var(--ck-fg-muted);
 }
 
-.cx-pill--accent {
-  color: var(--cx-accent);
-  border-color: color-mix(in srgb, var(--cx-accent) 35%, transparent);
-  background: var(--cx-accent-soft);
+.ck-pill--accent {
+  color: var(--ck-accent);
+  border-color: color-mix(in srgb, var(--ck-accent) 35%, transparent);
+  background: var(--ck-accent-soft);
 }
 
-.cx-pill--license {
-  color: var(--cx-fg);
+.ck-pill--license {
+  color: var(--ck-fg);
 }
 
-.cx-pill-mono {
-  font-family: var(--cx-mono);
+.ck-pill-mono {
+  font-family: var(--ck-mono);
   font-size: 0.74rem;
   font-weight: 600;
   padding: 0.1rem 0.45rem;
   border-radius: 4px;
-  background: var(--cx-fg);
-  color: var(--cx-bg);
+  background: var(--ck-fg);
+  color: var(--ck-bg);
   letter-spacing: 0.04em;
 }
 
-.cx-pill-dot {
+.ck-pill-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -942,106 +942,106 @@ section.cx-section {
   box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 18%, transparent);
 }
 
-.cx-hero-stats {
+.ck-hero-stats {
   margin: 2rem 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0;
-  border: 1px solid var(--cx-border);
+  border: 1px solid var(--ck-border);
   border-radius: 14px;
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--cx-bg-elevated) 85%, transparent),
-      var(--cx-bg-elevated)
+      color-mix(in srgb, var(--ck-bg-elevated) 85%, transparent),
+      var(--ck-bg-elevated)
     );
   backdrop-filter: blur(8px);
   overflow: hidden;
   max-width: 760px;
-  box-shadow: var(--cx-shadow-card);
+  box-shadow: var(--ck-shadow-card);
 }
 
-.cx-hero-stat {
+.ck-hero-stat {
   padding: 1rem 1.2rem;
-  border-right: 1px solid var(--cx-border);
+  border-right: 1px solid var(--ck-border);
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
 
-.cx-hero-stat:last-child {
+.ck-hero-stat:last-child {
   border-right: none;
 }
 
-.cx-hero-stat dt {
-  font-family: var(--cx-mono);
+.ck-hero-stat dt {
+  font-family: var(--ck-mono);
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--cx-fg);
+  color: var(--ck-fg);
   letter-spacing: -0.01em;
 }
 
-.cx-hero-stat dd {
+.ck-hero-stat dd {
   margin: 0;
   font-size: 0.78rem;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   letter-spacing: 0.02em;
 }
 
 /* ---------- Section head refinements ----------------------------------- */
 
-.cx-section-tight {
+.ck-section-tight {
   padding: 4rem 0 3.5rem;
 }
 
-.cx-section-tag {
+.ck-section-tag {
   display: inline-block;
-  font-family: var(--cx-mono);
+  font-family: var(--ck-mono);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--cx-accent);
+  color: var(--ck-accent);
   margin-bottom: 0.55rem;
 }
 
-.cx-section-sub {
+.ck-section-sub {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.95rem;
   max-width: 420px;
 }
 
-.cx-section-head--stack {
+.ck-section-head--stack {
   display: block;
   margin-bottom: 1.4rem;
 }
 
-.cx-section-head--stack h2 {
+.ck-section-head--stack h2 {
   font-size: 1.35rem;
   margin: 0;
 }
 
 /* ---------- Pillar grid (refined) -------------------------------------- */
 
-.cx-pillar-grid {
+.ck-pillar-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 0.9rem;
 }
 
-.cx-pillar-card {
+.ck-pillar-card {
   position: relative;
   padding: 1.5rem 1.5rem 1.6rem;
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--cx-bg-elevated) 92%, transparent) 0%,
-      var(--cx-bg-elevated) 100%
+      color-mix(in srgb, var(--ck-bg-elevated) 92%, transparent) 0%,
+      var(--ck-bg-elevated) 100%
     );
-  border: 1px solid var(--cx-border);
+  border: 1px solid var(--ck-border);
   border-radius: 16px;
-  box-shadow: var(--cx-shadow-card);
+  box-shadow: var(--ck-shadow-card);
   transition:
     border-color 0.2s ease,
     transform 0.2s ease,
@@ -1050,13 +1050,13 @@ section.cx-section {
   isolation: isolate;
 }
 
-.cx-pillar-card::after {
+.ck-pillar-card::after {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
     180px 120px at 100% 0%,
-    color-mix(in srgb, var(--cx-accent) 14%, transparent),
+    color-mix(in srgb, var(--ck-accent) 14%, transparent),
     transparent 70%
   );
   opacity: 0;
@@ -1065,47 +1065,47 @@ section.cx-section {
   z-index: -1;
 }
 
-.cx-pillar-card:hover {
-  border-color: color-mix(in srgb, var(--cx-accent) 45%, transparent);
+.ck-pillar-card:hover {
+  border-color: color-mix(in srgb, var(--ck-accent) 45%, transparent);
   transform: translateY(-2px);
-  box-shadow: var(--cx-shadow-card-hover);
+  box-shadow: var(--ck-shadow-card-hover);
 }
 
-.cx-pillar-card:hover::after {
+.ck-pillar-card:hover::after {
   opacity: 1;
 }
 
-.cx-pillar-mark {
+.ck-pillar-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.25rem 0.55rem;
-  font-family: var(--cx-mono);
+  font-family: var(--ck-mono);
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   border-radius: 6px;
-  background: var(--cx-accent-soft);
-  color: var(--cx-accent);
+  background: var(--ck-accent-soft);
+  color: var(--ck-accent);
   margin-bottom: 0.85rem;
 }
 
-.cx-pillar-card h3 {
+.ck-pillar-card h3 {
   margin: 0 0 0.55rem;
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-.cx-pillar-card p {
+.ck-pillar-card p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.92rem;
   line-height: 1.62;
 }
 
 /* ---------- Flow rail (refined) ---------------------------------------- */
 
-.cx-flow-rail {
+.ck-flow-rail {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1114,109 +1114,109 @@ section.cx-section {
   gap: 1rem;
 }
 
-.cx-flow-node {
+.ck-flow-node {
   position: relative;
   padding: 1.35rem 1.3rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 14px;
-  box-shadow: var(--cx-shadow-card);
+  box-shadow: var(--ck-shadow-card);
   transition:
     border-color 0.2s ease,
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
 
-.cx-flow-node:hover {
-  border-color: color-mix(in srgb, var(--cx-accent) 35%, transparent);
+.ck-flow-node:hover {
+  border-color: color-mix(in srgb, var(--ck-accent) 35%, transparent);
   transform: translateY(-2px);
-  box-shadow: var(--cx-shadow-card-hover);
+  box-shadow: var(--ck-shadow-card-hover);
 }
 
-.cx-flow-node-head {
+.ck-flow-node-head {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 0.85rem;
 }
 
-.cx-flow-connector {
+.ck-flow-connector {
   flex: 1;
   height: 1px;
   background: linear-gradient(
     to right,
-    color-mix(in srgb, var(--cx-accent) 50%, transparent),
+    color-mix(in srgb, var(--ck-accent) 50%, transparent),
     transparent
   );
 }
 
-.cx-flow-node h3 {
+.ck-flow-node h3 {
   margin: 0 0 0.4rem;
   font-size: 1rem;
   font-weight: 600;
 }
 
-.cx-flow-node p {
+.ck-flow-node p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.88rem;
   line-height: 1.55;
 }
 
 /* ---------- Pain points grid ------------------------------------------- */
 
-.cx-pain-grid {
+.ck-pain-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 0.9rem;
 }
 
-.cx-pain-card {
+.ck-pain-card {
   position: relative;
   padding: 1.5rem 1.5rem 1.6rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--cx-shadow-card);
+  box-shadow: var(--ck-shadow-card);
   transition:
     border-color 0.2s ease,
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
 
-.cx-pain-card::before {
+.ck-pain-card::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
   height: 2px;
   background: linear-gradient(
     to right,
-    var(--cx-accent),
+    var(--ck-accent),
     transparent 70%
   );
   opacity: 0.6;
 }
 
-.cx-pain-card:hover {
-  border-color: color-mix(in srgb, var(--cx-accent) 40%, transparent);
+.ck-pain-card:hover {
+  border-color: color-mix(in srgb, var(--ck-accent) 40%, transparent);
   transform: translateY(-2px);
-  box-shadow: var(--cx-shadow-card-hover);
+  box-shadow: var(--ck-shadow-card-hover);
 }
 
-.cx-pain-tag {
+.ck-pain-tag {
   display: inline-block;
-  font-family: var(--cx-mono);
+  font-family: var(--ck-mono);
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
-  background: var(--cx-accent-soft);
-  color: var(--cx-accent);
+  background: var(--ck-accent-soft);
+  color: var(--ck-accent);
   margin-bottom: 0.75rem;
 }
 
-.cx-pain-card h3 {
+.ck-pain-card h3 {
   margin: 0 0 0.55rem;
   font-size: 1.02rem;
   font-weight: 600;
@@ -1224,41 +1224,41 @@ section.cx-section {
   line-height: 1.35;
 }
 
-.cx-pain-card p {
+.ck-pain-card p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.9rem;
   line-height: 1.62;
 }
 
 /* ---------- Open source banner (single concise callout) ---------------- */
 
-.cx-section-os {
+.ck-section-os {
   padding: 2.5rem 0;
 }
 
-.cx-os-banner {
+.ck-os-banner {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 2rem;
   align-items: center;
   padding: 1.8rem 2rem;
   border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--cx-accent) 28%, var(--cx-border));
+  border: 1px solid color-mix(in srgb, var(--ck-accent) 28%, var(--ck-border));
   background:
     radial-gradient(
       circle at 0% 0%,
-      color-mix(in srgb, var(--cx-accent) 10%, transparent),
+      color-mix(in srgb, var(--ck-accent) 10%, transparent),
       transparent 60%
     ),
-    var(--cx-bg-elevated);
-  color: var(--cx-fg);
+    var(--ck-bg-elevated);
+  color: var(--ck-fg);
   position: relative;
   overflow: hidden;
   transition: border-color 0.18s ease, transform 0.18s ease;
 }
 
-.cx-os-banner::after {
+.ck-os-banner::after {
   content: "";
   position: absolute;
   right: -100px;
@@ -1267,46 +1267,46 @@ section.cx-section {
   height: 280px;
   background: radial-gradient(
     closest-side,
-    color-mix(in srgb, var(--cx-accent) 16%, transparent),
+    color-mix(in srgb, var(--ck-accent) 16%, transparent),
     transparent 70%
   );
   pointer-events: none;
 }
 
-body.cx-marketing a.cx-os-banner:hover {
-  color: var(--cx-fg);
-  border-color: color-mix(in srgb, var(--cx-accent) 50%, transparent);
+body.ck-marketing a.ck-os-banner:hover {
+  color: var(--ck-fg);
+  border-color: color-mix(in srgb, var(--ck-accent) 50%, transparent);
   transform: translateY(-1px);
 }
 
-.cx-os-banner-text {
+.ck-os-banner-text {
   position: relative;
   z-index: 1;
 }
 
-.cx-os-banner-text h2 {
+.ck-os-banner-text h2 {
   margin: 0 0 0.55rem;
   font-size: clamp(1.25rem, 2vw, 1.55rem);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-.cx-os-banner-text p {
+.ck-os-banner-text p {
   margin: 0;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   font-size: 0.92rem;
   line-height: 1.6;
   max-width: 720px;
 }
 
-.cx-os-banner-cta {
+.ck-os-banner-cta {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.7rem 1.2rem;
   border-radius: 999px;
-  background: var(--cx-accent);
-  color: var(--cx-on-accent);
+  background: var(--ck-accent);
+  color: var(--ck-on-accent);
   font-weight: 500;
   font-size: 0.94rem;
   position: relative;
@@ -1315,54 +1315,54 @@ body.cx-marketing a.cx-os-banner:hover {
   transition: background 0.18s ease;
 }
 
-body.cx-marketing a.cx-os-banner:hover .cx-os-banner-cta {
-  background: var(--cx-accent-strong);
+body.ck-marketing a.ck-os-banner:hover .ck-os-banner-cta {
+  background: var(--ck-accent-strong);
 }
 
 /* ---------- Resource cards (refined) ----------------------------------- */
 
-.cx-resource {
+.ck-resource {
   position: relative;
   padding: 1.1rem 1.2rem;
 }
 
-.cx-resource-row {
+.ck-resource-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
 }
 
-.cx-resource-badge {
-  font-family: var(--cx-mono);
+.ck-resource-badge {
+  font-family: var(--ck-mono);
   font-size: 0.7rem;
   letter-spacing: 0.04em;
   padding: 0.12rem 0.45rem;
   border-radius: 4px;
-  background: var(--cx-bg);
-  border: 1px solid var(--cx-border);
-  color: var(--cx-fg-muted);
+  background: var(--ck-bg);
+  border: 1px solid var(--ck-border);
+  color: var(--ck-fg-muted);
 }
 
-.cx-resource-arrow {
+.ck-resource-arrow {
   position: absolute;
   right: 1.2rem;
   bottom: 1rem;
-  color: var(--cx-accent);
+  color: var(--ck-accent);
   font-size: 0.95rem;
   opacity: 0;
   transform: translateX(-4px);
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
-.cx-resource:hover .cx-resource-arrow {
+.ck-resource:hover .ck-resource-arrow {
   opacity: 1;
   transform: translateX(0);
 }
 
 /* ---------- Use case grid ---------------------------------------------- */
 
-.cx-case-grid {
+.ck-case-grid {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1371,39 +1371,39 @@ body.cx-marketing a.cx-os-banner:hover .cx-os-banner-cta {
   gap: 0.55rem;
 }
 
-.cx-case-grid li {
+.ck-case-grid li {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   padding: 0.85rem 1rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
+  background: var(--ck-bg-elevated);
+  border: 1px solid var(--ck-border);
   border-radius: 10px;
-  color: var(--cx-fg);
+  color: var(--ck-fg);
 }
 
-.cx-case-grid li > div {
+.ck-case-grid li > div {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
   flex: 1;
 }
 
-.cx-case-grid strong {
+.ck-case-grid strong {
   font-size: 0.94rem;
   font-weight: 600;
-  color: var(--cx-fg);
+  color: var(--ck-fg);
 }
 
-.cx-case-grid li > div span {
+.ck-case-grid li > div span {
   font-size: 0.84rem;
-  color: var(--cx-fg-muted);
+  color: var(--ck-fg-muted);
   line-height: 1.5;
 }
 
-.cx-case-mark {
-  font-family: var(--cx-mono);
-  color: var(--cx-accent);
+.ck-case-mark {
+  font-family: var(--ck-mono);
+  color: var(--ck-accent);
   font-size: 0.95rem;
   margin-top: 0.05rem;
 }
@@ -1411,83 +1411,83 @@ body.cx-marketing a.cx-os-banner:hover .cx-os-banner-cta {
 /* ---------- Responsive -------------------------------------------------- */
 
 @media (max-width: 960px) {
-  .cx-flow-rail {
+  .ck-flow-rail {
     grid-template-columns: repeat(2, 1fr);
   }
-  .cx-stack-tier {
+  .ck-stack-tier {
     grid-template-columns: 1fr;
   }
-  .cx-stack-tier-head {
+  .ck-stack-tier-head {
     position: static;
   }
-  .cx-stack-banner {
+  .ck-stack-banner {
     grid-template-columns: 1fr;
     align-items: start;
   }
-  .cx-stack-banner-meta {
+  .ck-stack-banner-meta {
     align-items: flex-start;
   }
-  .cx-license-callout {
+  .ck-license-callout {
     grid-template-columns: 1fr;
     text-align: left;
   }
 }
 
 @media (max-width: 720px) {
-  .cx-nav-row {
+  .ck-nav-row {
     gap: 1rem;
   }
-  .cx-nav-links {
+  .ck-nav-links {
     gap: 0.9rem;
   }
-  .cx-nav-tools {
+  .ck-nav-tools {
     /* Keep theme toggle visible even on small screens; hide GitHub label only. */
     gap: 0.4rem;
   }
-  .cx-nav-links li:nth-last-child(-n + 2) span[aria-disabled="true"] .cx-soon {
+  .ck-nav-links li:nth-last-child(-n + 2) span[aria-disabled="true"] .ck-soon {
     display: none;
   }
-  .cx-hero {
+  .ck-hero {
     padding: 3.5rem 0 2.5rem;
   }
-  section.cx-section {
+  section.ck-section {
     padding: 3rem 0;
   }
-  .cx-feature-grid {
+  .ck-feature-grid {
     grid-template-columns: 1fr;
   }
-  .cx-flow-step {
+  .ck-flow-step {
     gap: 0.6rem;
   }
-  .cx-home-grid-2 {
+  .ck-home-grid-2 {
     grid-template-columns: 1fr;
   }
-  .cx-home-hero {
+  .ck-home-hero {
     padding-top: 0.2rem;
   }
-  .cx-hero-inner {
+  .ck-hero-inner {
     max-width: 100%;
   }
-  .cx-hero-stats {
+  .ck-hero-stats {
     grid-template-columns: 1fr;
   }
-  .cx-hero-stat {
+  .ck-hero-stat {
     border-right: none;
-    border-bottom: 1px solid var(--cx-border);
+    border-bottom: 1px solid var(--ck-border);
   }
-  .cx-hero-stat:last-child {
+  .ck-hero-stat:last-child {
     border-bottom: none;
   }
-  .cx-flow-rail {
+  .ck-flow-rail {
     grid-template-columns: 1fr;
   }
-  .cx-stack-banner {
+  .ck-stack-banner {
     padding: 1.5rem;
   }
-  .cx-stack-tier {
+  .ck-stack-tier {
     padding: 1.2rem;
   }
-  .cx-license-callout {
+  .ck-license-callout {
     padding: 1.5rem;
   }
 }

@@ -14,20 +14,20 @@ interface Props {
 const { label, href } = Astro.props;
 ---
 
-<p class="cx-breadcrumb">
+<p class="ck-breadcrumb">
   <a href={href}>← {label}</a>
 </p>
 
 <style>
-  .cx-breadcrumb {
+  .ck-breadcrumb {
     margin: 0 0 0.5rem;
     font-size: 0.85rem;
   }
-  .cx-breadcrumb a {
+  .ck-breadcrumb a {
     color: var(--sl-color-gray-3);
     text-decoration: none;
   }
-  .cx-breadcrumb a:hover {
+  .ck-breadcrumb a:hover {
     color: var(--sl-color-text-accent);
     text-decoration: underline;
   }

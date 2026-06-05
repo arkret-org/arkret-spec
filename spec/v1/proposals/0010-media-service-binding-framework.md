@@ -252,7 +252,7 @@ inject_frame_key(key_bytes: 32-byte secret,
                  rotation_trigger: enum{member_join,member_leave,manual,scheduled})
 ```
 
-- `key_bytes` MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`Context = ""`，`KDF.Nh` 长度 32 bytes）。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking 改动，必须开新 profile。
+- `key_bytes` MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ck-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`Context = ""`，`KDF.Nh` 长度 32 bytes）。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking 改动，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
 - backend SDK / adapter 内部如何把该 key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 [`webrtc-signaling.md` §10.3.1](../zh/crypto-media/webrtc-signaling.md) 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
 - Conformance negative vector：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
@@ -286,7 +286,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 
 1. Backend recording component 把录制结果作为加密 blob **上传到 Cokret media service**（通过 [`media-and-blob.md`](../zh/crypto-media/media-and-blob.md) 的 authenticated upload 端点），不得自行托管。
 2. 上传请求 MUST 携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `call.record` 的 actor 发起。
-3. 录制 artifact 加密 key MUST 由 Cokret 协议层提供（与 §4.5.1 同源），backend 不持久化明文。Artifact encryption key MUST come from MLS exporter label `"cx-rtc-recording-key/v1"` with `Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`; it MUST NOT reuse SFrame label `"cx-rtc-frame-key/v1"` or an empty Context。
+3. 录制 artifact 加密 key MUST 由 Cokret 协议层提供（与 §4.5.1 同源），backend 不持久化明文。Artifact encryption key MUST come from MLS exporter label `"ck-rtc-recording-key/v1"` with `Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`; it MUST NOT reuse SFrame label `"ck-rtc-frame-key/v1"` or an empty Context。
 4. 入库后通过已注册的 `ck.call.state` 写入 call lifecycle state（例如 `state="recording_ready"` / `state="recording_failed"`），并在 payload 中引用 blob hash、duration、media type、retention policy 和 `recording_start_event_id`。v1 不新增 `ck.call.recording.artifact` event kind。
 
 这保证 backend 是"录制执行单元"而非"录制档案库"，audit 链与生命周期管控不被 backend 实现细节绕过。
@@ -304,7 +304,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 - `ck.vector.media_binding.e2ee_key_source.v1` — backend 即使支持自家 E2EE，密钥源 MUST 来自 Cokret MLS exporter；backend 自生成 key 时客户端拒绝。
 - `ck.vector.media_binding.participant_identity_unrecognised.v1` — backend 通知 join 的 participant 不在 `ck.call.state` 时客户端拒绝该流。
 - `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1` — backend-generated recording 必须通过 Cokret blob pipeline 入库，并用 `ck.call.state` 发布结果；绕过路径拒绝。
-- `ck.vector.media_binding.recording_exporter_label.v1` — recording key 必须使用 `"cx-rtc-recording-key/v1"` 与 recording transcript Context；复用 SFrame label 或空 Context 必须拒绝。
+- `ck.vector.media_binding.recording_exporter_label.v1` — recording key 必须使用 `"ck-rtc-recording-key/v1"` 与 recording transcript Context；复用 SFrame label 或空 Context 必须拒绝。
 
 ## 5. Interactions with normative spec
 
@@ -349,11 +349,11 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 - **Token TTL**：MUST ≤ 600s，SHOULD ≤ 300s（§4.2）。
 - **Token issuer DID 锚定**：必须等于 Realm-configured `ck.realm.media_service.service_id`（§4.2）。
 - **Focus health check**：可选 `health_endpoint` 只参与 pre-commit 排序；`session_focus` 写入后不得静默 fallback（§4.1 / §4.3）。
-- **Backend-native E2EE 密钥来源**：MUST 来自 Cokret MLS exporter，固定客户端侧接口 `inject_frame_key(key_bytes, epoch_id, rotation_trigger)`，MLS-Exporter label 固定为 `"cx-rtc-frame-key/v1"`、context 空、`KDF.Nh=32`（§4.5.1）。
+- **Backend-native E2EE 密钥来源**：MUST 来自 Cokret MLS exporter，固定客户端侧接口 `inject_frame_key(key_bytes, epoch_id, rotation_trigger)`，MLS-Exporter label 固定为 `"ck-rtc-frame-key/v1"`、context 空、`KDF.Nh=32`（§4.5.1）。
 - **遗留单 endpoint 形态**：v1 cycle 内 SHOULD 接受并 normalize 为 `foci=[{type:"cokret-native",...}]`；v1.1 起 `failed_precondition` `reason="legacy_single_endpoint_media_service"`（§5）。
 - **Participant identity 交叉校验**：客户端 MUST 校验 backend 通知的 participant 与 `ck.call.state` 中的 signed `participant_binding` 一致（§4.5.2）。
 - **MoQ 保留位**：v1 schema 接受 `type: "moq-relay"`，但 v1 周期内不提供 normative binding（§4.1）。
-- **Recording artifact**：backend 可执行录制，但 artifact MUST 经 Cokret blob pipeline 入库，加密 key 来自协议层 MLS exporter label `"cx-rtc-recording-key/v1"`，结果通过 `ck.call.state` 发布，不新增 `ck.call.recording.artifact` event（§4.7）。
+- **Recording artifact**：backend 可执行录制，但 artifact MUST 经 Cokret blob pipeline 入库，加密 key 来自协议层 MLS exporter label `"ck-rtc-recording-key/v1"`，结果通过 `ck.call.state` 发布，不新增 `ck.call.recording.artifact` event（§4.7）。
 - **Focus migration**：v1 不提供在线 focus 切换；session 持续到所有人离开（§4.3）。
 
 ## 9. Migration plan（historical; completed）

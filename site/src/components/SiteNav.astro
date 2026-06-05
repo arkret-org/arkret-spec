@@ -34,20 +34,20 @@ function isActive(href: string): boolean {
 }
 ---
 
-<nav class={`cx-nav cx-nav--${variant}`} aria-label="Site">
-  <div class="cx-shell cx-nav-row">
-    <a href="/" class="cx-brand">
-      <span class="cx-brand-mark" aria-hidden="true"></span>
+<nav class={`ck-nav ck-nav--${variant}`} aria-label="Site">
+  <div class="ck-shell ck-nav-row">
+    <a href="/" class="ck-brand">
+      <span class="ck-brand-mark" aria-hidden="true"></span>
       <span>Cokret</span>
     </a>
-    <ul class="cx-nav-links">
+    <ul class="ck-nav-links">
       {
         navItems.map((item) =>
           item.href === undefined ? (
             <li>
               <span aria-disabled="true">
                 {item.label}
-                <span class="cx-soon">soon</span>
+                <span class="ck-soon">soon</span>
               </span>
             </li>
           ) : (
@@ -63,7 +63,7 @@ function isActive(href: string): boolean {
         )
       }
     </ul>
-    <div class="cx-nav-tools">
+    <div class="ck-nav-tools">
       <slot name="tools" />
     </div>
   </div>

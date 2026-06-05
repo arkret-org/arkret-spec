@@ -27,7 +27,7 @@ function categoryLabel(name: string): string {
   </p>
   <p>所有 active <code>ck.*</code> Event.kind。点击任意条目进入详情页。</p>
 
-  <nav class="cx-category-jump" aria-label="Event categories">
+  <nav class="ck-category-jump" aria-label="Event categories">
     <strong>Jump to category:</strong>
     <ul>
       {
@@ -55,7 +55,7 @@ function categoryLabel(name: string): string {
 </StarlightPage>
 
 <style is:global>
-  .cx-category-jump {
+  .ck-category-jump {
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.5rem;
     padding: 0.6rem 0.85rem;
@@ -63,10 +63,10 @@ function categoryLabel(name: string): string {
     margin: 0.75rem 0 1.5rem;
     font-size: 0.9rem;
   }
-  .cx-category-jump strong {
+  .ck-category-jump strong {
     margin-right: 0.5rem;
   }
-  .cx-category-jump ul {
+  .ck-category-jump ul {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem 0.6rem;
@@ -74,7 +74,7 @@ function categoryLabel(name: string): string {
     padding: 0;
     margin: 0.4rem 0 0;
   }
-  .cx-category-jump a {
+  .ck-category-jump a {
     display: inline-flex;
     align-items: center;
     padding: 0.15rem 0.5rem;
@@ -84,7 +84,7 @@ function categoryLabel(name: string): string {
     text-decoration: none;
     color: var(--sl-color-text);
   }
-  .cx-category-jump a:hover {
+  .ck-category-jump a:hover {
     border-color: var(--sl-color-text-accent);
     color: var(--sl-color-text-accent);
   }

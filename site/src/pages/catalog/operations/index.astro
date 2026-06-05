@@ -11,7 +11,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     · interactive HTTP shape: <a href="/openapi/">/openapi/</a>
   </p>
 
-  <nav class="cx-surface-jump" aria-label="Surface groups">
+  <nav class="ck-surface-jump" aria-label="Surface groups">
     <strong>Jump to surface:</strong>
     <ul>
       {
@@ -19,7 +19,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
           <li>
             <a href={`#surface-${group.surface}`} data-tier={group.tier}>
               <code>{group.surface}</code>
-              <span class="cx-surface-tier">{group.tier}</span>
+              <span class="ck-surface-tier">{group.tier}</span>
             </a>
           </li>
         ))
@@ -37,7 +37,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
 </StarlightPage>
 
 <style is:global>
-  .cx-surface-jump {
+  .ck-surface-jump {
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.5rem;
     padding: 0.6rem 0.85rem;
@@ -45,10 +45,10 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     margin: 0.75rem 0 1.5rem;
     font-size: 0.9rem;
   }
-  .cx-surface-jump strong {
+  .ck-surface-jump strong {
     margin-right: 0.5rem;
   }
-  .cx-surface-jump ul {
+  .ck-surface-jump ul {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem 0.6rem;
@@ -56,7 +56,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     padding: 0;
     margin: 0.4rem 0 0;
   }
-  .cx-surface-jump a {
+  .ck-surface-jump a {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -67,11 +67,11 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     text-decoration: none;
     color: var(--sl-color-text);
   }
-  .cx-surface-jump a:hover {
+  .ck-surface-jump a:hover {
     border-color: var(--sl-color-text-accent);
     color: var(--sl-color-text-accent);
   }
-  .cx-surface-jump .cx-surface-tier {
+  .ck-surface-jump .ck-surface-tier {
     font-size: 0.72rem;
     padding: 0 0.35rem;
     border-radius: 999px;
@@ -80,15 +80,15 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
-  .cx-surface-jump a[data-tier="extension"] .cx-surface-tier {
+  .ck-surface-jump a[data-tier="extension"] .ck-surface-tier {
     background: color-mix(in srgb, #d97706 22%, transparent);
     color: #d97706;
   }
-  .cx-surface-jump a[data-tier="interop_bridge"] .cx-surface-tier {
+  .ck-surface-jump a[data-tier="interop_bridge"] .ck-surface-tier {
     background: color-mix(in srgb, #0d9488 22%, transparent);
     color: #0d9488;
   }
-  .cx-surface-jump a[data-tier="deployment_local"] .cx-surface-tier {
+  .ck-surface-jump a[data-tier="deployment_local"] .ck-surface-tier {
     background: color-mix(in srgb, #6b46c1 22%, transparent);
     color: #6b46c1;
   }

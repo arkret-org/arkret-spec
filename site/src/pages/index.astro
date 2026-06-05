@@ -154,41 +154,41 @@ const useCases = [
 ---
 
 <MarketingLayout>
-  <section class="cx-hero">
-    <div class="cx-shell cx-hero-inner cx-home-hero">
-      <div class="cx-hero-eyebrow">
-        <span class="cx-pill cx-pill--accent">
-          <span class="cx-pill-dot" aria-hidden="true"></span>
+  <section class="ck-hero">
+    <div class="ck-shell ck-hero-inner ck-home-hero">
+      <div class="ck-hero-eyebrow">
+        <span class="ck-pill ck-pill--accent">
+          <span class="ck-pill-dot" aria-hidden="true"></span>
           {specReleaseTag} · {specReleaseLabel}
         </span>
-        <span class="cx-pill cx-pill--license">
-          <span class="cx-pill-mono">Apache 2.0</span>
+        <span class="ck-pill ck-pill--license">
+          <span class="ck-pill-mono">Apache 2.0</span>
           全栈开源 · 商业友好
         </span>
       </div>
       <h1>
         给协作软件的一层<br />
-        <span class="cx-h1-accent">可验证事实协议</span>
+        <span class="ck-h1-accent">可验证事实协议</span>
       </h1>
-      <p class="cx-lead">
+      <p class="ck-lead">
         Cokret 定义消息、任务、文档、关系和 Agent 行为在网络中的共同真相：
         <strong>谁创建</strong>、<strong>基于什么授权</strong>、
         <strong>处于哪个 Space</strong>、<strong>受哪个加密 epoch 保护</strong>。
         它不是聊天 UI, 也不是区块链；它是一套事件、身份、授权、E2EE 和同步规范，
         让不同实现可以共享同一份可验证协作历史。
       </p>
-      <div class="cx-cta-row">
-        <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">
+      <div class="ck-cta-row">
+        <a class="ck-btn ck-btn-primary" href="/zh/v1/spec-map/">
           开始阅读规范
           <span aria-hidden="true">→</span>
         </a>
-        <a class="cx-btn cx-btn-ghost" href="/ecosystem/">浏览参考实现</a>
-        <a class="cx-btn cx-btn-ghost" href={repoUrl} rel="noopener">GitHub</a>
+        <a class="ck-btn ck-btn-ghost" href="/ecosystem/">浏览参考实现</a>
+        <a class="ck-btn ck-btn-ghost" href={repoUrl} rel="noopener">GitHub</a>
       </div>
-      <dl class="cx-hero-stats">
+      <dl class="ck-hero-stats">
         {
           heroStats.map((stat) => (
-            <div class="cx-hero-stat">
+            <div class="ck-hero-stat">
               <dt>{stat.value}</dt>
               <dd>{stat.label}</dd>
             </div>
@@ -198,23 +198,23 @@ const useCases = [
     </div>
   </section>
 
-  <section class="cx-section cx-section-tight">
-    <div class="cx-shell">
-      <div class="cx-section-head">
+  <section class="ck-section ck-section-tight">
+    <div class="ck-shell">
+      <div class="ck-section-head">
         <div>
-          <span class="cx-section-tag">为什么需要新协议</span>
+          <span class="ck-section-tag">为什么需要新协议</span>
           <h2>现实问题不是「有没有功能」,而是「能不能被验证」</h2>
         </div>
-        <p class="cx-section-sub">
+        <p class="ck-section-sub">
           以下问题来自常见系统边界：服务端数据库是事实权威、授权规则留在平台内、
           E2EE 与治理状态分层、自动化身份依赖 token。Cokret 把这些边界提升到协议层处理。
         </p>
       </div>
-      <div class="cx-pain-grid">
+      <div class="ck-pain-grid">
         {
           painPoints.map((p) => (
-            <article class="cx-pain-card">
-              <span class="cx-pain-tag">{p.tag}</span>
+            <article class="ck-pain-card">
+              <span class="ck-pain-tag">{p.tag}</span>
               <h3>{p.title}</h3>
               <p>{p.body}</p>
             </article>
@@ -224,22 +224,22 @@ const useCases = [
     </div>
   </section>
 
-  <section class="cx-section cx-section-elevated">
-    <div class="cx-shell">
-      <div class="cx-section-head">
+  <section class="ck-section ck-section-elevated">
+    <div class="ck-shell">
+      <div class="ck-section-head">
         <div>
-          <span class="cx-section-tag">六根支柱</span>
+          <span class="ck-section-tag">六根支柱</span>
           <h2>Cokret 先定义协作事实，再定义接口和投影</h2>
         </div>
-        <p class="cx-section-sub">
+        <p class="ck-section-sub">
           签名事件、Capability 授权、MLS 治理绑定、去中心化身份、可投影对象图、Agent 责任链。
         </p>
       </div>
-      <div class="cx-pillar-grid">
+      <div class="ck-pillar-grid">
         {
           protocolPillars.map((pillar) => (
-            <article class="cx-pillar-card">
-              <span class="cx-pillar-mark">{pillar.mark}</span>
+            <article class="ck-pillar-card">
+              <span class="ck-pillar-mark">{pillar.mark}</span>
               <h3>{pillar.title}</h3>
               <p>{pillar.body}</p>
             </article>
@@ -249,25 +249,25 @@ const useCases = [
     </div>
   </section>
 
-  <section class="cx-section cx-section-tight">
-    <div class="cx-shell">
-      <div class="cx-section-head">
+  <section class="ck-section ck-section-tight">
+    <div class="ck-shell">
+      <div class="ck-section-head">
         <div>
-          <span class="cx-section-tag">运行时闭环</span>
+          <span class="ck-section-tag">运行时闭环</span>
           <h2>一次写入,沿 4 个确定性环节变成可见状态</h2>
         </div>
-        <p class="cx-section-sub">
+        <p class="ck-section-sub">
           协议规定的不是 UI, 而是「提交事实 → 验证授权 → 锚定状态 → 投影视图」的不可分叉路径。
         </p>
       </div>
-      <ol class="cx-flow-rail">
+      <ol class="ck-flow-rail">
         {
           engineFlow.map((item, i) => (
-            <li class="cx-flow-node">
-              <div class="cx-flow-node-head">
-                <span class="cx-flow-step-no">{item.step}</span>
+            <li class="ck-flow-node">
+              <div class="ck-flow-node-head">
+                <span class="ck-flow-step-no">{item.step}</span>
                 {i < engineFlow.length - 1 && (
-                  <span class="cx-flow-connector" aria-hidden="true" />
+                  <span class="ck-flow-connector" aria-hidden="true" />
                 )}
               </div>
               <h3>{item.title}</h3>
@@ -279,18 +279,18 @@ const useCases = [
     </div>
   </section>
 
-  <section class="cx-section cx-section-os">
-    <div class="cx-shell">
-      <a class="cx-os-banner" href="/ecosystem/">
-        <div class="cx-os-banner-text">
-          <span class="cx-section-tag">官方实现</span>
+  <section class="ck-section ck-section-os">
+    <div class="ck-shell">
+      <a class="ck-os-banner" href="/ecosystem/">
+        <div class="ck-os-banner-text">
+          <span class="ck-section-tag">官方实现</span>
           <h2>协议、SDK、服务端、客户端、一致性测试——全部开源</h2>
           <p>
             spec / rust-sdk / soland (principal server) / coauth / sodmin / floria
             (push gateway) / yougen (跨平台客户端) / chime / cotest——开箱即用的完整参考栈。
           </p>
         </div>
-        <span class="cx-os-banner-cta">
+        <span class="ck-os-banner-cta">
           浏览生态
           <span aria-hidden="true">→</span>
         </span>
@@ -298,42 +298,42 @@ const useCases = [
     </div>
   </section>
 
-  <section class="cx-section">
-    <div class="cx-shell cx-home-grid-2">
+  <section class="ck-section">
+    <div class="ck-shell ck-home-grid-2">
       <div>
-        <div class="cx-section-head cx-section-head--stack">
-          <span class="cx-section-tag">入口</span>
+        <div class="ck-section-head ck-section-head--stack">
+          <span class="ck-section-tag">入口</span>
           <h2>从规范到实现</h2>
-          <p class="cx-section-sub">选择最适合的阅读路径,直接进入你的开发节奏。</p>
+          <p class="ck-section-sub">选择最适合的阅读路径,直接进入你的开发节奏。</p>
         </div>
-        <div class="cx-entry-grid">
+        <div class="ck-entry-grid">
           {
             entryPoints.map((entry) => (
-              <a class="cx-resource" href={entry.href}>
-                <div class="cx-resource-row">
-                  <span class="cx-resource-title">{entry.title}</span>
-                  <span class="cx-resource-badge">{entry.badge}</span>
+              <a class="ck-resource" href={entry.href}>
+                <div class="ck-resource-row">
+                  <span class="ck-resource-title">{entry.title}</span>
+                  <span class="ck-resource-badge">{entry.badge}</span>
                 </div>
-                <span class="cx-resource-desc">{entry.description}</span>
-                <span class="cx-resource-arrow" aria-hidden="true">→</span>
+                <span class="ck-resource-desc">{entry.description}</span>
+                <span class="ck-resource-arrow" aria-hidden="true">→</span>
               </a>
             ))
           }
         </div>
       </div>
       <div>
-        <div class="cx-section-head cx-section-head--stack">
-          <span class="cx-section-tag">应用场景</span>
+        <div class="ck-section-head ck-section-head--stack">
+          <span class="ck-section-tag">应用场景</span>
           <h2>适合需要长期可信边界的产品</h2>
-          <p class="cx-section-sub">
+          <p class="ck-section-sub">
             当协作历史、权限、加密状态和 Agent 行为都需要被复核时，协议层事实比产品内状态更可靠。
           </p>
         </div>
-        <ul class="cx-case-grid">
+        <ul class="ck-case-grid">
           {
             useCases.map((u) => (
               <li>
-                <span class="cx-case-mark" aria-hidden="true">✦</span>
+                <span class="ck-case-mark" aria-hidden="true">✦</span>
                 <div>
                   <strong>{u.title}</strong>
                   <span>{u.body}</span>

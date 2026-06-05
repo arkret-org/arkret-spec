@@ -145,46 +145,46 @@ const tiers: Tier[] = [
 >
   {
     tiers.map((tier) => (
-      <section class="cx-section" id={tier.id}>
-        <div class="cx-shell">
-          <div class="cx-section-head">
+      <section class="ck-section" id={tier.id}>
+        <div class="ck-shell">
+          <div class="ck-section-head">
             <h2>{tier.title}</h2>
             <p>{tier.blurb}</p>
           </div>
-          <div class="cx-eco-grid">
+          <div class="ck-eco-grid">
             {tier.projects.map((p) =>
               p.href ? (
-                <a class="cx-eco-card cx-eco-card--link" href={p.href}>
-                  <header class="cx-eco-card-head">
-                    <span class="cx-eco-name">{p.name}</span>
+                <a class="ck-eco-card ck-eco-card--link" href={p.href}>
+                  <header class="ck-eco-card-head">
+                    <span class="ck-eco-name">{p.name}</span>
                     <span
-                      class={`cx-eco-status cx-eco-status--${p.status}`}
+                      class={`ck-eco-status ck-eco-status--${p.status}`}
                       title={statusLabel[p.status]}
                     >
-                      <span class="cx-eco-status-dot" aria-hidden="true" />
+                      <span class="ck-eco-status-dot" aria-hidden="true" />
                       {statusLabel[p.status]}
                     </span>
                   </header>
-                  <div class="cx-eco-tag">{p.tag}</div>
-                  <p class="cx-eco-body">{p.body}</p>
-                  <span class="cx-eco-more" aria-hidden="true">
+                  <div class="ck-eco-tag">{p.tag}</div>
+                  <p class="ck-eco-body">{p.body}</p>
+                  <span class="ck-eco-more" aria-hidden="true">
                     浏览 →
                   </span>
                 </a>
               ) : (
-                <article class="cx-eco-card">
-                  <header class="cx-eco-card-head">
-                    <span class="cx-eco-name">{p.name}</span>
+                <article class="ck-eco-card">
+                  <header class="ck-eco-card-head">
+                    <span class="ck-eco-name">{p.name}</span>
                     <span
-                      class={`cx-eco-status cx-eco-status--${p.status}`}
+                      class={`ck-eco-status ck-eco-status--${p.status}`}
                       title={statusLabel[p.status]}
                     >
-                      <span class="cx-eco-status-dot" aria-hidden="true" />
+                      <span class="ck-eco-status-dot" aria-hidden="true" />
                       {statusLabel[p.status]}
                     </span>
                   </header>
-                  <div class="cx-eco-tag">{p.tag}</div>
-                  <p class="cx-eco-body">{p.body}</p>
+                  <div class="ck-eco-tag">{p.tag}</div>
+                  <p class="ck-eco-body">{p.body}</p>
                 </article>
               ),
             )}
@@ -198,11 +198,11 @@ const tiers: Tier[] = [
 
 <style is:global>
   /* The first tier section now sits directly under the site nav. Drop the
-   * `.cx-section` border-top on it (otherwise we get a thin line right under
+   * `.ck-section` border-top on it (otherwise we get a thin line right under
    * the nav's own border) and trim its top padding to a comfortable lead-in.
    * `is:global` because the `main` element lives in MarketingLayout, outside
    * this component's scope. */
-  body.cx-marketing main > section.cx-section:first-of-type {
+  body.ck-marketing main > section.ck-section:first-of-type {
     border-top: none;
     padding-top: 3rem;
   }
