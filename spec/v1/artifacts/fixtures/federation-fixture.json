@@ -71,7 +71,7 @@
         "alpha_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "beta_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
       },
-      "expected": "divergent_space_history_quarantined"
+      "expected": "divergent_realm_history_quarantined"
     },
     {
       "name": "pull_authorization",

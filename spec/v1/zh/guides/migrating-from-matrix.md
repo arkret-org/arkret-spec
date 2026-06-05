@@ -8,8 +8,6 @@ updated: 2026-05-25
 
 > 本文件为面向 Matrix 实现者的 informative 设计取舍对照，不是协议真相源；任何规范约束以被引用的具体规范章节的 MUST / SHOULD 规则为准。
 
-> 本文档原位于 `overview/matrix-core-differences.md`，于 2026-05-24 迁移到 `guides/` 并改名为 `migrating-from-matrix.md`。读者群从"协议概览读者"调整为"已熟悉 Matrix 并计划迁移或对接的实现者"，定位更准确。
-
 ## 1. 目标
 
 本文旨在说明 Cokret 与 Matrix 的核心设计差异，阐明 Cokret 为何不是 Matrix 的直接变体，更非对其 room / homeserver / appservice 等概念的简单换名或重写。

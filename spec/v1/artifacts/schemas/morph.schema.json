@@ -19,19 +19,19 @@
         "required": [
           "title"
         ],
-        "$comment": "legacy Morph top-level metadata; canonical path is metadata.title or encrypted_metadata"
+        "$comment": "forbidden Morph top-level metadata; canonical path is metadata.title or encrypted_metadata"
       },
       {
         "required": [
           "summary"
         ],
-        "$comment": "legacy Morph top-level metadata; canonical path is metadata.summary or encrypted_metadata"
+        "$comment": "forbidden Morph top-level metadata; canonical path is metadata.summary or encrypted_metadata"
       },
       {
         "required": [
           "encrypted_payload"
         ],
-        "$comment": "legacy encrypted content carrier; canonical name is encrypted_content"
+        "$comment": "forbidden encrypted content carrier; canonical name is encrypted_content"
       },
       {
         "required": [
@@ -334,7 +334,7 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Reject legacy discriminator `type`, legacy composite child array name `blocks`, and byte-count field `size`; canonical content blocks use `kind`, composite children use `parts`, and byte counts use `size_bytes`.",
+        "$comment": "Reject discriminator field `type`, composite child array name `blocks`, and byte-count field `size`; canonical content blocks use `kind`, composite children use `parts`, and byte counts use `size_bytes`.",
         "anyOf": [
           {
             "required": [

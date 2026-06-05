@@ -68,7 +68,7 @@ updated: 2026-05-25
 | 字段 | 说明 |
 |------|------|
 | `event_id` | 用户已读的最新那条 Event 的 ID。由于因果性，表示该 Event 及其因果前驱均已读。 |
-| `actor_id` | 阅读者 DID。该字段名与协议中其它 actor-引用字段一致；旧草稿使用过 `actor` / `reader`，已统一弃用。 |
+| `actor_id` | 阅读者 DID。该字段名与协议中其它 actor-引用字段一致。 |
 | `hlc` | 可选；当 Sync Service 需要按 HLC 合并 / 去重多个 receipts 时由客户端附带。 |
 
 ### 2.3 防雪崩与合并
@@ -265,7 +265,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`ck.schema
 
 `notification_type` 是封闭枚举，其权威取值集合以 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json) 为准:`mention` / `reply` / `assignment` / `invite` / `reaction` / `policy` / `call` / `applet` / `agent` / `moderation` / `system`(共 11 值);取未列值的 notification MUST 视为非法。
 
-notification / read scope 的 track 字段统一为 `track_name`,旧名 `track` 已弃用并在 schema 层拒绝(notification.schema.json 顶层 `not.required:["track"]`);与本文 §2.2 对 `actor` / `reader` → `actor_id` 弃用的纪律一致。
+notification / read scope 的 track 字段统一为 `track_name`，`track` 在 schema 层被拒绝（notification.schema.json 顶层 `not.required:["track"]`）。
 
 ### 6.4 Query 形状
 

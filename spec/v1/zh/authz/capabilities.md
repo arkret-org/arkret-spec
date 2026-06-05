@@ -154,18 +154,18 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 ### 5.0 Action ↔ Event kind 偏离类别（normative reference）
 
-绝大多数 action 与其 `target_event_kinds` 单一同名映射（`ck.flow.create` action ↔ `ck.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，任何其它类型的偏离 **MUST NOT 被引入**；先前的"verb-noun 桥"类已于 v3 收敛废除（历史别名与 verb-noun 桥废除记录见[附录 A](#附录-a-action-命名迁移历史informative)）：
+绝大多数 action 与其 `target_event_kinds` 单一同名映射（`ck.flow.create` action ↔ `ck.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，任何其它类型的偏离 **MUST NOT 被引入**：
 
 | 类别 | 形态 | 标准示例 |
 | --- | --- | --- |
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `ck.realm.admin` → registry 中声明的 Realm policy facet events；`ck.policy.manage` → `ck.policy.*` 与 `ck.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Flow / Morph / Space 等同语义 event | `ck.object.archive` → `{ck.flow.archive, ck.morph.archive}`；`ck.object.restore` → `{ck.flow.restore, ck.morph.restore, ck.space.restore}`；`ck.object.stage.set` → `{ck.flow.stage.set, ck.morph.stage.set}` |
 | **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `ck.message.revise.own` → `ck.message.revise`；`ck.message.redact.own` → `ck.message.redact`；`ck.flow.watch.set.others` → `ck.flow.watch.set` |
-| **保留旧 wire 命名（`event_mapping_kind="wire_compat_grandfather"`）** | action 用收敛后命名、event kind 因已发布的 wire bytes 不可改名而保留旧前缀 / 旧 punctuation。本类**冻结**，新增条目 **MUST NOT 落入此类**：所有现存条目都 MUST 在 registry 中声明 `grandfathered_since` | `ck.agent.session.*` → `ck.agent.protocol_session.*`（namespace 折叠）；`ck.morph.schema.migrate` → `ck.morph.schema_migrate`（separator 差异）；`ck.flow.tracks.manage` → `ck.flow.tracks.update`（umbrella verb vs 具体 verb）；`ck.call.configure_media_service` → `ck.realm.media_service`（跨 namespace 语义） |
+| **保留旧 wire 命名（`event_mapping_kind="wire_compat_grandfather"`）** | action 命名与 event kind 命名形态不同（前缀 / punctuation / namespace 差异）。本类**冻结**，新增条目 **MUST NOT 落入此类**：所有现存条目都 MUST 在 registry 中声明 `grandfathered_since` | `ck.agent.session.*` → `ck.agent.protocol_session.*`（namespace 折叠）；`ck.morph.schema.migrate` → `ck.morph.schema_migrate`（separator 差异）；`ck.flow.tracks.manage` → `ck.flow.tracks.update`（umbrella verb vs 具体 verb）；`ck.call.configure_media_service` → `ck.realm.media_service`（跨 namespace 语义） |
 
 `ck.mls.commit` action → `{ck.mls.commit, ck.mls.commit_failed}`、`ck.moderation.appeal.review` → `{ck.moderation.appeal.review, ck.moderation.appeal.decision, ck.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
 
-`ck.message.redact` → `{ck.message.redact, ck.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="wire_compat_grandfather"`（`grandfathered_since=2026-05-08`，risk_tier=medium），即上表第四类“保留旧 wire 命名”的冻结桥（`ck.redaction` 是早期已发布的 wire event kind，无法机械收敛进 `ck.message.*` 命名空间）。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准；本文此前把它误列为聚合 admin 已更正，以免 conformance lint 锚点失效。
+`ck.message.redact` → `{ck.message.redact, ck.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="wire_compat_grandfather"`（risk_tier=medium），即上表第四类“保留旧 wire 命名”的冻结桥。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准。
 
 **聚合 admin 的覆盖语义仅作用于 event-kind 解析层，不改变授权层 `actions[]` 的逐字命中规则。** 例如 `ck.policy.manage` 在 §5.4 与具体的 `ck.policy.set` / `ck.policy.rule` / `ck.policy.action` 并列：持有 `ck.policy.manage` 的 grant 表示该 admin action 在 registry 中聚合覆盖 `ck.policy.*` 与 `ck.realm.policy_*` 系列对应的 **event kinds**（audit / reducer 据 `target_event_kinds` 解析），但它**不在授权层自动等价于持有 `ck.policy.set` / `ck.policy.rule` / `ck.policy.action` 这三个具体 action token**。授权判定仍 MUST 按 §5「`actions[]` MUST 逐字命中、MUST NOT wildcard / segment 通配」执行：要授予某具体 policy 子动作，grant 的 `actions[]` MUST 显式列出 `ck.policy.manage`（若 receiver 已声明并接受该 action 对相应 event kinds 的聚合覆盖）或对应的具体 action token，二者不可互相推断。
 
@@ -196,7 +196,7 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `ck.flow.restore`
 - `ck.flow.move`
 - `ck.flow.reorder`
-- `ck.flow.tracks.manage`（Flow tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，target=`ck.flow.tracks.update`。**`event_mapping_kind=wire_compat_grandfather`（grandfathered_since=2026-05-08）**——umbrella verb `manage` 与具体 verb `update` 之间的冻结桥，新条目 MUST NOT 落入此类。这是该 action 的权威定义；§5.3 仅交叉引用）
+- `ck.flow.tracks.manage`（Flow tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，target=`ck.flow.tracks.update`。**`event_mapping_kind=wire_compat_grandfather`**——umbrella verb `manage` 与具体 verb `update` 之间的冻结桥，新条目 MUST NOT 落入此类。这是该 action 的权威定义；§5.3 仅交叉引用）
 - `ck.relation.create`
 - `ck.relation.update`
 - `ck.relation.tombstone`
@@ -275,13 +275,13 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Flow)
 - `ck.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `ck.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
 - `ck.agent.protocol.discover`（profile=`ck.profile.agent_runtime.v1`，risk_tier=low，`non_event_surface`，无 target event：发现 agent runtime 协议端点 / capability，仅服务面发现，不写入 event）
-- `ck.agent.session.start`（profile=`ck.profile.agent_runtime.v1`，high risk；启动 agent protocol session，`event_mapping_kind=wire_compat_grandfather`（grandfathered_since=2026-05-08），target=`ck.agent.protocol_session.start`；required constraint `allowed_endpoints` + `allowed_data_classes`）
+- `ck.agent.session.start`（profile=`ck.profile.agent_runtime.v1`，high risk；启动 agent protocol session，`event_mapping_kind=wire_compat_grandfather`，target=`ck.agent.protocol_session.start`；required constraint `allowed_endpoints` + `allowed_data_classes`）
 - `ck.agent.session.cancel`（profile=`ck.profile.agent_runtime.v1`，medium；取消 / 终止 session，grandfather 桥，target=`{ck.agent.protocol_session.status, ck.agent.protocol_session.result}`）
 - `ck.agent.session.stream_status`（profile=`ck.profile.agent_runtime.v1`，low；流式上报 session 状态，grandfather 桥，target=`ck.agent.protocol_session.status`）
 - `ck.agent.session.attach_artifact`（profile=`ck.profile.agent_runtime.v1`，high risk；附加 session artifact，grandfather 桥，target=`{ck.agent.protocol_session.status, ck.agent.protocol_session.result}`；required constraint `allowed_data_classes` + `max_artifact_bytes`）
 - `ck.agent.session.read_transcript`（profile=`ck.profile.agent_runtime.v1`，high risk；读取 session transcript，`non_event_surface`，无 target event；required constraint `allowed_data_classes`）
 
-> `ck.agent.session.*` 是 `ck.agent.protocol_session.*` event kind 的保留旧 wire 命名（namespace 折叠）grandfather 桥，整族冻结（见 §5.0“保留旧 wire 命名”类与 registry `grandfathered_since`）；新条目 MUST NOT 落入此类。以上 agent runtime / session 动作均 profile-gated（`ck.profile.agent_runtime.v1`），未声明该 profile 的 receiver MUST 按 registry_rules 视为 unknown 并 default 高风险 fail-closed。
+> `ck.agent.session.*` → `ck.agent.protocol_session.*` 属 §5.0 第四类“保留旧 wire 命名”冻结桥，新条目 MUST NOT 落入此类。以上 agent runtime / session 动作均 profile-gated（`ck.profile.agent_runtime.v1`），未声明该 profile 的 receiver MUST 按 registry_rules 视为 unknown 并 default 高风险 fail-closed。
 
 - `ck.policy.manage`
 - `ck.policy.set`
@@ -675,7 +675,7 @@ Cokret v1 采用 allow-grant + explicit revoke 模型。
 }
 ```
 
-`grant_ref` MAY 作为 legacy payload 的兼容别名出现，但 v1 canonical `ck.capability.revoke` payload MUST 携带顶层 `grant_id`；registry cell_subject 从 `payload.grant_id` 派生。
+v1 canonical `ck.capability.revoke` payload MUST 携带顶层 `grant_id`；registry cell_subject 从 `payload.grant_id` 派生。
 
 ## 13. Invite、通知与已读状态
 
@@ -859,29 +859,6 @@ Cokret v1 固定：
 - Moderation policy MUST NOT 凭空授予 capability。
 - Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
 - Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 §16 的 presentation 规则。
-
-## 附录 A. Action 命名迁移历史（informative）
-
-> 本附录为 informative 迁移历史记录，不构成 normative 约束。当前 normative 规则是：action↔event 以 registry `target_event_kinds` 为准（见 §5、§5.0）。
-
-#### verb-noun 桥的废除（历史迁移记录，2026-05-24）
-
-历史上 v1 早期为 action 名加上动词后缀（`.manage` / `.modify` / `create_` 前缀等）以保持"action 为动词"惯例，导致与 event kind 产生 6 处 verb-noun 桥；这些桥强迫每个 IAM 工具维护一张翻译表。
-
-**当前 v1 canonical 规则：action 名 MUST 与其 target event kind 同名。** 早期草案曾存在 6 处 verb-noun 桥，已机械收敛回 event kind 形态（历史迁移见 `renames.json.migration_group: verb_noun_bridge_collapse`）：
-
-| 旧 action（已禁止，hard_reject） | 现行 canonical action | target event kind |
-| --- | --- | --- |
-| ~~`ck.invite.create_third_party`~~ | `ck.invite.third_party` | `ck.invite.third_party` |
-| ~~`ck.policy.rule.manage`~~ | `ck.policy.rule` | `ck.policy.rule` |
-| ~~`ck.policy.action.manage`~~ | `ck.policy.action` | `ck.policy.action` |
-| ~~`ck.realm.link.manage`~~ | `ck.realm.link` | `ck.realm.link` |
-| ~~`ck.realm.plaintext_visible_services.modify`~~ | `ck.realm.plaintext_visible_services` | `ck.realm.plaintext_visible_services` |
-| ~~`ck.realm.moderate`~~ | `ck.realm.moderation_policy` | `ck.realm.moderation_policy` |
-
-权衡：这放弃了"action 都是动词"的惯例换取"action 与 event kind 同名"的更强不变量。IAM 直接以 event kind 字符串作为 grant `actions[]` 元素，零翻译；动词形态由 capabilities.md prose 表达（例如 prose 描述"该 capability 授权写入 ck.invite.third_party 邀请事件"）。
-
-剩余"保留旧 wire 命名"类（agent.protocol_session / morph.schema_migrate / flow.tracks.update / realm.media_service）的 event kind 已发布且无法机械收敛，所以保留为冻结的 grandfather 桥；新条目 MUST NOT 落入此类。
 
 ## 附录 B. 与 UCAN / ZCAP 的关系与差异（informative）
 

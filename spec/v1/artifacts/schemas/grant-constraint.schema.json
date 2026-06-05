@@ -73,7 +73,7 @@
     },
     "applies_to_actions": {
       "type": "array",
-      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ck.message.revise.own', 'ck.message.redact.own']). Replaces what used to be the dedicated edit_window constraint type.",
+      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ck.message.revise.own', 'ck.message.redact.own']).",
       "items": {
         "type": "string",
         "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"

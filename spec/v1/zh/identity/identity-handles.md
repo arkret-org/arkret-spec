@@ -280,7 +280,7 @@ JCS（RFC 8785）按 issuer 提供顺序保留数组元素，不做重排。`sem
 
 排序仅作用于 `semantic_projection(c)` 的副本构造，**不**改写 wire claim 本身；wire 上 `handle_aliases` / `source_refs` / `delivery_modes` 等仍按 issuer 原始顺序传输，verifier 只在 digest 计算阶段做规范化排序。这保证：
 
-- issuer 不必为 digest 稳定性而强制规范化输出（向后兼容旧实现）；
+- issuer 不必为 digest 稳定性而强制规范化输出；
 - 不同 verifier / Directory 计算同一 claim 的 `claim_digest` 始终相同；
 - wire 层数组顺序与签发顺序之间的对应关系（例如 `source_refs` 上游签发时序）在传输中不被强行抹除。
 

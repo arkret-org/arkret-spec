@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/service-operation-dtos.schema.json",
   "title": "Cokret Service Operation DTOs",
-  "description": "Canonical request and response DTOs migrated from OpenAPI-only operation schemas. OpenAPI components reference this artifact so SDK and conformance tooling use one schema source.",
+  "description": "Canonical request and response DTOs for service operations. OpenAPI components reference this artifact so SDK and conformance tooling use one schema source.",
   "anyOf": [
     {
       "$ref": "#/$defs/AccountCursorRevokeRequest"
@@ -590,7 +590,7 @@
       "properties": {
         "messages": {
           "type": "array",
-          "description": "DeviceMessageEnvelope items; not Event Envelope objects. Renamed from `events` to remove the misleading appearance that this endpoint serves the durable Event timeline.",
+          "description": "DeviceMessageEnvelope items; not Event Envelope objects. This endpoint does not serve the durable Event timeline.",
           "items": {
             "$ref": "#/$defs/DeviceMessageEnvelope"
           }
@@ -1200,7 +1200,7 @@
         },
         "realm_frontier": {
           "type": "object",
-          "description": "Per-Realm frontier after this submit. (Renamed from the legacy 'space_frontier' field name — in v1 the replication/security boundary is the Realm, not an in-Realm Space container; the legacy name is forbidden on the current wire.)"
+          "description": "Per-Realm frontier after this submit. In v1 the replication/security boundary is the Realm, not an in-Realm Space container; the `space_frontier` field name is forbidden on the wire."
         },
         "cursor": {
           "type": "string",

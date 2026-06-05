@@ -292,7 +292,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 | none / invite / knock / join / leave | ban | `ck.circle.member.manage` |
 | ban | leave / invite | `ck.circle.member.manage` only; self-service MUST fail closed |
 
-> **枚举统一（normative）**:Circle membership 与 Realm `ck.member.state` 共用 schema `$defs/membership_state`(`invite / join / knock / leave / ban`),是单一真源，二者 MUST NOT 出现取值分叉。早期草案曾使用状态词形 `invited / active / left / banned`,其与 canonical 值的对应仅作为迁移说明、**不**构成 v1 reducer 语义:`invited→invite`、`active→join`、`left→leave`、`banned→ban`(草案无 `knock`,新值无旧对应)。v1 wire MUST 仅使用 canonical 值。
+> **枚举统一（normative）**：Circle membership 与 Realm `ck.member.state` 共用 schema `$defs/membership_state`（`invite / join / knock / leave / ban`），是单一真源，二者 MUST NOT 出现取值分叉。v1 wire MUST 仅使用 canonical 值。
 
 ### 9.2 Lifecycle cascade
 

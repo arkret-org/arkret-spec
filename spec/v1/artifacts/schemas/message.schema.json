@@ -31,19 +31,19 @@
         "required": [
           "encrypted_payload"
         ],
-        "$comment": "legacy encrypted content carrier; canonical name is encrypted_content"
+        "$comment": "forbidden encrypted content carrier; canonical name is encrypted_content"
       },
       {
         "required": [
           "track"
         ],
-        "$comment": "legacy Flow track key; canonical name is track_name"
+        "$comment": "forbidden track key; canonical name is track_name"
       },
       {
         "required": [
           "fields"
         ],
-        "$comment": "legacy Message extension metadata; canonical path is metadata.fields or encrypted_metadata"
+        "$comment": "forbidden Message extension metadata; canonical path is metadata.fields or encrypted_metadata"
       }
     ]
   },
@@ -286,7 +286,7 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Mirror of event-payload.schema.json $defs.content_block: reject legacy discriminator `type` (canonical: `kind`), legacy composite child array name `blocks` (canonical: `parts`), and byte-count field `size` (canonical: `size_bytes`). Keeps materialized Message and Event payload schemas in lockstep so that the materialized Message.content cannot smuggle through wire-forbidden field names.",
+        "$comment": "Mirror of event-payload.schema.json $defs.content_block: reject discriminator field `type` (canonical: `kind`), composite child array name `blocks` (canonical: `parts`), and byte-count field `size` (canonical: `size_bytes`). Keeps materialized Message and Event payload schemas in lockstep so that the materialized Message.content cannot smuggle through wire-forbidden field names.",
         "anyOf": [
           {
             "required": [

@@ -112,7 +112,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 **新字段命名规则（normative，对扩展 profile 适用）**：扩展 profile 引入新的 approval / claim / accountability 子字段时，应避免展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
 
-1. **在 `condition` / `requires_claims[]` 中携带**：approval workflow 的额外配置（如 reviewer roster、escalation policy）可写入 `requires_claims[].value_constraints`，或新增以 `x_` 前缀命名的扩展嵌套对象（例如 `x_approval_extension`，仅扩展 profile 使用，core profile 不引入新顶层 flat field）。**注意**：`grant-constraint.schema.json` 顶层是 `additionalProperties:false` + `patternProperties:"^x_[a-z][a-z0-9_]{0,63}$"`，因此扩展嵌套对象 MUST 使用 `x_` 前缀；不带前缀的裸名（如曾用的 `approval_extension`）会被 schema 拒绝，实现 MUST NOT 为容纳它而改用更松的本地 schema。
+1. **在 `condition` / `requires_claims[]` 中携带**：approval workflow 的额外配置（如 reviewer roster、escalation policy）可写入 `requires_claims[].value_constraints`，或新增以 `x_` 前缀命名的扩展嵌套对象（例如 `x_approval_extension`，仅扩展 profile 使用，core profile 不引入新顶层 flat field）。**注意**：`grant-constraint.schema.json` 顶层是 `additionalProperties:false` + `patternProperties:"^x_[a-z][a-z0-9_]{0,63}$"`，因此扩展嵌套对象 MUST 使用 `x_` 前缀；不带前缀的裸名会被 schema 拒绝，实现 MUST NOT 为容纳它而改用更松的本地 schema。
 2. **以新 `subtype` 区分**：若新字段语义无法通过既有 subtype 覆盖，应注册新 subtype（如 `claim_based.subtype=quorum_approval`）而不是继续在 flat namespace 加字段。
 
 

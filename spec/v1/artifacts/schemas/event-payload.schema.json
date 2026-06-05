@@ -379,7 +379,7 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Reject legacy discriminator field name `type`, legacy composite child array name `blocks`, and byte-count field `size`. The discriminator is `kind`, the composite child array is `parts`, and byte counts use `size_bytes` (see schemas/message.schema.json and forbidden-wire-fields.json `blocks/content_block_composite`).",
+        "$comment": "Reject discriminator field name `type`, composite child array name `blocks`, and byte-count field `size`. The discriminator is `kind`, the composite child array is `parts`, and byte counts use `size_bytes` (see schemas/message.schema.json and forbidden-wire-fields.json `blocks/content_block_composite`).",
         "anyOf": [
           {
             "required": [
@@ -806,7 +806,7 @@
       },
       "additionalProperties": true,
       "not": {
-        "$comment": "Object kind is derived from the typed-id prefix on `id`; `type` is a banned legacy alias.",
+        "$comment": "Object kind is derived from the typed-id prefix on `id`; `type` is a banned field name.",
         "required": [
           "type"
         ]
@@ -815,10 +815,10 @@
     },
     "generic_standard_payload": {
       "type": "object",
-      "description": "Generic fallback shape used only inside Event Envelope kind dispatch and tooling diagnostics. It rejects legacy `type` but does not close kind-specific fields; validators MUST NOT accept a standard Event solely because its payload validates against this definition.",
+      "description": "Generic fallback shape used only inside Event Envelope kind dispatch and tooling diagnostics. It rejects the `type` field but does not close kind-specific fields; validators MUST NOT accept a standard Event solely because its payload validates against this definition.",
       "additionalProperties": true,
       "not": {
-        "$comment": "Standard ck.* event payloads use kind (envelope) + payload schema discriminators. `type` is a banned legacy alias here to keep schema validation aligned with reducer behavior.",
+        "$comment": "Standard ck.* event payloads use kind (envelope) + payload schema discriminators. `type` is a banned field name here to keep schema validation aligned with reducer behavior.",
         "required": [
           "type"
         ]
@@ -2083,7 +2083,7 @@
     },
     "space_state_transition_payload": {
       "type": "object",
-      "description": "Payload for ck.space.archive and ck.space.restore. The target Space is expressed on payload.space_id; top-level target_ref is a rejected legacy field on Event envelopes.",
+      "description": "Payload for ck.space.archive and ck.space.restore. The target Space is expressed on payload.space_id; top-level target_ref is a rejected field on Event envelopes.",
       "required": [
         "space_id"
       ],
@@ -6960,7 +6960,7 @@
     },
     "call_state_payload": {
       "type": "object",
-      "description": "Typed payload for ck.call.state (durable call lifecycle state). Replaces the broad call_payload for this kind: state is a controlled enum, participants carry machine-checkable participant_binding, and recording results are carried in a typed recording_result object rather than untyped fields. See crypto-media/call-state.md §4/§4.1/§5.",
+      "description": "Typed payload for ck.call.state (durable call lifecycle state). state is a controlled enum, participants carry machine-checkable participant_binding, and recording results are carried in a typed recording_result object. See crypto-media/call-state.md §4/§4.1/§5.",
       "required": [
         "call_id",
         "state"
@@ -7009,11 +7009,11 @@
             "ready",
             "failed"
           ],
-          "description": "Recording lifecycle, orthogonal to `state` (the recording dimension of a call; v1.1 split out of the `state` enum so call lifecycle and recording outcome are independent fields). Absent = no recording. 'recording' = capture in progress (after ck.call.recording.start); 'ready' = artifact available via the Cokret blob pipeline; 'failed' = recording failed. recording_result SHOULD accompany recording_state ∈ {ready, failed}. See crypto-media/call-state.md §5."
+          "description": "Recording lifecycle, orthogonal to `state` (the recording dimension of a call, independent of call lifecycle). Absent = no recording. 'recording' = capture in progress (after ck.call.recording.start); 'ready' = artifact available via the Cokret blob pipeline; 'failed' = recording failed. recording_result SHOULD accompany recording_state ∈ {ready, failed}. See crypto-media/call-state.md §5."
         },
         "recording_result": {
           "type": "object",
-          "description": "Typed recording outcome, present only when recording_state ∈ {ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries blob hash, duration, media type, retention policy and recording_start_event_id rather than stuffing them into untyped fields (resolves SEM-004). All fields optional.",
+          "description": "Typed recording outcome, present only when recording_state ∈ {ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries blob hash, duration, media type, retention policy and recording_start_event_id as typed fields. All fields optional.",
           "properties": {
             "blob_hash": {
               "$ref": "#/$defs/hash"

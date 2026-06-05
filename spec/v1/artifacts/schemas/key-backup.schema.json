@@ -574,7 +574,7 @@
         "ssk_generation": {
           "type": "integer",
           "minimum": 1,
-          "description": "Accepted ck.cross_signing.publish.generation of the self-signing key generation that authorized the device signing this backup. This field replaces the temporary auth_data.x_ssk_generation extension for v1 final; hardening profiles require receivers to reject envelopes whose generation is below the current accepted generation outside the rotation grace window."
+          "description": "Accepted ck.cross_signing.publish.generation of the self-signing key generation that authorized the device signing this backup. Hardening profiles require receivers to reject envelopes whose generation is below the current accepted generation outside the rotation grace window."
         }
       },
       "patternProperties": {

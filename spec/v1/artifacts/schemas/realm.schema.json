@@ -22,7 +22,7 @@
     "required": [
       "created_by_principal"
     ],
-    "$comment": "legacy Realm authorship field; canonical name is created_by"
+    "$comment": "forbidden Realm authorship field; canonical name is created_by"
   },
   "properties": {
     "id": {

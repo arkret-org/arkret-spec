@@ -147,7 +147,7 @@ see_also:
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
 | `overview/evolution-and-compatibility.md` | 协议演进与向后兼容总纲：版本承载、破坏性变更收敛、profile / capability 协商在演进中的整体角色（被 `conformance/conformance-profiles.md`、`conformance/encoding.md`、`sync/service-http-binding.md` 引用为演进导航入口）。 |
-| `guides/migrating-from-matrix.md` | 与 Matrix 的核心区别、边界和取舍（informative 对照，非真相源，详见 §4.10 实现指南组说明；面向 Matrix 实现者的迁移视角；旧路径 `overview/matrix-core-differences.md`）。 |
+| `guides/migrating-from-matrix.md` | 与 Matrix 的核心区别、边界和取舍（informative 对照，非真相源，详见 §4.10 实现指南组说明；面向 Matrix 实现者的迁移视角）。 |
 
 ### 4.2 身份、组织与隐私
 

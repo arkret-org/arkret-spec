@@ -15,13 +15,12 @@ sidebar:
 
 ## 1. 范围与定位
 
-本附录定义 `ck.realm.media_service.foci[].type = "cokret-native"` 的 backend binding。它保留了 v1.0 早期单 SFU endpoint 形态下的 Cokret 自定义信令，作为：
+本附录定义 `ck.realm.media_service.foci[].type = "cokret-native"` 的 backend binding，承载 Cokret 自定义信令，作为：
 
 1. **Reference impl**：协议自洽性测试与教学用途；
-2. **Legacy migration**：v1.0 部署在升级到 multi-focus 框架后，仍能用同一 wire 与现有自研 SFU 互通；
-3. **Conformance baseline**：不依赖任何外部 backend SDK 即可跑完 binding-framework 全套 vector。
+2. **Conformance baseline**：不依赖任何外部 backend SDK 即可跑完 binding-framework 全套 vector。
 
-**不推荐生产使用**：自研 SFU 的工程负担（cascade、recording、E2EE SFrame 实现、scalability）超过维护 LiveKit / mediasoup binding 的成本。v1.1 起本附录可能转为 informative。
+**不推荐生产使用**：自研 SFU 的工程负担（cascade、recording、E2EE SFrame 实现、scalability）超过维护 LiveKit / mediasoup binding 的成本。
 
 声明 `ck.profile.media_service_binding.cokret_native.v1` 的部署 MUST 同时声明 `ck.profile.media_service_binding.v1`。
 

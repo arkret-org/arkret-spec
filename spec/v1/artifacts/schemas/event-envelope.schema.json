@@ -87,7 +87,7 @@
     },
     "refs": {
       "type": "array",
-      "description": "Semantic refs with role. Roles include: authorized_by (replaces v1's auth_refs[]), attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ck.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1.",
+      "description": "Semantic refs with role. Roles include: authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ck.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1.",
       "maxItems": 128,
       "items": {
         "$ref": "#/$defs/semantic_ref"
@@ -2807,7 +2807,7 @@
       }
     },
     {
-      "$comment": "Reject historical top-level legacy field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. These specific names from earlier drafts are called out for clearer diagnostics — type/auth_refs/target_ref/operation_id are migrated to kind / refs[role=authorized_by] / payload.* fields / SDK-internal id (see operations-sync.md §5).",
+      "$comment": "Reject these top-level field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. The root field names type / auth_refs / target_ref / operation_id are dropped and MUST NOT appear at the root; use kind / refs[role=authorized_by] / payload.* fields / SDK-internal id instead (see operations-sync.md §5).",
       "not": {
         "anyOf": [
           {
@@ -2815,7 +2815,7 @@
               "type"
             ]
           },
-          { "required": ["auth_refs"], "$comment": "dropped legacy field — replaces auth_refs with refs[role=authorized_by]" },
+          { "required": ["auth_refs"], "$comment": "auth_refs is dropped; it MUST NOT appear at the root, use refs[role=authorized_by]" },
           {
             "required": [
               "target_ref"

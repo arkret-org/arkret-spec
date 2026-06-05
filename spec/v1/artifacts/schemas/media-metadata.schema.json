@@ -44,7 +44,7 @@
     },
     "thumbnails": {
       "type": "array",
-      "description": "Bound thumbnail / preview descriptors. Producers SHOULD prefer this over legacy preview_blob_ref for private or E2EE media.",
+      "description": "Bound thumbnail / preview descriptors. Producers SHOULD prefer this over preview_blob_ref for private or E2EE media.",
       "items": {
         "type": "object",
         "required": [

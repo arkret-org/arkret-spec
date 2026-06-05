@@ -378,7 +378,7 @@ paths:
 | `ck.self.account.update_profile` | `POST /_cokret/self/account/profile` | gRPC `SelfAccount/UpdateProfile` / MQ `self.account.update_profile`；`bio` 映射到 `profile_fields.bio`，不接受 `avatar_url`。 |
 | `ck.self.account.subscribe` | `GET /_cokret/self/account/subscribe` | gRPC `SelfAccount/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
 | `ck.self.account.cursor_revoke` | `POST /_cokret/self/account/cursor/revoke` | gRPC `SelfAccount/CursorRevoke` / MQ `self.account.cursor_revoke` |
-| `ck.gate.account.register` | `POST /_cokret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.register`；request 字段为 `principal_id`，旧 `did` 字段需迁移，`handle` 经 signed claim 链路。 |
+| `ck.gate.account.register` | `POST /_cokret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.register`；request 字段为 `principal_id`，`handle` 经 signed claim 链路。 |
 | `ck.gate.account.session_revoke` | `POST /_cokret/gate/account/session-grants/revoke` | gRPC `GateAccount/SessionRevoke` / MQ `gate.account.session_revoke` |
 | `ck.self.ephemeral.send` | `POST /_cokret/self/ephemeral` | gRPC `SelfEphemeral/Send` / MQ `self.ephemeral.send`；承载 `ck.schema.ephemeral_envelope.v1`，不写 durable Event |
 | `ck.self.snapshot.head` | `GET /_cokret/self/snapshot/head` | snapshot pointer |
