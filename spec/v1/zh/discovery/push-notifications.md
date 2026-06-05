@@ -33,7 +33,7 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 - 推送上游（APNs / FCM / Push Gateway）只携带 **per-(recipient_service_did, principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Realm id、event id、device DID URL 或任何其它跨 Realm 稳定标识。具体规则见 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。同一 DID 在个人 Principal Server 与组织 Principal Server 上的推送注册必须不可链接。
 - `push_target_id` 派生 MUST 使用接收服务私有 secret salt / pepper：`HMAC-SHA256(service_push_secret[salt_epoch_id], canonical_json({recipient_service_did, principal_id, device_id, push_route_id, salt_epoch_id}))`，再编码为不含 DID / Realm / device 原文的 pseudonym。`service_push_secret` 原值绝不能上 wire；`ck.server.describe.privacy_derivation.push_target_id` 只发布 `derivation_profile`、`salt_epoch_id`、`salt_rotation_seconds` 和输入绑定元数据，供客户端和 conformance 工具确认不同 Principal Server / 组织 / push route 不会复用同一可链接命名空间。
 - 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容；本地通知文案在客户端解密后生成。
-- **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，其封闭枚举的**权威定义在 §5.1**（取值 `new_message` / `incoming_call` / `mention_self`，或本地化字符串 token `l10n_key`，由客户端在解密后渲染）；本节及 §4.5 一律交叉引用 §5.1，不另列重复枚举。`push_hint` 与 `wakeup_kind` 是**两个独立字段**：`wakeup_kind`（封闭枚举 `message` / `mention` / `reaction` / `call_invite`）是独立的粗粒度唤醒类别字段，**不是** `push_hint` 的子内容，二者 MUST NOT 互相替代或嵌套。`push_hint` **MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Realm id / 名称 / 头像、Flow id / 名称、Space id / 名称、Message id、reaction emoji 实际值、附件文件名、badge / 未读绝对计数明文（计数走 `notification.counts`，且按 §5.1 / §6.2 最小化约束）、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Realm 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
+- **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，其封闭枚举的**权威定义在 §5.1**（取值 `new_message` / `incoming_call` / `mention_self`，或哨兵值 `l10n_key`——后者为「形态选择器」，实际本地化键由独立字段 `push_hint_l10n_key` 承载，由客户端在解密后渲染）；本节及 §4.5 一律交叉引用 §5.1，不另列重复枚举。`push_hint` 与 `wakeup_kind` 是**两个独立字段**：`wakeup_kind`（封闭枚举 `message` / `mention` / `reaction` / `call_invite`）是独立的粗粒度唤醒类别字段，**不是** `push_hint` 的子内容，二者 MUST NOT 互相替代或嵌套。`push_hint` **MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Realm id / 名称 / 头像、Flow id / 名称、Space id / 名称、Message id、reaction emoji 实际值、附件文件名、badge / 未读绝对计数明文（计数走 `notification.counts`，且按 §5.1 / §6.2 最小化约束）、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Realm 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
 
 - **Sync Service 转发也必须执行同一白名单**：Sync / notification service 在调用 `/_cokret/edge/push/notify` 前 MUST 校验将要转发给 Push Gateway 的字段集合。默认 `blind_wakeup` profile 下，超出 §5.1 枚举字段的 metadata MUST 被 strip，并写入最小化 audit 记录；若字段属于 event / realm / sender 识别字段且未满足 `visible_notification` profile gate，服务 MUST 拒绝该通知或降级为 blind wakeup，不得原样转发。
 
@@ -66,7 +66,7 @@ POST /_cokret/edge/push/register-device
 
 ```json
 {
-  "device_id": "did:web:alice.example.com#device-phone",
+  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "push_gateway": "https://push.example.com/_cokret/edge/push/notify",
   "push_key": "fcm:eJx9k2...",
   "platform": "android",
@@ -77,7 +77,7 @@ POST /_cokret/edge/push/register-device
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `device_id` | string | MUST | 设备 DID 片段标识 |
+| `device_id` | string | MUST | 设备的 typed id,形态为 `ck:device:<uuidv7>`(与 push-operations.schema.json `device_id` pattern 一致) |
 | `push_gateway` | string | MUST | 推送网关的 URL |
 | `push_key` | string | MUST | 设备在推送平台上的注册令牌 |
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
@@ -107,7 +107,7 @@ POST /_cokret/edge/push/unregister-device
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `device_id` | string | required | 要注销的设备标识；形态与 §3.1 register 的 `device_id` 一致（设备 DID 片段标识，如 `did:web:alice.example.com#device-phone`），MUST byte-for-byte 等于注册时提交的值 |
+| `device_id` | string | required | 要注销的设备标识；形态与 §3.1 register 的 `device_id` 一致（typed id `ck:device:<uuidv7>`，如 `ck:device:01964137-0000-7000-8000-000000000000`），MUST byte-for-byte 等于注册时提交的值 |
 | `push_key` | string | optional | 指定要注销的 push token |
 | `app_id` | string | optional | 指定应用包名 / Bundle ID |
 
@@ -375,7 +375,9 @@ POST /_cokret/edge/push/notify
 | `notification` | object | required | 推送通知对象。 |
 | `notification.push_target_id` | string | required | per-(recipient_service_did, principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Realm / Principal Server 上下文关联的稳定 ID。 |
 | `notification.wakeup_kind` | string | required | 粗粒度唤醒类别，封闭枚举 `message` / `mention` / `reaction` / `call_invite`（与 §2.2 一致）；只是粗粒度提示，不带 Realm / sender 信息。 |
-| `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或 `l10n_key` token；不得包含正文、sender DID / handle、Realm id / 名称、Flow / Message id、reaction 实际值或 stable correlation key。 |
+| `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示形态选择器，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或哨兵值 `l10n_key`。**`l10n_key` 是「形态选择器」而非字面展示 token**：当 `push_hint == "l10n_key"` 时，实际本地化键 MUST 由独立字段 `push_hint_l10n_key` 承载（不得把 l10n key 直接塞进 `push_hint` 值）。不得包含正文、sender DID / handle、Realm id / 名称、Flow / Message id、reaction 实际值或 stable correlation key。 |
+| `notification.push_hint_l10n_key` | string | conditional | 仅当 `push_hint == "l10n_key"` 时出现且 MUST 提供；承载实际本地化键 token（如 `push.new_message`），由客户端在解密后用于本地渲染。MUST NOT 携带正文或任何识别性 metadata。 |
+| `notification.evaluation_locus_unresolved` | boolean | optional | E2EE client-side rule 降级信号（见 §4.5 第 3 步）：为 `true` 表示客户端已被唤醒但 server 端规则匹配尚未确定。纯本地评估信号，不携带 metadata。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。**`blind_wakeup` 下约束（normative）**：绝对未读数是活动侧信道，会让 provider 推断用户的累计活跃度，且 §2.2 已将"未读绝对计数明文"列入 `push_hint` MUST NOT 清单；为避免该 MUST NOT 被本字段架空，`blind_wakeup` 下 counts **MUST NOT** 携带明文绝对未读数。counts MUST 改用以下形态之一：粗粒度布尔 badge（如"有/无新内容"）、`unread_increment` 增量，或按 Realm policy 声明粒度 **bucket 化**的未读数（例如 `1` / `2-5` / `6+`）。无论何种形态，counts MUST NOT 跨 `push_target_id` 关联，也不得用于在 provider 侧重建跨 Realm 累计活动画像。 |
 | `notification.devices` | object[] | required | 目标设备数组。 |
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
@@ -400,8 +402,8 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
     "push_target_id": "cx_push_pseudo_01js0pt0000000000000000000",
     "wakeup_kind": "message",
     "counts": {
-      "unread_bucket": "2-5",
-      "missed_calls": 0
+      "badge": "2-5",
+      "missed_call": 0
     },
     "devices": [
       {

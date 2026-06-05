@@ -262,6 +262,26 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 }
 ```
 
+`poll` block 字段：
+
+| 字段 | 类型 | 必需 | 说明 |
+| --- | --- | --- | --- |
+| `kind` | const `ck.content.poll` | yes | content block 判别。 |
+| `body` | `string` | yes | fallback 文本，用于不支持 poll 渲染的客户端。 |
+| `poll.kind` | `string` | yes | 计票披露模式；封闭枚举（示例 `disclosed`）以 `ck.content.poll` content-block schema 为权威源，客户端 MUST NOT 自行扩展。 |
+| `poll.max_selections` | `integer`（≥ 1） | yes | 单次响应最多可选 answer 数。 |
+| `poll.question` | content block | no | 题干富文本；省略时以 `body` 为题。 |
+| `poll.answers[]` | `array` | yes | 候选项数组，每项 `{ id: string, text: content block }`；`id` 在同一 poll 内 MUST 唯一。 |
+
+`ck.content.poll.response` block 字段：
+
+| 字段 | 类型 | 必需 | 说明 |
+| --- | --- | --- | --- |
+| `kind` | const `ck.content.poll.response` | yes | content block 判别。 |
+| `body` | `string` | yes | fallback 文本。 |
+| `poll_response.poll_ref` | `id:message` | yes | 指向承载该 poll 的 Message。 |
+| `poll_response.selections` | `array<string>` | yes | 所选 answer `id` 列表；数量 MUST ≤ 对应 poll 的 `max_selections`。 |
+
 响应投票时，客户端发送 `ck.content.poll.response` Content Block，最小形态为 `{ "kind": "ck.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`，其中 `poll_ref` 指向承载该 poll 的 Message，`selections` 列出所选 answer `id`（数量 MUST ≤ 对应 poll 的 `max_selections`）。该 block 的 canonical schema 与 `poll` block 一同定义在 `ck.content.poll` 的 content-block schema（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/` 下的 content-block schema）。投票的权威计票仍按 §9 v1 扩展规则由 `poll` Morph / Relation / event reducer 承担，content block 只作为入口或摘要。
 
 ### 4.10 复合消息 `ck.content.composite`

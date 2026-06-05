@@ -161,7 +161,9 @@ Cokret v1 支持以下 `kind`：
 | **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `ck.message.revise.own` → `ck.message.revise`；`ck.message.redact.own` → `ck.message.redact`；`ck.flow.watch.set.others` → `ck.flow.watch.set` |
 | **保留旧 wire 命名（`event_mapping_kind="wire_compat_grandfather"`）** | action 用收敛后命名、event kind 因已发布的 wire bytes 不可改名而保留旧前缀 / 旧 punctuation。本类**冻结**，新增条目 **MUST NOT 落入此类**：所有现存条目都 MUST 在 registry 中声明 `grandfathered_since` | `ck.agent.session.*` → `ck.agent.protocol_session.*`（namespace 折叠）；`ck.morph.schema.migrate` → `ck.morph.schema_migrate`（separator 差异）；`ck.flow.tracks.manage` → `ck.flow.tracks.update`（umbrella verb vs 具体 verb）；`ck.call.configure_media_service` → `ck.realm.media_service`（跨 namespace 语义） |
 
-`ck.mls.commit` action → `{ck.mls.commit, ck.mls.commit_failed}`、`ck.message.redact` → `{ck.message.redact, ck.redaction}`、`ck.moderation.appeal.review` → `{ck.moderation.appeal.review, ck.moderation.appeal.decision, ck.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
+`ck.mls.commit` action → `{ck.mls.commit, ck.mls.commit_failed}`、`ck.moderation.appeal.review` → `{ck.moderation.appeal.review, ck.moderation.appeal.decision, ck.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
+
+`ck.message.redact` → `{ck.message.redact, ck.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="wire_compat_grandfather"`（`grandfathered_since=2026-05-08`，risk_tier=medium），即上表第四类“保留旧 wire 命名”的冻结桥（`ck.redaction` 是早期已发布的 wire event kind，无法机械收敛进 `ck.message.*` 命名空间）。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准；本文此前把它误列为聚合 admin 已更正，以免 conformance lint 锚点失效。
 
 新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
 
@@ -190,7 +192,7 @@ Cokret v1 支持以下 `kind`：
 - `ck.flow.restore`
 - `ck.flow.move`
 - `ck.flow.reorder`
-- `ck.flow.tracks.manage`（Flow tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，对应 event `ck.flow.tracks.update`。这是该 action 的权威定义；§5.3 仅交叉引用）
+- `ck.flow.tracks.manage`（Flow tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，target=`ck.flow.tracks.update`。**`event_mapping_kind=wire_compat_grandfather`（grandfathered_since=2026-05-08）**——umbrella verb `manage` 与具体 verb `update` 之间的冻结桥，新条目 MUST NOT 落入此类。这是该 action 的权威定义；§5.3 仅交叉引用）
 - `ck.relation.create`
 - `ck.relation.update`
 - `ck.relation.tombstone`
@@ -226,7 +228,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.message.redact.own`
 - `ck.reaction.add`
 - `ck.reaction.remove`
-- `ck.flow.tracks.manage`（管理 track 启用 / primary / profile；权威定义见 §5.2，此处仅交叉引用，target=`ck.flow.tracks.update`）
+- `ck.flow.tracks.manage`（管理 track 启用 / primary / profile；权威定义见 §5.2，此处仅交叉引用，target=`ck.flow.tracks.update`，`event_mapping_kind=wire_compat_grandfather`）
 - `ck.flow.watch.set`（写入自己的 watch 订阅，target=`ck.flow.watch.set`；详见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）
 - `ck.flow.watch.set.others`（high risk；为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`ck.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
 
@@ -252,6 +254,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.schema.update`
 - `ck.capability.grant`
 - `ck.capability.delegate`
+- `ck.capability.derived`（risk_tier=medium；记录从 parent grant 机械派生出的 child grant 记录，target=`ck.capability.derived`。与 `ck.capability.delegate` 的区别：`delegate` 是“主体主动再授权第三方”的授权动作，`derived` 仅承载 reducer / 工具按既有委托规则物化出的派生 grant 记录，不引入新的授权意图）
 - `ck.capability.revoke`
 - `ck.agent.key.authorize`（high risk；授权 agent key，target=`ck.agent.key.authorize`）
 - `ck.agent.key.rotate`（high risk；轮换 agent key，target=`ck.agent.key.rotate`）
@@ -267,6 +270,15 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.agent.sidecar_thread.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.flow.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
 - `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Flow)
 - `ck.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `ck.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
+- `ck.agent.protocol.discover`（profile=`ck.profile.agent_runtime.v1`，risk_tier=low，`non_event_surface`，无 target event：发现 agent runtime 协议端点 / capability，仅服务面发现，不写入 event）
+- `ck.agent.session.start`（profile=`ck.profile.agent_runtime.v1`，high risk；启动 agent protocol session，`event_mapping_kind=wire_compat_grandfather`（grandfathered_since=2026-05-08），target=`ck.agent.protocol_session.start`；required constraint `allowed_endpoints` + `allowed_data_classes`）
+- `ck.agent.session.cancel`（profile=`ck.profile.agent_runtime.v1`，medium；取消 / 终止 session，grandfather 桥，target=`{ck.agent.protocol_session.status, ck.agent.protocol_session.result}`）
+- `ck.agent.session.stream_status`（profile=`ck.profile.agent_runtime.v1`，low；流式上报 session 状态，grandfather 桥，target=`ck.agent.protocol_session.status`）
+- `ck.agent.session.attach_artifact`（profile=`ck.profile.agent_runtime.v1`，high risk；附加 session artifact，grandfather 桥，target=`{ck.agent.protocol_session.status, ck.agent.protocol_session.result}`；required constraint `allowed_data_classes` + `max_artifact_bytes`）
+- `ck.agent.session.read_transcript`（profile=`ck.profile.agent_runtime.v1`，high risk；读取 session transcript，`non_event_surface`，无 target event；required constraint `allowed_data_classes`）
+
+> `ck.agent.session.*` 是 `ck.agent.protocol_session.*` event kind 的保留旧 wire 命名（namespace 折叠）grandfather 桥，整族冻结（见 §5.0“保留旧 wire 命名”类与 registry `grandfathered_since`）；新条目 MUST NOT 落入此类。以上 agent runtime / session 动作均 profile-gated（`ck.profile.agent_runtime.v1`），未声明该 profile 的 receiver MUST 按 registry_rules 视为 unknown 并 default 高风险 fail-closed。
+
 - `ck.policy.manage`
 - `ck.policy.set`
 - `ck.policy.rule`（管理 policy 规则集合，target=`ck.policy.rule`）
@@ -280,6 +292,8 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.approval.vote`
 - `ck.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `ck.moderation.decision.lift`（解除已 anchored 的 moderation 决策）
+- `ck.moderation.appeal.submit`（risk_tier=low；提交对 moderation 决策的申诉，target=`ck.moderation.appeal.submit`）
+- `ck.moderation.appeal.review`（risk_tier=medium；审理申诉，aggregate admin action，target=`{ck.moderation.appeal.review, ck.moderation.appeal.decision, ck.moderation.appeal.close}`）
 
 ### 5.5 服务动作
 
@@ -292,7 +306,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.blob.get`
 - `ck.blob.head`
 - `ck.blob.presign`（签发预签名 blob URL；必需 constraint `blob_presign_scope` + `blob_presign_max_ttl_seconds`）
-- `ck.call.configure_media_service`
+- `ck.call.configure_media_service`（target=`ck.realm.media_service`，**`event_mapping_kind=wire_compat_grandfather`**——跨 namespace 语义的冻结桥，新条目 MUST NOT 落入此类；§5.0 第四类列此例）
 - `ck.mls.genesis`
 - `ck.mls.proposal`
 - `ck.mls.commit`
@@ -309,6 +323,11 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.typing.broadcast`
 - `ck.receipt.broadcast`
 - `ck.call.signal.send`
+- `ck.call.join`（risk_tier=medium；加入通话，scope_suffix_variant，target=`ck.call.state`）
+- `ck.call.screen_share`（risk_tier=medium；屏幕共享，scope_suffix_variant，target=`ck.call.state`）
+- `ck.call.record`（**high risk**；录制通话，aggregate admin action，target=`{ck.call.recording.start, ck.call.state}`；MUST 按 high-risk 规则携带 `expires_at`、resource selector narrowing 与审计证据）
+- `ck.call.transcribe`（**high risk**；转写通话，scope_suffix_variant，target=`ck.call.state`；同 high-risk 约束要求）
+- `ck.call.moderate`（risk_tier=medium；通话内 moderation，scope_suffix_variant，target=`ck.call.state`）
 
 v1 不再注册独立的 `ck.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ck.mls.commit` payload 中的 `next_epoch` 和对应 `ck.component.mls_epoch.v1` cell reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
 
@@ -323,39 +342,72 @@ Audit action 只授权受控审计 applet / release service 执行绑定、阶�
 
 ## 6. Constraints
 
-Cokret v1 支持：
+Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-constraint.schema.json` 属性分组一致）。**allow 与 deny 两侧都属于 v1 受支持约束**；deny / `denied_*` / `*_deny` 字段不是扩展私货，它们与对应 allow 字段同源，命中即按 §15 “任一 deny 命中即生效”裁决：
+
+**temporal**
 
 - `expires_at`
 - `not_before`
+- `message_edit_window`
+- `message_redact_window`
+- `allow_redact_after_window`
+
+**field_access**
+
 - `fields_write_allow`
 - `fields_write_deny`
 - `fields_read_allow`
 - `fields_read_deny`
 - `sensitive_fields`
 - `sensitive_handling`
-- `space_kind_allow`
+
+**type_restriction**
+
+- `object_type_allow`
+- `object_type_deny`
 - `morph_type_allow`
+- `morph_type_deny`
+- `space_kind_allow`
+- `space_kind_deny`
 - `facet_allow`
-- `allowed_flow_ids`
-- `allowed_space_ids`
+- `facet_deny`
+
+**scope_limitation**
+
+- `allowed_flow_ids` / `denied_flow_ids`
+- `allowed_space_ids` / `denied_space_ids`
 - `allowed_view_ids`
-- `allowed_tracks`
-- `relation_kind_allow`
-- `allowed_from_container_refs`
-- `allowed_to_container_refs`
-- `visibility_allow`
-- `blob_max_bytes`
-- `blob_presign_max_ttl_seconds`
+- `allowed_view_kinds` / `denied_view_kinds`
+- `allowed_view_renderers` / `denied_view_renderers`
+- `allowed_circle_ids`（限定 Circle-scoped capability 动作（`ck.circle.manage` / `ck.circle.member.manage` 等）到列出的 Circle id；配合 `resource-selector-grammar.md` §2.2 的 Circle selector 使用。Realm-wide 无收窄的 Circle 管理 grant 不是正常授权形态）
+- `allowed_tracks` / `denied_tracks`
+- `relation_kind_allow`（**kanban extension**，profile-gated `ck.profile.kanban_mvp.v1`；未声明该 profile 的实现 MUST fail closed，见 [`constraint-schema.md` §2.2](./constraint-schema.md)）
+- `allowed_from_container_refs`（同上，kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed）
+- `allowed_to_container_refs`（同上，kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed）
+- `wip_limit_override`（同上，kanban extension）
 - `blob_presign_scope`
-- `max_artifact_bytes`
 - `allowed_data_classes`
 - `allowed_endpoints`
-- `encryption_required`
-- `message_edit_window`
-- `message_redact_window`
-- `allow_redact_after_window`
+
+**delegation_control**
+
 - `max_delegation_depth`
-- `rate_limit`
+- `delegation_path`
+- `prohibit_subdelegation`
+- `delegation_scope`
+- `allow_scope_expansion`
+- `require_parent_reference`
+
+**quota**
+
+- `rate_limit`（`max_operations` + `period`，可选 `burst`）
+- `blob_max_bytes`
+- `blob_presign_max_ttl_seconds`
+- `max_total_blob_bytes`
+- `max_artifact_bytes`
+
+**claim_based**
+
 - `approval_required`
 - `approval_mode`
 - `approval_actor_ids`
@@ -368,7 +420,17 @@ Cokret v1 支持：
 - `claim_refresh_required`
 - `claim_max_age`
 
-上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准。
+**confidentiality**
+
+- `visibility_allow`
+- `deny_redacted_history`（命中即拒绝读取已 redact 的历史，属 `confidentiality` `subtype=visibility`）
+- `encryption_required`
+
+**moderation 缓存依赖标记**
+
+- `depends_on_moderation_state`（缓存失效 hint，默认 `false`；当 grant 的授权决策依赖 `ck.component.moderation_state.v1` cell 时 MUST 显式声明 `true`，触发条件与静态 lint 规则见 §18.1。它本身不是 allow/deny 约束，而是 fast-path cache 失效绑定，定义见 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 与 [`constraint-schema.md` §18.1 引用](./constraint-schema.md)）
+
+上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准；机读权威源是 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json)。
 
 ### 6.1 Effective Validity Window
 
@@ -397,17 +459,32 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `fields_read_deny` | `field_access` | — | `fields_read_deny`（读取面字段拒绝列表，§16.2 算法消费） |
 | `sensitive_fields` | `field_access` | — | `sensitive_fields`（读取时需特殊处理的敏感字段集） |
 | `sensitive_handling` | `field_access` | — | `sensitive_handling`（敏感字段处理方式：`redact` / `hash` / `omit`） |
+| `object_type_allow` | `type_restriction` | — | `object_type_allow` |
+| `object_type_deny` | `type_restriction` | — | `object_type_deny`（命中即拒绝该对象类型） |
 | `space_kind_allow` | `type_restriction` | — | `space_kind_allow`（限定 Space 的 kind，例如 board / list / swimlane）|
+| `space_kind_deny` | `type_restriction` | — | `space_kind_deny` |
 | `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
+| `morph_type_deny` | `type_restriction` | — | `morph_type_deny` |
 | `facet_allow` | `type_restriction` | — | `facet_allow` |
+| `facet_deny` | `type_restriction` | — | `facet_deny` |
 | `allowed_flow_ids` | `scope_limitation` | — | `allowed_flow_ids` |
+| `denied_flow_ids` | `scope_limitation` | — | `denied_flow_ids` |
 | `allowed_space_ids` | `scope_limitation` | — | `allowed_space_ids` |
+| `denied_space_ids` | `scope_limitation` | — | `denied_space_ids` |
 | `allowed_view_ids` | `scope_limitation` | — | `allowed_view_ids` |
+| `allowed_view_kinds` | `scope_limitation` | — | `allowed_view_kinds` |
+| `denied_view_kinds` | `scope_limitation` | — | `denied_view_kinds` |
+| `allowed_view_renderers` | `scope_limitation` | — | `allowed_view_renderers` |
+| `denied_view_renderers` | `scope_limitation` | — | `denied_view_renderers` |
+| `allowed_circle_ids` | `scope_limitation` | — | `allowed_circle_ids`（限定 Circle-scoped 动作到列出的 Circle id，配合 Circle selector） |
 | `allowed_tracks` | `scope_limitation` | — | `allowed_tracks` |
-| `relation_kind_allow` | `scope_limitation` | — | `relation_kind_allow` |
-| `allowed_from_container_refs` | `scope_limitation` | — | `allowed_from_container_refs` |
-| `allowed_to_container_refs` | `scope_limitation` | — | `allowed_to_container_refs` |
+| `denied_tracks` | `scope_limitation` | — | `denied_tracks` |
+| `relation_kind_allow` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed） | — | `relation_kind_allow` |
+| `allowed_from_container_refs` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed） | — | `allowed_from_container_refs` |
+| `allowed_to_container_refs` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed） | — | `allowed_to_container_refs` |
+| `wip_limit_override` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`） | — | `wip_limit_override`（看板容器 WIP 上限覆盖） |
 | `visibility_allow` | `confidentiality` | `visibility` | `visibility_allow` |
+| `deny_redacted_history` | `confidentiality` | `visibility` | `deny_redacted_history`（命中即拒绝读取已 redact 历史） |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
 | `blob_presign_max_ttl_seconds` | `quota` | `resource` | `blob_presign_max_ttl_seconds` |
 | `blob_presign_scope` | `scope_limitation` | — | `blob_presign_scope` |
@@ -419,7 +496,13 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `message_redact_window` | `temporal` | `redact_window` | `message_redact_window` |
 | `allow_redact_after_window` | `temporal` | `edit_window` / `redact_window` | `allow_redact_after_window`（窗口修饰符，见 [`constraint-schema.md` §14.2](./constraint-schema.md)） |
 | `max_delegation_depth` | `delegation_control` | — | `max_delegation_depth` |
-| `rate_limit` | `quota` | `rate` | `max_operations`, `period` |
+| `delegation_path` | `delegation_control` | — | `delegation_path`（委托链 DID 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
+| `prohibit_subdelegation` | `delegation_control` | — | `prohibit_subdelegation` |
+| `delegation_scope` | `delegation_control` | — | `delegation_scope`（`narrowing_only` / `same_scope` / `custom`） |
+| `allow_scope_expansion` | `delegation_control` | — | `allow_scope_expansion` |
+| `require_parent_reference` | `delegation_control` | — | `require_parent_reference` |
+| `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `burst` |
+| `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`（scope 内累计字节上限） |
 | `approval_required` | `claim_based` | `approval` | `approval_required` |
 | `approval_mode` | `claim_based` | `approval` | `approval_mode` |
 | `approval_actor_ids` | `claim_based` | `approval` | `approval_actor_ids` |
@@ -431,6 +514,7 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `trusted_claim_issuers` | `claim_based` | `claim` | `trusted_claim_issuers` |
 | `claim_refresh_required` | `claim_based` | `claim` | `claim_refresh_required` |
 | `claim_max_age` | `claim_based` | `claim` | `claim_max_age` |
+| `depends_on_moderation_state` | （缓存依赖标记，非 allow/deny 约束） | — | `depends_on_moderation_state`（fast-path cache 失效 hint，默认 `false`；MUST 显式 `true` 的三类触发条件见 §18.1。它不归入 8 个 constraint family，而是 grant cache 失效绑定字段） |
 
 ## 7. Claim / Attestation
 
@@ -724,7 +808,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 | 动作风险等级 | `fresh` | `stale` | `unknown` |
 | --- | --- | --- | --- |
-| 高风险（`ck.realm.destroy`、`ck.capability.revoke`、`ck.realm.admin`、`ck.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
+| 高风险（**[`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `risk_tier=high` 的全部已登记动作**，例如 `ck.realm.destroy`、`ck.realm.freeze`、`ck.realm.tombstone`、`ck.capability.revoke`、`ck.realm.admin`、`ck.policy.manage`、`ck.schema.define`、`ck.agent.key.authorize` / `ck.agent.key.rotate` / `ck.agent.key.revoke`、`ck.call.record`、`ck.call.transcribe`、`ck.audit.export` 等；**加** 以下非 registry 概念项：E2EE key export、legal hold bypass、跨域 grant、sovereign export；以及按"默认 fail closed"规则被视为高风险的未登记动作） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
 | 中风险（`ck.flow.update`、`ck.circle.member.manage`、`ck.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
 | 高频写入 / 本地 pending tier（按本表显式枚举：`ck.message.create`、`ck.reaction.add`、`ck.read_cursor.advance`、`ck.flow.move`、`ck.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
 

@@ -87,7 +87,8 @@
       ]
     },
     "preview": {
-      "type": "object"
+      "type": "object",
+      "description": "Render summary. Under E2EE / redaction / history-limited scopes this MUST be empty or an authorized redacted digest; sender/reducer-enforced. A notification projection MUST NOT widen the plaintext visibility of the source Message. See models/private-objects.md §3.4."
     },
     "created_at": {
       "type": "string",
@@ -100,5 +101,5 @@
       "pattern": "Z$"
     }
   },
-  "unevaluatedProperties": false
+  "additionalProperties": false
 }

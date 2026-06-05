@@ -112,7 +112,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 **新字段命名规则（normative，对扩展 profile 适用）**：扩展 profile 引入新的 approval / claim / accountability 子字段时，应避免展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
 
-1. **在 `condition` / `requires_claims[]` 中携带**：approval workflow 的额外配置（如 reviewer roster、escalation policy）可写入 `requires_claims[].value_constraints` 或新增 `approval_extension` 嵌套对象（仅扩展 profile 使用，core profile 不引入新顶层 flat field）。
+1. **在 `condition` / `requires_claims[]` 中携带**：approval workflow 的额外配置（如 reviewer roster、escalation policy）可写入 `requires_claims[].value_constraints`，或新增以 `x_` 前缀命名的扩展嵌套对象（例如 `x_approval_extension`，仅扩展 profile 使用，core profile 不引入新顶层 flat field）。**注意**：`grant-constraint.schema.json` 顶层是 `additionalProperties:false` + `patternProperties:"^x_[a-z][a-z0-9_]{0,63}$"`，因此扩展嵌套对象 MUST 使用 `x_` 前缀；不带前缀的裸名（如曾用的 `approval_extension`）会被 schema 拒绝，实现 MUST NOT 为容纳它而改用更松的本地 schema。
 2. **以新 `subtype` 区分**：若新字段语义无法通过既有 subtype 覆盖，应注册新 subtype（如 `claim_based.subtype=quorum_approval`）而不是继续在 flat namespace 加字段。
 
 
@@ -713,6 +713,15 @@ function matches_field_access(operation, constraint):
 
 - 缓存键、TTL 与失效语义以 §2.3 evaluation_class 表与 [`capabilities.md` §18.1](./capabilities.md) 的 `auth_state_digest` 绑定为准。
 - `external` 类约束 MUST NOT 缓存（见 §2.3 / §15.3）。
+
+#### 18.1.1 `depends_on_moderation_state`（缓存依赖标记，非求值约束）
+
+`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ck.component.moderation_state.v1` cell（见 [`policy-server.md` §7.1](./policy-server.md)）”，从而决定该 cell 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
+
+- 默认 `false`：普通 grant（`ck.flow.update` / `ck.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
+- 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / cell）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
+- 归属：在 [`capabilities.md` §6](./capabilities.md) 约束清单与映射表中登记于“moderation 缓存依赖标记”分组（不归入任一 constraint family）；机读权威源为 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 的 `depends_on_moderation_state` 属性。
+- 一个 `{"depends_on_moderation_state": true}` 不需要 `constraint_type`/`effect` 之外的求值语义；它与同一 grant 内的其它 typed constraint 并列承载，仅供缓存失效引擎读取。
 
 ### 18.2 优化策略
 

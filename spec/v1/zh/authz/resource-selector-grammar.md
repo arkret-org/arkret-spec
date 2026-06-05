@@ -242,8 +242,8 @@ flow_part            ::= flow_id | "*"
 | Conjunction 展开后总项数 | 64 项 | JSON selector 或 shorthand 归一化后的 AND 项总数；防止嵌套组合指数展开。|
 | 嵌套深度（任意 selector 树） | 8 层 | 包括逗号 / 加号 / 引用 / 子 selector 嵌套。|
 | 单个 `selector_term` 字段值长度 | 1024 字节 | DID、URL、UUIDv7、复合 id 都包含在内。|
-| `requires_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限。|
-| `requires_claims[].subjects[]` / DID 列表长度 | 16 项 | 任一 claim object 内按 DID / subject 列表约束展开的对象数量。|
+| `requires_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限；`grant-constraint.schema.json` 的 `requires_claims` 已用 `maxItems:32` 静态强制本上限。|
+| `requires_claims[]` 内 DID / 列表字段长度（`trusted_issuers[]` / `roles[]` 等；schema 无 `subjects[]` 字段） | 16 项 | 任一 claim object 内 DID 列表（`trusted_issuers`）或角色列表（`roles`）等展开的对象数量；`grant-constraint.schema.json` 对 `trusted_issuers` / `roles` 强制 `maxItems:16`。|
 | Constraint object 内嵌套层级 | 4 层 | approval / claim object 内部最多 4 层嵌套。|
 | Selector JSON canonical form 总 byte | 64 KiB | 即便所有单项上限均未触发，整个 JSON canonical form 序列化后的 byte 总长仍 MUST ≤ 64 KiB（与 [`../conformance/encoding.md §8.6`](../conformance/encoding.md) cursor opaque payload 上限一致）；超过即 `selector_too_complex`，防止以 256 × 1024 byte selector_term 合法堆叠为 DoS 面。|
 

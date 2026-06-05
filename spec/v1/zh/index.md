@@ -71,7 +71,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 5. 使用 snapshot / frontier 建立快速重建路径。
 6. 讨论类空间先验 MLS state，再决定是否解密展示。
 7. reducer 产出 canonical projection，UI 只消费 projection。
-8. 失败场景进入可恢复退化状态（如 `decryption_pending`、`state_mismatch`）。
+8. 失败场景进入可恢复退化状态（如 `decryption_pending`、`state_mismatch`、`projection_incomplete`）；这些标准退化状态 / 错误标识的 canonical 语义详见 [`artifacts/registry/error-code-registry.json`](../artifacts/registry/error-code-registry.json)。
 
 ### 3.2 推荐阅读顺序（Suggested Reading Order, _informative_）
 
@@ -81,7 +81,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 - `models/overview.md`：对象总览、typed-id 一览、设计原则。
 - `models/common-fields.md`、`models/realm-and-space.md`、`models/flow-and-message.md`：公共字段、Realm/Space、Flow/Message 等核心对象。
 - `models/relation.md`、`models/morph.md`、`models/event-and-patch.md`：关系、Morph 扩展、事件与字段增量。
-- `identity/identity-did.md`、`identity/identity-handles.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：身份、handle、consent gate、联系人关系和 1:1 私聊入口。
+- `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：身份、handle、设备 / 备份密钥、consent gate、联系人关系和 1:1 私聊入口。
 - `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：授权与状态。
 - `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：同步与服务。
 - `security/server-threat-model.md`：安全边界与抗滥用。
@@ -106,7 +106,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 - `principal_id = DID URI`，Handle 只作为可迁移的人类可读入口。
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
 - **v1 core 默认 principal DID method 为 `did:webvh`**：在 `did:web` 之上叠加 `did.jsonl` 历史链 + SCID + witness evidence，提供可审计的 DID 控制历史，抵御 DNS / TLS 单点失陷。
-- `did:web` 仅作为 **service DID 默认 method** 与 **`personal_node` deployment profile 的可选 principal method**；`did:webvh` hosting 暂时不可达时只允许 [`identity/identity-did.md`](./identity/identity-did.md) 定义的 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。
+- `did:web` 仅作为 **service DID 默认 method** 与 **`personal_node` deployment profile 的可选 principal method**；`did:webvh` hosting 暂时不可达时只允许 [`identity/identity-did.md`](./identity/identity-did.md) 定义的 cache-only degraded mode，MUST NOT live fallback 到 `did:web`；缓存有效期 / TTL 耗尽后 MUST fail-closed（见 [`identity/identity-did.md` §3.4](./identity/identity-did.md)），不得无限期缓存信任旧 DID 文档。
 - 临时、测试、设备、邀请、bootstrap 使用 `did:key`；MUST NOT 作为默认长期主身份。
 - 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 interop extension profile，不属于 v1 core 互操作必需。
 - DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。
@@ -145,15 +145,17 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 
 ## 5. 规范语言与实现声明
 
-本规范的强制关键字为 RFC 2119 语义：
+本规范的强制关键字按 RFC 2119 / RFC 8174 语义解释，完整集合（含否定与可选形式）以 [conformance/normative-language.md](./conformance/normative-language.md) 为权威来源：
 
-- `MUST`
-- `SHOULD`
-- `MAY`
+- `MUST` / `MUST NOT` / `REQUIRED`
+- `SHOULD` / `SHOULD NOT` / `RECOMMENDED`
+- `MAY` / `OPTIONAL`
+
+仅大写形式具规范约束力；全文使用的 `MUST NOT` / `SHOULD NOT` 等均属上述集合。
 
 各实现声明支持范围时需同时给出：
 
-- `protocol_version`（canonical 字段值固定为字符串 `"1.0"`；wire / describe 响应 MUST NOT 写成 `1.0.0` 或 `v1.0.0`）
+- `protocol_version`（canonical 字段值固定为字符串 `"1.0"`；wire / describe 响应 MUST NOT 写成 `1.0.0` 或 `v1.0.0`。术语主条目见 [`overview/glossary.md` §2](./overview/glossary.md)）
 - conformance profile（如 `ck.profile.full_client.v1`）
 - schema / reducer profile（如 `ck.schema.event.v1` 与 `ck.profile.core_event_store.v1`）
 - 尺度与分页边界（默认见 `conformance/scalability-constraints.md`）

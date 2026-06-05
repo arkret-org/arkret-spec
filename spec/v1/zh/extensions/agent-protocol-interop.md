@@ -97,6 +97,8 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 }
 ```
 
+> **`version` 语义(normative)**:endpoint 的 `version` 是 **human-readable hint**,仅供展示与粗粒度兼容判断;`1.x` / `0.x` 通配形式不是有效 semver 也不是 draft id,**MUST NOT** 用于精确 pinning 或版本协商。精确兼容与重放防护以 §5.2 / §5.5 的 `endpoint_digest`(= DID Document canonical hash + service endpoint digest 等 epoch 证据，见 §5.5)为唯一权威 pin;实现 SHOULD 在可行时同时给出精确版本 / 范围，但 reducer 与 session pinning MUST 以 `endpoint_digest` 为准，而非 `version` 字符串。
+
 ### 5.2 Protocol Session
 
 升级会话由 Cokret 事件登记：
@@ -129,7 +131,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 Session start MUST pin counterparty DID epoch，规则见 [§5.5 DID Epoch Pinning (normative)](#55-did-epoch-pinning-normative)。
 
-Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `ck.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest` 标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `ck.agent.protocol_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch（见 §5.5）。
+Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `ck.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest`（即 §5.5 DID Epoch Pinning 中的 service endpoint digest;本文统一以 `endpoint_digest` 指代该 service endpoint digest,与 §5.5 的 "service endpoint digest" 同物,**见 [§5.5](#55-did-epoch-pinning-normative)**)标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `ck.agent.protocol_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch（见 §5.5）。
 
 ### 5.3 Status 回流
 
@@ -165,6 +167,31 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 - `expired`
 
 Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `ck.agent.protocol_session.status{status="cancelled"}` 或终态 `ck.agent.protocol_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。
+
+`status="cancelled"` 完整示例(MUST 字段齐全):
+
+```json
+{
+  "kind": "ck.agent.protocol_session.status",
+  "realm_id": "ck:realm:...",
+  "payload": {
+    "session_id": "ck:agent_session:019643c0-0000-7000-8000-000000000000",
+    "external_task_id": "a2a-task-123",
+    "status": "cancelled",
+    "cancelled_by": "did:web:requesting-agent.example.com",
+    "cancelled_at": "2026-04-26T00:05:00Z",
+    "reason_code": "user_cancelled",
+    "external_cancel_ref": "a2a-cancel-789",
+    "cleanup_required": [
+      "remote_task_handle",
+      "external_transcript"
+    ],
+    "last_update_at": "2026-04-26T00:05:00Z"
+  }
+}
+```
+
+`cancelled_by`(取消发起 actor DID)、`cancelled_at`(timestamp)、`reason_code`(取消原因码)与 `cleanup_required[]`(待清理外部 artifact 标识列表)在 `status="cancelled"` / `result{status="cancelled"}` 下 MUST 提供;`external_cancel_ref` 在外部协议返回 cancel 确认 id 时 MUST 携带，否则 MAY 省略。这些字段属 `ck.agent.protocol_session.status` / `.result` 的 payload。其机读 schema 真源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`(`agent.schema.json` 仅描述 agent session metadata snapshot,不含这些 wire payload 字段)。
 
 ### 5.4 Result 回流
 
@@ -220,7 +247,7 @@ Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm 
 - counterparty DID Document canonical hash；
 - method-specific version / log entry id（若 DID method 支持版本化）；
 - matched service entry id；
-- service endpoint digest；
+- service endpoint digest（即 §5.2 所称 `endpoint_digest`,二者同物）；
 - verification method。
 
 reducer normative：

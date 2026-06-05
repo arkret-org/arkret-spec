@@ -56,7 +56,7 @@
       "type": "integer",
       "minimum": 10,
       "maximum": 1800,
-      "description": "Minimum lead time before ttl expiry at which the client SHOULD initiate refresh. Defaults SHOULD be ttl_seconds / 4 (recommended floor 60s, ceiling 1800s). Required so all clients refresh at consistent cadence and servers can plan secret rotation grace windows."
+      "description": "Minimum lead time before ttl expiry at which the client SHOULD initiate refresh. refresh_lead_seconds MUST be strictly less than ttl_seconds (servers MUST NOT issue refresh_lead_seconds >= ttl_seconds, otherwise the client would judge the credential stale at issuance and storm refresh). Defaults SHOULD be ttl_seconds / 4. The recommended floor (60s) applies only when ttl_seconds is large enough that floor < ttl_seconds still holds; for small ttl (e.g. the 60s minimum) the server MUST shrink refresh_lead_seconds below ttl_seconds (see webrtc-signaling.md §4.2). Required so all clients refresh at consistent cadence and servers can plan secret rotation grace windows."
     },
     "issued_at": {
       "type": "string",
@@ -155,7 +155,10 @@
           "default": "password"
         }
       },
-      "additionalProperties": true
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
     },
     "signature": {
       "type": "object",

@@ -29,14 +29,19 @@ see_also:
 
 ## 2. 核心术语
 
+> **排序说明**：本表按术语**主题分组**排列（身份 / 边界对象 / 事件与同步 / 授权 / 服务角色等），便于按语义聚类阅读，**不是** canonical 对象序。canonical 对象清单及其权威顺序（Realm / Circle / Space（含 Board/List）/ Flow / Message / Relation / Morph / Event / View / Capability）以 [`index.md` §1](../index.md) 为准；§6 等引用对象集合时以该清单为锚点。
+
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Cokret | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
+| protocol_version | 协议大版本字段 | wire-level 协议代际标识，canonical 字段值固定为字符串 `"1.0"`；它是 describe / 协商响应承载的 wire 版本。MUST NOT 写成 `1.0.0` 或 `v1.0.0`，也 MUST NOT 与发布 release tag（`v1.0.0`）互换填入对方位置。引用其格式与互换约束以本条为单一锚点，见 [`index.md` §5](../index.md)。 |
+| release tag (`v1.0.0`) | 仓库发布线标签 | 规范仓库的发布 / release tag（语义化版本 `v1.0.0`），是文档 / artifact 发布维度的标识，**不**进入 wire。与 `protocol_version`（`"1.0"`）是两个不同维度，两者 MUST NOT 互换。详见 [`release-readiness.md` §2](./release-readiness.md)。 |
 | Principal | 主体 | 协议中的稳定行为者身份；通常由 DID 标识，包含个人主体、组织、agent、Applet 等。 |
 | Actor | 参与身份 | Principal 在 Realm 内的行为身份：执行动作、产生 Event、持有 profile 与 membership；可在不同 Realm 表现为 pairwise pseudonym。 |
 | Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
 | Handle | 可路由人类地址 | 面向用户的可读入口，统一 canonical handle `user:domain`，显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`。可由 holder 自托管签发或 Organization / Principal Server / Directory 签发；解析结果含 `subject` DID，并 MAY 携带 `member_delivery_binding.recipient_service_did`，但只有物化为 Realm `delivery_binding` 后才成为投递路径。不可作为协议主体或授权主键。 |
+| Delivery Binding | 投递绑定 | Realm-scoped、actor-scoped 的投递路径权威来源：`delivery_binding.recipient_service_did` 决定该成员的明文 / 事件实际发往哪个服务，是安全相关的一等机制。由 reducer 依 Join Policy 复核 `MemberDeliveryBindingCandidate` 后物化；`did_document_default`（DID Document 默认 Principal Server）只可在 join / rebind 时作为 Realm policy 允许的物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。字段、物化窗口与 fallback 约束的权威定义见 [`identity-handles.md` §3.7](../identity/identity-handles.md)。 |
 | Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Realm history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
@@ -90,11 +95,11 @@ see_also:
 | Blob Store | 二进制对象存储 | 附件、媒体、文件对象的存储与引用服务。 |
 | Directory Server | 目录服务 | 提供可发现的 Realm、组织、actor、Applet 信息。 |
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID 文档、method resolver、密钥材料与验证链路。 |
-| Auth Server | 认证服务（canonical, service role） | 负责登录因子验证（password / passkey / OIDC / SSO / recovery factor）、短期 `ck.session.grant` 签发与 session 生命周期管理的服务角色；profile `ck.profile.auth_server.v1`，运行时 `service_type=auth_server`。它**不是协议身份根**，验证结果只证明某登录会话可绑定到某 DID principal / device，MUST NOT 替代 DID 控制证明或直接定义主体所有权。认证服务角色全规范 canonical 专名即 **`Auth Server`**（中文「认证服务」）；`Auth Service` / `Auth Gateway` / `认证服务器` / `认证网关` 等写法 prose normative 段落 MUST NOT 用作另一术语，除 Auth Gateway（见下行）外均应理解为 Auth Server 的别称。详见 [`conformance/conformance-profiles.md` §9a](../conformance/conformance-profiles.md) 与 [`crypto-media/device-lifecycle.md` §1](../crypto-media/device-lifecycle.md)。 |
+| Auth Server | 认证服务（canonical, service role） | 负责登录因子验证（password / passkey / OIDC / SSO / recovery factor）、短期 `ck.session.grant` 签发与 session 生命周期管理的服务角色；profile `ck.profile.auth_server.v1`，运行时 `service_type=auth_server`。它**不是协议身份根**，验证结果只证明某登录会话可绑定到某 DID principal / device，MUST NOT 替代 DID 控制证明或直接定义主体所有权。认证服务角色全规范 canonical 专名即 **`Auth Server`**（中文「认证服务」）；`Auth Service` / `认证服务器` 等写法 prose normative 段落 MUST NOT 用作另一术语，均应理解为 Auth Server 的别称。例外：`Auth Gateway` 及其中文 `认证网关` 专指 Auth Server 的**企业 SSO 部署形态**（见下行 Auth Gateway 条目），仅在描述该企业 SSO 形态时 MAY 使用；泛指认证服务角色时 MUST 用 canonical `Auth Server`，MUST NOT 用 `Auth Gateway` / `认证网关` 指代普通 Auth Server。详见 [`conformance/conformance-profiles.md` §9a](../conformance/conformance-profiles.md) 与 [`crypto-media/device-lifecycle.md` §1](../crypto-media/device-lifecycle.md)。 |
 | Auth Gateway | 认证网关（Auth Server 的企业 SSO 部署形态） | Auth Server 的一种**部署形态**，不是独立服务角色：部署在企业内网 / 受控云端、把企业 IdP（Okta、Google Workspace 等 OAuth2 / OIDC）作为登录因子并由组织 DID 声明为 session grant issuer 的高安全网关。它继承 Auth Server 的全部约束（不是协议身份根、只签发短期受众绑定 `ck.session.grant`、不替代 `ck.device.authorize` / DID 控制）；对普通个人 DID SHOULD 只签发短期 session grant，不托管 principal signing key 或 recovery key。prose 提到该企业 SSO 形态时 MAY 使用 `Auth Gateway`；泛指认证服务时 MUST 用 canonical `Auth Server`。详见 [`crypto-media/device-lifecycle.md` §3](../crypto-media/device-lifecycle.md)。 |
 | Device / Key Server | 设备 / 密钥服务（service role） | 承载 to-device 消息、one-time key、fallback key、MLS KeyPackage claim、device list 与 encrypted key backup metadata / ciphertext 的服务角色；E2EE profile 需要，个人部署通常内置于 Principal Server。服务角色 canonical 真源是 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1；密钥备份语义见 [`identity/key-management.md` §7](../identity/key-management.md)。 |
 | Realtime Media Server | 实时媒体服务（canonical, service role） | 通话 / 会议的可选服务角色，提供 ICE config、TURN/STUN、SFU/MCU、录制策略与短期媒体凭证。它属 media plane，MUST 有 service DID 且由 Realm policy 显式允许；SFU 不解密 E2EE 媒体、不获得 Realm 权限、不进入 MLS governance binding，MCU 混流形态若用于 E2EE 必须按 plaintext-visible service 披露。媒体后端 canonical 专名即 **`Realtime Media Server`**。详见 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1 与 [`crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md)。 |
-| Moderation Server | 审核 / 合规服务（service role） | 承载 report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow 的服务角色（service-surface 表中称 "Moderation / Compliance Server"），公共或组织部署建议独立。服务角色 canonical 真源是 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1；审核证据与流程见 [`governance/content-moderation.md`](../governance/content-moderation.md)。 |
+| Moderation Server | 审核 / 合规服务（canonical, service role） | 承载 report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow 的服务角色。canonical 专名为 **`Moderation Server`**；service-surface Table 2-1 表内别名为 "Moderation / Compliance Server"，仅在该表语境内使用，prose normative 段落 MUST 用 canonical 专名。公共或组织部署建议独立。服务角色 canonical 真源是 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1；审核证据与流程见 [`governance/content-moderation.md`](../governance/content-moderation.md)。 |
 | Archive / Recovery Service | 归档 / 恢复服务（service role） | history sharing、late key recovery 或组织恢复场景的可选服务角色（含 Archive Node、Key Recovery Service、Recovery Service）；高安全部署 MUST 显式声明。只能按 Realm policy、history visibility、T0 membership 与 capability 返回最小必要 epoch material / backup envelope / recovery proof，MUST NOT 因持有归档副本自动获得明文读取权。服务角色 canonical 真源是 [`sync/service-surface.md` §2](../sync/service-surface.md) Table 2-1。 |
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
@@ -103,11 +108,11 @@ see_also:
 | Effective | 已生效 | Move 被有效 Anchor frontier 覆盖，并已进入对应 Anchor view 的 state_root。 |
 | Rejected | 已拒绝 | Move / Anchor 在格式、签名、schema、precondition、授权或 state_root 校验上确定失败。 |
 | Move | 动作 | 多 cell 原子条件写；包含 `preconditions[]`、`effects[]`、`anchor_ref`、`refs[]` 与 issuer 签名。 |
-| Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。 |
+| Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。承诺的 Move 集合 MAY 为空：Genesis Anchor 即 `frontier=[]` 的合法特例（见下行），因此"对 Move frontier 的承诺"不蕴含 frontier 必然非空。 |
 | Genesis Anchor | 创世锚点 | 某个 Realm 的 Anchor DAG 根 Anchor；它是唯一允许 `predecessor_refs=[]` 的 Anchor，且 v1 要求 `frontier=[]`。它给该 Realm 的首个 reducer-input Event（通常是 `ck.realm.create`）提供 `anchor_ref` 基线，本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md` §4](../authz/event-auth-state-resolution.md)。 |
 | Anchor DAG | 锚点图 | 某个 Realm 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `ck:cell:<component>:<subject>`。 |
-| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`、`lww_register`（仅可用于 profile 明确标记 `client_projection_only=true` 的 UI affordance，不得作为授权或 Anchor 关键路径）、`rga`（协作文本与有序列表）。 |
+| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`、`lww_register`、`rga`。各类型的 join 语义、bottom 行为及使用约束（如 `lww_register` 仅可用于 `client_projection_only=true` 的 UI affordance、不得作为授权或 Anchor 关键路径；`rga` 用于协作文本与有序列表）以权威源 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 为准；本条只列类型不重复承载 normative 约束。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的 Move fail closed，`bottom=expose` 时可投影为冲突诊断。 |
 | Reset | 重置语义 | 规范中“reset”不是单一 wire 动作：capability reset 通常是 revoke + reissue；cross-signing reset 是 `ck.cross_signing.reset`；cas_register / fsm 进入 `⊥` 后的恢复是 conflict-recovery Move（带 `state_witness` / `inclusion_proof` / recovery capability），不是普通 CAS 覆盖。正文使用 reset 时必须说明对应 event kind 或 recovery path。 |
 | Component / Cell Family | 组件 / Cell 族 | 跨协议版本稳定的 cell family 标识符，URI 形式 `ck.component.<facet-path>.v<n>`；registry 为 reducer-input kind 声明 `cell_family`、`lattice` 与 `bottom`。 |
@@ -125,7 +130,7 @@ see_also:
 | Frontier | 前沿 | Move / Anchor / Actor / Realm 已验证的最远同步边界。 |
 | Causal Barrier | 因果一致性屏障 | 客户端或可选受托 projection 服务在返回查询结果前，依据本地 sync frontier 等待特定写入前沿到达的机制；用于保障 read-your-writes 体验。定义见 [`overview/architecture.md` §3.4](./architecture.md)。 |
 | read-your-writes barrier | 读己之所写屏障 | Causal Barrier 在"读到自己刚提交的写入"这一场景下的别名；由 barrier `cursor` 表达，绑定 causal frontier。语义同 Causal Barrier，见 [`overview/architecture.md` §3.4 / §6.3](./architecture.md) 与 [`sync/client-sync.md`](../sync/client-sync.md)。 |
-| Lazy Link | 惰性链接 | 节点处理深度 Graph/Tree 查询遇到跨 Realm 引用时，截断返回的不解引用占位链接；跨域级联展示必须由有多域权限的客户端主动多次请求合成，节点 MUST NOT 越权自动化拼接外部图谱。定义见 [`overview/architecture.md` §6.5](./architecture.md)。 |
+| Lazy Link | 惰性链接 | 节点处理深度 Graph/Tree 查询遇到跨 Realm 引用时，截断返回的不解引用占位链接。其 normative 规则（截断行为、MUST NOT 越权自动化拼接外部图谱、跨域级联展示由有多域权限的客户端主动合成）单源定义在 [`overview/architecture.md` §6.5](./architecture.md)；本条仅作术语指针，不重复承载该规则。 |
 | Inception Key | 起源密钥 | DID 创建时的初始控制密钥，锚定在 DID 的 method history 中。 |
 | Plaintext Visible Service | 明文可见服务 | Realm policy 显式声明可接收非加密私有内容或可逆派生摘要的服务。 |
 | Audit Applet | 审计 Applet | 在 auditable E2EE profile 中被 Realm / Circle 明确绑定的 applet / release service。它只作为控制面主体存在，不是 MLS 成员，不接收实时消息；若要访问历史材料，必须走 active `ck.audit.applet_binding`、`ck.audit.session.*`、`ck.audit.release` 与 RYW receipt。详见 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md)。 |
@@ -174,17 +179,34 @@ see_also:
 | Account Data | 账户数据（actor-private account data） | actor-private 的个人偏好 / 状态类别（read marker、saved view personalization、通知偏好、个人 blocklist、agent draft / sidecar projection 等）。wire scope = account data（`wire_scope=actor_private_event`，encrypted account data 或 actor-private stream），MUST NOT 进入 shared Realm Move / Anchor history。详见 [`client-preferences.md`](../discovery/client-preferences.md)。 |
 | to-device | 设备直投通道（ephemeral / to-device 队列） | prose 术语：发往特定设备的私有点对点消息通道；类型为 DeviceMessageEnvelope，wire path / 字段为 `device_messages` / `to_device`。wire scope = to-device 队列（非 durable shared event）。详见 [`transport-bindings.md`](../sync/transport-bindings.md)。 |
 | Franking Proof | franking 证明（审核证据对象） | 服务在接收 E2EE 密文事件时生成的不可伪造收讫证明（`ck.moderation.franking_proof`），目标是：证明被举报密文确实对应某条已投递消息、保护举报者、并让审核方在无完整明文下也能验证。MUST 在 routing metadata、ciphertext digest、AAD digest、sender claim、接收服务 DID、接收时间与 `replay_nonce` 之上生成；MUST NOT 包含 plaintext body。详见 [`content-moderation.md` §3.4](../governance/content-moderation.md)。 |
+| Degraded State / Error Code | 退化状态与标准错误码 | 跨实现必须一致解释的标准退化状态 / 错误标识（如 `decryption_pending`、`state_mismatch`、`projection_incomplete`、`unsupported_feature`、`unsupported_event_kind` 等）。其 canonical 取值、语义与逐项 `reason_code` 以 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 为单一权威来源；本术语表不重复枚举具体码值。 |
 | soft_fail vs soft_deny | 临时失败与策略软拒绝 | `soft_fail` 是 authz / dependency / freshness 评估未能完成或需要重试的临时状态，不应被长期缓存为 policy decision；`soft_deny` 是 Policy Server 已评估后的软拒绝，通常表示 default client 不应提交或应降级，但不写入持久 moderation state。二者的 retry、cache 和 UI 处理 MUST 分离。 |
 
 ## 3. 大小写与 wire 形态约定
 
 本节给出术语在 prose 与 wire 形态间的 canonical 大小写规则。这些规则与 §1 的术语表维护规则叠加适用，不取代后者；§1 维护规则（canonical 唯一定义、别名标注、禁用词范围等）仍然有效。
 
-通用规则（本节 §3）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Cokret 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名（`Policy Server`、`Principal Server`、`Directory Server`、`Applet Server`、`Auth Server`）；泛指"某个 policy 服务"时小写普通名词可接受。
+通用规则（本节 §3）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Cokret 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名；canonical 专名清单见下方 CC-05；泛指"某个 policy 服务"时小写普通名词可接受。
 
 - **KeyPackage（CC-01）**：prose 引用 MLS KeyPackage 时 MUST 写 `KeyPackage`（PascalCase）；wire 字段保留 `keypackage_` snake_case 前缀（如 `keypackage_id` / `keypackage_digest`）。prose 中 MUST NOT 写 `key package`（带空格）或 `keypackage`（全小写）。
 - **Welcome（CC-02）**：prose 引用 MLS Welcome 消息时 MUST 写 `Welcome`；字段名（如 `welcome_digest`）MUST 保持小写。
 - **fail closed vs fail-closed（CC-03）**：动词短语用 `fail closed`（如 "Implementations MUST fail closed"）；形容词用连字符 `fail-closed`（如 "fail-closed default"）。
 - **E2EE vs e2ee（CC-04）**：prose MUST 用 `E2EE`；profile ID / enum / schema key 保留小写 `e2ee`（如 `ck.profile.e2ee_client.v1`、`encryption_profile` 取值）。
-- **服务角色专名（CC-05）**：见上方通用规则；命名 Cokret 服务角色用 PascalCase 专名。
+- **服务角色专名（CC-05）**：命名 Cokret 服务角色用 PascalCase 专名。canonical 专名清单（prose normative 段落 MUST 使用左列；service-surface 表内别名仅在该表语境内允许）：
+
+  | canonical 专名 | service-surface 表 / 别名形态 |
+  | --- | --- |
+  | `Principal Server` | — |
+  | `Sync Service` | — |
+  | `Event Store Service` | — |
+  | `Blob Store` | — |
+  | `Directory Server` | — |
+  | `Auth Server` | `Auth Gateway`（企业 SSO 部署形态，见 Auth Gateway 条目） |
+  | `Policy Server` | — |
+  | `Applet Server` | — |
+  | `Device / Key Server` | — |
+  | `Realtime Media Server` | — |
+  | `Moderation Server` | `Moderation / Compliance Server`（service-surface Table 2-1 表内别名） |
+  | `Archive / Recovery Service` | Archive Node / Key Recovery Service / Recovery Service（同角色子形态） |
+  | `MIMI Provider Facade` | — |
 - **to-device（CC-06）**：prose 术语写 `to-device`；schema / 类型名用 `DeviceMessageEnvelope`；wire path / 字段用 `device_messages` / `to_device`。

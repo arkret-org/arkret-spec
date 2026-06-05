@@ -216,9 +216,11 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 | --- | --- | --- | --- |
 | `collection` | `board`, `list`, `table`, `calendar`, `gantt`, `custom` | `collection` | `CollectionProjectionResponse` |
 | `timeline` | `timeline`, `chat`, `thread`, `forum`, `custom` | `timeline` | `TimelineProjectionResponse` |
-| `graph` | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
-| `document` | `document` | `document` | `DocumentProjectionResponse` |
-| `composite` | `dashboard` | `dashboard` | `CompositeProjectionResponse` |
+| `graph` | `graph`, `tree`, `custom` | `graph` | `GraphProjectionResponse` |
+| `document` | `document`, `custom` | `document` | `DocumentProjectionResponse` |
+| `composite` | `dashboard`, `custom` | `dashboard` | `CompositeProjectionResponse` |
+
+> `renderer` 的全局枚举(§3.1)允许 `custom` 用于**所有** kind:`custom` 是 profile-defined 展示面 escape hatch,本表每行的常用 renderer 之外都 MAY 取 `custom`(由 profile 声明语义),不参与真相归约。
 
 ## 5. Query Model
 

@@ -80,6 +80,8 @@ updated: 2026-06-04
 ]
 ```
 
+该 registration payload 的权威机读 schema 是 [`schemas/event-payload.schema.json` 的 `$defs/applet_registration_payload`](../../artifacts/schemas/event-payload.schema.json)(`applet.schema.json` 仅描述 applet object metadata snapshot,不含本 registration payload)。上述顺序 MUST 与该 `$defs/applet_registration_payload` 的 `properties` 出现顺序一致，可据此链接核验。
+
 ## 1a. Applet Package Schema
 
 `ck.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Principal Server / authz service MUST 从 package 派生 canonical `ck.applet.registration` payload，再根据管理员批准生成 grant。
@@ -193,6 +195,13 @@ Commit response MUST validate [`schemas/applet-install-operations.schema.json#/$
 
 `effective_scope.kind="realm"` MUST only contain `kind` and `realm_id`。`effective_scope.kind="circle"` MUST contain `kind`、`realm_id` and `circle_id`。单次 install operation MUST only target one effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
 
+**preview `allow_ghost_actors` 与 commit `actor_policy.ghost_actor_mode` 一致性(normative)**:preview 的 `approval_request.allow_ghost_actors`(布尔)与 commit `actor_policy.ghost_actor_mode`(三值 `disallowed` / `controller_approved` / `policy_declared`)表达同一 ghost actor 准入意图,commit 时二者 MUST 语义一致，不一致 MUST fail closed:
+
+- `allow_ghost_actors=false` ↔ `ghost_actor_mode="disallowed"`;
+- `allow_ghost_actors=true` ↔ `ghost_actor_mode ∈ {controller_approved, policy_declared}`。
+
+即 `allow_ghost_actors=false` 与 `ghost_actor_mode ∈ {controller_approved, policy_declared}` 冲突,`allow_ghost_actors=true` 与 `ghost_actor_mode="disallowed"` 冲突；任一冲突组合 MUST 被 commit 拒绝(fail closed,reason=`applet_install_plan_mismatch` 或更细 ghost-policy reason),不得静默取其一。
+
 ## 2. Namespace Pattern
 
 ```json
@@ -229,6 +238,8 @@ Idempotency-Key: <opaque-string>
 | `source_service_did` | body | `did` | required | 推送来源 service DID。 |
 | `events` | body | `EventEnvelope[]` | required | 推送给 Applet 的 signed Event 数组；每项必须满足 `event-envelope.schema.json`。 |
 | `ephemeral` | body | `object[]` | optional | 非持久临时事件数组。 |
+
+> **HTTP signature 与 `received_at`(normative)**:[`applet-integration.md` §16](./applet-integration.md) 把 HTTP message signature 与 `received_at` audit metadata 列为 transaction push 的 MUST。它们由 transport 层承载(HTTP `Signature` / `Signature-Input` header 与 receiving service 记录的 audit metadata),**不进入** 上表的 transaction body,因此不列为 body 字段;receiver MUST 校验 HTTP message signature 并记录 `received_at`,缺失任一者 MUST 拒绝。
 
 请求示例（非完整 schema）：
 
@@ -337,7 +348,7 @@ GET /_cokret/edge/applet/protocols/{protocol}
 | `applet_id` | `id` | required | 产生该错误的 Applet id。 |
 | `realm_id` | `id` | required | 该 bridge error 所属 Realm；reducer / 客户端据此做可见范围与授权判定。 |
 | `failed_transaction_ref` | `ref` | required | 指向失败的 transaction / 源 Event（如 push 中的 `event_id` 或 transaction idempotency 记录），用于审计回溯。MUST NOT 内联未授权外部正文。 |
-| `error_class` | `string` | required | 错误类别枚举（如 `external_network` / `auth` / `schema` / `rate_limit` / `policy`），供聚合与告警。 |
+| `error_class` | `string`（封闭枚举） | required | 错误类别封闭枚举，取值 **MUST** 属于 `external_network` / `auth` / `schema` / `rate_limit` / `policy`(供聚合与告警)。`error_class` 是粗粒度类别，具体错误码由 `error_code` 承载(例如 `error_class="rate_limit"` 配 `error_code="external_rate_limited"`);二者不得混用。`rate_limit` 是该枚举的 canonical 类别名,[`applet-integration.md` §14](./applet-integration.md) 的重试语境用 `rate_limited` 指同一类错误状态。该枚举的机读 enum 权威源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `ck.applet.bridge_error` payload。 |
 | `error_code` | `string` | required | 具体错误码（如 `external_rate_limited`）。 |
 | `retriable` | `boolean` | required | 该错误是否可重试；发送方据此决定是否以相同 `Idempotency-Key` 重试（与 [`applet-integration.md` §14](./applet-integration.md) 重试规则一致）。 |
 | `visibility_scope` | `string` | required | 该 error event 的可见范围枚举（如 `realm_admins` / `applet_controller` / `realm_members`）；客户端 MUST 按此限制展示，MUST NOT 把 bridge 内部错误细节暴露给无关成员。 |

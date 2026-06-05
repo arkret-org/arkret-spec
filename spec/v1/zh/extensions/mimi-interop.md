@@ -58,6 +58,8 @@ MIMI facade 不是新的真相源。Cokret native 侧的 canonical truth 是 sig
     "provider_id": "mimi://example.com",
     "features": [
       "key_material",
+      "room_update",
+      "notify",
       "submit_message",
       "group_info",
       "consent",
@@ -99,7 +101,7 @@ GET /_cokret/open/mimi/provider-directory
     ],
     "mls_group_id": "base64url...",
     "content_profile": "application/mimi-content",
-    "policy_component_root": "sha256:...",
+    "policy_root": "sha256:...",
     "created_at": "2026-04-30T00:00:00Z"
   }
 }
@@ -109,7 +111,10 @@ GET /_cokret/open/mimi/provider-directory
 
 - `binding_scope.realm_id` MUST 指向一个 accepted Realm。`flow_id` MUST 指向该 Realm 内启用 discussion track 的 accepted Flow；MIMI room timeline 只投影该 Flow discussion track 的消息。
 - `hub_provider` MUST 是 Realm policy、Organization DID 或 participant DID 明确委托的 service DID。
-- `local_provider_role` 取值为 `hub`、`follower` 或 `bridge_only`。
+- `local_provider_role` 取值为 `hub`、`follower` 或 `observer`（封闭枚举，以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威源）。各值语义:
+  - `hub`:本地 facade 即拥有该 MIMI room URI 的 hub provider,负责 room fanout 与 groupInfo,对外承担 room 真相投影责任;
+  - `follower`:本地 facade 作为 follower provider 参与远端 hub 拥有的 room,接收 fanout 并向 hub 提交本地 writes;
+  - `observer`:本地 facade 只读投影该 room（监听 fanout / groupInfo 用于本地呈现或审计），MUST NOT 代表本地参与方向 MIMI room 提交 writes 或承担 hub fanout 职责。
 - `ck.mimi.room_binding` 的创建、更新和撤销 MUST require `ck.policy.manage`、`ck.realm.admin` 或等价 interop capability。
 - E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)（MLS Governance Binding）的 `covered_frontier_cell` precondition 校验 membership、policy 和 capability。
 - MIMI facade 在无法解析或验证 Cokret MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Cokret Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。

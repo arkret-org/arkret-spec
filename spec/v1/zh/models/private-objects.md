@@ -38,6 +38,7 @@ Schema id: `ck.schema.read_cursor.v1`
 | `id` | yes | `id:read_cursor` | `ck:read_cursor:<uuidv7>`。 | 私有状态 ID。 |
 | `schema` | yes | `ck.schema.read_cursor.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
+| `device_id` | yes | `id:device` | `ck:device:<uuidv7>`。多设备收敛 tiebreaker。 | 来源设备。 |
 | `realm_id` | yes | `id:realm` |  | Realm。 |
 | `read_scope` | yes | `object` | `{kind, ref?, track_name?}`。`kind ∈ enum(realm, circle, space, flow)`。ref 必填规则：`kind=realm` 时 `ref` MUST 省略（范围即本对象 `realm_id`）；`kind=circle` 时 `ref` MUST 是 `id:circle`；`kind=space` 时 `ref` MUST 是 `id:space`；`kind=flow` 时 `ref` MUST 是 `id:flow`。`track_name` 仅在 `kind=flow` 时 MAY 出现（限定到该 Flow 的某个 track 时间线，省略表示整个 Flow）；其余 kind MUST 省略 `track_name`。 | 已读范围。 |
 | `position` | yes | `object` | `{event_id, hlc}`。 | 已读位置。 |
@@ -46,6 +47,7 @@ Schema id: `ck.schema.read_cursor.v1`
 ### 2.3 行为规则
 
 - Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [flow-and-message.md §9.6](./flow-and-message.md)）。
+- 多设备并发更新同一 `(actor_id, realm_id, read_scope)` 时，接收方取 HLC 更大者收敛;HLC 相等时按 `device_id` 作 actor 域内确定性 tiebreaker(见 [`../discovery/read-receipts.md` §6.6](../discovery/read-receipts.md))。
 - Flow 时间线与父 Realm 在 read receipt policy 上需要分离时，整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](./circle.md)（参见 [flow-and-message.md §5](./flow-and-message.md)）；effective policy 由 Circle 自身策略与父 Realm `ck.realm.read_receipt_policy` 取更严格者。Track 级别 override 不在 v1 范围内。
 
 ## 3. Notification
@@ -67,6 +69,9 @@ Schema id: `ck.schema.notification.v1`
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `realm_id` | no | `id:realm` |  | 来源 Realm。 |
 | `source_event_id` | yes | `id:event` |  | 来源事件。 |
+| `source_ref` | no | `id` | `ck:(message\|flow\|morph\|relation\|view\|blob):…`。render-only hint;reducer MUST 以 `source_event_id` 为权威。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
+| `flow_id` | no | `id:flow` |  | 可选 Flow 上下文，用于路由通知。 |
+| `track_name` | no | `string` | `^[a-z][a-z0-9_]{0,63}$`。 | 可选，来源 Flow 上的 track key。 |
 | `notification_type` | yes | `enum(mention, reply, assignment, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
 | `priority` | yes | `enum(low, normal, high, urgent)` |  | 优先级。 |
 | `state` | yes | `enum(unread, read, dismissed, archived)` | Notification projection-state 例外；表示 inbox/read 状态，不表示 canonical object 物理 lifecycle。 | 通知状态。 |

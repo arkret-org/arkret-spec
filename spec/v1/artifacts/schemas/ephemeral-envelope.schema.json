@@ -73,9 +73,8 @@
             "properties": {
               "call_id": {
                 "type": "string",
-                "minLength": 1,
-                "maxLength": 128,
-                "description": "Call/session identifier scoped to the Realm."
+                "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "description": "Typed call/session identifier (ck:call:<uuidv7>) scoped to the Realm. Unified with ice-config-response and media-operations so cross-channel join cross-checks key on the same form."
               },
               "signal_type": {
                 "type": "string",

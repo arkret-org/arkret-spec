@@ -53,8 +53,9 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -65,7 +66,8 @@
             "supersedes",
             "encryption",
             "contents",
-            "ciphertext_digest"
+            "ciphertext_digest",
+            "ssk_generation"
           ]
         }
       }
@@ -108,8 +110,9 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -121,7 +124,8 @@
             "recovery_policy_ref",
             "encryption",
             "contents",
-            "ciphertext_digest"
+            "ciphertext_digest",
+            "ssk_generation"
           ]
         }
       }
@@ -174,7 +178,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -230,7 +234,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -286,8 +290,9 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -299,7 +304,8 @@
             "recovery_policy_ref",
             "encryption",
             "contents",
-            "ciphertext_digest"
+            "ciphertext_digest",
+            "ssk_generation"
           ]
         }
       }
@@ -342,7 +348,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -408,7 +414,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -479,8 +485,9 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -493,7 +500,8 @@
             "frontier_ref",
             "encryption",
             "contents",
-            "ciphertext_digest"
+            "ciphertext_digest",
+            "ssk_generation"
           ]
         }
       }
@@ -540,7 +548,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -599,7 +607,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -658,7 +666,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -718,7 +726,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -777,7 +785,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -837,7 +845,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -902,7 +910,7 @@
         "auth_data": {
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "backup_id",
@@ -960,7 +968,7 @@
         "issued_at": "2026-04-26T00:00:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "policy_id",
@@ -999,7 +1007,7 @@
         "issued_at": "2026-04-27T00:00:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "policy_id",
@@ -1030,7 +1038,7 @@
         "issued_at": "2026-04-27T00:00:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "policy_id",
@@ -1120,7 +1128,7 @@
         "completed_at": "2026-04-27T00:05:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964139",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "receipt_id",
@@ -1176,7 +1184,7 @@
         "completed_at": "2026-04-27T00:05:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964139",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "receipt_id",
@@ -1215,7 +1223,7 @@
         "issued_at": "2026-04-27T00:00:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "actor_id",
@@ -1247,7 +1255,7 @@
         "issued_at": "2026-04-27T00:04:00Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964139",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
             "recovery_session_id",

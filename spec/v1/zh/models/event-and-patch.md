@@ -258,7 +258,7 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 - `unset` 不允许带 `value`(空 value object MUST 视作 `{"$op":"unset"}`);
 - `set`、`add`、`remove` 必须带 `value`;
 - 客户端不能把数字数组下标写入 path; 如需更新无 stable key 的列表元素，必须将对象重建为具名集合项、用 profile 注册的 move/update event,或使用明确的 API 约束字段表示更新目标;
-- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `realm_id` / `created_by` / `created_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改；见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。
+- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `realm_id` / `created_by` / `created_at` / `updated_by` / `updated_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改;`updated_by` / `updated_at` 由 reducer 从触发 Event 的 actor / `created_at` 派生，允许 patch 写入会让 actor 伪造更新时间戳，与防伪造 `state_changed_at` 的安全意图矛盾；见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。本清单为**通用最小集**;对象专属的 progress 字段禁令(Flow / Morph 的 `stage` / `stage_changed_at` patch path MUST `schema_violation`)见 [`common-fields.md` §5.3](./common-fields.md) 与 [`morph.md` §2](./morph.md)。
 
 ### 4.3 在 Event 中的位置
 

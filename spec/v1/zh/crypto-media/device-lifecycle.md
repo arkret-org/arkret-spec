@@ -433,7 +433,7 @@ Content-Type: application/json
 | `delivered` | `object` | optional | 已入队或已投递设备摘要。 |
 | `unknown_devices` | `object` | optional | 无法识别或不可投递的设备。 |
 
-请求示例（非完整 schema）：
+请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址,`content.from_device` 是**发送设备**(MUST 等于 envelope `sender_device_id`,见 §10.1),二者为不同设备，故 UUID 不同：
 
 ```json
 {
@@ -444,7 +444,7 @@ Content-Type: application/json
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
           "transaction_id": "ver_123",
-          "from_device": "ck:device:01964137-8000-7000-8000-000000000000",
+          "from_device": "ck:device:019641aa-0000-7000-8000-000000000001",
           "timestamp": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:10:00Z",
           "methods": [
@@ -816,7 +816,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
 - `backup_class="did_recovery"` 的 wire envelope MUST 使用 `recipient_method="recovery_public_key"`，并携带顶层 `recovery_policy_ref{policy_id, policy_version}`，且与当前 accepted recovery policy 一致；不一致 MUST `recovery_policy_mismatch`。`mls_history` 与 `secret_storage` envelope MAY 携带 `recovery_policy_ref` 作为恢复流程 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得用它替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
-- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并携带 `auth_data.ssk_generation` 绑定当前 accepted `ck.cross_signing.publish.generation`。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
+- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并 SHOULD 携带 `auth_data.ssk_generation` 绑定当前 accepted `ck.cross_signing.publish.generation`（加固档 `ck.profile.*.e2ee.v1` 等 hardening profile 下 MUST 携带并纳入 `signed_fields`；core schema 不把 `ssk_generation` 列为 required，故核心档下缺失时按加固档策略处置，而非 schema `schema_violation`）。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。

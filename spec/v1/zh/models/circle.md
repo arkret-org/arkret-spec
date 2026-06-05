@@ -44,7 +44,7 @@ Schema id: `ck.schema.circle.v1`
 | `directory_visibility` | yes | `enum(members, realm_members)` | 默认 `members`。 | Circle 元数据可发现性。`members` 时非成员不得看到 title / display / member_count;`realm_members` 仅披露目录元数据，不授予事件或历史访问。 |
 | `join_rule` | yes | `enum(invite, request, open)` | 默认 `invite`。 | Circle 加入规则。`open` 仅允许父 Realm `join` 成员自助加入(`membership=join`);`request` 触发 `knock` 申请/批准流(见 §9.1 transition table);`invite` 只能由 Circle 管理员加入或邀请。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`../governance/history-visibility.md`](../governance/history-visibility.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
-| `metadata_encryption_floor` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm floor。 | Circle 内对象的 metadata 加密下限；只能收紧，不得放宽父 Realm floor。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
+| `metadata_encryption_floor` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | 省略时继承父 Realm 的 `metadata_encryption_profile`(父作用域字段名为 `_profile`,Realm 上无 `_floor` 同名字段)。 | Circle 内对象的 metadata 加密下限；只能收紧，不得放宽父 Realm floor。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420)` | create-locked。父 Realm `encryption_profile=mls_rfc9420` 或 effective `content_encryption_floor=e2ee_required` 时 MUST 为 `mls_rfc9420`；父 Realm 允许明文时 MAY 为 `none`。未来 MLS 版本 / PQ-MLS / external provider 必须显式扩展 schema。 | Circle 内容加密形态。 |
 | `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `ck.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST 不存在。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `ck:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
@@ -63,7 +63,7 @@ Schema id: `ck.schema.circle.v1`
 | 子字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
 | `short_name` | yes | `string` | `^[A-Z][A-Za-z0-9 _-]{0,23}$`;在 `(realm_id, short_name)` 上 reducer 强制唯一(case-insensitive)。 |
-| `color_token` | yes | `string` | 从受控 palette 选;v1 palette: `{slate, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, fuchsia, pink, gray_high_contrast}`。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。 |
+| `color_token` | yes | `string` | 从受控 palette 选;v1 palette: `{slate, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, fuchsia, pink, gray_high_contrast}`。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。注:`gray_high_contrast` 是承载无障碍/高对比语义的特例 token,并非纯色相;v1 保留它在 palette 内以维持 wire 兼容，客户端 MUST 把它映射为高对比中性灰主题色。是否拆为独立 `display.high_contrast` 轴留待后续版本评估(不改变 v1 wire)。 |
 | `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`;二选一。`glyph` 取受控 snake_case 枚举（v1 canonical 集）:`{lock, shield, eye, eye_off, user_shield, fingerprint, key, diamond, flame, leaf, anchor, compass, atom, bolt, moon, sun, star, globe, satellite, ring, chain, tag, flag, scroll, scale, hourglass, spark}`;客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。实现 MUST 保证本表 glyph 集合与 `circle.schema.json` 的 `$defs/display/properties/symbol/properties/glyph/enum` 逐一相等(便于未来 lint)。 |
 
 **颜色 token 与 symbol 必须在 spec 受控集中**,目的是同一 Circle 在 Alice 与 Bob 的客户端上呈现一致视觉，否则跨设备社会工程攻击成立。
@@ -189,6 +189,7 @@ Circle encryption compatibility rules:
 - 父 Realm `encryption_profile=mls_rfc9420` 时，Circle `encryption_profile` MUST 为 `mls_rfc9420`。当 effective `content_encryption_floor` 取值为 `e2ee_required` 时适用同一规则。
   不满足上述规则的 `ck.circle.create` / `ck.circle.update` MUST `failed_precondition`(`reason=circle_encryption_below_realm_floor`)。
 - 父 Realm `encryption_profile=none` 且 effective `content_encryption_floor=allow_plaintext` 时，Circle `encryption_profile` MAY 为 `none` 或 `mls_rfc9420`。选择 `none` 只提供投递 / 查询 / projection 隔离；选择 `mls_rfc9420` 提供独立 cryptographic scope。
+- Circle 不提供独立的 `content_encryption_floor` 收紧位：content 加密下限只由父 Realm 的 `content_encryption_floor` 与 Circle 自身 `encryption_profile` 共同决定；Circle 仅能经 `metadata_encryption_floor` 收紧 metadata 加密下限，不能单独收紧或放宽 content floor。
 - Circle `encryption_profile=none` 时，`mls_group_ref` MUST 不存在，`ck.mls.genesis` / `ck.mls.commit` / MLS Welcome 不适用于该 Circle。任何声明 `metadata_encryption_floor ∈ {minimal_encrypted, full_encrypted}` 的 plaintext Circle MUST 同时有可执行的 profile 说明如何加密对应 metadata；否则 reducer MUST reject。
 - Circle `encryption_profile=mls_rfc9420` 时，`mls_group_ref` 由 reducer 派生，Circle key MUST NOT 从 Realm-default MLS group 或其他 Circle key 派生。
 

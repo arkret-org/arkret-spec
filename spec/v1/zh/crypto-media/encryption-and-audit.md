@@ -137,7 +137,7 @@ Realm policy MUST 通过 `ck.realm.policy_components.metadata_encryption_profile
 | `epoch` | integer | 是 | MLS epoch 编号 |
 | `content_type` | string | 是 | 解密后内容的 MIME 类型 |
 | `ciphertext` | base64url | 是 | `mls-rfc9420` profile 为 MLS PrivateMessage / application message 序列化字节。 |
-| `authentication_tag` | base64url | 条件 | 仅 raw AEAD / exporter-AEAD profile 使用；MLS profile 的 tag 已在 MLS message 内，不重复拆出。 |
+| `authentication_tag` | base64url | 禁止 | v1 唯一 scheme `mls-rfc9420` 下 **MUST NOT 出现**:MLS profile 的 tag 已在 MLS message 内，不重复拆出;schema 用顶层 `not` 拒绝该字段（携带者 `schema_violation`）。仅当未来引入真正的 raw AEAD / exporter-AEAD profile（放宽 `scheme` enum)时才会为该 scheme 解禁。 |
 | `aad_visibility_event_id` | enum(hidden, routing_digest, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_digest` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合。 |
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
 | `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
@@ -210,7 +210,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 ```
 
 3. `payload_metadata_bytes = canonical_json(payload_metadata)`。
-4. `encrypted_payload_bytes = base64url_decode(ciphertext)`；若 envelope 含 `authentication_tag`，追加 `base64url_decode(authentication_tag)`。
+4. `encrypted_payload_bytes = base64url_decode(ciphertext)`。v1 `mls-rfc9420` scheme 下 envelope MUST NOT 携带 `authentication_tag`（见 §2.3.1），故该步骤不追加 tag,`payload_digest` 输入无歧义。仅在未来 raw AEAD / exporter-AEAD profile（届时显式放宽 `scheme` 并解禁该字段）下，才追加 `base64url_decode(authentication_tag)`。
 5. `payload_digest = "sha256:" + sha256(payload_metadata_bytes || encrypted_payload_bytes)`。
 
 `mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Cokret envelope 的外层完整性检查，不替代 MLS AEAD。
@@ -332,7 +332,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 | 层 | 名称（wire-level） | 角色 |
 |---|---|---|
-| **Commit-side proof** | `governance_binding`（GroupContext extension `cx_governance_binding`，定义见 §2.5.1，CBOR 编码见 §2.5.3） | 每个 `ck.mls.commit` 携带的 binding payload，把本次 epoch 推进所**断言覆盖**的 governance roots（`membership_frontier` / `policy_root` / `capability_root` / `discussion_metadata_digest`）哈希进 MLS transcript |
+| **Commit-side proof** | `governance_binding`（GroupContext extension `mls_governance_binding`，定义见 §2.5.1，CBOR 编码见 §2.5.3） | 每个 `ck.mls.commit` 携带的 binding payload，把本次 epoch 推进所**断言覆盖**的 governance roots（`membership_frontier` / `policy_root` / `capability_root` / `discussion_metadata_digest`）哈希进 MLS transcript |
 | **Lattice-side accumulator** | `covered_frontier_cell`（cell family `ck.component.covered_frontier.v1`，or_set，bottom=expose，见 §2.5.2） | MLS Commit Move 的 effect cell，**累计**已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier |
 
 两层缺一不可：`governance_binding` 提供 per-commit 的不可伪造证据并由 MLS transcript hash 覆盖，`covered_frontier_cell` 沉淀 reducer 可查询的累计状态供 message Move precondition 引用。
@@ -357,7 +357,7 @@ flowchart TB
     subgraph CS ["Commit-side proof (per ck.mls.commit)"]
         direction TB
         GB["governance_binding<br/>membership_frontier / policy_root<br/>capability_root / discussion_metadata_digest<br/>previous_epoch → next_epoch"]
-        Trans["MLS GroupContext extension<br/>cx_governance_binding (0xF1C0, deterministic CBOR)<br/>→ 进入 MLS transcript hash"]
+        Trans["MLS GroupContext extension<br/>mls_governance_binding (0xF1C0, deterministic CBOR)<br/>→ 进入 MLS transcript hash"]
         GB --> Trans
     end
 
@@ -466,7 +466,7 @@ Cokret 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint �
 
 | 字段 | 值 |
 |------|-----|
-| ExtensionType（IANA name） | `cx_governance_binding` |
+| ExtensionType（IANA name） | `mls_governance_binding`（与 `artifacts/registry/mls-extension-registry.json` 的 source-of-truth name 一致；旧草案的 `cx_governance_binding` 不再使用） |
 | ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Cokret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ck.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。未来若需要全网注册，可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint,并在新 hardening profile 中显式声明，作为单独的 wire 版本，而不是 v1 内的私有覆盖。所有 Cokret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
 | ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
@@ -512,10 +512,10 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 规则：
 
-- 声明 full binding profile 时，`cx_governance_binding` extension MUST 出现在每次 `ck.mls.commit` 对应的 GroupContext `extensions` 字段中。
+- 声明 full binding profile 时，`mls_governance_binding` extension MUST 出现在每次 `ck.mls.commit` 对应的 GroupContext `extensions` 字段中。
 - `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Cokret 应用状态绑定到 MLS transcript。
 - 若底层 MLS 库暂不支持 GroupContext extension，base E2EE profile MUST 至少把 `governance_binding` 放入签名 Event 和 Commit transcript hash 可验证覆盖的字段中，并在实现文档中声明降级原因；不得声称支持 full binding profile。
-- 接收方验证 Commit 时 MUST 解码 `cx_governance_binding` extension 并执行 section 2.5 中的 `governance_binding` 验证规则。
+- 接收方验证 Commit 时 MUST 解码 `mls_governance_binding` extension 并执行 section 2.5 中的 `governance_binding` 验证规则。
 
 ### 2.6 KeyPackage Claim 生命周期
 

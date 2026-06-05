@@ -203,6 +203,8 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 - 因此 claim 在 reducer 侧未落地（被拒 / quarantine / 投递丢失）时，该 invite 不能仅靠重发原 token 恢复；与 §6.1 状态机一致，邀请者 MUST 通过重发**新 `invite_id` + 新 token + 新 commitment** 来重试（等同于 §6.1 `send_failed` / `revoked` 后的重发路径），不得复用已消费 token。
 - 验证服务 MAY 为该已消费 token 保留一个**可恢复窗口**（仅用于把同一份已签发 `binding_proof` 幂等重投递给 Realm，例如网络瞬断后的重试），但该窗口 MUST 绑定同一 `(invite_id, claim_nonce, subject_id, binding_proof_digest)`，不得用于把 token 重新绑定到其它 subject；窗口耗尽后 MUST 按上一条要求邀请者重发新 invite。
 
+> **Conformance vector（normative）**：上述"已消费 token 不得重绑到其他 subject"是防邀请重定向的关键安全不变量，应由一条具名 conformance vector（待登记到 vector-registry，暂记 invite consumed-token-resubject-rejected）覆盖，断言风格与既有 oob-code-entropy（§3）、failure-indistinguishable（§6.1）邀请向量对齐。该向量的意图:验证服务对**同一已消费 token**收到指向**不同 `subject_id`** 的第二次签发请求时 MUST 拒绝(不签发第二份 `binding_proof`);仅当请求绑定同一 `(invite_id, claim_nonce, subject_id, binding_proof_digest)` 时才允许在可恢复窗口内幂等重投递同一份既有 `binding_proof`。向量同时断言:reducer 侧对承载已消费 token 重绑到不同 subject 的 `ck.invite.claim` Event MUST 以 `duplicate_conflict` 拒绝。向量 id 与 fixture 数据由维护者按既有 invite vector 生成流程登记，本节仅声明该向量的断言意图。
+
 Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可以先进入 `claimed` / joined projection，但该成员对加密正文的客户端状态 MUST 走 [`client-sync.md` §15](./client-sync.md) 的 `decryption_pending` / timeout / recovery 机制；不得把 Welcome 缺失解释为 claim 回滚。若 KeyPackage 耗尽、过期或与 required capabilities 不匹配，邀请方或服务端 MUST 触发 `keypackage_refresh_required` 诊断/重试路径，并在新的 Welcome 到达后按普通 MLS governance binding 校验恢复。
 
 **统一不可枚举响应（normative）**：claim 失败响应 MUST 不区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`ck.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。

@@ -243,6 +243,8 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
 
   其它字段一律 MUST NOT 进入 `semantic_projection(c)`,即使 wire claim 通过 `additionalProperties: true` 通道携带。
 
+  > **与 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) property 顺序的关系(消歧)**：本表是 `semantic_projection` 的字段**白名单**,刻意**排除** `challenge`、`verified_at`、`proofs` 等非规范身份字段；这些被排除的字段在 schema 的 property 列表中**仍然存在并占位**(例如 schema 中 `challenge` 排在 `audience` 与 `claim_scope` 之间),因此本表相邻的 `audience` → `claim_scope` 在原始 schema 中被 `challenge` 隔开。读者**不应**把本表理解为 schema 字段缺失或排序冲突——这是"规范语义投影"与"完整 wire schema"的预期差异。此外 `JCS` 最终按 key 字典序重排，故 `semantic_projection` 内字段的展示顺序不影响 `claim_digest` 计算。
+
   **`verified_at` 被显式排除**的原因：§6.0 允许 Directory / Principal Server / 其它中间方做 pre-verification 并把结果写进 directory entry 或 handle claim 作为 hint，`verified_at` 就在 hint 字段之列。若 `verified_at` 进 `semantic_projection`，同一语义 claim 被两家 Directory 预验证后会得到不同 `claim_digest`，破坏 tie-breaker 与缓存键稳定性。`verified_at` 因此规范上是 cache / hint 层 metadata(见 §6.0、§6.1.1)，**不**参与 claim 规范身份。issuer 若需要表达"我自己什么时候验证完",MUST 用 `created_at` 或在 `claims[]` 内嵌入显式 claim,而不是依赖 `verified_at`。
 
   **`challenge` 被显式排除**的原因：`challenge` 是 verifier / request 级防重放输入，不是 handle claim 的稳定规范身份。proof transcript MAY 继续绑定 challenge、domain 与 verifier，但把 `challenge` 放进 `semantic_projection` 会让同一 handle claim 因不同解析请求得到不同 `claim_digest`，破坏 roster `handle_claim_digests[]` 比对、cache key 与 §3.2.1 tie-breaker 稳定性。
@@ -251,6 +253,8 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
 
 - 输出形态遵循 [`models/common-fields.md` §2](../models/common-fields.md) 的 `<noun>_digest = <alg>:<hex>` 通用 hash 字段命名规则；
 - 与 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json) 的 `claim_digest` 字段(`"sha256 digest of the upstream handle claim canonical JSON"`)一致——本节是其 normative 计算定义,candidate schema 是其 wire 表示。
+
+  **wire `claim_digest` 缺失时的退化(normative)**:candidate schema 的 `claim_digest` 字段是 **OPTIONAL**(SHOULD,见 §3.7.1 表)。当 candidate 不携带 wire `claim_digest` 时,Step 2 tie-breaker 与 roster `handle_claim_digests[]` 比对 / 缓存键 **MUST** 改用 verifier 本地按本节公式自算的 `claim_digest(c) = "sha256:" || hex(sha256(JCS(semantic_projection(c))))`——即 tie-breaker 与 audit chain 永不因 wire 字段缺失而出现缺口或非确定收敛(自算值与 issuer 提供值在 candidate 合法时必然相等)。当 wire `claim_digest` **存在**时,verifier SHOULD 校验它等于自算值，不一致 MUST 视为 candidate 不可信并 fail closed(防 issuer 提供与规范语义不符的 digest 污染缓存键 / audit chain)。
 
 **Hint 隔离**(normative): §6.0 server-attested hint、Directory 缓存补字段、verifier 本地标注等任何非规范语义字段 MUST 在 wire claim 上以**顶层附加字段**形式存在(而非污染规范字段),并**MUST NOT** 进入 `semantic_projection(c)`。该约束让同一语义 handle claim 被任意数量的 Directory / Principal Server 加 hint 后,`claim_digest` 始终稳定;tie-breaker、roster `handle_claim_digests[]` 比对、缓存键命中都不会因 hint 抖动。
 
@@ -392,7 +396,7 @@ candidate **不得**直接构造自客户端字符串拼接、UI text、未签�
 ```text
 payload.actor_id = candidate.subject_id
 payload.delivery_binding.recipient_service_did = candidate.member_delivery_binding.recipient_service_did
-payload.delivery_binding.resolved_at = candidate.proofs[].created_at 或 candidate.expires_at 之前的 issuer as_of
+payload.delivery_binding.resolved_at = candidate.issued_at   // 确定性取值:issuer 签发 candidate 的时刻;当需要以 proof 时刻为准时,取 candidate.proofs[] 中最早的 created_at(min over proofs),二者均为单一确定值,不得是区间或多值
 payload.delivery_binding.service_acceptance_ref = candidate.member_delivery_binding.service_acceptance_ref
 payload.delivery_binding.policy_event_ref = candidate.member_delivery_binding.policy_event_ref
 payload.delivery_binding.delivery_modes = candidate.member_delivery_binding.delivery_modes
@@ -1170,6 +1174,8 @@ Verifier MUST：
 ## 17. v1 互操作要求
 
 - Handle 的 canonical wire form 是 `<localpart>:<domain>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证。**Wire-level canonical 比较(normative)**：issuer / registry / resolver 在做 handle 注册、claim 校验、§13 跨 issuer 冲突检测时，MUST 先对 `<localpart>` 与 `<domain>` 应用 Unicode NFC normalization，再应用 [UTS#39](https://www.unicode.org/reports/tr39/) confusable skeleton 折叠；比较与冲突判定 MUST 在折叠后的形态上执行。issuer / registry MUST 拒绝 *script-mixed* handle（同一 label 内同时含 Latin 与 Cyrillic / Greek / Armenian 等不同 script 字符，例如 `аcme.example` U+0430 + Latin 混排），以及 `hyphen-disallowed-position` 形态；违反者注册请求 `failed_precondition` `reason="handle_homograph_forbidden"`。显示层防混淆仍 MUST 实现，但不能替代 wire-level 检测。
+
+  **NFC / UTS#39 检测的作用层与 schema ASCII pattern 的关系(normative,消歧)**：上述 NFC normalization 与 UTS#39 confusable / script-mixing 检测 MUST 作用于 IDNA 转换**之前**的 **U-label**(用户可见的 Unicode 形态，可能含非 ASCII 字符)——这是 homograph 攻击的实际载体。检测通过后,`<domain>` MUST 经 IDNA2008(ToASCII)转为 **A-label**(punycode,`xn--` 前缀的纯 ASCII),`<localpart>` 经本节 lowercase canonical 规则归一为受限 ASCII;只有该 ASCII canonical 形态才是进入 `ck.schema.handle_claim.v1` 等 wire claim `handle` 字段、并由 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) ASCII-only pattern 校验的值。因此 schema pattern 是 ASCII-only **不是**与 §17 检测矛盾，而是有意分层:UTS#39 confusable 折叠在 U-label 上做(schema 校验不到、也不应在 wire canonical handle 上重复执行),schema pattern 只兜底"进入 wire 的 handle 已是受限 ASCII canonical 形态"。实现 MUST NOT 把含非 ASCII 字符的 U-label 直接作为 wire `handle` 提交(会被 schema 拒绝),亦 MUST NOT 因 schema 通过就跳过 U-label 阶段的 NFC / UTS#39 检测。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
   1. **Handle claim lifecycle 对象与 issuer / coauth 本地管理请求**：`ck.schema.handle_claim.v1`、issuer / coauth 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Cokret v1 core，但一旦在 Cokret wire 上作为 claim evidence 被消费，必须产出可验证的 `ck.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
   2. **Discovery / Directory query 请求与响应**：`/.well-known/cokret/handle?localpart=...`、`POST /_cokret/find/directory/resolve-handle`、`POST /_cokret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。

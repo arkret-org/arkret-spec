@@ -13,7 +13,7 @@ updated: 2026-05-25
 
 ## 0. 规范语言
 
-本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 文档清单
 

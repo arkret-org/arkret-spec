@@ -162,7 +162,7 @@ expected_<role>_<kind>_id
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
 | `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
-| `realm_id` | Universal | — (self) | Y | Y | Y | Y | Y | Y | Y | Y | O | Y | Y | O | O | O |
+| `realm_id` | Universal | —（Realm 自身即边界，无 `realm_id` 字段，schema 拒绝） | Y | Y | Y | Y | Y | Y | Y | Y | O | Y | Y | O | O | O |
 | `created_at` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
 | `created_by` | Authorship | Y | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
 | `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
@@ -311,6 +311,8 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 | `ck.<kind>.tombstone` | `active`、`archived` | `tombstoned` / `deleted`(各对象 schema 自命名) | `<kind>_already_terminal` |
 | `ck.<kind>.redact` 或 cross-object `ck.redaction` 指向该对象 | `active`、`archived` | `redacted`(如对象支持),或合并到 `tombstoned` | `<kind>_already_terminal` |
 
+> **Flow / Morph 豁免**:上表 `ck.<kind>.tombstone` 行是通用模板;Flow 与 Morph **没有** `tombstone` 终态(也不用 `deleted`),其不可逆终态经指向该对象的 `ck.redaction` 进入 `redacted`(见 §5.2 模板槽与 [flow-and-message.md §9.1](./flow-and-message.md))。对 Flow / Morph 提交 `ck.<kind>.tombstone` 不适用。
+
 `<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active`（Circle 的其它 lifecycle 诊断 MUST 先进入 error-code registry 再被规范文本点名）,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
 
 附加规则:
@@ -430,7 +432,7 @@ UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；conte
 
 并非所有 ID kind 都是 `ck:<kind>:<uuidv7>`。`ck:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为 `ck:trust_domain:<trust_domain_label>`，`<trust_domain_label>` 是稳定的部署信任域标签（例如 `ck:trust_domain:did.webvh.acme.example`），不是 UUID。它 create-locked 在 Realm `trust_domain` 字段上，MUST 匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context（见 [`realm-and-space.md` §2.3](./realm-and-space.md)）。
 
-上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
+`ck:cell:` / `ck:cursor:` / `ck:anchor:` 等同步 / 状态原语的 wire form 见各自章节与 `artifacts/registry/id-kind-registry.json`，不在本协作图对象 ID 约定表内。上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
 
 ### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 

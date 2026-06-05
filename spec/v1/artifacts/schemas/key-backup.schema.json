@@ -499,9 +499,11 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "EdDSA",
-            "ES256"
-          ]
+            "Ed25519",
+            "ES256",
+            "ML-DSA-65"
+          ],
+          "description": "Raw signature algorithm name; MUST be a value generated from an active signature-alg-registry row (Ed25519 / ES256 / ML-DSA-65). EdDSA is the proof_alg label, not a raw signature_algorithm value. ML-DSA-65 is gated behind the PQ migration profile."
         },
         "signature": {
           "type": "string",
@@ -527,7 +529,7 @@
           { "contains": { "const": "contents" } },
           { "contains": { "const": "ciphertext_digest" } }
         ],
-          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest, frontier_ref, and recovery_policy_ref."
+          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest, frontier_ref, recovery_policy_ref, and (hardening profile) ssk_generation."
         },
         "ssk_generation": {
           "type": "integer",

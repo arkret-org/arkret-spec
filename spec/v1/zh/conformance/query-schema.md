@@ -8,7 +8,7 @@ updated: 2026-05-25
 
 ## 0. 规范语言
 
-本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
 > **Wire schema canonical source（informative）**: 当前 query / projection 请求体的 wire-level canonical schema 内联定义在 [`../../artifacts/openapi/cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) 的 `components.schemas.QueryRequest`（`projection` 为其内 enum 字段）与 `SearchRequest` 组件；本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源。两侧字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` 等）若发生不一致，以 OpenAPI 内联 schema 为准。后续计划将该 schema 抽出为独立 `artifacts/schemas/query.schema.json` 并令 OpenAPI 改 `$ref` 引用，本文届时改引该 JSON Schema。
 
@@ -72,20 +72,22 @@ updated: 2026-05-25
 }
 ```
 
-支持操作：
+`filters[].op` 的合法取值是下方**封闭枚举**（normative）。在独立 `artifacts/schemas/query.schema.json` 抽出之前，本表与 OpenAPI `QueryRequest` / `SearchRequest` 内联 schema 共同作为 `op` 的 normative 真源；执行方 MUST 拒绝表外取值（`schema_violation` / `invalid_param`）。
 
-- `eq`
-- `neq`
-- `in`
-- `not_in`
-- `lt`
-- `lte`
-- `gt`
-- `gte`
-- `contains`
-- `exists`
-- `prefix`
-- `full_text`
+| `op`（normative enum） | 语义 |
+| --- | --- |
+| `eq` | 等于 |
+| `neq` | 不等于 |
+| `in` | 属于给定集合 |
+| `not_in` | 不属于给定集合 |
+| `lt` | 小于 |
+| `lte` | 小于等于 |
+| `gt` | 大于 |
+| `gte` | 大于等于 |
+| `contains` | 包含（集合 / 子串） |
+| `exists` | 字段存在 |
+| `prefix` | 前缀匹配 |
+| `full_text` | 全文匹配 |
 
 字段路径 MUST 使用 dot path。实现 MUST 拒绝访问未授权字段。
 
@@ -118,11 +120,13 @@ updated: 2026-05-25
 }
 ```
 
-`direction`:
+`direction` 的合法取值是下方**封闭枚举**（normative）。在独立 `artifacts/schemas/query.schema.json` 抽出之前，本表与 OpenAPI 内联 schema 共同作为 Relation Query `direction` 的 normative 真源；执行方 MUST 拒绝表外取值。
 
-- `out`: 从当前对象出发。
-- `in`: 指向当前对象。
-- `both`: 双向查询。
+| `direction`（normative enum） | 语义 |
+| --- | --- |
+| `out` | 从当前对象出发 |
+| `in` | 指向当前对象 |
+| `both` | 双向查询 |
 
 Relation Query 字段：
 

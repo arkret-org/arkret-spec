@@ -59,9 +59,9 @@
       "type": "object",
       "properties": {
         "badge": {
+          "description": "Coarse unread indicator. Under blind_wakeup it MUST NOT carry a plaintext absolute unread count (activity side channel); only a boolean presence flag or a policy-declared bucket string is allowed. See push-notifications.md §5.1.",
           "oneOf": [
             { "type": "boolean" },
-            { "type": "integer", "minimum": 0 },
             { "type": "string", "enum": ["1", "2-5", "6+"] }
           ]
         },
@@ -106,8 +106,7 @@
             "message",
             "mention",
             "reaction",
-            "call_invite",
-            "generic"
+            "call_invite"
           ]
         },
         "push_hint": {
@@ -117,7 +116,16 @@
             "incoming_call",
             "mention_self",
             "l10n_key"
-          ]
+          ],
+          "description": "Sanitized hint sentinel. When the value is \"l10n_key\" the actual localization key MUST be carried in push_hint_l10n_key (this enum value is a form selector, not a literal display token). See push-notifications.md §5.1 / §4.5."
+        },
+        "push_hint_l10n_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Localization key value, only present (and required) when push_hint == \"l10n_key\". MUST be an l10n key token, never plaintext body or any identifying metadata."
+        },
+        "evaluation_locus_unresolved": {
+          "type": "boolean",
+          "description": "Set true when the client has been woken but server-side rule matching is not yet resolved (E2EE client-side rule fallback). Pure local-evaluation signal; carries no metadata. See push-notifications.md §4.5."
         },
         "counts": { "$ref": "#/$defs/counts" },
         "devices": {
@@ -156,8 +164,7 @@
             "message",
             "mention",
             "reaction",
-            "call_invite",
-            "generic"
+            "call_invite"
           ]
         },
         "push_hint": {
@@ -167,7 +174,16 @@
             "incoming_call",
             "mention_self",
             "l10n_key"
-          ]
+          ],
+          "description": "Sanitized hint sentinel. When the value is \"l10n_key\" the actual localization key MUST be carried in push_hint_l10n_key (this enum value is a form selector, not a literal display token). See push-notifications.md §5.1 / §4.5."
+        },
+        "push_hint_l10n_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Localization key value, only present (and required) when push_hint == \"l10n_key\"."
+        },
+        "evaluation_locus_unresolved": {
+          "type": "boolean",
+          "description": "Set true when the client has been woken but server-side rule matching is not yet resolved. See push-notifications.md §4.5."
         },
         "counts": { "$ref": "#/$defs/counts" },
         "devices": {

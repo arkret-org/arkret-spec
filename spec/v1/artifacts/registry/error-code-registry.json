@@ -323,6 +323,13 @@
       "description": "The caller exceeded the current rate limit policy."
     },
     {
+      "code": "external_rate_limited",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Bridge / applet transaction failed because the external upstream service rate-limited the request, distinct from the local `rate_limited` (this service's own limit). Carried as a bridge_error error_code with error_class=rate_limit; the caller MAY retry after retry_after_ms. See zh/extensions/applet-schema.md §7."
+    },
+    {
       "code": "timeout",
       "http_status": 504,
       "scope": "both",
@@ -781,6 +788,14 @@
         "auth_decision"
       ],
       "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ck.applet.revoke / ck.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b."
+    },
+    {
+      "code": "applet_namespace_mismatch",
+      "applies_to": [
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for a delegated-handoff Event rejection when auth_data.executed_by is not within the applet_id registration's declared service / bot DID set or namespaces.actors pattern. Prevents a grant scoped to one applet from being exercised under an unrelated applet_id. See zh/extensions/applet-integration.md §11."
     },
     {
       "code": "invalid_avatar_blob_ref",

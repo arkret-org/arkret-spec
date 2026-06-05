@@ -59,7 +59,7 @@ updated: 2026-05-25
 | `principal_id` | did | MUST | Actor / Principal DID。 |
 | `actor_kind` | enum | MUST | `user`、`org`、`team`、`agent`、`service`、`device` 或 `integration`。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
-| `handle` | string | 可选 | 本地或目录展示 handle。 |
+| `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
 | `status` | enum | 可选 | `active`、`suspended`、`deactivated` 或 `deleted`。 |
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
@@ -355,5 +355,6 @@ POST /_cokret/find/directory/search-users
 
 - 头像若公开可见，必须使用公开 blob 或公开缩略图；私有或 E2EE Realm 的头像/图标应使用 authenticated media 或加密 blob，服务端不得因头像请求泄露 Realm 存在性。
 - Profile 字段 MUST 受 schema 验证。组织可通过 Organization policy 限定 `profile_fields` 的字段名、类型、最大长度、敏感性和披露范围。
+- profile 内 `handle`（§2.2）经 Directory / projection 披露时 MUST 同受 handle 披露 gate 约束——只能披露公开或调用方已获授权的 handle，不得借 profile 投影旁路 handle 搜索（§4.1 与 `discovery-directory.md` §5）的披露限制。
 - Presence 跨域联邦默认 opt-in，必须短 TTL、最小字段、按关系或 Realm policy 授权；不得用 presence 推断 pairwise DID、私有组织成员资格或隐藏 Realm 拓扑。
 - 群组 Profile 是 Realm metadata 的投影；Realm 名称、图标、描述、公告和可发现性必须受 Realm policy、history visibility 和 directory filtering 控制。

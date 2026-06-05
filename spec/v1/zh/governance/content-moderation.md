@@ -178,6 +178,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
   "franking_proof_id": "ck:franking_proof:0196425b-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "routing_metadata_digest": "sha256:...",
   "ciphertext_digest": "sha256:...",
   "aad_digest": "sha256:...",
   "sender_claim": {
@@ -195,7 +196,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 
 规则：
 
-- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce` 之上生成。
+- `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce` 之上生成。其中 canonical event routing metadata 的覆盖在 wire 上由必填字段 `routing_metadata_digest` 承载（见 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) `franking_proof.required`），验证方 MUST 据此核验该覆盖。
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
 - `franking_proof` 只证明服务接收过对应密文事件；它不证明 reporter 提交的明文与密文一致，也不证明 sender 在群外不可抵赖地 authored 该明文。
 - Moderator 验证时 MUST 检查 reporter 可见性、目标消息 accepted state、encrypted envelope digest、franking service signature、AAD / ciphertext digest 和 evidence package 签名。
@@ -214,26 +215,28 @@ Franking 信任链：
 3. 验证该 service DID 在目标 Realm 的 policy / service binding 中被授权为 Sync、Federation、MIMI facade 或 moderation ingestion 服务。
 4. 验证 DID service endpoint、HTTP Message Signature / federation binding 与实际接收服务一致，防止把其他服务签名重放到本 Realm。
 5. 验证 `franking_proof` payload hash 覆盖 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、received time 和 replay nonce。
+6. **`received_at` 时序新鲜度（normative）**：`received_at` 由 receiving service 自填，本身无外部时间锚；被攻陷服务可回填一个 key 仍有效的 `received_at`，让已撤销 key 的旧签名"看似有效"。因此验证方 MUST 执行下列其一：(a) 用一个可独立校验的时间锚（如 anchor frontier / HLC，或绑定该 proof 的外部时间见证）约束 `received_at`；或 (b) 若 `received_at` 早于第 2 步 verification method 最近一次 rotation / 撤销且无独立时间见证，MUST 把该 franking proof 视为**不可验证投递证明**（与 §3.1.1 去重窗口外 nonce 复用按"不可验证"降级一致），不得仅凭 `received_at` 落在 key 有效期内即采信。
 
 ## 4. 用户屏蔽 (Ignore/Block)
 
 ### 4.1 屏蔽是 Actor-Private 状态
 
-用户可以屏蔽任意 Actor，屏蔽列表存储在本地或用户的私有 account data 中：
+用户可以屏蔽任意 Actor，屏蔽列表存储在本地或用户的私有 account data 中。`ck.account.blocklist` 的**权威结构定义（entry 字段集、`version`、`entry_id`、`applies_to`、`target.kind` 取值与同步 / 隐私约束）在 [`../discovery/client-preferences.md` §3.5`](../discovery/client-preferences.md)**；本节不重复定义，仅引用，避免字段漂移。下例为最小说明性片段（完整必填字段与约束以 client-preferences §3.5 为准）：
 
 ```json
 {
-  "kind": "ck.account.blocklist",
-  "owner": "did:web:alice.example.com",
+  "version": 1,
   "entries": [
     {
+      "entry_id": "ck:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
         "did": "did:web:spammer.example.com"
       },
       "mode": "block",
-      "created_at": "2026-04-26T10:00:00Z",
+      "applies_to": ["messages", "mentions", "dm"],
       "reason_code": "harassment",
+      "created_at": "2026-04-26T10:00:00Z",
       "expires_at": null
     }
   ]
@@ -427,6 +430,16 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 > 表注（capability 复用）：`.decision` 与 `.close` 是 `ck.moderation.appeal.review` capability action 的目标 event kind，**有意复用同一 review capability**——见 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `ck.moderation.appeal.review`（`event_mapping_kind=aggregate_admin`，`target_event_kinds` 含 `review` / `decision` / `close` 三者）。因此 `.decision` / `.close` 行不另列独立 capability，其 `risk_tier` **继承自 `ck.moderation.appeal.review` 的 `medium`**；它们不是独立 capability action，registry 也不为其登记单独 action。`separation of duties`（reviewer ≠ 原 decision issuer）由 §5.5.2 reducer 约束兜底，弥补共用 capability 带来的影响差。
 
 Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/moderation-appeal.schema.json)（schema id `ck.schema.moderation_appeal.v1`，四种 payload 通过 `oneOf` 分支）。
+
+##### 5.5.1.1 `verdict` 封闭枚举（normative）
+
+`ck.moderation.appeal.decision` 的 `verdict` 字段是**封闭枚举**，权威取值集合为 `{ uphold, overturn, modify }`（与 [`moderation-appeal.schema.json`](../../artifacts/schemas/moderation-appeal.schema.json) `decision_payload.verdict.enum` 完全一致）。取未列值时 reducer MUST 用 `schema_violation` 拒绝。各值语义与后续动作如下：
+
+| `verdict` | 含义 | 后续动作（normative） |
+| --- | --- | --- |
+| `uphold` | **驳回上诉**：原 `ck.moderation.decision` 维持生效，无进一步动作。这是最常见结局。 | 不得携带 `modify_decision_ref`（schema `if/then` 强制）；不产生 lift / 新 decision；cell 转入 `decided`。 |
+| `overturn` | **撤销原 decision**：上诉胜诉，原处置被完全反转。 | MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 Anchor batch 出现，否则 reducer 用 `appeal_overturn_missing_lift` 拒绝（见 §5.5.2）。 |
+| `modify` | **调整原 decision**：处置参数被修订（如缩短 ban 时长、降级处置）。 | MUST 与一条新的 `ck.moderation.decision` 在同一 batch 出现，并由 `modify_decision_ref` 指向它（见 §5.5.2）。 |
 
 #### 5.5.2 Reducer 强制约束
 

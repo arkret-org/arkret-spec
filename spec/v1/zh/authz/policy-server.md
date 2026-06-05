@@ -315,6 +315,21 @@ Policy Server 不创建权限。事件必须先通过 capability authorization�
 
 Policy Server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate limit、滥用声誉与内容风险标签。除非 holder 明确使用其自控的私有 policy 服务，Policy Server MUST NOT 检查个人 blocklist。
 
+### 7.0 两套 resource selector kind 词表（normative）
+
+协议存在**两套独立的 resource selector kind 词表**，适用范围不同，MUST NOT 互相套用：
+
+| 词表 | 权威源 | kind 集合 | 适用范围 |
+| --- | --- | --- | --- |
+| **Capability resource selector** | [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) / [`resource-selector-grammar.md`](./resource-selector-grammar.md) §3.1 | 18 项：`realm` / `space` / `circle` / `flow` / `message` / `morph` / `object` / `relation` / `view` / `event` / `actor` / `schema` / `policy` / `invite` / `notification` / `read_cursor` / `blob` / `*` | capability grant 的 `resources[]`，表达细粒度授权 scope。 |
+| **Policy rule resource** | [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) `rule.resource[].kind` | 5 项：`realm` / `flow` / `space` / `object` / `service` | Policy Server 规则的作用对象，是上面的有意收窄子集（policy 规则作用在较粗的治理粒度上）。 |
+
+适用规则：
+
+- Policy rule 的 `resource[].kind` **MUST** 取自上表 5 项词表。在 policy rule 中误用 capability-only kind（如 `message` / `circle` / `notification` / `read_cursor` / `morph` / `relation` / `view` / `invite` 等）MUST 被 schema 拒绝（`policy.schema.json` 的 `enum` 不含它们），实现 MUST NOT 在本地放宽该 enum。
+- 需要比 5 项粒度更细的对象级治理时，policy rule MUST 用 `kind:"object"` + `ref`（canonical object id）表达，而不是新增 capability-only kind。
+- 两套词表**不统一**是有意设计：capability 词表面向细粒度授权，policy 词表面向粗粒度治理；读者 MUST NOT 假定 capability selector 的 kind 在 policy rule 中同样合法。
+
 ### 7.1 Moderation State 必须进入 Anchor Frontier
 
 Policy Server decision 是 out-of-band 的签名决策，本身不进入 Realm anchor frontier。只有 `allow` 与 `soft_deny`（仅阻止 default client 提交）可以仅在本地或 fast path 上生效；任何会改变其他 peer 对事件可见性、可写性、可分发性判断的 decision——`hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入协议状态。否则不同 Principal Server 在同一 Realm 上对同一事件作出不一致决策，会形成跨 peer 的 split-brain：A 把消息 quarantine 隐藏，B 直接 allow，两边客户端看到的 Realm 状态从此分叉。

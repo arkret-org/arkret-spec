@@ -85,8 +85,8 @@ Effective default Realm 解析 MUST NOT 跨 `ck.realm.link` 跳转。`default_re
 
 跨 Realm parent 合法，但必须保持以下约束：
 
-- Parent Realm 成员不会自动成为 child Space home Realm 成员。
-- Child Space home Realm 成员不会自动读取 parent Space。
+- 父 Space 所在 Realm 的成员不会自动成为子 Space home Realm 的成员。
+- 子 Space home Realm 的成员不会自动读取父 Space。
 - Parent Space archive / tombstone 不自动改变 child Space lifecycle。
 - Parent Space 的 `default_realm_id` 只作为 child 省略 `default_realm_id` 时的默认解析输入；它不授予访问目标 Realm 的能力。
 

@@ -71,6 +71,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 服务发现 | `ck.server.*` | `/_cokret/describe` |
 | 身份信任根与 registry | `ck.identity.*` | `/_cokret/root/identity/*` |
 | Events | `ck.events.*` | `/_cokret/self/events/*` |
+| 短时信号（ephemeral） | `ck.ephemeral.send` | `/_cokret/self/ephemeral` |
 | 账号自服务与聚合同步 | `ck.account.viewer`、`ck.account.update_profile`、`ck.account.subscribe`、`ck.account.describe`、`ck.account.cursor_revoke` | `/_cokret/self/account/*` |
 | Realm snapshot 入口 | `ck.snapshot.*` | `/_cokret/self/snapshot/*` |
 | 目录发现 | `ck.directory.*` | `/_cokret/find/directory/*` |
@@ -78,7 +79,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 推送 | `ck.push.*` | `/_cokret/edge/push/*` |
 | 设备加密 | `ck.device_messages.*`、`ck.keys.*` | `/_cokret/self/device_messages/*`、`/_cokret/self/keys/*` |
 | 授权与策略 | `ck.authz.*`、`ck.policy.*` | `/_cokret/self/authz/*`、`/_cokret/self/policy/check` |
-| 媒体服务 | `ck.media.*` | `/_cokret/self/rtc/ice-config` |
+| 媒体服务 | `ck.media.*`、`ck.call.media.token_exchange` | `/_cokret/self/rtc/ice-config`、`/_cokret/self/rtc/token` |
 | 审核 | `ck.moderation.*` | `/_cokret/self/moderation/*` |
 | Applet | `ck.applet.*` | `/_cokret/edge/applet/*` |
 | MIMI 外部协议互操作 | `ck.mimi.*` | `/_cokret/open/mimi/*` |
@@ -152,6 +153,9 @@ paths:
   /_cokret/self/events/frontier:
     get:
       operationId: ck.events.frontier
+  /_cokret/self/ephemeral:
+    post:
+      operationId: ck.ephemeral.send
 
   /_cokret/self/account/viewer:
     get:
@@ -301,6 +305,9 @@ paths:
       - url: https://{host}
     post:
       operationId: ck.media.ice_config
+  /_cokret/self/rtc/token:
+    post:
+      operationId: ck.call.media.token_exchange
   /_cokret/self/moderation/report:
     post:
       operationId: ck.moderation.report
@@ -361,6 +368,7 @@ paths:
 | `ck.authz.check` / `ck.authz.get_effective_grants` / `ck.authz.get_invites` | `POST /_cokret/self/authz/check`, `GET /_cokret/self/authz/effective-grants`, `GET /_cokret/self/authz/invites` | gRPC / policy 插件回调 |
 | `ck.policy.check` | `POST /_cokret/self/policy/check` | policy 本地调用 |
 | `ck.media.ice_config` | `POST /_cokret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |
+| `ck.call.media.token_exchange` | `POST /_cokret/self/rtc/token` | Realtime Media Server token 兑换 / gRPC `Call/MediaTokenExchange` |
 | `ck.moderation.report` | `POST /_cokret/self/moderation/report` | Moderation queue / local compliance workflow |
 | `ck.applet.install.preview` / `ck.applet.install` / `ck.applet.revoke` | `POST /_cokret/self/applets/install/preview`, `POST /_cokret/self/applets/install`, `POST /_cokret/self/applets/{applet_id}/revoke` | Applet self/admin aggregate operation；fan-out registration/grant/profile/membership facts，不写 durable install event |
 | `ck.applet.transaction` / `ck.applet.resolve_actor` / `ck.applet.resolve_realm` | `POST /_cokret/edge/applet/transactions`, `GET /_cokret/edge/applet/actors/{actor_id}`, `GET /_cokret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |

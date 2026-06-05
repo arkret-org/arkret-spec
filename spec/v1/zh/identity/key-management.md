@@ -279,6 +279,8 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
 
 **问题**: `personal_node` 阶段的 `did:web` inception 只受 hosting domain DNS/TLS 保护；若用户在注册期间 DNS 被劫持，攻击者可写入伪造 inception(并控制 inception key)。一旦该 principal 直接"无审"升级到 `small_team` 的 `did:webvh`,被劫持的 inception 历史会被当作正常历史延续，所有后续 capability / device authorization / state 都建立在攻击者根之上。
 
+> **`purpose` 取值边界**(与 [`identity-did.md` §4.2.2](./identity-did.md) 互引):本节描述的是**同一物理身份从 `did:web` method 升级到 `did:webvh` method** 的场景,continuity proof 的 `purpose` MUST 为 `principal_method_upgrade`,且 MUST 走本节 §5.0.5.1–§5.0.5.4 的 OOB + 双签硬条件。这与 `principal_migration`(同 / 跨 method 的一般账户迁移，如更换 hosting / 组织迁移，见 §4.2.2 第 1–5 步常规流程)语义不同:`principal_method_upgrade` 专指"弱 method inception 根升级到强 method 根"这一受 DNS 劫持威胁的特例，因而附加本节的强制 OOB 与 inception fingerprint 二次确认;`principal_migration` 在原 DID 仍可解析时只需常规 continuity proof + 反向 acceptance。实现 MUST NOT 用 `principal_migration` 绕过本节针对 `personal_node` 升级的 OOB 硬条件。
+
 为此，跨 method 升级 **MUST** 满足以下硬条件，否则 receiver MUST `reject` 升级 transition Event(reason `inception_upgrade_evidence_insufficient`):
 
 ##### 5.0.5.1 OOB inception fingerprint 验证
@@ -336,6 +338,8 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 - `inception_public_key_fingerprint` 必须 byte-for-byte 等于 `did:web` DID Document 中 inception key 对应的那条 `verificationMethod[]` 条目（即 §5.0.5.3 step 3 中签名验证命中的条目；§5.0.2 只要求 inception key **出现在** `verificationMethod` 中，不固定其下标）的派生 fingerprint;同时必须在 `transfer_evidence` 中以 user-readable 形式呈现给 receiver(便于 receiver 二次校验)。
 - `user_oob_confirmation_id` 是 user-side 不透明 token——客户端 SHOULD 把 OOB 确认结果写入 user-private secret storage,服务端 / receiver 不 trust 该字段为真实人类确认证据，但**保留**以便审计回放与 UI 重现。`user_oob_confirmation_method` 是枚举 hint,receiver MAY 用它把"通过弱通道(independent_channel)确认的迁移"打上额外的低信任标记。
 - 整个 transfer envelope MUST 在签名 transcript 中包含 `old_did_document_canonical_digest`——这一字段 freezes 攻击者对 hosting domain 在升级时刻**之后**继续替换 DID Document 的可能性(任何替换都会让 hash 不再匹配 receiver 拉取的新 document)。
+- **Replay 域绑定(`audience`)**:升级 transition envelope 的 `audience`(见 `ck.schema.did_continuity_proof.v1`)在本流程中是 **OPTIONAL**——默认走 broadcast-style(`audience` 省略),因为升级证明的可信度由 `signature_chain` 双签(inception key + entry-0 controller key)与 `transfer_evidence` 完整承载，不依赖单一 verifier 范围。当部署希望把某次升级证明限定到特定 Realm / registry service 范围以防跨协议 / 跨 Realm replay 时,SHOULD 显式填写 `audience`;此时列在 `audience` 外的 verifier MUST reject(语义与 [identity-did.md §4.2](./identity-did.md) continuity proof 的 `audience` 一致)。
+- **反向 acceptance**:本节的双签 `signature_chain` 已在**同一 envelope 内**承载新 DID 侧的接受证明——`signature_chain[1]` 由 `did:webvh` entry-0 controller key(新 method 主体)签署，即等价于 [identity-did.md §4.2](./identity-did.md) 要求的反向 `CokretContinuityAccepted`,无需新 DID 侧再发独立 acceptance Event。即:跨 method 升级以"单 envelope 双签"满足双向 continuity,而 §4.2 的"`CokretContinuityProof` + 反向 `CokretContinuityAccepted` 两个 service entry"模式适用于原 DID 仍持续可解析的同 method / 一般迁移场景。
 
 ##### 5.0.5.3 Receiver 验证规则
 
@@ -899,7 +903,7 @@ Cokret v1 对设备、会话和恢复要求如下：
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
 - `ck.device.authorize` 与 `ck.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`ck.device.revoke.payload.revocation_frontier` MUST 绑定撤销被接受时的 principal control stream frontier；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
 - Session grant MUST 绑定 principal DID、device id、service DID / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
-- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 仅 `passphrase_kdf` 路径被拒绝、§7.8 服务端限速与跨 actor 拒绝。
+- Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 域使用 `passphrase_kdf` 的 envelope 被拒绝(该域只允许 `recovery_public_key`)、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。
 - Recovery policy grammar 由 `ck.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate / share-revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed_proof_kinds、approval requirement 与 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。
 - Recovery receipt 由 `ck.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；§15 step 7 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `proof_summary` / `backup_classes_unlocked` / `welcome_count` / `outcome`。

@@ -20,7 +20,7 @@ updated: 2026-05-25
 
 ## 0. 规范语言
 
-本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. Encoding & Crypto Vectors
 
@@ -543,7 +543,7 @@ ck.vector.encoding.cursor_opaque.stateless_profile.v1
 输入 cursor（stateless profile overlay 形态）：
 
 ```text
-ck:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0
+ck:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImNrOnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImNrOmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0
 ```
 
 stateless profile 服务端 MUST 验证 `issuer_kid`、`s` frontier、`x` 和 `_mac` / `_sig` transcript；客户端仍 MUST 把整个 cursor 当作 opaque string，不得解析 `s.<realm_id>.p/o/h` 构造请求。
@@ -995,6 +995,12 @@ ck.vector.redaction.preserve_fields.v1
 - 重放前后事件必须保留 event_id/hash 的验证可追踪性。
 - 目标事件的 `content`、`mentions`、`attachments`、`client_generated` 不得再对外展示。
 
+`kept_envelope_fields` 中的 `redacted_by` / `redaction_reason_code` / `hashes` **不是 redaction event payload 的输入字段**,而是 reducer 在目标事件上派生写入的 tombstone-style 字段，映射规则如下（来源见 event-envelope schema 的对应 `$defs`）:
+
+- `redacted_by` = 该 redaction event 的 `actor_id`（执行 redact 的主体）。
+- `redaction_reason_code` = redaction event `payload.reason_code`（本例 `policy_recall`）。
+- `hashes` = 目标事件原 envelope 的 `hashes` 字段，在 redaction 后保留以维持 event_id / canonical digest 的验证可追踪性，不由 redaction payload 提供。
+
 失败判定：
 
 - 把事件当作 tombstone 并抹去事件本体。
@@ -1408,7 +1414,7 @@ ck.vector.capability.approval_constraint.v1
       "action": "ck.realm.admin",
       "approval_required": true,
       "approval_quorum": 2,
-      "policy_scope": "realm:01js0ms000000000000000000"
+      "policy_scope": "ck:realm:0196419b-0000-7000-8000-000000000000"
     },
     "refs": [
       { "id": "ck:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
@@ -1475,7 +1481,7 @@ ck.vector.capability.approval_constraint.v1
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "actor_id": "did:web:actor-a.example.com",
   "actor_seq": 1,
-  "hlc": "019b76daa800-0000-a0000000",
+  "hlc": "019b76daa800-0000-a13f9c2e",
   "prev_refs": [],
   "refs": [],
   "kind": "ck.flow.update",

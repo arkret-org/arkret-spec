@@ -92,7 +92,7 @@ did:web:slack-bridge.example:ghost:u123
 
 `#fragment` 只用于 DID URL 形式的 verification method（例如 `did:web:slack-bridge.example:ghost:u123#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。
 
-Ghost Actor MUST 带有 `accountability`，指向 Applet controller 和外部网络来源。
+Ghost Actor MUST 带有 `accountable_principal_ids`（指向 Applet controller 与外部 service DID），外部网络来源（protocol / network id / user id）记录在 `profile_fields.external_ref`。问责字段以 actor-profile schema 的 `accountable_principal_ids` 为唯一权威形态（见 [`applet-schema.md`](./applet-schema.md) 与 §9）；旧的 `accountability` 嵌套对象不是合法 wire 形态。
 
 #### 3.4.1 Ghost Actor vs Native Personal Agent 边界
 
@@ -288,6 +288,12 @@ Commit MUST:
 
 Revoke MUST revoke all active grants bound to applet + effective_scope + registration_epoch, revoke widget scoped token, revoke delegated session/device（若有），并在需要时触发 bot/ghost membership leave/remove 与 E2EE epoch rotation requirement。`remove_ghost_membership` 依赖 active ghost projection 能枚举该 effective_scope 下仍 active 的 applet-managed ghost member；若 projection 不完整，MUST fail closed 并要求先重建 projection，不得按 namespace pattern 猜测成员。revoked effective install 继续尝试未来写入或调用 MUST fail closed，reason=`applet_revoked` 或更细 reason。
 
+### 4b.1 术语:Effective Install 与 Orphan Registration
+
+- **effective install**(有效安装):一个 `ck.applet.registration` 在某 `effective_scope`(Realm 或 Circle)上，至少绑定一个 active `ck.capability.grant` 到同一 `(applet_id, effective_scope, registration_epoch)`。只有进入 effective install,Applet 才在该 scope 取得任何写入 / 调用授权;registration 自身不授权(见 §11 与 [`applet-schema.md`](./applet-schema.md) `requested_scopes` 说明)。
+- **orphan registration**(孤儿注册):registration 已成功写入，但同一 `(applet_id, effective_scope, registration_epoch)` 下没有任何 active grant(commit 时全部 grant 失败，或 grant 事后被全部 revoke)。orphan registration MUST 被标记为无 effective install,并在 local projection / audit 显式显示；它不授予任何能力。
+- 这与 install commit 响应的 `effective_status` 三值对应:`installed`(registration + 完整 grant 集合)、`partially_installed`(registration + 部分 grant,其余 rejected)、`rejected`(registration 成功但无任何 active grant ⇒ orphan registration)。
+
 ## 5. Namespace
 
 Namespace 用于决定：
@@ -395,6 +401,9 @@ Base URL 来自 registration 的 `base_url`。
 | `ck.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
 | `ck.applet.third_party_users` | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
 | `ck.applet.third_party_locations` | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
+| `ck.applet.install.preview` | `applet_package`; `effective_scope`; `approval_request`（字段见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | `InstallPlan` + `plan_digest`（契约 `applet-install-plan.schema.json`） | 只读预览；字段定义见 §4b 与 `applet-schema.md` §1b。 |
+| `ck.applet.install` | `Idempotency-Key`; `plan_digest`; `applet_package`; `effective_scope`; `approval_request`（见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | install response（`ok`/`install_id`/`registration_event_ref`/`capability_grant_refs`/`effective_status`/…，契约 `applet-install-operations.schema.json`） | 提交安装；字段定义见 §4b 与 `applet-schema.md` §1b。 |
+| `ck.applet.revoke` | `path.applet_id`; `effective_scope` | 无 | revoke 结果（撤销的 grant / membership / token refs） | 撤销 effective install;见 §4b。 |
 
 ### 7.1 Ping
 
@@ -611,29 +620,32 @@ Applet 写入 Cokret MUST 使用常规 `/_cokret/self/events` submit 接口。
 
 Ghost Actor MUST 与原生人类 Actor 在协议层可区分。
 
-Ghost Actor profile SHOULD 包含：
+Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约束**以 artifacts 的 [`actor-profile.schema.json`](../../artifacts/schemas/actor-profile.schema.json) 为准**）：
 
 ```json
 {
+  "id": "ck:actor_profile:21532600-0000-7000-8000-000000000000",
   "schema": "ck.schema.actor_profile.v1",
   "principal_id": "did:web:slack-bridge.example:ghost:u123",
   "actor_kind": "integration",
   "display_name": "Alice on Slack",
-  "managed_by_applet": "ck:applet:21532600-0000-7000-8000-000000000000",
-  "external_ref": {
-    "protocol": "slack",
-    "network_id": "T123",
-    "user_id": "U123"
+  "accountable_principal_ids": [
+    "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+    "did:web:slack-bridge.example"
+  ],
+  "profile_fields": {
+    "managed_by_applet": "ck:applet:21532600-0000-7000-8000-000000000000",
+    "external_ref": {
+      "protocol": "slack",
+      "network_id": "T123",
+      "user_id": "U123"
+    }
   },
-  "accountability": {
-    "mode": "applet_managed",
-    "responsible_actor_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
-    "operator_actor_ids": [
-      "did:web:slack-bridge.example"
-    ]
-  }
+  "created_at": "2026-04-30T00:00:00Z"
 }
 ```
+
+`actor-profile.schema.json` 是 `additionalProperties:false` 的封闭 schema:`id`、`schema`、`principal_id`、`actor_kind`、`display_name`、`created_at` 为 required;问责只能通过 `accountable_principal_ids`(controller principal + 外部 service DID)表达;Applet 托管标记 `managed_by_applet` 与外部网络来源 `external_ref` MUST 放入开放容器 `profile_fields`,不得作为顶层字段(否则被 schema `schema_violation` 拒绝)。与 §3.4 / §3.4.1 一致，不存在 `accountability` 嵌套对象 wire 形态。
 
 Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式声明并完成绑定。
 
@@ -685,7 +697,8 @@ Alice via Calendar Applet
   1. `executed_by` 必填，指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致;
   2. `authorization_ref` 必填，指向已 accepted 的 `ck.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
   3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet;
-  4. grant constraint MUST 绑定 `applet_id`、`executed_by` 与 `registration_epoch`。`registration_epoch` 是 grant 的唯一安全 epoch 绑定键；service DID Document digest/version evidence、accepted signing key set、endpoint/auth material、bot actor / base URL 等安全相关字段都必须进入该 epoch 的 canonical evidence。reducer/verifier 不能只做字符串等值比较后放行：它 MUST 展开 referenced registration 的 epoch evidence，重新解析或按 method-specific version evidence 读取 service DID Document，并确认当前 DID Document digest、accepted signing key set 与 epoch 捕获值一致。无版本化 `did:web` MUST re-fetch canonical document 并比对 digest；不一致时旧 grant fail closed。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key。
+  4. `executed_by` MUST 落在 `applet_id` registration 声明的主体集合内:即等于该 registration 的 service DID / `bot_actor_id`,或匹配其 `namespaces.actors` pattern(含 ghost DID namespace)。持有针对 `actor_id` 主体的有效 grant、但 `applet_id` 指向另一无关已注册 applet(其 registration namespace 不覆盖 `executed_by`)时,reducer MUST 拒绝,reason=`applet_namespace_mismatch`。
+  5. grant constraint MUST 绑定 `applet_id`、`executed_by` 与 `registration_epoch`。`registration_epoch` 是 grant 的唯一安全 epoch 绑定键；service DID Document digest/version evidence、accepted signing key set、endpoint/auth material、bot actor / base URL 等安全相关字段都必须进入该 epoch 的 canonical evidence。reducer/verifier 不能只做字符串等值比较后放行：它 MUST 展开 referenced registration 的 epoch evidence，重新解析或按 method-specific version evidence 读取 service DID Document，并确认当前 DID Document digest、accepted signing key set 与 epoch 捕获值一致。无版本化 `did:web` MUST re-fetch canonical document 并比对 digest；不一致时旧 grant fail closed。Applet key rotate、DID Document endpoint 变化或 registration 更新后，旧 grant 不得继续授权新 key。
 - 缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时,reducer MUST `schema_violation` 拒绝。该规则适用于所有 `ck.profile.applet_*` profile,客户端 / SDK 不得退回到 SHOULD 形态。
 
 Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示 `via applet`：UI 在渲染 mention、notification、audit log、moderation queue 等任何"who did this"上下文时,MUST 同时显示 native actor 与 `executed_by` 双重署名，不得仅显示 native actor 而隐藏 applet 身份。

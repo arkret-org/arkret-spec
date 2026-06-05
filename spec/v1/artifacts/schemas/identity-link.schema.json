@@ -100,7 +100,7 @@
           "type": "string",
           "enum": [
             "Ed25519",
-            "ECDSA-P256-SHA256",
+            "ES256",
             "ML-DSA-65"
           ]
         },

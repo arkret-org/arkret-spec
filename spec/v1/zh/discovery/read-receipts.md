@@ -136,6 +136,7 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 - `visibility="public"` + `history_visibility="world_readable"` 会让任意外部 world-readable 观察者读取 actor 的已读位置（活动侧信道）。该组合 MUST 是**显式 opt-in**：reducer MUST 拒绝（`read_receipt_visibility_combination_invalid`）该组合，**除非** receipt policy payload 显式声明 opt-in 标记 `allow_public_receipts_on_world_readable=true`；显式 opt-in 时 reducer MUST 仍附带警告诊断并要求客户端按 §2.4 / §2.5 在 UI 明示。该字段与 `allow_child_privacy_tightening_against_required` 同纪律，是 prose-defined 合规旁路：read_receipt_policy payload schema MUST `additionalProperties=false` 收录该字段，writer 必须在 wire JSON 中按字面拼写出现它，字段缺省 / 为 `false` / 拼写错误时 reducer MUST 按拒绝处理。
 - metadata-private 场景下 receipt policy MUST 收紧 `visibility` 为 `members` 或 `private`，不得依赖上述显式 opt-in 旁路。
+- **fanout 收口(normative)**:即便已显式 opt-in `allow_public_receipts_on_world_readable=true`,Sync Service **SHOULD** 仍把 `ck.receipt.read` 的 fanout 限制在该 Flow effective scope 的 active member 集合，而**不**把 receipt 主动广播给非成员的 world-readable 外部观察者——即把"历史 world-readable"(读取已落库历史)与"receipt world-readable"(主动 fanout 实时已读位置)解耦。opt-in 只解除 reducer 的 accept 拒绝，不构成"必须向全网外部观察者主动推送 receipt"的义务；高隐私部署 SHOULD 默认采用该收口。实现者 MUST 向用户明示:public receipt 在 world-readable scope 下,actor 的已读位置对该 scope 的任意外部观察者实际可读，是活动侧信道。
 - 该表只约束 receipt `visibility` 与 history visibility 的组合，不替代 §2.5 字段表与 child-policy 收紧规则；冲突时更严格者优先。
 
 ## 3. Read Cursor (私有游标)
@@ -251,16 +252,20 @@ Notification 是派生 projection，不是 canonical truth。schema：`ck.schema
   "schema": "ck.schema.notification.v1",
   "actor_id": "did:web:alice.example",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "flow_id": "ck:flow:01964200-0000-7000-8000-000000000001",
-  "track_name": "discussion",
   "source_event_id": "ck:event:0196434a-8000-7000-8000-000000000000",
   "source_ref": "ck:message:0196434c-c000-7000-8000-000000000000",
+  "flow_id": "ck:flow:01964200-0000-7000-8000-000000000001",
+  "track_name": "discussion",
   "notification_type": "mention",
-  "state": "unread",
   "priority": "normal",
+  "state": "unread",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
+
+`notification_type` 是封闭枚举，其权威取值集合以 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json) 为准:`mention` / `reply` / `assignment` / `invite` / `reaction` / `policy` / `call` / `applet` / `agent` / `moderation` / `system`(共 11 值);取未列值的 notification MUST 视为非法。
+
+notification / read scope 的 track 字段统一为 `track_name`,旧名 `track` 已弃用并在 schema 层拒绝(notification.schema.json 顶层 `not.required:["track"]`);与本文 §2.2 对 `actor` / `reader` → `actor_id` 弃用的纪律一致。
 
 ### 6.4 Query 形状
 

@@ -182,7 +182,7 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 - SAS transcript MUST 绑定双方 principal id、device id、verify key、transaction id、method、算法选择、双方 ephemeral key 与待验证 key id。
 - QR payload MUST 至少绑定 transaction id、展示端 principal/device、intended verifier、一次性 secret 或 commitment、`expires_at`、supported method；MUST NOT 包含长期私钥、secret storage key、recovery secret 或 MLS group secret。
 - 跨 principal 验证只表达人工信任；本端 `user_signing_key` 签名对方 identity key，不改变对方设备授权状态。
-- cancel code 由 §10.6 给出固定 registry（`user_cancelled` / `timeout` / `mismatched_commitment` / `mismatched_mac` / `device_revoked` / `untrusted_device` / `policy_denied` / `accepted_by_other_device` / …）。
+- cancel code 由 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §10.6 给出固定 registry;本指南不抄录具体取值，实现 MUST 以该 registry 为唯一权威源(避免本文成为陈旧副本)。
 
 #### 4.5.9 完整性评估
 

@@ -115,7 +115,7 @@ Content-Type: application/json
 | `actor_id` | `did` | required | 回显请求 actor，进入签名 canonical bytes。 |
 | `device_id` | `id` | required | 回显请求设备，进入签名 canonical bytes。 |
 | `ttl_seconds` | `int` | required | ICE 配置有效期（秒）。建议 ≤ 1 小时。 |
-| `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`。schema 合法范围为 `minimum=10`、`maximum=1800`；**推荐 floor 为 60s**（即正常部署 SHOULD ≥ 60s，schema 仅为容纳极短 TTL 测试/特例放宽到 10s 下限）。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
+| `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`。schema 合法范围为 `minimum=10`、`maximum=1800`。**服务端 MUST 保证 `refresh_lead_seconds` 严格小于 `ttl_seconds`**（否则客户端在签发瞬间即判定 credential 需刷新，陷入刷新风暴)。推荐 floor 为 60s,但该 floor 仅在 `ttl_seconds` 足够大、使 `60 < ttl_seconds` 仍成立时适用；当 `ttl_seconds` 取 60s 下限等较小值时，服务端 MUST 改用一个严格小于 `ttl_seconds` 的较小 lead(并据此放弃 60s floor),`refresh_lead_seconds < ttl_seconds` 优先于推荐 floor。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
 | `issued_at` | `timestamp` | required | 服务端签发时间，进入签名 canonical bytes。 |
 | `issued_at_bucket` | `timestamp` | required | TURN pseudonym 派生的粗粒度 bucket 起点；MUST 等于 `floor(issued_at / bucket_seconds) * bucket_seconds`，进入签名 canonical bytes。 |
 | `bucket_seconds` | `int` | required | v1 固定为 `300` 秒；客户端 SHOULD 在跨越下一 bucket 前 refresh。 |
@@ -192,7 +192,7 @@ Content-Type: application/json
 
 | 触发条件 | 客户端行为 |
 | --- | --- |
-| 当前剩余有效期 ≤ `ttl_seconds * 0.25`（推荐阈值 `refresh_lead_seconds=60`，可被服务在响应中覆写） | 在不中断通话的情况下重新调用 ICE config endpoint，获取新一组 `ice_servers[]` 与 credential。 |
+| 当前剩余有效期 ≤ `max(ttl_seconds * 0.25, refresh_lead_seconds)`（响应中携带的 `refresh_lead_seconds` 为权威阈值；由于 §4.1 规定 `refresh_lead_seconds < ttl_seconds`，该阈值始终在 TTL 窗口内，不会触发签发即刷新的风暴) | 在不中断通话的情况下重新调用 ICE config endpoint，获取新一组 `ice_servers[]` 与 credential。 |
 | ICE agent 报告 TURN allocation refresh 失败、收到 `441 Wrong Credentials`、`438 Stale Nonce` 或等价错误 | 立即调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.signal_type = renegotiate`）。 |
 | ICE config endpoint 返回 `turn_credential_expired` | 客户端按服务器返回的 `next_retry_at` / `Retry-After` 退避；超过 30 秒仍无新 credential 时通过 `ck.call.signal` 发出 `error` payload 并以 graceful hangup 收尾。 |
 
@@ -205,7 +205,7 @@ Content-Type: application/json
 
 服务端规则：
 
-- ICE config endpoint MUST 在响应中携带 `refresh_lead_seconds`（推荐 60、可调），让客户端按统一节奏 refresh。
+- ICE config endpoint MUST 在响应中携带 `refresh_lead_seconds`（推荐 60、可调），且 MUST 保证 `refresh_lead_seconds < ttl_seconds`，让客户端按统一节奏 refresh。当 `ttl_seconds` 较小(如 60s 下限)以致无法同时满足推荐 floor 60s 与 `refresh_lead_seconds < ttl_seconds` 时,`refresh_lead_seconds < ttl_seconds` 优先，服务端 MUST 选取更小的 lead 值。
 - TURN shared secret MUST 周期轮换（默认 ≤ 24 小时）；轮换时 server MUST 同时接受新旧 secret 一段时间（grace ≥ `ttl_seconds`）以避免 in-call 集体失败。
 - `turn_credential_expired` 响应 MUST 包含 `next_retry_at`；不得让客户端进入 tight retry loop。
 

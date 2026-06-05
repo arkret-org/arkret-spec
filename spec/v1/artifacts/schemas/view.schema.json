@@ -301,6 +301,64 @@
       },
       "additionalProperties": false
     },
+    "collection_grouping": {
+      "type": "object",
+      "description": "Grouping / lane / time-bucket / matrix configuration; mirrors models/views.md §3.3. Conditional required-ness is enforced per mode.",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["none", "field", "relation_container", "time_bucket", "matrix"]
+        },
+        "field": { "type": "string" },
+        "lanes": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "board_space_id": {
+          "type": "string",
+          "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "container_relation_kind": {
+          "type": "string",
+          "default": "contains"
+        },
+        "item_relation_kind": { "type": "string" },
+        "start_field": { "type": "string" },
+        "end_field": { "type": "string" },
+        "rows_by": { "type": "string" },
+        "columns_by": { "type": "string" },
+        "hidden_count_policy": {
+          "type": "string",
+          "enum": ["omit", "authorized_estimate", "authorized_exact"],
+          "default": "omit"
+        },
+        "wip_limit_enforcement": {
+          "type": "string",
+          "enum": ["warn", "reject", "require_review"],
+          "default": "warn"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "field" } }, "required": ["mode"] },
+          "then": { "required": ["field", "lanes"] }
+        },
+        {
+          "if": { "properties": { "mode": { "const": "relation_container" } }, "required": ["mode"] },
+          "then": { "required": ["board_space_id", "item_relation_kind"] }
+        },
+        {
+          "if": { "properties": { "mode": { "const": "time_bucket" } }, "required": ["mode"] },
+          "then": { "required": ["start_field"] }
+        },
+        {
+          "if": { "properties": { "mode": { "const": "matrix" } }, "required": ["mode"] },
+          "then": { "required": ["rows_by", "columns_by"] }
+        }
+      ],
+      "additionalProperties": true
+    },
     "collection_config": {
       "type": "object",
       "properties": {
@@ -327,9 +385,30 @@
             "message"
           ]
         },
-        "grouping": {
-          "type": "object"
+        "item_order_by": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/sort_spec" },
+          "description": "Stable item ordering; mirrors models/views.md §3.2. Drag-ordered collections SHOULD sort by rank."
         },
+        "display_fields": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "Display columns (dot path + format); see models/views.md §3.2."
+        },
+        "selection_policy": {
+          "type": "string",
+          "enum": ["none", "single", "multiple"],
+          "default": "multiple",
+          "description": "UI selection policy; see models/views.md §3.2."
+        },
+        "count_policy": {
+          "type": "string",
+          "enum": ["omit", "authorized_estimate", "authorized_exact"],
+          "default": "omit",
+          "description": "Collection-level count policy; see models/views.md §3.2."
+        },
+        "grouping": { "$ref": "#/$defs/collection_grouping" },
         "page_size": {
           "type": "integer",
           "minimum": 1,

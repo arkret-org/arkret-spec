@@ -116,6 +116,17 @@ Move (reducer view of signed Event) {
 2. `preconditions[]` 与 `effects[]` 是 set；同一 Event 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Event FAIL，MUST NOT 部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 reducer-input event 不存在）。
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Realm 声明的 `max_anchor_staleness_ms`。
 4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`audit_pair`（隐私敏感业务 Event 与 `ck.audit.accessed` 的同 batch 配对）、`recovery_capability`、`state_witness`（§8.1，conflict recovery Event 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Event 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。`role="authorized_by"` 的 `id` MUST 是 `ck:grant:<uuid>` 或 profile 明确注册的不可变 grant record id；不得引用裸 Event id、policy name、human-readable role 或可变 membership cell。reducer 必须能从该 id 反查 grant canonical digest、issuer、subject、actions、scope、parent grant 链和 revoke/supersede 状态。
+
+   **授权域 critical role 注册表（normative）**：除上列通用 role 外，委托 / 授权链路使用以下 role；每个 role 在此显式声明 critical 与否，消除 [`capabilities.md` §10.1 / §10.2](./capabilities.md) 防滚动续期与 cycle detection 依赖“未注册 role”的可实现性缺口（“未识别 critical role MUST fail closed”对这些 role 不再适用，因为它们已注册）：
+
+   | role | critical | 语义与归属 |
+   | --- | --- | --- |
+   | `parent_grant` | **critical (`true`)** | `ck.capability.delegate` event 指向父 grant id；cycle detection（§10.2）与 revoke 因果传播（§10.3）的图边来源。缺失或不可反查时 delegate Move MUST fail closed。 |
+   | `delegation_expiry_anchor` | **critical (`true`)** | 无限期 parent 派生 child 链时冻结的固定到期 anchor（capabilities §10.1“固定 anchor 防滚动续期”）。整条 child 链的 `effective_expires_at` MUST ≤ 该 anchor，re-delegate MUST NOT 刷新。携带它的 delegate Move 缺失该 anchor 绑定时 MUST fail closed。 |
+   | `auth_frontier` | 非 critical（advisory，`false`） | 记录签发时点 parent `auth_state_digest` / `auth_frontier`，用于审计 child grant 基于哪个 parent policy/frontier 派生（§10.2）。**它不替代实时 revoke/freshness 校验**：缺失时 reducer 仍 MUST 按当前 frontier 重新验证，因此标为非 critical。 |
+   | `policy_decision` | 非 critical（advisory，`false`） | 指向一次 `/_cokret/self/policy/check` 等 policy decision 的诊断引用，仅供审计；**MUST NOT** 被当作授权来源（grant 来源仍以 `authorized_by` 的 grant id 为准，见 capabilities §10.3）。缺失可忽略。 |
+
+   advisory（非 critical）授权域 role 的缺失 MAY 被忽略，但实现 MUST NOT 因为存在 `auth_frontier` / `policy_decision` ref 就跳过实时授权校验。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
 6. Event 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Event issuer 层表达。
 

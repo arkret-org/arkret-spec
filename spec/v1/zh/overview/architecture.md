@@ -36,7 +36,7 @@ Cokret 采用 **principal server + signed Event + identity registry + client-sid
 
 Cokret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
-协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Flow、Space、Message 等标准对象；看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
+协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Circle、Flow、Space、Message 等标准对象；Circle（`ck:circle:`）是 Realm 内的子事件边界（见 §2.0 容器选型），看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
 
 ### 2.0 容器选型参考（Container Selection Reference）
 
@@ -59,6 +59,8 @@ Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow
 3. 仅用于导航 / 结构分组的容器 MUST 使用 `ck:space:`，MUST NOT 借此获得 membership 或安全边界。
 4. 带协作语义的最小单元 MUST 使用 `ck:flow:`。
 5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../../proposals/) 留档。
+
+子资源 scope 继承（`child_scope_policy`）取值、冲突解析，以及 `Space.scope_circle_id` 与 `default_realm_id` 同时存在时的优先级，权威定义见 [`models/circle.md`](../models/circle.md)（`child_scope_policy` 与 scope 解析优先级）；overview 不重复承载该解析规则。
 
 详细字段定义见 [`models/realm-and-space.md`](../models/realm-and-space.md)、[`models/circle.md`](../models/circle.md)、[`models/space-hierarchy.md`](../models/space-hierarchy.md)、[`models/realm-links.md`](../models/realm-links.md) 与 [`models/flow-and-message.md`](../models/flow-and-message.md)。
 
@@ -122,7 +124,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 - `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，MUST NOT 单独作为明文授权依据。
 - 修改 `plaintext_visible_services` 的事件必须经 `ck.realm.plaintext_visible_services` 授权；普通 `ck.realm.update` 或服务自声明 MUST NOT 隐式扩大明文可见边界。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
-- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ck.realm.preview_policy` 或等价 export policy 约束。
+- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ck.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail-closed（不暴露任何 history snippet / export），MUST NOT 因 `history_visibility=world_readable` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.4 Client Query / Projection
@@ -194,7 +196,7 @@ Principal Server
 
 Identity 部署常识（无法在 deployment profile 表中表达）：
 
-- v1 core 默认 principal DID method 为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth Server 在自有子域代为托管。`did:web`（无历史链）只能作为 service DID 默认 method 与 `personal_node` profile 的可选 principal method；`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。
+- v1 core 默认 principal DID method 为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth Server 在自有子域代为托管。`did:web`（无历史链）只能作为 service DID 默认 method 与 `personal_node` profile 的可选 principal method；`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。cache-only degraded mode 的缓存有效期（7d cache age）/ TTL 耗尽后 MUST fail-closed（不得无限期缓存信任旧 DID 文档），完整阈值与 fail-closed 不变量见 [`identity/identity-did.md` §3.4](../identity/identity-did.md)。
 - 服务 DID 使用 `did:web`；临时 / 测试 / 设备 / bootstrap 使用 `did:key`；KERI 等可作为辅助 root / trust binding（interop extension profile）；AT Protocol interop 部署额外挂 `did:plc` adapter（interop extension profile）。
 - Auth Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
@@ -203,7 +205,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 
 ## 3. 架构平面（Architectural Planes）
 
-七个平面按职责分层：Identity / Write / Distribution / Local Query / Presentation 形成自下而上的核心栈，Confidentiality 与 Portability 是横切关注点。
+七个平面按职责分层：Presentation / Local Query / Distribution / Write / Identity 形成自上而下（从用户视角到信任根）的核心栈，Confidentiality 与 Portability 是横切关注点。
 
 *Figure 3-1. 架构平面分层（informative）。*
 

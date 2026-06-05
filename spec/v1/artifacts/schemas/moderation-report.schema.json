@@ -199,6 +199,7 @@
         "franking_proof_id",
         "realm_id",
         "event_id",
+        "routing_metadata_digest",
         "ciphertext_digest",
         "aad_digest",
         "sender_claim",

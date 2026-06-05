@@ -53,7 +53,9 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 ## 2.1 最小实现路径
 
-实现者不需要一次实现全部 v1 surface。推荐按以下 profile 递进，每一阶段只声明自己实际支持的 profile、event kind、schema 和服务 operation：
+实现者不需要一次实现全部 v1 surface。推荐按以下 profile 递进，每一阶段只声明自己实际支持的 profile、event kind、schema 和服务 operation。
+
+> 下表「阶段」列使用 profile 短名（如 `core_event_store`、`full_client`），均为全限定 profile id `ck.profile.<name>.v1` 的简写（例如 `full_client` = `ck.profile.full_client.v1`）；wire / describe 声明 MUST 使用全限定 id。
 
 | 阶段 | 必须实现 | 可暂缓 |
 | --- | --- | --- |
@@ -63,7 +65,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 | `full_client` | chat + kanban、blob/media、account-private data、read cursor、notification projection、offline queue 和 conflict records。 | Enterprise governance、MIMI、agent interop、高安全 witness。 |
 | `e2ee_client` | MLS KeyPackage lifecycle、proposal/commit/welcome/epoch、decryption_pending、encrypted payload、key withholding/share audit。 | `mls_governance_binding.full`、minimal-metadata、auditable E2EE 和 MIMI E2EE interop。 |
 
-任何服务或客户端若只实现上表前几阶段，MUST 在 describe / profile discovery 中明确声明不支持的 event kind 和 optional extension，并按 `unsupported_feature`、`unsupported_event_kind`、`projection_incomplete` 或 fail-closed 语义处理，而不是接受后静默丢弃。
+任何服务或客户端若只实现上表前几阶段，MUST 在 describe / profile discovery 中明确声明不支持的 event kind 和 optional extension，并按 `unsupported_feature`、`unsupported_event_kind`、`projection_incomplete` 或 fail-closed 语义处理，而不是接受后静默丢弃。这些标准状态 / 错误标识的 canonical 语义详见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。
 
 ## 3. 工件矩阵
 

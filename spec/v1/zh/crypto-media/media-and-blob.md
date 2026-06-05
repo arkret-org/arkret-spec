@@ -355,7 +355,7 @@ Cache-Control: public, immutable, max-age=31536000
 6. **method 校验**：本次请求方法在 envelope `access_scope.method` 列表内
 7. **TTL 校验**：`now() ∈ (issued_at, expires_at)`；含合理 clock skew tolerance（如 ±30s）
 8. **nonce / 撤销校验**：`nonce` 未在撤销列表内；普通 `media_inline` / `thumbnail` presign 是短 TTL 多次可用 bearer URL，服务端 MUST NOT 把浏览器正常的重复 GET / HEAD / Range 请求当作 replay 拒绝。只有 profile 显式声明 single-use presign 时，才可维护 consumed set。
-9. **撤销校验**：blob 已被 redaction / erasure 处理时即便 envelope 仍有效也 MUST 拒绝
+9. **撤销 / 状态实时回查（normative）**：服务端在每次 presign GET / HEAD / Range 响应阶段 MUST 同步回查该 `blob_ref` 的**当前** redaction / erasure / ban / legal-hold 状态,**不得仅凭 envelope 自校验(签名 + TTL + scope)就放行**。只要当前状态命中 redaction / erasure / ban / legal hold,即便 envelope 仍在 TTL 内且签名有效，也 MUST 拒绝(`not_found`,audit `blob_redacted` / `legal_hold_active`)。该回查 MUST 在响应 bytes 之前完成，以闭合"签发后被 redact 的内容在 TTL 窗口内仍被已泄露 URL 拉取"的竞态(见 §5.4.4 撤销索引保留下界与 §5.4.4.1 fail-closed 规则)。
 10. **blob 状态与签发者校验**：签发时服务端 MUST 已确认请求方有权为该 `blob_ref` mint presign；响应时只能重新确认 envelope 绑定的 Realm / blob 仍一致、blob 未被 redacted / erased / banned / legal hold、issuer service DID 仍被部署信任。v1 bearer presign 无法在响应阶段证明当前请求者属于某个 audience。
 
 任何校验失败 MUST 返回 `not_found`（不区分 envelope 无效 vs blob 不可见，避免暴露存在性）；服务端 MAY 在 audit log 中记录具体 `reason_code` 如 `presign_invalid` / `presign_expired` / `presign_scope_mismatch`。

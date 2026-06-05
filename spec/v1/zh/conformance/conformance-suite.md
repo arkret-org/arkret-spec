@@ -10,7 +10,7 @@ sidebar:
 
 ## 0. 规范语言
 
-本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
 ## 1. 目标
 
@@ -25,6 +25,10 @@ sidebar:
 所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `ck.realm.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
 
 ## 2. 测试角色（Profile）
+
+下列 profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-profiles.md) §6 与 `conformance-profiles.json` 的 `role` 为准）:**实现 profile**（声明实现承担的角色与能力集合）与 **hardening profile**（在某实现 profile 之上叠加的安全加固 overlay,`role=admin`,不单独作为可声明的实现角色）。
+
+**实现 profile**:
 
 - `ck.profile.minimal_client.v1`
 - `ck.profile.core_event_store.v1`
@@ -43,6 +47,9 @@ sidebar:
 - `ck.profile.mimi_interop.v1`
 - `ck.profile.sovereign_deployment.v1`
 - `ck.profile.sovereign_client.v1`
+
+**hardening profile**（overlay,非独立实现角色）:
+
 - `ck.profile.mls_governance_binding.full.v1`
 
 ## 3. OpenAPI 与 Transport 一致性

@@ -17,7 +17,10 @@
     "payload_digest"
   ],
   "not": {
-    "required": ["cleartext_commitment"]
+    "anyOf": [
+      { "required": ["cleartext_commitment"] },
+      { "required": ["authentication_tag"] }
+    ]
   },
   "properties": {
     "scheme": {
@@ -54,7 +57,9 @@
     },
     "authentication_tag": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$"
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "deprecated": true,
+      "description": "FORBIDDEN under scheme=mls-rfc9420 (the only v1 scheme): top-level `not` rejects this field. The MLS PrivateMessage already carries its AEAD tag internally, so a separate authentication_tag is a dead field; allowing it would also change payload_digest input (see encryption-and-audit.md §2.3.1/§2.3.3). Property kept only so validators report a precise error rather than 'unknown field'. A future non-MLS raw/exporter-AEAD profile that genuinely needs it MUST relax the scheme enum and lift this prohibition for that scheme."
     },
     "aad": {
       "type": "object",

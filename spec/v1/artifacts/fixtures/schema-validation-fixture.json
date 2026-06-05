@@ -810,7 +810,7 @@
         "sent_at": "2026-05-20T00:00:00Z",
         "expires_at": "2026-05-20T00:00:30Z",
         "payload": {
-          "call_id": "call-1",
+          "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
           "signal_type": "invite",
           "seq": 1
         }
@@ -991,7 +991,7 @@
         "completed_at": "2026-05-30T00:00:01Z",
         "auth_data": {
           "verification_method": "did:web:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "c2ln",
           "signed_fields": [
             "receipt_id",
@@ -1034,7 +1034,7 @@
         "completed_at": "2026-05-30T00:00:01Z",
         "auth_data": {
           "verification_method": "did:web:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
-          "signature_algorithm": "EdDSA",
+          "signature_algorithm": "Ed25519",
           "signature": "c2ln",
           "signed_fields": [
             "receipt_id",

@@ -3,6 +3,7 @@
   "$id": "https://cokret.io/artifacts/schemas/mimi-interop.schema.json",
   "title": "Cokret MIMI Interoperability",
   "description": "Provider directory, room binding, and content mapping receipt objects for ck.profile.mimi_interop.v1.",
+  "$comment": "Intentionally relaxed interop-extension surface: this profile tracks evolving IETF MIMI Internet-Drafts (see zh/extensions/mimi-interop.md §1), so additionalProperties is left open at the top level and on the mimi/binding_scope/payload subtrees to forward-carry draft fields without a breaking schema bump. Known fields are pinned; unknown draft fields are tolerated rather than rejected. The proof object below gives a minimal required core so the openness is limited to known extension subtrees and does not mask a missing signature.",
   "anyOf": [
     {
       "$ref": "#/$defs/provider_directory"
@@ -131,7 +132,20 @@
           "additionalProperties": true
         },
         "proof": {
-          "type": "object"
+          "type": "object",
+          "required": [
+            "verification_method",
+            "signature"
+          ],
+          "properties": {
+            "verification_method": {
+              "type": "string"
+            },
+            "signature": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
         }
       },
       "additionalProperties": true
@@ -187,6 +201,13 @@
             "hub_provider": {
               "$ref": "#/$defs/did"
             },
+            "follower_providers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/did"
+              },
+              "uniqueItems": true
+            },
             "local_provider_role": {
               "type": "string",
               "enum": [
@@ -197,6 +218,15 @@
             },
             "mls_group_id": {
               "type": "string"
+            },
+            "content_profile": {
+              "type": "string",
+              "enum": [
+                "application/mimi-content",
+                "text/plain;charset=utf-8",
+                "text/markdown;variant=GFM-MIMI",
+                "application/vnd.cokret.content+json"
+              ]
             },
             "policy_root": {
               "$ref": "#/$defs/hash"

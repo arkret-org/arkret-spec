@@ -253,7 +253,12 @@ Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-aut
 
 ### 6.1 Invite 前置 gate
 
-Peer 发送 invite Move 时，invite service / facade SHOULD 在 Move 接受 / 投递前查询 holder 的 consent cell：
+Peer 发送 invite Move 时，invite service / facade 在 Move 接受 / 投递前查询 holder 的 consent cell。查询强度按 profile 分两档（与 §4.1.2 invite gate cache 的 revoke 后 MUST 重判咬合：被 eager invalidate 的 cache 在下一次 invite 时,`require_explicit_consent` profile 下 MUST 走完整重判，旧 cache MUST NOT 让 invite Move 通过 precondition）：
+
+- **`require_explicit_consent` profile**：invite service / facade **MUST** 查询 holder consent cell,并按 §6.1 step 2 的 `failed_precondition` 路径拒绝无 active grant 的 invite（consent gate 强制,gate 查询是其 precondition）。
+- **default profile**：invite service / facade **SHOULD** 查询；无 active grant 时 MAY 进入 holder quarantine inbox（见 §6.1 step 2 与下述 quarantine inbox 定义）,而非直接拒绝或放行。
+
+查询步骤：
 
 1. 调用 holder 的 principal control Realm（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 or_set join 后筛选 `value.intent` 匹配 `(peer=requester, scope="invite" OR consent_scope="any")` 当前 active 的 dot 集合。
 2. 若没有匹配的活跃 grant：
@@ -262,6 +267,15 @@ Peer 发送 invite Move 时，invite service / facade SHOULD 在 Move 接受 / �
 3. 若有匹配活跃 grant 且当前时间在 `[not_before, expires_at]`：invite Move 正常 anchor。
 
 policy MAY 声明 `ck.realm.policy_components` 中的 `preauth` component 包含 `require_consent: true`，对该 Realm 的所有 invite Move 强制以 consent cell precondition 表达。
+
+#### 6.1.1 Quarantine inbox（default profile no-consent invite 暂存）
+
+§3.1 缺省判定与 §6.1 step 2 提到的 **quarantine inbox** 是 default profile 下"无 active consent 的 invite"既不直接拒绝、也不直接放行的暂存区，其最小定义如下：
+
+- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder principal control Realm 内一个 account-data scoped stream（key `ck.account.invite_quarantine`,sync 经 account subscribe 的 `account_data` 流投递，见 [`client-sync.md`](../sync/client-sync.md)）。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
+- **生命周期与 TTL**：暂存项停留在 `pending_review` 直到 holder 在 UI review;实现 SHOULD 为暂存项设置 deployment-policy 声明的 TTL（缺省建议 30 天）,超时后 MUST 按"丢弃"处理（等价 holder 未授权，不得自动转 grant）。
+- **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ck.consent.grant` Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Move 落入 consent cell,quarantine inbox 永远不是授权根。
+- **profile 边界**：quarantine inbox 仅在 default profile 生效;`require_explicit_consent` profile 下无 active grant 的 invite 直接 `failed_precondition` 拒绝(§6.1 step 2),不进入 quarantine inbox。
 
 **UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 提示用户 "已发出的 invite 不会自动失效；如需撤销已发出 invite，请单独执行 `ck.invite.revoke`"。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 

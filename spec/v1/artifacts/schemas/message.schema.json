@@ -331,5 +331,6 @@
   "patternProperties": {
     "^x_[a-z][a-z0-9_]{0,63}$": true
   },
-  "additionalProperties": false
+  "$comment": "Top-level uses unevaluatedProperties (not additionalProperties) because the top-level oneOf branches contribute evaluated properties; additionalProperties at the top level would not see those and could wrongly reject legitimate oneOf-branch fields (JSON Schema additionalProperties/oneOf pitfall).",
+  "unevaluatedProperties": false
 }

@@ -98,7 +98,10 @@
             "pattern": "^ck\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
           }
         },
-        "additionalProperties": true
+        "patternProperties": {
+          "^x_[a-z][a-z0-9_]{0,63}$": true
+        },
+        "additionalProperties": false
       },
       "uniqueItems": true
     },

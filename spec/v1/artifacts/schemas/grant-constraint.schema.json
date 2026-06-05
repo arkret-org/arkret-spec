@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/grant-constraint.schema.json",
   "title": "Cokret Grant Constraint",
+  "$comment": "Property ordering is grouped by constraint family to match capabilities.md §6 (the human-readable family map): discriminator/meta, then temporal, field_access, type_restriction, scope_limitation, delegation_control, quota, claim_based, confidentiality, then the moderation cache-invalidation hint. Canonical JSON re-sorts keys lexicographically so this ordering is presentation-only and does not affect the wire (see C13-07).",
   "type": "object",
   "required": [
     "constraint_type",
@@ -44,6 +45,33 @@
         "external"
       ],
       "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; realm_state = depends on Realm frontier (membership, policy_version, etc.); external = depends on data outside the Realm causal frontier (claim revocation status, rate-limit history counts, async approval). Each constraint_type has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
+    },
+    "subtype": {
+      "type": "string",
+      "description": "Optional discriminator within a constraint_type. Standard values: claim_based.{claim,approval,accountability,device_session}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Implementations MAY require subtype for these families and fail closed on unknown values.",
+      "enum": [
+        "claim",
+        "approval",
+        "accountability",
+        "device_session",
+        "rate",
+        "resource",
+        "encryption",
+        "visibility",
+        "window",
+        "edit_window",
+        "redact_window",
+        "session"
+      ]
+    },
+    "applies_to_actions": {
+      "type": "array",
+      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ck.message.revise.own', 'ck.message.redact.own']). Replaces what used to be the dedicated edit_window constraint type.",
+      "items": {
+        "type": "string",
+        "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+      },
+      "uniqueItems": true
     },
     "not_before": {
       "type": "string",
@@ -115,6 +143,17 @@
       "type": "string",
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
       "description": "ISO 8601 duration; used by approval_workflow constraint instead of expires_after_ms."
+    },
+    "message_edit_window": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+    },
+    "message_redact_window": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+    },
+    "allow_redact_after_window": {
+      "type": "boolean"
     },
     "condition": {
       "type": "object",
@@ -272,15 +311,6 @@
       },
       "uniqueItems": true
     },
-    "allowed_circle_ids": {
-      "type": "array",
-      "description": "Limits Circle-scoped capability actions to the listed Circle ids. Used by ck.circle.manage / ck.circle.member.manage style grants; unconstrained Realm-wide Circle management grants are not a normal permission shape.",
-      "items": {
-        "type": "string",
-        "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-      },
-      "uniqueItems": true
-    },
     "denied_flow_ids": {
       "type": "array",
       "items": {
@@ -305,6 +335,15 @@
       },
       "uniqueItems": true
     },
+    "allowed_circle_ids": {
+      "type": "array",
+      "description": "Limits Circle-scoped capability actions to the listed Circle ids. Used by ck.circle.manage / ck.circle.member.manage style grants; unconstrained Realm-wide Circle management grants are not a normal permission shape.",
+      "items": {
+        "type": "string",
+        "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "uniqueItems": true
+    },
     "allowed_view_kinds": {
       "type": "array",
       "items": {
@@ -313,6 +352,20 @@
       "uniqueItems": true
     },
     "allowed_view_renderers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "denied_view_kinds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "denied_view_renderers": {
       "type": "array",
       "items": {
         "type": "string"
@@ -343,20 +396,6 @@
       "type": "boolean",
       "default": false
     },
-    "denied_view_kinds": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
-    },
-    "denied_view_renderers": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
-    },
     "allowed_tracks": {
       "type": "array",
       "items": {
@@ -372,33 +411,6 @@
         "pattern": "^[a-z][a-z0-9_]{0,63}$"
       },
       "uniqueItems": true
-    },
-    "visibility_allow": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "world_readable",
-          "shared",
-          "invited",
-          "joined",
-          "restricted"
-        ]
-      },
-      "uniqueItems": true
-    },
-    "deny_redacted_history": {
-      "type": "boolean"
-    },
-    "blob_max_bytes": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "blob_presign_max_ttl_seconds": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 3600,
-      "description": "Maximum TTL, in seconds, that this grant permits for ck.blob.presign. The service must clamp requested max_age_seconds to the smaller of this value and deployment policy."
     },
     "blob_presign_scope": {
       "type": "object",
@@ -434,15 +446,6 @@
       ],
       "additionalProperties": false
     },
-    "max_total_blob_bytes": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "max_artifact_bytes": {
-      "type": "integer",
-      "minimum": 0,
-      "description": "Maximum artifact size in bytes for applet / agent / export operations."
-    },
     "allowed_data_classes": {
       "type": "array",
       "items": {
@@ -459,17 +462,6 @@
       },
       "uniqueItems": true,
       "description": "Allowed outbound endpoint origins or deployment-approved endpoint patterns for applet / agent / connector operations."
-    },
-    "message_edit_window": {
-      "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
-    },
-    "message_redact_window": {
-      "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
-    },
-    "allow_redact_after_window": {
-      "type": "boolean"
     },
     "max_delegation_depth": {
       "type": "integer",
@@ -498,6 +490,25 @@
     },
     "require_parent_reference": {
       "type": "boolean"
+    },
+    "blob_max_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "blob_presign_max_ttl_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600,
+      "description": "Maximum TTL, in seconds, that this grant permits for ck.blob.presign. The service must clamp requested max_age_seconds to the smaller of this value and deployment policy."
+    },
+    "max_total_blob_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_artifact_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Maximum artifact size in bytes for applet / agent / export operations."
     },
     "max_operations": {
       "type": "integer",
@@ -584,29 +595,10 @@
     "controller_approval_required": {
       "type": "boolean"
     },
-    "encryption_required": {
-      "type": "boolean"
-    },
-    "key_rotation_period": {
-      "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
-    },
-    "max_key_age": {
-      "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
-    },
-    "require_key_backup": {
-      "type": "boolean"
-    },
-    "approved_key_issuers": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-      }
-    },
     "requires_claims": {
       "type": "array",
+      "maxItems": 32,
+      "description": "Conditional claim requirements. resource-selector-grammar.md §3.3 caps this array at 32 entries as a normative DoS guard; the schema enforces maxItems:32 so condition-selector grants cannot smuggle in unbounded claim objects.",
       "items": {
         "type": "object",
         "required": [
@@ -627,6 +619,7 @@
           "trusted_issuers": {
             "type": "array",
             "minItems": 1,
+            "maxItems": 16,
             "items": {
               "type": "string",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
@@ -652,6 +645,7 @@
           },
           "roles": {
             "type": "array",
+            "maxItems": 16,
             "items": {
               "type": "string"
             }
@@ -674,38 +668,73 @@
       "type": "string",
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
-    "depends_on_moderation_state": {
-      "type": "boolean",
-      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the ck.component.moderation_state.v1 cell (see policy-server.md §7.1 and capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that cell changes. Default false: ordinary grants (ck.flow.update / ck.message.create / org membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / cell). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint."
-    },
-    "subtype": {
-      "type": "string",
-      "description": "Optional discriminator within a constraint_type. Standard values: claim_based.{claim,approval,accountability,device_session}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Implementations MAY require subtype for these families and fail closed on unknown values.",
-      "enum": [
-        "claim",
-        "approval",
-        "accountability",
-        "device_session",
-        "rate",
-        "resource",
-        "encryption",
-        "visibility",
-        "window",
-        "edit_window",
-        "redact_window",
-        "session"
-      ]
-    },
-    "applies_to_actions": {
+    "visibility_allow": {
       "type": "array",
-      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ck.message.revise.own', 'ck.message.redact.own']). Replaces what used to be the dedicated edit_window constraint type.",
       "items": {
         "type": "string",
-        "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+        "enum": [
+          "world_readable",
+          "shared",
+          "invited",
+          "joined",
+          "restricted"
+        ]
       },
       "uniqueItems": true
+    },
+    "deny_redacted_history": {
+      "type": "boolean"
+    },
+    "encryption_required": {
+      "type": "boolean"
+    },
+    "key_rotation_period": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+    },
+    "max_key_age": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+    },
+    "require_key_backup": {
+      "type": "boolean"
+    },
+    "approved_key_issuers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      }
+    },
+    "depends_on_moderation_state": {
+      "type": "boolean",
+      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the ck.component.moderation_state.v1 cell (see policy-server.md §7.1 and capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that cell changes. Default false: ordinary grants (ck.flow.update / ck.message.create / org membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / cell). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Constraint family: this is a scope_limitation-style cache hint and is documented in capabilities.md §6 / constraint-schema.md."
     }
   },
+  "allOf": [
+    {
+      "$comment": "constraint-schema.md §2.2 / §2.3: claim_based, confidentiality and quota families have NO valid no-subtype form — every row in the §2.3 evaluation_class table carries a subtype (claim/approval/accountability; encryption/visibility; rate/resource). Without this gate a {\"constraint_type\":\"claim_based\",\"effect\":\"allow\"} with no subtype passes schema validation, letting weak implementations cache an external (claim-revocation) constraint on the grant_local fast path (see C05-03 fail-open). temporal is intentionally excluded: a temporal constraint with no subtype is the valid ordinary time-window form.",
+      "if": {
+        "properties": {
+          "constraint_type": {
+            "enum": [
+              "claim_based",
+              "confidentiality",
+              "quota"
+            ]
+          }
+        },
+        "required": [
+          "constraint_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "subtype"
+        ]
+      }
+    }
+  ],
   "patternProperties": {
     "^x_[a-z][a-z0-9_]{0,63}$": true
   },

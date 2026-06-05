@@ -165,6 +165,20 @@ Account subscribe `delta` frame 包含以下 stream：
 
 客户端 MUST 使用 `cursor` 作为唯一 resume token，不得解析 token 内部结构。
 
+**各 stream class 在 frame 中的承载位置**（与 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json) 对齐）：
+
+| Stream | 承载位置 |
+| --- | --- |
+| `timeline` / `state` / `state_after` / `state_at_window_start` / `ephemeral` | per-Realm：`delta.realms[<realm_id>]` 内的同名字段（§4） |
+| `account_data` | 双位置：Realm-scoped 私有数据进 `delta.realms[<realm_id>].account_data`；account-scoped 进 `delta` 顶层 `account_data` |
+| `receipts` | per-Realm：read receipt / read cursor delta 随对应 Realm 投递，承载于 `delta.realms[<realm_id>].ephemeral`（read receipt 临时位）与 `account_data`（actor-private `read_cursor` 高水位）；服务端 MAY 按下文合并 |
+| `to_device` / `device_lists` / `presence` | `delta` 顶层同名字段（跨 Realm，不分桶到具体 Realm） |
+| `notifications` | `delta` 顶层 `notifications`；per-Realm 未读计数另由 `delta.realms[<realm_id>].unread_notifications` 表达（§4） |
+| `applet` | per-Realm 派生：Applet delivery receipt / bridge health 作为对应 Realm 的事件随 `delta.realms[<realm_id>].timeline` / `ephemeral` 投递 |
+| `blob_status` | per-Realm 派生：upload scan / thumbnail / retention 状态作为对应 Realm 的派生事件随 `delta.realms[<realm_id>].timeline` 投递 |
+
+顶层 `delta` 与 per-Realm entry 的对象 schema 均允许 `additionalProperties:true` 以容纳这些 stream class 的承载字段；上表给出 v1 canonical 承载位置，实现不得自行另设外层分桶。`receipts` / `applet` / `blob_status` 不在顶层 `delta` 另立独立 bucket。
+
 `receipts`、`notifications` 和高频 actor-private `read_cursor` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
 
 ## 4. Realm Buckets

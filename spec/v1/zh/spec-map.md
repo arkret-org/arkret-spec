@@ -37,7 +37,8 @@ see_also:
   `ck.flow.track.*`、`ck.realm.lifecycle.set`、`ck.realm.policy.set`）。
 - `artifacts/registry/removed-operation-ids.json`：已移除的 operation id（与上述 event kind 对齐的 binding 端点）。
 - `artifacts/registry/deprecated-profile-ids.json`：已弃用或从未 canonical 化的 profile id
-  （例如 `chat_only_client`、`kanban_only_client`）。
+  （例如 `chat_only_client`、`kanban_only_client`；现行替代命名为 `chat_mvp` / `kanban_mvp`，
+  见 [`release-readiness.md` §2.1](./overview/release-readiness.md)，与 `renames.json` 的 `replacement` 字段对齐）。
 - `artifacts/registry/forbidden-wire-fields.json`：在 current-wire 中禁止出现的字段（带上下文，例如
   timeline event 顶层不得出现 `branch`、payload 中不得出现 `room_kind` 或 `kind=room`）。
 - `artifacts/registry/forbidden-model-terms.json`：在 current-model prose / code identifier / UI 文案中
@@ -75,7 +76,7 @@ see_also:
 4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/flow-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、consent gate、联系人关系和 1:1 私聊入口。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Realm 状态机。
-7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
+7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解写入、同步和服务面。
 8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm 和 E2EE history key share 的共同边界。
 9. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
@@ -142,7 +143,7 @@ see_also:
 | `index.md` | 项目定位、设计目标、规范入口。 |
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
 | `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
-| `overview/current-model.md` | Flow / track / board / list / view 的统一模型说明。 |
+| `overview/current-model.md` | Flow / track / Board / List / View 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
 | `overview/evolution-and-compatibility.md` | 协议演进与向后兼容总纲：版本承载、破坏性变更收敛、profile / capability 协商在演进中的整体角色（被 `conformance/conformance-profiles.md`、`conformance/encoding.md`、`sync/service-http-binding.md` 引用为演进导航入口）。 |

@@ -58,8 +58,9 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "EdDSA",
-            "ES256"
+            "Ed25519",
+            "ES256",
+            "ML-DSA-65"
           ]
         },
         "signature": {

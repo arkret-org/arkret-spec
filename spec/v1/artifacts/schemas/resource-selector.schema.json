@@ -110,5 +110,28 @@
       ]
     }
   },
+  "allOf": [
+    {
+      "$comment": "resource-selector-grammar.md §3.1: notification / read_cursor selectors are realm-scoped and the object part is *-only (notification:<realm>:* / read_cursor:<realm>:*). A bare {\"kind\":\"read_cursor\"} with no realm_id would otherwise match every principal's read cursors across all Realms (see C04-07). Force realm_id and forbid a precise object id (no notification_id / read_cursor_id field exists; selection is realm-wide *-only).",
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "notification",
+              "read_cursor"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "realm_id"
+        ]
+      }
+    }
+  ],
   "additionalProperties": false
 }

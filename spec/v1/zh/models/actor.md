@@ -54,6 +54,7 @@ Schema id: `ck.schema.actor_profile.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:actor_profile` | Actor Profile 是标准对象。 | Profile 对象 ID。 |
+| `schema` | yes | `ck.schema.actor_profile.v1` | const。 | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 profile 可省略。 | 所属 Realm。 |
 | `principal_id` | yes | `did` | 权限仍以 DID/capability 为准。 | Principal DID。 |
 | `actor_kind` | yes | `enum(user, org, team, agent, service, device, integration)` |  | Actor 类型。 |

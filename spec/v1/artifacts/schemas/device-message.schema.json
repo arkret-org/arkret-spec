@@ -348,7 +348,8 @@
             "device_revoked",
             "untrusted_device",
             "policy_denied",
-            "accepted_by_other_device"
+            "accepted_by_other_device",
+            "cross_signing_reset"
           ]
         },
         "reason": {

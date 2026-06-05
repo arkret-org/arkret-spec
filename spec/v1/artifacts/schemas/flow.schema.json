@@ -277,7 +277,16 @@
         },
         "metadata": {
           "type": "object",
-          "description": "Track-local UI metadata. It does not create membership, history visibility, or E2EE scope.",
+          "description": "Track-local UI metadata only. The reducer NEVER interprets its keys; it does not create membership, history visibility, access, or E2EE scope. Access-like keys are rejected at the wire layer to prevent a pseudo-access surface (tracks have no independent access — see models/flow-and-message.md §4.4).",
+          "not": {
+            "$comment": "Forbid access-like keys so flow_track.metadata cannot smuggle a pseudo-access surface; track access is always derived from the Flow effective scope, never from track metadata.",
+            "anyOf": [
+              { "required": ["members"] },
+              { "required": ["access"] },
+              { "required": ["participants"] },
+              { "required": ["watchers"] }
+            ]
+          },
           "additionalProperties": true
         }
       },

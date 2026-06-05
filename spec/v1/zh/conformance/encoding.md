@@ -184,19 +184,20 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 ## 6. Signature
 
-默认 proof:
+默认 proof（wire `proof` 对象;`actor_id` 与 `created_at` 不在 wire `proof` 对象内——`actor_id` 取自被签 Event envelope 的 `actor_id` 字段,`created_at` 取自 `proof.created_at`,二者均进入下方签名 transcript binding object）:
 
 ```json
 {
   "kind": "detached_jws",
   "alg": "EdDSA",
   "verification_method": "did:web:alice.example#device-1",
+  "created_at": "2026-04-26T00:00:00Z",
   "event_digest": "sha256:...",
   "jws": "..."
 }
 ```
 
-Proof MUST bind:
+Proof MUST bind（下列顺序与下方 canonical binding object 顺序一致）:
 
 - `event_digest = canonical_digest(event_without_proofs_unsigned)`
 - `actor_id`
@@ -358,11 +359,13 @@ ck:cursor:<base64url>
 
 ### 8.2 服务端 canonical 内部结构
 
-服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 cursor 内部结构 MUST 遵循下方 schema**，与 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 一致；目的是让客户端在 Principal Server 之间迁移时目标服务器有能力解析旧 cursor 并生成等价本地 cursor。客户端 MUST NOT 解析或修改 cursor；**服务器侧的 cursor 内部结构 MUST 遵循本节 schema，MUST NOT 使用私有形态**。
+服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 core cursor 内部结构 MUST 遵循 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)**：core schema 是 **stateful-only** 形态，body 固定为 `{v, purpose, t, x, h}`,其中 `h` 是不可猜测的 server-side opaque handle（见 §8.3.1）。core schema `additionalProperties:false` 且 `required` 含 `h`,**不接受** `s` / `d` / `target` / `issuer_kid` / `_mac` / `_sig` 等 stateless 字段；按 stateless 形态构造的 body 在 core 下 MUST 被 schema 拒绝。
+
+下方 §8.2 表与 Stream / Barrier 示例同时列出 stateful core 字段与 stateless overlay 字段，仅为完整描述两种形态;**stateless 自描述形态(含 `s` / `d` / `target` / `issuer_kid` / `_mac` / `_sig` 的内联 body)不属于 v1 core,仅在实现声明 [`ck.profile.stateless_cursor.v1`](./conformance-profiles.md) overlay 时合法**(见 §1.11 失败条件与 conformance-profiles §19c)。core consumer（sync、federation、snapshot）无需实现 stateless 路径。客户端无论哪种形态都 MUST NOT 解析或修改 cursor;**服务器侧 core cursor 内部结构 MUST 遵循 core schema,MUST NOT 在 core 下使用 stateless 私有形态**。
 
 cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步、列表分页、写后读屏障所有用途。`purpose` 字段区分两个语义：`stream`（增量同步与列表分页，出现位置：`after` / `before` / `prev_cursor` / `next_cursor`）与 `barrier`（写后读屏障，出现位置：写接口响应中的 `cursor` 字段、`X-Cokret-Wait-For` header）。
 
-Stream 形态：
+Stream 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 stream cursor 的 body 是 `{v,purpose,t,x,h}`,positions 由 `h` handle 在服务端解析，不内联 `s` / `d`）：
 
 ```json
 {
@@ -383,7 +386,7 @@ Stream 形态：
 }
 ```
 
-Barrier 形态：
+Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barrier cursor 的 body 是 `{v,purpose,t,x,h}`,目标由 `h` handle 在服务端解析，不内联 `target`）：
 
 ```json
 {
@@ -401,24 +404,39 @@ Barrier 形态：
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
-| `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
-| `t` | timestamp | 是 | 生成时间戳 |
-| `s` | object | stream 时可有（仅 stateless 形态） | Realm 位置映射 |
-| `s.<realm_id>.p` | array | 是（每条 entry） | 因果前沿（事件 ID 集合） |
-| `s.<realm_id>.o` | string | 是（每条 entry） | timeline 排序 HLC |
-| `s.<realm_id>.h` | hash | 是（每条 entry） | 该位置的 state hash |
-| `d` | object | stream 时可有（仅 stateless 形态） | 设备位置映射 |
-| `target` | object | `purpose=barrier` 且 stateless 时必填 | 等待目标 event |
-| `target.event_id` | id:event | 是（barrier stateless） | 目标事件 ID |
-| `target.event_digest` | hash | 是（barrier stateless） | 目标事件 canonical digest |
-| `target.realm_id` | id:realm | 否 | 目标事件所在 Realm（可选 hint） |
-| `x` | integer | 是 | 过期时间戳（Unix ms） |
-| `h` | string | stateful 形态必填 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1 |
-| `issuer_kid` | string | stateless 形态必填 | `_mac` / `_sig` 的 issuing service cursor key id；用于 key rotation / revocation 选择。stateful 形态 MUST NOT 出现。 |
-| `_mac` / `_sig` | string | stateless 形态必填 | 完整性保护字段，见 §8.3.1 |
+> **形态归属**：下表「必需」列标注的形态归属为——**core**（v1 core schema,stateful-only）字段:`v` / `purpose` / `t` / `x` / `h`;**profile-only**（仅 `ck.profile.stateless_cursor.v1` overlay,core schema 不接受）字段:`s` / `d` / `target` / `issuer_kid` / `_mac` / `_sig`。
+
+| 字段 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `v` | string | 是（core） | cursor 版本，v1 固定 `"1"` |
+| `purpose` | enum(`stream`,`barrier`) | 是（core） | 用途鉴别 |
+| `t` | timestamp | 是（core） | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾；毫秒部分可选——`...59Z` 与 `...59.000Z` 均合法，本文示例混用两种精度仅为展示） |
+| `x` | integer | 是（core） | 过期时间戳（Unix ms） |
+| `h` | string | 是（core） | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1。**stateful core 形态必填**;`ck.profile.stateless_cursor.v1` 下 MUST NOT 出现。 |
+| `s` | object | profile-only（`ck.profile.stateless_cursor.v1`;core schema 不接受） | Realm 位置映射（stream） |
+| `s.<realm_id>.p` | array | 是（profile;每条 entry） | 因果前沿（事件 ID 集合） |
+| `s.<realm_id>.o` | string | 是（profile;每条 entry） | timeline 排序 HLC |
+| `s.<realm_id>.h` | hash | 是（profile;每条 entry） | 该位置的 state hash |
+| `d` | object | profile-only（`ck.profile.stateless_cursor.v1`;core schema 不接受） | 设备位置映射（stream） |
+| `target` | object | profile-only（`ck.profile.stateless_cursor.v1` 且 `purpose=barrier` 时必填） | 等待目标 event |
+| `target.event_id` | id:event | 是（profile;barrier） | 目标事件 ID |
+| `target.event_digest` | hash | 是（profile;barrier） | 目标事件 canonical digest |
+| `target.realm_id` | id:realm | 否（profile） | 目标事件所在 Realm（可选 hint） |
+| `issuer_kid` | string | profile-only（`ck.profile.stateless_cursor.v1` 必填;core schema 不接受） | `_mac` / `_sig` 的 issuing service cursor key id；用于 key rotation / revocation 选择。stateful core 形态 MUST NOT 出现。 |
+| `_mac` / `_sig` | string | profile-only（`ck.profile.stateless_cursor.v1` 必填;core schema 不接受） | 完整性保护字段，见 §8.3.1 |
 
 服务端 MAY 添加其它 `_` 开头的私有字段（如 `_compression`）用于本地优化；这些字段不参与 §8.4 cursor 翻译，必须先于 base64url 编码进入 canonical bytes，并 MUST 进入 `_mac` / `_sig` transcript。
+
+**transcript-bound 但不在 wire body 的完整性绑定字段（normative）**：下列字段是 cursor 完整性校验（§8.3.1）的核心绑定项，但 **不作为 cursor body wire 字段出现**——它们在 stateful core 形态下由 `h` handle 在服务端绑定表中承载，在 `ck.profile.stateless_cursor.v1` stateless 形态下进入 `_mac` / `_sig` transcript。读者 MUST NOT 在上方 §8.2 wire body 表中寻找它们:
+
+| 绑定字段 | 承载位置 | 说明 |
+|----------|----------|------|
+| `principal_id` | stateful:`h` handle 绑定表;stateless:`_mac`/`_sig` transcript | cursor 所属 principal,跨 principal 命中 MUST `cursor_integrity_invalid` |
+| `device_id` | 同上 | cursor 绑定的 device |
+| `service_id` | 同上 | issuing service 标识 |
+| `filter_digest` | 同上 | 订阅 / 查询 filter 的 digest,防跨 filter 复用 |
+
+这些字段是服务端 handle 表 / transcript 的内容,**不是** cursor body 字段；详见 §8.3.1。
 
 ### 8.3 验证规则
 
@@ -434,13 +452,13 @@ Barrier 形态：
 8. 因果前沿中的所有 event id 合法（如 `s` 出现）。
 9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
 10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
-11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `/_cokret/self/account/subscribe after=`、`before`、`after`、`prev_cursor` / `next_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Cokret-Wait-For` 上下文 MUST `invalid_param`）。
+11. cursor 出现的位置与 `purpose` 一致：barrier cursor 出现在任一 stream 位置（`/_cokret/self/account/subscribe after=`、`ck.events.query` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）MUST `invalid_param`；stream cursor 出现在 barrier 位置（`X-Cokret-Wait-For` header、写接口响应的 barrier `cursor` 字段）MUST `invalid_param`。
 12. **TTL 硬上限**：以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
-13. **形态互斥**（schema `oneOf` 强制）：cursor body MUST 满足下列二选一：
-    - **stateless** — 含 `issuer_kid` 且含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。
-    - **stateful** — 含 `h`（opaque handle），不含 `_mac` / `_sig` / `s` / `d` / `target` / `issuer_kid`。
-    
-    两种形态同时出现或都不出现 MUST reject `invalid_param`。
+13. **形态归属**：
+    - **core（默认）** — body MUST 为 stateful 形态:含 `h`（opaque handle），且 MUST NOT 含 `_mac` / `_sig` / `s` / `d` / `target` / `issuer_kid`。这是 v1 core schema（[`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)）唯一接受的形态:`required` 含 `h`、`additionalProperties:false`。core 下收到缺 `h` 或含上述 stateless 字段的 body MUST reject `invalid_param`。
+    - **stateless（仅 `ck.profile.stateless_cursor.v1` overlay）** — 该 profile 扩展 core schema 接受内联 body:含 `issuer_kid` 且含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。**未声明该 profile 的实现 MUST NOT 接受 stateless body**;声明该 profile 时,stateless 与 stateful 两种形态同时出现或都不出现 MUST reject `invalid_param`。
+
+    > 注:core schema 不使用 `oneOf` 强制 stateless/stateful 二选一；它仅定义 stateful 形态。stateless 形态的存在与互斥约束完全由 `ck.profile.stateless_cursor.v1` overlay 承载，不属 core。
 
 非法 cursor MUST reject，错误 `invalid_param`；已过期 cursor MUST reject，错误 `cursor_expired`；完整性校验失败（见 §8.3.1）MUST reject，错误 `cursor_integrity_invalid`。
 
@@ -452,7 +470,7 @@ Barrier 形态：
 
 - `_mac` MUST 是 HMAC over canonical bytes（除 `_mac` 自身外的所有字段，按 §2 RFC 8785 JCS 规则）；算法 MUST 是 HMAC-SHA-256 或更强；密钥由 issuing service 持有并按 `issuer_kid` 标识。
 - `_sig` MUST 是 detached signature over same canonical bytes；签名密钥使用 issuing service 的 cursor-signing key。
-- transcript MUST 绑定：`purpose`、`principal_id`、`device_id`、`service_did` / `service_id`、`filter_digest`、stream positions（`s` / `d`，如出现）、`target`（barrier 时）、`x`、`issuer_kid`，以及服务端按 §8.2 添加的所有 `_` 前缀私有字段（如 `_compression`，但 `_mac` / `_sig` 自身除外）。等价表述：transcript 覆盖 cursor canonical bytes 中除 `_mac` / `_sig` 之外的全部字段。
+- transcript MUST 绑定：`purpose`、`principal_id`、`device_id`、`service_id`、`filter_digest`、stream positions（`s` / `d`，如出现）、`target`（barrier 时）、`x`、`issuer_kid`，以及服务端按 §8.2 添加的所有 `_` 前缀私有字段（如 `_compression`，但 `_mac` / `_sig` 自身除外）。等价表述：transcript 覆盖 cursor canonical bytes 中除 `_mac` / `_sig` 之外的全部字段。
 - 服务端 MUST 用当前 cursor key 重算 transcript 并与 `_mac` / `_sig` 比较；任一字段不匹配当前 authenticated request 的 principal / device / service / `filter_digest` / purpose → `cursor_integrity_invalid`。
 
 **Stateful 形态（含 `h`）**：

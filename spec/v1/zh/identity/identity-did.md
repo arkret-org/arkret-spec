@@ -196,7 +196,7 @@ Cokret v1 core conformance 要求如下：
 - **degraded / health 诊断信号的可验证性（normative）**：该 degraded / health 诊断信号 MUST 由 resolver 的 service DID 当前有效 verification method 签名，并在签名 transcript 中绑定 `resolver_service_did`、`as_of`（签发时间戳）、`trust_domain` 与一个 freshness nonce（防止旧的 "healthy" 信号被重放来掩盖当前 degraded 状态）。Peer MUST 先校验该签名链接到 Realm policy 授权的 resolver service DID（验证 service DID 控制权与 verification method 当前有效性），才可据此调整 fail-closed 决策。**缺失健康信号、或无法验证健康信号（签名失效、service DID 不在 Realm policy 授权集合、`as_of` 过旧 / freshness nonce 不可信、`trust_domain` 不匹配）时，peer MUST 按"该 resolver 可能 degraded"保守处理**——对高风险写入（grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite）fail closed，不得因"没收到 degraded 信号"就默认 resolver healthy。该保守纪律与 freshness `unknown` 的 fail-closed 纪律一致：信号缺失或不可验证一律向 degraded 方向取整，而不是向 healthy 方向取整。
 - 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复，或走部署 policy 明确允许的替代路径。
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达，仅显示本地缓存内容"),不得静默继续。
-- Fallback 总时长 MUST ≤ 24 小时（对应 §4.2.1 `degraded_no_witness` 健康状态）；部署 policy MAY 缩短该窗口，MUST NOT 延长到超过 24 小时。超时后即使是低风险只读也 MUST fail closed，resolver MUST 进入 §4.2.1 的 `stale_history` 或 `write_unavailable` 状态，强制用户等待恢复或切换 resolver。
+- Fallback 总时长 MUST ≤ 24 小时（hosting 不可达期间对应 §4.2.1 `degraded_hosting_unreachable` 健康状态；**注意不是** `degraded_no_witness`——后者是 hosting 仍可达但缺 witness,触发条件与本节 cache-only fallback 互斥）；部署 policy MAY 缩短该窗口，MUST NOT 延长到超过 24 小时。超时后即使是低风险只读也 MUST fail closed，resolver MUST 进入 §4.2.1 的 `stale_history` 或 `write_unavailable` 状态，强制用户等待恢复或切换 resolver。
 - 即使仍处于允许的 cache-only outage 窗口，单条 `did:webvh` cache entry 的 `cached_evidence_age_ms` 超过 7 天时也 MUST fail closed；resolver MUST 暴露 `webvh_cache_too_stale` diagnostic，不得把过旧 evidence 用于新的高风险写入、capability 重建、service delegation 或 snapshot witness 接收。**两个窗口是 AND 关系**：24 小时 outage fallback 上限与 7 天 per-entry cache age 上限互相独立成立，任一触发即 MUST fail-closed；resolver 不得通过"outage 窗口尚未到 24h"为理由继续使用 age > 7d 的 cache entry，亦不得通过"cache entry 仍 < 7d"为理由把 outage fallback 总时长延长到 24h 以上。
 - Cache entry 写入 / 刷新不能只信任单一 resolver 自报。`small_team`、`organization`、`high_security_organization` 与 `sovereign_deployment` profile 中，用于高风险写入（device grant、capability grant/revoke、service delegation、membership change、cross-signing reset）的 `did:webvh` cache entry MUST 绑定至少两个 witness signatures，或绑定来自两个 distinct controlling organization 的 witness / watcher evidence；只有一个 witness 的 entry MAY 用于低风险历史读取，但 MUST 标记 `single_witness_cache_degraded`，不得用于新的高风险控制判断。`personal_node` profile 可保留单 witness cache，但必须在 deployment profile 中显式声明并向用户暴露降级状态。
 
@@ -317,10 +317,12 @@ Resolver policy MUST 至少定义：
 
 ### 4.2 DID Method Continuity
 
-DID method 或 registry 不可用时，节点 MUST NOT 把“暂时无法解析”解释为“身份仍然有效”。Resolver MUST fail closed，但实现还必须提供可恢复的用户路径：
+DID method 或 registry 不可用时，节点 MUST NOT 把“暂时无法解析”解释为“身份仍然有效”。Resolver MUST fail closed，但实现还必须提供可恢复的用户路径。
 
-- 缓存解析结果只能在 resolver policy 声明的 TTL、document hash、history head 和 trust domain 内使用；超过 TTL 或 evidence 断链后，MUST NOT 接受新的高风险写入。
-- `did:webvh` 的 hosting domain 不可用、`did.jsonl` 拉取失败或 witness evidence 断链时，resolver MAY 在 policy 允许的范围内使用本地缓存或镜像，但必须验证 SCID、entry hash chain head 与 controller proof；MUST NOT 用 handle、DNS A/AAAA 记录、TLS 证书或 Auth Server 声明代替 DID method history。
+> **不可达 / 缓存降级行为的单一权威源**：`did:webvh` hosting / registry 不可达时的 cache-only degraded mode、per-entry 7 天 cache age 上限、24h fallback 总时长上限、低风险只读封闭集合与 fail-closed 不变量统一见 §3.4（cache-only degraded mode）与 §4.2.1（健康状态机）。本节**不重复**这些阈值与缓存规则，只承载下面 DID 之间 continuity / 迁移相关的独有规则。
+
+continuity / 迁移独有规则：
+
 - 用户迁移到新 DID（同 method 或换 method）时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
 - 若原 DID 仍可解析，continuity proof SHOULD 由原 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Realm / service 范围。
 - 原 DID Document 若仍可解析，MUST 暴露 `service` entry `type="CokretContinuityProof"`，其 `serviceEndpoint` 指向可获取 continuity proof 的 HTTPS URL 或 content-addressed ref。Verifier MUST 同时校验该 service entry、continuity proof 签名和 proof 中的 `old_did_document_digest`；缺少 service entry 或 hash 不匹配时 MUST NOT 把 Directory / Handle 返回的新 DID 当作连续身份。
@@ -333,14 +335,17 @@ DID method 或 registry 不可用时，节点 MUST NOT 把“暂时无法解析�
 实现 MUST 对 `did:webvh` resolver policy 定义主动健康检查：
 
 - 监控 hosting domain、`did.jsonl` 可达性、最近 entry head、SCID 一致性、controller proof 验证结果，以及 policy 声明的 trusted witness 的最新签名时间。
-- 健康状态 MUST 区分 `healthy`、`degraded_no_witness`、`stale_history`、`write_unavailable` 和 `untrusted` 或等价状态。
-- `degraded_no_witness`（hosting 仍可达但 witness evidence 缺失或过期）只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待 witness evidence 恢复，或走部署 policy 明确允许的替代路径。该状态的 fallback 时长上限、per-entry cache freshness 上限、超时后进入 `stale_history` / `write_unavailable` 并 fail closed 等不变量统一见 §3.4 cache-only degraded mode；本节不重复其阈值，只在该窗口或 freshness 触发时驱动健康状态转换。
+- 健康状态 MUST 区分 `healthy`、`degraded_no_witness`、`degraded_hosting_unreachable`、`stale_history`、`write_unavailable` 和 `untrusted` 或等价状态。
+- `degraded_no_witness`（**hosting 仍可达**但 witness evidence 缺失或过期）只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待 witness evidence 恢复，或走部署 policy 明确允许的替代路径。该状态的 per-entry cache freshness 上限、超时后进入 `stale_history` / `write_unavailable` 并 fail closed 等不变量统一见 §3.4 cache-only degraded mode；本节不重复其阈值，只在 freshness 触发时驱动健康状态转换。
+- `degraded_hosting_unreachable`（**hosting domain 不可达**：`did.jsonl` 拉取失败 / 连接超时 / DNS 解析失败）是 §3.4 cache-only degraded mode 所对应的健康状态——此时 resolver 只能消费此前已验证的本地 cache,不得 live 解析。其 24h fallback 总时长上限、per-entry 7 天 cache age 上限、低风险只读封闭集合与超时后进入 `stale_history` / `write_unavailable` 并 fail closed 等不变量统一见 §3.4;本节不重复其阈值，只在该窗口或 freshness 触发时驱动健康状态转换。注意 `degraded_no_witness`（hosting 可达、缺 witness）与 `degraded_hosting_unreachable`（hosting 不可达）触发条件互斥，实现 MUST 据 hosting 可达性区分进入哪一状态。
 - `stale_history` 或 `untrusted` 时，resolver MUST fail closed；MUST NOT 用缓存 handle、DNS、Principal Server 声明或用户登录态替代 DID 历史链。
 - 客户端和服务端 SHOULD 暴露 outage diagnostics，包括使用的 hosting / mirror、entry head、witness 列表、evidence age 和下一次 retry 时间。
 
 #### 4.2.2 跨 method 迁移路径
 
 实现 MUST 支持从其它 method（例如 `did:web` 升级、`did:plc` 互通历史、`did:key` 临时身份转长期身份）到 `did:webvh` 的计划迁移路径，而不只是在事故后恢复——这是 conformance 必备能力（`personal_node` profile 升级到 `small_team` 必经此路径，见 [`key-management.md` §5.0.5](./key-management.md)）：
+
+> **`purpose` 取值边界**：本节第 1–5 步描述的是一般迁移流程，continuity proof 的 `purpose` 取 `principal_migration`（原 DID 仍可解析时只需常规 continuity proof + 反向 acceptance proof）。但当迁移是 **`personal_node`(`did:web`) → `small_team`(`did:webvh`) 的弱根升级到强根**时，proof 的 `purpose` MUST 改用 `principal_method_upgrade`，并附加 [`key-management.md` §5.0.5](./key-management.md) 规定的强制 OOB inception fingerprint 确认与 inception key + entry-0 双签 `signature_chain`（防注册期 DNS 劫持继承）。实现 MUST NOT 用 `principal_migration` 绕过该 `did:web→did:webvh` 升级的 OOB 硬条件。
 
 1. 用户在原 DID 仍可解析时创建新 `did:webvh`，并发布 SCID、首个 `did.jsonl` entry 和（可选）witness evidence。
 2. 原 DID 当前有效控制密钥签署 continuity proof；新 DID 控制密钥反向签署 acceptance proof。
@@ -393,6 +398,8 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
   "expires_at": "2026-04-26T00:05:00Z"
 }
 ```
+
+**device 绑定策略（normative）**：上述 challenge / 签名 payload 在 multi-device principal（principal 控制 ≥1 个授权 device key）下 MUST 额外携带并签名覆盖 `device_id`,绑定到发起绑定 / 恢复请求的具体 device,使该 challenge-response proof 不能被同 principal 的其它设备复用完成绑定 / 恢复（与 [`account-lifecycle.md` §4](./account-lifecycle.md) soft-logout 恢复的 `device_id` 必填要求一致）。仅当 proof 由非 device-bound 的 account auth key / passkey / recovery key 签署（principal 当前无 device-bound key 可用）时方可省略 `device_id`,且 Auth Server MUST 据签名 key 类型判定该豁免是否成立，不得对 device-bound 路径接受缺 `device_id` 的 proof。
 
 Auth Server 在以下情况下 MUST NOT 接受 DID proof：
 
