@@ -334,12 +334,17 @@ Candidate payload:
 
 ```json
 {
-  "kind": "media_state",
-  "data": {
-    "screen": {
-      "enabled": true,
-      "source_id": "screen_01",
-      "with_audio": false
+  "kind": "ck.call.signal",
+  "payload": {
+    "call_id": "ck:call:...",
+    "signal_type": "media_state",
+    "seq": 7,
+    "data": {
+      "screen": {
+        "enabled": true,
+        "source_id": "screen_01",
+        "with_audio": false
+      }
     }
   }
 }
@@ -353,24 +358,24 @@ Candidate payload:
 
 ## 9. 推送集成
 
-`ck.call.signal` 中 `kind=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Realm id、call id 或 sender DID。
+`ck.call.signal` 中 `signal_type=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Realm id、call id 或 sender DID。
 
 脱敏 push payload（推送上游可见部分）:
 
 ```json
 {
   "push_target_id": "ck:pseudonym:push:01js0pu0000000000000000000",
-  "wakeup_kind": "incoming_call",
+  "wakeup_kind": "call_invite",
   "urgency": "urgent",
   "expires_at": "2026-04-26T00:01:00Z"
 }
 ```
 
-设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ck.call.signal{kind=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
+设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ck.call.signal{signal_type=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
 Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；只允许 §9 上面 4 个脱敏字段，其它一切信息必须通过本地解密获得。
 
-**Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新 `call_invite` 流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
+**Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新的 `ck.call.signal{signal_type=invite}` 邀请流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
 
 ## 10. 安全与隐私
 

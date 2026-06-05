@@ -9,11 +9,8 @@ Cokret v1 去中心化协作协议规范。仓库同时承载 **规范本体** �
 - **Space:** navigation container — board, list, section, calendar bucket.
   Lives inside a Realm.
 
-The normative tables under `spec/v1/zh/` are the source of truth for wire
-names. Historical / pre-inversion model names and their replacements are
-recorded in `CHANGELOG.md` and the machine-readable drift artifacts under
-`spec/v1/artifacts/registry/` (`renames.json`, `removed-event-kinds.json`,
-`forbidden-model-terms.json`, `forbidden-wire-fields.json`).
+The normative tables under `spec/v1/zh/` and the machine-readable artifacts
+under `spec/v1/artifacts/` are the source of truth for current v1 wire names.
 
 - 规范本体：[`spec/v1/`](./spec/v1/)
   - 中文 normative 正文：[`spec/v1/zh/index.md`](./spec/v1/zh/index.md)

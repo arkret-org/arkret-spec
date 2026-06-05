@@ -113,7 +113,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
     "task_flow_id": "ck:flow:4accc010-0000-7000-8000-000000000000",
     "counterparty_agent": "did:web:remote-agent.example.com",
     "protocol": "a2a",
-    "protocol_version": "1.x",
+    "external_protocol_version": "1.x",
     "endpoint_ref": "https://agent.example/.well-known/agent-card.json",
     "capability_grant": "ck:grant:...",
     "allowed_artifact_types": [

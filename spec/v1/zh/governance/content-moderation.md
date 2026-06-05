@@ -401,7 +401,7 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
   "query": {
     "facets": ["reviewable"],
     "filters": [
-      { "field": "fields.status", "op": "eq", "value": "pending" }
+      { "field": "fields.status", "op": "eq", "value": "submitted" }
     ]
   },
   "collection": {
@@ -415,7 +415,7 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
       "mode": "field",
       "field": "fields.status",
       "lanes": [
-        { "key": "pending", "title": "Pending" }
+        { "key": "submitted", "title": "Submitted" }
       ],
       "hidden_count_policy": "omit"
     }

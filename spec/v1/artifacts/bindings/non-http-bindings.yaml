@@ -2,7 +2,7 @@
 # v1 core 互操作锁定 HTTP/JSON binding (artifacts/openapi/cokret-service-api.openapi.yaml)。
 # 本文件描述 WebSocket / SSE / gRPC / message queue / libp2p binding 的 frame / topic 形态，
 # 仅在显式声明对应 binding profile 的部署中适用；v1 core 实现不要求实现这些 binding。
-version: "2026-05-02"
+version: "2026-05-08"
 operation_registry: ../registry/operation-registry.json
 frame_schemas:
   websocket:
@@ -43,138 +43,14 @@ frame_schemas:
         - payload
 grpc:
   services:
-    Server:
-      Describe: ck.server.describe
-    Identity:
-      DescribeRegistry: ck.root.identity.describe_registry
-      Resolve: ck.root.identity.resolve
-      GetDocument: ck.root.identity.get_document
-      GetLog: ck.root.identity.get_log
-      SubmitDidOperation: ck.root.identity.submit_did_operation
-      GetReceipts: ck.root.identity.get_receipts
-    Events:
-      Describe: ck.self.events.describe
-      Submit: ck.self.events.submit
-      Get: ck.self.events.get
-      Resolve: ck.self.events.resolve
-      Query: ck.self.events.query
-      # The HTTP POST/body query variant reuses the canonical SelfEvents/Query
-      # gRPC binding and is not exposed as a separate non-HTTP operation.
-      Subscribe: ck.self.events.subscribe
-      Frontier: ck.self.events.frontier
-    PeerEvents:
-      Describe: ck.peer.events.describe
-      Submit: ck.peer.events.submit
-      Resolve: ck.peer.events.resolve
-      Query: ck.peer.events.query
-      # The HTTP POST/body query variant reuses the canonical PeerEvents/Query
-      # gRPC binding and is not exposed as a separate non-HTTP operation.
-      Frontier: ck.peer.events.frontier
-    Ephemeral:
-      Send: ck.self.ephemeral.send
-    CallMedia:
-      TokenExchange: ck.self.call.media.token_exchange
-    Snapshot:
-      Head: ck.self.snapshot.head
-    PeerSnapshot:
-      Head: ck.peer.snapshot.head
-    Directory:
-      Describe: ck.find.directory.describe
-      SearchRealms: ck.find.directory.search_realms
-      ResolveRealm: ck.find.directory.resolve_realm
-      ResolveTarget: ck.find.directory.resolve_target
-      SearchOrganizations: ck.find.directory.search_organizations
-      ResolveOrganization: ck.find.directory.resolve_organization
-      SearchActors: ck.find.directory.search_actors
-      SearchUsers: ck.find.directory.search_users
-      ResolveHandle: ck.find.directory.resolve_handle
-      ListHandlesForSubject: ck.find.directory.list_handles_for_subject
-      PrivateContactDiscovery: ck.find.directory.private_contact_discovery
-      Announce: ck.find.directory.announce
-      Withdraw: ck.find.directory.withdraw
-      PushRegister: ck.find.directory.push.register
-    Keys:
-      Upload: ck.self.keys.upload
-      Query: ck.self.keys.query
-      Claim: ck.self.keys.claim
-      KeyPackagesUpload: ck.self.keys.keypackages.upload
-      KeyPackagesClaim: ck.self.keys.keypackages.claim
-      KeyPackagesConsume: ck.self.keys.keypackages.consume
-      KeyPackagesRevoke: ck.self.keys.keypackages.revoke
-      BackupsPut: ck.self.keys.backups.put
-      BackupsList: ck.self.keys.backups.list
-      BackupsGet: ck.self.keys.backups.get
-      BackupsDelete: ck.self.keys.backups.delete
-    Blob:
-      Upload: ck.self.blob.upload
-      Get: ck.self.blob.get
-      Head: ck.self.blob.head
-      Presign: ck.self.blob.presign
-    DeviceMessages:
-      Put: ck.self.device_messages.put
-      Get: ck.self.device_messages.get
-    Contact:
-      Request: ck.self.contact.request
-      Respond: ck.self.contact.respond
-      List: ck.self.contact.list
-      Tombstone: ck.self.contact.tombstone
-    DirectConversation:
-      Resolve: ck.self.direct_conversation.resolve
-    Moderation:
-      Report: ck.self.moderation.report
-    Projection:
-      Spaces: ck.self.projection.spaces
-      Flows: ck.self.projection.flows
-      Morphs: ck.self.projection.morphs
-    Policy:
-      Check: ck.self.policy.check
-    Media:
-      IceConfig: ck.self.media.ice_config
-    Applet:
-      Ping: ck.edge.applet.ping
-      Describe: ck.edge.applet.describe
-      InstallPreview: ck.self.applet.install.preview
-      Install: ck.self.applet.install
-      Transaction: ck.edge.applet.transaction
-      ResolveActor: ck.edge.applet.resolve_actor
-      ResolveRealm: ck.edge.applet.resolve_realm
-      Revoke: ck.self.applet.revoke
-      ProtocolMetadata: ck.edge.applet.protocol_metadata
-      ThirdPartyUsers: ck.edge.applet.third_party_users
-      ThirdPartyLocations: ck.edge.applet.third_party_locations
-    Mimi:
-      ProviderDirectory: ck.open.mimi.provider_directory
-      KeyMaterial: ck.open.mimi.key_material
-      RoomUpdate: ck.open.mimi.room_update
-      Notify: ck.open.mimi.notify
-      SubmitMessage: ck.open.mimi.submit_message
-      GroupInfo: ck.open.mimi.group_info
-      RequestConsent: ck.open.mimi.request_consent
-      UpdateConsent: ck.open.mimi.update_consent
-      IdentifierQuery: ck.open.mimi.identifier_query
-      ReportAbuse: ck.open.mimi.report_abuse
-      ProxyDownload: ck.open.mimi.proxy_download
-    Push:
-      RegisterDevice: ck.edge.push.register_device
-      UnregisterDevice: ck.edge.push.unregister_device
-      Notify: ck.edge.push.notify
-    Authz:
-      Check: ck.self.authz.check
-      GetEffectiveGrants: ck.self.authz.get_effective_grants
-      GetInvites: ck.self.authz.get_invites
-    Account:
-      Describe: ck.self.account.describe
-      Viewer: ck.self.account.viewer
-      Subscribe: ck.self.account.subscribe
-      UpdateProfile: ck.self.account.update_profile
-      CursorRevoke: ck.self.account.cursor_revoke
+    GateAccount:
       Register: ck.gate.account.register
+      DevicePair: ck.gate.account.device_pair
       IssueSessionGrant: ck.gate.account.issue_session_grant
       SessionRevoke: ck.gate.account.session_revoke
       AgentKeyPair: ck.gate.account.agent_key_pair
-      DevicePair: ck.gate.account.device_pair
       OidcCallback: ck.gate.account.oidc_callback
-    Agent:
+    SelfAgent:
       Provision: ck.self.agent.provision
       List: ck.self.agent.list
       Get: ck.self.agent.get
@@ -185,6 +61,132 @@ grpc:
       GrantAttach: ck.self.agent.grant.attach
       GrantDetach: ck.self.agent.grant.detach
       SidecarThreadEnsure: ck.self.agent.sidecar_thread.ensure
+    EdgeApplet:
+      Describe: ck.edge.applet.describe
+      Ping: ck.edge.applet.ping
+      ProtocolMetadata: ck.edge.applet.protocol_metadata
+      ResolveActor: ck.edge.applet.resolve_actor
+      ResolveRealm: ck.edge.applet.resolve_realm
+      ThirdPartyLocations: ck.edge.applet.third_party_locations
+      ThirdPartyUsers: ck.edge.applet.third_party_users
+      Transaction: ck.edge.applet.transaction
+    SelfApplet:
+      InstallPreview: ck.self.applet.install.preview
+      Install: ck.self.applet.install
+      Revoke: ck.self.applet.revoke
+    SelfAuthz:
+      Check: ck.self.authz.check
+      GetEffectiveGrants: ck.self.authz.get_effective_grants
+      GetInvites: ck.self.authz.get_invites
+    SelfBlob:
+      Get: ck.self.blob.get
+      Head: ck.self.blob.head
+      Upload: ck.self.blob.upload
+      Presign: ck.self.blob.presign
+    SelfDeviceMessages:
+      Get: ck.self.device_messages.get
+      Put: ck.self.device_messages.put
+    SelfContact:
+      Request: ck.self.contact.request
+      Respond: ck.self.contact.respond
+      List: ck.self.contact.list
+      Tombstone: ck.self.contact.tombstone
+    SelfDirectConversation:
+      Resolve: ck.self.direct_conversation.resolve
+    FindDirectory:
+      Announce: ck.find.directory.announce
+      Describe: ck.find.directory.describe
+      PrivateContactDiscovery: ck.find.directory.private_contact_discovery
+      ResolveHandle: ck.find.directory.resolve_handle
+      ListHandlesForSubject: ck.find.directory.list_handles_for_subject
+      ResolveOrganization: ck.find.directory.resolve_organization
+      ResolveRealm: ck.find.directory.resolve_realm
+      ResolveTarget: ck.find.directory.resolve_target
+      SearchActors: ck.find.directory.search_actors
+      SearchOrganizations: ck.find.directory.search_organizations
+      SearchRealms: ck.find.directory.search_realms
+      SearchUsers: ck.find.directory.search_users
+      PushRegister: ck.find.directory.push.register
+      Withdraw: ck.find.directory.withdraw
+    SelfEvents:
+      Describe: ck.self.events.describe
+      Frontier: ck.self.events.frontier
+      Get: ck.self.events.get
+      Query: ck.self.events.query
+      Resolve: ck.self.events.resolve
+      Subscribe: ck.self.events.subscribe
+      Submit: ck.self.events.submit
+    PeerEvents:
+      Describe: ck.peer.events.describe
+      Frontier: ck.peer.events.frontier
+      Query: ck.peer.events.query
+      Resolve: ck.peer.events.resolve
+      Submit: ck.peer.events.submit
+    PeerSnapshot:
+      Head: ck.peer.snapshot.head
+    SelfEphemeral:
+      Send: ck.self.ephemeral.send
+    SelfCallMedia:
+      TokenExchange: ck.self.call.media.token_exchange
+    RootIdentity:
+      DescribeRegistry: ck.root.identity.describe_registry
+      GetDocument: ck.root.identity.get_document
+      GetLog: ck.root.identity.get_log
+      GetReceipts: ck.root.identity.get_receipts
+      Resolve: ck.root.identity.resolve
+      SubmitDidOperation: ck.root.identity.submit_did_operation
+      RecoverySessionCreate: ck.root.identity.recovery_session.create
+      RecoverySessionGet: ck.root.identity.recovery_session.get
+      RecoverySessionSubmitProof: ck.root.identity.recovery_session.submit_proof
+      RecoverySessionComplete: ck.root.identity.recovery_session.complete
+    SelfKeys:
+      Claim: ck.self.keys.claim
+      BackupsDelete: ck.self.keys.backups.delete
+      BackupsGet: ck.self.keys.backups.get
+      BackupsList: ck.self.keys.backups.list
+      BackupsPut: ck.self.keys.backups.put
+      KeyPackagesClaim: ck.self.keys.keypackages.claim
+      KeyPackagesConsume: ck.self.keys.keypackages.consume
+      KeyPackagesRevoke: ck.self.keys.keypackages.revoke
+      KeyPackagesUpload: ck.self.keys.keypackages.upload
+      Query: ck.self.keys.query
+      Upload: ck.self.keys.upload
+    SelfMedia:
+      IceConfig: ck.self.media.ice_config
+    OpenMimi:
+      GroupInfo: ck.open.mimi.group_info
+      IdentifierQuery: ck.open.mimi.identifier_query
+      KeyMaterial: ck.open.mimi.key_material
+      Notify: ck.open.mimi.notify
+      ProviderDirectory: ck.open.mimi.provider_directory
+      ProxyDownload: ck.open.mimi.proxy_download
+      ReportAbuse: ck.open.mimi.report_abuse
+      RequestConsent: ck.open.mimi.request_consent
+      RoomUpdate: ck.open.mimi.room_update
+      SubmitMessage: ck.open.mimi.submit_message
+      UpdateConsent: ck.open.mimi.update_consent
+    SelfModeration:
+      Report: ck.self.moderation.report
+    SelfPolicy:
+      Check: ck.self.policy.check
+    SelfProjection:
+      Flows: ck.self.projection.flows
+      Morphs: ck.self.projection.morphs
+      Spaces: ck.self.projection.spaces
+    EdgePush:
+      Notify: ck.edge.push.notify
+      RegisterDevice: ck.edge.push.register_device
+      UnregisterDevice: ck.edge.push.unregister_device
+    Server:
+      Describe: ck.server.describe
+    SelfAccount:
+      Describe: ck.self.account.describe
+      Viewer: ck.self.account.viewer
+      UpdateProfile: ck.self.account.update_profile
+      Subscribe: ck.self.account.subscribe
+      CursorRevoke: ck.self.account.cursor_revoke
+    SelfSnapshot:
+      Head: ck.self.snapshot.head
 mq:
   envelope:
     required:

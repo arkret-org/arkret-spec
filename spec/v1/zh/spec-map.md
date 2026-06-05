@@ -62,9 +62,9 @@ see_also:
 `renames.json` 的条目按消费方分两层（规范定义见 `renames.json.parser_tier_definitions`）：
 
 - **Current parser**：sync service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目视作输入禁止，不做 payload-shape disambiguation，遇到旧 id 直接返回 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误而不在线静默重写（规范约束见 `renames.json.parser_tier_definitions.current_parser`）。
-- **Migration tool**：离线批处理工具，读取 pre-v1 / pre-inversion bytes 并改写成 canonical v1 形态。可消费带 `migration_tool_only: true` 的 entry（例如 `ck.space.create#pre_inversion_security_boundary`），按 `disambiguation_payload_shape` 规则鉴别；不得嵌入实时 parser 表面（规范约束见 `renames.json.parser_tier_definitions.migration_tool`）。
+- **Migration tool**：离线批处理工具，读取非当前 v1 bytes 并改写成 canonical v1 形态。可消费带 `migration_tool_only: true` 的 entry；不得嵌入实时 parser 表面（规范约束见 `renames.json.parser_tier_definitions.migration_tool`）。
 
-这条分层把 Realm/Space inversion 时引入的"payload-shape 鉴别"复杂度限制在迁移工具内：当前 v1 sync / federation / snapshot 路径不实现这条 fallback。`migration_tool_only` 标志使该约束机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。规范效力来自上述权威源，本文不重复承载独立 MUST。
+这条分层把 payload-shape 鉴别复杂度限制在离线工具内：当前 v1 sync / federation / snapshot 路径不实现 fallback。`migration_tool_only` 标志使该约束机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。规范效力来自上述权威源，本文不重复承载独立 MUST。
 
 ## 2. 推荐阅读顺序
 

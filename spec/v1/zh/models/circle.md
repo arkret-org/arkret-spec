@@ -85,12 +85,12 @@ Schema id: `ck.schema.circle.v1`
 引入字段(跨多个现有对象):
 
 ```
-Flow.scope_circle_id          : id:circle | null       # null = Realm-default scope
-Message.effective_scope : reducer-stamped,immutable tagged scope
-Event.effective_scope   : reducer-stamped,immutable tagged scope,进入 envelope/sub-anchor；MLS-backed scope 中也进入 AAD/governance binding
-Space.scope_circle_id         : id:circle | null       # Space 自身 metadata / scoped structural relation 的可见性 scope
-Space.default_scope_circle_id : id:circle | null       # 在该 Space 新建 Flow 的默认 scope(hint,非强制；属于 effective default_realm_id)
-Space.child_scope_policy: object                  # 子资源 placement/encryption floor,见 §7
+Flow.scope_circle_id          : id:circle | null   # null = Realm-default scope
+Message.effective_scope       : reducer-stamped, immutable tagged scope
+Event.effective_scope         : reducer-stamped, immutable tagged scope，进入 envelope/sub-anchor；MLS-backed scope 中也进入 AAD/governance binding
+Space.scope_circle_id         : id:circle | null   # Space 自身 metadata / scoped structural relation 的可见性 scope
+Space.default_scope_circle_id : id:circle | null   # 在该 Space 新建 Flow 的默认 scope(hint，非强制；属于 effective default_realm_id)
+Space.child_scope_policy      : object             # 子资源 placement/encryption floor，见 §7
 Morph.scope_circle_id         : id:circle | null
 ```
 
@@ -213,7 +213,7 @@ Space 不拥有 membership / policy server / MLS group;`Space.scope_circle_id` �
 | `child_scope_policy.scope_circle_id` | `id:circle` | `kind=require_scope_circle_id` 时必填。 |
 | `child_scope_policy.metadata_encryption_floor` | `content_only` / `minimal_encrypted` / `full_encrypted` | 可选，对该 Space 下新建 / 移入对象施加更严格 metadata floor。 |
 
-Reducer MUST 在 `ck.flow.create`、`ck.flow.move`、`ck.space.parent`、structural `contains` projection 写入时检查 effective Space policy:
+Reducer MUST 在 `ck.flow.create`、`ck.flow.move`、`ck.space.parent`、structural `contains` projection 写入时检查 effective child scope policy:
 
 - `allow_any`:不额外限制。
 - `require_e2ee`:子资源 `effective_scope` 必须 MLS-backed。

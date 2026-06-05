@@ -40,7 +40,6 @@ sidebar:
 - `ck.profile.principal_server.v1`
 - `ck.profile.federation_minimal.v1`
 - `ck.profile.identity_registry.v1`
-- `ck.profile.blob_node.v1`
 - `ck.profile.applet_service.v1`
 - `ck.profile.enterprise_client.v1`
 - `ck.profile.agent_runtime.v1`
@@ -48,13 +47,22 @@ sidebar:
 - `ck.profile.sovereign_deployment.v1`
 - `ck.profile.sovereign_client.v1`
 
-**gateway profile**（`role=gateway`,推送网关角色;完整定义与子 profile 见 [`conformance-profiles.md`](./conformance-profiles.md) §11）:
+**gateway profile**（`role=gateway`;完整定义与子 profile 见 [`conformance-profiles.md`](./conformance-profiles.md) §11）:
 
 - `ck.profile.push_gateway.v1`（`depends_on` `ck.profile.push_gateway.blind_wakeup.v1`;`visible_notification` / `matrix_passthrough` 为 opt-in）
+- `ck.profile.blob_node.v1`
 
-**hardening profile**（overlay,非独立实现角色）:
+**hardening profile**（overlay,`role=admin`,非独立实现角色;权威全集以 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `hardening_profiles` 为准）:
 
 - `ck.profile.mls_governance_binding.full.v1`
+- `ck.profile.attested_audit.e2ee.v1`
+- `ck.profile.disclosed_audit.e2ee.v1`
+- `ck.profile.cross_signing.reset.v1`
+- `ck.profile.mls.minimal_metadata_realm.v1`
+- `ck.profile.traffic_metadata_hardened.v1`
+- `ck.profile.key_backup.memory_hard.v1`
+- `ck.profile.circle_anchor_cadence.fixed_5m.v1`
+- `ck.profile.accountable_principals.strict_reject.v1`
 
 ## 3. OpenAPI 与 Transport 一致性
 

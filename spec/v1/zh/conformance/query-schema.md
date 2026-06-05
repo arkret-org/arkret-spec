@@ -72,7 +72,7 @@ updated: 2026-05-25
 }
 ```
 
-`filters[].op` 的合法取值是下方**封闭枚举**（normative）。在独立 `artifacts/schemas/query.schema.json` 抽出之前，本表与 OpenAPI `QueryRequest` / `SearchRequest` 内联 schema 共同作为 `op` 的 normative 真源；执行方 MUST 拒绝表外取值（`schema_violation` / `invalid_param`）。
+`filters[].op` 的合法取值是下方**封闭枚举**（normative）。`op` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ck.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值（`schema_violation` / `invalid_param`）。
 
 | `op`（normative enum） | 语义 |
 | --- | --- |
@@ -120,7 +120,7 @@ updated: 2026-05-25
 }
 ```
 
-`direction` 的合法取值是下方**封闭枚举**（normative）。在独立 `artifacts/schemas/query.schema.json` 抽出之前，本表与 OpenAPI 内联 schema 共同作为 Relation Query `direction` 的 normative 真源；执行方 MUST 拒绝表外取值。
+`direction` 的合法取值是下方**封闭枚举**（normative）。Relation Query `direction` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ck.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值。
 
 | `direction`（normative enum） | 语义 |
 | --- | --- |

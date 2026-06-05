@@ -34,7 +34,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 | 信任面段 | 信任关系 | 承接命名空间 |
 | --- | --- | --- |
-| `self` | 本人已认证会话 | events·account·rtc·blob·keys·authz·policy·projection·agents·device_messages·moderation·snapshot·ephemeral·applets |
+| `self` | 本人已认证会话 | events·account·contacts·direct_conversations·rtc·blob·keys·authz·policy·projection·agents·device_messages·moderation·snapshot·ephemeral·applets |
 | `gate` | 认证入口 | account（auth / session-grant） |
 | `root` | 身份信任根：DID / key log / receipt；不是 Unix/root 管理员权限 | identity |
 | `find` | 目录发现 | directory |
@@ -399,6 +399,10 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.root.identity.get_log` | `query.did: did` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `next_cursor: cursor?`; `has_more: boolean` | private / pairwise DID MUST 要求 holder-approved proof。 |
 | `ck.root.identity.submit_did_operation` | `did: did`; `did_method: string`; `operation: object`; `proofs: proof[]` | `seq: int`; `prev_event_digest: string`; `policy_context: object` | `status: enum(accepted,duplicate,pending)`; `did: did`; `head_event_digest: string?`; `seq: int?`; `operation_ref: string?`; `receipts: object[]?` | schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequest / schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponse。MUST 满足 DID method / key-log 授权；`operation` 是 DID-method-specific 原始操作，统一 wrapper 不得把 DID 更新降格为通用 `patch`；幂等键由 DID method operation id / seq / canonical hash 决定。 |
 | `ck.root.identity.get_receipts` | `query.did: did`; `query.head: string` | 无 | `receipts: object[]`; `threshold_met: boolean?` | 只公开最小 witness receipt。 |
+| `ck.root.identity.recovery_session.create` | body `create_request` | 无 | `session` | schema_ref=schemas/recovery-session.schema.json#/$defs/create_request / schemas/recovery-session.schema.json#/$defs/session。创建 device recovery session；server MUST snapshot active recovery policy 与 accepted `ssk_generation`，签发 256-bit one-time challenge，TTL <= 900s。 |
+| `ck.root.identity.recovery_session.get` | path `{recovery_session_id}` | 无 | `session` | schema_ref=schemas/recovery-session.schema.json#/$defs/session。仅 session principal / requesting device / authorized recovery coordinator 可见；不得枚举他人 session。 |
+| `ck.root.identity.recovery_session.submit_proof` | path `{recovery_session_id}`; body `proof_submit_request` | 无 | `proof_submit_response` | schema_ref=schemas/recovery-session.schema.json#/$defs/proof_submit_request / schemas/recovery-session.schema.json#/$defs/proof_submit_response。proof MUST 对 server-reconstructed canonical transcript 校验并回显 session challenge。 |
+| `ck.root.identity.recovery_session.complete` | path `{recovery_session_id}`; body `complete_request` | 无 | `complete_response` | schema_ref=schemas/recovery-session.schema.json#/$defs/complete_request / schemas/recovery-session.schema.json#/$defs/complete_response。要求 `state=verified`；MUST 在返回 completed 前 emit accepted `ck.device.authorize` 与 `ck.device.list_update`。 |
 | `ck.self.events.describe` | 无 | `query.actor_id: did`; `query.realm_id: id` | `ServiceDescribe` | public metadata 可公开；私有 frontier 需认证后作为扩展字段返回。 |
 | `ck.self.events.submit` | 单事件提交 body 是 `EventSubmitEnvelope` 对象（顶层 `event_id`/`actor_id`/`payload`/`proofs[]` ...，但不含 reducer-managed accepted-output 字段）；批量提交 body 是 `{events: EventSubmitEnvelope[]}`。MUST NOT 使用 `{event: ...}` wrapper。 | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: object[]?`; `actor_frontier: object?`; `realm_frontier: object?`; `cursor: cursor?` | schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequest / schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse。MUST 验证 Event signature、DID、capability、Realm policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`。同一 `event_id` 对应不同 canonical 内容时 MUST 以 `duplicate_conflict`（409）拒绝（见 [operations-sync.md](./operations-sync.md) §15），不得退化为 `causal_conflict` / `state_mismatch`。`cursor` 是 barrier purpose（read-your-writes）。 |
 | `ck.self.events.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventGetResponse。不可见时返回 `not_found`。 |
@@ -916,7 +920,7 @@ GET /_cokret/self/blob/get?blob_ref=<blob_ref>
 
 - 客户端收到 `429` MUST 优先遵守 `Retry-After` header；若缺失再使用 body 中的 `retry_after_ms`。`503` 在带有 `Retry-After` 时也必须按该时间退避。收到 `409` SHOULD 拉取最新状态后退避重试。
 - `unsupported_feature` 用于 `Event.requirements.features[]` / `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ck.*` Event kind；二者不得互相替代。
-- 通用 `conflict` 仅作为抽象 base code 出现在 narrative；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `duplicate_conflict` / `epoch_mismatch` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `discussion_track_disabled` / `key_unavailable`）。
+- 通用 `conflict` 仅作为抽象 base code 出现在 narrative；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `duplicate_conflict` / `epoch_mismatch` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `discussion_track_disabled` / `key_unavailable` / `audit_receipt_invalidated`；完整集合以 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 为准）。
 
 ## 11. 安全与抗滥用
 

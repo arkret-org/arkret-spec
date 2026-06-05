@@ -2747,6 +2747,102 @@ paths:
                     type: array
                     items:
                       $ref: ../schemas/identity-receipt.schema.json
+  /_cokret/root/identity/recovery-sessions:
+    post:
+      operationId: ck.root.identity.recovery_session.create
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/recovery-session.schema.json#/$defs/create_request
+      responses:
+        '200':
+          description: Recovery session created
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/recovery-session.schema.json#/$defs/session
+  /_cokret/root/identity/recovery-sessions/{recovery_session_id}:
+    get:
+      operationId: ck.root.identity.recovery_session.get
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+      parameters:
+      - name: recovery_session_id
+        in: path
+        required: true
+        schema:
+          $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_id
+      responses:
+        '200':
+          description: Recovery session state
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/recovery-session.schema.json#/$defs/session
+  /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs:
+    post:
+      operationId: ck.root.identity.recovery_session.submit_proof
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+      parameters:
+      - name: recovery_session_id
+        in: path
+        required: true
+        schema:
+          $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/recovery-session.schema.json#/$defs/proof_submit_request
+      responses:
+        '200':
+          description: Proof submission result
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/recovery-session.schema.json#/$defs/proof_submit_response
+  /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete:
+    post:
+      operationId: ck.root.identity.recovery_session.complete
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+      parameters:
+      - name: recovery_session_id
+        in: path
+        required: true
+        schema:
+          $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/recovery-session.schema.json#/$defs/complete_request
+      responses:
+        '200':
+          description: Recovery session completed
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/recovery-session.schema.json#/$defs/complete_response
   /_cokret/self/events:
     post:
       operationId: ck.self.events.submit

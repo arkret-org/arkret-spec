@@ -93,7 +93,21 @@
     "ck.profile.privacy_security_vectors.v1",
     "ck.profile.reaction_vectors.v1",
     "ck.profile.redaction_vectors.v1",
-    "ck.profile.sync_vectors.v1"
+    "ck.profile.sync_vectors.v1",
+    "ck.profile.constraint.approval_workflow.v1",
+    "ck.profile.constraint.claim_based.v1",
+    "ck.profile.constraint.encryption_requirement.v1",
+    "ck.profile.constraint.resource_limit.v1",
+    "ck.profile.constraint.visibility_control.v1",
+    "ck.profile.encoding.cbor.v1",
+    "ck.profile.encoding.multihash.v1",
+    "ck.profile.hash.blake3.v1",
+    "ck.profile.hash.sha3.v1",
+    "ck.profile.hash.sha512.v1",
+    "ck.profile.hash_transition.v1",
+    "ck.profile.signature.ecdsa_p256.v1",
+    "ck.profile.signature.pqc.v1",
+    "ck.profile.ucan_interop.v1"
   ],
   "edges": [
     { "from": "ck.profile.chat_mvp.v1", "to": "ck.profile.core_event_store.v1", "kind": "inherits" },

@@ -228,7 +228,7 @@ artifact。
 
 - Service Describe 响应的 `trust_domain` 字段（所有 `*/describe` endpoint 返回同一 `ServiceDescribe` shape）；
 - Realm create object 的 `trust_domain` 字段（首次写入后 immutable，跟随 Realm create event 锁定）；
-- 任何跨域可重放的 high-risk proof transcript（例如 `ck.cross_signing.reset` §14.1 canonical input）。
+- 任何跨域可重放的 high-risk proof transcript（例如 `ck.cross_signing.reset` 的 canonical input，见 [`../crypto-media/device-lifecycle.md` §14.1](../crypto-media/device-lifecycle.md)）。
 
 约束：
 

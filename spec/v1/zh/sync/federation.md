@@ -652,7 +652,6 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 
 ```
 POST /_cokret/peer/events
-Authorization: <service_signature>
 Source-Service-DID: did:web:server.acme.example
 Destination-Service-DID: did:web:server.beta.example
 Destination-Service-Endpoint-Digest: sha256:<hex>
@@ -661,6 +660,7 @@ Destination-Trust-Domain: ck:trust_domain:did.webvh.beta.example
 Request-Canonical-Digest: sha256:...
 Idempotency-Key: <opaque-key>
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest" "idempotency-key");created=...;expires=...
+Signature: sig1=:<base64>:
 ```
 
 字段、签名 transcript、绑定与重放保护按 §3.2、§4.1 与 [`api-conventions.md` §3](./api-conventions.md) 与 [`service-http-binding.md` §3](./service-http-binding.md) 执行。事件以普通 reducer-input event 提交（preconditions / effects / anchor_ref 在顶层），与单域 client write 共享同一 schema（`ck.schema.event.v1`）。
@@ -669,7 +669,8 @@ Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "so
 
 ```
 GET /_cokret/peer/events?realms=<id>&before=<cursor>&limit=<n>
-Authorization: <service_signature>
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest");created=...;expires=...
+Signature: sig1=:<base64>:
 ```
 
 字段定义见 §4.2；service operation id 为 `ck.peer.events.query`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/_cokret/peer/snapshot/head` 获取，或作为 `ck.peer.events.query` 的 `snapshot_bootstrap` 加速字段返回。
@@ -680,7 +681,8 @@ Authorization: <service_signature>
 
 ```
 GET /_cokret/peer/events?realms=<id>&kinds=ck.member.state&after=<cursor>&limit=<n>
-Authorization: <service_signature>
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest");created=...;expires=...
+Signature: sig1=:<base64>:
 ```
 
 请求字段：

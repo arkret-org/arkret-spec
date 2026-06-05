@@ -91,7 +91,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "kind": "ck.content.text",
   "body": "@bob 请确认这个 item 的 legal 风险。",
   "format": "markdown",
-  "formatted_body": "<mention did=\"did:web:bob.example.com\">@bob</mention> 请确认这个 item 的 legal 风险。"
+  "formatted_body": "<mention did=\"did:web:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
 }
 ```
 
@@ -353,7 +353,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "format": "markdown",
   "reply_context": {
     "ref": "ck:message:01964200-0000-7000-8000-000000000129",
-    "sender_actor_id": "did:web:alice.example.com",
+    "sender_actor_id": "did:web:alice.example",
     "excerpt": "这个方案可行吗？"
   }
 }

@@ -79,7 +79,7 @@ Cokret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoi
 
 - Egress destination MUST 是 Cokret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
 - 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ck-rtc-recording-key/v1"`（与 SFrame `"ck-rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
-- 录制完成后通过 `ck.call.state` 发布 `recording_state="ready"` + blob hash。
+- 录制完成后通过 `ck.call.state` 发布 `recording_state="ready"` + content digest。
 - 客户端检测到 LiveKit Egress 配置指向非 Cokret endpoint → fail closed `recording_artifact_pipeline_bypassed`。
 
 ## 7. Cascading

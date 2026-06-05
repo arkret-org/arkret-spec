@@ -32,7 +32,7 @@
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did",
-      "description": "DID of the reader. Aligned with the rest of the spec; older drafts used 'reader' / 'actor'."
+      "description": "DID of the reader."
     },
     "event_id": {
       "type": "string",

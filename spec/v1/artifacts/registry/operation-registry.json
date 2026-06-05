@@ -52,7 +52,11 @@
         "ck.root.identity.get_document",
         "ck.root.identity.get_log",
         "ck.root.identity.get_receipts",
-        "ck.root.identity.submit_did_operation"
+        "ck.root.identity.submit_did_operation",
+        "ck.root.identity.recovery_session.create",
+        "ck.root.identity.recovery_session.get",
+        "ck.root.identity.recovery_session.submit_proof",
+        "ck.root.identity.recovery_session.complete"
       ]
     },
     {
@@ -941,6 +945,41 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequest",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponse"
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.create",
+      "http": "POST /_cokret/root/identity/recovery-sessions",
+      "grpc": "RootIdentity/RecoverySessionCreate",
+      "mq": "root.identity.recovery_session.create",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/create_request",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/session"
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.get",
+      "http": "GET /_cokret/root/identity/recovery-sessions/{recovery_session_id}",
+      "grpc": "RootIdentity/RecoverySessionGet",
+      "mq": "root.identity.recovery_session.get",
+      "success_shape_kind": "schema_resource",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/session"
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.submit_proof",
+      "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
+      "grpc": "RootIdentity/RecoverySessionSubmitProof",
+      "mq": "root.identity.recovery_session.submit_proof",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/proof_submit_request",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/proof_submit_response"
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.complete",
+      "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete",
+      "grpc": "RootIdentity/RecoverySessionComplete",
+      "mq": "root.identity.recovery_session.complete",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_response"
     },
     {
       "operation_id": "ck.self.keys.claim",

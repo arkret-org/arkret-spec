@@ -2040,6 +2040,176 @@
       }
     },
     {
+      "operation_id": "ck.root.identity.recovery_session.create",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/create_request",
+        "schema_kind": "object",
+        "required": [
+          "principal_id",
+          "requesting_device_id",
+          "trust_domain",
+          "ssk_generation"
+        ],
+        "properties": [
+          "principal_id",
+          "requesting_device_id",
+          "trust_domain",
+          "ssk_generation",
+          "expected_recovery_policy_ref"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/session",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "recovery_session_id",
+          "principal_id",
+          "requesting_device_id",
+          "trust_domain",
+          "policy_id",
+          "policy_version",
+          "ssk_generation",
+          "challenge",
+          "state",
+          "created_at",
+          "expires_at",
+          "updated_at"
+        ],
+        "properties": [
+          "schema",
+          "recovery_session_id",
+          "principal_id",
+          "requesting_device_id",
+          "trust_domain",
+          "policy_id",
+          "policy_version",
+          "ssk_generation",
+          "challenge",
+          "state",
+          "proof_summary",
+          "rejection_reason_code",
+          "created_at",
+          "expires_at",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.get",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/session",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "recovery_session_id",
+          "principal_id",
+          "requesting_device_id",
+          "trust_domain",
+          "policy_id",
+          "policy_version",
+          "ssk_generation",
+          "challenge",
+          "state",
+          "created_at",
+          "expires_at",
+          "updated_at"
+        ],
+        "properties": [
+          "schema",
+          "recovery_session_id",
+          "principal_id",
+          "requesting_device_id",
+          "trust_domain",
+          "policy_id",
+          "policy_version",
+          "ssk_generation",
+          "challenge",
+          "state",
+          "proof_summary",
+          "rejection_reason_code",
+          "created_at",
+          "expires_at",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.submit_proof",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/proof_submit_request",
+        "schema_kind": "object",
+        "required": [
+          "proof"
+        ],
+        "properties": [
+          "proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/proof_submit_response",
+        "schema_kind": "object",
+        "required": [
+          "recovery_session_id",
+          "state",
+          "verification"
+        ],
+        "properties": [
+          "recovery_session_id",
+          "state",
+          "verification",
+          "proof_summary"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.complete",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
+        "schema_kind": "object",
+        "required": [
+          "authorization_event_id",
+          "device_list_update_event_id"
+        ],
+        "properties": [
+          "authorization_event_id",
+          "device_list_update_event_id",
+          "idempotency_key"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_response",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "recovery_session_id",
+          "state",
+          "device_id",
+          "authorization_event_id",
+          "device_list_update_event_id"
+        ],
+        "properties": [
+          "ok",
+          "recovery_session_id",
+          "state",
+          "device_id",
+          "authorization_event_id",
+          "device_list_update_event_id"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.self.keys.claim",
       "success_shape_kind": "typed_response",
       "request": {

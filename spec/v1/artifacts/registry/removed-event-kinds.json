@@ -362,9 +362,8 @@
       "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
       "replacement": "Flow.scope_circle_id (see zh/models/circle.md)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "CKP-0007 Circle introduction removed Flow.discussion_realm_ref. Writers MUST NOT emit; readers MAY tolerate stored legacy events through 2026-12-31 to support cross-version migration. See renames.json group ckp_0007_circle_introduction and forbidden-wire-fields.json discussion_realm_ref."
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "CKP-0007 Circle introduction removed Flow.discussion_realm_ref. Current v1 writers and readers MUST reject this event kind; discussion privacy is represented by Circle-scoped Flow objects and confidential_discussion_of Relation facts."
     },
     {
       "id": "cx.member.application.legacy",

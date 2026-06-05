@@ -539,7 +539,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 ## 10. To-Device Delivery
 
-`to_device.events` MUST 只包含当前 access token 对应 device 的消息。
+`to_device.messages` MUST 只包含当前 access token 对应 device 的消息。
 
 **To-device 投递推断 (normative)**：服务器在收到客户端回传的 `after=<cursor>` 后，**MUST 先按 §12 完整性校验** (MAC/签名 验证 或 stateful handle lookup) 通过，才可将该 cursor 内 `d` (device positions) 之前的 to-device 消息视为已投递并从服务端队列清理。完整性校验失败时 MUST 返回 `cursor_integrity_invalid` 且 **MUST NOT** 推进 to-device 投递状态。客户端如果未处理成功，必须通过本地事务日志恢复。
 

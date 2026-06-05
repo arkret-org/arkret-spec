@@ -95,8 +95,8 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "scope_circle_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Pre-inversion Flow payload exposed 'discussion_space_ref' pointing at the (then) security-boundary Space. The canonical field is now 'scope_circle_id' pointing at an intra-Realm Circle (see schemas/flow.schema.json, zh/models/circle.md). The legacy 'discussion_space_ref' MUST NOT appear on the current wire."
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Flow payload MUST NOT carry 'discussion_space_ref'. Discussion privacy is represented by Circle-scoped Flow objects and confidential_discussion_of Relation facts; the field-level Circle identifier is 'scope_circle_id' (see schemas/flow.schema.json, zh/models/circle.md)."
     },
     {
       "id": "identifier_suffix_ref_to_id_batch",
@@ -158,8 +158,8 @@
       "since_revision": "T20",
       "rejection_level": "hard_reject",
       "replacement": "realm_frontier",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Range-completeness event_range, audit RYW receipt, and POST /events response previously named the per-Realm frontier slot 'space_frontier'. After the Realm/Space inversion the replication and security boundary that this frontier covers is the Realm (not an in-Realm Space container); the canonical field name is now 'realm_frontier' (see schemas/range-completeness-attestation.schema.json, schemas/audit-ryw-receipt.schema.json, OpenAPI EventSubmitResponse). 'space_frontier' MUST NOT appear on the current wire as a frontier object property."
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Range-completeness event_range, audit RYW receipt, and POST /events response MUST use 'realm_frontier'. The replication and security boundary covered by this frontier is the Realm, not an in-Realm Space container. 'space_frontier' MUST NOT appear on the current wire as a frontier object property."
     },
     {
       "id": "fields.rank",

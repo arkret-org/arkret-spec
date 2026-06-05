@@ -47,7 +47,7 @@ updated: 2026-05-25
 
 1. **Gate 是组合的，不是命名的。** 不再以新 enum 区分"附加条件类型"。Realm 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
 2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `ck.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对 `ck.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Sync Service 强制访问控制并审计读取（`ck.audit.accessed`）。
-3. **审核决策必须有稳定审计材料。** 实现声明 `ck.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名的 anchored Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §6](./content-moderation.md)）依赖该 trail。
+3. **审核决策必须有稳定审计材料。** 实现声明 `ck.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名的 anchored Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §5.5](./content-moderation.md) 申诉流程与 [`./content-moderation.md` §10](./content-moderation.md) 审计要求）依赖该 trail。
 4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `ck.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
 5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `ck.member.state{membership=join}`，由 reducer 内联校验，无需 application / review Move。这条路径替代既有 `restricted` 入口模式的实质语义。
 6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Move 的 capability。Policy Server `obligations[]`（§12）只能在 capability 之上叠加额外要求（如 challenge），不能凭空创造权限。
@@ -485,5 +485,5 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 - Claim 与 constraint：[`../authz/constraint-schema.md`](../authz/constraint-schema.md)
 - Federation 跨域加入：[`../sync/federation.md` §5.2](../sync/federation.md)
 - Discovery Directory：[`../discovery/discovery-directory.md`](../discovery/discovery-directory.md)
-- Audit trail / 申诉：[`./content-moderation.md` §6](./content-moderation.md)
+- Audit trail / 申诉：[`./content-moderation.md` §5.5](./content-moderation.md)（申诉流程）、[`./content-moderation.md` §10](./content-moderation.md)（审计要求）
 - MIMI 互操作：[`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)

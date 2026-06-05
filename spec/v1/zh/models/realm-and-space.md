@@ -23,8 +23,6 @@ updated: 2026-05-26
 - `Space` 承担层级、排序、分类、项目组织和工作流容器职责；自身不是安全边界。
 - 强保密差异通过切分 Realm 表达；同一 Realm 内的 capability / Group 只承诺操作隔离，不承诺对已入组成员的强读隔离。
 
-历史 / pre-inversion 名词与当前名词的对应（仅供迁移参考，不进入 normative 描述）见 `CHANGELOG.md` 与 [`registry/renames.json`](../../artifacts/registry/renames.json) / [`registry/forbidden-model-terms.json`](../../artifacts/registry/forbidden-model-terms.json)。
-
 Realm 之间只允许显式 link graph（governance / discoverability / import-export / confidential-extension 等关系），详见 [`realm-links.md`](./realm-links.md)。Space 层级与跨 Realm 导航见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
@@ -351,7 +349,7 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 - `ck.space.restore`：仅允许 `archived -> active`；不级联 restore。
 - `ck.space.tombstone`：不可逆；在存在 live child Space 或 live `contains` placement 时 MUST `failed_precondition`。
 
-错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。pre-inversion 形态已在 [`removed-event-kinds.json`](../../artifacts/registry/removed-event-kinds.json) 中标 hard_reject，不存在兼容映射通道；下游迁移工具按 drift artifact 一次性翻译为新名称后再回放。
+错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。
 
 ### 3.5 `ck.space.parent` cas_register basis
 

@@ -271,19 +271,29 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ## 7. Encrypted Envelope
 
+加密载荷统一使用 `ck.schema.encrypted_envelope.v1`（artifact [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)）。字段语义与约束以 [`../crypto-media/encryption-and-audit.md` §2.3.1](../crypto-media/encryption-and-audit.md) 为权威；snapshot chunk 中的密文 MUST 是同一 envelope 形态：
+
 ```json
 {
-  "type": "encrypted_envelope",
-  "encryption_profile": "mls_rfc9420",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "scheme": "mls-rfc9420",
+  "version": "1.0",
+  "group_id": "base64url",
   "epoch": 42,
-  "cleartext_metadata": {
-    "object_ref": "ck:message:...",
-    "event_kind": "ck.message.create"
+  "content_type": "application/json",
+  "ciphertext": "base64url",
+  "aad_visibility_event_id": "routing_digest",
+  "aad": {
+    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "event_kind": "ck.message.create",
+    "event_ref_digest": "sha256:..."
   },
-  "ciphertext": "base64url...",
-  "ciphertext_digest": "sha256:..."
+  "key_ref": {
+    "algorithm": "MLS",
+    "group_state_ref": "ck:event:..."
+  },
+  "payload_digest": "sha256:...",
+  "aad_digest": "sha256:..."
 }
 ```
 
-Sync Service MAY 依据 `cleartext_metadata` 路由，但 MUST NOT 要求 plaintext content。
+Sync Service MAY 依据 `aad` 路由元数据投递，但 MUST NOT 要求 plaintext content。

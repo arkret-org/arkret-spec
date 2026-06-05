@@ -24,9 +24,9 @@ updated: 2026-05-28
 
 | Envelope | 形态 | 用途 |
 | --- | --- | --- |
-| **逻辑 ID** | `ck:flow:<uuid>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `via` / `action` / token。 |
+| **逻辑 ID** | `ck:flow:<uuid>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `action` / token。 |
 | **`web+cokret:` URI scheme** | `web+cokret:realm/…/flow/…?action=view` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+cokret', <https-template>)` 登记（约束见 §5）。 |
-| **HTTPS 落地链接** | `https://<landing>/#realm/…/flow/…?via=…` | 用户复制粘贴的默认形态；`#` 之后整体 = 同一 grammar。`<landing>` 域名由部署方选定，本协议**不**指定中心化落地域名。 |
+| **HTTPS 落地链接** | `https://<landing>/#realm/…/flow/…?action=view` | 用户复制粘贴的默认形态；`#` 之后整体 = 同一 grammar。`<landing>` 域名由部署方选定，本协议**不**指定中心化落地域名。 |
 
 `web+cokret:` 与 HTTPS 落地形态共用同一 §3 grammar parser，只是外壳不同（裸接 scheme vs 接在 `#` 后）。逻辑 ID grammar（`ck:<kind>:<uuid>`）见 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)，本文不重复定义。
 
@@ -113,7 +113,7 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`，其中 `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme。
 
 - `realm_id` / `flow_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`ck:realm:<uuid>` 等），不得使用 path 中的裸 uuid 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
-- **`target_digest` 只覆盖身份元组（`realm` / `flow` / `m`）与 `link_type`**，**MUST NOT** 纳入 `via` / `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Flow / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
+- **`target_digest` 只覆盖身份元组（`realm` / `flow` / `m`）与 `link_type`**，**MUST NOT** 纳入 `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Flow / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
 - 生命周期字段 `aud` / `exp` / `nonce` 在 token payload 内，但**不属于** target descriptor（它们是 token 自身有效性边界，不是被寻址对象的身份）。
 - 签发端与 `resolve_target` 端 MUST 用同一 shape 与省略规则，否则 digest 不可比对。
 
@@ -132,11 +132,11 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 
 ## 5. 隐私：target 与 token 放 fragment
 
-HTTPS 落地链接中，`flow` / `m` / `via` / 尤其 `tok` **MUST** 放在 URL **fragment（`#`）**，不进 path / query。理由：fragment 不发往落地页服务器，服务器日志学不到"谁在打开哪个 Flow / 持有哪个 token"，与 [`discovery-directory.md` §11](./discovery-directory.md) anti-enumeration 立场一致。
+HTTPS 落地链接中，`flow` / `m` / 尤其 `tok` **MUST** 放在 URL **fragment（`#`）**，不进 path / query。理由：fragment 不发往落地页服务器，服务器日志学不到"谁在打开哪个 Flow / 持有哪个 token"，与 [`discovery-directory.md` §11](./discovery-directory.md) anti-enumeration 立场一致。
 
 `web+cokret:` 的隐私边界按 handler 类型分两支（不可笼统说"不经 web server"）：
 
-- **原生 OS 级 handler**：URI 由操作系统直接派发给本地 app，不经任何第三方 web server，`via` / `tok` 留在 query 无泄露风险。
+- **原生 OS 级 handler**：URI 由操作系统直接派发给本地 app，不经任何第三方 web server，`tok` 留在 query 无泄露风险。
 - **web `registerProtocolHandler` handler**：浏览器会**导航到注册的 HTTPS handler 模板 URL**，并把原始 `web+cokret:` URI 作为替换值（`%s`）填入。若模板把 `%s` 放在 path / query，则 target 乃至 token 会进入 handler 服务端的请求与日志。因此：
   - web handler 模板 **MUST** 把 `%s` 放进**自身 fragment**（例如 `https://app.example/open#%s`），使被替换的 URI 永远落在 fragment、不进服务端；**或**
   - web 客户端**只**走 HTTPS fragment 落地页，把 `web+cokret:` 留给原生 / 本地 handler，不自行注册 web protocol handler。

@@ -2752,6 +2752,10 @@
         "allow_child_privacy_tightening_against_required": {
           "type": "boolean",
           "description": "Privacy-floor escape switch. Defaults to false. When the parent policy sets disclosure='required' and this field is true, a child Realm MAY tighten disclosure to 'optional' or 'disabled'. Misspellings (e.g., a missing underscore) cause schema_violation because additionalProperties=false; runtime mismatches yield read_receipt_compliance_floor_violated."
+        },
+        "allow_public_receipts_on_world_readable": {
+          "type": "boolean",
+          "description": "Opt-in switch for the visibility='public' + history_visibility='world_readable' combination. Defaults to false. When false the reducer MUST reject that combination; when true the reducer admits it with a warning. See zh/discovery/read-receipts.md §2.5.1."
         }
       },
       "additionalProperties": false
@@ -3267,7 +3271,7 @@
             "http_custom"
           ]
         },
-        "protocol_version": {
+        "external_protocol_version": {
           "type": "string"
         },
         "endpoint_ref": {
@@ -7013,9 +7017,9 @@
         },
         "recording_result": {
           "type": "object",
-          "description": "Typed recording outcome, present only when recording_state ∈ {ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries blob hash, duration, media type, retention policy and recording_start_event_id as typed fields. All fields optional.",
+          "description": "Typed recording outcome, present only when recording_state ∈ {ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries content digest, duration, media type, retention policy and recording_start_event_id as typed fields. All fields optional.",
           "properties": {
-            "blob_hash": {
+            "content_digest": {
               "$ref": "#/$defs/hash"
             },
             "duration_ms": {

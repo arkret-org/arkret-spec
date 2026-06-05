@@ -891,17 +891,18 @@ ck.vector.flow_tracks_update.atomic.v1
 
 实现 MUST 在 conformance 报告中分别报告三个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 §4.5 step 5 primary 解析规则的边界 case。
 
-## 3. Redaction Vectors
+## 3. Redaction 与 Snapshot Vectors
 
 ### 3.1 目标
 
-本文件定义 redaction 的执行顺序、保留字段与可见性收敛规则。  
+本节定义 redaction 的执行顺序、保留字段与可见性收敛规则，并涵盖与之相邻的 snapshot pruning / inclusion-challenge 向量（§3.5–§3.6，`domain=snapshot`）。  
 所有实现必须将 redaction 视为“可验证的内容裁剪”，而非删除事件。
 
 向量命名：
 
 ```text
 ck.vector.redaction.<scenario>.v1
+ck.vector.snapshot.<scenario>.v1
 ```
 
 ### 3.2 Vector: 字段保留规则
@@ -2931,7 +2932,7 @@ Steps:
 Expected:
 
 - Client MUST 检测 Egress destination 不是 Cokret media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
-- 合法路径：Egress → Cokret blob upload → `ck.call.state` 写 `recording_state="ready"` + blob hash。
+- 合法路径：Egress → Cokret blob upload → `ck.call.state` 写 `recording_state="ready"` + content digest。
 
 ### 12.9.1 Recording Exporter Label — Dedicated Recording Context
 

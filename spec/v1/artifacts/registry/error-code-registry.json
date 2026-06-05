@@ -1668,6 +1668,14 @@
       "description": "An AEAD nonce on the wire does not match the deterministic derivation from MLS-Exporter context {key_ref, epoch, purpose} plus (device_id, monotonic counter) mandated by zh/crypto-media/media-and-blob.md §3.1. Producers MUST NOT emit naive random nonces under shared MLS application keys; receivers MUST reject such payloads to enforce the cross-implementation nonce-uniqueness contract."
     },
     {
+      "code": "aead_nonce_sender_domain_collision",
+      "applies_to": [
+        "event_envelope",
+        "encoding"
+      ],
+      "description": "Two active senders share an AEAD nonce sender-domain prefix (device_id-derived), so their derived nonces can collide under the same (key_ref, epoch). The receiver MUST fail closed before AEAD decryption to prevent nonce reuse compromising the epoch key. See zh/crypto-media/media-and-blob.md §3.1."
+    },
+    {
       "code": "accountability_grant_missing",
       "applies_to": [
         "event_envelope",
@@ -1750,6 +1758,14 @@
         "schema_validation"
       ],
       "description": "`ck.realm.media_service` is missing the required non-empty `foci[]` list. Services MUST reject payloads that do not declare explicit media foci and MUST NOT infer a focus from unrelated endpoint fields. See zh/crypto-media/media-service-binding.md §2."
+    },
+    {
+      "code": "media_service_binding_uncovered",
+      "applies_to": [
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "A media token / focus join was presented but the current MLS epoch governance binding does not cover the `ck.realm.media_service` binding the token relies on (token issuer trust-root anchoring is unverifiable). The verifier MUST fail closed instead of trusting an uncovered media binding. See zh/crypto-media/media-service-binding.md §2.1."
     },
     {
       "code": "focus_unavailable_for_client",

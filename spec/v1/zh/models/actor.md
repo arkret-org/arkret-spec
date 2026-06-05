@@ -97,7 +97,7 @@ Schema id: `ck.schema.actor_profile.v1`
 | --- | --- | --- |
 | `issuer` | did | 签发 accountability 担保的主体(`accountable_principal_ids[]` 中被声明的 DID) |
 | `subject` | did | 被担保的 actor principal(actor profile 的 `principal_id`) |
-| `scope` | string \| array | 担保范围(例如 `"employment"` / `"contracted_service"` / `"agent_operator"`);仅供 UI 与 governance 展示，不参与授权 |
+| `accountability_scope` | string \| array | 担保范围(例如 `"employment"` / `"contracted_service"` / `"agent_operator"`);仅供 UI 与 governance 展示，不参与授权 |
 | `not_before` | timestamp | 担保起始时间 |
 | `expires_at` | timestamp | 担保到期；过期后视作 unverified |
 | `grant_status` | enum(active, revoked) | issuer 主动 revoke 改为 `revoked` |

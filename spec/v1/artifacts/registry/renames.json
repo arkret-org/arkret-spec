@@ -225,10 +225,9 @@
       "replacement": "scope_circle_id",
       "allowed_contexts": [
         "changelog",
-        "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy Flow payload field. Current v1 has no per-track discussion boundary. Use Flow.scope_circle_id for a whole-Flow Circle scope, or two Flows linked by confidential_discussion_of for wide synthesis + narrow discussion."
+      "notes": "Forbidden Flow payload field. Current v1 has no per-track discussion boundary. Use Flow.scope_circle_id for a whole-Flow Circle scope, or two Flows linked by confidential_discussion_of for wide synthesis plus narrow discussion."
     },
     {
       "id": "parent_ref",
@@ -729,10 +728,9 @@
       "replacement": "realm_frontier",
       "allowed_contexts": [
         "changelog",
-        "legacy_migration",
         "negative_test"
       ],
-      "notes": "Frontier object property used in cx.audit.ryw_receipt, cx.attestation.range_completeness event_range (from_frontier/to_frontier), and POST /events response is renamed 'space_frontier' -> 'realm_frontier'. The boundary covered by this frontier is the Realm (replication/security boundary in v1), not an in-Realm Space container. The new name removes a long-standing source of confusion where implementations could mistakenly validate completeness at Space scope."
+      "notes": "Frontier object property used in cx.audit.ryw_receipt, cx.attestation.range_completeness event_range (from_frontier/to_frontier), and POST /events response is realm_frontier. The boundary covered by this frontier is the Realm (replication/security boundary in v1), not an in-Realm Space container."
     },
     {
       "id": "cx.directory.search_spaces",

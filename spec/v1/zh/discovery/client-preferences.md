@@ -53,14 +53,14 @@ updated: 2026-05-25
 ```json
 {
   "tags": {
-    "ck.favorite": { "order": 0.5 },
+    "ck.favorite": { "order": "m" },
     "ck.low_priority": {},
     "org.example.work": {}
   }
 }
 ```
 
-客户端 SHOULD 根据这些标签将 Realm 在 UI 上分组或排序。`order` 是一种用于自定义排序的浮点数指示器。
+客户端 SHOULD 根据这些标签将 Realm 在 UI 上分组或排序。`order` 是用于自定义排序的稳定 rank string（跨端确定性见 §6；客户端 MAY 在 UI 内用 float 计算临时位置，但写回 account data 时 MUST 归一为规范 rank string）。
 
 ### 3.2 勿扰与通知设置 (Notification Settings)
 
