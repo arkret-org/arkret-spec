@@ -196,6 +196,88 @@ def reject_lone_surrogates(value: Any, json_path: str = "$") -> None:
             reject_lone_surrogates(child, f"{json_path}.{key}")
 
 
+def resolve_json_pointer(document: Any, fragment: str) -> Any:
+    if not fragment or fragment == "#":
+        return document
+    if not fragment.startswith("#/"):
+        raise KeyError(fragment)
+    current = document
+    for token in fragment[2:].split("/"):
+        token = token.replace("~1", "/").replace("~0", "~")
+        if isinstance(current, dict) and token in current:
+            current = current[token]
+        else:
+            raise KeyError(fragment)
+    return current
+
+
+def load_artifact_schema_from_ref(lint: Lint, owner: Path, ref: str) -> Any:
+    normalized = normalize_artifact_schema_ref(ref)
+    if not isinstance(normalized, str) or not normalized.startswith("schemas/"):
+        lint.fail(owner, f"schema ref must point to artifacts/schemas: {ref}")
+        return None
+    file_ref, _, fragment = normalized.partition("#")
+    schema_path = ARTIFACTS / file_ref
+    document = load_json(lint, schema_path)
+    if document is None:
+        return None
+    try:
+        return resolve_json_pointer(document, f"#{fragment}" if fragment else "#")
+    except KeyError:
+        lint.fail(owner, f"schema ref fragment not found: {ref}")
+        return None
+
+
+def resolve_openapi_component_schema(
+    lint: Lint,
+    openapi_path: Path,
+    components: dict[str, Any],
+    component_name: str,
+) -> Any:
+    schema = components.get(component_name)
+    seen: set[str] = set()
+    while isinstance(schema, dict):
+        ref = schema.get("$ref")
+        if not isinstance(ref, str):
+            return schema
+        if ref.startswith("#/components/schemas/"):
+            next_name = ref.rsplit("/", 1)[-1]
+            if next_name in seen:
+                lint.fail(openapi_path, f"cyclic OpenAPI component ref: {component_name}")
+                return None
+            seen.add(next_name)
+            schema = components.get(next_name)
+            continue
+        return load_artifact_schema_from_ref(lint, openapi_path, ref)
+    return schema
+
+
+def resolve_openapi_schema_node(
+    lint: Lint,
+    openapi_path: Path,
+    components: dict[str, Any],
+    schema: Any,
+) -> Any:
+    if not isinstance(schema, dict):
+        return schema
+    ref = schema.get("$ref")
+    if not isinstance(ref, str):
+        return schema
+    if ref.startswith("#/components/schemas/"):
+        return resolve_openapi_component_schema(lint, openapi_path, components, ref.rsplit("/", 1)[-1])
+    return load_artifact_schema_from_ref(lint, openapi_path, ref)
+
+
+def schema_ref_targets(ref_schema: Any, component_name: str) -> bool:
+    if not isinstance(ref_schema, dict):
+        return False
+    ref = ref_schema.get("$ref")
+    return ref in {
+        f"#/components/schemas/{component_name}",
+        f"#/$defs/{component_name}",
+    }
+
+
 def canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True, allow_nan=False)
 
@@ -1953,8 +2035,8 @@ def check_policy_check_alignment(lint: Lint) -> None:
     if response_schema != {"$ref": "#/components/schemas/PolicyCheckResponse"}:
         lint.fail(openapi_path, "/_cokret/self/policy/check 200 response must reference PolicyCheckResponse")
 
-    request_component = components.get("PolicyCheckRequest")
-    response_component = components.get("PolicyCheckResponse")
+    request_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckRequest")
+    response_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckResponse")
     if not isinstance(request_component, dict):
         lint.fail(openapi_path, "components.schemas.PolicyCheckRequest missing")
     elif "realm_id" not in set(request_component.get("required") or []):
@@ -2099,7 +2181,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
                     )
 
     session_grant_proof_required = (
-        components.get("SessionGrantRequest", {})
+        (resolve_openapi_component_schema(lint, openapi_path, components, "SessionGrantRequest") or {})
         .get("properties", {})
         .get("proof", {})
         .get("required", [])
@@ -2125,7 +2207,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         for required_parameter in ("cursor", "limit"):
             if required_parameter not in parameter_names:
                 lint.fail(openapi_path, f"{operation_id} parameters must include {required_parameter}")
-        component = components.get(component_name, {})
+        component = resolve_openapi_component_schema(lint, openapi_path, components, component_name) or {}
         required = set(component.get("required") or [])
         properties = component.get("properties") or {}
         if "has_more" not in required:
@@ -2197,7 +2279,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
 
     query_post = op("ck.events.query_post")
     if query_post is not None:
-        schema = openapi_request_schema(query_post)
+        schema = resolve_openapi_schema_node(lint, openapi_path, openapi.get("components", {}).get("schemas", {}), openapi_request_schema(query_post))
         if not isinstance(schema, dict):
             lint.fail(openapi_path, "ck.events.query_post requestBody schema missing")
         else:
@@ -2219,11 +2301,13 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                     if property_schema.get("type") != "array" or property_schema.get("minItems") != 1:
                         lint.fail(openapi_path, f"ck.events.query_post.{name} must be a non-empty array")
                     items = property_schema.get("items")
-                    if not isinstance(items, dict) or items.get("$ref") != ref:
+                    if not isinstance(items, dict) or not (
+                        items.get("$ref") == ref or schema_ref_targets(items, ref.rsplit("/", 1)[-1])
+                    ):
                         lint.fail(openapi_path, f"ck.events.query_post.{name}.items must reference {ref}")
                 for name in ("before", "after"):
                     property_schema = properties.get(name)
-                    if not isinstance(property_schema, dict) or property_schema.get("$ref") != "#/components/schemas/Cursor":
+                    if not schema_ref_targets(property_schema, "Cursor"):
                         lint.fail(openapi_path, f"ck.events.query_post.{name} must reference Cursor")
 
 
@@ -2830,7 +2914,7 @@ def collect_operation_field_table_constraints(text: str) -> dict[str, str]:
     for line in text.splitlines():
         if not line.startswith("| `ck."):
             continue
-        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        cells = [cell.strip() for cell in re.split(r"(?<!\\)\|", line.strip().strip("|"))]
         if len(cells) != 5:
             continue
         operation_id = cells[0].strip("`")

@@ -82,6 +82,45 @@
       }
     },
     {
+      "operation_id": "ck.account.issue_session_grant",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequest",
+        "schema_kind": "object",
+        "required": [
+          "principal_id",
+          "proof"
+        ],
+        "properties": [
+          "principal_id",
+          "device_id",
+          "requested_scope",
+          "agent_key_authorization_ref",
+          "agent_scope_request",
+          "proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponse",
+        "schema_kind": "object",
+        "required": [
+          "principal_id",
+          "session_grant",
+          "expires_at"
+        ],
+        "properties": [
+          "principal_id",
+          "device_id",
+          "session_grant",
+          "expires_at",
+          "granted_scope",
+          "scope_details"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.account.session_revoke",
       "success_shape_kind": "typed_response",
       "request": {
@@ -386,6 +425,36 @@
       }
     },
     {
+      "operation_id": "ck.account.oidc_callback",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequest",
+        "schema_kind": "object",
+        "required": [
+          "state",
+          "code"
+        ],
+        "properties": [
+          "state",
+          "code",
+          "nonce",
+          "redirect_uri"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackResponse",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "principal_id",
+          "session",
+          "redirect_url"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.applet.install.preview",
       "success_shape_kind": "typed_response",
       "request": {
@@ -678,6 +747,63 @@
       }
     },
     {
+      "operation_id": "ck.authz.check",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequest",
+        "schema_kind": "object",
+        "required": [
+          "actor_id",
+          "action"
+        ],
+        "properties": [
+          "actor_id",
+          "action",
+          "resource",
+          "context"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckResponse",
+        "schema_kind": "object",
+        "required": [
+          "decision"
+        ],
+        "properties": [
+          "decision",
+          "matched_grants",
+          "applied_constraints",
+          "policy_results",
+          "missing_proofs",
+          "frontier",
+          "freshness_state",
+          "last_known_frontier_age_ms",
+          "anchorer_status",
+          "cache_expires_at",
+          "reason_code",
+          "retry_after_ms",
+          "obligations"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.authz.get_effective_grants",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantListResponse",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "grants",
+          "state_digest",
+          "evaluated_at"
+        ],
+        "closed": false
+      }
+    },
+    {
       "operation_id": "ck.authz.get_invites",
       "success_shape_kind": "typed_response",
       "response": {
@@ -730,6 +856,85 @@
           "media_type",
           "content_digest",
           "upload_receipt"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.blob.presign",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequest",
+        "schema_kind": "object",
+        "required": [
+          "blob_ref"
+        ],
+        "properties": [
+          "blob_ref",
+          "realm_id",
+          "max_age_seconds",
+          "purpose"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponse",
+        "schema_kind": "object",
+        "required": [
+          "url",
+          "expires_at"
+        ],
+        "properties": [
+          "url",
+          "expires_at",
+          "purpose"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.device_messages.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponse",
+        "schema_kind": "object",
+        "required": [
+          "messages",
+          "has_more"
+        ],
+        "properties": [
+          "messages",
+          "next_cursor",
+          "has_more",
+          "limited"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.device_messages.put",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequest",
+        "schema_kind": "object",
+        "required": [
+          "messages"
+        ],
+        "properties": [
+          "messages"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutResponse",
+        "schema_kind": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": [
+          "ok",
+          "delivered",
+          "unknown_devices"
         ],
         "closed": true
       }
@@ -879,6 +1084,51 @@
           "main_flow_id",
           "binding_event_ref",
           "created"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.directory.announce",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequest",
+        "schema_kind": "object",
+        "required": [
+          "resource_kind",
+          "resource_id",
+          "discovery_state",
+          "source_refs",
+          "as_of",
+          "principal_server_did"
+        ],
+        "properties": [
+          "resource_kind",
+          "resource_id",
+          "discovery_state",
+          "source_refs",
+          "as_of",
+          "principal_server_did",
+          "ttl_seconds",
+          "supersedes_announce_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceResponse",
+        "schema_kind": "object",
+        "required": [
+          "announce_id",
+          "indexed_at",
+          "effective_ttl_seconds",
+          "next_revalidation_after"
+        ],
+        "properties": [
+          "announce_id",
+          "indexed_at",
+          "effective_ttl_seconds",
+          "next_revalidation_after",
+          "warnings"
         ],
         "closed": true
       }
@@ -1252,6 +1502,361 @@
         "properties": [
           "subscription_id",
           "effective_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.directory.withdraw",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequest",
+        "schema_kind": "object",
+        "required": [
+          "resource_id",
+          "governance_proof"
+        ],
+        "properties": [
+          "resource_id",
+          "reason",
+          "governance_proof",
+          "effective_at"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawResponse",
+        "schema_kind": "object",
+        "required": [
+          "withdrawal_ref",
+          "acked_at"
+        ],
+        "properties": [
+          "withdrawal_ref",
+          "acked_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.events.frontier",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierResponse",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.events.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventGetResponse",
+        "schema_kind": "object",
+        "required": [
+          "event"
+        ],
+        "properties": [
+          "event",
+          "visibility",
+          "receipts"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.events.query",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse",
+        "schema_kind": "object",
+        "required": [
+          "events",
+          "has_more"
+        ],
+        "properties": [
+          "events",
+          "prev_cursor",
+          "next_cursor",
+          "has_more",
+          "snapshot_bootstrap"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.events.query_post",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "realms",
+          "actors",
+          "before",
+          "after",
+          "order",
+          "limit",
+          "filters"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse",
+        "schema_kind": "object",
+        "required": [
+          "events",
+          "has_more"
+        ],
+        "properties": [
+          "events",
+          "prev_cursor",
+          "next_cursor",
+          "has_more",
+          "snapshot_bootstrap"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.events.resolve",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequest",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "event_ids",
+          "event_digests",
+          "include_payload"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveResponse",
+        "schema_kind": "object",
+        "required": [
+          "events",
+          "missing"
+        ],
+        "properties": [
+          "events",
+          "missing",
+          "unauthorized"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.events.submit",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequest",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse",
+        "schema_kind": "object",
+        "required": [
+          "status",
+          "accepted"
+        ],
+        "properties": [
+          "status",
+          "accepted",
+          "duplicate",
+          "rejected",
+          "quarantine",
+          "actor_frontier",
+          "realm_frontier",
+          "cursor"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.ephemeral.send",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/ephemeral-envelope.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "kind",
+          "realm_id",
+          "actor_id",
+          "sent_at",
+          "expires_at",
+          "payload"
+        ],
+        "properties": [
+          "kind",
+          "realm_id",
+          "actor_id",
+          "device_id",
+          "sent_at",
+          "expires_at",
+          "payload",
+          "proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitResponse",
+        "schema_kind": "object",
+        "required": [
+          "accepted",
+          "kind",
+          "realm_id"
+        ],
+        "properties": [
+          "accepted",
+          "kind",
+          "realm_id",
+          "dispatched_to",
+          "server_received_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.call.media.token_exchange",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequest",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "call_id",
+          "actor_id",
+          "device_id",
+          "focus_id"
+        ],
+        "properties": [
+          "realm_id",
+          "call_id",
+          "actor_id",
+          "device_id",
+          "focus_id",
+          "capability_refs",
+          "desired_media"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponse",
+        "schema_kind": "object",
+        "required": [
+          "focus_id",
+          "type",
+          "connect_url",
+          "backend_token",
+          "participant_identity",
+          "participant_binding",
+          "expires_at",
+          "service_signature"
+        ],
+        "properties": [
+          "focus_id",
+          "type",
+          "connect_url",
+          "backend_token",
+          "participant_identity",
+          "participant_binding",
+          "expires_at",
+          "service_signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.identity.get_document",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityGetDocumentResponse",
+        "schema_kind": "object",
+        "required": [
+          "did_document"
+        ],
+        "properties": [
+          "did_document",
+          "normalized_view",
+          "method_evidence",
+          "cached_at"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.identity.resolve",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequest",
+        "schema_kind": "object",
+        "required": [
+          "did"
+        ],
+        "properties": [
+          "did",
+          "include"
+        ],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveResponse",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "did_document",
+          "key_log_head",
+          "seq",
+          "receipts"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.identity.submit_did_operation",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequest",
+        "schema_kind": "object",
+        "required": [
+          "did",
+          "did_method",
+          "operation",
+          "proofs"
+        ],
+        "properties": [
+          "did",
+          "did_method",
+          "seq",
+          "prev_event_digest",
+          "operation",
+          "policy_context",
+          "proofs"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponse",
+        "schema_kind": "object",
+        "required": [
+          "status",
+          "did"
+        ],
+        "properties": [
+          "status",
+          "did",
+          "seq",
+          "head_event_digest",
+          "operation_ref",
+          "receipts"
         ],
         "closed": true
       }
@@ -1821,6 +2426,17 @@
       }
     },
     {
+      "operation_id": "ck.mimi.provider_directory",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/mimi-interop.schema.json",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      }
+    },
+    {
       "operation_id": "ck.mimi.proxy_download",
       "success_shape_kind": "typed_response",
       "request": {
@@ -2033,6 +2649,173 @@
       }
     },
     {
+      "operation_id": "ck.moderation.report",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/moderation-report.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "target_ref",
+          "report_reason_code",
+          "reporter"
+        ],
+        "properties": [
+          "report_id",
+          "realm_id",
+          "effective_scope",
+          "target_ref",
+          "report_reason_code",
+          "description",
+          "reporter",
+          "evidence_refs",
+          "evidence_package",
+          "franking_proof",
+          "created_at",
+          "status",
+          "routed_to"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponse",
+        "schema_kind": "object",
+        "required": [
+          "report_id",
+          "status"
+        ],
+        "properties": [
+          "report_id",
+          "status",
+          "routed_to"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.policy.check",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequest",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "request_canonical_digest",
+          "action",
+          "actor",
+          "source"
+        ],
+        "properties": [
+          "request_id",
+          "realm_id",
+          "request_canonical_digest",
+          "action",
+          "actor",
+          "device_id",
+          "source",
+          "event_preview",
+          "auth_context"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckResponse",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "bound_to",
+          "decision",
+          "reason_code",
+          "expires_at",
+          "auth_state_digest",
+          "policy_frontier_digest",
+          "membership_frontier_digest",
+          "signature"
+        ],
+        "properties": [
+          "request_id",
+          "bound_to",
+          "decision",
+          "reason_code",
+          "expires_at",
+          "auth_state_digest",
+          "policy_frontier_digest",
+          "membership_frontier_digest",
+          "next_retry_at",
+          "obligations",
+          "signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.projection.flows",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowsResponse",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "flows",
+          "total",
+          "has_more"
+        ],
+        "properties": [
+          "realm_id",
+          "flows",
+          "total",
+          "next_cursor",
+          "has_more"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.projection.morphs",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphsResponse",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "morphs",
+          "total",
+          "has_more"
+        ],
+        "properties": [
+          "realm_id",
+          "morphs",
+          "total",
+          "next_cursor",
+          "has_more"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.projection.spaces",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpacesResponse",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "spaces",
+          "total",
+          "has_more"
+        ],
+        "properties": [
+          "realm_id",
+          "spaces",
+          "total",
+          "next_cursor",
+          "has_more"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.push.notify",
       "success_shape_kind": "typed_response",
       "request": {
@@ -2169,6 +2952,66 @@
           "profile"
         ],
         "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.account.cursor_revoke",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequest",
+        "schema_kind": "object",
+        "required": [
+          "cursor",
+          "reason_code"
+        ],
+        "properties": [
+          "cursor",
+          "reason_code",
+          "revoke_scope"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponse",
+        "schema_kind": "object",
+        "required": [
+          "revoked"
+        ],
+        "properties": [
+          "revoked",
+          "expires_at"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.snapshot.head",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadResponse",
+        "schema_kind": "object",
+        "required": [
+          "snapshot_ref",
+          "state_digest",
+          "frontier",
+          "event_set_commitment",
+          "created_by",
+          "created_at",
+          "authority_binding",
+          "signature"
+        ],
+        "properties": [
+          "snapshot_ref",
+          "state_digest",
+          "frontier",
+          "event_set_commitment",
+          "verification_hints",
+          "created_by",
+          "created_at",
+          "authority_binding",
+          "signature"
+        ],
+        "closed": false
       }
     }
   ]

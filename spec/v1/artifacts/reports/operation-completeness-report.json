@@ -21,33 +21,28 @@
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 2,
-      "schema_missing": 28,
       "service_describe": 6,
       "streaming_frame_schema": 2,
-      "typed_schema": 69
+      "typed_schema": 97
     },
     "by_tier_and_class": {
       "core": {
         "no_request_body": 2,
-        "schema_missing": 13,
         "service_describe": 4,
         "streaming_frame_schema": 2,
-        "typed_schema": 2
+        "typed_schema": 15
       },
       "deployment_local": {
-        "schema_missing": 2,
-        "typed_schema": 3
+        "typed_schema": 5
       },
       "extension": {
         "binary_or_redirect": 2,
-        "schema_missing": 12,
         "service_describe": 1,
-        "typed_schema": 47
+        "typed_schema": 59
       },
       "interop_bridge": {
-        "schema_missing": 1,
         "service_describe": 1,
-        "typed_schema": 17
+        "typed_schema": 18
       }
     }
   },
@@ -70,12 +65,15 @@
       "operation_id": "ck.account.cursor_revoke",
       "tier": "core",
       "http": "POST /_cokret/self/account/cursor/revoke",
-      "success_shape_kind": "inline_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "schema_missing",
-      "reason": "operation has a request body but no typed request/response component is bound in OpenAPI."
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponse",
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequest",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponse"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.account.describe",
@@ -109,28 +107,28 @@
       "tier": "deployment_local",
       "http": "POST /_cokret/gate/account/session-grants",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/SessionGrantRequest",
         "response": "#/components/schemas/SessionGrantResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/SessionGrantRequest, response=#/components/schemas/SessionGrantResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.account.oidc_callback",
       "tier": "deployment_local",
       "http": "POST /_cokret/gate/account/oidc/callback",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountOidcCallbackRequest",
         "response": "#/components/schemas/AccountOidcCallbackResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/AccountOidcCallbackRequest, response=#/components/schemas/AccountOidcCallbackResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.account.register",
@@ -487,14 +485,14 @@
       "tier": "extension",
       "http": "POST /_cokret/self/authz/check",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/AuthzCheckRequest",
         "response": "#/components/schemas/AuthzCheckResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/AuthzCheckRequest, response=#/components/schemas/AuthzCheckResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.authz.get_effective_grants",
@@ -502,12 +500,12 @@
       "http": "GET /_cokret/self/authz/effective-grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantListResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/GrantListResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/GrantListResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.authz.get_invites",
@@ -548,12 +546,15 @@
       "operation_id": "ck.blob.presign",
       "tier": "extension",
       "http": "POST /_cokret/self/blob/presign",
-      "success_shape_kind": "inline_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "schema_missing",
-      "reason": "operation has a request body but no typed request/response component is bound in OpenAPI."
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponse",
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequest",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponse"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.blob.upload",
@@ -573,12 +574,15 @@
       "operation_id": "ck.call.media.token_exchange",
       "tier": "core",
       "http": "POST /_cokret/self/rtc/token",
-      "success_shape_kind": "inline_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "schema_missing",
-      "reason": "operation has a request body but no typed request/response component is bound in OpenAPI."
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponse",
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequest",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponse"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.contact.list",
@@ -641,26 +645,26 @@
       "http": "GET /_cokret/self/device_messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/DeviceMessagesGetResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/DeviceMessagesGetResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.device_messages.put",
       "tier": "extension",
       "http": "POST /_cokret/self/device_messages",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/DeviceMessagesPutRequest",
         "response": "#/components/schemas/DeviceMessagesPutResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/DeviceMessagesPutRequest, response=#/components/schemas/DeviceMessagesPutResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.direct_conversation.resolve",
@@ -681,14 +685,14 @@
       "tier": "extension",
       "http": "POST /_cokret/find/directory/announce",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectoryAnnounceRequest",
         "response": "#/components/schemas/DirectoryAnnounceResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/DirectoryAnnounceRequest, response=#/components/schemas/DirectoryAnnounceResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.directory.describe",
@@ -862,28 +866,28 @@
       "tier": "extension",
       "http": "POST /_cokret/find/directory/withdraw",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectoryWithdrawRequest",
         "response": "#/components/schemas/DirectoryWithdrawResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/DirectoryWithdrawRequest, response=#/components/schemas/DirectoryWithdrawResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.ephemeral.send",
       "tier": "core",
       "http": "POST /_cokret/self/ephemeral",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitResponse",
       "openapi_component_refs": {
         "request": "../schemas/ephemeral-envelope.schema.json",
         "response": "#/components/schemas/EphemeralSubmitResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=../schemas/ephemeral-envelope.schema.json, response=#/components/schemas/EphemeralSubmitResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.events.describe",
@@ -904,12 +908,12 @@
       "http": "GET /_cokret/self/events/frontier",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/EventsFrontierResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/EventsFrontierResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.events.get",
@@ -917,12 +921,12 @@
       "http": "GET /_cokret/self/events/{event_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventGetResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/EventGetResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/EventGetResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.events.query",
@@ -930,52 +934,54 @@
       "http": "GET /_cokret/self/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/EventsQueryResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/EventsQueryResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.events.query_post",
       "tier": "core",
       "http": "POST /_cokret/self/events/query",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse",
       "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest",
         "response": "#/components/schemas/EventsQueryResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/EventsQueryResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.events.resolve",
       "tier": "core",
       "http": "POST /_cokret/self/events/resolve",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/EventsResolveRequest",
         "response": "#/components/schemas/EventsResolveResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/EventsResolveRequest, response=#/components/schemas/EventsResolveResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.events.submit",
       "tier": "core",
       "http": "POST /_cokret/self/events",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse",
       "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequest",
         "response": "#/components/schemas/EventsSubmitResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/EventsSubmitResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.events.subscribe",
@@ -1007,12 +1013,12 @@
       "http": "GET /_cokret/root/identity/document",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityGetDocumentResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/IdentityGetDocumentResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/IdentityGetDocumentResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.identity.get_log",
@@ -1041,27 +1047,28 @@
       "tier": "core",
       "http": "POST /_cokret/root/identity/resolve",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveResponse",
       "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequest",
         "response": "#/components/schemas/IdentityResolveResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/IdentityResolveResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.identity.submit_did_operation",
       "tier": "core",
       "http": "POST /_cokret/root/identity/submit-did-operation",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/DidOperationSubmitRequest",
         "response": "#/components/schemas/DidOperationSubmitResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/DidOperationSubmitRequest, response=#/components/schemas/DidOperationSubmitResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.keys.backups.delete",
@@ -1290,12 +1297,12 @@
       "http": "GET /_cokret/open/mimi/provider-directory",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/mimi-interop.schema.json",
       "openapi_component_refs": {
         "response": "../schemas/mimi-interop.schema.json"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=../schemas/mimi-interop.schema.json) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.mimi.proxy_download",
@@ -1386,28 +1393,28 @@
       "tier": "extension",
       "http": "POST /_cokret/self/moderation/report",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/moderation-report.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponse",
       "openapi_component_refs": {
         "request": "../schemas/moderation-report.schema.json",
         "response": "#/components/schemas/ModerationReportResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=../schemas/moderation-report.schema.json, response=#/components/schemas/ModerationReportResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.policy.check",
       "tier": "extension",
       "http": "POST /_cokret/self/policy/check",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckResponse",
       "openapi_component_refs": {
         "request": "#/components/schemas/PolicyCheckRequest",
         "response": "#/components/schemas/PolicyCheckResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (request=#/components/schemas/PolicyCheckRequest, response=#/components/schemas/PolicyCheckResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.projection.flows",
@@ -1415,12 +1422,12 @@
       "http": "GET /_cokret/self/projection/flows",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowsResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/ProjectionFlowsResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/ProjectionFlowsResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.projection.morphs",
@@ -1428,12 +1435,12 @@
       "http": "GET /_cokret/self/projection/morphs",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphsResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/ProjectionMorphsResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/ProjectionMorphsResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.projection.spaces",
@@ -1441,12 +1448,12 @@
       "http": "GET /_cokret/self/projection/spaces",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpacesResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/ProjectionSpacesResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/ProjectionSpacesResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.push.notify",
@@ -1509,12 +1516,12 @@
       "http": "GET /_cokret/self/snapshot/head",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadResponse",
       "openapi_component_refs": {
         "response": "#/components/schemas/SnapshotHeadResponse"
       },
-      "completeness_class": "schema_missing",
-      "reason": "OpenAPI binds inline component(s) (response=#/components/schemas/SnapshotHeadResponse) not yet mirrored to a canonical artifact schema ref in the registry."
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     }
   ]
 }

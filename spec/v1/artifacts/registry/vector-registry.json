@@ -602,7 +602,7 @@
       "status": "active",
       "domain": "invite",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/sync/third-party-invites.md"
       ]
     },

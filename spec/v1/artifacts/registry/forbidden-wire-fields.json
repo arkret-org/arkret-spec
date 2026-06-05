@@ -1068,7 +1068,7 @@
       "rejection_level": "hard_reject",
       "replacement": "actor_kind=agent plus native agent provisioning state",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Native personal agent is represented by actor_kind=agent and CXP-0008 provisioning/accountability state, not by an expanded actor_kind enum."
+      "notes": "Native personal agent is represented by actor_kind=agent and CKP-0008 provisioning/accountability state, not by an expanded actor_kind enum."
     },
     {
       "id": "actor_kind=agent_ghost",

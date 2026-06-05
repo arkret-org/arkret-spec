@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/query.schema.json",
+  "title": "Cokret Query / Search Request Shapes",
+  "description": "Canonical wire schema for client query / projection and search request bodies and their reusable building blocks (filters, sort, relation query). The OpenAPI document references these $defs so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md. facet_name / view_renderer are copies of the shared OpenAPI enums (kept local so this file is self-contained); the authoritative facet / renderer enums also live in the OpenAPI components and MUST stay in lockstep.",
+  "$defs": {
+    "facet_name": {
+      "type": "string",
+      "enum": [
+        "container",
+        "replyable",
+        "schedulable",
+        "assignable",
+        "stateful",
+        "rankable",
+        "reviewable",
+        "notifiable",
+        "documentable",
+        "renderable"
+      ]
+    },
+    "view_renderer": {
+      "type": "string",
+      "enum": [
+        "board",
+        "list",
+        "table",
+        "calendar",
+        "gantt",
+        "timeline",
+        "thread",
+        "chat",
+        "forum",
+        "graph",
+        "tree",
+        "document",
+        "dashboard",
+        "custom"
+      ]
+    },
+    "field_filter": {
+      "type": "object",
+      "required": [
+        "field",
+        "op"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$"
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "eq",
+            "neq",
+            "in",
+            "not_in",
+            "lt",
+            "lte",
+            "gt",
+            "gte",
+            "contains",
+            "exists",
+            "prefix",
+            "full_text"
+          ]
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "boolean_filter": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "properties": {
+        "and": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/query_filter"
+          }
+        },
+        "or": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/query_filter"
+          }
+        },
+        "not": {
+          "$ref": "#/$defs/query_filter"
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_filter": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/field_filter"
+        },
+        {
+          "$ref": "#/$defs/boolean_filter"
+        }
+      ]
+    },
+    "sort_spec": {
+      "type": "object",
+      "required": [
+        "field",
+        "direction"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        },
+        "nulls": {
+          "type": "string",
+          "enum": [
+            "first",
+            "last"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "relation_query": {
+      "type": "object",
+      "required": [
+        "kind",
+        "direction"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "out",
+            "in",
+            "both"
+          ]
+        },
+        "source_ref": {
+          "type": "string",
+          "pattern": "^(ck:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
+        },
+        "source_actor_id": {
+          "type": "string"
+        },
+        "source_realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "target_ref": {
+          "type": "string",
+          "pattern": "^(ck:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
+        },
+        "target_actor_id": {
+          "type": "string"
+        },
+        "target_realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "anyOf": [
+              { "required": ["source_ref", "source_actor_id"] },
+              { "required": ["source_ref", "source_realm_id"] },
+              { "required": ["source_actor_id", "source_realm_id"] },
+              { "required": ["target_ref", "target_actor_id"] },
+              { "required": ["target_ref", "target_realm_id"] },
+              { "required": ["target_actor_id", "target_realm_id"] }
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "query_request": {
+      "type": "object",
+      "properties": {
+        "realm_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "view_id": {
+          "type": "string",
+          "pattern": "^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "projection": {
+          "type": "string",
+          "enum": [
+            "raw",
+            "collection",
+            "timeline",
+            "graph",
+            "document",
+            "composite"
+          ]
+        },
+        "renderer": {
+          "$ref": "#/$defs/view_renderer"
+        },
+        "object_types": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "morph_types": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "facets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/facet_name"
+          }
+        },
+        "relation": {
+          "oneOf": [
+            { "$ref": "#/$defs/relation_query" },
+            { "type": "null" }
+          ]
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/query_filter"
+          }
+        },
+        "order_by": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sort_spec"
+          }
+        },
+        "cursor": {
+          "oneOf": [
+            { "type": "string", "pattern": "^ck:cursor:[A-Za-z0-9_-]+$" },
+            { "type": "null" }
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "wait_for": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "projection": { "const": "raw" } },
+            "required": ["projection"]
+          },
+          "then": {
+            "not": { "required": ["renderer"] }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "projection": {
+                "enum": ["collection", "graph", "timeline", "document", "composite"]
+              }
+            },
+            "required": ["projection"]
+          },
+          "then": {
+            "required": ["view_id"]
+          }
+        }
+      ]
+    },
+    "search_request": {
+      "type": "object",
+      "required": [
+        "query"
+      ],
+      "properties": {
+        "query": {
+          "type": "string",
+          "minLength": 1
+        },
+        "realm_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "object_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "morph_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time_range": {
+          "type": "object"
+        },
+        "cursor": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

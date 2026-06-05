@@ -1080,7 +1080,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle transition to paused state (CXP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ck.agent.resume.",
+        "payload": "Agent lifecycle transition to paused state (CKP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ck.agent.resume.",
         "cell_family": "ck.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1095,7 +1095,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle transition from paused to active (CXP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+        "payload": "Agent lifecycle transition from paused to active (CKP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
         "cell_family": "ck.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1110,7 +1110,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle terminal state (CXP-0008 §4.11). MUST fan-out ck.agent.key.revoke for all active agent keys, ck.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
+        "payload": "Agent lifecycle terminal state (CKP-0008 §4.11). MUST fan-out ck.agent.key.revoke for all active agent keys, ck.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
         "cell_family": "ck.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1125,7 +1125,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated draft proposal (CXP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ck.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
+        "payload": "Agent-initiated draft proposal (CKP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ck.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
       },
       {
         "event_kind": "ck.agent.action_request",
@@ -1133,7 +1133,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated action request (CXP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
+        "payload": "Agent-initiated action request (CKP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
       },
       {
         "event_kind": "ck.agent.action_approve",
@@ -1141,7 +1141,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Controller approval of a draft / action request (CXP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
+        "payload": "Controller approval of a draft / action request (CKP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
       },
       {
         "event_kind": "ck.agent.action_reject",
@@ -1149,7 +1149,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Controller rejection of a draft / action request (CXP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
+        "payload": "Controller rejection of a draft / action request (CKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
       },
       {
         "event_kind": "ck.agent.protocol_session.start",
@@ -2023,7 +2023,7 @@
       {
         "schema_id": "ck.schema.circle.v1",
         "file": "schemas/circle.schema.json",
-        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
+        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
       },
       {
         "schema_id": "ck.schema.flow.v1",
@@ -2403,6 +2403,24 @@
         "file": "schemas/common-ids.schema.json",
         "status": "active",
         "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
+      },
+      {
+        "schema_id": "ck.schema.delivery_binding_stale.v1",
+        "file": "schemas/delivery-binding-stale.schema.json",
+        "status": "active",
+        "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_did, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid)."
+      },
+      {
+        "schema_id": "ck.schema.query.v1",
+        "file": "schemas/query.schema.json",
+        "status": "active",
+        "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequest / SearchRequest / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md."
+      },
+      {
+        "schema_id": "ck.schema.service_operation_dtos.v1",
+        "file": "schemas/service-operation-dtos.schema.json",
+        "status": "active",
+        "description": "Canonical DTO bundle for service operation request/response shapes migrated out of OpenAPI inline components."
       }
     ]
   },
@@ -2570,7 +2588,7 @@
         "category": "media",
         "status": "active",
         "wire_form": "ck:rtc_participant:<uuid>",
-        "description": "SFU-local participant handle (CXP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ck:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
+        "description": "SFU-local participant handle (CKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ck:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
       },
       {
         "kind": "capability",
@@ -3070,7 +3088,9 @@
         "http": "POST /_cokret/gate/account/session-grants",
         "grpc": "Account/IssueSessionGrant",
         "mq": "account.issue_session_grant",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponse"
       },
       {
         "operation_id": "ck.account.session_revoke",
@@ -3182,7 +3202,9 @@
         "http": "POST /_cokret/gate/account/oidc/callback",
         "grpc": "Account/OidcCallback",
         "mq": "account.oidc_callback",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackResponse"
       },
       {
         "operation_id": "ck.applet.describe",
@@ -3280,14 +3302,17 @@
         "http": "POST /_cokret/self/authz/check",
         "grpc": "Authz/Check",
         "mq": "authz.check",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckResponse"
       },
       {
         "operation_id": "ck.authz.get_effective_grants",
         "http": "GET /_cokret/self/authz/effective-grants",
         "grpc": "Authz/GetEffectiveGrants",
         "mq": "authz.get_effective_grants",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantListResponse"
       },
       {
         "operation_id": "ck.authz.get_invites",
@@ -3326,21 +3351,26 @@
         "grpc": "Blob/Presign",
         "mq": "blob.presign",
         "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4.",
-        "success_shape_kind": "inline_response"
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponse"
       },
       {
         "operation_id": "ck.device_messages.get",
         "http": "GET /_cokret/self/device_messages",
         "grpc": "DeviceMessages/Get",
         "mq": "device_messages.get",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponse"
       },
       {
         "operation_id": "ck.device_messages.put",
         "http": "POST /_cokret/self/device_messages",
         "grpc": "DeviceMessages/Put",
         "mq": "device_messages.put",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutResponse"
       },
       {
         "operation_id": "ck.contact.request",
@@ -3396,7 +3426,9 @@
         "http": "POST /_cokret/find/directory/announce",
         "grpc": "Directory/Announce",
         "mq": "directory.announce",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceResponse"
       },
       {
         "operation_id": "ck.directory.describe",
@@ -3509,7 +3541,9 @@
         "http": "POST /_cokret/find/directory/withdraw",
         "grpc": "Directory/Withdraw",
         "mq": "directory.withdraw",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawResponse"
       },
       {
         "operation_id": "ck.events.describe",
@@ -3523,21 +3557,24 @@
         "http": "GET /_cokret/self/events/frontier",
         "grpc": "Events/Frontier",
         "mq": "events.frontier",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierResponse"
       },
       {
         "operation_id": "ck.events.get",
         "http": "GET /_cokret/self/events/{event_id}",
         "grpc": "Events/Get",
         "mq": "events.get",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventGetResponse"
       },
       {
         "operation_id": "ck.events.query",
         "http": "GET /_cokret/self/events",
         "grpc": "Events/Query",
         "mq": "events.query",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse"
       },
       {
         "operation_id": "ck.events.query_post",
@@ -3545,7 +3582,9 @@
         "http_only_variant": true,
         "http": "POST /_cokret/self/events/query",
         "notes": "HTTP-specific POST/body form of ck.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ck.events.query binding (Events/Query / events.query), not expose this variant as a separate gRPC or MQ operation.",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse"
       },
       {
         "operation_id": "ck.events.resolve",
@@ -3553,7 +3592,9 @@
         "grpc": "Events/Resolve",
         "mq": "events.resolve",
         "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ck.events.query for selector-based reads.",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveResponse"
       },
       {
         "operation_id": "ck.events.subscribe",
@@ -3568,7 +3609,9 @@
         "http": "POST /_cokret/self/events",
         "grpc": "Events/Submit",
         "mq": "events.submit",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse"
       },
       {
         "operation_id": "ck.ephemeral.send",
@@ -3576,15 +3619,19 @@
         "grpc": "Ephemeral/Send",
         "mq": "ephemeral.send",
         "notes": "Canonical broadcast ephemeral send operation for ck.schema.ephemeral_envelope.v1. Carries ck.presence, ck.typing, ck.receipt.read, and ck.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitResponse"
       },
       {
         "operation_id": "ck.call.media.token_exchange",
         "http": "POST /_cokret/self/rtc/token",
         "grpc": "CallMedia/TokenExchange",
         "mq": "call.media.token_exchange",
-        "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
-        "success_shape_kind": "inline_response"
+        "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponse"
       },
       {
         "operation_id": "ck.identity.describe_registry",
@@ -3598,7 +3645,8 @@
         "http": "GET /_cokret/root/identity/document",
         "grpc": "Identity/GetDocument",
         "mq": "identity.get_document",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityGetDocumentResponse"
       },
       {
         "operation_id": "ck.identity.get_log",
@@ -3619,14 +3667,18 @@
         "http": "POST /_cokret/root/identity/resolve",
         "grpc": "Identity/Resolve",
         "mq": "identity.resolve",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveResponse"
       },
       {
         "operation_id": "ck.identity.submit_did_operation",
         "http": "POST /_cokret/root/identity/submit-did-operation",
         "grpc": "Identity/SubmitDidOperation",
         "mq": "identity.submit_did_operation",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponse"
       },
       {
         "operation_id": "ck.keys.claim",
@@ -3774,7 +3826,8 @@
         "http": "GET /_cokret/open/mimi/provider-directory",
         "grpc": "Mimi/ProviderDirectory",
         "mq": "mimi.provider_directory",
-        "success_shape_kind": "schema_resource"
+        "success_shape_kind": "schema_resource",
+        "response_schema_ref": "schemas/mimi-interop.schema.json"
       },
       {
         "operation_id": "ck.mimi.proxy_download",
@@ -3837,7 +3890,9 @@
         "http": "POST /_cokret/self/moderation/report",
         "grpc": "Moderation/Report",
         "mq": "moderation.report",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/moderation-report.schema.json",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponse"
       },
       {
         "operation_id": "ck.policy.check",
@@ -3845,7 +3900,9 @@
         "grpc": "Policy/Check",
         "mq": "policy.check",
         "notes": "Canonical HTTP binding is POST /_cokret/self/policy/check. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckResponse"
       },
       {
         "operation_id": "ck.projection.flows",
@@ -3853,7 +3910,8 @@
         "grpc": "Projection/Flows",
         "mq": "projection.flows",
         "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowsResponse"
       },
       {
         "operation_id": "ck.projection.morphs",
@@ -3861,7 +3919,8 @@
         "grpc": "Projection/Morphs",
         "mq": "projection.morphs",
         "notes": "Extension read surface for reducer-maintained Morph lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphsResponse"
       },
       {
         "operation_id": "ck.projection.spaces",
@@ -3869,7 +3928,8 @@
         "grpc": "Projection/Spaces",
         "mq": "projection.spaces",
         "notes": "Extension read surface for reducer-maintained Space lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpacesResponse"
       },
       {
         "operation_id": "ck.push.notify",
@@ -3945,14 +4005,17 @@
         "grpc": "Account/CursorRevoke",
         "mq": "account.cursor_revoke",
         "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance to-device ack, account subscribe position, barrier wait, or dropped recovery state.",
-        "success_shape_kind": "inline_response"
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponse"
       },
       {
         "operation_id": "ck.snapshot.head",
         "http": "GET /_cokret/self/snapshot/head",
         "grpc": "Snapshot/Head",
         "mq": "snapshot.head",
-        "success_shape_kind": "typed_response"
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadResponse"
       }
     ],
     "success_shape_kind_definitions": {
@@ -4921,7 +4984,7 @@
           "ck.capability.grant"
         ],
         "profile": "ck.profile.personal_agent_provisioning.v1",
-        "migration_group": "cxp_0008_agent_provisioning",
+        "migration_group": "ckp_0008_agent_provisioning",
         "event_mapping_kind": "aggregate_admin"
       },
       {
@@ -5017,7 +5080,7 @@
           "ck.relation.create"
         ],
         "profile": "ck.profile.agent_sidecar_thread.v1",
-        "migration_group": "cxp_0009_sidecar_ensure",
+        "migration_group": "ckp_0009_sidecar_ensure",
         "event_mapping_kind": "aggregate_admin"
       },
       {

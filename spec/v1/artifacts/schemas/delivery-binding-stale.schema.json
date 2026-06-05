@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/delivery-binding-stale.schema.json",
+  "title": "Cokret Delivery Binding Stale Response",
+  "description": "Canonical response body for the delivery_binding_stale federation signal. A receiver that has accepted a member delivery-binding rebind handover returns this when a sender still delivers under the pre-handover binding. Carries new_recipient_service_did, handover_frontier, and a verifiable handover_proof binding the accepted ck.member.state{membership=join} rebind Move. High-risk redirect: senders MUST cross-verify handover_frontier via a non-destination witness and validate handover_proof (reachability, anchor-frontier finalization, allowed_recipient_services membership, trust-domain guard) before following. See zh/sync/federation.md §4.1 and registry/error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
+  "type": "object",
+  "required": [
+    "new_recipient_service_did",
+    "handover_frontier",
+    "handover_proof"
+  ],
+  "properties": {
+    "new_recipient_service_did": {
+      "$ref": "#/$defs/did",
+      "description": "Target Principal Server service DID after rebind. MUST be within the current effective allowed_recipient_services / delivery binding policy allow set."
+    },
+    "handover_frontier": {
+      "$ref": "#/$defs/event_id_list",
+      "description": "Handover frontier F that triggered the rebind. MUST equal handover_proof.frontier."
+    },
+    "handover_proof": {
+      "type": "object",
+      "description": "Verifiable proof binding the accepted ck.member.state{membership=join} rebind Move that produced the new binding.",
+      "required": [
+        "frontier",
+        "recipient_service_did",
+        "actor_id",
+        "witness"
+      ],
+      "properties": {
+        "frontier": {
+          "$ref": "#/$defs/event_id_list",
+          "description": "MUST equal the top-level handover_frontier."
+        },
+        "recipient_service_did": {
+          "$ref": "#/$defs/did",
+          "description": "MUST equal the top-level new_recipient_service_did."
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did",
+          "description": "Rebind target principal; MUST equal target_principal_id."
+        },
+        "witness": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Event digest / state witness / inclusion proof of the rebind Move. Sender MUST verify reachability in the Realm Event graph and policy, and that the Move is anchor-frontier finalized."
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_id_list": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/event_id"
+      }
+    }
+  }
+}

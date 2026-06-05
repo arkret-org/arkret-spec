@@ -4,7 +4,7 @@
 - Generated: `2026-05-25`
 - Spec head checked: local `b7d35be` on `main`; `origin/main` was 5 commits behind at audit time.
 - Target: `v1.0.0` stable promotion candidate. No release tag, GitHub release, or remote release artifact is created by this workflow.
-- Status: blocked for stable promotion. Local artifact, fixture, docs, and site checks have current passing evidence, but CXP-0007 machine-contract gaps, versioned public catalog policy, and dependency audit findings must be closed or explicitly de-scoped before release.
+- Status: blocked for stable promotion. Local artifact, fixture, docs, and site checks have current passing evidence, but CKP-0007 machine-contract gaps, versioned public catalog policy, and dependency audit findings must be closed or explicitly de-scoped before release.
 
 ## Artifact Counts
 
@@ -32,12 +32,12 @@
 | External link check | pending local evidence; lychee was not installed locally, CI link-check remains the required evidence path |
 | Contract policy | active-contract checks only |
 | English mirror policy | non-normative placeholder; only `spec/v1/en/index.md` is an English page. Any generated `/en/v1/...` fallback page is not an English normative translation. |
-| CXP-0001..0006 | deferred to v1.1; not v1.0 wire contracts |
-| CXP-0007 | accepted in prose/registry surface, but not ready for stable promotion until the blockers below close |
+| CKP-0001..0006 | deferred to v1.1; not v1.0 wire contracts |
+| CKP-0007 | accepted in prose/registry surface, but not ready for stable promotion until the blockers below close |
 
 ## Stable-promotion Blockers
 
-1. Close CXP-0007 machine-contract gaps:
+1. Close CKP-0007 machine-contract gaps:
    - split or normativize submit input vs accepted/reducer-output event shapes for `effective_scope`;
    - define Message and Anchor output shapes that bind `effective_scope`, including anchor canonical bytes;
    - make `content_encryption_floor` a machine-checkable contract, not only prose;
@@ -57,4 +57,4 @@ Current HEAD uses a single current-v1 public snapshot: `site/src/lib/site-meta.t
 
 ## Release Notes Seed
 
-Do not promote the current HEAD directly to stable. Once the blockers above are closed, the v1.0.0 release notes should state the exact canonical artifact counts, the public catalog snapshot filename, and the CXP-0007 conformance/vector coverage included in the release. The English mirror remains explicitly non-normative until the CXP-EN-MIRROR translation track lands. CXP-0001 through CXP-0006 remain design proposals and are not v1.0 wire contracts.
+Do not promote the current HEAD directly to stable. Once the blockers above are closed, the v1.0.0 release notes should state the exact canonical artifact counts, the public catalog snapshot filename, and the CKP-0007 conformance/vector coverage included in the release. The English mirror remains explicitly non-normative until the CKP-EN-MIRROR translation track lands. CKP-0001 through CKP-0006 remain design proposals and are not v1.0 wire contracts.

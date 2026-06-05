@@ -10,7 +10,7 @@ updated: 2026-05-25
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
-> **Wire schema canonical source（informative）**: 当前 query / projection 请求体的 wire-level canonical schema 内联定义在 [`../../artifacts/openapi/cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) 的 `components.schemas.QueryRequest`（`projection` 为其内 enum 字段）与 `SearchRequest` 组件；本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源。两侧字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` 等）若发生不一致，以 OpenAPI 内联 schema 为准。后续计划将该 schema 抽出为独立 `artifacts/schemas/query.schema.json` 并令 OpenAPI 改 `$ref` 引用，本文届时改引该 JSON Schema。
+> **Wire schema canonical source（informative）**: query / projection 请求体（`query_request`）与 search 请求体（`search_request`）的 wire-level canonical schema 已抽出为独立 JSON Schema [`../../artifacts/schemas/query.schema.json`](../../artifacts/schemas/query.schema.json)（schema id `ck.schema.query.v1`，含 `query_filter` / `field_filter` / `boolean_filter` / `sort_spec` / `relation_query` 等可复用 `$defs`）；[`../../artifacts/openapi/cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) 的 `QueryRequest` / `SearchRequest` / `QueryFilter` / `FieldFilter` / `BooleanFilter` / `SortSpec` / `RelationQuery` 组件均 `$ref` 该文件，故为单一真源。本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源；字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` / `op` / `direction` 等）以 `query.schema.json` 为准。
 
 ## 1. 目标
 

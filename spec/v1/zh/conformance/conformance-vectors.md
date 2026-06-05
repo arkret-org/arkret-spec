@@ -2354,6 +2354,23 @@ Expected：
 - Receiver MUST 独立拒绝超过当前 policy window 的 decrypt admission。
 - Hard ceiling 不可由 deployment profile 重定义；实现不得 silently clamp 后继续接受。
 
+### 9.13 Vector: Consumed Third-Party Invite Token Resubject Rejected
+
+`vector_id`: `ck.vector.invite.consumed_token_resubject_rejected.v1`
+
+Steps：
+
+1. 第三方邀请 token 已被验证服务原子消费并签发了绑定 `subject_id=did:web:alice.example` 的 `binding_proof`。
+2. 攻击者用同一已消费 token 向验证服务发起第二次签发请求，指向不同 `subject_id=did:web:mallory.example`。
+3. 攻击者另把承载该已消费 token 重绑到不同 subject 的 `ck.invite.claim` Event 提交给 reducer。
+
+Expected：
+
+- 验证服务 MUST 拒绝第二次签发，不签发指向不同 subject 的第二份 `binding_proof`；仅当请求绑定同一 `(invite_id, claim_nonce, subject_id, binding_proof_digest)` 时，才允许在可恢复窗口内幂等重投递同一份既有 `binding_proof`。
+- Reducer MUST 以 `duplicate_conflict` 拒绝该 resubject `ck.invite.claim` Event。
+- 对外失败响应 MUST 与 `not_found` 不可区分（与本节其它 invite 向量一致），具体 reason code 只写入服务端 audit log。
+- 规范定义见 [`../sync/third-party-invites.md` §6.1](../sync/third-party-invites.md)。
+
 ## 10. Service Closure Vectors
 
 ### 10.1 Vector: Ephemeral Capability And TTL

@@ -4,7 +4,7 @@
   "description": "Canonical allowlist of legacy / wire-breaking identifiers that retain the cx- / cx_ prefix. Per zh/models/common-fields.md §2, new or recommended canonical naming MUST use the ck- / ck_ positive prefix; the cx- / cx_ prefix is permitted only for (a) the entries registered here (historical wire-breaking names whose byte form cannot be migrated without a new profile / extension codepoint) and (b) illustrative example placeholder values inside spec prose / fixtures. Exporter-label cx-rtc-* names are NOT duplicated here: their canonical registration lives in registry/exporter-label-registry.json. Example-only placeholder IDs (cx_device_*, cx_chal_*, cx_pseudonym_call_*, cx_push_pseudo_*, cx-challenge-*) are intentionally NOT enumerated: the naming rule exempts documentation example values.",
   "prefix_rule_ref": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "kinds": {
-    "wire_extension": "Cokret-defined wire extension type carried on the wire (e.g. MLS GroupContext ExtensionType IANA name); migrating the name is wire-breaking.",
+    "wire_extension": "Legacy or reserved Cokret-defined wire extension identifier. Current v1 extension names live in their dedicated registries; names listed here with historical notes are not current emission targets unless the entry explicitly says so.",
     "exporter_label": "MLS-Exporter label string for media key derivation; canonical registration is in exporter-label-registry.json (listed here only by cross-reference).",
     "domain_separation_label": "Fixed domain-separation / signing-transcript prefix string mixed into a hash or signature input; changing it is wire-breaking.",
     "key_handle": "Stable DID URL key fragment (verification_method handle) naming convention used across identity / device documents.",
@@ -14,11 +14,11 @@
     {
       "name": "cx_governance_binding",
       "kind": "wire_extension",
-      "where": "MLS GroupContext extension ExtensionType (IANA name), codepoint 0xF1C0",
-      "notes": "Active wire extension. Canonical codepoint registration is registry/mls-extension-registry.json (extension name `mls_governance_binding`, codepoint 0xF1C0); `cx_governance_binding` is the on-the-wire ExtensionType / IANA name string carried in the MLS transcript and MUST NOT be migrated to a ck_ form without declaring a new hardening profile / codepoint.",
+      "where": "Historical draft MLS GroupContext extension name for governance binding; not emitted by Cokret v1",
+      "notes": "Historical draft-only name retained as a reserved legacy identifier. Cokret v1 current ExtensionType / IANA name is `mls_governance_binding` with codepoint 0xF1C0, registered in registry/mls-extension-registry.json. Implementations MUST emit and validate `mls_governance_binding`; `cx_governance_binding` MUST NOT be used as the current on-the-wire name.",
       "source_refs": [
         "spec/v1/zh/crypto-media/encryption-and-audit.md",
-        "spec/v1/zh/overview/glossary.md"
+        "spec/v1/artifacts/registry/mls-extension-registry.json"
       ]
     },
     {

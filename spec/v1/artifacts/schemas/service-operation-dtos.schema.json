@@ -1,0 +1,2421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/service-operation-dtos.schema.json",
+  "title": "Cokret Service Operation DTOs",
+  "description": "Canonical request and response DTOs migrated from OpenAPI-only operation schemas. OpenAPI components reference this artifact so SDK and conformance tooling use one schema source.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/AccountCursorRevokeRequest"
+    },
+    {
+      "$ref": "#/$defs/AccountCursorRevokeResponse"
+    },
+    {
+      "$ref": "#/$defs/AccountOidcCallbackRequest"
+    },
+    {
+      "$ref": "#/$defs/AccountOidcCallbackResponse"
+    },
+    {
+      "$ref": "#/$defs/AuthzCheckRequest"
+    },
+    {
+      "$ref": "#/$defs/AuthzCheckResponse"
+    },
+    {
+      "$ref": "#/$defs/BlobPresignRequest"
+    },
+    {
+      "$ref": "#/$defs/BlobPresignResponse"
+    },
+    {
+      "$ref": "#/$defs/CallMediaTokenExchangeRequest"
+    },
+    {
+      "$ref": "#/$defs/CallMediaTokenExchangeResponse"
+    },
+    {
+      "$ref": "#/$defs/DeviceMessagesGetResponse"
+    },
+    {
+      "$ref": "#/$defs/DeviceMessagesPutRequest"
+    },
+    {
+      "$ref": "#/$defs/DeviceMessagesPutResponse"
+    },
+    {
+      "$ref": "#/$defs/DidOperationSubmitRequest"
+    },
+    {
+      "$ref": "#/$defs/DidOperationSubmitResponse"
+    },
+    {
+      "$ref": "#/$defs/DirectoryAnnounceRequest"
+    },
+    {
+      "$ref": "#/$defs/DirectoryAnnounceResponse"
+    },
+    {
+      "$ref": "#/$defs/DirectoryWithdrawRequest"
+    },
+    {
+      "$ref": "#/$defs/DirectoryWithdrawResponse"
+    },
+    {
+      "$ref": "#/$defs/EphemeralSubmitResponse"
+    },
+    {
+      "$ref": "#/$defs/EventGetResponse"
+    },
+    {
+      "$ref": "#/$defs/EventsFrontierResponse"
+    },
+    {
+      "$ref": "#/$defs/EventsQueryPostRequest"
+    },
+    {
+      "$ref": "#/$defs/EventsQueryResponse"
+    },
+    {
+      "$ref": "#/$defs/EventsResolveRequest"
+    },
+    {
+      "$ref": "#/$defs/EventsResolveResponse"
+    },
+    {
+      "$ref": "#/$defs/EventsSubmitRequest"
+    },
+    {
+      "$ref": "#/$defs/EventsSubmitResponse"
+    },
+    {
+      "$ref": "#/$defs/GrantListResponse"
+    },
+    {
+      "$ref": "#/$defs/IdentityGetDocumentResponse"
+    },
+    {
+      "$ref": "#/$defs/IdentityResolveRequest"
+    },
+    {
+      "$ref": "#/$defs/IdentityResolveResponse"
+    },
+    {
+      "$ref": "#/$defs/ModerationReportResponse"
+    },
+    {
+      "$ref": "#/$defs/PolicyCheckRequest"
+    },
+    {
+      "$ref": "#/$defs/PolicyCheckResponse"
+    },
+    {
+      "$ref": "#/$defs/ProjectionFlowsResponse"
+    },
+    {
+      "$ref": "#/$defs/ProjectionMorphsResponse"
+    },
+    {
+      "$ref": "#/$defs/ProjectionSpacesResponse"
+    },
+    {
+      "$ref": "#/$defs/SessionGrantRequest"
+    },
+    {
+      "$ref": "#/$defs/SessionGrantResponse"
+    },
+    {
+      "$ref": "#/$defs/SnapshotHeadResponse"
+    }
+  ],
+  "$defs": {
+    "AccountCursorRevokeRequest": {
+      "type": "object",
+      "required": [
+        "cursor",
+        "reason_code"
+      ],
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "pattern": "^ck:cursor:.+$"
+        },
+        "reason_code": {
+          "type": "string"
+        },
+        "revoke_scope": {
+          "type": "string",
+          "enum": [
+            "this_cursor",
+            "same_device",
+            "same_session"
+          ],
+          "default": "this_cursor"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AccountCursorRevokeResponse": {
+      "type": "object",
+      "required": [
+        "revoked"
+      ],
+      "properties": {
+        "revoked": {
+          "type": "boolean"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "AccountOidcCallbackRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "code"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "minLength": 16
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nonce": {
+          "type": "string"
+        },
+        "redirect_uri": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "AccountOidcCallbackResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "principal_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "session": {
+          "$ref": "#/$defs/SessionGrantResponse"
+        },
+        "redirect_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "principal_id"
+          ]
+        },
+        {
+          "required": [
+            "redirect_url"
+          ]
+        }
+      ]
+    },
+    "AuthzCheckRequest": {
+      "type": "object",
+      "description": "ck.authz.check input — single capability decision query. `resource` is\noptional because some actions (e.g. `ck.realm.create`, identity-scoped\nactions) have no Realm-bound target.\n",
+      "required": [
+        "actor_id",
+        "action"
+      ],
+      "properties": {
+        "actor_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "description": "Subject DID whose authorization is being checked."
+        },
+        "action": {
+          "type": "string",
+          "description": "Capability action id (e.g. `ck.flow.update`)."
+        },
+        "resource": {
+          "type": "object",
+          "description": "Optional resource selector (Realm / Flow / Space / Morph / etc.)."
+        },
+        "context": {
+          "type": "object",
+          "description": "Optional decision context — claim presentations, frontier reference, request metadata."
+        }
+      },
+      "additionalProperties": false
+    },
+    "AuthzCheckResponse": {
+      "type": "object",
+      "description": "ck.authz.check decision. See zh/authz/capabilities.md §18.",
+      "required": [
+        "decision"
+      ],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": [
+            "allow",
+            "deny",
+            "quarantine",
+            "require_review",
+            "soft_fail"
+          ],
+          "description": "`allow` / `deny` are terminal decisions. `quarantine` / `require_review`\nare policy-server-mediated soft outcomes (the request enters async\nreview). `soft_fail` is a transient retryable failure; callers MUST\ntreat it as fail-closed for high-risk actions unless a profile\nexplicitly allows local pending behavior.\n"
+        },
+        "matched_grants": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "applied_constraints": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "policy_results": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "missing_proofs": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "frontier": {
+          "type": "object"
+        },
+        "freshness_state": {
+          "type": "string",
+          "enum": [
+            "fresh",
+            "stale",
+            "unknown"
+          ],
+          "description": "Frontier freshness classification for revocation-sensitive decisions; see zh/authz/capabilities.md §18.2."
+        },
+        "last_known_frontier_age_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Age of the newest revocation/auth frontier evidence used for this decision. Present when freshness_state is stale or unknown."
+        },
+        "anchorer_status": {
+          "type": "string",
+          "enum": [
+            "fresh",
+            "lagging",
+            "unreachable",
+            "unknown"
+          ],
+          "description": "Coarse status of the anchorer/frontier source used to diagnose stale or unknown revocation freshness."
+        },
+        "cache_expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "reason_code": {
+          "type": "string",
+          "description": "Registered reason code. High-risk stale or unknown revocation freshness returns revocation_freshness_unknown."
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Set when `decision=soft_fail` or `freshness_state ∈ {stale,unknown}`; client SHOULD back off this amount before retry."
+        },
+        "obligations": {
+          "type": "array",
+          "description": "Policy server obligations (challenge / rate_limit / drop_attachment) the caller MUST satisfy before the action proceeds.",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "BlobPresignRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blob_ref"
+      ],
+      "properties": {
+        "blob_ref": {
+          "type": "string",
+          "description": "Target blob. MUST be a content-addressed ref or visible blob metadata id."
+        },
+        "realm_id": {
+          "type": "string",
+          "description": "Realm binding for Realm-owned blobs. Servers MUST include the same realm_id in the presign envelope and reject mismatches with blob metadata; only deployment-public/global blobs may omit this field."
+        },
+        "max_age_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600,
+          "description": "Client-requested TTL upper bound. Server clamps to the smaller of this value, the issuing grant's `blob_presign_max_ttl_seconds` constraint, and the deployment-level cap."
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "media_inline",
+            "thumbnail",
+            "download"
+          ],
+          "description": "Intended rendering / download mode. Servers MAY apply purpose-specific Content-Disposition or rate limits."
+        }
+      }
+    },
+    "BlobPresignResponse": {
+      "type": "object",
+      "required": [
+        "url",
+        "expires_at"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Fully-qualified URL clients can pass to browser primitives. Contains the `presign` query parameter, `blob_ref`, and a presign envelope bound to `realm_id` for Realm-owned blobs."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server-determined expiry; SHOULD be earlier than `now() + max_age_seconds`."
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Echo of the issued `purpose`."
+        }
+      }
+    },
+    "CallMediaTokenExchangeRequest": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "call_id",
+        "actor_id",
+        "device_id",
+        "focus_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "call_id": {
+          "type": "string",
+          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "actor_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "focus_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "capability_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "desired_media": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "audio": {
+              "type": "boolean"
+            },
+            "video": {
+              "type": "boolean"
+            },
+            "screen": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "CallMediaTokenExchangeResponse": {
+      "type": "object",
+      "required": [
+        "focus_id",
+        "type",
+        "connect_url",
+        "backend_token",
+        "participant_identity",
+        "participant_binding",
+        "expires_at",
+        "service_signature"
+      ],
+      "properties": {
+        "focus_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "type": {
+          "type": "string",
+          "description": "Backend binding type identifier (livekit / cokret-native / etc.).",
+          "enum": [
+            "livekit",
+            "mediasoup",
+            "janus",
+            "cokret-native",
+            "moq-relay"
+          ]
+        },
+        "connect_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "backend_token": {
+          "type": "string",
+          "description": "Opaque to Cokret protocol; type-specific (e.g. LiveKit JWT).",
+          "minLength": 1
+        },
+        "participant_identity": {
+          "type": "string",
+          "description": "SFU-local short handle, scope `(call_id, focus_id, sfu_did)`. UUIDv7-form rtc_participant typed ID.",
+          "pattern": "^ck:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "participant_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "realm_id",
+            "call_id",
+            "focus_id",
+            "actor_id",
+            "device_id",
+            "participant_identity",
+            "issued_at",
+            "expires_at",
+            "issuer_kid",
+            "sig"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "ck.media.participant_binding.v1"
+            },
+            "realm_id": {
+              "type": "string",
+              "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "call_id": {
+              "type": "string",
+              "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "focus_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "actor_id": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+            },
+            "device_id": {
+              "type": "string",
+              "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "participant_identity": {
+              "type": "string",
+              "pattern": "^ck:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "issuer_kid": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+            },
+            "sig": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "service_signature": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kid",
+            "sig"
+          ],
+          "properties": {
+            "kid": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+            },
+            "sig": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeviceMessagesGetResponse": {
+      "type": "object",
+      "required": [
+        "messages",
+        "has_more"
+      ],
+      "properties": {
+        "messages": {
+          "type": "array",
+          "description": "DeviceMessageEnvelope items; not Event Envelope objects. Renamed from `events` to remove the misleading appearance that this endpoint serves the durable Event timeline.",
+          "items": {
+            "$ref": "#/$defs/DeviceMessageEnvelope"
+          }
+        },
+        "next_cursor": {
+          "type": "string"
+        },
+        "has_more": {
+          "type": "boolean"
+        },
+        "limited": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeviceMessagesPutRequest": {
+      "type": "object",
+      "required": [
+        "messages"
+      ],
+      "properties": {
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/DeviceMessageTarget"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeviceMessagesPutResponse": {
+      "type": "object",
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "delivered": {
+          "type": "object"
+        },
+        "unknown_devices": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DidOperationSubmitRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "did",
+        "did_method",
+        "operation",
+        "proofs"
+      ],
+      "properties": {
+        "did": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "did_method": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+$",
+          "description": "DID method discriminator (e.g. web, webvh, key). Verifiers dispatch method-specific validation from this value and the did prefix."
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optional method sequence number when the DID method exposes one."
+        },
+        "prev_event_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Optional previous operation hash / key-log head, when required by the DID method."
+        },
+        "operation": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "DID method-specific raw operation object. This is not a generic JSON Patch and MUST be validated by the selected DID method adapter."
+        },
+        "policy_context": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Optional resolver / registry policy context bound into authorization and audit."
+        },
+        "proofs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "proof_kind",
+              "challenge",
+              "request_canonical_digest",
+              "signature"
+            ],
+            "properties": {
+              "proof_kind": {
+                "type": "string",
+                "enum": [
+                  "did_update_key",
+                  "authorized_device",
+                  "recovery_policy"
+                ]
+              },
+              "challenge": {
+                "type": "string",
+                "minLength": 16
+              },
+              "request_canonical_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "signature": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "DidOperationSubmitResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "did"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate",
+            "pending"
+          ]
+        },
+        "did": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "New method sequence number when available."
+        },
+        "head_event_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "operation_ref": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "DirectoryAnnounceRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_kind",
+        "resource_id",
+        "discovery_state",
+        "source_refs",
+        "as_of",
+        "principal_server_did"
+      ],
+      "properties": {
+        "resource_kind": {
+          "type": "string",
+          "enum": [
+            "realm",
+            "organization",
+            "actor",
+            "applet",
+            "handle"
+          ]
+        },
+        "resource_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^ck:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            {
+              "$ref": "#/$defs/ActorDid"
+            },
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$"
+            }
+          ]
+        },
+        "discovery_state": {
+          "type": "object",
+          "description": "Signed ck.{kind}.discovery payload, including its proof.",
+          "additionalProperties": true
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/EventId"
+          }
+        },
+        "as_of": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "principal_server_did": {
+          "$ref": "#/$defs/ServiceDid"
+        },
+        "ttl_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "supersedes_announce_id": {
+          "type": "string",
+          "pattern": "^ck:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      }
+    },
+    "DirectoryAnnounceResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "announce_id",
+        "indexed_at",
+        "effective_ttl_seconds",
+        "next_revalidation_after"
+      ],
+      "properties": {
+        "announce_id": {
+          "type": "string",
+          "pattern": "^ck:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "indexed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "effective_ttl_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "next_revalidation_after": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "DirectoryWithdrawRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_id",
+        "governance_proof"
+      ],
+      "properties": {
+        "resource_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^ck:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            {
+              "$ref": "#/$defs/ActorDid"
+            },
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$"
+            }
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "governance_proof": {
+          "type": "object",
+          "description": "Signature proof by the resource governance key, equivalent strength to announce.discovery_state.proof.",
+          "additionalProperties": true
+        },
+        "effective_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "DirectoryWithdrawResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "withdrawal_ref",
+        "acked_at"
+      ],
+      "properties": {
+        "withdrawal_ref": {
+          "type": "string",
+          "description": "Directory-local audit reference for the withdrawal; not a registered ck:<kind> typed ID.",
+          "pattern": "^withdrawal:[A-Za-z0-9._:-]{1,128}$"
+        },
+        "acked_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "EphemeralSubmitResponse": {
+      "type": "object",
+      "description": "Result of ck.ephemeral.send. `accepted=true` means the Sync Service\nadmitted the short-lived signal into its ephemeral fanout path. No\nEvent ID, actor_seq, Anchor frontier, or durable receipt is minted.\n",
+      "required": [
+        "accepted",
+        "kind",
+        "realm_id"
+      ],
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ck.call.signal",
+            "ck.presence",
+            "ck.typing",
+            "ck.receipt.read"
+          ]
+        },
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "dispatched_to": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optional implementation hint for fanout recipients queued locally."
+        },
+        "server_received_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventGetResponse": {
+      "type": "object",
+      "description": "Result of ck.events.get — a single Event Envelope with optional visibility / receipt hints.",
+      "required": [
+        "event"
+      ],
+      "properties": {
+        "event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "visibility": {
+          "type": "object",
+          "description": "Caller-visible policy hint for this event (history visibility class, E2EE envelope class)."
+        },
+        "receipts": {
+          "type": "array",
+          "description": "Event batch receipts witnessing this event, if visible.",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "EventsFrontierResponse": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/EventsFrontierAccountClientResponse"
+        },
+        {
+          "$ref": "#/$defs/EventsFrontierFederationPeerResponse"
+        },
+        {
+          "$ref": "#/$defs/EventsFrontierAnonymousHealthResponse"
+        }
+      ]
+    },
+    "EventsQueryPostRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "realms"
+          ]
+        },
+        {
+          "required": [
+            "actors"
+          ]
+        }
+      ],
+      "properties": {
+        "realms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RealmId"
+          },
+          "minItems": 1,
+          "description": "Filter by Realm IDs. UNION within, intersection with `actors[]`."
+        },
+        "actors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActorDid"
+          },
+          "minItems": 1,
+          "description": "Filter by Actor DIDs. UNION within, intersection with `realms[]`."
+        },
+        "before": {
+          "$ref": "#/$defs/Cursor",
+          "description": "Return events strictly older than this cursor position (exclusive)."
+        },
+        "after": {
+          "$ref": "#/$defs/Cursor",
+          "description": "Return events strictly newer than this cursor position (exclusive)."
+        },
+        "order": {
+          "type": "string",
+          "enum": [
+            "default",
+            "ascending",
+            "descending"
+          ],
+          "default": "default",
+          "description": "Same semantics as the GET form `order` query parameter."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "filters": {
+          "type": "object",
+          "description": "Structured filter object (kind, payload predicates)."
+        }
+      }
+    },
+    "EventsQueryResponse": {
+      "type": "object",
+      "description": "Result of ck.events.query (GET form) and ck.events.query_post (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
+      "required": [
+        "events",
+        "has_more"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          }
+        },
+        "prev_cursor": {
+          "type": "string",
+          "description": "Absolute-direction cursor toward older events; pass to next request's `before=`."
+        },
+        "next_cursor": {
+          "type": "string",
+          "description": "Absolute-direction cursor toward newer events; pass to next request's `after=`."
+        },
+        "has_more": {
+          "type": "boolean",
+          "description": "True if more events remain in the `prev_cursor` (older) direction; SHOULD ignore `next_cursor` direction (subscribe / poll instead)."
+        },
+        "snapshot_bootstrap": {
+          "$ref": "#/$defs/SnapshotBootstrap"
+        }
+      }
+    },
+    "EventsResolveRequest": {
+      "type": "object",
+      "description": "ck.events.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
+      "properties": {
+        "event_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "event_digests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "include_payload": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventsResolveResponse": {
+      "type": "object",
+      "description": "ck.events.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
+      "required": [
+        "events",
+        "missing"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          }
+        },
+        "missing": {
+          "type": "array",
+          "description": "IDs / hashes that were requested but do not exist or are not visible (indistinguishable per visibility rules).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unauthorized": {
+          "type": "array",
+          "description": "Optional split of missing into a separately-named bucket when policy explicitly distinguishes auth failure from non-existence.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "EventsSubmitRequest": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/EventSubmitEnvelope"
+        },
+        {
+          "$ref": "#/$defs/EventsSubmitBatchRequest"
+        },
+        {
+          "$ref": "#/$defs/EventsSubmitFederationRequest"
+        }
+      ]
+    },
+    "EventsSubmitResponse": {
+      "type": "object",
+      "description": "Result of ck.events.submit. Tracks per-event acceptance / duplication /\nrejection along with the post-write frontier and an optional barrier\ncursor for read-your-writes.\n",
+      "required": [
+        "status",
+        "accepted"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate",
+            "partial"
+          ]
+        },
+        "accepted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Event IDs that entered the accepted set (including idempotent re-accepts of identical bodies)."
+        },
+        "duplicate": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Event IDs whose canonical bytes matched a prior accepted event (idempotent no-op)."
+        },
+        "rejected": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "reason_code"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "reason_code": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "quarantine": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Event IDs deferred to async / human verification."
+        },
+        "actor_frontier": {
+          "type": "object",
+          "description": "Per-actor frontier after this submit (subset of full frontier visible to caller)."
+        },
+        "realm_frontier": {
+          "type": "object",
+          "description": "Per-Realm frontier after this submit. (Renamed from the legacy 'space_frontier' field name — in v1 the replication/security boundary is the Realm, not an in-Realm Space container; the legacy name is forbidden on the current wire.)"
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Optional barrier cursor (purpose=barrier) bound to the most recently accepted event."
+        }
+      }
+    },
+    "GrantListResponse": {
+      "type": "object",
+      "properties": {
+        "grants": {
+          "type": "array",
+          "items": {
+            "$ref": "./capability-grant.schema.json"
+          }
+        },
+        "state_digest": {
+          "type": "string"
+        },
+        "evaluated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "IdentityGetDocumentResponse": {
+      "type": "object",
+      "description": "Result of ck.identity.get_document — current DID Document plus normalized view hints.",
+      "required": [
+        "did_document"
+      ],
+      "properties": {
+        "did_document": {
+          "type": "object",
+          "description": "Raw DID Core document with W3C field names preserved."
+        },
+        "normalized_view": {
+          "type": "object",
+          "description": "Optional Cokret normalized principal view (snake_case) — derived\nprojection only, NOT a re-publishable DID Document. See\nzh/identity/identity-did.md §6.\n"
+        },
+        "method_evidence": {
+          "type": "object",
+          "description": "Method-specific proof material (e.g. did:webvh history head, witness signatures)."
+        },
+        "cached_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "IdentityResolveRequest": {
+      "type": "object",
+      "required": [
+        "did"
+      ],
+      "properties": {
+        "did": {
+          "type": "string"
+        },
+        "include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "IdentityResolveResponse": {
+      "type": "object",
+      "properties": {
+        "did_document": {
+          "type": "object"
+        },
+        "key_log_head": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "$ref": "./identity-receipt.schema.json"
+          }
+        }
+      }
+    },
+    "ModerationReportResponse": {
+      "type": "object",
+      "required": [
+        "report_id",
+        "status"
+      ],
+      "properties": {
+        "report_id": {
+          "type": "string",
+          "pattern": "^ck:report:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "submitted",
+            "triaged",
+            "reviewing",
+            "actioned",
+            "dismissed",
+            "appealed",
+            "closed"
+          ]
+        },
+        "routed_to": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PolicyCheckRequest": {
+      "type": "object",
+      "description": "ck.policy.check input bound to a Realm authorization context.",
+      "required": [
+        "request_id",
+        "realm_id",
+        "request_canonical_digest",
+        "action",
+        "actor",
+        "source"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "request_canonical_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "action": {
+          "type": "string"
+        },
+        "actor": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "service_did",
+            "service_type",
+            "signed_transport"
+          ],
+          "properties": {
+            "service_did": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+            },
+            "service_type": {
+              "type": "string"
+            },
+            "source_ip_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "signed_transport": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": true
+        },
+        "event_preview": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "auth_context": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "PolicyCheckResponse": {
+      "type": "object",
+      "description": "Result of ck.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.",
+      "required": [
+        "request_id",
+        "bound_to",
+        "decision",
+        "reason_code",
+        "expires_at",
+        "auth_state_digest",
+        "policy_frontier_digest",
+        "membership_frontier_digest",
+        "signature"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "bound_to": {
+          "type": "object",
+          "description": "Request context covered by the policy decision signature. Allows receivers to verify a forwarded decision without guessing transcript fields.",
+          "required": [
+            "realm_id",
+            "actor",
+            "action",
+            "request_canonical_digest",
+            "policy_server_id"
+          ],
+          "properties": {
+            "realm_id": {
+              "type": "string",
+              "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "actor": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+            },
+            "action": {
+              "type": "string"
+            },
+            "request_canonical_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "policy_server_id": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "allow",
+            "soft_deny",
+            "hard_deny",
+            "quarantine",
+            "require_review"
+          ]
+        },
+        "reason_code": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "auth_state_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Accepted authorization state hash used when producing the decision."
+        },
+        "policy_frontier_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Policy source frontier / digest used when producing the decision."
+        },
+        "membership_frontier_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Membership / role frontier digest used when producing the decision."
+        },
+        "next_retry_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "obligations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "signature": {
+          "type": "object",
+          "required": [
+            "kid",
+            "sig"
+          ],
+          "properties": {
+            "kid": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+              "description": "DID URL of the policy server verification method."
+            },
+            "sig": {
+              "type": "string",
+              "description": "Detached signature over the policy decision transcript."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProjectionFlowsResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "realm_id",
+        "flows",
+        "total",
+        "has_more"
+      ],
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "flows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProjectionFlowRow"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_cursor": {
+          "type": "string",
+          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ProjectionMorphsResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "realm_id",
+        "morphs",
+        "total",
+        "has_more"
+      ],
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "morphs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProjectionMorphRow"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_cursor": {
+          "type": "string",
+          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ProjectionSpacesResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "realm_id",
+        "spaces",
+        "total",
+        "has_more"
+      ],
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "spaces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProjectionSpaceRow"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_cursor": {
+          "type": "string",
+          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      }
+    },
+    "SessionGrantRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principal_id",
+        "proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "requested_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "agent_key_authorization_ref": {
+          "type": "string",
+          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Event ref of the accepted\n`ck.agent.key.authorize` that authorized the runtime key. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n",
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "agent_scope_request": {
+          "type": "object",
+          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Narrowing hints for the\nissued session scope; the server still intersects with the agent's accepted\ncapability grants and Realm policy. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`;\nMUST be omitted for human session grants. `track_names` is a request-side\nnarrowing field only — the materialized session grant MUST express track scope\nvia the canonical `allowed_tracks` constraint, not via a new `track_names` grant.\n",
+          "additionalProperties": false,
+          "properties": {
+            "realm_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "flow_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "track_names": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "proof": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "proof_kind",
+            "challenge",
+            "request_canonical_digest",
+            "audience",
+            "signature"
+          ],
+          "properties": {
+            "proof_kind": {
+              "type": "string",
+              "description": "`agent_key_proof` selects the `ck.profile.agent_auth.v1` overlay branch (CKP-0008 §4.6).\nImplementations MUST route `agent_key_proof` to an independent validator and MUST NOT\nfall back to password / OIDC / passkey validators for this branch.\n",
+              "enum": [
+                "did_bound_signature",
+                "paired_device_proof",
+                "passkey_assertion",
+                "oidc_code_exchange",
+                "agent_key_proof"
+              ]
+            },
+            "challenge": {
+              "type": "string",
+              "minLength": 16
+            },
+            "request_canonical_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "audience": {
+              "type": "string"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "verification_method": {
+              "type": "string",
+              "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). DID URL of the runtime\nsigning key (`<agent_principal_id>#<key-fragment>`). REQUIRED when\n`proof_kind=\"agent_key_proof\"`; the DID component MUST bit-identically equal\n`principal_id` after stripping the fragment / query — otherwise the endpoint\nreturns `verification_method_principal_mismatch`. MUST be omitted for human\nproof kinds.\n",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry the `ck.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `proof.verification_method`);\nwhen it is any other enum value, those fields MUST be absent. SDKs and server-side\nvalidators MUST reject violations at schema-validation time, not at proof-validator\ntime.\n",
+          "if": {
+            "properties": {
+              "proof": {
+                "properties": {
+                  "proof_kind": {
+                    "const": "agent_key_proof"
+                  }
+                },
+                "required": [
+                  "proof_kind"
+                ]
+              }
+            },
+            "required": [
+              "proof"
+            ]
+          },
+          "then": {
+            "required": [
+              "agent_key_authorization_ref",
+              "agent_scope_request"
+            ],
+            "properties": {
+              "proof": {
+                "required": [
+                  "verification_method"
+                ]
+              }
+            }
+          },
+          "else": {
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "agent_key_authorization_ref"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "agent_scope_request"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "proof": {
+                    "not": {
+                      "required": [
+                        "verification_method"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "SessionGrantResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principal_id",
+        "session_grant",
+        "expires_at"
+      ],
+      "properties": {
+        "principal_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "session_grant": {
+          "type": "string",
+          "description": "Short-lived bearer/session grant bound to the requested principal, device and audience."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "granted_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope_details": {
+          "type": "object",
+          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Materialized narrow scope\nactually granted to the agent runtime session, after intersecting `agent_scope_request`\nwith capability grants and Realm policy. Present iff the request was the\n`proof.proof_kind=\"agent_key_proof\"` branch; absent for human session grants.\n",
+          "additionalProperties": false,
+          "properties": {
+            "realm_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "flow_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "track_names": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "SnapshotHeadResponse": {
+      "type": "object",
+      "description": "Result of ck.snapshot.head — a signed snapshot pointer for fast bootstrap. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.",
+      "required": [
+        "snapshot_ref",
+        "state_digest",
+        "frontier",
+        "event_set_commitment",
+        "created_by",
+        "created_at",
+        "authority_binding",
+        "signature"
+      ],
+      "properties": {
+        "snapshot_ref": {
+          "type": "string",
+          "description": "External pointer to the Snapshot manifest; MUST equal schemas/snapshot.schema.json#/properties/id."
+        },
+        "state_digest": {
+          "type": "string"
+        },
+        "frontier": {
+          "type": "object"
+        },
+        "event_set_commitment": {
+          "type": "object"
+        },
+        "verification_hints": {
+          "type": "object"
+        },
+        "created_by": {
+          "type": "string",
+          "description": "DID of the snapshot issuer; bound by the manifest signature transcript."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "RFC 3339 UTC timestamp ending in 'Z' when the manifest was sealed; bound by the manifest signature transcript."
+        },
+        "authority_binding": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Snapshot issuer authority evidence bound by the manifest signature transcript; mirrors schemas/snapshot.schema.json#/properties/authority_binding."
+        },
+        "signature": {
+          "type": "object",
+          "description": "Detached proof of the snapshot manifest; verifier MUST validate against signer's verification method."
+        }
+      }
+    },
+    "ActorDid": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "description": "Bare DID used as a Cokret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id."
+    },
+    "Cursor": {
+      "type": "string",
+      "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+    },
+    "DeviceMessageEnvelope": {
+      "$ref": "./device-message.schema.json"
+    },
+    "DeviceMessageTarget": {
+      "type": "object",
+      "required": [
+        "kind",
+        "expires_at",
+        "content"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+        },
+        "content": {
+          "type": "object"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventId": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "EventSubmitEnvelope": {
+      "allOf": [
+        {
+          "$ref": "./event-envelope.schema.json"
+        },
+        {
+          "type": "object",
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "actor_kind"
+                ]
+              },
+              {
+                "required": [
+                  "effective_scope"
+                ]
+              }
+            ]
+          },
+          "description": "Actor-supplied ck.events.submit input envelope. It reuses the base Event\nshape for actor intent fields but forbids reducer-managed accepted-output\nprojections such as actor_kind and effective_scope. Services stamp those\nfields only after accept and expose them on read/query/sync envelopes.\n"
+        }
+      ]
+    },
+    "EventsFrontierAccountClientResponse": {
+      "type": "object",
+      "description": "Account-client ck.events.frontier response.",
+      "required": [
+        "frontier"
+      ],
+      "properties": {
+        "frontier": {
+          "type": "object",
+          "description": "Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a\nRealm frontier (`{realm_id, anchor_id, state_root, hlc?}`) shape\ndepending on which selector was passed; servers MUST NOT leak\nfrontiers across visibility boundaries.\n"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventsFrontierAnonymousHealthResponse": {
+      "type": "object",
+      "description": "Anonymous health ck.events.frontier response. MUST NOT include actor_seq_upper_bounds, receipts, frontier details, or service signature material.",
+      "required": [
+        "frontier_root"
+      ],
+      "properties": {
+        "frontier_root": {
+          "type": "string",
+          "description": "Opaque hash commitment suitable for liveness / freshness checks."
+        },
+        "cache_expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Earliest time until which clients SHOULD reuse this anonymous health response. Anonymous health responses MUST impose at least a 60 second cache/backoff window; clients MUST treat shorter values as 60 seconds."
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 60000,
+          "description": "Minimum retry delay for anonymous health probes when the service wants explicit polling backoff. Anonymous health responses MUST impose at least a 60 second cache/backoff window."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventsFrontierFederationPeerResponse": {
+      "type": "object",
+      "description": "Federation peer ck.events.frontier response. Requires S2S signed trust-domain headers.",
+      "required": [
+        "frontier",
+        "frontier_root",
+        "signature"
+      ],
+      "properties": {
+        "frontier": {
+          "type": "object",
+          "description": "Realm frontier visible to the authenticated federation peer."
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "frontier_root": {
+          "type": "string",
+          "description": "Hash commitment returned for federation_peer and anonymous_health peer_role."
+        },
+        "actor_seq_upper_bounds": {
+          "type": "object",
+          "description": "Per-actor sequence upper bounds returned for federation_peer peer_role."
+        },
+        "signature": {
+          "type": "object",
+          "description": "Service signature over the frontier response when peer_role=federation_peer."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventsSubmitBatchRequest": {
+      "type": "object",
+      "description": "Batch ck.events.submit request used by account clients.",
+      "required": [
+        "events"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/EventSubmitEnvelope"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventsSubmitFederationRequest": {
+      "type": "object",
+      "description": "Federation service-to-service ck.events.submit request body.",
+      "required": [
+        "service_binding_ref",
+        "events"
+      ],
+      "properties": {
+        "service_binding_ref": {
+          "$ref": "#/$defs/FederationServiceBindingRef"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/EventSubmitEnvelope"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "FederationServiceBindingRef": {
+      "type": "object",
+      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ck.events.submit calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
+      "required": [
+        "realm_id",
+        "realm_policy_digest",
+        "membership_frontier",
+        "delivery_binding_frontier",
+        "destination_service_type",
+        "reducer_profile_digest"
+      ],
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "realm_policy_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "membership_frontier": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "delivery_binding_frontier": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "delivery_binding_diagnostics": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "destination_service_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reducer_profile_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProjectionFlowRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "flow_id",
+        "realm_id",
+        "state"
+      ],
+      "properties": {
+        "flow_id": {
+          "type": "string",
+          "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived",
+            "redacted"
+          ]
+        },
+        "state_changed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile."
+        },
+        "summary": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile."
+        },
+        "board_space_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Derived board Space id from ck.component.flow.position.v1; not canonical Flow object state."
+        },
+        "list_space_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Derived list Space id from ck.component.flow.position.v1; not canonical Flow object state."
+        },
+        "rank": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived rank within list_space_id from ck.component.flow.position.v1."
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "ProjectionMorphRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "morph_id",
+        "realm_id",
+        "morph_type",
+        "state"
+      ],
+      "properties": {
+        "morph_id": {
+          "type": "string",
+          "pattern": "^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "morph_type": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived",
+            "redacted"
+          ]
+        },
+        "state_changed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "ProjectionSpaceRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "space_id",
+        "realm_id",
+        "kind",
+        "title",
+        "state"
+      ],
+      "properties": {
+        "space_id": {
+          "type": "string",
+          "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Space kind such as `board`, `list`, `folder`, or a profile-registered kind."
+        },
+        "title": {
+          "type": "string"
+        },
+        "parent_space_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rank": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived",
+            "tombstoned"
+          ]
+        },
+        "state_changed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "RealmId": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "ServiceDid": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "description": "Bare DID identifying a service endpoint."
+    },
+    "SnapshotBootstrap": {
+      "type": "object",
+      "description": "Optional ck.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
+      "required": [
+        "snapshot_ref",
+        "state_digest",
+        "snapshot_frontier",
+        "created_by",
+        "created_at",
+        "authority_binding",
+        "signature"
+      ],
+      "properties": {
+        "snapshot_ref": {
+          "type": "string",
+          "description": "External pointer to the Snapshot manifest; MUST equal schemas/snapshot.schema.json#/properties/id."
+        },
+        "state_digest": {
+          "type": "string"
+        },
+        "snapshot_frontier": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "created_by": {
+          "type": "string",
+          "description": "DID of the snapshot issuer; bound by the manifest signature transcript."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "RFC 3339 UTC timestamp ending in 'Z' when the manifest was sealed; bound by the manifest signature transcript."
+        },
+        "authority_binding": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Snapshot issuer authority evidence bound by the manifest signature transcript; mirrors schemas/snapshot.schema.json#/properties/authority_binding."
+        },
+        "signature": {
+          "type": "object"
+        },
+        "verification_hints": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

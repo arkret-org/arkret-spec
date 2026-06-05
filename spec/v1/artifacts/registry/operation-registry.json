@@ -272,7 +272,9 @@
       "http": "POST /_cokret/gate/account/session-grants",
       "grpc": "Account/IssueSessionGrant",
       "mq": "account.issue_session_grant",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponse"
     },
     {
       "operation_id": "ck.account.session_revoke",
@@ -384,7 +386,9 @@
       "http": "POST /_cokret/gate/account/oidc/callback",
       "grpc": "Account/OidcCallback",
       "mq": "account.oidc_callback",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackResponse"
     },
     {
       "operation_id": "ck.applet.describe",
@@ -482,14 +486,17 @@
       "http": "POST /_cokret/self/authz/check",
       "grpc": "Authz/Check",
       "mq": "authz.check",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckResponse"
     },
     {
       "operation_id": "ck.authz.get_effective_grants",
       "http": "GET /_cokret/self/authz/effective-grants",
       "grpc": "Authz/GetEffectiveGrants",
       "mq": "authz.get_effective_grants",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantListResponse"
     },
     {
       "operation_id": "ck.authz.get_invites",
@@ -528,21 +535,26 @@
       "grpc": "Blob/Presign",
       "mq": "blob.presign",
       "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4.",
-      "success_shape_kind": "inline_response"
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponse"
     },
     {
       "operation_id": "ck.device_messages.get",
       "http": "GET /_cokret/self/device_messages",
       "grpc": "DeviceMessages/Get",
       "mq": "device_messages.get",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponse"
     },
     {
       "operation_id": "ck.device_messages.put",
       "http": "POST /_cokret/self/device_messages",
       "grpc": "DeviceMessages/Put",
       "mq": "device_messages.put",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutResponse"
     },
     {
       "operation_id": "ck.contact.request",
@@ -598,7 +610,9 @@
       "http": "POST /_cokret/find/directory/announce",
       "grpc": "Directory/Announce",
       "mq": "directory.announce",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceResponse"
     },
     {
       "operation_id": "ck.directory.describe",
@@ -711,7 +725,9 @@
       "http": "POST /_cokret/find/directory/withdraw",
       "grpc": "Directory/Withdraw",
       "mq": "directory.withdraw",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawResponse"
     },
     {
       "operation_id": "ck.events.describe",
@@ -725,21 +741,24 @@
       "http": "GET /_cokret/self/events/frontier",
       "grpc": "Events/Frontier",
       "mq": "events.frontier",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierResponse"
     },
     {
       "operation_id": "ck.events.get",
       "http": "GET /_cokret/self/events/{event_id}",
       "grpc": "Events/Get",
       "mq": "events.get",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventGetResponse"
     },
     {
       "operation_id": "ck.events.query",
       "http": "GET /_cokret/self/events",
       "grpc": "Events/Query",
       "mq": "events.query",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse"
     },
     {
       "operation_id": "ck.events.query_post",
@@ -747,7 +766,9 @@
       "http_only_variant": true,
       "http": "POST /_cokret/self/events/query",
       "notes": "HTTP-specific POST/body form of ck.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ck.events.query binding (Events/Query / events.query), not expose this variant as a separate gRPC or MQ operation.",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse"
     },
     {
       "operation_id": "ck.events.resolve",
@@ -755,7 +776,9 @@
       "grpc": "Events/Resolve",
       "mq": "events.resolve",
       "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ck.events.query for selector-based reads.",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveResponse"
     },
     {
       "operation_id": "ck.events.subscribe",
@@ -770,7 +793,9 @@
       "http": "POST /_cokret/self/events",
       "grpc": "Events/Submit",
       "mq": "events.submit",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse"
     },
     {
       "operation_id": "ck.ephemeral.send",
@@ -778,15 +803,19 @@
       "grpc": "Ephemeral/Send",
       "mq": "ephemeral.send",
       "notes": "Canonical broadcast ephemeral send operation for ck.schema.ephemeral_envelope.v1. Carries ck.presence, ck.typing, ck.receipt.read, and ck.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitResponse"
     },
     {
       "operation_id": "ck.call.media.token_exchange",
       "http": "POST /_cokret/self/rtc/token",
       "grpc": "CallMedia/TokenExchange",
       "mq": "call.media.token_exchange",
-      "notes": "Media service token exchange operation (CXP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
-      "success_shape_kind": "inline_response"
+      "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponse"
     },
     {
       "operation_id": "ck.identity.describe_registry",
@@ -800,7 +829,8 @@
       "http": "GET /_cokret/root/identity/document",
       "grpc": "Identity/GetDocument",
       "mq": "identity.get_document",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityGetDocumentResponse"
     },
     {
       "operation_id": "ck.identity.get_log",
@@ -821,14 +851,18 @@
       "http": "POST /_cokret/root/identity/resolve",
       "grpc": "Identity/Resolve",
       "mq": "identity.resolve",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveResponse"
     },
     {
       "operation_id": "ck.identity.submit_did_operation",
       "http": "POST /_cokret/root/identity/submit-did-operation",
       "grpc": "Identity/SubmitDidOperation",
       "mq": "identity.submit_did_operation",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponse"
     },
     {
       "operation_id": "ck.keys.claim",
@@ -976,7 +1010,8 @@
       "http": "GET /_cokret/open/mimi/provider-directory",
       "grpc": "Mimi/ProviderDirectory",
       "mq": "mimi.provider_directory",
-      "success_shape_kind": "schema_resource"
+      "success_shape_kind": "schema_resource",
+      "response_schema_ref": "schemas/mimi-interop.schema.json"
     },
     {
       "operation_id": "ck.mimi.proxy_download",
@@ -1039,7 +1074,9 @@
       "http": "POST /_cokret/self/moderation/report",
       "grpc": "Moderation/Report",
       "mq": "moderation.report",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/moderation-report.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponse"
     },
     {
       "operation_id": "ck.policy.check",
@@ -1047,7 +1084,9 @@
       "grpc": "Policy/Check",
       "mq": "policy.check",
       "notes": "Canonical HTTP binding is POST /_cokret/self/policy/check. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckResponse"
     },
     {
       "operation_id": "ck.projection.flows",
@@ -1055,7 +1094,8 @@
       "grpc": "Projection/Flows",
       "mq": "projection.flows",
       "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowsResponse"
     },
     {
       "operation_id": "ck.projection.morphs",
@@ -1063,7 +1103,8 @@
       "grpc": "Projection/Morphs",
       "mq": "projection.morphs",
       "notes": "Extension read surface for reducer-maintained Morph lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphsResponse"
     },
     {
       "operation_id": "ck.projection.spaces",
@@ -1071,7 +1112,8 @@
       "grpc": "Projection/Spaces",
       "mq": "projection.spaces",
       "notes": "Extension read surface for reducer-maintained Space lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpacesResponse"
     },
     {
       "operation_id": "ck.push.notify",
@@ -1147,14 +1189,17 @@
       "grpc": "Account/CursorRevoke",
       "mq": "account.cursor_revoke",
       "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance to-device ack, account subscribe position, barrier wait, or dropped recovery state.",
-      "success_shape_kind": "inline_response"
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponse"
     },
     {
       "operation_id": "ck.snapshot.head",
       "http": "GET /_cokret/self/snapshot/head",
       "grpc": "Snapshot/Head",
       "mq": "snapshot.head",
-      "success_shape_kind": "typed_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadResponse"
     }
   ],
   "success_shape_kind_definitions": {

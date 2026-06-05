@@ -19,7 +19,7 @@
     {
       "schema_id": "ck.schema.circle.v1",
       "file": "schemas/circle.schema.json",
-      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CXP-0007; see zh/models/circle.md."
+      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
     },
     {
       "schema_id": "ck.schema.flow.v1",
@@ -399,6 +399,24 @@
       "file": "schemas/common-ids.schema.json",
       "status": "active",
       "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
+    },
+    {
+      "schema_id": "ck.schema.delivery_binding_stale.v1",
+      "file": "schemas/delivery-binding-stale.schema.json",
+      "status": "active",
+      "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_did, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid)."
+    },
+    {
+      "schema_id": "ck.schema.query.v1",
+      "file": "schemas/query.schema.json",
+      "status": "active",
+      "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequest / SearchRequest / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md."
+    },
+    {
+      "schema_id": "ck.schema.service_operation_dtos.v1",
+      "file": "schemas/service-operation-dtos.schema.json",
+      "status": "active",
+      "description": "Canonical DTO bundle for service operation request/response shapes migrated out of OpenAPI inline components."
     }
   ]
 }

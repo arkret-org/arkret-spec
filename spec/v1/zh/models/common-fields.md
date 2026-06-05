@@ -36,7 +36,7 @@ updated: 2026-06-01
 
 注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ck:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ck:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 的连字符长前缀 `rtc-recording-`（形如 `rtc-recording-<uuid>`）是已登记的领域前缀例外：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ck:*` typed ID（见 [`crypto-media/call-state.md`](../crypto-media/call-state.md) 录制生命周期一节）。
 
-`cx-` / `cx_` 前缀命名约定（normative）：`ck-` / `ck_` 是 Cokret 的正命名前缀。除 [`artifacts/registry/legacy-cx-name-allowlist.json`](../../artifacts/registry/legacy-cx-name-allowlist.json) 登记的历史 / wire-breaking 名（如 wire extension `cx_governance_binding`、exporter label `cx-rtc-*`、域分隔标签 `cx-*-v1`、DID key handle fragment `cx_*_signing_v1`）与**文档示例占位值**（prose / fixture 中仅作举例的 `cx_device_*`、`cx_chal_*`、`cx_pseudonym_call_*`、`cx-challenge-*` 等）外，新增或推荐的 canonical 命名 **MUST NOT** 使用 `cx-` / `cx_` 前缀。需要保留某个带 `cx` 前缀的历史 / wire 名时，MUST 先在该允许表登记（字段含 `name` / `kind` / `where` / `notes`）。
+`cx-` / `cx_` 前缀命名约定（normative）：`ck-` / `ck_` 是 Cokret 的正命名前缀。除 [`artifacts/registry/legacy-cx-name-allowlist.json`](../../artifacts/registry/legacy-cx-name-allowlist.json) 登记的历史 / wire-breaking 名（如 exporter label `cx-rtc-*`、域分隔标签 `cx-*-v1`、DID key handle fragment `cx_*_signing_v1`）与**文档示例占位值**（prose / fixture 中仅作举例的 `cx_device_*`、`cx_chal_*`、`cx_pseudonym_call_*`、`cx-challenge-*` 等）外，新增或推荐的 canonical 命名 **MUST NOT** 使用 `cx-` / `cx_` 前缀。需要保留某个带 `cx` 前缀的历史 / wire 名时，MUST 先在该允许表登记（字段含 `name` / `kind` / `where` / `notes`）。MLS Governance Binding 的当前 GroupContext extension 名称固定为 `mls_governance_binding`，不得使用旧草案名 `cx_governance_binding` 作为当前 wire 名。
 
 字段默认规则：
 

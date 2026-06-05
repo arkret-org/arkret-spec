@@ -312,7 +312,7 @@ Rebind handover：
 - `delivery_binding_stale` 重试是有界重定向，不是无限 fanout：sender 对同一 `(event_id, target_principal_id, handover_frontier)` 最多重试一次到 `new_recipient_service_did`；再次收到 stale / handed_over 时 MUST 停止投递并进入 backoff / operator diagnostic，避免跨服务循环。
 - 旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`。
 
-`delivery_binding_stale` 响应体（normative 字段表；canonical schema 待维护者登记）：以下字段当前仅在散文与 fixtures / `error-code-registry` 中出现，尚未在 `artifacts/schemas` 与 `contract-catalog` 登记独立 canonical schema。**在 canonical schema 登记之前，本表与本节散文即是 `delivery_binding_stale` 响应体与 `handover_proof` 结构的唯一 normative 真源**；符合规范的实现 MUST 按下表产出 / 校验响应结构，不得因 schema 尚未落地而放宽校验或视该结构为非 normative。下表与 §4.1 散文之间若有歧义，以更严格者为准。
+`delivery_binding_stale` 响应体（normative 字段表，canonical schema [`delivery-binding-stale.schema.json`](../../artifacts/schemas/delivery-binding-stale.schema.json)，schema id `ck.schema.delivery_binding_stale.v1`，已登记于 `contract-catalog`）：符合规范的实现 MUST 按该 canonical schema 与下表产出 / 校验响应结构。下表与 §4.1 散文、canonical schema 之间若有歧义，以更严格者为准。
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
@@ -324,9 +324,9 @@ Rebind handover：
 | `handover_proof.actor_id` | `did` | required | rebind 目标主体；MUST `== target_principal_id`。 |
 | `handover_proof.witness` | `object` | required | 该 rebind Move 的 event digest / state witness / inclusion proof；sender MUST 验证其在 Realm Event graph 与 policy 下可达，且对应 Move 已被 anchor frontier finalize。 |
 
-> `handover_grace_seconds`（默认 `86400`）是该 handover 路径的部署常量，与 `allowed_recipient_services` 一并属于尚未登记到 `artifacts/schemas` / `contract-catalog` 的 federation delivery-binding 常量与字段；在登记前，本表与本节散文是其唯一 normative 来源。
+> `delivery_binding_stale` 响应体与内嵌 `handover_proof` 结构已登记为 canonical artifact [`delivery-binding-stale.schema.json`](../../artifacts/schemas/delivery-binding-stale.schema.json)（schema id `ck.schema.delivery_binding_stale.v1`），互操作实现可机器校验该响应体；相关 reason code（`delivery_binding_stale` / `delivery_binding_handover_proof_invalid` / `delivery_binding_handover_rate_limited` / `delivery_binding_handed_over`）登记于 `error-code-registry.json`。
 >
-> **后续登记计划（artifact backlog，待维护者执行）**：维护者 SHOULD 把本节 `delivery_binding_stale` 响应体与 `handover_proof` 结构登记为 canonical artifact——在 `artifacts/schemas` 新增 federation delivery-binding handover schema（含内嵌 handover_proof 定义；canonical schema id 由维护者在登记时按 schema-registry 命名规则分配），并在 `contract-catalog` 与 `error-code-registry` 中交叉引用，使 `handover_proof` 结构可被互操作实现机器校验。该登记是独立 artifact 维护任务，不在本规范文档的编辑范围内；登记落地前，实现以本字段表为准。
+> `handover_grace_seconds`（默认 `86400`）是该 handover 路径的部署常量，与 `allowed_recipient_services`（由 `ck.realm.delivery_binding_policy` 声明）一并属于 Realm policy / 部署常量，不进入 `delivery_binding_stale` 响应体 schema；其 normative 语义由本节散文与 `ck.realm.delivery_binding_policy` 承载。
 
 撤销 / 移除 cascading：
 

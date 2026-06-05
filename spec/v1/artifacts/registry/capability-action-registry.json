@@ -956,7 +956,7 @@
         "ck.capability.grant"
       ],
       "profile": "ck.profile.personal_agent_provisioning.v1",
-      "migration_group": "cxp_0008_agent_provisioning",
+      "migration_group": "ckp_0008_agent_provisioning",
       "event_mapping_kind": "aggregate_admin"
     },
     {
@@ -1052,7 +1052,7 @@
         "ck.relation.create"
       ],
       "profile": "ck.profile.agent_sidecar_thread.v1",
-      "migration_group": "cxp_0009_sidecar_ensure",
+      "migration_group": "ckp_0009_sidecar_ensure",
       "event_mapping_kind": "aggregate_admin"
     },
     {

@@ -1908,7 +1908,7 @@
     },
     "ck.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework (CXP-0010). Requires ck.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
+      "description": "Transport-agnostic media backend binding framework (CKP-0010). Requires ck.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
       "depends_on": [
         "ck.profile.webrtc_media.v1"
       ],
@@ -1957,7 +1957,7 @@
     },
     "ck.profile.media_service_binding.livekit.v1": {
       "role": "server",
-      "description": "LiveKit backend binding sub-profile (CXP-0010 §4.5). Maps Cokret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Cokret blob pipeline. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
+      "description": "LiveKit backend binding sub-profile (CKP-0010 §4.5). Maps Cokret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Cokret blob pipeline. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
       "depends_on": [
         "ck.profile.media_service_binding.v1"
       ],
@@ -1996,7 +1996,7 @@
     },
     "ck.profile.media_service_binding.cokret_native.v1": {
       "role": "server",
-      "description": "Cokret-native SFU reference implementation binding sub-profile (CXP-0010 §4.5). Preserves the v1.0 custom SFU wire format as a reference impl for conformance testing and legacy migration. Not recommended for production — workload of self-maintaining SFU (cascade, recording, SFrame, scalability) exceeds the cost of LiveKit / mediasoup bindings. May transition to informative in v1.1. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. See zh/crypto-media/bindings/cokret-native.md.",
+      "description": "Cokret-native SFU reference implementation binding sub-profile (CKP-0010 §4.5). Preserves the v1.0 custom SFU wire format as a reference impl for conformance testing and legacy migration. Not recommended for production — workload of self-maintaining SFU (cascade, recording, SFrame, scalability) exceeds the cost of LiveKit / mediasoup bindings. May transition to informative in v1.1. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. See zh/crypto-media/bindings/cokret-native.md.",
       "depends_on": [
         "ck.profile.media_service_binding.v1"
       ],
@@ -2323,7 +2323,7 @@
     },
     "ck.profile.mls_governance_binding.full.v1": {
       "inherits": [],
-      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the cx_governance_binding GroupContext extension) and update three cells (mls_epoch, key_schedule, covered_frontier). E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier; governance / recovery Moves do not depend on it.",
+      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three cells (mls_epoch, key_schedule, covered_frontier). E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier; governance / recovery Moves do not depend on it.",
       "required_endpoints": [
         "ck.keys.keypackages.claim",
         "ck.keys.keypackages.consume",

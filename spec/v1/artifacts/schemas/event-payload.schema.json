@@ -3419,7 +3419,7 @@
         },
         "runtime_attestation": {
           "type": "object",
-          "description": "Optional runtime / workload attestation captured at pairing approval time (CXP-0008 §4.5). v1 enum includes self_asserted as baseline; future profiles MAY register TEE / SLSA / SPIFFE attestation kinds. Implementations encountering an unknown kind MUST fail closed.",
+          "description": "Optional runtime / workload attestation captured at pairing approval time (CKP-0008 §4.5). v1 enum includes self_asserted as baseline; future profiles MAY register TEE / SLSA / SPIFFE attestation kinds. Implementations encountering an unknown kind MUST fail closed.",
           "required": [
             "kind"
           ],
