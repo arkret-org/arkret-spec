@@ -316,6 +316,12 @@
       "default": 86400000,
       "description": "Realm-level hard maximum age of a reducer-input Event/Move anchor_ref relative to the receiver's current Anchor view. Default 86400000 ms (24h) is a compatibility ceiling for low-risk offline/recovery paths, not the recommended freshness window for all writes. Receivers MUST enforce the effective window as the minimum of this value and any action/capability, cell-role, deployment, or profile-specific freshness override; stale submissions fail closed with anchor_ref_stale / failed_precondition. High-risk security-root cells and high-conflict UI moves SHOULD declare much shorter windows and require rebase before signing."
     },
+    "max_delegation_lifetime_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 86400000,
+      "description": "Realm-level maximum lifetime window used when an otherwise unbounded parent grant first delegates. Reducers freeze delegation_expiry_anchor = first_delegation_anchored_at + effective max_delegation_lifetime_ms and MUST NOT refresh it on re-delegation. Effective value is the minimum of this field and any stricter grant, policy, deployment, or profile override. Defaults to 86400000 ms (24h). See zh/authz/capabilities.md §10.1."
+    },
     "bottom_escalation_after_ms": {
       "type": "integer",
       "minimum": 60000,

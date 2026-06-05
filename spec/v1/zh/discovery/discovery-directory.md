@@ -120,11 +120,15 @@ Realm discovery policy SHOULD 由 `ck.realm.discovery` state event 表达：
 
 **`member_count_bucket` 的 wire 类型（normative）**：该字段是 `string | int` union——`bucketed` mode 下 MUST 是上方 bucket grid 之一的封闭枚举字符串；`exact` mode 下 MUST 是非负整数（精确成员数）。请求方 MUST 由 effective `member_count_mode` 决定按字符串枚举还是整数解析，不得仅凭值类型推断 mode。两种 mode 下 preview 输出（`realm_preview` / `stripped_state`）中该字段的取值示例：
 
-```json
-// bucketed mode：封闭枚举字符串
-{ "title": "Acme", "member_count_bucket": "51-100" }
+`bucketed` mode 下为封闭枚举字符串：
 
-// exact mode（仅 discoverability ∈ {public, listed}）：精确成员数整数
+```json
+{ "title": "Acme", "member_count_bucket": "51-100" }
+```
+
+`exact` mode（仅 `discoverability ∈ {public, listed}`）下为精确成员数整数：
+
+```json
 { "title": "Acme Public", "member_count_bucket": 342 }
 ```
 

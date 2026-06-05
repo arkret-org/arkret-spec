@@ -59,7 +59,7 @@ web+cokret:realm/<realm>/flow/<flow>?lt=invite&tok=<token>   # invite link
 - **Flow / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail-closed（返回 `not_found`），不得做全网 flow_id 猜测。
 - **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **alias**（域名样式 / 含 `.` 的人类可读名）。`<flow>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`ck:realm:<uuid>` / `ck:flow:<uuid>` / `ck:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
 - **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `flow` / `m`，且层级顺序 MUST 为 `realm` ⊃ `flow` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
-- Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/flow-and-message.md#9-message)，而非底层 event envelope）。
+- Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/flow-and-message.md#9-message)，而非底层 event envelope）。在 v1 中，`m/<msg>` 只寻址 Flow discussion track 内的 `ck:message:` 对象；synthesis track 的结构化内容应通过 Flow / Morph / Relation 等对象地址或 profile 显式注册的未来 keyword 寻址，不得把 `m/` 解释为任意 track-local item。
 - **Circle-scoped Flow**（`Flow.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。
 
 ### 3.2 Query 规则（normative）

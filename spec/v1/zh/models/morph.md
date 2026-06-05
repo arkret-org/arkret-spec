@@ -127,7 +127,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 声明者须在四层之间保持一致；只有顺序 1 与 2 是规范来源，§3/§4 的存在不构成"已声明能力"。Reducer / capability / wire 验证路径如违反本表（例如读取 §4 facet 决定授权），即为实现 bug，conformance 套件 MUST 覆盖。
 
-### 4.1 `schema_refs[]` Evolution Policy (Normative)
+### 4.1 Schema Refs Evolution Policy (Normative)
 
 `morph_type` create-locked（见 §4 顺序 3）防止授权错位，但 `schema_refs[]` 不能 freeze——Morph 的本质就是 evolvable schema。然而 `schema_refs[]` 也不能裸 update：它决定字段验证、transition 规则与历史事件解释，静默替换会导致旧事件按错误 schema 重放、reducer 行为漂移、capability 范围隐性扩张。本节定义 schema 演进的三条 normative 规则：S1 per-event schema 版本绑定；S2 `ck.morph.update` 中 schema_refs[] 变更的 capability gate；S3 完整 schema migration（含 additive / breaking / transformation 兼容声明）由一等 event `ck.morph.schema_migrate` 承担。
 
@@ -203,7 +203,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 ## 6. Schema Evolution
 
-Morph `schema_refs[]` 的 per-event 版本绑定与受控迁移规则见 [§4.1](#41-schema_refs-evolution-policy-normative)。本节列出 evolution 的其余通用约束：
+Morph `schema_refs[]` 的 per-event 版本绑定与受控迁移规则见 [§4.1](#41-schema-refs-evolution-policy-normative)。本节列出 evolution 的其余通用约束：
 
 - 新字段优先 optional。
 - 既有字段不得静默改变语义。

@@ -43,6 +43,16 @@ Realm 是硬安全边界，不承担产品导航树职责。因此 Cokret v1 不
 }
 ```
 
+Payload 字段：
+
+| 字段 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `target_realm_id` | yes | `id:realm` | 被引用的目标 Realm。 |
+| `link_kind` | yes | `string` | Link 语义，标准值见下表；profile MAY 注册额外值。 |
+| `status` | yes | `enum(active,rejected,tombstoned)` | 本侧声明的 link 状态。 |
+| `label` | no | `string` | 本地显示标签；不参与授权或确认语义。 |
+| `commitment` | no | `hash` | profile-specific 承诺值；需要双方确认、mirror、migration、confidential extension 或 attestation 的 profile MAY 要求它并定义 transcript。core `ck.realm.link` 不给该字段赋予通用授权语义。 |
+
 标准 `link_kind`：
 
 | kind | 含义 | 是否允许授权派生 |

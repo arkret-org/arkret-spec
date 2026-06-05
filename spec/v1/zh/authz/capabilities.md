@@ -618,6 +618,8 @@ system/human -> `ck.flow.update` 或 `ck.morph.update`
 - 若 parent grant 无 finite effective upper bound，则其第一次作为 delegation source 时，reducer **MUST** 冻结 `delegation_expiry_anchor = first_delegation_anchored_at + max_delegation_lifetime_ms`（默认 24 小时），并把该 anchor 作为不可变 child-chain 属性记录（`refs[role="delegation_expiry_anchor"]` 或 profile 声明的等价字段）。
 - 同一无限期 parent 的后续 re-delegate **MUST** 复用同一 `delegation_expiry_anchor`，**MUST NOT** 用新的 `now` 重新计算；child 的 `effective_expires_at` 超过该 anchor 时 reducer **MUST** 返回 `failed_precondition` reason=`delegation_expiry_widening`。
 
+`max_delegation_lifetime_ms` 是 Realm authz 参数，wire 承载位置为 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的同名可选字段与 [`realm-and-space.md` §2.3](../models/realm-and-space.md) 字段表。缺省值为 `86400000`（24 小时）。若 grant / policy / deployment profile 声明更短窗口，effective value MUST 取所有适用窗口的最小值；child grant 或下游 profile 不得放宽父 Realm 的 effective value。实现无法读取该参数时 MUST 使用缺省值，不得把无限期 parent 视作可无限滚动续期。
+
 本规则与 §8 "delegated grant MUST 有有限 expiry" 对齐：任何 child 链最终 expiry 都 MUST 可追溯到一个不随 re-delegate 推移的固定时点。
 
 ### 10.2 Cycle detection（normative）

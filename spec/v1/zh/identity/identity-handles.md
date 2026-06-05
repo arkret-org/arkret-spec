@@ -111,11 +111,11 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 ### 3.2 解析结果必含字段
 
-Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含 `subject`、`handle`、`issuer`、`proofs`、`created_at` 与 `expires_at`；`handle_aliases[]` 为 **可选**（optional，与 §3.2.1 表及 §3.7.1 的 MAY 一致），不是必含字段：
+Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含 `handle`、`subject`、`issuer`、`proofs`、`created_at` 与 `expires_at`；`handle_aliases[]` 为 **可选**（optional，与 §3.2.1 表及 §3.7.1 的 MAY 一致），不是必含字段：
 
-- `subject`：被寻址 handle holder 的 principal DID。
 - `handle`：canonical `user:domain` handle（主形态）。
 - `handle_aliases[]`（可选 / optional）：互通别名，例如 `acct:`；不得参与 Cokret 内部权威比对。缺省时整字段 MAY 省略。
+- `subject`：被寻址 handle holder 的 principal DID。
 - `issuer`：签发 handle claim 的 DID。详见 §3.4。
 - `proofs`：至少一条可验证签名，绑定 `handle`、`subject`、`issuer`、`created_at`。
 - `created_at` / `expires_at`：claim 时间边界；`expires_at` 缺失等价于 `binding_state=unverified`。

@@ -63,7 +63,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
 | `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端先回放 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame,然后切到实时尾部；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ck.events.query` 分页/区间读取。 |
-| `set_presence` | query | `enum(online,offline,unavailable)` | optional | 连接建立时设置当前设备 presence,服务端在 frame 推送过程中向其他 Realm 广播。 |
+| `set_presence` | query | `enum(online,offline,unavailable)` | optional | 连接建立时设置当前设备 presence。若服务端支持 presence 且当前 session 持有 `ck.presence.broadcast` action，服务端在 frame 推送过程中向其他 Realm 广播；否则 MUST 忽略该参数且不得广播，但不得仅因 `set_presence` 无权限或不支持而拒绝 `ck.account.subscribe` 连接。 |
 | `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 events.subscribe。 |
 | `filter.realms` | query | `id[]` | optional | 限制返回 Realm。 |
 | `filter.timeline_limit` | query | `int` | optional | 每个 Realm timeline 数量上限(per-frame)。 |
@@ -106,8 +106,8 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
   },
   "to_device": {"messages": []},
   "device_lists": {"changed": [], "left": []},
-  "presence": {"events": []},
   "account_data": {"events": []},
+  "presence": {"events": []},
   "notifications": {"events": []}
 }
 ```
@@ -170,9 +170,10 @@ Account subscribe `delta` frame 包含以下 stream：
 | Stream | 承载位置 |
 | --- | --- |
 | `timeline` / `state` / `state_after` / `state_at_window_start` / `ephemeral` | per-Realm：`delta.realms[<realm_id>]` 内的同名字段（§4） |
+| `to_device` / `device_lists` | `delta` 顶层同名字段（跨 Realm，不分桶到具体 Realm） |
 | `account_data` | 双位置：Realm-scoped 私有数据进 `delta.realms[<realm_id>].account_data`；account-scoped 进 `delta` 顶层 `account_data` |
+| `presence` | `delta` 顶层同名字段（跨 Realm，不分桶到具体 Realm） |
 | `receipts` | per-Realm：read receipt / read cursor delta 随对应 Realm 投递，承载于 `delta.realms[<realm_id>].ephemeral`（read receipt 临时位）与 `account_data`（actor-private `read_cursor` 高水位）；服务端 MAY 按下文合并 |
-| `to_device` / `device_lists` / `presence` | `delta` 顶层同名字段（跨 Realm，不分桶到具体 Realm） |
 | `notifications` | `delta` 顶层 `notifications`；per-Realm 未读计数另由 `delta.realms[<realm_id>].unread_notifications` 表达（§4） |
 | `applet` | per-Realm 派生：Applet delivery receipt / bridge health 作为对应 Realm 的事件随 `delta.realms[<realm_id>].timeline` / `ephemeral` 投递 |
 | `blob_status` | per-Realm 派生：upload scan / thumbnail / retention 状态作为对应 Realm 的派生事件随 `delta.realms[<realm_id>].timeline` 投递 |
@@ -563,6 +564,15 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - 最大等待时间
 
 超限返回 `rate_limited`、`payload_too_large` 或 `invalid_param`，并在 `Retry-After`、`retry_after_ms` 或 `limits` 中说明。
+
+`filter_digest` 的 canonical 计算（normative）：
+
+1. 将 query deepObject 解析为 JSON filter object；未提供 `filter` 时，normalized filter 是空对象 `{}`。
+2. 省略所有未出现的 optional 字段；不得把实现默认值写入 normalized filter。
+3. 对集合语义字段 `realms`、`event_types`、`not_event_types`，在计算 digest 前按元素字符串 lexicographic 排序并去重；其它数组若未来由 profile 引入，profile MUST 声明 order-is-semantic 或 sorted，未声明时不得进入 cursor binding。
+4. 按 RFC 8785 JCS 对 normalized filter 编码为 UTF-8 bytes，计算 `filter_digest = "sha256:" || hex(sha256(jcs_bytes))`。
+
+服务端签发 stream cursor、强制 `reconnect_after_ms` cooldown 或验证 cursor binding 时 MUST 使用同一 `filter_digest`；客户端若持久化 cursor，也 SHOULD 同步持久化该 digest 以便诊断 `cursor_integrity_invalid`。
 
 ## 12. Cursor Semantics
 

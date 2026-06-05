@@ -57,8 +57,8 @@ Schema id: `ck.schema.event.v1`
 | `preconditions` | conditional | `array<Predicate>` | 仅 reducer-input event 携带；与 `effects[]` / `anchor_ref` 同步出现。非 reducer event（read cursor / typing 等）MUST 省略。 | Move 多 cell 原子 CAS 的 pre-state 谓词。 |
 | `effects` | conditional | `array<Effect>` | 仅 reducer-input event 携带；存在时 MUST 至少 1 项。 | Move 多 cell 原子 CAS 的 effect 集合。 |
 | `anchor_ref` | conditional | `id:anchor` | 仅 reducer-input event 携带；MUST 指向接收方已知 Anchor，并落在 `max_anchor_staleness_ms` 窗口内。 | Move 提交基线 Anchor。 |
-| `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
+| `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
 
@@ -147,7 +147,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 `requirements.features[]` 与 `requirements.critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Realm schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
 
-**Per-event schema 版本绑定**：当 event 修改的对象使用 evolvable schema（典型是 Morph，但同样适用于任何 Realm-defined schema 容器对象）时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 写入时对象实际遵循的 schema profile id 全集。reader 重放该 event 时 **MUST** 用 `requirements.schema[]` 绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用对象当前的 `schema_refs[]`。这保证 partial replication 与跨版本历史回放时验证结果一致，并锁定每个 event 的 schema 解释边界。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md)。
+**Per-event schema 版本绑定**：当 event 修改的对象使用 evolvable schema（典型是 Morph，但同样适用于任何 Realm-defined schema 容器对象）时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 写入时对象实际遵循的 schema profile id 全集。reader 重放该 event 时 **MUST** 用 `requirements.schema[]` 绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用对象当前的 `schema_refs[]`。这保证 partial replication 与跨版本历史回放时验证结果一致，并锁定每个 event 的 schema 解释边界。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md#41-schema-refs-evolution-policy-normative)。
 
 ## 3. Proof
 
@@ -158,8 +158,8 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
 | `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned)`：hash 输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等）。 | canonical Event digest。 |
 | `created_at` | yes | `timestamp` |  | 签名时间。 |
-| `domain` | no | `string` | 跨服务 SHOULD 设置。 | 域绑定。 |
-| `audience` | no | `string` 或 `array<string>` | 跨域/服务调用 SHOULD 设置。 | 受众绑定。 |
+| `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
+| `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |
 | `jws` | yes | `string` | detached JWS。 | 签名值。 |
 
 DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/identity-did.md) 的 Proof 和 [`../conformance/encoding.md`](../conformance/encoding.md) 的 canonical JSON 规则一致。
@@ -178,6 +178,8 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 ```
 
 Verifier MUST 先移除 `proofs` 与 `unsigned` 计算 canonical Event hash，并与 `proof.event_digest` 比对；随后按上述字段构造 canonical proof binding object，验证 detached JWS 覆盖该 binding object。这样 `event_digest` 绑定完整 Event，而 JWS transcript 同时绑定 actor、verification method、时间、domain/audience，避免跨服务或跨 actor 重放。
+
+在 cross-service、cross-trust-domain、federation 或任何 profile 声明的多受众调用中，缺少 `domain` 或缺少所需 `audience` 的 proof MUST fail closed（`proof_binding_missing` 或 profile 声明的更具体 reason）。同一服务内单受众本地写入 MAY 省略其中一项，但 verifier 仍 MUST 把处理上下文中的 Realm / service audience 与 envelope `realm_id`、proof controller 和 capability 绑定分开校验；不得因为 proof 验签通过就跨服务接受同一 Event。
 
 ## 4. Field Patch (`ck.patch.v1` / `ck.schema.patch.v1`)
 

@@ -258,7 +258,7 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 ### 6.2 没有 `ck.realm.policy.set` 这种聚合 kind
 
-Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_visibility 等共享同一 prefix）。Cokret v1 把每个配置 facet 拆成独立 kind：`ck.realm.policy`、`ck.realm.join_rule`、`ck.realm.history_visibility`、`ck.realm.discovery`、`ck.realm.media_service`、`ck.realm.archive`、`ck.realm.tombstone`、...
+Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_visibility 等共享同一 prefix）。Cokret v1 把每个配置 facet 拆成独立 kind：`ck.realm.policy`、`ck.realm.join_rule`、`ck.realm.history_visibility`、`ck.realm.discovery`、`ck.realm.media_service`、`ck.realm.archive`、`ck.realm.tombstone` 等；完整 active kind 集合以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为权威源。
 
 **理由**：聚合 kind 没有真实共享：每个 facet 有不同的 capability tier、auth refs、payload schema、reducer 行为。把它们绑成一个 kind 只是 Matrix wire 字段限制的产物，不反映任何模型上的共性。Cokret 的 per-facet kind 让 schema 路由更直、capability 矩阵更清楚、未来 facet 演进可独立版本化。
 

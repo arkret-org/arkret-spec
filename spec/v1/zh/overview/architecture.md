@@ -30,7 +30,7 @@ Cokret 的顶层架构要同时满足四件事：
 
 ## 2. 总体模型
 
-Cokret 采用 **principal server + signed Event + identity registry + client-side projection** 的分层模型。
+Cokret 采用 **Principal Server + signed Event + identity registry + client-side projection** 的分层模型。
 
 `Principal Server` 是 principal 自己控制或通过 DID / Realm policy 明确委托的服务入口。它可以同机承载 Events API、sync、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。搜索、inbox、notification 和 View projection 默认是客户端或 SDK 的派生能力；若某部署额外提供受托搜索服务，该服务仍是可选扩展，不是协议核心真相源。
 

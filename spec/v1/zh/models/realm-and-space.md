@@ -95,6 +95,7 @@ Schema id: `ck.schema.realm.v1`
 | `digest_algorithm` | no | `enum(sha256, sha512, sha3_256, blake3)` | create-locked，默认 `sha256`。 | Hash 算法 profile。 |
 | `anchorer` | conditional | `object` | Genesis anchorer cell 初值。其 discriminator 子字段为 `type`（取值与 `anchor_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `anchorer.type`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Anchor 授权规则。 |
 | `max_anchor_staleness_ms` | no | `integer` | 默认 24h；这是 Realm 级兼容性硬上限，不是所有写入的推荐窗口。高风险 / 高频冲突写入 MUST 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的 action / cell / profile 有效窗口进一步收紧。 | Move `anchor_ref` freshness 上限。 |
+| `max_delegation_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `delegation_expiry_anchor`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `cell_lattices` | no | `array<CellLattice>` | `CellLattice` 结构（cell family / lattice / bottom 等）定义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Realm-specific 扩展 cell family。 |
 | `co_write_policy` | no | `array<array<component>>` | `component`（cell component 标识）语义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Move 原子写约束。 |
 | `retention_policy_id` | no | `id:policy` |  | 保留策略。 |

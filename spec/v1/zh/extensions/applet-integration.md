@@ -200,59 +200,9 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 
 开发者发布 Applet 时 SHOULD 发布 controller-signed **Applet Package**。Package 是分发对象，不是 Realm history event；进入协议事实前 MUST 派生为 `ck.applet.registration` payload，并由 Realm owner/admin/authz service 通过安装聚合操作签发实际 grant。
 
-Package 最小字段:
+Package 最小字段以 [`applet-schema.md` §1a](./applet-schema.md#1a-applet-package-schema) 的字段参考表为唯一规范源；本节不重复维护字段表。Package MUST NOT 自行授权写入 Realm。Package 接受、registry 收录、namespace claim 或 `requested_scopes[]` 出现某 action 都不得被 reducer 解释为 grant。`registration_epoch` MUST 随 claimed profiles、namespace、base URL、webhook auth、endpoint key、requested scopes、widget origin、E2EE request、receive/rate-limit 行为或 DID/key evidence 改变而改变。
 
-| 字段 | 必填 | 说明 |
-| --- | --- | --- |
-| `schema` | yes | 固定 `ck.schema.applet_package.v1`。 |
-| `package_id` | yes | typed id 或 DID URL；仅用于 package 分发，不是 grant subject。 |
-| `applet_id` | yes | DID 或 `ck:applet:<uuidv7>`；opaque alias（如 `applet:bridge:*`）不是合法生产 wire id。 |
-| `service_did` | yes | Applet runtime DID。 |
-| `controller_did` | yes | 对 package / registration 负责的 controller DID。 |
-| `base_url` | yes | Applet API base URL。 |
-| `bot_actor_id` | yes | 可见 bot actor DID；不得含 `#fragment`。 |
-| `claimed_profiles[]` | yes | v1 Applet profile 声明；MUST 至少包含 `ck.profile.applet_service.v1`。 |
-| `protocols[]` | yes | 外部协议标识。 |
-| `namespaces` | yes | `actors[]` / `realms[]` / `handles[]` 对象形态 namespace。 |
-| `requested_scopes[]` | yes | capability action 请求列表；只用于审批 UI，不授权。 |
-| `endpoint_set` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
-| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms。 |
-| `receive_events` | yes | 派生 registration 的接收事件声明。 |
-| `receive_ephemeral` | yes | 派生 registration 的 ephemeral 接收声明。 |
-| `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
-| `limits` | yes | max transaction events、payload bytes、rate limit hint。 |
-| `ghost_policy` | yes | 是否支持 Ghost Actor、外部 id 去重键构成、accountability 模板。 |
-| `delegation_policy` | yes | 是否请求 delegated native-user acting；默认 false。 |
-| `e2ee_policy` | yes | 是否请求 MLS join；默认 false。 |
-| `widget` | optional | widget origin / CSP / requested token scope / consent flag。 |
-| `package_digest` | yes | canonical package hash。 |
-| `registration_epoch` | yes | canonical security epoch hash，不含 proof。 |
-| `created_at` | yes | package 创建时间。 |
-| `expires_at` | optional | package 可安装截止时间。 |
-| `proof` | yes | controller DID detached proof。 |
-
-Package MUST NOT 自行授权写入 Realm。Package 接受、registry 收录、namespace claim 或 `requested_scopes[]` 出现某 action 都不得被 reducer 解释为 grant。`registration_epoch` MUST 随 claimed profiles、namespace、base URL、webhook auth、endpoint key、requested scopes、widget origin、E2EE request、receive/rate-limit 行为或 DID/key evidence 改变而改变。
-
-Package -> registration 派生映射:
-
-| `ck.applet.registration` 字段 | Package 来源 | 规则 |
-| --- | --- | --- |
-| `applet_id` | `applet_id` | 原样复制；只接受 DID 或 `ck:applet:<uuidv7>`。 |
-| `service_did` | `service_did` | 原样复制；必须可解析并绑定 Applet endpoint。 |
-| `controller_did` | `controller_did` | 原样复制；必须验证 controller proof。 |
-| `base_url` | `base_url` | 原样复制；必须与 service DID Document binding 一致。 |
-| `bot_actor_id` | `bot_actor_id` | 原样复制；不得含 `#fragment`。 |
-| `protocols` | `protocols[]` | 原样复制；空数组非法。 |
-| `namespaces` | `namespaces` | canonicalize 后复制；只接受对象形态。 |
-| `receive_events` | `receive_events` | 原样复制；不得从 `endpoint_set` 猜测默认值。 |
-| `receive_ephemeral` | `receive_ephemeral` | 原样复制；不得省略。 |
-| `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
-| `requested_scopes` | `requested_scopes[]` | 原样复制；仍只是请求声明。 |
-| `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
-| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。 |
-| `manifest` | `claimed_profiles[]` + `limits` + policies + optional widget | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段。 |
-| `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object；空对象非法。 |
-| `created_at` | `created_at` | 原样复制。 |
+Package -> registration 派生映射同样以 [`applet-schema.md` §1a](./applet-schema.md#1a-applet-package-schema) 的映射表为唯一规范源。本节只补充安装语义：派生出的 registration 成功写入仍不授权；只有随后签发的 grant 与 `(applet_id, effective_scope, registration_epoch)` 绑定并保持 active，Applet 才取得对应 scope 的 effective install。
 
 ## 4b. Install Preview / Commit / Revoke
 

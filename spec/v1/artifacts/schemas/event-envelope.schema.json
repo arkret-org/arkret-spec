@@ -107,11 +107,11 @@
       "$ref": "#/$defs/anchor_ref",
       "description": "Reducer-input only. Anchor DAG node this event is submitted against. Receivers MUST verify it is within the Realm's max_anchor_staleness_ms window."
     },
-    "redacts": {
-      "$ref": "#/$defs/event_ref"
-    },
     "payload": {
       "type": "object"
+    },
+    "redacts": {
+      "$ref": "#/$defs/event_ref"
     },
     "unsigned": {
       "type": "object",

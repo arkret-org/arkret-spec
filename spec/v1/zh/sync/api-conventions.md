@@ -350,10 +350,10 @@ HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 H
 
 面向浏览器的服务 SHOULD 支持 CORS preflight。
 
-推荐响应头：
+推荐默认做法是回显经过 allowlist 校验的明确 origin；只有完全公开、无 credential、无隐私可见性差异的 metadata endpoint 才 SHOULD 使用 `*`：
 
 ```text
-Access-Control-Allow-Origin: *
+Access-Control-Allow-Origin: https://app.example
 Access-Control-Allow-Methods: GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS
 Access-Control-Allow-Headers: Authorization, Content-Type, Content-Digest, Digest, Idempotency-Key, X-Cokret-Wait-For, X-Cokret-Request-Id
 Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disposition, Content-Range, Location, X-Cokret-Request-Id
@@ -366,7 +366,8 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - `Access-Control-Allow-Methods` SHOULD 反映该服务实际支持的 method 集合；支持 `HEAD` 或 `PATCH` 的服务必须把它们列入 CORS。
 - 服务端 MUST NOT 在 CORS 中允许 `CONNECT` 或 `TRACE`。
 - 浏览器可访问的私有 endpoint 不得依赖 cookie 作为唯一认证方式；推荐使用 `Authorization` header 或 device-bound proof。
-- 若响应使用 `Access-Control-Allow-Origin: *`，服务端 MUST NOT 同时设置 `Access-Control-Allow-Credentials: true`。需要 credentialed CORS 的部署 MUST 回显明确 allowlisted origin，并继续按 §3 要求校验 header / proof / capability，不得把 cookie 当作协议层 principal。
+- 需要 credentialed CORS 或任何带 Authorization / device proof / session 语义的 endpoint MUST 回显明确 allowlisted origin，并继续按 §3 要求校验 header / proof / capability，不得把 cookie 当作协议层 principal。
+- 若公开 metadata endpoint 响应使用 `Access-Control-Allow-Origin: *`，服务端 MUST NOT 同时设置 `Access-Control-Allow-Credentials: true`，且该响应 MUST NOT 因 caller identity 暴露不同 Realm、actor、member 或 blob 存在性。
 - Preflight、CORS error、redirect 与 4xx/5xx body 都不得泄露不可见 Realm、actor、member 或 blob 是否存在。
 
 ## 11. 版本与 feature discovery

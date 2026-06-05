@@ -290,7 +290,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 #### 4.2.3 Witness Attestation 与 sovereign-grade 完整性
 
-`witness_attestation` 复用 `ck.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1.1](../crypto-media/audited-e2ee.md)）：
+`witness_attestation` 复用 `ck.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1](../crypto-media/audited-e2ee.md)）：
 
 - `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Realm `audit.range_completeness_witnesses[]` 中已声明。
 - `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。

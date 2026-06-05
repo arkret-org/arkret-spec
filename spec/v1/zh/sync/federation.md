@@ -873,9 +873,9 @@ Authorization: <service_signature>
 方向“跨域 Realm 的权限委托与级联”是必要但必须收敛到显式规则：
 
 - 默认不跨域、不中继地隐式级联。任何权限在跨域传递前都必须有明确 `ck.capability.grant` / `ck.capability.delegate` Event 表达，并绑定目标 `realm_id`、目标服务/主体、可见范围、时效和可撤销性。
-- 受权链必须可审计、可传递上限（如 depth / scope）并支持回收（revoke）。在未满足上限或超出范围时应 fail-closed。
+- 受权链必须可审计、可传递上限（如 depth / scope）并支持回收（revoke）。在未满足上限或超出范围时应 fail closed。
 - 委托不得扩大被委托方可见范围；只能收窄或保持不变。`principal_server` 不能仅凭受托委托获得不在其角色定义内的明文访问。
-- 对级联场景，只允许显式 opt-in，且每一跳必须重复检查 policy 与签名。无法验明权利链的来源时必须 fail-closed 视为未授权（拒绝并按 `capability_denied` 处理）。
+- 对级联场景，只允许显式 opt-in，且每一跳必须重复检查 policy 与签名。无法验明权利链的来源时必须 fail closed 视为未授权（拒绝并按 `capability_denied` 处理）。
 
 ### 9.4 联邦节点声誉系统（可选项）
 
