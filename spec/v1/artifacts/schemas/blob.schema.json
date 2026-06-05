@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/blob.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret Blob Metadata",
   "type": "object",
   "required": [
@@ -65,20 +72,12 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
     "updated_by": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    }
+    "updated_at": { "$ref": "#/$defs/timestamp" }
   },
   "unevaluatedProperties": false
 }

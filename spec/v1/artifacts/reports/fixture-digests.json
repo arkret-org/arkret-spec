@@ -58,7 +58,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",
-      "sha256": "1f844c1f9d213b5092ece972591417034073c92aaa7f48a0a057736df45c76c6"
+      "sha256": "57807637c83f7a538839926bc50ec76c5f46bf25e61846d4f839ee6fb784dd62"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",

@@ -114,8 +114,8 @@
         "challenge",
         "state",
         "created_at",
-        "updated_at",
-        "expires_at"
+        "expires_at",
+        "updated_at"
       ],
       "properties": {
         "schema": {
@@ -163,12 +163,12 @@
           "$ref": "#/$defs/timestamp",
           "description": "Recovery session creation/signing time. This is the created_at value used in the recovery proof transcript."
         },
-        "updated_at": {
-          "$ref": "#/$defs/timestamp"
-        },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
           "description": "Session expiration. Default TTL is 900 seconds; deployments MAY shorten it and MUST NOT lengthen it unless a future recovery_policy field explicitly permits the override."
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "allOf": [

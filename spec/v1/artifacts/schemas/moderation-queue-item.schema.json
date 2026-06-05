@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/moderation-queue-item.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret Moderation Queue Item",
   "type": "object",
   "required": [
@@ -68,11 +75,7 @@
         "requires_franking_proof_verification": {
           "type": "boolean"
         },
-        "retention_expires_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
-        },
+        "retention_expires_at": { "$ref": "#/$defs/timestamp" },
         "legal_hold": {
           "type": "boolean"
         }
@@ -86,16 +89,8 @@
         "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    }
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" }
   },
   "additionalProperties": false
 }

@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/capability-grant.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret Capability Grant",
   "type": "object",
   "required": [
@@ -112,11 +119,7 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "revoked_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
+    "revoked_at": { "$ref": "#/$defs/timestamp" },
     "proofs": {
       "type": "array",
       "items": {

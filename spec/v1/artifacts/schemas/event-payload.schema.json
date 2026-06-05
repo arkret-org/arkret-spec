@@ -3219,6 +3219,29 @@
         },
         "summary": {
           "type": "string"
+        },
+        "cancelled_by": {
+          "$ref": "#/$defs/did",
+          "description": "Set when status=cancelled: the actor that cancelled the session. See zh/extensions/agent-protocol-interop.md §5.3."
+        },
+        "cancelled_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Set when status=cancelled: cancellation time."
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Set when status=cancelled: machine-readable cancellation reason."
+        },
+        "external_cancel_ref": {
+          "type": "string",
+          "description": "Optional external-protocol cancellation reference for the cancelled session."
+        },
+        "cleanup_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Set when status=cancelled: cleanup steps the canceller / host MUST perform."
         }
       },
       "additionalProperties": false
@@ -3436,8 +3459,8 @@
       "required": [
         "agent_principal_id",
         "key_id",
-        "revoked_at",
         "revoked_by",
+        "revoked_at",
         "revocation_frontier"
       ],
       "properties": {
@@ -3447,11 +3470,11 @@
         "key_id": {
           "$ref": "#/$defs/agent_key_id"
         },
-        "revoked_at": {
-          "$ref": "#/$defs/timestamp"
-        },
         "revoked_by": {
           "$ref": "#/$defs/did"
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/timestamp"
         },
         "reason": {
           "type": "string",
@@ -5565,8 +5588,15 @@
           "description": "Reference to the failed transaction / source Event. MUST NOT inline unauthorized external plaintext."
         },
         "error_class": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Error category for aggregation / alerting (e.g. external_network / auth / schema / rate_limit / policy)."
+          "type": "string",
+          "enum": [
+            "external_network",
+            "auth",
+            "schema",
+            "rate_limit",
+            "policy"
+          ],
+          "description": "Closed error category for aggregation / alerting. See zh/extensions/applet-schema.md §7."
         },
         "error_code": {
           "$ref": "#/$defs/non_empty_string",

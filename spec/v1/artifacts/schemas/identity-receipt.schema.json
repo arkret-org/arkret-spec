@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/identity-receipt.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret Identity Receipt",
   "type": "object",
   "required": [
@@ -52,11 +59,7 @@
       "type": "string",
       "description": "Optional audience binding (verifier DID, service DID, or domain). When present, verifiers MUST reject the receipt outside that audience context to prevent cross-protocol reuse."
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
     "signature": {
       "$ref": "./event-envelope.schema.json#/$defs/proof"
     }

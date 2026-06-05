@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/notification.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret Notification",
   "type": "object",
   "required": [
@@ -90,16 +97,8 @@
       "type": "object",
       "description": "Render summary. Under E2EE / redaction / history-limited scopes this MUST be empty or an authorized redacted digest; sender/reducer-enforced. A notification projection MUST NOT widen the plaintext visibility of the source Message. See models/private-objects.md §3.4."
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    }
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" }
   },
   "additionalProperties": false
 }

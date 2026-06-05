@@ -111,16 +111,7 @@
       },
       "additionalProperties": false
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
     "expires_at": {
       "type": [
         "string",
@@ -129,6 +120,7 @@
       "format": "date-time",
       "pattern": "Z$"
     },
+    "updated_at": { "$ref": "#/$defs/timestamp" },
     "encryption": {
       "type": "object",
       "required": [
@@ -771,6 +763,11 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
     "hash": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"

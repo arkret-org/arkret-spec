@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/read-receipt.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret Read Receipt",
   "description": "Public/shared read receipt for Flow timeline UI hint. NOT canonical truth, NOT a multi-device cursor (see read-cursor.schema.json for that). MUST NOT generate push notifications. Privacy is governed by Realm policy: Realms MAY allow public, members-only, or actor-private receipt sharing.",
   "type": "object",
@@ -191,11 +198,7 @@
       ],
       "additionalProperties": false
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    }
+    "created_at": { "$ref": "#/$defs/timestamp" }
   },
   "additionalProperties": false
 }

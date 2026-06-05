@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/handle-claim.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret Handle Claim",
   "type": "object",
   "required": [
@@ -140,21 +147,9 @@
         "type": "object"
       }
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
-    "expires_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
-    "verified_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "expires_at": { "$ref": "#/$defs/timestamp" },
+    "verified_at": { "$ref": "#/$defs/timestamp" },
     "source_refs": {
       "type": "array",
       "items": {

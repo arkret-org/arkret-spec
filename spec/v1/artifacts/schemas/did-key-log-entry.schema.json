@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/did-key-log-entry.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret DID Key Log Entry",
   "type": "object",
   "required": [
@@ -47,11 +54,7 @@
       "minProperties": 1,
       "description": "DID method-specific raw operation object. This is not a generic JSON Patch; validation dispatches by DID method and operation kind."
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
     "proofs": {
       "type": "array",
       "items": {

@@ -214,10 +214,10 @@
       },
       "additionalProperties": false
     },
-    "not_before": {
+    "issued_at": {
       "$ref": "#/$defs/timestamp"
     },
-    "issued_at": {
+    "not_before": {
       "$ref": "#/$defs/timestamp"
     },
     "expires_at": {

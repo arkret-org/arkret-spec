@@ -93,6 +93,11 @@
     }
   ],
   "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
     "anchor_ref": {
       "type": "string",
       "pattern": "^ck:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
@@ -144,11 +149,7 @@
           "$ref": "#/$defs/hash",
           "description": "Hash of anchor_canonical_bytes for this non-Event Anchor signature. Do not rename to event_digest: event_digest is reserved for Event Envelope proofs."
         },
-        "created_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
-        },
+        "created_at": { "$ref": "#/$defs/timestamp" },
         "jws": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"

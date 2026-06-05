@@ -598,6 +598,15 @@
       ]
     },
     {
+      "vector_id": "ck.vector.invite.consumed_token_resubject_rejected.v1",
+      "status": "active",
+      "domain": "invite",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/sync/third-party-invites.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.keypackage.exhaustion_claim_limits.v1",
       "status": "active",
       "domain": "keypackage",

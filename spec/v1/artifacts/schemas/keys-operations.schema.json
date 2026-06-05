@@ -297,9 +297,6 @@
         "created_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "updated_at": {
-          "$ref": "#/$defs/timestamp"
-        },
         "expires_at": {
           "oneOf": [
             {
@@ -309,6 +306,9 @@
               "type": "null"
             }
           ]
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
         },
         "ciphertext_digest": {
           "$ref": "#/$defs/hash"

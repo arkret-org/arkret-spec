@@ -1,6 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/snapshot.schema.json",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
   "title": "Cokret Snapshot Manifest",
   "type": "object",
   "required": [
@@ -256,11 +263,7 @@
           "uniqueItems": true,
           "description": "Realm auth/policy frontier proving the signer authority at created_at."
         },
-        "checked_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
-        },
+        "checked_at": { "$ref": "#/$defs/timestamp" },
         "witness_attestations": {
           "type": "array",
           "items": {

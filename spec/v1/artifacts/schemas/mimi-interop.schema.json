@@ -16,6 +16,11 @@
     }
   ],
   "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
@@ -305,11 +310,7 @@
           "type": "string",
           "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "accepted_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
-        }
+        "accepted_at": { "$ref": "#/$defs/timestamp" }
       },
       "additionalProperties": true
     }

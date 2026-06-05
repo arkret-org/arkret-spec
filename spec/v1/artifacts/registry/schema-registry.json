@@ -393,6 +393,12 @@
       "file": "schemas/service-describe.schema.json",
       "status": "active",
       "description": "Canonical ServiceDescribe response for ck.server.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0."
+    },
+    {
+      "schema_id": "ck.schema.common_ids.v1",
+      "file": "schemas/common-ids.schema.json",
+      "status": "active",
+      "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
     }
   ]
 }

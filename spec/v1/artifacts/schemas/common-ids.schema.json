@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/common-ids.schema.json",
+  "title": "Cokret Common Typed-ID Definitions",
+  "description": "Shared typed-ID pattern $defs referenced cross-file by multiple object schemas so a single id-form change propagates without inline drift. Defs-only: not an object or event schema. See zh/models/common-fields.md §6 and artifacts/registry/id-kind-registry.json for the authoritative ID kind registry.",
+  "$defs": {
+    "circle_id": {
+      "type": "string",
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  }
+}

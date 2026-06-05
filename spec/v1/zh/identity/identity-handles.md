@@ -323,7 +323,7 @@ Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理
 
 `member_delivery_binding.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
 
-该 hint 是 builder 输入；reducer 仍 MUST 按 [`governance/join-policy.md` §6](../governance/join-policy.md) 独立验证 Realm policy、claim issuer、服务背书和条件必填字段。
+该 hint 是 builder 输入；reducer 仍 MUST 按 [`governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) 独立验证 Realm policy、claim issuer、服务背书和条件必填字段。
 
 ### 3.4 Issuer 类型与 holder 控制
 

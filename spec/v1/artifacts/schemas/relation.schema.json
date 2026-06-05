@@ -26,8 +26,7 @@
       "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "scope_circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "$ref": "./common-ids.schema.json#/$defs/circle_id",
       "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For weak-semantic privacy edges (confidential_discussion_of, agent_sidecar_of) the relation fact MUST be submitted with scope_circle_id pointing to the private Flow's Circle, so effective_scope=circle and non-members cannot enumerate the edge from the public endpoint (relation.md §3.2). For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1)."
     },
     "effective_scope": {
@@ -126,8 +125,7 @@
               "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "circle_id": {
-              "type": "string",
-              "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
             }
           },
           "additionalProperties": false

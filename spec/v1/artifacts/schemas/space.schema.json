@@ -114,20 +114,12 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
     "updated_by": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    }
+    "updated_at": { "$ref": "#/$defs/timestamp" }
   },
   "allOf": [
     {
@@ -152,6 +144,11 @@
     }
   ],
   "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
     "circle_id": {
       "type": "string",
       "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
