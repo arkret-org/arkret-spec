@@ -5,8 +5,8 @@
   "description": "Signed attestation that an issuer completed, partially completed, or blocked a hard-erasure request within a declared storage boundary. It proves the issuer's deletion action and retained verification stub, not disappearance of independent third-party copies.",
   "type": "object",
   "required": [
-    "receipt_id",
     "schema",
+    "receipt_id",
     "issuer",
     "subject",
     "erasure_scope",
@@ -17,12 +17,12 @@
     "proofs"
   ],
   "properties": {
+    "schema": {
+      "const": "ck.schema.erasure_receipt.v1"
+    },
     "receipt_id": {
       "type": "string",
       "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "schema": {
-      "const": "ck.schema.erasure_receipt.v1"
     },
     "issuer": {
       "$ref": "#/$defs/did"

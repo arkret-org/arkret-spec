@@ -58,22 +58,26 @@ Current read-time member state 只决定服务是否可以继续提供 server-me
 | `shared` | 当前 active Realm member MAY 读取该值生效期间的历史，即使 Event 早于其 `join_frontier`。 | joined 后可读 join 前历史。 | invited 但未 joined 的 reader 默认不能读正文历史；只能按 preview policy 看 stripped state。 | 默认 DENY 给非 active member；policy MAY 允许对 T0 可见历史作受审计恢复。 | joined 后可按 history sharing policy 获得旧 epoch key；无 policy 时不能靠 visibility 自动补 key。 |
 | `invited` | reader 在 Event 的 `T0` 已处于 invited 或 joined 状态时 MAY 读取。 | joined 后最多回到与当前成员资格因果相连的那次 invite frontier（§2 定义）；不能读该 invite 前历史。 | invited reader MAY 读取 invite frontier 之后、policy 允许的 stripped state / history range。 | 默认 DENY；policy MAY 允许 T0 可见历史恢复。 | key share range MUST 从 invite frontier 起算，且必须写入 membership frontier digest。 |
 | `joined` | reader 在 Event 的 `T0` 已处于 joined 状态时 MAY 读取。 | 不允许读 join 前历史。 | invitee 未 joined 时不能读正文历史，只能看 preview policy 允许的 stripped metadata。 | 默认 DENY；policy MAY 允许 T0 joined 且 current policy 仍允许的恢复。 | Welcome 只授予 join 后 future epoch；join 前 key share MUST 被拒。 |
-| `restricted` | 不由 enum 自身定义；MUST 由 effective `ck.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；命中 read rule **不自动授予 key**——默认 `effect=allow_read` 只放行读取，key share 需 `effect ∈ {allow_key_share, allow_both}`（见 §3.1）。任一判定失败的 fail-closed 行为见 §3.1 末尾集中声明。 |
+| `restricted` | 不由 enum 自身定义；MUST 由 effective `ck.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；命中 read rule **不自动授予 key**——key share 还要求本次请求所用的 key 来源在该 rule 的 `key_sources` 内（见 §3.1 / §6）。任一判定失败的 fail-closed 行为见 §3.1 末尾集中声明。 |
 
 Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 Anchor pre-state 或同一 ordered submit batch 的前序 Event 已接受一个有效 `ck.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`。policy 存在但未覆盖目标 scope / audience / range 时的 fail-closed 行为见 §3.1 末尾「`restricted` fail-closed 集中声明」。
 
 ### 3.1 `restricted_rules[]` 结构
 
-`restricted` 的判定语义由 effective `ck.realm.history_sharing_policy` 的 `restricted_rules[]` 显式承载；其 canonical schema 由该 policy component 在 [encryption-and-audit.md](../crypto-media/encryption-and-audit.md) 中定义，本节给出 v1 normative 的最小字段约束：
+`restricted` 的判定语义由 effective `ck.realm.history_sharing_policy` 的 `restricted_rules[]` 显式承载；其 canonical wire schema 为 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/history_sharing_restricted_rule`（`additionalProperties:false`）。本节给出 v1 normative 字段约束：
 
 | 字段 | 必填 | 类型 | 语义 |
 | --- | --- | --- | --- |
-| `rule_id` | yes | `string` | 规则稳定 id；同一 `restricted_rules[]` 内 MUST 唯一，供审计与 key share diagnostic 关联。 |
-| `match` | yes | `object` | reader / Event selector。最小形态 `{ reader_class, event_selector }`：`reader_class` 取 `member` / `invited` / `role:<capability>` / `claim:<claim_selector>` 之一；`event_selector` 按 Event kind、Circle scope、label 或 Anchor range 限定本 rule 覆盖的历史范围。 |
-| `allow_from_frontier` | yes | `enum(join_frontier, invite_frontier, anchor_ref) \| object` | 允许读取 / key share 的下界 frontier；`object` 形式 `{ anchor_ref }` 显式锚定某 Anchor。reader 只能读取该 frontier 之后、且 `match` 命中的 Event。 |
-| `effect` | no | `enum(allow_read, allow_key_share, allow_both)` | 默认 `allow_read`。`allow_key_share` / `allow_both` 才放行 §6 的 history key share；缺省不授予 key。 |
+| `rule_id` | yes | `string`（`^[a-z][a-z0-9_]{0,63}$`） | 规则稳定 id；同一 `restricted_rules[]` 内 MUST 唯一，供审计与 key share diagnostic 关联。 |
+| `receiver_classes` | yes | `array<enum>`（≥1，唯一） | 本 rule 覆盖的接收者类别，取 `active_member` / `invited` / `removed_t0_visible` / `world_readable_requester` / `preview_token_holder`。 |
+| `visibility_allow` | yes | `array<history_visibility_value>`（≥1，唯一） | 命中本 rule 时允许的 history visibility 取值集（取自 §3 五值）。 |
+| `range` | yes | `enum(all_visible_at_t0, since_invite, since_join, bounded_epoch_range)` | reader 可读 / 可获 key 的历史下界范围；`bounded_epoch_range` 配合 `max_epoch_span` 限定 epoch 跨度。 |
+| `max_epoch_span` | no | `integer`（≥1） | 仅 `range=bounded_epoch_range` 时有意义，限定允许的最大 epoch 跨度。 |
+| `key_sources` | yes | `array<enum>`（≥1，唯一） | 允许的 history key 来源，取 `own_device` / `verified_member_device` / `key_backup` / `archive_node` / `recovery_service`。read 与 key share 的区分由本字段（是否含可交付 key 的来源）+ §6 流程承载，而非单独的 effect 开关。 |
+| `history_scope` | no | `object`（`{ kind: realm\|circle, circle_id? }`） | 限定本 rule 适用的 scope（整 Realm 或具体 Circle）。 |
+| `audit_required` | no | `boolean`（默认 `true`） | 命中本 rule 的读取 / key share 是否要求审计留痕。 |
 
-匹配语义：reader 对某 Event 的 restricted 资格按 `restricted_rules[]` 逐条求值，命中**任一** `match` 且 Event 在对应 `allow_from_frontier` 之后即视为通过；无任何 rule 命中时 MUST fail closed（见下方集中声明）。多条 rule 命中时取并集（最宽 `allow_from_frontier` 与最宽 `effect`），但仍受 §3 表与父 Realm floor 约束，绝不放宽到比 enclosing scope 更宽。
+匹配语义：reader 对某 Event 的 restricted 资格按 `restricted_rules[]` 逐条求值——rule 的 `receiver_classes` 命中 reader 在 `T0` 的类别、Event 落在该 rule 的 `range`（及可选 `history_scope`）界定的历史范围内、且请求的 visibility 落在 `visibility_allow` 内即视为通过；key share 还要求本次请求所用的 key 来源在该 rule 的 `key_sources` 内（见 §6）。无任何 rule 命中时 MUST fail closed（见下方集中声明）。多条 rule 命中时取并集（最宽 `range` / `visibility_allow` / `key_sources`），但仍受 §3 表与父 Realm floor 约束，绝不放宽到比 enclosing scope 更宽。
 
 **`restricted` fail-closed 集中声明（normative）**：上述所有 `restricted` 判定的校验主体是执行读取 / key share 的服务（reducer 或 key source）；校验时点为每次读取 / backfill / key share 请求。任一判定失败 MUST fail closed——无匹配 rule 时返回 `history_not_visible`，policy 未覆盖目标 scope / audience / range 时返回 `policy_denied`，缺少 key share rule 或 proof 时 MUST withhold key material。本节其它处（§3 语义表 `restricted` 行、§3 末尾段落）对 restricted 的描述均引用本声明，不再各自重述 fail-closed 行为。
 
@@ -122,7 +126,7 @@ Preview policy MUST 满足：
 `ck.realm.history_visibility` 只判定 Event 是否可见；`ck.realm.history_sharing_policy` 判定是否可以交付旧 epoch key / history key share。发送 `ck.realm_key.share` 前，key source MUST 同时满足：
 
 1. 目标 Event range 在 `T0` 下通过 §3 visibility 判定。
-2. effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。**对 `restricted` scope，命中的 `restricted_rules[]` rule 还 MUST 满足 `effect ∈ {allow_key_share, allow_both}`（见 §3.1）——默认 `effect=allow_read` 只放行读取、不授予 key**；仅满足 §3 read 判定不足以放行 key share。
+2. effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。**对 `restricted` scope，命中的 `restricted_rules[]` rule 还 MUST 在其 `key_sources` 中列出本次请求所用的 key 来源（见 §3.1）——`key_sources` 未覆盖该来源时只放行读取、不授予 key**；仅满足 §3 read 判定不足以放行 key share。
 3. receiver device 当前未撤销，且通过 policy 要求的 device verification。
 4. current safety policy 未禁止向该 principal / device 继续交付。
 5. audit profile 要求的 `ck.realm_key.share_audit` / `ck.audit.accessed` 已满足。

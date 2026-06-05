@@ -62,6 +62,10 @@ sidebar:
 - `missed`
 - `failed`
 - `cancelled`
+- `recording_ready`
+- `recording_failed`
+
+> 完整 `state` 枚举以 §4 `ck.call.state`(`call_state_payload.state`)为准;`recording_ready` / `recording_failed` 两个录制终态见 §5。本节仅示意核心通话生命周期。
 
 ## 4. 会议状态事件
 

@@ -5,8 +5,8 @@
   "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a ck.audit.release or other audit envelope has reached accepted state. Required by ck.profile.attested_audit.e2ee.v1 and ck.profile.disclosed_audit.e2ee.v1 before an audit applet release service may output wrapped material or plaintext evidence (see zh/crypto-media/audited-e2ee.md §6). The audit_assurance_class field MUST match the active Audit Applet Binding; mismatch fail closed.",
   "type": "object",
   "required": [
-    "receipt_id",
     "schema",
+    "receipt_id",
     "issuer",
     "issuer_role",
     "audit_event_id",
@@ -22,12 +22,12 @@
     "proofs"
   ],
   "properties": {
+    "schema": {
+      "const": "ck.schema.audit_ryw_receipt.v1"
+    },
     "receipt_id": {
       "type": "string",
       "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "schema": {
-      "const": "ck.schema.audit_ryw_receipt.v1"
     },
     "issuer": {
       "$ref": "#/$defs/did"

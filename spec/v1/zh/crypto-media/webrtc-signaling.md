@@ -251,11 +251,15 @@ Receiver MUST verify `proof` over the canonical envelope bytes (excluding `proof
 
 ## 6. 一对一通话
 
+以下示例给出 `ck.call.signal` 信令的 `payload` 对象（外层 ephemeral envelope 形态见 §5；`payload` 的封闭字段为 `call_id` / `signal_type` / `seq` / `data`，信令种类由 `payload.signal_type` 选择，取值见 §5）。
+
 Invite payload:
 
 ```json
 {
-  "kind": "invite",
+  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "signal_type": "invite",
+  "seq": 12,
   "data": {
     "lifetime_ms": 60000,
     "mode": "p2p",
@@ -276,7 +280,9 @@ Answer payload:
 
 ```json
 {
-  "kind": "answer",
+  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "signal_type": "answer",
+  "seq": 13,
   "data": {
     "answer": {
       "type": "answer",
@@ -294,7 +300,9 @@ Candidate payload:
 
 ```json
 {
-  "kind": "candidate",
+  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "signal_type": "candidate",
+  "seq": 14,
   "data": {
     "candidates": [
       {

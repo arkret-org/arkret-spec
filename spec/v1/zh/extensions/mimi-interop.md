@@ -220,7 +220,9 @@ MIMI facade MUST 支持接收：
 - 任何正文 fallback 进入 E2EE Realm 时必须仍在密文中；不得为了 MIMI 预览把 `body` 明文复制到 routing metadata。
 - Link preview、attachment thumbnail 和 asset metadata MUST 遵守 `asset_privacy_policy` 与 `plaintext_visible_services`。
 
-## 9. Room Policy Mapping
+### 8.1 Content Mapping Receipt
+
+facade 在 Cokret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content Mapping Receipt**（`content_mapping_receipt`，`kind="ck.mimi.mapping_receipt"`，schema `ck.schema.mimi_interop.v1`，见 [`mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json)），作为该次格式映射的可审计证据。它记录 `mimi_room_uri`、`source_format` → `target_format`、被映射源信封摘要 `original_envelope_digest` 与目标 `mapped_operation_id`（可选携带 `mimi_message_id` / `cokret_event_id` / `accepted_at`），使双向投递的内容转换可被追溯与对账。该回执是 EXTENSION 范围对象，不进入 v1 core 互操作必需集。
 
 Cokret v1 把 Realm-level policy 映射为 Move effects on cell families。Facade 在 MIMI room policy 与 Cokret state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
 

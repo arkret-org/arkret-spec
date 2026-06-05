@@ -75,6 +75,13 @@
       "type": "string",
       "maxLength": 2048
     },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
     "fields": {
       "type": "object",
       "description": "Space kind-specific fields, e.g., { 'wip_limit': 5 } for kind=list, { 'view_id': 'ck:view:...' } for kind=board's default view. MUST NOT contain a 'rank' key (rank is a top-level Space field; see relation.md §2 for the symmetric Relation constraint and forbidden-wire-fields.json `fields.rank/space_payload`).",
@@ -83,13 +90,6 @@
           "rank"
         ]
       }
-    },
-    "labels": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
     },
     "avatar_blob_ref": {
       "type": "string",
