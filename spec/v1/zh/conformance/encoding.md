@@ -197,7 +197,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 }
 ```
 
-Proof MUST bind（下列顺序与下方 canonical binding object 顺序一致）:
+Proof MUST bind（下列为绑定字段集合；canonical binding object 的实际字节顺序由 §2 canonical JSON 的 key code point 排序决定，下方 JSON 示例与本清单的列举顺序仅为可读性，不代表签名字节顺序）:
 
 - `event_digest = canonical_digest(event_without_proofs_unsigned)`
 - `actor_id`
@@ -322,7 +322,7 @@ function compare_hlc(hlc1, hlc2):
 
 实现 MUST：
 
-- 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。
+- 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。HLC **纯格式违例**（不匹配该正则、段长 / 字符集 / 大小写不合、`unix_ms_hex > ffffffffffff` 等单纯的 well-formedness 失败）MUST 返回 `schema_violation`（与 [`conformance-vectors.md` §1.10.1](./conformance-vectors.md) 钉定的单值一致）。`schema_violation` / `causal_conflict` / `soft_fail` / quarantine 的多选处置仅适用于 §7「溢出规则」中的语义回绕 / 单调性违例场景（格式合法但 `logical_hex` 从 `ffff` 回绕、复用 tuple 等），不适用于纯格式违例。
 - 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms`（默认 300_000）MUST reject / quarantine；超 `expected_future_skew_ms`（默认 30_000）SHOULD soft-fail / quarantine。该校验是 envelope freshness / DoS guard，不是授权、Lattice winner、Move precondition 或 Anchor finality 输入；通过 drift 校验的 HLC 仍只可用于 timeline tie-breaker。
 - profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
 - 拒绝 `unix_ms_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需未来扩展 HLC profile 才可使用）。
@@ -453,7 +453,7 @@ Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barr
 9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
 10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
 11. cursor 出现的位置与 `purpose` 一致：barrier cursor 出现在任一 stream 位置（`/_cokret/self/account/subscribe after=`、`ck.events.query` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）MUST `invalid_param`；stream cursor 出现在 barrier 位置（`X-Cokret-Wait-For` header、写接口响应的 barrier `cursor` 字段）MUST `invalid_param`。
-12. **TTL 硬上限**：以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
+12. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾）或 `t_ms > x` 的 cursor MUST reject `invalid_param`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 13. **形态归属**：
     - **core（默认）** — body MUST 为 stateful 形态:含 `h`（opaque handle），且 MUST NOT 含 `_mac` / `_sig` / `s` / `d` / `target` / `issuer_kid`。这是 v1 core schema（[`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)）唯一接受的形态:`required` 含 `h`、`additionalProperties:false`。core 下收到缺 `h` 或含上述 stateless 字段的 body MUST reject `invalid_param`。
     - **stateless（仅 `ck.profile.stateless_cursor.v1` overlay）** — 该 profile 扩展 core schema 接受内联 body:含 `issuer_kid` 且含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。**未声明该 profile 的实现 MUST NOT 接受 stateless body**;声明该 profile 时,stateless 与 stateful 两种形态同时出现或都不出现 MUST reject `invalid_param`。
@@ -491,7 +491,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 3. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 静默丢失因果对齐。
 4. **可选 translate 端点**：未来 profile 可能在 `ck.profile.principal_server.v1` 之上引入 `POST /_cokret/self/account/translate-cursor`；该端点不属于 v1 强制范围。
 
-`_` 前缀的服务器私有字段（`_compression`）在迁移时可被丢弃；canonical 字段（`v` `t` `s` `d` `x`）足以恢复 frontier。`_mac` / `_sig` MUST 由目标服务器用自己的 key 重新生成（不可跨服务复用）。
+`_` 前缀的服务器私有字段（`_compression`）在迁移时可被丢弃。该 frontier 恢复仅适用于 **stateless 形态**（路径 1）：其 canonical 字段（`v` `purpose` `t` `s` `d` `x`）足以恢复 frontier。core 默认 stateful 形态的 body 是 `{v,purpose,t,x,h}`（无 `s` / `d`），frontier 由 `h` handle 在原服务端绑定表承载、无法跨服务解析，故 core stateful 迁移不走 frontier 恢复，而以路径 2 返回 `cursor_unrecognized` 为准。`_mac` / `_sig` MUST 由目标服务器用自己的 key 重新生成（不可跨服务复用）。
 
 ### 8.5 测试向量入口
 
@@ -573,7 +573,7 @@ rank_between(left, right):
   cell_subject = base64url_nopad(sha256(canonical_json(components_array)))
   ```
 
-  其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array，所有 string element 已经 normalize 过（NFC、小写 typed ID、规范 DID）。
+  其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array，所有 string element 已经 normalize 过（NFC、小写 typed ID、规范 DID）。身份类 sub-component（DID URI、handle、connection identifier 等 §2.1 列举的身份字段）在进入 `components_array` 前 MUST 先应用 §2.1 的 NFKC + case folding（与该字段用于 cell subject 派生的"比较 / 索引 / 黑名单匹配"语义一致），再纳入 hash 输入；否则仅 compatibility-equivalent 或大小写不同的两条 DID 会 hash 出不同 cell subject，造成同一主体的 device authorization cell 分裂（正是 §2.1 要防的同形 / 兼容字符攻击面）。
 - 实现 MUST NOT 直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。canonical cell id、签名输入、state map 索引 MUST 使用 hash 形态。
 - 复合 subject 的 sub-component 必须存在于 Move effect value 或兼容 Event payload 的具名字段中。
 - 同一 standard cell family 的 `components_array` schema 由本规范固定，profile MUST NOT 擅自增删字段或重新排序。

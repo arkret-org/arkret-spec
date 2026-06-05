@@ -179,6 +179,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 - 除非 policy 明确允许该 method 与 trust root，否则客户端 MUST NOT 通过公共 resolver 端点解析内部主体。
 - 内部 DID Document 与 method 历史 MUST 从受批准的 resolver / witness / watcher / 离线 bundle 获取。
 - 仅当 policy 允许且权限链已验证时，MAY 为外部协作方接受公共 DID 方法。
+- 当 `public_resolver_allowed:false` 时，`did:plc` 等本质依赖公共 directory 的方法 MUST NOT 直接查询公共 PLC directory；其 DID Document 与操作历史 MUST 经受批准的 PLC mirror、审计日志 source 或离线 bundle 解析（与上条内部主体同一约束）。无可用受批准来源时 MUST fail closed，不得回退到公共 resolver。
 - 涉及关联风险的外部协作 SHOULD 使用 pairwise DID。
 - 指向公共 Sync Service / Directory 的 DID Document service endpoint 在未 allowlist 时 MUST 被忽略。
 

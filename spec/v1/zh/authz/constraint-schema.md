@@ -63,7 +63,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Flow / View / track 范围。 | core |
 | `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ck.profile.kanban_mvp.v1` |
-| `delegation_control` | — | core | 委托深度、路径、subset_only 等。 | core |
+| `delegation_control` | — | core | 委托深度、路径、`delegation_scope` 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ck.profile.constraint.resource_limit.v1` |
 | `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；包含原 `accountability`（responsible / guardian / controller 通过 claim 表达）和原 `device_session`（device binding 通过 claim issuer = device cross-signing key 表达）。 | `ck.profile.constraint.claim_based.v1` |
@@ -376,7 +376,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "approval_mode": "proposal_then_approve",
   "proposal_morph_type": "proposal",
   "approval_threshold": "majority",
-  "approvers": [
+  "approval_actor_ids": [
     "did:web:approver1.example.com",
     "did:web:approver2.example.com"
   ]
@@ -889,10 +889,10 @@ Grant envelope 字段、签名规则与必填性以
   "constraint_type": "claim_based",
   "subtype": "approval",
   "effect": "require_review",
-  "mode": "before_commit",
-  "approvers": ["did:web:manager.example"],
+  "approval_mode": "before_commit",
+  "approval_actor_ids": ["did:web:manager.example"],
   "approval_threshold": "quorum",
-  "expires_after": "PT24H",
+  "timeout": "PT24H",
   "reason_required": true
 }
 ```
@@ -904,7 +904,7 @@ Grant envelope 字段、签名规则与必填性以
   "constraint_type": "delegation_control",
   "effect": "allow",
   "max_delegation_depth": 1,
-  "subset_only": true
+  "delegation_scope": "narrowing_only"
 }
 ```
 

@@ -438,7 +438,7 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
 - `GET /_cokret/self/account/viewer`：当前 holder 的账号主体自读（`ck.account.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
-- `POST /_cokret/self/account/profile`：当前账号 profile 更新（`ck.account.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；legacy `bio` 映射为 `profile_fields.bio`。
+- `POST /_cokret/self/account/profile`：当前账号 profile 更新（`ck.account.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；legacy `bio` MUST 写入 `profile_fields.bio`（规范强度见 [`service-http-binding.md` §5.1](service-http-binding.md)）。
 - `GET /_cokret/self/account/subscribe`：客户端账号视角聚合同步（`ck.account.subscribe`），见 `client-sync.md`。
 - `GET /_cokret/self/account/describe`：account aggregate service describe（`ck.account.describe`）。
 - `POST /_cokret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ck.account.cursor_revoke`）。
@@ -504,7 +504,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 - `event_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Realm-wide pause。
 - `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
 
-`/_cokret/self/account/subscribe` / `/_cokret/self/events` / `/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（精确 wire 形态见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；HTTP 字段位置以 [`service-http-binding.md`](service-http-binding.md) 与 OpenAPI 为准）。
+`/_cokret/self/account/subscribe` / `/_cokret/self/events` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（精确 wire 形态见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；HTTP 字段位置以 [`service-http-binding.md`](service-http-binding.md) 与 OpenAPI 为准）。
 
 ### 5.4 明文与服务信任
 

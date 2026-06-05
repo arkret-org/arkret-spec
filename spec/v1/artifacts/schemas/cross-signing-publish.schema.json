@@ -10,8 +10,8 @@
     "principal_signing_key",
     "self_signing_key",
     "user_signing_key",
-    "expected_previous_generation",
     "generation",
+    "expected_previous_generation",
     "issued_at"
   ],
   "properties": {

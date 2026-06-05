@@ -84,6 +84,8 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的明文被同时解密 = **整个 key catastrophic compromise**。Cokret MLS application key 在同一 epoch 内被所有群成员设备共享，如果多设备并发加密大量 attachment / blob,**naive random 96-bit nonce** 在 ~2^48 次操作后(birthday bound)有显著碰撞概率，且任何单次碰撞都击穿整个 epoch。因此 v1 wire **MUST** 满足下列 nonce 构造规则:
 
+下文 `N_AEAD` 指所选 AEAD algorithm 的 nonce 字节长度:XChaCha20-Poly1305 → 24；AES-GCM → 12（与第 3 条 wire encoding 一致）。
+
 1. **派生 schema (normative)**:`nonce = sender_nonce_prefix || device_nonce_counter_be64`。`sender_nonce_prefix` 是每个 `(key_ref, epoch, device_id, purpose, aead_profile)` 的发送者 nonce 域，长度为 `N_AEAD - 8` 字节；`device_nonce_counter_be64` 是 8 字节 unsigned big-endian 单调计数器。具体形态:
 
     ```text
@@ -357,6 +359,7 @@ Cache-Control: public, immutable, max-age=31536000
 8. **nonce / 撤销校验**：`nonce` 未在撤销列表内；普通 `media_inline` / `thumbnail` presign 是短 TTL 多次可用 bearer URL，服务端 MUST NOT 把浏览器正常的重复 GET / HEAD / Range 请求当作 replay 拒绝。只有 profile 显式声明 single-use presign 时，才可维护 consumed set。
 9. **撤销 / 状态实时回查（normative）**：服务端在每次 presign GET / HEAD / Range 响应阶段 MUST 同步回查该 `blob_ref` 的**当前** redaction / erasure / ban / legal-hold 状态,**不得仅凭 envelope 自校验(签名 + TTL + scope)就放行**。只要当前状态命中 redaction / erasure / ban / legal hold,即便 envelope 仍在 TTL 内且签名有效，也 MUST 拒绝(`not_found`,audit `blob_redacted` / `legal_hold_active`)。该回查 MUST 在响应 bytes 之前完成，以闭合"签发后被 redact 的内容在 TTL 窗口内仍被已泄露 URL 拉取"的竞态(见 §5.4.4 撤销索引保留下界与 §5.4.4.1 fail-closed 规则)。
 10. **blob 状态与签发者校验**：签发时服务端 MUST 已确认请求方有权为该 `blob_ref` mint presign；响应时只能重新确认 envelope 绑定的 Realm / blob 仍一致、blob 未被 redacted / erased / banned / legal hold、issuer service DID 仍被部署信任。v1 bearer presign 无法在响应阶段证明当前请求者属于某个 audience。
+11. **Realm presign 资格实时重判（normative）**：服务端在响应阶段 MUST 重判该 `blob_ref` 所属 Realm 当前是否已收紧为 minimal-metadata（声明 `ck.profile.mls.minimal_metadata_realm.v1` 或 `routing_unlinkability_required=true`）或在 `ck.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false`；命中任一 MUST 拒绝（`not_found`，audit `minimal_metadata_presign_forbidden` / `direct_download_disallowed_presign_forbidden`），不得仅凭签发时该 Realm 尚未收紧就放行。这闭合"签发时 Realm 非 minimal-metadata / 允许 direct download、签发后 policy 收紧、已发 presign 仍在 TTL 内被拉取从而绕过新 policy"的竞态，与 §5.4.4.1 签发侧的同名禁令构成两侧闭合。
 
 任何校验失败 MUST 返回 `not_found`（不区分 envelope 无效 vs blob 不可见，避免暴露存在性）；服务端 MAY 在 audit log 中记录具体 `reason_code` 如 `presign_invalid` / `presign_expired` / `presign_scope_mismatch`。
 

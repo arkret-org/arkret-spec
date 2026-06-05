@@ -9,9 +9,9 @@
     "actor_id",
     "backup_class",
     "active_series_id",
-    "issued_at",
     "previous_series_ids",
     "frontier_ref",
+    "issued_at",
     "auth_data"
   ],
   "properties": {

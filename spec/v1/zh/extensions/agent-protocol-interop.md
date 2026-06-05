@@ -131,7 +131,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 Session start MUST pin counterparty DID epoch，规则见 [§5.5 DID Epoch Pinning (normative)](#55-did-epoch-pinning-normative)。
 
-Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `ck.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest`（即 §5.5 DID Epoch Pinning 中的 service endpoint digest;本文统一以 `endpoint_digest` 指代该 service endpoint digest,与 §5.5 的 "service endpoint digest" 同物,**见 [§5.5](#55-did-epoch-pinning-normative)**)标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `ck.agent.protocol_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch（见 §5.5）。
+Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `ck.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest`（定义见 [§5.5](#55-did-epoch-pinning-normative)）标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `ck.agent.protocol_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch（见 §5.5）。
 
 ### 5.3 Status 回流
 
@@ -152,7 +152,7 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 }
 ```
 
-`progress_basis_points` 是可选的整数进度提示，取值域为 `0..10000` basis points（即 0% 到 100.00%，每 1 basis point = 0.01%）。它只表达外部任务的近似进度，不具授权或 canonical 状态语义；reducer MUST NOT 依据 `progress_basis_points` 改变 canonical task 状态（canonical 状态只由 `status` 与 `result` 决定）。超出 `0..10000` 的值 MUST 被拒绝或 clamp，并按 `agent_protocol_malformed_response` 处理。
+`progress_basis_points` 是可选的整数进度提示，取值域为 `0..10000` basis points（即 0% 到 100.00%，每 1 basis point = 0.01%）。它只表达外部任务的近似进度，不具授权或 canonical 状态语义；reducer MUST NOT 依据 `progress_basis_points` 改变 canonical task 状态（canonical 状态只由 `status` 与 `result` 决定）。超出 `0..10000` 的值 MUST 导致整个 status 被拒绝，reason=`agent_protocol_malformed_response`（固定单一行为，确保跨实现确定性；实现 MUST NOT 改为 clamp 后接受）。
 
 标准状态：
 
@@ -191,7 +191,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.sess
 }
 ```
 
-`cancelled_by`(取消发起 actor DID)、`cancelled_at`(timestamp)、`reason_code`(取消原因码)与 `cleanup_required[]`(待清理外部 artifact 标识列表)在 `status="cancelled"` / `result{status="cancelled"}` 下 MUST 提供;`external_cancel_ref` 在外部协议返回 cancel 确认 id 时 MUST 携带，否则 MAY 省略。这些字段属 `ck.agent.protocol_session.status` / `.result` 的 payload。其机读 schema 真源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`(`agent.schema.json` 仅描述 agent session metadata snapshot,不含这些 wire payload 字段)。
+`cancelled_by`(取消发起 actor DID)、`cancelled_at`(timestamp)、`reason_code`(取消原因码)与 `cleanup_required[]`(待清理外部 artifact 标识列表)在 `status="cancelled"` / `result{status="cancelled"}` 下 MUST 提供;`external_cancel_ref` 在外部协议返回 cancel 确认 id 时 MUST 携带，否则 MAY 省略。这些字段属 `ck.agent.protocol_session.status` / `.result` 的 payload。其机读 schema 真源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中 `$defs/agent_session_status_payload`（`.status` 事件）与 `$defs/agent_session_result_payload`（`.result` 事件）(`agent.schema.json` 仅描述 agent session metadata snapshot,不含这些 wire payload 字段)。
 
 ### 5.4 Result 回流
 
@@ -232,7 +232,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.sess
 }
 ```
 
-`ck.agent.protocol_session.result` 的 `content` MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
+`ck.agent.protocol_session.result` 的 payload MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
 
 外部 artifact 清理职责：若 start / status / result 暴露了外部 transcript、临时文件、tool output 或 remote task handle，result 终态 MUST 明确 `artifact_retention`（`retain_by_policy` / `delete_requested` / `deleted` / `unknown`）以及 `artifact_digest` / deletion receipt。`cancelled`、`failed`、`expired` 终态若未能删除外部 artifact，必须保留最小 `external_artifact_stub`（`artifact_digest`、`remote_id_digest`、retention reason、cleanup retry policy），不得把未验证的外部删除当成已完成。
 
@@ -247,7 +247,7 @@ Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm 
 - counterparty DID Document canonical hash；
 - method-specific version / log entry id（若 DID method 支持版本化）；
 - matched service entry id；
-- service endpoint digest（即 §5.2 所称 `endpoint_digest`,二者同物）；
+- service endpoint digest（本小节单点定义 `endpoint_digest ≝ service endpoint digest`；§5.2 等其它位置的 `endpoint_digest` 均指此处定义）；
 - verification method。
 
 reducer normative：
@@ -288,7 +288,7 @@ sequenceDiagram
 
 读图要点：
 
-- 步骤 3-4 的 endpoint validation 是 normative MUST：必须把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
+- 步骤 3-4 的 endpoint validation 是 normative 校验（规范 MUST 条款单点定义于下方编号步骤 4，本概览不重复其 normative 文本）：把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
 - 节流回写 `status` 不要求每个 token 都进 durable Event；具体频率由 `audit_mode` 决定（`status_only` / `summary_and_artifacts` / `full_transcript_digest` / `full_transcript`）。
 - Cokret 不信任外部 task status：只有 `ck.agent.protocol_session.result` event 被 reducer accept 后才改变 canonical task 状态。
 

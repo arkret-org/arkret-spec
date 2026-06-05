@@ -31,7 +31,7 @@ sidebar:
 **实现 profile**:
 
 - `ck.profile.minimal_client.v1`
-- `ck.profile.core_event_store.v1`
+- `ck.profile.core_event_store.v1`（minimal interop floor；分层口径见 [`conformance-profiles.md`](./conformance-profiles.md) §2.1，是仅声称 v1 Event Store interop 时的最小声明层，非完整实现角色）
 - `ck.profile.chat_mvp.v1`
 - `ck.profile.kanban_mvp.v1`
 - `ck.profile.full_client.v1`
@@ -47,6 +47,10 @@ sidebar:
 - `ck.profile.mimi_interop.v1`
 - `ck.profile.sovereign_deployment.v1`
 - `ck.profile.sovereign_client.v1`
+
+**gateway profile**（`role=gateway`,推送网关角色;完整定义与子 profile 见 [`conformance-profiles.md`](./conformance-profiles.md) §11）:
+
+- `ck.profile.push_gateway.v1`（`depends_on` `ck.profile.push_gateway.blind_wakeup.v1`;`visible_notification` / `matrix_passthrough` 为 opt-in）
 
 **hardening profile**（overlay,非独立实现角色）:
 

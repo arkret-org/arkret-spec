@@ -75,7 +75,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `combinator` | yes | `enum(all, any)` | 默认 `all`。 | gate 之间的组合语义。 |
 | `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `ck.realm.join.review`。 | 审核所需 capability，取 **capability action token** 形态（如 `ck.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
 
-[^review-capability-alias]: v1.1 候选 alias: `review_capability_action` — 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。当前字段名是历史保留（v1 已发布，避免 wire-breaking 重命名），推荐文档与 SDK 在 prose 中使用 `review_capability_action` 描述其语义；wire 字段名保持 `review_capability`。
+[^review-capability-alias]: 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。v1 wire 字段名为 `review_capability`，不会改变。（未来版本对该字段的 prose alias 规划属 roadmap 范畴，不在 v1 normative 范围内。）
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
 | `application_ttl` | no | `duration` | 默认 `PT168H`，最小 `PT1H`，最大 `P1Y`。 | 申请未决超时即失效。 |
 | `cooldown_after_reject` | no | `duration` | 默认 `PT72H`。 | 拒绝后同一 actor 重新申请的最短间隔。 |
@@ -159,8 +159,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- |
 | `public` | 不生效 | applicant 提交 `ck.member.state{join}` 即被接受。 |
 | `invite` | 不生效 | 必须有 `ck.invite.create`；Join Policy 不可绕过 invite。 |
-| `restricted` | 生效（自动解析路径） | `gates[*].auto_resolve == true` MUST 全为 true；含 `manual_review` 或 `application_form` MUST schema_violation。 |
 | `knock` | 生效（任一路径） | gate 集合可包含人工审核；申请-审核路径必走。 |
+| `restricted` | 生效（自动解析路径） | `gates[*].auto_resolve == true` MUST 全为 true；含 `manual_review` 或 `application_form` MUST schema_violation。 |
 | `knock_restricted` | 生效（OR 合成） | `combinator` SHOULD 为 `any`；典型组合：`[claim_required(auto), application_form(manual)]`，凭证持有者直接进，否则走问卷申请。 |
 | `closed` | 不生效 | reducer 拒绝任何 join / knock / application Move。 |
 

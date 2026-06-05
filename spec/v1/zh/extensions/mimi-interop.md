@@ -82,7 +82,9 @@ GET /_cokret/open/mimi/provider-directory
 
 ## 4. Room Binding
 
-允许被导出为 MIMI room 的 Cokret 对象 MUST 有写入 `ck.component.mimi.room_binding.v1` cell 的 Move effect。兼容 Event kind 为 `ck.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`：
+允许被导出为 MIMI room 的 Cokret 对象 MUST 有写入 `ck.component.mimi.room_binding.v1` cell 的 Move effect。兼容 Event kind 为 `ck.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
+
+`ck.mimi.room_binding` 的完整 payload 形态（含 `hub_provider`、`follower_providers`、`content_profile`、`policy_root`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
 
 ```json
 {
@@ -110,7 +112,7 @@ GET /_cokret/open/mimi/provider-directory
 规则：
 
 - `binding_scope.realm_id` MUST 指向一个 accepted Realm。`flow_id` MUST 指向该 Realm 内启用 discussion track 的 accepted Flow；MIMI room timeline 只投影该 Flow discussion track 的消息。
-- `hub_provider` MUST 是 Realm policy、Organization DID 或 participant DID 明确委托的 service DID。
+- `hub_provider` MUST 是 Realm policy、Organization DID 或 member DID 明确委托的 service DID。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `observer`（封闭枚举，以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威源）。各值语义:
   - `hub`:本地 facade 即拥有该 MIMI room URI 的 hub provider,负责 room fanout 与 groupInfo,对外承担 room 真相投影责任;
   - `follower`:本地 facade 作为 follower provider 参与远端 hub 拥有的 room,接收 fanout 并向 hub 提交本地 writes;
@@ -302,6 +304,7 @@ MIMI identifier MUST NOT 被直接作为 Cokret actor。映射规则：
 - MIMI text / markdown / reply / reaction / edit / delete / attachment 接收映射。
 - MIMI policy update 归约为 Cokret capability / policy state。
 - identifier query 不泄露 raw connection identifier。
+- identifier query MUST NOT 返回任何形式的 "reachability proof"（§10 的强禁令负向可测项；facade MUST NOT 复活已被移除的 reachability proof 机制）。
 - consent 不自动授予 membership / write capability。
 - E2EE report franking 验证。
 - proxy download 遵守 asset privacy policy。

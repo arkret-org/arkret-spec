@@ -80,7 +80,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `catchup_complete` | required | catch-up replay 或 initial baseline 完成，后续 frame 是实时推送。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
 | `frontier` | required | 仅推进 cursor,不带数据；用于服务端在 quiescent 期周期性确认订阅仍连通。 |
 | `heartbeat` | absent | 防中间层断流的 keepalive。 |
-| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。客户端 MUST 重新建立 `ck.account.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `ck.events.query` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
+| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。`dropped` frame 的 `cursor` 为 REQUIRED;服务端没有可用补齐 cursor 时 MUST 改发 `resync_required`,不得发送无 cursor 的 `dropped`。客户端 MUST 重新建立 `ck.account.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `ck.events.query` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
 | `resync_required` | absent | 服务端无法定位任何可用 catch-up 起点(本地状态彻底失效)。客户端 MUST 清空本地 cursor 缓存，从零重新建立订阅。MAY 携带 `reconnect_after_ms`。 |
 | `unauthorized` | absent | 当前 session 不再有权限消费该流；客户端 MUST 重新认证或退出。 |
 
@@ -157,11 +157,11 @@ Account subscribe `delta` frame 包含以下 stream：
 | `account_data` | 私有持久 | 标签、UI 偏好、recent emoji、push rules |
 | `to_device` | 设备队列 | key verification、secret sharing、device messages |
 | `ephemeral` | 短暂 | typing、presence、live cursor |
-| `receipts` | 可配置 | read receipt / read cursor delta |
+| `receipts` | 可配置 | read receipt / read cursor delta（逻辑类，无独立 wire 字段；承载于 per-Realm `ephemeral` / `account_data`，见下表） |
 | `notifications` | 派生 | inbox / push notification delta |
 | `device_lists` | 持久 delta | E2EE device trust 更新 |
-| `applet` | 持久/短暂 | Applet delivery receipt、bridge health |
-| `blob_status` | 派生 | upload scan、thumbnail、retention 状态 |
+| `applet` | 持久/短暂 | Applet delivery receipt、bridge health（逻辑类，无独立 wire 字段；承载于 per-Realm `timeline` / `ephemeral`，见下表） |
+| `blob_status` | 派生 | upload scan、thumbnail、retention 状态（逻辑类，无独立 wire 字段；承载于 per-Realm `timeline`，见下表） |
 
 客户端 MUST 使用 `cursor` 作为唯一 resume token，不得解析 token 内部结构。
 
@@ -550,7 +550,7 @@ To-device 队列过长时，服务器 MAY 返回 `limited=true` 并要求客户�
 GET /_cokret/self/device_messages?from=<cursor>&limit=...
 ```
 
-该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用于服务端读位置推进。
+该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用于服务端读位置推进。`from=` 是 `ck.device_messages.get` 的历史例外命名（见 [`api-conventions.md` §7.1](./api-conventions.md)）；新增接口 MUST 用 `before` / `after`，不得把 `from=` 当作推荐形态。
 
 ## 11. Filters
 
@@ -604,7 +604,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 POST /_cokret/self/account/cursor/revoke
 ```
 
-请求体至少包含 `{cursor, reason_code, revoke_scope}`；`revoke_scope` 取值为 `this_cursor` / `same_device` / `same_session`。
+请求体至少包含 `{cursor, reason_code, revoke_scope}`；`revoke_scope` 取值为 `this_cursor` / `same_session` / `same_device`，缺省 `revoke_scope=this_cursor`。
 
 `revoke_scope` 范围的 normative 定义（与 [`identity/account-lifecycle.md`](../identity/account-lifecycle.md) 中的 session/device 标识对齐）：
 

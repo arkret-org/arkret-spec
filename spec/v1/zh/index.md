@@ -40,6 +40,7 @@ see_also:
 | --- | --- | --- |
 | 谁在做事？ | Principal / Actor | Principal 是 DID 身份根；Actor 是该 Principal 在 Realm 内产生 Event 的参与身份。 |
 | 这批协作事实归谁管？ | Realm | 权限、成员、历史可见性、E2EE、同步和联邦都以 Realm 为根。 |
+| Realm 内要给一部分人单独的成员、历史和加密边界？ | Circle | Circle 是 Realm 内的子事件边界；复用父 Realm 的 federation / policy / capability，只裁剪成员、history、投递与查询，必要时启独立 MLS group。 |
 | 用户界面怎么组织项目、看板和列表？ | Space | Space 是导航 / 容器，不拥有成员、policy 或加密组。 |
 | 一件事、一个任务、一个话题或一个决策放哪里？ | Flow | Flow 是统一协作主对象；正式内容在 synthesis，讨论在 discussion。 |
 | 聊天消息是什么？ | Message | Message 只属于某个 Flow 的 discussion track。 |
@@ -75,17 +76,14 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 
 ### 3.2 推荐阅读顺序（Suggested Reading Order, _informative_）
 
+完整推荐阅读顺序由 [spec-map.md §2](./spec-map.md) 单点维护，避免双清单各自漂移。新读者先看以下核心入口即可起步：
+
 - `overview/architecture.md`：架构、服务角色、部署与信任边界。
 - `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Principal Server 等术语。
-- `overview/evolution-and-compatibility.md`：协议演进与向后兼容总纲、版本承载与破坏性变更收敛、profile / capability 协商角色。
+- `overview/current-model.md`：v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 - `models/overview.md`：对象总览、typed-id 一览、设计原则。
-- `models/common-fields.md`、`models/realm-and-space.md`、`models/flow-and-message.md`：公共字段、Realm/Space、Flow/Message 等核心对象。
-- `models/relation.md`、`models/morph.md`、`models/event-and-patch.md`：关系、Morph 扩展、事件与字段增量。
-- `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：身份、handle、设备 / 备份密钥、consent gate、联系人关系和 1:1 私聊入口。
-- `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：授权与状态。
-- `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：同步与服务。
-- `security/server-threat-model.md`：安全边界与抗滥用。
-- 场景扩展：Applet、Agent、WebRTC、Directory、Moderation、Federation、Sovereign Deployment。
+
+其余身份、授权、同步、加密、扩展等专项文件的推荐顺序见 spec-map §2。
 
 ### 3.3 目录结构分层
 

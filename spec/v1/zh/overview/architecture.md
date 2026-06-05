@@ -205,7 +205,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 
 ## 3. 架构平面（Architectural Planes）
 
-七个平面按职责分层：Presentation / Local Query / Distribution / Write / Identity 形成自上而下（从用户视角到信任根）的核心栈，Confidentiality 与 Portability 是横切关注点。
+七个平面按职责分层：Presentation / Local Query / Projection / Distribution / Write / Identity 形成自上而下（从用户视角到信任根）的核心栈，Confidentiality 与 Portability 是横切关注点。
 
 *Figure 3-1. 架构平面分层（informative）。*
 
@@ -501,7 +501,7 @@ Principal Server 不可以：
 ### 6.5 物理隔离与跨域限制
 
 Realm 构成了协作图的硬性隔离边界：
-- 节点在处理深度 Graph/Tree 查询时，遇到跨 Realm 引用必须截断返回惰性链接 (Lazy Link)，MUST NOT 越权自动化拼接外部图谱。
+- 节点在处理深度 Graph / Space-hierarchy 查询（即 View.kind=`graph` 投影或跨 Space 层级遍历）时，遇到跨 Realm 引用必须截断返回惰性链接 (Lazy Link)，MUST NOT 越权自动化拼接外部图谱。
 - 跨组织的级联图谱展示必须由拥有多域权限的客户端发起多次请求主动合成。
 
 ## 7. AI 与人类共用同一协议

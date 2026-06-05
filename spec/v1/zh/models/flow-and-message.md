@@ -137,7 +137,7 @@ Schema id: `ck.schema.flow.v1`
 - 该 Message 受 `discussion` track 的权限、E2EE、redaction、editing 规则约束（与所有其他讨论同级），可以被引用、回应、撤回。
 - 审计归属由 `ck.flow.stage.set` event 自身的 `actor_id` / `created_at` 提供——事件日志就是真源，不需要在对象上再开一个 256-char 黑盒字段。
 
-**Capability**：`ck.flow.stage.set`（low risk_tier）—— 允许把推进 Flow 进度的权限授予 reporter / assignee / participant，而不必给完整 `ck.flow.update`（后者可改 metadata / content）。
+**Capability**：`ck.flow.stage.set`（low risk_tier）—— 允许把推进 Flow 进度的权限授予 reporter / assignee / member，而不必给完整 `ck.flow.update`（后者可改 metadata / content）。
 
 **Reducer 硬约束**（来自 [common-fields.md §5.3.3](./common-fields.md)）：
 

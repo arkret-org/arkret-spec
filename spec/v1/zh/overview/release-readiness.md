@@ -26,7 +26,7 @@ updated: 2026-06-04
 
 当前仓库维护单一 `v1.0.0` 规范线（`v1.0.0` 是仓库发布 / release tag；它与 wire-level `protocol_version` 字段值 `"1.0"` 是不同维度，见 [`index.md` §5](../index.md)，两者 MUST NOT 互换）：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + public catalog snapshot hash/count gate + fixture digest gate + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式 v1 发布契约。仓库不同时维护 rc / stable 两套 public catalog；任何更新都只落在当前 v1 canonical catalog 与唯一 public v1 snapshot 上。
 
-`v1.0.0` 基线下，机器 registry 的当前覆盖范围由下表索引。**计数列由 `tools/lint_artifacts.py`（`check_release_readiness_counts`）对照各 Canonical registry 自动校验**：本表数字与 registry 不一致即为 drift，`artifact_pipeline.py check` 会失败，必须在合并前修复。引用本节时仍 MUST 以各 Canonical 文件为权威来源；本表是受 CI 校验的镜像快照，不得改为自由近似值（曾出现把计数写成 `~N` 导致校验器无法解析的回归）。
+`v1.0.0` 基线下，机器 registry 的当前覆盖范围由下表索引。**计数列由 `tools/lint_artifacts.py`（`check_release_readiness_counts`）对照各 Canonical registry 自动校验**：本表数字与 registry 不一致即为 drift，`artifact_pipeline.py check` 会失败，必须在合并前修复。引用本节时仍 MUST 以各 Canonical 文件为权威来源；本表是受 CI 校验的镜像快照，不得改为自由近似值，MUST NOT 写成 `~N` 等自由近似形态（否则 `check_release_readiness_counts` 无法解析）。
 
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |

@@ -41,7 +41,7 @@ Cokret v1 区分：
 - `event_store`
 - `principal_server`
 - `sync_service`
-- `blob store`
+- `blob_store`
 
 ### 2.1 Event Store 与 reducer-input Event
 

@@ -196,7 +196,7 @@ backend "X 加入会议" 通知到达客户端时，客户端 MUST：
 
 1. 从 backend 通知中提取 `participant_identity`。
 2. 在当前 `ck.call.state.participants[]` 中查找同一 `participant_identity`。
-3. 验证该 participant entry 内的 `participant_binding` 签名（[§3](#3-token-exchange-normative)），确认它覆盖同一 `(realm_id, call_id, session_focus, actor_id, device_id, participant_identity)`。
+3. 验证该 participant entry 内的 `participant_binding` 签名（[§3](#3-token-exchange-normative)），确认它覆盖与 §3 签发侧完全相同的权威元组 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)`（此处当前 `session_focus` 即 §3 元组中的 `focus_id`；签名输入字段集合与名称以 §3 为准，不得省略 `expires_at`）。
 4. 不匹配或签名无效 → 拒绝为该 participant 建立媒体流（不收音、不订阅 video），错误码 `participant_identity_unrecognised`。
 
 这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Cokret-side `ck.call.state` 真源。
@@ -225,6 +225,7 @@ inject_frame_key(key_bytes: 32-byte secret,
 
 - `key_bytes` MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"cx-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。`cx-rtc-frame-key/v1` / `cx-rtc-recording-key/v1` 的 `cx-` 前缀是**有意保留的 grandfathered 稳定 wire label**(媒体绑定早期遗留命名，作为密钥派生的安全域分离参数),并非待清理的命名残留；实现 MUST NOT 私自将其迁移为 `ck-` 形态或与其它 label 混用。该 label 不在 conformance 阶段再议——任何变更属于 wire-breaking，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
+- `rotation_trigger` 不得被 adapter 当作不透明枚举透传:`rotation_trigger=member_leave`（成员离开 / 被踢 / 被 ban）**MUST** 对应一次 MLS commit（Remove）并推进 `epoch_id`，使新 `key_bytes` 从离开成员不掌握的新 group secret 派生；adapter **MUST NOT** 在 `member_leave` 时仅更换 SFrame KID / keyIndex 而复用旧 epoch 的 group secret，否则离开成员仍能解密后续帧（E2EE 媒体前向保密失效）。`member_join` 同样 MUST 绑定推进后的 `epoch_id`。`manual` / `scheduled` 触发亦 MUST 携带推进后的 `epoch_id`；任何 `rotation_trigger` 下若 `epoch_id` 未相对前一帧密钥推进，客户端 MUST fail closed（`e2ee_key_source_unauthorised`）。
 - backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §8.2 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
 - Conformance negative vector `ck.vector.media_binding.e2ee_key_source.v1`：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
 

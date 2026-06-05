@@ -276,6 +276,7 @@ policy MAY 声明 `ck.realm.policy_components` 中的 `preauth` component 包含
 - **生命周期与 TTL**：暂存项停留在 `pending_review` 直到 holder 在 UI review;实现 SHOULD 为暂存项设置 deployment-policy 声明的 TTL（缺省建议 30 天）,超时后 MUST 按"丢弃"处理（等价 holder 未授权，不得自动转 grant）。
 - **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ck.consent.grant` Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Move 落入 consent cell,quarantine inbox 永远不是授权根。
 - **profile 边界**：quarantine inbox 仅在 default profile 生效;`require_explicit_consent` profile 下无 active grant 的 invite 直接 `failed_precondition` 拒绝(§6.1 step 2),不进入 quarantine inbox。
+- **不向 requester 暴露可联系信号（normative）**：invite 进入 quarantine inbox 暂存(§3.1 缺省判定的"非拒绝、非放行")**MUST NOT** 被对 requester 暴露为送达 / 可联系信号。quarantine 期间(暂存项处于 `pending_review`,以及超时丢弃后)服务端与客户端 **MUST NOT** 向 requester 返回任何 deliver / seen / read receipt / presence / typing / "已送达" / "可联系" 等指示,亦不得通过响应码、时序或副作用让 requester 区分"已进入 holder quarantine"与"被直接拒绝 / holder 不存在"。requester 只有在 holder 显式 review 接受并构造 grant Move(本节 review 后转换 (a))后,才 MAY 从正常 active-grant 路径观察到可联系状态。否则 quarantine 暂存本身会成为"holder 真实存在且 inbox 可达"的可联系侧信道,违背 consent gate 的"非授权即不可联系"语义。
 
 **UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 明确披露两点语义：已发出的 invite 不会因 consent revoke 自动失效；如需撤销已发出的 invite，必须单独执行 `ck.invite.revoke`。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 
@@ -287,9 +288,13 @@ policy MAY 声明 `ck.realm.policy_components` 中的 `preauth` component 包含
 
 `ck.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 
-**PSI 命中位时序侧信道（normative）**：contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防止请求方通过高频探测观测 holder 命中 bit 的翻转时刻（grant/revoke 时点）形成时序侧信道。命中位图 MUST 引入粗粒度时间 bucket（类似 presence `last_active_at` 的 bucket 化），使命中状态变化只在 bucket 边界对外可见，而非实时反映 holder 决策的精确时刻。此外，PSI 探测 MUST 纳入 holder 可审计的访问记录，使 holder 可事后发现针对自己的反复探测。
+#### 6.2.1 PSI 命中位时序侧信道（normative）
 
-**Consent state hash 侧信道（normative，MUST 加盐或改 opaque token）**：裸 consent state hash（例如对 `(consent_id, peer, scope, granted/revoked)` 直接 SHA-256）是低熵、跨 requester 稳定的值——任意请求方可离线枚举有限的 consent 取值组合反查 holder 的真实 consent 状态，或跨多次/多 requester 比对 hash 是否相同来关联 holder 对不同 peer 的决策。因此当响应携带 consent state hash 时，该 hash MUST 满足以下之一，否则 MUST NOT 暴露：
+contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防止请求方通过高频探测观测 holder 命中 bit 的翻转时刻（grant/revoke 时点）形成时序侧信道。命中位图 MUST 引入粗粒度时间 bucket（类似 presence `last_active_at` 的 bucket 化），使命中状态变化只在 bucket 边界对外可见，而非实时反映 holder 决策的精确时刻。此外，PSI 探测 MUST 纳入 holder 可审计的访问记录，使 holder 可事后发现针对自己的反复探测。
+
+#### 6.2.2 Consent state hash 侧信道（normative，MUST 加盐或改 opaque token）
+
+裸 consent state hash（例如对 `(consent_id, peer, scope, granted/revoked)` 直接 SHA-256）是低熵、跨 requester 稳定的值——任意请求方可离线枚举有限的 consent 取值组合反查 holder 的真实 consent 状态，或跨多次/多 requester 比对 hash 是否相同来关联 holder 对不同 peer 的决策。因此当响应携带 consent state hash 时，该 hash MUST 满足以下之一，否则 MUST NOT 暴露：
 
 - **加盐**：hash 输入 MUST 混入 per-requester salt 或 per-session salt（例如 `HMAC(key = per_session_salt, data = canonical_consent_state)`，salt 至少 128-bit 随机、每个 requester / session 不同且不可由请求方预测），使同一 consent 状态对不同 requester / session 产生不同、不可反查、不可跨 requester 关联的值；裸的、跨 requester 稳定的 consent state hash MUST NOT 出现在 wire 上。
 - **或改为 holder-authorized opaque token**：用一个由 holder（或受托 contact discovery service）签发的、不透明、短期、单 audience 的 token 代替 hash，token 本身不泄露 consent 内容，只在该 requester 的下一步引导中被当作 grant/revoke 状态指示；token MUST 绑定 audience 与过期时间。

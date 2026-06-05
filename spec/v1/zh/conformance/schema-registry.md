@@ -56,10 +56,11 @@ sidebar:
 | 保留名（wire） | 当前语义 | 保留理由 | 防护参考 |
 | --- | --- | --- | --- |
 | event kind `ck.profile.space_override` | Realm-scoped Actor Profile override（`payload.target_realm_id` 是目标 Realm，不指向 `ck:space:` 容器，也不创建任何 Space 级访问边界） | 该 event 在反转前已经发布到 wire 并被多个客户端消费；强行重命名会破坏现存事件审计链与历史 query。新对象类型用 `ck.profile.realm_override` 命名。 | `event-payload.schema.json` `$defs/profile_realm_override_payload`；`contract-catalog.json` 中 payload description 显式说明语义；`zh/discovery/profiles-presence.md §3` 散文兼容声明 |
-| HTTP path segment `/_cokret/open/mimi/rooms/...` → `/_cokret/open/mimi/flows/...` | （已重命名，仅作对照说明）当前 wire 是 `/_cokret/open/mimi/flows/{flow_id}/...`；旧路径已 hard reject。 | 不再保留 | 见 `renames.json` `/_cokret/open/mimi/rooms/{flow_id}/...` |
 | operation id `ck.mimi.room_update` / `ck.mimi.notify` / `ck.mimi.submit_message` / `ck.mimi.group_info` | MIMI interop 命名空间内的标准操作；`room` 出现是为了与上游 MIMI 规范对齐 | MIMI interop 模块对外语义就是 "MIMI room"；仅在 interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
 
 新增"有意保留的旧命名"必须在此表登记并在对应 schema / registry 内联说明保留理由；不得仅靠口头约定。下游漂移扫描器 SHOULD 把此表作为 allowlist。
+
+> **已废弃路径对照（非 allowlist，仅对照说明）**：HTTP path segment `/_cokret/open/mimi/rooms/...` 已重命名为 `/_cokret/open/mimi/flows/...`，当前 wire 是 `/_cokret/open/mimi/flows/{flow_id}/...`；**旧 `rooms/` 路径已 hard reject，不在上方 allowlist 表内**（见 `renames.json` `/_cokret/open/mimi/rooms/{flow_id}/...`）。漂移扫描器 MUST NOT 把该旧路径列入 allowlist。
 
 ## 2. Standard Object Schema
 

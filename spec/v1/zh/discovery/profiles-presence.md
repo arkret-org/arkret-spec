@@ -63,7 +63,7 @@ updated: 2026-05-25
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
 | `status` | enum | 可选 | `active`、`suspended`、`deactivated` 或 `deleted`。 |
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
-| `profile_fields` | object | 可选 | 代词、时区、locale、状态消息、组织自定义字段等扩展展示字段。 |
+| `profile_fields` | object | 可选 | 代词、时区、locale、状态消息、组织自定义字段等扩展展示字段。其中子字段 `status_message` MUST ≤ 256 字符（Unicode code point 计），与 presence 广播的 `status_message`（§3.3）受同一长度与规范化约束。 |
 | `created_at` | timestamp | MUST | 创建时间。 |
 | `updated_by` | did | 可选 | 最近更新者；由 profile update Event actor 派生。 |
 | `updated_at` | timestamp | 可选 | 最近更新时间。 |
@@ -222,8 +222,8 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 ```json
 {
   "kind": "ck.presence",
-  "actor_id": "did:web:alice.example.com",
   "state": "online",
+  "actor_id": "did:web:alice.example.com",
   "status_message": "On vacation until May 5",
   "ttl_ms": 60000
 }
@@ -233,7 +233,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 |------|------|------|------|
 | `state` | string | MUST | 状态值 |
 | `actor_id` | did | MUST | 发送 presence 的 actor DID。 |
-| `last_active_at` | string | 可选 | 最后活跃时间。默认 MUST 省略，或按 policy bucket 化为粗粒度（例如分钟 / 小时级）；**仅当** presence policy 显式允许精确披露时才发送精确（秒级）timestamp。精确秒级值会成为活动 timing 侧信道，因此不得作为默认行为。 |
+| `last_active_at` | string | 可选 | 最后活跃时间，承载两种互斥 wire 形态，由值中是否含 `/` 判别：（1）精确形态为 RFC 3339 UTC timestamp（如 `2026-04-26T10:00:00Z`，不含 `/`）；（2）bucket 形态为 ISO 8601 interval `<start>/<duration>`（如 `2026-04-26T10:00:00Z/PT1H`，含 `/`）。接收方 MUST 据是否含 `/` 选择解析路径。默认 MUST 省略，或按 policy bucket 化为粗粒度（例如分钟 / 小时级）；**仅当** presence policy 显式允许精确披露时才发送精确（秒级）timestamp。精确秒级值会成为活动 timing 侧信道，因此不得作为默认行为。 |
 | `status_message` | string | 可选 | 当前状态消息（来自 Profile）。MUST ≤ 256 字符（Unicode code point 计），按 [`conformance/encoding.md` §2.1](../conformance/encoding.md) NFC 规范化，MUST NOT 含除 `U+0009`/`U+000A` 外的 C0/C1 控制字符。presence 广播的 `status_message` MAY 与 Profile 的 `profile_fields.status_message` 不同（presence 可为临时覆盖值），但两者受同一长度与规范化约束。 |
 | `ttl_ms` | integer | SHOULD | 存活时间（毫秒），超时后客户端应将该用户视为 offline |
 
@@ -242,8 +242,8 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 ```json
 {
   "kind": "ck.presence",
-  "actor_id": "did:web:alice.example.com",
   "state": "idle",
+  "actor_id": "did:web:alice.example.com",
   "last_active_at": "2026-04-26T10:00:00Z/PT1H",
   "ttl_ms": 60000
 }
@@ -268,6 +268,8 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 | `nobody` | 完全隐藏在线状态（对所有人显示为 offline） |
 
 当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `ck.presence`，Sync Service MUST NOT 转发既有或缓存的 `ck.presence`；接收方看到的结果必须与从未收到 presence 一致。
+
+`dnd` / `idle` 会泄露"用户在线但勿扰 / 空闲"，可被用于推断作息，属与 `last_active_at` 同类的活动侧信道。对不在 presence 可见集合内（不满足 `presence_visibility` 授权）的观察者，`dnd` / `idle` SHOULD 降级为 `offline` 或与 `online` 不可区分，不得向其暴露细分的勿扰 / 空闲状态。
 
 ### 3.5 Typing 指示器
 

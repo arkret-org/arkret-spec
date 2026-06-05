@@ -115,7 +115,7 @@ Content-Type: application/json
 | `actor_id` | `did` | required | 回显请求 actor，进入签名 canonical bytes。 |
 | `device_id` | `id` | required | 回显请求设备，进入签名 canonical bytes。 |
 | `ttl_seconds` | `int` | required | ICE 配置有效期（秒）。建议 ≤ 1 小时。 |
-| `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`。schema 合法范围为 `minimum=10`、`maximum=1800`。**服务端 MUST 保证 `refresh_lead_seconds` 严格小于 `ttl_seconds`**（否则客户端在签发瞬间即判定 credential 需刷新，陷入刷新风暴)。推荐 floor 为 60s,但该 floor 仅在 `ttl_seconds` 足够大、使 `60 < ttl_seconds` 仍成立时适用；当 `ttl_seconds` 取 60s 下限等较小值时，服务端 MUST 改用一个严格小于 `ttl_seconds` 的较小 lead(并据此放弃 60s floor),`refresh_lead_seconds < ttl_seconds` 优先于推荐 floor。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
+| `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`。schema 合法范围为 `minimum=10`、`maximum=1800`。**服务端 MUST 保证 `refresh_lead_seconds` 严格小于 `ttl_seconds`**（否则客户端在签发瞬间即判定 credential 需刷新，陷入刷新风暴)。推荐 floor 60s 仅在 `60 < ttl_seconds` 时适用，否则 `refresh_lead_seconds < ttl_seconds` 优先于推荐 floor（floor 让位的完整论证与取值规则见 §4.2 服务端规则）。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
 | `issued_at` | `timestamp` | required | 服务端签发时间，进入签名 canonical bytes。 |
 | `issued_at_bucket` | `timestamp` | required | TURN pseudonym 派生的粗粒度 bucket 起点；MUST 等于 `floor(issued_at / bucket_seconds) * bucket_seconds`，进入签名 canonical bytes。 |
 | `bucket_seconds` | `int` | required | v1 固定为 `300` 秒；客户端 SHOULD 在跨越下一 bucket 前 refresh。 |

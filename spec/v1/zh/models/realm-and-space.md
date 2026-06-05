@@ -61,7 +61,7 @@ Realm 与 MLS group 不是同义词：
 规范性规则：
 
 - `encryption_profile` 是 Realm 的 create-locked 基线。
-- 同一 Realm 内不允许把普通 Flow 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_profile` 声明，Circle 不得放宽父 Realm floor（详见 [`circle.md` §7](./circle.md)）。
+- 同一 Realm 内不允许把普通 Flow 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_profile` 声明（二者均为 Realm 对象顶层的 policy 字段，权威定义见 §2.3 字段表），Circle 不得放宽父 Realm floor（详见 [`circle.md` §7](./circle.md)）。
 - 若某个 Flow / artifact 需要 Realm 内的子事件 / 子消息边界（子集成员、独立 history、投递 / 查询裁剪，必要时独立 MLS group），创建一个 [Circle](./circle.md) 并把对象的 `scope_circle_id` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `ck.realm.link` 显式引用连接。
 - `history_visibility` 的五个值只定义历史读取资格；是否能发现 Realm、能否加入、是否能解密旧 E2EE epoch、以及服务是否可接收明文，分别由 discoverability、join rule、history sharing policy / key share、`plaintext_visible_services` 决定。完整语义见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。
 
@@ -87,7 +87,9 @@ Schema id: `ck.schema.realm.v1`
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | reducer 派生。 | 历史可见性。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ck.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
-| `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked。 | 加密配置。 |
+| `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked。只声明加密**机制**，不声明哪些 Cokret 字段进入密文。 | 加密配置。 |
+| `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。`e2ee_required` 时 Flow / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
+| `metadata_encryption_profile` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。比较序 `content_only < minimal_encrypted < full_encrypted`；effective 值取父 Realm / Circle / Space `child_scope_policy` / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle / Space / 对象 profile 放宽。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `minimal_encrypted`，否则 `content_only`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `anchor_profile` | no | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Anchor finality profile。 |
 | `digest_algorithm` | no | `enum(sha256, sha512, sha3_256, blake3)` | create-locked，默认 `sha256`。 | Hash 算法 profile。 |

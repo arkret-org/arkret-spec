@@ -10,6 +10,8 @@ updated: 2026-05-25
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
+> 体例说明：本文件字段表的「必填 / 必需」列采用 RFC 关键字（MUST / SHOULD / MAY）表达，区别于其余 models 对象表使用的 `yes / no / conditional` 体例；二者语义对应关系为 MUST↔yes、MAY↔no、SHOULD/条件性↔conditional。
+
 ## 1. 目标
 
 Cokret 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：

@@ -10,6 +10,8 @@ sidebar:
 
 本指南描述实现方如何消费本仓库的 canonical 输出。
 
+> **另见** [`artifact-consumption.md`](./artifact-consumption.md)：本指南聚焦"按何种顺序接入 artifact 生成 stub / 跑一致性向量";artifact 消费指南聚焦"哪些 artifact 是 source of truth 及其消费边界"。二者配合阅读。
+
 ## 1. 推荐接入顺序
 
 1. 读取根目录 [`artifacts/registry/schema-registry.json`](../../artifacts/registry/schema-registry.json)、[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 与 [`operation-registry.json`](../../artifacts/registry/operation-registry.json)。

@@ -10,6 +10,8 @@ updated: 2026-05-25
 
 本指南定义实现侧消费 `spec/v1/artifacts/` 的边界，避免各项目继续手抄协议事实表。
 
+> **另见** [`reference-implementation-guide.md`](./reference-implementation-guide.md)：本指南聚焦"哪些 artifact 是 source of truth 及其消费边界"；参考实现指南聚焦"按何种顺序接入这些 artifact 生成 stub / 跑一致性向量"。二者配合阅读。
+
 ## Source Of Truth
 
 实现侧必须把以下 artifact 作为 v1 协议事实来源:

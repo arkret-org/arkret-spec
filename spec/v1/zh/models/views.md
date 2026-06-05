@@ -389,6 +389,8 @@ Graph projection 可展开 Flow、Morph、Message、Board 等对象之间的 Rel
 2. 无 rank 时使用对象字段排序。
 3. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_event_id`、对象 id。
 
+   其中 `rank_source_event_hlc` / `rank_source_actor_id` / `rank_source_event_id` 是 projection 派生量，分别取自决定该条目当前排序位次的来源 Event 的 `hlc`、`actor_id` 与 event id（见 [`event-and-patch.md`](./event-and-patch.md) §2.2 Event Envelope），并非对象上的独立 wire 字段。
+
 计数规则：
 
 - 普通客户端可见计数 MUST 基于权限裁剪后的 visible items。

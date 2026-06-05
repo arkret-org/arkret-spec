@@ -346,7 +346,9 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 任何接收升级 transition Event 的 receiver(principal server、其他 federation peer、新设备 join 时)**MUST**:
 
 1. 拉取 `old_did` 的当前 DID Document,canonicalize 后 hash 比对 `transfer_evidence.old_did_document_canonical_digest`;不一致 → reject `inception_upgrade_old_document_hash_mismatch`。
-2. 校验 `transfer_evidence.old_did_document_fetched_at` 是 RFC 3339 UTC，且 receiver 当前时间与该值的差值不得超过 168h（7 天，与 `did:webvh` 单 entry cache evidence age 上限对齐）；超过窗口 → reject `inception_upgrade_evidence_stale`。Receiver MAY 使用更短 deployment policy，但 MUST NOT 接受超过 168h 的 transfer evidence。
+2. 校验 `transfer_evidence.old_did_document_fetched_at` 是 RFC 3339 UTC，且 receiver 当前时间与该值的差值不得超过升级 evidence 新鲜度上限常量 `inception_upgrade_evidence_max_age = 168h`（7 天）；超过窗口 → reject `inception_upgrade_evidence_stale`。Receiver MAY 使用更短 deployment policy，但 MUST NOT 接受超过 `inception_upgrade_evidence_max_age` 的 transfer evidence。
+
+   > 说明：`inception_upgrade_evidence_max_age` 是**在线升级 transfer evidence 新鲜度**的独立常量，与 [`identity-did.md` §3.4](./identity-did.md) `did:webvh` outage 期 per-entry cache age 7 天上限**语义域不同**（前者约束升级证据的拉取时效，后者约束 outage cache entry 的可用性）。两者当前**取值恰好相同（168h / 7 天）但不绑定**：调整任一处不应自动推导改动另一处，引用方 MUST 各自独立解读。
 3. 校验 `signature_chain` 两段签名:inception key 签名(`verification_method` 必须出现在被 hash 的 old document `verificationMethod[]` 内)+ `did:webvh` entry-0 controller key 签名(必须能在 `did:webvh` `did.jsonl` entry 0 找到)。任一失败 → reject `inception_upgrade_signature_chain_invalid`。
 4. 校验 `inception_public_key_fingerprint`,确认它等于步骤 3 中签名验证命中的那条 `verificationMethod[]` 条目的派生 fingerprint(不要求该条目位于 index 0);失败 → reject `inception_upgrade_fingerprint_mismatch`。
 5. 校验 `did:webvh` `entry 0` 的 SCID / entry hash / controller proof(标准 `did:webvh` inception 验证)——这一段独立于 `did:web` 阶段。
@@ -454,7 +456,7 @@ Cokret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准
 - session key MUST NOT 超过 grant 的有效期
 - session grant SHOULD 绑定 audience
 - 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储
-- session grant 撤销 MUST 由 accepted `ck.session.grant` 状态更新、device/account revoke、或 profile 注册的 credential status mechanism 表达；不得使用未注册的 `ck:revocation-list:*` typed ID。
+- session grant 撤销 MUST 由下列 **canonical 撤销机制** 之一表达：accepted `ck.session.grant` 状态更新（含 supersede / expiry），或 device / account revoke（[`account-lifecycle.md` §9](./account-lifecycle.md) Session Revocation、§7.1 Deactivation Fanout 的 `ck.session.grant` 撤销链）。除上述 canonical 机制外，仅当某 extension / deployment profile **显式注册并声明** 了一个 credential status mechanism（profile MUST 给出该 mechanism 的 canonical event / 字段定义，对照 agent key 撤销的具体 `ck.agent.key.revoke`）时，方可使用该 profile 注册的机制表达撤销；未注册、无明确 canonical event / 字段定义的机制 MUST NOT 用于 session 撤销，且任何情况下 MUST NOT 使用未注册的 `ck:revocation-list:*` typed ID。
 
 ## 7. 密钥备份
 
@@ -717,6 +719,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 - genesis envelope MUST `series_seq == 0`，`supersedes == null`，且 MUST NOT 携带 `supersedes_digest`。
 - `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_seq` / `supersedes`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
 - `frontier_ref` 是 RECOMMENDED 字段；当声明 `ck.profile.key_backup.memory_hard.v1` 或更高 hardening profile 时，`secret_storage` 与 `did_recovery` 类备份的新 envelope MUST 携带 `frontier_ref.frontier_digest`，并 SHOULD 携带 `frontier_ref.anchor_ref` 与 `frontier_ref.ssk_generation`。
+- **`mls_history` 释放的 frontier 校验为 MUST（normative，非 `personal_node` profile）**：除 `personal_node` profile 外，`mls_history` 类备份的释放（恢复设备解出 MLS 历史材料）MUST 校验 active-series record（§7.6 `ck.schema.key_backup_active_series.v1`）并验证 envelope 的 `frontier_ref`（`frontier_digest`，可达时连同 `anchor_ref` / `ssk_generation`）与当前 accepted control-stream frontier 一致；缺失 active-series record 或 frontier 校验不通过时 MUST fail closed，不得释放。否则服务端可静默回放旧 series，让恢复设备解出已 retired 的 MLS 历史密钥（正是本节要堵塞的回滚释放攻击）。该 MUST 取代上方矩阵 `mls_history × secret_storage_key` 单元格"释放仍以…为准"散文表述中可被读成可选的部分。
 - **Active-series record**：当某 `(actor_id, backup_class)` 存在多个 series，或实现需要向新设备声明 canonical series 时，principal control stream MUST 发布 event kind `ck.key_backup.active_series`，payload MUST validate as `ck.schema.key_backup_active_series.v1`。该 record MUST 至少绑定 `schema`、`actor_id`、`backup_class`、`active_series_id`、`issued_at`、`previous_series_ids[]`、`frontier_ref{frontier_digest, anchor_ref?, ssk_generation}` 与签名 `auth_data`；`auth_data.signed_fields` MUST 覆盖这些字段，`auth_data.ssk_generation` MUST 等于当前 accepted self-signing generation。`active_series_id` MUST 指向同 `(actor_id, backup_class)` 下的 genesis 或 successor series；`previous_series_ids[]` 只用于 retention / read-old-data 过渡，不得作为 primary recovery source。Receiver MUST 先验证该 record 链接到当前 principal control stream 与当前 accepted self-signing generation，再使用其 `active_series_id` 拉取备份链。Envelope 自身的 `frontier_ref` 只证明该 envelope 创建时的 control-stream 位置，不能替代 active-series record。
 - 客户端发起恢复（device-lifecycle.md §15）时 MUST：
   1. 若恢复方未持有已验证的 `series_id`，先从 principal control stream 解析并验证 active-series record，取得 `active_series_id`；然后 `LIST /_cokret/self/keys/backups?series_id=<active_series_id>` 取回**全部** envelope metadata；

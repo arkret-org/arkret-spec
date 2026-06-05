@@ -111,7 +111,7 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 
 v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-membership 命中结果旁附带最小 invite / consent handoff stub，但该 stub 只能声明 consent state hash、grant / revoke 状态或下一步引导。它 MUST NOT 携带 reachability proof、完整 profile、成员资格、Realm membership、读取权限、关系图谱，或可直接创建 contact relation 的 token。
 
-该 handoff stub 携带 consent state hash 时,**MUST** 满足 [`consent-model.md` §6.2](./consent-model.md) 的侧信道防护 normative 约束:consent state hash MUST 加 per-requester / per-session salt（或改为 holder-authorized opaque token）,MUST NOT 输出裸的、跨 requester 稳定的 hash;PSI 命中位 MUST 经粗粒度时间 bucket 化并按 `(requester, holder)` 维度限速，防止时序侧信道。实现 MUST NOT 在本 stub 中输出未加盐的 consent state hash。
+该 handoff stub 携带 consent state hash 时,**MUST** 满足 [`consent-model.md` §6.2.1](./consent-model.md)（PSI 命中位时序侧信道）与 [`§6.2.2`](./consent-model.md)（Consent state hash 侧信道）的侧信道防护 normative 约束:consent state hash MUST 加 per-requester / per-session salt（或改为 holder-authorized opaque token）,MUST NOT 输出裸的、跨 requester 稳定的 hash（§6.2.2）;PSI 命中位 MUST 经粗粒度时间 bucket 化并按 `(requester, holder)` 维度限速，防止时序侧信道（§6.2.1）。实现 MUST NOT 在本 stub 中输出未加盐的 consent state hash。
 
 本规范不新增、也不依赖 contact request handoff token。若未来需要 discovery 直接返回可发起 `ck.contact.request` 的 token / credential，必须另行注册 profile 与 response schema。在那之前，用户选择联系某个 PSI 命中后，客户端才向目标 principal 披露自己的 DID / pairwise DID 并调用 `ck.contact.request`。
 

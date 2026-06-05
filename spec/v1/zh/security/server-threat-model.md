@@ -101,9 +101,9 @@ sidebar:
 
 ### 2.1a 需 profile 才能缓解的攻击项（base v1 不直接防御）
 
-§2.1 中以 *conditional* 标注的条目不属于 base v1 可直接防御范围，只有在显式声明对应 hardening profile 时才能缓解：
+§2.1 中以 *conditional* 标注的条目不属于 base v1 可直接防御范围，只有在显式声明对应 hardening profile 时才能缓解。本节是 conditional 项的索引，缓解手段与 normative 约束（含「未声明 profile 时 MUST NOT 把 E2EE 误表述为隐藏 federation traffic metadata」）以被索引条目正文为权威，不在此重述：
 
-- **#23 联邦流量模式旁观** —— base v1 不防御 fanout 时间 / batch 大小 / retry 节奏 / 跨 Realm burst 等元数据侧信道；仅在声明 `ck.profile.traffic_metadata_hardened.v1`（[`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)）时，按该 profile 的 federation batch padding、send jitter、welcome padding bucket、retry cadence padding、blind / batch wakeup 与 OHTTP / relay / decoy 之一缓解。未声明时 MUST NOT 把 E2EE 宣传为隐藏 federation traffic metadata。
+- **#23 联邦流量模式旁观** —— 详见 §2.1 #23 正文；profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)（`ck.profile.traffic_metadata_hardened.v1`）。
 
 ### 2.2 当前协议中不成立的攻击项
 

@@ -96,7 +96,7 @@ Ghost Actor MUST 带有 `accountable_principal_ids`（指向 Applet controller �
 
 #### 3.4.1 Ghost Actor vs Native Personal Agent 边界
 
-`actor_kind` 不定义 `agent_native`、`agent_ghost` 或 `ghost` wire enum。Native personal AI agent 使用 `actor_kind="agent"`；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值：外部人类/账号镜像 SHOULD 使用 `actor_kind="integration"`，Applet 托管的 AI/automation ghost MAY 使用 `actor_kind="agent"`。二者必须通过 Applet provenance、`accountable_principal_ids` / `accountability` 和 profile/capability 约束与 native personal agent 区分，不能依赖新增 `actor_kind` 值区分。
+`actor_kind` 不定义 `agent_native`、`agent_ghost` 或 `ghost` wire enum。Native personal AI agent 使用 `actor_kind="agent"`；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值：外部人类/账号镜像 SHOULD 使用 `actor_kind="integration"`，Applet 托管的 AI/automation ghost MAY 使用 `actor_kind="agent"`。二者必须通过 Applet provenance、`accountable_principal_ids` 和 profile/capability 约束与 native personal agent 区分，不能依赖新增 `actor_kind` 值区分。
 
 Native personal AI agent(由 controller 通过 `ck.agent.provision` 创建，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))与 Applet-managed Ghost Actor(本节)是两类不同 actor,生命周期与治理路径完全分离:
 
@@ -106,7 +106,7 @@ Native personal AI agent(由 controller 通过 `ck.agent.provision` 创建，见
 | `accountable_principal_ids` | 指向 controller principal,显式 `ck.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
 | Runtime credential | 通过 `POST /_cokret/gate/account/agent-key-pair` pairing 得到 `ck.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /_cokret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ck.applet.transaction` 与 Applet 的 delegated session |
-| 撤销 | `ck.agent.pause` / `ck.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;Ghost Actor 跟随 Applet 生命周期 |
+| 撤销 | `ck.agent.pause` / `ck.agent.deactivate` + fan-out key/grant revoke | Applet registration 撤销;Ghost Actor 跟随 Applet 生命周期(经 §4b Revoke,`remove_ghost_membership` 需 active ghost projection 完整否则 MUST fail closed) |
 | Realm policy | Realm policy MUST 单独允许 native personal agent(`ck.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet base bot-only(`ck.profile.applet_service.v1`)；Ghost Actor / portal bridge 需额外声明 `ck.profile.applet_bridge.v1` |
 
 **Realm policy MUST 至少能分别控制 native personal agent 与 Applet / Ghost Actor**:部署可以禁止普通用户创建或使用 personal agents 同时允许管理员安装的 Applet + Ghost Actor,也可以反向配置;**二者不得被合并为一个不可区分的 "automation allowed" 开关**。
@@ -286,7 +286,7 @@ Commit MUST:
 
 多事件 fan-out 不是分布式原子事务；安全性依赖 registration 无 grant 即无授权。preview-time reject MUST 不提交任何 durable event。reduce-time reject MUST 把 accepted refs 与 rejected refs 写入 install execution record 和 audit/projection。registration 成功但所有 grant 失败时 MUST 返回 rejected，标记 registration 无 effective install，并在 local projection / audit 显式显示 orphan registration。
 
-Revoke MUST revoke all active grants bound to applet + effective_scope + registration_epoch, revoke widget scoped token, revoke delegated session/device（若有），并在需要时触发 bot/ghost membership leave/remove 与 E2EE epoch rotation requirement。`remove_ghost_membership` 依赖 active ghost projection 能枚举该 effective_scope 下仍 active 的 applet-managed ghost member；若 projection 不完整，MUST fail closed 并要求先重建 projection，不得按 namespace pattern 猜测成员。revoked effective install 继续尝试未来写入或调用 MUST fail closed，reason=`applet_revoked` 或更细 reason。
+Revoke MUST revoke all active grants bound to applet + effective_scope + registration_epoch, revoke widget scoped token, revoke delegated session/device（若有），并在需要时触发 bot/ghost membership leave/remove 与 MLS epoch rotation requirement。`remove_ghost_membership` 依赖 active ghost projection 能枚举该 effective_scope 下仍 active 的 applet-managed ghost member；若 projection 不完整，MUST fail closed 并要求先重建 projection，不得按 namespace pattern 猜测成员。revoked effective install 继续尝试未来写入或调用 MUST fail closed，reason=`applet_revoked` 或更细 reason。
 
 ### 4b.1 术语:Effective Install 与 Orphan Registration
 
@@ -391,19 +391,21 @@ Base URL 来自 registration 的 `base_url`。
 
 字段级接口索引：
 
-| operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
-| --- | --- | --- | --- | --- |
-| `ck.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
-| `ck.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
-| `ck.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
-| `ck.applet.resolve_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
-| `ck.applet.resolve_realm` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
-| `ck.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
-| `ck.applet.third_party_users` | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
-| `ck.applet.third_party_locations` | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
-| `ck.applet.install.preview` | `applet_package`; `effective_scope`; `approval_request`（字段见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | `InstallPlan` + `plan_digest`（契约 `applet-install-plan.schema.json`） | 只读预览；字段定义见 §4b 与 `applet-schema.md` §1b。 |
-| `ck.applet.install` | `Idempotency-Key`; `plan_digest`; `applet_package`; `effective_scope`; `approval_request`（见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | install response（`ok`/`install_id`/`registration_event_ref`/`capability_grant_refs`/`effective_status`/…，契约 `applet-install-operations.schema.json`） | 提交安装；字段定义见 §4b 与 `applet-schema.md` §1b。 |
-| `ck.applet.revoke` | `path.applet_id`; `effective_scope` | 无 | revoke 结果（撤销的 grant / membership / token refs） | 撤销 effective install;见 §4b。 |
+本表 **surface / 调用方向** 列区分两类 operation:`edge`（节点 → Applet，鉴权主体为 Cokret 节点，路径 `/_cokret/edge/applet/...`）与 `self`（管理员 → 自有 Principal Server aggregate，鉴权主体为管理员 actor，路径 `/_cokret/self/applets/...`）。二者调用方向相反、鉴权主体不同,实现不得套用同一鉴权模型。
+
+| operation_id | surface / 调用方向 | 必填字段 | 可选字段 | 响应字段 | 约束 |
+| --- | --- | --- | --- | --- | --- |
+| `ck.applet.ping` | edge（节点→Applet） | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
+| `ck.applet.describe` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
+| `ck.applet.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
+| `ck.applet.resolve_actor` | edge（节点→Applet） | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
+| `ck.applet.resolve_realm` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
+| `ck.applet.protocol_metadata` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
+| `ck.applet.third_party_users` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
+| `ck.applet.third_party_locations` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
+| `ck.applet.install.preview` | self（管理员→Principal Server） | `applet_package`; `effective_scope`; `approval_request`（字段见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | `InstallPlan` + `plan_digest`（契约 `applet-install-plan.schema.json`） | 只读预览；字段定义见 §4b 与 `applet-schema.md` §1b。 |
+| `ck.applet.install` | self（管理员→Principal Server） | `Idempotency-Key`; `plan_digest`; `applet_package`; `effective_scope`; `approval_request`（见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源（本表不再部分罗列） | 提交安装；字段定义见 §4b 与 `applet-schema.md` §1b。 |
+| `ck.applet.revoke` | self（管理员→Principal Server） | `path.applet_id`; `effective_scope` | 无 | revoke 结果（撤销的 grant / membership / token refs） | 撤销 effective install;见 §4b。 |
 
 ### 7.1 Ping
 
@@ -802,7 +804,7 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 
 部分 Applet 在 Cokret 客户端内嵌入 UI widget（如 Slack-style 交互卡片、配置面板）。Widget 在 host 客户端的信任边界内渲染，因此 MUST 被沙箱隔离。本节定义 §16 引用的 widget sandbox 的最小 normative 形态。
 
-Widget 声明（registration 或 describe 响应内）SHOULD 包含：
+是否提供 widget 由 Applet 决定（可选）；但**若 Applet 提供 widget，则其 widget 声明（registration 或 describe 响应内）MUST 包含下列全部 required 字段**。顶层的可选性仅限"是否提供 widget"这一选择，不得用于省略已提供 widget 声明中的任一 required 字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |

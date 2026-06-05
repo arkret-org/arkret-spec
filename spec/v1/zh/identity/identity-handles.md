@@ -111,11 +111,11 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 ### 3.2 解析结果必含字段
 
-Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含：
+Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含 `subject`、`handle`、`issuer`、`proofs`、`created_at` 与 `expires_at`；`handle_aliases[]` 为 **可选**（optional，与 §3.2.1 表及 §3.7.1 的 MAY 一致），不是必含字段：
 
 - `subject`：被寻址 handle holder 的 principal DID。
 - `handle`：canonical `user:domain` handle（主形态）。
-- `handle_aliases[]`：可选互通别名，例如 `acct:`；不得参与 Cokret 内部权威比对。
+- `handle_aliases[]`（可选 / optional）：互通别名，例如 `acct:`；不得参与 Cokret 内部权威比对。缺省时整字段 MAY 省略。
 - `issuer`：签发 handle claim 的 DID。详见 §3.4。
 - `proofs`：至少一条可验证签名，绑定 `handle`、`subject`、`issuer`、`created_at`。
 - `created_at` / `expires_at`：claim 时间边界；`expires_at` 缺失等价于 `binding_state=unverified`。
@@ -696,6 +696,7 @@ DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的�
 - 这种 server-attested `binding_state` 是性能 hint，**不是**权威背书；
 - verifier MUST 能用自己的 DID resolver 独立 re-verify（按 §6 顶层取得 `subject` DID Document 当前内容并复算 `alsoKnownAs` 包含校验），不得仅凭 server-attested `binding_state` 字段做信任决策。Server-attested hint 携带的附加字段（例如 DID Document digest 副本、`alsoKnownAs` proof 副本）是实现可选优化，v1 不为此层定义规范 wire schema；不同实现的 hint 字段差异不影响互操作，因为 verifier 始终保留独立 re-verify 路径；
 - 上述展示类动作 SHOULD 优先 first-party 验证；MAY 接受 server-attested `binding_state=verified` 命中，并把 UI 状态展示为 verified（cache hit 与 first-party verified 之间不做用户可见区分），前提是 hint 仍在 verifier 本地 trust policy 允许的 TTL 上限内、未触发 §6.1.2 失效信号；
+- **verified 徽章 vs 纯 autocomplete 区分（normative）**：联系人卡片 / 个人资料页面上的 **verified 徽章** 是用户信任决策的关键视觉信号，其防伪强度 SHOULD 高于纯 mention autocomplete 排序提示。客户端 **SHOULD** 在展示 verified 徽章前执行一次 first-party re-verify（§6 顶层独立 re-verify 路径）；当徽章仅由 hint-only 命中(未经本次 first-party 验证)驱动时,客户端 SHOULD 对该徽章施加弱化视觉（例如"服务器声明，未本地核验"的次级标识）而非与 first-party verified 徽章不可区分地呈现，以避免下一条所述"被攻陷 Directory + 受信 issuer 串通"直接驱动一个用户无法分辨真伪的强信任徽章。纯 mention autocomplete 排序 MAY 继续仅依赖 hint，无需为排序结果执行 first-party re-verify；
 - 命中超期、§6.1.2 任一失效信号触发、或 verifier 本地 trust policy 拒绝该 hint 来源时，UI MUST 降级为 `unverified` 或等价的视觉降级状态，**不得**继续展示 verified 徽章；
 - 一个被攻陷的 Directory 与一个被信任的 issuer 串通可以伪造 server-attested verified 状态——这是把展示动作放在 SHOULD/MAY 而非 MUST 层的根本风险；Authority 层动作不允许承担此风险。
 

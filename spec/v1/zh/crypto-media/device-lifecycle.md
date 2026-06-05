@@ -359,7 +359,7 @@ Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 
 ## 6. Device List Sync
 
-任何设备新增、撤销、签名更新或算法更新，MUST 产生 `ck.device.list_update` event。该 event 是 principal control stream 中的 actor-private durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`。它不进入任一共享 Realm Anchor frontier / state_root；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / key package event 感知其结果：
+任何设备新增、撤销、签名更新或算法更新，MUST 产生 `ck.device.list_update` event。该 event 是 principal control stream 中的 actor-private durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`。它不进入任一共享 Realm Anchor frontier / state_root；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / KeyPackage event 感知其结果：
 
 ```json
 {

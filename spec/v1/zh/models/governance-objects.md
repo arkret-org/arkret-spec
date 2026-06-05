@@ -41,15 +41,9 @@ Schema 在 wire 上以 schema id（如 `ck.schema.flow.v1`、`ck.schema.message.
 
 ### 2.2 Schema Evolution
 
-Schema evolution MUST be additive by default：
+Schema evolution MUST be additive by default。通用 evolution 约束（新字段优先 optional、既有字段不得静默改变语义、reducer 与客户端 MUST 保留未知字段、UI 遇未知 Morph type SHOULD 降级、标准对象不得阻止自定义 Morph type 等）以 [morph.md §6](./morph.md) 为单一权威源，本节不重复列举，避免漂移。
 
-- 新版本 SHOULD 保留未知字段，避免不支持新字段的客户端破坏数据。
-- 既有字段不得静默改变语义。
-- reducer 和客户端 MUST 保留未知字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。
-- UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
-- 标准对象不得阻止 Realm 定义自定义 Morph type。
-
-详见 [morph.md §6](./morph.md) 与 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)。
+完整迁移与兼容声明规则另见 [morph.md §6](./morph.md) 与 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)。
 
 ### 2.3 Schema 在 Realm 中的应用
 

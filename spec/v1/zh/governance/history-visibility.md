@@ -41,8 +41,8 @@ Reader 的成员时点：
 | 名称 | 定义 |
 | --- | --- |
 | `invite_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次有效 `ck.member.state{membership=invite}`（或等价 invite accept / claim）所确立的 Anchor frontier；被 revoke / expire / reject 后失效。reader 历史上若有多次 invite / revoke，`invite_frontier(reader)` 取**导致其当前 invited / joined 状态的那一次** invite 的 frontier，而非任意一次历史 invite——已失效或与当前成员资格无因果链的旧 invite frontier MUST NOT 被采用。 |
-| `join_frontier(reader)` | 最近一次有效 `ck.member.state{membership=join}` 使 reader 成为 active member 的 Anchor frontier。 |
-| `remove_frontier(reader)` | 最近一次有效 leave / ban / remove / account deactivation cascade 使 reader 不再是 active member 的 Anchor frontier。 |
+| `join_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次有效 `ck.member.state{membership=join}`（使 reader 成为 active member）所确立的 Anchor frontier。leave→rejoin 场景下 reader 可能有多次 join，`join_frontier(reader)` MUST 取**确立其当前 active 成员资格的那一次** join 的 frontier，而非任意一次历史 join——与当前成员资格无因果链的旧 join frontier MUST NOT 被采用（与 `invite_frontier` 同口径，避免并行分叉下放宽 join 前历史）。 |
+| `remove_frontier(reader)` | 与 reader 当前非成员状态**因果相连**的那次有效 leave / ban / remove / account deactivation cascade（使 reader 不再是 active member）所确立的 Anchor frontier；取导致其当前状态的那一次，已被后续 rejoin 取代而与当前状态无因果链的旧 remove frontier MUST NOT 被采用。 |
 
 一个 Event `E` 的 `T0` 如果包含 `join_frontier(reader)` 且不包含之后的 `remove_frontier(reader)`，则 reader 在 `E` 的 `T0` 为 joined。类似地，`T0` 包含有效 invite frontier 且未包含撤销 frontier，则为 invited。
 
@@ -54,7 +54,7 @@ Current read-time member state 只决定服务是否可以继续提供 server-me
 
 | 值 | Event-time eligibility | 加入前历史 | invitee preview / read | server-mediated removal 后 backfill | E2EE key material |
 | --- | --- | --- | --- | --- | --- |
-| `world_readable` | 任何通过 discoverability / reference disclosure 的 reader MAY 读取该 Event 的授权视图。 | 允许读取该值生效期间的历史。 | MAY 按 preview policy 返回 stripped state 或历史 stub；MUST NOT 自动披露成员列表 / policy 原文。 | 默认 MAY 返回 redacted / public projection；明文 backfill 受 current safety policy。 | 不自动发 key；必须由 `ck.realm.history_sharing_policy` 明确允许 public / token holder key share，否则只返回密文或占位。 |
+| `world_readable` | 任何通过 discoverability / reference disclosure 的 reader MAY 读取该 Event 的授权视图。 | 允许读取该值生效期间的历史。 | MAY 按 preview policy 返回 stripped state 或历史 stub；MUST NOT 自动披露成员列表 / policy 原文。 | removal 后仍 MAY 读公开 projection（该可见性不依赖成员资格，故 remove_frontier 不收回该读取资格）：默认 MAY 返回 redacted / public projection；明文 backfill 受 current safety policy。 | 不自动发 key；必须由 `ck.realm.history_sharing_policy` 明确允许 public / token holder key share，否则只返回密文或占位。 |
 | `shared` | 当前 active Realm member MAY 读取该值生效期间的历史，即使 Event 早于其 `join_frontier`。 | joined 后可读 join 前历史。 | invited 但未 joined 的 reader 默认不能读正文历史；只能按 preview policy 看 stripped state。 | 默认 DENY 给非 active member；policy MAY 允许对 T0 可见历史作受审计恢复。 | joined 后可按 history sharing policy 获得旧 epoch key；无 policy 时不能靠 visibility 自动补 key。 |
 | `invited` | reader 在 Event 的 `T0` 已处于 invited 或 joined 状态时 MAY 读取。 | joined 后最多回到与当前成员资格因果相连的那次 invite frontier（§2 定义）；不能读该 invite 前历史。 | invited reader MAY 读取 invite frontier 之后、policy 允许的 stripped state / history range。 | 默认 DENY；policy MAY 允许 T0 可见历史恢复。 | key share range MUST 从 invite frontier 起算，且必须写入 membership frontier digest。 |
 | `joined` | reader 在 Event 的 `T0` 已处于 joined 状态时 MAY 读取。 | 不允许读 join 前历史。 | invitee 未 joined 时不能读正文历史，只能看 preview policy 允许的 stripped metadata。 | 默认 DENY；policy MAY 允许 T0 joined 且 current policy 仍允许的恢复。 | Welcome 只授予 join 后 future epoch；join 前 key share MUST 被拒。 |
@@ -122,7 +122,7 @@ Preview policy MUST 满足：
 `ck.realm.history_visibility` 只判定 Event 是否可见；`ck.realm.history_sharing_policy` 判定是否可以交付旧 epoch key / history key share。发送 `ck.realm_key.share` 前，key source MUST 同时满足：
 
 1. 目标 Event range 在 `T0` 下通过 §3 visibility 判定。
-2. effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。
+2. effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。**对 `restricted` scope，命中的 `restricted_rules[]` rule 还 MUST 满足 `effect ∈ {allow_key_share, allow_both}`（见 §3.1）——默认 `effect=allow_read` 只放行读取、不授予 key**；仅满足 §3 read 判定不足以放行 key share。
 3. receiver device 当前未撤销，且通过 policy 要求的 device verification。
 4. current safety policy 未禁止向该 principal / device 继续交付。
 5. audit profile 要求的 `ck.realm_key.share_audit` / `ck.audit.accessed` 已满足。

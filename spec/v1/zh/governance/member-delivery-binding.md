@@ -37,6 +37,8 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 
 ## 3. `binding_source` 与责任方
 
+> **默认 allowlist 警示（normative）**：下表列出 6 类 `binding_source`，但**并非默认全部可用**。未配置 `ck.realm.delivery_binding_policy`（§4）时，`allow_binding_sources` 默认仅含最弱来源 `did_document_default`（见 §4 字段表）。组织 / 合规 Realm MUST 显式收窄 `allow_binding_sources` 并把 `allow_did_document_default` 设为 `false`，否则成员可凭 DID Document 默认条目自行决定投递目标，绕过治理背书。
+
 | `binding_source` | 谁负责填 | 何时使用 | 补充必填 |
 | --- | --- | --- | --- |
 | `explicit` | 邀请方 / 管理员客户端 | 用户显式选择目标服务 | `service_acceptance_ref` |
@@ -106,7 +108,7 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
 | --- | --- | --- | --- |
 | `allow_binding_sources` | `enum[]` | `["did_document_default"]` for 个人 / 公开 Realm；组织 Realm 必须显式收窄 | 允许出现在被接受 binding 中的 `binding_source` 子集。 |
 | `allow_did_document_default` | `boolean` | `false` | 是否允许 binding_source=did_document_default。组织 / 合规 Realm MUST 设为 `false`。 |
-| `allowed_recipient_services` | `did[]` | `[]`（不限） | 允许出现在 `recipient_service_did` 的封闭集合。空数组等价于"不限"。 |
+| `allowed_recipient_services` | `did[]` | `[]`（不限） | 允许出现在 `recipient_service_did` 的封闭集合。空数组等价于"不限"——此 fail-open 默认**仅适用个人 / 公开 Realm**。**组织 / 合规 Realm MUST 显式声明非空 allowlist**；漏配空集会放开任意 recipient service，与本文整体 fail-closed 取向（§2 / §5 / §6）相悖。需要"不限"语义时 SHOULD 显式表达，不应依赖漏配的空集。 |
 | `required_endorsers` | `did[]` | `[]` | 当 `allowed_recipient_services` 非空时，`recipient_service_did` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；否则空数组表示无强制背书要求。 |
 | `allow_unroutable_membership` | `boolean` | `false` | 是否允许 `delivery_status="unroutable"` 成员。 |
 | `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Move 的合法签名 / 背书集合（见 §6）。 |

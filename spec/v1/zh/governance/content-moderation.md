@@ -108,7 +108,7 @@ POST /_cokret/self/moderation/report
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `report_id` | id | required | 举报记录 ID。 |
-| `status` | string | required | 初始处理状态，例如 `submitted`。 |
+| `status` | enum | required | 初始处理状态；**封闭枚举** `{ submitted, routed, rejected }`，取未列值时实现 MUST 按 `schema_violation` 拒绝。`submitted`=已受理待路由；`routed`=已路由至 scoped moderator；`rejected`=入口校验/限速/去重拒绝。 |
 | `routed_to` | did[] | optional | 被路由到的 scoped moderator / 管理员 DID。 |
 
 请求示例（非完整 schema）：
@@ -184,8 +184,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
   "sender_claim": {
     "actor_id": "did:web:alice.example.com",
     "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
-    "mls_group_id": "base64url...",
-    "epoch": 42
+    "mls_group_id_digest": "sha256:..."
   },
   "received_by": "did:web:server.acme.example",
   "received_at": "2026-04-30T00:00:00Z",
@@ -198,6 +197,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 
 - `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce` 之上生成。其中 canonical event routing metadata 的覆盖在 wire 上由必填字段 `routing_metadata_digest` 承载（见 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) `franking_proof.required`），验证方 MUST 据此核验该覆盖。
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
+- **群拓扑 / 时序元数据最小披露（normative）**：`sender_claim` MUST NOT 携带 raw `mls_group_id` 或明文 `epoch`。前者是群组身份、后者是 epoch 进度，均为元数据侧信道，向可能非该 E2EE 群成员的 moderator 披露会泄露群存在性与活跃 epoch 进度。需要把 sender claim 绑定到具体群上下文时，`mls_group_id` MUST 以不可逆 digest 形式（`mls_group_id_digest`，与 `routing_metadata_digest` 一致的 keyed/salted 或 plain digest 约定）出现；`epoch` MUST NOT 以明文整数出现于 `franking_proof`。
 - `franking_proof` 只证明服务接收过对应密文事件；它不证明 reporter 提交的明文与密文一致，也不证明 sender 在群外不可抵赖地 authored 该明文。
 - Moderator 验证时 MUST 检查 reporter 可见性、目标消息 accepted state、encrypted envelope digest、franking service signature、AAD / ciphertext digest 和 evidence package 签名。
 - 若任一环节缺失，moderator MAY 把材料作为人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。
@@ -424,8 +424,8 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 | --- | --- | --- | --- |
 | `ck.moderation.appeal.submit` | appellant（被影响 target 的控制者或 policy 列出的 advocate） | (none) → `submitted` | `ck.moderation.appeal.submit`（risk_tier=low） |
 | `ck.moderation.appeal.review` | reviewer（不得是原 decision 的 issuer） | `submitted` → `under_review` | `ck.moderation.appeal.review`（risk_tier=medium） |
-| `ck.moderation.appeal.decision` | reviewer（同上） | `under_review` → `decided` | `ck.moderation.appeal.review` |
-| `ck.moderation.appeal.close` | reviewer 或 timer | `decided` → `closed` | `ck.moderation.appeal.review` |
+| `ck.moderation.appeal.decision` | reviewer（同上） | `under_review` → `decided` | （复用 `ck.moderation.appeal.review`，见表注） |
+| `ck.moderation.appeal.close` | reviewer（手动）或 timer（`auto_closed=true`，授权校验见 §5.5.2 auto close） | `decided` → `closed` | （复用 `ck.moderation.appeal.review`，见表注） |
 
 > 表注（capability 复用）：`.decision` 与 `.close` 是 `ck.moderation.appeal.review` capability action 的目标 event kind，**有意复用同一 review capability**——见 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `ck.moderation.appeal.review`（`event_mapping_kind=aggregate_admin`，`target_event_kinds` 含 `review` / `decision` / `close` 三者）。因此 `.decision` / `.close` 行不另列独立 capability，其 `risk_tier` **继承自 `ck.moderation.appeal.review` 的 `medium`**；它们不是独立 capability action，registry 也不为其登记单独 action。`separation of duties`（reviewer ≠ 原 decision issuer）由 §5.5.2 reducer 约束兜底，弥补共用 capability 带来的影响差。
 
@@ -446,7 +446,7 @@ Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/mod
 - **Realm 绑定**：所有 `ck.moderation.appeal.*` payload MUST 携带 `realm_id`，且该值 MUST 等于 enclosing Event 的 `realm_id`。Reducer 还 MUST 解析 `decision_ref`，确认它引用同一 Realm 的 `ck.moderation.decision`；若 target / decision 属于另一 Realm，除非显式 cross-Realm moderation profile 授权，否则 MUST `schema_violation` 或 `capability_denied`。
 - **separation of duties**：`ck.moderation.appeal.review` / `ck.moderation.appeal.decision` 的 `reviewer` MUST NOT 等于被上诉 `decision_ref` 对应 `ck.moderation.decision` event 的 issuer。违反时 reducer 用 `appeal_self_review_forbidden` 拒绝。
 - **overturn 与 lift 原子**：`ck.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 Anchor batch 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝。这关闭"上诉胜诉但原 decision 仍生效"的窗口。
-- **modify 与新 decision 原子**：`verdict=modify` MUST 与一条新的 `ck.moderation.decision`（其 `target_ref` 等于原 target、`modify_decision_ref` 字段指向它）在同一 batch 中出现；reducer 校验 `modify_decision_ref` 与同 batch event id 一致。
+- **modify 与新 decision 原子**：`verdict=modify` MUST 与一条新的 `ck.moderation.decision`（其 `target_ref` 等于原 target）在同一 batch 中出现。`modify_decision_ref` 是 `ck.moderation.appeal.decision` payload 上的字段（不是新 decision 上的字段），其值 MUST 指向同 batch 内该新 decision event 的 id；reducer 校验 `modify_decision_ref` 与同 batch 新 decision 的 event id 一致。
 - **重复上诉 cool-off**：同一 `(decision_ref, appellant)` 在 cell `closed` 状态后的 Realm 声明 `appeal_cool_off_ms`（默认 90 天）内不得再次 submit；违反时 `failed_precondition`。新 cool-off 之后允许新 `appeal_id`。
 - **auto close**：cell 进入 `decided` 状态后超过 Realm `appeal_window_ms`（默认 30 天）仍未 close，授权 timer 服务（Realm policy 声明）MAY emit `ck.moderation.appeal.close` `auto_closed=true`。该 close payload MUST 携带 `closer`；`auto_closed=true` 时 reducer MUST 校验 `closer` 是 Realm policy 声明的 timer service DID，且 `closed_at >= decided_at + appeal_window_ms`。普通 reviewer 不得伪造 timer close 来提前触发 cool-off。
 
@@ -515,6 +515,8 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
   }
 }
 ```
+
+> `targets[]` 条目的 `target` / `action` / `reason_code` 为核心字段，`created_by` / `created_at` / `expires_at` 为可选 audit 字段（取值与 §5.3 一致）；本节示例为聚焦 server ACL 而省略可选 audit 字段，并非表示其不可携带。完整字段集合与必填性以 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) 对应定义为准。
 
 `ck.realm.moderation_policy` server target 的生效规则：
 
@@ -625,8 +627,7 @@ Policy Server MAY 返回 `hard_deny`、`quarantine`、`require_review` 或 `soft
 - **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 Sync Service 或受托 projection；必要时按 `snapshot`/`preview` 再二次放行。
 - **可追溯审计**：每次风控拦截、隔离、降级决策都要记录结构化审计事件，且不得仅依赖联邦来源的本地口头说明。
 
-上述规则至少部分对应 `server-threat-model.md` 中的映射结果。  
-`policy-server.md` 与 `federation.md` 也应同步落地。
+上述抗滥用规则的威胁映射见 [`../security/server-threat-model.md`](../security/server-threat-model.md)；其在授权与联邦层的 normative enforcement 分别见 [`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../sync/federation.md`](../sync/federation.md)。本节为借鉴性概览，约束力以上述文件的 normative 条款为准。
 
 ## 10. v1 流程要求
 

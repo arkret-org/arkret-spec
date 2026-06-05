@@ -281,7 +281,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 | 字段 | 使用场景 | 语义轴 |
 | --- | --- | --- |
 | `state` | Realm / Circle / Space / Flow / Message / Morph / Relation 等 canonical object | 物理生命周期：active、archived、redacted、tombstoned / deleted 等。 |
-| `stage` | Flow / Morph | 业务进度：draft、planned、in_progress、done、cancelled 等；与物理生命周期正交。 |
+| `stage` | Flow / Morph | 业务进度，与物理生命周期正交；完整枚举为 8 值（draft、proposed、planned、in_progress、blocked、done、cancelled、superseded），权威定义见 §5.3.2。 |
 | `status` | Account、agent session、delivery、moderation workflow、registry entry 等过程型对象 | 外部过程或会话状态；不得替代 object lifecycle。 |
 | `runtime_status` | Applet bridge / runtime metadata | 跨协议 runtime 可用性或执行态，避免与 canonical object `status` / `state` 混淆。 |
 | `binding_state` | Handle claim / identity binding | claim 绑定验证状态：pending、verified、revoked、expired；不是 materialized object lifecycle。 |

@@ -26,7 +26,7 @@ updated: 2026-05-25
 | `ck.receipt.read` / `ck.schema.read_receipt.v1` | `ephemeral_event` | 短 TTL，不进入 durable Event history | 按 visibility 规则广播给发送者或可见成员 | Push Gateway MUST NOT 因 receipt 本身发通知；只能用于 unread / suppression 派生 |
 | `ck.read_cursor.advance` / `ck.schema.read_cursor.v1` | actor-private account / durable sync object | 持久保存最新阅读位置，多端同步 | 仅该 actor 的设备和授权 account aggregate 服务 | 作为 unread count、badge 与 push suppression 输入 |
 | `ck.notification` / `ck.schema.notification.v1` | derived projection / account aggregate | 派生状态，可重建 | 目标 actor 及其设备 | 不是协议真相源；必须绑定 read cursor frontier、notification rule frontier 与 source event frontier |
-| `ck.audit.accessed` | durable Event（审计 profile 下） | 按 audit retention 保留 | 由 Realm audit policy / capability 控制 | 记录受控读取、watch manage_others、late recovery 等访问证明；不得替代 read receipt |
+| `ck.audit.accessed`（schema 见 audit profile，本表不另列 `ck.schema.*`） | durable Event（审计 profile 下） | 按 audit retention 保留 | 由 Realm audit policy / capability 控制 | 记录受控读取、watch manage_others、late recovery 等访问证明；不得替代 read receipt |
 
 ## 2. Read Receipt (已读回执)
 
@@ -126,13 +126,13 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 #### 2.5.1 `visibility × history_visibility` 组合约束（normative）
 
-`visibility` 与 Flow effective scope 的 `history_visibility` 的组合按下表判定，采用与 [`discovery-directory.md` §3.1](./discovery-directory.md) 兼容矩阵**相同的三态记号约定**（`✓` / `!` / `✗`），但各记号在本表的强度与时点以下方定义为准（与 directory §3.1 的 `!` = "SHOULD 在 Realm create 时显示警告"不同）：`✓` = 允许；`!` = 允许但 reducer MUST 在 accept 时附带警告诊断，客户端 SHOULD 在进入 scope 时显式提示；`✗` = reducer MUST 拒绝：
+`visibility` 与 Flow effective scope 的 `history_visibility` 的组合按下表判定，采用与 [`discovery-directory.md` §3.1](./discovery-directory.md) 兼容矩阵相近的记号约定（`✓` / `!` / `✗*` / `✗`），但各记号在本表的强度与时点以下方定义为准（与 directory §3.1 的 `!` = "SHOULD 在 Realm create 时显示警告"不同）：`✓` = 允许；`!` = 允许但 reducer MUST 在 accept 时附带警告诊断，客户端 SHOULD 在进入 scope 时显式提示；`✗*` = **默认拒绝、仅在显式 opt-in 后才允许**（reducer MUST 拒绝该组合，除非 policy payload 显式声明对应 opt-in 标记；opt-in 后降级为 `!` 的"允许 + 警告诊断"语义，详见表下说明）；`✗` = reducer MUST 拒绝：
 
 | visibility ↓ \ history_visibility → | `world_readable` | `shared` / `invited` / `joined` / `restricted` |
 | --- | --- | --- |
 | `private` | ✓ | ✓ |
 | `members` | ✓ | ✓ |
-| `public` | `!`（默认拒绝，见下） | ✓ |
+| `public` | `✗*`（默认拒绝，opt-in 后降级为 `!`，见下） | ✓ |
 
 - `visibility="public"` + `history_visibility="world_readable"` 会让任意外部 world-readable 观察者读取 actor 的已读位置（活动侧信道）。该组合 MUST 是**显式 opt-in**：reducer MUST 拒绝（`read_receipt_visibility_combination_invalid`）该组合，**除非** receipt policy payload 显式声明 opt-in 标记 `allow_public_receipts_on_world_readable=true`；显式 opt-in 时 reducer MUST 仍附带警告诊断并要求客户端按 §2.4 / §2.5 在 UI 明示。该字段与 `allow_child_privacy_tightening_against_required` 同纪律，是 prose-defined 合规旁路：read_receipt_policy payload schema MUST `additionalProperties=false` 收录该字段，writer 必须在 wire JSON 中按字面拼写出现它，字段缺省 / 为 `false` / 拼写错误时 reducer MUST 按拒绝处理。
 - metadata-private 场景下 receipt policy MUST 收紧 `visibility` 为 `members` 或 `private`，不得依赖上述显式 opt-in 旁路。

@@ -34,8 +34,8 @@ Cokret 需要明确区分三件事：
 | `listed` | 可在指定目录、组织页、源 Realm 或受信目录中列出，但不一定进入全网公共搜索。 |
 | `restricted` | 只有满足可验证条件的请求方可发现，例如组织成员、受邀者、共同 Realm 成员或持有特定 claim 的主体。 |
 | `unlisted` | 不进入目录搜索；知道精确 id、alias、邀请链接或 source Realm edge 的主体 MAY 尝试解析。 |
-| `invite_only` | 未被邀请或未持有 invite proof 的主体不得得知其存在；查询应返回与不存在相同的错误。 |
-| `secret` | 仅本地或端到端加密上下文中可见；目录、Sync Service 和受托 search / projection 服务不应公开可枚举 metadata。 |
+| `invite_only` | 未被邀请或未持有 invite proof 的主体不得得知其存在；查询 MUST 返回与不存在相同的错误（规范强度见 §3）。 |
+| `secret` | 仅本地或端到端加密上下文中可见；目录、Sync Service 和受托 search / projection 服务 MUST NOT 公开可枚举 metadata（规范强度见 §3）。 |
 
 默认值：
 
@@ -117,6 +117,16 @@ Realm discovery policy SHOULD 由 `ck.realm.discovery` state event 表达：
 | `exact` | preview 成员数以 `member_count_bucket` 字段承载精确计数（整数值），仅在 `discoverability ∈ {public, listed}` 时允许；字段名保持 `member_count_bucket` 不变，避免不同 mode 暴露不同 wire 字段名而成为枚举侧信道。 |
 
 字段名在三种 mode 下统一为 `member_count_bucket`；请求方 MUST 按 effective `member_count_mode`（而非字段名）解释其语义。directory MUST NOT 因 `preview.fields` 显式列出该字段而越过 `member_count_mode` 披露上限。
+
+**`member_count_bucket` 的 wire 类型（normative）**：该字段是 `string | int` union——`bucketed` mode 下 MUST 是上方 bucket grid 之一的封闭枚举字符串；`exact` mode 下 MUST 是非负整数（精确成员数）。请求方 MUST 由 effective `member_count_mode` 决定按字符串枚举还是整数解析，不得仅凭值类型推断 mode。两种 mode 下 preview 输出（`realm_preview` / `stripped_state`）中该字段的取值示例：
+
+```json
+// bucketed mode：封闭枚举字符串
+{ "title": "Acme", "member_count_bucket": "51-100" }
+
+// exact mode（仅 discoverability ∈ {public, listed}）：精确成员数整数
+{ "title": "Acme Public", "member_count_bucket": 342 }
+```
 
 `join_rule` 只控制加入流程。公开可发现的 Realm MAY 仍要求 invite、knock 或 restricted join。不可发现的 Realm MAY 对持有私有链接的成员保持 `join_rule=public`，但除非配套强反垃圾策略，否则不推荐。
 

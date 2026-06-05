@@ -121,24 +121,26 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ## 4. Resource Selector
 
-Cokret v1 支持以下 `kind`：
+Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 与 [`policy-server.md` §7.0](./policy-server.md) 为准）：
 
 - `realm`
 - `space`
+- `circle`
 - `flow`
 - `message`
 - `morph`
 - `object`
 - `relation`
+- `view`
 - `event`
 - `actor`
-- `view`
 - `schema`
 - `policy`
 - `invite`
 - `notification`
 - `read_cursor`
 - `blob`
+- `*`（wildcard，见 [`resource-selector-grammar.md` §3.1](./resource-selector-grammar.md)）
 
 资源选择器应把 Space（`kind=board/list/...`）、Flow track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
 
@@ -164,6 +166,8 @@ Cokret v1 支持以下 `kind`：
 `ck.mls.commit` action → `{ck.mls.commit, ck.mls.commit_failed}`、`ck.moderation.appeal.review` → `{ck.moderation.appeal.review, ck.moderation.appeal.decision, ck.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
 
 `ck.message.redact` → `{ck.message.redact, ck.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="wire_compat_grandfather"`（`grandfathered_since=2026-05-08`，risk_tier=medium），即上表第四类“保留旧 wire 命名”的冻结桥（`ck.redaction` 是早期已发布的 wire event kind，无法机械收敛进 `ck.message.*` 命名空间）。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准；本文此前把它误列为聚合 admin 已更正，以免 conformance lint 锚点失效。
+
+**聚合 admin 的覆盖语义仅作用于 event-kind 解析层，不改变授权层 `actions[]` 的逐字命中规则。** 例如 `ck.policy.manage` 在 §5.4 与具体的 `ck.policy.set` / `ck.policy.rule` / `ck.policy.action` 并列：持有 `ck.policy.manage` 的 grant 表示该 admin action 在 registry 中聚合覆盖 `ck.policy.*` 与 `ck.realm.policy_*` 系列对应的 **event kinds**（audit / reducer 据 `target_event_kinds` 解析），但它**不在授权层自动等价于持有 `ck.policy.set` / `ck.policy.rule` / `ck.policy.action` 这三个具体 action token**。授权判定仍 MUST 按 §5「`actions[]` MUST 逐字命中、MUST NOT wildcard / segment 通配」执行：要授予某具体 policy 子动作，grant 的 `actions[]` MUST 显式列出 `ck.policy.manage`（若 receiver 已声明并接受该 action 对相应 event kinds 的聚合覆盖）或对应的具体 action token，二者不可互相推断。
 
 新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
 
@@ -443,12 +447,6 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 
 缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但高风险、agent、service、delegated grant 仍按本文风险规则 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、delegation narrowing 和 revoke freshness 判断都 MUST 使用 effective window，MUST NOT 分别按顶层字段和 temporal constraint 做两次不一致判断。
 
-`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `object_type_allow=["flow"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
-
-Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ck.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `ck.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
-
-`requires_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。实现 MUST NOT 接受只有 `claim_type` 而无发行者边界的 claim grant。
-
 | 扁平名称 | Typed `constraint_type` | `subtype` | 对应字段 |
 |----------|------------------------|----------|----------|
 | `expires_at` | `temporal` | — | `expires_at` |
@@ -487,8 +485,8 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `deny_redacted_history` | `confidentiality` | `visibility` | `deny_redacted_history`（命中即拒绝读取已 redact 历史） |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
 | `blob_presign_max_ttl_seconds` | `quota` | `resource` | `blob_presign_max_ttl_seconds` |
-| `blob_presign_scope` | `scope_limitation` | — | `blob_presign_scope` |
 | `max_artifact_bytes` | `quota` | `resource` | `max_artifact_bytes` |
+| `blob_presign_scope` | `scope_limitation` | — | `blob_presign_scope` |
 | `allowed_data_classes` | `scope_limitation` | — | `allowed_data_classes` |
 | `allowed_endpoints` | `scope_limitation` | — | `allowed_endpoints` |
 | `encryption_required` | `confidentiality` | `encryption` | `encryption_required` |
@@ -515,6 +513,14 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `claim_refresh_required` | `claim_based` | `claim` | `claim_refresh_required` |
 | `claim_max_age` | `claim_based` | `claim` | `claim_max_age` |
 | `depends_on_moderation_state` | （缓存依赖标记，非 allow/deny 约束） | — | `depends_on_moderation_state`（fast-path cache 失效 hint，默认 `false`；MUST 显式 `true` 的三类触发条件见 §18.1。它不归入 8 个 constraint family，而是 grant cache 失效绑定字段） |
+
+### 6.2 资源类型 / facet / claim 约束求值规则
+
+`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `object_type_allow=["flow"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
+
+Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ck.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `ck.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
+
+`requires_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。实现 MUST NOT 接受只有 `claim_type` 而无发行者边界的 claim grant。
 
 ## 7. Claim / Attestation
 

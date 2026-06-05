@@ -77,7 +77,7 @@ POST /_cokret/edge/push/register-device
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `device_id` | string | MUST | 设备的 typed id,形态为 `ck:device:<uuidv7>`(与 push-operations.schema.json `device_id` pattern 一致) |
+| `device_id` | id:device | MUST | 设备的 typed id,形态为 `ck:device:<uuidv7>`(与 push-operations.schema.json `device_id` pattern 一致) |
 | `push_gateway` | string | MUST | 推送网关的 URL |
 | `push_key` | string | MUST | 设备在推送平台上的注册令牌 |
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
@@ -107,7 +107,7 @@ POST /_cokret/edge/push/unregister-device
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `device_id` | string | required | 要注销的设备标识；形态与 §3.1 register 的 `device_id` 一致（typed id `ck:device:<uuidv7>`，如 `ck:device:01964137-0000-7000-8000-000000000000`），MUST byte-for-byte 等于注册时提交的值 |
+| `device_id` | id:device | required | 要注销的设备标识；形态与 §3.1 register 的 `device_id` 一致（typed id `ck:device:<uuidv7>`，如 `ck:device:01964137-0000-7000-8000-000000000000`），MUST byte-for-byte 等于注册时提交的值 |
 | `push_key` | string | optional | 指定要注销的 push token |
 | `app_id` | string | optional | 指定应用包名 / Bundle ID |
 
@@ -378,7 +378,7 @@ POST /_cokret/edge/push/notify
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示形态选择器，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或哨兵值 `l10n_key`。**`l10n_key` 是「形态选择器」而非字面展示 token**：当 `push_hint == "l10n_key"` 时，实际本地化键 MUST 由独立字段 `push_hint_l10n_key` 承载（不得把 l10n key 直接塞进 `push_hint` 值）。不得包含正文、sender DID / handle、Realm id / 名称、Flow / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.push_hint_l10n_key` | string | conditional | 仅当 `push_hint == "l10n_key"` 时出现且 MUST 提供；承载实际本地化键 token（如 `push.new_message`），由客户端在解密后用于本地渲染。MUST NOT 携带正文或任何识别性 metadata。 |
 | `notification.evaluation_locus_unresolved` | boolean | optional | E2EE client-side rule 降级信号（见 §4.5 第 3 步）：为 `true` 表示客户端已被唤醒但 server 端规则匹配尚未确定。纯本地评估信号，不携带 metadata。 |
-| `notification.counts` | object | optional | 未读数、未接来电数等计数。**`blind_wakeup` 下约束（normative）**：绝对未读数是活动侧信道，会让 provider 推断用户的累计活跃度，且 §2.2 已将"未读绝对计数明文"列入 `push_hint` MUST NOT 清单；为避免该 MUST NOT 被本字段架空，`blind_wakeup` 下 counts **MUST NOT** 携带明文绝对未读数。counts MUST 改用以下形态之一：粗粒度布尔 badge（如"有/无新内容"）、`unread_increment` 增量，或按 Realm policy 声明粒度 **bucket 化**的未读数（例如 `1` / `2-5` / `6+`）。无论何种形态，counts MUST NOT 跨 `push_target_id` 关联，也不得用于在 provider 侧重建跨 Realm 累计活动画像。 |
+| `notification.counts` | object | optional | 未读数、未接来电数等计数。**`blind_wakeup` 下约束（normative）**：绝对未读数是活动侧信道，会让 provider 推断用户的累计活跃度，且 §2.2 已将"未读绝对计数明文"列入 `push_hint` MUST NOT 清单；为避免该 MUST NOT 被本字段架空，`blind_wakeup` 下 counts **MUST NOT** 携带明文绝对未读数。counts MUST 改用以下形态之一：粗粒度布尔 badge（如"有/无新内容"）、`unread_increment` 增量，或按 Realm policy 声明粒度 **bucket 化**的未读数（例如 `1` / `2-5` / `6+`）。无论何种形态，counts MUST NOT 跨 `push_target_id` 关联，也不得用于在 provider 侧重建跨 Realm 累计活动画像。**边界振荡侧信道（normative）**：与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同理，真实未读数在两个 bucket 边界附近抖动时，provider 反复观察 bucket 翻转可逼近精确计数。因此采用 bucket 化形态时，bucket 输出 MUST 带迟滞（hysteresis）且最小驻留时间：bucket 一旦切换，MUST 在 policy 声明的最小驻留窗口内保持稳定，不得在边界两侧逐次 notify 即翻转；实现 MUST 仅在真实计数越过 bucket 边界并持续超过 policy 声明的非零迟滞带宽后才切换输出 bucket。零带宽 / 未声明带宽 MUST 按不合规处理。`unread_increment` 与布尔 badge 形态不受 bucket 迟滞约束（前者只传增量、后者不暴露绝对量级）。 |
 | `notification.devices` | object[] | required | 目标设备数组。 |
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
@@ -446,7 +446,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 ### 6.2 安全约束
 
 - Sync Service MUST NOT 在推送中包含 `encrypted_content` / `encrypted_metadata` / `encrypted_payload` 的任何部分
-- 推送网关被视为不可信第三方：`push_hint` 的白名单约束与 payload 最小化约束见 §2.2（line 36/38）与 §5.1，均为 MUST / MUST NOT，本节不重复其规范内容
+- 推送网关被视为不可信第三方：`push_hint` 的白名单约束与 payload 最小化约束见 §2.2 与 §5.1，均为 MUST / MUST NOT，本节不重复其规范内容
 
 ## 7. 静默时段 (Do Not Disturb)
 

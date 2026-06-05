@@ -384,6 +384,8 @@ Signature-Input: ...
 Signature: ...
 ```
 
+GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 请求的最小 component 集：`@method`、`@target-uri`、`@authority`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`，以及签名 parameter `created` / `expires`（`content-digest` 仅在有 body 时必填，故 GET pull 省略）。示例中的 `Signature-Input: ...` 为省略写法，实际 covered components 以 §3.2 为准。
+
 请求字段（query；完整参数集与默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)）：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |

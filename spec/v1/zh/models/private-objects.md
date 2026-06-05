@@ -69,7 +69,7 @@ Schema id: `ck.schema.notification.v1`
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `realm_id` | no | `id:realm` |  | 来源 Realm。 |
 | `source_event_id` | yes | `id:event` |  | 来源事件。 |
-| `source_ref` | no | `id` | `ck:(message\|flow\|morph\|relation\|view\|blob):…`。render-only hint;reducer MUST 以 `source_event_id` 为权威。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
+| `source_ref` | no | `id:(message\|flow\|morph\|relation\|view\|blob)` | 取值形如 `ck:(message\|flow\|morph\|relation\|view\|blob):…`，union 枚举即此 6 类。render-only hint;reducer MUST 以 `source_event_id` 为权威。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
 | `flow_id` | no | `id:flow` |  | 可选 Flow 上下文，用于路由通知。 |
 | `track_name` | no | `string` | `^[a-z][a-z0-9_]{0,63}$`。 | 可选，来源 Flow 上的 track key。 |
 | `notification_type` | yes | `enum(mention, reply, assignment, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
