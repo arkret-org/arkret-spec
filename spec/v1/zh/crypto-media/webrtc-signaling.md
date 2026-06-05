@@ -149,7 +149,7 @@ Content-Type: application/json
     },
     {
       "urls": ["turns:turn.example.com:5349?transport=tcp"],
-      "username": "1699999999:cx_pseudonym_call_4f7c3b2a9e1d5a6f",
+      "username": "1699999999:ck_pseudonym_call_4f7c3b2a9e1d5a6f",
       "credential": "base64url...",
       "credential_type": "password"
     }
@@ -171,11 +171,11 @@ Content-Type: application/json
 要求：
 
 - TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC-SHA256(turn_shared_secret, username)`；实现不得降级为 HMAC-SHA1）。
-- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `cx_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；该不可关联性只针对 TURN 运营方成立，不对铸造 pseudonym 的 Cokret media service 成立。
+- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `ck_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；该不可关联性只针对 TURN 运营方成立，不对铸造 pseudonym 的 Cokret media service 成立。
 - Pseudonym 生成 MUST 使用每次通话的新随机种子或 media service 私有密钥派生，且至少绑定 `(realm_id, call_id, actor_id, device_id, issued_at_bucket, media_service_did)`；推荐：
 
   ```text
-  pseudonym = "cx_pseudonym_call_" ||
+  pseudonym = "ck_pseudonym_call_" ||
     base64url(HMAC-SHA256(media_service_pseudonym_secret,
       canonical_json({realm_id, call_id, actor_id, device_id, issued_at_bucket, nonce})
     )[0:16])

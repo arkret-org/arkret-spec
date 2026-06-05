@@ -105,7 +105,7 @@
         },
         "payload_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Hash of canonical input bytes: utf8('cx-identity-link-v1\\n') || canonical_json(identity-link object with proof.signature omitted). The signed object includes trust_domain."
+          "description": "Hash of canonical input bytes: utf8('ck-identity-link-v1\\n') || canonical_json(identity-link object with proof.signature omitted). The signed object includes trust_domain."
         },
         "signature": {
           "type": "string",

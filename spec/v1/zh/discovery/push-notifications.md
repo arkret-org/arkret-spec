@@ -399,7 +399,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 ```json
 {
   "notification": {
-    "push_target_id": "cx_push_pseudo_01js0pt0000000000000000000",
+    "push_target_id": "ck_push_pseudo_01js0pt0000000000000000000",
     "wakeup_kind": "message",
     "counts": {
       "badge": "2-5",

@@ -395,7 +395,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "expires_at": null,
   "authorized_by": "ck:device:01964136-8000-7000-8000-000000000000",
   "cross_signing_binding": {
-    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_self_signing_v1",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_self_signing_v1",
     "alg": "EdDSA",
     "ssk_generation": 1,
     "signature": "base64url..."
@@ -822,7 +822,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
   "expires_at": null,
   "issued_at": "2026-04-26T00:00:00Z",
   "auth_data": {
-    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_principal_signing_v1",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_principal_signing_v1",
     "signature_algorithm": "EdDSA",
     "signature": "base64url...",
     "signed_fields": [

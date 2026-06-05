@@ -1922,7 +1922,7 @@
     },
     "ck.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework (CKP-0010). Requires ck.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label cx-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
+      "description": "Transport-agnostic media backend binding framework (CKP-0010). Requires ck.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ck-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / cokret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
       "depends_on": [
         "ck.profile.webrtc_media.v1"
       ],
@@ -1954,8 +1954,8 @@
           "focus_token_exchange_ttl",
           "participant_binding_scheme",
           "session_focus_persistence",
-          "mls_exporter_label_cx_rtc_frame_key_v1",
-          "recording_exporter_label_cx_rtc_recording_key_v1"
+          "mls_exporter_label_ck_rtc_frame_key_v1",
+          "recording_exporter_label_ck_rtc_recording_key_v1"
         ],
         "unsupported_optional": "MUST fail closed with unknown_focus_type for unsupported foci[].type values; MUST NOT infer a focus when foci[] is missing"
       },
@@ -1964,9 +1964,9 @@
         "issuer_did_anchoring_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in ck.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
         "session_focus_must": "ck.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
         "participant_binding_must": "ck.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
-        "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Cokret MLS-Exporter with label cx-rtc-frame-key/v1 (length=19 bytes, Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}), KDF.Nh=32 bytes), where participant_identity/device_id come from the verified ck.call.state.participants[] and participant_binding. Empty Context, missing sender fields, or epoch-only binding MUST be rejected with e2ee_key_source_unauthorised. MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
+        "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Cokret MLS-Exporter with label ck-rtc-frame-key/v1 (length=19 bytes, Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}), KDF.Nh=32 bytes), where participant_identity/device_id come from the verified ck.call.state.participants[] and participant_binding. Empty Context, missing sender fields, or epoch-only binding MUST be rejected with e2ee_key_source_unauthorised. MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
         "recording_pipeline_must": "Backend-generated recording artifacts MUST flow through Cokret authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
-        "recording_key_source_must": "Recording artifact encryption keys MUST derive from Cokret MLS-Exporter label cx-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label cx-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
+        "recording_key_source_must": "Recording artifact encryption keys MUST derive from Cokret MLS-Exporter label ck-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label ck-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
       }
     },
     "ck.profile.media_service_binding.livekit.v1": {

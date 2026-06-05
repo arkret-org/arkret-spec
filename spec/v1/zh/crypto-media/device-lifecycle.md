@@ -104,12 +104,12 @@ Cokret v1 把三件事分开处理：
   "verify_key": {
     "kty": "OKP",
     "crv": "Ed25519",
-    "kid": "did:webvh:...#cx_device_01HV_verify"
+    "kid": "did:webvh:...#ck_device_01HV_verify"
   },
   "hpke_key": {
     "kty": "OKP",
     "crv": "X25519",
-    "kid": "did:webvh:...#cx_device_01HV_hpke"
+    "kid": "did:webvh:...#ck_device_01HV_hpke"
   },
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -144,29 +144,29 @@ Schema id：`ck.schema.cross_signing_publish.v1`
     "principal_id": "did:webvh:...",
     "trust_domain": "ck:trust_domain:did.webvh.example",
     "principal_signing_key": {
-      "kid": "did:webvh:...#cx_principal_signing_v1",
+      "kid": "did:webvh:...#ck_principal_signing_v1",
       "alg": "EdDSA",
       "public_key": "z6Mk...",
       "key_format": "multibase"
     },
     "self_signing_key": {
-      "kid": "did:webvh:...#cx_self_signing_v1",
+      "kid": "did:webvh:...#ck_self_signing_v1",
       "alg": "EdDSA",
       "public_key": "z6Mk...",
       "key_format": "multibase",
       "binding": {
-        "verification_method": "did:webvh:...#cx_principal_signing_v1",
+        "verification_method": "did:webvh:...#ck_principal_signing_v1",
         "alg": "EdDSA",
         "signature": "base64url..."
       }
     },
     "user_signing_key": {
-      "kid": "did:webvh:...#cx_user_signing_v1",
+      "kid": "did:webvh:...#ck_user_signing_v1",
       "alg": "EdDSA",
       "public_key": "z6Mk...",
       "key_format": "multibase",
       "binding": {
-        "verification_method": "did:webvh:...#cx_principal_signing_v1",
+        "verification_method": "did:webvh:...#ck_principal_signing_v1",
         "alg": "EdDSA",
         "signature": "base64url..."
       }
@@ -185,29 +185,29 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
   "principal_id": "did:web:alice.example",
   "trust_domain": "ck:trust_domain:did.webvh.example",
   "principal_signing_key": {
-    "kid": "did:web:alice.example#cx_principal_signing_v1",
+    "kid": "did:web:alice.example#ck_principal_signing_v1",
     "alg": "EdDSA",
     "public_key": "AA",
     "key_format": "raw_base64url"
   },
   "self_signing_key": {
-    "kid": "did:web:alice.example#cx_self_signing_v1",
+    "kid": "did:web:alice.example#ck_self_signing_v1",
     "alg": "EdDSA",
     "public_key": "BB",
     "key_format": "raw_base64url",
     "binding": {
-      "verification_method": "did:web:alice.example#cx_principal_signing_v1",
+      "verification_method": "did:web:alice.example#ck_principal_signing_v1",
       "alg": "EdDSA",
       "signature": "c2ln"
     }
   },
   "user_signing_key": {
-    "kid": "did:web:alice.example#cx_user_signing_v1",
+    "kid": "did:web:alice.example#ck_user_signing_v1",
     "alg": "EdDSA",
     "public_key": "CC",
     "key_format": "raw_base64url",
     "binding": {
-      "verification_method": "did:web:alice.example#cx_principal_signing_v1",
+      "verification_method": "did:web:alice.example#ck_principal_signing_v1",
       "alg": "EdDSA",
       "signature": "c2ln"
     }
@@ -233,7 +233,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 `binding` 的 canonical signing input：
 
 ```text
-"cx-cross-signing-bind-v1\n"
+"ck-cross-signing-bind-v1\n"
 + canonical_json({
     "principal_id": <did>,
     "trust_domain": <trust_domain>,
@@ -269,7 +269,7 @@ DID-method history → principal_signing_key (PSK)
     "device_id": "ck:device:...",
     "device_public_key": "z6Mk...",
     "cross_signing_binding": {
-      "verification_method": "did:webvh:...#cx_self_signing_v1",
+      "verification_method": "did:webvh:...#ck_self_signing_v1",
       "alg": "EdDSA",
       "ssk_generation": 1,
       "signature": "base64url..."
@@ -282,7 +282,7 @@ DID-method history → principal_signing_key (PSK)
 `cross_signing_binding` 的 canonical signing input：
 
 ```text
-"cx-device-trust-bind-v1\n"
+"ck-device-trust-bind-v1\n"
 + canonical_json({
     "principal_id": <did>,
     "device_id": <id:device>,
@@ -785,7 +785,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "auth_data": {
     "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
-    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
     "signature_algorithm": "EdDSA",
     "signature": "base64url...",
     "signed_fields": [
@@ -916,7 +916,7 @@ Schema id：`ck.schema.cross_signing_reset.v1`
     "reset_reason_code": "rotation",
     "proof": {
       "kind": "principal_signing",
-      "verification_method": "did:webvh:...#cx_principal_signing_v1",
+      "verification_method": "did:webvh:...#ck_principal_signing_v1",
       "alg": "EdDSA",
       "signature": "base64url..."
     },
@@ -937,7 +937,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
   "reset_reason_code": "rotation",
   "proof": {
     "kind": "principal_signing",
-    "verification_method": "did:web:alice.example#cx_principal_signing_v1",
+    "verification_method": "did:web:alice.example#ck_principal_signing_v1",
     "alg": "EdDSA",
     "signature": "c2ln"
   },
@@ -958,7 +958,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 所有 proof 签名的 canonical input MUST 是：
 
 ```text
-utf8("cx-cross-signing-reset-v1\n") ||
+utf8("ck-cross-signing-reset-v1\n") ||
 canonical_json({
   "trust_domain": trust_domain,
   "reset_event_id": reset_event_id,
@@ -1016,8 +1016,8 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
 | proof.kind | Receiver MUST 校验 | 失败 reason_code |
 | --- | --- | --- |
-| `principal_signing` | (a) `verification_method` MUST 是该 principal 当前 DID Document 中具备**principal-grade 控制权**的 verification method（即 [`../identity/key-management.md` §3.2](../identity/key-management.md) 定义的 principal signing key 类，例如 `did:webvh:...#cx_principal_signing_v1` 或等价 DID method 控制密钥），且在 `issued_at` 时刻未撤销 / 未轮换；**MUST NOT** 是被本次 reset 重置对象的 `self_signing_key` / `user_signing_key`（让被废止的密钥自我授权废止自身会导致 trust circular）。(b) `signature` 在 `alg` 下覆盖 §14.1 canonical input 验证通过；(c) `previous_generation` 等于 receiver 持有的 accepted publish generation，`new_generation = previous_generation + 1`。 | `cross_signing_reset_proof_authority_invalid` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_generation_mismatch` |
-| `recovery_unlock` | (a) `recovery_secret_ref` 解析到 principal **当前 DID Document recovery 区或 `recovery_policy`** 中声明的 recovery key entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；(b) `signature` 验证使用该 entry 绑定的 public key、`alg` 在 entry 的算法白名单内、覆盖 §14.1 canonical input（**密码学强度仅由本签名提供**——拥有 recovery 私钥即视作 unlock 通过）；(c) `unlock_commitment` 等于 `SHA-256(utf8("cx-cross-signing-reset-unlock-binding-v1\n") \|\| recovery_secret_ref \|\| unlock_binding_input_bytes)`；`unlock_binding_input_bytes` 按 §14.1 定义，使用同一组 reset 字段，但 `proof_body` 同时排除 `signature` 与 `unlock_commitment`，避免 commitment 对自身取 hash。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 `unlock_binding_input_bytes` 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但绑定 proof 到具体 ref + reset 内容，阻止把同一 ref 的签名跨 reset 复用为另一组 (principal_id, generation) 的 proof shell。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
+| `principal_signing` | (a) `verification_method` MUST 是该 principal 当前 DID Document 中具备**principal-grade 控制权**的 verification method（即 [`../identity/key-management.md` §3.2](../identity/key-management.md) 定义的 principal signing key 类，例如 `did:webvh:...#ck_principal_signing_v1` 或等价 DID method 控制密钥），且在 `issued_at` 时刻未撤销 / 未轮换；**MUST NOT** 是被本次 reset 重置对象的 `self_signing_key` / `user_signing_key`（让被废止的密钥自我授权废止自身会导致 trust circular）。(b) `signature` 在 `alg` 下覆盖 §14.1 canonical input 验证通过；(c) `previous_generation` 等于 receiver 持有的 accepted publish generation，`new_generation = previous_generation + 1`。 | `cross_signing_reset_proof_authority_invalid` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_generation_mismatch` |
+| `recovery_unlock` | (a) `recovery_secret_ref` 解析到 principal **当前 DID Document recovery 区或 `recovery_policy`** 中声明的 recovery key entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；(b) `signature` 验证使用该 entry 绑定的 public key、`alg` 在 entry 的算法白名单内、覆盖 §14.1 canonical input（**密码学强度仅由本签名提供**——拥有 recovery 私钥即视作 unlock 通过）；(c) `unlock_commitment` 等于 `SHA-256(utf8("ck-cross-signing-reset-unlock-binding-v1\n") \|\| recovery_secret_ref \|\| unlock_binding_input_bytes)`；`unlock_binding_input_bytes` 按 §14.1 定义，使用同一组 reset 字段，但 `proof_body` 同时排除 `signature` 与 `unlock_commitment`，避免 commitment 对自身取 hash。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 `unlock_binding_input_bytes` 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但绑定 proof 到具体 ref + reset 内容，阻止把同一 ref 的签名跨 reset 复用为另一组 (principal_id, generation) 的 proof shell。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
 | `device_quorum` | (a) 每个 `signatures[i]` 的 `verification_method` 是当前 principal device set 中**已授权且未撤销**的 device key（按 `signatures[i].device_id` 查找其 `ck.device.authorize` 记录），并验证 `signature` 覆盖 §14.1 canonical input；(b) `signatures[]` 按 `device_id` 去重；(c) 去重后**有效**签名数 ≥ `threshold`；(d) `threshold` 等于 receiver 当前 `recovery_policy.device_quorum.threshold`（或等价已发布门限策略），小于该值 MUST 拒。 | `cross_signing_reset_signature_invalid` / `cross_signing_reset_quorum_insufficient` / `cross_signing_reset_quorum_below_policy` |
 | `trusted_recovery_service` | (a) `service_did` 出现在 principal DID Document 的恢复服务声明（或 organization recovery_policy `trusted_services[]`）中、未撤销、`issued_at` 在其有效窗口内；(b) `verification_method` 是该服务**已公布**的 verification method；(c) `signature` 覆盖 §14.1 canonical input；(d) 若 service 声明要求 `attestation_ref`，则该 ref MUST 解析到一条 receiver 可校验的 attestation event，且 attestation 所属 trust domain MUST 等于 reset payload 的 `trust_domain`；跨 trust domain attestation 不得作为恢复服务授权依据。 | `cross_signing_reset_recovery_service_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_attestation_missing` / `cross_signing_reset_recovery_service_attestation_domain_mismatch` |
 

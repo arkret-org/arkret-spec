@@ -1981,7 +1981,7 @@
         ],
         "properties": [
           "did",
-          "include"
+          "requested_evidence_kinds"
         ],
         "closed": false
       },

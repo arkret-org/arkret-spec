@@ -97,7 +97,7 @@
             "signature": {
               "type": "string",
               "minLength": 1,
-              "description": "base64url-encoded signature over the canonical 'cx-cross-signing-bind-v1\\n' + canonical_json input, including trust_domain. See device-lifecycle.md §5.1."
+              "description": "base64url-encoded signature over the canonical 'ck-cross-signing-bind-v1\\n' + canonical_json input, including trust_domain. See device-lifecycle.md §5.1."
             }
           },
           "additionalProperties": false

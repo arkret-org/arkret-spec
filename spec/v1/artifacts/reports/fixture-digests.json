@@ -26,7 +26,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "9f7d68ce26c3b8e5dde7af4ca3e2f9ab1812e3af0ab8e99134d3497ba976eef2"
+      "sha256": "83ca1349bdbb16e8b80c912dbb8848b9782ca12994ad5a813008fb8a5ca61892"
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
@@ -42,7 +42,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "15d93148b0164ca73394d758c68fc9d777153f4a0d57dc19cfdff77f6c889d09"
+      "sha256": "0d6c106477a8f194ec927b6ed775d1f7a89e9e28bc80f0725f8f64e88b9782c6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "77b2602bf7a0dd47648d128a4b0ebd0bbf8a0a6f8c0004548ffa043e8d9f03a6"
+      "sha256": "0bddf34b73dcffaa19f2c91eb9bb5dc41a707ac66de6b92fd978d667d505e222"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",

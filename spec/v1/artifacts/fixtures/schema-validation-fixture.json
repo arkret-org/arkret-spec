@@ -764,7 +764,7 @@
         "not_before": "2026-05-20T00:00:00Z",
         "expires_at": null,
         "cross_signing_binding": {
-          "verification_method": "did:web:alice.example#cx_self_signing_v1",
+          "verification_method": "did:web:alice.example#ck_self_signing_v1",
           "alg": "EdDSA",
           "ssk_generation": 1,
           "signature": "c2ln"

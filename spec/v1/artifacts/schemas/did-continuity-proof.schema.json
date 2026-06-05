@@ -118,7 +118,7 @@
           },
           "payload_digest": {
             "$ref": "#/$defs/hash",
-            "description": "Hash of utf8('cx-did-continuity-proof-v1\\n') || canonical_json(proof object with signature_chain[].signature omitted)."
+            "description": "Hash of utf8('ck-did-continuity-proof-v1\\n') || canonical_json(proof object with signature_chain[].signature omitted)."
           },
           "signature": {
             "type": "string",

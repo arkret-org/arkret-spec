@@ -2106,7 +2106,7 @@ Input — 邀请方在 Acme 组织 Realm 中添加 `@alice:acme.example`。客�
   "intent": "member_add",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "requester": "did:web:bob.example",
-  "proof_challenge": "cx-challenge-001"
+  "proof_challenge": "ck-challenge-001"
 }
 ```
 
@@ -2904,7 +2904,7 @@ Steps:
 Expected:
 
 - Client MUST 拒绝该 key 并报 `e2ee_key_source_unauthorised`。
-- 唯一合法 key 来源是 MLS-Exporter（label `cx-rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`, KDF.Nh=32 bytes），其中 `participant_identity` / `device_id` 取自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。
+- 唯一合法 key 来源是 MLS-Exporter（label `ck-rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`, KDF.Nh=32 bytes），其中 `participant_identity` / `device_id` 取自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。
 - 负向覆盖：以下派生 MUST 同样 fail closed 报 `e2ee_key_source_unauthorised`——(a) `Context=""`（空 Context）；(b) 缺少 sender 字段（`participant_identity` / `device_id`）；(c) 仅绑定 `epoch_id` 而不含完整 sender-bound Context。
 
 ### 12.8 Participant Identity — Cross-Check
@@ -2940,8 +2940,8 @@ Expected:
 Steps:
 
 1. LiveKit Egress 通过 Cokret proxy 上传合法 recording artifact。
-2. Artifact encryption metadata 声称 key 来自 MLS exporter，但使用 SFrame label `"cx-rtc-frame-key/v1"` 或空 Context。
-3. Producer 重新上传同一 artifact，使用 label `"cx-rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}`。
+2. Artifact encryption metadata 声称 key 来自 MLS exporter，但使用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
+3. Producer 重新上传同一 artifact，使用 label `"ck-rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}`。
 
 Expected:
 

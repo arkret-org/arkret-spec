@@ -832,7 +832,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
   "type": "cokret_presentation_request",
   "audience": "did:web:google.example",
   "domain": "google.example",
-  "challenge": "cx_chal_01J...",
+  "challenge": "ck_chal_01J...",
   "accepted_issuers": [
     "did:web:google.example",
     "did:web:trusted-hr.example"
@@ -944,7 +944,7 @@ grant subject = alice@google.com
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
   "domain": "google.example",
-  "challenge": "cx_chal_01J...",
+  "challenge": "ck_chal_01J...",
   "purpose": "space_join",
   "accepted_issuers": ["did:web:google.example"],
   "required_claims": [
