@@ -19,8 +19,7 @@
   ],
   "properties": {
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Echo of the request Realm id. Bound into the signature to prevent cross-Realm replay."
     },
     "call_id": {
@@ -29,8 +28,7 @@
       "description": "Echo of the request call id. Bound into the signature to prevent cross-call replay."
     },
     "actor_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "$ref": "./common-ids.schema.json#/$defs/did",
       "description": "Actor that may use this ICE configuration. Bound into the signature."
     },
     "device_id": {
@@ -129,10 +127,14 @@
       "properties": {
         "urls": {
           "oneOf": [
-            { "type": "string" },
+            {
+              "type": "string"
+            },
             {
               "type": "array",
-              "items": { "type": "string" },
+              "items": {
+                "type": "string"
+              },
               "minItems": 1
             }
           ],

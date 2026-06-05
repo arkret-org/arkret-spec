@@ -21,8 +21,7 @@
       "const": "ck.schema.policy.v1"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "policy_type": {
       "type": "string",
@@ -156,8 +155,7 @@
                 ]
               },
               "realm_id": {
-                "type": "string",
-                "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
               },
               "ref": {
                 "type": "string",
@@ -198,42 +196,82 @@
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "action" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "action"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
-            "required": ["actions"]
+            "required": [
+              "actions"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "kind": { "const": "resource" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "resource"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
-            "required": ["resources"]
+            "required": [
+              "resources"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "kind": { "const": "server" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "server"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
-            "required": ["servers"]
+            "required": [
+              "servers"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "kind": { "const": "extension" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "extension"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
             "anyOf": [
-              { "required": ["schema_ref"] },
-              { "required": ["profile_ref"] }
+              {
+                "required": [
+                  "schema_ref"
+                ]
+              },
+              {
+                "required": [
+                  "profile_ref"
+                ]
+              }
             ],
-            "required": ["params"]
+            "required": [
+              "params"
+            ]
           }
         }
       ]
@@ -280,29 +318,53 @@
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "service_did" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "service_did"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
-            "required": ["service_did"]
+            "required": [
+              "service_did"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "kind": { "const": "domain" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "domain"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
-            "required": ["domain"]
+            "required": [
+              "domain"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "kind": { "const": "trust_domain" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "trust_domain"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
-            "required": ["trust_domain"]
+            "required": [
+              "trust_domain"
+            ]
           }
         }
       ]

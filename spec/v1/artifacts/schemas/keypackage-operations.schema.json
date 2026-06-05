@@ -38,10 +38,6 @@
       "type": "string",
       "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
     "flow_id": {
       "type": "string",
       "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -315,7 +311,7 @@
           "$ref": "#/$defs/did"
         },
         "intended_realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "requester": {
           "$ref": "#/$defs/did"
@@ -414,7 +410,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"

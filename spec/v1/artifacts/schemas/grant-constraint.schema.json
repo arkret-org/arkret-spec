@@ -80,8 +80,12 @@
       },
       "uniqueItems": true
     },
-    "not_before": { "$ref": "#/$defs/timestamp" },
-    "expires_at": { "$ref": "#/$defs/timestamp" },
+    "not_before": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "recurrence": {
       "type": "object",
       "description": "Recurrence rule for temporal constraints. Used by constraint-schema.md §3.1.",
@@ -338,8 +342,7 @@
       "type": "array",
       "description": "Limits Circle-scoped capability actions to the listed Circle ids. Used by ck.circle.manage / ck.circle.member.manage style grants; unconstrained Realm-wide Circle management grants are not a normal permission shape.",
       "items": {
-        "type": "string",
-        "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "$ref": "./common-ids.schema.json#/$defs/circle_id"
       },
       "uniqueItems": true
     },
@@ -434,8 +437,7 @@
         "realm_ids": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
           "uniqueItems": true
         }
@@ -604,8 +606,16 @@
           "claim_type"
         ],
         "anyOf": [
-          { "required": ["issuer"] },
-          { "required": ["trusted_issuers"] }
+          {
+            "required": [
+              "issuer"
+            ]
+          },
+          {
+            "required": [
+              "trusted_issuers"
+            ]
+          }
         ],
         "properties": {
           "claim_type": {

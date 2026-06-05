@@ -193,8 +193,7 @@
               ],
               "properties": {
                 "realm_id": {
-                  "type": "string",
-                  "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
                 },
                 "flow_id": {
                   "type": "string",
@@ -310,7 +309,9 @@
           "type": "string",
           "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "accepted_at": { "$ref": "#/$defs/timestamp" }
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": true
     }

@@ -30,8 +30,7 @@
       "const": "ck.schema.read_cursor.v1"
     },
     "actor_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "device_id": {
       "type": "string",
@@ -39,12 +38,13 @@
       "description": "Originating device. Required for multi-device convergence: when two devices race on the same (actor_id, realm_id, read_scope) the receiver picks the entry with greater HLC; device_id provides a deterministic actor_id-scoped tiebreaker when HLCs are equal."
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "read_scope": {
       "type": "object",
-      "required": ["kind"],
+      "required": [
+        "kind"
+      ],
       "properties": {
         "kind": {
           "type": "string",
@@ -70,7 +70,9 @@
         },
         "track_scope": {
           "type": "string",
-          "enum": ["all"],
+          "enum": [
+            "all"
+          ],
           "description": "Only valid when kind='flow'. Use track_scope='all' instead of omitting track when the cursor covers the entire Flow regardless of track."
         }
       },
@@ -78,29 +80,51 @@
         {
           "if": {
             "properties": {
-              "kind": { "const": "realm" }
+              "kind": {
+                "const": "realm"
+              }
             },
-            "required": ["kind"]
+            "required": [
+              "kind"
+            ]
           },
           "then": {
             "not": {
               "anyOf": [
-                { "required": ["ref"] },
-                { "required": ["track_name"] },
-                { "required": ["track_scope"] }
+                {
+                  "required": [
+                    "ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "track_name"
+                  ]
+                },
+                {
+                  "required": [
+                    "track_scope"
+                  ]
+                }
               ]
             }
           },
           "else": {
-            "required": ["ref"]
+            "required": [
+              "ref"
+            ]
           }
         },
         {
           "if": {
             "properties": {
-              "kind": { "const": "flow" }
+              "kind": {
+                "const": "flow"
+              }
             },
-            "required": ["kind"]
+            "required": [
+              "kind"
+            ]
           },
           "then": {
             "properties": {
@@ -110,23 +134,45 @@
             },
             "oneOf": [
               {
-                "required": ["track_name"],
-                "not": { "required": ["track_scope"] }
+                "required": [
+                  "track_name"
+                ],
+                "not": {
+                  "required": [
+                    "track_scope"
+                  ]
+                }
               },
               {
-                "required": ["track_scope"],
+                "required": [
+                  "track_scope"
+                ],
                 "properties": {
-                  "track_scope": { "const": "all" }
+                  "track_scope": {
+                    "const": "all"
+                  }
                 },
-                "not": { "required": ["track_name"] }
+                "not": {
+                  "required": [
+                    "track_name"
+                  ]
+                }
               }
             ]
           },
           "else": {
             "not": {
               "anyOf": [
-                { "required": ["track_name"] },
-                { "required": ["track_scope"] }
+                {
+                  "required": [
+                    "track_name"
+                  ]
+                },
+                {
+                  "required": [
+                    "track_scope"
+                  ]
+                }
               ]
             }
           }
@@ -134,9 +180,13 @@
         {
           "if": {
             "properties": {
-              "kind": { "const": "thread" }
+              "kind": {
+                "const": "thread"
+              }
             },
-            "required": ["kind"]
+            "required": [
+              "kind"
+            ]
           },
           "then": {
             "properties": {
@@ -150,9 +200,13 @@
         {
           "if": {
             "properties": {
-              "kind": { "const": "message" }
+              "kind": {
+                "const": "message"
+              }
             },
-            "required": ["kind"]
+            "required": [
+              "kind"
+            ]
           },
           "then": {
             "properties": {
@@ -165,9 +219,13 @@
         {
           "if": {
             "properties": {
-              "kind": { "const": "morph" }
+              "kind": {
+                "const": "morph"
+              }
             },
-            "required": ["kind"]
+            "required": [
+              "kind"
+            ]
           },
           "then": {
             "properties": {
@@ -180,9 +238,13 @@
         {
           "if": {
             "properties": {
-              "kind": { "const": "view" }
+              "kind": {
+                "const": "view"
+              }
             },
-            "required": ["kind"]
+            "required": [
+              "kind"
+            ]
           },
           "then": {
             "properties": {
@@ -197,7 +259,10 @@
     },
     "position": {
       "type": "object",
-      "required": ["event_id", "hlc"],
+      "required": [
+        "event_id",
+        "hlc"
+      ],
       "properties": {
         "event_id": {
           "type": "string",
@@ -210,7 +275,9 @@
       },
       "additionalProperties": false
     },
-    "updated_at": { "$ref": "#/$defs/timestamp" }
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "additionalProperties": false
 }

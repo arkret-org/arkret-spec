@@ -4,12 +4,24 @@
   "title": "Cokret Push Gateway Operation DTOs",
   "description": "Closed request and response DTOs for ck.edge.push.register_device, ck.edge.push.unregister_device, and ck.push.notify.",
   "anyOf": [
-    { "$ref": "#/$defs/register_device_request" },
-    { "$ref": "#/$defs/register_device_response" },
-    { "$ref": "#/$defs/unregister_device_request" },
-    { "$ref": "#/$defs/unregister_device_response" },
-    { "$ref": "#/$defs/notify_request" },
-    { "$ref": "#/$defs/notify_response" }
+    {
+      "$ref": "#/$defs/register_device_request"
+    },
+    {
+      "$ref": "#/$defs/register_device_response"
+    },
+    {
+      "$ref": "#/$defs/unregister_device_request"
+    },
+    {
+      "$ref": "#/$defs/unregister_device_response"
+    },
+    {
+      "$ref": "#/$defs/notify_request"
+    },
+    {
+      "$ref": "#/$defs/notify_response"
+    }
   ],
   "$defs": {
     "did": {
@@ -19,10 +31,6 @@
     "device_id": {
       "type": "string",
       "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_id": {
       "type": "string",
@@ -61,8 +69,17 @@
         "badge": {
           "description": "Coarse unread indicator. Under blind_wakeup it MUST NOT carry a plaintext absolute unread count (activity side channel); only a boolean presence flag or a policy-declared bucket string is allowed. See push-notifications.md §5.1.",
           "oneOf": [
-            { "type": "boolean" },
-            { "type": "string", "enum": ["1", "2-5", "6+"] }
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "1",
+                "2-5",
+                "6+"
+              ]
+            }
           ]
         },
         "unread_increment": {
@@ -84,10 +101,18 @@
         "device_id"
       ],
       "properties": {
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "push_key": { "$ref": "#/$defs/push_key" },
-        "app_id": { "$ref": "#/$defs/non_empty_string" },
-        "platform": { "$ref": "#/$defs/non_empty_string" }
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "push_key": {
+          "$ref": "#/$defs/push_key"
+        },
+        "app_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "platform": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -99,7 +124,9 @@
         "devices"
       ],
       "properties": {
-        "push_target_id": { "$ref": "#/$defs/push_target_id" },
+        "push_target_id": {
+          "$ref": "#/$defs/push_target_id"
+        },
         "wakeup_kind": {
           "type": "string",
           "enum": [
@@ -127,21 +154,49 @@
           "type": "boolean",
           "description": "Set true when the client has been woken but server-side rule matching is not yet resolved (E2EE client-side rule fallback). Pure local-evaluation signal; carries no metadata. See push-notifications.md §4.5."
         },
-        "counts": { "$ref": "#/$defs/counts" },
+        "counts": {
+          "$ref": "#/$defs/counts"
+        },
         "devices": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/device_route" }
+          "items": {
+            "$ref": "#/$defs/device_route"
+          }
         }
       },
       "not": {
         "anyOf": [
-          { "required": ["event_id"] },
-          { "required": ["realm_id"] },
-          { "required": ["sender_actor_id"] },
-          { "required": ["sender_actor_display_name"] },
-          { "required": ["realm_title"] },
-          { "required": ["flow_title"] }
+          {
+            "required": [
+              "event_id"
+            ]
+          },
+          {
+            "required": [
+              "realm_id"
+            ]
+          },
+          {
+            "required": [
+              "sender_actor_id"
+            ]
+          },
+          {
+            "required": [
+              "sender_actor_display_name"
+            ]
+          },
+          {
+            "required": [
+              "realm_title"
+            ]
+          },
+          {
+            "required": [
+              "flow_title"
+            ]
+          }
         ]
       },
       "additionalProperties": false
@@ -157,7 +212,9 @@
         "sender_actor_id"
       ],
       "properties": {
-        "push_target_id": { "$ref": "#/$defs/push_target_id" },
+        "push_target_id": {
+          "$ref": "#/$defs/push_target_id"
+        },
         "wakeup_kind": {
           "type": "string",
           "enum": [
@@ -185,15 +242,25 @@
           "type": "boolean",
           "description": "Set true when the client has been woken but server-side rule matching is not yet resolved. See push-notifications.md §4.5."
         },
-        "counts": { "$ref": "#/$defs/counts" },
+        "counts": {
+          "$ref": "#/$defs/counts"
+        },
         "devices": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/device_route" }
+          "items": {
+            "$ref": "#/$defs/device_route"
+          }
         },
-        "event_id": { "$ref": "#/$defs/event_id" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "sender_actor_id": { "$ref": "#/$defs/did" }
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "sender_actor_id": {
+          "$ref": "#/$defs/did"
+        }
       },
       "additionalProperties": false
     },
@@ -204,9 +271,15 @@
         "reason_code"
       ],
       "properties": {
-        "push_target_id": { "$ref": "#/$defs/push_target_id" },
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "reason_code": { "$ref": "#/$defs/non_empty_string" },
+        "push_target_id": {
+          "$ref": "#/$defs/push_target_id"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "retry_after_ms": {
           "type": "integer",
           "minimum": 1
@@ -222,13 +295,27 @@
         "push_key"
       ],
       "properties": {
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "push_gateway": { "$ref": "#/$defs/url" },
-        "push_key": { "$ref": "#/$defs/push_key" },
-        "platform": { "$ref": "#/$defs/non_empty_string" },
-        "app_id": { "$ref": "#/$defs/non_empty_string" },
-        "display_name": { "$ref": "#/$defs/non_empty_string" },
-        "recipient_service_did": { "$ref": "#/$defs/did" }
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "push_gateway": {
+          "$ref": "#/$defs/url"
+        },
+        "push_key": {
+          "$ref": "#/$defs/push_key"
+        },
+        "platform": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "app_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "recipient_service_did": {
+          "$ref": "#/$defs/did"
+        }
       },
       "additionalProperties": false
     },
@@ -238,9 +325,16 @@
         "ok"
       ],
       "properties": {
-        "ok": { "type": "boolean", "const": true },
-        "registration_id": { "$ref": "#/$defs/registration_id" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "registration_id": {
+          "$ref": "#/$defs/registration_id"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -250,9 +344,15 @@
         "device_id"
       ],
       "properties": {
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "push_key": { "$ref": "#/$defs/push_key" },
-        "app_id": { "$ref": "#/$defs/non_empty_string" }
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "push_key": {
+          "$ref": "#/$defs/push_key"
+        },
+        "app_id": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -262,7 +362,10 @@
         "ok"
       ],
       "properties": {
-        "ok": { "type": "boolean", "const": true }
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
       },
       "additionalProperties": false
     },
@@ -274,8 +377,12 @@
       "properties": {
         "notification": {
           "oneOf": [
-            { "$ref": "#/$defs/blind_notification" },
-            { "$ref": "#/$defs/visible_notification" }
+            {
+              "$ref": "#/$defs/blind_notification"
+            },
+            {
+              "$ref": "#/$defs/visible_notification"
+            }
           ]
         }
       },
@@ -289,7 +396,9 @@
       "properties": {
         "rejected": {
           "type": "array",
-          "items": { "$ref": "#/$defs/notify_rejection" }
+          "items": {
+            "$ref": "#/$defs/notify_rejection"
+          }
         }
       },
       "additionalProperties": false

@@ -230,17 +230,9 @@
       "minItems": 1,
       "uniqueItems": true
     },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
     "flow_id": {
       "type": "string",
       "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "mls_epoch_range": {
       "type": "object",
@@ -273,7 +265,7 @@
               "const": "realm"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             }
           },
           "additionalProperties": false
@@ -290,10 +282,10 @@
               "const": "circle"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "circle_id": {
-              "$ref": "#/$defs/circle_id"
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
             }
           },
           "additionalProperties": false
@@ -447,24 +439,96 @@
       "not": {
         "$comment": "Reducer-owned fields stay top-level and MUST NOT be mirrored inside metadata.",
         "anyOf": [
-          { "required": ["id"] },
-          { "required": ["schema"] },
-          { "required": ["realm_id"] },
-          { "required": ["flow_id"] },
-          { "required": ["track"] },
-          { "required": ["track_name"] },
-          { "required": ["state"] },
-          { "required": ["state_changed_at"] },
-          { "required": ["revision_root"] },
-          { "required": ["edited_at"] },
-          { "required": ["redaction_ref"] },
-          { "required": ["created_by"] },
-          { "required": ["created_at"] },
-          { "required": ["updated_by"] },
-          { "required": ["updated_at"] },
-          { "required": ["content"] },
-          { "required": ["encrypted_content"] },
-          { "required": ["encrypted_payload"] }
+          {
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "required": [
+              "schema"
+            ]
+          },
+          {
+            "required": [
+              "realm_id"
+            ]
+          },
+          {
+            "required": [
+              "flow_id"
+            ]
+          },
+          {
+            "required": [
+              "track"
+            ]
+          },
+          {
+            "required": [
+              "track_name"
+            ]
+          },
+          {
+            "required": [
+              "state"
+            ]
+          },
+          {
+            "required": [
+              "state_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "revision_root"
+            ]
+          },
+          {
+            "required": [
+              "edited_at"
+            ]
+          },
+          {
+            "required": [
+              "redaction_ref"
+            ]
+          },
+          {
+            "required": [
+              "created_by"
+            ]
+          },
+          {
+            "required": [
+              "created_at"
+            ]
+          },
+          {
+            "required": [
+              "updated_by"
+            ]
+          },
+          {
+            "required": [
+              "updated_at"
+            ]
+          },
+          {
+            "required": [
+              "content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_payload"
+            ]
+          }
         ]
       },
       "additionalProperties": true
@@ -473,15 +537,51 @@
       "type": "object",
       "not": {
         "anyOf": [
-          { "required": ["revision_root"] },
-          { "required": ["visible_state"] },
-          { "required": ["redacted"] },
-          { "required": ["edited_at"] },
-          { "required": ["redaction_ref"] },
-          { "required": ["state"] },
-          { "required": ["state_changed_at"] },
-          { "required": ["track"] },
-          { "required": ["track_name"] }
+          {
+            "required": [
+              "revision_root"
+            ]
+          },
+          {
+            "required": [
+              "visible_state"
+            ]
+          },
+          {
+            "required": [
+              "redacted"
+            ]
+          },
+          {
+            "required": [
+              "edited_at"
+            ]
+          },
+          {
+            "required": [
+              "redaction_ref"
+            ]
+          },
+          {
+            "required": [
+              "state"
+            ]
+          },
+          {
+            "required": [
+              "state_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "track"
+            ]
+          },
+          {
+            "required": [
+              "track_name"
+            ]
+          }
         ]
       },
       "additionalProperties": true
@@ -1346,7 +1446,7 @@
           "pattern": "^ck:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "target_realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "patch": {
           "$ref": "#/$defs/patch"
@@ -1385,7 +1485,7 @@
       ],
       "properties": {
         "circle_id": {
-          "$ref": "#/$defs/circle_id"
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "patch": {
           "$ref": "#/$defs/patch"
@@ -1449,10 +1549,10 @@
       ],
       "properties": {
         "circle_id": {
-          "$ref": "#/$defs/circle_id"
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "membership": {
           "$ref": "#/$defs/membership_state"
@@ -1486,7 +1586,7 @@
       ],
       "properties": {
         "circle_id": {
-          "$ref": "#/$defs/circle_id"
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "sub_anchor_head_digest": {
           "$ref": "#/$defs/hash"
@@ -1700,7 +1800,7 @@
               ]
             },
             "circle_id": {
-              "$ref": "#/$defs/circle_id"
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
             }
           },
           "additionalProperties": false
@@ -1828,7 +1928,7 @@
       ],
       "properties": {
         "target_realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "link_kind": {
           "type": "string",
@@ -1915,7 +2015,7 @@
       ],
       "properties": {
         "source_realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "inherits": {
           "type": "object",
@@ -2057,7 +2157,7 @@
           "type": "string"
         },
         "successor_realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "replacement_event": {
           "$ref": "#/$defs/event_ref"
@@ -2111,7 +2211,7 @@
           "$ref": "#/$defs/flow_id"
         },
         "actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "membership": {
           "$ref": "#/$defs/membership_state"
@@ -2200,10 +2300,10 @@
       ],
       "properties": {
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "segment": {
           "type": "string",
@@ -2659,7 +2759,10 @@
     "message_create_payload": {
       "type": "object",
       "not": {
-        "required": ["metadata", "encrypted_metadata"]
+        "required": [
+          "metadata",
+          "encrypted_metadata"
+        ]
       },
       "description": "Payload for ck.message.create. If content/encrypted_content contains an audience_mention AST node (for example @all or @here), reducer admission and notification dispatch MUST additionally enforce ck.message.mention.broadcast plus the audience policy / max_recipient / rate-limit rules in zh/models/flow-and-message.md §9.4.3. @here maps to audience=\"flow_engaged\" and is not presence-filtered.",
       "required": [
@@ -2737,7 +2840,10 @@
     "message_revise_payload": {
       "type": "object",
       "not": {
-        "required": ["metadata", "encrypted_metadata"]
+        "required": [
+          "metadata",
+          "encrypted_metadata"
+        ]
       },
       "description": "Payload for ck.message.revise. Revisions that introduce new direct mentions MAY generate mention notifications only when the implementation can compare against the previous accepted visible revision. Revisions that introduce an audience_mention AST node (including @all / @here mappings) MUST satisfy the same ck.message.mention.broadcast and policy gates as create.",
       "allOf": [
@@ -3312,7 +3418,7 @@
                 ]
               },
               "realm_id": {
-                "$ref": "#/$defs/realm_id"
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
               },
               "ref": {
                 "$ref": "#/$defs/object_ref"
@@ -3737,7 +3843,7 @@
           ]
         },
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "ref": {
           "$ref": "#/$defs/object_ref"
@@ -4077,13 +4183,17 @@
     },
     "contact_consent_scopes": {
       "type": "array",
-      "items": { "$ref": "#/$defs/contact_consent_scope" },
+      "items": {
+        "$ref": "#/$defs/contact_consent_scope"
+      },
       "minItems": 1,
       "uniqueItems": true
     },
     "contact_event_refs": {
       "type": "array",
-      "items": { "$ref": "#/$defs/event_ref" },
+      "items": {
+        "$ref": "#/$defs/event_ref"
+      },
       "minItems": 1,
       "uniqueItems": true
     },
@@ -4101,13 +4211,19 @@
           "$ref": "#/$defs/event_ref",
           "description": "SHOULD equal the enclosing ck.contact.requested event_id."
         },
-        "target": { "$ref": "#/$defs/did" },
-        "requested_scopes": { "$ref": "#/$defs/contact_consent_scopes" },
+        "target": {
+          "$ref": "#/$defs/did"
+        },
+        "requested_scopes": {
+          "$ref": "#/$defs/contact_consent_scopes"
+        },
         "requester_consent_refs": {
           "$ref": "#/$defs/contact_event_refs",
           "description": "Consent grant event refs written by requester for every requested scope."
         },
-        "message": { "type": "string" }
+        "message": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -4121,11 +4237,21 @@
         "consent_grant_refs"
       ],
       "properties": {
-        "request_id": { "$ref": "#/$defs/event_ref" },
-        "requester": { "$ref": "#/$defs/did" },
-        "granted_scopes": { "$ref": "#/$defs/contact_consent_scopes" },
-        "consent_grant_refs": { "$ref": "#/$defs/contact_event_refs" },
-        "expanded_scope_reason": { "type": "string" }
+        "request_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "granted_scopes": {
+          "$ref": "#/$defs/contact_consent_scopes"
+        },
+        "consent_grant_refs": {
+          "$ref": "#/$defs/contact_event_refs"
+        },
+        "expanded_scope_reason": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -4137,9 +4263,15 @@
         "requester"
       ],
       "properties": {
-        "request_id": { "$ref": "#/$defs/event_ref" },
-        "requester": { "$ref": "#/$defs/did" },
-        "reason": { "type": "string" }
+        "request_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "reason": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -4151,15 +4283,25 @@
         "revoke_scopes"
       ],
       "properties": {
-        "peer": { "$ref": "#/$defs/did" },
-        "revoke_scopes": { "$ref": "#/$defs/contact_consent_scopes" },
-        "consent_revoke_refs": { "$ref": "#/$defs/contact_event_refs" },
+        "peer": {
+          "$ref": "#/$defs/did"
+        },
+        "revoke_scopes": {
+          "$ref": "#/$defs/contact_consent_scopes"
+        },
+        "consent_revoke_refs": {
+          "$ref": "#/$defs/contact_event_refs"
+        },
         "full_peer_revoke": {
           "type": "boolean",
           "default": false
         },
-        "partial_revoke": { "type": "boolean" },
-        "reason": { "type": "string" }
+        "partial_revoke": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -4183,26 +4325,45 @@
         },
         "participants_unordered": {
           "type": "array",
-          "items": { "$ref": "#/$defs/did" },
+          "items": {
+            "$ref": "#/$defs/did"
+          },
           "minItems": 2,
           "maxItems": 2,
           "uniqueItems": true
         },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "main_flow_id": { "$ref": "#/$defs/flow_id" },
-        "contact_refs": { "$ref": "#/$defs/contact_event_refs" },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "main_flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "contact_refs": {
+          "$ref": "#/$defs/contact_event_refs"
+        },
         "member_event_refs": {
           "$ref": "#/$defs/contact_event_refs",
           "description": "Membership event refs proving both participants are active members of the DM Realm."
         },
-        "main_flow_create_ref": { "$ref": "#/$defs/event_ref" },
-        "created_at": { "$ref": "#/$defs/timestamp" },
+        "main_flow_create_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "binding_state": {
           "type": "string",
-          "enum": ["active", "retired", "duplicate", "non_canonical"],
+          "enum": [
+            "active",
+            "retired",
+            "duplicate",
+            "non_canonical"
+          ],
           "default": "active"
         },
-        "supersedes_binding_ref": { "$ref": "#/$defs/event_ref" }
+        "supersedes_binding_ref": {
+          "$ref": "#/$defs/event_ref"
+        }
       },
       "additionalProperties": false
     },
@@ -4383,7 +4544,7 @@
               "$ref": "#/$defs/did"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "audience": {
               "$ref": "#/$defs/non_empty_string"
@@ -5088,7 +5249,7 @@
           ]
         },
         "actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "recipient_principal_id": {
           "$ref": "#/$defs/did"
@@ -5159,11 +5320,11 @@
           "const": "cbor-deterministic-rfc8949-v1"
         },
         "realm_id": {
-          "$ref": "#/$defs/realm_id",
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "Parent Realm identifier. MUST equal effective_scope.realm_id."
         },
         "circle_id": {
-          "$ref": "#/$defs/circle_id",
+          "$ref": "./common-ids.schema.json#/$defs/circle_id",
           "description": "Present only when effective_scope.kind='circle'. MUST equal effective_scope.circle_id."
         },
         "effective_scope": {
@@ -5581,7 +5742,7 @@
           ]
         },
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "failed_transaction_ref": {
           "$ref": "#/$defs/object_ref",
@@ -5734,7 +5895,7 @@
           ],
           "properties": {
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "flow_id": {
               "$ref": "#/$defs/flow_id"
@@ -5797,7 +5958,7 @@
       ],
       "properties": {
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope",
@@ -5941,7 +6102,7 @@
           "$ref": "#/$defs/object_ref"
         },
         "actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "purpose": {
           "type": "string"
@@ -5977,7 +6138,7 @@
           "$ref": "#/$defs/audit_binding_id"
         },
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
@@ -6114,7 +6275,7 @@
           "$ref": "#/$defs/audit_binding_id"
         },
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
@@ -6380,7 +6541,7 @@
           "$ref": "#/$defs/audit_binding_id"
         },
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
@@ -6712,7 +6873,7 @@
           "const": "ck.media.participant_binding.v1"
         },
         "realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "call_id": {
           "type": "string",
@@ -6722,7 +6883,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -6758,7 +6919,7 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"

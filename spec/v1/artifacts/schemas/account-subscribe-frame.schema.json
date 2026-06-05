@@ -245,8 +245,7 @@
       ],
       "properties": {
         "actor_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "membership": {
           "type": "string",
@@ -304,39 +303,95 @@
         }
       },
       "dependentRequired": {
-        "identity_events": ["subject_id"],
-        "handle_claim_digests": ["subject_id"],
-        "handle_claims": ["subject_id"],
-        "handle_claims_limited": ["subject_id"]
+        "identity_events": [
+          "subject_id"
+        ],
+        "handle_claim_digests": [
+          "subject_id"
+        ],
+        "handle_claims": [
+          "subject_id"
+        ],
+        "handle_claims_limited": [
+          "subject_id"
+        ]
       },
       "additionalProperties": false
     },
     "data_or_control_payload_present": {
       "anyOf": [
-        { "required": ["realms"] },
-        { "required": ["to_device"] },
-        { "required": ["device_lists"] },
-        { "required": ["account_data"] },
-        { "required": ["presence"] },
-        { "required": ["notifications"] },
-        { "required": ["partial"] },
-        { "required": ["priority"] }
+        {
+          "required": [
+            "realms"
+          ]
+        },
+        {
+          "required": [
+            "to_device"
+          ]
+        },
+        {
+          "required": [
+            "device_lists"
+          ]
+        },
+        {
+          "required": [
+            "account_data"
+          ]
+        },
+        {
+          "required": [
+            "presence"
+          ]
+        },
+        {
+          "required": [
+            "notifications"
+          ]
+        },
+        {
+          "required": [
+            "partial"
+          ]
+        },
+        {
+          "required": [
+            "priority"
+          ]
+        }
       ]
     },
     "reconnect_after_present": {
-      "required": ["reconnect_after_ms"]
+      "required": [
+        "reconnect_after_ms"
+      ]
     },
     "cursor_or_data_payload_present": {
       "anyOf": [
-        { "required": ["cursor"] },
-        { "$ref": "#/$defs/data_or_control_payload_present" }
+        {
+          "required": [
+            "cursor"
+          ]
+        },
+        {
+          "$ref": "#/$defs/data_or_control_payload_present"
+        }
       ]
     },
     "cursor_or_data_or_control_payload_present": {
       "anyOf": [
-        { "required": ["cursor"] },
-        { "$ref": "#/$defs/data_or_control_payload_present" },
-        { "$ref": "#/$defs/reconnect_after_present" }
+        {
+          "required": [
+            "cursor"
+          ]
+        },
+        {
+          "$ref": "#/$defs/data_or_control_payload_present"
+        },
+        {
+          "$ref": "#/$defs/reconnect_after_present"
+        }
       ]
     }
   },
@@ -369,8 +424,12 @@
       ],
       "not": {
         "anyOf": [
-          { "$ref": "#/$defs/data_or_control_payload_present" },
-          { "$ref": "#/$defs/reconnect_after_present" }
+          {
+            "$ref": "#/$defs/data_or_control_payload_present"
+          },
+          {
+            "$ref": "#/$defs/reconnect_after_present"
+          }
         ]
       }
     },
@@ -387,8 +446,12 @@
       ],
       "not": {
         "anyOf": [
-          { "$ref": "#/$defs/data_or_control_payload_present" },
-          { "$ref": "#/$defs/reconnect_after_present" }
+          {
+            "$ref": "#/$defs/data_or_control_payload_present"
+          },
+          {
+            "$ref": "#/$defs/reconnect_after_present"
+          }
         ]
       }
     },

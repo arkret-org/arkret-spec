@@ -27,15 +27,14 @@
       "description": "Standard ck.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by event preconditions/effects, Anchor DAG finality, and per-cell Lattice join."
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
       "description": "Reducer-stamped immutable effective scope for this Event. scope_circle_id=null materializes as {kind:'realm', realm_id}; Circle-scoped objects materialize as {kind:'circle', realm_id, circle_id}. This value enters canonical event bytes and Anchor/sub-anchor leaves; in MLS-backed scopes it also enters E2EE AAD and MLS governance binding input."
     },
     "actor_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "executed_by": {
       "$ref": "#/$defs/did",
@@ -43,14 +42,26 @@
     },
     "authorization_ref": {
       "oneOf": [
-        { "$ref": "#/$defs/grant_ref" },
-        { "$ref": "#/$defs/event_ref" }
+        {
+          "$ref": "#/$defs/grant_ref"
+        },
+        {
+          "$ref": "#/$defs/event_ref"
+        }
       ],
       "description": "Optional. Required when executed_by is present. Prefer a materialized ck:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization. Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window."
     },
     "actor_kind": {
       "type": "string",
-      "enum": ["user", "org", "team", "agent", "service", "device", "integration"],
+      "enum": [
+        "user",
+        "org",
+        "team",
+        "agent",
+        "service",
+        "device",
+        "integration"
+      ],
       "description": "Reducer-stamped projection of the actor_id Actor Profile's actor_kind at write time (see zh/models/event-and-patch.md and zh/models/actor.md). Lets audit/forensic/offline readers classify the event without resolving Actor Profile. MUST NOT appear in actor-supplied submit payload (schema_violation reason=actor_kind_reducer_managed); reducer stamps it during accept. Immutable once written."
     },
     "actor_seq": {
@@ -182,43 +193,87 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
         "not": {
           "anyOf": [
-            { "required": ["preconditions"] },
-            { "required": ["effects"] },
-            { "required": ["anchor_ref"] }
+            {
+              "required": [
+                "preconditions"
+              ]
+            },
+            {
+              "required": [
+                "effects"
+              ]
+            },
+            {
+              "required": [
+                "anchor_ref"
+              ]
+            }
           ]
         }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.read_cursor.advance" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.read_cursor.advance"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./read-cursor.schema.json" } }
+        "properties": {
+          "payload": {
+            "$ref": "./read-cursor.schema.json"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.account_data.set" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.account_data.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/account_data_set_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/account_data_set_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.account.blocklist" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.account.blocklist"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/account_blocklist_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/account_blocklist_payload"
+          }
+        }
       }
     },
     {
@@ -242,7 +297,9 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       }
     },
     {
@@ -406,7 +463,9 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
         "required": [
@@ -428,15 +487,21 @@
                 "predicate": {
                   "type": "object",
                   "properties": {
-                    "op": { "const": "head_in" }
+                    "op": {
+                      "const": "head_in"
+                    }
                   },
-                  "required": ["op"]
+                  "required": [
+                    "op"
+                  ]
                 }
               }
             }
           }
         },
-        "required": ["preconditions"]
+        "required": [
+          "preconditions"
+        ]
       },
       "then": {
         "properties": {
@@ -447,10 +512,16 @@
                 "contains": {
                   "type": "object",
                   "properties": {
-                    "role": { "const": "state_witness" },
-                    "critical": { "const": true }
+                    "role": {
+                      "const": "state_witness"
+                    },
+                    "critical": {
+                      "const": true
+                    }
                   },
-                  "required": ["role"]
+                  "required": [
+                    "role"
+                  ]
                 },
                 "$comment": "MUST contain at least one state_witness ref"
               },
@@ -458,10 +529,16 @@
                 "contains": {
                   "type": "object",
                   "properties": {
-                    "role": { "const": "inclusion_proof" },
-                    "critical": { "const": true }
+                    "role": {
+                      "const": "inclusion_proof"
+                    },
+                    "critical": {
+                      "const": true
+                    }
                   },
-                  "required": ["role"]
+                  "required": [
+                    "role"
+                  ]
                 },
                 "$comment": "MUST contain at least one inclusion_proof ref"
               }
@@ -472,22 +549,40 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.flow.move" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.flow.move"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_move_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/flow_move_payload"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
-          "kind": { "const": "ck.audit.erasure_receipt" }
+          "kind": {
+            "const": "ck.audit.erasure_receipt"
+          }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/erasure_receipt_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/erasure_receipt_payload"
+          }
+        }
       }
     },
     {
@@ -503,19 +598,35 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.space.update" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.space.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_patch_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_patch_payload"
+          }
+        }
       }
     },
     {
@@ -528,163 +639,339 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_state_transition_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_state_transition_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.space.tombstone" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.space.tombstone"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_object_tombstone_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_object_tombstone_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.flow.reorder" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.flow.reorder"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_reorder_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/flow_reorder_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.flow.watch.set" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.flow.watch.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_watch_set_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/flow_watch_set_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.member.state" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.member.state"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/membership_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/membership_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.member.identity.update" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.member.identity.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/member_identity_update_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/member_identity_update_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.plaintext_visible_services" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.plaintext_visible_services"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.preview_policy" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.preview_policy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.history_visibility" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.history_visibility"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/history_visibility_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/history_visibility_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.history_sharing_policy" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.history_sharing_policy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/history_sharing_policy_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/history_sharing_policy_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.create" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_create_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_create_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.space.create" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.space.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_create_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_create_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.flow.create" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.flow.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_create_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/flow_create_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.circle.create" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.circle.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/circle_create_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/circle_create_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.morph.create" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.morph.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/morph_create_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/morph_create_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.morph.schema_migrate" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.morph.schema_migrate"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/morph_schema_migrate_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/morph_schema_migrate_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.flow.stage.set" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.flow.stage.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_stage_set_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/flow_stage_set_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.morph.stage.set" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.morph.stage.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/morph_stage_set_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/morph_stage_set_payload"
+          }
+        }
       }
     },
     {
@@ -698,28 +985,54 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/object_patch_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/object_patch_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.circle.update" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.circle.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/circle_patch_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/circle_patch_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.profile.space_override" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.profile.space_override"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/profile_realm_override_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/profile_realm_override_payload"
+          }
+        }
       }
     },
     {
@@ -732,82 +1045,168 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_patch_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/flow_patch_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.profile.create" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.profile.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/actor_profile_create_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/actor_profile_create_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.inheritance_policy" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.inheritance_policy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_inheritance_policy_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_inheritance_policy_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.archive" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.archive"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_archive_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_archive_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.freeze" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.freeze"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_freeze_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_freeze_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.tombstone" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.tombstone"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_tombstone_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_tombstone_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.destroy" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.destroy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_destroy_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_destroy_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.link" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.link"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_link_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_link_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.space.parent" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.space.parent"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_parent_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_parent_payload"
+          }
+        }
       }
     },
     {
@@ -831,10 +1230,16 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/state_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/state_payload"
+          }
+        }
       }
     },
     {
@@ -865,10 +1270,16 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/state_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/state_payload"
+          }
+        }
       }
     },
     {
@@ -886,46 +1297,92 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.circle.member.state" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.circle.member.state"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.circle.anchor_commit" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.circle.anchor_commit"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/circle_anchor_commit_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/circle_anchor_commit_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.message.create" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.message.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/message_create_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/message_create_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.message.revise" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.message.revise"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/message_revise_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/message_revise_payload"
+          }
+        }
       }
     },
     {
@@ -938,19 +1395,35 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/message_redact_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/message_redact_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.realm.read_receipt_policy" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.realm.read_receipt_policy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
+          }
+        }
       }
     },
     {
@@ -963,19 +1436,35 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/reaction_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/reaction_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.relation.create" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.relation.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/relation_create_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/relation_create_payload"
+          }
+        }
       }
     },
     {
@@ -988,10 +1477,16 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/relation_update_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/relation_update_payload"
+          }
+        }
       }
     },
     {
@@ -1004,10 +1499,16 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/container_position_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/container_position_payload"
+          }
+        }
       }
     },
     {
@@ -1021,136 +1522,282 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/view_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/view_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.endpoint" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.endpoint"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.protocol_session.start" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.protocol_session.start"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_session_start_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_start_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.protocol_session.status" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.protocol_session.status"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_session_status_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_status_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.protocol_session.result" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.protocol_session.result"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_session_result_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_result_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.key.authorize" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.key.authorize"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.key.revoke" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.key.revoke"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.key.rotate" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.key.rotate"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_key_rotate_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_key_rotate_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.self.agent.pause" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.self.agent.pause"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_pause_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_pause_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.self.agent.resume" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.self.agent.resume"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_resume_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_resume_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.self.agent.deactivate" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.self.agent.deactivate"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_deactivate_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_deactivate_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.draft.propose" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.draft.propose"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_draft_propose_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_draft_propose_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.action_request" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.action_request"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_action_request_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_action_request_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.action_approve" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.action_approve"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.agent.action_reject" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.agent.action_reject"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_action_reject_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_action_reject_payload"
+          }
+        }
       }
     },
     {
@@ -1164,19 +1811,35 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/capability_grant_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/capability_grant_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.capability.revoke" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.capability.revoke"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/capability_revoke_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/capability_revoke_payload"
+          }
+        }
       }
     },
     {
@@ -1193,10 +1856,16 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/invite_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/invite_payload"
+          }
+        }
       }
     },
     {
@@ -1209,19 +1878,29 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
         "properties": {
           "payload": {
             "anyOf": [
-              { "required": ["expires_at"] },
               {
-                "required": ["invite"],
+                "required": [
+                  "expires_at"
+                ]
+              },
+              {
+                "required": [
+                  "invite"
+                ],
                 "properties": {
                   "invite": {
                     "type": "object",
-                    "required": ["expires_at"]
+                    "required": [
+                      "expires_at"
+                    ]
                   }
                 }
               }
@@ -1232,367 +1911,743 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.device.authorize" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.device.authorize"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_authorize_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.account.status" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/account_status_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.session.grant" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/session_grant_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.consent.grant" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.consent.revoke" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/consent_revoke_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.contact.requested" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/contact_requested_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.contact.accepted" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/contact_accepted_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.contact.rejected" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/contact_rejected_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.contact.tombstoned" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/contact_tombstoned_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.direct_conversation.bound" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.device.revoke" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_revoke_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.device.push_route" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_push_route_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.device.list_update" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_list_update_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.key_backup.active_series" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/key_backup_active_series_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.cross_signing.publish" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/cross_signing_publish_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.cross_signing.reset" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/cross_signing_reset_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.mls.proposal" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_proposal_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.mls.genesis" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_genesis_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.mls.welcome" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_welcome_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.mls.keypackage" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_keypackage_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.realm_key.share" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_key_share_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.realm_key.withheld" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_key_withheld_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.realm_key.share_audit" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_key_share_audit_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.mls.commit" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_commit_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.mls.commit_failed" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_commit_failed_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.self.moderation.report" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.moderation.appeal.submit" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./moderation-appeal.schema.json#/$defs/submit_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.moderation.appeal.review" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./moderation-appeal.schema.json#/$defs/review_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.moderation.appeal.decision" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./moderation-appeal.schema.json#/$defs/decision_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.moderation.appeal.close" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./moderation-appeal.schema.json#/$defs/close_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.moderation.decision" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/moderation_decision_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "ck.moderation.decision.lift" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/moderation_decision_lift_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/device_authorize_payload"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
-          "kind": { "const": "ck.audit.accessed" }
+          "kind": {
+            "const": "ck.account.status"
+          }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_accessed_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/account_status_payload"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
-          "kind": { "const": "ck.audit.applet_binding" }
+          "kind": {
+            "const": "ck.session.grant"
+          }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_applet_binding_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/session_grant_payload"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
-          "kind": { "const": "ck.audit.session.request" }
+          "kind": {
+            "const": "ck.consent.grant"
+          }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_session_request_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
-          "kind": { "const": "ck.audit.session.authorize" }
+          "kind": {
+            "const": "ck.consent.revoke"
+          }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_session_authorize_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/consent_revoke_payload"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
-          "kind": { "const": "ck.audit.session.notice" }
+          "kind": {
+            "const": "ck.contact.requested"
+          }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_session_notice_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/contact_requested_payload"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
-          "kind": { "const": "ck.audit.session.close" }
+          "kind": {
+            "const": "ck.contact.accepted"
+          }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_session_close_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/contact_accepted_payload"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
-          "kind": { "const": "ck.audit.release" }
+          "kind": {
+            "const": "ck.contact.rejected"
+          }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_release_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/contact_rejected_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.contact.tombstoned"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/contact_tombstoned_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.direct_conversation.bound"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.device.revoke"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/device_revoke_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.device.push_route"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/device_push_route_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.device.list_update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/device_list_update_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.key_backup.active_series"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/key_backup_active_series_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.cross_signing.publish"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/cross_signing_publish_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.cross_signing.reset"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/cross_signing_reset_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.mls.proposal"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_proposal_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.mls.genesis"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_genesis_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.mls.welcome"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_welcome_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.mls.keypackage"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_keypackage_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.realm_key.share"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_key_share_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.realm_key.withheld"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_key_withheld_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.realm_key.share_audit"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_key_share_audit_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.mls.commit"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_commit_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.mls.commit_failed"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_commit_failed_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.self.moderation.report"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.moderation.appeal.submit"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./moderation-appeal.schema.json#/$defs/submit_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.moderation.appeal.review"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./moderation-appeal.schema.json#/$defs/review_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.moderation.appeal.decision"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./moderation-appeal.schema.json#/$defs/decision_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.moderation.appeal.close"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./moderation-appeal.schema.json#/$defs/close_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.moderation.decision"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/moderation_decision_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.moderation.decision.lift"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/moderation_decision_lift_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.audit.accessed"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_accessed_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.audit.applet_binding"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_applet_binding_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.audit.session.request"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_session_request_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.audit.session.authorize"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_session_authorize_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.audit.session.notice"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_session_notice_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.audit.session.close"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_session_close_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.audit.release"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_release_payload"
+          }
+        }
       }
     },
     {
@@ -1606,10 +2661,16 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_payload"
+          }
+        }
       }
     },
     {
@@ -1619,10 +2680,16 @@
             "const": "ck.call.state"
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/call_state_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/call_state_payload"
+          }
+        }
       }
     },
     {
@@ -1632,65 +2699,133 @@
             "const": "ck.call.recording.start"
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/call_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/call_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.mimi.room_binding" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.mimi.room_binding"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.applet.bridge_error" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.applet.bridge_error"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/applet_bridge_error_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/applet_bridge_error_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.applet.registration" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.applet.registration"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/applet_registration_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/applet_registration_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.applet.protocol_session.start" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.applet.protocol_session.start"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/applet_session_start_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/applet_session_start_payload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "ck.applet.protocol_session.status" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.applet.protocol_session.status"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/applet_session_status_payload" } }
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/applet_session_status_payload"
+          }
+        }
       }
     },
     {
       "$comment": "Reject historical top-level legacy field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. These specific names from earlier drafts are called out for clearer diagnostics — type/auth_refs/target_ref/operation_id are migrated to kind / refs[role=authorized_by] / payload.* fields / SDK-internal id (see operations-sync.md §5).",
       "not": {
         "anyOf": [
-          { "required": ["type"] },
+          {
+            "required": [
+              "type"
+            ]
+          },
           { "required": ["auth_refs"], "$comment": "dropped legacy field — replaces auth_refs with refs[role=authorized_by]" },
-          { "required": ["target_ref"] },
-          { "required": ["operation_id"] }
+          {
+            "required": [
+              "target_ref"
+            ]
+          },
+          {
+            "required": [
+              "operation_id"
+            ]
+          }
         ]
       }
     }
@@ -1717,14 +2852,6 @@
       "type": "string",
       "pattern": "^(cx|[a-z0-9][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)+)\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$"
     },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
     "effective_scope": {
       "oneOf": [
         {
@@ -1738,7 +2865,7 @@
               "const": "realm"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             }
           },
           "additionalProperties": false
@@ -1755,10 +2882,10 @@
               "const": "circle"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "circle_id": {
-              "$ref": "#/$defs/circle_id"
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
             }
           },
           "additionalProperties": false
@@ -1773,7 +2900,9 @@
         "fail_closed"
       ],
       "properties": {
-        "id": { "$ref": "#/$defs/feature_ref" },
+        "id": {
+          "$ref": "#/$defs/feature_ref"
+        },
         "extension_scope": {
           "type": "string",
           "enum": [
@@ -1786,7 +2915,9 @@
             "encryption"
           ]
         },
-        "schema_ref": { "$ref": "#/$defs/profile_ref" },
+        "schema_ref": {
+          "$ref": "#/$defs/profile_ref"
+        },
         "profile_ref": {
           "$ref": "#/$defs/profile_ref",
           "description": "Profile that defines this extension's semantics when schema_ref is not the exact governing profile."
@@ -1803,7 +2934,9 @@
         "evidence_ref": {
           "$ref": "#/$defs/event_ref"
         },
-        "fail_closed": { "const": true }
+        "fail_closed": {
+          "const": true
+        }
       },
       "additionalProperties": false
     },
@@ -1858,8 +2991,12 @@
         "predicate"
       ],
       "properties": {
-        "cell": { "$ref": "#/$defs/cell_ref" },
-        "predicate": { "$ref": "#/$defs/predicate" }
+        "cell": {
+          "$ref": "#/$defs/cell_ref"
+        },
+        "predicate": {
+          "$ref": "#/$defs/predicate"
+        }
       },
       "additionalProperties": false
     },
@@ -1898,8 +3035,12 @@
         "op"
       ],
       "properties": {
-        "cell": { "$ref": "#/$defs/cell_ref" },
-        "op": { "$ref": "#/$defs/lattice_op" }
+        "cell": {
+          "$ref": "#/$defs/cell_ref"
+        },
+        "op": {
+          "$ref": "#/$defs/lattice_op"
+        }
       },
       "additionalProperties": false
     },
@@ -1924,11 +3065,15 @@
           ],
           "description": "add/remove → or_set; set → mv_register/cas_register/lww_register; transition → fsm; inc/dec → counter; append → ordered_log; insert/delete → rga (rga + lww_register require ck.profile.collaborative_text.v1)."
         },
-        "tag": { "type": "string" },
+        "tag": {
+          "type": "string"
+        },
         "value": true,
         "from": true,
         "to": true,
-        "reason": { "type": "string" },
+        "reason": {
+          "type": "string"
+        },
         "issuer_seq": {
           "type": "integer",
           "minimum": 0
@@ -1970,12 +3115,18 @@
           "properties": {
             "kind": {
               "type": "string",
-              "enum": ["rfc6962_merkle"]
+              "enum": [
+                "rfc6962_merkle"
+              ]
             },
-            "leaf_digest": { "$ref": "#/$defs/hash" },
+            "leaf_digest": {
+              "$ref": "#/$defs/hash"
+            },
             "audit_path": {
               "type": "array",
-              "items": { "$ref": "#/$defs/hash" }
+              "items": {
+                "$ref": "#/$defs/hash"
+              }
             },
             "leaf_index": {
               "type": "integer",
@@ -2004,25 +3155,44 @@
       "properties": {
         "kind": {
           "type": "string",
-          "enum": ["detached_jws"],
+          "enum": [
+            "detached_jws"
+          ],
           "description": "detached_jws = actor / device / service signature over canonical proof binding object: canonical_json({event_digest, actor_id, verification_method, created_at, domain?, audience?}). event_digest is the canonical event hash excluding only proofs and unsigned; hlc IS covered by that hash as advisory signed metadata. Ordering authority signatures are carried by Anchor."
         },
         "alg": {
           "type": "string",
-          "enum": ["EdDSA", "ES256", "ML-DSA-65"]
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
         },
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
           "description": "DID URL of the Event-signing key. Verifier MUST strip fragment/query only for controller comparison and MUST compare that controller DID bit-identically to actor_id or executed_by according to the accountability rules."
         },
-        "event_digest": { "$ref": "#/$defs/hash" },
-        "created_at": { "$ref": "#/$defs/timestamp" },
-        "domain": { "type": "string" },
+        "event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "domain": {
+          "type": "string"
+        },
         "audience": {
           "oneOf": [
-            { "type": "string" },
-            { "type": "array", "items": { "type": "string" } }
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ]
         },
         "jws": {
@@ -2046,12 +3216,18 @@
       "properties": {
         "kind": {
           "type": "string",
-          "enum": ["detached_jws"],
+          "enum": [
+            "detached_jws"
+          ],
           "description": "Generic detached JWS proof over a canonical non-Event payload binding object."
         },
         "alg": {
           "type": "string",
-          "enum": ["EdDSA", "ES256", "ML-DSA-65"]
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
         },
         "verification_method": {
           "type": "string",
@@ -2062,12 +3238,23 @@
           "$ref": "#/$defs/hash",
           "description": "Generic non-Event detached-proof hash. This $defs/proof shape is reused by non-Event schemas; Event.properties.proofs references $defs/event_proof and MUST use event_digest instead."
         },
-        "created_at": { "$ref": "#/$defs/timestamp" },
-        "domain": { "type": "string" },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "domain": {
+          "type": "string"
+        },
         "audience": {
           "oneOf": [
-            { "type": "string" },
-            { "type": "array", "items": { "type": "string" } }
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ]
         },
         "jws": {

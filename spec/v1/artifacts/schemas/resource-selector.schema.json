@@ -31,16 +31,14 @@
       ]
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "space_id": {
       "type": "string",
       "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/circle_id"
     },
     "object_type": {
       "type": "string"
@@ -81,8 +79,7 @@
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "$ref": "./common-ids.schema.json#/$defs/did",
       "description": "Concrete principal / service / agent DID. v1 forbids actor:*; actor selectors MUST NOT use a wildcard subject."
     },
     "schema_ref": {

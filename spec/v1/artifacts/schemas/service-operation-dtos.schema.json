@@ -233,8 +233,7 @@
       ],
       "properties": {
         "actor_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "$ref": "./common-ids.schema.json#/$defs/did",
           "description": "Subject DID whose authorization is being checked."
         },
         "action": {
@@ -411,16 +410,14 @@
       ],
       "properties": {
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "call_id": {
           "type": "string",
           "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "actor_id": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "device_id": {
           "type": "string",
@@ -520,8 +517,7 @@
               "const": "ck.media.participant_binding.v1"
             },
             "realm_id": {
-              "type": "string",
-              "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "call_id": {
               "type": "string",
@@ -533,8 +529,7 @@
               "maxLength": 64
             },
             "actor_id": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+              "$ref": "./common-ids.schema.json#/$defs/did"
             },
             "device_id": {
               "type": "string",
@@ -944,8 +939,7 @@
           ]
         },
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "dispatched_to": {
           "type": "integer",
@@ -1342,8 +1336,7 @@
           "type": "string"
         },
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "request_canonical_digest": {
           "type": "string",
@@ -1426,8 +1419,7 @@
           ],
           "properties": {
             "realm_id": {
-              "type": "string",
-              "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "actor": {
               "type": "string",
@@ -1523,8 +1515,7 @@
       ],
       "properties": {
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "flows": {
           "type": "array",
@@ -1556,8 +1547,7 @@
       ],
       "properties": {
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "morphs": {
           "type": "array",
@@ -1589,8 +1579,7 @@
       ],
       "properties": {
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "spaces": {
           "type": "array",
@@ -1646,8 +1635,7 @@
             "realm_ids": {
               "type": "array",
               "items": {
-                "type": "string",
-                "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
               }
             },
             "flow_ids": {
@@ -1819,8 +1807,7 @@
             "realm_ids": {
               "type": "array",
               "items": {
-                "type": "string",
-                "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
               }
             },
             "flow_ids": {
@@ -2087,8 +2074,7 @@
       ],
       "properties": {
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "realm_policy_digest": {
           "type": "string",
@@ -2137,8 +2123,7 @@
           "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "state": {
           "type": "string",
@@ -2229,8 +2214,7 @@
           "pattern": "^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "morph_type": {
           "type": "string"
@@ -2294,8 +2278,7 @@
           "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "kind": {
           "type": "string",
@@ -2354,8 +2337,7 @@
       }
     },
     "RealmId": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "ServiceDid": {
       "type": "string",

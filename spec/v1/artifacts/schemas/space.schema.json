@@ -22,21 +22,19 @@
       "const": "ck.schema.space.v1"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Home Realm that stores, syncs, and authorizes this Space object's own metadata. This is also the fallback default Realm for new resources under this Space when default_realm_id is absent."
     },
     "default_realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Optional default Realm for resources created under this Space. Omitted means inherit from the nearest ancestor Space with default_realm_id, falling back to realm_id. This field does not grant membership or decryption rights."
     },
     "scope_circle_id": {
-      "$ref": "#/$defs/circle_id",
+      "$ref": "./common-ids.schema.json#/$defs/circle_id",
       "description": "Optional Circle scope for this Space object's own metadata and scoped structural relation facts. Space still does not own a security boundary; it only places its metadata into an existing Circle scope. Omitted means Realm-default scope."
     },
     "default_scope_circle_id": {
-      "$ref": "#/$defs/circle_id",
+      "$ref": "./common-ids.schema.json#/$defs/circle_id",
       "description": "Optional default Circle scope for newly created child resources. MUST belong to the Space's effective default_realm_id for those child resources (which may be inherited); it is not necessarily the Space metadata home Realm when cross-Realm defaults are configured. This is a creation hint, not an authorization or placement constraint; use child_scope_policy for reducer-enforced requirements."
     },
     "child_scope_policy": {
@@ -114,12 +112,16 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "created_at": { "$ref": "#/$defs/timestamp" },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "updated_by": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "updated_at": { "$ref": "#/$defs/timestamp" }
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "allOf": [
     {
@@ -149,10 +151,6 @@
       "format": "date-time",
       "pattern": "Z$"
     },
-    "circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
     "metadata_encryption_profile": {
       "type": "string",
       "enum": [
@@ -177,7 +175,7 @@
           ]
         },
         "scope_circle_id": {
-          "$ref": "#/$defs/circle_id"
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "metadata_encryption_floor": {
           "$ref": "#/$defs/metadata_encryption_profile"

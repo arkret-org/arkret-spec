@@ -31,8 +31,7 @@
       "pattern": "^ck:snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "reducer_profile": {
       "type": "string",
@@ -125,8 +124,7 @@
             ],
             "properties": {
               "actor_id": {
-                "type": "string",
-                "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+                "$ref": "./common-ids.schema.json#/$defs/did"
               },
               "from_seq": {
                 "type": "integer",
@@ -263,7 +261,9 @@
           "uniqueItems": true,
           "description": "Realm auth/policy frontier proving the signer authority at created_at."
         },
-        "checked_at": { "$ref": "#/$defs/timestamp" },
+        "checked_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "witness_attestations": {
           "type": "array",
           "items": {
@@ -300,11 +300,19 @@
   "allOf": [
     {
       "if": {
-        "properties": { "security_class": { "const": "high_assurance" } },
-        "required": ["security_class"]
+        "properties": {
+          "security_class": {
+            "const": "high_assurance"
+          }
+        },
+        "required": [
+          "security_class"
+        ]
       },
       "then": {
-        "required": ["verification_hints"],
+        "required": [
+          "verification_hints"
+        ],
         "properties": {
           "verification_hints": {
             "required": [
@@ -317,7 +325,9 @@
               "quarantined_digest"
             ],
             "properties": {
-              "verification_profile": { "const": "high_assurance" }
+              "verification_profile": {
+                "const": "high_assurance"
+              }
             }
           }
         }

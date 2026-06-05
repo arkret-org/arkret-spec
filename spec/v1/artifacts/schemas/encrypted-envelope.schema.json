@@ -18,8 +18,16 @@
   ],
   "not": {
     "anyOf": [
-      { "required": ["cleartext_commitment"] },
-      { "required": ["authentication_tag"] }
+      {
+        "required": [
+          "cleartext_commitment"
+        ]
+      },
+      {
+        "required": [
+          "authentication_tag"
+        ]
+      }
     ]
   },
   "properties": {
@@ -69,8 +77,7 @@
       ],
       "properties": {
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "event_kind": {
           "type": "string",
@@ -154,16 +161,30 @@
   "allOf": [
     {
       "if": {
-        "properties": { "aad_visibility_event_id": { "const": "hidden" } },
-        "required": ["aad_visibility_event_id"]
+        "properties": {
+          "aad_visibility_event_id": {
+            "const": "hidden"
+          }
+        },
+        "required": [
+          "aad_visibility_event_id"
+        ]
       },
       "then": {
         "properties": {
           "aad": {
             "not": {
               "anyOf": [
-                { "required": ["event_id"] },
-                { "required": ["event_ref_digest"] }
+                {
+                  "required": [
+                    "event_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "event_ref_digest"
+                  ]
+                }
               ]
             }
           }
@@ -172,28 +193,52 @@
     },
     {
       "if": {
-        "properties": { "aad_visibility_event_id": { "const": "routing_digest" } },
-        "required": ["aad_visibility_event_id"]
+        "properties": {
+          "aad_visibility_event_id": {
+            "const": "routing_digest"
+          }
+        },
+        "required": [
+          "aad_visibility_event_id"
+        ]
       },
       "then": {
         "properties": {
           "aad": {
-            "required": ["event_ref_digest"],
-            "not": { "required": ["event_id"] }
+            "required": [
+              "event_ref_digest"
+            ],
+            "not": {
+              "required": [
+                "event_id"
+              ]
+            }
           }
         }
       }
     },
     {
       "if": {
-        "properties": { "aad_visibility_event_id": { "const": "opaque_id" } },
-        "required": ["aad_visibility_event_id"]
+        "properties": {
+          "aad_visibility_event_id": {
+            "const": "opaque_id"
+          }
+        },
+        "required": [
+          "aad_visibility_event_id"
+        ]
       },
       "then": {
         "properties": {
           "aad": {
-            "required": ["event_id"],
-            "not": { "required": ["event_ref_digest"] }
+            "required": [
+              "event_id"
+            ],
+            "not": {
+              "required": [
+                "event_ref_digest"
+              ]
+            }
           }
         }
       }

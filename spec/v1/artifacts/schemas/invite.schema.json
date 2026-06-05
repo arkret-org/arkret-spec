@@ -22,8 +22,7 @@
       "const": "ck.schema.invite.v1"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "inviter": {
       "$ref": "#/$defs/did"
@@ -122,7 +121,10 @@
         },
         "oob_code_kind": {
           "type": "string",
-          "enum": ["offline_token", "lookup"],
+          "enum": [
+            "offline_token",
+            "lookup"
+          ],
           "description": "offline_token means the out-of-band code is itself >=128-bit entropy and validated against token_commitment. lookup means the human-readable code is only an index into a server-private lookup table protected by rate limits and pepper/HMAC storage."
         },
         "token_entropy_bits": {
@@ -149,20 +151,39 @@
       "allOf": [
         {
           "if": {
-            "properties": { "oob_code_kind": { "const": "offline_token" } },
-            "required": ["oob_code_kind"]
+            "properties": {
+              "oob_code_kind": {
+                "const": "offline_token"
+              }
+            },
+            "required": [
+              "oob_code_kind"
+            ]
           },
           "then": {
-            "required": ["token_commitment", "token_salt_id", "token_entropy_bits"]
+            "required": [
+              "token_commitment",
+              "token_salt_id",
+              "token_entropy_bits"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "oob_code_kind": { "const": "lookup" } },
-            "required": ["oob_code_kind"]
+            "properties": {
+              "oob_code_kind": {
+                "const": "lookup"
+              }
+            },
+            "required": [
+              "oob_code_kind"
+            ]
           },
           "then": {
-            "required": ["lookup_table_ref", "pepper_id"]
+            "required": [
+              "lookup_table_ref",
+              "pepper_id"
+            ]
           }
         }
       ]

@@ -15,8 +15,7 @@
       "pattern": "^ck:report:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
@@ -81,7 +80,9 @@
       "$ref": "#/$defs/franking_proof",
       "description": "Optional franking proof metadata block. Mirrors the franking_proof object spec'd in zh/governance/content-moderation.md §3.4. It proves service receipt of ciphertext metadata; it does not prove plaintext authorship and does not grant moderators any MLS epoch/exporter secret."
     },
-    "created_at": { "$ref": "#/$defs/timestamp" },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -140,14 +141,6 @@
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
     "effective_scope": {
       "oneOf": [
         {
@@ -161,7 +154,7 @@
               "const": "realm"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             }
           },
           "additionalProperties": false
@@ -178,10 +171,10 @@
               "const": "circle"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "circle_id": {
-              "$ref": "#/$defs/circle_id"
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
             }
           },
           "additionalProperties": false
@@ -212,8 +205,7 @@
           "pattern": "^ck:franking_proof:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "event_id": {
           "$ref": "#/$defs/event_ref"
@@ -238,7 +230,7 @@
           ],
           "properties": {
             "actor_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "./common-ids.schema.json#/$defs/did"
             },
             "device_id": {
               "type": "string",

@@ -19,13 +19,14 @@
     "created_at"
   ],
   "not": {
-    "required": ["created_by_principal"],
+    "required": [
+      "created_by_principal"
+    ],
     "$comment": "legacy Realm authorship field; canonical name is created_by"
   },
   "properties": {
     "id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "schema": {
       "const": "ck.schema.realm.v1"
@@ -665,25 +666,38 @@
         {
           "$comment": "initial_value is only defined for cas_register (see event-auth-state-resolution.md §5.3.3). Other lattices reject the field.",
           "if": {
-            "required": ["initial_value"]
+            "required": [
+              "initial_value"
+            ]
           },
           "then": {
             "properties": {
-              "lattice": { "const": "cas_register" }
+              "lattice": {
+                "const": "cas_register"
+              }
             },
-            "required": ["lattice"]
+            "required": [
+              "lattice"
+            ]
           }
         },
         {
           "$comment": "sentinel_writers is the companion of initial_value; it only makes sense on a cas_register cell that has declared initial_value. Reject declarations on other lattices, and reject declarations on cas_register cells that lack initial_value (since there is no sentinel to authorise writing back).",
           "if": {
-            "required": ["sentinel_writers"]
+            "required": [
+              "sentinel_writers"
+            ]
           },
           "then": {
             "properties": {
-              "lattice": { "const": "cas_register" }
+              "lattice": {
+                "const": "cas_register"
+              }
             },
-            "required": ["lattice", "initial_value"]
+            "required": [
+              "lattice",
+              "initial_value"
+            ]
           }
         }
       ]

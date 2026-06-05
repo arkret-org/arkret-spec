@@ -138,7 +138,6 @@
     { "from": "ck.profile.push_gateway.visible_notification.v1", "to": "ck.profile.push_gateway.v1", "kind": "depends_on" },
     { "from": "ck.profile.push_gateway.visible_notification.v1", "to": "ck.profile.push_gateway.v1", "kind": "inherits" },
     { "from": "ck.profile.push_gateway.matrix_passthrough.v1", "to": "ck.profile.matrix_compat.v1", "kind": "depends_on" },
-    { "from": "ck.profile.push_gateway.matrix_passthrough.v1", "to": "ck.profile.push_gateway.blind_wakeup.v1", "kind": "mutually_exclusive_with" },
     { "from": "ck.profile.agent_auth.v1", "to": "ck.profile.agent_runtime.v1", "kind": "inherits" },
     { "from": "ck.profile.agent_auth.v1", "to": "ck.profile.auth_server.v1", "kind": "inherits" },
     { "from": "ck.profile.agent_delegation_policy.v1", "to": "ck.profile.agent_runtime.v1", "kind": "inherits" },

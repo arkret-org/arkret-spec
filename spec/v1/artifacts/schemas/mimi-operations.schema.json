@@ -4,34 +4,68 @@
   "title": "Cokret MIMI Operation DTOs",
   "description": "Closed request/response DTOs for MIMI provider interop operation bindings.",
   "anyOf": [
-    { "$ref": "#/$defs/key_material_request" },
-    { "$ref": "#/$defs/key_material_response" },
-    { "$ref": "#/$defs/room_update_request" },
-    { "$ref": "#/$defs/room_update_response" },
-    { "$ref": "#/$defs/notify_request" },
-    { "$ref": "#/$defs/notify_response" },
-    { "$ref": "#/$defs/submit_message_request" },
-    { "$ref": "#/$defs/submit_message_response" },
-    { "$ref": "#/$defs/group_info_response" },
-    { "$ref": "#/$defs/request_consent_request" },
-    { "$ref": "#/$defs/request_consent_response" },
-    { "$ref": "#/$defs/update_consent_request" },
-    { "$ref": "#/$defs/update_consent_response" },
-    { "$ref": "#/$defs/identifier_query_request" },
-    { "$ref": "#/$defs/identifier_query_response" },
-    { "$ref": "#/$defs/report_abuse_request" },
-    { "$ref": "#/$defs/report_abuse_response" },
-    { "$ref": "#/$defs/proxy_download_request" },
-    { "$ref": "#/$defs/proxy_download_response" }
+    {
+      "$ref": "#/$defs/key_material_request"
+    },
+    {
+      "$ref": "#/$defs/key_material_response"
+    },
+    {
+      "$ref": "#/$defs/room_update_request"
+    },
+    {
+      "$ref": "#/$defs/room_update_response"
+    },
+    {
+      "$ref": "#/$defs/notify_request"
+    },
+    {
+      "$ref": "#/$defs/notify_response"
+    },
+    {
+      "$ref": "#/$defs/submit_message_request"
+    },
+    {
+      "$ref": "#/$defs/submit_message_response"
+    },
+    {
+      "$ref": "#/$defs/group_info_response"
+    },
+    {
+      "$ref": "#/$defs/request_consent_request"
+    },
+    {
+      "$ref": "#/$defs/request_consent_response"
+    },
+    {
+      "$ref": "#/$defs/update_consent_request"
+    },
+    {
+      "$ref": "#/$defs/update_consent_response"
+    },
+    {
+      "$ref": "#/$defs/identifier_query_request"
+    },
+    {
+      "$ref": "#/$defs/identifier_query_response"
+    },
+    {
+      "$ref": "#/$defs/report_abuse_request"
+    },
+    {
+      "$ref": "#/$defs/report_abuse_response"
+    },
+    {
+      "$ref": "#/$defs/proxy_download_request"
+    },
+    {
+      "$ref": "#/$defs/proxy_download_response"
+    }
   ],
   "$defs": {
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
@@ -84,7 +118,9 @@
     },
     "proofs": {
       "type": "array",
-      "items": { "$ref": "#/$defs/proof" },
+      "items": {
+        "$ref": "#/$defs/proof"
+      },
       "minItems": 1
     },
     "signature": {
@@ -92,135 +128,257 @@
     },
     "opaque_payload": {
       "type": "object",
-      "required": ["content_type", "payload_digest"],
+      "required": [
+        "content_type",
+        "payload_digest"
+      ],
       "properties": {
-        "content_type": { "$ref": "#/$defs/non_empty_string" },
-        "payload_digest": { "$ref": "#/$defs/hash" },
-        "payload": { "$ref": "#/$defs/base64url" }
+        "content_type": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "payload": {
+          "$ref": "#/$defs/base64url"
+        }
       },
       "additionalProperties": false
     },
     "failure": {
       "type": "object",
-      "required": ["reason_code"],
+      "required": [
+        "reason_code"
+      ],
       "properties": {
-        "reason_code": { "$ref": "#/$defs/non_empty_string" },
-        "target_ref": { "$ref": "#/$defs/non_empty_string" },
-        "retry_after_ms": { "type": "integer", "minimum": 1 }
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "additionalProperties": false
     },
     "key_package": {
       "type": "object",
-      "required": ["device_id", "mls_key_package"],
+      "required": [
+        "device_id",
+        "mls_key_package"
+      ],
       "properties": {
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "key_package_ref": { "$ref": "#/$defs/non_empty_string" },
-        "mls_key_package": { "$ref": "#/$defs/base64url" }
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "key_package_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "mls_key_package": {
+          "$ref": "#/$defs/base64url"
+        }
       },
       "additionalProperties": false
     },
     "group_info": {
       "type": "object",
-      "required": ["mls_group_id", "epoch", "group_info"],
+      "required": [
+        "mls_group_id",
+        "epoch",
+        "group_info"
+      ],
       "properties": {
-        "mls_group_id": { "$ref": "#/$defs/non_empty_string" },
-        "epoch": { "type": "integer", "minimum": 0 },
-        "group_info": { "$ref": "#/$defs/base64url" }
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "group_info": {
+          "$ref": "#/$defs/base64url"
+        }
       },
       "additionalProperties": false
     },
     "key_material_request": {
       "type": "object",
-      "required": ["requester", "flow_id", "device_id"],
+      "required": [
+        "requester",
+        "flow_id",
+        "device_id"
+      ],
       "properties": {
-        "requester": { "$ref": "#/$defs/did" },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "mimi_room_uri": { "$ref": "#/$defs/mimi_uri" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "mls_group_id": { "$ref": "#/$defs/non_empty_string" },
-        "epoch": { "type": "integer", "minimum": 0 },
-        "proofs": { "$ref": "#/$defs/proofs" }
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "mimi_room_uri": {
+          "$ref": "#/$defs/mimi_uri"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        }
       },
       "additionalProperties": false
     },
     "key_material_response": {
       "type": "object",
       "anyOf": [
-        { "required": ["key_packages"] },
-        { "required": ["group_info"] },
-        { "required": ["failures"] }
+        {
+          "required": [
+            "key_packages"
+          ]
+        },
+        {
+          "required": [
+            "group_info"
+          ]
+        },
+        {
+          "required": [
+            "failures"
+          ]
+        }
       ],
       "properties": {
         "key_packages": {
           "type": "array",
-          "items": { "$ref": "#/$defs/key_package" }
+          "items": {
+            "$ref": "#/$defs/key_package"
+          }
         },
-        "group_info": { "$ref": "#/$defs/group_info" },
+        "group_info": {
+          "$ref": "#/$defs/group_info"
+        },
         "failures": {
           "type": "array",
-          "items": { "$ref": "#/$defs/failure" }
+          "items": {
+            "$ref": "#/$defs/failure"
+          }
         },
-        "signature": { "$ref": "#/$defs/signature" }
+        "signature": {
+          "$ref": "#/$defs/signature"
+        }
       },
       "additionalProperties": false
     },
     "room_update_request": {
       "type": "object",
-      "required": ["mls_group_id", "update"],
+      "required": [
+        "mls_group_id",
+        "update"
+      ],
       "properties": {
-        "mls_group_id": { "$ref": "#/$defs/non_empty_string" },
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "update": {
           "type": "object",
-          "required": ["kind", "payload"],
+          "required": [
+            "kind",
+            "payload"
+          ],
           "properties": {
-            "kind": { "$ref": "#/$defs/non_empty_string" },
-            "payload": { "$ref": "#/$defs/opaque_payload" }
+            "kind": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "payload": {
+              "$ref": "#/$defs/opaque_payload"
+            }
           },
           "additionalProperties": false
         },
-        "epoch": { "type": "integer", "minimum": 0 },
-        "confirmed_transcript_hash": { "$ref": "#/$defs/hash" },
-        "sender_actor_id": { "$ref": "#/$defs/did" }
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "confirmed_transcript_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "sender_actor_id": {
+          "$ref": "#/$defs/did"
+        }
       },
       "additionalProperties": false
     },
     "room_update_response": {
       "type": "object",
-      "required": ["accepted"],
+      "required": [
+        "accepted"
+      ],
       "properties": {
-        "accepted": { "type": "boolean" },
-        "room_state_ref": { "$ref": "#/$defs/event_id" },
+        "accepted": {
+          "type": "boolean"
+        },
+        "room_state_ref": {
+          "$ref": "#/$defs/event_id"
+        },
         "rejected": {
           "type": "array",
-          "items": { "$ref": "#/$defs/failure" }
+          "items": {
+            "$ref": "#/$defs/failure"
+          }
         }
       },
       "additionalProperties": false
     },
     "notify_request": {
       "type": "object",
-      "required": ["notification"],
+      "required": [
+        "notification"
+      ],
       "properties": {
         "notification": {
           "type": "object",
-          "required": ["kind"],
+          "required": [
+            "kind"
+          ],
           "properties": {
-            "kind": { "$ref": "#/$defs/non_empty_string" },
-            "fanout_ref": { "$ref": "#/$defs/non_empty_string" },
-            "delivery_hint": { "$ref": "#/$defs/non_empty_string" }
+            "kind": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "fanout_ref": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "delivery_hint": {
+              "$ref": "#/$defs/non_empty_string"
+            }
           },
           "additionalProperties": false
         },
-        "origin_provider": { "$ref": "#/$defs/did" },
+        "origin_provider": {
+          "$ref": "#/$defs/did"
+        },
         "routing": {
           "type": "object",
           "properties": {
-            "mimi_room_uri": { "$ref": "#/$defs/mimi_uri" },
+            "mimi_room_uri": {
+              "$ref": "#/$defs/mimi_uri"
+            },
             "target_providers": {
               "type": "array",
-              "items": { "$ref": "#/$defs/did" },
+              "items": {
+                "$ref": "#/$defs/did"
+              },
               "uniqueItems": true
             }
           },
@@ -231,52 +389,98 @@
     },
     "notify_response": {
       "type": "object",
-      "required": ["accepted"],
+      "required": [
+        "accepted"
+      ],
       "properties": {
-        "accepted": { "type": "boolean" },
-        "retry_after_ms": { "type": "integer", "minimum": 1 }
+        "accepted": {
+          "type": "boolean"
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "additionalProperties": false
     },
     "ciphertext": {
       "type": "object",
-      "required": ["content_type", "ciphertext_digest", "payload"],
+      "required": [
+        "content_type",
+        "ciphertext_digest",
+        "payload"
+      ],
       "properties": {
-        "content_type": { "$ref": "#/$defs/non_empty_string" },
-        "ciphertext_digest": { "$ref": "#/$defs/hash" },
-        "payload": { "$ref": "#/$defs/base64url" }
+        "content_type": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "payload": {
+          "$ref": "#/$defs/base64url"
+        }
       },
       "additionalProperties": false
     },
     "submit_message_request": {
       "type": "object",
-      "required": ["sender_actor_id", "device_id", "ciphertext"],
+      "required": [
+        "sender_actor_id",
+        "device_id",
+        "ciphertext"
+      ],
       "properties": {
-        "sender_actor_id": { "$ref": "#/$defs/did" },
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "ciphertext": { "$ref": "#/$defs/ciphertext" },
-        "mls_group_id": { "$ref": "#/$defs/non_empty_string" },
-        "epoch": { "type": "integer", "minimum": 0 },
-        "associated_data": { "$ref": "#/$defs/opaque_payload" }
+        "sender_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "ciphertext": {
+          "$ref": "#/$defs/ciphertext"
+        },
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "associated_data": {
+          "$ref": "#/$defs/opaque_payload"
+        }
       },
       "additionalProperties": false
     },
     "submit_message_response": {
       "type": "object",
-      "required": ["delivery"],
+      "required": [
+        "delivery"
+      ],
       "properties": {
-        "event_ref": { "$ref": "#/$defs/event_id" },
+        "event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
         "delivery": {
           "type": "object",
-          "required": ["status"],
+          "required": [
+            "status"
+          ],
           "properties": {
             "status": {
               "type": "string",
-              "enum": ["accepted", "partial", "rejected"]
+              "enum": [
+                "accepted",
+                "partial",
+                "rejected"
+              ]
             },
             "delivered_to": {
               "type": "array",
-              "items": { "$ref": "#/$defs/did" },
+              "items": {
+                "$ref": "#/$defs/did"
+              },
               "uniqueItems": true
             }
           },
@@ -284,159 +488,305 @@
         },
         "rejected": {
           "type": "array",
-          "items": { "$ref": "#/$defs/failure" }
+          "items": {
+            "$ref": "#/$defs/failure"
+          }
         }
       },
       "additionalProperties": false
     },
     "group_info_response": {
       "type": "object",
-      "required": ["group_info"],
+      "required": [
+        "group_info"
+      ],
       "properties": {
-        "group_info": { "$ref": "#/$defs/group_info" },
-        "room_binding_ref": { "$ref": "#/$defs/event_id" },
-        "proofs": { "$ref": "#/$defs/proofs" }
+        "group_info": {
+          "$ref": "#/$defs/group_info"
+        },
+        "room_binding_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        }
       },
       "additionalProperties": false
     },
     "consent_target": {
       "type": "object",
-      "required": ["kind", "id"],
+      "required": [
+        "kind",
+        "id"
+      ],
       "properties": {
         "kind": {
           "type": "string",
-          "enum": ["did", "mimi_uri", "handle", "provider_user"]
+          "enum": [
+            "did",
+            "mimi_uri",
+            "handle",
+            "provider_user"
+          ]
         },
-        "id": { "$ref": "#/$defs/non_empty_string" }
+        "id": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "request_consent_request": {
       "type": "object",
-      "required": ["requester", "target", "purpose"],
+      "required": [
+        "requester",
+        "target",
+        "purpose"
+      ],
       "properties": {
-        "requester": { "$ref": "#/$defs/did" },
-        "target": { "$ref": "#/$defs/consent_target" },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "target": {
+          "$ref": "#/$defs/consent_target"
+        },
         "purpose": {
           "type": "string",
-          "enum": ["invite", "direct_message", "voice_call", "video_call", "presence", "any"]
+          "enum": [
+            "invite",
+            "direct_message",
+            "voice_call",
+            "video_call",
+            "presence",
+            "any"
+          ]
         },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
-        "proofs": { "$ref": "#/$defs/proofs" }
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        }
       },
       "additionalProperties": false
     },
     "request_consent_response": {
       "type": "object",
-      "required": ["consent_id", "status"],
+      "required": [
+        "consent_id",
+        "status"
+      ],
       "properties": {
-        "consent_id": { "$ref": "#/$defs/consent_id" },
-        "status": { "$ref": "#/$defs/non_empty_string" },
-        "challenge": { "$ref": "#/$defs/non_empty_string" }
+        "consent_id": {
+          "$ref": "#/$defs/consent_id"
+        },
+        "status": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "challenge": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "update_consent_request": {
       "type": "object",
-      "required": ["consent_id", "decision", "actor", "signature"],
+      "required": [
+        "consent_id",
+        "decision",
+        "actor",
+        "signature"
+      ],
       "properties": {
-        "consent_id": { "$ref": "#/$defs/consent_id" },
+        "consent_id": {
+          "$ref": "#/$defs/consent_id"
+        },
         "decision": {
           "type": "string",
-          "enum": ["accept", "deny", "revoke"]
+          "enum": [
+            "accept",
+            "deny",
+            "revoke"
+          ]
         },
-        "actor": { "$ref": "#/$defs/did" },
-        "signature": { "$ref": "#/$defs/signature" },
-        "reason": { "$ref": "#/$defs/non_empty_string" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "actor": {
+          "$ref": "#/$defs/did"
+        },
+        "signature": {
+          "$ref": "#/$defs/signature"
+        },
+        "reason": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "update_consent_response": {
       "type": "object",
-      "required": ["status", "updated_at"],
+      "required": [
+        "status",
+        "updated_at"
+      ],
       "properties": {
-        "status": { "$ref": "#/$defs/non_empty_string" },
-        "updated_at": { "$ref": "#/$defs/timestamp" },
-        "event_ref": { "$ref": "#/$defs/event_id" }
+        "status": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "event_ref": {
+          "$ref": "#/$defs/event_id"
+        }
       },
       "additionalProperties": false
     },
     "identifier": {
       "type": "object",
-      "required": ["kind", "identifier_commitment"],
+      "required": [
+        "kind",
+        "identifier_commitment"
+      ],
       "properties": {
         "kind": {
           "type": "string",
-          "enum": ["mimi_uri", "did", "handle", "phone", "email", "opaque"]
+          "enum": [
+            "mimi_uri",
+            "did",
+            "handle",
+            "phone",
+            "email",
+            "opaque"
+          ]
         },
-        "identifier_commitment": { "$ref": "#/$defs/hash" }
+        "identifier_commitment": {
+          "$ref": "#/$defs/hash"
+        }
       },
       "additionalProperties": false
     },
     "identifier_query_request": {
       "type": "object",
-      "required": ["identifiers"],
+      "required": [
+        "identifiers"
+      ],
       "properties": {
         "identifiers": {
           "type": "array",
-          "items": { "$ref": "#/$defs/identifier" },
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
           "minItems": 1,
           "maxItems": 1000
         },
-        "requester": { "$ref": "#/$defs/did" },
-        "privacy_profile": { "$ref": "#/$defs/non_empty_string" },
-        "proofs": { "$ref": "#/$defs/proofs" }
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "privacy_profile": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        }
       },
       "additionalProperties": false
     },
     "identifier_query_response": {
       "type": "object",
-      "required": ["results", "has_more"],
+      "required": [
+        "results",
+        "has_more"
+      ],
       "properties": {
         "results": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["identifier_commitment", "matched"],
+            "required": [
+              "identifier_commitment",
+              "matched"
+            ],
             "properties": {
-              "identifier_commitment": { "$ref": "#/$defs/hash" },
-              "matched": { "type": "boolean" },
-              "mimi_uri": { "$ref": "#/$defs/mimi_uri" },
-              "subject": { "$ref": "#/$defs/did" }
+              "identifier_commitment": {
+                "$ref": "#/$defs/hash"
+              },
+              "matched": {
+                "type": "boolean"
+              },
+              "mimi_uri": {
+                "$ref": "#/$defs/mimi_uri"
+              },
+              "subject": {
+                "$ref": "#/$defs/did"
+              }
             },
             "additionalProperties": false
           }
         },
-        "proofs": { "$ref": "#/$defs/proofs" },
-        "has_more": { "type": "boolean" }
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "report_abuse_request": {
       "type": "object",
-      "required": ["flow_id", "target_ref", "reporter", "abuse_reason_code"],
+      "required": [
+        "flow_id",
+        "target_ref",
+        "reporter",
+        "abuse_reason_code"
+      ],
       "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "target_ref": { "$ref": "#/$defs/non_empty_string" },
-        "reporter": { "$ref": "#/$defs/did" },
-        "abuse_reason_code": { "$ref": "#/$defs/non_empty_string" },
-        "evidence_package": { "$ref": "#/$defs/opaque_payload" },
-        "franking_proof": { "$ref": "#/$defs/opaque_payload" },
-        "description": { "$ref": "#/$defs/non_empty_string" }
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "reporter": {
+          "$ref": "#/$defs/did"
+        },
+        "abuse_reason_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "evidence_package": {
+          "$ref": "#/$defs/opaque_payload"
+        },
+        "franking_proof": {
+          "$ref": "#/$defs/opaque_payload"
+        },
+        "description": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "report_abuse_response": {
       "type": "object",
-      "required": ["report_id", "status"],
+      "required": [
+        "report_id",
+        "status"
+      ],
       "properties": {
-        "report_id": { "$ref": "#/$defs/report_id" },
-        "status": { "$ref": "#/$defs/non_empty_string" },
+        "report_id": {
+          "$ref": "#/$defs/report_id"
+        },
+        "status": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "routed_to": {
           "type": "array",
-          "items": { "$ref": "#/$defs/did" },
+          "items": {
+            "$ref": "#/$defs/did"
+          },
           "uniqueItems": true
         }
       },
@@ -444,41 +794,73 @@
     },
     "proxy_download_request": {
       "type": "object",
-      "required": ["asset_ref", "requester"],
+      "required": [
+        "asset_ref",
+        "requester"
+      ],
       "properties": {
         "asset_ref": {
           "anyOf": [
-            { "$ref": "#/$defs/blob_ref" },
-            { "$ref": "#/$defs/non_empty_string" }
+            {
+              "$ref": "#/$defs/blob_ref"
+            },
+            {
+              "$ref": "#/$defs/non_empty_string"
+            }
           ]
         },
-        "requester": { "$ref": "#/$defs/did" },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
         "ohttp_context": {
           "type": "object",
-          "required": ["context_id", "request_digest"],
+          "required": [
+            "context_id",
+            "request_digest"
+          ],
           "properties": {
-            "context_id": { "$ref": "#/$defs/non_empty_string" },
-            "request_digest": { "$ref": "#/$defs/hash" },
-            "relay_provider": { "$ref": "#/$defs/did" },
-            "encapsulated_request": { "$ref": "#/$defs/base64url" }
+            "context_id": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "request_digest": {
+              "$ref": "#/$defs/hash"
+            },
+            "relay_provider": {
+              "$ref": "#/$defs/did"
+            },
+            "encapsulated_request": {
+              "$ref": "#/$defs/base64url"
+            }
           },
           "additionalProperties": false
         },
-        "range": { "$ref": "#/$defs/non_empty_string" }
+        "range": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "proxy_download_response": {
       "type": "object",
-      "required": ["download_ref"],
+      "required": [
+        "download_ref"
+      ],
       "properties": {
-        "download_ref": { "$ref": "#/$defs/non_empty_string" },
+        "download_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "headers": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/non_empty_string" }
+          "additionalProperties": {
+            "$ref": "#/$defs/non_empty_string"
+          }
         },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     }

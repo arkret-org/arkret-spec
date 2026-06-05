@@ -19,7 +19,7 @@
       "const": "ck.schema.key_backup_active_series.v1"
     },
     "actor_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "backup_class": {
       "$ref": "#/$defs/backup_class"
@@ -76,12 +76,36 @@
             "type": "string"
           },
           "allOf": [
-            { "contains": { "const": "actor_id" } },
-            { "contains": { "const": "backup_class" } },
-            { "contains": { "const": "active_series_id" } },
-            { "contains": { "const": "previous_series_ids" } },
-            { "contains": { "const": "frontier_ref" } },
-            { "contains": { "const": "issued_at" } }
+            {
+              "contains": {
+                "const": "actor_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "backup_class"
+              }
+            },
+            {
+              "contains": {
+                "const": "active_series_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "previous_series_ids"
+              }
+            },
+            {
+              "contains": {
+                "const": "frontier_ref"
+              }
+            },
+            {
+              "contains": {
+                "const": "issued_at"
+              }
+            }
           ]
         },
         "ssk_generation": {

@@ -17,7 +17,7 @@
   ],
   "properties": {
     "realm_id": {
-      "$ref": "#/$defs/realm_id",
+      "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Realm this candidate is bound to. Verifiers MUST reject a candidate used for any other Realm."
     },
     "service_did": {
@@ -161,10 +161,6 @@
     "event_id": {
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
       "type": "string",

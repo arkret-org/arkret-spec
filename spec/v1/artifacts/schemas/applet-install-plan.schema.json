@@ -113,14 +113,6 @@
       "type": "string",
       "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
     "event_ref": {
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -150,7 +142,7 @@
               "const": "realm"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             }
           },
           "additionalProperties": false
@@ -167,10 +159,10 @@
               "const": "circle"
             },
             "realm_id": {
-              "$ref": "#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "circle_id": {
-              "$ref": "#/$defs/circle_id"
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
             }
           },
           "additionalProperties": false
@@ -196,7 +188,7 @@
         "realm_ids": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/realm_id"
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
           "minItems": 1,
           "uniqueItems": true
@@ -204,7 +196,7 @@
         "circle_ids": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/circle_id"
+            "$ref": "./common-ids.schema.json#/$defs/circle_id"
           },
           "uniqueItems": true
         },

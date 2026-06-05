@@ -18,10 +18,10 @@
       "const": "ck.schema.member_identity.v1"
     },
     "realm_id": {
-      "$ref": "#/$defs/realm_id"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "actor_id": {
-      "$ref": "#/$defs/did",
+      "$ref": "./common-ids.schema.json#/$defs/did",
       "description": "Effective member actor DID in this Realm. MAY be a Realm-scoped pairwise DID."
     },
     "subject_id": {
@@ -89,10 +89,6 @@
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
       "type": "string",

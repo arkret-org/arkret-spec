@@ -27,8 +27,7 @@
       "pattern": "^ck:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_digest values across Realms do not make evidence portable."
     },
     "audit_service_actor_id": {
@@ -41,22 +40,45 @@
     },
     "platform": {
       "type": "object",
-      "required": ["family", "vendor", "model"],
+      "required": [
+        "family",
+        "vendor",
+        "model"
+      ],
       "properties": {
         "family": {
           "type": "string",
-          "enum": ["tee_sgx", "tee_tdx", "tee_sev_snp", "tpm_2", "hsm_pkcs11", "nitro_enclave", "software_test_only"],
+          "enum": [
+            "tee_sgx",
+            "tee_tdx",
+            "tee_sev_snp",
+            "tpm_2",
+            "hsm_pkcs11",
+            "nitro_enclave",
+            "software_test_only"
+          ],
           "description": "Attestation family. 'software_test_only' is for conformance fixtures and MUST be rejected by deployments declaring attested_hardware assurance."
         },
-        "vendor": { "type": "string", "minLength": 1 },
-        "model": { "type": "string", "minLength": 1 },
-        "firmware_version": { "type": "string" }
+        "vendor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "firmware_version": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
     "measurement": {
       "type": "object",
-      "required": ["code_digest", "policy_version"],
+      "required": [
+        "code_digest",
+        "policy_version"
+      ],
       "description": "What is actually running inside the enclave / HSM / equivalent controlled output boundary. Verifiers compare this measurement to the measurement allowed by the active audit applet binding and release policy.",
       "properties": {
         "code_digest": {
@@ -82,29 +104,56 @@
       "description": "Ordered attestation evidence chain: leaf attestation (signed by the enclave) → intermediate (e.g. PCK certificate, AK certificate) → root (vendor attestation root certificate). Each item is base64url-encoded DER / CBOR per platform format. Verifier MUST validate signature chain and trust the root against the Realm-declared trust root list.",
       "items": {
         "type": "object",
-        "required": ["format", "bytes_b64u"],
+        "required": [
+          "format",
+          "bytes_b64u"
+        ],
         "properties": {
           "format": {
             "type": "string",
-            "enum": ["x509_der", "cose_cbor", "epid_quote", "tdx_quote", "snp_report", "tpm2_quote"]
+            "enum": [
+              "x509_der",
+              "cose_cbor",
+              "epid_quote",
+              "tdx_quote",
+              "snp_report",
+              "tpm2_quote"
+            ]
           },
           "bytes_b64u": {
             "type": "string",
             "pattern": "^[A-Za-z0-9_-]+$"
           },
-          "issued_at": { "$ref": "#/$defs/timestamp" }
+          "issued_at": {
+            "$ref": "#/$defs/timestamp"
+          }
         },
         "additionalProperties": false
       }
     },
     "attestation_key": {
       "type": "object",
-      "required": ["alg", "public_key_b64u"],
+      "required": [
+        "alg",
+        "public_key_b64u"
+      ],
       "description": "The attestation public key (extracted from the leaf of attestation_chain). ck.audit.release proofs and RYW receipt validation MUST be cryptographically bound to this attested output path when audit_assurance_class=attested_hardware.",
       "properties": {
-        "alg": { "type": "string", "enum": ["EdDSA", "ES256", "ML-DSA-65"] },
-        "public_key_b64u": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
-        "kid": { "type": "string" }
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
+        },
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "kid": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -115,11 +164,18 @@
     },
     "validity": {
       "type": "object",
-      "required": ["not_before", "expires_at"],
+      "required": [
+        "not_before",
+        "expires_at"
+      ],
       "description": "Validity window of THIS evidence. Verifier MUST reject evidence outside the window. For evidence presented under audit_assurance_class=attested_hardware (ck.profile.attested_audit.e2ee.v1), the verifier MUST reject evidence whose window (expires_at - not_before) exceeds 90 days; Realm/service policy MAY cap it lower. Evidence with a longer window MUST be treated as an elevated-risk signal and rejected by profile policy rather than silently accepted.",
       "properties": {
-        "not_before": { "$ref": "#/$defs/timestamp" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -129,11 +185,24 @@
       "properties": {
         "method": {
           "type": "string",
-          "enum": ["sgx_pccs_crl", "tdx_pcs_crl", "ocsp", "vendor_specific", "none_supported"]
+          "enum": [
+            "sgx_pccs_crl",
+            "tdx_pcs_crl",
+            "ocsp",
+            "vendor_specific",
+            "none_supported"
+          ]
         },
-        "endpoint": { "type": "string", "format": "uri" },
-        "last_checked_at": { "$ref": "#/$defs/timestamp" },
-        "next_check_before": { "$ref": "#/$defs/timestamp" }
+        "endpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "last_checked_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "next_check_before": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -143,14 +212,21 @@
     },
     "audit_purpose": {
       "type": "string",
-      "enum": ["compliance_lawful_access", "regulatory_record_keeping", "incident_investigation", "internal_policy_audit"],
+      "enum": [
+        "compliance_lawful_access",
+        "regulatory_record_keeping",
+        "incident_investigation",
+        "internal_policy_audit"
+      ],
       "description": "Why this audit applet release service may output audit material. MUST match the active binding/session purpose; mismatch → audit_purpose_mismatch."
     },
     "audit_policy_version_digest": {
       "$ref": "#/$defs/sha256_digest",
       "description": "Same definition as ck.audit.ryw_receipt.audit_policy_version_digest — fixed sha256 over canonical JSON {realm_id, trust_domain, audit_binding, release_policy, release_window_policy, activation_frontier_digest, first_auditable_epoch} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was issued under matches the current binding/session state, cannot be reused across Realms, and cannot retroactively expand eligibility for already encrypted messages. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile. See encoding.md §2 (canonical JSON) and audited-e2ee.md §6."
     },
-    "created_at": { "$ref": "#/$defs/timestamp" },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "proofs": {
       "type": "array",
       "minItems": 1,

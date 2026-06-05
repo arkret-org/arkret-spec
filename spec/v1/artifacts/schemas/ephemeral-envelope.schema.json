@@ -24,12 +24,11 @@
       "description": "Ephemeral signal kind. MUST be one of the four broadcast ephemeral kinds; ck.key.verification.* point-to-point flows MUST use device-message.schema.json instead."
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Realm whose ephemeral channel carries this signal. Authorization to broadcast a signal on a Realm channel is governed by the same membership / capability rules as the corresponding durable kinds."
     },
     "actor_id": {
-      "$ref": "#/$defs/did",
+      "$ref": "./common-ids.schema.json#/$defs/did",
       "description": "Signaling actor. MUST be a member of the Realm (ck.member.state cell join != ban/leave/remove at receive time) for the broadcast to be admitted by other clients; receivers drop signals from non-members without surfacing them."
     },
     "device_id": {
@@ -61,15 +60,28 @@
   "allOf": [
     {
       "if": {
-        "properties": { "kind": { "const": "ck.call.signal" } },
-        "required": ["kind"]
+        "properties": {
+          "kind": {
+            "const": "ck.call.signal"
+          }
+        },
+        "required": [
+          "kind"
+        ]
       },
       "then": {
-        "required": ["device_id", "proof"],
+        "required": [
+          "device_id",
+          "proof"
+        ],
         "properties": {
           "payload": {
             "type": "object",
-            "required": ["call_id", "signal_type", "seq"],
+            "required": [
+              "call_id",
+              "signal_type",
+              "seq"
+            ],
             "properties": {
               "call_id": {
                 "type": "string",

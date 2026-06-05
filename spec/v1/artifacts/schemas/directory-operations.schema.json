@@ -4,36 +4,74 @@
   "title": "Cokret Directory Operation DTOs",
   "description": "Closed request/response DTOs for Directory discovery search, resolve, private contact discovery, handle lookup, and push webhook registration operations.",
   "anyOf": [
-    { "$ref": "#/$defs/search_realms_request" },
-    { "$ref": "#/$defs/search_realms_response" },
-    { "$ref": "#/$defs/resolve_realm_request" },
-    { "$ref": "#/$defs/resolve_realm_response" },
-    { "$ref": "#/$defs/resolve_target_request" },
-    { "$ref": "#/$defs/resolve_target_response" },
-    { "$ref": "#/$defs/search_organizations_request" },
-    { "$ref": "#/$defs/search_organizations_response" },
-    { "$ref": "#/$defs/resolve_organization_request" },
-    { "$ref": "#/$defs/resolve_organization_response" },
-    { "$ref": "#/$defs/search_actors_request" },
-    { "$ref": "#/$defs/search_actors_response" },
-    { "$ref": "#/$defs/search_users_request" },
-    { "$ref": "#/$defs/search_users_response" },
-    { "$ref": "#/$defs/resolve_handle_request" },
-    { "$ref": "#/$defs/resolve_handle_response" },
-    { "$ref": "#/$defs/list_handles_for_subject_request" },
-    { "$ref": "#/$defs/private_contact_discovery_request" },
-    { "$ref": "#/$defs/private_contact_discovery_response" },
-    { "$ref": "#/$defs/push_register_request" },
-    { "$ref": "#/$defs/push_register_response" }
+    {
+      "$ref": "#/$defs/search_realms_request"
+    },
+    {
+      "$ref": "#/$defs/search_realms_response"
+    },
+    {
+      "$ref": "#/$defs/resolve_realm_request"
+    },
+    {
+      "$ref": "#/$defs/resolve_realm_response"
+    },
+    {
+      "$ref": "#/$defs/resolve_target_request"
+    },
+    {
+      "$ref": "#/$defs/resolve_target_response"
+    },
+    {
+      "$ref": "#/$defs/search_organizations_request"
+    },
+    {
+      "$ref": "#/$defs/search_organizations_response"
+    },
+    {
+      "$ref": "#/$defs/resolve_organization_request"
+    },
+    {
+      "$ref": "#/$defs/resolve_organization_response"
+    },
+    {
+      "$ref": "#/$defs/search_actors_request"
+    },
+    {
+      "$ref": "#/$defs/search_actors_response"
+    },
+    {
+      "$ref": "#/$defs/search_users_request"
+    },
+    {
+      "$ref": "#/$defs/search_users_response"
+    },
+    {
+      "$ref": "#/$defs/resolve_handle_request"
+    },
+    {
+      "$ref": "#/$defs/resolve_handle_response"
+    },
+    {
+      "$ref": "#/$defs/list_handles_for_subject_request"
+    },
+    {
+      "$ref": "#/$defs/private_contact_discovery_request"
+    },
+    {
+      "$ref": "#/$defs/private_contact_discovery_response"
+    },
+    {
+      "$ref": "#/$defs/push_register_request"
+    },
+    {
+      "$ref": "#/$defs/push_register_response"
+    }
   ],
   "$defs": {
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
@@ -73,23 +111,34 @@
     },
     "proofs": {
       "type": "array",
-      "items": { "$ref": "#/$defs/proof" },
+      "items": {
+        "$ref": "#/$defs/proof"
+      },
       "minItems": 1
     },
     "source_refs": {
       "type": "array",
-      "items": { "$ref": "#/$defs/event_id" },
+      "items": {
+        "$ref": "#/$defs/event_id"
+      },
       "uniqueItems": true,
       "minItems": 1
     },
     "intent": {
       "type": "string",
-      "enum": ["lookup", "mention", "invite", "member_add"]
+      "enum": [
+        "lookup",
+        "mention",
+        "invite",
+        "member_add"
+      ]
     },
     "pagination_request": {
       "type": "object",
       "properties": {
-        "cursor": { "$ref": "#/$defs/cursor" },
+        "cursor": {
+          "$ref": "#/$defs/cursor"
+        },
         "limit": {
           "type": "integer",
           "minimum": 1,
@@ -106,178 +155,386 @@
         "policy_revision"
       ],
       "properties": {
-        "as_of": { "$ref": "#/$defs/timestamp" },
-        "source_refs": { "$ref": "#/$defs/source_refs" },
-        "policy_revision": { "$ref": "#/$defs/non_empty_string" },
-        "stale": { "type": "boolean" },
-        "divergent": { "type": "boolean" }
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
+        "policy_revision": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "divergent": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "realm_preview": {
       "type": "object",
-      "required": ["realm_id", "as_of", "source_refs", "policy_revision"],
+      "required": [
+        "realm_id",
+        "as_of",
+        "source_refs",
+        "policy_revision"
+      ],
       "properties": {
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "alias": { "$ref": "#/$defs/non_empty_string" },
-        "title": { "$ref": "#/$defs/non_empty_string" },
-        "avatar_blob_ref": { "$ref": "./blob.schema.json#/properties/blob_ref" },
-        "organization_did": { "$ref": "#/$defs/did" },
-        "join_rule": { "$ref": "#/$defs/non_empty_string" },
-        "as_of": { "$ref": "#/$defs/timestamp" },
-        "source_refs": { "$ref": "#/$defs/source_refs" },
-        "policy_revision": { "$ref": "#/$defs/non_empty_string" },
-        "stale": { "type": "boolean" },
-        "divergent": { "type": "boolean" }
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "alias": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "title": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "avatar_blob_ref": {
+          "$ref": "./blob.schema.json#/properties/blob_ref"
+        },
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "join_rule": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
+        "policy_revision": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "divergent": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "organization_preview": {
       "type": "object",
-      "required": ["organization_did", "as_of", "source_refs", "policy_revision"],
+      "required": [
+        "organization_did",
+        "as_of",
+        "source_refs",
+        "policy_revision"
+      ],
       "properties": {
-        "organization_did": { "$ref": "#/$defs/did" },
-        "handle": { "$ref": "#/$defs/non_empty_string" },
-        "display_name": { "$ref": "#/$defs/non_empty_string" },
-        "avatar_blob_ref": { "$ref": "./blob.schema.json#/properties/blob_ref" },
-        "as_of": { "$ref": "#/$defs/timestamp" },
-        "source_refs": { "$ref": "#/$defs/source_refs" },
-        "policy_revision": { "$ref": "#/$defs/non_empty_string" },
-        "stale": { "type": "boolean" },
-        "divergent": { "type": "boolean" }
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "handle": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "avatar_blob_ref": {
+          "$ref": "./blob.schema.json#/properties/blob_ref"
+        },
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
+        "policy_revision": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "divergent": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "actor_preview": {
       "type": "object",
-      "required": ["actor_id", "as_of", "source_refs", "policy_revision"],
+      "required": [
+        "actor_id",
+        "as_of",
+        "source_refs",
+        "policy_revision"
+      ],
       "properties": {
-        "actor_id": { "$ref": "#/$defs/did" },
-        "handle": { "$ref": "#/$defs/handle" },
-        "display_name": { "$ref": "#/$defs/non_empty_string" },
-        "organization_did": { "$ref": "#/$defs/did" },
-        "avatar_blob_ref": { "$ref": "./blob.schema.json#/properties/blob_ref" },
-        "as_of": { "$ref": "#/$defs/timestamp" },
-        "source_refs": { "$ref": "#/$defs/source_refs" },
-        "policy_revision": { "$ref": "#/$defs/non_empty_string" },
-        "stale": { "type": "boolean" },
-        "divergent": { "type": "boolean" }
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "handle": {
+          "$ref": "#/$defs/handle"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "avatar_blob_ref": {
+          "$ref": "./blob.schema.json#/properties/blob_ref"
+        },
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
+        "policy_revision": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "divergent": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "object_preview": {
       "type": "object",
-      "required": ["object_id", "object_kind", "as_of", "source_refs", "policy_revision"],
+      "required": [
+        "object_id",
+        "object_kind",
+        "as_of",
+        "source_refs",
+        "policy_revision"
+      ],
       "properties": {
         "object_id": {
           "oneOf": [
-            { "$ref": "#/$defs/flow_id" },
-            { "$ref": "#/$defs/message_id" },
-            { "$ref": "#/$defs/event_id" }
+            {
+              "$ref": "#/$defs/flow_id"
+            },
+            {
+              "$ref": "#/$defs/message_id"
+            },
+            {
+              "$ref": "#/$defs/event_id"
+            }
           ]
         },
         "object_kind": {
           "type": "string",
-          "enum": ["flow", "message", "event"]
+          "enum": [
+            "flow",
+            "message",
+            "event"
+          ]
         },
-        "title": { "$ref": "#/$defs/non_empty_string" },
-        "summary": { "$ref": "#/$defs/non_empty_string" },
-        "as_of": { "$ref": "#/$defs/timestamp" },
-        "source_refs": { "$ref": "#/$defs/source_refs" },
-        "policy_revision": { "$ref": "#/$defs/non_empty_string" },
-        "stale": { "type": "boolean" },
-        "divergent": { "type": "boolean" }
+        "title": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "summary": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
+        "policy_revision": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "divergent": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "search_realms_request": {
       "type": "object",
       "properties": {
-        "query": { "$ref": "#/$defs/non_empty_string" },
-        "organization_did": { "$ref": "#/$defs/did" },
-        "source_realm_id": { "$ref": "#/$defs/realm_id" },
-        "requester": { "$ref": "#/$defs/did" },
-        "proofs": { "$ref": "#/$defs/proofs" },
-        "cursor": { "$ref": "#/$defs/cursor" },
-        "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+        "query": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "source_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        },
+        "cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
       },
       "additionalProperties": false
     },
     "search_realms_response": {
       "type": "object",
-      "required": ["results", "has_more"],
+      "required": [
+        "results",
+        "has_more"
+      ],
       "properties": {
         "results": {
           "type": "array",
-          "items": { "$ref": "#/$defs/realm_preview" }
+          "items": {
+            "$ref": "#/$defs/realm_preview"
+          }
         },
-        "next_cursor": { "$ref": "#/$defs/cursor" },
-        "has_more": { "type": "boolean" }
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "resolve_realm_request": {
       "type": "object",
       "properties": {
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "alias": { "$ref": "#/$defs/non_empty_string" },
-        "invite_token": { "$ref": "#/$defs/non_empty_string" },
-        "signed_link": { "$ref": "#/$defs/non_empty_string" },
-        "requester": { "$ref": "#/$defs/did" },
-        "proofs": { "$ref": "#/$defs/proofs" }
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "alias": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "invite_token": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "signed_link": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        }
       },
       "anyOf": [
-        { "required": ["realm_id"] },
-        { "required": ["alias"] },
-        { "required": ["invite_token"] },
-        { "required": ["signed_link"] }
+        {
+          "required": [
+            "realm_id"
+          ]
+        },
+        {
+          "required": [
+            "alias"
+          ]
+        },
+        {
+          "required": [
+            "invite_token"
+          ]
+        },
+        {
+          "required": [
+            "signed_link"
+          ]
+        }
       ],
       "additionalProperties": false
     },
     "resolve_realm_response": {
       "type": "object",
-      "required": ["realm_preview"],
+      "required": [
+        "realm_preview"
+      ],
       "properties": {
-        "realm_preview": { "$ref": "#/$defs/realm_preview" },
+        "realm_preview": {
+          "$ref": "#/$defs/realm_preview"
+        },
         "stripped_state": {
           "type": "array",
-          "items": { "type": "object" }
+          "items": {
+            "type": "object"
+          }
         },
-        "join_rule": { "$ref": "#/$defs/non_empty_string" },
+        "join_rule": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "join_candidates": {
           "type": "array",
-          "items": { "$ref": "./realm-join-candidate.schema.json" }
+          "items": {
+            "$ref": "./realm-join-candidate.schema.json"
+          }
         }
       },
       "additionalProperties": false
     },
     "resolve_target_request": {
       "type": "object",
-      "required": ["address"],
+      "required": [
+        "address"
+      ],
       "properties": {
-        "address": { "$ref": "#/$defs/non_empty_string" },
-        "requester": { "$ref": "#/$defs/did" },
-        "proofs": { "$ref": "#/$defs/proofs" },
-        "token": { "$ref": "#/$defs/non_empty_string" }
+        "address": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        },
+        "token": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "resolve_target_response": {
       "type": "object",
-      "required": ["target_kind", "as_of", "source_refs"],
+      "required": [
+        "target_kind",
+        "as_of",
+        "source_refs"
+      ],
       "properties": {
         "target_kind": {
           "type": "string",
-          "enum": ["realm", "flow", "message"]
+          "enum": [
+            "realm",
+            "flow",
+            "message"
+          ]
         },
-        "realm_preview": { "$ref": "#/$defs/realm_preview" },
-        "object_preview": { "$ref": "#/$defs/object_preview" },
-        "join_rule": { "$ref": "#/$defs/non_empty_string" },
-        "as_of": { "$ref": "#/$defs/timestamp" },
-        "source_refs": { "$ref": "#/$defs/source_refs" },
+        "realm_preview": {
+          "$ref": "#/$defs/realm_preview"
+        },
+        "object_preview": {
+          "$ref": "#/$defs/object_preview"
+        },
+        "join_rule": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
         "join_candidates": {
           "type": "array",
-          "items": { "$ref": "./realm-join-candidate.schema.json" }
+          "items": {
+            "$ref": "./realm-join-candidate.schema.json"
+          }
         }
       },
       "additionalProperties": false
@@ -285,48 +542,89 @@
     "search_organizations_request": {
       "type": "object",
       "properties": {
-        "query": { "$ref": "#/$defs/non_empty_string" },
-        "claims": { "type": "object" },
-        "cursor": { "$ref": "#/$defs/cursor" },
-        "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+        "query": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "claims": {
+          "type": "object"
+        },
+        "cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
       },
       "additionalProperties": false
     },
     "search_organizations_response": {
       "type": "object",
-      "required": ["results", "has_more"],
+      "required": [
+        "results",
+        "has_more"
+      ],
       "properties": {
         "results": {
           "type": "array",
-          "items": { "$ref": "#/$defs/organization_preview" }
+          "items": {
+            "$ref": "#/$defs/organization_preview"
+          }
         },
-        "next_cursor": { "$ref": "#/$defs/cursor" },
-        "has_more": { "type": "boolean" }
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "resolve_organization_request": {
       "type": "object",
       "properties": {
-        "organization_did": { "$ref": "#/$defs/did" },
-        "handle": { "$ref": "#/$defs/non_empty_string" },
-        "proofs": { "$ref": "#/$defs/proofs" }
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "handle": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        }
       },
       "anyOf": [
-        { "required": ["organization_did"] },
-        { "required": ["handle"] }
+        {
+          "required": [
+            "organization_did"
+          ]
+        },
+        {
+          "required": [
+            "handle"
+          ]
+        }
       ],
       "additionalProperties": false
     },
     "resolve_organization_response": {
       "type": "object",
-      "required": ["organization_preview"],
+      "required": [
+        "organization_preview"
+      ],
       "properties": {
-        "organization_preview": { "$ref": "#/$defs/organization_preview" },
-        "did_document_ref": { "$ref": "#/$defs/non_empty_string" },
+        "organization_preview": {
+          "$ref": "#/$defs/organization_preview"
+        },
+        "did_document_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "endorsements": {
           "type": "array",
-          "items": { "type": "object" }
+          "items": {
+            "type": "object"
+          }
         }
       },
       "additionalProperties": false
@@ -334,46 +632,90 @@
     "search_actors_request": {
       "type": "object",
       "properties": {
-        "query": { "$ref": "#/$defs/non_empty_string" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "organization_did": { "$ref": "#/$defs/did" },
-        "cursor": { "$ref": "#/$defs/cursor" },
-        "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+        "query": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
       },
       "additionalProperties": false
     },
     "search_actors_response": {
       "type": "object",
-      "required": ["results", "has_more"],
+      "required": [
+        "results",
+        "has_more"
+      ],
       "properties": {
         "results": {
           "type": "array",
-          "items": { "$ref": "#/$defs/actor_preview" }
+          "items": {
+            "$ref": "#/$defs/actor_preview"
+          }
         },
-        "next_cursor": { "$ref": "#/$defs/cursor" },
-        "has_more": { "type": "boolean" }
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "search_users_request": {
       "type": "object",
-      "required": ["query"],
+      "required": [
+        "query"
+      ],
       "properties": {
-        "query": { "$ref": "#/$defs/non_empty_string" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "limit": { "type": "integer", "minimum": 1, "maximum": 50 },
-        "intent": { "$ref": "#/$defs/intent" }
+        "query": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        },
+        "intent": {
+          "$ref": "#/$defs/intent"
+        }
       },
       "additionalProperties": false
     },
     "user_search_result": {
       "type": "object",
-      "required": ["handle", "verified"],
+      "required": [
+        "handle",
+        "verified"
+      ],
       "properties": {
-        "handle": { "$ref": "#/$defs/handle" },
-        "display_name": { "$ref": "#/$defs/non_empty_string" },
-        "verified": { "type": "boolean" },
-        "subject": { "$ref": "#/$defs/did" },
+        "handle": {
+          "$ref": "#/$defs/handle"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "subject": {
+          "$ref": "#/$defs/did"
+        },
         "member_delivery_binding": {
           "$ref": "./handle-claim.schema.json#/properties/member_delivery_binding"
         }
@@ -382,116 +724,224 @@
     },
     "search_users_response": {
       "type": "object",
-      "required": ["results", "has_more"],
+      "required": [
+        "results",
+        "has_more"
+      ],
       "properties": {
         "results": {
           "type": "array",
-          "items": { "$ref": "#/$defs/user_search_result" }
+          "items": {
+            "$ref": "#/$defs/user_search_result"
+          }
         },
-        "has_more": { "type": "boolean" }
+        "has_more": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "resolve_handle_request": {
       "type": "object",
-      "required": ["handle"],
+      "required": [
+        "handle"
+      ],
       "properties": {
-        "handle": { "$ref": "#/$defs/handle" },
-        "expected_did": { "$ref": "#/$defs/did" },
-        "proof_challenge": { "$ref": "#/$defs/non_empty_string" },
-        "intent": { "$ref": "#/$defs/intent" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "requester": { "$ref": "#/$defs/did" },
-        "proofs": { "$ref": "#/$defs/proofs" }
+        "handle": {
+          "$ref": "#/$defs/handle"
+        },
+        "expected_did": {
+          "$ref": "#/$defs/did"
+        },
+        "proof_challenge": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "intent": {
+          "$ref": "#/$defs/intent"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        }
       },
       "additionalProperties": false
     },
     "resolve_handle_response": {
       "type": "object",
-      "required": ["did", "subject", "handle", "verified"],
+      "required": [
+        "did",
+        "subject",
+        "handle",
+        "verified"
+      ],
       "properties": {
-        "did": { "$ref": "#/$defs/did" },
-        "subject": { "$ref": "#/$defs/did" },
-        "handle": { "$ref": "#/$defs/handle" },
-        "verified": { "type": "boolean" },
+        "did": {
+          "$ref": "#/$defs/did"
+        },
+        "subject": {
+          "$ref": "#/$defs/did"
+        },
+        "handle": {
+          "$ref": "#/$defs/handle"
+        },
+        "verified": {
+          "type": "boolean"
+        },
         "claims": {
           "type": "array",
-          "items": { "$ref": "./handle-claim.schema.json" }
+          "items": {
+            "$ref": "./handle-claim.schema.json"
+          }
         },
         "member_delivery_binding": {
           "$ref": "./handle-claim.schema.json#/properties/member_delivery_binding"
         },
-        "source_refs": { "$ref": "#/$defs/source_refs" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "list_handles_for_subject_request": {
       "type": "object",
-      "required": ["subject"],
+      "required": [
+        "subject"
+      ],
       "properties": {
-        "subject": { "$ref": "#/$defs/did" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "intent": { "$ref": "#/$defs/intent" },
-        "requester": { "$ref": "#/$defs/did" },
-        "proof_challenge": { "$ref": "#/$defs/non_empty_string" },
-        "proofs": { "$ref": "#/$defs/proofs" },
-        "as_of": { "$ref": "#/$defs/timestamp" },
-        "cursor": { "$ref": "#/$defs/cursor" },
-        "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+        "subject": {
+          "$ref": "#/$defs/did"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "intent": {
+          "$ref": "#/$defs/intent"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "proof_challenge": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        },
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
       },
       "additionalProperties": false
     },
     "blinded_contact": {
       "type": "object",
-      "required": ["contact_ref", "identifier_commitment"],
+      "required": [
+        "contact_ref",
+        "identifier_commitment"
+      ],
       "properties": {
-        "contact_ref": { "$ref": "#/$defs/non_empty_string" },
+        "contact_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "identifier_kind": {
           "type": "string",
-          "enum": ["phone", "email", "handle", "did", "opaque"]
+          "enum": [
+            "phone",
+            "email",
+            "handle",
+            "did",
+            "opaque"
+          ]
         },
         "identifier_commitment": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
-        "padding": { "type": "object" }
+        "padding": {
+          "type": "object"
+        }
       },
       "additionalProperties": false
     },
     "private_contact_discovery_request": {
       "type": "object",
-      "required": ["requester", "contacts"],
+      "required": [
+        "requester",
+        "contacts"
+      ],
       "properties": {
-        "requester": { "$ref": "#/$defs/did" },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
         "contacts": {
           "type": "array",
-          "items": { "$ref": "#/$defs/blinded_contact" },
+          "items": {
+            "$ref": "#/$defs/blinded_contact"
+          },
           "minItems": 1,
           "maxItems": 1000
         },
-        "proofs": { "$ref": "#/$defs/proofs" },
-        "privacy_profile": { "$ref": "#/$defs/non_empty_string" },
-        "padding": { "type": "object" }
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        },
+        "privacy_profile": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "padding": {
+          "type": "object"
+        }
       },
       "additionalProperties": false
     },
     "invite_consent_handoff_stub": {
       "type": "object",
       "description": "Minimal invite/consent handoff stub allowed beside PSI match bits. It declares state or next-step guidance only; it MUST NOT carry a contact request token, reachability proof, profile, membership, or read grant.",
-      "required": ["kind", "state"],
+      "required": [
+        "kind",
+        "state"
+      ],
       "properties": {
         "kind": {
           "type": "string",
-          "enum": ["invite", "consent"]
+          "enum": [
+            "invite",
+            "consent"
+          ]
         },
         "consent_scope": {
           "type": "string",
-          "enum": ["invite", "direct_message", "voice_call", "video_call", "presence", "any"]
+          "enum": [
+            "invite",
+            "direct_message",
+            "voice_call",
+            "video_call",
+            "presence",
+            "any"
+          ]
         },
         "state": {
           "type": "string",
-          "enum": ["grant_active", "revoked", "no_consent", "unknown"]
+          "enum": [
+            "grant_active",
+            "revoked",
+            "no_consent",
+            "unknown"
+          ]
         },
         "state_digest": {
           "$ref": "#/$defs/non_empty_string",
@@ -499,63 +949,114 @@
         },
         "next_step": {
           "type": "string",
-          "enum": ["request_consent", "open_invite_flow", "no_action", "try_later"]
+          "enum": [
+            "request_consent",
+            "open_invite_flow",
+            "no_action",
+            "try_later"
+          ]
         },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "private_contact_match": {
       "type": "object",
-      "required": ["contact_ref", "match_kind"],
+      "required": [
+        "contact_ref",
+        "match_kind"
+      ],
       "properties": {
-        "contact_ref": { "$ref": "#/$defs/non_empty_string" },
+        "contact_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "match_kind": {
           "type": "string",
-          "enum": ["handle", "subject", "organization"]
+          "enum": [
+            "handle",
+            "subject",
+            "organization"
+          ]
         },
-        "handle": { "$ref": "#/$defs/handle" },
-        "subject": { "$ref": "#/$defs/did" },
-        "organization_did": { "$ref": "#/$defs/did" },
-        "source_refs": { "$ref": "#/$defs/source_refs" },
-        "handoff_stub": { "$ref": "#/$defs/invite_consent_handoff_stub" }
+        "handle": {
+          "$ref": "#/$defs/handle"
+        },
+        "subject": {
+          "$ref": "#/$defs/did"
+        },
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
+        "handoff_stub": {
+          "$ref": "#/$defs/invite_consent_handoff_stub"
+        }
       },
       "additionalProperties": false
     },
     "private_contact_discovery_response": {
       "type": "object",
-      "required": ["matches"],
+      "required": [
+        "matches"
+      ],
       "properties": {
         "matches": {
           "type": "array",
-          "items": { "$ref": "#/$defs/private_contact_match" }
+          "items": {
+            "$ref": "#/$defs/private_contact_match"
+          }
         },
-        "proofs": { "$ref": "#/$defs/proofs" },
-        "retry_after_ms": { "type": "integer", "minimum": 1 }
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "additionalProperties": false
     },
     "push_register_request": {
       "type": "object",
-      "required": ["subscriber_did", "resource_filter", "webhook_endpoint"],
+      "required": [
+        "subscriber_did",
+        "resource_filter",
+        "webhook_endpoint"
+      ],
       "properties": {
-        "subscriber_did": { "$ref": "#/$defs/did" },
+        "subscriber_did": {
+          "$ref": "#/$defs/did"
+        },
         "resource_filter": {
           "type": "object",
-          "required": ["resource_kinds"],
+          "required": [
+            "resource_kinds"
+          ],
           "properties": {
             "resource_kinds": {
               "type": "array",
               "items": {
                 "type": "string",
-                "enum": ["realm", "organization", "actor", "applet", "handle"]
+                "enum": [
+                  "realm",
+                  "organization",
+                  "actor",
+                  "applet",
+                  "handle"
+                ]
               },
               "minItems": 1,
               "uniqueItems": true
             },
             "resource_ids": {
               "type": "array",
-              "items": { "$ref": "#/$defs/non_empty_string" },
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              },
               "uniqueItems": true
             }
           },
@@ -565,17 +1066,28 @@
           "type": "string",
           "format": "uri"
         },
-        "secret": { "$ref": "#/$defs/non_empty_string" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "secret": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "push_register_response": {
       "type": "object",
-      "required": ["subscription_id", "effective_at"],
+      "required": [
+        "subscription_id",
+        "effective_at"
+      ],
       "properties": {
-        "subscription_id": { "$ref": "#/$defs/subscription_id" },
-        "effective_at": { "$ref": "#/$defs/timestamp" }
+        "subscription_id": {
+          "$ref": "#/$defs/subscription_id"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     }

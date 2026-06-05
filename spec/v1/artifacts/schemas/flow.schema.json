@@ -14,13 +14,48 @@
   ],
   "not": {
     "anyOf": [
-      { "required": ["body"], "$comment": "legacy Flow top-level field; canonical name is content" },
-      { "required": ["title"], "$comment": "legacy Flow top-level metadata; canonical path is metadata.title or encrypted_metadata" },
-      { "required": ["summary"], "$comment": "legacy Flow top-level metadata; canonical path is metadata.summary or encrypted_metadata" },
-      { "required": ["fields"], "$comment": "legacy Flow top-level extension metadata; canonical path is metadata.fields or encrypted_metadata" },
-      { "required": ["encrypted_payload"], "$comment": "legacy encrypted content carrier; canonical name is encrypted_content" },
-      { "required": ["content", "encrypted_content"] },
-      { "required": ["metadata", "encrypted_metadata"] }
+      {
+        "required": [
+          "body"
+        ],
+        "$comment": "legacy Flow top-level field; canonical name is content"
+      },
+      {
+        "required": [
+          "title"
+        ],
+        "$comment": "legacy Flow top-level metadata; canonical path is metadata.title or encrypted_metadata"
+      },
+      {
+        "required": [
+          "summary"
+        ],
+        "$comment": "legacy Flow top-level metadata; canonical path is metadata.summary or encrypted_metadata"
+      },
+      {
+        "required": [
+          "fields"
+        ],
+        "$comment": "legacy Flow top-level extension metadata; canonical path is metadata.fields or encrypted_metadata"
+      },
+      {
+        "required": [
+          "encrypted_payload"
+        ],
+        "$comment": "legacy encrypted content carrier; canonical name is encrypted_content"
+      },
+      {
+        "required": [
+          "content",
+          "encrypted_content"
+        ]
+      },
+      {
+        "required": [
+          "metadata",
+          "encrypted_metadata"
+        ]
+      }
     ]
   },
   "properties": {
@@ -32,12 +67,10 @@
       "const": "ck.schema.flow.v1"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "scope_circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "$ref": "./common-ids.schema.json#/$defs/circle_id",
       "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Flow's effective scope. When set, ALL Flow tracks (synthesis, discussion, etc.) share that Circle's membership, history visibility, delivery/query/projection boundary, and encryption_profile. When unset, the Flow lives in Realm-default scope. The referenced Circle MUST have realm_id == this Flow's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_circle_id is forbidden by default (failed_precondition reason=scope_rebind_forbidden). For 'wide synthesis + narrow discussion' scenarios use two Flows linked by a confidential_discussion_of Relation (circle.md §7.2)."
     },
     "metadata": {
@@ -178,18 +211,41 @@
       "not": {
         "$comment": "Reject legacy discriminator `type`, legacy composite child array name `blocks`, and byte-count field `size`; canonical content blocks use `kind`, composite children use `parts`, and byte counts use `size_bytes`.",
         "anyOf": [
-          { "required": ["type"] },
-          { "required": ["blocks"] },
-          { "required": ["size"], "$comment": "byte counts use size_bytes" }
+          {
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "required": [
+              "blocks"
+            ]
+          },
+          {
+            "required": [
+              "size"
+            ],
+            "$comment": "byte counts use size_bytes"
+          }
         ]
       },
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "ck.content.composite" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "ck.content.composite"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
-          "then": { "required": ["parts"] }
+          "then": {
+            "required": [
+              "parts"
+            ]
+          }
         }
       ]
     },
@@ -213,22 +269,86 @@
       "not": {
         "$comment": "Reducer-owned fields stay top-level and MUST NOT be mirrored inside metadata.",
         "anyOf": [
-          { "required": ["id"] },
-          { "required": ["schema"] },
-          { "required": ["realm_id"] },
-          { "required": ["stage"] },
-          { "required": ["stage_changed_at"] },
-          { "required": ["state"] },
-          { "required": ["state_changed_at"] },
-          { "required": ["tracks"] },
-          { "required": ["scope_circle_id"] },
-          { "required": ["created_by"] },
-          { "required": ["created_at"] },
-          { "required": ["updated_by"] },
-          { "required": ["updated_at"] },
-          { "required": ["content"] },
-          { "required": ["encrypted_content"] },
-          { "required": ["encrypted_payload"] }
+          {
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "required": [
+              "schema"
+            ]
+          },
+          {
+            "required": [
+              "realm_id"
+            ]
+          },
+          {
+            "required": [
+              "stage"
+            ]
+          },
+          {
+            "required": [
+              "stage_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "state"
+            ]
+          },
+          {
+            "required": [
+              "state_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "tracks"
+            ]
+          },
+          {
+            "required": [
+              "scope_circle_id"
+            ]
+          },
+          {
+            "required": [
+              "created_by"
+            ]
+          },
+          {
+            "required": [
+              "created_at"
+            ]
+          },
+          {
+            "required": [
+              "updated_by"
+            ]
+          },
+          {
+            "required": [
+              "updated_at"
+            ]
+          },
+          {
+            "required": [
+              "content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_payload"
+            ]
+          }
         ]
       },
       "additionalProperties": true
@@ -238,16 +358,56 @@
       "description": "Profile-defined Flow metadata fields. Reducer-owned fields are forbidden here to avoid dual sources of truth.",
       "not": {
         "anyOf": [
-          { "required": ["stage"] },
-          { "required": ["stage_changed_at"] },
-          { "required": ["stage_reason"] },
-          { "required": ["stage_note"] },
-          { "required": ["lifecycle"] },
-          { "required": ["progress_state"] },
-          { "required": ["state"] },
-          { "required": ["state_changed_at"] },
-          { "required": ["tracks"] },
-          { "required": ["scope_circle_id"] }
+          {
+            "required": [
+              "stage"
+            ]
+          },
+          {
+            "required": [
+              "stage_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "stage_reason"
+            ]
+          },
+          {
+            "required": [
+              "stage_note"
+            ]
+          },
+          {
+            "required": [
+              "lifecycle"
+            ]
+          },
+          {
+            "required": [
+              "progress_state"
+            ]
+          },
+          {
+            "required": [
+              "state"
+            ]
+          },
+          {
+            "required": [
+              "state_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "tracks"
+            ]
+          },
+          {
+            "required": [
+              "scope_circle_id"
+            ]
+          }
         ]
       },
       "additionalProperties": true
@@ -281,17 +441,35 @@
           "not": {
             "$comment": "Forbid access-like keys so flow_track.metadata cannot smuggle a pseudo-access surface; track access is always derived from the Flow effective scope, never from track metadata.",
             "anyOf": [
-              { "required": ["members"] },
-              { "required": ["access"] },
-              { "required": ["participants"] },
-              { "required": ["watchers"] }
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "access"
+                ]
+              },
+              {
+                "required": [
+                  "participants"
+                ]
+              },
+              {
+                "required": [
+                  "watchers"
+                ]
+              }
             ]
           },
           "additionalProperties": true
         }
       },
       "not": {
-        "required": ["fields"],
+        "required": [
+          "fields"
+        ],
         "$comment": "Legacy track-local extension field; canonical name is metadata."
       },
       "additionalProperties": false

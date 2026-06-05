@@ -28,8 +28,7 @@
       "const": "ck.schema.capability.v1"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "issuer": {
       "type": "string",
@@ -119,7 +118,9 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "revoked_at": { "$ref": "#/$defs/timestamp" },
+    "revoked_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "proofs": {
       "type": "array",
       "items": {

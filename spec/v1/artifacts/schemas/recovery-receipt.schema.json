@@ -153,7 +153,7 @@
         ],
         "properties": {
           "realm_id": {
-            "$ref": "#/$defs/realm_id"
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
           "mls_group_id": {
             "type": "string",
@@ -221,19 +221,71 @@
             "type": "string"
           },
           "allOf": [
-            { "contains": { "const": "receipt_id" } },
-            { "contains": { "const": "principal_id" } },
-            { "contains": { "const": "recovery_session_id" } },
-            { "contains": { "const": "policy_id" } },
-            { "contains": { "const": "policy_version" } },
-            { "contains": { "const": "trust_domain" } },
-            { "contains": { "const": "new_device_id" } },
-            { "contains": { "const": "proof_summary" } },
-            { "contains": { "const": "backup_classes_unlocked" } },
-            { "contains": { "const": "welcome_count" } },
-            { "contains": { "const": "outcome" } },
-            { "contains": { "const": "started_at" } },
-            { "contains": { "const": "completed_at" } }
+            {
+              "contains": {
+                "const": "receipt_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "principal_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "recovery_session_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "policy_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "policy_version"
+              }
+            },
+            {
+              "contains": {
+                "const": "trust_domain"
+              }
+            },
+            {
+              "contains": {
+                "const": "new_device_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "proof_summary"
+              }
+            },
+            {
+              "contains": {
+                "const": "backup_classes_unlocked"
+              }
+            },
+            {
+              "contains": {
+                "const": "welcome_count"
+              }
+            },
+            {
+              "contains": {
+                "const": "outcome"
+              }
+            },
+            {
+              "contains": {
+                "const": "started_at"
+              }
+            },
+            {
+              "contains": {
+                "const": "completed_at"
+              }
+            }
           ]
         }
       },
@@ -246,17 +298,26 @@
         "properties": {
           "proof_summary": {
             "properties": {
-              "kind": { "const": "threshold_recovery" }
+              "kind": {
+                "const": "threshold_recovery"
+              }
             },
-            "required": [ "kind" ]
+            "required": [
+              "kind"
+            ]
           }
         },
-        "required": [ "proof_summary" ]
+        "required": [
+          "proof_summary"
+        ]
       },
       "then": {
         "properties": {
           "proof_summary": {
-            "required": [ "quorum_size", "share_ids" ]
+            "required": [
+              "quorum_size",
+              "share_ids"
+            ]
           }
         }
       }
@@ -266,17 +327,25 @@
         "properties": {
           "proof_summary": {
             "properties": {
-              "kind": { "const": "device_quorum" }
+              "kind": {
+                "const": "device_quorum"
+              }
             },
-            "required": [ "kind" ]
+            "required": [
+              "kind"
+            ]
           }
         },
-        "required": [ "proof_summary" ]
+        "required": [
+          "proof_summary"
+        ]
       },
       "then": {
         "properties": {
           "proof_summary": {
-            "required": [ "quorum_size" ]
+            "required": [
+              "quorum_size"
+            ]
           }
         }
       }
@@ -285,19 +354,29 @@
       "if": {
         "properties": {
           "outcome": {
-            "not": { "const": "completed" }
+            "not": {
+              "const": "completed"
+            }
           }
         },
-        "required": [ "outcome" ]
+        "required": [
+          "outcome"
+        ]
       },
       "then": {
-        "required": [ "outcome_reason_code" ],
+        "required": [
+          "outcome_reason_code"
+        ],
         "properties": {
           "auth_data": {
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "outcome_reason_code" } }
+                  {
+                    "contains": {
+                      "const": "outcome_reason_code"
+                    }
+                  }
                 ]
               }
             }
@@ -307,7 +386,9 @@
     },
     {
       "if": {
-        "required": [ "welcome_realm_summary" ]
+        "required": [
+          "welcome_realm_summary"
+        ]
       },
       "then": {
         "properties": {
@@ -315,7 +396,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "welcome_realm_summary" } }
+                  {
+                    "contains": {
+                      "const": "welcome_realm_summary"
+                    }
+                  }
                 ]
               }
             }
@@ -325,7 +410,9 @@
     },
     {
       "if": {
-        "required": [ "previous_ssk_generation" ]
+        "required": [
+          "previous_ssk_generation"
+        ]
       },
       "then": {
         "properties": {
@@ -333,7 +420,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "previous_ssk_generation" } }
+                  {
+                    "contains": {
+                      "const": "previous_ssk_generation"
+                    }
+                  }
                 ]
               }
             }
@@ -343,7 +434,9 @@
     },
     {
       "if": {
-        "required": [ "new_ssk_generation" ]
+        "required": [
+          "new_ssk_generation"
+        ]
       },
       "then": {
         "properties": {
@@ -351,7 +444,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "new_ssk_generation" } }
+                  {
+                    "contains": {
+                      "const": "new_ssk_generation"
+                    }
+                  }
                 ]
               }
             }
@@ -377,10 +474,6 @@
     "hash": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     }
   }
 }

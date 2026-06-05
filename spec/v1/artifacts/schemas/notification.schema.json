@@ -21,7 +21,9 @@
     "created_at"
   ],
   "not": {
-    "required": ["track"],
+    "required": [
+      "track"
+    ],
     "$comment": "Flow track keys use track_name on current wire."
   },
   "properties": {
@@ -33,12 +35,10 @@
       "const": "ck.schema.notification.v1"
     },
     "actor_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "source_event_id": {
       "type": "string",
@@ -97,8 +97,12 @@
       "type": "object",
       "description": "Render summary. Under E2EE / redaction / history-limited scopes this MUST be empty or an authorized redacted digest; sender/reducer-enforced. A notification projection MUST NOT widen the plaintext visibility of the source Message. See models/private-objects.md §3.4."
     },
-    "created_at": { "$ref": "#/$defs/timestamp" },
-    "updated_at": { "$ref": "#/$defs/timestamp" }
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "additionalProperties": false
 }

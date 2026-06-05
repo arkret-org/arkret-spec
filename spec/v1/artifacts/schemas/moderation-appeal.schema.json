@@ -5,20 +5,23 @@
   "description": "Payload shapes for the four ck.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the ck.component.moderation_appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed. The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same Anchor batch with a ck.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal flow). Capability: ck.moderation.appeal.submit (any member, low risk) for submit; ck.moderation.appeal.review (moderator) for the other three.",
   "type": "object",
   "oneOf": [
-    { "$ref": "#/$defs/submit_payload" },
-    { "$ref": "#/$defs/review_payload" },
-    { "$ref": "#/$defs/decision_payload" },
-    { "$ref": "#/$defs/close_payload" }
+    {
+      "$ref": "#/$defs/submit_payload"
+    },
+    {
+      "$ref": "#/$defs/review_payload"
+    },
+    {
+      "$ref": "#/$defs/decision_payload"
+    },
+    {
+      "$ref": "#/$defs/close_payload"
+    }
   ],
   "$defs": {
     "appeal_id": {
       "type": "string",
       "pattern": "^ck:appeal:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Realm whose moderation decision is being appealed. MUST equal the enclosing Event.realm_id and the Realm of decision_ref / target_ref unless an explicit cross-Realm moderation profile authorizes otherwise."
     },
     "decision_ref": {
       "type": "string",
@@ -61,10 +64,18 @@
         "created_at"
       ],
       "properties": {
-        "appeal_id": { "$ref": "#/$defs/appeal_id" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "decision_ref": { "$ref": "#/$defs/decision_ref" },
-        "target_ref": { "$ref": "#/$defs/target_ref" },
+        "appeal_id": {
+          "$ref": "#/$defs/appeal_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "decision_ref": {
+          "$ref": "#/$defs/decision_ref"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/target_ref"
+        },
         "appellant": {
           "$ref": "#/$defs/actor_ref",
           "description": "Actor lodging the appeal. MUST be the original moderation target's controller or an authorized advocate."
@@ -75,7 +86,9 @@
         },
         "evidence_refs": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "maxItems": 32,
           "description": "Optional supporting evidence (blob refs, prior message ids, witness DIDs)."
         },
@@ -83,7 +96,9 @@
           "$ref": "#/$defs/evidence_visibility",
           "default": "reviewers_only"
         },
-        "created_at": { "$ref": "#/$defs/timestamp" }
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -97,10 +112,18 @@
         "reviewed_at"
       ],
       "properties": {
-        "appeal_id": { "$ref": "#/$defs/appeal_id" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "reviewer": { "$ref": "#/$defs/actor_ref" },
-        "reviewed_at": { "$ref": "#/$defs/timestamp" },
+        "appeal_id": {
+          "$ref": "#/$defs/appeal_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "reviewer": {
+          "$ref": "#/$defs/actor_ref"
+        },
+        "reviewed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "notes_ref": {
           "type": "string",
           "description": "Optional reviewer notes reference."
@@ -120,12 +143,22 @@
         "decided_at"
       ],
       "properties": {
-        "appeal_id": { "$ref": "#/$defs/appeal_id" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "reviewer": { "$ref": "#/$defs/actor_ref" },
+        "appeal_id": {
+          "$ref": "#/$defs/appeal_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "reviewer": {
+          "$ref": "#/$defs/actor_ref"
+        },
         "verdict": {
           "type": "string",
-          "enum": ["uphold", "overturn", "modify"]
+          "enum": [
+            "uphold",
+            "overturn",
+            "modify"
+          ]
         },
         "reason_text_ref": {
           "type": "string",
@@ -136,21 +169,66 @@
           "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Required iff verdict=modify. Points to the replacement ck.moderation.decision event in the same Anchor batch."
         },
-        "decided_at": { "$ref": "#/$defs/timestamp" }
+        "decided_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false,
       "allOf": [
         {
-          "if": { "properties": { "verdict": { "const": "modify" } }, "required": ["verdict"] },
-          "then": { "required": ["modify_decision_ref"] }
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "modify"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "required": [
+              "modify_decision_ref"
+            ]
+          }
         },
         {
-          "if": { "properties": { "verdict": { "const": "uphold" } }, "required": ["verdict"] },
-          "then": { "not": { "required": ["modify_decision_ref"] } }
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "uphold"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "modify_decision_ref"
+              ]
+            }
+          }
         },
         {
-          "if": { "properties": { "verdict": { "const": "overturn" } }, "required": ["verdict"] },
-          "then": { "not": { "required": ["modify_decision_ref"] } }
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "overturn"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "modify_decision_ref"
+              ]
+            }
+          }
         }
       ]
     },
@@ -164,13 +242,19 @@
         "closed_at"
       ],
       "properties": {
-        "appeal_id": { "$ref": "#/$defs/appeal_id" },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
+        "appeal_id": {
+          "$ref": "#/$defs/appeal_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
         "closer": {
           "$ref": "#/$defs/actor_ref",
           "description": "Actor or service closing the appeal. If auto_closed=true, reducer MUST require closer to be a timer service DID listed in Realm policy and MUST enforce closed_at >= decided_at + appeal_window_ms."
         },
-        "closed_at": { "$ref": "#/$defs/timestamp" },
+        "closed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "auto_closed": {
           "type": "boolean",
           "default": false,

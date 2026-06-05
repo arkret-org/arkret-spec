@@ -108,8 +108,8 @@ POST /_cokret/self/moderation/report
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `report_id` | id | required | 举报记录 ID。 |
-| `status` | enum | required | 初始处理状态；**封闭枚举** `{ submitted, routed, rejected }`，取未列值时实现 MUST 按 `schema_violation` 拒绝。`submitted`=已受理待路由；`routed`=已路由至 scoped moderator；`rejected`=入口校验/限速/去重拒绝。 |
-| `routed_to` | did[] | optional | 被路由到的 scoped moderator / 管理员 DID。 |
+| `status` | enum | required | 举报在其生命周期中响应时刻的处理状态；取值为 `moderation-queue-item` 的**权威生命周期枚举** `{ submitted, triaged, reviewing, actioned, dismissed, appealed, closed }`（各状态语义、合法转换与终态集合见 §3.3）。提交后通常为 `submitted`，后续随 triage / review 推进；实现 MUST NOT 返回该枚举之外的值。 |
+| `routed_to` | did[] | optional | 该举报被路由 / 分诊到的 scoped moderator / 管理员 DID(在进入 `triaged` 及之后填充)。 |
 
 请求示例（非完整 schema）：
 

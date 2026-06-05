@@ -4,25 +4,63 @@
   "title": "Cokret Account Pairing and Agent Operation DTOs",
   "description": "Closed request and response DTOs for account pairing and native personal agent management operations.",
   "oneOf": [
-    { "$ref": "#/$defs/device_pair_request" },
-    { "$ref": "#/$defs/device_pair_response" },
-    { "$ref": "#/$defs/agent_key_pair_request" },
-    { "$ref": "#/$defs/agent_key_pair_response" },
-    { "$ref": "#/$defs/provision_request" },
-    { "$ref": "#/$defs/provision_response" },
-    { "$ref": "#/$defs/list_response" },
-    { "$ref": "#/$defs/get_response" },
-    { "$ref": "#/$defs/pause_request" },
-    { "$ref": "#/$defs/lifecycle_response" },
-    { "$ref": "#/$defs/resume_request" },
-    { "$ref": "#/$defs/deactivate_request" },
-    { "$ref": "#/$defs/rotate_key_request" },
-    { "$ref": "#/$defs/rotate_key_response" },
-    { "$ref": "#/$defs/grant_attach_request" },
-    { "$ref": "#/$defs/grant_attach_response" },
-    { "$ref": "#/$defs/grant_detach_response" },
-    { "$ref": "#/$defs/sidecar_thread_ensure_request" },
-    { "$ref": "#/$defs/sidecar_thread_ensure_response" }
+    {
+      "$ref": "#/$defs/device_pair_request"
+    },
+    {
+      "$ref": "#/$defs/device_pair_response"
+    },
+    {
+      "$ref": "#/$defs/agent_key_pair_request"
+    },
+    {
+      "$ref": "#/$defs/agent_key_pair_response"
+    },
+    {
+      "$ref": "#/$defs/provision_request"
+    },
+    {
+      "$ref": "#/$defs/provision_response"
+    },
+    {
+      "$ref": "#/$defs/list_response"
+    },
+    {
+      "$ref": "#/$defs/get_response"
+    },
+    {
+      "$ref": "#/$defs/pause_request"
+    },
+    {
+      "$ref": "#/$defs/lifecycle_response"
+    },
+    {
+      "$ref": "#/$defs/resume_request"
+    },
+    {
+      "$ref": "#/$defs/deactivate_request"
+    },
+    {
+      "$ref": "#/$defs/rotate_key_request"
+    },
+    {
+      "$ref": "#/$defs/rotate_key_response"
+    },
+    {
+      "$ref": "#/$defs/grant_attach_request"
+    },
+    {
+      "$ref": "#/$defs/grant_attach_response"
+    },
+    {
+      "$ref": "#/$defs/grant_detach_response"
+    },
+    {
+      "$ref": "#/$defs/sidecar_thread_ensure_request"
+    },
+    {
+      "$ref": "#/$defs/sidecar_thread_ensure_response"
+    }
   ],
   "$defs": {
     "did": {
@@ -44,14 +82,6 @@
     "grant_id": {
       "type": "string",
       "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "circle_id": {
-      "type": "string",
-      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
@@ -96,21 +126,39 @@
         "key"
       ],
       "properties": {
-        "kty": { "$ref": "#/$defs/non_empty_string" },
-        "alg": { "$ref": "#/$defs/non_empty_string" },
-        "key": { "$ref": "#/$defs/base64url" },
-        "kid": { "$ref": "#/$defs/non_empty_string" },
-        "key_digest": { "$ref": "#/$defs/hash" }
+        "kty": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "alg": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "key": {
+          "$ref": "#/$defs/base64url"
+        },
+        "kid": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "key_digest": {
+          "$ref": "#/$defs/hash"
+        }
       },
       "additionalProperties": false
     },
     "device_metadata": {
       "type": "object",
       "properties": {
-        "display_name": { "$ref": "#/$defs/non_empty_string" },
-        "platform": { "$ref": "#/$defs/non_empty_string" },
-        "app_id": { "$ref": "#/$defs/non_empty_string" },
-        "app_version": { "$ref": "#/$defs/non_empty_string" }
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "platform": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "app_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "app_version": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -131,11 +179,21 @@
         "status"
       ],
       "properties": {
-        "agent_principal_id": { "$ref": "#/$defs/did" },
-        "display_name": { "$ref": "#/$defs/non_empty_string" },
-        "status": { "$ref": "#/$defs/agent_status" },
-        "created_at": { "$ref": "#/$defs/timestamp" },
-        "updated_at": { "$ref": "#/$defs/timestamp" }
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "status": {
+          "$ref": "#/$defs/agent_status"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -145,10 +203,18 @@
         "grant_id"
       ],
       "properties": {
-        "grant_id": { "$ref": "#/$defs/grant_id" },
-        "status": { "$ref": "#/$defs/non_empty_string" },
-        "grant_digest": { "$ref": "#/$defs/hash" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "grant_id": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "status": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "grant_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -159,10 +225,18 @@
         "status"
       ],
       "properties": {
-        "verification_method": { "$ref": "#/$defs/did_url" },
-        "status": { "$ref": "#/$defs/non_empty_string" },
-        "authorized_event_ref": { "$ref": "#/$defs/event_id" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "status": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "authorized_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -182,8 +256,13 @@
         "status"
       ],
       "properties": {
-        "ok": { "type": "boolean", "const": true },
-        "status": { "$ref": "#/$defs/agent_status" }
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "status": {
+          "$ref": "#/$defs/agent_status"
+        }
       },
       "additionalProperties": false
     },
@@ -195,11 +274,21 @@
         "challenge_signature"
       ],
       "properties": {
-        "pairing_code": { "$ref": "#/$defs/non_empty_string" },
-        "new_device_pubkey": { "$ref": "#/$defs/public_key" },
-        "challenge_signature": { "$ref": "#/$defs/base64url" },
-        "display_name": { "$ref": "#/$defs/non_empty_string" },
-        "device_metadata": { "$ref": "#/$defs/device_metadata" }
+        "pairing_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "new_device_pubkey": {
+          "$ref": "#/$defs/public_key"
+        },
+        "challenge_signature": {
+          "$ref": "#/$defs/base64url"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "device_metadata": {
+          "$ref": "#/$defs/device_metadata"
+        }
       },
       "additionalProperties": false
     },
@@ -210,9 +299,15 @@
         "authorized_event_ref"
       ],
       "properties": {
-        "device_id": { "$ref": "#/$defs/device_id" },
-        "authorized_event_ref": { "$ref": "#/$defs/event_id" },
-        "device_grant": { "$ref": "#/$defs/grant_snapshot" },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "authorized_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "device_grant": {
+          "$ref": "#/$defs/grant_snapshot"
+        },
         "key_backup_hint": {
           "type": "object",
           "additionalProperties": true
@@ -229,11 +324,21 @@
         "proof_of_possession"
       ],
       "properties": {
-        "agent_principal_id": { "$ref": "#/$defs/did" },
-        "verification_method": { "$ref": "#/$defs/did_url" },
-        "public_key": { "$ref": "#/$defs/public_key" },
-        "proof_of_possession": { "$ref": "#/$defs/proof" },
-        "runtime_attestation": { "$ref": "#/$defs/runtime_attestation" }
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "public_key": {
+          "$ref": "#/$defs/public_key"
+        },
+        "proof_of_possession": {
+          "$ref": "#/$defs/proof"
+        },
+        "runtime_attestation": {
+          "$ref": "#/$defs/runtime_attestation"
+        }
       },
       "additionalProperties": false
     },
@@ -244,16 +349,25 @@
         "authorized_event_ref"
       ],
       "properties": {
-        "ok": { "type": "boolean", "const": true },
-        "authorized_event_ref": { "$ref": "#/$defs/event_id" }
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "authorized_event_ref": {
+          "$ref": "#/$defs/event_id"
+        }
       },
       "additionalProperties": false
     },
     "provision_request": {
       "type": "object",
       "properties": {
-        "display_name": { "$ref": "#/$defs/non_empty_string" },
-        "requested_scope": { "$ref": "#/$defs/agent_key_scope" },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "requested_scope": {
+          "$ref": "#/$defs/agent_key_scope"
+        },
         "accountability": {
           "type": "object",
           "additionalProperties": true
@@ -274,10 +388,18 @@
         "expires_at"
       ],
       "properties": {
-        "agent_principal_id": { "$ref": "#/$defs/did" },
-        "pairing_request_id": { "$ref": "#/$defs/opaque_local_id" },
-        "pairing_code": { "$ref": "#/$defs/non_empty_string" },
-        "expires_at": { "$ref": "#/$defs/timestamp" }
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "pairing_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "pairing_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -290,13 +412,17 @@
       "properties": {
         "agents": {
           "type": "array",
-          "items": { "$ref": "#/$defs/agent_projection" }
+          "items": {
+            "$ref": "#/$defs/agent_projection"
+          }
         },
         "next_cursor": {
           "type": "string",
           "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
         },
-        "has_more": { "type": "boolean" }
+        "has_more": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
@@ -307,34 +433,48 @@
         "status"
       ],
       "properties": {
-        "agent": { "$ref": "#/$defs/agent_projection" },
-        "status": { "$ref": "#/$defs/agent_status" },
+        "agent": {
+          "$ref": "#/$defs/agent_projection"
+        },
+        "status": {
+          "$ref": "#/$defs/agent_status"
+        },
         "grants": {
           "type": "array",
-          "items": { "$ref": "#/$defs/grant_snapshot" }
+          "items": {
+            "$ref": "#/$defs/grant_snapshot"
+          }
         },
-        "key_state": { "$ref": "#/$defs/key_state" }
+        "key_state": {
+          "$ref": "#/$defs/key_state"
+        }
       },
       "additionalProperties": false
     },
     "pause_request": {
       "type": "object",
       "properties": {
-        "reason": { "$ref": "#/$defs/non_empty_string" }
+        "reason": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "resume_request": {
       "type": "object",
       "properties": {
-        "sidecar_exposure_ack": { "$ref": "#/$defs/sidecar_exposure_ack" }
+        "sidecar_exposure_ack": {
+          "$ref": "#/$defs/sidecar_exposure_ack"
+        }
       },
       "additionalProperties": false
     },
     "deactivate_request": {
       "type": "object",
       "properties": {
-        "reason": { "$ref": "#/$defs/non_empty_string" }
+        "reason": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -348,8 +488,12 @@
         "proof_of_possession"
       ],
       "properties": {
-        "replacement_key": { "$ref": "#/$defs/public_key" },
-        "proof_of_possession": { "$ref": "#/$defs/proof" }
+        "replacement_key": {
+          "$ref": "#/$defs/public_key"
+        },
+        "proof_of_possession": {
+          "$ref": "#/$defs/proof"
+        }
       },
       "additionalProperties": false
     },
@@ -360,8 +504,13 @@
         "authorized_event_ref"
       ],
       "properties": {
-        "ok": { "type": "boolean", "const": true },
-        "authorized_event_ref": { "$ref": "#/$defs/event_id" }
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "authorized_event_ref": {
+          "$ref": "#/$defs/event_id"
+        }
       },
       "additionalProperties": false
     },
@@ -385,8 +534,13 @@
         "grant_id"
       ],
       "properties": {
-        "ok": { "type": "boolean", "const": true },
-        "grant_id": { "$ref": "#/$defs/grant_id" }
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "grant_id": {
+          "$ref": "#/$defs/grant_id"
+        }
       },
       "additionalProperties": false
     },
@@ -397,8 +551,13 @@
         "revoked_at"
       ],
       "properties": {
-        "ok": { "type": "boolean", "const": true },
-        "revoked_at": { "$ref": "#/$defs/timestamp" }
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
@@ -410,9 +569,15 @@
         "agent_principal_id"
       ],
       "properties": {
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "controller_principal_id": { "$ref": "#/$defs/did" },
-        "agent_principal_id": { "$ref": "#/$defs/did" }
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        }
       },
       "additionalProperties": false
     },
@@ -423,8 +588,12 @@
         "reason"
       ],
       "properties": {
-        "agent_principal_id": { "$ref": "#/$defs/did" },
-        "reason": { "$ref": "#/$defs/non_empty_string" }
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "reason": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -437,13 +606,24 @@
         "private_relation_id"
       ],
       "properties": {
-        "ok": { "type": "boolean", "const": true },
-        "private_circle_id": { "$ref": "#/$defs/circle_id" },
-        "private_flow_id": { "$ref": "#/$defs/flow_id" },
-        "private_relation_id": { "$ref": "#/$defs/relation_id" },
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "private_circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        },
+        "private_flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "private_relation_id": {
+          "$ref": "#/$defs/relation_id"
+        },
         "pending_member_reconciliation": {
           "type": "array",
-          "items": { "$ref": "#/$defs/pending_member_reconciliation" }
+          "items": {
+            "$ref": "#/$defs/pending_member_reconciliation"
+          }
         }
       },
       "additionalProperties": false

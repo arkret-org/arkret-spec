@@ -15,11 +15,36 @@
   ],
   "not": {
     "anyOf": [
-      { "required": ["metadata", "encrypted_metadata"] },
-      { "required": ["content", "encrypted_content"] },
-      { "required": ["encrypted_payload"], "$comment": "legacy encrypted content carrier; canonical name is encrypted_content" },
-      { "required": ["track"], "$comment": "legacy Flow track key; canonical name is track_name" },
-      { "required": ["fields"], "$comment": "legacy Message extension metadata; canonical path is metadata.fields or encrypted_metadata" }
+      {
+        "required": [
+          "metadata",
+          "encrypted_metadata"
+        ]
+      },
+      {
+        "required": [
+          "content",
+          "encrypted_content"
+        ]
+      },
+      {
+        "required": [
+          "encrypted_payload"
+        ],
+        "$comment": "legacy encrypted content carrier; canonical name is encrypted_content"
+      },
+      {
+        "required": [
+          "track"
+        ],
+        "$comment": "legacy Flow track key; canonical name is track_name"
+      },
+      {
+        "required": [
+          "fields"
+        ],
+        "$comment": "legacy Message extension metadata; canonical path is metadata.fields or encrypted_metadata"
+      }
     ]
   },
   "oneOf": [
@@ -87,8 +112,7 @@
       "const": "ck.schema.message.v1"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "flow_id": {
       "type": "string",
@@ -161,28 +185,36 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "realm_id"],
+          "required": [
+            "kind",
+            "realm_id"
+          ],
           "properties": {
-            "kind": { "const": "realm" },
+            "kind": {
+              "const": "realm"
+            },
             "realm_id": {
-              "type": "string",
-              "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "realm_id", "circle_id"],
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
           "properties": {
-            "kind": { "const": "circle" },
+            "kind": {
+              "const": "circle"
+            },
             "realm_id": {
-              "type": "string",
-              "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
             "circle_id": {
-              "type": "string",
-              "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
             }
           },
           "additionalProperties": false
@@ -245,25 +277,52 @@
             }
           },
           "additionalProperties": true,
-          "not": { "required": ["type"] }
+          "not": {
+            "required": [
+              "type"
+            ]
+          }
         }
       },
       "additionalProperties": true,
       "not": {
         "$comment": "Mirror of event-payload.schema.json $defs.content_block: reject legacy discriminator `type` (canonical: `kind`), legacy composite child array name `blocks` (canonical: `parts`), and byte-count field `size` (canonical: `size_bytes`). Keeps materialized Message and Event payload schemas in lockstep so that the materialized Message.content cannot smuggle through wire-forbidden field names.",
         "anyOf": [
-          { "required": ["type"] },
-          { "required": ["blocks"] },
-          { "required": ["size"], "$comment": "byte counts use size_bytes" }
+          {
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "required": [
+              "blocks"
+            ]
+          },
+          {
+            "required": [
+              "size"
+            ],
+            "$comment": "byte counts use size_bytes"
+          }
         ]
       },
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "ck.content.composite" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "ck.content.composite"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
-          "then": { "required": ["parts"] }
+          "then": {
+            "required": [
+              "parts"
+            ]
+          }
         }
       ]
     },
@@ -278,24 +337,96 @@
       "not": {
         "$comment": "Reducer-owned fields stay top-level and MUST NOT be mirrored inside metadata.",
         "anyOf": [
-          { "required": ["id"] },
-          { "required": ["schema"] },
-          { "required": ["realm_id"] },
-          { "required": ["flow_id"] },
-          { "required": ["track"] },
-          { "required": ["track_name"] },
-          { "required": ["state"] },
-          { "required": ["state_changed_at"] },
-          { "required": ["revision_root"] },
-          { "required": ["edited_at"] },
-          { "required": ["redaction_ref"] },
-          { "required": ["created_by"] },
-          { "required": ["created_at"] },
-          { "required": ["updated_by"] },
-          { "required": ["updated_at"] },
-          { "required": ["content"] },
-          { "required": ["encrypted_content"] },
-          { "required": ["encrypted_payload"] }
+          {
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "required": [
+              "schema"
+            ]
+          },
+          {
+            "required": [
+              "realm_id"
+            ]
+          },
+          {
+            "required": [
+              "flow_id"
+            ]
+          },
+          {
+            "required": [
+              "track"
+            ]
+          },
+          {
+            "required": [
+              "track_name"
+            ]
+          },
+          {
+            "required": [
+              "state"
+            ]
+          },
+          {
+            "required": [
+              "state_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "revision_root"
+            ]
+          },
+          {
+            "required": [
+              "edited_at"
+            ]
+          },
+          {
+            "required": [
+              "redaction_ref"
+            ]
+          },
+          {
+            "required": [
+              "created_by"
+            ]
+          },
+          {
+            "required": [
+              "created_at"
+            ]
+          },
+          {
+            "required": [
+              "updated_by"
+            ]
+          },
+          {
+            "required": [
+              "updated_at"
+            ]
+          },
+          {
+            "required": [
+              "content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_payload"
+            ]
+          }
         ]
       },
       "additionalProperties": true
@@ -305,15 +436,51 @@
       "description": "Profile-defined Message metadata fields. Reducer-owned lifecycle and revision fields are forbidden here to avoid dual sources of truth.",
       "not": {
         "anyOf": [
-          { "required": ["revision_root"] },
-          { "required": ["visible_state"] },
-          { "required": ["redacted"] },
-          { "required": ["edited_at"] },
-          { "required": ["redaction_ref"] },
-          { "required": ["state"] },
-          { "required": ["state_changed_at"] },
-          { "required": ["track"] },
-          { "required": ["track_name"] }
+          {
+            "required": [
+              "revision_root"
+            ]
+          },
+          {
+            "required": [
+              "visible_state"
+            ]
+          },
+          {
+            "required": [
+              "redacted"
+            ]
+          },
+          {
+            "required": [
+              "edited_at"
+            ]
+          },
+          {
+            "required": [
+              "redaction_ref"
+            ]
+          },
+          {
+            "required": [
+              "state"
+            ]
+          },
+          {
+            "required": [
+              "state_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "track"
+            ]
+          },
+          {
+            "required": [
+              "track_name"
+            ]
+          }
         ]
       },
       "additionalProperties": true

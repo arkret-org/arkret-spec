@@ -160,8 +160,7 @@
           "type": "string"
         },
         "source_realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "target_ref": {
           "type": "string",
@@ -171,8 +170,7 @@
           "type": "string"
         },
         "target_realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "depth": {
           "type": "integer",
@@ -184,12 +182,42 @@
         {
           "not": {
             "anyOf": [
-              { "required": ["source_ref", "source_actor_id"] },
-              { "required": ["source_ref", "source_realm_id"] },
-              { "required": ["source_actor_id", "source_realm_id"] },
-              { "required": ["target_ref", "target_actor_id"] },
-              { "required": ["target_ref", "target_realm_id"] },
-              { "required": ["target_actor_id", "target_realm_id"] }
+              {
+                "required": [
+                  "source_ref",
+                  "source_actor_id"
+                ]
+              },
+              {
+                "required": [
+                  "source_ref",
+                  "source_realm_id"
+                ]
+              },
+              {
+                "required": [
+                  "source_actor_id",
+                  "source_realm_id"
+                ]
+              },
+              {
+                "required": [
+                  "target_ref",
+                  "target_actor_id"
+                ]
+              },
+              {
+                "required": [
+                  "target_ref",
+                  "target_realm_id"
+                ]
+              },
+              {
+                "required": [
+                  "target_actor_id",
+                  "target_realm_id"
+                ]
+              }
             ]
           }
         }
@@ -203,8 +231,7 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "type": "string",
-            "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
           }
         },
         "view_id": {
@@ -251,8 +278,12 @@
         },
         "relation": {
           "oneOf": [
-            { "$ref": "#/$defs/relation_query" },
-            { "type": "null" }
+            {
+              "$ref": "#/$defs/relation_query"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "filters": {
@@ -269,8 +300,13 @@
         },
         "cursor": {
           "oneOf": [
-            { "type": "string", "pattern": "^ck:cursor:[A-Za-z0-9_-]+$" },
-            { "type": "null" }
+            {
+              "type": "string",
+              "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "limit": {
@@ -287,24 +323,44 @@
       "allOf": [
         {
           "if": {
-            "properties": { "projection": { "const": "raw" } },
-            "required": ["projection"]
+            "properties": {
+              "projection": {
+                "const": "raw"
+              }
+            },
+            "required": [
+              "projection"
+            ]
           },
           "then": {
-            "not": { "required": ["renderer"] }
+            "not": {
+              "required": [
+                "renderer"
+              ]
+            }
           }
         },
         {
           "if": {
             "properties": {
               "projection": {
-                "enum": ["collection", "graph", "timeline", "document", "composite"]
+                "enum": [
+                  "collection",
+                  "graph",
+                  "timeline",
+                  "document",
+                  "composite"
+                ]
               }
             },
-            "required": ["projection"]
+            "required": [
+              "projection"
+            ]
           },
           "then": {
-            "required": ["view_id"]
+            "required": [
+              "view_id"
+            ]
           }
         }
       ]
@@ -322,8 +378,7 @@
         "realm_ids": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
           }
         },
         "object_types": {

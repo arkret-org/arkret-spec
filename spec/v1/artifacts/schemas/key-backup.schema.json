@@ -23,8 +23,7 @@
       "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+      "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "device_id": {
       "type": "string",
@@ -59,7 +58,9 @@
     },
     "supersedes": {
       "oneOf": [
-        { "type": "null" },
+        {
+          "type": "null"
+        },
         {
           "type": "string",
           "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -111,7 +112,9 @@
       },
       "additionalProperties": false
     },
-    "created_at": { "$ref": "#/$defs/timestamp" },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "expires_at": {
       "type": [
         "string",
@@ -120,7 +123,9 @@
       "format": "date-time",
       "pattern": "Z$"
     },
-    "updated_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "encryption": {
       "type": "object",
       "required": [
@@ -203,7 +208,9 @@
                     "const": "argon2id"
                   }
                 },
-                "required": ["name"]
+                "required": [
+                  "name"
+                ]
               },
               "then": {
                 "required": [
@@ -241,7 +248,9 @@
                     "const": "pbkdf2"
                   }
                 },
-                "required": ["name"]
+                "required": [
+                  "name"
+                ]
               },
               "then": {
                 "required": [
@@ -428,8 +437,7 @@
             ]
           },
           "realm_id": {
-            "type": "string",
-            "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
           "mls_group_id": {
             "type": "string",
@@ -510,17 +518,57 @@
           "minItems": 1,
           "uniqueItems": true,
           "allOf": [
-            { "contains": { "const": "backup_id" } },
-            { "contains": { "const": "actor_id" } },
-            { "contains": { "const": "backup_class" } },
-            { "contains": { "const": "backup_version" } },
-            { "contains": { "const": "series_id" } },
-            { "contains": { "const": "series_seq" } },
-            { "contains": { "const": "supersedes" } },
-            { "contains": { "const": "encryption" } },
-          { "contains": { "const": "contents" } },
-          { "contains": { "const": "ciphertext_digest" } }
-        ],
+            {
+              "contains": {
+                "const": "backup_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "actor_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "backup_class"
+              }
+            },
+            {
+              "contains": {
+                "const": "backup_version"
+              }
+            },
+            {
+              "contains": {
+                "const": "series_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "series_seq"
+              }
+            },
+            {
+              "contains": {
+                "const": "supersedes"
+              }
+            },
+            {
+              "contains": {
+                "const": "encryption"
+              }
+            },
+            {
+              "contains": {
+                "const": "contents"
+              }
+            },
+            {
+              "contains": {
+                "const": "ciphertext_digest"
+              }
+            }
+          ],
           "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest, frontier_ref, recovery_policy_ref, and (hardening profile) ssk_generation."
         },
         "ssk_generation": {
@@ -560,7 +608,9 @@
             "const": "mls_history"
           }
         },
-        "required": ["backup_class"]
+        "required": [
+          "backup_class"
+        ]
       },
       "then": {
         "properties": {
@@ -585,7 +635,9 @@
             "const": "did_recovery"
           }
         },
-        "required": ["backup_class"]
+        "required": [
+          "backup_class"
+        ]
       },
       "then": {
         "required": [
@@ -605,7 +657,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "recovery_policy_ref" } }
+                  {
+                    "contains": {
+                      "const": "recovery_policy_ref"
+                    }
+                  }
                 ]
               }
             }
@@ -626,7 +682,9 @@
                 "const": "passphrase_kdf"
               }
             },
-            "required": ["recipient_method"]
+            "required": [
+              "recipient_method"
+            ]
           }
         },
         "required": [
@@ -678,26 +736,41 @@
     {
       "if": {
         "properties": {
-          "series_seq": { "const": 0 }
+          "series_seq": {
+            "const": 0
+          }
         },
-        "required": [ "series_seq" ]
+        "required": [
+          "series_seq"
+        ]
       },
       "then": {
         "properties": {
-          "supersedes": { "type": "null" }
+          "supersedes": {
+            "type": "null"
+          }
         },
-        "required": [ "supersedes" ],
+        "required": [
+          "supersedes"
+        ],
         "not": {
-          "required": [ "supersedes_digest" ]
+          "required": [
+            "supersedes_digest"
+          ]
         }
       }
     },
     {
       "if": {
         "properties": {
-          "series_seq": { "type": "integer", "minimum": 1 }
+          "series_seq": {
+            "type": "integer",
+            "minimum": 1
+          }
         },
-        "required": [ "series_seq" ]
+        "required": [
+          "series_seq"
+        ]
       },
       "then": {
         "properties": {
@@ -709,7 +782,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "supersedes_digest" } }
+                  {
+                    "contains": {
+                      "const": "supersedes_digest"
+                    }
+                  }
                 ]
               }
             }
@@ -723,7 +800,9 @@
     },
     {
       "if": {
-        "required": [ "frontier_ref" ]
+        "required": [
+          "frontier_ref"
+        ]
       },
       "then": {
         "properties": {
@@ -731,7 +810,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "frontier_ref" } }
+                  {
+                    "contains": {
+                      "const": "frontier_ref"
+                    }
+                  }
                 ]
               }
             }
@@ -741,7 +824,9 @@
     },
     {
       "if": {
-        "required": [ "recovery_policy_ref" ]
+        "required": [
+          "recovery_policy_ref"
+        ]
       },
       "then": {
         "properties": {
@@ -749,7 +834,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "recovery_policy_ref" } }
+                  {
+                    "contains": {
+                      "const": "recovery_policy_ref"
+                    }
+                  }
                 ]
               }
             }

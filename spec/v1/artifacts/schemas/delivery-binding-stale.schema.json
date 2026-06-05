@@ -37,7 +37,7 @@
           "description": "MUST equal the top-level new_recipient_service_did."
         },
         "actor_id": {
-          "$ref": "#/$defs/did",
+          "$ref": "./common-ids.schema.json#/$defs/did",
           "description": "Rebind target principal; MUST equal target_principal_id."
         },
         "witness": {

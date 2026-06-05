@@ -15,11 +15,36 @@
   ],
   "not": {
     "anyOf": [
-      { "required": ["title"], "$comment": "legacy Morph top-level metadata; canonical path is metadata.title or encrypted_metadata" },
-      { "required": ["summary"], "$comment": "legacy Morph top-level metadata; canonical path is metadata.summary or encrypted_metadata" },
-      { "required": ["encrypted_payload"], "$comment": "legacy encrypted content carrier; canonical name is encrypted_content" },
-      { "required": ["content", "encrypted_content"] },
-      { "required": ["metadata", "encrypted_metadata"] }
+      {
+        "required": [
+          "title"
+        ],
+        "$comment": "legacy Morph top-level metadata; canonical path is metadata.title or encrypted_metadata"
+      },
+      {
+        "required": [
+          "summary"
+        ],
+        "$comment": "legacy Morph top-level metadata; canonical path is metadata.summary or encrypted_metadata"
+      },
+      {
+        "required": [
+          "encrypted_payload"
+        ],
+        "$comment": "legacy encrypted content carrier; canonical name is encrypted_content"
+      },
+      {
+        "required": [
+          "content",
+          "encrypted_content"
+        ]
+      },
+      {
+        "required": [
+          "metadata",
+          "encrypted_metadata"
+        ]
+      }
     ]
   },
   "properties": {
@@ -31,11 +56,10 @@
       "const": "ck.schema.morph.v1"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "scope_circle_id": {
-      "$ref": "#/$defs/circle_id",
+      "$ref": "./common-ids.schema.json#/$defs/circle_id",
       "description": "Optional reference to an intra-Realm Circle that defines this Morph's effective scope. Omitted means Realm-default scope. Reducer enforces scope_circle_id.realm_id == Morph.realm_id and stamps immutable effective_scope onto emitted events."
     },
     "schema_refs": {
@@ -146,9 +170,6 @@
     }
   ],
   "$defs": {
-    "circle_id": {
-      "$ref": "./common-ids.schema.json#/$defs/circle_id"
-    },
     "facet_config": {
       "type": "object",
       "additionalProperties": true
@@ -170,25 +191,101 @@
       "not": {
         "$comment": "Reducer-owned fields and Morph business fields stay top-level and MUST NOT be mirrored inside metadata.",
         "anyOf": [
-          { "required": ["id"] },
-          { "required": ["schema"] },
-          { "required": ["realm_id"] },
-          { "required": ["scope_circle_id"] },
-          { "required": ["schema_refs"] },
-          { "required": ["morph_type"] },
-          { "required": ["facets"] },
-          { "required": ["fields"] },
-          { "required": ["stage"] },
-          { "required": ["stage_changed_at"] },
-          { "required": ["state"] },
-          { "required": ["state_changed_at"] },
-          { "required": ["created_by"] },
-          { "required": ["created_at"] },
-          { "required": ["updated_by"] },
-          { "required": ["updated_at"] },
-          { "required": ["content"] },
-          { "required": ["encrypted_content"] },
-          { "required": ["encrypted_payload"] }
+          {
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "required": [
+              "schema"
+            ]
+          },
+          {
+            "required": [
+              "realm_id"
+            ]
+          },
+          {
+            "required": [
+              "scope_circle_id"
+            ]
+          },
+          {
+            "required": [
+              "schema_refs"
+            ]
+          },
+          {
+            "required": [
+              "morph_type"
+            ]
+          },
+          {
+            "required": [
+              "facets"
+            ]
+          },
+          {
+            "required": [
+              "fields"
+            ]
+          },
+          {
+            "required": [
+              "stage"
+            ]
+          },
+          {
+            "required": [
+              "stage_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "state"
+            ]
+          },
+          {
+            "required": [
+              "state_changed_at"
+            ]
+          },
+          {
+            "required": [
+              "created_by"
+            ]
+          },
+          {
+            "required": [
+              "created_at"
+            ]
+          },
+          {
+            "required": [
+              "updated_by"
+            ]
+          },
+          {
+            "required": [
+              "updated_at"
+            ]
+          },
+          {
+            "required": [
+              "content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_payload"
+            ]
+          }
         ]
       },
       "additionalProperties": true
@@ -239,18 +336,41 @@
       "not": {
         "$comment": "Reject legacy discriminator `type`, legacy composite child array name `blocks`, and byte-count field `size`; canonical content blocks use `kind`, composite children use `parts`, and byte counts use `size_bytes`.",
         "anyOf": [
-          { "required": ["type"] },
-          { "required": ["blocks"] },
-          { "required": ["size"], "$comment": "byte counts use size_bytes" }
+          {
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "required": [
+              "blocks"
+            ]
+          },
+          {
+            "required": [
+              "size"
+            ],
+            "$comment": "byte counts use size_bytes"
+          }
         ]
       },
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "ck.content.composite" } },
-            "required": ["kind"]
+            "properties": {
+              "kind": {
+                "const": "ck.content.composite"
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
-          "then": { "required": ["parts"] }
+          "then": {
+            "required": [
+              "parts"
+            ]
+          }
         }
       ]
     },

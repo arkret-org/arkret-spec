@@ -28,11 +28,10 @@
       "type": "object",
       "properties": {
         "actor_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "realm_id": {
-          "type": "string",
-          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "query_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/hash"

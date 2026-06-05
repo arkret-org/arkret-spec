@@ -33,7 +33,9 @@
     },
     "supersedes": {
       "oneOf": [
-        { "type": "null" },
+        {
+          "type": "null"
+        },
         {
           "type": "string",
           "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -204,7 +206,7 @@
       "description": "Where the recovery flow MUST emit auditable records (recovery announcement, holder participation, completion receipt).",
       "properties": {
         "audit_realm_id": {
-          "$ref": "#/$defs/realm_id"
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "receipt_required": {
           "type": "boolean",
@@ -222,8 +224,12 @@
     },
     "expires_at": {
       "oneOf": [
-        { "type": "null" },
-        { "$ref": "#/$defs/timestamp" }
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/timestamp"
+        }
       ]
     },
     "auth_data": {
@@ -259,13 +265,41 @@
             "type": "string"
           },
           "allOf": [
-            { "contains": { "const": "policy_id" } },
-            { "contains": { "const": "principal_id" } },
-            { "contains": { "const": "version" } },
-            { "contains": { "const": "supersedes" } },
-            { "contains": { "const": "trust_domain" } },
-            { "contains": { "const": "allowed_proof_kinds" } },
-            { "contains": { "const": "issued_at" } }
+            {
+              "contains": {
+                "const": "policy_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "principal_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "version"
+              }
+            },
+            {
+              "contains": {
+                "const": "supersedes"
+              }
+            },
+            {
+              "contains": {
+                "const": "trust_domain"
+              }
+            },
+            {
+              "contains": {
+                "const": "allowed_proof_kinds"
+              }
+            },
+            {
+              "contains": {
+                "const": "issued_at"
+              }
+            }
           ]
         }
       },
@@ -276,22 +310,33 @@
     {
       "if": {
         "properties": {
-          "version": { "const": 1 }
+          "version": {
+            "const": 1
+          }
         },
-        "required": [ "version" ]
+        "required": [
+          "version"
+        ]
       },
       "then": {
         "properties": {
-          "supersedes": { "type": "null" }
+          "supersedes": {
+            "type": "null"
+          }
         }
       }
     },
     {
       "if": {
         "properties": {
-          "version": { "type": "integer", "minimum": 2 }
+          "version": {
+            "type": "integer",
+            "minimum": 2
+          }
         },
-        "required": [ "version" ]
+        "required": [
+          "version"
+        ]
       },
       "then": {
         "properties": {
@@ -310,18 +355,26 @@
             "maxItems": 0
           }
         },
-        "required": [ "allowed_proof_kinds" ]
+        "required": [
+          "allowed_proof_kinds"
+        ]
       },
       "then": {
-        "required": [ "expires_at" ],
+        "required": [
+          "expires_at"
+        ],
         "properties": {
-          "expires_at": { "$ref": "#/$defs/timestamp" }
+          "expires_at": {
+            "$ref": "#/$defs/timestamp"
+          }
         }
       }
     },
     {
       "if": {
-        "required": [ "threshold" ]
+        "required": [
+          "threshold"
+        ]
       },
       "then": {
         "properties": {
@@ -329,7 +382,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "threshold" } }
+                  {
+                    "contains": {
+                      "const": "threshold"
+                    }
+                  }
                 ]
               }
             }
@@ -339,7 +396,9 @@
     },
     {
       "if": {
-        "required": [ "device_quorum" ]
+        "required": [
+          "device_quorum"
+        ]
       },
       "then": {
         "properties": {
@@ -347,7 +406,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "device_quorum" } }
+                  {
+                    "contains": {
+                      "const": "device_quorum"
+                    }
+                  }
                 ]
               }
             }
@@ -357,7 +420,9 @@
     },
     {
       "if": {
-        "required": [ "trusted_recovery_services" ]
+        "required": [
+          "trusted_recovery_services"
+        ]
       },
       "then": {
         "properties": {
@@ -365,7 +430,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "trusted_recovery_services" } }
+                  {
+                    "contains": {
+                      "const": "trusted_recovery_services"
+                    }
+                  }
                 ]
               }
             }
@@ -375,7 +444,9 @@
     },
     {
       "if": {
-        "required": [ "approval_requirement" ]
+        "required": [
+          "approval_requirement"
+        ]
       },
       "then": {
         "properties": {
@@ -383,7 +454,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "approval_requirement" } }
+                  {
+                    "contains": {
+                      "const": "approval_requirement"
+                    }
+                  }
                 ]
               }
             }
@@ -393,7 +468,9 @@
     },
     {
       "if": {
-        "required": [ "audit" ]
+        "required": [
+          "audit"
+        ]
       },
       "then": {
         "properties": {
@@ -401,7 +478,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "audit" } }
+                  {
+                    "contains": {
+                      "const": "audit"
+                    }
+                  }
                 ]
               }
             }
@@ -411,7 +492,9 @@
     },
     {
       "if": {
-        "required": [ "not_before" ]
+        "required": [
+          "not_before"
+        ]
       },
       "then": {
         "properties": {
@@ -419,7 +502,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "not_before" } }
+                  {
+                    "contains": {
+                      "const": "not_before"
+                    }
+                  }
                 ]
               }
             }
@@ -429,7 +516,9 @@
     },
     {
       "if": {
-        "required": [ "expires_at" ]
+        "required": [
+          "expires_at"
+        ]
       },
       "then": {
         "properties": {
@@ -437,7 +526,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
-                  { "contains": { "const": "expires_at" } }
+                  {
+                    "contains": {
+                      "const": "expires_at"
+                    }
+                  }
                 ]
               }
             }
@@ -450,13 +543,19 @@
         "properties": {
           "allowed_proof_kinds": {
             "type": "array",
-            "contains": { "const": "threshold_recovery" }
+            "contains": {
+              "const": "threshold_recovery"
+            }
           }
         },
-        "required": [ "allowed_proof_kinds" ]
+        "required": [
+          "allowed_proof_kinds"
+        ]
       },
       "then": {
-        "required": [ "threshold" ]
+        "required": [
+          "threshold"
+        ]
       }
     },
     {
@@ -464,13 +563,19 @@
         "properties": {
           "allowed_proof_kinds": {
             "type": "array",
-            "contains": { "const": "device_quorum" }
+            "contains": {
+              "const": "device_quorum"
+            }
           }
         },
-        "required": [ "allowed_proof_kinds" ]
+        "required": [
+          "allowed_proof_kinds"
+        ]
       },
       "then": {
-        "required": [ "device_quorum" ]
+        "required": [
+          "device_quorum"
+        ]
       }
     },
     {
@@ -478,13 +583,19 @@
         "properties": {
           "allowed_proof_kinds": {
             "type": "array",
-            "contains": { "const": "trusted_recovery_service" }
+            "contains": {
+              "const": "trusted_recovery_service"
+            }
           }
         },
-        "required": [ "allowed_proof_kinds" ]
+        "required": [
+          "allowed_proof_kinds"
+        ]
       },
       "then": {
-        "required": [ "trusted_recovery_services" ]
+        "required": [
+          "trusted_recovery_services"
+        ]
       }
     }
   ],
@@ -505,10 +616,6 @@
     "hash": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "share": {
       "type": "object",
@@ -566,14 +673,22 @@
         },
         "expires_at": {
           "oneOf": [
-            { "type": "null" },
-            { "$ref": "#/$defs/timestamp" }
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/timestamp"
+            }
           ]
         },
         "revoked_at": {
           "oneOf": [
-            { "type": "null" },
-            { "$ref": "#/$defs/timestamp" }
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/timestamp"
+            }
           ]
         },
         "revocation_reason_code": {

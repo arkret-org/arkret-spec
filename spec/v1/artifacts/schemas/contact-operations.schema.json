@@ -4,15 +4,33 @@
   "title": "Cokret Contact and Direct Conversation Operation DTOs",
   "description": "Closed request/response DTOs for contact lifecycle operations and direct conversation resolver.",
   "anyOf": [
-    { "$ref": "#/$defs/contact_request_request" },
-    { "$ref": "#/$defs/contact_request_response" },
-    { "$ref": "#/$defs/contact_respond_request" },
-    { "$ref": "#/$defs/contact_respond_response" },
-    { "$ref": "#/$defs/contact_list_response" },
-    { "$ref": "#/$defs/contact_tombstone_request" },
-    { "$ref": "#/$defs/contact_tombstone_response" },
-    { "$ref": "#/$defs/direct_conversation_resolve_request" },
-    { "$ref": "#/$defs/direct_conversation_resolve_response" }
+    {
+      "$ref": "#/$defs/contact_request_request"
+    },
+    {
+      "$ref": "#/$defs/contact_request_response"
+    },
+    {
+      "$ref": "#/$defs/contact_respond_request"
+    },
+    {
+      "$ref": "#/$defs/contact_respond_response"
+    },
+    {
+      "$ref": "#/$defs/contact_list_response"
+    },
+    {
+      "$ref": "#/$defs/contact_tombstone_request"
+    },
+    {
+      "$ref": "#/$defs/contact_tombstone_response"
+    },
+    {
+      "$ref": "#/$defs/direct_conversation_resolve_request"
+    },
+    {
+      "$ref": "#/$defs/direct_conversation_resolve_response"
+    }
   ],
   "$defs": {
     "did": {
@@ -22,10 +40,6 @@
     "event_id": {
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
@@ -57,18 +71,24 @@
     },
     "consent_scopes": {
       "type": "array",
-      "items": { "$ref": "#/$defs/consent_scope" },
+      "items": {
+        "$ref": "#/$defs/consent_scope"
+      },
       "minItems": 1,
       "uniqueItems": true
     },
     "consent_scope_list": {
       "type": "array",
-      "items": { "$ref": "#/$defs/consent_scope" },
+      "items": {
+        "$ref": "#/$defs/consent_scope"
+      },
       "uniqueItems": true
     },
     "event_refs": {
       "type": "array",
-      "items": { "$ref": "#/$defs/event_id" },
+      "items": {
+        "$ref": "#/$defs/event_id"
+      },
       "minItems": 1,
       "uniqueItems": true
     },
@@ -90,12 +110,23 @@
         "state"
       ],
       "properties": {
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "main_flow_id": { "$ref": "#/$defs/flow_id" },
-        "binding_event_ref": { "$ref": "#/$defs/event_id" },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "main_flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "binding_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
         "state": {
           "type": "string",
-          "enum": ["active", "retired", "duplicate", "non_canonical"]
+          "enum": [
+            "active",
+            "retired",
+            "duplicate",
+            "non_canonical"
+          ]
         }
       },
       "additionalProperties": false
@@ -110,19 +141,37 @@
         "bidirectional_scopes"
       ],
       "properties": {
-        "peer": { "$ref": "#/$defs/did" },
-        "state": { "$ref": "#/$defs/contact_state" },
-        "request_event_ref": { "$ref": "#/$defs/event_id" },
-        "response_event_ref": { "$ref": "#/$defs/event_id" },
-        "tombstone_event_ref": { "$ref": "#/$defs/event_id" },
-        "granted_by_me": { "$ref": "#/$defs/consent_scope_list" },
-        "granted_to_me": { "$ref": "#/$defs/consent_scope_list" },
-        "bidirectional_scopes": { "$ref": "#/$defs/consent_scope_list" },
+        "peer": {
+          "$ref": "#/$defs/did"
+        },
+        "state": {
+          "$ref": "#/$defs/contact_state"
+        },
+        "request_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "response_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "tombstone_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "granted_by_me": {
+          "$ref": "#/$defs/consent_scope_list"
+        },
+        "granted_to_me": {
+          "$ref": "#/$defs/consent_scope_list"
+        },
+        "bidirectional_scopes": {
+          "$ref": "#/$defs/consent_scope_list"
+        },
         "effective_scopes": {
           "$ref": "#/$defs/consent_scope_list",
           "description": "Optional shorthand. When present, MUST equal bidirectional_scopes."
         },
-        "direct_conversation": { "$ref": "#/$defs/direct_conversation_summary" }
+        "direct_conversation": {
+          "$ref": "#/$defs/direct_conversation_summary"
+        }
       },
       "additionalProperties": false
     },
@@ -133,9 +182,15 @@
         "requested_scopes"
       ],
       "properties": {
-        "target": { "$ref": "#/$defs/did" },
-        "requested_scopes": { "$ref": "#/$defs/consent_scopes" },
-        "idempotency_key": { "$ref": "#/$defs/non_empty_string" }
+        "target": {
+          "$ref": "#/$defs/did"
+        },
+        "requested_scopes": {
+          "$ref": "#/$defs/consent_scopes"
+        },
+        "idempotency_key": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -147,9 +202,15 @@
         "state"
       ],
       "properties": {
-        "request_event_ref": { "$ref": "#/$defs/event_id" },
-        "requester_consent_refs": { "$ref": "#/$defs/event_refs" },
-        "state": { "const": "pending_outgoing" }
+        "request_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "requester_consent_refs": {
+          "$ref": "#/$defs/event_refs"
+        },
+        "state": {
+          "const": "pending_outgoing"
+        }
       },
       "additionalProperties": false
     },
@@ -161,22 +222,39 @@
         "action"
       ],
       "properties": {
-        "request_id": { "$ref": "#/$defs/event_id" },
-        "requester": { "$ref": "#/$defs/did" },
+        "request_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
         "action": {
           "type": "string",
-          "enum": ["accept", "reject"]
+          "enum": [
+            "accept",
+            "reject"
+          ]
         },
-        "granted_scopes": { "$ref": "#/$defs/consent_scopes" }
+        "granted_scopes": {
+          "$ref": "#/$defs/consent_scopes"
+        }
       },
       "allOf": [
         {
           "if": {
-            "properties": { "action": { "const": "accept" } },
-            "required": ["action"]
+            "properties": {
+              "action": {
+                "const": "accept"
+              }
+            },
+            "required": [
+              "action"
+            ]
           },
           "then": {
-            "required": ["granted_scopes"]
+            "required": [
+              "granted_scopes"
+            ]
           }
         }
       ],
@@ -189,11 +267,18 @@
         "state"
       ],
       "properties": {
-        "response_event_ref": { "$ref": "#/$defs/event_id" },
-        "consent_grant_refs": { "$ref": "#/$defs/event_refs" },
+        "response_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "consent_grant_refs": {
+          "$ref": "#/$defs/event_refs"
+        },
         "state": {
           "type": "string",
-          "enum": ["accepted", "rejected"]
+          "enum": [
+            "accepted",
+            "rejected"
+          ]
         }
       },
       "additionalProperties": false
@@ -207,10 +292,16 @@
       "properties": {
         "contacts": {
           "type": "array",
-          "items": { "$ref": "#/$defs/contact_list_row" }
+          "items": {
+            "$ref": "#/$defs/contact_list_row"
+          }
         },
-        "next_cursor": { "$ref": "#/$defs/cursor" },
-        "has_more": { "type": "boolean" }
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
@@ -220,8 +311,12 @@
         "contact"
       ],
       "properties": {
-        "contact": { "$ref": "#/$defs/did" },
-        "revoke_scopes": { "$ref": "#/$defs/consent_scopes" },
+        "contact": {
+          "$ref": "#/$defs/did"
+        },
+        "revoke_scopes": {
+          "$ref": "#/$defs/consent_scopes"
+        },
         "full_peer_revoke": {
           "type": "boolean",
           "default": false,
@@ -237,10 +332,18 @@
         "state"
       ],
       "properties": {
-        "tombstone_event_ref": { "$ref": "#/$defs/event_id" },
-        "consent_revoke_refs": { "$ref": "#/$defs/event_refs" },
-        "state": { "const": "tombstoned" },
-        "partial_revoke": { "type": "boolean" }
+        "tombstone_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "consent_revoke_refs": {
+          "$ref": "#/$defs/event_refs"
+        },
+        "state": {
+          "const": "tombstoned"
+        },
+        "partial_revoke": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
@@ -250,12 +353,16 @@
         "peer"
       ],
       "properties": {
-        "peer": { "$ref": "#/$defs/did" },
+        "peer": {
+          "$ref": "#/$defs/did"
+        },
         "create": {
           "type": "boolean",
           "default": false
         },
-        "idempotency_key": { "$ref": "#/$defs/non_empty_string" }
+        "idempotency_key": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
@@ -275,10 +382,18 @@
             "non_canonical"
           ]
         },
-        "realm_id": { "$ref": "#/$defs/realm_id" },
-        "main_flow_id": { "$ref": "#/$defs/flow_id" },
-        "binding_event_ref": { "$ref": "#/$defs/event_id" },
-        "created": { "type": "boolean" }
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "main_flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "binding_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "created": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     }

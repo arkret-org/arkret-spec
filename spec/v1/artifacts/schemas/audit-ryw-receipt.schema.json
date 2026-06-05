@@ -49,8 +49,7 @@
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "realm_id": {
-      "type": "string",
-      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "trust_domain": {
       "type": "string",
@@ -186,18 +185,26 @@
         "properties": {
           "witness_attestation": {
             "properties": {
-              "kind": { "const": "federation_witness_attested" }
+              "kind": {
+                "const": "federation_witness_attested"
+              }
             },
-            "required": ["kind"]
+            "required": [
+              "kind"
+            ]
           }
         },
-        "required": ["witness_attestation"]
+        "required": [
+          "witness_attestation"
+        ]
       },
       "then": {
         "properties": {
           "witness_attestation": {
             "properties": {
-              "witnesses": { "minItems": 2 }
+              "witnesses": {
+                "minItems": 2
+              }
             }
           }
         }
@@ -208,18 +215,27 @@
         "properties": {
           "witness_attestation": {
             "properties": {
-              "kind": { "const": "single_source" }
+              "kind": {
+                "const": "single_source"
+              }
             },
-            "required": ["kind"]
+            "required": [
+              "kind"
+            ]
           }
         },
-        "required": ["witness_attestation"]
+        "required": [
+          "witness_attestation"
+        ]
       },
       "then": {
         "properties": {
           "witness_attestation": {
             "properties": {
-              "witnesses": { "minItems": 1, "maxItems": 1 }
+              "witnesses": {
+                "minItems": 1,
+                "maxItems": 1
+              }
             }
           }
         }
