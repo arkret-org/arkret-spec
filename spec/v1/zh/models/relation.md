@@ -144,7 +144,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 **跨 Realm 强约束（reducer 必检）**：
 
-- `contains` 与 `belongs_to` MUST NOT 跨 Realm——reducer MUST 解析 `from_ref` / `to_ref` 指向的对象（Space / Flow / Message / Morph 等），确认其 `realm_id` 与 Relation 自身 `realm_id` 一致；任一不一致 MUST `failed_precondition`（`reason="cross_space_structural_relation"`）。该 reason code 是 pre-inversion 历史名，当前语义等价 `cross_realm_structural_relation`；实现、日志和审计解释时 MUST 按“结构 Relation 跨 Realm”理解，不得解释为“同 Realm 内跨 Space”。本节给出的两端 enforce 责任表是这条规则的语义来源。
+- `contains` 与 `belongs_to` MUST NOT 跨 Realm——reducer MUST 解析 `from_ref` / `to_ref` 指向的对象（Space / Flow / Message / Morph 等），确认其 `realm_id` 与 Relation 自身 `realm_id` 一致；任一不一致 MUST `failed_precondition`（`reason="cross_realm_structural_relation"`）。实现、日志和审计解释时 MUST 按“结构 Relation 跨 Realm”理解，不得解释为“同 Realm 内跨 Space”。本节给出的两端 enforce 责任表是这条规则的语义来源。
 - 弱语义 `references` / `mentions` / `derived_from` / `summarized_from` / `depends_on` / `blocks` / `assigned_to` / `has_default_view` / `replies_to` 等 MAY 跨 Realm，需走 §4.3 的"两次独立 capability check"路径，并按目标 Realm policy 在 projection 层降级为 `ReferenceProjectionStatus`。
 - JSON Schema 层面无法在不引入冗余字段的前提下完整表达该约束（需要解析 typed reference 后再比 Realm），因此 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `relation_kind` description 把该约束标记为 reducer-enforced；schema validation 通过仅代表线路形态合法，不代表 cross-Realm 约束已通过。
 

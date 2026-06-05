@@ -11,7 +11,6 @@
     "join_rule_snapshot",
     "expires_at",
     "state",
-    "created_by",
     "created_at"
   ],
   "properties": {
@@ -62,10 +61,6 @@
         "revoked_by_inviter_left",
         "invalidated_by_rate_limit"
       ]
-    },
-    "created_by": {
-      "$ref": "#/$defs/did",
-      "description": "Actor that created the invite; MUST hold invite capability and typically equals `inviter`."
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
