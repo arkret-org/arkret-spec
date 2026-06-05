@@ -150,7 +150,7 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 | 现状(soland 私有) | 应改用(已存在) |
 | --- | --- |
 | `POST /_soland/self/index/search` | `ck.directory.search_*`(`/_cokret/find/directory/*`) |
-| `GET /_soland/self/account/{id}/principal-space` | `ck.find.directory.resolve_realm` / `resolve_*` |
+| `GET /_soland/self/account/{id}/principal-realm` | `ck.find.directory.resolve_realm` / `resolve_*` |
 | `GET /_soland/self/notifications` + `mark-all-read` | `ck.self.account.subscribe`(流式投递)+ `ck.read_cursor.advance`(已读位) |
 
 下列保持**产品私有**,不进本提案(改走 describe 文档发现,不硬编码):
