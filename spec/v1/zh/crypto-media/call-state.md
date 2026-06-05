@@ -46,8 +46,7 @@ sidebar:
     "mode": "sfu",
     "state": "ringing",
     "started_at": null,
-    "ended_at": null,
-    "recording_policy": "disabled"
+    "ended_at": null
   }
 }
 ```
