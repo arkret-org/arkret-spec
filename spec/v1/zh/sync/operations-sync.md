@@ -549,9 +549,9 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 ### 7.7 Profile / Device / Realm Key
 
-本类别覆盖身份与加密写路径：`ck.profile.*`（update / space_override）、`ck.device.*`（authorize / revoke / list_update）、`ck.mls.*`（keypackage / proposal / commit / commit_failed / welcome）、`ck.realm_key.*`（share / withheld）、`ck.audit.accessed` 与 `ck.redaction`。其中 profile / device / session 控制事件的作用域是 Principal Control Realm，MLS 与 realm_key 事件承载 E2EE 群与历史 key 状态。
+本类别覆盖身份与加密写路径：`ck.profile.*`（update / realm_override）、`ck.device.*`（authorize / revoke / list_update）、`ck.mls.*`（keypackage / proposal / commit / commit_failed / welcome）、`ck.realm_key.*`（share / withheld）、`ck.audit.accessed` 与 `ck.redaction`。其中 profile / device / session 控制事件的作用域是 Principal Control Realm，MLS 与 realm_key 事件承载 E2EE 群与历史 key 状态。
 
-`ck.profile.update`、`ck.device.*` 与 `ck.session.grant` 是 durable Event Envelope kind，但其规范作用域是 Principal Control Realm。生产者 MUST 使用目标 principal 的 `principal_control_realm_id` 作为 `realm_id`；普通 Collaboration Realm 只能通过 `refs[role="authorized_by"]`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入 Collaboration Realm history。Realm 角色分类（Principal Control Realm vs Collaboration Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。`ck.profile.space_override` 若作为共享 Realm history 传播，MUST 使用目标 Realm 的 `realm_id` 并通过该 Realm policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Realm。
+`ck.profile.update`、`ck.device.*` 与 `ck.session.grant` 是 durable Event Envelope kind，但其规范作用域是 Principal Control Realm。生产者 MUST 使用目标 principal 的 `principal_control_realm_id` 作为 `realm_id`；普通 Collaboration Realm 只能通过 `refs[role="authorized_by"]`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入 Collaboration Realm history。Realm 角色分类（Principal Control Realm vs Collaboration Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。`ck.profile.realm_override` 若作为共享 Realm history 传播，MUST 使用目标 Realm 的 `realm_id` 并通过该 Realm policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Realm。
 
 以下标准 kind 不属于共享 durable Realm history，不能列入本节 durable 写路径：
 

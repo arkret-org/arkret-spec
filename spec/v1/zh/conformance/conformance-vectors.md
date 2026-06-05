@@ -2923,7 +2923,7 @@ Steps:
 Expected:
 
 - Client MUST 检测 Egress destination 不是 Cokret media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
-- 合法路径：Egress → Cokret blob upload → `ck.call.state` lifecycle `state="recording_ready"` + blob hash。
+- 合法路径：Egress → Cokret blob upload → `ck.call.state` 写 `recording_state="ready"` + blob hash。
 
 ### 12.9.1 Recording Exporter Label — Dedicated Recording Context
 

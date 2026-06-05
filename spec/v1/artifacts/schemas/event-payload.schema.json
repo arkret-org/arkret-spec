@@ -1434,7 +1434,7 @@
     },
     "profile_realm_override_payload": {
       "type": "object",
-      "description": "Realm-scoped actor profile override payload. The event kind remains ck.profile.space_override for wire compatibility, but the semantics and target selector are Realm-scoped. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies.",
+      "description": "Realm-scoped actor profile override payload for ck.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies.",
       "required": [
         "target_ref",
         "target_realm_id",
@@ -6980,9 +6980,7 @@
             "ended",
             "missed",
             "failed",
-            "cancelled",
-            "recording_ready",
-            "recording_failed"
+            "cancelled"
           ]
         },
         "mode": {
@@ -7004,9 +7002,18 @@
             "$ref": "#/$defs/call_participant"
           }
         },
+        "recording_state": {
+          "type": "string",
+          "enum": [
+            "recording",
+            "ready",
+            "failed"
+          ],
+          "description": "Recording lifecycle, orthogonal to `state` (the recording dimension of a call; v1.1 split out of the `state` enum so call lifecycle and recording outcome are independent fields). Absent = no recording. 'recording' = capture in progress (after ck.call.recording.start); 'ready' = artifact available via the Cokret blob pipeline; 'failed' = recording failed. recording_result SHOULD accompany recording_state ∈ {ready, failed}. See crypto-media/call-state.md §5."
+        },
         "recording_result": {
           "type": "object",
-          "description": "Typed recording outcome, present only with state=recording_ready / recording_failed. See §13: the durable ck.call.state carries blob hash, duration, media type, retention policy and recording_start_event_id rather than stuffing them into untyped fields (resolves SEM-004). All fields optional.",
+          "description": "Typed recording outcome, present only when recording_state ∈ {ready, failed}. See §13: the durable ck.call.state carries blob hash, duration, media type, retention policy and recording_start_event_id rather than stuffing them into untyped fields (resolves SEM-004). All fields optional.",
           "properties": {
             "blob_hash": {
               "$ref": "#/$defs/hash"

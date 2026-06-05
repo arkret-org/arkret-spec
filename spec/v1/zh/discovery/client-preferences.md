@@ -102,11 +102,7 @@ updated: 2026-05-25
 }
 ```
 
-> **字段命名（normative）**：该数组承载的是 `ck:realm:` ID，canonical 字段名为 `recent_realms`（早期草稿曾用语义错位的 `recent_spaces`）。客户端 SHOULD 写 `recent_realms`，读取时 MAY 兼容历史 `recent_spaces` 键并在下次写入时迁移为 `recent_realms`；两者语义相同，均为最近访问的 Realm id 列表。`account-data-type-registry.json` 的 `ck.client.ui_state` 条目是该字段的机器索引权威。
->
-> 该 `recent_spaces → recent_realms` 重命名**不**登记到 `renames.json` 等 drift artifacts、spec-map §1.2 的"重命名标准概念 MUST 同步 drift artifacts"在此不适用——理由见附注。
-
-> **附注（drift artifact 登记豁免的论证，informative）**：`renames.json` 的 rejection level 均为 wire-parser 级（sync / federation / reducer 拒绝旧标识），仅约束跨节点共享 wire；而 `ck.client.ui_state` 属 actor-private account data，不进入任何共享 wire 互操作面，旧键 `recent_spaces` 仅由 holder 自己的客户端在本地读取时容忍并迁移，不存在需要 wire parser 拒绝的跨节点旧字节，故无需登记 drift artifact。
+> **字段命名（normative）**：该数组承载的是 `ck:realm:` ID，canonical 字段名为 `recent_realms`。客户端 MUST 写入并读取 `recent_realms`；`recent_spaces` 不是 v1 字段名。
 
 ### 3.5 个人屏蔽与过滤 (Personal Blocklist)
 

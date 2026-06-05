@@ -292,7 +292,7 @@ primary handle 是显示语义；它**不**影响 actor_id 归因、grant subjec
 
 ### 3.2.2 Handle Claim Lifecycle and Acquisition（normative）
 
-Handle 的权威生命周期属于 issuer，不属于用户 profile 或 Realm MemberIdentity event。`ck.profile.update`、`ck.profile.space_override`、`ck.member.identity.update` 中不得通过任意字段声明、覆盖、撤销或重分配 handle；这些事件最多影响 display name、avatar、subject disclosure 等 UI projection。验证器遇到这些事件中出现的非标准 handle 字段时 MUST 忽略或 schema-reject，不得把它们提升为 verified handle。
+Handle 的权威生命周期属于 issuer，不属于用户 profile 或 Realm MemberIdentity event。`ck.profile.update`、`ck.profile.realm_override`、`ck.member.identity.update` 中不得通过任意字段声明、覆盖、撤销或重分配 handle；这些事件最多影响 display name、avatar、subject disclosure 等 UI projection。验证器遇到这些事件中出现的非标准 handle 字段时 MUST 忽略或 schema-reject，不得把它们提升为 verified handle。
 
 Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理员通知、管理员审批队列、重签 / 续期、namespace 保留策略、抢注仲裁、多 handle 策略或组织内部身份治理 API。这些流程属于 issuer / coauth / 部署本地治理面；不同 Principal Server、Organization 或自托管 issuer 可以按自己的合规、人事、IDP、邀请和审计要求实现。
 

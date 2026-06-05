@@ -417,7 +417,7 @@
               "ck.policy.rule",
               "ck.policy.set",
               "ck.profile.create",
-              "ck.profile.space_override",
+              "ck.profile.realm_override",
               "ck.profile.update",
               "ck.reaction.add",
               "ck.reaction.remove",
@@ -1020,7 +1020,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.profile.space_override"
+            "const": "ck.profile.realm_override"
           }
         },
         "required": [

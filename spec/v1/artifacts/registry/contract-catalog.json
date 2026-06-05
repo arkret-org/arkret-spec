@@ -1433,12 +1433,12 @@
         "bottom": "expose"
       },
       {
-        "event_kind": "ck.profile.space_override",
+        "event_kind": "ck.profile.realm_override",
         "category": "profile",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm-scoped profile override. The event kind keeps the historical space_override spelling for wire compatibility; payload.target_realm_id is the target Realm and no Space boundary is created."
+        "payload": "Realm-scoped profile override. payload.target_realm_id is the target Realm and no Space boundary is created."
       },
       {
         "event_kind": "ck.device.authorize",

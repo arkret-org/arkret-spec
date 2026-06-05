@@ -87,14 +87,9 @@
       "type": "string",
       "enum": [
         "submitted",
-        "triaged",
-        "reviewing",
-        "actioned",
-        "dismissed",
-        "appealed",
-        "closed"
+        "resolved"
       ],
-      "description": "Non-authoritative status mirror for client / UI convenience. The authoritative moderation lifecycle lives on the moderation-queue-item produced by the reducer (see schemas/moderation-queue-item.schema.json + governance/content-moderation.md §3.3). Reducers MUST NOT read this field for routing or state-machine decisions; if present on submit it MUST be either absent or 'submitted'."
+      "description": "Non-authoritative status mirror for client / UI convenience. The authoritative moderation lifecycle (submitted → resolved) lives on the moderation-queue-item produced by the reducer (see schemas/moderation-queue-item.schema.json + governance/content-moderation.md §3.3). Reducers MUST NOT read this field for routing or state-machine decisions; if present on submit it MUST be either absent or 'submitted'."
     },
     "routed_to": {
       "type": "array",

@@ -158,12 +158,12 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 用户 MAY 为特定 Realm 设置不同的显示名或头像（例如在公司 Realm 用真名，在开源项目 Realm 用昵称）：
 
-`ck.profile.space_override` 是保留的 wire kind 名称；其语义是 Realm-scoped profile override，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ck:space:` 容器，也不创建 Space 级访问边界。
+`ck.profile.realm_override` 是 Realm-scoped profile override 事件 kind，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ck:space:` 容器，也不创建 Space 级访问边界。
 
 ```json
 {
   "event_id": "ck:event:019640ed-8800-7000-8000-000000000000",
-  "kind": "ck.profile.space_override",
+  "kind": "ck.profile.realm_override",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 3,
@@ -198,7 +198,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 - Realm 覆写的优先级高于全局 Profile
 - `null` 值表示使用全局 Profile 的对应字段
-- `ck.profile.space_override` MUST 同时绑定 actor DID 与目标 Realm。若作为共享 Realm history 传播，顶层 `realm_id` 是目标 Realm，事件必须通过目标 Realm 的 membership / visibility / policy 校验；若作为 actor-private 或 principal control profile state 传播，content MUST 显式包含目标 Realm id，projection 服务只可向有权读取该 Realm profile override 的请求方披露。
+- `ck.profile.realm_override` MUST 同时绑定 actor DID 与目标 Realm。若作为共享 Realm history 传播，顶层 `realm_id` 是目标 Realm，事件必须通过目标 Realm 的 membership / visibility / policy 校验；若作为 actor-private 或 principal control profile state 传播，content MUST 显式包含目标 Realm id，projection 服务只可向有权读取该 Realm profile override 的请求方披露。
 
 ## 3. 在线状态 (Presence)
 

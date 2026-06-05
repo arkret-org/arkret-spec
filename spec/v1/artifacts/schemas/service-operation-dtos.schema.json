@@ -1302,12 +1302,7 @@
           "type": "string",
           "enum": [
             "submitted",
-            "triaged",
-            "reviewing",
-            "actioned",
-            "dismissed",
-            "appealed",
-            "closed"
+            "resolved"
           ]
         },
         "routed_to": {

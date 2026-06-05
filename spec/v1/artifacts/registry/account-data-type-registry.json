@@ -64,7 +64,7 @@
       "write_event_kinds": [
         "ck.account_data.set"
       ],
-      "description": "Private client UI state such as sidebar, recent realms (canonical key recent_realms; legacy recent_spaces tolerated on local read only), language, and layout preferences.",
+      "description": "Private client UI state such as sidebar, recent realms (canonical key recent_realms), language, and layout preferences.",
       "source_refs": [
         "spec/v1/zh/discovery/client-preferences.md"
       ]

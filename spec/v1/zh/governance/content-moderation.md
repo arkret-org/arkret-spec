@@ -108,8 +108,8 @@ POST /_cokret/self/moderation/report
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `report_id` | id | required | 举报记录 ID。 |
-| `status` | enum | required | 举报在其生命周期中响应时刻的处理状态；取值为 `moderation-queue-item` 的**权威生命周期枚举** `{ submitted, triaged, reviewing, actioned, dismissed, appealed, closed }`（各状态语义、合法转换与终态集合见 §3.3）。提交后通常为 `submitted`，后续随 triage / review 推进；实现 MUST NOT 返回该枚举之外的值。 |
-| `routed_to` | did[] | optional | 该举报被路由 / 分诊到的 scoped moderator / 管理员 DID(在进入 `triaged` 及之后填充)。 |
+| `status` | enum | required | 举报处理状态；`moderation-queue-item` 的**权威生命周期枚举** `{ submitted, resolved }`（语义、转换与终态见 §3.3）。提交后为 `submitted`；实现 MUST NOT 返回该枚举之外的值。 |
+| `routed_to` | did[] | optional | 该举报被路由 / 分诊到的 scoped moderator / 管理员 DID（若服务执行了路由则填充）。 |
 
 请求示例（非完整 schema）：
 
@@ -155,6 +155,17 @@ POST /_cokret/self/moderation/report
 - 被举报人不会收到通知。
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）。
 - 举报不会授予 moderator 历史 key、epoch key、审计 applet release 权限或外部 verifier 权限。
+
+**queue-item 生命周期(normative,`moderation-queue-item.schema.json` 与响应 `status` 的权威源)**:v1 刻意最小化为两态——
+
+| 状态 | 语义 | 合法后继 | 终态? |
+| --- | --- | --- | --- |
+| `submitted` | 举报已受理,待处理 | `resolved` | 否 |
+| `resolved` | 处理完成 | —(终态) | **是** |
+
+- **处置结果**(是否违规、采取何种处置)**不进** `status`,由独立的 `ck.moderation.decision` 事件承载。
+- **申诉**不改 queue-item,由独立的 `ck.moderation.appeal.*` 子系统(§5.5)按 `decision_ref` 维护。
+- 如后续工作流需要中间相(如 triage / review 分阶段),MAY 在新修订中增补状态值;v1 实现 MUST NOT 产生这两值之外的 `status`。
 
 ### 3.4 E2EE 举报 Evidence Package 与 Franking
 

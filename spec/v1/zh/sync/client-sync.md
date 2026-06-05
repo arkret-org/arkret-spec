@@ -501,7 +501,7 @@ MemberIdentity replacement 规则：
 - canonical handle string 仍为 `alice:acme.example`；`@alice:acme.example` 的 `@` 是 mention/UI sigil，不属于 handle。`alice@acme.example` 只可作为输入别名，normalize 后不得进入签名 transcript、claim、cache key 或 MemberIdentity。
 - MemberIdentity 只负责 Realm-scoped display projection：`subject_id` 披露、display name、avatar 和其它未来 display-profile segment。mention / reply / quote 等 actor 引用字段 MUST 按 [`identity/identity-handles.md` §3.8](../identity/identity-handles.md) 使用 `subject_id` 而不是 handle 字符串；handle claim 只影响显示和可读寻址，不影响 grant subject、actor attribution、membership key、delivery 决策或 audit attribution。
 - handle、display name 和 avatar 只用于 UI / mention / member picker，不得用于 grant subject、actor 归因、membership key、delivery 决策或 audit attribution。
-- `ck.profile.update` 继续表示 principal-scoped actor profile 的字段级 delta；`ck.profile.space_override` 继续表示 Realm-scoped profile override。二者 MAY 作为客户端构造 MemberIdentity display fields 的输入；handle fields MUST 来自当前 effective handle claims。
+- `ck.profile.update` 继续表示 principal-scoped actor profile 的字段级 delta；`ck.profile.realm_override` 继续表示 Realm-scoped profile override。二者 MAY 作为客户端构造 MemberIdentity display fields 的输入；handle fields MUST 来自当前 effective handle claims。
 - `identity_payload.encrypted_payload` MUST 复用 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)。明文 MemberIdentity 是 `ciphertext` 解密结果；`content_type` SHOULD 使用 `application/vnd.cokret.member-identity+json`。
 - 加密 MemberIdentity MUST 由成员设备或被 Realm policy 授权的身份 issuer 设备生成。Sync / Principal / Federation Service MUST 存储和返回原始 encrypted payload 或其事件引用，不得因客户端查询而重加密、重封包或推进 MLS sender generation。
 - 客户端解密时按 `group_id`、`epoch` 和 `key_ref.group_state_ref` 查找本地 MLS group state；缺少 epoch 时按 §15 标记 `decryption_pending` 并补拉 `ck.mls.*` state / Welcome / winning Commit / 授权 history key material。
@@ -510,7 +510,7 @@ MemberIdentity replacement 规则：
 Handle claim 获取与刷新规则：
 
 - 注册、邀请链接、管理员预分配、管理员后期修改、重签和撤销 handle 都落到 issuer / coauth / 部署本地 `ck.schema.handle_claim.v1` lifecycle。Cokret v1 core 不定义用户如何申请、管理员如何收到通知、谁有权审批、审批状态如何流转或客户端如何在 bootstrap 中领取自己的 claim。
-- 客户端不得通过 `ck.profile.update`、`ck.profile.space_override` 或 `ck.member.identity.update` 自行设置 handle。无论 claim 来自 coauth bootstrap、issuer 本地 API、设备迁移恢复、Directory resolve 还是 roster 内联，客户端只有在 schema、issuer trust、proof、audience、expiry 和 revocation 状态验证通过后，才能把它作为 handle 授权事实。
+- 客户端不得通过 `ck.profile.update`、`ck.profile.realm_override` 或 `ck.member.identity.update` 自行设置 handle。无论 claim 来自 coauth bootstrap、issuer 本地 API、设备迁移恢复、Directory resolve 还是 roster 内联，客户端只有在 schema、issuer trust、proof、audience、expiry 和 revocation 状态验证通过后，才能把它作为 handle 授权事实。
 - 已知 `subject_id`、需要渲染 Realm member 当前 handle 时，客户端调用 `ck.find.directory.list_handles_for_subject`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。已知 handle 字符串、需要解析到 subject 或投递绑定时，继续使用 `ck.find.directory.resolve_handle`。
 - roster / member picker / mention autocomplete 的当前 handle projection MUST 由当前可见 handle-claim set + Realm policy 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 得出。`ck.member.identity.update` 事件的 churn 不应成为 handle 更新传播的必要条件。
 - 若 `member_display_state_digest` 因 handle-claim set 变化而改变，服务端 SHOULD 在下一次 `/_cokret/self/account/subscribe` delta 中发送新的 roster entry 或使客户端相关 cache 失效；无法内联完整 claims 时，MUST 至少让 `handle_claim_digests` 或 digest 缺失状态发生可观察变化。
