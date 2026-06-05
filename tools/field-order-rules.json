@@ -1,8 +1,10 @@
 {
-  "$comment": "Declarative field-ordering rules for tools/lint_artifacts.py check_field_order (C-BET-03). The canonical narrative lives in models/common-fields.md §3.2. Ordered groups follow the object-category convention surfaced in _spec_review: identity/target, scope, subject/issuer, body, validity, issuance, audit. Hard precedence/immediacy rules below are wire-stable and enforced as errors (they already hold across all current schemas). The group-relative ordering checks were broadened in C-BET-03 to cover issued_at / not_before / effective_at / expires_at / revoked_* and role placement; some existing schemas serialize these in a different but still wire-valid order, so group rules are emitted as warnings rather than errors to avoid forcing a property reorder that would churn fixtures and the wire surface. See the report for the current deviation list.",
+  "$comment": "Declarative field-ordering rules for tools/lint_artifacts.py check_field_order. The canonical narrative lives in models/common-fields.md §3. Ordered groups follow the object-category convention surfaced in the spec: identity/schema/scope, subject/issuer, body, validity, issuance, and audit. All precedence, immediate-follow, ordered-group, and role-placement rules are enforced as lint errors.",
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md",
   "hard_precedence": [
+    {"earlier": "id", "later": "schema"},
+    {"earlier": "schema", "later": "realm_id"},
     {"earlier": "created_by", "later": "created_at"},
     {"earlier": "created_at", "later": "updated_at"},
     {"earlier": "updated_by", "later": "updated_at"}
@@ -12,7 +14,7 @@
     {"anchor": "stage", "marker": "stage_changed_at"}
   ],
   "ordered_groups": {
-    "$comment": "Within each named category group, when two member fields are both present on the same object they SHOULD appear in the listed order. Presence-conditional: missing members never trigger. Emitted as warnings.",
+    "$comment": "Within each named category group, when two member fields are both present on the same object they MUST appear in the listed order. Presence-conditional: missing members never trigger.",
     "validity": [
       "issued_at",
       "not_before",
@@ -35,7 +37,7 @@
     ]
   },
   "role_after_subject": {
-    "$comment": "In subject/issuer grouped objects, a `role` discriminator SHOULD follow the principal/actor identity field it qualifies rather than precede it. Warning-only.",
+    "$comment": "In subject/issuer grouped objects, a `role` discriminator MUST follow the principal/actor identity field it qualifies rather than precede it.",
     "subject_anchors": ["actor_id", "principal_id", "subject", "subject_id", "issuer"],
     "role_field": "role"
   }

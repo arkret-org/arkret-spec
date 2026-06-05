@@ -10,6 +10,7 @@
       "CKP-0009",
       "CKP-0010",
       "CKP-0011",
+      "CKP-0012",
       "CKP-0013"
     ],
     "normative_source_rule": "Once a CKP is accepted and merged, implementation requirements live only in zh/, artifacts/schemas, artifacts/registry, artifacts/openapi, artifacts/profiles, and artifacts/fixtures. Proposal files remain rationale and history."
@@ -141,6 +142,29 @@
             "zh/discovery/object-addressing.md",
             "zh/sync/service-http-binding.md",
             "artifacts/registry/contract-catalog.json"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0012",
+      "title": "Account Self-Service Operations",
+      "status": "accepted_merged",
+      "merged_on": "2026-06-04",
+      "proposal_file": "proposals/0012-account-and-contact-self-operations.md",
+      "merged_sections": [
+        {
+          "topic": "account self-service operations, schemas, and HTTP bindings",
+          "targets": [
+            "zh/sync/service-http-binding.md",
+            "zh/sync/service-surface.md",
+            "zh/sync/transport-bindings.md",
+            "artifacts/schemas/account-operations.schema.json",
+            "artifacts/registry/contract-catalog.json",
+            "artifacts/registry/error-code-registry.json",
+            "artifacts/registry/operations-error-mapping.json",
+            "artifacts/openapi/cokret-service-api.openapi.yaml",
+            "artifacts/bindings/non-http-bindings.yaml"
           ]
         }
       ]

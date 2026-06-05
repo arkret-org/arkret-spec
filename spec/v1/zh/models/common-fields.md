@@ -115,13 +115,13 @@ expected_<role>_<kind>_id
 
 ## 3. Common Object Fields
 
-所有 durable canonical object SHOULD 使用以下公共字段，除非对象类型另有说明。
+所有 durable canonical object SHOULD 使用以下公共字段，除非对象类型另有说明。公共字段的 canonical 排列顺序为：`id`、`schema`、`realm_id`、`created_by`、`created_at`、`updated_by`、`updated_at`、`deleted_at`、`state`、`state_changed_at`、`stage`、`stage_changed_at`、`labels`、`fields`。对象专属字段 MAY 插入在 scope / lifecycle / body 分组中，但同名公共字段的相对顺序 MUST 与本节和 `tools/field-order-rules.json` 保持一致。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:*` | typed ID 前缀决定对象种类（`ck:flow:` 即 flow 对象，依此类推）。 | 对象稳定 ID；前缀就是 type，不再单独写 `type` 字段。 |
-| `realm_id` | conditional | `id:realm` | Realm 外对象可省略。 | 所属 Realm。 |
 | `schema` | yes | `string` | SHOULD 是 `ck.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
+| `realm_id` | conditional | `id:realm` | Realm 外对象可省略。 | 所属 Realm。 |
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的 `actor_id`）。 |
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
@@ -163,10 +163,10 @@ expected_<role>_<kind>_id
 | `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
 | `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
 | `realm_id` | Universal | —（Realm 自身即边界，无 `realm_id` 字段，schema 拒绝） | Y | Y | Y | Y | Y | Y | Y | Y | O | Y | Y | O | O | O |
-| `created_at` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
 | `created_by` | Authorship | Y | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
-| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
+| `created_at` | Authorship | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
 | `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
+| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
 | `deleted_at` | Lifecycle | O | — | O | O | O | O | O | — | O | O | — | — | — | — | — |
 | `state` | Lifecycle | O | Y | O | O | Y | O | O | — | O | — | — | — | — | — | — (see `status`，mirrors account status) |
 | `state_changed_at` | Lifecycle | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |

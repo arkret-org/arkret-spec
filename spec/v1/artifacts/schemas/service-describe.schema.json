@@ -99,6 +99,13 @@
     "limits": {
       "type": "object",
       "description": "Operational limits such as body size, batch size, TTL, pagination or retention bounds.",
+      "properties": {
+        "max_get_query_selectors": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum total selector count (`realms[]` + `actors[]`) that this service accepts on GET /_cokret/self/events. Clients SHOULD use POST /_cokret/self/events/query when the selector count exceeds this value or filters are sensitive enough to avoid URL logging. If omitted, clients use the v1 default of 8."
+        }
+      },
       "additionalProperties": true
     },
     "plaintext_visibility": {

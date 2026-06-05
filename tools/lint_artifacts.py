@@ -1134,6 +1134,34 @@ def check_proposal_merge_manifest(lint: Lint) -> None:
             f"forbidden-only={sorted(forbidden_ckps - seen)}, rows-only={sorted(seen - forbidden_ckps)}",
         )
 
+    accepted_merged_from_frontmatter: set[str] = set()
+    for proposal_path in sorted((SPEC_ROOT / "proposals").glob("[0-9][0-9][0-9][0-9]-*.md")):
+        try:
+            text = proposal_path.read_text(encoding="utf-8")
+        except Exception as exc:
+            lint.fail(proposal_path, f"unable to read proposal frontmatter: {exc}")
+            continue
+        fm, _body = _parse_frontmatter_block(text)
+        if not isinstance(fm, dict):
+            lint.fail(proposal_path, "proposal missing frontmatter")
+            continue
+        ckp = fm.get("ckp")
+        status = fm.get("status")
+        merged_to = fm.get("merged_to")
+        if status == "accepted" and isinstance(merged_to, list) and merged_to:
+            if not isinstance(ckp, str) or not CKP_ID_RE.fullmatch(ckp):
+                lint.fail(proposal_path, "accepted merged proposal frontmatter must declare ckp: CKP-NNNN")
+                continue
+            accepted_merged_from_frontmatter.add(ckp)
+
+    missing_from_manifest = accepted_merged_from_frontmatter - seen
+    if missing_from_manifest:
+        lint.fail(
+            path,
+            "merged_proposals must include accepted proposal frontmatter with merged_to: "
+            f"frontmatter-only={sorted(missing_from_manifest)}",
+        )
+
     for zh_path in sorted((SPEC_ROOT / "zh").rglob("*.md")):
         try:
             text = zh_path.read_text(encoding="utf-8")
@@ -4360,12 +4388,11 @@ def check_field_order(lint: Lint) -> None:
         - state_changed_at MUST immediately follow state; stage_changed_at MUST
           immediately follow stage.
 
-    * Ordered-group rules (warnings) — the broadened C-BET-03 coverage for the
-      validity / issuance / audit-tail member fields (issued_at, not_before,
-      effective_at, expires_at, revoked_*, updated_*) and ``role`` placement.
-      Several existing schemas serialize these members in a still-valid but
-      different order; emitting warnings (not errors) keeps the gate green while
-      surfacing the deviations rather than forcing a wire-affecting reorder.
+    * Ordered-group rules (errors) — coverage for validity / issuance /
+      audit-tail member fields (issued_at, not_before, effective_at,
+      expires_at, revoked_*, updated_*) and ``role`` placement. These rules are
+      presence-conditional and currently hold across the registered schemas, so
+      drift is a lint error rather than an advisory warning.
 
     All checks are presence-conditional, so intended exceptions (Read Cursor has
     no created_at, Capability Grant uses issued_at) never trigger.
@@ -4403,7 +4430,7 @@ def check_field_order(lint: Lint) -> None:
                         f"{json_path}.{where}: '{marker}' MUST immediately follow '{anchor}'",
                     )
 
-        # Ordered-group relative ordering (warnings).
+        # Ordered-group relative ordering (errors).
         for group_name, members in ordered_groups.items():
             if group_name.startswith("$") or not isinstance(members, list):
                 continue
@@ -4412,21 +4439,21 @@ def check_field_order(lint: Lint) -> None:
                 for j in range(i + 1, len(present)):
                     earlier, later = present[i], present[j]
                     if index[earlier] > index[later]:
-                        lint.warn(
+                        lint.fail(
                             path,
                             f"{json_path}.{where}: group '{group_name}' ordering: "
-                            f"'{earlier}' SHOULD precede '{later}'",
+                            f"'{earlier}' MUST precede '{later}'",
                         )
 
-        # role placement relative to subject/issuer anchor (warning).
+        # role placement relative to subject/issuer anchor (error).
         if role_field and role_field in index:
             anchors_present = [a for a in subject_anchors if a in index]
             if anchors_present:
                 earliest_anchor = min(index[a] for a in anchors_present)
                 if index[role_field] < earliest_anchor:
-                    lint.warn(
+                    lint.fail(
                         path,
-                        f"{json_path}.{where}: '{role_field}' SHOULD follow its "
+                        f"{json_path}.{where}: '{role_field}' MUST follow its "
                         f"subject/issuer identity field",
                     )
 

@@ -717,7 +717,7 @@ POST 形态与 GET 形态**完全等价**：参数集（`realms` / `actors` / `b
 
 当部署侧在 `ServiceDescribe` / feature discovery 标记 query-logging 风险（如反向代理会完整记录 query string）时，客户端 **MUST** 使用 POST。GET query 仅适用于无 `filters`、selector 项少且不敏感的简单查询。
 
-> 上述"GET selector 上限"目前没有专用的 `ServiceDescribe.limits` 子字段承载。`limits` 是开放对象（`additionalProperties: true`），实现可在其中声明该上限；阈值缺省为 8。是否在 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json) 中补一个具名字段（如 `limits.max_get_query_selectors`）为 **artifact 待补**项。
+上述"GET selector 上限"由 `ServiceDescribe.limits.max_get_query_selectors` 机器声明；缺省值为 8。客户端在 selector 总数（`realms[]` + `actors[]`）超过该值，或 `filters` 包含不应进入 URL / Referer / access log 的敏感条件时，SHOULD 使用 `POST /_cokret/self/events/query`。
 
 服务端 SHOULD 同时实现两个 endpoint；客户端可以按场景自由选择，**不需要协商**。`ck.events.query_post` 在注册表（`operation-registry.json`）中通过 `binding_variant_of="ck.events.query"` 标记，以保证 SDK 生成器、conformance 测试与 server.describe 能机器可读地枚举该 alternate binding，同时授权、审计和指标归并到 `ck.events.query`。
 

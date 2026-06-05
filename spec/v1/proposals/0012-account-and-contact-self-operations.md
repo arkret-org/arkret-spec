@@ -124,7 +124,7 @@ ck.account.oidc_callback   ck.account.agent_key_pair
 
 `ck.account.update_profile` 是 holder-bound service wrapper,不是新的 profile 真相源。服务端接受后 MUST 写入或等价产生 `ck.profile.update` / Actor Profile projection;不得只修改实现私有 account 表再把它伪装成 canonical profile。
 
-**与既有投影面的协同(规范前必须钉死,见 §6 Q3)**:yougen 现实现把 profile 更新**同时**镜像到 (a) directory 的可发现 profile、(b) 跨设备 account-data(`client.ui.avatar_blob_ref`)。提案 MUST 明确 update_profile 的副作用边界——它是否触发 `ck.directory.announce`、是否写 `ck.account_data.set`、还是仅更新 server 侧 profile 由客户端各自镜像。在钉死前,本 operation 仅承诺"更新 server 侧 canonical profile",副作用不进契约。
+**与既有投影面的协同(已收敛)**:yougen 现实现把 profile 更新**同时**镜像到 (a) directory 的可发现 profile、(b) 跨设备 account-data(`client.ui.avatar_blob_ref`)。v1 已将该副作用边界收敛为: `ck.account.update_profile` 只承诺更新 server 侧 canonical profile,不隐式触发 `ck.directory.announce` 或 `ck.account_data.set`。需要可发现 profile 或跨设备 UI/avatar 状态同步的客户端 / 服务,必须继续显式走对应 Directory / Account Data 路径,直到后续 profile 另行声明更强 fan-out 契约。
 
 ### 3.4 `ck.account.session_revoke` — 自助 logout
 
@@ -187,4 +187,4 @@ ck.account.oidc_callback   ck.account.agent_key_pair
 - **~~Q1~~(已收敛)** `ck.account.viewer` 独立 operation,不并入 `describe`——鉴权与缓存语义不同。已写入 §3.1。
 - **~~Q2~~(已收敛)** session_revoke **不复用** device revoke:logout 撤 session token,`ck.device.revoke`(正式名,非旧名 `cx.device.revoke`)撤设备授权。已写入 §3.4,落 `gate` 与签发端对称。
 - **~~旧 Q4~~(已收敛)** `register` 落 `gate`、proof 与 `session-grants` 同面同词汇,消除双入口。已写入 §3.2。
-- **Q3(open)** `ck.account.update_profile` 的副作用是否进契约:是否规范化它对 `ck.directory.announce` 与 `ck.account_data.set` 的触发(§3.3)?在钉死前 update_profile 只承诺更新 server canonical profile。
+- **~~Q3~~(已收敛)** `ck.account.update_profile` 不隐式 fan-out 到 `ck.directory.announce` 或 `ck.account_data.set`;该 operation 只承诺更新 server canonical profile。需要 directory / account-data 同步时,客户端或服务显式调用对应路径。已写入 §3.3 和正式 `zh/sync/service-http-binding.md`。
