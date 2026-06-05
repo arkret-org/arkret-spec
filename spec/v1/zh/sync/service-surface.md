@@ -310,7 +310,9 @@ GET /_cokret/root/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 - 重建 DID Document
 - 验证 `key_log` 与 registry head 一致
 
-返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_digest`；`seq>0` 必须携带 `prev_event_digest`，并且该值必须等于前一条 accepted entry 的 `head_event_digest`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
+默认情况下，返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_digest`；`seq>0` 必须携带 `prev_event_digest`，并且该值必须等于前一条 accepted entry 的 `head_event_digest`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
+
+did method 原生日志有更强互操作格式时 MAY 直接返回该 method 的原生 accepted log entry，例如 `did:webvh` 的 Data Integrity proof 日志；这种服务 MUST 在 `describe.experimental_features[]` 中声明对应 feature id（例如 `ck.feature.identity.webvh_native_log.v1`），并且 `operation_body` / proof 语义 MUST 可按该 DID method 的规范重建同一 DID Document head。未声明该 experimental feature 的 `ck.identity.get_log` 响应仍 MUST 使用 `did-key-log-entry.schema.json`。
 
 #### 3.1.4 提交 DID 更新
 

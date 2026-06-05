@@ -23,7 +23,7 @@ Cokret canonical JSON 是签名、hash、event digest、receipt digest、snapsho
 Cokret canonical JSON MUST 使用：
 
 - UTF-8 不带 BOM；输入若包含 UTF-8 BOM（`U+FEFF` 编码 `EF BB BF`，无论出现在 stream 起始还是 string value 内部）、malformed UTF-8、孤立 surrogate 或无法被 JSON parser 唯一解释的字符串，MUST reject。`U+FEFF` 在 string value 中只允许作为 zero-width no-break space 的语义存在，但 v1 canonical JSON MUST NOT 接受此用法——任何 `U+FEFF` 出现都按 schema_violation 拒绝。
-- object key 按 Unicode code point 升序排序，并在每一层独立排序。
+- object key 按 RFC 8785 / JCS 规则排序：先比较属性名的 UTF-16 code unit 序列，按字典序升序排列，并在每一层独立排序。实现 MUST NOT 改用 Unicode code point 排序；对补充平面字符，UTF-16 surrogate pair 顺序是规范结果。
 - 无 insignificant whitespace。
 - JSON object 中的重复 key MUST reject，MUST NOT 采用“最后一个 wins”或“第一个 wins”。
 - number MUST 使用 RFC 8785 / JCS 等价的唯一 decimal serialization；NaN、Infinity、-Infinity、`-0`、无法精确往返的 number、超出 JSON safe integer 范围 `[-9007199254740991, 9007199254740991]` 的 number MUST reject。**v1 wire MUST NOT 使用非整数 number**：所有签名 canonical object 的 number 字段 MUST 是 JSON integer。需要超过 safe integer 范围的计数器、偏移或大整数 MUST 编码为带显式格式约束的 string（例如 fixed-width hex / decimal string），MUST NOT 作为 JSON number 进入 canonical bytes。比例、置信度、进度等小数值 MUST 编码为整数 + 显式 scale（推荐字段后缀 `_basis_points` 表示万分数 0..10000，或 `_x1000`、`_x1000000` 等明确比例）；`confidence_basis_points: 7500` 表示 75.00%。这条收紧规则取消了"何时允许 number canonicalization"的可选语义，使签名输入 100% 确定。
@@ -197,7 +197,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 }
 ```
 
-Proof MUST bind（下列为绑定字段集合；canonical binding object 的实际字节顺序由 §2 canonical JSON 的 key code point 排序决定，下方 JSON 示例与本清单的列举顺序仅为可读性，不代表签名字节顺序）:
+Proof MUST bind（下列为绑定字段集合；canonical binding object 的实际字节顺序由 §2 canonical JSON 的 JCS key 排序决定，下方 JSON 示例与本清单的列举顺序仅为可读性，不代表签名字节顺序）:
 
 - `event_digest = canonical_digest(event_without_proofs_unsigned)`
 - `actor_id`

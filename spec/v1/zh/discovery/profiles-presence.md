@@ -298,7 +298,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现。
 
-> **Normative 源（normative）**：`search-users` 的 operation 形态、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `ck.directory.search_users` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（`results[].membership`、autocomplete intent 等）。下表字段与 directory §9 冲突时以 directory §9 为准。
+> **Normative 源（normative）**：`search-users` 的 request / response 字段、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `ck.directory.search_users` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（例如 autocomplete intent、普通 mention 不得请求投递上下文、以及 `results[].membership` 仅作本地展示 hint）。字段名、必填性或分页语义与 directory §9 冲突时，MUST 以 directory §9 为准。
 
 ```
 POST /_cokret/find/directory/search-users
@@ -306,28 +306,11 @@ POST /_cokret/find/directory/search-users
 { "query": "alice", "realm_id": "ck:realm:...", "limit": 10 }
 ```
 
-请求字段：
+Presence / mention 语义补充：
 
-| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
-| --- | --- | --- | --- | --- |
-| `query` | body | `string` | required | 搜索关键词；不得进入 URL、Referer 或未脱敏 access log。 |
-| `realm_id` | body | `id` | optional | 限定共同 Realm；mention autocomplete SHOULD 提供。 |
-| `limit` | body | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
-| `intent` | body | `enum(mention,invite,member_add)` | optional | 调用意图；影响是否允许返回 `member_delivery_binding`。 |
-
-响应字段：
-
-| 字段 | 类型 | 必填 | 说明与约束 |
-| --- | --- | --- | --- |
-| `results` | `object[]` | required | 授权可发现的用户结果。 |
-| `results[].handle` | `string` | optional | 可展示 / 可再次 resolve 的 handle。未满足 claim / audience / requester policy 时，结果 SHOULD 只返回 handle 或 display preview，不返回 DID。 |
-| `results[].did` | `did` | conditional | 用户 DID。仅当请求方已通过 `resolve-handle` 所需的 claim / presentation / audience / Realm intent 验证，或结果来自调用方本地联系人索引且 DID 已由用户本地持有时才可返回。共同 Realm membership 不得单独授权披露。 |
-| `results[].member_delivery_binding` | `object` | conditional | 仅在 `intent ∈ {invite, member_add}` 且 claim 明确授权该 Realm / requester 获取投递上下文时返回；不得用于普通 mention autocomplete。 |
-| `results[].display_name` | `string` | optional | 显示名。 |
-| `results[].avatar_blob_ref` | `id:blob` | optional | 头像 Blob 引用；字段名与 Actor Profile canonical 字段保持一致。 |
-| `results[].membership` | `string` | optional | 与 `realm_id` 相关的成员状态。 |
-| `next_cursor` | `cursor` | optional | 下一页 cursor；分页语义与 [`discovery-directory.md` §9](./discovery-directory.md) `ck.directory.search_*` 一致。 |
-| `has_more` | `boolean` | optional | 是否还有更多结果（取代旧 `limited` 字段，统一对齐 directory §9 的 `has_more` 约定）。 |
+- mention autocomplete SHOULD 在 body 中携带 `realm_id` 与 `intent="mention"`，使 Directory 能按共同 Realm / directory policy 裁剪结果。
+- 普通 mention autocomplete MUST NOT 请求或依赖 `member_delivery_binding`；只有 invite / member-add 流程可按 directory §9 的 `intent ∈ {invite, member_add}` 规则请求投递上下文。
+- `results[].membership` 若返回，只是与 `realm_id` 相关的展示 hint，不得作为授权、加入资格或投递绑定依据。
 
 响应示例（非完整 schema）：
 
