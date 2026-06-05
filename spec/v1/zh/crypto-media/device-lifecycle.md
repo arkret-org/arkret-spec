@@ -3,7 +3,7 @@ title: Device Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-05
 ---
 
 ## 0. 规范语言
@@ -329,7 +329,7 @@ Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 ### 5a.1 `push_target_id` 派生与作用域
 
 - 作用域：`per (recipient_service_did, principal_id, device_id, push_route)`。`recipient_service_did` 是当前 Realm membership delivery binding 指向的 Principal Server service DID；同一 DID 在个人 Principal Server 与组织 Principal Server 上注册同一物理设备时，MUST 使用互相不可链接的 `push_target_id`。`push_route` 标识同一设备上不同 push 通道（如 `apns_main`, `fcm_voip`, `webpush_default`），允许同一设备针对不同通道发布相互不可链接的伪名。
-- 长度：`push_target_id` MUST 至少 128 bit 熵，编码为 base64url（最少 22 字符）；推荐 256 bit。
+- 长度：`push_target_id` MUST 至少 128 bit 熵，编码为 base64url（最少 22 字符）；推荐 256 bit。`high_security_organization`、`sovereign_deployment` / `isolated_sovereign_network` 等高安全 deployment profile MUST 使用 ≥ 256 bit 熵（不可链接性是这些场景的硬隐私属性，128 bit 仅为通用下限）。
 - 不可推导性：`push_target_id` MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码可推导。生成方式 SHOULD 是 device-local 随机；设备 MAY 用本地 secret 与 `push_route` 派生，前提是源 secret 不可被服务端取回。
 - 标识形态：典型 wire 形态为 typed ID `ck:pseudonym:push:<base64url>`，由 `id-kind-registry.json` 中 `pseudonym` 项授权使用；也可作为 raw base64url 字符串出现在 `ck.device.push_route` 等 actor-private state event payload 中。
 

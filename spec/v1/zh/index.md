@@ -3,7 +3,7 @@ title: Cokret Protocol
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-01
+updated: 2026-06-05
 see_also:
   - spec-map.md
   - overview/architecture.md
@@ -58,6 +58,8 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 - 强绑定某个 SaaS UI 外壳
 - 以 embedding、向量库替代协议真相源
 - 以高复杂字段级/字节级 ACL 作为第一阶段互操作要求
+
+> 上述非目标的肯定式表述（"房间不是唯一世界模型、消息也不是唯一原子单元"等架构取向）见 [`overview/architecture.md` §5](./overview/architecture.md)；两处指同一组取舍，一为否定式边界、一为肯定式取向。
 
 ## 3. 文档地图（Document Map）
 

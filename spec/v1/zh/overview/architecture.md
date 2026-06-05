@@ -3,7 +3,7 @@ title: Architecture
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-26
+updated: 2026-06-05
 see_also:
   - sync/operations-sync.md
   - sync/service-surface.md
@@ -112,7 +112,7 @@ Principal Server 是 principal 的受控服务边界。它负责承载或代理�
 - blob、push、policy、device message 等辅助服务
 - 与其他 Principal Server 的 federation transaction
 
-Principal Server 不是身份本身，也不能替 principal 伪造 Event。它的权威来自 DID Document、service delegation、Realm policy、capability 和签名事件。
+Principal Server 不是身份本身，也不能替 principal 伪造 Event，**更不是协议的唯一真相源**：共享状态的真相来自 signed Event 与 per-actor event chain（见 §2.2、§6.2），Principal Server 可拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。它的权威来自 DID Document、service delegation、Realm policy、capability 和签名事件。
 
 明文规则：
 
@@ -275,7 +275,7 @@ flowchart TB
 - 搜索
 - **因果一致性屏障 (Causal Barrier)**：客户端或可选受托服务在返回查询结果前，可根据本地 sync frontier 等待特定写入前沿的到达，保障“读己之所写”体验。
 
-Projection Plane 的输出 MUST 是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计）。Projection MUST NOT 依赖 Presentation Plane 的渲染逻辑。
+（本平面全称 **Local Query / Projection Plane**，全文其余处简称 **Projection Plane**，二者同指一层，不是两层。）Projection Plane 的输出 MUST 是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计）。Projection MUST NOT 依赖 Presentation Plane 的渲染逻辑。
 
 ### 3.5 Presentation Plane
 
@@ -295,6 +295,7 @@ Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可
 - 内容加密 envelope
 - key distribution / rotation
 - 让 Sync Service 在不解密正文时也能继续转发
+- 决定 Distribution / Write / Projection 各平面分别能看到什么（与图 3-1 的"包裹"关系一致）：Projection 只能投影本端已授权解密的内容，Confidentiality 同样约束 Projection 层的可见边界，而不仅是 Distribution 转发层
 
 ### 3.7 Portability Plane
 
@@ -477,8 +478,7 @@ Principal Server 不可以：
 
 - 伪造 actor Event
 - 静默删除仍然有效的历史 Event
-- 把未授权明文内容发送给未被 principal 或 Realm policy 委托的第三方服务
-- 把非加密私有内容复制到未声明为 `plaintext_visible_services` 的 Push、Blob preview、Policy preview 或任何受托 search / projection 服务
+- 把未授权明文内容发送给未被 principal 或 Realm policy 委托的第三方服务——作为这条的**具体化**（见 §2.3 明文规则）：凡未声明为 `plaintext_visible_services` 的 Push、Blob preview、Policy preview 或任何受托 search / projection 服务，都属于"未委托第三方"，MUST NOT 收到非加密私有内容。后者不是独立的第二条禁令，而是前一条在常见受托服务上的落地形态。
 
 ### 6.3 Projection 可解释状态，但不应替代原始审计链
 
@@ -522,6 +522,8 @@ Cokret 不打算做“两套系统”：
 
 - **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Flow / Message / Morph / Blob，进入 Realm 账本，与人类协作沉淀共用同一份事实层。
 - **受控外部知识访问**：agent 可读取的 Realm、对象或派生摘要 MUST 通过显式的 capability grant 声明 `scope`、`visibility` 与 retention 约束，受 capability 与 Realm policy 约束。
+
+这里"可审计长期沉淀"用 SHOULD，只约束**是否选择把某条沉淀落账**;它与下文 `agent_context` 的 MUST 相互独立——"沉淀可选"**不蕴含**"`agent_context` 可选"。一旦选择以 Event 落账(尤其代表人类写入共享对象),`agent_context` 即无条件适用:
 
 Agent 代表人类或服务写入 Event 时，payload、`unsigned` 或 profile 注册的扩展字段中 MUST 携带可审计 `agent_context`（至少包含 `agent_id`、`operator_or_controller`、`authorization_ref`、`execution_purpose` 和可选 `tool_session_ref` / `model_ref`）。缺少 `agent_context` 的 agent-signed write MUST 被视为 `schema_violation` 或 `capability_denied`，MUST NOT 把它伪装成人类直接写入。
 

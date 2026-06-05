@@ -3,7 +3,7 @@ title: 授权约束 Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-05
 ---
 
 ## 0. 规范语言
@@ -608,7 +608,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 当多个约束适用时：
 
 - 所有 `allow` 约束必须同时满足（AND 逻辑）才得出 ALLOWED；任一不满足即 DENIED。
-- `deny` / `quarantine` / `require_review` 三类之间的 precedence 由 §15.1 的步骤顺序决定（deny 优于 quarantine 优于 require_review）。
+- 当 `deny` / `quarantine` / `require_review` 三类 effect 同时命中时，按 §15.1 的步骤顺序**短路求值（short-circuit order）**返回首个命中的类别（deny → quarantine → require_review）。这是确定性的求值短路顺序，**不是**跨 effect 的"优先级 / 权重"裁决——与 §15 / §15.1 "没有优先级参与裁决"一致：每个 effect 类别内部仍是"任一命中即生效"的全或无判断，短路顺序只决定多类别同时命中时先报告哪一个。
 - 这种全或无模型让授权评估器可以把每个 effect 类别当作集合命中检查，缓存键无需按权重编排。
 
 ### 15.3 求值算法

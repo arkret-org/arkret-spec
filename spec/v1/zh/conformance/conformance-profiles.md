@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-05
 sidebar:
   label: 实现 Profile
 ---
@@ -814,8 +814,8 @@ E2EE profile MUST 额外提供：
 Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应向量：
 
 - Minimal Client MUST 覆盖基础排序、tie break、pagination gap、backfill order 和 token expiry recovery。
-- Chat-only Client MUST 覆盖 Flow discussion timeline、message edit/redaction、reaction OR-Set、discussion history visibility 和 membership 裁剪。
-- Kanban-only Client MUST 覆盖 Board projection、Flow move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
+- Chat MVP Client（`ck.profile.chat_mvp.v1`）MUST 覆盖 Flow discussion timeline、message edit/redaction、reaction OR-Set、discussion history visibility 和 membership 裁剪。
+- Kanban MVP Client（`ck.profile.kanban_mvp.v1`）MUST 覆盖 Board projection、Flow move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。

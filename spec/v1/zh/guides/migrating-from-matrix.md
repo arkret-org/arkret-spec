@@ -3,7 +3,7 @@ title: 从 Matrix 迁移到 Cokret
 status: candidate
 normative: false
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-05
 ---
 
 > 本文件为面向 Matrix 实现者的 informative 设计取舍对照，不是协议真相源；任何规范约束以被引用的具体规范章节的 MUST / SHOULD 规则为准。
@@ -16,7 +16,7 @@ updated: 2026-05-25
 
 Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
 
-Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Space + Flow + Message + Morph + Relation + View + capability**，其中 Realm 是 security boundary、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
+Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circle + Space + Flow + Message + Morph + Relation + View + capability**（canonical 对象清单以 [`index.md` §1](../index.md) 为准），其中 Realm 是 security boundary、Circle 是 Realm 内的子事件边界、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
 
 因此二者可以互联或桥接，但协议根不同。
 
@@ -149,7 +149,7 @@ Cokret 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-life
 
 Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Realm 的不可链接性规范。Cokret 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a 引入 `push_target_id`：
 
-- per `(recipient_service_did, principal, device, push_route)` 伪名；至少 128 bit 熵，推荐 256 bit。
+- per `(recipient_service_did, principal, device, push_route)` 伪名；至少 128 bit 熵，推荐 256 bit；高安全 deployment profile（`high_security_organization` / `sovereign_deployment` 等）MUST ≥ 256 bit（权威下限见 `device-lifecycle.md` §5a.1）。
 - MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码推导。
 - 同一 principal 在不同 `recipient_service_did`、两台设备或同一 device 的两条 push_route 上的 `push_target_id`，对 push gateway / vendor / 第三方 transport MUST 不可关联。
 - gateway / vendor 不得保留可逆映射；被 member delivery binding 授权的 Sync Service 仅可在本服务上下文内持有运行时索引，轮换或失效后旧伪名不得被服务端链接回当前 `(recipient_service_did, principal, device)`。
