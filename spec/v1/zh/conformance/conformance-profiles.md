@@ -627,7 +627,7 @@ MUST NOT:
 `ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 Circle profile 与 personal agent provisioning / auth profiles。
 
 MUST 支持:
-- `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliation?}`
+- `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliations?}`
 - `context_ref` polymorphic descriptor(`relation_id` 单独 / `flow_id` 加可选 `track_name` + 可选 anchor)
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse:Flow `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`

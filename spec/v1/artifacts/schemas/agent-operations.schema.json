@@ -581,7 +581,7 @@
       },
       "additionalProperties": false
     },
-    "pending_member_reconciliation": {
+    "pending_member_reconciliation_item": {
       "type": "object",
       "required": [
         "agent_principal_id",
@@ -619,10 +619,10 @@
         "private_relation_id": {
           "$ref": "#/$defs/relation_id"
         },
-        "pending_member_reconciliation": {
+        "pending_member_reconciliations": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/pending_member_reconciliation"
+            "$ref": "#/$defs/pending_member_reconciliation_item"
           }
         }
       },

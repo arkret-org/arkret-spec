@@ -1713,7 +1713,7 @@
           "controller_agent_circle_key_derivation",
           "eligible_sidecar_agent_predicate",
           "circle_encryption_profile_floor_check",
-          "pending_member_reconciliation",
+          "pending_member_reconciliations",
           "addressed_agents_not_a_boundary",
           "agent_sidecar_of_relation",
           "navigation_visibility_scope_only",

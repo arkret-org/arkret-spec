@@ -2786,7 +2786,7 @@ Steps:
 
 Expected:
 
-- 第 2 步 ensure SHOULD succeed。MLS-backed sidecar Circle 的 response 携带 `pending_member_reconciliation: [{agent_principal_id: R, reason: missing_mls_keypackage}]`；plaintext sidecar Circle 不需要 KeyPackage，但仍必须等待 Circle membership active。
+- 第 2 步 ensure SHOULD succeed。MLS-backed sidecar Circle 的 response 携带 `pending_member_reconciliations: [{agent_principal_id: R, reason: missing_mls_keypackage}]`；plaintext sidecar Circle 不需要 KeyPackage，但仍必须等待 Circle membership active。
 - 第 3 步在 MLS-backed sidecar Circle 中，R 通过 MLS Welcome 加入，得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)；plaintext sidecar Circle 中，R 只获得从 membership active frontier 之后的投递 / 查询资格。
 - 第 4 步 reducer 主动 fan-out `ck.circle.member.state` 把 R 标记为 `leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
 

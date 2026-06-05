@@ -183,25 +183,25 @@
       },
       "additionalProperties": true
     },
-    "fields_write_allow": {
+    "allowed_write_fields": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "fields_write_deny": {
+    "denied_write_fields": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "fields_read_allow": {
+    "allowed_read_fields": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "fields_read_deny": {
+    "denied_read_fields": {
       "type": "array",
       "items": {
         "type": "string"
@@ -222,31 +222,31 @@
         "omit"
       ]
     },
-    "object_type_allow": {
+    "allowed_object_types": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "object_type_deny": {
+    "denied_object_types": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "morph_type_allow": {
+    "allowed_morph_types": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "morph_type_deny": {
+    "denied_morph_types": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "space_kind_allow": {
+    "allowed_space_kinds": {
       "type": "array",
       "items": {
         "type": "string"
@@ -254,14 +254,14 @@
       "uniqueItems": true,
       "description": "Allowed Space kinds (e.g. 'board', 'list', or profile-registered kinds like 'swimlane', 'calendar_bucket'). Reducer/profile MUST validate kind value."
     },
-    "space_kind_deny": {
+    "denied_space_kinds": {
       "type": "array",
       "items": {
         "type": "string"
       },
       "uniqueItems": true
     },
-    "facet_allow": {
+    "allowed_facets": {
       "type": "array",
       "items": {
         "type": "string",
@@ -280,7 +280,7 @@
       },
       "uniqueItems": true
     },
-    "facet_deny": {
+    "denied_facets": {
       "type": "array",
       "items": {
         "type": "string",
@@ -374,7 +374,7 @@
       },
       "uniqueItems": true
     },
-    "relation_kind_allow": {
+    "allowed_relation_kinds": {
       "type": "array",
       "items": {
         "type": "string"
@@ -418,7 +418,7 @@
       "type": "object",
       "description": "Scope limiter for ck.self.blob.presign grants: allowed purposes plus optional blob/realm restrictions.",
       "properties": {
-        "purpose_allow": {
+        "allowed_purposes": {
           "type": "array",
           "items": {
             "type": "string",
@@ -443,7 +443,7 @@
         }
       },
       "required": [
-        "purpose_allow"
+        "allowed_purposes"
       ],
       "additionalProperties": false
     },
@@ -557,7 +557,7 @@
         "responsible",
         "controller",
         "guardian",
-        "space_admin",
+        "realm_admin",
         "custom"
       ]
     },
@@ -677,7 +677,7 @@
       "type": "string",
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
-    "visibility_allow": {
+    "allowed_history_visibility_values": {
       "type": "array",
       "items": {
         "type": "string",

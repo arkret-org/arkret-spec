@@ -1777,7 +1777,7 @@
       "required": [
         "rule_id",
         "receiver_classes",
-        "visibility_allow",
+        "allowed_history_visibility_values",
         "range",
         "key_sources"
       ],
@@ -1820,7 +1820,7 @@
             ]
           }
         },
-        "visibility_allow": {
+        "allowed_history_visibility_values": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,

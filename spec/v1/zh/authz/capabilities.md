@@ -97,7 +97,7 @@ ID 语义：
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "fields_write_allow": ["metadata.title", "metadata.summary", "content", "metadata.fields.review_status"]
+      "allowed_write_fields": ["metadata.title", "metadata.summary", "content", "metadata.fields.review_status"]
     }
   ],
   "proofs": [
@@ -212,14 +212,14 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `ck.view.update`
 - `ck.view.reconcile`
 - `ck.morph.read`
-- `ck.morph.create`(默认 required constraint:`morph_type_allow`)
-- `ck.morph.update`(默认 required constraint:`fields_write_allow`)
+- `ck.morph.create`(默认 required constraint:`allowed_morph_types`)
+- `ck.morph.update`(默认 required constraint:`allowed_write_fields`)
 
 Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Flow 的 effective scope 判断：`Flow.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
 若 Circle membership cell 在当前 Anchor frontier 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 Move MUST 返回 `failed_bottom`（`reason=cell_in_bottom_state`），而 `failed_precondition` 仅用于 predicate 本身不成立（cell 持有明确 value 但 predicate 求值为 false）的情形；实现 MUST NOT 把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
 
-Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morph.update` 对应 `ck.flow.read` / `ck.flow.create` / `ck.flow.update`),通过 `morph_type_allow` constraint 进一步限定可创建或操作的 `morph_type`。
+Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morph.update` 对应 `ck.flow.read` / `ck.flow.create` / `ck.flow.update`),通过 `allowed_morph_types` constraint 进一步限定可创建或操作的 `morph_type`。
 
 ### 5.3 Discussion 与消息动作
 
@@ -358,23 +358,23 @@ Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 
 **field_access**
 
-- `fields_write_allow`
-- `fields_write_deny`
-- `fields_read_allow`
-- `fields_read_deny`
+- `allowed_write_fields`
+- `denied_write_fields`
+- `allowed_read_fields`
+- `denied_read_fields`
 - `sensitive_fields`
 - `sensitive_handling`
 
 **type_restriction**
 
-- `object_type_allow`
-- `object_type_deny`
-- `morph_type_allow`
-- `morph_type_deny`
-- `space_kind_allow`
-- `space_kind_deny`
-- `facet_allow`
-- `facet_deny`
+- `allowed_object_types`
+- `denied_object_types`
+- `allowed_morph_types`
+- `denied_morph_types`
+- `allowed_space_kinds`
+- `denied_space_kinds`
+- `allowed_facets`
+- `denied_facets`
 
 **scope_limitation**
 
@@ -385,7 +385,7 @@ Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `allowed_view_renderers` / `denied_view_renderers`
 - `allowed_circle_ids`（限定 Circle-scoped capability 动作（`ck.circle.manage` / `ck.circle.member.manage` 等）到列出的 Circle id；配合 `resource-selector-grammar.md` §2.2 的 Circle selector 使用。Realm-wide 无收窄的 Circle 管理 grant 不是正常授权形态）
 - `allowed_tracks` / `denied_tracks`
-- `relation_kind_allow`（**kanban extension**，profile-gated `ck.profile.kanban_mvp.v1`；未声明该 profile 的实现 MUST fail closed，见 [`constraint-schema.md` §2.2](./constraint-schema.md)）
+- `allowed_relation_kinds`（**kanban extension**，profile-gated `ck.profile.kanban_mvp.v1`；未声明该 profile 的实现 MUST fail closed，见 [`constraint-schema.md` §2.2](./constraint-schema.md)）
 - `allowed_from_container_refs`（同上，kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed）
 - `allowed_to_container_refs`（同上，kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed）
 - `wip_limit_override`（同上，kanban extension）
@@ -426,7 +426,7 @@ Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 
 **confidentiality**
 
-- `visibility_allow`
+- `allowed_history_visibility_values`
 - `deny_redacted_history`（命中即拒绝读取已 redact 的历史，属 `confidentiality` `subtype=visibility`）
 - `encryption_required`
 
@@ -451,20 +451,20 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 |----------|------------------------|----------|----------|
 | `expires_at` | `temporal` | — | `expires_at` |
 | `not_before` | `temporal` | — | `not_before` |
-| `fields_write_allow` | `field_access` | — | `fields_write_allow` |
-| `fields_write_deny` | `field_access` | — | `fields_write_deny` |
-| `fields_read_allow` | `field_access` | — | `fields_read_allow`（读取面字段允许列表，见 [`constraint-schema.md` §4.3](./constraint-schema.md)） |
-| `fields_read_deny` | `field_access` | — | `fields_read_deny`（读取面字段拒绝列表，§16.2 算法消费） |
+| `allowed_write_fields` | `field_access` | — | `allowed_write_fields` |
+| `denied_write_fields` | `field_access` | — | `denied_write_fields` |
+| `allowed_read_fields` | `field_access` | — | `allowed_read_fields`（读取面字段允许列表，见 [`constraint-schema.md` §4.3](./constraint-schema.md)） |
+| `denied_read_fields` | `field_access` | — | `denied_read_fields`（读取面字段拒绝列表，§16.2 算法消费） |
 | `sensitive_fields` | `field_access` | — | `sensitive_fields`（读取时需特殊处理的敏感字段集） |
 | `sensitive_handling` | `field_access` | — | `sensitive_handling`（敏感字段处理方式：`redact` / `hash` / `omit`） |
-| `object_type_allow` | `type_restriction` | — | `object_type_allow` |
-| `object_type_deny` | `type_restriction` | — | `object_type_deny`（命中即拒绝该对象类型） |
-| `space_kind_allow` | `type_restriction` | — | `space_kind_allow`（限定 Space 的 kind，例如 board / list / swimlane）|
-| `space_kind_deny` | `type_restriction` | — | `space_kind_deny` |
-| `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
-| `morph_type_deny` | `type_restriction` | — | `morph_type_deny` |
-| `facet_allow` | `type_restriction` | — | `facet_allow` |
-| `facet_deny` | `type_restriction` | — | `facet_deny` |
+| `allowed_object_types` | `type_restriction` | — | `allowed_object_types` |
+| `denied_object_types` | `type_restriction` | — | `denied_object_types`（命中即拒绝该对象类型） |
+| `allowed_space_kinds` | `type_restriction` | — | `allowed_space_kinds`（限定 Space 的 kind，例如 board / list / swimlane）|
+| `denied_space_kinds` | `type_restriction` | — | `denied_space_kinds` |
+| `allowed_morph_types` | `type_restriction` | — | `allowed_morph_types` |
+| `denied_morph_types` | `type_restriction` | — | `denied_morph_types` |
+| `allowed_facets` | `type_restriction` | — | `allowed_facets` |
+| `denied_facets` | `type_restriction` | — | `denied_facets` |
 | `allowed_flow_ids` | `scope_limitation` | — | `allowed_flow_ids` |
 | `denied_flow_ids` | `scope_limitation` | — | `denied_flow_ids` |
 | `allowed_space_ids` | `scope_limitation` | — | `allowed_space_ids` |
@@ -477,11 +477,11 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `allowed_circle_ids` | `scope_limitation` | — | `allowed_circle_ids`（限定 Circle-scoped 动作到列出的 Circle id，配合 Circle selector） |
 | `allowed_tracks` | `scope_limitation` | — | `allowed_tracks` |
 | `denied_tracks` | `scope_limitation` | — | `denied_tracks` |
-| `relation_kind_allow` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed） | — | `relation_kind_allow` |
+| `allowed_relation_kinds` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed） | — | `allowed_relation_kinds` |
 | `allowed_from_container_refs` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed） | — | `allowed_from_container_refs` |
 | `allowed_to_container_refs` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`，fail closed） | — | `allowed_to_container_refs` |
 | `wip_limit_override` | `scope_limitation`（kanban extension，profile-gated `ck.profile.kanban_mvp.v1`） | — | `wip_limit_override`（看板容器 WIP 上限覆盖） |
-| `visibility_allow` | `confidentiality` | `visibility` | `visibility_allow` |
+| `allowed_history_visibility_values` | `confidentiality` | `visibility` | `allowed_history_visibility_values` |
 | `deny_redacted_history` | `confidentiality` | `visibility` | `deny_redacted_history`（命中即拒绝读取已 redact 历史） |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
 | `blob_presign_max_ttl_seconds` | `quota` | `resource` | `blob_presign_max_ttl_seconds` |
@@ -516,9 +516,9 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 
 ### 6.2 资源类型 / facet / claim 约束求值规则
 
-`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `object_type_allow=["flow"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
+`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `allowed_object_types=["flow"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
 
-Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ck.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `ck.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
+Facet 只在 grant 显式包含 `allowed_facets` / `denied_facets` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ck.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`allowed_morph_types`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `ck.morph.update` 且没有字段/类型/策略拒绝，缺少 `allowed_facets=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `allowed_facets` 且目标 facets 不匹配，则 constraint 不满足。
 
 `requires_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。实现 MUST NOT 接受只有 `claim_type` 而无发行者边界的 claim grant。
 
@@ -691,7 +691,7 @@ invite / notification / read-cursor 等用户可见操作 MUST 由对应 capabil
 
 产品层可以提供：
 
-- `space_admin`
+- `realm_admin`
 - `board_manager`
 - `contributor`
 - `observer`

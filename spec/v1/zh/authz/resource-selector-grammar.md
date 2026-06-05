@@ -50,7 +50,7 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "object_type_allow": ["flow"],
+      "allowed_object_types": ["flow"],
       "allowed_tracks": ["synthesis"]
     }
   ]
@@ -59,7 +59,7 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
 
 ### 2.1 Board/List 选择
 
-Board 与 List 使用 `kind="space"` 选择器，配合 `space_kind_allow` 约束限制 Space 形态（`board`、`list` 等 profile 注册的 Space kind）。实现 MUST NOT 接受 `kind="board"` 或 `kind="list"` 作为 canonical resource selector kind；需要把权限范围扩到整个 Realm（覆盖所有 Space）时再使用 `kind="realm"`。
+Board 与 List 使用 `kind="space"` 选择器，配合 `allowed_space_kinds` 约束限制 Space 形态（`board`、`list` 等 profile 注册的 Space kind）。实现 MUST NOT 接受 `kind="board"` 或 `kind="list"` 作为 canonical resource selector kind；需要把权限范围扩到整个 Realm（覆盖所有 Space）时再使用 `kind="realm"`。
 
 ```json
 {
@@ -73,13 +73,13 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `space_kind_allow` 约�
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "space_kind_allow": ["board"]
+      "allowed_space_kinds": ["board"]
     }
   ]
 }
 ```
 
-List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`relation_kind_allow` 或对应 flow move payload 字段。
+List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_relation_kinds` 或对应 flow move payload 字段。
 
 ### 2.2 Circle 选择
 
@@ -277,7 +277,7 @@ flow_part            ::= flow_id | "*"
 `space:*`
 
 - 匹配：所有可评估 Space。
-- 要求：SHOULD 配合 `realm_id`、`space_kind_allow`、短有效期和审计理由。
+- 要求：SHOULD 配合 `realm_id`、`allowed_space_kinds`、短有效期和审计理由。
 
 ### 4.3 Flow 选择器
 
@@ -476,7 +476,7 @@ function matches(target, selector):
     return false
 ```
 
-> `space` / `circle` 配合 `space_kind_allow` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
+> `space` / `circle` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
 
 Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 检查。
 
@@ -486,7 +486,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须逐字出现在授权 `actions[]` 中；`actions[]` 不存在 wildcard / segment 通配。通配只适用于资源 selector，不适用于 action token。
-3. **约束匹配**：`space_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。
+3. **约束匹配**：`allowed_space_kinds`、`allowed_morph_types`、`allowed_relation_kinds`、`allowed_tracks` 等约束必须满足。
 4. **Track scope 检查**：Message 和 discussion track 访问必须在已有 Realm / capability 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility；track 本身不授予 membership、history 或 E2EE key。
 5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
@@ -505,13 +505,13 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 非治理面 wildcard（`realm:*`、`object:*:<非治理类型>` 等）的缓解措施：
 
 - 始终配合 `expires_at` 使用。
-- 与 `object_type_allow`、`space_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_tracks` 等约束组合。
+- 与 `allowed_object_types`、`allowed_space_kinds`、`allowed_morph_types`、`allowed_facets`、`allowed_tracks` 等约束组合。
 - 要求管理员审批与审计理由。
 - `max_delegation_depth` SHOULD 为 0。
 
 ### 8.2 非 canonical selector domain
 
-实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card 等。Flow track 范围必须使用 `kind="flow"` 加 `allowed_tracks`；board / list / 其他结构容器必须使用 `kind="space"` 加 `space_kind_allow`（或在需要 Realm-级范围时用 `kind="realm"`）。
+实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card 等。Flow track 范围必须使用 `kind="flow"` 加 `allowed_tracks`；board / list / 其他结构容器必须使用 `kind="space"` 加 `allowed_space_kinds`（或在需要 Realm-级范围时用 `kind="realm"`）。
 
 字符串 shorthand 也必须映射到上述 canonical domain；未声明的 selector domain MUST fail closed。
 

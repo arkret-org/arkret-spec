@@ -419,7 +419,7 @@
           "private_circle_id",
           "private_flow_id",
           "private_relation_id",
-          "pending_member_reconciliation"
+          "pending_member_reconciliations"
         ],
         "closed": true
       }

@@ -4150,7 +4150,7 @@
         "category": "general",
         "risk_tier": "medium",
         "required_constraints": [
-          "fields_write_allow"
+          "allowed_write_fields"
         ],
         "target_event_kinds": [
           "ck.realm.update"
@@ -4374,7 +4374,7 @@
         "category": "flow",
         "risk_tier": "medium",
         "required_constraints": [
-          "fields_write_allow"
+          "allowed_write_fields"
         ],
         "target_event_kinds": [
           "ck.flow.update"
@@ -4396,7 +4396,7 @@
         "category": "morph",
         "risk_tier": "medium",
         "required_constraints": [
-          "morph_type_allow"
+          "allowed_morph_types"
         ],
         "target_event_kinds": [
           "ck.morph.create"
@@ -4409,7 +4409,7 @@
         "category": "morph",
         "risk_tier": "medium",
         "required_constraints": [
-          "fields_write_allow"
+          "allowed_write_fields"
         ],
         "target_event_kinds": [
           "ck.morph.update"
@@ -4592,7 +4592,7 @@
         "category": "flow",
         "risk_tier": "medium",
         "required_constraints": [
-          "space_kind_allow"
+          "allowed_space_kinds"
         ],
         "target_event_kinds": [
           "ck.space.create"
@@ -4605,7 +4605,7 @@
         "category": "flow",
         "risk_tier": "medium",
         "required_constraints": [
-          "space_kind_allow"
+          "allowed_space_kinds"
         ],
         "target_event_kinds": [
           "ck.space.update"

@@ -87,7 +87,7 @@ morph --labeled_with-->  label    cardinality: many-to-many
 | action | risk_tier | target event kinds |
 | --- | --- | --- |
 | `ck.label.manage` | medium | `ck.label.create`, `ck.label.update`, `ck.label.archive`, `ck.label.restore`, `ck.label.tombstone` |
-| `ck.label.apply` | low | `ck.relation.create` 限 `relation_kind=labeled_with` + `ck.relation.tombstone` 限同 kind(通过 capability constraint `relation_kind_allow`) |
+| `ck.label.apply` | low | `ck.relation.create` 限 `relation_kind=labeled_with` + `ck.relation.tombstone` 限同 kind(通过 capability constraint `allowed_relation_kinds`) |
 
 理由:Trello / GitHub 常见场景是"只有 admin 能扩调色板,所有成员都能贴 label"。
 

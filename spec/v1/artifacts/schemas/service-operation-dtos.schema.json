@@ -1259,7 +1259,7 @@
         "did": {
           "type": "string"
         },
-        "include": {
+        "requested_evidence_kinds": {
           "type": "array",
           "items": {
             "type": "string"

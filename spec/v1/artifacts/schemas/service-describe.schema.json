@@ -270,21 +270,21 @@
           },
           "uniqueItems": true
         },
-        "deny_cidrs": {
+        "denied_cidrs": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/cidr"
           },
           "uniqueItems": true
         },
-        "allow_cidrs": {
+        "allowed_cidrs": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/cidr"
           },
           "uniqueItems": true
         },
-        "allow_private_exceptions": {
+        "allowed_private_exceptions": {
           "type": "array",
           "items": {
             "type": "object",

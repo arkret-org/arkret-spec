@@ -27,7 +27,7 @@
       "role": "business_label_and_discoverability_key",
       "writable_by": ["ck.morph.create"],
       "create_locked": true,
-      "consumed_by": ["capability.morph_type_allow_match", "resource_selector.match", "query.filter"],
+      "consumed_by": ["capability.allowed_morph_types_match", "resource_selector.match", "query.filter"],
       "notes": "Wire-stable string key. Create-locked so capability grant selectors do not silently break."
     },
     {

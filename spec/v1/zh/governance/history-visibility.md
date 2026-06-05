@@ -70,14 +70,14 @@ Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `
 | --- | --- | --- | --- |
 | `rule_id` | yes | `string`（`^[a-z][a-z0-9_]{0,63}$`） | 规则稳定 id；同一 `restricted_rules[]` 内 MUST 唯一，供审计与 key share diagnostic 关联。 |
 | `receiver_classes` | yes | `array<enum>`（≥1，唯一） | 本 rule 覆盖的接收者类别，取 `active_member` / `invited` / `removed_t0_visible` / `world_readable_requester` / `preview_token_holder`。 |
-| `visibility_allow` | yes | `array<history_visibility_value>`（≥1，唯一） | 命中本 rule 时允许的 history visibility 取值集（取自 §3 五值）。 |
+| `allowed_history_visibility_values` | yes | `array<history_visibility_value>`（≥1，唯一） | 命中本 rule 时允许的 history visibility 取值集（取自 §3 五值）。 |
 | `range` | yes | `enum(all_visible_at_t0, since_invite, since_join, bounded_epoch_range)` | reader 可读 / 可获 key 的历史下界范围；`bounded_epoch_range` 配合 `max_epoch_span` 限定 epoch 跨度。 |
 | `max_epoch_span` | no | `integer`（≥1） | 仅 `range=bounded_epoch_range` 时有意义，限定允许的最大 epoch 跨度。 |
 | `key_sources` | yes | `array<enum>`（≥1，唯一） | 允许的 history key 来源，取 `own_device` / `verified_member_device` / `key_backup` / `archive_node` / `recovery_service`。read 与 key share 的区分由本字段（是否含可交付 key 的来源）+ §6 流程承载，而非单独的 effect 开关。 |
 | `history_scope` | no | `object`（`{ kind: realm\|circle, circle_id? }`） | 限定本 rule 适用的 scope（整 Realm 或具体 Circle）。 |
 | `audit_required` | no | `boolean`（默认 `true`） | 命中本 rule 的读取 / key share 是否要求审计留痕。 |
 
-匹配语义：reader 对某 Event 的 restricted 资格按 `restricted_rules[]` 逐条求值——rule 的 `receiver_classes` 命中 reader 在 `T0` 的类别、Event 落在该 rule 的 `range`（及可选 `history_scope`）界定的历史范围内、且请求的 visibility 落在 `visibility_allow` 内即视为通过；key share 还要求本次请求所用的 key 来源在该 rule 的 `key_sources` 内（见 §6）。无任何 rule 命中时 MUST fail closed（见下方集中声明）。多条 rule 命中时取并集（最宽 `range` / `visibility_allow` / `key_sources`），但仍受 §3 表与父 Realm floor 约束，绝不放宽到比 enclosing scope 更宽。
+匹配语义：reader 对某 Event 的 restricted 资格按 `restricted_rules[]` 逐条求值——rule 的 `receiver_classes` 命中 reader 在 `T0` 的类别、Event 落在该 rule 的 `range`（及可选 `history_scope`）界定的历史范围内、且请求的 visibility 落在 `allowed_history_visibility_values` 内即视为通过；key share 还要求本次请求所用的 key 来源在该 rule 的 `key_sources` 内（见 §6）。无任何 rule 命中时 MUST fail closed（见下方集中声明）。多条 rule 命中时取并集（最宽 `range` / `allowed_history_visibility_values` / `key_sources`），但仍受 §3 表与父 Realm floor 约束，绝不放宽到比 enclosing scope 更宽。
 
 **`restricted` fail-closed 集中声明（normative）**：上述所有 `restricted` 判定的校验主体是执行读取 / key share 的服务（reducer 或 key source）；校验时点为每次读取 / backfill / key share 请求。任一判定失败 MUST fail closed——无匹配 rule 时返回 `history_not_visible`，policy 未覆盖目标 scope / audience / range 时返回 `policy_denied`，缺少 key share rule 或 proof 时 MUST withhold key material。本节其它处（§3 语义表 `restricted` 行、§3 末尾段落）对 restricted 的描述均引用本声明，不再各自重述 fail-closed 行为。
 

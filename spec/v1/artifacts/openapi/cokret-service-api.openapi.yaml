@@ -625,15 +625,15 @@ components:
                 - agent
                 - directory
                 - push
-            deny_cidrs:
+            denied_cidrs:
               type: array
               items:
                 type: string
-            allow_cidrs:
+            allowed_cidrs:
               type: array
               items:
                 type: string
-            allow_private_exceptions:
+            allowed_private_exceptions:
               type: array
               items:
                 type: object

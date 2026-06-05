@@ -142,7 +142,7 @@ v1 `ck.self.agent.sidecar_thread.ensure` request schema 是 closed schema。除�
   "private_circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
   "private_flow_id": "ck:flow:01970000-0000-7000-8000-000000000081",
   "private_relation_id": "ck:relation:01970000-0000-7000-8000-000000000082",
-  "pending_member_reconciliation": [
+  "pending_member_reconciliations": [
     {
       "agent_principal_id": "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:agents:research-assistant",
       "reason": "missing_mls_keypackage"
@@ -153,7 +153,7 @@ v1 `ck.self.agent.sidecar_thread.ensure` request schema 是 closed schema。除�
 
 Response 遵循 [`api-conventions.md` §4](../zh/sync/api-conventions.md#4-标准响应-envelope) 的简单 idempotent mutation 形态:`ok=true` 表示 ensure 成功。是否本次新建 Circle / Flow / Relation 不是协议真源;调用方只应使用返回的 typed IDs。
 
-`pending_member_reconciliation[]` 是可选字段,出现时列出 §4.5.0 表中处于 "pending join" 状态的 eligible agents(典型 reason: `missing_mls_keypackage`)。该字段不出现等价于"所有 eligible agents 都已 active member"。客户端可以据此向 controller 展示 "等待 agent runtime 上线" 的 UI 提示;但 access-control 判定不依赖该字段——它只是 observability hint,不是 grant 形态。
+`pending_member_reconciliations[]` 是可选字段,出现时列出 §4.5.0 表中处于 "pending join" 状态的 eligible agents(典型 reason: `missing_mls_keypackage`)。该字段不出现等价于"所有 eligible agents 都已 active member"。客户端可以据此向 controller 展示 "等待 agent runtime 上线" 的 UI 提示;但 access-control 判定不依赖该字段——它只是 observability hint,不是 grant 形态。
 
 Sidecar 所属 Realm 是 `context_ref.realm_id` 的派生结果;`ensure` response MUST NOT 再提供 `sidecar_realm_id` 或 `effective_scope` 作为第二真源。若客户端需要展示或校验 scope,使用 request 中的 `context_ref.realm_id` 与 response 中的 `private_circle_id` 派生 `{kind:"circle", realm_id: context_ref.realm_id, circle_id: private_circle_id}`,或读取 private Flow materialized object 上的 reducer-stamped `effective_scope`。
 
@@ -260,7 +260,7 @@ Sidecar Circle 的 active membership MUST 收敛为:
 | Eligibility | MLS member 状态 | 含义 | `ensure` 行为 |
 | --- | --- | --- | --- |
 | `eligible` + 有可用 KeyPackage | active member | 已加入 sidecar Circle MLS group | normal;ensure 直接使用既有 membership |
-| `eligible` + 无可用 KeyPackage(runtime 离线 / 未续 KeyPackage / Welcome 未投递) | **pending join** | 是 Circle 的 access-control member,但尚未 cryptographically 加入 MLS group | ensure SHOULD succeed;membership async reconcile;response 通过 `pending_member_reconciliation[]` 标记该 agent |
+| `eligible` + 无可用 KeyPackage(runtime 离线 / 未续 KeyPackage / Welcome 未投递) | **pending join** | 是 Circle 的 access-control member,但尚未 cryptographically 加入 MLS group | ensure SHOULD succeed;membership async reconcile;response 通过 `pending_member_reconciliations[]` 标记该 agent |
 | `not eligible`(condition 1–5 任一不成立) | not member | 不是 Circle member | ensure MUST 不把它加入 Circle;若 caller 在 `addressed_agent_principal_ids[]` 中 address 该 agent,ensure MUST `failed_precondition`(`reason="addressed_agent_not_eligible"`) |
 
 "pending join" 是临时状态,不是长期访问边界。Eligible 但暂时无 KeyPackage 的 agent 仍然算 sidecar Circle 的 access-control member——它一旦发布新 KeyPackage,服务端 MUST 异步把它加入 MLS group(下一次 epoch commit 或专门的 reconciliation 任务),不需要 controller 重新批准。
@@ -464,7 +464,7 @@ Agent runtime SHOULD NOT 只凭宽泛的 "create hidden channels" grant 调用�
 | 允许 addressed agents / controllers | Profile-specific selector fields `allowed_agent_principal_ids`、`allowed_controller_principal_ids`,或后续 actor selector vocabulary。注意它限制请求可 address 的 agents,不改变 controller-Realm sidecar Circle 的 membership 规则。 |
 | 限定 context Realm | resource selector `kind="realm"` 或 context object selector,不是新 constraint。 |
 | 限定 context Flow | 现有 `allowed_flow_refs`。 |
-| 限定 relation kind | 现有 `relation_kind_allow=["agent_sidecar_of"]`。 |
+| 限定 relation kind | 现有 `allowed_relation_kinds=["agent_sidecar_of"]`。 |
 | 限制 sidecar 数量 / agent 数量 | `quota` / resource-limit family,字段为 `max_sidecars_per_context`、`max_sidecar_flows_per_controller_realm` 等 profile extension。 |
 | Circle 复用策略 | v1 profile constant `per_realm_controller_agent_pool`,由 profile 固定,不是 grant constraint。 |
 | 目标内容复制策略 | Profile-specific content-transfer action / constraint;`ensure` request 不携带复制策略字段。 |

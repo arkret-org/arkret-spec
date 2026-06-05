@@ -59,10 +59,10 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
 | `temporal` | `edit_window` | extension | `applies_to_actions=["ck.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `ck.profile.chat_mvp.v1` |
 | `temporal` | `redact_window` | extension | `applies_to_actions=["ck.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ck.profile.chat_mvp.v1` |
-| `field_access` | （省略 = 列表比较） | core | 写入面 `fields_write_allow` / `fields_write_deny`（§4.1 / §4.2）与读取面 `fields_read_allow` / `fields_read_deny` / `sensitive_fields` / `sensitive_handling`（§4.3）。 | core |
+| `field_access` | （省略 = 列表比较） | core | 写入面 `allowed_write_fields` / `denied_write_fields`（§4.1 / §4.2）与读取面 `allowed_read_fields` / `denied_read_fields` / `sensitive_fields` / `sensitive_handling`（§4.3）。 | core |
 | `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Flow / View / track 范围。 | core |
-| `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ck.profile.kanban_mvp.v1` |
+| `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ck.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、`delegation_scope` 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ck.profile.constraint.resource_limit.v1` |
@@ -158,7 +158,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "field_access",
   "effect": "allow",
-  "fields_write_allow": ["metadata.title", "content", "metadata.fields.review_status"],
+  "allowed_write_fields": ["metadata.title", "content", "metadata.fields.review_status"],
   "condition": {
     "kind": "object_is_owned_by_actor"
   }
@@ -177,7 +177,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "field_access",
   "effect": "deny",
-  "fields_write_deny": ["id", "created_by", "created_at"]
+  "denied_write_fields": ["id", "created_by", "created_at"]
 }
 ```
 
@@ -187,14 +187,14 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "field_access",
   "effect": "allow",
-  "fields_read_allow": ["metadata.title", "metadata.fields.review_status"],
-  "fields_read_deny": ["metadata.fields.internal_note"],
+  "allowed_read_fields": ["metadata.title", "metadata.fields.review_status"],
+  "denied_read_fields": ["metadata.fields.internal_note"],
   "sensitive_fields": ["metadata.fields.ssn", "metadata.fields.salary"],
   "sensitive_handling": "redact|hash|omit"
 }
 ```
 
-`fields_read_allow` / `fields_read_deny` / `sensitive_fields` / `sensitive_handling` 与 §4.1 / §4.2 的写入字段同属 `field_access` core family（effect=`allow`），表达读取面的字段裁剪与敏感字段处理；其求值见 §16.2（读模式消费 `fields_read_allow` / `fields_read_deny`）。这四个读字段在 capabilities §6 中有对应扁平别名。
+`allowed_read_fields` / `denied_read_fields` / `sensitive_fields` / `sensitive_handling` 与 §4.1 / §4.2 的写入字段同属 `field_access` core family（effect=`allow`），表达读取面的字段裁剪与敏感字段处理；其求值见 §16.2（读模式消费 `allowed_read_fields` / `denied_read_fields`）。这四个读字段在 capabilities §6 中有对应扁平别名。
 
 ## 5. 类型限制
 
@@ -204,15 +204,15 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "type_restriction",
   "effect": "allow",
-  "object_type_allow": ["flow", "message", "morph", "space"],
-  "space_kind_allow": ["board", "list"],
-  "morph_type_allow": ["document", "customer_case"],
-  "facet_allow": ["stateful", "replyable", "documentable"],
-  "morph_type_deny": ["credential"]
+  "allowed_object_types": ["flow", "message", "morph", "space"],
+  "allowed_space_kinds": ["board", "list"],
+  "allowed_morph_types": ["document", "customer_case"],
+  "allowed_facets": ["stateful", "replyable", "documentable"],
+  "denied_morph_types": ["credential"]
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。v1 中所有 Realm 同属一种安全边界、无 kind 区分，**不存在 Realm-kind 维度的约束**；若未来真的引入 Realm kind，必须注册新约束版本或明确 profile 语义。需按结构收窄请用 `space_kind_allow`。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `space_kind_allow` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；space_kind_allow 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
+`allowed_object_types` 只按对象类型收窄范围，不赋予能力。v1 中所有 Realm 同属一种安全边界、无 kind 区分，**不存在 Realm-kind 维度的约束**；若未来真的引入 Realm kind，必须注册新约束版本或明确 profile 语义。需按结构收窄请用 `allowed_space_kinds`。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `allowed_space_kinds` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；allowed_space_kinds 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`allowed_facets` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `allowed_object_types` / `allowed_morph_types`。Morph 语义 SHOULD 通过 `allowed_morph_types` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
@@ -257,7 +257,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "scope_limitation",
   "effect": "allow",
-  "relation_kind_allow": ["contains"],
+  "allowed_relation_kinds": ["contains"],
   "allowed_view_ids": ["ck:view:019641be-0000-7000-8000-000000000000"],
   "allowed_from_container_refs": ["ck:space:019640c0-8000-7000-8000-000000000000"],
   "allowed_to_container_refs": ["ck:space:019640c1-0000-7000-8000-000000000000"],
@@ -276,7 +276,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "blob_presign_scope": {
-    "purpose_allow": ["media_inline", "thumbnail"],
+    "allowed_purposes": ["media_inline", "thumbnail"],
     "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"]
   },
   "allowed_endpoints": ["https://api.trusted.example"],
@@ -522,12 +522,12 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "confidentiality",
   "subtype": "visibility",
   "effect": "allow",
-  "visibility_allow": ["world_readable", "shared", "invited", "joined", "restricted"],
+  "allowed_history_visibility_values": ["world_readable", "shared", "invited", "joined", "restricted"],
   "deny_redacted_history": true
 }
 ```
 
-`visibility_allow` 的取值 MUST 来自 `history_visibility` 权威枚举的完整集合：`world_readable`（注意是 `world_readable`，不是 `world`）、`shared`、`invited`、`joined`、`restricted`。上例列出全部五个合法值以展示权威枚举；实际 grant 中 `visibility_allow` 通常只声明该枚举的一个**子集**（例如 `["world_readable", "shared", "joined"]`）来限制 actor 可访问的对象/消息可见性级别，未列入的级别即不被该约束允许。出现枚举外的值（如 `world`）时 receiver MUST `schema_violation`。
+`allowed_history_visibility_values` 的取值 MUST 来自 `history_visibility` 权威枚举的完整集合：`world_readable`（注意是 `world_readable`，不是 `world`）、`shared`、`invited`、`joined`、`restricted`。上例列出全部五个合法值以展示权威枚举；实际 grant 中 `allowed_history_visibility_values` 通常只声明该枚举的一个**子集**（例如 `["world_readable", "shared", "joined"]`）来限制 actor 可访问的对象/消息可见性级别，未列入的级别即不被该约束允许。出现枚举外的值（如 `world`）时 receiver MUST `schema_violation`。
 
 ## 14. 其它常用示例
 
@@ -656,12 +656,12 @@ function matches_temporal(operation, constraint):
 ```javascript
 function matches_field_access(operation, constraint):
     if operation.mode == "read":
-        allow = constraint.fields_read_allow
-        deny = constraint.fields_read_deny
+        allow = constraint.allowed_read_fields
+        deny = constraint.denied_read_fields
         fields = operation.read_fields
     else:
-        allow = constraint.fields_write_allow
-        deny = constraint.fields_write_deny
+        allow = constraint.allowed_write_fields
+        deny = constraint.denied_write_fields
         fields = operation.write_fields
 
     for field in fields:
@@ -773,12 +773,12 @@ function matches_field_access(operation, constraint):
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "object_type_allow": ["flow"]
+      "allowed_object_types": ["flow"]
     },
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "fields_write_allow": ["metadata.title", "metadata.fields.review_status", "metadata.fields.priority"]
+      "allowed_write_fields": ["metadata.title", "metadata.fields.review_status", "metadata.fields.priority"]
     },
     {
       "constraint_type": "claim_based",
@@ -849,15 +849,15 @@ Grant envelope 字段、签名规则与必填性以
   {
     "constraint_type": "field_access",
     "effect": "allow",
-    "fields_write_allow": ["metadata.title", "metadata.fields.review_status"]
+    "allowed_write_fields": ["metadata.title", "metadata.fields.review_status"]
   },
   {
     "constraint_type": "type_restriction",
     "effect": "allow",
-    "object_type_allow": ["flow", "morph", "space"],
-    "space_kind_allow": ["board", "list"],
-    "morph_type_allow": ["document", "customer_case"],
-    "facet_allow": ["stateful", "replyable"]
+    "allowed_object_types": ["flow", "morph", "space"],
+    "allowed_space_kinds": ["board", "list"],
+    "allowed_morph_types": ["document", "customer_case"],
+    "allowed_facets": ["stateful", "replyable"]
   }
 ]
 ```
@@ -920,7 +920,7 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
 {
   "constraint_type": "scope_limitation",
   "effect": "allow",
-  "relation_kind_allow": ["contains"],
+  "allowed_relation_kinds": ["contains"],
   "allowed_view_ids": ["ck:view:019641be-0000-7000-8000-000000000000"],
   "allowed_from_container_refs": ["ck:space:019640c0-8000-7000-8000-000000000000"],
   "allowed_to_container_refs": ["ck:space:019640c1-0000-7000-8000-000000000000"],
@@ -930,7 +930,7 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
 
 规则：
 
-- `relation_kind_allow` 限定可移动的 Relation 类型，避免 `assigned_to`、
+- `allowed_relation_kinds` 限定可移动的 Relation 类型，避免 `assigned_to`、
   `depends_on` 和 `contains` 被同一宽泛授权混用。
 - `allowed_from_container_refs` 与 `allowed_to_container_refs` 分别限制可移出
   和可移入的列 / collection。

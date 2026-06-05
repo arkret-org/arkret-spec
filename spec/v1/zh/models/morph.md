@@ -97,7 +97,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 | 决策问题 | 唯一来源 | 不得读取 |
 | --- | --- | --- |
 | 字段是否合法 / 是否必填 / 类型正确 | §4 顺序 1 (`schema_refs[]`) ∩ 顺序 2 (`morph_type_profiles`) | morph_type, facets |
-| capability `morph_type_allow` / resource selector 匹配 | §4 顺序 3 (`morph_type` 字符串) | schema_refs, facets |
+| capability `allowed_morph_types` / resource selector 匹配 | §4 顺序 3 (`morph_type` 字符串) | schema_refs, facets |
 | 默认 renderer / `query.item_facets` / `graph.node_facets` 过滤 / UI 降级 hint | §4 顺序 4 (`facets`) | schema_refs, morph_type |
 | 是否可调用某 capability action | capability grant + Realm policy（reducer-input event 自身的 capability 校验） | morph_type, facets, schema_refs |
 | 状态机 transition 合法性 | §4 顺序 1 + 顺序 2 声明的 transition rules | morph_type, facets |
@@ -111,13 +111,13 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 | --- | --- | --- | --- |
 | 1 | Morph object 的 `schema_refs[]` | **结构 / 验证真源**：决定 `fields` 的 schema、必填性、类型与 transition 规则。 | Morph create / `ck.morph.update` |
 | 2 | Realm schema `morph_type_profiles[<morph_type>]` | **Realm-scoped 收紧**：声明该 `morph_type` 在本 Realm 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | Realm schema / Realm profile |
-| 3 | Morph object 的 `morph_type` (string) | **业务标签 / discoverability key**：用于 query / view / capability `morph_type_allow` 匹配；不引入 reducer 行为。 | Morph create（**create-locked**，禁止后续修改） |
+| 3 | Morph object 的 `morph_type` (string) | **业务标签 / discoverability key**：用于 query / view / capability `allowed_morph_types` 匹配；不引入 reducer 行为。 | Morph create（**create-locked**，禁止后续修改） |
 | 4 | Morph object 的 `facets` (map) | **UI / projection hint**：选择默认 renderer、查询过滤、降级展示；MUST NOT 影响授权、状态机、reducer、wire 互操作。 | Morph create / `ck.morph.update` |
 
 合并规则：
 
 - **结构验证**只读取顺序 1 + 2：reducer / schema 校验 `fields` 时合并 §1 声明的字段集合与 §2 在该 Realm 中收紧后的子集；§3 / §4 不参与字段验证。
-- **类型匹配（capability 的 `morph_type_allow`、resource selector）**只读取顺序 3：`morph_type` 是 wire-stable 字符串 key。它 create-locked 是为了避免授权错位（一旦改 `morph_type`，旧 grant 的 selector 立即失效，是常见漏洞源）。
+- **类型匹配（capability 的 `allowed_morph_types`、resource selector）**只读取顺序 3：`morph_type` 是 wire-stable 字符串 key。它 create-locked 是为了避免授权错位（一旦改 `morph_type`，旧 grant 的 selector 立即失效，是常见漏洞源）。
 - **Facets**只在以下三处生效：默认 renderer / view 选择、查询 `item_facets` / `node_facets` 过滤、降级 UI 提示。任何 reducer 行为、状态机、授权判定 MUST NOT 读取 §4。
 - **冲突处理**：
   - §1 与 §2 字段集冲突 → §2 胜（Realm-scoped 收紧）；§2 试图放宽 §1 → `schema_violation`，Realm schema accept 时静态拒绝。
@@ -158,7 +158,7 @@ Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版
 
 reducer 在两种 path 下都 MUST 校验 `from_schema_refs[]`（或 `ck.morph.update` 写入前 Morph 的当前 `schema_refs[]`）与实际状态 set-equal；不一致 `failed_precondition`。
 
-> Rationale：static `schema_refs[]` freeze 会扼杀 Morph 的 evolvability；裸 update 会让 capability `morph_type_allow` 通过 schema 漂移获得隐性扩张。v1 用 per-event `requirements.schema[]` 绑定 + `ck.morph.schema_migrate` 一等 event + schema-evolution capability gate 在两端之间取中：写入时绑定证据，验证时按写入版本解释；变更走显式 audit / capability，breaking / transformation 走 opt-in `ck.profile.morph.schema_migration_transformations.v1` profile。
+> Rationale：static `schema_refs[]` freeze 会扼杀 Morph 的 evolvability；裸 update 会让 capability `allowed_morph_types` 通过 schema 漂移获得隐性扩张。v1 用 per-event `requirements.schema[]` 绑定 + `ck.morph.schema_migrate` 一等 event + schema-evolution capability gate 在两端之间取中：写入时绑定证据，验证时按写入版本解释；变更走显式 audit / capability，breaking / transformation 走 opt-in `ck.profile.morph.schema_migration_transformations.v1` profile。
 
 ## 5. 标准 Facets
 
@@ -166,7 +166,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 **Facets 不参与的决策**（与 §4.0 决策矩阵保持一致，本节只重申以避免实现误读）：
 
-- 授权（capability check、capability `morph_type_allow`、resource selector）
+- 授权（capability check、capability `allowed_morph_types`、resource selector）
 - 状态机 transition
 - 排序 / Lattice join / Move precondition
 - reducer 行为（接受 / 拒绝 / soft fail）
