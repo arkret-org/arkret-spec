@@ -223,7 +223,7 @@ sidebar:
 | `ck.mls.genesis` | MLS group genesis |
 | `ck.mls.commit` | MLS commit |
 | `ck.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
-| `ck.mls.welcome` | MLS welcome ref |
+| `ck.mls.welcome` | MLS Welcome ref |
 | `ck.mls.keypackage` | MLS KeyPackage publication |
 | `ck.realm_key.share` | Realm key share |
 | `ck.realm_key.withheld` | Realm key withheld notice |

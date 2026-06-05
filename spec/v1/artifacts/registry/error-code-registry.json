@@ -1967,11 +1967,13 @@
     },
     {
       "code": "cross_space_structural_relation",
+      "semantic_alias": "cross_realm_structural_relation",
+      "legacy_name": true,
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A structural `contains` Relation was submitted that would cross Realm boundaries. Structural containment (Board → List → Flow / Space hierarchy) MUST stay within a single Realm; cross-Realm links use the dedicated `ck.relation.*` non-structural kinds. See zh/models/relation.md §4."
+      "description": "A structural `contains` Relation was submitted that would cross Realm boundaries. The code name is a pre-inversion legacy name; its current semantic alias is `cross_realm_structural_relation`, and implementations MUST NOT interpret it as a ban on same-Realm cross-Space hierarchy. Structural containment (Board → List → Flow / Space hierarchy) MUST stay within a single Realm; cross-Realm links use the dedicated `ck.relation.*` non-structural kinds. See zh/models/relation.md §4."
     },
     {
       "code": "join_authorisation_invalid",

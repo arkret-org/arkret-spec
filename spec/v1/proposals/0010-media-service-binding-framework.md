@@ -13,6 +13,8 @@ merged_to:
   - spec/v1/artifacts/registry/operation-registry.json
   - spec/v1/artifacts/registry/vector-registry.json
   - spec/v1/artifacts/profiles/conformance-profiles.json
+historical_only: true
+normative_source: spec/v1/zh/crypto-media/media-service-binding.md
 authors:
   - chris@acroidea.com
 depends_on: []
@@ -289,9 +291,9 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 
 这保证 backend 是"录制执行单元"而非"录制档案库"，audit 链与生命周期管控不被 backend 实现细节绕过。
 
-### 4.8 Conformance Vectors（待补）
+### 4.8 Conformance Vectors（historical list; merged）
 
-至少：
+以下向量已合入 [`zh/conformance/conformance-vectors.md`](../zh/conformance/conformance-vectors.md) 与 `artifacts/registry/vector-registry.json`；本节只保留历史设计清单：
 
 - `ck.vector.media_binding.focus_selection_oldest_membership.v1` — 多人不同 preferred 时 oldest member 偏好胜出。
 - `ck.vector.media_binding.session_focus_no_split_brain.v1` — `session_focus` 一旦写入，token issuer 拒绝其他 focus；connect 失败不得静默切换。
@@ -329,14 +331,16 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 - **为什么不抽象到 MoQ？** MoQ（[draft-ietf-moq-transport](https://datatracker.ietf.org/wg/moq/)）2026 仍在 last call 阶段；对 interactive conferencing 还无生产实现。MSC4143 transport-agnostic 模型为未来 MoQ binding 留好了扩展位，本提案沿用同样思路。
 - **为什么不引入 SFU 选举协议？** `oldest_membership` 是 Matrix 验证过的"足够好"方案。代价是缺地理/负载感知，但避免了选举协议的 split-brain 风险。地理感知可通过 backend cluster 自身的 mesh 处理。
 
-## 7. Open Questions
+## 7. Resolved / Deferred Questions（historical）
 
-以下是 review 阶段真正需要外部信号的项（产品形态 / stakeholder 偏好 / 生态时机）。技术上有明确判断的取舍已直接写入 §3–§4，不再列在此处。
+以下问题在 accepted 迁移时已 resolved 或 deferred；读者应以 `merged_to` 中的 normative 文件为准。
 
-1. **是否在 v1 normative 中包含 LiveKit binding，还是仅作为参考附录？** 包含的代价是把 LiveKit 协议变动纳入 Cokret v1 ratification 风险；不包含的代价是 implementer 缺少 reference。倾向：**作为参考附录 (`bindings/livekit.md`) 但 conformance profile 标 optional**，不进入 v1 mandatory 集合。
-2. **Cascading 节点级可观测性** — backend 是否需要向客户端汇报"你被路由到了哪个具体 SFU 节点 / region"以便用户诊断和透明度？目前 §4.6 只暴露静态 `cascade_group`。增加运行时可观测意味着 backend 暴露内部拓扑，可能与某些 backend 商业部署模式冲突。等 LiveKit binding 起草时根据实际 SDK 能力决定。
-3. **`cokret-native` reference impl 的命运** — 当前 §10.1 自定义 SFU 信令一旦被搬入 binding 附录，是否值得继续维护？还是只保留它作为"协议自洽性测试"用途，并在文档中明确不推荐生产使用？
-4. **call capability 命名收敛** — 现行 `webrtc-signaling.md` 使用 `call.join` / `call.record` 裸名，但 capability registry 的标准动作使用 `ck.*` 命名。accepted 迁移前需要决定是注册兼容裸名，还是一次性收敛为 `ck.call.join` / `ck.call.record` 等。
+| Question | Status | Normative outcome |
+| --- | --- | --- |
+| 是否包含 LiveKit binding | resolved | `bindings/livekit.md` 已作为 optional sub-profile 合入，不进入 v1 mandatory core。 |
+| Cascading 节点级可观测性 | deferred-to-profile | core 只要求 `session_focus` 与 participant binding；节点 / region 诊断由 backend binding profile 声明。 |
+| `cokret-native` reference impl 命运 | resolved | 保留为 `bindings/cokret-native.md` reference binding。 |
+| call capability 命名收敛 | resolved | capability registry 使用 `ck.call.join` / `ck.call.record` / `ck.call.configure_media_service`。 |
 
 ## 8. Resolved Decisions（记录已定取舍）
 
@@ -352,7 +356,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 - **Recording artifact**：backend 可执行录制，但 artifact MUST 经 Cokret blob pipeline 入库，加密 key 来自协议层 MLS exporter label `"cx-rtc-recording-key/v1"`，结果通过 `ck.call.state` 发布，不新增 `ck.call.recording.artifact` event（§4.7）。
 - **Focus migration**：v1 不提供在线 focus 切换；session 持续到所有人离开（§4.3）。
 
-## 9. Migration plan（accepted 后填）
+## 9. Migration plan（historical; completed）
 
 - Phase 1：webrtc-signaling.md §6.1 扩展为 multi-focus（兼容退化）；§10.1 文本搬入 `bindings/cokret-native.md` 作为 reference impl，不改 wire。
 - Phase 2：补 `ck.call.state.session_focus` / `participant_binding` schema、token exchange operation、OpenAPI、error registry 与 backend type registry。

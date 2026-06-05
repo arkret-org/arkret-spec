@@ -999,6 +999,24 @@
       ]
     },
     {
+      "vector_id": "ck.vector.circle.directory_visibility_members_indistinguishable.v1",
+      "status": "active",
+      "domain": "circle",
+      "source_refs": [
+        "spec/v1/zh/models/circle.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.relation.reference_projection_indistinguishable.v1",
+      "status": "active",
+      "domain": "relation",
+      "source_refs": [
+        "spec/v1/zh/models/relation.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.sidecar.eligibility_states.v1",
       "status": "active",
       "domain": "sidecar",

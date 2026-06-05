@@ -4484,6 +4484,94 @@ def check_field_order(lint: Lint) -> None:
             recurse(schema_path, "$", data)
 
 
+def check_model_required_field_table_coverage(lint: Lint) -> None:
+    """Ensure core model field tables list every schema-required top-level field."""
+
+    model_tables = [
+        (
+            "spec/v1/zh/models/realm-and-space.md",
+            "spec/v1/artifacts/schemas/realm.schema.json",
+            "ck.schema.realm.v1",
+        ),
+        (
+            "spec/v1/zh/models/realm-and-space.md",
+            "spec/v1/artifacts/schemas/space.schema.json",
+            "ck.schema.space.v1",
+        ),
+        (
+            "spec/v1/zh/models/flow-and-message.md",
+            "spec/v1/artifacts/schemas/flow.schema.json",
+            "ck.schema.flow.v1",
+        ),
+        (
+            "spec/v1/zh/models/flow-and-message.md",
+            "spec/v1/artifacts/schemas/message.schema.json",
+            "ck.schema.message.v1",
+        ),
+        (
+            "spec/v1/zh/models/relation.md",
+            "spec/v1/artifacts/schemas/relation.schema.json",
+            "ck.schema.relation.v1",
+        ),
+        (
+            "spec/v1/zh/models/circle.md",
+            "spec/v1/artifacts/schemas/circle.schema.json",
+            "ck.schema.circle.v1",
+        ),
+        (
+            "spec/v1/zh/models/morph.md",
+            "spec/v1/artifacts/schemas/morph.schema.json",
+            "ck.schema.morph.v1",
+        ),
+        (
+            "spec/v1/zh/models/views.md",
+            "spec/v1/artifacts/schemas/view.schema.json",
+            "ck.schema.view.v1",
+        ),
+        (
+            "spec/v1/zh/models/actor.md",
+            "spec/v1/artifacts/schemas/actor-profile.schema.json",
+            "ck.schema.actor_profile.v1",
+        ),
+    ]
+
+    row_field_re = re.compile(r"^\|\s*`([^`]+)`\s*\|", re.MULTILINE)
+    next_heading_re = re.compile(r"^#{2,6}\s+", re.MULTILINE)
+
+    for doc_rel, schema_rel, schema_id in model_tables:
+        doc_path = ROOT / doc_rel
+        schema_path = ROOT / schema_rel
+        schema = load_json(lint, schema_path)
+        if not isinstance(schema, dict):
+            continue
+        required = schema.get("required")
+        if not isinstance(required, list):
+            continue
+        try:
+            text = doc_path.read_text(encoding="utf-8")
+        except Exception as exc:
+            lint.fail(doc_path, f"cannot read model field table: {exc}")
+            continue
+
+        marker = f"Schema id: `{schema_id}`"
+        marker_index = text.find(marker)
+        if marker_index < 0:
+            lint.fail(doc_path, f"missing model field table marker for {schema_id}")
+            continue
+
+        table_region = text[marker_index + len(marker) :]
+        next_heading = next_heading_re.search(table_region)
+        if next_heading:
+            table_region = table_region[: next_heading.start()]
+        table_fields = {match.group(1) for match in row_field_re.finditer(table_region)}
+        missing = [field for field in required if isinstance(field, str) and field not in table_fields]
+        if missing:
+            lint.fail(
+                doc_path,
+                f"{schema_id} field table missing schema-required field(s): {', '.join(missing)}",
+            )
+
+
 def check_exporter_label_registry(lint: Lint) -> None:
     """Validate the media exporter-label registry (OPT-003 / TERM-006).
 
@@ -4849,6 +4937,7 @@ def main() -> int:
     check_openapi_no_floating_number(lint)
     check_canonical_digest_fixtures(lint)
     check_field_order(lint)
+    check_model_required_field_table_coverage(lint)
     check_exporter_label_registry(lint)
     check_signature_algorithm_registry(lint)
     check_action_reference_closure(lint)

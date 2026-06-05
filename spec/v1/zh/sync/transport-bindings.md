@@ -117,7 +117,7 @@ HTTP/JSON 是默认 profile：
 - 流式结果 MAY 使用 SSE、WebSocket 或 newline-delimited JSON。
 - 错误使用统一 JSON error object，并映射到 HTTP status。
 
-HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-http-binding.md`、OpenAPI 以及生成的 `artifacts/reports/operation-schema-index.json`；`service-api-schema.mdx` 只提供 operation 分组与治理说明视图。实现 MAY 额外暴露 XRPC、RPC style 或版本化路径别名，只要 feature discovery 暴露实际 binding；但 v1 core conformance 测试仍以 canonical HTTP/JSON path 与字段为基准，路径别名不得替代 canonical binding。
+HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-http-binding.md`、OpenAPI 以及生成的 `artifacts/reports/operation-schema-index.json`；`service-api-schema.mdx` 只提供 operation 分组与治理说明视图。实现 MAY 额外暴露 XRPC、RPC style 或部署本地 legacy alias，但这些 alias MUST NOT 宣称为 Cokret canonical binding，MUST NOT 出现在 `*.describe` 的 canonical operation binding 中，MUST NOT 使用 `/_cokret` namespace 表达版本，也不得包含 `/v1/`、`/api/v1`、`/cokret/v1` 等版本 path 段。v1 core conformance 测试始终以 canonical HTTP/JSON path 与字段为基准，路径别名不得替代 canonical binding。
 
 ## 6. Non-HTTP Binding Extensions
 

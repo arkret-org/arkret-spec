@@ -54,19 +54,15 @@ info:
 
     Directory, Applet, MIMI, Push, Blob and media bindings also carry typed DTO
 
-    schemas. Remaining extension / deployment-local operations continue to use the
+    schemas. The current v1 OpenAPI document does not publish generic
 
-    generic `OperationRequest` / `OperationResult` envelope as their HTTP
+    `OperationRequest` / `OperationResult` components. Any future profile that
 
-    binding shape only when their operation-registry row declares
+    reintroduces a generic binding must declare `generic_binding` in the
 
-    `generic_binding`. Operation-specific required fields for these are defined by
+    operation registry, carry an explicit profile gate and migration plan, and
 
-    the normative sections under `zh/sync/` and by the referenced JSON Schemas;
-
-    when an extension surface stabilizes, its OpenAPI binding SHOULD be tightened
-
-    to a typed schema.
+    must not claim generated-SDK completeness until a typed DTO lands.
 
 
     Default authentication: bearer token plus HTTP Message Signature for
@@ -970,10 +966,11 @@ components:
     # Per OpenAPI binding policy in info.description: events / account /
     # snapshot / identity / authz core surfaces carry typed schemas so SDK
     # generators can derive
-    # operation-specific required fields without consulting prose. Remaining
-    # extension / deployment-local surfaces use generic OperationRequest /
-    # OperationResult only when the operation-registry row declares
-    # generic_binding.
+    # operation-specific required fields without consulting prose. This v1
+    # OpenAPI document intentionally does not publish generic OperationRequest /
+    # OperationResult components; future profile-gated generic bindings must be
+    # declared in the operation registry and may not claim generated-SDK
+    # completeness.
     # =========================================================================
     FederationServiceBindingRef:
       type: object
@@ -1581,6 +1578,13 @@ components:
       - unconfirmed_link
       - rejected
       - tombstoned
+    ReferenceProjectionStatus:
+      type: string
+      description: Projection-only status for cross-Realm references. It maps Relation/View/Space hierarchy responses to accessible, lazy link, or locked anti-enumeration stubs.
+      enum:
+      - accessible
+      - lazy_link
+      - locked
     SpaceHierarchyChild:
       type: object
       required:
@@ -1596,6 +1600,8 @@ components:
           type: boolean
         lazy_link:
           type: boolean
+        reference_projection_status:
+          $ref: '#/components/schemas/ReferenceProjectionStatus'
         summary:
           type: object
       additionalProperties: false
@@ -2608,17 +2614,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequest
     DirectoryWithdrawResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawResponse
-    OperationRequest:
-      type: object
-      description: Operation-specific JSON request object. Required fields and profile gates are defined by the operation
-        binding in the normative sync/service documents. Core security-sensitive operations MUST use dedicated schemas;
-        this generic shape is reserved for extension passthrough or explicitly profiled operations.
-      additionalProperties: true
-    OperationResult:
-      type: object
-      description: Operation-specific JSON response object. Standard error responses use ErrorEnvelope; successful result
-        fields are defined by the operation binding in the normative sync/service documents.
-      additionalProperties: true
   responses:
     NotFound:
       description: Not found or not visible.

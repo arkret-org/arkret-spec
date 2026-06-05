@@ -314,7 +314,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 > **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Sync Service MUST NOT 向不属于 `C.members(at causal frontier of E)` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events,否则 ∅)。
 
 特例:
-- `ck.circle.create` 的 authorization shell 是 Realm-level event,但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。
+- `ck.circle.create` 的 authorization shell 是 Realm-level event,但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ck.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；sidecar profile 还需额外满足 `ck.vector.sidecar.existence_privacy.v1`。
 - `ck.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ck.circle.audit` / `ck.audit.accessed` 配对的 audit reader。
 - `ck.circle.anchor_commit` 是 Realm-level event,但只携带 opaque digest(见 §10),且触发节奏不得泄露 Circle 活动频率。
 
@@ -346,25 +346,24 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 
 对 MLS-backed Circle，替代方案(共享 Realm-default key 派生 Circle key、或惰性 rotate 直到下一次实际通信)会破坏 Circle 的密码学隔离前提，使其退化为 plaintext delivery-only scope,声明 MLS-backed 时 **MUST NOT** 采纳。
 
-## 11. UX(为什么 `display` 字段必须 normativize)
+## 11. Scope-identity UX safety invariants
 
 Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Circle A 的 Flow 工作，被通知 ping 到 Circle B 的 Flow,回复时误以为仍在 A 圈。这是真实泄露发生的瞬间。**因为 Flow 是单 scope 的(§6),所以"我在哪个 Circle"等价于"我在哪个 Flow",这反而让 UX 清晰**:每个 Flow 的视觉身份就是它 scope 的视觉身份，不存在"同一 Flow 内 synthesis 一个色、discussion 另一个色"的混乱。
 
-要让 UI 能可靠区分，以下信号 **MUST** 在 spec 层统一,**不**留给客户端各自发明:
+要让客户端能可靠区分 scope，以下信号 **MUST** 在 spec 层统一,**不**留给客户端各自发明:
 
 - **颜色 token**:同一 Circle 在 Alice 与 Bob 的客户端上必须呈现一致颜色，否则跨设备 social engineering 攻击成立。
 - **短名**:`short_name`(如 `HR-Conf`)相比裸 Circle ID（如 `ck:circle:01964...`）更易人工识别；客户端 SHOULD 显示 `short_name` 以辅助 scope 识别。
 - **符号 / glyph**:无障碍 / 色盲场景的第二信号。
 
-客户端实现 SHOULD 至少做到:
+客户端实现 MUST 满足以下可测试不变量；具体控件布局、文案与视觉形式属于 client UX guide / profile，不在本模型文件中固定：
 
-1. Flow 列表行左侧色条 + 行尾徽章 `<symbol> <short_name> · <member_count>`；MLS-backed Circle MAY 使用 lock/shield 类 glyph,plaintext Circle MUST 使用不会暗示 E2EE 的 glyph / 文案(整 Flow 一个 scope,色条不会"半色")。
-2. Flow 打开页顶部 banner 用 Circle 颜色；标题旁显示 `<symbol> <short_name> · <member_count>` 与 encryption profile 标识。
-3. compose 输入框上方常驻 scope 指示 `→ Sending to: [color bar] <short_name> · <member_count>`;切换 Flow 后首次输入时短暂高亮该行。
-4. 跨 Circle 导航有可感知转场(banner 颜色变化、breadcrumb 更新);避免"同一空间内滚动"错觉。
-5. mention 候选列表中非 Circle 成员置灰并提示"不在此 Circle"。
-6. 跨 Circle 引用以虚线框 + "另一信任圈"标识展示,**不**预览内容。
-7. "宽 anchor Flow + 窄 discussion Flow" 的组合形态(§7.2)在 UI 上 MAY 渲染为单卡片 + tab 切换,**但** tab 之间切换 MUST 表现为跨 scope 转场(banner 颜色变化 + compose scope 指示更新),不是同 Flow 内不同视图。
+1. 在任何会导致写入、回复、转发、引用、mention 或发送通知的入口，当前 effective scope MUST 可被用户区分；Circle scope 至少呈现 `display.color_token`、`display.symbol` 与 `display.short_name` 中的两个互补信号。
+2. Plaintext Circle MUST 使用不会暗示 E2EE 的 glyph、标签或披露语义；MLS-backed Circle MAY 使用 lock/shield 类语义，但不得让 plaintext scope 与 E2EE scope 看起来等价。
+3. 跨 Circle 导航或同一 surface 内切换不同 scope 时，客户端 MUST 让用户感知这是跨 scope 转场；不得表现成同一 Flow 内的普通滚动或普通 tab 内容切换。
+4. Mention / invite / add-recipient 等候选交互 MUST 区分 Circle member 与非 member；不得暗示非成员会收到 Circle-scoped 内容。
+5. 跨 Circle 引用必须标识为“另一 Circle / 另一协作圈 / 另一作用域”或等价语义，**不得**使用“信任圈”措辞，且不得预览调用者无权访问的内容。
+6. "宽 anchor Flow + 窄 discussion Flow" 的组合形态(§7.2)在 UI 上 MAY 渲染为同一工作 surface,**但**两个 Flow 之间的切换 MUST 表现为跨 scope 转场，不得表现为同一 Flow 内不同视图。
 
 ## 11.1 Agent sidecar Circle profile
 

@@ -2690,7 +2690,46 @@ Expected:
 - 第 4 步 MUST fail closed(`reason=approval_already_consumed`)。
 - 客户端渲染 "Controller via Agent" 双重署名；不显示为纯 controller 行为。
 
-### 11.6 Vector: Sidecar Circle Idempotent Ensure
+### 11.6 Vector: Relation Reference Projection Indistinguishability
+
+`vector_id`: `ck.vector.relation.reference_projection_indistinguishable.v1`
+
+Steps:
+
+1. Realm A 中存在 weak semantic Relation `R1`,目标指向 Realm B 内对象；调用者 C 可读 Realm A,但不能 discover / reference Realm B。
+2. Realm A 中存在形态相同的 Relation `R2`,目标指向不存在或不可发现的 Realm / object id。
+3. C 分别调用 Relation projection query、`ck.events.query` raw event API、backfill pull 与 federation peer fanout 视图。
+4. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对 `R1` / `R2` 每类至少采样 30 次。
+5. Auditor D 同时持有 source + target disclosure,读取 `R1` 的完整 canonical event。
+
+Expected:
+
+- C 对 `R1` / `R2` 均只能看到 `ReferenceProjectionStatus.locked` 或等价 locked stub,wire 字段集合、error envelope、metadata 集合必须相同。
+- C 的视图 MUST NOT 泄露目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何能区分"目标存在 vs 不存在"的信息。
+- raw event / backfill / federation fanout 对 C MUST 返回同一类 redacted event view 或 locked stub,不得暴露完整 `from_ref` / `to_ref` canonical bytes。
+- 两类样本 p95 服务端耗时差异 SHOULD <= 50ms；声明高安全 profile 时 p99 MUST 落入同一 timing bucket。
+- D MAY 取得完整 canonical bytes,但不得改变 C 对同一 Relation 的 locked projection shape。
+
+### 11.7 Vector: Circle Directory Visibility Members Indistinguishable
+
+`vector_id`: `ck.vector.circle.directory_visibility_members_indistinguishable.v1`
+
+Steps:
+
+1. Realm R 中存在 Circle C,`directory_visibility="members"`；viewer V 是 Realm member 但不是 Circle member。
+2. V 分别用 Circle id、`short_name`、title prefix 与不存在的 Circle id 调用 Circle get / list / search / Realm directory projection。
+3. V 读取 Realm anchor public view commitment。
+4. Circle member M 执行同一组调用。
+
+Expected:
+
+- 对 V,可见 Circle 与不存在 Circle 的响应 MUST 使用同一 envelope、字段集合和 timing bucket。
+- V MUST NOT 看到 Circle title、display、short_name、member_count、created_by、member id、join history 或可枚举错误。
+- V 的 stub 最多为 `{ "visibility": "locked", "opaque_commitment": "<fixed-length>" }` 或等价字段集合；`opaque_commitment` MUST 固定长度、不可逆、不可由 title / short_name / member set 枚举。
+- Realm public anchor 只暴露固定 cadence 的 opaque commitment,不得反映真实 Circle 活动频率。
+- M MAY 看到 policy 允许的 Circle metadata,但不得改变 V 的不可区分性要求。
+
+### 11.8 Vector: Sidecar Circle Idempotent Ensure
 
 `vector_id`: `ck.vector.sidecar.ensure_idempotent.v1`
 
@@ -2706,7 +2745,7 @@ Expected:
 - 第 2 步 MUST 复用既有 Circle 与 Flow,addressed list 不持久化到 Circle/Flow/Relation;只影响本次 notification fanout。
 - 第 3 步 MUST 复用既有 Circle(per_realm_controller_agent_pool),创建新 sidecar private Flow。
 
-### 11.7 Vector: Existence Privacy
+### 11.9 Vector: Existence Privacy
 
 `vector_id`: `ck.vector.sidecar.existence_privacy.v1`
 
@@ -2726,7 +2765,7 @@ Expected:
 - 第 4 步 sidecar 内 `ck.message.create` 不触发任何 target Flow member 的 notification。
 - 第 5 步 sidecar `effective_scope=circle` event 不出现在 default anchor leaf 明文中；只能作为 opaque commitment。
 
-### 11.8 Vector: Eligibility 三态 + Revocation 闭环
+### 11.10 Vector: Eligibility 三态 + Revocation 闭环
 
 `vector_id`: `ck.vector.sidecar.eligibility_states.v1`
 
@@ -2743,7 +2782,7 @@ Expected:
 - 第 3 步在 MLS-backed sidecar Circle 中，R 通过 MLS Welcome 加入，得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)；plaintext sidecar Circle 中，R 只获得从 membership active frontier 之后的投递 / 查询资格。
 - 第 4 步 reducer 主动 fan-out `ck.circle.member.state` 把 R 标记为 `leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
 
-### 11.9 Vector: Multi-Agent Publish Attribution
+### 11.11 Vector: Multi-Agent Publish Attribution
 
 `vector_id`: `ck.vector.sidecar.multi_agent_publish.v1`
 

@@ -46,6 +46,7 @@ Schema id: `ck.schema.flow.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:flow` | 以 `ck:flow:` 开头。 | Flow ID。 |
+| `schema` | yes | `ck.schema.flow.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的 effective scope（含所有 track）。未设置时 Flow 落在 Realm-default scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Flow metadata；MLS / E2EE 下按 `metadata_encryption_profile` 决定是否必须放入 `encrypted_metadata`。 |

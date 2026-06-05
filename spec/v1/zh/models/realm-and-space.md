@@ -109,7 +109,6 @@ Schema id: `ck.schema.realm.v1`
   "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "schema": "ck.schema.realm.v1",
   "title": "Launch Plan Confidential Realm",
-  "created_by": "did:web:acme.example",
   "trust_domain": "ck:trust_domain:did.webvh.acme.example",
   "schema_refs": ["ck.schema.realm.v1"],
   "default_discoverability": "invite_only",
@@ -124,6 +123,7 @@ Schema id: `ck.schema.realm.v1`
     "controller_organization": "did:web:acme.example",
     "recovery_controller_organizations": ["did:web:recovery-org.example"]
   },
+  "created_by": "did:web:acme.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```

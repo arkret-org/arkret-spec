@@ -20,7 +20,6 @@
       "not_before",
       "effective_at",
       "expires_at",
-      "valid_until",
       "retention_expires_at",
       "cache_expires_at",
       "revoked_by",

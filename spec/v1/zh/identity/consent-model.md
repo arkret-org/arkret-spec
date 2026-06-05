@@ -277,7 +277,7 @@ policy MAY 声明 `ck.realm.policy_components` 中的 `preauth` component 包含
 - **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ck.consent.grant` Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Move 落入 consent cell,quarantine inbox 永远不是授权根。
 - **profile 边界**：quarantine inbox 仅在 default profile 生效;`require_explicit_consent` profile 下无 active grant 的 invite 直接 `failed_precondition` 拒绝(§6.1 step 2),不进入 quarantine inbox。
 
-**UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 提示用户 "已发出的 invite 不会自动失效；如需撤销已发出 invite，请单独执行 `ck.invite.revoke`"。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
+**UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 明确披露两点语义：已发出的 invite 不会因 consent revoke 自动失效；如需撤销已发出的 invite，必须单独执行 `ck.invite.revoke`。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 
 ### 6.2 Contact / DM 前置 gate
 

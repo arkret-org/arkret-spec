@@ -360,7 +360,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 - External Collaboration Realm 的创建流程
 - restricted 外部加入流程
 - policy server 的 closed fail 模式
-- 仅向受批准的外部设备发送 MLS welcome
+- 仅向受批准的外部设备发送 MLS Welcome
 - 目录对非成员的不可见性
 - 跨域事件审计
 - 外部 grant 撤销与 epoch 轮换

@@ -27,6 +27,7 @@ Schema id: `ck.schema.relation.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:relation` | 以 `ck:relation:` 开头。 | Relation ID。 |
+| `schema` | yes | `ck.schema.relation.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | Relation 所在 Realm。 | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | submit payload 提供的 Realm 内 Circle scope；弱语义隐私边（`agent_sidecar_of` / `confidential_discussion_of`）按 §3.1 MUST 提交，指向 private Flow 的 Circle，使 `effective_scope = circle`，non-member 无法从公开端点枚举该边（见 [`circle.md` §6.1](./circle.md)）。 | 该 Relation 事实的 Circle 作用域。 |
 | `effective_scope` | no | `object` | **Reducer-stamped immutable，actor MUST NOT 提交**（reducer-managed，`reason=effective_scope_reducer_managed`）。create 时由 `scope_circle_id` 物化；结构关系 MUST NOT 宽于参与端点中最窄的作用域，且后续 rebind 不变（见 [`circle.md` §6.1-§6.2](./circle.md)）。 | 派生的有效作用域。 |
@@ -108,9 +109,21 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 - 引用 ID、目标类型和目标 `realm_id`（若已知）可以作为源 Realm 的 Relation metadata 同步。
 - 被引用对象的标题、字段、消息、附件、成员、计数、preview 和历史只按目标 Realm 的 policy、history visibility、E2EE epoch 与 redaction policy 展开。
 - 公共 Realm 引用私有 Realm 对象时，默认只能展示 opaque ref 或 Lazy Link；除非目标 Realm policy 明确允许 preview，不得泄露目标内容、成员、计数或存在性细节。
-- Sync / projection 层不得因为源 Realm 可见就自动 backfill 目标 Realm；跨 Realm 展开必须重新执行目标 Realm 授权，并在响应 metadata 中标记 `lazy_link`、`locked`、`accessible` 或等价可见性状态。
+- Sync / projection 层不得因为源 Realm 可见就自动 backfill 目标 Realm；跨 Realm 展开必须重新执行目标 Realm 授权，并在响应 metadata 中标记 `ReferenceProjectionStatus`（见 §4.2.1），或使用能无损映射到该枚举的等价字段。
 
 **Raw Event API 边界（normative）**：源 Realm canonical event store MAY 保存完整 `from_ref` / `to_ref` 字段以维持签名、dedupe 与 reducer determinism，但 `ck.events.query` / `ck.events.subscribe` / backfill / federation fanout 不是无条件 byte dump。若目标 Realm policy 对当前 caller / peer 拒绝 reference disclosure，则这些读取 surface MUST 返回与 §4.5 `locked` projection 等价的 redacted event view（保留 event id、kind、realm_id、payload digest / redaction reason 等可验证 stub，隐藏 envelope payload 内的目标 `realm_id` / `to_ref` / preview 字段），或直接按目标 policy 返回不可区分的 `locked` stub；不得把 canonical bytes 直接 forward 给本地客户端。只有同时满足源 Realm `ck.event.read` 与目标 reference disclosure 的 caller 才可取得完整 canonical payload bytes。
+
+#### 4.2.1 `ReferenceProjectionStatus`（normative）
+
+跨 Realm Relation、View、Space hierarchy 或 Graph 查询在展示引用目标时 MUST 使用统一的 `ReferenceProjectionStatus`：
+
+| 值 | 语义 | 可见字段 |
+| --- | --- | --- |
+| `accessible` | caller 已通过目标 Realm 的 discover/reference 与内容展开授权，可展示目标 policy 允许的 metadata / preview。 | 目标 policy 允许的最小 metadata；不得超出本次授权。 |
+| `lazy_link` | caller 可能有后续展开路径，但当前查询深度、范围、profile 或缺失依赖要求截断为惰性链接。 | 不解引用占位、必要的 source-side relation id / digest；不得自动 backfill 目标 Realm。 |
+| `locked` | 目标不存在、未发现、policy 拒绝或 caller 无权知道目标存在性；这些原因对 caller MUST 不可区分。 | 固定 locked stub；不得包含目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何可区分存在性的字段。 |
+
+响应实现 MAY 使用 `reference_projection.status`、`edge_status` 或等价字段名，但值 MUST 能无损映射到上述三值。`locked` 是 projection-only 派生状态，不写入 canonical Relation 对象，也不得与 account lifecycle 的 `locked` 混用。
 
 ### 4.3 授权拆分（两端 enforce 责任）
 
@@ -127,17 +140,17 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 - 在源 Realm 接收 Relation 时验证 `from_ref` / `to_ref` 的 typed prefix 与目标 Realm 一致性（`realm_id` 字段或 typed ref 解析）。
 - 不得把"源 Realm 写权限"误当成"目标 Realm 引用权限"——两者是**两次独立 capability check**。
-- 目标 Realm policy 拒绝引用时（例如 `discoverability=secret` + 不在 trusted issuer 列表），源 Realm 仍 MAY 接受 Relation 但**MUST**在 projection 层把它降级为 `locked`，并不得泄露目标 Realm 的存在性细节。**`locked` 是 projection-only 派生状态，不是 wire / canonical Relation 对象上的持久字段**：reducer 仍把 Relation 视为 `active` 写入 canonical event log；`locked` 只由 projection 在读取时对目标 Realm policy 做最新评估后派生而成。当目标 Realm 解除 policy 阻塞时，projection 在下一次重新评估时自动把同一 Relation 显示为 `active`（含具体目标 metadata），**无需**额外发布 "Relation unlock" 事件；同理 lock 与 unlock 之间不引入 reducer-level 状态机或新的 cell 类型。源 Realm SHOULD 缓存最近一次目标 policy 评估结果，以减少跨 Realm 探测；缓存 TTL 由目标 Realm `discoverability` policy 与 projection 实现 trade-off，但 MUST 在 policy 显式变更时即时失效。
+- 目标 Realm policy 拒绝引用时（例如 `discoverability=secret` + 不在 trusted issuer 列表），源 Realm 仍 MAY 接受 Relation 但**MUST**在 projection 层把它降级为 `ReferenceProjectionStatus.locked`，并不得泄露目标 Realm 的存在性细节。reducer 仍把 Relation 视为 `active` 写入 canonical event log；`locked` 只由 projection 在读取时对目标 Realm policy 做最新评估后派生而成。当目标 Realm 解除 policy 阻塞时，projection 在下一次重新评估时自动把同一 Relation 显示为 `accessible`（含具体目标 metadata），**无需**额外发布 "Relation unlock" 事件；同理 lock 与 unlock 之间不引入 reducer-level 状态机或新的 cell 类型。源 Realm SHOULD 缓存最近一次目标 policy 评估结果，以减少跨 Realm 探测；缓存 TTL 由目标 Realm `discoverability` policy 与 projection 实现 trade-off，但 MUST 在 policy 显式变更时即时失效。
 
 **跨 Realm 强约束（reducer 必检）**：
 
-- `contains` 与 `belongs_to` MUST NOT 跨 Realm——reducer MUST 解析 `from_ref` / `to_ref` 指向的对象（Space / Flow / Message / Morph 等），确认其 `realm_id` 与 Relation 自身 `realm_id` 一致；任一不一致 MUST `failed_precondition`（`reason="cross_space_structural_relation"`）。本节给出的两端 enforce 责任表是这条规则的语义来源。
-- 弱语义 `references` / `mentions` / `derived_from` / `summarized_from` / `depends_on` / `blocks` / `assigned_to` / `has_default_view` / `replies_to` 等 MAY 跨 Realm，需走 §4.3 的"两次独立 capability check"路径，并按目标 Realm policy 在 projection 层降级为 `lazy_link` / `locked` / `accessible` 状态。
+- `contains` 与 `belongs_to` MUST NOT 跨 Realm——reducer MUST 解析 `from_ref` / `to_ref` 指向的对象（Space / Flow / Message / Morph 等），确认其 `realm_id` 与 Relation 自身 `realm_id` 一致；任一不一致 MUST `failed_precondition`（`reason="cross_space_structural_relation"`）。该 reason code 是 pre-inversion 历史名，当前语义等价 `cross_realm_structural_relation`；实现、日志和审计解释时 MUST 按“结构 Relation 跨 Realm”理解，不得解释为“同 Realm 内跨 Space”。本节给出的两端 enforce 责任表是这条规则的语义来源。
+- 弱语义 `references` / `mentions` / `derived_from` / `summarized_from` / `depends_on` / `blocks` / `assigned_to` / `has_default_view` / `replies_to` 等 MAY 跨 Realm，需走 §4.3 的"两次独立 capability check"路径，并按目标 Realm policy 在 projection 层降级为 `ReferenceProjectionStatus`。
 - JSON Schema 层面无法在不引入冗余字段的前提下完整表达该约束（需要解析 typed reference 后再比 Realm），因此 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `relation_kind` description 把该约束标记为 reducer-enforced；schema validation 通过仅代表线路形态合法，不代表 cross-Realm 约束已通过。
 
 ### 4.5 反枚举（normative）
 
-**存在性反枚举**：`locked` 降级状态与"目标 Realm 不存在 / 未发现"对外 MUST 不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 字段、相同 metadata 集合、相同 timing 类（差距 ≤ 50ms）、相同 error 字符串。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。
+**存在性反枚举**：`ReferenceProjectionStatus.locked` 与"目标 Realm 不存在 / 未发现"对外 MUST 不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 或等价字段、相同 metadata 集合、相同 error 字符串、相同 timing bucket。Timing 判定使用同一服务端测量点、同一请求类别和同一部署 profile 的分布式口径：实现 SHOULD 对每类至少采样 30 次，p95 差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入该 bucket。网络传输时间不计入服务端本地口径，但 conformance runner MAY 在同一网络条件下做端到端抽样。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。Conformance vector `ck.vector.relation.reference_projection_indistinguishable.v1` 固化该响应 shape、raw event/backfill masking 与 timing bucket。
 
 读取实现 MUST 对 projection caller、raw event caller、backfill consumer 与 federation peer 使用同一 reference-disclosure 决策。对 peer 传输 canonical bytes 仅在 peer 本身被授权接收完整 payload 且承诺对其本地 caller 继续执行本节 masking 时允许；否则发送方 MUST 只传 redacted event view / locked stub。签名验证工具需要证明原始事件存在时，服务端 MAY 返回 `payload_digest`、inclusion proof 与 redaction reason，但不得返回被 target policy 禁止的 target ref 明文字段。
 

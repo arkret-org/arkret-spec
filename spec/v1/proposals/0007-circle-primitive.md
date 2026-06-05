@@ -9,6 +9,8 @@ created: 2026-05-25
 authors:
   - chris@acroidea.com
 merged_into: spec/v1/zh/models/circle.md
+historical_only: true
+normative_source: spec/v1/zh/models/circle.md
 ---
 
 > **Status: accepted, merged into v1 normative spec on 2026-05-25.**
@@ -502,7 +504,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 
 详细 UX rationale 见 design discussion(2026-05-25 conversation log)。
 
-## 7. Open questions
+## 7. Resolved / Deferred Questions（historical）
 
 - [ ] **Circle 创建权限默认**:`ck.circle.create` 是否默认包含在普通成员 bundle?倾向 **否**(Circle 应当少而稳定;参考 §6 UX 风险面)。但创业团队可能希望低门槛 —— 是否做成 profile-level 决定?
 - [ ] **Display palette 大小**:v1 草案给 17 色,是否够?Linear 8 色 / Tailwind 22 色对比下,17 是个折中。固定 token 集是否锁在 schema 还是 profile?
@@ -536,9 +538,9 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 | `discussion_realm_ref` migration | **resolved (pre-freeze)** | §8.1 已删除该字段;迁移工具把带 `discussion_realm_ref` 的 Flow 拆为两 Flow + Relation。 |
 | MLS rotate amplification 参数 | **deferred-to-profile (release-gate)** | 留给 profile,但 floor profile MUST 显式公开 forward secrecy 窗口承诺。 |
 
-## 8. Migration plan
+## 8. Migration plan（historical; completed before v1 freeze）
 
-> accepted 后填,以下为切片次序参考。本提案**必须在 v1 freeze 前完成 §8.1 + §8.4**,否则 `discussion_realm_ref` 删除变为 v2 breaking change。
+以下为历史迁移切片记录；`discussion_realm_ref` 已在 v1 freeze 前删除并登记 forbidden / rename，当前 wire contract 以 normative docs 与 artifact 为准。
 
 ### 8.1 Pre-freeze 强制项(必须在 v1 ship 前完成)
 

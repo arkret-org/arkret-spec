@@ -450,12 +450,12 @@ UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；conte
 ```json
 {
   "id": "ck:flow:01964137-0000-7000-8000-000000000000",
+  "schema": "ck.schema.flow.v1",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "updated_at": "2026-04-26T00:00:00Z",
-  "schema": "ck.schema.flow.v1"
+  "updated_at": "2026-04-26T00:00:00Z"
 }
 ```
 
