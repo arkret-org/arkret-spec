@@ -2001,7 +2001,7 @@
           "livekit_jwt_claim_set",
           "livekit_sframe_keyprovider"
         ],
-        "unsupported_optional": "fall back to ck.profile.media_service_binding.cokret_native.v1 if available"
+        "unsupported_optional": "MUST fail closed; do not fall back to a non-production binding. Deployments needing an alternate backend MUST declare another production-grade media_service_binding sub-profile."
       },
       "additional_requirements": {
         "livekit_metadata_ban_must": "Token issuer MUST NOT inject LiveKit metadata or canUpdateOwnMetadata claims; Cokret participant metadata flows through ck.call.state only.",
@@ -2010,7 +2010,7 @@
     },
     "ck.profile.media_service_binding.cokret_native.v1": {
       "role": "server",
-      "description": "Cokret-native SFU reference implementation binding sub-profile (CKP-0010 §4.5). Preserves the v1.0 custom SFU wire format as a reference impl for conformance testing and legacy migration. Not recommended for production — workload of self-maintaining SFU (cascade, recording, SFrame, scalability) exceeds the cost of LiveKit / mediasoup bindings. May transition to informative in v1.1. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. See zh/crypto-media/bindings/cokret-native.md.",
+      "description": "Cokret-native SFU reference binding sub-profile (CKP-0010 §4.5). Provides a backend-SDK-free reference implementation of the Cokret-native SFU wire format for protocol self-consistency and conformance testing. Reference / conformance binding only: it MUST NOT be claimed as a production media backend, and production deployments MUST use a production-grade media_service_binding sub-profile such as ck.profile.media_service_binding.livekit.v1. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. See zh/crypto-media/bindings/cokret-native.md.",
       "depends_on": [
         "ck.profile.media_service_binding.v1"
       ],
@@ -2036,7 +2036,7 @@
         "required": [
           "cokret_native_sfu_join_request"
         ],
-        "unsupported_optional": "production deployments SHOULD migrate to ck.profile.media_service_binding.livekit.v1"
+        "unsupported_optional": "MUST fail closed when cokret_native_sfu_join_request is unavailable."
       }
     },
     "ck.profile.stateless_cursor.v1": {

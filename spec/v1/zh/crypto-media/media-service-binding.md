@@ -159,7 +159,7 @@ Token issuer MUST 在签发前校验：
 SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：
 
 - `type="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
-- `type="cokret-native"`：见 [`bindings/cokret-native.md`](./bindings/cokret-native.md)（reference impl，不推荐生产使用）。
+- `type="cokret-native"`：见 [`bindings/cokret-native.md`](./bindings/cokret-native.md)（reference / conformance binding，不作为生产媒体后端）。
 - `type="mediasoup"` / `type="janus"` / `type="moq-relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `type` MUST fail closed，错误码 `unknown_focus_type`。
 
 不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§3 Token Exchange](#3-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 type-specific 附录定义。下面的 §5 / §6 / §7 是跨 backend 通用约束。

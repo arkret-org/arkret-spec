@@ -341,7 +341,7 @@ Base URL 来自 registration 的 `base_url`。
 
 字段级接口索引：
 
-本表 **surface / 调用方向** 列区分两类 operation:`edge`（节点 → Applet，鉴权主体为 Cokret 节点，路径 `/_cokret/edge/applet/...`）与 `self`（管理员 → 自有 Principal Server aggregate，鉴权主体为管理员 actor，路径 `/_cokret/self/applets/...`）。二者调用方向相反、鉴权主体不同,实现不得套用同一鉴权模型。
+本表 **surface / 调用方向** 列区分两类 operation:`edge`（节点 → Applet，鉴权主体为 Cokret 节点，路径 `/_cokret/edge/applet/...`）与 `self`（管理员 → 自有 Principal Server aggregate，鉴权主体为管理员 actor，路径 `/_cokret/self/applets/...`）。二者调用方向相反、鉴权主体不同，实现不得套用同一鉴权模型。
 
 | operation_id | surface / 调用方向 | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- | --- |

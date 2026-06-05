@@ -52,7 +52,7 @@ sidebar:
 - `ck.profile.push_gateway.v1`（`depends_on` `ck.profile.push_gateway.blind_wakeup.v1`;`visible_notification` / `matrix_passthrough` 为 opt-in）
 - `ck.profile.blob_node.v1`
 
-**hardening profile**（overlay,`role=admin`,非独立实现角色;权威全集以 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `hardening_profiles` 为准）:
+**hardening profile**（overlay,`role=admin`,非独立实现角色；权威全集以 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `hardening_profiles` 为准）:
 
 - `ck.profile.mls_governance_binding.full.v1`
 - `ck.profile.attested_audit.e2ee.v1`

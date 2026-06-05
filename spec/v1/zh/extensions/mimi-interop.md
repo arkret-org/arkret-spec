@@ -82,7 +82,7 @@ GET /_cokret/open/mimi/provider-directory
 
 ## 4. Room Binding
 
-允许被导出为 MIMI room 的 Cokret 对象 MUST 有写入 `ck.component.mimi.room_binding.v1` cell 的 Move effect。兼容 Event kind 为 `ck.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
+允许被导出为 MIMI room 的 Cokret 对象 MUST 有写入 `ck.component.mimi.room_binding.v1` cell 的 Move effect。对应 Event kind 为 `ck.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
 
 `ck.mimi.room_binding` 的完整 payload 形态（含 `hub_provider`、`follower_providers`、`content_profile`、`policy_root`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
 

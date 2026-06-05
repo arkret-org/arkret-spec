@@ -266,10 +266,16 @@
       },
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/lifecycle_response",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "status"
+        ],
+        "properties": [
+          "ok",
+          "status"
+        ],
+        "closed": true
       }
     },
     {
@@ -286,10 +292,16 @@
       },
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/lifecycle_response",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "status"
+        ],
+        "properties": [
+          "ok",
+          "status"
+        ],
+        "closed": true
       }
     },
     {
@@ -306,10 +318,16 @@
       },
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/lifecycle_response",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "status"
+        ],
+        "properties": [
+          "ok",
+          "status"
+        ],
+        "closed": true
       }
     },
     {
@@ -1543,10 +1561,15 @@
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierResponse",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
+        "schema_kind": "object",
+        "required": [
+          "frontier"
+        ],
+        "properties": [
+          "frontier",
+          "receipts"
+        ],
+        "closed": true
       }
     },
     {

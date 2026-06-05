@@ -20,7 +20,7 @@ sidebar:
 1. **Reference impl**：协议自洽性测试与教学用途；
 2. **Conformance baseline**：不依赖任何外部 backend SDK 即可跑完 binding-framework 全套 vector。
 
-**不推荐生产使用**：自研 SFU 的工程负担（cascade、recording、E2EE SFrame 实现、scalability）超过维护 LiveKit / mediasoup binding 的成本。
+本 binding 仅作 reference / conformance 用途，**MUST NOT** 作为生产媒体后端被 claim；生产部署 **MUST** 使用 production-grade 的 `media_service_binding` 子 profile（如 `ck.profile.media_service_binding.livekit.v1`）。
 
 声明 `ck.profile.media_service_binding.cokret_native.v1` 的部署 MUST 同时声明 `ck.profile.media_service_binding.v1`。
 
@@ -117,7 +117,7 @@ Cokret-native SFU 接受标准 WebRTC offer/answer。协议层不约束具体 co
 
 ## 7. Cascading
 
-Cokret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascade_group` 内的 focus 仅做 client-side region preference 排序，不做媒体路径桥接。生产部署若需 cascading，应迁移到支持 mesh 的 backend（LiveKit Cloud SFU mesh、mediasoup cluster）。
+Cokret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascade_group` 内的 focus 仅做 client-side region preference 排序，不做媒体路径桥接。需要 cascading 的部署 MUST 使用支持 mesh 的 production-grade backend binding。
 
 ## 8. Failure Mode
 

@@ -156,7 +156,24 @@ def resolve_schema_pointer(document: Any, fragment: str) -> Any:
 def schema_summary(schema_ref: str) -> dict[str, Any]:
     file_ref, _, fragment = schema_ref.partition("#")
     schema_path = ARTIFACTS / file_ref
-    schema = resolve_schema_pointer(load_json(schema_path), f"#{fragment}" if fragment else "#")
+    document = load_json(schema_path)
+    schema = resolve_schema_pointer(document, f"#{fragment}" if fragment else "#")
+    seen: set[tuple[str, str]] = set()
+    while (
+        isinstance(schema, dict)
+        and isinstance(schema.get("$ref"), str)
+        and set(schema.keys()) == {"$ref"}
+    ):
+        ref = schema["$ref"]
+        key = (schema_path.as_posix(), ref)
+        if key in seen:
+            break
+        seen.add(key)
+        ref_file, _, ref_fragment = ref.partition("#")
+        if ref_file:
+            schema_path = (schema_path.parent / ref_file).resolve()
+            document = load_json(schema_path)
+        schema = resolve_schema_pointer(document, f"#{ref_fragment}" if ref_fragment else "#")
     if not isinstance(schema, dict):
         schema = {}
     properties = schema.get("properties")
