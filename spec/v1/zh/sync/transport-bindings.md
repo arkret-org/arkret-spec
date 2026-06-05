@@ -75,6 +75,12 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.events.query` | 按 actor / Realm / cursor 双向查询 Event。 |
 | `ck.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
 | `ck.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
+| `ck.peer.events.submit` | federation peer 推送 signed Event Envelope 批次。 |
+| `ck.peer.events.resolve` | federation peer 按 event id / digest 补洞解析 Event。 |
+| `ck.peer.events.query` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
+| `ck.peer.events.query_post` | `ck.peer.events.query` 的 HTTP POST/body binding variant。 |
+| `ck.peer.events.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
+| `ck.peer.snapshot.head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
 | `ck.account.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
 | `ck.account.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |
 | `ck.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `ck.events.subscribe` 对称)。 |
@@ -96,12 +102,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.keys.upload` / `ck.keys.query` / `ck.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
 | `ck.keys.backups.put` / `ck.keys.backups.list` / `ck.keys.backups.get` / `ck.keys.backups.delete` | 加密密钥备份对象存储、枚举、读取与删除。 |
 
-> **Federation 复用说明（非独立 operation）**：v1 联邦不再注册独立的 federation operation_id，而是**复用**上表已有的 operation，并在认证层切换形态：
->
-> - **Federation push**：复用 `ck.events.submit`（`POST /_cokret/self/events`）；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。
-> - **Federation pull / backfill**：复用 `ck.events.query`（`GET /_cokret/self/events?before=<cursor>`，取该 cursor 之前最近一批，默认 descending）；认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。
->
-> 这两项是同一 canonical operation 的 federation auth-class 使用形态，不是新的 `operation_id`，因此不出现在上表的 operation 列中。
+> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_cokret/peer/*` HTTP trust surface 和 `ck.peer.*` operation_id。`/_cokret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。详见 [`federation.md`](./federation.md) §4。
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 
@@ -117,7 +118,7 @@ HTTP/JSON 是默认 profile：
 - 流式结果 MAY 使用 SSE、WebSocket 或 newline-delimited JSON。
 - 错误使用统一 JSON error object，并映射到 HTTP status。
 
-HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-http-binding.md`、OpenAPI 以及生成的 `artifacts/reports/operation-schema-index.json`；`service-api-schema.mdx` 只提供 operation 分组与治理说明视图。实现 MAY 额外暴露 XRPC、RPC style 或部署本地 legacy alias，但这些 alias MUST NOT 宣称为 Cokret canonical binding，MUST NOT 出现在 `*.describe` 的 canonical operation binding 中，MUST NOT 使用 `/_cokret` namespace 表达版本，也不得包含 `/v1/`、`/api/v1`、`/cokret/v1` 等版本 path 段。v1 core conformance 测试始终以 canonical HTTP/JSON path 与字段为基准，路径别名不得替代 canonical binding。
+HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-http-binding.md`、OpenAPI 以及生成的 `artifacts/reports/operation-schema-index.json`；`service-api-schema.mdx` 只提供 operation 分组与治理说明视图。实现不得把未注册路径宣称为 Cokret canonical binding，不得在 `/_cokret` namespace 中表达版本，也不得包含 `/v1/`、`/api/v1`、`/cokret/v1` 等版本 path 段。v1 core conformance 测试始终以 canonical HTTP/JSON path 与字段为基准。
 
 ## 6. Non-HTTP Binding Extensions
 

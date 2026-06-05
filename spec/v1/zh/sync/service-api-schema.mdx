@@ -71,9 +71,11 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 服务发现 | `ck.server.*` | `/_cokret/describe` |
 | 身份信任根与 registry | `ck.identity.*` | `/_cokret/root/identity/*` |
 | Events | `ck.events.*` | `/_cokret/self/events/*` |
+| Federation peer events | `ck.peer.events.*` | `/_cokret/peer/events/*` |
 | 短时信号（ephemeral） | `ck.ephemeral.send` | `/_cokret/self/ephemeral` |
 | 账号自服务与聚合同步 | `ck.account.viewer`、`ck.account.update_profile`、`ck.account.subscribe`、`ck.account.describe`、`ck.account.cursor_revoke` | `/_cokret/self/account/*` |
 | Realm snapshot 入口 | `ck.snapshot.*` | `/_cokret/self/snapshot/*` |
+| Federation peer snapshot 入口 | `ck.peer.snapshot.*` | `/_cokret/peer/snapshot/*` |
 | 目录发现 | `ck.directory.*` | `/_cokret/find/directory/*` |
 | Blob / media | `ck.blob.*` | `/_cokret/self/blob/*` |
 | 推送 | `ck.push.*` | `/_cokret/edge/push/*` |
@@ -157,6 +159,24 @@ paths:
     post:
       operationId: ck.ephemeral.send
 
+  /_cokret/peer/events/describe:
+    get:
+      operationId: ck.peer.events.describe
+  /_cokret/peer/events:
+    post:
+      operationId: ck.peer.events.submit
+    get:
+      operationId: ck.peer.events.query
+  /_cokret/peer/events/query:
+    post:
+      operationId: ck.peer.events.query_post
+  /_cokret/peer/events/resolve:
+    post:
+      operationId: ck.peer.events.resolve
+  /_cokret/peer/events/frontier:
+    get:
+      operationId: ck.peer.events.frontier
+
   /_cokret/self/account/viewer:
     get:
       operationId: ck.account.viewer
@@ -175,6 +195,9 @@ paths:
   /_cokret/self/snapshot/head:
     get:
       operationId: ck.snapshot.head
+  /_cokret/peer/snapshot/head:
+    get:
+      operationId: ck.peer.snapshot.head
 
   /_cokret/find/directory/describe:
     get:
@@ -348,6 +371,9 @@ paths:
 | `ck.events.submit` | `POST /_cokret/self/events` | gRPC `Events/Submit` / 队列 `events.submit` |
 | `ck.events.get` / `ck.events.resolve` / `ck.events.query` / `ck.events.frontier` | `GET /_cokret/self/events/{event_id}`, `POST /_cokret/self/events/resolve`, `GET /_cokret/self/events`, `GET /_cokret/self/events/frontier` | gRPC `Events/Get` / `Events/Resolve` / `Events/Query` / `Events/Frontier` |
 | `ck.events.subscribe` | `GET /_cokret/self/events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
+| `ck.peer.events.submit` | `POST /_cokret/peer/events` | gRPC `PeerEvents/Submit` / 队列 `peer.events.submit` |
+| `ck.peer.events.resolve` / `ck.peer.events.query` / `ck.peer.events.frontier` | `POST /_cokret/peer/events/resolve`, `GET /_cokret/peer/events`, `GET /_cokret/peer/events/frontier` | gRPC `PeerEvents/Resolve` / `PeerEvents/Query` / `PeerEvents/Frontier` |
+| `ck.peer.events.query_post` | `POST /_cokret/peer/events/query` | HTTP-only body binding variant of `ck.peer.events.query` |
 | `ck.account.viewer` | `GET /_cokret/self/account/viewer` | gRPC `Account/Viewer` / MQ `account.viewer`；响应使用 signed handle claim / ref / digest，不返回未签名裸 handle 作为账号权威字段。 |
 | `ck.account.update_profile` | `POST /_cokret/self/account/profile` | gRPC `Account/UpdateProfile` / MQ `account.update_profile`；`bio` 映射到 `profile_fields.bio`，不接受 `avatar_url`。 |
 | `ck.account.subscribe` | `GET /_cokret/self/account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
@@ -356,8 +382,8 @@ paths:
 | `ck.account.session_revoke` | `POST /_cokret/gate/account/session-grants/revoke` | gRPC `Account/SessionRevoke` / MQ `account.session_revoke` |
 | `ck.ephemeral.send` | `POST /_cokret/self/ephemeral` | gRPC `Ephemeral/Send` / MQ `ephemeral.send`；承载 `ck.schema.ephemeral_envelope.v1`，不写 durable Event |
 | `ck.snapshot.head` | `GET /_cokret/self/snapshot/head` | snapshot pointer |
+| `ck.peer.snapshot.head` | `GET /_cokret/peer/snapshot/head` | peer snapshot pointer |
 | `ck.projection.spaces` / `ck.projection.flows` / `ck.projection.morphs` | `GET /_cokret/self/projection/spaces`, `GET /_cokret/self/projection/flows`, `GET /_cokret/self/projection/morphs` | gRPC `Projection/Spaces` / `Projection/Flows` / `Projection/Morphs`; MQ `projection.*` |
-| 联邦推送 / 拉取 | 复用 `ck.events.submit` / `ck.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/cokret/sync/1.0.0` + service signature。 |
 | `ck.directory.search_*` / `ck.directory.resolve_*` / `ck.directory.list_handles_for_subject` | `POST /_cokret/find/directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
 | `ck.directory.announce` / `ck.directory.withdraw` / `ck.directory.push.register` | `POST /_cokret/find/directory/announce`, `POST /_cokret/find/directory/withdraw`, `POST /_cokret/find/directory/push/register` | gRPC Discovery Ingest Service |
 | `ck.blob.upload` / `ck.blob.head` / `ck.blob.get` | `POST /_cokret/self/blob/upload`, `HEAD/GET /_cokret/self/blob/get` | Object-store signed URL binding / gRPC blob service |

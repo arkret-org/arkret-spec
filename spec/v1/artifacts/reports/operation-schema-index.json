@@ -1681,6 +1681,184 @@
       }
     },
     {
+      "operation_id": "ck.peer.events.frontier",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerResponse",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "heads",
+          "frontier_root",
+          "observed_at",
+          "issuer",
+          "signature"
+        ],
+        "properties": [
+          "realm_id",
+          "heads",
+          "max_hlc",
+          "frontier_root",
+          "actor_seq_upper_bounds",
+          "witness_receipts",
+          "observed_at",
+          "issuer",
+          "signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.peer.events.query",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse",
+        "schema_kind": "object",
+        "required": [
+          "events",
+          "has_more"
+        ],
+        "properties": [
+          "events",
+          "prev_cursor",
+          "next_cursor",
+          "has_more",
+          "snapshot_bootstrap"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.peer.events.query_post",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "realms",
+          "actors",
+          "before",
+          "after",
+          "order",
+          "limit",
+          "filters"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse",
+        "schema_kind": "object",
+        "required": [
+          "events",
+          "has_more"
+        ],
+        "properties": [
+          "events",
+          "prev_cursor",
+          "next_cursor",
+          "has_more",
+          "snapshot_bootstrap"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.peer.events.resolve",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequest",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "event_ids",
+          "event_digests",
+          "include_payload"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveResponse",
+        "schema_kind": "object",
+        "required": [
+          "events",
+          "missing"
+        ],
+        "properties": [
+          "events",
+          "missing",
+          "unauthorized"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.peer.events.submit",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequest",
+        "schema_kind": "object",
+        "required": [
+          "service_binding_ref",
+          "events"
+        ],
+        "properties": [
+          "service_binding_ref",
+          "events"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse",
+        "schema_kind": "object",
+        "required": [
+          "status",
+          "accepted"
+        ],
+        "properties": [
+          "status",
+          "accepted",
+          "duplicate",
+          "rejected",
+          "quarantine",
+          "actor_frontier",
+          "realm_frontier",
+          "cursor"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.peer.snapshot.head",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadResponse",
+        "schema_kind": "object",
+        "required": [
+          "snapshot_ref",
+          "state_digest",
+          "frontier",
+          "event_set_commitment",
+          "created_by",
+          "created_at",
+          "authority_binding",
+          "signature"
+        ],
+        "properties": [
+          "snapshot_ref",
+          "state_digest",
+          "frontier",
+          "event_set_commitment",
+          "verification_hints",
+          "created_by",
+          "created_at",
+          "authority_binding",
+          "signature"
+        ],
+        "closed": false
+      }
+    },
+    {
       "operation_id": "ck.ephemeral.send",
       "success_shape_kind": "typed_response",
       "request": {

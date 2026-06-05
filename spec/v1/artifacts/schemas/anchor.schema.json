@@ -20,7 +20,7 @@
       "description": "Content-derived typed reference. hex part MUST equal H(anchor_canonical_bytes) under the Realm digest_algorithm, where anchor_canonical_bytes is the canonical JSON of every signed body field EXCEPT `id` and `anchorer_signature`. Receivers MUST recompute and verify; mismatch → digest_mismatch. NEVER include `id` in the hash input — that would create a self-reference."
     },
     "realm_id": {
-      "$ref": "#/$defs/realm_ref"
+      "$ref": "#/$defs/realm_id"
     },
     "predecessor_refs": {
       "type": "array",
@@ -106,7 +106,7 @@
       "type": "string",
       "pattern": "^(?:sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
-    "realm_ref": {
+    "realm_id": {
       "type": "string",
       "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },

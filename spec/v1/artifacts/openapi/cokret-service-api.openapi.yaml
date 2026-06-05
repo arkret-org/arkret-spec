@@ -27,8 +27,10 @@ info:
 
     prose. The typed surface currently covers `ck.events.{submit, get, resolve,
 
-    query, query_post, frontier}`, `ck.account.{viewer, subscribe,
+    query, query_post, frontier}`, `ck.peer.events.{submit, resolve, query,
+    query_post, frontier}`, `ck.account.{viewer, subscribe,
     update_profile, register, session_revoke}`, `ck.snapshot.head`,
+    `ck.peer.snapshot.head`,
 
     `ck.identity.{resolve, get_document, get_receipts, submit_did_operation}`, `ck.authz.{check,
 
@@ -976,7 +978,7 @@ components:
       type: object
       description: |
         Request-level service binding snapshot carried by federation
-        service-to-service ck.events.submit calls. This is metadata for the
+        service-to-service ck.peer.events.submit calls. This is metadata for the
         receiver to verify the sender's delivery decision; client writes omit it.
       required:
       - realm_id
@@ -1044,7 +1046,7 @@ components:
 
     EventsSubmitFederationRequest:
       type: object
-      description: Federation service-to-service ck.events.submit request body.
+      description: Federation service-to-service ck.peer.events.submit request body.
       required:
       - service_binding_ref
       - events
@@ -1147,53 +1149,11 @@ components:
       additionalProperties: false
 
     EventsFrontierFederationPeerResponse:
-      type: object
-      description: Federation peer ck.events.frontier response. Requires S2S signed trust-domain headers.
-      required:
-      - frontier
-      - frontier_root
-      - signature
-      properties:
-        frontier:
-          type: object
-          description: Realm frontier visible to the authenticated federation peer.
-        receipts:
-          type: array
-          items:
-            type: object
-        frontier_root:
-          type: string
-          description: Hash commitment returned for federation_peer and anonymous_health peer_role.
-        actor_seq_upper_bounds:
-          type: object
-          description: Per-actor sequence upper bounds returned for federation_peer peer_role.
-        signature:
-          type: object
-          description: Service signature over the frontier response when peer_role=federation_peer.
-      additionalProperties: false
-
-    EventsFrontierAnonymousHealthResponse:
-      type: object
-      description: Anonymous health ck.events.frontier response. MUST NOT include actor_seq_upper_bounds, receipts, frontier details, or service signature material.
-      required:
-      - frontier_root
-      properties:
-        frontier_root:
-          type: string
-          description: Opaque hash commitment suitable for liveness / freshness checks.
-        cache_expires_at:
-          type: string
-          format: date-time
-          description: Earliest time until which clients SHOULD reuse this anonymous health response. Anonymous health responses MUST impose at least a 60 second cache/backoff window; clients MUST treat shorter values as 60 seconds.
-        retry_after_ms:
-          type: integer
-          minimum: 60000
-          description: Minimum retry delay for anonymous health probes when the service wants explicit polling backoff. Anonymous health responses MUST impose at least a 60 second cache/backoff window.
-      additionalProperties: false
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerResponse
 
     SnapshotBootstrap:
       type: object
-      description: Optional ck.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
+      description: Optional ck.peer.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
       required:
       - snapshot_ref
       - state_digest
@@ -3101,10 +3061,6 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        requestCanonicalDigest: []
-      - {}
       parameters:
       - name: actor_id
         in: query
@@ -3114,16 +3070,6 @@ paths:
         in: query
         schema:
           $ref: '#/components/schemas/RealmId'
-      - name: peer_role
-        in: query
-        schema:
-          type: string
-          enum:
-          - account_client
-          - federation_peer
-          - anonymous_health
-          default: account_client
-        description: Frontier caller role. federation_peer requires service-to-service authentication with Source/Destination trust-domain headers and Request-Canonical-Digest; anonymous_health MAY be unauthenticated but MUST be rate-limited and only returns frontier_root summaries.
       responses:
         '200':
           description: Event frontier visible to caller
@@ -3131,6 +3077,200 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierResponse'
+  /_cokret/peer/events/describe:
+    get:
+      operationId: ck.peer.events.describe
+      security: []
+      responses:
+        '200':
+          description: Federation peer Events API capabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescribe'
+  /_cokret/peer/events:
+    post:
+      operationId: ck.peer.events.submit
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      summary: Federation peer event push.
+      description: |
+        Accepts a service-to-service federation event batch. This is the only
+        canonical HTTP binding for federation event push; client/self event
+        submission remains under `/_cokret/self/events`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequest
+      responses:
+        '200':
+          description: Federation event batch accepted, duplicated, partially rejected, or quarantined.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsSubmitResponse'
+    get:
+      operationId: ck.peer.events.query
+      x-cokret-required-any-of:
+      - - realms
+      - - actors
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+      summary: Federation peer event pull / backfill query.
+      description: |
+        Returns a page of events visible to the authenticated federation peer.
+        Cursor, selector, order, and response semantics match `ck.events.query`,
+        but this binding is the server-to-server peer trust surface.
+      parameters:
+      - name: realms
+        in: query
+        description: Filter by Realm IDs. Multiple values are UNION within the parameter; cross with `actors` is intersection.
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/RealmId'
+          minItems: 1
+        style: form
+        explode: true
+      - name: actors
+        in: query
+        description: Filter by Actor DIDs. Multiple values are UNION within the parameter; cross with `realms` is intersection.
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActorDid'
+          minItems: 1
+        style: form
+        explode: true
+      - name: before
+        in: query
+        description: Return events strictly older than this cursor position. Pair with response `prev_cursor` to walk further backward.
+        schema:
+          $ref: '#/components/schemas/Cursor'
+      - name: after
+        in: query
+        description: Return events strictly newer than this cursor position. Pair with response `next_cursor` to walk further forward.
+        schema:
+          $ref: '#/components/schemas/Cursor'
+      - name: order
+        in: query
+        description: Batch ordering. `default` follows the proximity-to-anchor rule.
+        schema:
+          type: string
+          enum:
+          - default
+          - ascending
+          - descending
+          default: default
+      - name: limit
+        in: query
+        description: Max events to return; server enforces an upper bound.
+        schema:
+          type: integer
+          minimum: 1
+      - name: filters
+        in: query
+        description: Optional structured filter object.
+        schema:
+          type: object
+        style: deepObject
+        explode: true
+      responses:
+        '200':
+          description: Federation peer event query page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsQueryResponse'
+  /_cokret/peer/events/query:
+    post:
+      operationId: ck.peer.events.query_post
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      summary: ck.peer.events.query in HTTP POST body form.
+      description: |
+        Semantically identical to `GET /_cokret/peer/events`; transports the
+        selector / cursor / order / filter parameter set as a JSON body.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest
+      responses:
+        '200':
+          description: Federation peer event query page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsQueryResponse'
+  /_cokret/peer/events/resolve:
+    post:
+      operationId: ck.peer.events.resolve
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      summary: Federation peer event reference resolution.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventsResolveRequest'
+      responses:
+        '200':
+          description: Resolved events visible to the authenticated federation peer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResolveResponse'
+  /_cokret/peer/events/frontier:
+    get:
+      operationId: ck.peer.events.frontier
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+      parameters:
+      - name: realm_id
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/RealmId'
+      responses:
+        '200':
+          description: Federation peer frontier response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsFrontierFederationPeerResponse'
   /_cokret/self/ephemeral:
     post:
       operationId: ck.ephemeral.send
@@ -3537,6 +3677,31 @@ paths:
             Signed snapshot manifest head (pointer + signature; does NOT carry
             chunk bytes). For chunk retrieval clients SHOULD subsequently call
             the blob surface with the manifest's chunk references.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotHeadResponse'
+  /_cokret/peer/snapshot/head:
+    get:
+      operationId: ck.peer.snapshot.head
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+      parameters:
+      - name: realm_id
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/RealmId'
+      responses:
+        '200':
+          description: |
+            Signed snapshot manifest head visible to an authorized federation
+            peer for snapshot-assisted bootstrap.
           content:
             application/json:
               schema:

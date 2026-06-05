@@ -983,17 +983,7 @@
       }
     },
     "EventsFrontierResponse": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/EventsFrontierAccountClientResponse"
-        },
-        {
-          "$ref": "#/$defs/EventsFrontierFederationPeerResponse"
-        },
-        {
-          "$ref": "#/$defs/EventsFrontierAnonymousHealthResponse"
-        }
-      ]
+      "$ref": "#/$defs/EventsFrontierAccountClientResponse"
     },
     "EventsQueryPostRequest": {
       "type": "object",
@@ -1985,60 +1975,63 @@
       },
       "additionalProperties": false
     },
-    "EventsFrontierAnonymousHealthResponse": {
-      "type": "object",
-      "description": "Anonymous health ck.events.frontier response. MUST NOT include actor_seq_upper_bounds, receipts, frontier details, or service signature material.",
-      "required": [
-        "frontier_root"
-      ],
-      "properties": {
-        "frontier_root": {
-          "type": "string",
-          "description": "Opaque hash commitment suitable for liveness / freshness checks."
-        },
-        "cache_expires_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Earliest time until which clients SHOULD reuse this anonymous health response. Anonymous health responses MUST impose at least a 60 second cache/backoff window; clients MUST treat shorter values as 60 seconds."
-        },
-        "retry_after_ms": {
-          "type": "integer",
-          "minimum": 60000,
-          "description": "Minimum retry delay for anonymous health probes when the service wants explicit polling backoff. Anonymous health responses MUST impose at least a 60 second cache/backoff window."
-        }
-      },
-      "additionalProperties": false
-    },
     "EventsFrontierFederationPeerResponse": {
       "type": "object",
-      "description": "Federation peer ck.events.frontier response. Requires S2S signed trust-domain headers.",
+      "description": "Federation peer ck.peer.events.frontier response. Requires S2S signed trust-domain headers.",
       "required": [
-        "frontier",
+        "realm_id",
+        "heads",
         "frontier_root",
+        "observed_at",
+        "issuer",
         "signature"
       ],
       "properties": {
-        "frontier": {
-          "type": "object",
-          "description": "Realm frontier visible to the authenticated federation peer."
+        "realm_id": {
+          "$ref": "#/$defs/RealmId"
         },
-        "receipts": {
+        "heads": {
           "type": "array",
           "items": {
-            "type": "object"
-          }
+            "$ref": "#/$defs/EventId"
+          },
+          "description": "Current federation-visible head Event IDs for this Realm."
+        },
+        "max_hlc": {
+          "type": "string",
+          "description": "Maximum HLC observed by the issuer at this frontier, when available."
         },
         "frontier_root": {
           "type": "string",
-          "description": "Hash commitment returned for federation_peer and anonymous_health peer_role."
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Hash commitment returned to an authorized federation peer."
         },
         "actor_seq_upper_bounds": {
           "type": "object",
-          "description": "Per-actor sequence upper bounds returned for federation_peer peer_role."
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Per-actor sequence upper bounds returned to an authorized federation peer."
+        },
+        "witness_receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Optional witness or receipt-service attestations over the observed frontier."
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "issuer": {
+          "$ref": "#/$defs/ServiceDid"
         },
         "signature": {
           "type": "object",
-          "description": "Service signature over the frontier response when peer_role=federation_peer."
+          "description": "Service signature over the peer frontier response."
         }
       },
       "additionalProperties": false
@@ -2062,7 +2055,7 @@
     },
     "EventsSubmitFederationRequest": {
       "type": "object",
-      "description": "Federation service-to-service ck.events.submit request body.",
+      "description": "Federation service-to-service ck.peer.events.submit request body.",
       "required": [
         "service_binding_ref",
         "events"
@@ -2083,7 +2076,7 @@
     },
     "FederationServiceBindingRef": {
       "type": "object",
-      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ck.events.submit calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
+      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ck.peer.events.submit calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
       "required": [
         "realm_id",
         "realm_policy_digest",

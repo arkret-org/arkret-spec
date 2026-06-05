@@ -2894,6 +2894,19 @@
         ]
       },
       {
+        "surface": "peer_federation",
+        "tier": "extension",
+        "operations": [
+          "ck.peer.events.describe",
+          "ck.peer.events.submit",
+          "ck.peer.events.resolve",
+          "ck.peer.events.query",
+          "ck.peer.events.query_post",
+          "ck.peer.events.frontier",
+          "ck.peer.snapshot.head"
+        ]
+      },
+      {
         "surface": "directory_discovery",
         "tier": "extension",
         "operations": [
@@ -3612,6 +3625,71 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequest",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse"
+      },
+      {
+        "operation_id": "ck.peer.events.describe",
+        "http": "GET /_cokret/peer/events/describe",
+        "grpc": "PeerEvents/Describe",
+        "mq": "peer.events.describe",
+        "notes": "Federation peer Events surface describe. This endpoint describes the server-to-server peer event bindings; it is not a client self/events binding.",
+        "success_shape_kind": "service_describe"
+      },
+      {
+        "operation_id": "ck.peer.events.frontier",
+        "http": "GET /_cokret/peer/events/frontier",
+        "grpc": "PeerEvents/Frontier",
+        "mq": "peer.events.frontier",
+        "notes": "Federation peer frontier probe. Requires service-to-service authentication, Source/Destination service DID headers, trust-domain headers, and Realm federation_peer authorization. It returns the federation peer frontier response shape on the dedicated peer trust surface.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerResponse"
+      },
+      {
+        "operation_id": "ck.peer.events.query",
+        "http": "GET /_cokret/peer/events",
+        "grpc": "PeerEvents/Query",
+        "mq": "peer.events.query",
+        "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ck.events.query, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse"
+      },
+      {
+        "operation_id": "ck.peer.events.query_post",
+        "binding_variant_of": "ck.peer.events.query",
+        "http_only_variant": true,
+        "http": "POST /_cokret/peer/events/query",
+        "notes": "HTTP-specific POST/body form of ck.peer.events.query. Semantically identical to GET /_cokret/peer/events; use it when federation selectors or filters are too large or sensitive for query strings.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse"
+      },
+      {
+        "operation_id": "ck.peer.events.resolve",
+        "http": "POST /_cokret/peer/events/resolve",
+        "grpc": "PeerEvents/Resolve",
+        "mq": "peer.events.resolve",
+        "notes": "Federation peer event reference resolution for missing prev_refs / causal references. Requires authorized federation peer service authentication and applies the same reference-disclosure and history-visibility rules as peer event query.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveResponse"
+      },
+      {
+        "operation_id": "ck.peer.events.submit",
+        "http": "POST /_cokret/peer/events",
+        "grpc": "PeerEvents/Submit",
+        "mq": "peer.events.submit",
+        "notes": "Federation peer event push. Body is EventsSubmitFederationRequest and the caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequest",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse"
+      },
+      {
+        "operation_id": "ck.peer.snapshot.head",
+        "http": "GET /_cokret/peer/snapshot/head",
+        "grpc": "PeerSnapshot/Head",
+        "mq": "peer.snapshot.head",
+        "notes": "Federation peer snapshot manifest head for snapshot-assisted bootstrap. Requires service-to-service authentication and Realm federation_peer authorization.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadResponse"
       },
       {
         "operation_id": "ck.ephemeral.send",

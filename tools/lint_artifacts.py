@@ -2349,6 +2349,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     public_metadata_operations = {
         "ck.server.describe",
         "ck.events.describe",
+        "ck.peer.events.describe",
         "ck.mimi.provider_directory",
         "ck.identity.describe_registry",
         "ck.account.describe",

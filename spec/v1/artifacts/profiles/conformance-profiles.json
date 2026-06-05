@@ -738,11 +738,17 @@
     },
     "ck.profile.e2ee_relaxed.v1": {
       "tier": "extension_profile_implementation",
-      "depends_on": ["ck.profile.e2ee_client.v1"],
-      "mutually_exclusive_with": ["ck.profile.mls_governance_binding.full.v1"],
+      "depends_on": [
+        "ck.profile.e2ee_client.v1"
+      ],
+      "mutually_exclusive_with": [
+        "ck.profile.mls_governance_binding.full.v1"
+      ],
       "spec_ref": "spec/v1/zh/crypto-media/encryption-and-audit.md#242-cxprofilee2ee_relaxedv1降级-profile",
       "description": "Degraded E2EE profile. Allows `mls_send_pause=\"advisory\"` (cf. §2.4.1) so that low-latency interactive scenarios (real-time AV, collaborative editing, in-game chat) do not block message send on MLS commit completion. Cost: removed members can continue decrypting a small window of subsequent messages. NOT for general chat / collaboration / compliance use. MUTUALLY EXCLUSIVE with ck.profile.mls_governance_binding.full.v1.",
-      "applies_to_roles": ["e2ee_space"],
+      "applies_to_roles": [
+        "e2ee_space"
+      ],
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -983,7 +989,12 @@
       "inherits": [
         "ck.profile.core_event_store.v1"
       ],
-      "required_endpoints": [],
+      "required_endpoints": [
+        "ck.peer.events.submit",
+        "ck.peer.events.query",
+        "ck.peer.events.resolve",
+        "ck.peer.events.frontier"
+      ],
       "required_event_kinds": [
         "ck.realm.create",
         "ck.member.state"
@@ -1011,7 +1022,8 @@
         "required": [
           "service_did",
           "supported_bindings",
-          "accepted_profiles"
+          "supported_operations",
+          "supported_profiles"
         ],
         "unsupported_optional": "reject unsupported profile before accepting events"
       }
@@ -1021,7 +1033,9 @@
         "ck.profile.federation_minimal.v1"
       ],
       "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the ck.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
-      "required_endpoints": [],
+      "required_endpoints": [
+        "ck.peer.events.frontier"
+      ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],

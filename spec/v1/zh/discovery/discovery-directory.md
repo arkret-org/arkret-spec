@@ -500,19 +500,11 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 
 ### 8.4 Pull 模式与 push webhook 注册：`ck.directory.push.register`
 
-Pull 模式复用资源 Principal Server 既有的 `ck.events.query`：
-
-```
-GET /_cokret/self/events
-  ?subject={resource_id}
-  &kind=ck.{realm,organization,actor,applet}.discovery
-  &state_only=true
-  &after_revision={last_known_revision}
-```
+Pull 模式不得调用资源 Principal Server 的 `/_cokret/self/events/*`。资源若允许 Directory 主动 refresh discovery state，必须通过 `/_cokret/find/directory/*` ingest / pull profile 暴露 Directory 专用读取面，并在 `supported_operations` 中声明对应 Directory operation；Directory 只能读取该资源签名的 effective discovery state，不得把 Events API 当作通用 discovery dump。
 
 Directory 拉取流程：
 
-1. 按本地 trust root / 已配对资源列表，定期向资源 Principal Server 发 state-only query。
+1. 按本地 trust root / 已配对资源列表，定期向资源 Principal Server 的 Directory 专用读取面发 state-only query。
 2. Principal Server 返回最新 effective discovery state（含 `proof`）。
 3. Directory 按 §8.5 验签后写入或更新本地索引。
 

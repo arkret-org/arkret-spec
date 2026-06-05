@@ -2177,7 +2177,7 @@ Negative cases：
 
 Steps：
 
-1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /_cokret/self/events`，header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
+1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /_cokret/peer/events`（`ck.peer.events.submit`），header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
