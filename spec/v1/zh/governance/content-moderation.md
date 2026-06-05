@@ -160,7 +160,7 @@ POST /_cokret/self/moderation/report
 
 | 状态 | 语义 | 合法后继 | 终态? |
 | --- | --- | --- | --- |
-| `submitted` | 举报已受理,待处理 | `resolved` | 否 |
+| `submitted` | 举报已受理，待处理 | `resolved` | 否 |
 | `resolved` | 处理完成 | —(终态) | **是** |
 
 - **处置结果**(是否违规、采取何种处置)**不进** `status`,由独立的 `ck.moderation.decision` 事件承载。
