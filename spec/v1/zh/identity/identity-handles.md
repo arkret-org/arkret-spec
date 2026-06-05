@@ -302,9 +302,9 @@ Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理
 2. issuer / coauth / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
 3. 这些外部流程一旦要把结果暴露给 Cokret 客户端或其它服务，MUST 输出 `ck.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
 
-已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `ck.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，继续使用 `ck.directory.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
+已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `ck.find.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，继续使用 `ck.find.directory.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
 
-管理员或 issuer 后期修改 handle 的可见效果由 claim set 变化驱动：issuer 签发新 claim、撤销旧 claim、或改变 binding_state / expiry 后，`ck.directory.list_handles_for_subject` 和 roster hint MUST 反映新的 effective claim set。客户端 MAY 发布新的 `ck.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
+管理员或 issuer 后期修改 handle 的可见效果由 claim set 变化驱动：issuer 签发新 claim、撤销旧 claim、或改变 binding_state / expiry 后，`ck.find.directory.list_handles_for_subject` 和 roster hint MUST 反映新的 effective claim set。客户端 MAY 发布新的 `ck.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
 
 ### 3.2.3 Registration and Invitation Flows（informative）
 
@@ -354,7 +354,7 @@ Handle 按 holder 披露意图分两类：
 
 ### 3.7 MemberDeliveryBindingCandidate
 
-`MemberDeliveryBindingCandidate` 是 Handle resolution（`ck.directory.resolve_handle(intent="member_add")`）或受信 issuer 直接签发的 **规范级候选对象**：它把 "用 handle 加成员" 这个端到端链路上需要传递的最小字段集合凝固为一个 schema-defined shape，让 Principal Server、SDK builder、Realm reducer、Auth Server 与 directory 之间停止各自拼字符串。Wire schema 见 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json)。
+`MemberDeliveryBindingCandidate` 是 Handle resolution（`ck.find.directory.resolve_handle(intent="member_add")`）或受信 issuer 直接签发的 **规范级候选对象**：它把 "用 handle 加成员" 这个端到端链路上需要传递的最小字段集合凝固为一个 schema-defined shape，让 Principal Server、SDK builder、Realm reducer、Auth Server 与 directory 之间停止各自拼字符串。Wire schema 见 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json)。
 
 该对象既不是 grant，也不是已物化的 `member_delivery_binding`——它只是**通向**后者的 builder 输入。reducer 在落 `ck.member.state{membership="join"}.delivery_binding` 时仍 MUST 按 [`governance/join-policy.md`](../governance/join-policy.md) 独立验证。
 
@@ -383,7 +383,7 @@ Handle 按 holder 披露意图分两类：
 
 candidate 只能来自以下两类签发路径：
 
-1. **Directory 解析**：`ck.directory.resolve_handle(intent="member_add" \| "invite")` 响应 MUST 把 [`discovery-directory.md` §9.0/§9.1](../discovery/discovery-directory.md) 的 handle 解析与通用结果字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
+1. **Directory 解析**：`ck.find.directory.resolve_handle(intent="member_add" \| "invite")` 响应 MUST 把 [`discovery-directory.md` §9.0/§9.1](../discovery/discovery-directory.md) 的 handle 解析与通用结果字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
 2. **受信 issuer 直接签发**：Organization / Principal Server / 受信 service DID 可以离开 Directory 直接对某 `(handle, subject_id, member_delivery_binding.recipient_service_did, audience)` 组合发签名 candidate，例如随 invite token 内嵌、随 organization-issued member roster 下发。
 
 candidate **不得**直接构造自客户端字符串拼接、UI text、未签名 directory 响应或 cache 残留。任何缺少 `proofs[]` 的对象 MUST NOT 被命名为 candidate。
@@ -420,7 +420,7 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 ### 3.7.5 与 display resolve / mention resolve 的差异
 
-`ck.directory.resolve_handle` 三种 intent 返回的字段不同，candidate 只在 `member_add` / `invite` intent 下产生：
+`ck.find.directory.resolve_handle` 三种 intent 返回的字段不同，candidate 只在 `member_add` / `invite` intent 下产生：
 
 | Intent | 返回字段（必含） | 是否产 candidate | 说明 |
 | --- | --- | --- | --- |
@@ -526,7 +526,7 @@ renderer 检测到 `handle_at_time` 与当前 primary handle 不一致时，MAY 
 - 旧事件内的 mention / profile reference 权威字段是 `subject_id`，subject 不变；
 - 渲染时按 §3.2.1 解析当前 primary handle，得到新 domain 的 handle 字符串；
 - 历史事件本身**不需要**rewrite、migration script 或 schema upgrade；
-- 唯一需要的 issuer-side 操作是按 §6 批量重发 handle_claim（new domain），随后 Directory withdraw 旧 entry；当前显示投影随 issuer / coauth 刷新路径、`ck.directory.list_handles_for_subject` 或 roster claim hints 的下一次刷新自然更新，不要求任何 `ck.member.identity.update`。
+- 唯一需要的 issuer-side 操作是按 §6 批量重发 handle_claim（new domain），随后 Directory withdraw 旧 entry；当前显示投影随 issuer / coauth 刷新路径、`ck.find.directory.list_handles_for_subject` 或 roster claim hints 的下一次刷新自然更新，不要求任何 `ck.member.identity.update`。
 
 domain 迁移因此从"全网事件改写工程"降级为"issuer 侧 batch 签名 + claim cache TTL 冷却"。事件内的 `handle_at_time` metadata 与 issuer 的 as-of claim ledger 让 audit 仍可重建任意历史时刻的 handle 字符串。
 
@@ -575,8 +575,8 @@ holder DID Document: subject_id → handle   (列入 alsoKnownAs，holder 单方
 
 Handle 解析分为两个方向：
 
-- **handle → subject**：输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态），使用 `ck.directory.resolve_handle` 或下列 issuer discovery 路径。
-- **subject/context → current handles**：输入是 `subject` DID、当前 Realm / audience / requester context，使用 `ck.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]`。该方向用于 member roster、mention renderer 和 issuer 重签 / 撤销 claim 后的显示刷新。
+- **handle → subject**：输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态），使用 `ck.find.directory.resolve_handle` 或下列 issuer discovery 路径。
+- **subject/context → current handles**：输入是 `subject` DID、当前 Realm / audience / requester context，使用 `ck.find.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]`。该方向用于 member roster、mention renderer 和 issuer 重签 / 撤销 claim 后的显示刷新。
 
 已知 handle 时，客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
@@ -726,7 +726,7 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 v1 不引入专门的 handle 撤销 event。撤销通过下列三条独立路径完成，客户端 / Directory / Principal Server 任一通道发现失效即 MUST 同步本地缓存：
 
 1. **TTL 自然过期**：缓存到达 `expires_at` 后 MUST 重新拉取；不得在 TTL 之外使用。
-2. **Directory withdrawal**：handle issuer 通过 [`ck.directory.withdraw`](../discovery/discovery-directory.md) 撤回该 handle 的 directory entry；订阅该 handle 的客户端在下一次 directory refresh 或 withdraw notification 收到后 MUST 立即失效缓存。
+2. **Directory withdrawal**：handle issuer 通过 [`ck.find.directory.withdraw`](../discovery/discovery-directory.md) 撤回该 handle 的 directory entry；订阅该 handle 的客户端在下一次 directory refresh 或 withdraw notification 收到后 MUST 立即失效缓存。
 3. **DID Document 变化**：holder 移除 `alsoKnownAs` 中的 canonical handle，或 issuer claim 被 revoke / `binding_state=revoked`、`binding_state=expired`；下一次 verify pass 失败时 MUST 失效。
 
 handle issuer SHOULD 把 cache 失效信号与 TTL 一起使用：发布短 TTL（≤1h）的高变更 handle、配合 Directory withdraw 主动通知。**v1 不要求**服务端推送 handle 失效事件；客户端 MUST 按 TTL + 上述三路径处理失效，**不得**依赖未注册的 `ck.handle.*` wire kind。

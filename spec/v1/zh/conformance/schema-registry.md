@@ -56,7 +56,7 @@ sidebar:
 | 保留名（wire） | 当前语义 | 保留理由 | 防护参考 |
 | --- | --- | --- | --- |
 | event kind `ck.profile.space_override` | Realm-scoped Actor Profile override（`payload.target_realm_id` 是目标 Realm，不指向 `ck:space:` 容器，也不创建任何 Space 级访问边界） | 该 event 在反转前已经发布到 wire 并被多个客户端消费；强行重命名会破坏现存事件审计链与历史 query。新对象类型用 `ck.profile.realm_override` 命名。 | `event-payload.schema.json` `$defs/profile_realm_override_payload`；`contract-catalog.json` 中 payload description 显式说明语义；`zh/discovery/profiles-presence.md §3` 散文兼容声明 |
-| operation id `ck.mimi.room_update` / `ck.mimi.notify` / `ck.mimi.submit_message` / `ck.mimi.group_info` | MIMI interop 命名空间内的标准操作；`room` 出现是为了与上游 MIMI 规范对齐 | MIMI interop 模块对外语义就是 "MIMI room"；仅在 interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
+| operation id `ck.open.mimi.room_update` / `ck.open.mimi.notify` / `ck.open.mimi.submit_message` / `ck.open.mimi.group_info` | MIMI interop 命名空间内的标准操作；`room` 出现是为了与上游 MIMI 规范对齐 | MIMI interop 模块对外语义就是 "MIMI room"；仅在 interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
 
 新增"有意保留的旧命名"必须在此表登记并在对应 schema / registry 内联说明保留理由；不得仅靠口头约定。下游漂移扫描器 SHOULD 把此表作为 allowlist。
 
@@ -201,7 +201,7 @@ sidebar:
 | `ck.profile.update` | Actor profile patch |
 | `ck.profile.space_override` | Realm-scoped profile override |
 | `ck.audit.accessed` | Auditable access |
-| `ck.moderation.report` | Moderation report |
+| `ck.self.moderation.report` | Moderation report |
 | `ck.key.verification.request` | Device key verification request |
 | `ck.key.verification.ready` | Device key verification ready |
 | `ck.key.verification.start` | Device key verification start |

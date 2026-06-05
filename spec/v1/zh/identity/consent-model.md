@@ -284,7 +284,7 @@ policy MAY 声明 `ck.realm.policy_components` 中的 `preauth` component 包含
 
 类似地，发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方 SHOULD 验证目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`）。
 
-`ck.direct_conversation.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。只有 consent、没有 accepted contact 时，resolver MUST fail closed（`failed_precondition` / `contact_not_accepted`）；只有 accepted contact、没有可验证 consent 时，resolver MUST fail closed（`failed_precondition` / `contact_consent_missing`）。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
+`ck.self.direct_conversation.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。只有 consent、没有 accepted contact 时，resolver MUST fail closed（`failed_precondition` / `contact_not_accepted`）；只有 accepted contact、没有可验证 consent 时，resolver MUST fail closed（`failed_precondition` / `contact_consent_missing`）。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
 
 `ck.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 
@@ -303,7 +303,7 @@ contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防
 
 ## 7. MIMI Interop
 
-MIMI 协议有 `request_consent` / `update_consent` 操作（`ck.mimi.request_consent` / `ck.mimi.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
+MIMI 协议有 `request_consent` / `update_consent` 操作（`ck.open.mimi.request_consent` / `ck.open.mimi.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
 - 接收 MIMI consent update：facade MUST 先验证 actor 是声明 holder 或受授权 controller，然后构造 grant 或 revoke Move 写入 holder principal control Realm 的 consent cell。
 - 发送 Cokret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。

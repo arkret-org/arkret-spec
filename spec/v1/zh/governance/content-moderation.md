@@ -150,7 +150,7 @@ POST /_cokret/self/moderation/report
 
 ### 3.3 举报的处理
 
-- 举报会生成一个 `ck.moderation.report` 事件，写入 Realm Event history；Circle 举报的 cleartext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
+- 举报会生成一个 `ck.self.moderation.report` 事件，写入 Realm Event history；Circle 举报的 cleartext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
 - 该事件仅对目标 scope 的管理员 / moderator 可见；Realm-default 内容是 Realm moderator，Circle 内容是 Circle moderator 或显式覆盖该 Circle 的 Realm grant 持有者。
 - 被举报人不会收到通知。
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）。
@@ -204,7 +204,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 
 #### 3.4.1 不存在治理密钥释放
 
-Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ck.moderation.report` 自动升级为 `ck.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Sync Service 或外部 verifier release 历史 key / epoch key。
+Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ck.self.moderation.report` 自动升级为 `ck.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Sync Service 或外部 verifier release 历史 key / epoch key。
 
 需要政府 / 企业合规审计时，必须走 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 Audit Applet Binding + sealed release session；这与用户举报是不同协议流程。
 

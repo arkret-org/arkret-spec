@@ -35,7 +35,7 @@ updated: 2026-05-25
 ### 2.1 临时性与高频特征
 
 与具体的业务数据不同，已读回执变动极其频繁（用户每次滑动屏幕都会产生），并且其历史记录没有长期保留价值。
-因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。HTTP/JSON 参考 binding 为 `ck.ephemeral.send`（`POST /_cokret/self/ephemeral`），请求体使用 `ck.schema.ephemeral_envelope.v1`，其中 `kind="ck.receipt.read"`。
+因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。HTTP/JSON 参考 binding 为 `ck.self.ephemeral.send`（`POST /_cokret/self/ephemeral`），请求体使用 `ck.schema.ephemeral_envelope.v1`，其中 `kind="ck.receipt.read"`。
 
 ### 2.2 广播格式
 

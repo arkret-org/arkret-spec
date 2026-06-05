@@ -106,7 +106,7 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 
 - 带有 `access_token`、`session_token`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
-- `ck.blob.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
+- `ck.self.blob.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
 
 ### 3.1 认证服务发现
@@ -141,9 +141,9 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 
 各 endpoint 当前实际使用的成功标记形态可分为三类，调用方应直接按 endpoint 文档判定：
 
-- **`{ok: true, ...payload}`** — 简单 mutation (push / device_messages.put / applet.transactions / 等)；
-- **`{status: enum, ...payload}`** — 批量提交语义复杂时 (events.submit `status ∈ {accepted, duplicate, partial}`、keys.backups.put `status ∈ {accepted, duplicate}`)；
-- **裸字段直接返回** — 创建 / 解析类 (blob.upload `{blob_ref, size_bytes, ...}`、directory.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
+- **`{ok: true, ...payload}`** — 简单 mutation (push / self.device_messages.put / applet.transactions / 等)；
+- **`{status: enum, ...payload}`** — 批量提交语义复杂时 (self.events.submit `status ∈ {accepted, duplicate, partial}`、self.keys.backups.put `status ∈ {accepted, duplicate}`)；
+- **裸字段直接返回** — 创建 / 解析类 (self.blob.upload `{blob_ref, size_bytes, ...}`、find.directory.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
 
 新增 endpoint SHOULD 按下列分类选择成功形态:
 - 简单 idempotent mutation 默认走 `{ok: true, ...payload}`；
@@ -233,17 +233,17 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_cokret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ck.events.query` 与 federation peer `ck.peer.events.query`（`GET /_cokret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_cokret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ck.self.events.query` 与 federation peer `ck.peer.events.query`（`GET /_cokret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Cokret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
-任何返回 cursor 对的响应（`ck.events.query`、列表分页等）使用统一的**绝对方向**约定；`/_cokret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
+任何返回 cursor 对的响应（`ck.self.events.query`、列表分页等）使用统一的**绝对方向**约定；`/_cokret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
 
 | 响应字段 | 含义 | 回传给下一次请求 |
 | --- | --- | --- |
-| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ck.events.query` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
-| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ck.events.query` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
+| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ck.self.events.query` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
+| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ck.self.events.query` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
@@ -270,7 +270,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 **`<items_field>` 命名约定** (normative)：
 - 优先使用资源复数名（`realms[]` / `flows[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时（mixed entity 搜索、private contact discovery 等），使用 `results[]`；
-- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ck.device_messages.get` 与 `ck.account.subscribe`）。
+- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ck.self.device_messages.get` 与 `ck.self.account.subscribe`）。
 
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
@@ -278,7 +278,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 **`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
 
-**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `ck.device_messages.get` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
+**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `ck.self.device_messages.get` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
 
 服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `invalid_param`。
 

@@ -141,17 +141,17 @@ MIMI facade 至少定义以下 canonical operation：
 
 | operation_id | HTTP binding | 语义 |
 | --- | --- | --- |
-| `ck.mimi.provider_directory` | `GET /_cokret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
-| `ck.mimi.key_material` | `POST /_cokret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Cokret KeyPackage claim lifecycle。 |
-| `ck.mimi.room_update` | `PUT /_cokret/open/mimi/flows/{flow_id}/update` | 提交或转发 room state / MLS update。 |
-| `ck.mimi.notify` | `POST /_cokret/open/mimi/flows/{flow_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
-| `ck.mimi.submit_message` | `POST /_cokret/open/mimi/flows/{flow_id}/messages` | 提交 MIMI encrypted application message。 |
-| `ck.mimi.group_info` | `GET /_cokret/open/mimi/flows/{flow_id}/group-info` | 获取 MLS groupInfo / room projection。 |
-| `ck.mimi.request_consent` | `POST /_cokret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
-| `ck.mimi.update_consent` | `POST /_cokret/open/mimi/consent/update` | 更新 consent state。 |
-| `ck.mimi.identifier_query` | `POST /_cokret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
-| `ck.mimi.report_abuse` | `POST /_cokret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
-| `ck.mimi.proxy_download` | `POST /_cokret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
+| `ck.open.mimi.provider_directory` | `GET /_cokret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
+| `ck.open.mimi.key_material` | `POST /_cokret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Cokret KeyPackage claim lifecycle。 |
+| `ck.open.mimi.room_update` | `PUT /_cokret/open/mimi/flows/{flow_id}/update` | 提交或转发 room state / MLS update。 |
+| `ck.open.mimi.notify` | `POST /_cokret/open/mimi/flows/{flow_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
+| `ck.open.mimi.submit_message` | `POST /_cokret/open/mimi/flows/{flow_id}/messages` | 提交 MIMI encrypted application message。 |
+| `ck.open.mimi.group_info` | `GET /_cokret/open/mimi/flows/{flow_id}/group-info` | 获取 MLS groupInfo / room projection。 |
+| `ck.open.mimi.request_consent` | `POST /_cokret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
+| `ck.open.mimi.update_consent` | `POST /_cokret/open/mimi/consent/update` | 更新 consent state。 |
+| `ck.open.mimi.identifier_query` | `POST /_cokret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
+| `ck.open.mimi.report_abuse` | `POST /_cokret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
+| `ck.open.mimi.proxy_download` | `POST /_cokret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
 
 所有写入型 endpoint MUST 使用 HTTP Message Signatures 或等价 service proof，并绑定：
 
@@ -167,7 +167,7 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Cokret Move /
 
 ## 6. Key Material
 
-`ck.mimi.key_material` MUST 使用 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 KeyPackage claim API。请求必须包含：
+`ck.open.mimi.key_material` MUST 使用 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 KeyPackage claim API。请求必须包含：
 
 - target MIMI identifier 或 DID / pairwise DID。
 - intended MIMI room URI 和 Cokret `realm_id`。
@@ -179,7 +179,7 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Cokret Move /
 
 ## 7. Message Submission
 
-`ck.mimi.submit_message` 接收 MIMI encrypted application message 后，facade MUST：
+`ck.open.mimi.submit_message` 接收 MIMI encrypted application message 后，facade MUST：
 
 1. 验证 provider signature、room binding、destination、body digest 和重放窗口。
 2. 验证 MLS epoch 与 `ck.mimi.room_binding.mls_group_id` 匹配。
@@ -287,13 +287,13 @@ MIMI identifier MUST NOT 被直接作为 Cokret actor。映射规则：
 - connection identifier 仅用于 discovery / consent，不进入 Realm history，除非 holder 明确作为 handle / claim 披露。
 - display name 只用于 UI，不参与授权。
 
-`ck.mimi.identifier_query` SHOULD 调用 `ck.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`ck.mimi.request_consent` / `ck.mimi.update_consent` MUST 映射为 Cokret 的 holder-private consent state（`ck.consent.grant` / `ck.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
+`ck.open.mimi.identifier_query` SHOULD 调用 `ck.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`ck.open.mimi.request_consent` / `ck.open.mimi.update_consent` MUST 映射为 Cokret 的 holder-private consent state（`ck.consent.grant` / `ck.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
 
 ## 11. Abuse Report And Proxy Download
 
-`ck.mimi.report_abuse` MUST 映射到 `ck.moderation.report`。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
+`ck.open.mimi.report_abuse` MUST 映射到 `ck.self.moderation.report`。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
-`ck.mimi.proxy_download` MUST 遵守 `ck.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
+`ck.open.mimi.proxy_download` MUST 遵守 `ck.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
 
 ## 12. Conformance
 

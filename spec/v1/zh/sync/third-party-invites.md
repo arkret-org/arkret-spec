@@ -20,7 +20,7 @@ updated: 2026-05-25
 
 由于外部的邮箱或手机号无法自己生成非对称密钥对和 DID，邀请流程 MUST 借助一个**身份验证服务 (Identity Verification Service)** 来充当代理。
 
-这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。该验证服务 DID 只负责 3PID claim；Bob 后续向哪台 Realm service 提交 invite-accept 由 `ck.directory.resolve_realm` 返回的 `join_candidates[]` 决定，二者不得混用。
+这个代理服务通常是发起邀请的用户所在的 Principal Server、组织控制的 Identity Verification Service，或 Realm policy 明确允许的第三方验证服务。服务 DID、用途、过期时间和可见性 MUST 写入 invite metadata 或 Realm policy。该验证服务 DID 只负责 3PID claim；Bob 后续向哪台 Realm service 提交 invite-accept 由 `ck.find.directory.resolve_realm` 返回的 `join_candidates[]` 决定，二者不得混用。
 
 ### 2.1 验证服务威胁假设（normative）
 
@@ -165,7 +165,7 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 
 验证服务 / 接收 Sync Service MUST 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`。任一 nonce 一旦进入该 set，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 在进入 reducer 仲裁前拒绝，即使前一次 claim 最终因其它原因未成为 winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
 
-**v1 base wire 范围（normative）**：v1 base conformance 仅支持 `invite` / `restricted` join-rule Realm 的 third-party claim 接续到 `ck.invite.create`（或等价 membership proposal）路径，如上述步骤 5 所述。knock_restricted Realm 的 third-party 接续依赖 `ck.realm.join.review` candidate profile（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）以及 `member.application` candidate kind（见 [`operations-sync.md`](operations-sync.md)），**不属于 v1 base conformance**；部署 MUST 在 `ck.directory.describe` / `ck.account.describe` 中显式声明该 candidate profile 后才可在 `knock_restricted` Realm 上使用 third-party claim 流程，否则验证服务 MUST 以 `unsupported_join_rule` 拒绝该 token claim。
+**v1 base wire 范围（normative）**：v1 base conformance 仅支持 `invite` / `restricted` join-rule Realm 的 third-party claim 接续到 `ck.invite.create`（或等价 membership proposal）路径，如上述步骤 5 所述。knock_restricted Realm 的 third-party 接续依赖 `ck.realm.join.review` candidate profile（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）以及 `member.application` candidate kind（见 [`operations-sync.md`](operations-sync.md)），**不属于 v1 base conformance**；部署 MUST 在 `ck.find.directory.describe` / `ck.self.account.describe` 中显式声明该 candidate profile 后才可在 `knock_restricted` Realm 上使用 third-party claim 流程，否则验证服务 MUST 以 `unsupported_join_rule` 拒绝该 token claim。
 
 ## 5. E2EE 场景处理
 

@@ -69,8 +69,8 @@ Cokret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [
-    "ck.events.submit",
-    "ck.events.query",
+    "ck.self.events.submit",
+    "ck.self.events.query",
     "ck.identity.presentation",
     "ck.agent.protocol_session.start"
   ],
@@ -98,10 +98,10 @@ DID Document 或 normalized principal view 中出现 `ck.service.tsp` 只是一�
 
 **Operation id**（取自 `operation-registry.json`）：
 
-- 跨 `trust_domain` 的 `ck.events.submit`
-- `ck.identity.submit_did_operation`
+- 跨 `trust_domain` 的 `ck.self.events.submit`
+- `ck.root.identity.submit_did_operation`
 
-**Durable Event kind carried inside `ck.events.submit`**：
+**Durable Event kind carried inside `ck.self.events.submit`**：
 
 - `ck.cross_signing.publish`
 - `ck.cross_signing.reset`
@@ -120,7 +120,7 @@ Cokret operation 可作为 TSP application payload：
 
 ```json
 {
-  "operation": "ck.events.submit",
+  "operation": "ck.self.events.submit",
   "content_type": "application/cokret+json",
   "realm_id": "ck:realm:...",
   "payload_digest": "sha256:...",

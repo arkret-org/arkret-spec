@@ -55,7 +55,7 @@
     },
     "supported_operations": {
       "type": "array",
-      "description": "operation_ids that this endpoint can actually be invoked with. Element format SHOULD match the canonical operation_registry ids (e.g. `ck.events.submit`).",
+      "description": "operation_ids that this endpoint can actually be invoked with. Element format SHOULD match the canonical operation_registry ids (e.g. `ck.self.events.submit`).",
       "items": {
         "type": "string",
         "pattern": "^[a-z][a-z0-9._-]*$"

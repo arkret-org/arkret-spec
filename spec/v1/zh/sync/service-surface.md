@@ -144,16 +144,16 @@ GET /_cokret/describe
   ],
   "supported_operations": [
     "ck.server.describe",
-    "ck.events.submit",
-    "ck.events.query",
+    "ck.self.events.submit",
+    "ck.self.events.query",
     "ck.peer.events.submit",
     "ck.peer.events.query",
     "ck.peer.events.resolve",
     "ck.peer.events.frontier",
     "ck.peer.snapshot.head",
-    "ck.account.viewer",
-    "ck.account.update_profile",
-    "ck.account.subscribe"
+    "ck.self.account.viewer",
+    "ck.self.account.update_profile",
+    "ck.self.account.subscribe"
   ],
   "supported_bindings": [
     {
@@ -193,7 +193,7 @@ GET /_cokret/describe
     "policy_version": "2026-05-02",
     "entries": [
       {
-        "operation_id": "ck.events.submit",
+        "operation_id": "ck.self.events.submit",
         "rate_limit_scope": ["service_did", "realm_id"],
         "window_seconds": 60,
         "max_requests": 120,
@@ -317,7 +317,7 @@ GET /_cokret/root/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 
 默认情况下，返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_digest`；`seq>0` 必须携带 `prev_event_digest`，并且该值必须等于前一条 accepted entry 的 `head_event_digest`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
 
-did method 原生日志有更强互操作格式时 MAY 直接返回该 method 的原生 accepted log entry，例如 `did:webvh` 的 Data Integrity proof 日志；这种服务 MUST 在 `describe.experimental_features[]` 中声明对应 feature id（例如 `ck.feature.identity.webvh_native_log.v1`），并且 `operation_body` / proof 语义 MUST 可按该 DID method 的规范重建同一 DID Document head。未声明该 experimental feature 的 `ck.identity.get_log` 响应仍 MUST 使用 `did-key-log-entry.schema.json`。
+did method 原生日志有更强互操作格式时 MAY 直接返回该 method 的原生 accepted log entry，例如 `did:webvh` 的 Data Integrity proof 日志；这种服务 MUST 在 `describe.experimental_features[]` 中声明对应 feature id（例如 `ck.feature.identity.webvh_native_log.v1`），并且 `operation_body` / proof 语义 MUST 可按该 DID method 的规范重建同一 DID Document head。未声明该 experimental feature 的 `ck.root.identity.get_log` 响应仍 MUST 使用 `did-key-log-entry.schema.json`。
 
 #### 3.1.4 提交 DID 更新
 
@@ -438,25 +438,25 @@ GET /_cokret/self/events/frontier?realm_id=<id>
 
 ## 5. Account Aggregate / Snapshot Surface
 
-Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ck.events.query` / `ck.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared anchorer / sync service。
+Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ck.self.events.query` / `ck.self.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared anchorer / sync service。
 
 > 历史命名 "Sync Surface" 容易让读者把它误解为"所有同步路径"，但事件流读取/订阅已迁移到 Events Surface。本节仅描述 account-aggregate 与 snapshot 入口。
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
-- `GET /_cokret/self/account/viewer`：当前 holder 的账号主体自读（`ck.account.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
-- `POST /_cokret/self/account/profile`：当前账号 profile 更新（`ck.account.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；legacy `bio` MUST 写入 `profile_fields.bio`（规范强度见 [`service-http-binding.md` §5.1](service-http-binding.md)）。
-- `GET /_cokret/self/account/subscribe`：客户端账号视角聚合同步（`ck.account.subscribe`），见 `client-sync.md`。
-- `GET /_cokret/self/account/describe`：account aggregate service describe（`ck.account.describe`）。
-- `POST /_cokret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ck.account.cursor_revoke`）。
+- `GET /_cokret/self/account/viewer`：当前 holder 的账号主体自读（`ck.self.account.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
+- `POST /_cokret/self/account/profile`：当前账号 profile 更新（`ck.self.account.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；legacy `bio` MUST 写入 `profile_fields.bio`（规范强度见 [`service-http-binding.md` §5.1](service-http-binding.md)）。
+- `GET /_cokret/self/account/subscribe`：客户端账号视角聚合同步（`ck.self.account.subscribe`），见 `client-sync.md`。
+- `GET /_cokret/self/account/describe`：account aggregate service describe（`ck.self.account.describe`）。
+- `POST /_cokret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ck.self.account.cursor_revoke`）。
 - `GET /_cokret/self/snapshot/head`：snapshot manifest 入口。
 
-`ck.account.update_profile` 不隐式替代 directory 或 cross-device account-data fan-out。实现若仍需维持可发现性或跨设备头像/简介同步，必须显式调用 `ck.directory.announce`、`ck.account_data.set` 或等价已声明 operation。
+`ck.self.account.update_profile` 不隐式替代 directory 或 cross-device account-data fan-out。实现若仍需维持可发现性或跨设备头像/简介同步，必须显式调用 `ck.find.directory.announce`、`ck.account_data.set` 或等价已声明 operation。
 
 事件流读取统一在：
 
-- `GET /_cokret/self/events?realms=...&before=...` 或 `&after=...`（`ck.events.query`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
-- `GET /_cokret/self/events/subscribe?realms=...&catchup=...`（`ck.events.subscribe`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
+- `GET /_cokret/self/events?realms=...&before=...` 或 `&after=...`（`ck.self.events.query`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
+- `GET /_cokret/self/events/subscribe?realms=...&catchup=...`（`ck.self.events.subscribe`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
 
 实现不得把账号聚合 (`/_cokret/self/account/subscribe`) 和裸事件读 (`/_cokret/self/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
 
@@ -475,7 +475,7 @@ POST /_cokret/self/account/cursor/revoke
 GET /_cokret/self/snapshot/head?realm_id=<id>
 ```
 
-用于拿到当前推荐 snapshot manifest。v1 的 `snapshot` namespace 仅 `ck.snapshot.head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。
+用于拿到当前推荐 snapshot manifest。v1 的 `snapshot` namespace 仅 `ck.self.snapshot.head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。
 
 ### 5.3 Move / Anchor 状态与 Bottom 暴露
 
@@ -748,13 +748,13 @@ Native personal agent 的 management 与 sidecar operations 落在 `/_cokret/sel
 
 | Operation | HTTP binding | Profile |
 | --- | --- | --- |
-| `ck.agent.provision` | `POST /_cokret/self/agents` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.account.agent_key_pair` | `POST /_cokret/gate/account/agent-key-pair` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.account.issue_session_grant`(扩展为 `proof.proof_kind="agent_key_proof"` 分支) | `POST /_cokret/gate/account/session-grants` | `ck.profile.agent_auth.v1` |
-| `ck.agent.list` / `ck.agent.get` | `GET /_cokret/self/agents` / `GET /_cokret/self/agents/{agent_principal_id}` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.agent.pause` / `resume` / `deactivate` / `rotate_key` | `POST /_cokret/self/agents/{agent_principal_id}/{pause,resume,deactivate,rotate-key}` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.agent.grant.attach` / `ck.agent.grant.detach` | `POST /_cokret/self/agents/{agent_principal_id}/grants` / `DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.agent.sidecar_thread.ensure` | `POST /_cokret/self/agent-sidecar-threads:ensure` | `ck.profile.agent_sidecar_thread.v1` |
+| `ck.self.agent.provision` | `POST /_cokret/self/agents` | `ck.profile.personal_agent_provisioning.v1` |
+| `ck.gate.account.agent_key_pair` | `POST /_cokret/gate/account/agent-key-pair` | `ck.profile.personal_agent_provisioning.v1` |
+| `ck.gate.account.issue_session_grant`(扩展为 `proof.proof_kind="agent_key_proof"` 分支) | `POST /_cokret/gate/account/session-grants` | `ck.profile.agent_auth.v1` |
+| `ck.self.agent.list` / `ck.self.agent.get` | `GET /_cokret/self/agents` / `GET /_cokret/self/agents/{agent_principal_id}` | `ck.profile.personal_agent_provisioning.v1` |
+| `ck.self.agent.pause` / `resume` / `deactivate` / `rotate_key` | `POST /_cokret/self/agents/{agent_principal_id}/{pause,resume,deactivate,rotate-key}` | `ck.profile.personal_agent_provisioning.v1` |
+| `ck.self.agent.grant.attach` / `ck.self.agent.grant.detach` | `POST /_cokret/self/agents/{agent_principal_id}/grants` / `DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}` | `ck.profile.personal_agent_provisioning.v1` |
+| `ck.self.agent.sidecar_thread.ensure` | `POST /_cokret/self/agent-sidecar-threads:ensure` | `ck.profile.agent_sidecar_thread.v1` |
 
 约束:
 
@@ -773,7 +773,7 @@ Cokret v1 的首次加入流程：
 3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / account / snapshot / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /_cokret/self/events?before=<cursor>`（`ck.events.query`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /_cokret/self/events?before=<cursor>`（`ck.self.events.query`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read cursor、notification cursor 等个人状态

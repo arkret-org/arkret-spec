@@ -942,7 +942,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.provision",
+      "action": "ck.self.agent.provision",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -960,34 +960,34 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.agent.pause",
+      "action": "ck.self.agent.pause",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.agent.pause"
+        "ck.self.agent.pause"
       ],
       "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.resume",
+      "action": "ck.self.agent.resume",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.agent.resume"
+        "ck.self.agent.resume"
       ],
       "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.deactivate",
+      "action": "ck.self.agent.deactivate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.agent.deactivate"
+        "ck.self.agent.deactivate"
       ],
       "profile": "ck.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
@@ -1041,7 +1041,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.sidecar_thread.ensure",
+      "action": "ck.self.agent.sidecar_thread.ensure",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1333,7 +1333,7 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.events.query",
+      "action": "ck.self.events.query",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1342,7 +1342,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.events.subscribe",
+      "action": "ck.self.events.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1351,7 +1351,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.account.subscribe",
+      "action": "ck.self.account.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1360,7 +1360,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.account.describe",
+      "action": "ck.self.account.describe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1369,7 +1369,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.snapshot.head",
+      "action": "ck.self.snapshot.head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1378,7 +1378,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.blob.upload",
+      "action": "ck.self.blob.upload",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
@@ -1389,7 +1389,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.blob.get",
+      "action": "ck.self.blob.get",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1398,7 +1398,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.blob.head",
+      "action": "ck.self.blob.head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1407,7 +1407,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.blob.presign",
+      "action": "ck.self.blob.presign",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [

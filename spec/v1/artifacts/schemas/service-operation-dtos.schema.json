@@ -226,7 +226,7 @@
     },
     "AuthzCheckRequest": {
       "type": "object",
-      "description": "ck.authz.check input — single capability decision query. `resource` is\noptional because some actions (e.g. `ck.realm.create`, identity-scoped\nactions) have no Realm-bound target.\n",
+      "description": "ck.self.authz.check input — single capability decision query. `resource` is\noptional because some actions (e.g. `ck.realm.create`, identity-scoped\nactions) have no Realm-bound target.\n",
       "required": [
         "actor_id",
         "action"
@@ -254,7 +254,7 @@
     },
     "AuthzCheckResponse": {
       "type": "object",
-      "description": "ck.authz.check decision. See zh/authz/capabilities.md §18.",
+      "description": "ck.self.authz.check decision. See zh/authz/capabilities.md §18.",
       "required": [
         "decision"
       ],
@@ -961,7 +961,7 @@
     },
     "EventGetResponse": {
       "type": "object",
-      "description": "Result of ck.events.get — a single Event Envelope with optional visibility / receipt hints.",
+      "description": "Result of ck.self.events.get — a single Event Envelope with optional visibility / receipt hints.",
       "required": [
         "event"
       ],
@@ -1047,7 +1047,7 @@
     },
     "EventsQueryResponse": {
       "type": "object",
-      "description": "Result of ck.events.query (GET form) and ck.events.query_post (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
+      "description": "Result of ck.self.events.query (GET form) and ck.self.events.query_post (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
       "required": [
         "events",
         "has_more"
@@ -1078,7 +1078,7 @@
     },
     "EventsResolveRequest": {
       "type": "object",
-      "description": "ck.events.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
+      "description": "ck.self.events.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
       "properties": {
         "event_ids": {
           "type": "array",
@@ -1101,7 +1101,7 @@
     },
     "EventsResolveResponse": {
       "type": "object",
-      "description": "ck.events.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
+      "description": "ck.self.events.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
       "required": [
         "events",
         "missing"
@@ -1233,7 +1233,7 @@
     },
     "IdentityGetDocumentResponse": {
       "type": "object",
-      "description": "Result of ck.identity.get_document — current DID Document plus normalized view hints.",
+      "description": "Result of ck.root.identity.get_document — current DID Document plus normalized view hints.",
       "required": [
         "did_document"
       ],
@@ -1328,7 +1328,7 @@
     },
     "PolicyCheckRequest": {
       "type": "object",
-      "description": "ck.policy.check input bound to a Realm authorization context.",
+      "description": "ck.self.policy.check input bound to a Realm authorization context.",
       "required": [
         "request_id",
         "realm_id",
@@ -1398,7 +1398,7 @@
     },
     "PolicyCheckResponse": {
       "type": "object",
-      "description": "Result of ck.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.",
+      "description": "Result of ck.self.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.",
       "required": [
         "request_id",
         "bound_to",
@@ -1843,7 +1843,7 @@
     },
     "SnapshotHeadResponse": {
       "type": "object",
-      "description": "Result of ck.snapshot.head — a signed snapshot pointer for fast bootstrap. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.",
+      "description": "Result of ck.self.snapshot.head — a signed snapshot pointer for fast bootstrap. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.",
       "required": [
         "snapshot_ref",
         "state_digest",
@@ -1951,13 +1951,13 @@
               }
             ]
           },
-          "description": "Actor-supplied ck.events.submit input envelope. It reuses the base Event\nshape for actor intent fields but forbids reducer-managed accepted-output\nprojections such as actor_kind and effective_scope. Services stamp those\nfields only after accept and expose them on read/query/sync envelopes.\n"
+          "description": "Actor-supplied ck.self.events.submit input envelope. It reuses the base Event\nshape for actor intent fields but forbids reducer-managed accepted-output\nprojections such as actor_kind and effective_scope. Services stamp those\nfields only after accept and expose them on read/query/sync envelopes.\n"
         }
       ]
     },
     "EventsFrontierAccountClientResponse": {
       "type": "object",
-      "description": "Account-client ck.events.frontier response.",
+      "description": "Account-client ck.self.events.frontier response.",
       "required": [
         "frontier"
       ],
@@ -2038,7 +2038,7 @@
     },
     "EventsSubmitBatchRequest": {
       "type": "object",
-      "description": "Batch ck.events.submit request used by account clients.",
+      "description": "Batch ck.self.events.submit request used by account clients.",
       "required": [
         "events"
       ],
@@ -2364,7 +2364,7 @@
     },
     "SnapshotBootstrap": {
       "type": "object",
-      "description": "Optional ck.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
+      "description": "Optional ck.self.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
       "required": [
         "snapshot_ref",
         "state_digest",

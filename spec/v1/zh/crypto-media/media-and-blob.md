@@ -288,7 +288,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 然而浏览器原生媒体标签（`<img src>`、`<video src>`、`<audio src>`、`<link href>`、CSS `background-image: url(...)` 等）**无法附加 `Authorization` header**——浏览器在解析这些属性时直接对目标 URL 发起未带认证 header 的 GET。`fetch()` API 本身可以附加 `Authorization`，但其返回的 `Response` 仅能转换为 Blob URL 后由 JS 注入 DOM 才能让原生标签消费，无法直接代替原生 src 的同源加载语义。若严格执行"无 URL 认证"规则，受保护媒体只能通过 service worker 代理或 JS Blob URL 间接渲染——这在很多原生体验、邮件预览、跨页面共享场景中是死路。
 
-为此 v1 定义 **`ck.blob.presign`** 作为该规则的**狭窄定制例外**：发出短 TTL、单对象、只读、可撤销的 pre-signed URL，让浏览器原生标签直接使用，同时通过严格 access_scope 限制把 URL 泄露的最大损失收敛在一个具体 blob 的短时间访问。
+为此 v1 定义 **`ck.self.blob.presign`** 作为该规则的**狭窄定制例外**：发出短 TTL、单对象、只读、可撤销的 pre-signed URL，让浏览器原生标签直接使用，同时通过严格 access_scope 限制把 URL 泄露的最大损失收敛在一个具体 blob 的短时间访问。
 
 #### 5.4.1 流程
 
@@ -297,7 +297,7 @@ Cache-Control: public, immutable, max-age=31536000
    body: { blob_ref, max_age_seconds?, purpose? }
    auth: Authorization (standard bearer / service signature)
 
-2. 服务端 (ck.blob.presign capability 通过后):
+2. 服务端 (ck.self.blob.presign capability 通过后):
    - 生成 presign envelope (见 §5.4.2)
    - 用 blob service DID 签名
    - 返回 url、expires_at
@@ -379,8 +379,8 @@ Cache-Control: public, immutable, max-age=31536000
 **MUST NOT**：
 
 - 用于 E2EE 附件 ciphertext fetch — E2EE 附件的 `blob_ref` + decryption key 都不应出现在服务端可记录的 URL；E2EE 客户端坚持 header auth 路径，由 client-side `fetch()` 配合 `Authorization` 完成
-- 用于 `ck.blob.upload`、删除、mutation 或任何写/副作用操作；presign 只对 envelope 明确授权的 `ck.blob.get` / `ck.blob.head` 只读路径有效
-- 由 user device 凭 capability 自签自用（必须经过 `ck.blob.presign` operation 走一次服务端签发，进 audit log 与 capability check）
+- 用于 `ck.self.blob.upload`、删除、mutation 或任何写/副作用操作；presign 只对 envelope 明确授权的 `ck.self.blob.get` / `ck.self.blob.head` 只读路径有效
+- 由 user device 凭 capability 自签自用（必须经过 `ck.self.blob.presign` operation 走一次服务端签发，进 audit log 与 capability check）
 
 **SHOULD**：
 
@@ -397,11 +397,11 @@ Cache-Control: public, immutable, max-age=31536000
 - `nonce` 不提供普通媒体 presign 的单次消费语义。浏览器原生标签可能对同一 URL 执行 `HEAD` + `GET`、Range、retry 或解码器重复拉取；v1 `media_inline` / `thumbnail` presign MUST 允许这些重复请求。需要单次下载时必须声明独立 profile（例如 `single_use=true` 或专用 purpose），且不得用于原生媒体标签。
 - **下列 blob 类别 MUST 走 fail-closed 规则，不得发 presign**：
   - **E2EE ciphertext** — 已经在 §5.4.4 MUST NOT 列出。E2EE 附件 fetch 走 client-side `fetch()` + `Authorization` header 路径。
-  - **legal hold blob** — 处于 legal hold 状态的 blob MUST 拒绝 `ck.blob.presign`（`legal_hold_active`），即便申请方持有 `ck.blob.presign` capability。原因：legal hold 要求 access 留痕可追溯，bearer URL 让第三方无凭据拉取破坏审计链。
+  - **legal hold blob** — 处于 legal hold 状态的 blob MUST 拒绝 `ck.self.blob.presign`（`legal_hold_active`），即便申请方持有 `ck.self.blob.presign` capability。原因：legal hold 要求 access 留痕可追溯，bearer URL 让第三方无凭据拉取破坏审计链。
   - **redacted blob** — `ck.redaction` 已生效 / `ck.audit.erasure_receipt` 已发布的 blob MUST 立即拒绝 presign 请求与已签发但 TTL 未到的 presign 请求（`blob_redacted`）。
   - **private attachment 私有附件**（`visibility=actor_private` 或附 `ck.actor_private` policy 标签）— MUST NOT 走 presign 路径（`private_attachment`）。该类 blob 只允许 issuing actor 本人通过 header auth fetch。
   - **minimal-metadata Realm-owned blob** — blob metadata 绑定的 Realm 声明 `ck.profile.mls.minimal_metadata_realm.v1`，或 Realm asset policy 声明 `routing_unlinkability_required=true` 时，服务端 MUST NOT 签发 bearer presign URL（`minimal_metadata_presign_forbidden`）。该类 Realm 的下载必须走 header auth、`provider_proxy`、`ohttp_relay` 或等价的不把 `blob_ref` / bearer envelope 暴露到可转发 URL 的路径。只有 deployment-public/global blob（无 Realm 绑定，且 policy 明确允许 public direct download）可继续使用 presign。
-  - **`direct_download_allowed=false` Realm-owned blob** — blob metadata 绑定的 Realm 在 `ck.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false` 时，服务端 MUST NOT 签发 bearer presign URL（`direct_download_disallowed_presign_forbidden`），即便该 Realm 不是 minimal-metadata Realm、即便申请方持有 `ck.blob.presign` capability。presign 产出的就是一个可转发的 bearer download URL，与 §6 "`direct_download_allowed=false` 时客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL"是同一条禁令的两侧；放行 presign 等于用 presign 通道绕过该 Realm 的强制代理边界。该类 Realm 的媒体必须走 `download_mode` 声明的 `provider_proxy` / `ohttp_relay` / `client_mirror` 路径。只有 `direct_download_allowed=true`（或无 asset privacy policy 且 deployment policy 允许 direct）的 Realm-owned blob 与 deployment-public/global blob 才可继续使用 presign。
+  - **`direct_download_allowed=false` Realm-owned blob** — blob metadata 绑定的 Realm 在 `ck.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false` 时，服务端 MUST NOT 签发 bearer presign URL（`direct_download_disallowed_presign_forbidden`），即便该 Realm 不是 minimal-metadata Realm、即便申请方持有 `ck.self.blob.presign` capability。presign 产出的就是一个可转发的 bearer download URL，与 §6 "`direct_download_allowed=false` 时客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL"是同一条禁令的两侧；放行 presign 等于用 presign 通道绕过该 Realm 的强制代理边界。该类 Realm 的媒体必须走 `download_mode` 声明的 `provider_proxy` / `ohttp_relay` / `client_mirror` 路径。只有 `direct_download_allowed=true`（或无 asset privacy policy 且 deployment policy 允许 direct）的 Realm-owned blob 与 deployment-public/global blob 才可继续使用 presign。
 - **future audience-bound 机制**（未来评估方向，不属于 v1）：若未来需要真正绑定 audience，方案有 (a) 把 presign 升级为 cookie-bound URL（依赖 `__Host-` cookie + SameSite=Strict + presign 校验 cookie binding），(b) 通过 session-bound token 把 presign 换给 client 后只在该 session 内可用。两条都需要客户端配合，不属于 v1 范围。
 
 #### 5.4.4.2 Bearer URL 泄漏面控制（normative）
@@ -418,17 +418,17 @@ Cache-Control: public, immutable, max-age=31536000
 
 #### 5.4.5 与 capability 的衔接
 
-`ck.blob.presign` capability action（risk_tier=medium）控制谁可以**为某 blob 签发 presign**。grant 上的两个 constraint 收紧使用范围：
+`ck.self.blob.presign` capability action（risk_tier=medium）控制谁可以**为某 blob 签发 presign**。grant 上的两个 constraint 收紧使用范围：
 
 - `blob_presign_max_ttl_seconds`：grant 允许的最大 TTL 上限（硬上限不超过 3600）
 - `blob_presign_scope`：grant 允许的 purpose 集合（`media_inline` / `thumbnail` / `download`）与可选 blob_ref pattern（按 Realm / purpose 细分）
 
-服务端在 `ck.blob.presign` 调用时按 grant constraint 收窄请求的 `max_age_seconds` / `purpose`；超过 constraint 返回 `capability_denied`。
+服务端在 `ck.self.blob.presign` 调用时按 grant constraint 收窄请求的 `max_age_seconds` / `purpose`；超过 constraint 返回 `capability_denied`。
 
 #### 5.4.6 与 §5.2 / §5.3 的关系
 
 - §5 仍是 **认证下载默认路径**；pre-signed 仅作为 §5 的 narrow 例外
-- §5.2 redirect / `Location` 头的"短期 signed download URL"语义可以由 `ck.blob.presign` 实现，但 redirect URL MUST 同样满足 §5.4 全部约束
+- §5.2 redirect / `Location` 头的"短期 signed download URL"语义可以由 `ck.self.blob.presign` 实现，但 redirect URL MUST 同样满足 §5.4 全部约束
 - §5.3 缩略图通常通过 `purpose=thumbnail` presign 让 `<img>` 直接渲染；服务端 SHOULD 设更短 TTL（默认 ≤ 60s）
 
 ## 6. Asset Privacy Policy
@@ -475,7 +475,7 @@ Cache-Control: public, immutable, max-age=31536000
 规则：
 
 - 私有 Realm、E2EE 附件和高隐私 minimal-metadata Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。对 `ck.profile.mls.minimal_metadata_realm.v1` Realm-owned blob，§5.4.4.1 的 presign hard reject 优先于本节的 `download_mode=direct`；deployment 不得用 direct download policy 绕过 minimal-metadata bearer URL 禁令。
-- `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ck.blob.presign` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
+- `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ck.self.blob.presign` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/applet-install-plan.schema.json",
   "title": "Cokret Applet InstallPlan",
-  "description": "Canonical plan returned by ck.applet.install.preview and recomputed by ck.applet.install before commit. plan_digest is calculated over the canonical InstallPlan object with plan_digest omitted.",
+  "description": "Canonical plan returned by ck.self.applet.install.preview and recomputed by ck.self.applet.install before commit. plan_digest is calculated over the canonical InstallPlan object with plan_digest omitted.",
   "type": "object",
   "required": [
     "schema",

@@ -785,7 +785,7 @@ verify_move(M, pre_state):
        if not predicate(v): FAIL_PRECONDITION
   5. 对每个 (cell, op):
        schema.lattice(cell).validate(op)
-       authz.check(M.issuer, cell, op, M.refs)
+       self.authz.check(M.issuer, cell, op, M.refs)
   6. PASS
 ```
 

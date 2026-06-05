@@ -39,7 +39,7 @@ merged_into:
 >
 > Schema / registry artifacts: `event-envelope.schema.json`、`event-payload.schema.json`、`event-kind-registry.json`、`operation-registry.json`、`capability-action-registry.json`、`account-data-type-registry.json`、`profiles/conformance-profiles.json`。CHANGELOG entry under 2026-05-26 "Personal AI Agent provisioning & sidecar threads"。
 >
-> Accepted 阶段所有 review-stage 决议均已闭合(见 §7.1);§7.2 当前为空。`ck.agent.pause` / `ck.agent.resume` / `ck.agent.deactivate` 三独立 event kind 已注册为 v1 形态;如果未来引入通用 `ck.principal.status.set` lifecycle event,会通过 `renames.json` migration_group 收敛,而不会回到本文件再讨论。
+> Accepted 阶段所有 review-stage 决议均已闭合(见 §7.1);§7.2 当前为空。`ck.self.agent.pause` / `ck.self.agent.resume` / `ck.self.agent.deactivate` 三独立 event kind 已注册为 v1 形态;如果未来引入通用 `ck.principal.status.set` lifecycle event,会通过 `renames.json` migration_group 收敛,而不会回到本文件再讨论。
 >
 > This proposal file is retained as historical design rationale. Future updates to personal agent provisioning MUST land directly on normative files, not here.
 
@@ -81,7 +81,7 @@ merged_into:
 
 1. **人类 coauth 只属于控制面**:创建 agent、批准 key、扩权、恢复和高风险操作需要 controller 的人类认证或设备证明。Agent 日常运行不应被要求完成 CAPTCHA、OTP、SSO redirect 或 WebAuthn user presence。
 2. **Agent runtime 使用 key proof 换短期 session**:runtime 持有 agent key 或 workload credential,通过 `proof_kind="agent_key_proof"` 获取短期 `ck.session.grant`。
-3. **不返回长期私钥**:`ck.agent.provision` 响应 MUST NOT 包含长期 private key。默认由 runtime 本地生成 key pair,再由 controller 批准 public key。
+3. **不返回长期私钥**:`ck.self.agent.provision` 响应 MUST NOT 包含长期 private key。默认由 runtime 本地生成 key pair,再由 controller 批准 public key。
 4. **不继承 controller 最大权限**:agent effective permission 是多重约束交集,不是 controller 权限的自动拷贝。
 5. **高风险操作转成人类 approval request**:需要人类批准时,服务端返回 structured approval request,而不是把 agent runtime 重定向到人类登录页面。
 6. **Agent 与 Ghost Actor 边界清晰**:native personal agent 是一等 DID principal;Ghost Actor 是 Applet 管辖 namespace 下的外部/集成 actor 镜像。
@@ -124,11 +124,11 @@ Agent principal 不是 Ghost Actor。它可以按 DID 与 account policy 独立�
 
 ```text
 POST /_cokret/self/agents
-operation_id: ck.agent.provision
+operation_id: ck.self.agent.provision
 profile: ck.profile.personal_agent_provisioning.v1
 ```
 
-该 operation 是一个编排入口,不是 durable event kind。最小形态 SHOULD 由服务写入或返回一组现有事件引用:Actor Profile、`ck.identity.accountability_grant`、pending pairing record、初始 capability grant。Provisioning 的可审计状态来自这些子事件;不得再增加一个 `ck.agent.provision` aggregate event 造成 audit 双源。
+该 operation 是一个编排入口,不是 durable event kind。最小形态 SHOULD 由服务写入或返回一组现有事件引用:Actor Profile、`ck.identity.accountability_grant`、pending pairing record、初始 capability grant。Provisioning 的可审计状态来自这些子事件;不得再增加一个 `ck.self.agent.provision` aggregate event 造成 audit 双源。
 
 请求:
 
@@ -145,7 +145,7 @@ profile: ck.profile.personal_agent_provisioning.v1
   },
   "requested_capabilities": [
     {
-      "actions": ["ck.events.subscribe"],
+      "actions": ["ck.self.events.subscribe"],
       "resources": [
         {
           "kind": "object",
@@ -305,7 +305,7 @@ Bootstrap material 是一次性、短期、可撤销的 pairing 输入。它不�
 
 ```text
 POST /auth/account/agent-key-pair
-operation_id: ck.account.agent_key_pair
+operation_id: ck.gate.account.agent_key_pair
 profile: ck.profile.personal_agent_provisioning.v1
 ```
 
@@ -355,7 +355,7 @@ Agent runtime 在日常运行时 MUST NOT 被要求完成人类 coauth UI。CAPT
 
 ```text
 POST /auth/account/session-grants
-operation_id: ck.account.issue_session_grant
+operation_id: ck.gate.account.issue_session_grant
 profile: ck.profile.agent_auth.v1
 ```
 
@@ -366,7 +366,7 @@ profile: ck.profile.agent_auth.v1
 ```json
 {
   "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
-  "requested_scope": ["ck.events.subscribe", "ck.message.create"],
+  "requested_scope": ["ck.self.events.subscribe", "ck.message.create"],
   "agent_key_authorization_ref": "ck:event:01970000-0000-7000-8000-000000000021",
   "agent_scope_request": {
     "realm_ids": ["ck:realm:01970000-0000-7000-8000-000000000000"],
@@ -398,7 +398,7 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
   "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "session_grant": "opaque-short-lived-token",
   "expires_at": "2026-05-26T10:30:00Z",
-  "granted_scope": ["ck.events.subscribe", "ck.message.create"],
+  "granted_scope": ["ck.self.events.subscribe", "ck.message.create"],
   "scope_details": {
     "realm_ids": ["ck:realm:01970000-0000-7000-8000-000000000000"],
     "flow_ids": ["ck:flow:01970000-0000-7000-8000-000000000001"],
@@ -447,7 +447,7 @@ controller 通过人类 UI 在带外批准。批准会产生新的 capability / 
 
 | 模式 | Actor identity | 典型动作 | 主要风险 |
 | --- | --- | --- | --- |
-| `read_only` | agent | `ck.events.subscribe`, `ck.event.read`, object read actions | 低到中,取决于 data class |
+| `read_only` | agent | `ck.self.events.subscribe`, `ck.event.read`, object read actions | 低到中,取决于 data class |
 | `draft_only` | agent -> controller-private control surface | 候选 `ck.agent.draft.propose` / `ck.agent.action_request`;由 Principal Server materialize controller-owned `ck.agent.draft.v1` account data | 发布/共享写入风险低;机密性风险取决于 read scope,可高 |
 | `reply_as_agent` | agent | `ck.message.create`, `ck.reaction.add` | 中 |
 | `act_on_behalf` | controller 作为 `actor_id`,agent 作为 `executed_by` | `ck.message.create`,选定 workflow actions | 高 |
@@ -505,8 +505,8 @@ Accepted 后 draft-only MUST 注册 controller-owned account-data type `ck.agent
 隐私边界:
 
 - Draft storage MUST 使用 `wire_scope=actor_private_event` 的通道,例如 encrypted account data 或 actor-private stream;不得进入 shared Realm Move / Anchor history。
-- Target Realm 的 `ck.events.subscribe`、`ck.events.query`、shared reducer、Realm search index、notification fanout 和 push preview MUST NOT 返回 draft content。
-- `ck.account.subscribe` 只能把 controller-owned approval draft 返回给 controller principal 的授权 session,以及 scope 明确包含该 draft / account-data 访问权的 agent runtime。
+- Target Realm 的 `ck.self.events.subscribe`、`ck.self.events.query`、shared reducer、Realm search index、notification fanout 和 push preview MUST NOT 返回 draft content。
+- `ck.self.account.subscribe` 只能把 controller-owned approval draft 返回给 controller principal 的授权 session,以及 scope 明确包含该 draft / account-data 访问权的 agent runtime。
 - 若服务端存储 draft 明文,该部署 MUST 把明文可见服务写入 profile / policy 并向 controller 披露;默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 可以引用目标 `realm_id`、`flow_id`、`track_name`、`message_id` 或 cursor,但这些引用不授予目标 Realm 成员读取 draft 内容的权利。
 
@@ -679,12 +679,12 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 
 这些 management operation MUST 产生可审计的 durable state,不得只修改服务端内存或私有配置。候选 durable event 落点(运行时行为已在前文给出,本处只列审计材料形态):
 
-- `pause`: `ck.agent.pause` 或等价 signed agent status event / principal-control state。
-- `resume`: `ck.agent.resume` 或等价 signed status transition。
-- `deactivate`: `ck.agent.deactivate` terminal state,并 fan-out `ck.agent.key.revoke`、`ck.capability.revoke` / delegation revoke、runtime endpoint revoke。canonical op id 为 `ck.agent.deactivate`,URL `/_cokret/self/agents/{agent_principal_id}/deactivate`。
+- `pause`: `ck.self.agent.pause` 或等价 signed agent status event / principal-control state。
+- `resume`: `ck.self.agent.resume` 或等价 signed status transition。
+- `deactivate`: `ck.self.agent.deactivate` terminal state,并 fan-out `ck.agent.key.revoke`、`ck.capability.revoke` / delegation revoke、runtime endpoint revoke。canonical op id 为 `ck.self.agent.deactivate`,URL `/_cokret/self/agents/{agent_principal_id}/deactivate`。
 - `rotate-key`: `ck.agent.key.rotate`,记录 replacement key proof 与 approval evidence。
 
-`ck.agent.pause` / `ck.agent.resume` / `ck.agent.deactivate` 已在 accepted artifact 中作为 active event kinds 注册;此处保留枚举以便 audit material 实现者快速查找。
+`ck.self.agent.pause` / `ck.self.agent.resume` / `ck.self.agent.deactivate` 已在 accepted artifact 中作为 active event kinds 注册;此处保留枚举以便 audit material 实现者快速查找。
 
 ## 5. 与 normative spec 的交互
 
@@ -703,10 +703,10 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 
 ### 5.2 Accepted 后可能需要的 artifact 改动
 
-- `operation-registry.json`: 增加 `ck.agent.provision`、`ck.account.agent_key_pair`、list/get/pause/resume/deactivate/rotate_key/grant management operations(canonical op id `ck.agent.deactivate`, URL `/_cokret/self/agents/{agent_principal_id}/deactivate`,旧 `/revoke` 形态不再 normative)。Agent runtime session 复用现有 `ck.account.issue_session_grant` operation,不注册单独的 agent-session 签发 operation。
-- `event-kind-registry.json`: 不增加 `ck.agent.provision` aggregate event;provisioning operation fan-out 到 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant` 等既有 durable events。增加 `ck.agent.pause`、`ck.agent.resume`、`ck.agent.deactivate` 或等价 lifecycle state events,并增加 `ck.agent.draft.propose`、`ck.agent.action_request`、`ck.agent.action_approve`、`ck.agent.action_reject` draft/action-request family。
+- `operation-registry.json`: 增加 `ck.self.agent.provision`、`ck.gate.account.agent_key_pair`、list/get/pause/resume/deactivate/rotate_key/grant management operations(canonical op id `ck.self.agent.deactivate`, URL `/_cokret/self/agents/{agent_principal_id}/deactivate`,旧 `/revoke` 形态不再 normative)。Agent runtime session 复用现有 `ck.gate.account.issue_session_grant` operation,不注册单独的 agent-session 签发 operation。
+- `event-kind-registry.json`: 不增加 `ck.self.agent.provision` aggregate event;provisioning operation fan-out 到 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant` 等既有 durable events。增加 `ck.self.agent.pause`、`ck.self.agent.resume`、`ck.self.agent.deactivate` 或等价 lifecycle state events,并增加 `ck.agent.draft.propose`、`ck.agent.action_request`、`ck.agent.action_approve`、`ck.agent.action_reject` draft/action-request family。
 - `account-data-type-registry.json`: 增加 `ck.agent.draft.v1`,key pattern 建议为 `ck.agent.draft.v1:<agent_principal_id>:<draft_id>`,并声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。
-- `capability-action-registry.json`: 增加 `ck.agent.provision` 作为 aggregate admin action,其 `target_event_kinds` MUST 显式列出 fan-out 子事件,例如 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant`,并标注 migration group。Agent management actions 同样必须声明 target event kinds,不得从 action 字符串推断。
+- `capability-action-registry.json`: 增加 `ck.self.agent.provision` 作为 aggregate admin action,其 `target_event_kinds` MUST 显式列出 fan-out 子事件,例如 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant`,并标注 migration group。Agent management actions 同样必须声明 target event kinds,不得从 action 字符串推断。
 - `event-payload.schema.json`: 若现有 `agent_key_authorize_payload` 尚未包含 runtime attestation,增加 `runtime_attestation` 或 attestation digest/ref 字段;v1 enum 至少包含 `self_asserted`,未知 kind fail closed。
 - `event-envelope.schema.json` / `event-payload.schema.json`: 为 accepted 新 event 增加 payload defs;为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段,并同步 canonicalization / Anchor vectors。同时增加 reducer-stamped `actor_kind` projection 字段(由 reducer 从 Actor Profile 解析,immutable,不接受 actor-supplied 输入),供审计与离线读取使用。
 - `conformance-profiles.json`: 注册 `ck.profile.personal_agent_provisioning.v1`、`ck.profile.agent_auth.v1`、`ck.profile.agent_delegation_policy.v1`。
@@ -757,14 +757,14 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 - [x] Agent session grant 默认最大 TTL 收敛为 15 分钟;更长 TTL 必须 profile 声明额外风险控制,且不应超过 60 分钟。
 - [x] Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor。
 - [x] Flow-context private agent chat 不放入本提案;拆分到 CKP-0009 `Agent Sidecar Thread`。
-- [x] `ck.agent.provision` 只作 service operation;durable audit 由 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant` 等 fan-out 子事件承载。
+- [x] `ck.self.agent.provision` 只作 service operation;durable audit 由 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant` 等 fan-out 子事件承载。
 - [x] Draft-only 标准化为 `ck.agent.draft.propose` / `ck.agent.action_request` family + controller-owned `ck.agent.draft.v1` encrypted account data。
 - [x] Track-level grant 复用现有 `allowed_tracks`;不引入 `allowed_track_names` 或其它并行 vocabulary。
 - [x] `agent_scope_request` 保持 `ck.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequest` schema。
 - [x] Agent E2EE access 表达为独立 MLS member,默认无 E2EE access;不得作为 controller delegated device 继承 history keys。
 - [x] `act_on_behalf` 默认 fresh approval 粒度为 `(action, target_flow)` + 短期 window,通过现有 approval/accountability constraints 表达。
 - [x] `did:webvh` deployment SHOULD 为 personal agent 分配独立 SCID,并 MAY 在 `did:webvh:<scid>:<host-and-path>` 的 `<host-and-path>` 中采用 `agents/<slug>` 可读路径约定;规范信任来源是独立 DID document 与显式 accountability grant,不是路径继承。
-- [x] Lifecycle event kinds 注册为 `ck.agent.pause` / `ck.agent.resume` / `ck.agent.deactivate`(已在 accepted artifact 中作为 active event kinds,FSM lattice / `bottom=reject`,payload schema 已 wire 在 `event-payload.schema.json`)。不复用未来可能的通用 `ck.principal.status.set`——principal type 之间的 status 字段语义差异(agent freshness frontier vs human soft_logged_out vs service endpoint revoke)足以让单一 lifecycle event 反而增加 reducer 复杂度。该决议关闭后任何统一 lifecycle event 提案需要独立 CKP。
+- [x] Lifecycle event kinds 注册为 `ck.self.agent.pause` / `ck.self.agent.resume` / `ck.self.agent.deactivate`(已在 accepted artifact 中作为 active event kinds,FSM lattice / `bottom=reject`,payload schema 已 wire 在 `event-payload.schema.json`)。不复用未来可能的通用 `ck.principal.status.set`——principal type 之间的 status 字段语义差异(agent freshness frontier vs human soft_logged_out vs service endpoint revoke)足以让单一 lifecycle event 反而增加 reducer 复杂度。该决议关闭后任何统一 lifecycle event 提案需要独立 CKP。
 
 ### 7.2 仍需讨论
 

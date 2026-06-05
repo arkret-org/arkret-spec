@@ -75,22 +75,22 @@ Actor-private state 是独立层，不是“弱 durable Event”。标准规则�
 
 ### 2.1.1 Wire-Scope 边界（normative）
 
-为避免 ephemeral 信号意外进入持久 Event 流，event-envelope.schema.json 与 ck.events.submit MUST 按下表 fail-closed：
+为避免 ephemeral 信号意外进入持久 Event 流，event-envelope.schema.json 与 ck.self.events.submit MUST 按下表 fail-closed：
 
 | `wire_scope`（[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)） | 允许使用的 envelope schema | 允许的提交路径 |
 | --- | --- | --- |
-| `durable_event` | `ck.schema.event.v1`（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)） | `ck.events.submit` |
-| `actor_private_event` | `ck.schema.event.v1`（同上；不携带 `preconditions/effects/anchor_ref`，payload 仍按 kind-specific schema 校验） | `ck.events.submit`（actor 私有，写入 actor 私有 store 或 registry 声明的 actor-private state cell；不进 Realm frontier） |
-| `ephemeral_event`（`ck.presence` / `ck.typing` / `ck.receipt.read` / `ck.call.signal`） | `ck.schema.ephemeral_envelope.v1`（[`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)） | `ck.ephemeral.send`（HTTP `POST /_cokret/self/ephemeral`）或等价已声明 binding；fanout 通过 sync subscribe 实时流、presence/typing fanout、call signaling channel；**MUST NOT** 出现在 `ck.events.submit` |
-| `ephemeral_event`（`ck.key.verification.*` — 点对点 to-device） | `ck.schema.device_message.v1`（[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)） | to-device 队列（不广播）；**MUST NOT** 出现在 `ck.events.submit` |
+| `durable_event` | `ck.schema.event.v1`（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)） | `ck.self.events.submit` |
+| `actor_private_event` | `ck.schema.event.v1`（同上；不携带 `preconditions/effects/anchor_ref`，payload 仍按 kind-specific schema 校验） | `ck.self.events.submit`（actor 私有，写入 actor 私有 store 或 registry 声明的 actor-private state cell；不进 Realm frontier） |
+| `ephemeral_event`（`ck.presence` / `ck.typing` / `ck.receipt.read` / `ck.call.signal`） | `ck.schema.ephemeral_envelope.v1`（[`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)） | `ck.self.ephemeral.send`（HTTP `POST /_cokret/self/ephemeral`）或等价已声明 binding；fanout 通过 sync subscribe 实时流、presence/typing fanout、call signaling channel；**MUST NOT** 出现在 `ck.self.events.submit` |
+| `ephemeral_event`（`ck.key.verification.*` — 点对点 to-device） | `ck.schema.device_message.v1`（[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)） | to-device 队列（不广播）；**MUST NOT** 出现在 `ck.self.events.submit` |
 
 规则：
 
-1. `ck.events.submit` MUST 对 `kind` 的 `wire_scope=ephemeral_event` 立即 `schema_violation`，不进 reducer / anchor pipeline。event-envelope.schema.json 已用 `not` 分支静态强制 ck.call.signal / ck.presence / ck.typing / ck.receipt.read / ck.key.verification.* MUST NOT 出现在 durable Event Envelope。
-2. ephemeral 广播信号 MUST 通过 `ck.ephemeral.send` 或等价已声明 binding 发送，MUST 携带 `expires_at` 并由接收方按 schema 中 5 分钟硬上限丢弃；不得作为 backfill / sync replay 入口。
+1. `ck.self.events.submit` MUST 对 `kind` 的 `wire_scope=ephemeral_event` 立即 `schema_violation`，不进 reducer / anchor pipeline。event-envelope.schema.json 已用 `not` 分支静态强制 ck.call.signal / ck.presence / ck.typing / ck.receipt.read / ck.key.verification.* MUST NOT 出现在 durable Event Envelope。
+2. ephemeral 广播信号 MUST 通过 `ck.self.ephemeral.send` 或等价已声明 binding 发送，MUST 携带 `expires_at` 并由接收方按 schema 中 5 分钟硬上限丢弃；不得作为 backfill / sync replay 入口。
 3. 接收方 MUST NOT 把 ephemeral envelope 解释为 reducer 输入：它们不写 cell、不推 anchor frontier、不消耗 actor_seq。`actor_private_event` 可消耗 actor-private stream seq，但不得推进 shared Realm `actor_seq` / Anchor frontier。
 4. 部署若希望"高频信号但仍可审计"，MUST 选择 sample / digest 后单独 emit 一条 durable event（例如 `ck.call.state` / `ck.notification.read`），而不是把 ephemeral envelope 当 durable Event 提交。
-5. 负向测试：conformance suite MUST 包含 reject case，把 `ck.presence` / `ck.typing` / `ck.call.signal` / `ck.key.verification.start` 这些 kind 当 durable Event 通过 `ck.events.submit` 提交时立即被拒（`schema_violation`，不进 anchor pipeline）。
+5. 负向测试：conformance suite MUST 包含 reject case，把 `ck.presence` / `ck.typing` / `ck.call.signal` / `ck.key.verification.start` 这些 kind 当 durable Event 通过 `ck.self.events.submit` 提交时立即被拒（`schema_violation`，不进 anchor pipeline）。
 
 接收方 MUST 按以下顺序验证 reducer-input event：
 
@@ -419,7 +419,7 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
 }
 ```
 
-`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `ck.account.subscribe`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
+`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `ck.self.account.subscribe`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
 
 ## 6. 为什么需要 `prev_refs + hlc + actor_seq`
 
@@ -745,7 +745,7 @@ Snapshot manifest MUST 包含：
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
 5. **Inclusion challenge**：`security_class=high_assurance` 的 Realm MUST 在采用 snapshot 前对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要执行 inclusion / omission challenge（wire 形态、抽样规则与失败处理见 [`conformance/snapshot-schema.md` §6](../conformance/snapshot-schema.md)）；其他 profile SHOULD。issuer 无法提供合规证明时，客户端 MUST 返回 `inclusion_proof_failed` 并 quarantine snapshot 或回退到原始 Event 回放。Issuer 在 `created_at` 之前已被 revoke 时 MUST 返回 `snapshot_issuer_revoked`。
 6. 后续 admin / snapshot issuer revoke 不会自动否定此前在有效权限下签名的 snapshot，但客户端在用 snapshot 恢复后 MUST 继续回放 snapshot frontier 之后的 Event，再用当前 auth state 判断新写入。
-7. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `GET /_cokret/self/events?before=<cursor>`（`ck.events.query`）进行原始 Event 历史回放。
+7. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `GET /_cokret/self/events?before=<cursor>`（`ck.self.events.query`）进行原始 Event 历史回放。
 
 ## 12. 同步面
 

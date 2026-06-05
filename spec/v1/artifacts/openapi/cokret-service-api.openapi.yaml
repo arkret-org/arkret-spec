@@ -29,7 +29,7 @@ info:
 
     query, query_post, frontier}`, `ck.peer.events.{submit, resolve, query,
     query_post, frontier}`, `ck.account.{viewer, subscribe,
-    update_profile, register, session_revoke}`, `ck.snapshot.head`,
+    update_profile, register, session_revoke}`, `ck.self.snapshot.head`,
     `ck.peer.snapshot.head`,
 
     `ck.identity.{resolve, get_document, get_receipts, submit_did_operation}`, `ck.authz.{check,
@@ -204,11 +204,11 @@ components:
       in: query
       name: presign
       description: |
-        Single-blob, short-TTL pre-signed authorization (ck.blob.presign).
+        Single-blob, short-TTL pre-signed authorization (ck.self.blob.presign).
         Carries a server-signed envelope binding blob_ref / TTL / scope /
         issuance nonce. The nonce is an envelope/audit/revocation key, not a
         one-use media-load replay guard unless a single-use profile is declared.
-        Permitted ONLY on ck.blob.get and ck.blob.head, and MUST NOT
+        Permitted ONLY on ck.self.blob.get and ck.self.blob.head, and MUST NOT
         co-occur with bearerAuth — implementations enforce mutual exclusion.
         See media-and-blob.md §5.4 and server-threat-model.md §2.1 #21 for the
         carve-out's normative constraints.
@@ -1026,14 +1026,14 @@ components:
           - required:
             - effective_scope
         description: |
-          Actor-supplied ck.events.submit input envelope. It reuses the base Event
+          Actor-supplied ck.self.events.submit input envelope. It reuses the base Event
           shape for actor intent fields but forbids reducer-managed accepted-output
           projections such as actor_kind and effective_scope. Services stamp those
           fields only after accept and expose them on read/query/sync envelopes.
 
     EventsSubmitBatchRequest:
       type: object
-      description: Batch ck.events.submit request used by account clients.
+      description: Batch ck.self.events.submit request used by account clients.
       required:
       - events
       properties:
@@ -1097,7 +1097,7 @@ components:
         reconnect_after_ms:
           type: integer
           minimum: 1
-          description: Optional server-directed minimum delay before opening another ck.events.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
+          description: Optional server-directed minimum delay before opening another ck.self.events.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
       allOf:
       - if:
           properties:
@@ -1131,7 +1131,7 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierResponse
     EventsFrontierAccountClientResponse:
       type: object
-      description: Account-client ck.events.frontier response.
+      description: Account-client ck.self.events.frontier response.
       required:
       - frontier
       properties:
@@ -2637,7 +2637,7 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_cokret/root/identity/resolve:
     post:
-      operationId: ck.identity.resolve
+      operationId: ck.root.identity.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2664,7 +2664,7 @@ paths:
           $ref: '#/components/responses/NotFound'
   /_cokret/root/identity/document:
     get:
-      operationId: ck.identity.get_document
+      operationId: ck.root.identity.get_document
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2686,7 +2686,7 @@ paths:
                 $ref: '#/components/schemas/IdentityGetDocumentResponse'
   /_cokret/root/identity/log:
     get:
-      operationId: ck.identity.get_log
+      operationId: ck.root.identity.get_log
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2708,7 +2708,7 @@ paths:
                     type: string
   /_cokret/root/identity/submit-did-operation:
     post:
-      operationId: ck.identity.submit_did_operation
+      operationId: ck.root.identity.submit_did_operation
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -2729,7 +2729,7 @@ paths:
               $ref: '#/components/schemas/DidOperationSubmitRequest'
   /_cokret/root/identity/receipts:
     get:
-      operationId: ck.identity.get_receipts
+      operationId: ck.root.identity.get_receipts
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2749,7 +2749,7 @@ paths:
                       $ref: ../schemas/identity-receipt.schema.json
   /_cokret/self/events:
     post:
-      operationId: ck.events.submit
+      operationId: ck.self.events.submit
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2778,7 +2778,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsSubmitResponse'
     get:
-      operationId: ck.events.query
+      operationId: ck.self.events.query
       x-cokret-required-any-of:
       - - realms
       - - actors
@@ -2879,7 +2879,7 @@ paths:
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
   /_cokret/self/events/query:
     post:
-      operationId: ck.events.query_post
+      operationId: ck.self.events.query_post
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -2889,9 +2889,9 @@ paths:
         destinationTrustDomain: []
         requestCanonicalDigest: []
         contentDigest: []
-      summary: ck.events.query in HTTP POST body form (for long/complex queries).
+      summary: ck.self.events.query in HTTP POST body form (for long/complex queries).
       description: |
-        Semantically identical to `GET /_cokret/self/events` (`ck.events.query`); the same
+        Semantically identical to `GET /_cokret/self/events` (`ck.self.events.query`); the same
         selector / cursor / order / filter parameter set is transported as a
         JSON request body instead of URL query parameters. Use this form when
         any of:
@@ -2907,8 +2907,8 @@ paths:
         (proximity-to-anchor default order, absolute prev / next directions)
         come from the same source — see zh/sync/service-http-binding.md §3.3.
 
-        gRPC / MQ bindings reuse the canonical `Events/Query` channel; this
-        operation_id is a HTTP-only binding variant of `ck.events.query` to keep
+        gRPC / MQ bindings reuse the canonical `SelfEvents/Query` channel; this
+        operation_id is a HTTP-only binding variant of `ck.self.events.query` to keep
         OpenAPI / SDK generators round-trippable.
       requestBody:
         required: true
@@ -2928,7 +2928,7 @@ paths:
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
   /_cokret/self/events/subscribe:
     get:
-      operationId: ck.events.subscribe
+      operationId: ck.self.events.subscribe
       x-cokret-required-any-of:
       - - realms
       - - actors
@@ -2975,7 +2975,7 @@ paths:
         explode: true
       - name: after
         in: query
-        description: Subscription start cursor (exclusive). Same semantics as ck.events.query's `after=` parameter.
+        description: Subscription start cursor (exclusive). Same semantics as ck.self.events.query's `after=` parameter.
         schema:
           $ref: '#/components/schemas/Cursor'
       - name: catchup
@@ -2993,7 +2993,7 @@ paths:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
   /_cokret/self/events/describe:
     get:
-      operationId: ck.events.describe
+      operationId: ck.self.events.describe
       security: []
       responses:
         '200':
@@ -3004,7 +3004,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_cokret/self/events/{event_id}:
     get:
-      operationId: ck.events.get
+      operationId: ck.self.events.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3030,7 +3030,7 @@ paths:
                 $ref: '#/components/schemas/EventGetResponse'
   /_cokret/self/events/resolve:
     post:
-      operationId: ck.events.resolve
+      operationId: ck.self.events.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3052,7 +3052,7 @@ paths:
                 $ref: '#/components/schemas/EventsResolveResponse'
   /_cokret/self/events/frontier:
     get:
-      operationId: ck.events.frontier
+      operationId: ck.self.events.frontier
       x-cokret-required-any-of:
       - - actor_id
       - - realm_id
@@ -3132,7 +3132,7 @@ paths:
       summary: Federation peer event pull / backfill query.
       description: |
         Returns a page of events visible to the authenticated federation peer.
-        Cursor, selector, order, and response semantics match `ck.events.query`,
+        Cursor, selector, order, and response semantics match `ck.self.events.query`,
         but this binding is the server-to-server peer trust surface.
       parameters:
       - name: realms
@@ -3273,7 +3273,7 @@ paths:
                 $ref: '#/components/schemas/EventsFrontierFederationPeerResponse'
   /_cokret/self/ephemeral:
     post:
-      operationId: ck.ephemeral.send
+      operationId: ck.self.ephemeral.send
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3287,7 +3287,7 @@ paths:
         Service fanout path. This endpoint never persists the signal as a
         durable Event and never advances actor_seq, Anchor state, or Realm
         frontier. Point-to-point device verification signals use
-        `ck.device_messages.put` instead.
+        `ck.self.device_messages.put` instead.
       requestBody:
         required: true
         content:
@@ -3312,7 +3312,7 @@ paths:
             disables `ck.receipt.read`.
   /_cokret/self/rtc/token:
     post:
-      operationId: ck.call.media.token_exchange
+      operationId: ck.self.call.media.token_exchange
       security:
       - bearerAuth: []
       summary: Exchange Cokret capability proof for a backend media token.
@@ -3370,7 +3370,7 @@ paths:
             not declare explicit media foci.
   /_cokret/self/account/viewer:
     get:
-      operationId: ck.account.viewer
+      operationId: ck.self.account.viewer
       security:
       - bearerAuth: []
       summary: Holder-bound one-shot read of the current account projection.
@@ -3378,7 +3378,7 @@ paths:
         Returns the authenticated principal's account projection: principal_id,
         lifecycle state, device summaries, optional ActorProfile, and signed
         handle-claim evidence or refs. This endpoint is distinct from
-        ck.account.describe, which describes service capabilities.
+        ck.self.account.describe, which describes service capabilities.
 
         The response MUST NOT use an unsigned bare handle as authoritative
         identity. When present, primary_handle_claim is a complete
@@ -3394,7 +3394,7 @@ paths:
                 $ref: '#/components/schemas/AccountViewerResponse'
   /_cokret/self/account/subscribe:
     get:
-      operationId: ck.account.subscribe
+      operationId: ck.self.account.subscribe
       security:
       - bearerAuth: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
@@ -3408,7 +3408,7 @@ paths:
         `heartbeat`, `catchup_complete`, `dropped`, `resync_required`,
         `unauthorized`).
 
-        Symmetric with ck.events.subscribe (per-Realm event log streaming);
+        Symmetric with ck.self.events.subscribe (per-Realm event log streaming);
         both share resume semantics (`after=<cursor>` exclusive start).
         `dropped` requires account-aggregate catch-up by reconnecting with
         `after=<cursor>&catchup=true`; `resync_required` requires local
@@ -3476,7 +3476,7 @@ paths:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
   /_cokret/self/account/profile:
     post:
-      operationId: ck.account.update_profile
+      operationId: ck.self.account.update_profile
       security:
       - bearerAuth: []
       summary: Update the authenticated principal's Actor Profile projection.
@@ -3506,7 +3506,7 @@ paths:
               $ref: '#/components/schemas/UpdateProfileRequest'
   /_cokret/self/account/cursor/revoke:
     post:
-      operationId: ck.account.cursor_revoke
+      operationId: ck.self.account.cursor_revoke
       security:
       - bearerAuth: []
       summary: Revoke a previously issued cursor authority.
@@ -3531,7 +3531,7 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponse
   /_cokret/self/contacts/request:
     post:
-      operationId: ck.contact.request
+      operationId: ck.self.contact.request
       security:
       - bearerAuth: []
       summary: Submit a contact request to another principal.
@@ -3554,7 +3554,7 @@ paths:
                 $ref: '#/components/schemas/ContactRequestResponse'
   /_cokret/self/contacts/respond:
     post:
-      operationId: ck.contact.respond
+      operationId: ck.self.contact.respond
       security:
       - bearerAuth: []
       summary: Accept or reject an incoming contact request.
@@ -3576,7 +3576,7 @@ paths:
                 $ref: '#/components/schemas/ContactRespondResponse'
   /_cokret/self/contacts:
     get:
-      operationId: ck.contact.list
+      operationId: ck.self.contact.list
       security:
       - bearerAuth: []
       summary: List the holder's contact projection.
@@ -3614,7 +3614,7 @@ paths:
                 $ref: '#/components/schemas/ContactListResponse'
   /_cokret/self/contacts/tombstone:
     post:
-      operationId: ck.contact.tombstone
+      operationId: ck.self.contact.tombstone
       security:
       - bearerAuth: []
       summary: Tombstone the holder's side of a contact relation.
@@ -3636,7 +3636,7 @@ paths:
                 $ref: '#/components/schemas/ContactTombstoneResponse'
   /_cokret/self/direct-conversations/resolve:
     post:
-      operationId: ck.direct_conversation.resolve
+      operationId: ck.self.direct_conversation.resolve
       security:
       - bearerAuth: []
       summary: Resolve or create the canonical 1:1 DM entry for an accepted contact.
@@ -3659,7 +3659,7 @@ paths:
                 $ref: '#/components/schemas/DirectConversationResolveResponse'
   /_cokret/self/snapshot/head:
     get:
-      operationId: ck.snapshot.head
+      operationId: ck.self.snapshot.head
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3708,7 +3708,7 @@ paths:
                 $ref: '#/components/schemas/SnapshotHeadResponse'
   /_cokret/self/projection/spaces:
     get:
-      operationId: ck.projection.spaces
+      operationId: ck.self.projection.spaces
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3757,7 +3757,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionSpacesResponse'
   /_cokret/self/projection/flows:
     get:
-      operationId: ck.projection.flows
+      operationId: ck.self.projection.flows
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3805,7 +3805,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionFlowsResponse'
   /_cokret/self/projection/morphs:
     get:
-      operationId: ck.projection.morphs
+      operationId: ck.self.projection.morphs
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3853,7 +3853,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionMorphsResponse'
   /_cokret/find/directory/resolve-handle:
     post:
-      operationId: ck.directory.resolve_handle
+      operationId: ck.find.directory.resolve_handle
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3875,7 +3875,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveHandleRequest'
   /_cokret/find/directory/list-handles-for-subject:
     post:
-      operationId: ck.directory.list_handles_for_subject
+      operationId: ck.find.directory.list_handles_for_subject
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3898,7 +3898,7 @@ paths:
                 $ref: '#/components/schemas/ListHandlesForSubjectResponse'
   /_cokret/find/directory/private-contact-discovery:
     post:
-      operationId: ck.directory.private_contact_discovery
+      operationId: ck.find.directory.private_contact_discovery
       security:
       - bearerAuth: []
       requestBody:
@@ -3916,7 +3916,7 @@ paths:
                 $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryResponse'
   /_cokret/self/blob/upload:
     post:
-      operationId: ck.blob.upload
+      operationId: ck.self.blob.upload
       security:
       - bearerAuth: []
       responses:
@@ -3940,7 +3940,7 @@ paths:
                 contentType: application/octet-stream
   /_cokret/self/blob/get:
     head:
-      operationId: ck.blob.head
+      operationId: ck.self.blob.head
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3951,7 +3951,7 @@ paths:
         '200':
           description: Blob metadata
     get:
-      operationId: ck.blob.get
+      operationId: ck.self.blob.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3995,7 +3995,7 @@ paths:
       in: query
       required: false
       description: |
-        Pre-signed authorization token returned by `ck.blob.presign`. When
+        Pre-signed authorization token returned by `ck.self.blob.presign`. When
         present, the request is authenticated solely by this token — the
         `Authorization` header MUST be absent and is rejected if both are
         supplied. Pre-signed mode is a deliberate carve-out of the
@@ -4013,7 +4013,7 @@ paths:
         type: string
   /_cokret/self/blob/presign:
     post:
-      operationId: ck.blob.presign
+      operationId: ck.self.blob.presign
       security:
       - bearerAuth: []
       requestBody:
@@ -4031,7 +4031,7 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponse
         '403':
           description: |
-            `capability_denied` — caller lacks `ck.blob.presign` for this
+            `capability_denied` — caller lacks `ck.self.blob.presign` for this
             blob or this purpose; or the grant's TTL constraint forbids the
             requested `max_age_seconds`; or the target is a minimal-metadata
             Realm-owned blob for which bearer presign is forbidden by
@@ -4043,7 +4043,7 @@ paths:
             visibility.
   /_cokret/edge/push/register-device:
     post:
-      operationId: ck.push.register_device
+      operationId: ck.edge.push.register_device
       security:
       - bearerAuth: []
       responses:
@@ -4061,7 +4061,7 @@ paths:
               $ref: '#/components/schemas/PushRegisterDeviceRequest'
   /_cokret/edge/push/unregister-device:
     post:
-      operationId: ck.push.unregister_device
+      operationId: ck.edge.push.unregister_device
       security:
       - bearerAuth: []
       responses:
@@ -4079,7 +4079,7 @@ paths:
               $ref: '#/components/schemas/PushUnregisterDeviceRequest'
   /_cokret/edge/push/notify:
     post:
-      operationId: ck.push.notify
+      operationId: ck.edge.push.notify
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4100,7 +4100,7 @@ paths:
               $ref: '#/components/schemas/PushNotifyRequest'
   /_cokret/self/authz/check:
     post:
-      operationId: ck.authz.check
+      operationId: ck.self.authz.check
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4122,7 +4122,7 @@ paths:
                 $ref: '#/components/schemas/AuthzCheckResponse'
   /_cokret/self/authz/effective-grants:
     get:
-      operationId: ck.authz.get_effective_grants
+      operationId: ck.self.authz.get_effective_grants
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4137,7 +4137,7 @@ paths:
                 $ref: '#/components/schemas/GrantListResponse'
   /_cokret/self/device_messages:
     post:
-      operationId: ck.device_messages.put
+      operationId: ck.self.device_messages.put
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4164,7 +4164,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesPutResponse'
     get:
-      operationId: ck.device_messages.get
+      operationId: ck.self.device_messages.get
       security:
       - bearerAuth: []
       responses:
@@ -4176,7 +4176,7 @@ paths:
                 $ref: '#/components/schemas/DeviceMessagesGetResponse'
   /_cokret/self/keys/upload:
     post:
-      operationId: ck.keys.upload
+      operationId: ck.self.keys.upload
       security:
       - bearerAuth: []
       responses:
@@ -4194,7 +4194,7 @@ paths:
               $ref: '#/components/schemas/KeysUploadRequest'
   /_cokret/self/keys/query:
     post:
-      operationId: ck.keys.query
+      operationId: ck.self.keys.query
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4216,7 +4216,7 @@ paths:
               $ref: '#/components/schemas/KeysQueryRequest'
   /_cokret/self/keys/claim:
     post:
-      operationId: ck.keys.claim
+      operationId: ck.self.keys.claim
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4238,7 +4238,7 @@ paths:
               $ref: '#/components/schemas/KeysClaimRequest'
   /_cokret/self/keys/keypackages/upload:
     post:
-      operationId: ck.keys.keypackages.upload
+      operationId: ck.self.keys.keypackages.upload
       security:
       - bearerAuth: []
       responses:
@@ -4256,7 +4256,7 @@ paths:
               $ref: '#/components/schemas/KeyPackagesUploadRequest'
   /_cokret/self/keys/keypackages/claim:
     post:
-      operationId: ck.keys.keypackages.claim
+      operationId: ck.self.keys.keypackages.claim
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4278,7 +4278,7 @@ paths:
               $ref: '#/components/schemas/KeyPackagesClaimRequest'
   /_cokret/self/keys/keypackages/consume:
     post:
-      operationId: ck.keys.keypackages.consume
+      operationId: ck.self.keys.keypackages.consume
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4300,7 +4300,7 @@ paths:
               $ref: '#/components/schemas/KeyPackagesConsumeRequest'
   /_cokret/self/keys/keypackages/revoke:
     post:
-      operationId: ck.keys.keypackages.revoke
+      operationId: ck.self.keys.keypackages.revoke
       security:
       - bearerAuth: []
       responses:
@@ -4318,7 +4318,7 @@ paths:
               $ref: '#/components/schemas/KeyPackagesRevokeRequest'
   /_cokret/self/keys/backups/{backup_id}:
     put:
-      operationId: ck.keys.backups.put
+      operationId: ck.self.keys.backups.put
       security:
       - bearerAuth: []
       parameters:
@@ -4342,7 +4342,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/KeysBackupsPutResponse'
     get:
-      operationId: ck.keys.backups.get
+      operationId: ck.self.keys.backups.get
       security:
       - bearerAuth: []
       parameters:
@@ -4360,7 +4360,7 @@ paths:
               schema:
                 $ref: ../schemas/key-backup.schema.json
     delete:
-      operationId: ck.keys.backups.delete
+      operationId: ck.self.keys.backups.delete
       security:
       - bearerAuth: []
       parameters:
@@ -4385,7 +4385,7 @@ paths:
                 $ref: '#/components/schemas/KeysBackupsDeleteResponse'
   /_cokret/self/keys/backups:
     get:
-      operationId: ck.keys.backups.list
+      operationId: ck.self.keys.backups.list
       security:
       - bearerAuth: []
       parameters:
@@ -4415,7 +4415,7 @@ paths:
                 $ref: '#/components/schemas/KeysBackupsListResponse'
   /_cokret/self/moderation/report:
     post:
-      operationId: ck.moderation.report
+      operationId: ck.self.moderation.report
       security:
       - bearerAuth: []
       requestBody:
@@ -4433,7 +4433,7 @@ paths:
                 $ref: '#/components/schemas/ModerationReportResponse'
   /_cokret/open/mimi/provider-directory:
     get:
-      operationId: ck.mimi.provider_directory
+      operationId: ck.open.mimi.provider_directory
       security: []
       responses:
         '200':
@@ -4444,7 +4444,7 @@ paths:
                 $ref: ../schemas/mimi-interop.schema.json
   /_cokret/open/mimi/key-material:
     post:
-      operationId: ck.mimi.key_material
+      operationId: ck.open.mimi.key_material
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4465,7 +4465,7 @@ paths:
               $ref: '#/components/schemas/MimiKeyMaterialRequest'
   /_cokret/open/mimi/flows/{flow_id}/update:
     put:
-      operationId: ck.mimi.room_update
+      operationId: ck.open.mimi.room_update
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4492,7 +4492,7 @@ paths:
               $ref: '#/components/schemas/MimiRoomUpdateRequest'
   /_cokret/open/mimi/flows/{flow_id}/notify:
     post:
-      operationId: ck.mimi.notify
+      operationId: ck.open.mimi.notify
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4519,7 +4519,7 @@ paths:
               $ref: '#/components/schemas/MimiNotifyRequest'
   /_cokret/open/mimi/flows/{flow_id}/messages:
     post:
-      operationId: ck.mimi.submit_message
+      operationId: ck.open.mimi.submit_message
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4546,7 +4546,7 @@ paths:
               $ref: '#/components/schemas/MimiSubmitMessageRequest'
   /_cokret/open/mimi/flows/{flow_id}/group-info:
     get:
-      operationId: ck.mimi.group_info
+      operationId: ck.open.mimi.group_info
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4577,7 +4577,7 @@ paths:
                 $ref: '#/components/schemas/MimiGroupInfoResponse'
   /_cokret/open/mimi/consent/request:
     post:
-      operationId: ck.mimi.request_consent
+      operationId: ck.open.mimi.request_consent
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4598,7 +4598,7 @@ paths:
               $ref: '#/components/schemas/MimiRequestConsentRequest'
   /_cokret/open/mimi/consent/update:
     post:
-      operationId: ck.mimi.update_consent
+      operationId: ck.open.mimi.update_consent
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4619,7 +4619,7 @@ paths:
               $ref: '#/components/schemas/MimiUpdateConsentRequest'
   /_cokret/open/mimi/identifiers/query:
     post:
-      operationId: ck.mimi.identifier_query
+      operationId: ck.open.mimi.identifier_query
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4640,7 +4640,7 @@ paths:
               $ref: '#/components/schemas/MimiIdentifierQueryRequest'
   /_cokret/open/mimi/report-abuse:
     post:
-      operationId: ck.mimi.report_abuse
+      operationId: ck.open.mimi.report_abuse
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4661,7 +4661,7 @@ paths:
               $ref: '#/components/schemas/MimiReportAbuseRequest'
   /_cokret/open/mimi/proxy-download:
     post:
-      operationId: ck.mimi.proxy_download
+      operationId: ck.open.mimi.proxy_download
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4682,7 +4682,7 @@ paths:
               $ref: '#/components/schemas/MimiProxyDownloadRequest'
   /_cokret/root/identity/describe:
     get:
-      operationId: ck.identity.describe_registry
+      operationId: ck.root.identity.describe_registry
       security: []
       responses:
         '200':
@@ -4693,7 +4693,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_cokret/self/account/describe:
     get:
-      operationId: ck.account.describe
+      operationId: ck.self.account.describe
       security: []
       responses:
         '200':
@@ -4704,7 +4704,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_cokret/find/directory/describe:
     get:
-      operationId: ck.directory.describe
+      operationId: ck.find.directory.describe
       security: []
       responses:
         '200':
@@ -4715,7 +4715,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_cokret/find/directory/announce:
     post:
-      operationId: ck.directory.announce
+      operationId: ck.find.directory.announce
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4737,7 +4737,7 @@ paths:
               $ref: '#/components/schemas/DirectoryAnnounceRequest'
   /_cokret/find/directory/withdraw:
     post:
-      operationId: ck.directory.withdraw
+      operationId: ck.find.directory.withdraw
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4759,7 +4759,7 @@ paths:
               $ref: '#/components/schemas/DirectoryWithdrawRequest'
   /_cokret/find/directory/search-realms:
     post:
-      operationId: ck.directory.search_realms
+      operationId: ck.find.directory.search_realms
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4781,7 +4781,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchRealmsRequest'
   /_cokret/find/directory/resolve-realm:
     post:
-      operationId: ck.directory.resolve_realm
+      operationId: ck.find.directory.resolve_realm
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4803,7 +4803,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveRealmRequest'
   /_cokret/find/directory/resolve-target:
     post:
-      operationId: ck.directory.resolve_target
+      operationId: ck.find.directory.resolve_target
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4825,7 +4825,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveTargetRequest'
   /_cokret/find/directory/search-organizations:
     post:
-      operationId: ck.directory.search_organizations
+      operationId: ck.find.directory.search_organizations
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4847,7 +4847,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchOrganizationsRequest'
   /_cokret/find/directory/resolve-organization:
     post:
-      operationId: ck.directory.resolve_organization
+      operationId: ck.find.directory.resolve_organization
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4869,7 +4869,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveOrganizationRequest'
   /_cokret/find/directory/search-actors:
     post:
-      operationId: ck.directory.search_actors
+      operationId: ck.find.directory.search_actors
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4891,7 +4891,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchActorsRequest'
   /_cokret/find/directory/search-users:
     post:
-      operationId: ck.directory.search_users
+      operationId: ck.find.directory.search_users
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4913,7 +4913,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchUsersRequest'
   /_cokret/find/directory/push/register:
     post:
-      operationId: ck.directory.push.register
+      operationId: ck.find.directory.push.register
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4935,7 +4935,7 @@ paths:
               $ref: '#/components/schemas/DirectoryPushRegisterRequest'
   /_cokret/self/authz/invites:
     get:
-      operationId: ck.authz.get_invites
+      operationId: ck.self.authz.get_invites
       security:
       - bearerAuth: []
       parameters:
@@ -4967,7 +4967,7 @@ paths:
                 $ref: '#/components/schemas/AuthzInvitesResponse'
   /_cokret/edge/applet/ping:
     get:
-      operationId: ck.applet.ping
+      operationId: ck.edge.applet.ping
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4981,7 +4981,7 @@ paths:
                 $ref: '#/components/schemas/AppletPingResponse'
   /_cokret/edge/applet/describe:
     get:
-      operationId: ck.applet.describe
+      operationId: ck.edge.applet.describe
       security: []
       responses:
         '200':
@@ -4992,7 +4992,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_cokret/edge/applet/transactions:
     post:
-      operationId: ck.applet.transaction
+      operationId: ck.edge.applet.transaction
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5019,7 +5019,7 @@ paths:
               $ref: '#/components/schemas/AppletTransactionRequest'
   /_cokret/edge/applet/actors/{actor_id}:
     get:
-      operationId: ck.applet.resolve_actor
+      operationId: ck.edge.applet.resolve_actor
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5040,7 +5040,7 @@ paths:
                 $ref: '#/components/schemas/AppletResolveActorResponse'
   /_cokret/edge/applet/realms/{realm_id_or_alias}:
     get:
-      operationId: ck.applet.resolve_realm
+      operationId: ck.edge.applet.resolve_realm
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5061,7 +5061,7 @@ paths:
                 $ref: '#/components/schemas/AppletResolveRealmResponse'
   /_cokret/edge/applet/protocols/{protocol}:
     get:
-      operationId: ck.applet.protocol_metadata
+      operationId: ck.edge.applet.protocol_metadata
       security: []
       parameters:
       - in: path
@@ -5079,7 +5079,7 @@ paths:
                 $ref: '#/components/schemas/AppletProtocolMetadataResponse'
   /_cokret/edge/applet/third_party/users:
     get:
-      operationId: ck.applet.third_party_users
+      operationId: ck.edge.applet.third_party_users
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5112,7 +5112,7 @@ paths:
                 $ref: '#/components/schemas/AppletThirdPartyUserResponse'
   /_cokret/edge/applet/third_party/locations:
     get:
-      operationId: ck.applet.third_party_locations
+      operationId: ck.edge.applet.third_party_locations
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5145,7 +5145,7 @@ paths:
                 $ref: '#/components/schemas/AppletThirdPartyLocationResponse'
   /_cokret/self/applets/install/preview:
     post:
-      operationId: ck.applet.install.preview
+      operationId: ck.self.applet.install.preview
       security:
       - bearerAuth: []
       responses:
@@ -5163,7 +5163,7 @@ paths:
               $ref: '#/components/schemas/AppletInstallPreviewRequest'
   /_cokret/self/applets/install:
     post:
-      operationId: ck.applet.install
+      operationId: ck.self.applet.install
       security:
       - bearerAuth: []
       parameters:
@@ -5189,7 +5189,7 @@ paths:
               $ref: '#/components/schemas/AppletInstallRequest'
   /_cokret/self/applets/{applet_id}/revoke:
     post:
-      operationId: ck.applet.revoke
+      operationId: ck.self.applet.revoke
       security:
       - bearerAuth: []
       parameters:
@@ -5220,10 +5220,10 @@ paths:
               $ref: '#/components/schemas/AppletRevokeRequest'
   /_cokret/self/policy/check:
     post:
-      operationId: ck.policy.check
+      operationId: ck.self.policy.check
       summary: Signed policy decision.
       description: |
-        Canonical HTTP binding for `ck.policy.check`. The Policy Server returns
+        Canonical HTTP binding for `ck.self.policy.check`. The Policy Server returns
         a signed allow/deny/quarantine/require_review decision.
       security:
       - bearerAuth: []
@@ -5251,7 +5251,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.media.ice_config
+      operationId: ck.self.media.ice_config
       security:
       - bearerAuth: []
       responses:
@@ -5274,7 +5274,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.account.register
+      operationId: ck.gate.account.register
       security: []
       x-cokret-auth:
         public_metadata: false
@@ -5311,7 +5311,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.account.issue_session_grant
+      operationId: ck.gate.account.issue_session_grant
       security: []
       x-cokret-auth:
         public_metadata: false
@@ -5338,7 +5338,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.account.session_revoke
+      operationId: ck.gate.account.session_revoke
       security:
       - bearerAuth: []
       summary: Revoke session grant or access-token authority.
@@ -5371,7 +5371,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.account.device_pair
+      operationId: ck.gate.account.device_pair
       security:
       - bearerAuth: []
       responses:
@@ -5394,7 +5394,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.account.agent_key_pair
+      operationId: ck.gate.account.agent_key_pair
       description: Native personal agent runtime key pairing (CKP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes ck.agent.key.authorize on approval.
       security:
       - bearerAuth: []
@@ -5415,7 +5415,7 @@ paths:
               $ref: '#/components/schemas/AgentKeyPairRequest'
   /_cokret/self/agents:
     get:
-      operationId: ck.agent.list
+      operationId: ck.self.agent.list
       description: List native personal agents visible to the authenticated controller.
       security:
       - bearerAuth: []
@@ -5427,7 +5427,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AgentListResponse'
     post:
-      operationId: ck.agent.provision
+      operationId: ck.self.agent.provision
       description: Provision a native personal agent principal (CKP-0008).
       security:
       - bearerAuth: []
@@ -5446,7 +5446,7 @@ paths:
               $ref: '#/components/schemas/AgentProvisionRequest'
   /_cokret/self/agents/{agent_principal_id}:
     get:
-      operationId: ck.agent.get
+      operationId: ck.self.agent.get
       description: Read one native personal agent projection.
       security:
       - bearerAuth: []
@@ -5465,7 +5465,7 @@ paths:
                 $ref: '#/components/schemas/AgentGetResponse'
   /_cokret/self/agents/{agent_principal_id}/pause:
     post:
-      operationId: ck.agent.pause
+      operationId: ck.self.agent.pause
       description: Pause a native personal agent and reject new agent sessions.
       security:
       - bearerAuth: []
@@ -5490,7 +5490,7 @@ paths:
               $ref: '#/components/schemas/AgentPauseRequest'
   /_cokret/self/agents/{agent_principal_id}/resume:
     post:
-      operationId: ck.agent.resume
+      operationId: ck.self.agent.resume
       description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
       security:
       - bearerAuth: []
@@ -5515,7 +5515,7 @@ paths:
               $ref: '#/components/schemas/AgentResumeRequest'
   /_cokret/self/agents/{agent_principal_id}/deactivate:
     post:
-      operationId: ck.agent.deactivate
+      operationId: ck.self.agent.deactivate
       description: Terminally deactivate a native personal agent. fan-out ck.agent.key.revoke / ck.capability.revoke / runtime endpoint revocation.
       security:
       - bearerAuth: []
@@ -5540,7 +5540,7 @@ paths:
               $ref: '#/components/schemas/AgentDeactivateRequest'
   /_cokret/self/agents/{agent_principal_id}/rotate-key:
     post:
-      operationId: ck.agent.rotate_key
+      operationId: ck.self.agent.rotate_key
       description: Rotate the active runtime key for a native personal agent.
       security:
       - bearerAuth: []
@@ -5565,7 +5565,7 @@ paths:
               $ref: '#/components/schemas/AgentRotateKeyRequest'
   /_cokret/self/agents/{agent_principal_id}/grants:
     post:
-      operationId: ck.agent.grant.attach
+      operationId: ck.self.agent.grant.attach
       description: Attach a capability grant to a native personal agent.
       security:
       - bearerAuth: []
@@ -5590,7 +5590,7 @@ paths:
               $ref: '#/components/schemas/AgentGrantAttachRequest'
   /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}:
     delete:
-      operationId: ck.agent.grant.detach
+      operationId: ck.self.agent.grant.detach
       description: Detach or revoke a capability grant from a native personal agent.
       security:
       - bearerAuth: []
@@ -5614,7 +5614,7 @@ paths:
                 $ref: '#/components/schemas/AgentGrantDetachResponse'
   /_cokret/self/agent-sidecar-threads:ensure:
     post:
-      operationId: ck.agent.sidecar_thread.ensure
+      operationId: ck.self.agent.sidecar_thread.ensure
       description: |
         Idempotently ensure the controller-agent sidecar Circle, Flow, and relation (CKP-0009 §4.2.1).
         The wire-level idempotency keys are **server-derived**: the sidecar Circle is keyed by
@@ -5648,7 +5648,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.account.oidc_callback
+      operationId: ck.gate.account.oidc_callback
       security: []
       x-cokret-auth:
         public_metadata: false

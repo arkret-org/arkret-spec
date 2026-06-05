@@ -1043,7 +1043,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "ck.agent.pause",
+      "event_kind": "ck.self.agent.pause",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1058,7 +1058,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "ck.agent.resume",
+      "event_kind": "ck.self.agent.resume",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1073,7 +1073,7 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "ck.agent.deactivate",
+      "event_kind": "ck.self.agent.deactivate",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1766,7 +1766,7 @@
       "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent anchor backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §4.2."
     },
     {
-      "event_kind": "ck.moderation.report",
+      "event_kind": "ck.self.moderation.report",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",

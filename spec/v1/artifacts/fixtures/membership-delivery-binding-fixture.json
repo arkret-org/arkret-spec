@@ -21,7 +21,7 @@
           ]
         }
       },
-      "operation": "ck.events.submit",
+      "operation": "ck.self.events.submit",
       "input": {
         "event_kind": "ck.member.state",
         "payload": {
@@ -72,7 +72,7 @@
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
       },
-      "operation": "ck.events.submit",
+      "operation": "ck.self.events.submit",
       "input": {
         "event_kind": "ck.member.state",
         "payload": {
@@ -113,7 +113,7 @@
           "allow_unroutable_membership": true
         }
       },
-      "operation": "ck.events.submit",
+      "operation": "ck.self.events.submit",
       "input": {
         "event_kind": "ck.member.state",
         "payload": {
@@ -185,7 +185,7 @@
           ]
         }
       },
-      "operation": "ck.events.submit",
+      "operation": "ck.self.events.submit",
       "input": {
         "event_kind": "ck.member.state",
         "payload": {

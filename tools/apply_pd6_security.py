@@ -33,116 +33,116 @@ METHODS_NO_BODY = {"get", "head", "options"}
 #   user_or_service         — bearer OR (signature + did headers [+ digest if body])
 #   service_only            — signature + did headers [+ digest] only
 #   admin_bearer            — bearer only; reducer/policy enforces admin claim
-#   presign_or_bearer       — bearer OR S2S OR presign query (blob.get / blob.head)
+#   presign_or_bearer       — bearer OR S2S OR presign query (self.blob.get / self.blob.head)
 OPERATIONS: dict[str, str] = {
     # service_discovery
     "ck.server.describe": "public_no_auth",
 
     # identity_registry
-    "ck.identity.describe_registry": "public_no_auth",
-    "ck.identity.resolve": "user_or_service",          # conservative: private DID needs auth
-    "ck.identity.get_document": "user_or_service",     # conservative: same
-    "ck.identity.get_log": "user_or_service",
-    "ck.identity.get_receipts": "user_or_service",
-    "ck.identity.submit_did_operation": "service_only",  # witness / registry submission
+    "ck.root.identity.describe_registry": "public_no_auth",
+    "ck.root.identity.resolve": "user_or_service",          # conservative: private DID needs auth
+    "ck.root.identity.get_document": "user_or_service",     # conservative: same
+    "ck.root.identity.get_log": "user_or_service",
+    "ck.root.identity.get_receipts": "user_or_service",
+    "ck.root.identity.submit_did_operation": "service_only",  # witness / registry submission
 
     # events_sync
-    "ck.events.describe": "public_no_auth",
-    "ck.events.submit": "user_or_service",
-    "ck.events.get": "user_or_service",
-    "ck.events.resolve": "user_or_service",
-    "ck.events.query": "user_or_service",
-    "ck.events.query_post": "user_or_service",
-    "ck.events.subscribe": "user_or_service",
-    "ck.events.frontier": "user_or_service",
-    "ck.ephemeral.send": "user_or_service",
-    "ck.account.describe": "public_no_auth",
-    "ck.account.subscribe": "user_bearer",              # account-aggregate streaming; user only
-    "ck.account.cursor_revoke": "user_bearer",
-    "ck.snapshot.head": "user_or_service",
-    "ck.projection.spaces": "user_or_service",
-    "ck.projection.flows": "user_or_service",
-    "ck.projection.morphs": "user_or_service",
+    "ck.self.events.describe": "public_no_auth",
+    "ck.self.events.submit": "user_or_service",
+    "ck.self.events.get": "user_or_service",
+    "ck.self.events.resolve": "user_or_service",
+    "ck.self.events.query": "user_or_service",
+    "ck.self.events.query_post": "user_or_service",
+    "ck.self.events.subscribe": "user_or_service",
+    "ck.self.events.frontier": "user_or_service",
+    "ck.self.ephemeral.send": "user_or_service",
+    "ck.self.account.describe": "public_no_auth",
+    "ck.self.account.subscribe": "user_bearer",              # account-aggregate streaming; user only
+    "ck.self.account.cursor_revoke": "user_bearer",
+    "ck.self.snapshot.head": "user_or_service",
+    "ck.self.projection.spaces": "user_or_service",
+    "ck.self.projection.flows": "user_or_service",
+    "ck.self.projection.morphs": "user_or_service",
 
     # directory_discovery
-    "ck.directory.describe": "public_no_auth",
-    "ck.directory.search_realms": "user_or_service",
-    "ck.directory.resolve_realm": "user_or_service",
-    "ck.directory.search_organizations": "user_or_service",
-    "ck.directory.resolve_organization": "user_or_service",
-    "ck.directory.search_actors": "user_or_service",
-    "ck.directory.search_users": "user_or_service",
-    "ck.directory.resolve_handle": "user_or_service",
-    "ck.directory.private_contact_discovery": "user_bearer",  # PSI privacy
-    "ck.directory.announce": "user_or_service",
-    "ck.directory.withdraw": "user_or_service",
-    "ck.directory.push.register": "user_or_service",
+    "ck.find.directory.describe": "public_no_auth",
+    "ck.find.directory.search_realms": "user_or_service",
+    "ck.find.directory.resolve_realm": "user_or_service",
+    "ck.find.directory.search_organizations": "user_or_service",
+    "ck.find.directory.resolve_organization": "user_or_service",
+    "ck.find.directory.search_actors": "user_or_service",
+    "ck.find.directory.search_users": "user_or_service",
+    "ck.find.directory.resolve_handle": "user_or_service",
+    "ck.find.directory.private_contact_discovery": "user_bearer",  # PSI privacy
+    "ck.find.directory.announce": "user_or_service",
+    "ck.find.directory.withdraw": "user_or_service",
+    "ck.find.directory.push.register": "user_or_service",
 
     # blob_storage
-    "ck.blob.upload": "user_bearer",                   # conservative: no S2S upload
-    "ck.blob.head": "presign_or_bearer",
-    "ck.blob.get": "presign_or_bearer",
-    "ck.blob.presign": "user_bearer",                  # issuing presign needs full auth
+    "ck.self.blob.upload": "user_bearer",                   # conservative: no S2S upload
+    "ck.self.blob.head": "presign_or_bearer",
+    "ck.self.blob.get": "presign_or_bearer",
+    "ck.self.blob.presign": "user_bearer",                  # issuing presign needs full auth
 
     # realtime_media
-    "ck.media.ice_config": "user_bearer",
+    "ck.self.media.ice_config": "user_bearer",
 
     # authz_policy
-    "ck.authz.check": "user_or_service",
-    "ck.authz.get_effective_grants": "user_or_service",
-    "ck.authz.get_invites": "user_bearer",
-    "ck.policy.check": "user_or_service",
+    "ck.self.authz.check": "user_or_service",
+    "ck.self.authz.get_effective_grants": "user_or_service",
+    "ck.self.authz.get_invites": "user_bearer",
+    "ck.self.policy.check": "user_or_service",
 
     # moderation_reports
-    "ck.moderation.report": "user_bearer",             # conservative: no S2S report
+    "ck.self.moderation.report": "user_bearer",             # conservative: no S2S report
 
     # device_and_keys
-    "ck.device_messages.put": "user_or_service",       # S2S device routing
-    "ck.device_messages.get": "user_bearer",
-    "ck.keys.upload": "user_bearer",
-    "ck.keys.query": "user_or_service",
-    "ck.keys.claim": "user_or_service",
-    "ck.keys.keypackages.upload": "user_bearer",
-    "ck.keys.keypackages.claim": "user_or_service",
-    "ck.keys.keypackages.consume": "user_or_service",
-    "ck.keys.keypackages.revoke": "user_bearer",
-    "ck.keys.backups.put": "user_bearer",
-    "ck.keys.backups.list": "user_bearer",
-    "ck.keys.backups.get": "user_bearer",
-    "ck.keys.backups.delete": "user_bearer",
+    "ck.self.device_messages.put": "user_or_service",       # S2S device routing
+    "ck.self.device_messages.get": "user_bearer",
+    "ck.self.keys.upload": "user_bearer",
+    "ck.self.keys.query": "user_or_service",
+    "ck.self.keys.claim": "user_or_service",
+    "ck.self.keys.keypackages.upload": "user_bearer",
+    "ck.self.keys.keypackages.claim": "user_or_service",
+    "ck.self.keys.keypackages.consume": "user_or_service",
+    "ck.self.keys.keypackages.revoke": "user_bearer",
+    "ck.self.keys.backups.put": "user_bearer",
+    "ck.self.keys.backups.list": "user_bearer",
+    "ck.self.keys.backups.get": "user_bearer",
+    "ck.self.keys.backups.delete": "user_bearer",
 
     # push
-    "ck.push.register_device": "user_bearer",
-    "ck.push.unregister_device": "user_bearer",
-    "ck.push.notify": "service_only",                  # principal server → push gateway
+    "ck.edge.push.register_device": "user_bearer",
+    "ck.edge.push.unregister_device": "user_bearer",
+    "ck.edge.push.notify": "service_only",                  # principal server → push gateway
 
     # applet (interop_bridge)
-    "ck.applet.ping": "service_only",
-    "ck.applet.describe": "public_no_auth",            # public service metadata
-    "ck.applet.transaction": "service_only",
-    "ck.applet.resolve_actor": "service_only",
-    "ck.applet.resolve_realm": "service_only",
-    "ck.applet.protocol_metadata": "public_no_auth",
-    "ck.applet.third_party_users": "service_only",
-    "ck.applet.third_party_locations": "service_only",
+    "ck.edge.applet.ping": "service_only",
+    "ck.edge.applet.describe": "public_no_auth",            # public service metadata
+    "ck.edge.applet.transaction": "service_only",
+    "ck.edge.applet.resolve_actor": "service_only",
+    "ck.edge.applet.resolve_realm": "service_only",
+    "ck.edge.applet.protocol_metadata": "public_no_auth",
+    "ck.edge.applet.third_party_users": "service_only",
+    "ck.edge.applet.third_party_locations": "service_only",
 
     # mimi_interop (interop_bridge)
-    "ck.mimi.provider_directory": "public_no_auth",
-    "ck.mimi.group_info": "service_only",
-    "ck.mimi.key_material": "service_only",
-    "ck.mimi.submit_message": "service_only",
-    "ck.mimi.room_update": "service_only",
-    "ck.mimi.request_consent": "service_only",
-    "ck.mimi.update_consent": "service_only",
-    "ck.mimi.identifier_query": "service_only",
-    "ck.mimi.notify": "service_only",
-    "ck.mimi.report_abuse": "service_only",
-    "ck.mimi.proxy_download": "service_only",
+    "ck.open.mimi.provider_directory": "public_no_auth",
+    "ck.open.mimi.group_info": "service_only",
+    "ck.open.mimi.key_material": "service_only",
+    "ck.open.mimi.submit_message": "service_only",
+    "ck.open.mimi.room_update": "service_only",
+    "ck.open.mimi.request_consent": "service_only",
+    "ck.open.mimi.update_consent": "service_only",
+    "ck.open.mimi.identifier_query": "service_only",
+    "ck.open.mimi.notify": "service_only",
+    "ck.open.mimi.report_abuse": "service_only",
+    "ck.open.mimi.proxy_download": "service_only",
 
     # account_auth (deployment_local)
-    "ck.account.device_pair": "user_bearer",
-    "ck.account.issue_session_grant": "public_no_auth",   # callback-style; body carries proof
-    "ck.account.oidc_callback": "public_no_auth",         # OIDC redirect with `code`
+    "ck.gate.account.device_pair": "user_bearer",
+    "ck.gate.account.issue_session_grant": "public_no_auth",   # callback-style; body carries proof
+    "ck.gate.account.oidc_callback": "public_no_auth",         # OIDC redirect with `code`
 }
 
 

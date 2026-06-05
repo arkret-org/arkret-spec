@@ -66,41 +66,41 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | Operation | 语义 |
 | --- | --- |
 | `ck.server.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
-| `ck.identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
-| `ck.identity.get_log` | 获取 DID key log。 |
-| `ck.identity.submit_did_operation` | 提交 DID 更新操作。 |
-| `ck.events.submit` | 提交 signed Event Envelope。 |
-| `ck.events.get` | 按 ID 读取单个 Event。 |
-| `ck.events.resolve` | 批量读取 Event。 |
-| `ck.events.query` | 按 actor / Realm / cursor 双向查询 Event。 |
-| `ck.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
-| `ck.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
+| `ck.root.identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
+| `ck.root.identity.get_log` | 获取 DID key log。 |
+| `ck.root.identity.submit_did_operation` | 提交 DID 更新操作。 |
+| `ck.self.events.submit` | 提交 signed Event Envelope。 |
+| `ck.self.events.get` | 按 ID 读取单个 Event。 |
+| `ck.self.events.resolve` | 批量读取 Event。 |
+| `ck.self.events.query` | 按 actor / Realm / cursor 双向查询 Event。 |
+| `ck.self.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
+| `ck.self.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
 | `ck.peer.events.submit` | federation peer 推送 signed Event Envelope 批次。 |
 | `ck.peer.events.resolve` | federation peer 按 event id / digest 补洞解析 Event。 |
 | `ck.peer.events.query` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
 | `ck.peer.events.query_post` | `ck.peer.events.query` 的 HTTP POST/body binding variant。 |
 | `ck.peer.events.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
 | `ck.peer.snapshot.head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
-| `ck.account.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
-| `ck.account.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |
-| `ck.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `ck.events.subscribe` 对称)。 |
-| `ck.account.register` | 注册 / account binding；request 使用 `principal_id`，不接受旧 `did` 或裸 `handle` 字段。 |
-| `ck.account.session_revoke` | 撤销 session grant / access token；不撤销 device authorization。 |
-| `ck.directory.search_realms` / `ck.directory.search_organizations` / `ck.directory.search_actors` / `ck.directory.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
-| `ck.directory.resolve_realm` / `ck.directory.resolve_organization` / `ck.directory.resolve_handle` / `ck.directory.list_handles_for_subject` | 精确解析 Realm / Organization / handle，以及列出已知 subject 的当前可见 handle claims。 |
-| `ck.directory.announce` / `ck.directory.withdraw` / `ck.directory.push.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
-| `ck.blob.upload` | 上传 blob。 |
-| `ck.blob.get` | 获取 blob 或下载授权。 |
-| `ck.push.register_device` | 注册推送设备和推送网关。 |
-| `ck.push.notify` | 投递脱敏唤醒。 |
-| `ck.authz.check` | 检查 capability / policy 是否允许动作。 |
-| `ck.policy.check` | 调用 policy server 获取签名决策。 |
-| `ck.moderation.report` | 提交内容或行为举报。 |
-| `ck.applet.transaction` | 向 Applet 推送事件批次。 |
-| `ck.applet.describe` | 查询 Applet profile、namespace 与限制。 |
-| `ck.device_messages.put` | 发送 to-device message。 |
-| `ck.keys.upload` / `ck.keys.query` / `ck.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
-| `ck.keys.backups.put` / `ck.keys.backups.list` / `ck.keys.backups.get` / `ck.keys.backups.delete` | 加密密钥备份对象存储、枚举、读取与删除。 |
+| `ck.self.account.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
+| `ck.self.account.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |
+| `ck.self.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `ck.self.events.subscribe` 对称)。 |
+| `ck.gate.account.register` | 注册 / account binding；request 使用 `principal_id`，不接受旧 `did` 或裸 `handle` 字段。 |
+| `ck.gate.account.session_revoke` | 撤销 session grant / access token；不撤销 device authorization。 |
+| `ck.find.directory.search_realms` / `ck.find.directory.search_organizations` / `ck.find.directory.search_actors` / `ck.find.directory.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
+| `ck.find.directory.resolve_realm` / `ck.find.directory.resolve_organization` / `ck.find.directory.resolve_handle` / `ck.find.directory.list_handles_for_subject` | 精确解析 Realm / Organization / handle，以及列出已知 subject 的当前可见 handle claims。 |
+| `ck.find.directory.announce` / `ck.find.directory.withdraw` / `ck.find.directory.push.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
+| `ck.self.blob.upload` | 上传 blob。 |
+| `ck.self.blob.get` | 获取 blob 或下载授权。 |
+| `ck.edge.push.register_device` | 注册推送设备和推送网关。 |
+| `ck.edge.push.notify` | 投递脱敏唤醒。 |
+| `ck.self.authz.check` | 检查 capability / policy 是否允许动作。 |
+| `ck.self.policy.check` | 调用 policy server 获取签名决策。 |
+| `ck.self.moderation.report` | 提交内容或行为举报。 |
+| `ck.edge.applet.transaction` | 向 Applet 推送事件批次。 |
+| `ck.edge.applet.describe` | 查询 Applet profile、namespace 与限制。 |
+| `ck.self.device_messages.put` | 发送 to-device message。 |
+| `ck.self.keys.upload` / `ck.self.keys.query` / `ck.self.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
+| `ck.self.keys.backups.put` / `ck.self.keys.backups.list` / `ck.self.keys.backups.get` / `ck.self.keys.backups.delete` | 加密密钥备份对象存储、枚举、读取与删除。 |
 
 > **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_cokret/peer/*` HTTP trust surface 和 `ck.peer.*` operation_id。`/_cokret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。详见 [`federation.md`](./federation.md) §4。
 
@@ -150,7 +150,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
     {
       "kind": "http_json",
       "base_url": "https://server.example",
-      "operations": ["ck.account.viewer", "ck.account.update_profile", "ck.account.subscribe", "ck.snapshot.head"],
+      "operations": ["ck.self.account.viewer", "ck.self.account.update_profile", "ck.self.account.subscribe", "ck.self.snapshot.head"],
       "extension_profile_required": null
     }
   ]

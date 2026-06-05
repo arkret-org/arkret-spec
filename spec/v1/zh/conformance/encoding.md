@@ -452,7 +452,7 @@ Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barr
 8. 因果前沿中的所有 event id 合法（如 `s` 出现）。
 9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
 10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
-11. cursor 出现的位置与 `purpose` 一致：barrier cursor 出现在任一 stream 位置（`/_cokret/self/account/subscribe after=`、`ck.events.query` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）MUST `invalid_param`；stream cursor 出现在 barrier 位置（`X-Cokret-Wait-For` header、写接口响应的 barrier `cursor` 字段）MUST `invalid_param`。
+11. cursor 出现的位置与 `purpose` 一致：barrier cursor 出现在任一 stream 位置（`/_cokret/self/account/subscribe after=`、`ck.self.events.query` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）MUST `invalid_param`；stream cursor 出现在 barrier 位置（`X-Cokret-Wait-For` header、写接口响应的 barrier `cursor` 字段）MUST `invalid_param`。
 12. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾）或 `t_ms > x` 的 cursor MUST reject `invalid_param`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 13. **形态归属**：
     - **core（默认）** — body MUST 为 stateful 形态:含 `h`（opaque handle），且 MUST NOT 含 `_mac` / `_sig` / `s` / `d` / `target` / `issuer_kid`。这是 v1 core schema（[`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)）唯一接受的形态:`required` 含 `h`、`additionalProperties:false`。core 下收到缺 `h` 或含上述 stateless 字段的 body MUST reject `invalid_param`。

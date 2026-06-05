@@ -159,7 +159,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 | 域 | Fanout 动作 | 触发什么 event |
 | --- | --- | --- |
 | **Session / access token** | 撤销全部 `ck.session.grant`（含 applet delegated session）；后续 token introspection MUST 返回 `inactive`。 | 服务端撤销表 + 可选 `ck.audit.accessed` |
-| **Device grant** | 全部 `ck.device.*` 标 `revoked`；后续 `ck.events.submit` 用 revoked device 签名 MUST `actor_signature_revoked`。 | reducer 状态转换 |
+| **Device grant** | 全部 `ck.device.*` 标 `revoked`；后续 `ck.self.events.submit` 用 revoked device 签名 MUST `actor_signature_revoked`。 | reducer 状态转换 |
 | **Applet delegation** | 撤销所有 `ck.applet.registration` 持有的 delegated device；applet 服务后续调用 MUST `delegation_revoked`。 | reducer 状态转换 |
 | **KeyPackage** | 标记所有 unused MLS KeyPackage 为 retired；新邀请 MUST 不从该 principal 选 KeyPackage。 | reducer + KeyPackage store 失效 |
 | **Push route** | 撤销 `ck.device.push_route`；push gateway MUST 停止向该 principal 的注册 endpoint 投递。 | reducer + push gateway 缓存失效 |
@@ -212,10 +212,10 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 Native personal agent(`actor_kind="agent"`,`accountable_principal_ids` 指向 controller principal)的 lifecycle 是 controller 账户 lifecycle 的从属体:
 
-- **Provisioning** 由 controller 通过 `ck.agent.provision` operation 发起,fan-out 写入 Actor Profile、`ck.identity.accountability_grant`、初始 `ck.capability.grant`(带 `effective_after_first_authorized_key=true` flag)。Agent provisioning status 投影闭合枚举:`pending_runtime_key` → `active`(pairing 完成) / `pairing_expired`(pairing 窗口过期) → `paused` / `deactivated`。
-- **Pause**(`ck.agent.pause`):保留 agent identity、`accountability_grant`、`agent_key_authorize`、capability grants 的 durable state。Auth Server MUST 拒绝新 agent session grant;已签发 session token SHOULD 在 revocation freshness window(≤ 该部署 agent session 最大 TTL,见 [`key-management.md` §3.6.1](./key-management.md))内 fail closed,实现可选同步 revocation 或自然过期 + status 重查。Pending action requests SHOULD 标 `awaiting_resume`。
-- **Resume**(`ck.agent.resume`):前 MUST 重新校验 controller、agent、key、capability、Realm policy 与 `accountability_grant` freshness;任一不通过则拒绝 resume,agent 保持 `paused`。
-- **Deactivate**(`ck.agent.deactivate`):terminal state,fan-out `ck.agent.key.revoke`、`ck.capability.revoke` / delegation revoke、runtime endpoint revoke、pending action request 失效。Sidecar Circle 同步移除该 agent；若该 Circle 为 MLS-backed，则执行 MLS remove 与 epoch rotation（见 [`../models/circle.md` §11.1](../models/circle.md)）。
+- **Provisioning** 由 controller 通过 `ck.self.agent.provision` operation 发起,fan-out 写入 Actor Profile、`ck.identity.accountability_grant`、初始 `ck.capability.grant`(带 `effective_after_first_authorized_key=true` flag)。Agent provisioning status 投影闭合枚举:`pending_runtime_key` → `active`(pairing 完成) / `pairing_expired`(pairing 窗口过期) → `paused` / `deactivated`。
+- **Pause**(`ck.self.agent.pause`):保留 agent identity、`accountability_grant`、`agent_key_authorize`、capability grants 的 durable state。Auth Server MUST 拒绝新 agent session grant;已签发 session token SHOULD 在 revocation freshness window(≤ 该部署 agent session 最大 TTL,见 [`key-management.md` §3.6.1](./key-management.md))内 fail closed,实现可选同步 revocation 或自然过期 + status 重查。Pending action requests SHOULD 标 `awaiting_resume`。
+- **Resume**(`ck.self.agent.resume`):前 MUST 重新校验 controller、agent、key、capability、Realm policy 与 `accountability_grant` freshness;任一不通过则拒绝 resume,agent 保持 `paused`。
+- **Deactivate**(`ck.self.agent.deactivate`):terminal state,fan-out `ck.agent.key.revoke`、`ck.capability.revoke` / delegation revoke、runtime endpoint revoke、pending action request 失效。Sidecar Circle 同步移除该 agent；若该 Circle 为 MLS-backed，则执行 MLS remove 与 epoch rotation（见 [`../models/circle.md` §11.1](../models/circle.md)）。
 - **Controller lifecycle 传播**:Controller 进入 `deactivated` / `suspended` 时，其 accountable native agents 的 active sessions MUST 通过本节 revocation 链失效，后续 agent session grant MUST fail closed。Accountability grant 失效同样使 agent 进入 ineligible 状态。
 - **Pairing expiry**:`pairing.expires_at` 到达且未完成 pairing 时，服务 MUST 自动 `ck.capability.revoke` 撤销 pending grant,agent status 转 `pairing_expired`;controller 可重新发起 pairing 或显式 revoke 进入 `deactivated`。
 

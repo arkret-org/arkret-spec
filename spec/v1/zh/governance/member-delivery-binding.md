@@ -57,7 +57,7 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 构造 `ck.member.state{membership="join"}` 前，客户端 / 提交服务 MUST：
 
 1. 按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`（主形态为 `<localpart>:<domain>`）。
-2. 调用 `ck.directory.resolve_handle` 或等价 Principal Server / Organization Directory 解析，带上 `intent="member_add"`、目标 `realm_id`、`requester` 和 challenge。
+2. 调用 `ck.find.directory.resolve_handle` 或等价 Principal Server / Organization Directory 解析，带上 `intent="member_add"`、目标 `realm_id`、`requester` 和 challenge。
 3. 验证响应中的 handle claim / presentation 绑定 `handle`、`subject` DID、`member_delivery_binding.recipient_service_did`、issuer、`expires_at`、撤销状态，以及 `audience`：claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
 4. 生成 member Move 时使用 `payload.actor_id = subject`；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
 5. 若解析结果携带 `member_delivery_binding`，将其物化为 `payload.delivery_binding`，并按 Realm `ck.realm.delivery_binding_policy` 选择 `binding_source`：

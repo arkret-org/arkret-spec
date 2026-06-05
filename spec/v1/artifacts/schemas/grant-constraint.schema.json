@@ -413,7 +413,7 @@
     },
     "blob_presign_scope": {
       "type": "object",
-      "description": "Scope limiter for ck.blob.presign grants: allowed purposes plus optional blob/realm restrictions.",
+      "description": "Scope limiter for ck.self.blob.presign grants: allowed purposes plus optional blob/realm restrictions.",
       "properties": {
         "purpose_allow": {
           "type": "array",

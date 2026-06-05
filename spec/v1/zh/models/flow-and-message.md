@@ -639,7 +639,7 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 规则处理：源消息可暴露 ref 与最小 metadata，目标对象内容与 preview 必须重新按
 目标 Realm policy 授权。
 
-客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 通过 `ck.directory.resolve_handle(intent="mention")` 解析为 DID，并在结构化 mention 节点中以 `subject_id` 为权威字段保存解析结果。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_id` 处理。
+客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 通过 `ck.find.directory.resolve_handle(intent="mention")` 解析为 DID，并在结构化 mention 节点中以 `subject_id` 为权威字段保存解析结果。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_id` 处理。
 
 结构化 mention 节点形态（与 [`identity/identity-handles.md` §3.8.1](../identity/identity-handles.md) normative shape 对齐）：
 

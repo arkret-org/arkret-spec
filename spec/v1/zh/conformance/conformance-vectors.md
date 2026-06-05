@@ -2379,7 +2379,7 @@ Expected：
 
 Steps：
 
-1. Actor 对 `ck.typing` 提交 `ck.ephemeral.send`，但只持有 `ck.presence.broadcast`。
+1. Actor 对 `ck.typing` 提交 `ck.self.ephemeral.send`，但只持有 `ck.presence.broadcast`。
 2. Actor 持有正确 action 后，提交超出 advertised kind-specific TTL 的 envelope。
 3. Ephemeral channel 暂时不可用。
 
@@ -2395,7 +2395,7 @@ Expected：
 
 Steps：
 
-1. 调用 `ck.projection.spaces` / `flows` / `morphs`，请求 `limit=1`。
+1. 调用 `ck.self.projection.spaces` / `flows` / `morphs`，请求 `limit=1`。
 2. 使用返回的 `next_cursor` 继续读取。
 3. 下游 service-call 返回缺失 `has_more` 或 cursor 形态不合法的响应。
 
@@ -2461,7 +2461,7 @@ Expected：
 
 Steps：
 
-1. Auth Server 收到 `ck.account.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
+1. Auth Server 收到 `ck.gate.account.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
 2. 请求缺少 `request_canonical_digest` 或 hash 不覆盖 `principal_id`、`device_id?`、`requested_scope` 与 `audience`。
 3. 请求的 `expires_at` 超过 Auth Server 声明的 session grant TTL 上限。
 4. Auth Server 在 `development_mode=true` 时尝试把 `ck.profile.auth_server.v1` 放入 `verified_profiles[]`。
@@ -2613,8 +2613,8 @@ Expected：
 
 Steps:
 
-1. Controller 调用 `ck.agent.provision`,得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
-2. Agent runtime 生成 key pair,调用 `ck.account.agent_key_pair`。
+1. Controller 调用 `ck.self.agent.provision`,得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
+2. Agent runtime 生成 key pair,调用 `ck.gate.account.agent_key_pair`。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_principal_id` bit-identical。
 4. 批准后写入 `ck.agent.key.authorize`,reducer 清除 effective_after_first_authorized_key flag。
 
@@ -2630,14 +2630,14 @@ Expected:
 
 Steps:
 
-1. Controller 调用 `ck.agent.provision`,pairing 窗口 12 小时,grant TTL 30 天。
-2. Pairing 12 小时窗口过期，未提交 `ck.account.agent_key_pair`。
+1. Controller 调用 `ck.self.agent.provision`,pairing 窗口 12 小时,grant TTL 30 天。
+2. Pairing 12 小时窗口过期，未提交 `ck.gate.account.agent_key_pair`。
 
 Expected:
 
 - 服务 MUST 自动写入 `ck.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
-- 重放 `ck.account.agent_key_pair`(使用过期 pairing_request_id)MUST fail closed。
-- Controller 可重新发起 `ck.agent.provision`,得到新 pairing_request_id;旧 agent_principal_id 与新 provisioning 不复用。
+- 重放 `ck.gate.account.agent_key_pair`(使用过期 pairing_request_id)MUST fail closed。
+- Controller 可重新发起 `ck.self.agent.provision`,得到新 pairing_request_id;旧 agent_principal_id 与新 provisioning 不复用。
 
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
@@ -2645,7 +2645,7 @@ Expected:
 
 Steps:
 
-1. Agent runtime 提交 `ck.account.issue_session_grant`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
+1. Agent runtime 提交 `ck.gate.account.issue_session_grant`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
 2. 第二次提交同样的 proof(同样 challenge / digest / signature)。
 3. 提交一份 audience 改成另一 service 的 proof。
 4. 把 proof.signature 改写但 challenge 不变。
@@ -2669,7 +2669,7 @@ Steps:
 Expected:
 
 - A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
-- A 后续任何 `ck.account.issue_session_grant` MUST fail closed。
+- A 后续任何 `ck.gate.account.issue_session_grant` MUST fail closed。
 - A 在已加入的 sidecar Circle 中由 reducer 主动 fan-out `ck.circle.member.state -> leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。
 
 ### 11.5 Vector: Act-on-behalf Attribution
@@ -2698,7 +2698,7 @@ Steps:
 
 1. Realm A 中存在 weak semantic Relation `R1`,目标指向 Realm B 内对象；调用者 C 可读 Realm A,但不能 discover / reference Realm B。
 2. Realm A 中存在形态相同的 Relation `R2`,目标指向不存在或不可发现的 Realm / object id。
-3. C 分别调用 Relation projection query、`ck.events.query` raw event API、backfill pull 与 federation peer fanout 视图。
+3. C 分别调用 Relation projection query、`ck.self.events.query` raw event API、backfill pull 与 federation peer fanout 视图。
 4. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对 `R1` / `R2` 每类至少采样 30 次。
 5. Auditor D 同时持有 source + target disclosure,读取 `R1` 的完整 canonical event。
 
@@ -2735,7 +2735,7 @@ Expected:
 
 Steps:
 
-1. Alice 的两台设备并发调用 `ck.agent.sidecar_thread.ensure` 同一 `context_ref`。
+1. Alice 的两台设备并发调用 `ck.self.agent.sidecar_thread.ensure` 同一 `context_ref`。
 2. 同一 Alice 第三次调用 `ensure`(同样 context_ref),`addressed_agent_principal_ids` 列表不同。
 3. Alice 在另一 context_ref 调用 ensure(同 Realm)。
 
@@ -2751,7 +2751,7 @@ Expected:
 
 Steps(均以 non-sidecar-member 视角):
 
-1. `ck.events.subscribe` / `ck.events.query` 目标 Realm。
+1. `ck.self.events.subscribe` / `ck.self.events.query` 目标 Realm。
 2. 对 `to_ref=<target_message_id>` 的 relation query。
 3. Realm directory 调用。
 4. 触发目标 Flow 的 notification fanout。
@@ -2774,7 +2774,7 @@ Steps:
 1. Alice 有 agents `{S, R}`。S 已 paired (`active`),R 未发布 KeyPackage(eligible but pending join)。
 2. Alice 调用 ensure。
 3. R 发布 KeyPackage,服务端 async reconcile。
-4. Alice 调用 `ck.agent.deactivate` 对 R。
+4. Alice 调用 `ck.self.agent.deactivate` 对 R。
 
 Expected:
 
@@ -2986,7 +2986,7 @@ Setup:
 
 1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`link_type="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
 2. Effective `ck.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
-3. Bob 调用 `ck.directory.resolve_target`，携带 address 与 token。
+3. Bob 调用 `ck.find.directory.resolve_target`，携带 address 与 token。
 4. 攻击者 Mallory 把同一 token 放到另一个 Flow address，或把 URL `lt` 改为 `invite`。
 
 Expected:

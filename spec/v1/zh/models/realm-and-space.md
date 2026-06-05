@@ -148,7 +148,7 @@ Authz 含义：
 
 Server 端实现合规要点：
 
-- 若 server 内部维护"显式成员索引"（如 in-memory `members` set）用于快速 authz 判断，MUST 在 `ck.realm.create` 的 commit 路径同步更新此索引，且必须在向 actor 返回 `ck.events.submit` 200 之前完成 — 否则后续 facet event 在同批次内会以 `capability_denied` 错误失败，把 spec-合规客户端逼到旁路。
+- 若 server 内部维护"显式成员索引"（如 in-memory `members` set）用于快速 authz 判断，MUST 在 `ck.realm.create` 的 commit 路径同步更新此索引，且必须在向 actor 返回 `ck.self.events.submit` 200 之前完成 — 否则后续 facet event 在同批次内会以 `capability_denied` 错误失败，把 spec-合规客户端逼到旁路。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
 **Backfill / federation peer 一致性（normative）**：Backfill / federation peer consumer MUST 把 cell snapshot（`ck.component.member.state.v1`）与 event 流并联回放，不得只回放 event 流——否则会看到 `ck.realm.create` 之后由 `created_by` 提交的 facet event 但找不到对应 `ck.member.state{join}` event（spec 不要求显式 emit），产生"无成员合法写入"的误读。
@@ -179,7 +179,7 @@ Realm 有两个终态 event，语义不同：
 
 `ck.realm.destroy` accepted 进入 frontier 之后：
 
-1. **拒绝后续普通写入**：reducer MUST reject 所有非 `ck.audit.*` / 非 `ck.audit.erasure_receipt` event；后续 `ck.events.submit` 返回 `realm_terminal_state`（错误码归类于 `realm_lifecycle` 错误域，避免与 `ck.realm.lifecycle.*` capability action 命名混用）。
+1. **拒绝后续普通写入**：reducer MUST reject 所有非 `ck.audit.*` / 非 `ck.audit.erasure_receipt` event；后续 `ck.self.events.submit` 返回 `realm_terminal_state`（错误码归类于 `realm_lifecycle` 错误域，避免与 `ck.realm.lifecycle.*` capability action 命名混用）。
 2. **Snapshot / Backfill / GC**：
    - Snapshot service MAY 发布最后一份 final snapshot（`ck.snapshot.*` event）；之后 snapshot 不再更新。
    - Backfill MAY 继续提供历史 event 给已授权 reader，受 history visibility policy 控制；新读权 MUST NOT 再被授予。
@@ -273,7 +273,7 @@ Direct Conversation Realm MUST：
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
 - 通过 principal-scoped `ck.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_flow_id`。同一 pair 至多一个 active canonical DM Realm；并发 duplicate 必须用 deterministic tie-break 收敛。
 
-任一参与方主动离开或被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。Resolver MUST NOT 为了继续同一个私聊把退出方重新加入旧 Realm；后续 `ck.direct_conversation.resolve(create=true)` MUST 创建新的 DM Realm、main Flow 与 binding。旧 Realm MAY 作为历史归档存在，但不得接收新的默认聊天消息。
+任一参与方主动离开或被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。Resolver MUST NOT 为了继续同一个私聊把退出方重新加入旧 Realm；后续 `ck.self.direct_conversation.resolve(create=true)` MUST 创建新的 DM Realm、main Flow 与 binding。旧 Realm MAY 作为历史归档存在，但不得接收新的默认聊天消息。
 
 ## 3. Space
 

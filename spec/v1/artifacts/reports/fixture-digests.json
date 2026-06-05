@@ -30,7 +30,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-      "sha256": "bd22d9f16c618f7f03d3757723c904712d3674c2f7b5c5c62742082c51191352"
+      "sha256": "35db9d880a802141279a11da0348f1389c03dfc596d568240bbf1d4d358deff3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
@@ -42,7 +42,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "31b9a2ec1e03abdd392c1205a4a2444d9e301c224902551d25aa61903d085fc1"
+      "sha256": "15d93148b0164ca73394d758c68fc9d777153f4a0d57dc19cfdff77f6c889d09"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
@@ -62,7 +62,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "b7aac7ed59ceeea58d9fbb92b4428457cb2a46ceba5101f3199f0a9591b403f7"
+      "sha256": "27582e8bb8e6fd880b9c79b7b2a5d53fa42bdf0aa243f24607601ee7498c4055"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

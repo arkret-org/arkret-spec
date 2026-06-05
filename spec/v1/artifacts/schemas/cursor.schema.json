@@ -28,7 +28,7 @@
         "stream",
         "barrier"
       ],
-      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync / list pagination. Used as 'after' on /account/subscribe, 'before' / 'after' on ck.events.query (including its service-to-service federation pull form GET /_cokret/self/events?before=<cursor>), and as response 'prev_cursor' (older direction) / 'next_cursor' (newer direction). prev_cursor / next_cursor carry absolute directional meaning regardless of how the request was issued — see api-conventions.md §7.0. 'barrier' = read-your-writes / wait-for-event cursor (use in X-Cokret-Wait-For header to block until local frontier covers target.event_id). The handle binding (resolved server-side) carries positions for 'stream' or target for 'barrier'; the wire body does not."
+      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync / list pagination. Used as 'after' on /account/subscribe, 'before' / 'after' on ck.self.events.query (including its service-to-service federation pull form GET /_cokret/self/events?before=<cursor>), and as response 'prev_cursor' (older direction) / 'next_cursor' (newer direction). prev_cursor / next_cursor carry absolute directional meaning regardless of how the request was issued — see api-conventions.md §7.0. 'barrier' = read-your-writes / wait-for-event cursor (use in X-Cokret-Wait-For header to block until local frontier covers target.event_id). The handle binding (resolved server-side) carries positions for 'stream' or target for 'barrier'; the wire body does not."
     },
     "t": { "$ref": "#/$defs/timestamp" },
     "x": {

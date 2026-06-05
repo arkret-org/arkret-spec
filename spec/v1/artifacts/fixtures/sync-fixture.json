@@ -73,7 +73,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "recovery": {
-        "call": "ck.snapshot.head",
+        "call": "ck.self.snapshot.head",
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
       }
     }

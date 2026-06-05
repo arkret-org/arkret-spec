@@ -12,7 +12,7 @@
   },
   "operations": [
     {
-      "operation_id": "ck.events.submit",
+      "operation_id": "ck.self.events.submit",
       "http_alias": "POST /_cokret/self/events",
       "operation_specific": [
         "duplicate_conflict",
@@ -28,7 +28,7 @@
       "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes."
     },
     {
-      "operation_id": "ck.events.get",
+      "operation_id": "ck.self.events.get",
       "http_alias": "GET /_cokret/self/events/{event_id}",
       "operation_specific": [
         "not_found"
@@ -36,7 +36,7 @@
       "description": "not_found is returned both for nonexistent events and for events hidden by visibility (uniform failure surface)."
     },
     {
-      "operation_id": "ck.events.query",
+      "operation_id": "ck.self.events.query",
       "http_alias": "GET /_cokret/self/events",
       "operation_specific": [
         "cursor_invalid",
@@ -44,7 +44,7 @@
       ]
     },
     {
-      "operation_id": "ck.events.query_post",
+      "operation_id": "ck.self.events.query_post",
       "http_alias": "POST /_cokret/self/events/query",
       "operation_specific": [
         "cursor_invalid",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "operation_id": "ck.events.subscribe",
+      "operation_id": "ck.self.events.subscribe",
       "http_alias": "GET /_cokret/self/events/subscribe",
       "operation_specific": [
         "cursor_invalid",
@@ -62,21 +62,21 @@
       ]
     },
     {
-      "operation_id": "ck.events.resolve",
+      "operation_id": "ck.self.events.resolve",
       "http_alias": "POST /_cokret/self/events/resolve",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.events.frontier",
+      "operation_id": "ck.self.events.frontier",
       "http_alias": "GET /_cokret/self/events/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ck.account.subscribe",
+      "operation_id": "ck.self.account.subscribe",
       "http_alias": "GET /_cokret/self/account/subscribe",
       "operation_specific": [
         "cursor_invalid",
@@ -86,7 +86,7 @@
       ]
     },
     {
-      "operation_id": "ck.account.viewer",
+      "operation_id": "ck.self.account.viewer",
       "http_alias": "GET /_cokret/self/account/viewer",
       "operation_specific": [
         "source_refs_unverifiable"
@@ -94,7 +94,7 @@
       "description": "Holder-bound account self-read. If signed handle-claim evidence or profile/device source refs cannot be verified, the service MUST fail or omit the unverifiable evidence according to disclosure policy; it MUST NOT return an unsigned bare handle as authoritative identity."
     },
     {
-      "operation_id": "ck.account.update_profile",
+      "operation_id": "ck.self.account.update_profile",
       "http_alias": "POST /_cokret/self/account/profile",
       "operation_specific": [
         "invalid_avatar_blob_ref",
@@ -104,14 +104,14 @@
       "description": "Profile self-service update. The protocol request body is UpdateProfileRequest {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Cokret protocol path."
     },
     {
-      "operation_id": "ck.account.cursor_revoke",
+      "operation_id": "ck.self.account.cursor_revoke",
       "http_alias": "POST /_cokret/self/account/cursor/revoke",
       "operation_specific": [
         "cursor_revoked"
       ]
     },
     {
-      "operation_id": "ck.contact.request",
+      "operation_id": "ck.self.contact.request",
       "http_alias": "POST /_cokret/self/contacts/request",
       "operation_specific": [
         "failed_precondition",
@@ -121,7 +121,7 @@
       "description": "Contact request writes requester-side contact fact and requester-side consent grants. The requester cannot write target-side consent or accepted state."
     },
     {
-      "operation_id": "ck.contact.respond",
+      "operation_id": "ck.self.contact.respond",
       "http_alias": "POST /_cokret/self/contacts/respond",
       "operation_specific": [
         "not_found",
@@ -131,7 +131,7 @@
       "description": "Only the request target may accept/reject a contact request. Accept writes target-controlled consent grants; reject writes no consent."
     },
     {
-      "operation_id": "ck.contact.list",
+      "operation_id": "ck.self.contact.list",
       "http_alias": "GET /_cokret/self/contacts",
       "operation_specific": [
         "cursor_invalid",
@@ -140,7 +140,7 @@
       "description": "Holder contact projection from contact facts plus consent-derived directional scopes."
     },
     {
-      "operation_id": "ck.contact.tombstone",
+      "operation_id": "ck.self.contact.tombstone",
       "http_alias": "POST /_cokret/self/contacts/tombstone",
       "operation_specific": [
         "failed_precondition",
@@ -149,7 +149,7 @@
       "description": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots."
     },
     {
-      "operation_id": "ck.direct_conversation.resolve",
+      "operation_id": "ck.self.direct_conversation.resolve",
       "http_alias": "POST /_cokret/self/direct-conversations/resolve",
       "operation_specific": [
         "not_found",
@@ -160,7 +160,7 @@
       "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Flow/binding."
     },
     {
-      "operation_id": "ck.snapshot.head",
+      "operation_id": "ck.self.snapshot.head",
       "http_alias": "GET /_cokret/self/snapshot/head",
       "operation_specific": [
         "snapshot_unavailable",
@@ -168,7 +168,7 @@
       ]
     },
     {
-      "operation_id": "ck.identity.resolve",
+      "operation_id": "ck.root.identity.resolve",
       "http_alias": "POST /_cokret/root/identity/resolve",
       "operation_specific": [
         "unsupported_did_method",
@@ -177,7 +177,7 @@
       ]
     },
     {
-      "operation_id": "ck.identity.get_document",
+      "operation_id": "ck.root.identity.get_document",
       "http_alias": "GET /_cokret/root/identity/document",
       "operation_specific": [
         "unsupported_did_method",
@@ -186,7 +186,7 @@
       ]
     },
     {
-      "operation_id": "ck.identity.get_log",
+      "operation_id": "ck.root.identity.get_log",
       "http_alias": "GET /_cokret/root/identity/log",
       "operation_specific": [
         "unsupported_did_method",
@@ -194,7 +194,7 @@
       ]
     },
     {
-      "operation_id": "ck.identity.submit_did_operation",
+      "operation_id": "ck.root.identity.submit_did_operation",
       "http_alias": "POST /_cokret/root/identity/submit-did-operation",
       "operation_specific": [
         "unsupported_did_method",
@@ -204,28 +204,28 @@
       ]
     },
     {
-      "operation_id": "ck.directory.search_realms",
+      "operation_id": "ck.find.directory.search_realms",
       "http_alias": "POST /_cokret/find/directory/search-realms",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ck.directory.resolve_realm",
+      "operation_id": "ck.find.directory.resolve_realm",
       "http_alias": "POST /_cokret/find/directory/resolve-realm",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.directory.resolve_target",
+      "operation_id": "ck.find.directory.resolve_target",
       "http_alias": "POST /_cokret/find/directory/resolve-target",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.directory.resolve_handle",
+      "operation_id": "ck.find.directory.resolve_handle",
       "http_alias": "POST /_cokret/find/directory/resolve-handle",
       "operation_specific": [
         "not_found",
@@ -233,7 +233,7 @@
       ]
     },
     {
-      "operation_id": "ck.directory.announce",
+      "operation_id": "ck.find.directory.announce",
       "http_alias": "POST /_cokret/find/directory/announce",
       "operation_specific": [
         "directory_not_authorized",
@@ -248,7 +248,7 @@
       ]
     },
     {
-      "operation_id": "ck.directory.withdraw",
+      "operation_id": "ck.find.directory.withdraw",
       "http_alias": "POST /_cokret/find/directory/withdraw",
       "operation_specific": [
         "directory_not_authorized",
@@ -257,7 +257,7 @@
       ]
     },
     {
-      "operation_id": "ck.directory.private_contact_discovery",
+      "operation_id": "ck.find.directory.private_contact_discovery",
       "http_alias": "POST /_cokret/find/directory/private-contact-discovery",
       "operation_specific": [
         "rate_limited",
@@ -265,7 +265,7 @@
       ]
     },
     {
-      "operation_id": "ck.blob.upload",
+      "operation_id": "ck.self.blob.upload",
       "http_alias": "POST /_cokret/self/blob/upload",
       "operation_specific": [
         "too_large",
@@ -275,7 +275,7 @@
       ]
     },
     {
-      "operation_id": "ck.blob.get",
+      "operation_id": "ck.self.blob.get",
       "http_alias": "GET /_cokret/self/blob/get",
       "operation_specific": [
         "not_found",
@@ -284,7 +284,7 @@
       ]
     },
     {
-      "operation_id": "ck.blob.head",
+      "operation_id": "ck.self.blob.head",
       "http_alias": "HEAD /_cokret/self/blob/get",
       "operation_specific": [
         "not_found",
@@ -293,7 +293,7 @@
       ]
     },
     {
-      "operation_id": "ck.push.register_device",
+      "operation_id": "ck.edge.push.register_device",
       "http_alias": "POST /_cokret/edge/push/register-device",
       "operation_specific": [
         "push_gateway_unreachable",
@@ -301,14 +301,14 @@
       ]
     },
     {
-      "operation_id": "ck.push.unregister_device",
+      "operation_id": "ck.edge.push.unregister_device",
       "http_alias": "POST /_cokret/edge/push/unregister-device",
       "operation_specific": [
         "push_token_unknown"
       ]
     },
     {
-      "operation_id": "ck.push.notify",
+      "operation_id": "ck.edge.push.notify",
       "http_alias": "POST /_cokret/edge/push/notify",
       "operation_specific": [
         "push_gateway_unreachable",
@@ -318,7 +318,7 @@
       ]
     },
     {
-      "operation_id": "ck.keys.upload",
+      "operation_id": "ck.self.keys.upload",
       "http_alias": "POST /_cokret/self/keys/upload",
       "operation_specific": [
         "device_unknown",
@@ -327,7 +327,7 @@
       ]
     },
     {
-      "operation_id": "ck.keys.claim",
+      "operation_id": "ck.self.keys.claim",
       "http_alias": "POST /_cokret/self/keys/claim",
       "operation_specific": [
         "one_time_keys_exhausted",
@@ -335,7 +335,7 @@
       ]
     },
     {
-      "operation_id": "ck.keys.keypackages.claim",
+      "operation_id": "ck.self.keys.keypackages.claim",
       "http_alias": "POST /_cokret/self/keys/keypackages/claim",
       "operation_specific": [
         "one_time_keys_exhausted",
@@ -343,7 +343,7 @@
       ]
     },
     {
-      "operation_id": "ck.keys.keypackages.consume",
+      "operation_id": "ck.self.keys.keypackages.consume",
       "http_alias": "POST /_cokret/self/keys/keypackages/consume",
       "operation_specific": [
         "keypackage_already_consumed",
@@ -351,7 +351,7 @@
       ]
     },
     {
-      "operation_id": "ck.keys.keypackages.revoke",
+      "operation_id": "ck.self.keys.keypackages.revoke",
       "http_alias": "POST /_cokret/self/keys/keypackages/revoke",
       "operation_specific": [
         "keypackage_already_consumed",
@@ -359,7 +359,7 @@
       ]
     },
     {
-      "operation_id": "ck.keys.backups.put",
+      "operation_id": "ck.self.keys.backups.put",
       "http_alias": "PUT /_cokret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "key_backup_wire_schema_required",
@@ -370,28 +370,28 @@
       ]
     },
     {
-      "operation_id": "ck.keys.backups.get",
+      "operation_id": "ck.self.keys.backups.get",
       "http_alias": "GET /_cokret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.keys.backups.list",
+      "operation_id": "ck.self.keys.backups.list",
       "http_alias": "GET /_cokret/self/keys/backups",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ck.keys.backups.delete",
+      "operation_id": "ck.self.keys.backups.delete",
       "http_alias": "DELETE /_cokret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.authz.check",
+      "operation_id": "ck.self.authz.check",
       "http_alias": "POST /_cokret/self/authz/check",
       "operation_specific": [
         "capability_denied",
@@ -399,7 +399,7 @@
       ]
     },
     {
-      "operation_id": "ck.policy.check",
+      "operation_id": "ck.self.policy.check",
       "http_alias": "POST /_cokret/self/policy/check",
       "operation_specific": [
         "policy_unavailable",
@@ -407,7 +407,7 @@
       ]
     },
     {
-      "operation_id": "ck.ephemeral.send",
+      "operation_id": "ck.self.ephemeral.send",
       "http_alias": "POST /_cokret/self/ephemeral",
       "operation_specific": [
         "ephemeral_kind_not_permitted",
@@ -416,7 +416,7 @@
       ]
     },
     {
-      "operation_id": "ck.call.media.token_exchange",
+      "operation_id": "ck.self.call.media.token_exchange",
       "http_alias": "POST /_cokret/self/rtc/token",
       "operation_specific": [
         "focus_mismatch",
@@ -430,7 +430,7 @@
       "description": "Media service token exchange (CKP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ck.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ck.realm.media_service does not declare explicit foci[]."
     },
     {
-      "operation_id": "ck.account.issue_session_grant",
+      "operation_id": "ck.gate.account.issue_session_grant",
       "http_alias": "POST /_cokret/gate/account/session-grants",
       "operation_specific": [
         "did_proof_required",
@@ -446,7 +446,7 @@
       "description": "Session grant issuance. Shared by human user_session and agent runtime branches (CKP-0008 §4.6): when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
     {
-      "operation_id": "ck.account.register",
+      "operation_id": "ck.gate.account.register",
       "http_alias": "POST /_cokret/gate/account/register",
       "operation_specific": [
         "did_proof_required",
@@ -457,7 +457,7 @@
       "description": "Account registration creates or binds a deployment-local account record to principal_id. The request uses principal_id rather than did, does not accept handle, and handle evidence can only be returned as signed ck.schema.handle_claim.v1 data or digest/ref."
     },
     {
-      "operation_id": "ck.account.session_revoke",
+      "operation_id": "ck.gate.account.session_revoke",
       "http_alias": "POST /_cokret/gate/account/session-grants/revoke",
       "operation_specific": [
         "session_grant_not_found",
@@ -468,7 +468,7 @@
       "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ck.account.status."
     },
     {
-      "operation_id": "ck.account.agent_key_pair",
+      "operation_id": "ck.gate.account.agent_key_pair",
       "http_alias": "POST /_cokret/gate/account/agent-key-pair",
       "operation_specific": [
         "verification_method_principal_mismatch",
@@ -479,7 +479,7 @@
       "description": "Native personal agent runtime key pairing (CKP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
     },
     {
-      "operation_id": "ck.applet.install.preview",
+      "operation_id": "ck.self.applet.install.preview",
       "http_alias": "POST /_cokret/self/applets/install/preview",
       "operation_specific": [
         "applet_registration_unauthorized",
@@ -490,7 +490,7 @@
       "description": "Applet install preview validates controller proof, package schema, DID/key binding, namespace conflicts, requested capability actions, and Realm/Circle policy before returning an InstallPlan."
     },
     {
-      "operation_id": "ck.applet.install",
+      "operation_id": "ck.self.applet.install",
       "http_alias": "POST /_cokret/self/applets/install",
       "operation_specific": [
         "duplicate_conflict",
@@ -503,7 +503,7 @@
       "description": "Applet install commit recomputes the InstallPlan, binds approval to plan_digest, persists fan-out idempotency state, and emits registration/grant/profile/membership facts."
     },
     {
-      "operation_id": "ck.applet.revoke",
+      "operation_id": "ck.self.applet.revoke",
       "http_alias": "POST /_cokret/self/applets/{applet_id}/revoke",
       "operation_specific": [
         "duplicate_conflict",
@@ -514,31 +514,31 @@
       "description": "Applet revoke stops future writes by revoking active grants and scoped tokens for the effective install; repeated revoke attempts may surface applet_revoked."
     },
     {
-      "operation_id": "ck.agent.provision",
+      "operation_id": "ck.self.agent.provision",
       "http_alias": "POST /_cokret/self/agents",
       "operation_specific": [
         "failed_precondition",
         "accountability_grant_missing"
       ],
-      "description": "Provision a native personal agent principal (CKP-0008). The op is the aggregate `ck.agent.provision` capability action (capability-action-registry.json) and fans out `ck.profile.create` + `ck.identity.accountability_grant` + `ck.agent.key.authorize` + `ck.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ck.identity.accountability_grant` (controller lacks `ck.agent.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
+      "description": "Provision a native personal agent principal (CKP-0008). The op is the aggregate `ck.self.agent.provision` capability action (capability-action-registry.json) and fans out `ck.profile.create` + `ck.identity.accountability_grant` + `ck.agent.key.authorize` + `ck.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ck.identity.accountability_grant` (controller lacks `ck.self.agent.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
     },
     {
-      "operation_id": "ck.agent.list",
+      "operation_id": "ck.self.agent.list",
       "http_alias": "GET /_cokret/self/agents",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ck.agent.get",
+      "operation_id": "ck.self.agent.get",
       "http_alias": "GET /_cokret/self/agents/{agent_principal_id}",
       "operation_specific": [
         "not_found"
       ],
-      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ck.events.get pattern)."
+      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ck.self.events.get pattern)."
     },
     {
-      "operation_id": "ck.agent.pause",
+      "operation_id": "ck.self.agent.pause",
       "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/pause",
       "operation_specific": [
         "agent_paused",
@@ -548,7 +548,7 @@
       "description": "agent_paused is returned for idempotent re-pause; agent_deactivated is terminal."
     },
     {
-      "operation_id": "ck.agent.resume",
+      "operation_id": "ck.self.agent.resume",
       "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/resume",
       "operation_specific": [
         "agent_deactivated",
@@ -558,7 +558,7 @@
       "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar exposure re-disclosure failure surfaces as failed_precondition with reason=`sidecar_exposure_ack_required`."
     },
     {
-      "operation_id": "ck.agent.deactivate",
+      "operation_id": "ck.self.agent.deactivate",
       "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/deactivate",
       "operation_specific": [
         "agent_deactivated",
@@ -567,7 +567,7 @@
       "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal agent."
     },
     {
-      "operation_id": "ck.agent.rotate_key",
+      "operation_id": "ck.self.agent.rotate_key",
       "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/rotate-key",
       "operation_specific": [
         "agent_paused",
@@ -576,10 +576,10 @@
         "proof_invalid",
         "failed_precondition"
       ],
-      "description": "Wire op ck.agent.rotate_key corresponds to event kind ck.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
+      "description": "Wire op ck.self.agent.rotate_key corresponds to event kind ck.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
     },
     {
-      "operation_id": "ck.agent.grant.attach",
+      "operation_id": "ck.self.agent.grant.attach",
       "http_alias": "POST /_cokret/self/agents/{agent_principal_id}/grants",
       "operation_specific": [
         "agent_paused",
@@ -590,7 +590,7 @@
       "description": "Attaches a capability grant to the agent. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate."
     },
     {
-      "operation_id": "ck.agent.grant.detach",
+      "operation_id": "ck.self.agent.grant.detach",
       "http_alias": "DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}",
       "operation_specific": [
         "not_found",
@@ -599,7 +599,7 @@
       "description": "not_found is returned for nonexistent grant_id and for grants not attached to this agent (uniform failure surface)."
     },
     {
-      "operation_id": "ck.agent.sidecar_thread.ensure",
+      "operation_id": "ck.self.agent.sidecar_thread.ensure",
       "http_alias": "POST /_cokret/self/agent-sidecar-threads:ensure",
       "operation_specific": [
         "sidecar_create_denied",

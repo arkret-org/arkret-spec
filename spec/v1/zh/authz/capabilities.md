@@ -263,15 +263,15 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.agent.key.authorize`（high risk；授权 agent key，target=`ck.agent.key.authorize`）
 - `ck.agent.key.rotate`（high risk；轮换 agent key，target=`ck.agent.key.rotate`）
 - `ck.agent.key.revoke`（high risk；撤销 agent key，target=`ck.agent.key.revoke`）
-- `ck.agent.provision`(aggregate admin action,`target_event_kinds=[ck.profile.create, ck.identity.accountability_grant, ck.agent.key.authorize, ck.capability.grant]`,profile=`ck.profile.personal_agent_provisioning.v1`)
-- `ck.agent.pause`(controller-only;target=`ck.agent.pause`)
-- `ck.agent.resume`(controller-only;target=`ck.agent.resume`)
-- `ck.agent.deactivate`(controller-only,terminal;target=`ck.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
+- `ck.self.agent.provision`(aggregate admin action,`target_event_kinds=[ck.profile.create, ck.identity.accountability_grant, ck.agent.key.authorize, ck.capability.grant]`,profile=`ck.profile.personal_agent_provisioning.v1`)
+- `ck.self.agent.pause`(controller-only;target=`ck.self.agent.pause`)
+- `ck.self.agent.resume`(controller-only;target=`ck.self.agent.resume`)
+- `ck.self.agent.deactivate`(controller-only,terminal;target=`ck.self.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - `ck.agent.draft.propose`(agent-initiated draft;target=`ck.agent.draft.propose`,wire_scope=`actor_private_event`)
 - `ck.agent.action_request`(agent-initiated action request;target=`ck.agent.action_request`)
 - `ck.agent.action_approve`(controller-only;target=`ck.agent.action_approve`)
 - `ck.agent.action_reject`(controller-only;target=`ck.agent.action_reject`)
-- `ck.agent.sidecar_thread.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.flow.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
+- `ck.self.agent.sidecar_thread.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.flow.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
 - `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Flow)
 - `ck.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `ck.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
 - `ck.agent.protocol.discover`（profile=`ck.profile.agent_runtime.v1`，risk_tier=low，`non_event_surface`，无 target event：发现 agent runtime 协议端点 / capability，仅服务面发现，不写入 event）
@@ -301,15 +301,15 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 
 ### 5.5 服务动作
 
-- `ck.events.query`
-- `ck.events.subscribe`
-- `ck.account.subscribe`
-- `ck.account.describe`
-- `ck.snapshot.head`
-- `ck.blob.upload`
-- `ck.blob.get`
-- `ck.blob.head`
-- `ck.blob.presign`（签发预签名 blob URL；必需 constraint `blob_presign_scope` + `blob_presign_max_ttl_seconds`）
+- `ck.self.events.query`
+- `ck.self.events.subscribe`
+- `ck.self.account.subscribe`
+- `ck.self.account.describe`
+- `ck.self.snapshot.head`
+- `ck.self.blob.upload`
+- `ck.self.blob.get`
+- `ck.self.blob.head`
+- `ck.self.blob.presign`（签发预签名 blob URL；必需 constraint `blob_presign_scope` + `blob_presign_max_ttl_seconds`）
 - `ck.call.configure_media_service`（target=`ck.realm.media_service`，**`event_mapping_kind=wire_compat_grandfather`**——跨 namespace 语义的冻结桥，新条目 MUST NOT 落入此类；§5.0 第四类列此例）
 - `ck.mls.genesis`
 - `ck.mls.proposal`

@@ -532,7 +532,7 @@ Probe 响应 payload：
 
 规范约束：
 
-1. 客户端 / 提交服务在提交 `ck.invite.accept`、`ck.member.state{membership="join"}`、`ck.member.state{membership="knock"}` 或 application receipt 前，MUST 通过 `ck.directory.resolve_realm` / `ck.directory.resolve_target` / signed invite metadata 取得 canonical `realm_id` 与 `join_candidates[]`。
+1. 客户端 / 提交服务在提交 `ck.invite.accept`、`ck.member.state{membership="join"}`、`ck.member.state{membership="knock"}` 或 application receipt 前，MUST 通过 `ck.find.directory.resolve_realm` / `ck.find.directory.resolve_target` / signed invite metadata 取得 canonical `realm_id` 与 `join_candidates[]`。
 2. 提交方 MAY 选择任一未过期 candidate；协议不要求通过邀请者 Principal Server，也不要求通过被邀请者自己的 Principal Server 加入。被邀请者自己的 Principal Server 仍负责其本地账号视角、device / to-device / KeyPackage 等投递，但这不等于 Realm ingress。
 3. Candidate 服务接收 join-side submission 时，MUST 独立验证 `realm_id`、Event signature、candidate 是否仍被当前 Realm auth state / `sync_endpoints` / service delegation / peer policy 授权，以及 Join Policy / invite / review 链是否允许该提交。Candidate 本身不是 authorization grant。
 4. `join_candidates[]` 是唯一标准 Realm join ingress 列表；客户端不得从 URL hint、邀请者 service DID、被邀请者 Principal Server 或成员 delivery binding 推导候选。
@@ -543,7 +543,7 @@ Probe 响应 payload：
 当 Realm S 的管理员邀请外部用户 Bob（Principal Server 在 `server-beta.com`）时：
 
 1. 管理员提交 `ck.invite.create` Event，`subject_id` 指向 Bob 的 DID；邀请的私有 metadata MAY 携带裁剪后的 `join_candidates[]`，但不得把该列表当作授权本身。
-2. 该 Event 通过联邦推送到达 Bob 的 Principal Server；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ck.directory.resolve_realm` 刷新 candidate 列表。
+2. 该 Event 通过联邦推送到达 Bob 的 Principal Server；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ck.find.directory.resolve_realm` 刷新 candidate 列表。
 3. Bob 的客户端发现 Invite，决定接受，并选择一个未过期 join candidate。
 4. Bob 的客户端提交 `ck.invite.accept` Event 到所选 candidate 的 Events API；该 candidate 可以是邀请者 Principal Server、Realm shared anchorer / sync service、或其他被 Realm policy 授权的参与方服务。
 5. 接收 candidate 验证 invite / membership / service binding 后，将该 Event 扇出给 Realm S 的其他参与方 Principal Server / federation peer。
@@ -646,7 +646,7 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 | 跨域按 id / digest 补洞 | `POST /_cokret/peer/events/resolve`（`ck.peer.events.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
 | 跨域 Realm 成员视图 | `GET /_cokret/peer/events`（`ck.peer.events.query`） + `ck.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 snapshot-assisted bootstrap | `GET /_cokret/peer/snapshot/head`（`ck.peer.snapshot.head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
-| 跨域 actor / DID 验证 | `POST /_cokret/root/identity/resolve`（`ck.identity.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
+| 跨域 actor / DID 验证 | `POST /_cokret/root/identity/resolve`（`ck.root.identity.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
 ### 7.1 跨域 Event 推送
 
@@ -703,7 +703,7 @@ Authorization: <service_signature>
 
 ### 7.4 验证 Actor
 
-跨域 actor 验证复用 `POST /_cokret/root/identity/resolve` 公共服务面（`ck.identity.resolve`）。该端点本就是公共 DID 解析入口，但 Cokret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
+跨域 actor 验证复用 `POST /_cokret/root/identity/resolve` 公共服务面（`ck.root.identity.resolve`）。该端点本就是公共 DID 解析入口，但 Cokret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
 
 下面列出 `holder-approved proof challenge` 高级 query 形态的字段集——这是 `/_cokret/root/identity/resolve` 的一种调用形态，不是独立 operation。
 
