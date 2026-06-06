@@ -63,12 +63,6 @@
       ],
       "description": "Normative discriminator for event id visibility in aad. hidden forbids aad.event_id and aad.event_ref_digest; routing_digest requires aad.event_ref_digest and forbids aad.event_id; opaque_id requires aad.event_id and forbids aad.event_ref_digest."
     },
-    "authentication_tag": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "deprecated": true,
-      "description": "FORBIDDEN under scheme=mls-rfc9420 (the only v1 scheme): top-level `not` rejects this field. The MLS PrivateMessage already carries its AEAD tag internally, so a separate authentication_tag is a dead field; allowing it would also change payload_digest input (see encryption-and-audit.md §2.3.1/§2.3.3). Property kept only so validators report a precise error rather than 'unknown field'. A future non-MLS raw/exporter-AEAD profile that genuinely needs it MUST relax the scheme enum and lift this prohibition for that scheme."
-    },
     "aad": {
       "type": "object",
       "required": [
@@ -150,12 +144,6 @@
     "aad_digest": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
-    },
-    "cleartext_commitment": {
-      "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
-      "deprecated": true,
-      "description": "FORBIDDEN in v1: top-level `not: { required: ['cleartext_commitment'] }` rejects this field at schema level. Property kept here only so validators report a precise error rather than 'unknown field'. Rationale: low-entropy plaintext can be dictionary-tested offline. Receivers MUST reject envelopes carrying it (schema_violation). Future profiles that need plaintext commitment MUST define a keyed/salted object form rather than this bare hash."
     }
   },
   "allOf": [

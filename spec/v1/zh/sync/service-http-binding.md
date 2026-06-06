@@ -386,9 +386,9 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 #### 2.4.1 Binding completeness index
 
-`binding_completeness` 由 operation registry 派生：声明 `request_schema_ref` / `response_schema_ref` 且 OpenAPI 指向同一 schema fragment 的 operation 为 `typed_schema`；未来 profile 若重新引入通用 `OperationRequest` / `OperationResult` binding,该 operation 必须声明为 `generic_binding`；若该 generic row 带 `migration_plan`，则对实现者显式标为 `migration_required`。`migration_required` operation 不得被宣称为 generated-SDK complete；SDK、gateway validator 与 conformance runner MUST 继续读取对应字段表、profile gate、capability、policy 和 canonical digest 规则，直到 dedicated DTO schema 落地。
+`binding_completeness` 由 operation registry 派生：声明 `request_schema_ref` / `response_schema_ref` 且 OpenAPI 指向同一 schema fragment 的 operation 为 `typed_schema`；绑定通用 `OperationRequest` / `OperationResult` body 的 operation MUST 声明 `generic_binding`，且 core-tier operation MUST NOT 使用 generic binding。
 
-当前无 `migration_required` operation。未列出的 operation 在 registry 中已经是 `typed_schema`、无 body 的 status response，或不使用 generic operation envelope。
+所有 v1 operation 均为 `typed_schema`。未列出的 operation 在 registry 中已经是 `typed_schema`、无 body 的 status response，或不使用 generic operation envelope。
 
 | `operation_id` | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |

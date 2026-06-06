@@ -1355,7 +1355,7 @@
     },
     "ck.profile.push_gateway.matrix_passthrough.v1": {
       "role": "interop",
-      "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as a bridge for legacy clients but MUST NOT mix this profile with ck.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Cokret privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under ck.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
+      "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as an external interop bridge to Matrix push gateways but MUST NOT mix this profile with ck.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Cokret privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under ck.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
       "depends_on": [
         "ck.profile.matrix_compat.v1"
       ],
