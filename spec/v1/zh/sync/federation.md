@@ -19,7 +19,7 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 - 如何处理跨域加入 Realm 的请求
 - 如何在异构网络中维持因果一致性
 
-本文 §4 的 wire transaction 形态合并自早期 `federation-wire.md`；当前 v1 不再维护独立 federation wire 文档，所有联邦 HTTP 绑定以本文和 `service-http-binding.md` / OpenAPI 为准。
+本文 §4 定义联邦 wire transaction 形态；所有联邦 HTTP 绑定以本文和 `service-http-binding.md` / OpenAPI 为准。
 
 ## 2. 设计原则
 
@@ -280,7 +280,7 @@ v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
 | 路径 | 投递对象 | 解析来源 | 谁是 destination |
 | --- | --- | --- | --- |
 | **Member-level delivery** | 面向某个 Realm 成员的 events / account aggregate / to_device / push / key_packages | 该成员的 effective `ck.member.state{membership="join"}.delivery_binding.recipient_service_did` | 该 binding 指定的 Principal Server |
-| **Realm-level fanout** | Realm 共享的 shared anchorer / sync service / 受托 search-projection 等服务面 | Realm metadata 的 `sync_endpoints`（受 [`governance/member-delivery-binding.md` §7](../governance/member-delivery-binding.md) 与 [`models/realm-and-space.md`](../models/realm-and-space.md) 约束） | sync_endpoints 中列出的 service DID |
+| **Realm-level fanout** | Realm 共享的 shared anchorer / Sync Service / 受托 search-projection 等服务面 | Realm metadata 的 `sync_endpoints`（受 [`governance/member-delivery-binding.md` §7](../governance/member-delivery-binding.md) 与 [`models/realm-and-space.md`](../models/realm-and-space.md) 约束） | sync_endpoints 中列出的 service DID |
 
 两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Realm-level fanout 不走 member binding。
 
@@ -435,7 +435,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 
 `ck.capability.revoke`、superseding grant、membership removal、ban、device/session revoke 和会使既有 allow cache 失效的 policy change 是高优先级 auth state。源 Principal Server 在接受这类 Event 后，MUST 主动推送给所有当前已知的相关 Principal Server，而不是只等待对端下一次 pull：
 
-- fanout 目标包括 Realm policy / membership / service delegation 中声明的 shared anchorer / sync service、受影响 subject 的 Principal Server、grant issuer / delegatee 所在 Principal Server，以及正在服务该 Realm 的 federation peer。
+- fanout 目标包括 Realm policy / membership / service delegation 中声明的 shared anchorer / Sync Service、受影响 subject 的 Principal Server、grant issuer / delegatee 所在 Principal Server，以及正在服务该 Realm 的 federation peer。
 - 推送 payload MUST 包含原始 Event Envelope、必要 auth refs、当前 auth frontier 或可验证 snapshot reference，便于接收方立即失效 capability cache。
 - 接收方即使暂时无法完整验证该 revoke，也 MUST 将匹配 scope 的 allow cache 标记为 stale / `revocation_freshness_unknown`，直到 backfill 完成。
 - fanout 失败时，源服务器 MUST 保留重试队列并在后续 federation transaction、frontier probe 或 pull 响应中暴露缺失诊断；不得因单个 peer 不可达而回滚已 accepted revoke。
@@ -545,7 +545,7 @@ Probe 响应 payload：
 1. 管理员提交 `ck.invite.create` Event，`subject_id` 指向 Bob 的 DID；邀请的私有 metadata MAY 携带裁剪后的 `join_candidates[]`，但不得把该列表当作授权本身。
 2. 该 Event 通过联邦推送到达 Bob 的 Principal Server；Bob 的客户端也 MAY 用 invite token / signed link 调用 `ck.find.directory.resolve_realm` 刷新 candidate 列表。
 3. Bob 的客户端发现 Invite，决定接受，并选择一个未过期 join candidate。
-4. Bob 的客户端提交 `ck.invite.accept` Event 到所选 candidate 的 Events API；该 candidate 可以是邀请者 Principal Server、Realm shared anchorer / sync service、或其他被 Realm policy 授权的参与方服务。
+4. Bob 的客户端提交 `ck.invite.accept` Event 到所选 candidate 的 Events API；该 candidate 可以是邀请者 Principal Server、Realm shared anchorer / Sync Service、或其他被 Realm policy 授权的参与方服务。
 5. 接收 candidate 验证 invite / membership / service binding 后，将该 Event 扇出给 Realm S 的其他参与方 Principal Server / federation peer。
 6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
 7. 若 Realm 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
@@ -558,7 +558,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ck.realm.join
 
 1. Bob 发现 Realm S 的元数据（通过公开的 Realm Directory、链接或 `directory_hint`），并取得 `join_candidates[]`
 2. Bob 直接提交 `ck.member.state{membership="join", gate_proofs=[...]}` Move，附带 claim presentation / challenge proof
-3. Bob 的客户端 / Principal Server 将 join Move 推送至所选未过期 candidate；candidate MUST 是 Realm policy / service delegation 授权的 shared anchorer、sync service、federation peer 或参与方 Principal Server
+3. Bob 的客户端 / Principal Server 将 join Move 推送至所选未过期 candidate；candidate MUST 是 Realm policy / service delegation 授权的 shared anchorer、Sync Service、federation peer 或参与方 Principal Server
 4. 各参与方 reducer 加载当前 `ck.component.realm.join_policy.v1` cell value，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
 5. 若 Realm 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
 
@@ -578,7 +578,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ck.realm.join
 
 ### 6.1 Anchorer / Sync Endpoint 列表
 
-每个 Realm 的 metadata MAY 包含一个 `sync_endpoints` 列表（schema: `ck.schema.realm.v1#/properties/sync_endpoints`），用于列出被 Realm policy 明确委托的 shared anchorer、sync service、federation peer 或组织 Principal Server。该列表不是公开分发节点列表；Directory / invite link 暴露给外部 joiner 的 `join_candidates[]` 是从 `sync_endpoints`、service delegation、peer policy 和 requester policy 中裁剪出的 join ingress 投影，不能直接等同于完整 `sync_endpoints`。列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
+每个 Realm 的 metadata MAY 包含一个 `sync_endpoints` 列表（schema: `ck.schema.realm.v1#/properties/sync_endpoints`），用于列出被 Realm policy 明确委托的 shared anchorer、Sync Service、federation peer 或组织 Principal Server。该列表不是公开分发节点列表；Directory / invite link 暴露给外部 joiner 的 `join_candidates[]` 是从 `sync_endpoints`、service delegation、peer policy 和 requester policy 中裁剪出的 join ingress 投影，不能直接等同于完整 `sync_endpoints`。列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
 
 ```json
 {
@@ -772,7 +772,7 @@ Signature: sig1=:<base64>:
 
 - 请求 MUST 使用来源 service DID 的 HTTP Message Signature。
 - `purpose` MUST 是 `event_source`、`federation_join`、`device_binding` 或 Realm policy 明确允许的等价目的。
-- 请求方 MUST 是该 Realm 的参与方 Principal Server、被委托 anchorer / sync service，或拥有相关 federation / join 处理权限的服务。
+- 请求方 MUST 是该 Realm 的参与方 Principal Server、被委托 anchorer / Sync Service，或拥有相关 federation / join 处理权限的服务。
 - 服务端 MUST 限流，并对不可见 actor 返回统一 `not_found` / `capability_denied` 语义，避免批量枚举 DID。
 - 响应只能作为缓存加速或诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy。
 

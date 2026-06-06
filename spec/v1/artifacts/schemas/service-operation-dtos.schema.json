@@ -263,12 +263,12 @@
           "type": "string",
           "enum": [
             "allow",
-            "deny",
+            "soft_deny",
+            "hard_deny",
             "quarantine",
-            "require_review",
-            "soft_fail"
+            "require_review"
           ],
-          "description": "`allow` / `deny` are terminal decisions. `quarantine` / `require_review`\nare policy-server-mediated soft outcomes (the request enters async\nreview). `soft_fail` is a transient retryable failure; callers MUST\ntreat it as fail-closed for high-risk actions unless a profile\nexplicitly allows local pending behavior.\n"
+          "description": "`allow` / `hard_deny` are terminal decisions. `soft_deny` is an evaluated policy soft refusal. `quarantine` / `require_review` are Policy Server-mediated soft outcomes (the request enters async review). Transient dependency or freshness failures are reported through `freshness_state`, `reason_code`, and `retry_after_ms`, not as policy decision values.\n"
         },
         "matched_grants": {
           "type": "array",
@@ -333,7 +333,7 @@
         "retry_after_ms": {
           "type": "integer",
           "minimum": 0,
-          "description": "Set when `decision=soft_fail` or `freshness_state ∈ {stale,unknown}`; client SHOULD back off this amount before retry."
+          "description": "Set when `freshness_state ∈ {stale,unknown}` or a retryable `reason_code` is present; client SHOULD back off this amount before retry."
         },
         "obligations": {
           "type": "array",
@@ -1497,7 +1497,7 @@
             "kid": {
               "type": "string",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-              "description": "DID URL of the policy server verification method."
+              "description": "DID URL of the Policy Server verification method."
             },
             "sig": {
               "type": "string",
@@ -2131,6 +2131,20 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile."
+        },
+        "summary": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile."
+        },
         "state": {
           "type": "string",
           "enum": [
@@ -2145,20 +2159,6 @@
             "null"
           ],
           "format": "date-time"
-        },
-        "title": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile."
-        },
-        "summary": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile."
         },
         "board_space_id": {
           "type": [
@@ -2225,6 +2225,12 @@
         "morph_type": {
           "type": "string"
         },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "state": {
           "type": "string",
           "enum": [
@@ -2239,12 +2245,6 @@
             "null"
           ],
           "format": "date-time"
-        },
-        "title": {
-          "type": [
-            "string",
-            "null"
-          ]
         },
         "created_by": {
           "type": [

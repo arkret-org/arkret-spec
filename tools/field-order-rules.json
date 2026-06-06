@@ -22,6 +22,18 @@
     {
       "earlier": "updated_by",
       "later": "updated_at"
+    },
+    {
+      "earlier": "kid",
+      "later": "alg"
+    },
+    {
+      "earlier": "verification_method",
+      "later": "alg"
+    },
+    {
+      "earlier": "agent_principal_id",
+      "later": "controller_principal_id"
     }
   ],
   "hard_immediate_follow": [

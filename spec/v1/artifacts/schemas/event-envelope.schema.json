@@ -3266,8 +3266,8 @@
       "type": "object",
       "required": [
         "kind",
-        "alg",
         "verification_method",
+        "alg",
         "event_digest",
         "created_at",
         "jws"
@@ -3280,6 +3280,11 @@
           ],
           "description": "detached_jws = actor / device / service signature over canonical proof binding object: canonical_json({event_digest, actor_id, verification_method, created_at, domain?, audience?}). event_digest is the canonical event hash excluding only proofs and unsigned; hlc IS covered by that hash as advisory signed metadata. Ordering authority signatures are carried by Anchor."
         },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the Event-signing key. Verifier MUST strip fragment/query only for controller comparison and MUST compare that controller DID bit-identically to actor_id or executed_by according to the accountability rules."
+        },
         "alg": {
           "type": "string",
           "enum": [
@@ -3287,11 +3292,6 @@
             "ES256",
             "ML-DSA-65"
           ]
-        },
-        "verification_method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the Event-signing key. Verifier MUST strip fragment/query only for controller comparison and MUST compare that controller DID bit-identically to actor_id or executed_by according to the accountability rules."
         },
         "event_digest": {
           "$ref": "#/$defs/hash"
@@ -3327,8 +3327,8 @@
       "description": "Generic detached-JWS proof shape reused by non-Event schemas (snapshot signature, snapshot witness attestations, identity receipts, handle claims, etc.). MUST NOT be used as the shape of Event Envelope `proofs[]` — Event proofs reference $defs/event_proof and bind canonical Event bytes via `event_digest`. drift detection: `payload_digest#event_proof` in forbidden-wire-fields.json is the hard-reject mirror of this rule. New non-Event signed objects MAY $ref this shape; new signed Event-shaped objects MUST instead $ref event_proof.",
       "required": [
         "kind",
-        "alg",
         "verification_method",
+        "alg",
         "payload_digest",
         "created_at",
         "jws"
@@ -3341,6 +3341,11 @@
           ],
           "description": "Generic detached JWS proof over a canonical non-Event payload binding object."
         },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the signing key for this non-Event detached proof. Same pattern as $defs/event_proof.verification_method; semantics are decoupled from Event proof (see $defs/event_proof for the Event-only shape)."
+        },
         "alg": {
           "type": "string",
           "enum": [
@@ -3348,11 +3353,6 @@
             "ES256",
             "ML-DSA-65"
           ]
-        },
-        "verification_method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the signing key for this non-Event detached proof. Same pattern as $defs/event_proof.verification_method; semantics are decoupled from Event proof (see $defs/event_proof for the Event-only shape)."
         },
         "payload_digest": {
           "$ref": "#/$defs/hash",

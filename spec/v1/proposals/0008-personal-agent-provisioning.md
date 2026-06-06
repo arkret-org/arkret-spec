@@ -243,7 +243,7 @@ profile: ck.profile.personal_agent_provisioning.v1
 | `pairing_expired` | pairing 窗口过期且未完成 | controller 重新发起 pairing → 新 `pending_runtime_key`;controller 显式 revoke → `deactivated` |
 | `deactivated` | agent terminal state,所有 active sessions / keys / grants / runtime bindings 已失效 | terminal,不再转换 |
 
-该枚举与 [`zh/models/actor.md` §3.2](spec/v1/zh/models/actor.md) 的 actor profile `status` 字段对齐,但 `pending_runtime_key` 与 `pairing_expired` 是 provisioning-specific 投影,不直接出现在 actor profile 上(actor profile 在这些过渡状态下表现为 `active` 或 `suspended`,具体由 account lifecycle 文档定义)。
+该枚举与 [`zh/models/actor.md` §3.2](../zh/models/actor.md) 的 actor profile `status` 字段对齐,但 `pending_runtime_key` 与 `pairing_expired` 是 provisioning-specific 投影,不直接出现在 actor profile 上(actor profile 在这些过渡状态下表现为 `active` 或 `suspended`,具体由 account lifecycle 文档定义)。
 
 #### 4.3.2 Pairing 失败时的 grant 清理
 

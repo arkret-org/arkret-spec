@@ -19,7 +19,7 @@ updated: 2026-05-25
 - **Capability Grant**（`ck:grant:`）：授权委派。
 - **Invite**（`ck:invite:`）：Realm 加入引导。
 
-这些对象都不直接承载协作内容，但决定了协作内容的合法范围、可见性和权限路径。完整 capability 模型、policy server 决策、anchor finality profile 等运行时语义在 `authz/`、`governance/` 和 `security/` 章节展开；本文聚焦对象级 schema、字段和生命周期。
+这些对象都不直接承载协作内容，但决定了协作内容的合法范围、可见性和权限路径。完整 capability 模型、Policy Server 决策、anchor finality profile 等运行时语义在 `authz/`、`governance/` 和 `security/` 章节展开；本文聚焦对象级 schema、字段和生命周期。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 

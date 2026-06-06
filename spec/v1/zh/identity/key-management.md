@@ -203,7 +203,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
 - `payload.principal_id` / `payload.subject` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
 - control Realm 的 `ck.realm.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Realm 使用标准 `ck.schema.realm.v1`；通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `ck.profile.principal_control_realm.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走标准 Realm 路径。
-- 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、policy server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
+- 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、Policy Server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
 
 `principal_control_realm_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Realm 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
 
@@ -343,7 +343,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 ##### 5.0.5.3 Receiver 验证规则
 
-任何接收升级 transition Event 的 receiver(principal server、其他 federation peer、新设备 join 时)**MUST**:
+任何接收升级 transition Event 的 receiver(Principal Server、其他 federation peer、新设备 join 时)**MUST**:
 
 1. 拉取 `old_did` 的当前 DID Document,canonicalize 后 hash 比对 `transfer_evidence.old_did_document_canonical_digest`;不一致 → reject `inception_upgrade_old_document_hash_mismatch`。
 2. 校验 `transfer_evidence.old_did_document_fetched_at` 是 RFC 3339 UTC，且 receiver 当前时间与该值的差值不得超过升级 evidence 新鲜度上限常量 `inception_upgrade_evidence_max_age = 168h`（7 天）；超过窗口 → reject `inception_upgrade_evidence_stale`。Receiver MAY 使用更短 deployment policy，但 MUST NOT 接受超过 `inception_upgrade_evidence_max_age` 的 transfer evidence。

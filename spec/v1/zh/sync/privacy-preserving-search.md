@@ -40,6 +40,8 @@ Blind index 使用 keyed HMAC token。Posting 必须绑定 `realm_id`、`effecti
 
 Token 不得跨 Realm、Circle、MLS epoch 或 index generation 复用。实现 SHOULD 定期轮换 index key，并把轮换与 policy frontier digest 绑定。
 
+Blind-index token 是 deterministic keyed token：它不向服务端暴露明文 term，但会暴露同一 `index_generation` 内的查询频次、候选集合大小、access pattern 以及 term 共现结构。实现 MUST 把这些泄漏写入 Realm search policy 的风险评估；高隐私 Realm SHOULD 缩短 `index_generation` / epoch 轮换窗口，并限制服务端跨 generation 关联。Forward-private SSE、PIR-backed candidate retrieval 或 ORAM-style access hiding 只能作为显式 search extension profile 引入；base v1 blind index 不声称隐藏 access pattern。
+
 ## 4. Realm Search Policy
 
 `ck.realm.search_policy` 写入 Realm policy cell。默认行为是 fail closed：未声明允许的受托 search 服务不得接收 plaintext 或可逆派生数据，也不得接收 blind-index token。

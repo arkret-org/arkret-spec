@@ -80,7 +80,7 @@ sidebar:
 
 20. **推送网关与通知元数据滥用（Push/Gateway Abuse）**
     攻击者利用未鉴权的 gateway 注册、metadata 推送接口、超频或伪造事件触发隐私侧信道或 DoS。
-    **推送侧信道细分（与 [`discovery/push-notifications.md` §2.2 / §2.4`](../discovery/push-notifications.md) 交叉引用）**:具体威胁向量包括——(a) **collapse / dedup key 跨 window 关联**:provider 可见的 collapse / dedup key 若跨 delivery window 稳定,可关联同一目标的连续 wakeup,还原活动模式;防护见 push-notifications §2.4「Provider 侧 collapse / dedup key 约束」(跨 window 不可链接随机值,MUST NOT 直接用 `source_event_digest` / event id / Realm id 等稳定派生)。(b) **push timing oracle**:在用户刚上线 / 离线瞬间发出可被 provider 观察的 per-event push burst,使 presence 成为精确 timing oracle;防护见 push-notifications §2.4(按 Realm policy bucket 粒度,默认 ≥ 60s 批处理 / 延迟)。(c) **`push_target_id` 可链接性**:伪名若可跨 Realm / Principal Server 关联即成行为追踪点；防护见 push-notifications §2.2(per-(recipient_service_did, principal, device, push_route) pairwise pseudonym,keyed salt 派生，跨上下文不可复用)。(d) **counts 活动侧信道**:明文绝对未读数让 provider 重建累计活跃度画像；防护见 push-notifications §5.1(blind_wakeup 下 counts MUST NOT 携带明文绝对未读数，改用布尔 / 增量 / bucket)。
+    **推送侧信道细分（与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md) 交叉引用）**:具体威胁向量包括——(a) **collapse / dedup key 跨 window 关联**:provider 可见的 collapse / dedup key 若跨 delivery window 稳定，可关联同一目标的连续 wakeup，还原活动模式；防护见 push-notifications §2.4「Provider 侧 collapse / dedup key 约束」(跨 window 不可链接随机值，MUST NOT 直接用 `source_event_digest` / event id / Realm id 等稳定派生)。(b) **push timing oracle**:在用户刚上线 / 离线瞬间发出可被 provider 观察的 per-event push burst，使 presence 成为精确 timing oracle；防护见 push-notifications §2.4(按 Realm policy bucket 粒度，默认 ≥ 60s 批处理 / 延迟)。(c) **`push_target_id` 可链接性**:伪名若可跨 Realm / Principal Server 关联即成行为追踪点；防护见 push-notifications §2.2(per-(recipient_service_did, principal, device, push_route) pairwise pseudonym，keyed salt 派生，跨上下文不可复用)。(d) **counts 活动侧信道**:明文绝对未读数让 provider 重建累计活跃度画像；防护见 push-notifications §5.1(blind_wakeup 下 counts MUST NOT 携带明文绝对未读数，改用布尔 / 增量 / bucket)。
 
 21. **URL 凭证泄露（URL Credential Leakage）**
     将 session token、API key 或签名材料放入 query string，导致浏览器历史、代理日志、崩溃日志、复制链接或 referrer 泄露。
@@ -97,7 +97,7 @@ sidebar:
     攻击者通过 DID Document serviceEndpoint、媒体 URL、snapshot chunk、Policy Server endpoint、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
 
 25. **Directory ingest 写路径滥用（Directory Ingest Abuse）**
-    攻击者污染 Directory 的发现 / 投影 ingest 写路径（与 [`discovery/discovery-directory.md` §8.10 / §11`](../discovery/discovery-directory.md) 交叉引用）。具体向量:**announce replay**(重放过期 announce 让陈旧条目复活)、**`as_of` skew**(伪造 `as_of` 时间使旧状态看似最新)、**policy_revision rollback**(回退 policy_revision 绕过更严策略)、**DID hijack**(劫持 announce 来源 DID 冒名注入条目)、**source-ref 伪造**(伪造来源引用让未授权条目进入 directory)、**takedown spoofing**(伪造下架 / takedown 让合法条目被移除)。防护以 discovery-directory §8.10 / §11 的来源 DID 验签、`as_of` 单调 / 时间锚校验、policy_revision 单调、announce 一次性 / 过期窗口、source-ref 授权核验与 takedown 授权链为权威。
+    攻击者污染 Directory 的发现 / 投影 ingest 写路径（与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md) 交叉引用）。具体向量:**announce replay**(重放过期 announce 让陈旧条目复活)、**`as_of` skew**(伪造 `as_of` 时间使旧状态看似最新)、**policy_revision rollback**(回退 policy_revision 绕过更严策略)、**DID hijack**(劫持 announce 来源 DID 冒名注入条目)、**source-ref 伪造**(伪造来源引用让未授权条目进入 directory)、**takedown spoofing**(伪造下架 / takedown 让合法条目被移除)。防护以 discovery-directory §8.10 / §11 的来源 DID 验签、`as_of` 单调 / 时间锚校验、policy_revision 单调、announce 一次性 / 过期窗口、source-ref 授权核验与 takedown 授权链为权威。
 
 ### 2.1a 需 profile 才能缓解的攻击项（base v1 不直接防御）
 
@@ -131,7 +131,7 @@ sidebar:
 | --- | --- | --- |
 | 开放联邦滥用 | 是 | `federation`/`service-surface` 的 Federation Allow List，`server ACL`，未签名来源走 `soft_deny`/`rate_limited`。 |
 | 认证与凭证爆破 | 是 | `account-lifecycle` 与 auth 入口开启失败风控；`session/device token` 撤销与短TTL。 |
-| 写入泛滥 | 是 | `policy-server` 风险码 + `rate_limit`，`per-source` 与 `per-realm` 队列保护。 |
+| 写入泛滥 | 是 | Policy Server 风险码 + `rate_limit`，`per-source` 与 `per-realm` 队列保护。 |
 | 重试放大 | 是 | 窗口退避、批次阈值、失败率熔断，优先使用 `Retry-After`，并在 body 中提供 `retry_after_ms`。 |
 | 来源身份伪造 | 是 | source DID / message-signature / service signature 验签链。 |
 | 钓鱼 | 是/部分 | 需要可验证展示（service DID 与 policy 来源）与用户告警策略。 |
@@ -148,8 +148,8 @@ sidebar:
 | 邀请令牌滥用 | 是 | token 一次性约束、过期窗口、绑定 proof 重放检测。 |
 | 会话凭证滥用 | 是 | `account-lifecycle` 强制撤销链路、推送网关 token 与 service token 的短期有效策略。 |
 | MLS epoch 滥用 | 是 | epoch monotonic、移除成员 fail-closed、提交顺序与 commit/proposal 校验。 |
-| 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。**推送侧信道**:collapse/dedup key 跨 window 不可链接、presence push timing bucket 化(默认 ≥60s)、`push_target_id` pairwise 不可跨上下文关联、blind_wakeup counts 不携带明文绝对未读数(见 §2.1 #20 与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1`](../discovery/push-notifications.md))。 |
-| Directory ingest 滥用 | 是 | announce 来源 DID 验签、`as_of` 单调 / 时间锚、policy_revision 单调防回退、announce 一次性 + 过期窗口、source-ref 授权核验、takedown 授权链(见 §2.1 #25 与 [`discovery/discovery-directory.md` §8.10 / §11`](../discovery/discovery-directory.md))。 |
+| 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。**推送侧信道**:collapse/dedup key 跨 window 不可链接、presence push timing bucket 化(默认 ≥60s)、`push_target_id` pairwise 不可跨上下文关联、blind_wakeup counts 不携带明文绝对未读数(见 §2.1 #20 与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md))。 |
+| Directory ingest 滥用 | 是 | announce 来源 DID 验签、`as_of` 单调 / 时间锚、policy_revision 单调防回退、announce 一次性 + 过期窗口、source-ref 授权核验、takedown 授权链(见 §2.1 #25 与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md))。 |
 | URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ck.self.blob.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
 | 出站 URL / SSRF | 是 | [`sync/api-conventions.md`](../sync/api-conventions.md) §11.2 的出站网络目标策略；DID、联邦、媒体、snapshot、Policy Server、Webhook、Applet/Agent endpoint 统一做私网/metadata 地址拒绝、DNS rebind 防护和 redirect 复核。 |
@@ -212,8 +212,8 @@ sidebar:
 - `../sync/api-conventions.md`（统一错误码、重放控制与出站网络目标策略）
 - `../discovery/discovery-directory.md`（发现防枚举）
 - `../identity/identity-did.md`（resolver trust）
-- `snapshot-schema.md`（snapshot integrity）
-- `third-party-invites.md`（邀请令牌生命周期）
-- `account-lifecycle.md`（设备与会话撤销）
-- `encryption-and-audit.md`（MLS epoch 与移除成员控制）
-- `sovereign-deployment.md`（高安全部署收敛项）
+- `../conformance/snapshot-schema.md`（snapshot integrity）
+- `../sync/third-party-invites.md`（邀请令牌生命周期）
+- `../identity/account-lifecycle.md`（设备与会话撤销）
+- `../crypto-media/encryption-and-audit.md`（MLS epoch 与移除成员控制）
+- `../sync/sovereign-deployment.md`（高安全部署收敛项）

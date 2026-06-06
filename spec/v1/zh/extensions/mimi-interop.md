@@ -321,6 +321,6 @@ Cokret v1 的 MIMI 支持固定为 facade profile：
 - 不把 MIMI hub 变成 Cokret 的唯一 truth source。
 - 不用 MIMI room id 替代 `realm_id`。
 - 不用 MIMI user identifier 替代 DID。
-- 不绕过 Cokret capability Move refs / policy server。
+- 不绕过 Cokret capability Move refs / Policy Server。
 - 不把 MIMI provider accepted timestamp 替代 Cokret HLC / event hash。
 - 支持 MIMI 草案版本 pinning，并允许未来 profile 处理草案变化。

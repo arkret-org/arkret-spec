@@ -12,7 +12,7 @@ updated: 2026-05-26
 
 ## 1. 目标
 
-**Circle**(`ck:circle:`)是 Realm 内被父 Realm 包裹的**子事件 / 子消息边界**:拥有独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪规则，且 `Circle.members ⊆ Realm.members`；但**不**持有 federation identity、policy server 或 capability registry。Circle 表达"窄于 Realm 的协作圈"。
+**Circle**(`ck:circle:`)是 Realm 内被父 Realm 包裹的**子事件 / 子消息边界**:拥有独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪规则，且 `Circle.members ⊆ Realm.members`；但**不**持有 federation identity、Policy Server 或 capability registry。Circle 表达"窄于 Realm 的协作圈"。
 
 Realm 与 Circle 分工正交:Realm 承担 federation / identity boundary,Circle 承担 intra-Realm scoped event boundary。**一对象一 effective scope** 是协议级硬不变量——任何对象 MUST 只属于一个 effective scope(Realm-default 或某个 Circle)。
 
@@ -205,7 +205,7 @@ Effective metadata profile = max(parent Realm `metadata_encryption_profile`, Cir
 
 ### 7.1 Space child scope policy
 
-Space 不拥有 membership / policy server / MLS group;`Space.scope_circle_id` 只是让 Space 自身 metadata 与 structural relation facts 落入某个 existing scope。为了表达"这个 Space 下不允许 plaintext Flow"或"这个 List 只能放 HR Circle 对象",Space MAY 声明 placement policy:
+Space 不拥有 membership / Policy Server / MLS group;`Space.scope_circle_id` 只是让 Space 自身 metadata 与 structural relation facts 落入某个 existing scope。为了表达"这个 Space 下不允许 plaintext Flow"或"这个 List 只能放 HR Circle 对象",Space MAY 声明 placement policy:
 
 | field | enum / type | 说明 |
 | --- | --- | --- |
@@ -387,7 +387,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 
 | 概念 | 含义 | 主要承担 |
 | --- | --- | --- |
-| **Realm** | federation/identity boundary | membership 主源、policy server、capability registry、federation route、Realm-default MLS group |
+| **Realm** | federation/identity boundary | membership 主源、Policy Server、capability registry、federation route、Realm-default MLS group |
 | **Circle** | intra-Realm 子事件 / 子消息边界 | 子集 membership、独立 history visibility、scope 投递 / 查询 / projection 裁剪；可选独立 MLS group |
 | **Group** | principal 集合(capability subject,见 [`realm-and-space.md` §4](./realm-and-space.md)) | 在 capability grant / policy 中作为主体集合;**不**持有密钥 |
 | **Space** | navigation 容器 | 导航/分组/Board/List;authorization-transparent;不持有 membership 或 key |

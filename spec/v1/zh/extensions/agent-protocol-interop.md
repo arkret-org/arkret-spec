@@ -50,7 +50,7 @@ Cokret 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 a
 - 需要 Flow / Morph / Relation / View 与人类 UI 紧密联动。
 - 任务结果需要被人类审阅、批准、撤回或归档。
 - 对端 agent 不可信、不可发现或没有受支持协议。
-- E2EE / 合规 / policy server 要求所有步骤进入 Realm 账本。
+- E2EE / 合规 / Policy Server 要求所有步骤进入 Realm 账本。
 
 Cokret 原生模式更适合作为“协作事实层”和“治理层”。
 
@@ -165,6 +165,22 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 - `failed`
 - `cancelled`
 - `expired`
+
+合法状态转移（normative）：
+
+| 当前状态 | 合法后继 | 终态 |
+| --- | --- | --- |
+| `negotiating` | `accepted` / `blocked` / `failed` / `cancelled` / `expired` | no |
+| `accepted` | `working` / `input_required` / `blocked` / `completed` / `failed` / `cancelled` / `expired` | no |
+| `working` | `input_required` / `blocked` / `completed` / `failed` / `cancelled` / `expired` | no |
+| `input_required` | `working` / `blocked` / `failed` / `cancelled` / `expired` | no |
+| `blocked` | `working` / `input_required` / `failed` / `cancelled` / `expired` | no |
+| `completed` | 无 | yes |
+| `failed` | 无 | yes |
+| `cancelled` | 无 | yes |
+| `expired` | 无 | yes |
+
+Reducer MUST 对同一 `session_id` 的 accepted `ck.agent.interop_session.status` / `.result` 事件按 Anchor application order 回放；同一 Anchor 内无法由因果关系区分的候选按 `(created_at, event_id)` 稳定排序。每个候选状态 MUST 符合上表；从终态转出、跳过合法后继或对同一终态写入冲突 result 的事件 MUST fail closed，reason=`agent_protocol_malformed_response`。`ck.agent.interop_session.result` 是终态写入；当同一排序位置同时存在 status 与 result 时，result 的 `status` 作为 canonical terminal status。
 
 Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.interop_session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `ck.agent.interop_session.status{status="cancelled"}` 或终态 `ck.agent.interop_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。
 
@@ -408,7 +424,7 @@ Adapter MUST 声明：
 | `discovery_failed` | 找不到或无法验证对端 metadata / AgentCard。 |
 | `protocol_not_supported` | 双方没有共同协议。 |
 | `auth_failed` | 外部协议认证失败。 |
-| `policy_denied` | Cokret policy server 或 capability constraint 拒绝。 |
+| `policy_denied` | Cokret Policy Server 或 capability constraint 拒绝。 |
 | `egress_policy_denied` | 外发 E2EE Realm 明文 / 派生明文未命中显式 egress grant 或未通过数据分类校验；MUST 拒绝 session start（见 §6 步骤 4 与 §8）。 |
 | `remote_rejected` | 对端 agent 拒绝任务。 |
 | `timeout` | 超过最大执行时间。 |

@@ -600,7 +600,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 
 ### 2.7 Minimal-Metadata E2EE Realm
 
-高隐私 Realm MAY 启用 `ck.profile.mls.minimal_metadata_realm.v1`。该 profile 的作用域是 Realm，不表示 in-Realm Space 边界；目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
+高隐私 Realm MAY 启用 `ck.profile.mls.minimal_metadata_realm.v1`。该 profile 的作用域是 Realm，不表示 in-Realm Space 边界；目标是让转发服务、shared anchorer / Sync Service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
 
 Profile 规则：
 
@@ -706,7 +706,7 @@ Reaction 事件 (`ck.reaction.*`) 的可见性规则：
 - Minimal-metadata Realm (`ck.profile.mls.minimal_metadata_realm.v1`): 同上，且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_digest)` 三元组在服务侧也不直接暴露 principal。对声明该 profile 的 Realm，上一条中针对 within-epoch 频次侧信道的两项缓解从 SHOULD 升为 MUST：客户端 / committer MUST 通过缩短 MLS epoch lifetime 限制单 epoch 内可观察的频次窗口，且 epoch lifetime MUST ≤ 1 小时（实现 MAY 声明更短）；同时该 Realm MUST 使用 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。
 - `ck.reaction.remove` 走相同规则；`encrypted_payload` 明文的 `remove_add_event_ids[]` MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛，但不得将该 id 暴露在外层明文。
 
-服务端 / sync service 处理 reaction 时:
+服务端 / Sync Service 处理 reaction 时:
 
 - 在 routing hash 模式下，聚合层 MUST 仍能给出 `(target_ref, key, count)` 摘要 (其中 `key` 即 routing hash),客户端解密后将 hash 替换为真实 emoji 再渲染。
 - 不得将 routing hash 与历史 plaintext emoji 跨 Realm 关联 (例如缓存全局 `emoji ↔ hash` 表),Realm policy 如声明 `aad_visibility=hidden` MUST 拒绝此类全局关联。
@@ -785,7 +785,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 `ck.mls.genesis.payload` MUST 至少包含：
 
 - `mls_group_id`
-- `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 Realm 内 MLS-backed [Circle](../models/circle.md) 的独立 MLS group。MLS group 的 scope 绑定到 `(realm_id, circle_id?)` 复合 key；旧草案中的 `realm_key_scope`、`flow_id` 或 `track_name` 不能作为 genesis scope。
+- `effective_scope`：tagged scope —— `{kind:"realm", realm_id}` 表示 Realm-default MLS group；`{kind:"circle", realm_id, circle_id}` 表示 Realm 内 MLS-backed [Circle](../models/circle.md) 的独立 MLS group。MLS group 的 scope 绑定到 `(realm_id, circle_id?)` 复合 key；MUST NOT 从 `flow_id` 或 track 推断 genesis scope。
 - `epoch`：MUST 为 `0`。
 - `creator_principal_id`
 - `creator_device_id`
@@ -835,7 +835,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 同一 `(group_id, base_epoch)` 上多个 effective `ck.mls.commit` 候选如果无法由 Lattice 合并，会产生 `⊥`，而不是并存的多个有效 epoch。客户端发现自己提交的 commit 未成为 effective state 后，必须以当前 Anchor view 为 base 重新生成 Commit；原失败 commit 中未被消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
 
-v1 协议不再注册独立的 `ck.mls.epoch` event。每个 group 的当前 epoch 由 effective `ck.mls.commit` Move 的 `next_epoch` 字段直接表达；checkpoint 是 Lattice / snapshot 派生视图，不进入 wire history。任何来自旧版本的 `ck.mls.epoch` event MUST 被拒绝，发送方应改为引用 effective commit。
+每个 group 的当前 epoch 由 effective `ck.mls.commit` Move 的 `next_epoch` 字段直接表达；checkpoint 是 Lattice / snapshot 派生视图，不进入 wire history。
 
 当网络分区导致节点短期看见不同 Anchor leaf 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 Anchor view、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Realm policy 授权为普通 actor 或 service capability，不能替代 Anchor/Lattice 验证。
 

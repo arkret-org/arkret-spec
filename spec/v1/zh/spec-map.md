@@ -61,7 +61,7 @@ see_also:
 
 `renames.json` 的条目按消费方分两层（规范定义见 `renames.json.parser_tier_definitions`）：
 
-- **Current parser**：sync service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目视作输入禁止，不做 payload-shape disambiguation，遇到旧 id 直接返回 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误而不在线静默重写（规范约束见 `renames.json.parser_tier_definitions.current_parser`）。
+- **Current parser**：Sync Service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目视作输入禁止，不做 payload-shape disambiguation，遇到旧 id 直接返回 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误而不在线静默重写（规范约束见 `renames.json.parser_tier_definitions.current_parser`）。
 - **Migration tool**：离线批处理工具，读取非当前 v1 bytes 并改写成 canonical v1 形态。可消费带 `migration_tool_only: true` 的 entry；不得嵌入实时 parser 表面（规范约束见 `renames.json.parser_tier_definitions.migration_tool`）。
 
 这条分层把 payload-shape 鉴别复杂度限制在离线工具内：当前 v1 sync / federation / snapshot 路径不实现 fallback。`migration_tool_only` 标志使该约束机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。规范效力来自上述权威源，本文不重复承载独立 MUST。
@@ -159,6 +159,8 @@ see_also:
 | `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、contact-managed consent、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Flow 形态。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
+| `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
+| `sync/third-party-invites.md` | 3PID 邀请、认领与第三方标识符 claim 流程；物理位于 `sync/`，因为其 wire flow 与服务提交路径由 Sync / Federation 章节承载。 |
 
 ### 4.3 对象模型与交互
 
@@ -200,7 +202,6 @@ see_also:
 | `governance/history-visibility.md` | `world_readable` / `shared` / `invited` / `joined` / `restricted` 的精确定义、preview / peek policy、public plaintext Realm 与 E2EE history key share。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
-| `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
 
 ### 4.5 同步、服务与联邦
 
@@ -208,14 +209,15 @@ see_also:
 | --- | --- |
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
-| `sync/service-surface.md` | 最小服务面与实际服务组合：principal server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
+| `sync/service-surface.md` | 最小服务面与实际服务组合：Principal Server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ck.realm.search_policy` 与 search result fail-closed 语义。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/service-api-schema.mdx` | canonical operation 分组与治理说明视图（含 `<OperationTable />` 组件）；request / response shape 以 OpenAPI、JSON Schema 和 `artifacts/reports/operation-schema-index.json` 为准。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
 | `sync/transport-bindings.md` | HTTP/REST、gRPC、WebSocket、SSE、MQ、libp2p 等 binding。 |
-| `sync/federation.md` | 跨域联邦模型、节点认证、Event 交换协议、跨域加入、frontier exchange、wire transaction 形态（合并自原 federation-wire.md）。 |
+| `sync/federation.md` | 跨域联邦模型、节点认证、Event 交换协议、跨域加入、frontier exchange、wire transaction 形态。 |
 | `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、sovereign deployment 下 External Collaboration Realm 的强制 policy、enclave、导入导出和撤销规则。 |
+| `sync/third-party-invites.md` | 3PID 邀请与认领的 wire flow、token handoff、claim submit 与不可枚举响应；身份语义同时在 §4.2 交叉登记。 |
 
 ### 4.6 发现、目录与用户状态
 
@@ -251,7 +253,6 @@ see_also:
 | `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
 | `extensions/agent-protocol-interop.md` | A2A / ACP / external agent protocol handoff。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
-| `sync/third-party-invites.md` | 3PID 邀请与认领。 |
 
 > `models/realm-links.md`、`models/space-hierarchy.md` 与 `models/extension-objects.md` 的权威登记在 [§4.3 对象模型与交互](#43-对象模型与交互)；扩展场景从那里跳转，本组不重复整行登记。
 

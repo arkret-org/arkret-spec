@@ -175,7 +175,7 @@ Content-Type: application/json
 - `quarantine`
 - `require_review`
 
-`hard_deny` MAY 使事件被 reject；`quarantine` MUST 使事件进入 quarantine；`soft_deny` SHOULD 阻止默认客户端提交，但 Sync Service MAY 接收并标记 soft failed；`require_review` 生成 proposal/review flow。
+`hard_deny` MAY 使事件被 reject；`quarantine` MUST 使事件进入 quarantine；`soft_deny` SHOULD 阻止默认客户端提交，但 Sync Service MAY 接收并保留为策略软拒绝记录；`require_review` 生成 proposal/review flow。
 
 `reason_code` SHOULD 至少覆盖：
 
@@ -292,7 +292,7 @@ Policy decision 签名输入 MUST 包含：
 
 Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/_cokret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
 
-**Anchor batch pre-state 例外（normative）**:reducer 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 评估同一 Anchor batch 内的 Move 时，使用 `pre_state = joined_state(A.predecessor_refs)`——同批 Move 不读取彼此 effect。若同批内 revoke + 依赖该 grant 的 Move 都已落入同一 Anchor pre-state,reducer 接受 Move,但 policy-server fast-path cache(本节按 `auth_state_digest` post-state 索引)若已观察到 revoke 会 fail closed,造成 reducer accept 而 sync 层 deny 的 split-brain。为避免该分裂,policy-server fail-closed 仅适用于 *跨 Anchor batch* 的延迟 revoke;对已落入同一 Anchor pre-state 的 Move,policy-server MUST 按 reducer pre-state 模型评估，不得用 post-state revoke 直接 deny。实现 MAY 通过把 `auth_state_digest` 的 frontier 锚点对齐到 Anchor batch boundary 来达成该要求，或在收到同批 revoke + Move 时主动延迟 cache invalidation 至 Anchor commit 之后。
+**Anchor batch pre-state 例外（normative）**:reducer 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 评估同一 Anchor batch 内的 Move 时，使用 `pre_state = joined_state(A.predecessor_refs)`——同批 Move 不读取彼此 effect。若同批内 revoke + 依赖该 grant 的 Move 都已落入同一 Anchor pre-state,reducer 接受 Move,但 Policy Server fast-path cache(本节按 `auth_state_digest` post-state 索引)若已观察到 revoke 会 fail closed,造成 reducer accept 而 sync 层 deny 的 split-brain。为避免该分裂,Policy Server fail-closed 仅适用于 *跨 Anchor batch* 的延迟 revoke;对已落入同一 Anchor pre-state 的 Move,Policy Server MUST 按 reducer pre-state 模型评估，不得用 post-state revoke 直接 deny。实现 MAY 通过把 `auth_state_digest` 的 frontier 锚点对齐到 Anchor batch boundary 来达成该要求，或在收到同批 revoke + Move 时主动延迟 cache invalidation 至 Anchor commit 之后。
 
 ## 6. Failure Mode
 

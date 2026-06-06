@@ -94,7 +94,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.edge.push.register_device` | 注册推送设备和推送网关。 |
 | `ck.edge.push.notify` | 投递脱敏唤醒。 |
 | `ck.self.authz.check` | 检查 capability / policy 是否允许动作。 |
-| `ck.self.policy.check` | 调用 policy server 获取签名决策。 |
+| `ck.self.policy.check` | 调用 Policy Server 获取签名决策。 |
 | `ck.self.moderation.report` | 提交内容或行为举报。 |
 | `ck.edge.applet.transaction` | 向 Applet 推送事件批次。 |
 | `ck.edge.applet.describe` | 查询 Applet profile、namespace 与限制。 |

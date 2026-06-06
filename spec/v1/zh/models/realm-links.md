@@ -100,7 +100,7 @@ Projection MAY 派生：
 - history visibility
 - E2EE group key / MLS epoch
 - schema mutation
-- policy server
+- Policy Server
 - retention / legal hold
 - notification rule
 - Applet write permission

@@ -512,6 +512,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 - 支持每个 cursor 至少 50 个 realm。
 - **每 Realm 的 frontier (`s.<realm>.p`) 长度 MUST ≤ 1000 个 event_id**：超出时 issuing 服务 MUST 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再嵌入 cursor。该上限避免大并发 actor Realm (≥ 1000 active actor 各自有 head event) 让单个 cursor 膨胀到 MB 级。Receiver 收到超长 frontier 的 cursor MUST `invalid_param`。
 - **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，MUST NOT 直接产出超大 cursor；receiver 收到超大 cursor MUST `invalid_param`。
+- 大型 Realm 在 frontier 折叠为 `event_set_commitment.root` 或 snapshot pointer 后，仍 MAY 通过显式 sync extension profile 提供 range-based set reconciliation 能力，用于按差异大小协调缺口；该能力不得改变 Anchor finality、Event 因果语义或 cursor 不透明性，且未声明该 profile 的 v1 consumer MUST 继续按 snapshot / backfill 路径恢复。
 - 支持 stream cursor 与 barrier cursor 的过期时间；两者的 TTL 硬上限数值由 §8.3 规则 12 唯一定义，本节只引用不重复字面数值。
 - 以适当错误拒绝非法 cursor。
 

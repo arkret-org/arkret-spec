@@ -526,7 +526,7 @@ POST /_cokret/self/keys/claim
 规则：
 
 - `claim` MUST 原子消费 one-time key。
-- fallback key MUST 标记 `fallback=true`，并在成功建立会话后尽快轮换。
+- fallback key MUST 标记 `fallback=true`；设备成功使用该 fallback key 建立首个会话后，MUST 在下一次 OTK 上传批次中同时上传新的 fallback key，并 MUST NOT 用旧 fallback key 建立第二个会话。
 - 服务端返回 key 时 MUST 附带 device signature。
 - 客户端 MUST 拒绝未被 self-signing key 或 principal key 链接的 device key，除非用户明确接受未验证设备。
 
@@ -856,7 +856,7 @@ DELETE /_cokret/self/keys/backups/{backup_id}
 
 - 服务端 MUST 在收到 user erasure 请求（参见 `ck.audit.erasure_receipt` / `ck.schema.erasure_receipt.v1`）时，按 erasure receipt 的 `erasure_scope` 与 `subject` 处理对应 backup envelope：若 `subject.kind="principal"` 且 `erasure_scope.storage_boundary` 涵盖 `device_secret_store`，相应 `did_recovery` / `secret_storage` envelope MUST 被删除并产出 `ck.schema.erasure_receipt.v1` 子条目。
 - 用户主动删除自身备份与 erasure 流程区分清晰：常规 `DELETE` 不写 erasure receipt，但 §7.8 的高风险审计仍要求落地 `ck.audit.accessed` (`access_kind="key_backup_delete"`).
-- `legal_hold=true` 的 envelope MUST 被服务端拒绝删除（即便提供 high-risk proof）；解除 hold MUST 由声明该 hold 的 policy server 通过 policy update 完成，并写入审计。
+- `legal_hold=true` 的 envelope MUST 被服务端拒绝删除（即便提供 high-risk proof）；解除 hold MUST 由声明该 hold 的 Policy Server 通过 policy update 完成，并写入审计。
 - 同一 series 内的 retention 必须保证链不被打破：服务端 MUST NOT 删除 active series 的非尾部 envelope；旧 series 只有在已经被 active-series record 移出 primary source 后，才 MAY 按 retention / erasure 策略整组删除或迁移。
 - erasure 完成后保留的 `retained_stub_digest` MUST 仅含 metadata 哈希，不含密文与 KDF 参数，以避免间接成为离线爆破证据。
 
@@ -996,7 +996,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
 1. **本 principal 名下所有设备**的 trust state 强制从 `cross_signed` / `verified` 降为 `needs_reverification`。设备本身不被撤销，可以继续读写已经获得 capability 的 Realm；但 sender-side trust UI MUST 显示警告，且任何要求 cross-signed 的策略（例如 `ck.realm.policy.require_cross_signed`）MUST 重新计算。
 2. **本 principal USK 签发的跨 principal 信任**全部进入 `needs_reverification`：对方在自己视图里看到的"由 X 验证过我"提示 MUST 消失，需要等待新一轮 USK publish 与人工再确认。
-3. **MLS leaf credential** 不直接因 reset 失效——MLS credential 由 device key 与 KeyPackage 单独签名。但发送方 SHOULD 在 reset 后尽快发起一次 Empty Commit，让 epoch transcript 在新 SSK generation 下重新被覆盖；接收方 MUST 允许该 commit 推进。
+3. **MLS leaf credential** 不直接因 reset 失效——MLS credential 由 device key 与 KeyPackage 单独签名。但发送方 SHOULD 在 reset 后发送的第一个 outbound MLS handshake 中发起一次 Empty Commit，让 epoch transcript 在新 SSK generation 下重新被覆盖；接收方 MUST 允许该 commit 推进。
 4. **in-flight verification transaction**（§10 状态机里仍在 `request` / `ready` / `start` / `accept` / `key` / `mac` 阶段的）MUST 以 `code=cross_signing_reset` cancel，禁止把基于旧 SSK 的 SAS / QR transcript 用旧 generation 完成。
 5. **To-device 队列隔离**：reset accepted 后，服务端和客户端 MUST drop 或 quarantine 所有已排队但尚未处理的 `ck.key.verification.*` to-device 消息，以及任何未显式绑定 `new_generation` 的 cross-signing / trust bootstrap 消息。隔离窗口内仅允许 `ck.key.verification.cancel(code=cross_signing_reset)`、新的 `ck.cross_signing.publish` 可验证通知和重新发起的、显式绑定 `new_generation` 的验证事务通过；不得让旧 generation 的 `mac` / `done` 消息在 reset 后完成信任升级。
 6. **新的 `ck.cross_signing.publish`** MUST 在 reset 接受后 `ck.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布到 control stream（默认 24h）；超时未发布的 reset 会让该 principal 进入"无可用 SSK / USK"窗口，接收方在此窗口内 MUST 拒绝任何 `ck.device.authorize.cross_signing_binding.ssk_generation == new_generation` 的事件，避免静默接受未公布的 SSK。

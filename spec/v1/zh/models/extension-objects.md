@@ -54,7 +54,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - Applet 的每个写入仍需签名和 capability。
 - Applet namespace 只表示"该 Applet 可声明或接收这些对象"，不等于权限通过。
 - Ghost Actor 必须是可审计 Actor，不应伪装成人类 DID。
-- Applet 对 Portal Realm 写入仍需显式 Realm link、目标 Realm 的 explicit capability、目标 Realm 的 policy server / moderation 检查、E2EE 边界提示（如 bridge 到非 E2EE 外部系统）。详见 [`realm-links.md`](./realm-links.md)。
+- Applet 对 Portal Realm 写入仍需显式 Realm link、目标 Realm 的 explicit capability、目标 Realm 的 Policy Server / moderation 检查、E2EE 边界提示（如 bridge 到非 E2EE 外部系统）。详见 [`realm-links.md`](./realm-links.md)。
 
 ### 2.4 详细规范
 

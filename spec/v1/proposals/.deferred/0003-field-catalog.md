@@ -18,7 +18,7 @@ authors:
 
 Jira 右侧 "Fields" 边栏列出几十个可重复使用的字段(Approvals / Goals / Issue color / Project / Request Type / [CHART] Time in Status / ...),底部"Reuse 40 fields from other work types and spaces"和 "Can't find a field? Go to custom fields"。Linear 的 "Properties"、Asana 的 "Custom Fields"、Notion 的 "Property" 都是同类机制。
 
-当前协议:`fields: object` 是 untyped 扩展容器([common-fields.md §3](../zh/models/common-fields.md):"字段 schema 由对象类型自身的 `schema_refs` 决定")。问题:
+当前协议:`fields: object` 是 untyped 扩展容器([common-fields.md §3](../../zh/models/common-fields.md):"字段 schema 由对象类型自身的 `schema_refs` 决定")。问题:
 
 - 改一个字段的显示名 / widget 要在每个使用它的 schema 中改一遍
 - 没有"这个 Realm 当前可用哪些字段"的可枚举真源

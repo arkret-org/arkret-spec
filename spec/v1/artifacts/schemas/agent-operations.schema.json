@@ -122,6 +122,7 @@
       "type": "object",
       "required": [
         "kty",
+        "kid",
         "alg",
         "key"
       ],
@@ -129,14 +130,14 @@
         "kty": {
           "$ref": "#/$defs/non_empty_string"
         },
+        "kid": {
+          "$ref": "#/$defs/non_empty_string"
+        },
         "alg": {
           "$ref": "#/$defs/non_empty_string"
         },
         "key": {
           "$ref": "#/$defs/base64url"
-        },
-        "kid": {
-          "$ref": "#/$defs/non_empty_string"
         },
         "key_digest": {
           "$ref": "#/$defs/hash"
@@ -565,17 +566,17 @@
       "type": "object",
       "required": [
         "realm_id",
-        "controller_principal_id",
-        "agent_principal_id"
+        "agent_principal_id",
+        "controller_principal_id"
       ],
       "properties": {
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "controller_principal_id": {
+        "agent_principal_id": {
           "$ref": "#/$defs/did"
         },
-        "agent_principal_id": {
+        "controller_principal_id": {
           "$ref": "#/$defs/did"
         }
       },

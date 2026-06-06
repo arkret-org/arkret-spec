@@ -105,7 +105,7 @@ Actor-private state 是独立层，不是“弱 durable Event”。标准规则�
 
 Event Store 是 Principal Server、客户端、本地节点或授权副本保存 Event 的服务/存储能力。它不是独立权威对象，也不是协议一等概念——协议不规定其存储形态或对外接口语义。实现可以用数据库、append-only file、Merkle log、object store、content-addressed block store 或其他存储引擎保存 Event；协议只要求下列语义可验证：
 
-- event store：保存 signed Event。
+- Event Store Service：保存 signed Event。
 - per-actor event chain：由 `actor_id`、`actor_seq` 和 `prev_refs` 表达 actor 自己的发布顺序。
 - frontier / cursor：按 actor、Realm 或查询范围暴露调用方可见的同步前沿。
 - proof material：签名、hash、DID key 状态引用和可选 witness receipt。
@@ -706,7 +706,7 @@ List Space 在 Board Space 内的顺序通过 `ck.space.update` 修改 List Spac
 
 ## 10. 验证流程
 
-任何接收 Event Envelope 的 Events API 或 sync service，至少应校验：
+任何接收 Event Envelope 的 Events API 或 Sync Service，至少应校验：
 
 1. 签名有效。
 2. actor DID 可解析。
@@ -821,7 +821,7 @@ Flow Sync MUST NOT 因为 actor 可读 Flow synthesis 就自动展开不可读 d
 - `event_id` MUST 全局稳定。
 - 同一个 `event_id` 的完全相同内容 MAY 被重复接收。
 - 若同一个 ID 对应不同内容，节点 MUST 拒绝并返回 `duplicate_conflict`（HTTP 409 / conflict-class reason），同时保留最小冲突证据用于 operator 或 fork-resolution 诊断。
-- sync service SHOULD 以 `event_id` 去重，而不是按到达次数计数。
+- Sync Service SHOULD 以 `event_id` 去重，而不是按到达次数计数。
 
 ## 16. 冲突与收敛
 
@@ -951,7 +951,7 @@ Cokret v1 固定：
 - invite / grant / snapshot 组成 Realm bootstrap 主流程。
 - event 重试必须幂等。
 - 授权有效性由同一 reducer 顺序收敛。
-- 密文负载可以被不解密的 sync service 转发。
+- 密文负载可以被不解密的 Sync Service 转发。
 - 撤回采用 redaction/tombstone 语义。
 - hard erasure 只能删除本地 payload / blob / 派生内容，并保留事件图验证所需的最小 verification stub；不得重写 event hash、额外保留已擦除明文的未加盐 digest，或伪装事件从未存在。
 - 冲突通过固定 reducer 规则收敛。

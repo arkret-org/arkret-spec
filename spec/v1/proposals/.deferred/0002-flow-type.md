@@ -19,7 +19,7 @@ depends_on: [CKP-0003]
 
 Jira 截图里 "Sub-task / Task" tab 切换 = 每个 Space 内 Flow 的有限**类型集合**,不同类型有各自字段集与 layout。Linear 的 "Issue type"、Asana 的 "Custom item type"、GitHub Project 的 "Item type" 都是同类概念。
 
-当前协议:Flow 是匿名统一对象,业务类型靠 `fields.<custom>` + Realm schema/profile 字符串隐式表达([flow-and-message.md §2](../zh/models/flow-and-message.md):"业务语义分类不属于 Flow 顶层字段")。这个原则对 wire / reducer 是对的(不要把业务字典塞进协议固定列表),但缺少一个让 Realm admin **可治理地声明类型**的机制:
+当前协议:Flow 是匿名统一对象,业务类型靠 `fields.<custom>` + Realm schema/profile 字符串隐式表达([flow-and-message.md §2](../../zh/models/flow-and-message.md):"业务语义分类不属于 Flow 顶层字段")。这个原则对 wire / reducer 是对的(不要把业务字典塞进协议固定列表),但缺少一个让 Realm admin **可治理地声明类型**的机制:
 
 - 没有"这个 Realm 允许哪些 Flow 类型"的真源
 - 没有"task 必须有 assignee,bug 必须有 severity"的 reducer-enforced 校验
@@ -122,7 +122,7 @@ Schema id: `ck.schema.flow_type.v1`
 候选 B:把"业务类型 Flow"统统改为 Morph。
 
 否决理由:
-- Morph 是"协议未固化为标准类型"的扩展缓冲层([morph.md §1](../zh/models/morph.md));Flow 已经是标准对象
+- Morph 是"协议未固化为标准类型"的扩展缓冲层([morph.md §1](../../zh/models/morph.md));Flow 已经是标准对象
 - Flow 的 tracks / discussion / state / stage / position 都是标准能力,改成 Morph 会失去这些
 - 业务 type 不等于异质对象,只是字段集 + 校验 + UI 的收紧
 

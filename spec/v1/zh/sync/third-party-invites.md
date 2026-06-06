@@ -177,7 +177,7 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 ## 6. 过期、撤销与隐私要求
 
 - 所有可被认领或接受的 invite MUST 携带 `expires_at`；`ck.invite.third_party` 的 v1 base profile 硬上限为 7 天，高安全 / audited / 企业 Realm 硬上限为 24 小时。需要更长生命周期的部署 MUST 声明扩展 profile，并要求额外 revalidation proof。
-- 邀请者、Realm 管理员或 policy server MAY 发布 `ck.invite.revoke` 撤销 pending invite。撤销后任何 claim MUST reject。
+- 邀请者、Realm 管理员或 Policy Server MAY 发布 `ck.invite.revoke` 撤销 pending invite。撤销后任何 claim MUST reject。
 - 验证服务 MUST 对 token claim 做限速、IP / device 风险控制和重放检测；失败响应不得泄露 token 是否存在、Realm 是否存在或 3PID 是否被邀请。
 - Event 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。
 - `token_salt` MUST 按邀请或批次高熵生成，不能使用全局常量 salt。低熵 3PID 的承诺必须加入服务私有 pepper 或改用不公开的 lookup table，防止离线字典爆破。

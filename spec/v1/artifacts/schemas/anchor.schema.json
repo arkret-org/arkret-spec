@@ -129,13 +129,18 @@
     "signature": {
       "type": "object",
       "required": [
-        "alg",
         "verification_method",
+        "alg",
         "payload_digest",
         "created_at",
         "jws"
       ],
       "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the signing key. Bare DID is not valid for signatures because verifiers need a stable verification method, not only a controller DID."
+        },
         "alg": {
           "type": "string",
           "enum": [
@@ -143,11 +148,6 @@
             "ES256",
             "ML-DSA-65"
           ]
-        },
-        "verification_method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the signing key. Bare DID is not valid for signatures because verifiers need a stable verification method, not only a controller DID."
         },
         "payload_digest": {
           "$ref": "#/$defs/hash",

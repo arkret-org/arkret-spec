@@ -350,9 +350,9 @@ Accepted profile SHOULD 编排以下 durable material:
 short_name = "AI-" + controller_agent_circle_key[:12].upper()
 ```
 
-(`controller_agent_circle_key` 已是 §4.5.1 派生的小写 base32 字符串;取前 12 字符并大写得到 12-char 后缀,合计 15 字符,在 [`circle.md` §4](spec/v1/zh/models/circle.md) 的 24 字符上限内。)
+(`controller_agent_circle_key` 已是 §4.5.1 派生的小写 base32 字符串;取前 12 字符并大写得到 12-char 后缀,合计 15 字符,在 [`circle.md` §4](../zh/models/circle.md) 的 24 字符上限内。)
 
-理由:[`circle.md` §4](spec/v1/zh/models/circle.md) 在 `(realm_id, short_name)` 上有 reducer-enforced 唯一性约束。按 `(realm_id, controller_principal_id)` 派生既保证同一 controller-Realm sidecar Circle 可以稳定复用,又避免不同 controller 的 sidecar Circle 使用硬编码 short name 造成碰撞。
+理由:[`circle.md` §4](../zh/models/circle.md) 在 `(realm_id, short_name)` 上有 reducer-enforced 唯一性约束。按 `(realm_id, controller_principal_id)` 派生既保证同一 controller-Realm sidecar Circle 可以稳定复用,又避免不同 controller 的 sidecar Circle 使用硬编码 short name 造成碰撞。
 
 存在性侧信道防护:`directory_visibility=members` 已要求 non-member 不可见 Circle metadata,但 reducer 的唯一性校验仍是侧信道。本 profile 要求:
 
@@ -530,7 +530,7 @@ Sidecar notifications 只投递给 sidecar Circle members 与 authorized devices
 
 该不变量必须由 reducer / sync projection 层强制执行,不能依赖 UI client 自觉遵守。Accepted migration MUST 选择以下二者之一并在 conformance profile 中声明所选机制:
 
-- (a) 在 [`flow-and-message.md`](spec/v1/zh/models/flow-and-message.md) 注册 Flow 字段 `navigation_visibility="scope_only"`(或等价 enum 值),sidecar private Flow 提交时该字段必填;reducer / projection 层依据该字段过滤 Realm-wide projection。
+- (a) 在 [`flow-and-message.md`](../zh/models/flow-and-message.md) 注册 Flow 字段 `navigation_visibility="scope_only"`(或等价 enum 值),sidecar private Flow 提交时该字段必填;reducer / projection 层依据该字段过滤 Realm-wide projection。
 - (b) 在本 profile 注册 sidecar-specific projection rule,把"以 sidecar Circle 为 `scope_circle_id` 的 Flow 不可进入 Realm-wide projection"作为 reducer-enforced 规则,无需 Flow 字段。
 
 两种实现路径达成同一可观察 invariant;选择由 §7.2 决议。在该决议落定前,本 profile 不预先 lock schema 形态,但 invariant 本身是规范要求。

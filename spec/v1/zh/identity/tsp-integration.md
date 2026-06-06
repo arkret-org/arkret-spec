@@ -28,7 +28,7 @@ TSP 适合用于：
 - identity registry / witness / replica 之间的可信消息交换。
 - DID / VID support system 之间的验证和信任评估。
 - 跨组织 service DID 的 federation bootstrap。
-- Applet、policy server、media service、agent runtime 的服务间认证通道。
+- Applet、Policy Server、media service、agent runtime 的服务间认证通道。
 - pairwise / private DID 场景下的低关联消息路由。
 - 3PID 邀请、VC presentation、handle claim 等身份相关控制消息。
 - agent protocol handoff 前的对端 VID 验证和信任建立。
@@ -49,7 +49,7 @@ TSP 的 VID 可映射到 Cokret：
 | TSP | Cokret |
 | --- | --- |
 | VID | principal DID / service DID / pairwise DID / 受支持的外部 identifier |
-| TSP Endpoint | actor 设备、service 节点、Applet、policy server、agent runtime |
+| TSP Endpoint | actor 设备、service 节点、Applet、Policy Server、agent runtime |
 | TSP Relationship | 两个 principal / service 之间的 pairwise 可信通道 |
 | TSP Support System | identity registry、DID method adapter、witness、governance registry |
 | TSP Intermediary | Sync Service、privacy router、store-and-forward 服务 |

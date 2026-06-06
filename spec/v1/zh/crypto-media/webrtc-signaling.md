@@ -414,6 +414,6 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 
 ## 12. 与 Matrix Call 的关系
 
-Cokret 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、policy server 和 transport binding 模型。
+Cokret 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、Policy Server 和 transport binding 模型。
 
 Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `ck.call.signal`，但 durable meeting state、recording artifact 和 Realm policy 必须遵守 Cokret 规则。

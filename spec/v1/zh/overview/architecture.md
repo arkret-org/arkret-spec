@@ -46,8 +46,8 @@ Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow
 
 | 使用场景 | 推荐对象 | 关键边界属性 |
 | --- | --- | --- |
-| 共享 federation / identity、policy server、capability registry、Realm-default E2EE group | `ck:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、policy server、capability registry、Realm-default MLS group |
-| Realm 内子集成员 + 独立 history / 投递 / 查询裁剪，复用父 Realm federation / policy / capability registry；必要时独立 MLS group | `ck:circle:`，对象通过 `scope_circle_id` 引用 | intra-Realm scoped event boundary；不持有 federation identity 或 policy server；约束 `Circle.members ⊆ Realm.members` |
+| 共享 federation / identity、Policy Server、capability registry、Realm-default E2EE group | `ck:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、Policy Server、capability registry、Realm-default MLS group |
+| Realm 内子集成员 + 独立 history / 投递 / 查询裁剪，复用父 Realm federation / policy / capability registry；必要时独立 MLS group | `ck:circle:`，对象通过 `scope_circle_id` 引用 | intra-Realm scoped event boundary；不持有 federation identity 或 Policy Server；约束 `Circle.members ⊆ Realm.members` |
 | Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `ck:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_circle_id` 仅决定 Space metadata effective scope，不构成独立 Realm 边界 |
 | Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `ck:flow:` | Realm 内协作主体；整 Flow 单一 effective scope（由 `Flow.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
 | 客户端导航整洁化（"软隐藏一组 Realm"） | （不新建容器）使用 View / Space hierarchy / Realm linking | Realm 间无树形包含关系，仅有 link graph；产品层"我的工作区"为 client-side 概念 |
@@ -95,7 +95,7 @@ Cokret 记录的是 **协作 Event**——授权状态、协作事实、E2EE han
 Event chain 可以由以下形态承载：
 
 - 用户设备上的本地 append-only log。
-- Principal Server 内置的 event store 与 `/_cokret/self/events/*` API。
+- Principal Server 内置的 Event Store Service 与 `/_cokret/self/events/*` API。
 - 多个受控 storage replica 保存的只读副本。
 - Principal Server 在 DID Document 中声明的服务 endpoint。
 
@@ -117,7 +117,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event，**�
 明文规则：
 
 - 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Realm policy 明确委托的第三方服务。
-- 如果 Realm 声明了 shared anchorer / sync service，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
+- 如果 Realm 声明了 shared anchorer / Sync Service，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
 - 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Realm policy 明确委托。
 - Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 只可在 join / rebind 时作为 Realm policy 明确允许的 `did_document_default` 物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。组织 Principal Server 上存在同一 DID 的内部账号，MUST NOT 自动获得该 DID 的其它 Realm 或个人上下文投递权。
 - 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Realm policy 中声明为 `plaintext_visible_services`。
@@ -386,7 +386,7 @@ flowchart LR
 
 - identity registry
 - events
-- sync service
+- Sync Service
 - blob
 
 适合：
@@ -400,7 +400,7 @@ flowchart LR
 常见模式是：
 
 - 每个组织维护自己的受控 Principal Server / Event store
-- 每个组织或可信运营方运行自己的 Principal Server / policy server
+- 每个组织或可信运营方运行自己的 Principal Server / Policy Server
 - 参与方 Principal Server 通过 federation transaction 交换 Realm 相关 Event
 - 各参与方客户端基于自身授权范围生成本地视图，或显式使用受托 search / projection 扩展
 - Realm policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
@@ -419,7 +419,7 @@ flowchart LR
 
 ### 4.4 Sovereign / High-Assurance 拓扑
 
-高安全组织 MAY 运行 sovereign deployment，即由组织或联盟控制 identity registry、events、sync、directory、blob、policy server、media service、applet runtime 和 agent runtime。
+高安全组织 MAY 运行 sovereign deployment，即由组织或联盟控制 identity registry、events、sync、directory、blob、Policy Server、media service、applet runtime 和 agent runtime。
 
 该拓扑默认关闭公共 federation 和公共 directory，只允许 allowlist service DID 与受控客户端接入。
 
@@ -429,7 +429,7 @@ Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **External Col
 
 - 使用 `discoverability=unlisted`、`invite_only` 或 `secret`。
 - 使用 `join_rule=restricted` 或 `knock_restricted`。
-- 通过 Organization DID、external organization DID、claim / VC、policy server 和 admin approval 验证外部主体。
+- 通过 Organization DID、external organization DID、claim / VC、Policy Server 和 admin approval 验证外部主体。
 - 使用 E2EE，并只向批准设备发送 MLS Welcome。
 - 使用独立 Principal Server / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
 - 对 Applet、Agent handoff、media recording、export、bulk download 默认 deny，按 capability 显式授权。

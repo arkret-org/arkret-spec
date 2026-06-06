@@ -328,7 +328,7 @@ constraint 内 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint
 ## 7. Applet API
 
 Applet API 是 Cokret 节点调用 Applet 的接口。  
-Applet 调用 Cokret 节点时使用常规 Events API / sync service / authz API。
+Applet 调用 Cokret 节点时使用常规 Events API / Sync Service / authz API。
 
 Base URL 来自 registration 的 `base_url`。
 
@@ -389,7 +389,7 @@ POST /_cokret/edge/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
-Cokret sync service / Events API 向 Applet 推送事件批次。
+Cokret Sync Service / Events API 向 Applet 推送事件批次。
 
 请求示例（非完整 schema）：
 

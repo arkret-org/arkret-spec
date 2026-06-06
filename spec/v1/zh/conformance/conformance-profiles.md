@@ -198,7 +198,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 MUST NOT：
 
-- 把明文消息发送给未授权 sync service 或受托 search / projection 服务
+- 把明文消息发送给未授权 Sync Service 或受托 search / projection 服务
 - 把解密密钥上传给不受信服务
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
 - 在 `governance_binding` 的 policy / membership root 不匹配时继续解密正文（违反 MLS Governance Binding）
@@ -368,7 +368,7 @@ SHOULD 支持：
 - token 分片或短期授权
 - 高优先级与静音规则透传
 
-## 11.1 Traffic Metadata Hardening
+### 11.1 Traffic Metadata Hardening
 
 `ck.profile.traffic_metadata_hardened.v1` 是部署 / Realm 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务或 Realm MUST 在 `ServiceDescribe.claimed_profiles` / Realm policy profile 集合中暴露其参数，并按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。
 
@@ -510,7 +510,7 @@ SHOULD 支持：
 
 `ck.profile.personal_node.v1` MUST cover：
 
-- principal server、events、sync、blob 可以同机合并
+- Principal Server、Events API、Sync Service、Blob Store 可以同机合并
 - 默认最小管理员面
 - 本地备份与恢复
 

@@ -19,7 +19,7 @@ depends_on: [CKP-0002, CKP-0003]
 
 Jira 截图最直观的功能是"Work item layout":per-work-type 拖拽字段顺序、"Hide when empty"分隔线、字段 tabs。Linear 的 "Issue templates"、Notion 的 "Database template"、Asana 的 "Task template" 局部承担类似职责。
 
-当前协议:`View` 只服务 collection(Board / List)的查询与渲染([current-model.md §5](../zh/overview/current-model.md))。**没有"单 Flow 详情面板"的字段布局定义**;客户端只能各自硬编码"标题在上、状态在右、字段在左"。
+当前协议:`View` 只服务 collection(Board / List)的查询与渲染([current-model.md §5](../../zh/overview/current-model.md))。**没有"单 Flow 详情面板"的字段布局定义**;客户端只能各自硬编码"标题在上、状态在右、字段在左"。
 
 ## 3. Specification
 

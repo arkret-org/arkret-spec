@@ -586,7 +586,7 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 
 - digest 输入 MUST 为 `canonical_json(cleartext_metadata) || ciphertext_bytes`。
 - 实现 MUST NOT hash 明文 payload。
-- 实现 MUST NOT 省略路由和解密所需的 cleartext metadata，否则 sync service 无法安全去重和审计密文 envelope。
+- 实现 MUST NOT 省略路由和解密所需的 cleartext metadata，否则 Sync Service 无法安全去重和审计密文 envelope。
 
 ### 1.13 覆盖矩阵
 

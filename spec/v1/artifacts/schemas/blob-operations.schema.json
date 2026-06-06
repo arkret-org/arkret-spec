@@ -36,11 +36,15 @@
     "signature": {
       "type": "object",
       "required": [
-        "alg",
         "kid",
+        "alg",
         "sig"
       ],
       "properties": {
+        "kid": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
         "alg": {
           "type": "string",
           "enum": [
@@ -48,10 +52,6 @@
             "ES256",
             "ML-DSA-65"
           ]
-        },
-        "kid": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
         "sig": {
           "type": "string",

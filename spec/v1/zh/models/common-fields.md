@@ -238,7 +238,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 | Realm (`ck:realm:`) | `created_by` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |
 | Circle / Space / Flow / Message / Morph / Relation / View / Policy / Blob metadata | `created_by`; 更新时可有 `updated_by` | 这些对象自身不使用 DID 做 `id`；DID 只记录创建 / 更新主体。协作图对象的创建 / 更新主体由 reducer 从对应 Event 的 `actor_id` 派生；Blob metadata 的 `created_by` 来自 authenticated media 写入主体。 |
 | Capability Grant (`ck:grant:`) | `issuer`; `subject` 为具体主体时必须是 DID | `subject` 也可以是条件 selector；handle、邮箱、域名用户名等不得作为权限主体主键。 |
-| Invite (`ck:invite:`) | `inviter`; `invitee` 在直接 DID 邀请时使用 DID | 3PID 邀请可没有 `invitee`，但认领后必须绑定可验证主体。 |
+| Invite (`ck:invite:`) | `inviter`; `invitee` 在直接 DID 邀请时使用 DID | [3PID](../overview/glossary.md) 邀请可没有 `invitee`，但认领后必须绑定可验证主体。 |
 | Read Cursor / Notification | `actor_id` | actor-private 或派生对象，`actor_id` 表示该私有状态所属主体。 |
 | Event Batch Receipt / Identity Receipt / Audit Receipt | `issuer` 或 schema 声明的签发 / 主体 DID 字段 | receipt 的签发、覆盖范围和验证必须回到可解析 DID。 |
 | Relation endpoint | 当 endpoint 是 Actor 时，`from_ref` / `to_ref` 使用 DID | 指向普通对象时仍使用 `ck:<kind>:` typed ID；Relation 不把对象 ID 转换为 DID。 |

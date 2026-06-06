@@ -40,7 +40,7 @@ Realm 之间只允许显式 link graph（governance / discoverability / import-e
 - federation policy
 - retention / legal hold
 - plaintext-visible service
-- policy server
+- Policy Server
 - event frontier / Anchor pipeline
 
 `Realm` 的语义接近“保护域”或“治理域”，不是“项目文件夹”。一个组织通常会拥有多个 Realm：公开项目、普通内部项目、机密项目、HR 项目、法务项目可以位于同一 Organization / Space tree 下，但落到不同 Realm。
@@ -54,7 +54,7 @@ Realm 与 MLS group 不是同义词：
 - 非 E2EE Realm 可以没有 MLS group。
 - E2EE Realm 通常拥有一个 primary MLS group。
 - Realm 还包含 policy、membership、history、sync frontier、federation、retention 和 capability 等语义；MLS group 只承载加密成员、epoch 和密钥演进。
-- 实现把 Realm 内的子事件 / 子消息边界形式化为一等对象 [Circle](./circle.md)（`ck:circle:`）：独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪，且 `Circle.members ⊆ Realm.members`；当父 Realm 或 policy 要求 E2EE 时，Circle 还必须拥有独立 MLS group。federation identity / policy server / capability registry 仍在父 Realm。
+- 实现把 Realm 内的子事件 / 子消息边界形式化为一等对象 [Circle](./circle.md)（`ck:circle:`）：独立 membership、独立 history visibility、独立投递 / 查询 / projection 裁剪，且 `Circle.members ⊆ Realm.members`；当父 Realm 或 policy 要求 E2EE 时，Circle 还必须拥有独立 MLS group。federation identity / Policy Server / capability registry 仍在父 Realm。
 
 规范性规则：
 
@@ -89,11 +89,13 @@ Schema id: `ck.schema.realm.v1`
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。`e2ee_required` 时 Flow / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
 | `metadata_encryption_profile` | no | `enum(content_only, minimal_encrypted, full_encrypted)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。比较序 `content_only < minimal_encrypted < full_encrypted`；effective 值取父 Realm / Circle / Space `child_scope_policy` / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle / Space / 对象 profile 放宽。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `minimal_encrypted`，否则 `content_only`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
+| `sync_endpoints` | no | `array<ServiceBinding>` | Realm-level shared anchorer / Sync Service / mirror / federation 服务绑定；不是成员级 delivery binding。详见 [`../sync/federation.md`](../sync/federation.md)。 | Realm 委托同步与联邦入口。 |
 | `anchor_profile` | no | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Anchor finality profile。 |
 | `digest_algorithm` | no | `enum(sha256, sha512, sha3_256, blake3)` | create-locked，默认 `sha256`。 | Hash 算法 profile。 |
 | `anchorer` | conditional | `object` | Genesis anchorer cell 初值。其 discriminator 子字段为 `type`（取值与 `anchor_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `anchorer.type`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Anchor 授权规则。 |
 | `max_anchor_staleness_ms` | no | `integer` | 默认 24h；这是 Realm 级兼容性硬上限，不是所有写入的推荐窗口。高风险 / 高频冲突写入 MUST 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的 action / cell / profile 有效窗口进一步收紧。 | Move `anchor_ref` freshness 上限。 |
 | `max_delegation_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `delegation_expiry_anchor`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
+| `bottom_escalation_after_ms` | no | `integer` | cell `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
 | `cell_lattices` | no | `array<CellLattice>` | `CellLattice` 结构（cell family / lattice / bottom 等）定义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Realm-specific 扩展 cell family。 |
 | `co_write_policy` | no | `array<array<component>>` | `component`（cell component 标识）语义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Move 原子写约束。 |
 | `retention_policy_id` | no | `id:policy` |  | 保留策略。 |
@@ -172,6 +174,8 @@ Realm 有两个终态 event，语义不同：
 | `ck.realm.freeze` | 把 Realm 冻结为只读（暂停普通写入，可撤销）。 | reversible | `ck.component.realm.freeze.v1` |
 
 二者均为 cas_register（bottom=reject）durable event，承载一个 **reversible boolean** facet：**同一个 `ck.realm.archive` 写 `true` 进入 `archived`、写 `false` 复原**，**不走独立 `ck.realm.restore` event**；`ck.realm.freeze` 同理用单一 reversible boolean facet 在 frozen / 非 frozen 之间切换。这区别于 [`common-fields.md` §5.2](./common-fields.md) 模板中 `ck.<kind>.archive` + `ck.<kind>.restore` 成对的形态——Realm 的可逆性由 facet boolean 表达，registry `lifecycle_modality=reversible` 是真源。capability：`ck.realm.archive` / `ck.realm.freeze`（action 见 [`../authz/capabilities.md`](../authz/capabilities.md)）。
+
+被 `archived` 或 `frozen` facet 关闭普通写入的 Realm 收到非豁免普通写入时，reducer / 服务端 MUST 返回 `realm_frozen`（HTTP 403）；审计类豁免仍按 §2.6.1 的终态规则和 error-code registry 处理。
 
 #### 2.6.1 `ck.realm.destroy` 终态规则（normative）
 
@@ -326,10 +330,10 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 - **授权**：任何对 Space 的写入（`ck.space.create` / `ck.space.update` / `ck.space.archive` / `ck.space.restore` / `ck.space.tombstone` / `ck.space.parent`）都在 `realm_id` 指向的 home Realm 内授权。
 - **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
-- **加密 / scope**：Space 没有自己的 membership、policy server 或 MLS group。Space metadata 默认取决于 home Realm 的 scope、`encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与 encryption profile。
+- **加密 / scope**：Space 没有自己的 membership、Policy Server 或 MLS group。Space metadata 默认取决于 home Realm 的 scope、`encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与 encryption profile。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
 - **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。`default_scope_circle_id` 的 Circle MUST 属于该 effective `default_realm_id`；如果 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源默认 scope。
-- **子边界升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的子事件 / 子消息边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / policy server / capability registry 时才创建新的 Realm。
+- **子边界升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的子事件 / 子消息边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / Policy Server / capability registry 时才创建新的 Realm。
 
 **三字段速查表（normative）**：Space 上三个 scope 相关字段语义不同，分别由不同主体强制：
 

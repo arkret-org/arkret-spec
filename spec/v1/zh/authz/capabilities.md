@@ -575,7 +575,7 @@ system/human -> `ck.flow.update` 或 `ck.morph.update`
 - 只授予明确 Realm / Flow / Message / Morph / View 范围。
 - 只授予所需动作。
 - 只授予有限时效。
-- 尽量限制可写字段、可写 track 和可写 Morph 类型。
+- 只授予该 agent 任务所需的最小可写字段、可写 track 和可写 Morph 类型集合。
 - 对 high action 按 action registry 与 profile 要求 controller / responsible actor approval。
 
 高风险模式包括：

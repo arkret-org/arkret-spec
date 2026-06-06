@@ -165,11 +165,16 @@
     "signature": {
       "type": "object",
       "required": [
-        "alg",
         "kid",
+        "alg",
         "sig"
       ],
       "properties": {
+        "kid": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "description": "Verification method id, typically <media_service_did>#<key-id>. Bare DID is accepted (resolves to the controller's current key); DID URLs with key fragment are RECOMMENDED. Pattern normalized to canonical DID form; the previous `(#.+)?$` was redundant under greedy `[^\\s]+`."
+        },
         "alg": {
           "type": "string",
           "enum": [
@@ -177,11 +182,6 @@
             "ES256",
             "ML-DSA-65"
           ]
-        },
-        "kid": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Verification method id, typically <media_service_did>#<key-id>. Bare DID is accepted (resolves to the controller's current key); DID URLs with key fragment are RECOMMENDED. Pattern normalized to canonical DID form; the previous `(#.+)?$` was redundant under greedy `[^\\s]+`."
         },
         "sig": {
           "type": "string",
