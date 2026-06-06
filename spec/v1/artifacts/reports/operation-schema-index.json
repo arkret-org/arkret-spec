@@ -413,13 +413,13 @@
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "controller_principal_id",
-          "agent_principal_id"
+          "agent_principal_id",
+          "controller_principal_id"
         ],
         "properties": [
           "realm_id",
-          "controller_principal_id",
-          "agent_principal_id"
+          "agent_principal_id",
+          "controller_principal_id"
         ],
         "closed": true
       },
