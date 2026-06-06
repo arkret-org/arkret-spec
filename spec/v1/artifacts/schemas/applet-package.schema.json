@@ -83,13 +83,10 @@
       "$ref": "#/$defs/non_empty_string_array"
     },
     "endpoint_set": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "#/$defs/endpoint_set"
     },
     "webhook_auth": {
-      "type": "object",
-      "minProperties": 1,
-      "additionalProperties": true
+      "$ref": "#/$defs/webhook_auth"
     },
     "receive_events": {
       "type": "boolean"
@@ -101,24 +98,19 @@
       "type": "boolean"
     },
     "limits": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "#/$defs/limits"
     },
     "ghost_policy": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "#/$defs/ghost_policy"
     },
     "delegation_policy": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "#/$defs/delegation_policy"
     },
     "e2ee_policy": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "#/$defs/e2ee_policy"
     },
     "widget": {
-      "type": "object",
-      "additionalProperties": true
+      "$ref": "#/$defs/widget"
     },
     "package_digest": {
       "$ref": "#/$defs/hash"
@@ -133,10 +125,8 @@
       "$ref": "#/$defs/timestamp"
     },
     "proof": {
-      "type": "object",
-      "minProperties": 1,
-      "additionalProperties": true,
-      "description": "Controller DID detached proof over the canonical package or derived registration object. Empty object is invalid."
+      "$ref": "#/$defs/detached_proof",
+      "description": "Controller DID detached proof over the canonical package or derived registration object. proof.payload_digest MUST equal package_digest (proof over canonical package) or the derived registration object digest. Empty object is invalid."
     }
   },
   "$defs": {
@@ -214,6 +204,270 @@
             "$ref": "#/$defs/namespace_entry"
           }
         }
+      },
+      "additionalProperties": false
+    },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+    },
+    "signature_alg": {
+      "type": "string",
+      "enum": [
+        "EdDSA",
+        "ES256",
+        "ML-DSA-65"
+      ]
+    },
+    "detached_proof": {
+      "type": "object",
+      "description": "Controller-DID detached-JWS proof shape, aligned with event-envelope.schema.json#/$defs/proof (the generic non-Event signed-object proof). Non-Event objects bind their canonical payload via payload_digest; Event proofs MUST instead use event_digest and event_proof.",
+      "required": [
+        "kind",
+        "verification_method",
+        "alg",
+        "payload_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "detached_jws"
+          ]
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "alg": {
+          "$ref": "#/$defs/signature_alg"
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "audience": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "webhook_auth": {
+      "type": "object",
+      "description": "HTTP message signature verification anchor for transaction push. key_ref is the DID URL whose key verifies the signature; accepted_algs pins the acceptable signature algorithms.",
+      "required": [
+        "type",
+        "key_ref",
+        "accepted_algs"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "http_message_signature"
+          ]
+        },
+        "key_ref": {
+          "$ref": "#/$defs/did_url"
+        },
+        "accepted_algs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signature_alg"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "signature_header": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "endpoint_entry": {
+      "type": "object",
+      "required": [
+        "method",
+        "path"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "path": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "auth": {
+          "type": "string",
+          "enum": [
+            "none",
+            "webhook_signature",
+            "bearer",
+            "mtls"
+          ]
+        },
+        "description": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "endpoint_set": {
+      "type": "object",
+      "description": "Supported Applet API endpoints and their auth requirement.",
+      "required": [
+        "endpoints"
+      ],
+      "properties": {
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/endpoint_entry"
+          },
+          "minItems": 1
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "description": "Service-side resource hints derived into the registration manifest.",
+      "properties": {
+        "max_transaction_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_payload_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "rate_limit_per_minute": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "ghost_policy": {
+      "type": "object",
+      "description": "Ghost Actor support and accountability template. enabled defaults to false semantics; an explicit boolean is required.",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "accountability_template": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "delegation_policy": {
+      "type": "object",
+      "description": "Delegated native-user acting request. Defaults to false; enabled MUST be explicit.",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "e2ee_policy": {
+      "type": "object",
+      "description": "MLS join request. Defaults to false; enabled MUST be explicit.",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "mls_join_requested": {
+          "type": "boolean"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "widget": {
+      "type": "object",
+      "description": "Optional widget origin / CSP / token scope / consent declaration.",
+      "properties": {
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "csp": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "token_scope": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true
+        },
+        "consent_required": {
+          "type": "boolean"
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
       },
       "additionalProperties": false
     }

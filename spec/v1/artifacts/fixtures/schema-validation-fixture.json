@@ -1054,6 +1054,284 @@
         }
       },
       "first_expected_error": "$: 'backup_classes_unlocked' is a required property"
+    },
+    {
+      "name": "applet_package_valid_closed_security_fields",
+      "schema_ref": "schemas/applet-package.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ck.schema.applet_package.v1",
+        "package_id": "applet-package-demo-1",
+        "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
+        "service_did": "did:web:applet.example",
+        "controller_did": "did:web:vendor.example",
+        "base_url": "https://applet.example",
+        "bot_actor_id": "did:web:applet.example",
+        "claimed_profiles": [
+          "ck.profile.applet_service.v1"
+        ],
+        "protocols": [
+          "ck.applet.transaction.v1"
+        ],
+        "namespaces": {
+          "actors": [],
+          "realms": [],
+          "handles": []
+        },
+        "requested_scopes": [
+          "ck.flow.create"
+        ],
+        "endpoint_set": {
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/_applet/transaction",
+              "auth": "webhook_signature"
+            }
+          ]
+        },
+        "webhook_auth": {
+          "type": "http_message_signature",
+          "key_ref": "did:web:applet.example#webhook-1",
+          "accepted_algs": [
+            "EdDSA"
+          ]
+        },
+        "receive_events": true,
+        "receive_ephemeral": false,
+        "rate_limited": true,
+        "limits": {
+          "max_transaction_events": 100,
+          "max_payload_bytes": 65536,
+          "rate_limit_per_minute": 60
+        },
+        "ghost_policy": {
+          "enabled": false
+        },
+        "delegation_policy": {
+          "enabled": false
+        },
+        "e2ee_policy": {
+          "enabled": false
+        },
+        "package_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "created_at": "2026-05-20T00:00:00Z",
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:web:vendor.example#key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "created_at": "2026-05-20T00:00:00Z",
+          "jws": "a..b"
+        }
+      }
+    },
+    {
+      "name": "applet_package_open_proof_rejected",
+      "schema_ref": "schemas/applet-package.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.proof: 'kind' is a required property",
+      "instance": {
+        "schema": "ck.schema.applet_package.v1",
+        "package_id": "applet-package-demo-1",
+        "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
+        "service_did": "did:web:applet.example",
+        "controller_did": "did:web:vendor.example",
+        "base_url": "https://applet.example",
+        "bot_actor_id": "did:web:applet.example",
+        "claimed_profiles": [
+          "ck.profile.applet_service.v1"
+        ],
+        "protocols": [
+          "ck.applet.transaction.v1"
+        ],
+        "namespaces": {
+          "actors": [],
+          "realms": [],
+          "handles": []
+        },
+        "requested_scopes": [
+          "ck.flow.create"
+        ],
+        "endpoint_set": {
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/_applet/transaction",
+              "auth": "webhook_signature"
+            }
+          ]
+        },
+        "webhook_auth": {
+          "type": "http_message_signature",
+          "key_ref": "did:web:applet.example#webhook-1",
+          "accepted_algs": [
+            "EdDSA"
+          ]
+        },
+        "receive_events": true,
+        "receive_ephemeral": false,
+        "rate_limited": true,
+        "limits": {
+          "max_transaction_events": 100
+        },
+        "ghost_policy": {
+          "enabled": false
+        },
+        "delegation_policy": {
+          "enabled": false
+        },
+        "e2ee_policy": {
+          "enabled": false
+        },
+        "package_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "created_at": "2026-05-20T00:00:00Z",
+        "proof": {
+          "signature": "c2ln"
+        }
+      }
+    },
+    {
+      "name": "applet_package_unsupported_webhook_alg_rejected",
+      "schema_ref": "schemas/applet-package.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.webhook_auth.accepted_algs[0]: 'RS256' is not one of ['EdDSA', 'ES256', 'ML-DSA-65']",
+      "instance": {
+        "schema": "ck.schema.applet_package.v1",
+        "package_id": "applet-package-demo-1",
+        "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
+        "service_did": "did:web:applet.example",
+        "controller_did": "did:web:vendor.example",
+        "base_url": "https://applet.example",
+        "bot_actor_id": "did:web:applet.example",
+        "claimed_profiles": [
+          "ck.profile.applet_service.v1"
+        ],
+        "protocols": [
+          "ck.applet.transaction.v1"
+        ],
+        "namespaces": {
+          "actors": [],
+          "realms": [],
+          "handles": []
+        },
+        "requested_scopes": [
+          "ck.flow.create"
+        ],
+        "endpoint_set": {
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/_applet/transaction",
+              "auth": "webhook_signature"
+            }
+          ]
+        },
+        "webhook_auth": {
+          "type": "http_message_signature",
+          "key_ref": "did:web:applet.example#webhook-1",
+          "accepted_algs": [
+            "RS256"
+          ]
+        },
+        "receive_events": true,
+        "receive_ephemeral": false,
+        "rate_limited": true,
+        "limits": {
+          "max_transaction_events": 100
+        },
+        "ghost_policy": {
+          "enabled": false
+        },
+        "delegation_policy": {
+          "enabled": false
+        },
+        "e2ee_policy": {
+          "enabled": false
+        },
+        "package_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "created_at": "2026-05-20T00:00:00Z",
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:web:vendor.example#key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "created_at": "2026-05-20T00:00:00Z",
+          "jws": "a..b"
+        }
+      }
+    },
+    {
+      "name": "applet_package_delegation_policy_missing_enabled_rejected",
+      "schema_ref": "schemas/applet-package.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.delegation_policy: 'enabled' is a required property",
+      "instance": {
+        "schema": "ck.schema.applet_package.v1",
+        "package_id": "applet-package-demo-1",
+        "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
+        "service_did": "did:web:applet.example",
+        "controller_did": "did:web:vendor.example",
+        "base_url": "https://applet.example",
+        "bot_actor_id": "did:web:applet.example",
+        "claimed_profiles": [
+          "ck.profile.applet_service.v1"
+        ],
+        "protocols": [
+          "ck.applet.transaction.v1"
+        ],
+        "namespaces": {
+          "actors": [],
+          "realms": [],
+          "handles": []
+        },
+        "requested_scopes": [
+          "ck.flow.create"
+        ],
+        "endpoint_set": {
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/_applet/transaction",
+              "auth": "webhook_signature"
+            }
+          ]
+        },
+        "webhook_auth": {
+          "type": "http_message_signature",
+          "key_ref": "did:web:applet.example#webhook-1",
+          "accepted_algs": [
+            "EdDSA"
+          ]
+        },
+        "receive_events": true,
+        "receive_ephemeral": false,
+        "rate_limited": true,
+        "limits": {
+          "max_transaction_events": 100
+        },
+        "ghost_policy": {
+          "enabled": false
+        },
+        "delegation_policy": {},
+        "e2ee_policy": {
+          "enabled": false
+        },
+        "package_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "created_at": "2026-05-20T00:00:00Z",
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:web:vendor.example#key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "created_at": "2026-05-20T00:00:00Z",
+          "jws": "a..b"
+        }
+      }
     }
   ]
 }
