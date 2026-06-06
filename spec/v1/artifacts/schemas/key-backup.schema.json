@@ -112,9 +112,6 @@
       },
       "additionalProperties": false
     },
-    "created_at": {
-      "$ref": "#/$defs/timestamp"
-    },
     "expires_at": {
       "type": [
         "string",
@@ -122,6 +119,9 @@
       ],
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
     },
     "updated_at": {
       "$ref": "#/$defs/timestamp"

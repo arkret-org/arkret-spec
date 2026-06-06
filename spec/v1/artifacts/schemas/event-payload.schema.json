@@ -1395,11 +1395,11 @@
               "reason_code": {
                 "$ref": "#/$defs/non_empty_string"
               },
-              "created_at": {
-                "$ref": "#/$defs/timestamp"
-              },
               "expires_at": {
                 "$ref": "#/$defs/nullable_timestamp"
+              },
+              "created_at": {
+                "$ref": "#/$defs/timestamp"
               }
             },
             "additionalProperties": false
@@ -3874,8 +3874,8 @@
         "proposed_action",
         "target",
         "content_digest",
-        "created_at",
-        "expires_at"
+        "expires_at",
+        "created_at"
       ],
       "properties": {
         "draft_id": {
@@ -3896,10 +3896,10 @@
         "content_digest": {
           "$ref": "#/$defs/hash"
         },
-        "created_at": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "expires_at": {
+        "created_at": {
           "$ref": "#/$defs/timestamp"
         },
         "summary": {
@@ -3922,8 +3922,8 @@
         "proposed_action",
         "target",
         "request_canonical_digest",
-        "created_at",
-        "expires_at"
+        "expires_at",
+        "created_at"
       ],
       "properties": {
         "request_id": {
@@ -3947,10 +3947,10 @@
         "request_canonical_digest": {
           "$ref": "#/$defs/hash"
         },
-        "created_at": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "expires_at": {
+        "created_at": {
           "$ref": "#/$defs/timestamp"
         }
       },
@@ -5088,8 +5088,8 @@
         "keypackage_digest",
         "cipher_suites",
         "state",
-        "created_at",
         "expires_at",
+        "created_at",
         "device_signature"
       ],
       "properties": {
@@ -5127,10 +5127,10 @@
         "claim_id": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "created_at": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "expires_at": {
+        "created_at": {
           "$ref": "#/$defs/timestamp"
         },
         "device_signature": {
@@ -5187,10 +5187,10 @@
         "aad_digest": {
           "$ref": "#/$defs/hash"
         },
-        "created_at": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "expires_at": {
+        "created_at": {
           "$ref": "#/$defs/timestamp"
         }
       },

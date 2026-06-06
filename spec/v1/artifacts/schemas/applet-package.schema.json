@@ -126,10 +126,10 @@
     "registration_epoch": {
       "$ref": "#/$defs/hash"
     },
-    "created_at": {
+    "expires_at": {
       "$ref": "#/$defs/timestamp"
     },
-    "expires_at": {
+    "created_at": {
       "$ref": "#/$defs/timestamp"
     },
     "proof": {

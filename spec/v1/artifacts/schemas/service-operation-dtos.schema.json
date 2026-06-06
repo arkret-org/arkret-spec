@@ -1881,7 +1881,8 @@
           "type": "object",
           "description": "Detached proof of the snapshot manifest; verifier MUST validate against signer's verification method."
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ActorDid": {
       "type": "string",

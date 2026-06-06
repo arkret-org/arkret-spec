@@ -113,8 +113,8 @@
         "ssk_generation",
         "challenge",
         "state",
-        "created_at",
         "expires_at",
+        "created_at",
         "updated_at"
       ],
       "properties": {
@@ -159,13 +159,13 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
-        "created_at": {
-          "$ref": "#/$defs/timestamp",
-          "description": "Recovery session creation/signing time. This is the created_at value used in the recovery proof transcript."
-        },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
           "description": "Session expiration. Default TTL is 900 seconds; deployments MAY shorten it and MUST NOT lengthen it unless a future recovery_policy field explicitly permits the override."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Recovery session creation/signing time. This is the created_at value used in the recovery proof transcript."
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
@@ -668,8 +668,8 @@
         "recovery_session_id",
         "ssk_generation",
         "challenge",
-        "created_at",
-        "expires_at"
+        "expires_at",
+        "created_at"
       ],
       "properties": {
         "type": {
@@ -704,12 +704,12 @@
         "challenge": {
           "$ref": "#/$defs/challenge"
         },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
         "created_at": {
           "$ref": "#/$defs/timestamp",
           "description": "Session creation/signing time, not client proof creation time."
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -728,8 +728,8 @@
         "recovery_session_id",
         "ssk_generation",
         "challenge",
-        "created_at",
         "expires_at",
+        "created_at",
         "proof_body"
       ],
       "properties": {
@@ -765,10 +765,10 @@
         "challenge": {
           "$ref": "#/$defs/challenge"
         },
-        "created_at": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "expires_at": {
+        "created_at": {
           "$ref": "#/$defs/timestamp"
         },
         "proof_body": {

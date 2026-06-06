@@ -1878,7 +1878,7 @@
           "authority_binding",
           "signature"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -2097,8 +2097,8 @@
           "ssk_generation",
           "challenge",
           "state",
-          "created_at",
           "expires_at",
+          "created_at",
           "updated_at"
         ],
         "properties": [
@@ -2114,8 +2114,8 @@
           "state",
           "proof_summary",
           "rejection_reason_code",
-          "created_at",
           "expires_at",
+          "created_at",
           "updated_at"
         ],
         "closed": true
@@ -2138,8 +2138,8 @@
           "ssk_generation",
           "challenge",
           "state",
-          "created_at",
           "expires_at",
+          "created_at",
           "updated_at"
         ],
         "properties": [
@@ -2155,8 +2155,8 @@
           "state",
           "proof_summary",
           "rejection_reason_code",
-          "created_at",
           "expires_at",
+          "created_at",
           "updated_at"
         ],
         "closed": true
@@ -2320,8 +2320,8 @@
           "supersedes_digest",
           "frontier_ref",
           "recovery_policy_ref",
-          "created_at",
           "expires_at",
+          "created_at",
           "updated_at",
           "encryption",
           "contents",
@@ -2385,8 +2385,8 @@
           "supersedes_digest",
           "frontier_ref",
           "recovery_policy_ref",
-          "created_at",
           "expires_at",
+          "created_at",
           "updated_at",
           "encryption",
           "contents",
@@ -3382,7 +3382,7 @@
           "authority_binding",
           "signature"
         ],
-        "closed": false
+        "closed": true
       }
     }
   ]

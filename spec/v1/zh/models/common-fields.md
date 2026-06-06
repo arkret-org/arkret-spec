@@ -207,7 +207,7 @@ expected_<role>_<kind>_id
 
 - `created_at` MUST 排在 `updated_at` 之前；`created_by` MUST 排在 `created_at` 之前；`updated_by` MUST 排在 `updated_at` 之前。
 - `state_changed_at` MUST 紧跟 `state`；`stage_changed_at` MUST 紧跟 `stage`。
-- 对承载有效期 / 签发语义的 protocol artifact / proof 对象（第 2 / 3 类，含 `not_before` / `issued_at` / `expires_at` 的 validity 字段簇），字段排序 MUST 满足：`not_before` MUST 排在 `expires_at` 之前、`issued_at` MUST 排在 `expires_at` 之前（即签发 / 生效下界先于有效期上界），除非对象语义明确要求先表上界（此时 MUST 在对应 schema description 或本节显式注明该例外）。当 `not_before` 与 `issued_at` 同时存在时，二者相对顺序不在本规则强制范围内，按对象语义择一在前即可。（lint 强制覆盖待 `check_field_order` 扩展。）
+- 任何同时承载 validity 字段簇（`not_before` / `issued_at` / `effective_at` / `expires_at`）与 audit 字段簇（`created_by` / `created_at` / `updated_*`）的对象，validity 簇 MUST 整体排在 audit 簇之前（即 `expires_at` 等有效期字段 MUST 排在 `created_by` / `created_at` 之前）。validity 簇内部 MUST 满足：`not_before` MUST 排在 `expires_at` 之前、`issued_at` MUST 排在 `expires_at` 之前（签发 / 生效下界先于有效期上界）；`not_before` 与 `issued_at` 同时存在时二者相对顺序不强制，按对象语义择一在前。以上由 `tools/field-order-rules.json` 的 `cluster_precedence` + `ordered_groups.validity` 经 `check_field_order` 强制。
 - 开放扩展容器（`fields` / `metadata`）MUST 落在 content / config 区，紧邻对象内容字段，MUST NOT 混入 audit 字段簇。对 Realm 这类把 `fields` 置于审计字段之前的配置根对象，按本节"对象族例外"声明即可。
 
 对象族例外 MUST 在对应 schema description 或本节列明。Realm 是配置根对象：`title` / `summary` / `security_class` 可在 `trust_domain` / `schema_refs` 之前展示，以便管理端先呈现人类可读身份和安全等级；`trust_domain` 仍是 create-locked replay boundary，`schema_refs` 仍是字段验证引用，不改变其语义。

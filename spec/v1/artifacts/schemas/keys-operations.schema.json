@@ -192,10 +192,10 @@
         "fallback": {
           "type": "boolean"
         },
-        "created_at": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "expires_at": {
+        "created_at": {
           "$ref": "#/$defs/timestamp"
         }
       },
@@ -290,9 +290,6 @@
           "type": "object",
           "additionalProperties": true
         },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        },
         "expires_at": {
           "oneOf": [
             {
@@ -302,6 +299,9 @@
               "type": "null"
             }
           ]
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"

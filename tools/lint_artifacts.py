@@ -3119,6 +3119,85 @@ def check_event_admission_coverage(lint: Lint) -> None:
                 lint.fail(event_path, f"{kind}: admission_capabilities only allowed when admission=capability_gated")
 
 
+def _resolve_dto_object(schema_ref: str) -> dict | None:
+    """Resolve a 'schemas/X.schema.json#/$defs/Y' ref to its object, following pure $ref aliases."""
+    file_ref, _, fragment = (schema_ref or "").partition("#")
+    if not file_ref:
+        return None
+    path = ARTIFACTS / file_ref
+
+    def load(p: Path):
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+
+    def navigate(doc, frag):
+        node = doc
+        for token in [t for t in frag.split("/") if t]:
+            token = token.replace("~1", "/").replace("~0", "~")
+            if isinstance(node, dict) and token in node:
+                node = node[token]
+            else:
+                return None
+        return node
+
+    document = load(path)
+    if document is None:
+        return None
+    node = navigate(document, fragment.lstrip("#")) if fragment else document
+    seen: set[str] = set()
+    while isinstance(node, dict) and set(node.keys()) == {"$ref"}:
+        ref = node["$ref"]
+        if ref in seen:
+            break
+        seen.add(ref)
+        ref_file, _, ref_fragment = ref.partition("#")
+        if ref_file:
+            path = (path.parent / ref_file).resolve()
+            document = load(path)
+            if document is None:
+                return None
+        node = navigate(document, ref_fragment.lstrip("#")) if ref_fragment else document
+    return node if isinstance(node, dict) else None
+
+
+def check_operation_dto_closure(lint: Lint) -> None:
+    """Core operation DTOs (request/response object schemas) MUST be closed.
+
+    Every operation request/response schema that resolves to a ``type: object``
+    MUST declare ``additionalProperties: false`` unless the object is explicitly
+    marked as an intentional extension surface via ``x_extension_surface: true``
+    or a non-empty ``$comment`` (models/common-fields.md DTO-closure policy).
+    Reads the generated operation-schema-index (already verified current).
+    """
+    index_path = ARTIFACTS / "reports" / "operation-schema-index.json"
+    index = load_json(lint, index_path)
+    if not isinstance(index, dict):
+        return
+    for operation in index.get("operations", []):
+        if not isinstance(operation, dict):
+            continue
+        operation_id = operation.get("operation_id")
+        for role in ("request", "response"):
+            dto = operation.get(role)
+            if not isinstance(dto, dict):
+                continue
+            if dto.get("schema_kind") != "object" or dto.get("closed") is True:
+                continue
+            schema_ref = dto.get("schema_ref") or ""
+            source = _resolve_dto_object(schema_ref)
+            marked = isinstance(source, dict) and (
+                source.get("x_extension_surface") is True or bool(source.get("$comment"))
+            )
+            if not marked:
+                lint.fail(
+                    index_path,
+                    f"{operation_id} {role} DTO is type:object but not closed: {schema_ref} "
+                    "MUST declare additionalProperties:false or be marked open (x_extension_surface / $comment)",
+                )
+
+
 def check_text_reference_targets(lint: Lint) -> None:
     for path in raw_artifact_files():
         try:
@@ -4441,6 +4520,7 @@ def check_field_order(lint: Lint) -> None:
     hard_precedence = rules.get("hard_precedence") or []
     hard_immediate = rules.get("hard_immediate_follow") or []
     ordered_groups = rules.get("ordered_groups") or {}
+    cluster_precedence = rules.get("cluster_precedence") or []
     role_rule = rules.get("role_after_subject") or {}
     subject_anchors = set(role_rule.get("subject_anchors") or [])
     role_field = role_rule.get("role_field")
@@ -4483,6 +4563,25 @@ def check_field_order(lint: Lint) -> None:
                             f"{json_path}.{where}: group '{group_name}' ordering: "
                             f"'{earlier}' MUST precede '{later}'",
                         )
+
+        # Cluster precedence (errors): every present member of the earlier
+        # cluster MUST precede every present member of the later cluster.
+        for rule in cluster_precedence:
+            if not isinstance(rule, dict):
+                continue
+            earlier_present = [m for m in (rule.get("earlier") or []) if m in index]
+            later_present = [m for m in (rule.get("later") or []) if m in index]
+            if earlier_present and later_present:
+                latest_earlier = max(index[m] for m in earlier_present)
+                earliest_later = min(index[m] for m in later_present)
+                if latest_earlier > earliest_later:
+                    offending_earlier = max(earlier_present, key=lambda m: index[m])
+                    offending_later = min(later_present, key=lambda m: index[m])
+                    lint.fail(
+                        path,
+                        f"{json_path}.{where}: validity cluster MUST precede creation/audit cluster: "
+                        f"'{offending_earlier}' MUST precede '{offending_later}'",
+                    )
 
         # role placement relative to subject/issuer anchor (error).
         if role_field and role_field in index:
@@ -4950,6 +5049,7 @@ def main() -> int:
     check_binding_variant_non_http(lint)
     check_capability_action_event_mapping(lint)
     check_event_admission_coverage(lint)
+    check_operation_dto_closure(lint)
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
     check_account_data_type_registry(lint, known)

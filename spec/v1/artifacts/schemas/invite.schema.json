@@ -9,8 +9,8 @@
     "realm_id",
     "inviter",
     "join_rule_snapshot",
-    "expires_at",
     "state",
+    "expires_at",
     "created_at"
   ],
   "properties": {
@@ -43,9 +43,6 @@
         "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
-    "expires_at": {
-      "$ref": "#/$defs/timestamp"
-    },
     "state": {
       "type": "string",
       "enum": [
@@ -60,6 +57,9 @@
         "revoked_by_inviter_left",
         "invalidated_by_rate_limit"
       ]
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"

@@ -135,8 +135,8 @@
         "key_package",
         "cipher_suites",
         "capabilities",
-        "created_at",
-        "expires_at"
+        "expires_at",
+        "created_at"
       ],
       "properties": {
         "keypackage_id": {
@@ -158,10 +158,10 @@
         "capabilities": {
           "$ref": "#/$defs/string_list"
         },
-        "created_at": {
+        "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "expires_at": {
+        "created_at": {
           "$ref": "#/$defs/timestamp"
         },
         "device_signature": {

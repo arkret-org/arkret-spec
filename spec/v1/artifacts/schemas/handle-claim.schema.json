@@ -147,9 +147,15 @@
         "type": "object"
       }
     },
-    "created_at": { "$ref": "#/$defs/timestamp" },
-    "expires_at": { "$ref": "#/$defs/timestamp" },
-    "verified_at": { "$ref": "#/$defs/timestamp" },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "verified_at": {
+      "$ref": "#/$defs/timestamp"
+    },
     "source_refs": {
       "type": "array",
       "items": {
@@ -169,16 +175,34 @@
   "unevaluatedProperties": false,
   "not": {
     "anyOf": [
-      { "required": ["recipient_service_did"] },
-      { "required": ["service_acceptance_ref"] },
-      { "required": ["policy_event_ref"] }
+      {
+        "required": [
+          "recipient_service_did"
+        ]
+      },
+      {
+        "required": [
+          "service_acceptance_ref"
+        ]
+      },
+      {
+        "required": [
+          "policy_event_ref"
+        ]
+      }
     ]
   },
   "allOf": [
     {
       "if": {
-        "properties": { "binding_state": { "const": "verified" } },
-        "required": ["binding_state"]
+        "properties": {
+          "binding_state": {
+            "const": "verified"
+          }
+        },
+        "required": [
+          "binding_state"
+        ]
       },
       "then": {
         "required": [
@@ -189,7 +213,9 @@
     },
     {
       "if": {
-        "required": ["member_delivery_binding"]
+        "required": [
+          "member_delivery_binding"
+        ]
       },
       "then": {
         "required": [

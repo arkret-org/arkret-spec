@@ -3,15 +3,36 @@
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md",
   "hard_precedence": [
-    {"earlier": "id", "later": "schema"},
-    {"earlier": "schema", "later": "realm_id"},
-    {"earlier": "created_by", "later": "created_at"},
-    {"earlier": "created_at", "later": "updated_at"},
-    {"earlier": "updated_by", "later": "updated_at"}
+    {
+      "earlier": "id",
+      "later": "schema"
+    },
+    {
+      "earlier": "schema",
+      "later": "realm_id"
+    },
+    {
+      "earlier": "created_by",
+      "later": "created_at"
+    },
+    {
+      "earlier": "created_at",
+      "later": "updated_at"
+    },
+    {
+      "earlier": "updated_by",
+      "later": "updated_at"
+    }
   ],
   "hard_immediate_follow": [
-    {"anchor": "state", "marker": "state_changed_at"},
-    {"anchor": "stage", "marker": "stage_changed_at"}
+    {
+      "anchor": "state",
+      "marker": "state_changed_at"
+    },
+    {
+      "anchor": "stage",
+      "marker": "stage_changed_at"
+    }
   ],
   "ordered_groups": {
     "$comment": "Within each named category group, when two member fields are both present on the same object they MUST appear in the listed order. Presence-conditional: missing members never trigger.",
@@ -37,7 +58,28 @@
   },
   "role_after_subject": {
     "$comment": "In subject/issuer grouped objects, a `role` discriminator MUST follow the principal/actor identity field it qualifies rather than precede it.",
-    "subject_anchors": ["actor_id", "principal_id", "subject", "subject_id", "issuer"],
+    "subject_anchors": [
+      "actor_id",
+      "principal_id",
+      "subject",
+      "subject_id",
+      "issuer"
+    ],
     "role_field": "role"
-  }
+  },
+  "cluster_precedence": [
+    {
+      "$comment": "The validity cluster (not_before/issued_at/effective_at/expires_at) MUST precede the creation/audit cluster (created_by/created_at) when both appear on the same object. models/common-fields.md §3.2.",
+      "earlier": [
+        "not_before",
+        "issued_at",
+        "effective_at",
+        "expires_at"
+      ],
+      "later": [
+        "created_by",
+        "created_at"
+      ]
+    }
+  ]
 }
