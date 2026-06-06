@@ -15,7 +15,7 @@
     "agent_id": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Stable agent runtime identifier. v1 uses a DID here; ck:agent:* is not a registered typed-id kind. Agent session object ids use ck:agent_session:* in their own fields."
+      "description": "Stable agent runtime identifier. v1 uses a DID here; ck:agent:* is not a registered typed-id kind. Agent session object ids use ck:agent_interop_session:* in their own fields."
     },
     "endpoint_url": {
       "type": "string",
@@ -38,11 +38,11 @@
     "service_entry_digest": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
-      "description": "Canonical digest of the matched DID service entry, bound into protocol_session.start / status / result audit evidence."
+      "description": "Canonical digest of the matched DID service entry, bound into interop_session.start / status / result audit evidence."
     },
     "session_id": {
       "type": "string",
-      "description": "Per-invocation correlation id used by protocol_session.start / .status / .result to pair request/response.",
+      "description": "Per-invocation correlation id used by interop_session.start / .status / .result to pair request/response.",
       "minLength": 1
     },
     "status": {
@@ -58,13 +58,13 @@
         "cancelled",
         "expired"
       ],
-      "description": "Session status for ck.agent.protocol_session.status events. Same enum as agent_session_status_payload.status in event-payload.schema.json — the registry-object snapshot MUST carry the canonical session state machine, not a coarse subset."
+      "description": "Session status for ck.agent.interop_session.status events. Same enum as agent_interop_session_status_payload.status in event-payload.schema.json — the registry-object snapshot MUST carry the canonical session state machine, not a coarse subset."
     },
     "params": {
-      "description": "Caller-supplied parameters for protocol_session.start. Opaque to soland — agent runtimes interpret per agent manifest."
+      "description": "Caller-supplied parameters for interop_session.start. Opaque to soland — agent runtimes interpret per agent manifest."
     },
     "result": {
-      "description": "Terminal payload for ck.agent.protocol_session.result. Free-form; agents document the shape."
+      "description": "Terminal payload for ck.agent.interop_session.result. Free-form; agents document the shape."
     },
     "detail": {
       "type": "object",

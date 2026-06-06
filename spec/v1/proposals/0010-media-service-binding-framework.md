@@ -175,7 +175,7 @@ Content-Type: application/json
 - TTL 短期化：**MUST ≤ 600s**（10 分钟），SHOULD ≤ 300s。过期前客户端 MUST 重新兑换。
 - `participant_identity` 在 backend 中作为 SFU-local handle，MUST 不携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §6.6 pairwise pseudonym](../zh/crypto-media/webrtc-signaling.md) 规则对齐），且 MUST 至少绑定 `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` 派生。
 - `participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺；客户端 MUST 先验证该 binding，再把它写入 / 对照 `ck.call.state` membership。backend 只需要看到 `participant_identity` 与 `backend_token`，不应获得长期 actor 身份。
-- **Token issuer DID 锚定**：响应中的 `service_signature.kid` 与 `participant_binding.issuer_kid` MUST 对应一个出现在当前 epoch `ck.realm.media_service.service_id` 的 service DID（即该 service 在 Realm policy 中已被 `ck.call.configure_media_service` 或 `ck.policy.manage` 显式授权）；客户端 MUST 拒绝来自未授权 DID 的 token。这把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
+- **Token issuer DID 锚定**：响应中的 `service_signature.kid` 与 `participant_binding.issuer_kid` MUST 对应一个出现在当前 epoch `ck.realm.media_service.service_id` 的 service DID（即该 service 在 Realm policy 中已被 `ck.realm.media_service` 或 `ck.policy.manage` 显式授权）；客户端 MUST 拒绝来自未授权 DID 的 token。这把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
 
 ### 4.3 Focus 选择规则（normative）
 
@@ -314,7 +314,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 | `zh/crypto-media/bindings/livekit.md` | **新文件** — LiveKit binding |
 | `zh/crypto-media/bindings/cokret-native.md` | **新文件** — 把现行 §10.1 自定义 SFU 信令搬入此处作为 reference impl |
 | [`zh/sync/service-http-binding.md`](../zh/sync/service-http-binding.md)、[`zh/sync/service-surface.md`](../zh/sync/service-surface.md) | 登记 token exchange canonical operation 与默认 HTTP binding（建议 `POST /_cokret/self/rtc/token`），并在 media service describe 中暴露 |
-| [`zh/authz/capabilities.md`](../zh/authz/capabilities.md) | 已有 `ck.call.configure_media_service` 不变；`call.join` / `call.screen_share` / `call.record` 等现行裸名在 accepted 迁移时必须注册或收敛到 `ck.call.*` action，不得只停留在 narrative |
+| [`zh/authz/capabilities.md`](../zh/authz/capabilities.md) | 已有 `ck.realm.media_service` 不变；`call.join` / `call.screen_share` / `call.record` 等现行裸名在 accepted 迁移时必须注册或收敛到 `ck.call.*` action，不得只停留在 narrative |
 | `artifacts/registry/operation-registry.json`、`artifacts/openapi/cokret-service-api.openapi.yaml` | 新增 token exchange operation / schema / error response；health endpoint 若保留也要登记 discovery 语义 |
 | `artifacts/registry/event-kind-registry.json` | `ck.realm.media_service` payload schema 更新；不新增 recording artifact event kind |
 | `artifacts/registry/error-code-registry.json` | 新增 `focus_mismatch`、`e2ee_key_source_unauthorised`、`participant_identity_unrecognised` 等错误码，或映射到既有 canonical code |
@@ -340,7 +340,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 | 是否包含 LiveKit binding | resolved | `bindings/livekit.md` 已作为 optional sub-profile 合入，不进入 v1 mandatory core。 |
 | Cascading 节点级可观测性 | deferred-to-profile | core 只要求 `session_focus` 与 participant binding；节点 / region 诊断由 backend binding profile 声明。 |
 | `cokret-native` reference impl 命运 | resolved | 保留为 `bindings/cokret-native.md` reference binding。 |
-| call capability 命名收敛 | resolved | capability registry 使用 `ck.call.join` / `ck.call.record` / `ck.call.configure_media_service`。 |
+| call capability 命名收敛 | resolved | capability registry 使用 `ck.call.join` / `ck.call.record` / `ck.realm.media_service`。 |
 
 ## 8. Resolved Decisions（记录已定取舍）
 

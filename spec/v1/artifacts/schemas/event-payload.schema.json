@@ -602,9 +602,9 @@
       "type": "string",
       "pattern": "^ck:invite:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "agent_session_id": {
+    "agent_interop_session_id": {
       "type": "string",
-      "pattern": "^ck:agent_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:agent_interop_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "verification_method": {
       "type": "string",
@@ -618,7 +618,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(ck:(realm|circle|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(ck:(realm|circle|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
     "audit_binding_id": {
       "type": "string",
@@ -1168,7 +1168,7 @@
     },
     "morph_schema_migrate_payload": {
       "type": "object",
-      "description": "Migration of a Morph's schema_refs[] under the schema-evolution policy (zh/models/morph.md §4.1 S3). Distinct from ck.morph.update — schema_refs[] changes MUST go through this event so the migration is auditable, capability-gated, and carries an explicit compatibility class. Reducer MUST verify the actor holds the ck.morph.schema.migrate capability (or the Realm-declared equivalent) at the event's frontier; missing capability yields capability_denied. Reducer MUST reject compatibility_class ∈ {breaking, transformation} unless the Realm declares ck.profile.morph.schema_migration_transformations.v1 (yielding morph_schema_refs_transformation_unsupported otherwise). Reducer MUST verify from_schema_refs[] matches the Morph's current schema_refs[] at apply time (yielding failed_precondition otherwise). The event's own requirements.schema[] MUST include the union of from_schema_refs[] and to_schema_refs[] so readers can resolve both versions during overlap. Each transformation_rules[] entry SHOULD describe a deterministic, replay-safe per-field mapping (rename, type widening, default backfill, etc.); the rule object shape is governed by the Realm-declared ck.profile.morph.schema_migration_transformations.v1 profile.",
+      "description": "Migration of a Morph's schema_refs[] under the schema-evolution policy (zh/models/morph.md §4.1 S3). Distinct from ck.morph.update — schema_refs[] changes MUST go through this event so the migration is auditable, capability-gated, and carries an explicit compatibility class. Reducer MUST verify the actor holds the ck.morph.schema_migrate capability (or the Realm-declared equivalent) at the event's frontier; missing capability yields capability_denied. Reducer MUST reject compatibility_class ∈ {breaking, transformation} unless the Realm declares ck.profile.morph.schema_migration_transformations.v1 (yielding morph_schema_refs_transformation_unsupported otherwise). Reducer MUST verify from_schema_refs[] matches the Morph's current schema_refs[] at apply time (yielding failed_precondition otherwise). The event's own requirements.schema[] MUST include the union of from_schema_refs[] and to_schema_refs[] so readers can resolve both versions during overlap. Each transformation_rules[] entry SHOULD describe a deterministic, replay-safe per-field mapping (rename, type widening, default backfill, etc.); the rule object shape is governed by the Realm-declared ck.profile.morph.schema_migration_transformations.v1 profile.",
       "required": [
         "morph_id",
         "from_schema_refs",
@@ -3244,7 +3244,7 @@
       },
       "additionalProperties": false
     },
-    "agent_session_start_payload": {
+    "agent_interop_session_start_payload": {
       "type": "object",
       "required": [
         "session_id",
@@ -3254,7 +3254,7 @@
       ],
       "properties": {
         "session_id": {
-          "$ref": "#/$defs/agent_session_id"
+          "$ref": "#/$defs/agent_interop_session_id"
         },
         "task_flow_id": {
           "$ref": "#/$defs/flow_id"
@@ -3297,7 +3297,7 @@
       },
       "additionalProperties": false
     },
-    "agent_session_status_payload": {
+    "agent_interop_session_status_payload": {
       "type": "object",
       "required": [
         "session_id",
@@ -3305,7 +3305,7 @@
       ],
       "properties": {
         "session_id": {
-          "$ref": "#/$defs/agent_session_id"
+          "$ref": "#/$defs/agent_interop_session_id"
         },
         "status": {
           "type": "string",
@@ -3356,7 +3356,7 @@
       },
       "additionalProperties": false
     },
-    "agent_session_result_payload": {
+    "agent_interop_session_result_payload": {
       "type": "object",
       "required": [
         "session_id",
@@ -3364,7 +3364,7 @@
       ],
       "properties": {
         "session_id": {
-          "$ref": "#/$defs/agent_session_id"
+          "$ref": "#/$defs/agent_interop_session_id"
         },
         "status": {
           "type": "string",
@@ -5791,9 +5791,9 @@
       },
       "additionalProperties": false
     },
-    "applet_session_start_payload": {
+    "applet_interop_session_start_payload": {
       "type": "object",
-      "description": "Payload for ck.applet.protocol_session.start. Parallel to ck.agent.protocol_session.start but applet-scoped. Field vocabulary: applet.schema.json (session_id correlates start/status; params are caller-supplied, opaque to soland and interpreted per applet manifest). Unlike ck.agent.* there is NO canonical applet session state machine in v1.",
+      "description": "Payload for ck.applet.interop_session.start. Parallel to ck.agent.interop_session.start but applet-scoped. Field vocabulary: applet.schema.json (session_id correlates start/status; params are caller-supplied, opaque to soland and interpreted per applet manifest). Unlike ck.agent.* there is NO canonical applet session state machine in v1.",
       "required": [
         "applet_id",
         "session_id"
@@ -5828,9 +5828,9 @@
       },
       "additionalProperties": false
     },
-    "applet_session_status_payload": {
+    "applet_interop_session_status_payload": {
       "type": "object",
-      "description": "Payload for ck.applet.protocol_session.status. Parallel to ck.agent.protocol_session.status but applet-scoped. runtime_status is the bridge-implementation-defined status (applet.schema.json) — v1 does NOT mandate a canonical applet session state machine; the field is named runtime_status (not status) to keep applet snapshots distinguishable from the canonical agent session state machine. detail is a free-form bridge-side surface.",
+      "description": "Payload for ck.applet.interop_session.status. Parallel to ck.agent.interop_session.status but applet-scoped. runtime_status is the bridge-implementation-defined status (applet.schema.json) — v1 does NOT mandate a canonical applet session state machine; the field is named runtime_status (not status) to keep applet snapshots distinguishable from the canonical agent session state machine. detail is a free-form bridge-side surface.",
       "required": [
         "applet_id",
         "session_id",

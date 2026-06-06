@@ -77,7 +77,7 @@ sidebar:
 
 `ck.realm.media_service` MUST 声明非空 `foci[]`。只提供单个 `sfu_endpoint` 或缺少 `foci[]` 的 payload MUST fail closed，返回 `schema_violation` 或 `failed_precondition`，原因码 `media_service_foci_required`；服务端不得在实时路径中自动补写、normalize 或推断 focus。
 
-修改该 state event 需要 `ck.call.configure_media_service` 或 `ck.policy.manage` capability。
+修改该 state event 需要 `ck.realm.media_service` 或 `ck.policy.manage` capability。
 
 ### 2.1 完整性绑定（normative）
 

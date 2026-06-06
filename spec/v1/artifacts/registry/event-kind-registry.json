@@ -878,7 +878,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ck.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ck.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ck.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ck.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
     },
     {
       "event_kind": "ck.morph.stage.set",
@@ -1120,7 +1120,7 @@
       "payload": "Controller rejection of a draft / action request (CKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
     },
     {
-      "event_kind": "ck.agent.protocol_session.start",
+      "event_kind": "ck.agent.interop_session.start",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1128,7 +1128,7 @@
       "payload": "Agent protocol session start"
     },
     {
-      "event_kind": "ck.agent.protocol_session.status",
+      "event_kind": "ck.agent.interop_session.status",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1136,7 +1136,7 @@
       "payload": "Agent protocol session status"
     },
     {
-      "event_kind": "ck.agent.protocol_session.result",
+      "event_kind": "ck.agent.interop_session.result",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1910,7 +1910,7 @@
       "payload": "Applet registration"
     },
     {
-      "event_kind": "ck.applet.protocol_session.start",
+      "event_kind": "ck.applet.interop_session.start",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1918,7 +1918,7 @@
       "payload": "Applet protocol session start"
     },
     {
-      "event_kind": "ck.applet.protocol_session.status",
+      "event_kind": "ck.applet.interop_session.status",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",

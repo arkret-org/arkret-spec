@@ -1435,8 +1435,8 @@
         "ck.edge.applet.protocol_metadata"
       ],
       "required_event_kinds": [
-        "ck.applet.protocol_session.start",
-        "ck.applet.protocol_session.status",
+        "ck.applet.interop_session.start",
+        "ck.applet.interop_session.status",
         "ck.applet.bridge_error"
       ],
       "rejected_event_kinds": [],
@@ -1545,9 +1545,9 @@
       ],
       "required_event_kinds": [
         "ck.agent.endpoint",
-        "ck.agent.protocol_session.start",
-        "ck.agent.protocol_session.status",
-        "ck.agent.protocol_session.result"
+        "ck.agent.interop_session.start",
+        "ck.agent.interop_session.status",
+        "ck.agent.interop_session.result"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1863,7 +1863,7 @@
       }
     },
     "ck.profile.morph.schema_migration_transformations.v1": {
-      "description": "Opt-in Realm profile that permits ck.morph.schema_migrate events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating ck.morph.schema.migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
+      "description": "Opt-in Realm profile that permits ck.morph.schema_migrate events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating ck.morph.schema_migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
       "required_endpoints": [],
       "required_event_kinds": [
         "ck.morph.schema_migrate"
@@ -1885,7 +1885,7 @@
         "unsupported_optional": "deployments without this profile MUST reject breaking and transformation migrations even if the event-payload schema would accept them"
       },
       "additional_requirements": {
-        "capability_must": "Reducer MUST require ck.morph.schema.migrate (or Realm-declared equivalent) capability at the event's frontier; missing yields capability_denied.",
+        "capability_must": "Reducer MUST require ck.morph.schema_migrate (or Realm-declared equivalent) capability at the event's frontier; missing yields capability_denied.",
         "from_set_check_must": "Reducer MUST set-equal-compare payload.from_schema_refs[] against the Morph's current schema_refs[] at apply time; mismatch yields failed_precondition.",
         "deterministic_transformation_must": "Any transformation_rules[] MUST be replay-deterministic across implementations; profile vectors MUST cover identity, rename, type widening, and default backfill cases."
       }

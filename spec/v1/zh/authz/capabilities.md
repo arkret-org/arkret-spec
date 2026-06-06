@@ -161,11 +161,11 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `ck.realm.admin` → registry 中声明的 Realm policy facet events；`ck.policy.manage` → `ck.policy.*` 与 `ck.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Flow / Morph / Space 等同语义 event | `ck.object.archive` → `{ck.flow.archive, ck.morph.archive}`；`ck.object.restore` → `{ck.flow.restore, ck.morph.restore, ck.space.restore}`；`ck.object.stage.set` → `{ck.flow.stage.set, ck.morph.stage.set}` |
 | **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `ck.message.revise.own` → `ck.message.revise`；`ck.message.redact.own` → `ck.message.redact`；`ck.flow.watch.set.others` → `ck.flow.watch.set` |
-| **保留旧 wire 命名（`event_mapping_kind="wire_compat_grandfather"`）** | action 命名与 event kind 命名形态不同（前缀 / punctuation / namespace 差异）。本类**冻结**，新增条目 **MUST NOT 落入此类**：所有现存条目都 MUST 在 registry 中声明 `grandfathered_since` | `ck.agent.session.*` → `ck.agent.protocol_session.*`（namespace 折叠）；`ck.morph.schema.migrate` → `ck.morph.schema_migrate`（separator 差异）；`ck.flow.tracks.manage` → `ck.flow.tracks.update`（umbrella verb vs 具体 verb）；`ck.call.configure_media_service` → `ck.realm.media_service`（跨 namespace 语义） |
+| **操作动词动作（`event_mapping_kind="operation_verb"`）** | action token 命名为操作 / 命令动词，与 target event kind 名形态不同；reducer admission 经 `target_event_kinds` 解析，逐字命中 `actions[]` 规则照常适用，且不带聚合 admin 语义 | `ck.agent.interop_session.cancel` → `{ck.agent.interop_session.status, ck.agent.interop_session.result}`（命令动词写入 lifecycle 事件）；`ck.agent.interop_session.stream_status` → `ck.agent.interop_session.status`；`ck.message.redact` → `{ck.message.redact, ck.redaction}` |
 
 `ck.mls.commit` action → `{ck.mls.commit, ck.mls.commit_failed}`、`ck.moderation.appeal.review` → `{ck.moderation.appeal.review, ck.moderation.appeal.decision, ck.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
 
-`ck.message.redact` → `{ck.message.redact, ck.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="wire_compat_grandfather"`（risk_tier=medium），即上表第四类“保留旧 wire 命名”的冻结桥。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准。
+`ck.message.redact` → `{ck.message.redact, ck.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="operation_verb"`（risk_tier=medium），即上表第四类“操作动词动作”。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准。
 
 **聚合 admin 的覆盖语义仅作用于 event-kind 解析层，不改变授权层 `actions[]` 的逐字命中规则。** 例如 `ck.policy.manage` 在 §5.4 与具体的 `ck.policy.set` / `ck.policy.rule` / `ck.policy.action` 并列：持有 `ck.policy.manage` 的 grant 表示该 admin action 在 registry 中聚合覆盖 `ck.policy.*` 与 `ck.realm.policy_*` 系列对应的 **event kinds**（audit / reducer 据 `target_event_kinds` 解析），但它**不在授权层自动等价于持有 `ck.policy.set` / `ck.policy.rule` / `ck.policy.action` 这三个具体 action token**。授权判定仍 MUST 按 §5「`actions[]` MUST 逐字命中、MUST NOT wildcard / segment 通配」执行：要授予某具体 policy 子动作，grant 的 `actions[]` MUST 显式列出 `ck.policy.manage`（若 receiver 已声明并接受该 action 对相应 event kinds 的聚合覆盖）或对应的具体 action token，二者不可互相推断。
 
@@ -196,7 +196,7 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `ck.flow.restore`
 - `ck.flow.move`
 - `ck.flow.reorder`
-- `ck.flow.tracks.manage`（Flow tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，target=`ck.flow.tracks.update`。**`event_mapping_kind=wire_compat_grandfather`**——umbrella verb `manage` 与具体 verb `update` 之间的冻结桥，新条目 MUST NOT 落入此类。这是该 action 的权威定义；§5.3 仅交叉引用）
+- `ck.flow.tracks.update`（Flow tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，target=`ck.flow.tracks.update`，`event_mapping_kind=same_name`。这是该 action 的权威定义；§5.3 仅交叉引用）
 - `ck.relation.create`
 - `ck.relation.update`
 - `ck.relation.tombstone`
@@ -232,7 +232,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.message.redact.own`
 - `ck.reaction.add`
 - `ck.reaction.remove`
-- `ck.flow.tracks.manage`（管理 track 启用 / primary / profile；权威定义见 §5.2，此处仅交叉引用，target=`ck.flow.tracks.update`，`event_mapping_kind=wire_compat_grandfather`）
+- `ck.flow.tracks.update`（管理 track 启用 / primary / profile；权威定义见 §5.2，此处仅交叉引用，target=`ck.flow.tracks.update`，`event_mapping_kind=same_name`）
 - `ck.flow.watch.set`（写入自己的 watch 订阅，target=`ck.flow.watch.set`；详见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）
 - `ck.flow.watch.set.others`（high risk；为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`ck.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
 
@@ -275,13 +275,13 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Flow)
 - `ck.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `ck.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
 - `ck.agent.protocol.discover`（profile=`ck.profile.agent_runtime.v1`，risk_tier=low，`non_event_surface`，无 target event：发现 agent runtime 协议端点 / capability，仅服务面发现，不写入 event）
-- `ck.agent.session.start`（profile=`ck.profile.agent_runtime.v1`，high risk；启动 agent protocol session，`event_mapping_kind=wire_compat_grandfather`，target=`ck.agent.protocol_session.start`；required constraint `allowed_endpoints` + `allowed_data_classes`）
-- `ck.agent.session.cancel`（profile=`ck.profile.agent_runtime.v1`，medium；取消 / 终止 session，grandfather 桥，target=`{ck.agent.protocol_session.status, ck.agent.protocol_session.result}`）
-- `ck.agent.session.stream_status`（profile=`ck.profile.agent_runtime.v1`，low；流式上报 session 状态，grandfather 桥，target=`ck.agent.protocol_session.status`）
-- `ck.agent.session.attach_artifact`（profile=`ck.profile.agent_runtime.v1`，high risk；附加 session artifact，grandfather 桥，target=`{ck.agent.protocol_session.status, ck.agent.protocol_session.result}`；required constraint `allowed_data_classes` + `max_artifact_bytes`）
-- `ck.agent.session.read_transcript`（profile=`ck.profile.agent_runtime.v1`，high risk；读取 session transcript，`non_event_surface`，无 target event；required constraint `allowed_data_classes`）
+- `ck.agent.interop_session.start`（profile=`ck.profile.agent_runtime.v1`，high risk；启动 agent interop session，`event_mapping_kind=same_name`，target=`ck.agent.interop_session.start`；required constraint `allowed_endpoints` + `allowed_data_classes`）
+- `ck.agent.interop_session.cancel`（profile=`ck.profile.agent_runtime.v1`，medium；取消 / 终止 session，`event_mapping_kind=operation_verb`，target=`{ck.agent.interop_session.status, ck.agent.interop_session.result}`）
+- `ck.agent.interop_session.stream_status`（profile=`ck.profile.agent_runtime.v1`，low；流式上报 session 状态，`event_mapping_kind=operation_verb`，target=`ck.agent.interop_session.status`）
+- `ck.agent.interop_session.attach_artifact`（profile=`ck.profile.agent_runtime.v1`，high risk；附加 session artifact，`event_mapping_kind=operation_verb`，target=`{ck.agent.interop_session.status, ck.agent.interop_session.result}`；required constraint `allowed_data_classes` + `max_artifact_bytes`）
+- `ck.agent.interop_session.read_transcript`（profile=`ck.profile.agent_runtime.v1`，high risk；读取 session transcript，`non_event_surface`，无 target event；required constraint `allowed_data_classes`）
 
-> `ck.agent.session.*` → `ck.agent.protocol_session.*` 属 §5.0 第四类“保留旧 wire 命名”冻结桥，新条目 MUST NOT 落入此类。以上 agent runtime / session 动作均 profile-gated（`ck.profile.agent_runtime.v1`），未声明该 profile 的 receiver MUST 按 registry_rules 视为 unknown 并 default 高风险 fail-closed。
+> 以上 agent runtime / interop session 动作均 profile-gated（`ck.profile.agent_runtime.v1`），未声明该 profile 的 receiver MUST 按 registry_rules 视为 unknown 并 default 高风险 fail-closed。
 
 - `ck.policy.manage`
 - `ck.policy.set`
@@ -310,7 +310,7 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.self.blob.get`
 - `ck.self.blob.head`
 - `ck.self.blob.presign`（签发预签名 blob URL；必需 constraint `blob_presign_scope` + `blob_presign_max_ttl_seconds`）
-- `ck.call.configure_media_service`（target=`ck.realm.media_service`，**`event_mapping_kind=wire_compat_grandfather`**——跨 namespace 语义的冻结桥，新条目 MUST NOT 落入此类；§5.0 第四类列此例）
+- `ck.realm.media_service`（target=`ck.realm.media_service`，`event_mapping_kind=same_name`）
 - `ck.mls.genesis`
 - `ck.mls.proposal`
 - `ck.mls.commit`

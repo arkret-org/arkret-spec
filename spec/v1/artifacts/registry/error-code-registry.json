@@ -2228,7 +2228,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.morph.update attempted to modify schema_refs[] without going through the Realm's declared schema-evolution policy (high-tier capability such as ck.morph.schema.migrate, or equivalent) and an explicit audit-grade authorization_ref. See zh/models/morph.md §4.1 S2."
+      "description": "ck.morph.update attempted to modify schema_refs[] without going through the Realm's declared schema-evolution policy (high-tier capability such as ck.morph.schema_migrate, or equivalent) and an explicit audit-grade authorization_ref. See zh/models/morph.md §4.1 S2."
     },
     {
       "code": "morph_schema_refs_transformation_unsupported",
@@ -2496,7 +2496,7 @@
         "agent_protocol",
         "schema_validation"
       ],
-      "description": "An external agent protocol response failed declared schema, transcript hash, or artifact binding validation. The failure MUST be recorded via ck.agent.protocol_session.status/result. See zh/extensions/agent-protocol-interop.md §12."
+      "description": "An external agent protocol response failed declared schema, transcript hash, or artifact binding validation. The failure MUST be recorded via ck.agent.interop_session.status/result. See zh/extensions/agent-protocol-interop.md §12."
     },
     {
       "code": "gate_check_failed",

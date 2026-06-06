@@ -72,7 +72,7 @@ Cokret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
     "ck.self.events.submit",
     "ck.self.events.query",
     "ck.identity.presentation",
-    "ck.agent.protocol_session.start"
+    "ck.agent.interop_session.start"
   ],
   "metadata_privacy": {
     "nested_messages": true,

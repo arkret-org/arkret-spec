@@ -78,11 +78,11 @@
       "description": "Moderation appeal ID — opaque key for the ck.component.moderation_appeal.v1 cell. Created by ck.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5."
     },
     {
-      "kind": "agent_session",
+      "kind": "agent_interop_session",
       "category": "extension",
       "status": "active",
-      "wire_form": "ck:agent_session:<uuid>",
-      "description": "Agent protocol session ID. Note the cross-surface naming: this typed ID uses the short form `agent_session`, while the corresponding event kinds use the full form `ck.agent.protocol_session.{start,status,result}` and capability actions use `ck.agent.session.{start,cancel,stream_status,attach_artifact,read_transcript}` (frozen wire_compat_grandfather bridge — see capabilities.md §5.0 and renames.json migration_group `wire_compat_grandfather`). The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ck:<event-prefix>:<uuid>` mechanical derivation."
+      "wire_form": "ck:agent_interop_session:<uuid>",
+      "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ck.agent.interop_session.{start,status,result}` and capability actions use `ck.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ck:<event-prefix>:<uuid>` mechanical derivation."
     },
     {
       "kind": "announce",

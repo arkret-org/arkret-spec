@@ -59,13 +59,13 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - `ck.call.record`
 - `ck.call.transcribe`
 - `ck.call.moderate` —— 主持 / 管理操作，含对全体结束 call。v1 不注册独立的 `call.end_for_all`，end-for-all 由 `ck.call.moderate` 授权。
-- `ck.call.configure_media_service`
+- `ck.realm.media_service`
 
 默认规则：
 
 - Realm 成员不自动拥有 `ck.call.record`。
 - `ck.call.screen_share` SHOULD 独立授权。
-- `ck.call.configure_media_service` 只应授予管理员或受信服务。
+- `ck.realm.media_service` 只应授予管理员或受信服务。
 - Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) 若 call scoped 到某 Circle，该 actor 还必须是该 Circle 的活跃成员；(c) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(d) 发起设备的 device grant MUST NOT 被 revoked，且其 `ck.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 

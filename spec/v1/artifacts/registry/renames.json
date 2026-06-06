@@ -21,7 +21,7 @@
     "negative_test": "Reference in cotest drift fixtures."
   },
   "migration_group_definitions": {
-    "agent_session_namespace_collapse": "Capability action namespace flattened from cx.agent.protocol_session.* to cx.agent.session.* (5 actions); event kinds preserved for wire-format stability. Single design decision; entries are mechanical applications.",
+    "agent_session_namespace_collapse": "Superseded by agent_applet_interop_session_rename: the agent capability action namespace and the agent/applet session event kinds now both use the interop_session form.",
     "typed_id_prefix_unabbreviation": "Abbreviated typed-id prefixes expanded to full snake_case kind. Single rule: ck:<abbrev>: → ck:<full_kind>: (9 entries).",
     "realm_lifecycle_segment_realignment": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.<verb>) to 3 segments (cx.realm.<verb>) to match the corresponding event kind (4 entries). target_event_kinds preserved.",
     "did_id_suffix": "Protocol responsibility subjects use the _id suffix even when the value is a DID. actor_did / principal_did / subject_did renamed to actor_id / principal_id / subject_id (3 entries).",
@@ -40,7 +40,8 @@
     "grant_constraint_single_kind_ids": "Grant constraint fields that carry one concrete protocol identifier kind use `_ids`; `_refs` remains reserved for causal/proof/schema/content-addressed or polymorphic reference material.",
     "key_backup_kdf_hash_to_digest_algorithm": "Key backup KDF parameter algorithm selectors use digest_algorithm; hash is reserved for actual digest material and internal JSON Schema defs.",
     "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `cokret`. Every wire token prefix `ck.` becomes `ck.` and every typed-id prefix `ck:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `ck.` / `ck:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/cokret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative anchors, the rule applies to the whole token space.",
-    "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications."
+    "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
+    "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Cokret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision."
   },
   "entries": [
     {
@@ -1829,70 +1830,70 @@
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.agent.session.start",
+      "replacement": "ck.agent.interop_session.start",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Capability action namespace flattened from cx.agent.protocol_session.* to cx.agent.session.* (the cx.agent.* context already implies protocol session). Event kinds cx.agent.protocol_session.{start,status,result} are preserved for wire-format stability; the action ↔ event kind bridge is via target_event_kinds. Same applies to .cancel / .stream_status / .attach_artifact / .read_transcript.",
-      "migration_group": "agent_session_namespace_collapse"
+      "notes": "Agent interop session capability action. Renamed protocol_session -> interop_session (see migration_group agent_applet_interop_session_rename).",
+      "migration_group": "agent_applet_interop_session_rename"
     },
     {
       "id": "cx.agent.protocol_session.cancel",
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.agent.session.cancel",
+      "replacement": "ck.agent.interop_session.cancel",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "See cx.agent.protocol_session.start entry.",
-      "migration_group": "agent_session_namespace_collapse"
+      "notes": "Agent interop session capability action. Renamed protocol_session -> interop_session (see migration_group agent_applet_interop_session_rename).",
+      "migration_group": "agent_applet_interop_session_rename"
     },
     {
       "id": "cx.agent.protocol_session.stream_status",
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.agent.session.stream_status",
+      "replacement": "ck.agent.interop_session.stream_status",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "See cx.agent.protocol_session.start entry.",
-      "migration_group": "agent_session_namespace_collapse"
+      "notes": "Agent interop session capability action. Renamed protocol_session -> interop_session (see migration_group agent_applet_interop_session_rename).",
+      "migration_group": "agent_applet_interop_session_rename"
     },
     {
       "id": "cx.agent.protocol_session.attach_artifact",
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.agent.session.attach_artifact",
+      "replacement": "ck.agent.interop_session.attach_artifact",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "See cx.agent.protocol_session.start entry.",
-      "migration_group": "agent_session_namespace_collapse"
+      "notes": "Agent interop session capability action. Renamed protocol_session -> interop_session (see migration_group agent_applet_interop_session_rename).",
+      "migration_group": "agent_applet_interop_session_rename"
     },
     {
       "id": "cx.agent.protocol_session.read_transcript",
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.agent.session.read_transcript",
+      "replacement": "ck.agent.interop_session.read_transcript",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "See cx.agent.protocol_session.start entry.",
-      "migration_group": "agent_session_namespace_collapse"
+      "notes": "Agent interop session capability action. Renamed protocol_session -> interop_session (see migration_group agent_applet_interop_session_rename).",
+      "migration_group": "agent_applet_interop_session_rename"
     },
     {
       "id": "/mimi/rooms/{flow_id}/...",
@@ -4904,6 +4905,258 @@
         "negative_test"
       ],
       "notes": "Trust-surface segment prepended (ck.snapshot.head -> ck.self.snapshot.head); old un-prefixed operation_id MUST NOT appear on current wire."
+    },
+    {
+      "id": "ck.agent.protocol_session.start",
+      "kind_class": "event_kind",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.agent.interop_session.start",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent interop session event kind; protocol_session renamed to interop_session.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.agent.protocol_session.status",
+      "kind_class": "event_kind",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.agent.interop_session.status",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent interop session event kind; protocol_session renamed to interop_session.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.agent.protocol_session.result",
+      "kind_class": "event_kind",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.agent.interop_session.result",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent interop session event kind; protocol_session renamed to interop_session.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.agent.session.stream_status",
+      "kind_class": "capability_action",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.agent.interop_session.stream_status",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.agent.session.start",
+      "kind_class": "capability_action",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.agent.interop_session.start",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.agent.session.read_transcript",
+      "kind_class": "capability_action",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.agent.interop_session.read_transcript",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.agent.session.attach_artifact",
+      "kind_class": "capability_action",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.agent.interop_session.attach_artifact",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.agent.session.cancel",
+      "kind_class": "capability_action",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.agent.interop_session.cancel",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.applet.protocol_session.start",
+      "kind_class": "event_kind",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.applet.interop_session.start",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Applet interop session event kind; protocol_session renamed to interop_session.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.applet.protocol_session.status",
+      "kind_class": "event_kind",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.applet.interop_session.status",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Applet interop session event kind; protocol_session renamed to interop_session.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "agent_session_start_payload",
+      "kind_class": "schema_def_name",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "agent_interop_session_start_payload",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Schema payload def renamed for the interop_session naming.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "agent_session_status_payload",
+      "kind_class": "schema_def_name",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "agent_interop_session_status_payload",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Schema payload def renamed for the interop_session naming.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "agent_session_result_payload",
+      "kind_class": "schema_def_name",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "agent_interop_session_result_payload",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Schema payload def renamed for the interop_session naming.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "applet_session_start_payload",
+      "kind_class": "schema_def_name",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "applet_interop_session_start_payload",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Schema payload def renamed for the interop_session naming.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "applet_session_status_payload",
+      "kind_class": "schema_def_name",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "applet_interop_session_status_payload",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Schema payload def renamed for the interop_session naming.",
+      "migration_group": "agent_applet_interop_session_rename"
+    },
+    {
+      "id": "ck.morph.schema.migrate",
+      "kind_class": "capability_action",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.morph.schema_migrate",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Capability action converged to its target event kind noun.",
+      "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "ck.flow.tracks.manage",
+      "kind_class": "capability_action",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.flow.tracks.update",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Capability action converged to its target event kind noun (umbrella verb manage -> update).",
+      "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "ck.call.configure_media_service",
+      "kind_class": "capability_action",
+      "since_revision": "2026-06-06",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.realm.media_service",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Capability action converged to its target event kind (cross-namespace: call config -> ck.realm.media_service).",
+      "migration_group": "verb_noun_bridge_collapse"
     }
   ]
 }

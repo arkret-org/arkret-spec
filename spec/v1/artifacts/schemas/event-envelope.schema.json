@@ -313,14 +313,14 @@
               "ck.self.agent.deactivate",
               "ck.agent.endpoint",
               "ck.self.agent.pause",
-              "ck.agent.protocol_session.result",
-              "ck.agent.protocol_session.start",
-              "ck.agent.protocol_session.status",
+              "ck.agent.interop_session.result",
+              "ck.agent.interop_session.start",
+              "ck.agent.interop_session.status",
               "ck.self.agent.resume",
               "ck.applet.bridge_error",
               "ck.applet.discovery",
-              "ck.applet.protocol_session.start",
-              "ck.applet.protocol_session.status",
+              "ck.applet.interop_session.start",
+              "ck.applet.interop_session.status",
               "ck.applet.registration",
               "ck.audit.accessed",
               "ck.audit.applet_binding",
@@ -1557,7 +1557,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.agent.protocol_session.start"
+            "const": "ck.agent.interop_session.start"
           }
         },
         "required": [
@@ -1567,7 +1567,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_start_payload"
+            "$ref": "./event-payload.schema.json#/$defs/agent_interop_session_start_payload"
           }
         }
       }
@@ -1576,7 +1576,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.agent.protocol_session.status"
+            "const": "ck.agent.interop_session.status"
           }
         },
         "required": [
@@ -1586,7 +1586,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_status_payload"
+            "$ref": "./event-payload.schema.json#/$defs/agent_interop_session_status_payload"
           }
         }
       }
@@ -1595,7 +1595,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.agent.protocol_session.result"
+            "const": "ck.agent.interop_session.result"
           }
         },
         "required": [
@@ -1605,7 +1605,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_result_payload"
+            "$ref": "./event-payload.schema.json#/$defs/agent_interop_session_result_payload"
           }
         }
       }
@@ -2772,7 +2772,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.applet.protocol_session.start"
+            "const": "ck.applet.interop_session.start"
           }
         },
         "required": [
@@ -2782,7 +2782,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/applet_session_start_payload"
+            "$ref": "./event-payload.schema.json#/$defs/applet_interop_session_start_payload"
           }
         }
       }
@@ -2791,7 +2791,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.applet.protocol_session.status"
+            "const": "ck.applet.interop_session.status"
           }
         },
         "required": [
@@ -2801,7 +2801,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/applet_session_status_payload"
+            "$ref": "./event-payload.schema.json#/$defs/applet_interop_session_status_payload"
           }
         }
       }

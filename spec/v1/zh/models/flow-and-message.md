@@ -282,7 +282,7 @@ Track 写入路径只有一个 event kind: **`ck.flow.tracks.update`**(注意名
 
 整个变更作为**原子 Move** 在同一 cell precondition / effect 中完成，避免中间态被其它 actor 抢写。
 
-**Capability**: `ck.flow.tracks.manage` 一个 action 覆盖该 event。
+**Capability**: `ck.flow.tracks.update` 一个 action 覆盖该 event。
 
 **Reducer 规则**: 同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成); primary track 不能空缺(切走旧 primary 后必须有一个新 primary); track key 必须匹配 `^[a-z][a-z0-9_]{0,63}$`。
 

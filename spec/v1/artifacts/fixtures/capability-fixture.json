@@ -137,7 +137,7 @@
         "issuer": "did:web:owner.example",
         "subject": "did:web:agent.example",
         "actions": [
-          "ck.agent.session.start"
+          "ck.agent.interop_session.start"
         ],
         "resources": [
           {

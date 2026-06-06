@@ -106,7 +106,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 
-Agent protocol handoff 状态通过 durable Event kind（例如 `ck.agent.protocol_session.start`、`ck.agent.protocol_session.status`）表达，不注册为 service `operation_id`。
+Agent protocol handoff 状态通过 durable Event kind（例如 `ck.agent.interop_session.start`、`ck.agent.interop_session.status`）表达，不注册为 service `operation_id`。
 
 ## 5. HTTP/JSON Binding
 

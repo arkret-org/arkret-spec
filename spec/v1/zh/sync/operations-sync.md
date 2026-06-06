@@ -697,7 +697,7 @@ List Space 在 Board Space 内的顺序通过 `ck.space.update` 修改 List Spac
 
 规则：
 
-- 要求对应 capability action（`ck.flow.tracks.manage`）。
+- 要求对应 capability action（`ck.flow.tracks.update`）。
 - 不改变 `flow_id`，不删除已有 discussion 历史或 synthesis 字段。
 - 切到一个尚未 enabled 的 track 时 MUST 在同一 patch 中将其 enabled 置 true；否则 reducer MUST reject。
 - 切换 primary 不自动关闭 discussion track；若要关闭讨论，必须在同一或后续 patch 中显式 `tracks.<name>.enabled: false`。

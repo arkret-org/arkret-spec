@@ -535,7 +535,7 @@
           ]
         },
         "audience": [
-          "ck.agent.protocol_session.start"
+          "ck.agent.interop_session.start"
         ],
         "issued_at": "2026-05-20T00:00:00Z",
         "expires_at": "2026-05-21T00:00:00Z",

@@ -105,11 +105,11 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ```json
 {
-  "kind": "ck.agent.protocol_session.start",
+  "kind": "ck.agent.interop_session.start",
   "realm_id": "ck:realm:...",
   "actor_id": "did:web:requesting-agent.example.com",
   "payload": {
-    "session_id": "ck:agent_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "task_flow_id": "ck:flow:4accc010-0000-7000-8000-000000000000",
     "counterparty_agent": "did:web:remote-agent.example.com",
     "protocol": "a2a",
@@ -127,11 +127,11 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 }
 ```
 
-`ck.agent.protocol_session.start` 事件的提交 MUST 通过常规的 Realm 授权（capability action `ck.agent.session.start`）与 policy 校验。
+`ck.agent.interop_session.start` 事件的提交 MUST 通过常规的 Realm 授权（capability action `ck.agent.interop_session.start`）与 policy 校验。
 
 Session start MUST pin counterparty DID epoch，规则见 [§5.5 DID Epoch Pinning (normative)](#55-did-epoch-pinning-normative)。
 
-Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `ck.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest`（定义见 [§5.5](#55-did-epoch-pinning-normative)）标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `ck.agent.protocol_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch（见 §5.5）。
+Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `ck.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest`（定义见 [§5.5](#55-did-epoch-pinning-normative)）标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `ck.agent.interop_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch（见 §5.5）。
 
 ### 5.3 Status 回流
 
@@ -139,10 +139,10 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 
 ```json
 {
-  "kind": "ck.agent.protocol_session.status",
+  "kind": "ck.agent.interop_session.status",
   "realm_id": "ck:realm:...",
   "payload": {
-    "session_id": "ck:agent_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "external_task_id": "a2a-task-123",
     "status": "working",
     "progress_basis_points": 4200,
@@ -166,16 +166,16 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 - `cancelled`
 - `expired`
 
-Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `ck.agent.protocol_session.status{status="cancelled"}` 或终态 `ck.agent.protocol_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。
+Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.interop_session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `ck.agent.interop_session.status{status="cancelled"}` 或终态 `ck.agent.interop_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。
 
 `status="cancelled"` 完整示例(MUST 字段齐全):
 
 ```json
 {
-  "kind": "ck.agent.protocol_session.status",
+  "kind": "ck.agent.interop_session.status",
   "realm_id": "ck:realm:...",
   "payload": {
-    "session_id": "ck:agent_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "external_task_id": "a2a-task-123",
     "status": "cancelled",
     "cancelled_by": "did:web:requesting-agent.example.com",
@@ -191,7 +191,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.sess
 }
 ```
 
-`cancelled_by`(取消发起 actor DID)、`cancelled_at`(timestamp)、`reason_code`(取消原因码)与 `cleanup_required[]`(待清理外部 artifact 标识列表)在 `status="cancelled"` / `result{status="cancelled"}` 下 MUST 提供;`external_cancel_ref` 在外部协议返回 cancel 确认 id 时 MUST 携带，否则 MAY 省略。这些字段属 `ck.agent.protocol_session.status` / `.result` 的 payload。其机读 schema 真源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中 `$defs/agent_session_status_payload`（`.status` 事件）与 `$defs/agent_session_result_payload`（`.result` 事件）(`agent.schema.json` 仅描述 agent session metadata snapshot,不含这些 wire payload 字段)。
+`cancelled_by`(取消发起 actor DID)、`cancelled_at`(timestamp)、`reason_code`(取消原因码)与 `cleanup_required[]`(待清理外部 artifact 标识列表)在 `status="cancelled"` / `result{status="cancelled"}` 下 MUST 提供;`external_cancel_ref` 在外部协议返回 cancel 确认 id 时 MUST 携带，否则 MAY 省略。这些字段属 `ck.agent.interop_session.status` / `.result` 的 payload。其机读 schema 真源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中 `$defs/agent_interop_session_status_payload`（`.status` 事件）与 `$defs/agent_interop_session_result_payload`（`.result` 事件）(`agent.schema.json` 仅描述 agent session metadata snapshot,不含这些 wire payload 字段)。
 
 ### 5.4 Result 回流
 
@@ -199,10 +199,10 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.sess
 
 ```json
 {
-  "kind": "ck.agent.protocol_session.result",
+  "kind": "ck.agent.interop_session.result",
   "realm_id": "ck:realm:...",
   "payload": {
-    "session_id": "ck:agent_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "status": "completed",
     "result_objects": [
       {
@@ -232,7 +232,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.sess
 }
 ```
 
-`ck.agent.protocol_session.result` 的 payload MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
+`ck.agent.interop_session.result` 的 payload MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
 
 外部 artifact 清理职责：若 start / status / result 暴露了外部 transcript、临时文件、tool output 或 remote task handle，result 终态 MUST 明确 `artifact_retention`（`retain_by_policy` / `delete_requested` / `deleted` / `unknown`）以及 `artifact_digest` / deletion receipt。`cancelled`、`failed`、`expired` 终态若未能删除外部 artifact，必须保留最小 `external_artifact_stub`（`artifact_digest`、`remote_id_digest`、retention reason、cleanup retry policy），不得把未验证的外部删除当成已完成。
 
@@ -242,7 +242,7 @@ Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm 
 
 本小节集中定义外部 agent DID 的 epoch pinning 规则。§5.2、§5.3、§5.4、§6 中所有提及 "pin DID epoch" / "DID epoch mismatch" 的位置均引用本小节，不再各自重复定义。
 
-`ck.agent.protocol_session.start` MUST pin counterparty DID epoch。payload 或 `refs[]` evidence MUST 记录：
+`ck.agent.interop_session.start` MUST pin counterparty DID epoch。payload 或 `refs[]` evidence MUST 记录：
 
 - counterparty DID Document canonical hash；
 - method-specific version / log entry id（若 DID method 支持版本化）；
@@ -253,7 +253,7 @@ Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm 
 reducer normative：
 
 - 外部协议握手时 MUST 携带并签名同一组 pin digest。
-- `ck.agent.protocol_session.status` / `result` 回流时 reducer MUST 校验这些 pin 仍与 session start 一致。
+- `ck.agent.interop_session.status` / `result` 回流时 reducer MUST 校验这些 pin 仍与 session start 一致。
 - 若外部 DID 在会话期间轮换到不同 service endpoint 或 verification method，现有 session MUST 进入 `blocked` 或 `cancelled`，reason `session_pinned_did_epoch_mismatch`，MUST NOT 静默迁移到新 endpoint；迁移必须重新 start 并重新 pin。
 
 > 对无版本化 DID method（如部分 `did:web` 部署），canonical hash + service endpoint digest 即构成该 method 可用的 epoch 证据；reducer MUST 以 fetch-time digest 不匹配作为 mismatch，不得因为 method 不提供显式版本号而跳过校验。
@@ -271,18 +271,18 @@ sequenceDiagram
     participant Remote as Remote Agent<br>(A2A / ACP endpoint)
 
     LocalAg->>Cx: 创建或选择任务 Flow
-    LocalAg->>Cx: 检查 ck.agent.session.start capability
+    LocalAg->>Cx: 检查 ck.agent.interop_session.start capability
     Cx->>Pol: endpoint validation<br>(目标 DID Document service binding<br> + TLS / HTTP Sig pinning)
     Pol-->>Cx: 通过 / 拒绝 (拒绝则中止)
-    LocalAg->>Cx: ck.agent.protocol_session.start<br>(session_id / counterparty / protocol /<br> capability_grant / allowed_artifact_types /<br> max_duration_seconds / audit_mode)
+    LocalAg->>Cx: ck.agent.interop_session.start<br>(session_id / counterparty / protocol /<br> capability_grant / allowed_artifact_types /<br> max_duration_seconds / audit_mode)
     note over Cx: anchored 后 session 生效
 
     LocalAg->>Remote: 通过外部协议建立 session
     Remote-->>LocalAg: streaming status / tool call / artifact (高频)
-    LocalAg->>Cx: 节流回写 ck.agent.protocol_session.status<br>(working / input_required / blocked / ...)
+    LocalAg->>Cx: 节流回写 ck.agent.interop_session.status<br>(working / input_required / blocked / ...)
 
     Remote-->>LocalAg: 终态 (completed / failed / cancelled)
-    LocalAg->>Cx: ck.agent.protocol_session.result<br>(result_objects / artifacts /<br> external_transcript_digest)
+    LocalAg->>Cx: ck.agent.interop_session.result<br>(result_objects / artifacts /<br> external_transcript_digest)
     note over Cx: reducer 更新 Flow / Morph / Relation<br>外部状态在 result 被 accepted 前不改变 canonical task
 ```
 
@@ -290,12 +290,12 @@ sequenceDiagram
 
 - 步骤 3-4 的 endpoint validation 是 normative 校验（规范 MUST 条款单点定义于下方编号步骤 4，本概览不重复其 normative 文本）：把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
 - 节流回写 `status` 不要求每个 token 都进 durable Event；具体频率由 `audit_mode` 决定（`status_only` / `summary_and_artifacts` / `full_transcript_digest` / `full_transcript`）。
-- Cokret 不信任外部 task status：只有 `ck.agent.protocol_session.result` event 被 reducer accept 后才改变 canonical task 状态。
+- Cokret 不信任外部 task status：只有 `ck.agent.interop_session.result` event 被 reducer accept 后才改变 canonical task 状态。
 
 
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
 2. Requesting agent 在 Cokret 中创建或选择任务 Flow，或选择可承载任务语义的 Morph。
-3. Requesting agent 检查自己是否拥有 `ck.agent.session.start` capability。
+3. Requesting agent 检查自己是否拥有 `ck.agent.interop_session.start` capability。
 4. **Endpoint validation（normative MUST）**：Policy Server MUST 验证目标 endpoint 与目标 agent DID 的 service binding 一致性，至少完成以下检查（任一失败 MUST 拒绝 session start）：
    - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
    - 验证目标 endpoint 的 TLS 证书 / mutual TLS / HTTP Message Signature 与 DID Document 中声明的 verificationMethod 绑定（与 [`../sync/federation.md` §3.1-§3.2](../sync/federation.md) destination host pinning 同等强度）。
@@ -303,7 +303,7 @@ sequenceDiagram
    - **`allowed_endpoints` 只作 constraint 预筛，不替代精确匹配**：capability constraint 中的 `allowed_endpoints` 通配（如 `https://*.trusted.example`）只用于在 session start 之前粗粒度收敛候选 endpoint 集合；最终 session start MUST 仍满足上文的精确 DID-service-binding 匹配（`serviceEndpoint` URL 与 DID Document 的 `service` entry **完全匹配**）。通配命中本身 MUST NOT 被当作授权通过。实现 SHOULD 警告通配子域（`*.example`）会扩大 handoff 攻击面，并 SHOULD 把 `allowed_endpoints` 限为 host suffix 精确集合或显式 host 列表，而不是开放通配。
    - **Egress policy（normative 失败条件）**：当目标是外发 E2EE Realm 明文或其派生明文时，session start MUST 命中显式 egress grant 并通过数据分类（`allowed_data_classes`）校验；任一不满足 MUST 拒绝 session start，reason=`egress_policy_denied`。详见 [§8 安全边界](#8-安全边界)。
    宽松的 MAY 路径会留下漏洞窗口——恶意中间人可在不被任何节点验证的情况下劫持 A2A handoff，因此本规范统一为 MUST。
-5. Requesting agent 提交 `ck.agent.protocol_session.start`。
+5. Requesting agent 提交 `ck.agent.interop_session.start`。
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。
 8. 结果、artifact、transcript hash、错误或取消原因回写 Cokret。
@@ -311,14 +311,14 @@ sequenceDiagram
 
 ## 7. Capability
 
-新增标准动作（capability actions; 对应 event kind 保留 `ck.agent.protocol_session.*` 前缀以兼容已存在的 wire bytes）：
+新增标准动作（capability actions; 对应 event kind 保留 `ck.agent.interop_session.*` 前缀以兼容已存在的 wire bytes）：
 
 - `ck.agent.protocol.discover`
-- `ck.agent.session.start`（authorize submitting `ck.agent.protocol_session.start`）
-- `ck.agent.session.cancel`（authorize cancellation flow that writes `ck.agent.protocol_session.status{status="cancelled"}` / `result`）
-- `ck.agent.session.stream_status`（authorize streaming `ck.agent.protocol_session.status`）
-- `ck.agent.session.attach_artifact`（authorize artifact attachment that flows through `ck.agent.protocol_session.status` / `result`）
-- `ck.agent.session.read_transcript`（authorize transcript read; no event kind side-effect）
+- `ck.agent.interop_session.start`（authorize submitting `ck.agent.interop_session.start`）
+- `ck.agent.interop_session.cancel`（authorize cancellation flow that writes `ck.agent.interop_session.status{status="cancelled"}` / `result`）
+- `ck.agent.interop_session.stream_status`（authorize streaming `ck.agent.interop_session.status`）
+- `ck.agent.interop_session.attach_artifact`（authorize artifact attachment that flows through `ck.agent.interop_session.status` / `result`）
+- `ck.agent.interop_session.read_transcript`（authorize transcript read; no event kind side-effect）
 
 Capability constraint SHOULD 支持：
 
@@ -336,17 +336,17 @@ Capability constraint SHOULD 支持：
 
 ## 7.1 与 Personal Agent Runtime Session 的边界
 
-本文档定义的是与 **外部 A2A / ACP / MCP agent protocol** 互操作的 session 模型(`ck.agent.protocol_session.start/status/result`)。它与 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 定义的 **personal agent runtime authentication session**(`/_cokret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"`)是**两个不同的 session 概念**:
+本文档定义的是与 **外部 A2A / ACP / MCP agent protocol** 互操作的 session 模型(`ck.agent.interop_session.start/status/result`)。它与 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 定义的 **personal agent runtime authentication session**(`/_cokret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"`)是**两个不同的 session 概念**:
 
 | 维度 | Personal agent runtime session | External agent protocol session(本文档) |
 | --- | --- | --- |
 | 用途 | Cokret 内部 native agent runtime 认证 Auth Server 与 Events API | 与外部 A2A / ACP / MCP endpoint 协商执行 task |
-| Endpoint | `/_cokret/gate/account/session-grants` | `ck.agent.protocol_session.start` Event + 外部 protocol endpoint |
+| Endpoint | `/_cokret/gate/account/session-grants` | `ck.agent.interop_session.start` Event + 外部 protocol endpoint |
 | Proof | `agent_key_proof`(短期 `ck.session.grant`) | 由 `ck.agent.endpoint` policy / external protocol auth 决定 |
 | 是否数据外发 | 否——session 只用于在 Cokret 内签发后续 wire write | 是——外发到 external agent network |
 | Realm policy 闸口 | `ck.profile.personal_agent_provisioning.v1` / `ck.profile.agent_auth.v1` | `ck.profile.agent_runtime.v1` + `audit_mode` |
 
-Agent runtime 拥有 `ck.profile.agent_auth.v1` session grant **不**自动授权其启动外部 agent protocol session;后者仍需独立的 `ck.agent.protocol_session.start` 写入、`ck.agent.endpoint` policy 校验、以及 §8 的外发行为约束。实现 MUST 把二者作为独立 capability 与独立 audit 流处理。
+Agent runtime 拥有 `ck.profile.agent_auth.v1` session grant **不**自动授权其启动外部 agent protocol session;后者仍需独立的 `ck.agent.interop_session.start` 写入、`ck.agent.endpoint` policy 校验、以及 §8 的外发行为约束。实现 MUST 把二者作为独立 capability 与独立 audit 流处理。
 
 ## 8. 安全边界
 
@@ -401,7 +401,7 @@ Adapter MUST 声明：
 
 ## 12. 失败处理
 
-失败 MUST 回写为 `ck.agent.protocol_session.status` 或 `result`：
+失败 MUST 回写为 `ck.agent.interop_session.status` 或 `result`：
 
 | 错误 | 语义 |
 | --- | --- |

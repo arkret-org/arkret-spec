@@ -2,7 +2,7 @@
   "files": [
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "d3ba0a7326c541b60c0638b1192cca1f7f034e06eaa74479a9bc738bd6d876b4"
+      "sha256": "43a8a064c92608ba2e602dca327a5dd487cfaf6fa771799e9dff1594b7bf7057"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "0bddf34b73dcffaa19f2c91eb9bb5dc41a707ac66de6b92fd978d667d505e222"
+      "sha256": "f6a24288dff0da0e48123adf87ead0d7f7e70abfd5d8244dc8c6e7d28562a34f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",

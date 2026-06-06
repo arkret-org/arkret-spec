@@ -910,7 +910,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ck.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ck.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+        "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ck.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ck.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
       },
       {
         "event_kind": "ck.morph.stage.set",
@@ -1152,7 +1152,7 @@
         "payload": "Controller rejection of a draft / action request (CKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
       },
       {
-        "event_kind": "ck.agent.protocol_session.start",
+        "event_kind": "ck.agent.interop_session.start",
         "category": "agent",
         "status": "active",
         "wire_scope": "durable_event",
@@ -1160,7 +1160,7 @@
         "payload": "Agent protocol session start"
       },
       {
-        "event_kind": "ck.agent.protocol_session.status",
+        "event_kind": "ck.agent.interop_session.status",
         "category": "agent",
         "status": "active",
         "wire_scope": "durable_event",
@@ -1168,7 +1168,7 @@
         "payload": "Agent protocol session status"
       },
       {
-        "event_kind": "ck.agent.protocol_session.result",
+        "event_kind": "ck.agent.interop_session.result",
         "category": "agent",
         "status": "active",
         "wire_scope": "durable_event",
@@ -1942,7 +1942,7 @@
         "payload": "Applet registration"
       },
       {
-        "event_kind": "ck.applet.protocol_session.start",
+        "event_kind": "ck.applet.interop_session.start",
         "category": "applet",
         "status": "active",
         "wire_scope": "durable_event",
@@ -1950,7 +1950,7 @@
         "payload": "Applet protocol session start"
       },
       {
-        "event_kind": "ck.applet.protocol_session.status",
+        "event_kind": "ck.applet.interop_session.status",
         "category": "applet",
         "status": "active",
         "wire_scope": "durable_event",
@@ -2500,11 +2500,11 @@
         "description": "Moderation appeal ID — opaque key for the ck.component.moderation_appeal.v1 cell. Created by ck.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5."
       },
       {
-        "kind": "agent_session",
+        "kind": "agent_interop_session",
         "category": "extension",
         "status": "active",
-        "wire_form": "ck:agent_session:<uuid>",
-        "description": "Agent protocol session ID. Note the cross-surface naming: this typed ID uses the short form `agent_session`, while the corresponding event kinds use the full form `ck.agent.protocol_session.{start,status,result}` and capability actions use `ck.agent.session.{start,cancel,stream_status,attach_artifact,read_transcript}` (frozen wire_compat_grandfather bridge — see capabilities.md §5.0 and renames.json migration_group `wire_compat_grandfather`). The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ck:<event-prefix>:<uuid>` mechanical derivation."
+        "wire_form": "ck:agent_interop_session:<uuid>",
+        "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ck.agent.interop_session.{start,status,result}` and capability actions use `ck.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ck:<event-prefix>:<uuid>` mechanical derivation."
       },
       {
         "kind": "announce",
@@ -4161,7 +4161,7 @@
       "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
       "target_event_kinds links the action to one or more ck.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
       "profile is null for v1 core actions, or a ck.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
-      "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories. wire_compat_grandfather entries MUST declare grandfathered_since."
+      "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories."
     ],
     "actions": [
       {
@@ -4457,7 +4457,7 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.morph.schema.migrate",
+        "action": "ck.morph.schema_migrate",
         "category": "morph",
         "risk_tier": "high",
         "required_constraints": [],
@@ -4465,8 +4465,7 @@
           "ck.morph.schema_migrate"
         ],
         "profile": null,
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "ck.flow.archive",
@@ -4513,7 +4512,7 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.tracks.manage",
+        "action": "ck.flow.tracks.update",
         "category": "flow",
         "risk_tier": "medium",
         "required_constraints": [],
@@ -4521,8 +4520,7 @@
           "ck.flow.tracks.update"
         ],
         "profile": null,
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "ck.flow.stage.set",
@@ -4829,8 +4827,7 @@
           "ck.redaction"
         ],
         "profile": null,
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "operation_verb"
       },
       {
         "action": "ck.message.redact.own",
@@ -4847,8 +4844,7 @@
           "ck.redaction"
         ],
         "profile": null,
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "operation_verb"
       },
       {
         "action": "ck.reaction.add",
@@ -5237,7 +5233,7 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
-        "action": "ck.agent.session.start",
+        "action": "ck.agent.interop_session.start",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [
@@ -5245,39 +5241,36 @@
           "allowed_data_classes"
         ],
         "target_event_kinds": [
-          "ck.agent.protocol_session.start"
+          "ck.agent.interop_session.start"
         ],
         "profile": "ck.profile.agent_runtime.v1",
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.agent.session.cancel",
+        "action": "ck.agent.interop_session.cancel",
         "category": "management",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.agent.protocol_session.status",
-          "ck.agent.protocol_session.result"
+          "ck.agent.interop_session.status",
+          "ck.agent.interop_session.result"
         ],
         "profile": "ck.profile.agent_runtime.v1",
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "operation_verb"
       },
       {
-        "action": "ck.agent.session.stream_status",
+        "action": "ck.agent.interop_session.stream_status",
         "category": "general",
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.agent.protocol_session.status"
+          "ck.agent.interop_session.status"
         ],
         "profile": "ck.profile.agent_runtime.v1",
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "operation_verb"
       },
       {
-        "action": "ck.agent.session.attach_artifact",
+        "action": "ck.agent.interop_session.attach_artifact",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [
@@ -5285,15 +5278,14 @@
           "max_artifact_bytes"
         ],
         "target_event_kinds": [
-          "ck.agent.protocol_session.status",
-          "ck.agent.protocol_session.result"
+          "ck.agent.interop_session.status",
+          "ck.agent.interop_session.result"
         ],
         "profile": "ck.profile.agent_runtime.v1",
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "operation_verb"
       },
       {
-        "action": "ck.agent.session.read_transcript",
+        "action": "ck.agent.interop_session.read_transcript",
         "category": "general",
         "risk_tier": "high",
         "required_constraints": [
@@ -5564,7 +5556,7 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
-        "action": "ck.call.configure_media_service",
+        "action": "ck.realm.media_service",
         "category": "service",
         "risk_tier": "high",
         "required_constraints": [],
@@ -5572,8 +5564,7 @@
           "ck.realm.media_service"
         ],
         "profile": null,
-        "event_mapping_kind": "wire_compat_grandfather",
-        "grandfathered_since": "2026-05-08"
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "ck.mls.genesis",
@@ -5843,7 +5834,7 @@
       "aggregate_admin": "Action intentionally covers a bounded administrative family of event kinds.",
       "polymorphic_object": "Action covers the same object-lifecycle verb across multiple object event kinds.",
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
-      "wire_compat_grandfather": "Legacy action/event naming divergence retained for wire compatibility; new entries are forbidden."
+      "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     }
   }
 }

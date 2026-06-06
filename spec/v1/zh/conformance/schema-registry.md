@@ -227,13 +227,13 @@ sidebar:
 | `ck.realm_key.withheld` | Realm key withheld notice |
 | `ck.realm_key.share_audit` | Auditable history key share marker |
 | `ck.agent.endpoint` | Agent protocol endpoint declaration |
-| `ck.agent.protocol_session.start` | Agent protocol session start |
-| `ck.agent.protocol_session.status` | Agent protocol session status |
-| `ck.agent.protocol_session.result` | Agent protocol session result |
+| `ck.agent.interop_session.start` | Agent protocol session start |
+| `ck.agent.interop_session.status` | Agent protocol session status |
+| `ck.agent.interop_session.result` | Agent protocol session result |
 | `ck.applet.bridge_error` | Bridge failure |
 | `ck.applet.registration` | Applet registration |
-| `ck.applet.protocol_session.start` | Applet / agent protocol session start |
-| `ck.applet.protocol_session.status` | Protocol session status |
+| `ck.applet.interop_session.start` | Applet / agent protocol session start |
+| `ck.applet.interop_session.status` | Protocol session status |
 | `ck.mimi.room_binding` | MIMI room binding state |
 | `ck.redaction` | Generic redaction envelope |
 
