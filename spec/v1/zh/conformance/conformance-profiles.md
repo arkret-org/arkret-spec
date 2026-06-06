@@ -295,7 +295,7 @@ SHOULD 支持：
 
 - session-grant introspection 与 revocation
 - `ck.gate.account.issue_session_grant` 规范化 HTTP binding
-- `ck.self.policy.check`（`PolicyCheckResponse`）
+- `ck.self.policy.check`（`PolicyCheckOutcome`）
 - 多 principal-server delegation target 配置
 - DID binding / claim attestation
 

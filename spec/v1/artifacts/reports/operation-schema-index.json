@@ -2066,7 +2066,7 @@
       "operation_id": "ck.root.identity.recovery_session.create",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/create_request",
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
         "schema_kind": "object",
         "required": [
           "principal_id",
@@ -2084,7 +2084,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/session",
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
         "schema_kind": "object",
         "required": [
           "schema",
@@ -2125,7 +2125,7 @@
       "operation_id": "ck.root.identity.recovery_session.get",
       "success_shape_kind": "schema_resource",
       "response": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/session",
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
         "schema_kind": "object",
         "required": [
           "schema",
@@ -2166,7 +2166,7 @@
       "operation_id": "ck.root.identity.recovery_session.submit_proof",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/proof_submit_request",
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
         "schema_kind": "object",
         "required": [
           "proof"
@@ -2177,7 +2177,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/proof_submit_response",
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
         "schema_kind": "object",
         "required": [
           "recovery_session_id",
@@ -2197,7 +2197,7 @@
       "operation_id": "ck.root.identity.recovery_session.complete",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
         "schema_kind": "object",
         "required": [
           "authorization_event_id",
@@ -2211,7 +2211,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_response",
+        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome",
         "schema_kind": "object",
         "required": [
           "ok",

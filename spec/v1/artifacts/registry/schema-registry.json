@@ -452,7 +452,7 @@
       "schema_id": "ck.schema.query.v1",
       "file": "schemas/query.schema.json",
       "status": "active",
-      "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequest / SearchRequest / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md."
+      "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequestBody / SearchRequestBody / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md."
     },
     {
       "schema_id": "ck.schema.service_operation_dtos.v1",

@@ -101,7 +101,7 @@
         "unsupported_profile_patch_path",
         "failed_precondition"
       ],
-      "description": "Profile self-service update. The protocol request body is UpdateProfileRequest {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Cokret protocol path."
+      "description": "Profile self-service update. The protocol request body is AccountUpdateProfileRequestBody {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Cokret protocol path."
     },
     {
       "operation_id": "ck.self.account.cursor_revoke",

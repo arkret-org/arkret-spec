@@ -5,31 +5,31 @@
   "description": "Closed request/response DTOs for Applet edge and bridge operations.",
   "anyOf": [
     {
-      "$ref": "#/$defs/ping_response"
+      "$ref": "#/$defs/applet_ping_outcome"
     },
     {
-      "$ref": "#/$defs/transaction_request"
+      "$ref": "#/$defs/applet_transaction_request_body"
     },
     {
-      "$ref": "#/$defs/transaction_response"
+      "$ref": "#/$defs/applet_transaction_outcome"
     },
     {
-      "$ref": "#/$defs/resolve_actor_response"
+      "$ref": "#/$defs/applet_actor_view"
     },
     {
-      "$ref": "#/$defs/resolve_realm_response"
+      "$ref": "#/$defs/applet_realm_view"
     },
     {
-      "$ref": "#/$defs/protocol_metadata_response"
+      "$ref": "#/$defs/applet_protocol_metadata"
     },
     {
       "$ref": "#/$defs/third_party_query"
     },
     {
-      "$ref": "#/$defs/third_party_user_response"
+      "$ref": "#/$defs/applet_third_party_user_list"
     },
     {
-      "$ref": "#/$defs/third_party_location_response"
+      "$ref": "#/$defs/applet_third_party_location_list"
     }
   ],
   "$defs": {
@@ -156,7 +156,7 @@
       },
       "additionalProperties": false
     },
-    "ping_response": {
+    "applet_ping_outcome": {
       "type": "object",
       "required": [
         "ok",
@@ -182,7 +182,7 @@
       },
       "additionalProperties": false
     },
-    "transaction_request": {
+    "applet_transaction_request_body": {
       "type": "object",
       "required": [
         "source_service_did",
@@ -208,7 +208,7 @@
       },
       "additionalProperties": false
     },
-    "transaction_response": {
+    "applet_transaction_outcome": {
       "type": "object",
       "required": [
         "ok"
@@ -230,7 +230,7 @@
       },
       "additionalProperties": false
     },
-    "resolve_actor_response": {
+    "applet_actor_view": {
       "type": "object",
       "required": [
         "exists"
@@ -251,7 +251,7 @@
       },
       "additionalProperties": false
     },
-    "resolve_realm_response": {
+    "applet_realm_view": {
       "type": "object",
       "required": [
         "exists"
@@ -272,7 +272,7 @@
       },
       "additionalProperties": false
     },
-    "protocol_metadata_response": {
+    "applet_protocol_metadata": {
       "type": "object",
       "required": [
         "protocol",
@@ -324,7 +324,7 @@
       },
       "additionalProperties": false
     },
-    "third_party_user_response": {
+    "applet_third_party_user_list": {
       "type": "object",
       "required": [
         "exists"
@@ -342,7 +342,7 @@
       },
       "additionalProperties": false
     },
-    "third_party_location_response": {
+    "applet_third_party_location_list": {
       "type": "object",
       "required": [
         "exists"

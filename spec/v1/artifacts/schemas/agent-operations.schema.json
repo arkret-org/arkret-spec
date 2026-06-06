@@ -5,61 +5,61 @@
   "description": "Closed request and response DTOs for account pairing and native personal agent management operations.",
   "oneOf": [
     {
-      "$ref": "#/$defs/device_pair_request"
+      "$ref": "#/$defs/account_device_pair_request_body"
     },
     {
-      "$ref": "#/$defs/device_pair_response"
+      "$ref": "#/$defs/account_device_pair_outcome"
     },
     {
-      "$ref": "#/$defs/agent_key_pair_request"
+      "$ref": "#/$defs/agent_key_pair_request_body"
     },
     {
-      "$ref": "#/$defs/agent_key_pair_response"
+      "$ref": "#/$defs/agent_key_pair_outcome"
     },
     {
-      "$ref": "#/$defs/provision_request"
+      "$ref": "#/$defs/agent_provision_request_body"
     },
     {
-      "$ref": "#/$defs/provision_response"
+      "$ref": "#/$defs/agent_provision_outcome"
     },
     {
-      "$ref": "#/$defs/list_response"
+      "$ref": "#/$defs/agent_list"
     },
     {
-      "$ref": "#/$defs/get_response"
+      "$ref": "#/$defs/agent_view"
     },
     {
-      "$ref": "#/$defs/pause_request"
+      "$ref": "#/$defs/agent_pause_request_body"
     },
     {
-      "$ref": "#/$defs/lifecycle_response"
+      "$ref": "#/$defs/agent_lifecycle_state"
     },
     {
-      "$ref": "#/$defs/resume_request"
+      "$ref": "#/$defs/agent_resume_request_body"
     },
     {
-      "$ref": "#/$defs/deactivate_request"
+      "$ref": "#/$defs/agent_deactivate_request_body"
     },
     {
-      "$ref": "#/$defs/rotate_key_request"
+      "$ref": "#/$defs/agent_rotate_key_request_body"
     },
     {
-      "$ref": "#/$defs/rotate_key_response"
+      "$ref": "#/$defs/agent_rotate_key_outcome"
     },
     {
-      "$ref": "#/$defs/grant_attach_request"
+      "$ref": "#/$defs/agent_grant_attach_request_body"
     },
     {
-      "$ref": "#/$defs/grant_attach_response"
+      "$ref": "#/$defs/agent_grant_attach_outcome"
     },
     {
-      "$ref": "#/$defs/grant_detach_response"
+      "$ref": "#/$defs/agent_grant_detach_outcome"
     },
     {
-      "$ref": "#/$defs/sidecar_thread_ensure_request"
+      "$ref": "#/$defs/agent_sidecar_thread_ensure_request_body"
     },
     {
-      "$ref": "#/$defs/sidecar_thread_ensure_response"
+      "$ref": "#/$defs/agent_sidecar_thread_ensure_outcome"
     }
   ],
   "$defs": {
@@ -250,7 +250,7 @@
     "sidecar_exposure_ack": {
       "$ref": "./event-payload.schema.json#/$defs/agent_sidecar_exposure_ack"
     },
-    "operation_status_response": {
+    "operation_status_outcome": {
       "type": "object",
       "required": [
         "ok",
@@ -267,7 +267,7 @@
       },
       "additionalProperties": false
     },
-    "device_pair_request": {
+    "account_device_pair_request_body": {
       "type": "object",
       "required": [
         "pairing_code",
@@ -293,7 +293,7 @@
       },
       "additionalProperties": false
     },
-    "device_pair_response": {
+    "account_device_pair_outcome": {
       "type": "object",
       "required": [
         "device_id",
@@ -316,7 +316,7 @@
       },
       "additionalProperties": false
     },
-    "agent_key_pair_request": {
+    "agent_key_pair_request_body": {
       "type": "object",
       "required": [
         "agent_principal_id",
@@ -343,7 +343,7 @@
       },
       "additionalProperties": false
     },
-    "agent_key_pair_response": {
+    "agent_key_pair_outcome": {
       "type": "object",
       "required": [
         "ok",
@@ -360,7 +360,7 @@
       },
       "additionalProperties": false
     },
-    "provision_request": {
+    "agent_provision_request_body": {
       "type": "object",
       "properties": {
         "display_name": {
@@ -381,7 +381,7 @@
       },
       "additionalProperties": false
     },
-    "provision_response": {
+    "agent_provision_outcome": {
       "type": "object",
       "required": [
         "agent_principal_id",
@@ -404,7 +404,7 @@
       },
       "additionalProperties": false
     },
-    "list_response": {
+    "agent_list": {
       "type": "object",
       "required": [
         "agents",
@@ -427,7 +427,7 @@
       },
       "additionalProperties": false
     },
-    "get_response": {
+    "agent_view": {
       "type": "object",
       "required": [
         "agent",
@@ -452,7 +452,7 @@
       },
       "additionalProperties": false
     },
-    "pause_request": {
+    "agent_pause_request_body": {
       "type": "object",
       "properties": {
         "reason": {
@@ -461,7 +461,7 @@
       },
       "additionalProperties": false
     },
-    "resume_request": {
+    "agent_resume_request_body": {
       "type": "object",
       "properties": {
         "sidecar_exposure_ack": {
@@ -470,7 +470,7 @@
       },
       "additionalProperties": false
     },
-    "deactivate_request": {
+    "agent_deactivate_request_body": {
       "type": "object",
       "properties": {
         "reason": {
@@ -479,10 +479,10 @@
       },
       "additionalProperties": false
     },
-    "lifecycle_response": {
-      "$ref": "#/$defs/operation_status_response"
+    "agent_lifecycle_state": {
+      "$ref": "#/$defs/operation_status_outcome"
     },
-    "rotate_key_request": {
+    "agent_rotate_key_request_body": {
       "type": "object",
       "required": [
         "replacement_key",
@@ -498,7 +498,7 @@
       },
       "additionalProperties": false
     },
-    "rotate_key_response": {
+    "agent_rotate_key_outcome": {
       "type": "object",
       "required": [
         "ok",
@@ -515,7 +515,7 @@
       },
       "additionalProperties": false
     },
-    "grant_attach_request": {
+    "agent_grant_attach_request_body": {
       "type": "object",
       "required": [
         "grant"
@@ -528,7 +528,7 @@
       },
       "additionalProperties": false
     },
-    "grant_attach_response": {
+    "agent_grant_attach_outcome": {
       "type": "object",
       "required": [
         "ok",
@@ -545,7 +545,7 @@
       },
       "additionalProperties": false
     },
-    "grant_detach_response": {
+    "agent_grant_detach_outcome": {
       "type": "object",
       "required": [
         "ok",
@@ -562,7 +562,7 @@
       },
       "additionalProperties": false
     },
-    "sidecar_thread_ensure_request": {
+    "agent_sidecar_thread_ensure_request_body": {
       "type": "object",
       "required": [
         "realm_id",
@@ -598,7 +598,7 @@
       },
       "additionalProperties": false
     },
-    "sidecar_thread_ensure_response": {
+    "agent_sidecar_thread_ensure_outcome": {
       "type": "object",
       "required": [
         "ok",

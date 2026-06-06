@@ -5,67 +5,67 @@
   "description": "Closed request/response DTOs for Directory discovery search, resolve, private contact discovery, handle lookup, and push webhook registration operations.",
   "anyOf": [
     {
-      "$ref": "#/$defs/search_realms_request"
+      "$ref": "#/$defs/directory_search_realms_request_body"
     },
     {
-      "$ref": "#/$defs/search_realms_response"
+      "$ref": "#/$defs/directory_realm_search_outcome"
     },
     {
-      "$ref": "#/$defs/resolve_realm_request"
+      "$ref": "#/$defs/directory_resolve_realm_request_body"
     },
     {
-      "$ref": "#/$defs/resolve_realm_response"
+      "$ref": "#/$defs/directory_realm_resolution_outcome"
     },
     {
-      "$ref": "#/$defs/resolve_target_request"
+      "$ref": "#/$defs/directory_resolve_target_request_body"
     },
     {
-      "$ref": "#/$defs/resolve_target_response"
+      "$ref": "#/$defs/directory_target_resolution_outcome"
     },
     {
-      "$ref": "#/$defs/search_organizations_request"
+      "$ref": "#/$defs/directory_search_organizations_request_body"
     },
     {
-      "$ref": "#/$defs/search_organizations_response"
+      "$ref": "#/$defs/directory_organization_search_outcome"
     },
     {
-      "$ref": "#/$defs/resolve_organization_request"
+      "$ref": "#/$defs/directory_resolve_organization_request_body"
     },
     {
-      "$ref": "#/$defs/resolve_organization_response"
+      "$ref": "#/$defs/directory_organization_resolution_outcome"
     },
     {
-      "$ref": "#/$defs/search_actors_request"
+      "$ref": "#/$defs/directory_search_actors_request_body"
     },
     {
-      "$ref": "#/$defs/search_actors_response"
+      "$ref": "#/$defs/directory_actor_search_outcome"
     },
     {
-      "$ref": "#/$defs/search_users_request"
+      "$ref": "#/$defs/directory_search_users_request_body"
     },
     {
-      "$ref": "#/$defs/search_users_response"
+      "$ref": "#/$defs/directory_user_search_outcome"
     },
     {
-      "$ref": "#/$defs/resolve_handle_request"
+      "$ref": "#/$defs/directory_resolve_handle_request_body"
     },
     {
-      "$ref": "#/$defs/resolve_handle_response"
+      "$ref": "#/$defs/directory_handle_resolution_outcome"
     },
     {
-      "$ref": "#/$defs/list_handles_for_subject_request"
+      "$ref": "#/$defs/directory_list_handles_for_subject_request_body"
     },
     {
-      "$ref": "#/$defs/private_contact_discovery_request"
+      "$ref": "#/$defs/directory_private_contact_discovery_request_body"
     },
     {
-      "$ref": "#/$defs/private_contact_discovery_response"
+      "$ref": "#/$defs/directory_private_contact_discovery_outcome"
     },
     {
-      "$ref": "#/$defs/push_register_request"
+      "$ref": "#/$defs/directory_push_register_request_body"
     },
     {
-      "$ref": "#/$defs/push_register_response"
+      "$ref": "#/$defs/directory_push_register_outcome"
     }
   ],
   "$defs": {
@@ -354,7 +354,7 @@
       },
       "additionalProperties": false
     },
-    "search_realms_request": {
+    "directory_search_realms_request_body": {
       "type": "object",
       "properties": {
         "query": {
@@ -383,7 +383,7 @@
       },
       "additionalProperties": false
     },
-    "search_realms_response": {
+    "directory_realm_search_outcome": {
       "type": "object",
       "required": [
         "results",
@@ -405,7 +405,7 @@
       },
       "additionalProperties": false
     },
-    "resolve_realm_request": {
+    "directory_resolve_realm_request_body": {
       "type": "object",
       "properties": {
         "realm_id": {
@@ -451,7 +451,7 @@
       ],
       "additionalProperties": false
     },
-    "resolve_realm_response": {
+    "directory_realm_resolution_outcome": {
       "type": "object",
       "required": [
         "realm_preview"
@@ -478,7 +478,7 @@
       },
       "additionalProperties": false
     },
-    "resolve_target_request": {
+    "directory_resolve_target_request_body": {
       "type": "object",
       "required": [
         "address"
@@ -499,7 +499,7 @@
       },
       "additionalProperties": false
     },
-    "resolve_target_response": {
+    "directory_target_resolution_outcome": {
       "type": "object",
       "required": [
         "target_kind",
@@ -539,7 +539,7 @@
       },
       "additionalProperties": false
     },
-    "search_organizations_request": {
+    "directory_search_organizations_request_body": {
       "type": "object",
       "properties": {
         "query": {
@@ -559,7 +559,7 @@
       },
       "additionalProperties": false
     },
-    "search_organizations_response": {
+    "directory_organization_search_outcome": {
       "type": "object",
       "required": [
         "results",
@@ -581,7 +581,7 @@
       },
       "additionalProperties": false
     },
-    "resolve_organization_request": {
+    "directory_resolve_organization_request_body": {
       "type": "object",
       "properties": {
         "organization_did": {
@@ -608,7 +608,7 @@
       ],
       "additionalProperties": false
     },
-    "resolve_organization_response": {
+    "directory_organization_resolution_outcome": {
       "type": "object",
       "required": [
         "organization_preview"
@@ -629,7 +629,7 @@
       },
       "additionalProperties": false
     },
-    "search_actors_request": {
+    "directory_search_actors_request_body": {
       "type": "object",
       "properties": {
         "query": {
@@ -652,7 +652,7 @@
       },
       "additionalProperties": false
     },
-    "search_actors_response": {
+    "directory_actor_search_outcome": {
       "type": "object",
       "required": [
         "results",
@@ -674,7 +674,7 @@
       },
       "additionalProperties": false
     },
-    "search_users_request": {
+    "directory_search_users_request_body": {
       "type": "object",
       "required": [
         "query"
@@ -697,7 +697,7 @@
       },
       "additionalProperties": false
     },
-    "user_search_result": {
+    "user_search_outcome": {
       "type": "object",
       "required": [
         "handle",
@@ -722,7 +722,7 @@
       },
       "additionalProperties": false
     },
-    "search_users_response": {
+    "directory_user_search_outcome": {
       "type": "object",
       "required": [
         "results",
@@ -732,7 +732,7 @@
         "results": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/user_search_result"
+            "$ref": "#/$defs/user_search_outcome"
           }
         },
         "has_more": {
@@ -741,7 +741,7 @@
       },
       "additionalProperties": false
     },
-    "resolve_handle_request": {
+    "directory_resolve_handle_request_body": {
       "type": "object",
       "required": [
         "handle"
@@ -771,7 +771,7 @@
       },
       "additionalProperties": false
     },
-    "resolve_handle_response": {
+    "directory_handle_resolution_outcome": {
       "type": "object",
       "required": [
         "did",
@@ -810,7 +810,7 @@
       },
       "additionalProperties": false
     },
-    "list_handles_for_subject_request": {
+    "directory_list_handles_for_subject_request_body": {
       "type": "object",
       "required": [
         "subject"
@@ -878,7 +878,7 @@
       },
       "additionalProperties": false
     },
-    "private_contact_discovery_request": {
+    "directory_private_contact_discovery_request_body": {
       "type": "object",
       "required": [
         "requester",
@@ -998,7 +998,7 @@
       },
       "additionalProperties": false
     },
-    "private_contact_discovery_response": {
+    "directory_private_contact_discovery_outcome": {
       "type": "object",
       "required": [
         "matches"
@@ -1020,7 +1020,7 @@
       },
       "additionalProperties": false
     },
-    "push_register_request": {
+    "directory_push_register_request_body": {
       "type": "object",
       "required": [
         "subscriber_did",
@@ -1075,7 +1075,7 @@
       },
       "additionalProperties": false
     },
-    "push_register_response": {
+    "directory_push_register_outcome": {
       "type": "object",
       "required": [
         "subscription_id",

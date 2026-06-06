@@ -5,34 +5,34 @@
   "description": "Closed request and response DTOs for ck.keys.{upload,query,claim} and ck.keys.backups.{put,list,delete}. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [
     {
-      "$ref": "#/$defs/upload_request"
+      "$ref": "#/$defs/keys_upload_request_body"
     },
     {
-      "$ref": "#/$defs/upload_response"
+      "$ref": "#/$defs/keys_upload_outcome"
     },
     {
-      "$ref": "#/$defs/query_request"
+      "$ref": "#/$defs/keys_query_request_body"
     },
     {
-      "$ref": "#/$defs/query_response"
+      "$ref": "#/$defs/keys_query_outcome"
     },
     {
-      "$ref": "#/$defs/claim_request"
+      "$ref": "#/$defs/keys_claim_request_body"
     },
     {
-      "$ref": "#/$defs/claim_response"
+      "$ref": "#/$defs/keys_claim_outcome"
     },
     {
-      "$ref": "#/$defs/backups_put_response"
+      "$ref": "#/$defs/keys_backups_put_outcome"
     },
     {
-      "$ref": "#/$defs/backups_list_response"
+      "$ref": "#/$defs/keys_backups_list"
     },
     {
-      "$ref": "#/$defs/backups_delete_request"
+      "$ref": "#/$defs/keys_backups_delete_request_body"
     },
     {
-      "$ref": "#/$defs/backups_delete_response"
+      "$ref": "#/$defs/keys_backups_delete_outcome"
     }
   ],
   "$defs": {
@@ -316,7 +316,7 @@
       },
       "additionalProperties": false
     },
-    "upload_request": {
+    "keys_upload_request_body": {
       "type": "object",
       "required": [
         "device_id",
@@ -338,7 +338,7 @@
       },
       "additionalProperties": false
     },
-    "upload_response": {
+    "keys_upload_outcome": {
       "type": "object",
       "required": [
         "one_time_key_counts"
@@ -353,7 +353,7 @@
       },
       "additionalProperties": false
     },
-    "query_request": {
+    "keys_query_request_body": {
       "type": "object",
       "required": [
         "device_keys"
@@ -369,7 +369,7 @@
       },
       "additionalProperties": false
     },
-    "query_response": {
+    "keys_query_outcome": {
       "type": "object",
       "required": [
         "device_keys"
@@ -387,7 +387,7 @@
       },
       "additionalProperties": false
     },
-    "claim_request": {
+    "keys_claim_request_body": {
       "type": "object",
       "required": [
         "one_time_keys"
@@ -399,7 +399,7 @@
       },
       "additionalProperties": false
     },
-    "claim_response": {
+    "keys_claim_outcome": {
       "type": "object",
       "required": [
         "one_time_keys"
@@ -417,7 +417,7 @@
       },
       "additionalProperties": false
     },
-    "backups_put_response": {
+    "keys_backups_put_outcome": {
       "type": "object",
       "required": [
         "status",
@@ -441,7 +441,7 @@
       },
       "additionalProperties": false
     },
-    "backups_list_response": {
+    "keys_backups_list": {
       "type": "object",
       "required": [
         "backups",
@@ -463,7 +463,7 @@
       },
       "additionalProperties": false
     },
-    "backups_delete_request": {
+    "keys_backups_delete_request_body": {
       "type": "object",
       "required": [
         "proof"
@@ -478,7 +478,7 @@
       },
       "additionalProperties": false
     },
-    "backups_delete_response": {
+    "keys_backups_delete_outcome": {
       "type": "object",
       "required": [
         "deleted"

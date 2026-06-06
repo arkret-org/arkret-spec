@@ -191,7 +191,7 @@ Install commit request:
 }
 ```
 
-Commit response MUST validate [`schemas/applet-install-operations.schema.json#/$defs/install_response`](../../artifacts/schemas/applet-install-operations.schema.json) and include `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
+Commit response MUST validate [`schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome`](../../artifacts/schemas/applet-install-operations.schema.json) and include `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
 
 `effective_scope.kind="realm"` MUST only contain `kind` and `realm_id`。`effective_scope.kind="circle"` MUST contain `kind`、`realm_id` and `circle_id`。单次 install operation MUST only target one effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
 

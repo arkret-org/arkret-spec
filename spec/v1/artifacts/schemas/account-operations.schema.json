@@ -4,13 +4,13 @@
   "title": "Cokret Account Self-Service Operation DTOs",
   "description": "Closed request and response DTOs for account self-service operations: viewer, register, profile update, and session revocation.",
   "anyOf": [
-    { "$ref": "#/$defs/viewer_response" },
-    { "$ref": "#/$defs/register_request" },
-    { "$ref": "#/$defs/account_response" },
-    { "$ref": "#/$defs/update_profile_request" },
-    { "$ref": "#/$defs/update_profile_response" },
-    { "$ref": "#/$defs/session_revoke_request" },
-    { "$ref": "#/$defs/session_revoke_response" }
+    { "$ref": "#/$defs/account_view" },
+    { "$ref": "#/$defs/account_register_request_body" },
+    { "$ref": "#/$defs/account_register_outcome" },
+    { "$ref": "#/$defs/account_update_profile_request_body" },
+    { "$ref": "#/$defs/account_update_profile_outcome" },
+    { "$ref": "#/$defs/session_revoke_request_body" },
+    { "$ref": "#/$defs/session_revoke_outcome" }
   ],
   "$defs": {
     "did": {
@@ -151,7 +151,7 @@
         "description": "ck.self.account.update_profile only accepts display_name, avatar_blob_ref, and profile_fields.<key>. The bio is carried as profile_fields.bio."
       }
     },
-    "viewer_response": {
+    "account_view": {
       "type": "object",
       "required": [
         "principal_id",
@@ -175,7 +175,7 @@
       },
       "additionalProperties": false
     },
-    "register_request": {
+    "account_register_request_body": {
       "type": "object",
       "required": [
         "principal_id"
@@ -188,7 +188,7 @@
       },
       "additionalProperties": false
     },
-    "account_response": {
+    "account_register_outcome": {
       "type": "object",
       "required": [
         "principal_id",
@@ -212,7 +212,7 @@
       },
       "additionalProperties": false
     },
-    "update_profile_request": {
+    "account_update_profile_request_body": {
       "type": "object",
       "required": [
         "patch"
@@ -222,7 +222,7 @@
       },
       "additionalProperties": false
     },
-    "update_profile_response": {
+    "account_update_profile_outcome": {
       "type": "object",
       "required": [
         "profile"
@@ -232,7 +232,7 @@
       },
       "additionalProperties": false
     },
-    "session_revoke_request": {
+    "session_revoke_request_body": {
       "type": "object",
       "properties": {
         "target_grant_id": { "$ref": "#/$defs/grant_id" },
@@ -264,7 +264,7 @@
       },
       "additionalProperties": false
     },
-    "session_revoke_response": {
+    "session_revoke_outcome": {
       "type": "object",
       "required": [
         "revoked_count"

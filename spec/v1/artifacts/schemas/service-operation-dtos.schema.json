@@ -5,131 +5,131 @@
   "description": "Canonical request and response DTOs for service operations. OpenAPI components reference this artifact so SDK and conformance tooling use one schema source.",
   "anyOf": [
     {
-      "$ref": "#/$defs/AccountCursorRevokeRequest"
+      "$ref": "#/$defs/AccountCursorRevokeRequestBody"
     },
     {
-      "$ref": "#/$defs/AccountCursorRevokeResponse"
+      "$ref": "#/$defs/AccountCursorRevokeOutcome"
     },
     {
-      "$ref": "#/$defs/AccountOidcCallbackRequest"
+      "$ref": "#/$defs/AccountOidcCallbackRequestBody"
     },
     {
-      "$ref": "#/$defs/AccountOidcCallbackResponse"
+      "$ref": "#/$defs/AccountOidcCallbackOutcome"
     },
     {
-      "$ref": "#/$defs/AuthzCheckRequest"
+      "$ref": "#/$defs/AuthzCheckRequestBody"
     },
     {
-      "$ref": "#/$defs/AuthzCheckResponse"
+      "$ref": "#/$defs/AuthzCheckOutcome"
     },
     {
-      "$ref": "#/$defs/BlobPresignRequest"
+      "$ref": "#/$defs/BlobPresignRequestBody"
     },
     {
-      "$ref": "#/$defs/BlobPresignResponse"
+      "$ref": "#/$defs/BlobPresignOutcome"
     },
     {
-      "$ref": "#/$defs/CallMediaTokenExchangeRequest"
+      "$ref": "#/$defs/CallMediaTokenExchangeRequestBody"
     },
     {
-      "$ref": "#/$defs/CallMediaTokenExchangeResponse"
+      "$ref": "#/$defs/CallMediaTokenExchangeOutcome"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesGetResponse"
+      "$ref": "#/$defs/DeviceMessagesGetOutcome"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesPutRequest"
+      "$ref": "#/$defs/DeviceMessagesPutRequestBody"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesPutResponse"
+      "$ref": "#/$defs/DeviceMessagesPutOutcome"
     },
     {
-      "$ref": "#/$defs/DidOperationSubmitRequest"
+      "$ref": "#/$defs/DidOperationSubmitRequestBody"
     },
     {
-      "$ref": "#/$defs/DidOperationSubmitResponse"
+      "$ref": "#/$defs/DidOperationSubmitOutcome"
     },
     {
-      "$ref": "#/$defs/DirectoryAnnounceRequest"
+      "$ref": "#/$defs/DirectoryAnnounceRequestBody"
     },
     {
-      "$ref": "#/$defs/DirectoryAnnounceResponse"
+      "$ref": "#/$defs/DirectoryAnnounceOutcome"
     },
     {
-      "$ref": "#/$defs/DirectoryWithdrawRequest"
+      "$ref": "#/$defs/DirectoryWithdrawRequestBody"
     },
     {
-      "$ref": "#/$defs/DirectoryWithdrawResponse"
+      "$ref": "#/$defs/DirectoryWithdrawOutcome"
     },
     {
-      "$ref": "#/$defs/EphemeralSubmitResponse"
+      "$ref": "#/$defs/EphemeralSubmitOutcome"
     },
     {
-      "$ref": "#/$defs/EventGetResponse"
+      "$ref": "#/$defs/EventView"
     },
     {
-      "$ref": "#/$defs/EventsFrontierResponse"
+      "$ref": "#/$defs/EventsFrontierState"
     },
     {
-      "$ref": "#/$defs/EventsQueryPostRequest"
+      "$ref": "#/$defs/EventsQueryPostRequestBody"
     },
     {
-      "$ref": "#/$defs/EventsQueryResponse"
+      "$ref": "#/$defs/EventsQueryOutcome"
     },
     {
-      "$ref": "#/$defs/EventsResolveRequest"
+      "$ref": "#/$defs/EventsResolveRequestBody"
     },
     {
-      "$ref": "#/$defs/EventsResolveResponse"
+      "$ref": "#/$defs/EventsResolveOutcome"
     },
     {
-      "$ref": "#/$defs/EventsSubmitRequest"
+      "$ref": "#/$defs/EventsSubmitRequestBody"
     },
     {
-      "$ref": "#/$defs/EventsSubmitResponse"
+      "$ref": "#/$defs/EventsSubmitOutcome"
     },
     {
-      "$ref": "#/$defs/GrantListResponse"
+      "$ref": "#/$defs/GrantList"
     },
     {
-      "$ref": "#/$defs/IdentityGetDocumentResponse"
+      "$ref": "#/$defs/IdentityDocumentView"
     },
     {
-      "$ref": "#/$defs/IdentityResolveRequest"
+      "$ref": "#/$defs/IdentityResolveRequestBody"
     },
     {
-      "$ref": "#/$defs/IdentityResolveResponse"
+      "$ref": "#/$defs/IdentityResolveOutcome"
     },
     {
-      "$ref": "#/$defs/ModerationReportResponse"
+      "$ref": "#/$defs/ModerationReportOutcome"
     },
     {
-      "$ref": "#/$defs/PolicyCheckRequest"
+      "$ref": "#/$defs/PolicyCheckRequestBody"
     },
     {
-      "$ref": "#/$defs/PolicyCheckResponse"
+      "$ref": "#/$defs/PolicyCheckOutcome"
     },
     {
-      "$ref": "#/$defs/ProjectionFlowsResponse"
+      "$ref": "#/$defs/ProjectionFlowList"
     },
     {
-      "$ref": "#/$defs/ProjectionMorphsResponse"
+      "$ref": "#/$defs/ProjectionMorphList"
     },
     {
-      "$ref": "#/$defs/ProjectionSpacesResponse"
+      "$ref": "#/$defs/ProjectionSpaceList"
     },
     {
-      "$ref": "#/$defs/SessionGrantRequest"
+      "$ref": "#/$defs/SessionGrantRequestBody"
     },
     {
-      "$ref": "#/$defs/SessionGrantResponse"
+      "$ref": "#/$defs/SessionGrantOutcome"
     },
     {
-      "$ref": "#/$defs/SnapshotHeadResponse"
+      "$ref": "#/$defs/SnapshotHeadState"
     }
   ],
   "$defs": {
-    "AccountCursorRevokeRequest": {
+    "AccountCursorRevokeRequestBody": {
       "type": "object",
       "required": [
         "cursor",
@@ -155,7 +155,7 @@
       },
       "additionalProperties": false
     },
-    "AccountCursorRevokeResponse": {
+    "AccountCursorRevokeOutcome": {
       "type": "object",
       "required": [
         "revoked"
@@ -171,7 +171,7 @@
       },
       "additionalProperties": false
     },
-    "AccountOidcCallbackRequest": {
+    "AccountOidcCallbackRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -196,7 +196,7 @@
         }
       }
     },
-    "AccountOidcCallbackResponse": {
+    "AccountOidcCallbackOutcome": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -204,8 +204,8 @@
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
-        "session": {
-          "$ref": "#/$defs/SessionGrantResponse"
+        "recovery_session_state": {
+          "$ref": "#/$defs/SessionGrantOutcome"
         },
         "redirect_url": {
           "type": "string",
@@ -225,7 +225,7 @@
         }
       ]
     },
-    "AuthzCheckRequest": {
+    "AuthzCheckRequestBody": {
       "type": "object",
       "description": "ck.self.authz.check input — single capability decision query. `resource` is\noptional because some actions (e.g. `ck.realm.create`, identity-scoped\nactions) have no Realm-bound target.\n",
       "required": [
@@ -252,7 +252,7 @@
       },
       "additionalProperties": false
     },
-    "AuthzCheckResponse": {
+    "AuthzCheckOutcome": {
       "type": "object",
       "description": "ck.self.authz.check decision. See zh/authz/capabilities.md §18.",
       "required": [
@@ -345,7 +345,7 @@
       },
       "additionalProperties": false
     },
-    "BlobPresignRequest": {
+    "BlobPresignRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -377,7 +377,7 @@
         }
       }
     },
-    "BlobPresignResponse": {
+    "BlobPresignOutcome": {
       "type": "object",
       "required": [
         "url",
@@ -401,7 +401,7 @@
       },
       "additionalProperties": false
     },
-    "CallMediaTokenExchangeRequest": {
+    "CallMediaTokenExchangeRequestBody": {
       "type": "object",
       "required": [
         "realm_id",
@@ -455,7 +455,7 @@
       },
       "additionalProperties": false
     },
-    "CallMediaTokenExchangeResponse": {
+    "CallMediaTokenExchangeOutcome": {
       "type": "object",
       "required": [
         "focus_id",
@@ -583,7 +583,7 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessagesGetResponse": {
+    "DeviceMessagesGetOutcome": {
       "type": "object",
       "required": [
         "messages",
@@ -609,7 +609,7 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessagesPutRequest": {
+    "DeviceMessagesPutRequestBody": {
       "type": "object",
       "required": [
         "messages"
@@ -627,7 +627,7 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessagesPutResponse": {
+    "DeviceMessagesPutOutcome": {
       "type": "object",
       "required": [
         "ok"
@@ -645,7 +645,7 @@
       },
       "additionalProperties": false
     },
-    "DidOperationSubmitRequest": {
+    "DidOperationSubmitRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -722,7 +722,7 @@
         }
       }
     },
-    "DidOperationSubmitResponse": {
+    "DidOperationSubmitOutcome": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -762,7 +762,7 @@
         }
       }
     },
-    "DirectoryAnnounceRequest": {
+    "DirectoryAnnounceRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -828,7 +828,7 @@
         }
       }
     },
-    "DirectoryAnnounceResponse": {
+    "DirectoryAnnounceOutcome": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -862,7 +862,7 @@
         }
       }
     },
-    "DirectoryWithdrawRequest": {
+    "DirectoryWithdrawRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -900,7 +900,7 @@
         }
       }
     },
-    "DirectoryWithdrawResponse": {
+    "DirectoryWithdrawOutcome": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -919,7 +919,7 @@
         }
       }
     },
-    "EphemeralSubmitResponse": {
+    "EphemeralSubmitOutcome": {
       "type": "object",
       "description": "Result of ck.ephemeral.send. `accepted=true` means the Sync Service\nadmitted the short-lived signal into its ephemeral fanout path. No\nEvent ID, actor_seq, Anchor frontier, or durable receipt is minted.\n",
       "required": [
@@ -955,7 +955,7 @@
       },
       "additionalProperties": false
     },
-    "EventGetResponse": {
+    "EventView": {
       "type": "object",
       "description": "Result of ck.self.events.get — a single Event Envelope with optional visibility / receipt hints.",
       "required": [
@@ -979,10 +979,10 @@
       },
       "additionalProperties": false
     },
-    "EventsFrontierResponse": {
-      "$ref": "#/$defs/EventsFrontierAccountClientResponse"
+    "EventsFrontierState": {
+      "$ref": "#/$defs/EventsFrontierAccountClientState"
     },
-    "EventsQueryPostRequest": {
+    "EventsQueryPostRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "anyOf": [
@@ -1042,7 +1042,7 @@
         }
       }
     },
-    "EventsQueryResponse": {
+    "EventsQueryOutcome": {
       "type": "object",
       "description": "Result of ck.self.events.query (GET form) and ck.self.events.query_post (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
       "required": [
@@ -1074,7 +1074,7 @@
       },
       "additionalProperties": false
     },
-    "EventsResolveRequest": {
+    "EventsResolveRequestBody": {
       "type": "object",
       "description": "ck.self.events.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
       "properties": {
@@ -1097,7 +1097,7 @@
       },
       "additionalProperties": false
     },
-    "EventsResolveResponse": {
+    "EventsResolveOutcome": {
       "type": "object",
       "description": "ck.self.events.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
       "required": [
@@ -1128,20 +1128,20 @@
       },
       "additionalProperties": false
     },
-    "EventsSubmitRequest": {
+    "EventsSubmitRequestBody": {
       "oneOf": [
         {
           "$ref": "#/$defs/EventSubmitEnvelope"
         },
         {
-          "$ref": "#/$defs/EventsSubmitBatchRequest"
+          "$ref": "#/$defs/EventsSubmitBatchRequestBody"
         },
         {
-          "$ref": "#/$defs/EventsSubmitFederationRequest"
+          "$ref": "#/$defs/EventsSubmitFederationRequestBody"
         }
       ]
     },
-    "EventsSubmitResponse": {
+    "EventsSubmitOutcome": {
       "type": "object",
       "description": "Result of ck.events.submit. Tracks per-event acceptance / duplication /\nrejection along with the post-write frontier and an optional barrier\ncursor for read-your-writes.\n",
       "required": [
@@ -1214,7 +1214,7 @@
       },
       "additionalProperties": false
     },
-    "GrantListResponse": {
+    "GrantList": {
       "type": "object",
       "properties": {
         "grants": {
@@ -1232,7 +1232,7 @@
       },
       "additionalProperties": false
     },
-    "IdentityGetDocumentResponse": {
+    "IdentityDocumentView": {
       "type": "object",
       "description": "Result of ck.root.identity.get_document — current DID Document plus normalized view hints.",
       "required": [
@@ -1258,7 +1258,7 @@
       },
       "additionalProperties": false
     },
-    "IdentityResolveRequest": {
+    "IdentityResolveRequestBody": {
       "type": "object",
       "required": [
         "did"
@@ -1276,7 +1276,7 @@
       },
       "additionalProperties": false
     },
-    "IdentityResolveResponse": {
+    "IdentityResolveOutcome": {
       "type": "object",
       "properties": {
         "did_document": {
@@ -1297,7 +1297,7 @@
       },
       "additionalProperties": false
     },
-    "ModerationReportResponse": {
+    "ModerationReportOutcome": {
       "type": "object",
       "required": [
         "report_id",
@@ -1325,7 +1325,7 @@
       },
       "additionalProperties": false
     },
-    "PolicyCheckRequest": {
+    "PolicyCheckRequestBody": {
       "type": "object",
       "description": "ck.self.policy.check input bound to a Realm authorization context.",
       "required": [
@@ -1394,7 +1394,7 @@
       },
       "additionalProperties": false
     },
-    "PolicyCheckResponse": {
+    "PolicyCheckOutcome": {
       "type": "object",
       "description": "Result of ck.self.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.",
       "required": [
@@ -1509,7 +1509,7 @@
       },
       "additionalProperties": false
     },
-    "ProjectionFlowsResponse": {
+    "ProjectionFlowList": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1541,7 +1541,7 @@
         }
       }
     },
-    "ProjectionMorphsResponse": {
+    "ProjectionMorphList": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1573,7 +1573,7 @@
         }
       }
     },
-    "ProjectionSpacesResponse": {
+    "ProjectionSpaceList": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1605,7 +1605,7 @@
         }
       }
     },
-    "SessionGrantRequest": {
+    "SessionGrantRequestBody": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1773,7 +1773,7 @@
         }
       ]
     },
-    "SessionGrantResponse": {
+    "SessionGrantOutcome": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1833,7 +1833,7 @@
         }
       }
     },
-    "SnapshotHeadResponse": {
+    "SnapshotHeadState": {
       "type": "object",
       "description": "Result of ck.self.snapshot.head — a signed snapshot pointer for fast bootstrap. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.",
       "required": [
@@ -1948,7 +1948,7 @@
         }
       ]
     },
-    "EventsFrontierAccountClientResponse": {
+    "EventsFrontierAccountClientState": {
       "type": "object",
       "description": "Account-client ck.self.events.frontier response.",
       "required": [
@@ -1968,7 +1968,7 @@
       },
       "additionalProperties": false
     },
-    "EventsFrontierFederationPeerResponse": {
+    "EventsFrontierFederationPeerState": {
       "type": "object",
       "description": "Federation peer ck.peer.events.frontier response. Requires S2S signed trust-domain headers.",
       "required": [
@@ -2029,7 +2029,7 @@
       },
       "additionalProperties": false
     },
-    "EventsSubmitBatchRequest": {
+    "EventsSubmitBatchRequestBody": {
       "type": "object",
       "description": "Batch ck.self.events.submit request used by account clients.",
       "required": [
@@ -2046,7 +2046,7 @@
       },
       "additionalProperties": false
     },
-    "EventsSubmitFederationRequest": {
+    "EventsSubmitFederationRequestBody": {
       "type": "object",
       "description": "Federation service-to-service ck.peer.events.submit request body.",
       "required": [

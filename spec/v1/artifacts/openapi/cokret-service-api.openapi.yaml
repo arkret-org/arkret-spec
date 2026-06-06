@@ -36,18 +36,18 @@ info:
 
     get_effective_grants}`, and the ServiceDescribe envelope. The corresponding
 
-    component schemas are named `EventsSubmitBatchRequest`,
+    component schemas are named `EventsSubmitBatchRequestBody`,
 
-    `EventsSubmitFederationRequest`, `EventsSubmitResponse`, `EventGetResponse`,
+    `EventsSubmitFederationRequestBody`, `EventsSubmitOutcome`, `EventView`,
 
-    `EventsResolveRequest` / `EventsResolveResponse`, `EventsQueryResponse`,
+    `EventsResolveRequestBody` / `EventsResolveOutcome`, `EventsQueryOutcome`,
 
-    `EventsFrontierResponse`, `EphemeralSubmitResponse`, `SnapshotHeadResponse`,
+    `EventsFrontierState`, `EphemeralSubmitOutcome`, `SnapshotHeadState`,
 
-    `IdentityResolveResponse` / `IdentityGetDocumentResponse`,
-    `DidOperationSubmitRequest` / `DidOperationSubmitResponse`,
+    `IdentityResolveOutcome` / `IdentityDocumentView`,
+    `DidOperationSubmitRequestBody` / `DidOperationSubmitOutcome`,
 
-    `AuthzCheckRequest` / `AuthzCheckResponse`, `GrantListResponse`,
+    `AuthzCheckRequestBody` / `AuthzCheckOutcome`, `GrantList`,
 
     `ServiceDescribe`.
 
@@ -753,214 +753,214 @@ components:
           description: |
             Mirror of the service's development_mode flag. When true,
             `verified_profiles` MUST be empty.
-    IdentityResolveResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveResponse
+    IdentityResolveOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome
     AccountSubscribeFrame:
       $ref: ../schemas/account-subscribe-frame.schema.json
     ActorProfile:
       $ref: ../schemas/actor-profile.schema.json
     HandleClaim:
       $ref: ../schemas/handle-claim.schema.json
-    AccountViewerResponse:
-      $ref: ../schemas/account-operations.schema.json#/$defs/viewer_response
-    AccountRegisterRequest:
-      $ref: ../schemas/account-operations.schema.json#/$defs/register_request
-    AccountResponse:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_response
-    ContactRequestRequest:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_request
-    ContactRequestResponse:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_response
-    ContactRespondRequest:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_request
-    ContactRespondResponse:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_response
-    ContactListResponse:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list_response
-    ContactTombstoneRequest:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request
-    ContactTombstoneResponse:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_response
-    DirectConversationResolveRequest:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request
-    DirectConversationResolveResponse:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_response
-    UpdateProfileRequest:
-      $ref: ../schemas/account-operations.schema.json#/$defs/update_profile_request
-    UpdateProfileResponse:
-      $ref: ../schemas/account-operations.schema.json#/$defs/update_profile_response
-    SessionRevokeRequest:
-      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request
-    SessionRevokeResponse:
-      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_response
+    AccountView:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_view
+    AccountRegisterRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_register_request_body
+    AccountRegisterOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
+    ContactRequestRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_request_body
+    ContactRequestOutcome:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_outcome
+    ContactRespondRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_request_body
+    ContactRespondOutcome:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_outcome
+    ContactList:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
+    ContactTombstoneRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body
+    ContactTombstone:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone
+    DirectConversationResolveRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body
+    DirectConversationResolveOutcome:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome
+    AccountUpdateProfileRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_request_body
+    AccountUpdateProfileOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_outcome
+    SessionRevokeRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request_body
+    SessionRevokeOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_outcome
     BottomDiagnostic:
       $ref: ../schemas/bottom.schema.json
-    KeysUploadRequest:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/upload_request
-    KeysUploadResponse:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/upload_response
-    KeysQueryRequest:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/query_request
-    KeysQueryResponse:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/query_response
-    KeysClaimRequest:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/claim_request
-    KeysClaimResponse:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/claim_response
-    KeysBackupsPutResponse:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/backups_put_response
-    KeysBackupsListResponse:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/backups_list_response
-    KeysBackupsDeleteRequest:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/backups_delete_request
-    KeysBackupsDeleteResponse:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/backups_delete_response
-    KeyPackagesUploadRequest:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/upload_request
-    KeyPackagesUploadResponse:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/upload_response
-    KeyPackagesClaimRequest:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/claim_request
-    KeyPackagesClaimResponse:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/claim_response
-    KeyPackagesConsumeRequest:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/consume_request
-    KeyPackagesConsumeResponse:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/consume_response
-    KeyPackagesRevokeRequest:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/revoke_request
-    KeyPackagesRevokeResponse:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/revoke_response
-    AppletInstallPreviewRequest:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/preview_request
+    KeysUploadRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_upload_request_body
+    KeysUploadOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_upload_outcome
+    KeysQueryRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_query_request_body
+    KeysQueryOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_query_outcome
+    KeysClaimRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_claim_request_body
+    KeysClaimOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_claim_outcome
+    KeysBackupsPutOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_put_outcome
+    KeysBackupsList:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_list
+    KeysBackupsDeleteRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body
+    KeysBackupsDeleteOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome
+    KeyPackagesUploadRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body
+    KeyPackagesUploadOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome
+    KeyPackagesClaimRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body
+    KeyPackagesClaimOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome
+    KeyPackagesConsumeRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body
+    KeyPackagesConsumeOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome
+    KeyPackagesRevokeRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body
+    KeyPackagesRevokeOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome
+    AppletInstallPreviewRequestBody:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body
     AppletInstallPlan:
       $ref: ../schemas/applet-install-plan.schema.json
-    AppletInstallRequest:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/install_request
-    AppletInstallResponse:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/install_response
-    AppletRevokeRequest:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/revoke_request
-    AppletRevokeResponse:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/revoke_response
-    AppletPingResponse:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/ping_response
-    AppletTransactionRequest:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/transaction_request
-    AppletTransactionResponse:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/transaction_response
-    AppletResolveActorResponse:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/resolve_actor_response
-    AppletResolveRealmResponse:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/resolve_realm_response
-    AppletProtocolMetadataResponse:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/protocol_metadata_response
-    AppletThirdPartyUserResponse:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/third_party_user_response
-    AppletThirdPartyLocationResponse:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/third_party_location_response
-    PushRegisterDeviceRequest:
-      $ref: ../schemas/push-operations.schema.json#/$defs/register_device_request
-    PushRegisterDeviceResponse:
-      $ref: ../schemas/push-operations.schema.json#/$defs/register_device_response
-    PushUnregisterDeviceRequest:
-      $ref: ../schemas/push-operations.schema.json#/$defs/unregister_device_request
-    PushUnregisterDeviceResponse:
-      $ref: ../schemas/push-operations.schema.json#/$defs/unregister_device_response
-    PushNotifyRequest:
-      $ref: ../schemas/push-operations.schema.json#/$defs/notify_request
-    PushNotifyResponse:
-      $ref: ../schemas/push-operations.schema.json#/$defs/notify_response
-    MediaIceConfigRequest:
-      $ref: ../schemas/media-operations.schema.json#/$defs/ice_config_request
-    MediaIceConfigResponse:
+    AppletInstallRequestBody:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body
+    AppletInstallOutcome:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome
+    AppletRevokeRequestBody:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body
+    AppletRevokeOutcome:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome
+    AppletPingOutcome:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome
+    AppletTransactionRequestBody:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body
+    AppletTransactionOutcome:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome
+    AppletActorView:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view
+    AppletRealmView:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view
+    AppletProtocolMetadata:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata
+    AppletThirdPartyUserList:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list
+    AppletThirdPartyLocationList:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list
+    PushRegisterDeviceRequestBody:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_request_body
+    PushRegisterDeviceOutcome:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_outcome
+    PushUnregisterDeviceRequestBody:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body
+    PushUnregisterDeviceOutcome:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome
+    PushNotifyRequestBody:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_request_body
+    PushNotifyOutcome:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_outcome
+    MediaIceConfigRequestBody:
+      $ref: ../schemas/media-operations.schema.json#/$defs/media_ice_config_request_body
+    MediaIceConfigOutcome:
       $ref: ../schemas/ice-config-response.schema.json
-    BlobUploadRequest:
-      $ref: ../schemas/blob-operations.schema.json#/$defs/upload_request
-    BlobUploadResponse:
-      $ref: ../schemas/blob-operations.schema.json#/$defs/upload_response
-    DirectorySearchRealmsRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/search_realms_request
-    DirectorySearchRealmsResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/search_realms_response
-    DirectoryResolveRealmRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_realm_request
-    DirectoryResolveRealmResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_realm_response
-    DirectoryResolveTargetRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_target_request
-    DirectoryResolveTargetResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_target_response
-    DirectorySearchOrganizationsRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/search_organizations_request
-    DirectorySearchOrganizationsResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/search_organizations_response
-    DirectoryResolveOrganizationRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_organization_request
-    DirectoryResolveOrganizationResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_organization_response
-    DirectorySearchActorsRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/search_actors_request
-    DirectorySearchActorsResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/search_actors_response
-    DirectorySearchUsersRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/search_users_request
-    DirectorySearchUsersResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/search_users_response
-    DirectoryResolveHandleRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_handle_request
-    DirectoryResolveHandleResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/resolve_handle_response
-    DirectoryListHandlesForSubjectRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/list_handles_for_subject_request
-    ListHandlesForSubjectResponse:
+    BlobUploadRequestBody:
+      $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_request_body
+    BlobUploadOutcome:
+      $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_outcome
+    DirectorySearchRealmsRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body
+    DirectoryRealmSearchOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome
+    DirectoryResolveRealmRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body
+    DirectoryRealmResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome
+    DirectoryResolveTargetRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body
+    DirectoryTargetResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome
+    DirectorySearchOrganizationsRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body
+    DirectoryOrganizationSearchOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome
+    DirectoryResolveOrganizationRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body
+    DirectoryOrganizationResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome
+    DirectorySearchActorsRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body
+    DirectoryActorSearchOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome
+    DirectorySearchUsersRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body
+    DirectoryUserSearchOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome
+    DirectoryResolveHandleRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body
+    DirectoryHandleResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome
+    DirectoryListHandlesForSubjectRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body
+    DirectorySubjectHandleList:
       $ref: ../schemas/list-handles-for-subject-response.schema.json
-    DirectoryPrivateContactDiscoveryRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/private_contact_discovery_request
-    DirectoryPrivateContactDiscoveryResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/private_contact_discovery_response
-    DirectoryPushRegisterRequest:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/push_register_request
-    DirectoryPushRegisterResponse:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/push_register_response
-    MimiKeyMaterialRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/key_material_request
-    MimiKeyMaterialResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/key_material_response
-    MimiRoomUpdateRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/room_update_request
-    MimiRoomUpdateResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/room_update_response
-    MimiNotifyRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/notify_request
-    MimiNotifyResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/notify_response
-    MimiSubmitMessageRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/submit_message_request
-    MimiSubmitMessageResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/submit_message_response
-    MimiGroupInfoResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/group_info_response
-    MimiRequestConsentRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/request_consent_request
-    MimiRequestConsentResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/request_consent_response
-    MimiUpdateConsentRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/update_consent_request
-    MimiUpdateConsentResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/update_consent_response
-    MimiIdentifierQueryRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/identifier_query_request
-    MimiIdentifierQueryResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/identifier_query_response
-    MimiReportAbuseRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/report_abuse_request
-    MimiReportAbuseResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/report_abuse_response
-    MimiProxyDownloadRequest:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/proxy_download_request
-    MimiProxyDownloadResponse:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/proxy_download_response
+    DirectoryPrivateContactDiscoveryRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body
+    DirectoryPrivateContactDiscoveryOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome
+    DirectoryPushRegisterRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body
+    DirectoryPushRegisterOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome
+    MimiKeyMaterialRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body
+    MimiKeyMaterialOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome
+    MimiRoomUpdateRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body
+    MimiRoomUpdateOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome
+    MimiNotifyRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body
+    MimiNotifyOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome
+    MimiSubmitMessageRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body
+    MimiSubmitMessageOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome
+    MimiGroupInfoOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome
+    MimiRequestConsentRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body
+    MimiRequestConsentOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome
+    MimiUpdateConsentRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
+    MimiUpdateConsentOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome
+    MimiIdentifierQueryRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body
+    MimiIdentifierQueryOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
+    MimiReportAbuseRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body
+    MimiReportAbuseOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome
+    MimiProxyDownloadRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body
+    MimiProxyDownloadOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome
 
     # =========================================================================
     # Typed request / response schemas for stable core operations.
@@ -1031,7 +1031,7 @@ components:
           projections such as actor_kind and effective_scope. Services stamp those
           fields only after accept and expose them on read/query/sync envelopes.
 
-    EventsSubmitBatchRequest:
+    EventsSubmitBatchRequestBody:
       type: object
       description: Batch ck.self.events.submit request used by account clients.
       required:
@@ -1044,7 +1044,7 @@ components:
             $ref: '#/components/schemas/EventSubmitEnvelope'
       additionalProperties: false
 
-    EventsSubmitFederationRequest:
+    EventsSubmitFederationRequestBody:
       type: object
       description: Federation service-to-service ck.peer.events.submit request body.
       required:
@@ -1060,16 +1060,16 @@ components:
             $ref: '#/components/schemas/EventSubmitEnvelope'
       additionalProperties: false
 
-    EventsSubmitResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitResponse
-    EventGetResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventGetResponse
-    EventsResolveRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequest
-    EventsResolveResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveResponse
-    EventsQueryResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryResponse
+    EventsSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
+    EventView:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventView
+    EventsResolveRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody
+    EventsResolveOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome
+    EventsQueryOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome
     EventsSubscribeFrame:
       type: object
       description: One NDJSON line emitted by ck.events.subscribe. `dropped` requires a usable recovery cursor; if no cursor exists, servers MUST emit `resync_required` instead.
@@ -1127,9 +1127,9 @@ components:
             - reconnect_after_ms
       additionalProperties: false
 
-    EventsFrontierResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierResponse
-    EventsFrontierAccountClientResponse:
+    EventsFrontierState:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState
+    EventsFrontierAccountClientState:
       type: object
       description: Account-client ck.self.events.frontier response.
       required:
@@ -1148,8 +1148,8 @@ components:
             type: object
       additionalProperties: false
 
-    EventsFrontierFederationPeerResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerResponse
+    EventsFrontierFederationPeerState:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState
 
     SnapshotBootstrap:
       type: object
@@ -1188,10 +1188,10 @@ components:
         verification_hints:
           type: object
 
-    SnapshotHeadResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadResponse
-    IdentityGetDocumentResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityGetDocumentResponse
+    SnapshotHeadState:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadState
+    IdentityDocumentView:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView
     CellQueryEnvelope:
       type: object
       description: 'Wire envelope for state-query / projection responses on a single
@@ -1299,21 +1299,21 @@ components:
           format: date-time
           pattern: Z$
       additionalProperties: false
-    DeviceMessagesPutRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequest
-    DeviceMessagesPutResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutResponse
-    DeviceMessagesGetResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetResponse
-    GrantListResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GrantListResponse
-    AuthzInvitesResponse:
-      $ref: ../schemas/authz-operations.schema.json#/$defs/get_invites_response
-    AuthzCheckRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequest
-    AuthzCheckResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckResponse
-    ModerationQueueResponse:
+    DeviceMessagesPutRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequestBody
+    DeviceMessagesPutOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutOutcome
+    DeviceMessagesGetOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome
+    GrantList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GrantList
+    AuthzInviteList:
+      $ref: ../schemas/authz-operations.schema.json#/$defs/authz_invite_list
+    AuthzCheckRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody
+    AuthzCheckOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome
+    ModerationQueueView:
       type: object
       required:
       - items
@@ -1330,8 +1330,8 @@ components:
         counts:
           type: object
       additionalProperties: false
-    ModerationReportResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportResponse
+    ModerationReportOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome
     FieldFilter:
       $ref: ../schemas/query.schema.json#/$defs/field_filter
     BooleanFilter:
@@ -1372,12 +1372,12 @@ components:
       - document
       - dashboard
       - custom
-    QueryRequest:
-      $ref: ../schemas/query.schema.json#/$defs/query_request
+    QueryRequestBody:
+      $ref: ../schemas/query.schema.json#/$defs/query_request_body
     ObjectRef:
       type: string
       pattern: ^ck:(realm|space|circle|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    ObjectLookupResponse:
+    ObjectLookupOutcome:
       type: object
       required:
       - object
@@ -1394,7 +1394,7 @@ components:
           - redacted
           - partial
       additionalProperties: false
-    FlowDiscussionTimelineResponse:
+    FlowDiscussionTimelineView:
       type: object
       required:
       - entries
@@ -1427,7 +1427,7 @@ components:
           type: integer
           minimum: 0
       additionalProperties: false
-    FlowDiscussionsResponse:
+    FlowDiscussionList:
       type: object
       required:
       - flows
@@ -1443,7 +1443,7 @@ components:
         state_after:
           $ref: '#/components/schemas/StateFrontier'
       additionalProperties: false
-    NotificationProjectionResponse:
+    NotificationProjectionView:
       type: object
       required:
       - notifications
@@ -1457,7 +1457,7 @@ components:
         next_cursor:
           type: string
       additionalProperties: false
-    InboxResponse:
+    InboxView:
       type: object
       required:
       - items
@@ -1471,9 +1471,9 @@ components:
         frontier:
           $ref: '#/components/schemas/StateFrontier'
       additionalProperties: false
-    SearchRequest:
-      $ref: ../schemas/query.schema.json#/$defs/search_request
-    SearchResult:
+    SearchRequestBody:
+      $ref: ../schemas/query.schema.json#/$defs/search_request_body
+    SearchOutcome:
       type: object
       required:
       - object
@@ -1491,7 +1491,7 @@ components:
           items:
             type: object
       additionalProperties: false
-    SearchResponse:
+    SearchResultList:
       type: object
       required:
       - results
@@ -1499,14 +1499,14 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/SearchResult'
+            $ref: '#/components/schemas/SearchOutcome'
         next_cursor:
           type: string
         total_estimate:
           type: integer
           minimum: 0
       additionalProperties: false
-    SpaceHierarchyResponse:
+    SpaceHierarchyView:
       type: object
       required:
       - root_space_id
@@ -1619,7 +1619,7 @@ components:
                 pattern: ^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$
             additionalProperties: false
       additionalProperties: false
-    RawQueryResponse:
+    RawQueryOutcome:
       type: object
       required:
       - projection
@@ -1961,7 +1961,7 @@ components:
                     position:
                       $ref: '#/components/schemas/CollectionCrosstabPosition'
       additionalProperties: false
-    CollectionProjectionResponse:
+    CollectionProjectionView:
       type: object
       required:
       - projection
@@ -2110,7 +2110,7 @@ components:
         redacted:
           type: boolean
       additionalProperties: false
-    TimelineProjectionResponse:
+    TimelineProjectionView:
       type: object
       required:
       - projection
@@ -2187,7 +2187,7 @@ components:
         truncated:
           type: boolean
       additionalProperties: false
-    GraphProjectionResponse:
+    GraphProjectionView:
       type: object
       required:
       - projection
@@ -2246,7 +2246,7 @@ components:
         redacted:
           type: boolean
       additionalProperties: false
-    DocumentProjectionResponse:
+    DocumentProjectionView:
       type: object
       required:
       - projection
@@ -2310,7 +2310,7 @@ components:
         error:
           $ref: '#/components/schemas/ErrorEnvelope'
       additionalProperties: false
-    CompositeProjectionResponse:
+    CompositeProjectionView:
       type: object
       required:
       - projection
@@ -2338,60 +2338,60 @@ components:
         stale:
           type: boolean
       additionalProperties: false
-    PolicyCheckRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequest
-    PolicyCheckResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckResponse
-    SessionGrantRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequest
-    SessionGrantResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantResponse
-    AccountDevicePairRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/device_pair_request
-    AccountDevicePairResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/device_pair_response
-    AgentKeyPairRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_request
-    AgentKeyPairResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_response
-    AgentProvisionRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/provision_request
-    AgentProvisionResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/provision_response
-    AgentListResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/list_response
-    AgentGetResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/get_response
-    AgentPauseRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/pause_request
-    AgentResumeRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/resume_request
-    AgentDeactivateRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/deactivate_request
-    AgentLifecycleResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/lifecycle_response
-    AgentRotateKeyRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/rotate_key_request
-    AgentRotateKeyResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/rotate_key_response
-    AgentGrantAttachRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/grant_attach_request
-    AgentGrantAttachResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/grant_attach_response
-    AgentGrantDetachResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/grant_detach_response
-    AgentSidecarThreadEnsureRequest:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/sidecar_thread_ensure_request
-    AgentSidecarThreadEnsureResponse:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/sidecar_thread_ensure_response
-    AccountOidcCallbackRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequest
-    AccountOidcCallbackResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackResponse
-    DidOperationSubmitRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequest
-    DidOperationSubmitResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitResponse
+    PolicyCheckRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody
+    PolicyCheckOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
+    SessionGrantRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
+    SessionGrantOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome
+    AccountDevicePairRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body
+    AccountDevicePairOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome
+    AgentKeyPairRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body
+    AgentKeyPairOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome
+    AgentProvisionRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_request_body
+    AgentProvisionOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
+    AgentList:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_list
+    AgentView:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
+    AgentPauseRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pause_request_body
+    AgentResumeRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_resume_request_body
+    AgentDeactivateRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body
+    AgentLifecycleState:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state
+    AgentRotateKeyRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body
+    AgentRotateKeyOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome
+    AgentGrantAttachRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body
+    AgentGrantAttachOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome
+    AgentGrantDetachOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome
+    AgentSidecarThreadEnsureRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body
+    AgentSidecarThreadEnsureOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome
+    AccountOidcCallbackRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
+    AccountOidcCallbackOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
+    DidOperationSubmitRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
+    DidOperationSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
     ProjectionSpaceRow:
       type: object
       additionalProperties: false
@@ -2446,8 +2446,8 @@ components:
           - string
           - 'null'
           format: date-time
-    ProjectionSpacesResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpacesResponse
+    ProjectionSpaceList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
     ProjectionFlowRow:
       type: object
       additionalProperties: false
@@ -2514,8 +2514,8 @@ components:
           - string
           - 'null'
           format: date-time
-    ProjectionFlowsResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowsResponse
+    ProjectionFlowList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList
     ProjectionMorphRow:
       type: object
       additionalProperties: false
@@ -2562,18 +2562,18 @@ components:
           - string
           - 'null'
           format: date-time
-    ProjectionMorphsResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphsResponse
-    EphemeralSubmitResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitResponse
-    DirectoryAnnounceRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequest
-    DirectoryAnnounceResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceResponse
-    DirectoryWithdrawRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequest
-    DirectoryWithdrawResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawResponse
+    ProjectionMorphList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
+    EphemeralSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome
+    DirectoryAnnounceRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
+    DirectoryAnnounceOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
+    DirectoryWithdrawRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
+    DirectoryWithdrawOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
   responses:
     NotFound:
       description: Not found or not visible.
@@ -2652,14 +2652,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody
       responses:
         '200':
           description: DID resolution result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdentityResolveResponse'
+                $ref: '#/components/schemas/IdentityResolveOutcome'
         '404':
           $ref: '#/components/responses/NotFound'
   /_cokret/root/identity/document:
@@ -2683,7 +2683,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IdentityGetDocumentResponse'
+                $ref: '#/components/schemas/IdentityDocumentView'
   /_cokret/root/identity/log:
     get:
       operationId: ck.root.identity.get_log
@@ -2720,13 +2720,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DidOperationSubmitResponse'
+                $ref: '#/components/schemas/DidOperationSubmitOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DidOperationSubmitRequest'
+              $ref: '#/components/schemas/DidOperationSubmitRequestBody'
   /_cokret/root/identity/receipts:
     get:
       operationId: ck.root.identity.get_receipts
@@ -2760,14 +2760,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/recovery-session.schema.json#/$defs/create_request
+              $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body
       responses:
         '200':
           description: Recovery session created
           content:
             application/json:
               schema:
-                $ref: ../schemas/recovery-session.schema.json#/$defs/session
+                $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_state
   /_cokret/root/identity/recovery-sessions/{recovery_session_id}:
     get:
       operationId: ck.root.identity.recovery_session.get
@@ -2788,7 +2788,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/recovery-session.schema.json#/$defs/session
+                $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_state
   /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs:
     post:
       operationId: ck.root.identity.recovery_session.submit_proof
@@ -2808,14 +2808,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/recovery-session.schema.json#/$defs/proof_submit_request
+              $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body
       responses:
         '200':
           description: Proof submission result
           content:
             application/json:
               schema:
-                $ref: ../schemas/recovery-session.schema.json#/$defs/proof_submit_response
+                $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome
   /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete:
     post:
       operationId: ck.root.identity.recovery_session.complete
@@ -2835,14 +2835,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/recovery-session.schema.json#/$defs/complete_request
+              $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body
       responses:
         '200':
           description: Recovery session completed
           content:
             application/json:
               schema:
-                $ref: ../schemas/recovery-session.schema.json#/$defs/complete_response
+                $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome
   /_cokret/self/events:
     post:
       operationId: ck.self.events.submit
@@ -2860,7 +2860,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody
       responses:
         '200':
           description: Event accepted (or duplicate / partial; see status field)
@@ -2872,7 +2872,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsSubmitResponse'
+                $ref: '#/components/schemas/EventsSubmitOutcome'
     get:
       operationId: ck.self.events.query
       x-cokret-required-any-of:
@@ -2969,7 +2969,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsQueryResponse'
+                $ref: '#/components/schemas/EventsQueryOutcome'
         '400':
           description: |
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
@@ -3011,14 +3011,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
       responses:
         '200':
           description: Event query page (same shape as GET /_cokret/self/events response)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsQueryResponse'
+                $ref: '#/components/schemas/EventsQueryOutcome'
         '400':
           description: |
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
@@ -3123,7 +3123,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventGetResponse'
+                $ref: '#/components/schemas/EventView'
   /_cokret/self/events/resolve:
     post:
       operationId: ck.self.events.resolve
@@ -3138,14 +3138,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EventsResolveRequest'
+              $ref: '#/components/schemas/EventsResolveRequestBody'
       responses:
         '200':
           description: Resolved events keyed by event_id / event_digest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsResolveResponse'
+                $ref: '#/components/schemas/EventsResolveOutcome'
   /_cokret/self/events/frontier:
     get:
       operationId: ck.self.events.frontier
@@ -3172,7 +3172,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsFrontierResponse'
+                $ref: '#/components/schemas/EventsFrontierState'
   /_cokret/peer/events/describe:
     get:
       operationId: ck.peer.events.describe
@@ -3205,14 +3205,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody
       responses:
         '200':
           description: Federation event batch accepted, duplicated, partially rejected, or quarantined.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsSubmitResponse'
+                $ref: '#/components/schemas/EventsSubmitOutcome'
     get:
       operationId: ck.peer.events.query
       x-cokret-required-any-of:
@@ -3290,7 +3290,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsQueryResponse'
+                $ref: '#/components/schemas/EventsQueryOutcome'
   /_cokret/peer/events/query:
     post:
       operationId: ck.peer.events.query_post
@@ -3311,14 +3311,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
       responses:
         '200':
           description: Federation peer event query page
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsQueryResponse'
+                $ref: '#/components/schemas/EventsQueryOutcome'
   /_cokret/peer/events/resolve:
     post:
       operationId: ck.peer.events.resolve
@@ -3336,14 +3336,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EventsResolveRequest'
+              $ref: '#/components/schemas/EventsResolveRequestBody'
       responses:
         '200':
           description: Resolved events visible to the authenticated federation peer
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsResolveResponse'
+                $ref: '#/components/schemas/EventsResolveOutcome'
   /_cokret/peer/events/frontier:
     get:
       operationId: ck.peer.events.frontier
@@ -3366,7 +3366,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsFrontierFederationPeerResponse'
+                $ref: '#/components/schemas/EventsFrontierFederationPeerState'
   /_cokret/self/ephemeral:
     post:
       operationId: ck.self.ephemeral.send
@@ -3396,7 +3396,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EphemeralSubmitResponse'
+                $ref: '#/components/schemas/EphemeralSubmitOutcome'
         '400':
           description: |
             `invalid_param` or `schema_violation` — malformed envelope, unsupported
@@ -3433,14 +3433,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody
       responses:
         '200':
           description: Token exchange accepted; backend_token + participant_binding returned.
           content:
             application/json:
               schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponse
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome
         '403':
           description: |
             `capability_denied` — actor lacks `ck.call.join` or
@@ -3487,7 +3487,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountViewerResponse'
+                $ref: '#/components/schemas/AccountView'
   /_cokret/self/account/subscribe:
     get:
       operationId: ck.self.account.subscribe
@@ -3578,7 +3578,7 @@ paths:
       summary: Update the authenticated principal's Actor Profile projection.
       description: |
         Holder-bound service wrapper around ck.profile.update / Actor Profile
-        projection. The request body is UpdateProfileRequest {patch}; patch
+        projection. The request body is AccountUpdateProfileRequestBody {patch}; patch
         paths are limited to display_name, avatar_blob_ref, and
         profile_fields.<key>. Existing bio fields migrate to profile_fields.bio.
 
@@ -3593,13 +3593,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateProfileResponse'
+                $ref: '#/components/schemas/AccountUpdateProfileOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateProfileRequest'
+              $ref: '#/components/schemas/AccountUpdateProfileRequestBody'
   /_cokret/self/account/cursor/revoke:
     post:
       operationId: ck.self.account.cursor_revoke
@@ -3617,14 +3617,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody
       responses:
         '200':
           description: Cursor revocation accepted.
           content:
             application/json:
               schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeResponse
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome
   /_cokret/self/contacts/request:
     post:
       operationId: ck.self.contact.request
@@ -3640,14 +3640,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContactRequestRequest'
+              $ref: '#/components/schemas/ContactRequestRequestBody'
       responses:
         '200':
           description: Contact request fact accepted for delivery.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContactRequestResponse'
+                $ref: '#/components/schemas/ContactRequestOutcome'
   /_cokret/self/contacts/respond:
     post:
       operationId: ck.self.contact.respond
@@ -3662,14 +3662,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContactRespondRequest'
+              $ref: '#/components/schemas/ContactRespondRequestBody'
       responses:
         '200':
           description: Contact response fact accepted.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContactRespondResponse'
+                $ref: '#/components/schemas/ContactRespondOutcome'
   /_cokret/self/contacts:
     get:
       operationId: ck.self.contact.list
@@ -3707,7 +3707,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContactListResponse'
+                $ref: '#/components/schemas/ContactList'
   /_cokret/self/contacts/tombstone:
     post:
       operationId: ck.self.contact.tombstone
@@ -3722,14 +3722,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContactTombstoneRequest'
+              $ref: '#/components/schemas/ContactTombstoneRequestBody'
       responses:
         '200':
           description: Contact tombstone fact accepted.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContactTombstoneResponse'
+                $ref: '#/components/schemas/ContactTombstone'
   /_cokret/self/direct-conversations/resolve:
     post:
       operationId: ck.self.direct_conversation.resolve
@@ -3745,14 +3745,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectConversationResolveRequest'
+              $ref: '#/components/schemas/DirectConversationResolveRequestBody'
       responses:
         '200':
           description: Direct conversation resolver result.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectConversationResolveResponse'
+                $ref: '#/components/schemas/DirectConversationResolveOutcome'
   /_cokret/self/snapshot/head:
     get:
       operationId: ck.self.snapshot.head
@@ -3776,7 +3776,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SnapshotHeadResponse'
+                $ref: '#/components/schemas/SnapshotHeadState'
   /_cokret/peer/snapshot/head:
     get:
       operationId: ck.peer.snapshot.head
@@ -3801,7 +3801,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SnapshotHeadResponse'
+                $ref: '#/components/schemas/SnapshotHeadState'
   /_cokret/self/projection/spaces:
     get:
       operationId: ck.self.projection.spaces
@@ -3850,7 +3850,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionSpacesResponse'
+                $ref: '#/components/schemas/ProjectionSpaceList'
   /_cokret/self/projection/flows:
     get:
       operationId: ck.self.projection.flows
@@ -3898,7 +3898,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionFlowsResponse'
+                $ref: '#/components/schemas/ProjectionFlowList'
   /_cokret/self/projection/morphs:
     get:
       operationId: ck.self.projection.morphs
@@ -3946,7 +3946,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionMorphsResponse'
+                $ref: '#/components/schemas/ProjectionMorphList'
   /_cokret/find/directory/resolve-handle:
     post:
       operationId: ck.find.directory.resolve_handle
@@ -3962,13 +3962,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryResolveHandleResponse'
+                $ref: '#/components/schemas/DirectoryHandleResolutionOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryResolveHandleRequest'
+              $ref: '#/components/schemas/DirectoryResolveHandleRequestBody'
   /_cokret/find/directory/list-handles-for-subject:
     post:
       operationId: ck.find.directory.list_handles_for_subject
@@ -3984,14 +3984,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryListHandlesForSubjectRequest'
+              $ref: '#/components/schemas/DirectoryListHandlesForSubjectRequestBody'
       responses:
         '200':
           description: Subject handle claims visible to the requester.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListHandlesForSubjectResponse'
+                $ref: '#/components/schemas/DirectorySubjectHandleList'
   /_cokret/find/directory/private-contact-discovery:
     post:
       operationId: ck.find.directory.private_contact_discovery
@@ -4002,14 +4002,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryRequest'
+              $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryRequestBody'
       responses:
         '200':
           description: Time-bound private contact discovery result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryResponse'
+                $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryOutcome'
   /_cokret/self/blob/upload:
     post:
       operationId: ck.self.blob.upload
@@ -4024,13 +4024,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BlobUploadResponse'
+                $ref: '#/components/schemas/BlobUploadOutcome'
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/BlobUploadRequest'
+              $ref: '#/components/schemas/BlobUploadRequestBody'
             encoding:
               content:
                 contentType: application/octet-stream
@@ -4117,14 +4117,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequest
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody
       responses:
         '200':
           description: Pre-signed URL issued
           content:
             application/json:
               schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignResponse
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome
         '403':
           description: |
             `capability_denied` — caller lacks `ck.self.blob.presign` for this
@@ -4148,13 +4148,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PushRegisterDeviceResponse'
+                $ref: '#/components/schemas/PushRegisterDeviceOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PushRegisterDeviceRequest'
+              $ref: '#/components/schemas/PushRegisterDeviceRequestBody'
   /_cokret/edge/push/unregister-device:
     post:
       operationId: ck.edge.push.unregister_device
@@ -4166,13 +4166,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PushUnregisterDeviceResponse'
+                $ref: '#/components/schemas/PushUnregisterDeviceOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PushUnregisterDeviceRequest'
+              $ref: '#/components/schemas/PushUnregisterDeviceRequestBody'
   /_cokret/edge/push/notify:
     post:
       operationId: ck.edge.push.notify
@@ -4187,13 +4187,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PushNotifyResponse'
+                $ref: '#/components/schemas/PushNotifyOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PushNotifyRequest'
+              $ref: '#/components/schemas/PushNotifyRequestBody'
   /_cokret/self/authz/check:
     post:
       operationId: ck.self.authz.check
@@ -4208,14 +4208,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthzCheckRequest'
+              $ref: '#/components/schemas/AuthzCheckRequestBody'
       responses:
         '200':
           description: Authorization decision
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthzCheckResponse'
+                $ref: '#/components/schemas/AuthzCheckOutcome'
   /_cokret/self/authz/effective-grants:
     get:
       operationId: ck.self.authz.get_effective_grants
@@ -4230,7 +4230,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GrantListResponse'
+                $ref: '#/components/schemas/GrantList'
   /_cokret/self/device_messages:
     post:
       operationId: ck.self.device_messages.put
@@ -4251,14 +4251,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeviceMessagesPutRequest'
+              $ref: '#/components/schemas/DeviceMessagesPutRequestBody'
       responses:
         '200':
           description: To-device write accepted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceMessagesPutResponse'
+                $ref: '#/components/schemas/DeviceMessagesPutOutcome'
     get:
       operationId: ck.self.device_messages.get
       security:
@@ -4269,7 +4269,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceMessagesGetResponse'
+                $ref: '#/components/schemas/DeviceMessagesGetOutcome'
   /_cokret/self/keys/upload:
     post:
       operationId: ck.self.keys.upload
@@ -4281,13 +4281,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeysUploadResponse'
+                $ref: '#/components/schemas/KeysUploadOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeysUploadRequest'
+              $ref: '#/components/schemas/KeysUploadRequestBody'
   /_cokret/self/keys/query:
     post:
       operationId: ck.self.keys.query
@@ -4303,13 +4303,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeysQueryResponse'
+                $ref: '#/components/schemas/KeysQueryOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeysQueryRequest'
+              $ref: '#/components/schemas/KeysQueryRequestBody'
   /_cokret/self/keys/claim:
     post:
       operationId: ck.self.keys.claim
@@ -4325,13 +4325,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeysClaimResponse'
+                $ref: '#/components/schemas/KeysClaimOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeysClaimRequest'
+              $ref: '#/components/schemas/KeysClaimRequestBody'
   /_cokret/self/keys/keypackages/upload:
     post:
       operationId: ck.self.keys.keypackages.upload
@@ -4343,13 +4343,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeyPackagesUploadResponse'
+                $ref: '#/components/schemas/KeyPackagesUploadOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeyPackagesUploadRequest'
+              $ref: '#/components/schemas/KeyPackagesUploadRequestBody'
   /_cokret/self/keys/keypackages/claim:
     post:
       operationId: ck.self.keys.keypackages.claim
@@ -4365,13 +4365,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeyPackagesClaimResponse'
+                $ref: '#/components/schemas/KeyPackagesClaimOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeyPackagesClaimRequest'
+              $ref: '#/components/schemas/KeyPackagesClaimRequestBody'
   /_cokret/self/keys/keypackages/consume:
     post:
       operationId: ck.self.keys.keypackages.consume
@@ -4387,13 +4387,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeyPackagesConsumeResponse'
+                $ref: '#/components/schemas/KeyPackagesConsumeOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeyPackagesConsumeRequest'
+              $ref: '#/components/schemas/KeyPackagesConsumeRequestBody'
   /_cokret/self/keys/keypackages/revoke:
     post:
       operationId: ck.self.keys.keypackages.revoke
@@ -4405,13 +4405,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeyPackagesRevokeResponse'
+                $ref: '#/components/schemas/KeyPackagesRevokeOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeyPackagesRevokeRequest'
+              $ref: '#/components/schemas/KeyPackagesRevokeRequestBody'
   /_cokret/self/keys/backups/{backup_id}:
     put:
       operationId: ck.self.keys.backups.put
@@ -4436,7 +4436,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeysBackupsPutResponse'
+                $ref: '#/components/schemas/KeysBackupsPutOutcome'
     get:
       operationId: ck.self.keys.backups.get
       security:
@@ -4471,14 +4471,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeysBackupsDeleteRequest'
+              $ref: '#/components/schemas/KeysBackupsDeleteRequestBody'
       responses:
         '200':
           description: Encrypted key backup deleted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeysBackupsDeleteResponse'
+                $ref: '#/components/schemas/KeysBackupsDeleteOutcome'
   /_cokret/self/keys/backups:
     get:
       operationId: ck.self.keys.backups.list
@@ -4508,7 +4508,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeysBackupsListResponse'
+                $ref: '#/components/schemas/KeysBackupsList'
   /_cokret/self/moderation/report:
     post:
       operationId: ck.self.moderation.report
@@ -4526,7 +4526,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModerationReportResponse'
+                $ref: '#/components/schemas/ModerationReportOutcome'
   /_cokret/open/mimi/provider-directory:
     get:
       operationId: ck.open.mimi.provider_directory
@@ -4552,13 +4552,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiKeyMaterialResponse'
+                $ref: '#/components/schemas/MimiKeyMaterialOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiKeyMaterialRequest'
+              $ref: '#/components/schemas/MimiKeyMaterialRequestBody'
   /_cokret/open/mimi/flows/{flow_id}/update:
     put:
       operationId: ck.open.mimi.room_update
@@ -4579,13 +4579,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiRoomUpdateResponse'
+                $ref: '#/components/schemas/MimiRoomUpdateOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiRoomUpdateRequest'
+              $ref: '#/components/schemas/MimiRoomUpdateRequestBody'
   /_cokret/open/mimi/flows/{flow_id}/notify:
     post:
       operationId: ck.open.mimi.notify
@@ -4606,13 +4606,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiNotifyResponse'
+                $ref: '#/components/schemas/MimiNotifyOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiNotifyRequest'
+              $ref: '#/components/schemas/MimiNotifyRequestBody'
   /_cokret/open/mimi/flows/{flow_id}/messages:
     post:
       operationId: ck.open.mimi.submit_message
@@ -4633,13 +4633,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiSubmitMessageResponse'
+                $ref: '#/components/schemas/MimiSubmitMessageOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiSubmitMessageRequest'
+              $ref: '#/components/schemas/MimiSubmitMessageRequestBody'
   /_cokret/open/mimi/flows/{flow_id}/group-info:
     get:
       operationId: ck.open.mimi.group_info
@@ -4670,7 +4670,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiGroupInfoResponse'
+                $ref: '#/components/schemas/MimiGroupInfoOutcome'
   /_cokret/open/mimi/consent/request:
     post:
       operationId: ck.open.mimi.request_consent
@@ -4685,13 +4685,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiRequestConsentResponse'
+                $ref: '#/components/schemas/MimiRequestConsentOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiRequestConsentRequest'
+              $ref: '#/components/schemas/MimiRequestConsentRequestBody'
   /_cokret/open/mimi/consent/update:
     post:
       operationId: ck.open.mimi.update_consent
@@ -4706,13 +4706,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiUpdateConsentResponse'
+                $ref: '#/components/schemas/MimiUpdateConsentOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiUpdateConsentRequest'
+              $ref: '#/components/schemas/MimiUpdateConsentRequestBody'
   /_cokret/open/mimi/identifiers/query:
     post:
       operationId: ck.open.mimi.identifier_query
@@ -4727,13 +4727,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiIdentifierQueryResponse'
+                $ref: '#/components/schemas/MimiIdentifierQueryOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiIdentifierQueryRequest'
+              $ref: '#/components/schemas/MimiIdentifierQueryRequestBody'
   /_cokret/open/mimi/report-abuse:
     post:
       operationId: ck.open.mimi.report_abuse
@@ -4748,13 +4748,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiReportAbuseResponse'
+                $ref: '#/components/schemas/MimiReportAbuseOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiReportAbuseRequest'
+              $ref: '#/components/schemas/MimiReportAbuseRequestBody'
   /_cokret/open/mimi/proxy-download:
     post:
       operationId: ck.open.mimi.proxy_download
@@ -4769,13 +4769,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MimiProxyDownloadResponse'
+                $ref: '#/components/schemas/MimiProxyDownloadOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MimiProxyDownloadRequest'
+              $ref: '#/components/schemas/MimiProxyDownloadRequestBody'
   /_cokret/root/identity/describe:
     get:
       operationId: ck.root.identity.describe_registry
@@ -4824,13 +4824,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryAnnounceResponse'
+                $ref: '#/components/schemas/DirectoryAnnounceOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryAnnounceRequest'
+              $ref: '#/components/schemas/DirectoryAnnounceRequestBody'
   /_cokret/find/directory/withdraw:
     post:
       operationId: ck.find.directory.withdraw
@@ -4846,13 +4846,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryWithdrawResponse'
+                $ref: '#/components/schemas/DirectoryWithdrawOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryWithdrawRequest'
+              $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
   /_cokret/find/directory/search-realms:
     post:
       operationId: ck.find.directory.search_realms
@@ -4868,13 +4868,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectorySearchRealmsResponse'
+                $ref: '#/components/schemas/DirectoryRealmSearchOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectorySearchRealmsRequest'
+              $ref: '#/components/schemas/DirectorySearchRealmsRequestBody'
   /_cokret/find/directory/resolve-realm:
     post:
       operationId: ck.find.directory.resolve_realm
@@ -4890,13 +4890,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryResolveRealmResponse'
+                $ref: '#/components/schemas/DirectoryRealmResolutionOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryResolveRealmRequest'
+              $ref: '#/components/schemas/DirectoryResolveRealmRequestBody'
   /_cokret/find/directory/resolve-target:
     post:
       operationId: ck.find.directory.resolve_target
@@ -4912,13 +4912,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryResolveTargetResponse'
+                $ref: '#/components/schemas/DirectoryTargetResolutionOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryResolveTargetRequest'
+              $ref: '#/components/schemas/DirectoryResolveTargetRequestBody'
   /_cokret/find/directory/search-organizations:
     post:
       operationId: ck.find.directory.search_organizations
@@ -4934,13 +4934,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectorySearchOrganizationsResponse'
+                $ref: '#/components/schemas/DirectoryOrganizationSearchOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectorySearchOrganizationsRequest'
+              $ref: '#/components/schemas/DirectorySearchOrganizationsRequestBody'
   /_cokret/find/directory/resolve-organization:
     post:
       operationId: ck.find.directory.resolve_organization
@@ -4956,13 +4956,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryResolveOrganizationResponse'
+                $ref: '#/components/schemas/DirectoryOrganizationResolutionOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryResolveOrganizationRequest'
+              $ref: '#/components/schemas/DirectoryResolveOrganizationRequestBody'
   /_cokret/find/directory/search-actors:
     post:
       operationId: ck.find.directory.search_actors
@@ -4978,13 +4978,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectorySearchActorsResponse'
+                $ref: '#/components/schemas/DirectoryActorSearchOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectorySearchActorsRequest'
+              $ref: '#/components/schemas/DirectorySearchActorsRequestBody'
   /_cokret/find/directory/search-users:
     post:
       operationId: ck.find.directory.search_users
@@ -5000,13 +5000,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectorySearchUsersResponse'
+                $ref: '#/components/schemas/DirectoryUserSearchOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectorySearchUsersRequest'
+              $ref: '#/components/schemas/DirectorySearchUsersRequestBody'
   /_cokret/find/directory/push/register:
     post:
       operationId: ck.find.directory.push.register
@@ -5022,13 +5022,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryPushRegisterResponse'
+                $ref: '#/components/schemas/DirectoryPushRegisterOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryPushRegisterRequest'
+              $ref: '#/components/schemas/DirectoryPushRegisterRequestBody'
   /_cokret/self/authz/invites:
     get:
       operationId: ck.self.authz.get_invites
@@ -5060,7 +5060,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthzInvitesResponse'
+                $ref: '#/components/schemas/AuthzInviteList'
   /_cokret/edge/applet/ping:
     get:
       operationId: ck.edge.applet.ping
@@ -5074,7 +5074,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletPingResponse'
+                $ref: '#/components/schemas/AppletPingOutcome'
   /_cokret/edge/applet/describe:
     get:
       operationId: ck.edge.applet.describe
@@ -5106,13 +5106,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletTransactionResponse'
+                $ref: '#/components/schemas/AppletTransactionOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppletTransactionRequest'
+              $ref: '#/components/schemas/AppletTransactionRequestBody'
   /_cokret/edge/applet/actors/{actor_id}:
     get:
       operationId: ck.edge.applet.resolve_actor
@@ -5133,7 +5133,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletResolveActorResponse'
+                $ref: '#/components/schemas/AppletActorView'
   /_cokret/edge/applet/realms/{realm_id_or_alias}:
     get:
       operationId: ck.edge.applet.resolve_realm
@@ -5154,7 +5154,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletResolveRealmResponse'
+                $ref: '#/components/schemas/AppletRealmView'
   /_cokret/edge/applet/protocols/{protocol}:
     get:
       operationId: ck.edge.applet.protocol_metadata
@@ -5172,7 +5172,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletProtocolMetadataResponse'
+                $ref: '#/components/schemas/AppletProtocolMetadata'
   /_cokret/edge/applet/third_party/users:
     get:
       operationId: ck.edge.applet.third_party_users
@@ -5205,7 +5205,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletThirdPartyUserResponse'
+                $ref: '#/components/schemas/AppletThirdPartyUserList'
   /_cokret/edge/applet/third_party/locations:
     get:
       operationId: ck.edge.applet.third_party_locations
@@ -5238,7 +5238,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletThirdPartyLocationResponse'
+                $ref: '#/components/schemas/AppletThirdPartyLocationList'
   /_cokret/self/applets/install/preview:
     post:
       operationId: ck.self.applet.install.preview
@@ -5256,7 +5256,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppletInstallPreviewRequest'
+              $ref: '#/components/schemas/AppletInstallPreviewRequestBody'
   /_cokret/self/applets/install:
     post:
       operationId: ck.self.applet.install
@@ -5276,13 +5276,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletInstallResponse'
+                $ref: '#/components/schemas/AppletInstallOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppletInstallRequest'
+              $ref: '#/components/schemas/AppletInstallRequestBody'
   /_cokret/self/applets/{applet_id}/revoke:
     post:
       operationId: ck.self.applet.revoke
@@ -5307,13 +5307,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppletRevokeResponse'
+                $ref: '#/components/schemas/AppletRevokeOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppletRevokeRequest'
+              $ref: '#/components/schemas/AppletRevokeRequestBody'
   /_cokret/self/policy/check:
     post:
       operationId: ck.self.policy.check
@@ -5333,13 +5333,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyCheckResponse'
+                $ref: '#/components/schemas/PolicyCheckOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyCheckRequest'
+              $ref: '#/components/schemas/PolicyCheckRequestBody'
   /_cokret/self/rtc/ice-config:
     servers:
     - url: https://{host}
@@ -5356,13 +5356,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaIceConfigResponse'
+                $ref: '#/components/schemas/MediaIceConfigOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MediaIceConfigRequest'
+              $ref: '#/components/schemas/MediaIceConfigRequestBody'
   /_cokret/gate/account/register:
     servers:
     - url: https://{host}
@@ -5385,7 +5385,7 @@ paths:
         display_name via the canonical profile path.
 
         Register MAY return signed handle-claim evidence or digest/ref in the
-        AccountResponse, but handle issuance, approval, assignment, re-signing,
+        AccountRegisterOutcome, but handle issuance, approval, assignment, re-signing,
         and revocation remain issuer/coauth/deployment-governance flows.
       responses:
         '200':
@@ -5393,13 +5393,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountResponse'
+                $ref: '#/components/schemas/AccountRegisterOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountRegisterRequest'
+              $ref: '#/components/schemas/AccountRegisterRequestBody'
   /_cokret/gate/account/session-grants:
     servers:
     - url: https://{host}
@@ -5420,13 +5420,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionGrantResponse'
+                $ref: '#/components/schemas/SessionGrantOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SessionGrantRequest'
+              $ref: '#/components/schemas/SessionGrantRequestBody'
   /_cokret/gate/account/session-grants/revoke:
     servers:
     - url: https://{host}
@@ -5453,13 +5453,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionRevokeResponse'
+                $ref: '#/components/schemas/SessionRevokeOutcome'
       requestBody:
         required: false
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SessionRevokeRequest'
+              $ref: '#/components/schemas/SessionRevokeRequestBody'
   /_cokret/gate/account/device-pair:
     servers:
     - url: https://{host}
@@ -5476,13 +5476,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDevicePairResponse'
+                $ref: '#/components/schemas/AccountDevicePairOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountDevicePairRequest'
+              $ref: '#/components/schemas/AccountDevicePairRequestBody'
   /_cokret/gate/account/agent-key-pair:
     servers:
     - url: https://{host}
@@ -5500,7 +5500,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentKeyPairResponse'
+                $ref: '#/components/schemas/AgentKeyPairOutcome'
         '412':
           description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)
       requestBody:
@@ -5508,7 +5508,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentKeyPairRequest'
+              $ref: '#/components/schemas/AgentKeyPairRequestBody'
   /_cokret/self/agents:
     get:
       operationId: ck.self.agent.list
@@ -5521,7 +5521,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentListResponse'
+                $ref: '#/components/schemas/AgentList'
     post:
       operationId: ck.self.agent.provision
       description: Provision a native personal agent principal (CKP-0008).
@@ -5533,13 +5533,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentProvisionResponse'
+                $ref: '#/components/schemas/AgentProvisionOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentProvisionRequest'
+              $ref: '#/components/schemas/AgentProvisionRequestBody'
   /_cokret/self/agents/{agent_principal_id}:
     get:
       operationId: ck.self.agent.get
@@ -5558,7 +5558,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentGetResponse'
+                $ref: '#/components/schemas/AgentView'
   /_cokret/self/agents/{agent_principal_id}/pause:
     post:
       operationId: ck.self.agent.pause
@@ -5577,13 +5577,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentLifecycleResponse'
+                $ref: '#/components/schemas/AgentLifecycleState'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentPauseRequest'
+              $ref: '#/components/schemas/AgentPauseRequestBody'
   /_cokret/self/agents/{agent_principal_id}/resume:
     post:
       operationId: ck.self.agent.resume
@@ -5602,13 +5602,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentLifecycleResponse'
+                $ref: '#/components/schemas/AgentLifecycleState'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentResumeRequest'
+              $ref: '#/components/schemas/AgentResumeRequestBody'
   /_cokret/self/agents/{agent_principal_id}/deactivate:
     post:
       operationId: ck.self.agent.deactivate
@@ -5627,13 +5627,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentLifecycleResponse'
+                $ref: '#/components/schemas/AgentLifecycleState'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentDeactivateRequest'
+              $ref: '#/components/schemas/AgentDeactivateRequestBody'
   /_cokret/self/agents/{agent_principal_id}/rotate-key:
     post:
       operationId: ck.self.agent.rotate_key
@@ -5652,13 +5652,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentRotateKeyResponse'
+                $ref: '#/components/schemas/AgentRotateKeyOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentRotateKeyRequest'
+              $ref: '#/components/schemas/AgentRotateKeyRequestBody'
   /_cokret/self/agents/{agent_principal_id}/grants:
     post:
       operationId: ck.self.agent.grant.attach
@@ -5677,13 +5677,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentGrantAttachResponse'
+                $ref: '#/components/schemas/AgentGrantAttachOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentGrantAttachRequest'
+              $ref: '#/components/schemas/AgentGrantAttachRequestBody'
   /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}:
     delete:
       operationId: ck.self.agent.grant.detach
@@ -5707,7 +5707,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentGrantDetachResponse'
+                $ref: '#/components/schemas/AgentGrantDetachOutcome'
   /_cokret/self/agent-sidecar-threads:ensure:
     post:
       operationId: ck.self.agent.sidecar_thread.ensure
@@ -5730,13 +5730,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentSidecarThreadEnsureResponse'
+                $ref: '#/components/schemas/AgentSidecarThreadEnsureOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentSidecarThreadEnsureRequest'
+              $ref: '#/components/schemas/AgentSidecarThreadEnsureRequestBody'
   /_cokret/gate/account/oidc/callback:
     servers:
     - url: https://{host}
@@ -5757,10 +5757,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountOidcCallbackResponse'
+                $ref: '#/components/schemas/AccountOidcCallbackOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountOidcCallbackRequest'
+              $ref: '#/components/schemas/AccountOidcCallbackRequestBody'

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/delivery-binding-stale.schema.json",
-  "title": "Cokret Delivery Binding Stale Response",
-  "description": "Canonical response body for the delivery_binding_stale federation signal. A receiver that has accepted a member delivery-binding rebind handover returns this when a sender still delivers under the pre-handover binding. Carries new_recipient_service_did, handover_frontier, and a verifiable handover_proof binding the accepted ck.member.state{membership=join} rebind Move. High-risk redirect: senders MUST cross-verify handover_frontier via a non-destination witness and validate handover_proof (reachability, anchor-frontier finalization, allowed_recipient_services membership, trust-domain guard) before following. See zh/sync/federation.md §4.1 and registry/error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
+  "title": "Cokret Delivery Binding Stale Error Body",
+  "description": "Canonical error body for the delivery_binding_stale federation signal. A receiver that has accepted a member delivery-binding rebind handover returns this when a sender still delivers under the pre-handover binding. Carries new_recipient_service_did, handover_frontier, and a verifiable handover_proof binding the accepted ck.member.state{membership=join} rebind Move. High-risk redirect: senders MUST cross-verify handover_frontier via a non-destination witness and validate handover_proof (reachability, anchor-frontier finalization, allowed_recipient_services membership, trust-domain guard) before following. See zh/sync/federation.md §4.1 and registry/error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid).",
   "type": "object",
   "required": [
     "new_recipient_service_did",

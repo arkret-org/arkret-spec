@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/list-handles-for-subject-response.schema.json",
-  "title": "Cokret List Handles For Subject Response",
-  "description": "Response for ck.directory.list_handles_for_subject. It lists currently visible handle claims for a disclosed holder/principal subject DID in the caller's context. Every claim in claims[] MUST have claim.subject byte-for-byte equal to this response subject.",
+  "title": "Cokret Directory Subject Handle List",
+  "description": "Result body for ck.directory.list_handles_for_subject. It lists currently visible handle claims for a disclosed holder/principal subject DID in the caller's context. Every claim in claims[] MUST have claim.subject byte-for-byte equal to this response subject.",
   "type": "object",
   "required": [
     "subject",

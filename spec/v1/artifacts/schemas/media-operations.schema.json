@@ -5,7 +5,7 @@
   "description": "Closed request DTOs for realtime media service operations. ck.self.media.ice_config responses use ice-config-response.schema.json.",
   "anyOf": [
     {
-      "$ref": "#/$defs/ice_config_request"
+      "$ref": "#/$defs/media_ice_config_request_body"
     }
   ],
   "$defs": {
@@ -21,7 +21,7 @@
       "type": "string",
       "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "ice_config_request": {
+    "media_ice_config_request_body": {
       "type": "object",
       "required": [
         "realm_id",

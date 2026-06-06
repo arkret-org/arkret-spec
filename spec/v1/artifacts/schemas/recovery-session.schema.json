@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/recovery-session.schema.json",
   "title": "Cokret Recovery Session",
-  "description": "Wire contract for the device recovery session state machine. The root object is the create/get response shape; request/response helper shapes and kind-specific recovery proof transcripts live in $defs. See zh/crypto-media/device-lifecycle.md §15.",
-  "$ref": "#/$defs/session",
+  "description": "Wire contract for the device recovery session state machine. The root object is the recovery session state shape; request body/result helper shapes and kind-specific recovery proof transcripts live in $defs. See zh/crypto-media/device-lifecycle.md §15.",
+  "$ref": "#/$defs/recovery_session_state",
   "$defs": {
     "did": {
       "type": "string",
@@ -100,7 +100,7 @@
       },
       "additionalProperties": false
     },
-    "session": {
+    "recovery_session_state": {
       "type": "object",
       "required": [
         "schema",
@@ -212,7 +212,7 @@
       ],
       "additionalProperties": false
     },
-    "create_request": {
+    "recovery_session_create_request_body": {
       "type": "object",
       "required": [
         "principal_id",
@@ -472,7 +472,7 @@
       },
       "additionalProperties": false
     },
-    "proof_submit_request": {
+    "recovery_session_proof_submit_request_body": {
       "type": "object",
       "required": [
         "proof"
@@ -501,7 +501,7 @@
       },
       "additionalProperties": false
     },
-    "proof_submit_response": {
+    "recovery_session_proof_submit_outcome": {
       "type": "object",
       "required": [
         "recovery_session_id",
@@ -596,7 +596,7 @@
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "complete_request": {
+    "recovery_session_complete_request_body": {
       "type": "object",
       "description": "The recovering client first submits, to POST /events on the principal control realm, (1) a `ck.device.authorize` (shape per $defs/device_authorize_material, also event-payload.schema.json device_authorize_payload) signed with the SSK unlocked from the did_recovery backup, and (2) a `ck.device.list_update` for the new device — both as ordinary signed Event Envelopes carrying the next actor_seq on the principal control stream. Completion then REFERENCES the resulting durable event ids; the server resolves each from the event store and verifies it is the right kind, bound to this recovery_session_id + requesting_device_id, and (for authorize) that its cross_signing_binding verifies against the accepted SSK. The server does not author/sign control events on the principal's behalf.",
       "required": [
@@ -619,7 +619,7 @@
       },
       "additionalProperties": false
     },
-    "complete_response": {
+    "recovery_session_complete_outcome": {
       "type": "object",
       "required": [
         "ok",

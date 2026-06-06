@@ -196,7 +196,7 @@ Signature: sig1=:base64...:
 
 请求示例（`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
 
-```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/EventsSubmitFederationRequest
+```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/EventsSubmitFederationRequestBody
 {
   "service_binding_ref": {
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
@@ -370,7 +370,7 @@ Cokret v1 联邦推送使用 `POST /_cokret/peer/events`（`ck.peer.events.submi
 
 - 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 返回 `accepted[]` 而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
 - 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Digest` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
-- `quarantine[]` 是 `EventsSubmitResponse` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`，除非调用方明确使用不支持 `quarantine[]` 的旧本地 adapter，且该 adapter 不得声明 v1 wire conformance。
+- `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`，除非调用方明确使用不支持 `quarantine[]` 的旧本地 adapter，且该 adapter 不得声明 v1 wire conformance。
 - 持续同步、批量重试和 frontier 交换通过组合 `ck.peer.events.submit`（推送，本节）、`ck.peer.events.query` / `ck.peer.events.resolve`（拉取 / backfill / 补洞，§4.2）与 `ck.peer.events.frontier`（§4.5）完成；无需额外的有状态事务 endpoint。
 
 ### 4.2 拉取模式 (Pull / Backfill)

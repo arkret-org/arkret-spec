@@ -351,7 +351,7 @@ profile: ck.profile.personal_agent_provisioning.v1
 
 Agent runtime 在日常运行时 MUST NOT 被要求完成人类 coauth UI。CAPTCHA、OTP、WebAuthn user presence、SSO redirect 等人类因子属于 provisioning、approval、recovery 或 high-risk escalation,不属于常规后台执行。
 
-本 profile 复用现有 account/auth session grant 入口,通过扩展 `SessionGrantRequest.proof.proof_kind` 新增 `agent_key_proof` 分支区分 agent runtime 认证:
+本 profile 复用现有 account/auth session grant 入口,通过扩展 `SessionGrantRequestBody.proof.proof_kind` 新增 `agent_key_proof` 分支区分 agent runtime 认证:
 
 ```text
 POST /auth/account/session-grants
@@ -385,11 +385,11 @@ profile: ck.profile.agent_auth.v1
 }
 ```
 
-`agent_key_authorization_ref`、`agent_scope_request` 和 `proof.verification_method` 是 `ck.profile.agent_auth.v1` 对现有 `SessionGrantRequest` 的 schema overlay。`verification_method` 承载 DID URL,遵循 [`common-fields.md` §2.1.3](../zh/models/common-fields.md#213-_did)。Accepted 后应扩展 OpenAPI typed schema;在 proposal 阶段不改 artifact。
+`agent_key_authorization_ref`、`agent_scope_request` 和 `proof.verification_method` 是 `ck.profile.agent_auth.v1` 对现有 `SessionGrantRequestBody` 的 schema overlay。`verification_method` 承载 DID URL,遵循 [`common-fields.md` §2.1.3](../zh/models/common-fields.md#213-_did)。Accepted 后应扩展 OpenAPI typed schema;在 proposal 阶段不改 artifact。
 
-Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` discriminator。Accepted 后需要把现有 `SessionGrantRequest.proof.proof_kind` 枚举扩展为包含 `agent_key_proof`,并为该分支定义独立 required fields、proof canonicalization 与 validator。实现不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。
+Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` discriminator。Accepted 后需要把现有 `SessionGrantRequestBody.proof.proof_kind` 枚举扩展为包含 `agent_key_proof`,并为该分支定义独立 required fields、proof canonicalization 与 validator。实现不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。
 
-`agent_scope_request` 是 `ck.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequest` schema。`agent_scope_request.track_names` 是请求侧窄化字段;签发后的 capability / session scope MUST 物化为现有 capability vocabulary 中的 `allowed_tracks` 等 registered constraints,不得把 `track_names` 当作新的 grant constraint。
+`agent_scope_request` 是 `ck.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequestBody` schema。`agent_scope_request.track_names` 是请求侧窄化字段;签发后的 capability / session scope MUST 物化为现有 capability vocabulary 中的 `allowed_tracks` 等 registered constraints,不得把 `track_names` 当作新的 grant constraint。
 
 响应示例:
 
@@ -407,7 +407,7 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
 }
 ```
 
-`scope_details` 是 profile overlay;核心 `SessionGrantResponse` 仍以 `principal_id`、`session_grant`、`expires_at` 和 `granted_scope` 为基础。
+`scope_details` 是 profile overlay;核心 `SessionGrantOutcome` 仍以 `principal_id`、`session_grant`、`expires_at` 和 `granted_scope` 为基础。
 
 校验规则:
 
@@ -710,7 +710,7 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 - `event-payload.schema.json`: 若现有 `agent_key_authorize_payload` 尚未包含 runtime attestation,增加 `runtime_attestation` 或 attestation digest/ref 字段;v1 enum 至少包含 `self_asserted`,未知 kind fail closed。
 - `event-envelope.schema.json` / `event-payload.schema.json`: 为 accepted 新 event 增加 payload defs;为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段,并同步 canonicalization / Anchor vectors。同时增加 reducer-stamped `actor_kind` projection 字段(由 reducer 从 Actor Profile 解析,immutable,不接受 actor-supplied 输入),供审计与离线读取使用。
 - `conformance-profiles.json`: 注册 `ck.profile.personal_agent_provisioning.v1`、`ck.profile.agent_auth.v1`、`ck.profile.agent_delegation_policy.v1`。
-- OpenAPI: 增加 agent provisioning、pairing typed schemas,并扩展现有 `SessionGrantRequest` / `SessionGrantResponse` 以支持 `proof.proof_kind="agent_key_proof"`、独立 proof schema branch、独立 validator 与 `scope_details` profile overlay。
+- OpenAPI: 增加 agent provisioning、pairing typed schemas,并扩展现有 `SessionGrantRequestBody` / `SessionGrantOutcome` 以支持 `proof.proof_kind="agent_key_proof"`、独立 proof schema branch、独立 validator 与 `scope_details` profile overlay。
 
 本提案仍为 `draft` / `review` 时不得改 artifact。
 
@@ -760,7 +760,7 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 - [x] `ck.self.agent.provision` 只作 service operation;durable audit 由 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant` 等 fan-out 子事件承载。
 - [x] Draft-only 标准化为 `ck.agent.draft.propose` / `ck.agent.action_request` family + controller-owned `ck.agent.draft.v1` encrypted account data。
 - [x] Track-level grant 复用现有 `allowed_tracks`;不引入 `allowed_track_names` 或其它并行 vocabulary。
-- [x] `agent_scope_request` 保持 `ck.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequest` schema。
+- [x] `agent_scope_request` 保持 `ck.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequestBody` schema。
 - [x] Agent E2EE access 表达为独立 MLS member,默认无 E2EE access;不得作为 controller delegated device 继承 history keys。
 - [x] `act_on_behalf` 默认 fresh approval 粒度为 `(action, target_flow)` + 短期 window,通过现有 approval/accountability constraints 表达。
 - [x] `did:webvh` deployment SHOULD 为 personal agent 分配独立 SCID,并 MAY 在 `did:webvh:<scid>:<host-and-path>` 的 `<host-and-path>` 中采用 `agents/<slug>` 可读路径约定;规范信任来源是独立 DID document 与显式 accountability grant,不是路径继承。
@@ -776,7 +776,7 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 
 1. 增加 conformance profile declarations。
 2. 增加 service operations 与 OpenAPI typed schemas。
-3. 扩展 `SessionGrantRequest.proof.proof_kind` 枚举,新增 `agent_key_proof` 分支。
+3. 扩展 `SessionGrantRequestBody.proof.proof_kind` 枚举,新增 `agent_key_proof` 分支。
 4. 增加 capability actions,并把 agent grant 示例全部映射到现有 constraint vocabulary。
 5. 增加 draft-only account-data type / draft event family。
 6. 增加 pause / resume / deactivate 等 accepted durable lifecycle event kinds。

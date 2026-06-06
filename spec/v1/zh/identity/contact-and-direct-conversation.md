@@ -86,10 +86,10 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.contact.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequest` / `ContactRequestResponse` | 写 requester 侧 request fact，并投递签名请求给 target |
-| `ck.self.contact.respond` | `POST /_cokret/self/contacts/respond` | `ContactRespondRequest` / `ContactRespondResponse` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
-| `ck.self.contact.list` | `GET /_cokret/self/contacts` | `ContactListResponse` | 从 contact facts 投影，并附带 consent-derived scopes |
-| `ck.self.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `ContactTombstoneRequest` / `ContactTombstoneResponse` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent |
+| `ck.self.contact.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target |
+| `ck.self.contact.respond` | `POST /_cokret/self/contacts/respond` | `ContactRespondRequestBody` / `ContactRespondOutcome` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
+| `ck.self.contact.list` | `GET /_cokret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes |
+| `ck.self.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent |
 
 `ContactListRow` MUST 至少区分：
 
@@ -121,7 +121,7 @@ v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-members
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.direct_conversation.resolve` | `POST /_cokret/self/direct-conversations/resolve` | `DirectConversationResolveRequest` / `DirectConversationResolveResponse` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
+| `ck.self.direct_conversation.resolve` | `POST /_cokret/self/direct-conversations/resolve` | `DirectConversationResolveRequestBody` / `DirectConversationResolveOutcome` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
 
 Resolver MUST：
 

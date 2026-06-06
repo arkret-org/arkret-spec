@@ -5,22 +5,22 @@
   "description": "Closed request and response DTOs for ck.edge.push.register_device, ck.edge.push.unregister_device, and ck.push.notify.",
   "anyOf": [
     {
-      "$ref": "#/$defs/register_device_request"
+      "$ref": "#/$defs/push_register_device_request_body"
     },
     {
-      "$ref": "#/$defs/register_device_response"
+      "$ref": "#/$defs/push_register_device_outcome"
     },
     {
-      "$ref": "#/$defs/unregister_device_request"
+      "$ref": "#/$defs/push_unregister_device_request_body"
     },
     {
-      "$ref": "#/$defs/unregister_device_response"
+      "$ref": "#/$defs/push_unregister_device_outcome"
     },
     {
-      "$ref": "#/$defs/notify_request"
+      "$ref": "#/$defs/push_notify_request_body"
     },
     {
-      "$ref": "#/$defs/notify_response"
+      "$ref": "#/$defs/push_notify_outcome"
     }
   ],
   "$defs": {
@@ -287,7 +287,7 @@
       },
       "additionalProperties": false
     },
-    "register_device_request": {
+    "push_register_device_request_body": {
       "type": "object",
       "required": [
         "device_id",
@@ -319,7 +319,7 @@
       },
       "additionalProperties": false
     },
-    "register_device_response": {
+    "push_register_device_outcome": {
       "type": "object",
       "required": [
         "ok"
@@ -338,7 +338,7 @@
       },
       "additionalProperties": false
     },
-    "unregister_device_request": {
+    "push_unregister_device_request_body": {
       "type": "object",
       "required": [
         "device_id"
@@ -356,7 +356,7 @@
       },
       "additionalProperties": false
     },
-    "unregister_device_response": {
+    "push_unregister_device_outcome": {
       "type": "object",
       "required": [
         "ok"
@@ -369,7 +369,7 @@
       },
       "additionalProperties": false
     },
-    "notify_request": {
+    "push_notify_request_body": {
       "type": "object",
       "required": [
         "notification"
@@ -388,7 +388,7 @@
       },
       "additionalProperties": false
     },
-    "notify_response": {
+    "push_notify_outcome": {
       "type": "object",
       "required": [
         "rejected"

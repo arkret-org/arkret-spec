@@ -84,7 +84,7 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 | --- | --- |
 | HTTP | `GET /_cokret/self/account/viewer` |
 | Auth | `user_session` |
-| Response | `AccountViewerResponse`(`{ principal_id: did, primary_handle_claim?, primary_handle_claim_ref?, handle_claim_digests?, state, devices[], profile? }`) |
+| Response | `AccountView`(`{ principal_id: did, primary_handle_claim?, primary_handle_claim_ref?, handle_claim_digests?, state, devices[], profile? }`) |
 
 `state` MUST 取 [`account-lifecycle.md`](../zh/identity/account-lifecycle.md) §3 定义的**闭合枚举**(`active` / `locked` / `soft_logged_out` / `suspended` / `deactivated` / `erasure_pending`),不得返回手写子集——viewer 是主体身份的权威自读,枚举漂移会让客户端对账户状态判断与状态机不一致。
 
@@ -98,8 +98,8 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 | --- | --- |
 | HTTP | `POST /_cokret/gate/account/register` |
 | Auth | bootstrap proof:DID-bound signature / paired device proof / 已签发 session grant proof,与 `/_cokret/gate/account/session-grants`(`ck.gate.account.issue_session_grant`)**同一认证面、同一 proof 词汇** |
-| Body | `AccountRegisterRequest`(`{ principal_id: did, display_name?, device_id?: id:device, proof? }`) |
-| Response | `AccountResponse`(principal_id / state / devices / primary_handle_claim? / primary_handle_claim_ref? / handle_claim_digests? / profile?) |
+| Body | `AccountRegisterRequestBody`(`{ principal_id: did, display_name?, device_id?: id:device, proof? }`) |
+| Response | `AccountRegisterOutcome`(principal_id / state / devices / primary_handle_claim? / primary_handle_claim_ref? / handle_claim_digests? / profile?) |
 
 落 `gate` 而非 `self`:register 时账户/会话尚不存在,不满足 `self` 段"本人已认证会话"前提;它与 `session-grants`、`device-pair`、`oidc/callback` 同属认证生命周期入口,应共段、共享 proof 校验路径(收敛自 §6 旧 Q4)。
 
@@ -115,7 +115,7 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 | --- | --- |
 | HTTP | `POST /_cokret/self/account/profile` |
 | Auth | `user_session` |
-| Body | `UpdateProfileRequest`(`{ patch }`),其中 `patch` 为 `ck.patch.v1`;允许路径限于 `display_name`、`avatar_blob_ref`、`profile_fields.<key>` |
+| Body | `AccountUpdateProfileRequestBody`(`{ patch }`),其中 `patch` 为 `ck.patch.v1`;允许路径限于 `display_name`、`avatar_blob_ref`、`profile_fields.<key>` |
 | Response | `{ profile: ActorProfile }` |
 
 直接采纳 soland 已用的 `ck.self.account.update_profile` operation 名,但不采纳 soland 临时 DTO 作为 v1 wire。v1 wire 必须沿用 Actor Profile 的 canonical 字段名:头像引用是 `avatar_blob_ref`(`id:blob`),任意展示扩展进入 `profile_fields.<key>`;不得新增 `avatar` / `avatar_ref` / `avatar_url` 作为 canonical 字段。需要兼容 `avatar_url` 的实现 MAY 在 `_soland` 兼容层或 migration adapter 中把 URL 上传 / 解析为 Blob 后写入 `avatar_blob_ref`,但 `/_cokret/self/account/profile` 的协议请求不得接受 URL 作为头像真相源。
@@ -132,7 +132,7 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 | --- | --- |
 | HTTP | `POST /_cokret/gate/account/session-grants/revoke` |
 | Auth | `user_session`(撤销当前会话);跨 grant / 跨 device / 全量撤销需要 fresh DID/device proof 或显式 capability |
-| Body | `SessionRevokeRequest`(`{ target_grant_id?: id:grant, target_device_id?: id:device, all_sessions?: boolean, proof? }`) |
+| Body | `SessionRevokeRequestBody`(`{ target_grant_id?: id:grant, target_device_id?: id:device, all_sessions?: boolean, proof? }`) |
 | Response | `{ revoked_count: int, revoked_grant_ids?: id:grant[] }` |
 
 替代 soland `/_soland/gate/auth/logout`。**落 `gate` 与 `session-grants` 签发端对称**——撤销与签发是同一 session-grant 资源生命周期的两端,放同段同资源前缀,避免把 logout 拆到 `self` 段而割裂认证生命周期。
@@ -168,7 +168,7 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 合入需同步:
 
 - `artifacts/registry/contract-catalog.json` operation_registry(+ 派生 `operation-registry.json`);
-- `artifacts/openapi/cokret-service-api.openapi.yaml`(新增 path + schema;`AccountViewerResponse`、`AccountRegisterRequest`、`AccountResponse`、`UpdateProfileRequest`、`SessionRevokeRequest` / response MUST 注册为 schema,不得只留 inline DTO);
+- `artifacts/openapi/cokret-service-api.openapi.yaml`(新增 path + schema;`AccountView`、`AccountRegisterRequestBody`、`AccountRegisterOutcome`、`AccountUpdateProfileRequestBody`、`SessionRevokeRequestBody` / response MUST 注册为 schema,不得只留 inline DTO);
 - `operations-error-mapping.json`(`invalid_avatar_blob_ref`、`unsupported_profile_patch_path`、`session_grant_not_found`、`session_revoke_selector_conflict` 等错误映射);
 - `zh/sync/service-http-binding.md`:`/_cokret/self/account/*` 行扩展 `viewer`/`profile`;`/_cokret/gate/account/*` 行扩展 `register`/`session-grants/revoke`;
 - `zh/sync/service-surface.md` Principal Server / Auth Server surface 列表;

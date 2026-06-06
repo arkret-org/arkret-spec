@@ -5,61 +5,61 @@
   "description": "Closed request/response DTOs for MIMI provider interop operation bindings.",
   "anyOf": [
     {
-      "$ref": "#/$defs/key_material_request"
+      "$ref": "#/$defs/mimi_key_material_request_body"
     },
     {
-      "$ref": "#/$defs/key_material_response"
+      "$ref": "#/$defs/mimi_key_material_outcome"
     },
     {
-      "$ref": "#/$defs/room_update_request"
+      "$ref": "#/$defs/mimi_room_update_request_body"
     },
     {
-      "$ref": "#/$defs/room_update_response"
+      "$ref": "#/$defs/mimi_room_update_outcome"
     },
     {
-      "$ref": "#/$defs/notify_request"
+      "$ref": "#/$defs/mimi_notify_request_body"
     },
     {
-      "$ref": "#/$defs/notify_response"
+      "$ref": "#/$defs/mimi_notify_outcome"
     },
     {
-      "$ref": "#/$defs/submit_message_request"
+      "$ref": "#/$defs/mimi_submit_message_request_body"
     },
     {
-      "$ref": "#/$defs/submit_message_response"
+      "$ref": "#/$defs/mimi_submit_message_outcome"
     },
     {
-      "$ref": "#/$defs/group_info_response"
+      "$ref": "#/$defs/mimi_group_info_outcome"
     },
     {
-      "$ref": "#/$defs/request_consent_request"
+      "$ref": "#/$defs/mimi_request_consent_request_body"
     },
     {
-      "$ref": "#/$defs/request_consent_response"
+      "$ref": "#/$defs/mimi_request_consent_outcome"
     },
     {
-      "$ref": "#/$defs/update_consent_request"
+      "$ref": "#/$defs/mimi_update_consent_request_body"
     },
     {
-      "$ref": "#/$defs/update_consent_response"
+      "$ref": "#/$defs/mimi_update_consent_outcome"
     },
     {
-      "$ref": "#/$defs/identifier_query_request"
+      "$ref": "#/$defs/mimi_identifier_query_request_body"
     },
     {
-      "$ref": "#/$defs/identifier_query_response"
+      "$ref": "#/$defs/mimi_identifier_query_outcome"
     },
     {
-      "$ref": "#/$defs/report_abuse_request"
+      "$ref": "#/$defs/mimi_report_abuse_request_body"
     },
     {
-      "$ref": "#/$defs/report_abuse_response"
+      "$ref": "#/$defs/mimi_report_abuse_outcome"
     },
     {
-      "$ref": "#/$defs/proxy_download_request"
+      "$ref": "#/$defs/mimi_proxy_download_request_body"
     },
     {
-      "$ref": "#/$defs/proxy_download_response"
+      "$ref": "#/$defs/mimi_proxy_download_outcome"
     }
   ],
   "$defs": {
@@ -204,7 +204,7 @@
       },
       "additionalProperties": false
     },
-    "key_material_request": {
+    "mimi_key_material_request_body": {
       "type": "object",
       "required": [
         "requester",
@@ -240,7 +240,7 @@
       },
       "additionalProperties": false
     },
-    "key_material_response": {
+    "mimi_key_material_outcome": {
       "type": "object",
       "anyOf": [
         {
@@ -281,7 +281,7 @@
       },
       "additionalProperties": false
     },
-    "room_update_request": {
+    "mimi_room_update_request_body": {
       "type": "object",
       "required": [
         "mls_group_id",
@@ -320,7 +320,7 @@
       },
       "additionalProperties": false
     },
-    "room_update_response": {
+    "mimi_room_update_outcome": {
       "type": "object",
       "required": [
         "accepted"
@@ -341,7 +341,7 @@
       },
       "additionalProperties": false
     },
-    "notify_request": {
+    "mimi_notify_request_body": {
       "type": "object",
       "required": [
         "notification"
@@ -387,7 +387,7 @@
       },
       "additionalProperties": false
     },
-    "notify_response": {
+    "mimi_notify_outcome": {
       "type": "object",
       "required": [
         "accepted"
@@ -423,7 +423,7 @@
       },
       "additionalProperties": false
     },
-    "submit_message_request": {
+    "mimi_submit_message_request_body": {
       "type": "object",
       "required": [
         "sender_actor_id",
@@ -453,7 +453,7 @@
       },
       "additionalProperties": false
     },
-    "submit_message_response": {
+    "mimi_submit_message_outcome": {
       "type": "object",
       "required": [
         "delivery"
@@ -495,7 +495,7 @@
       },
       "additionalProperties": false
     },
-    "group_info_response": {
+    "mimi_group_info_outcome": {
       "type": "object",
       "required": [
         "group_info"
@@ -535,7 +535,7 @@
       },
       "additionalProperties": false
     },
-    "request_consent_request": {
+    "mimi_request_consent_request_body": {
       "type": "object",
       "required": [
         "requester",
@@ -572,7 +572,7 @@
       },
       "additionalProperties": false
     },
-    "request_consent_response": {
+    "mimi_request_consent_outcome": {
       "type": "object",
       "required": [
         "consent_id",
@@ -591,7 +591,7 @@
       },
       "additionalProperties": false
     },
-    "update_consent_request": {
+    "mimi_update_consent_request_body": {
       "type": "object",
       "required": [
         "consent_id",
@@ -626,7 +626,7 @@
       },
       "additionalProperties": false
     },
-    "update_consent_response": {
+    "mimi_update_consent_outcome": {
       "type": "object",
       "required": [
         "status",
@@ -669,7 +669,7 @@
       },
       "additionalProperties": false
     },
-    "identifier_query_request": {
+    "mimi_identifier_query_request_body": {
       "type": "object",
       "required": [
         "identifiers"
@@ -695,7 +695,7 @@
       },
       "additionalProperties": false
     },
-    "identifier_query_response": {
+    "mimi_identifier_query_outcome": {
       "type": "object",
       "required": [
         "results",
@@ -736,7 +736,7 @@
       },
       "additionalProperties": false
     },
-    "report_abuse_request": {
+    "mimi_report_abuse_request_body": {
       "type": "object",
       "required": [
         "flow_id",
@@ -769,7 +769,7 @@
       },
       "additionalProperties": false
     },
-    "report_abuse_response": {
+    "mimi_report_abuse_outcome": {
       "type": "object",
       "required": [
         "report_id",
@@ -792,7 +792,7 @@
       },
       "additionalProperties": false
     },
-    "proxy_download_request": {
+    "mimi_proxy_download_request_body": {
       "type": "object",
       "required": [
         "asset_ref",
@@ -843,7 +843,7 @@
       },
       "additionalProperties": false
     },
-    "proxy_download_response": {
+    "mimi_proxy_download_outcome": {
       "type": "object",
       "required": [
         "download_ref"

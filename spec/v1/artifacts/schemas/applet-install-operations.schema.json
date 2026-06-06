@@ -5,22 +5,22 @@
   "description": "Closed request/response DTOs for ck.self.applet.install.preview, ck.self.applet.install, and ck.applet.revoke. The InstallPlan body itself is defined in applet-install-plan.schema.json.",
   "oneOf": [
     {
-      "$ref": "#/$defs/preview_request"
+      "$ref": "#/$defs/applet_install_preview_request_body"
     },
     {
       "$ref": "../schemas/applet-install-plan.schema.json"
     },
     {
-      "$ref": "#/$defs/install_request"
+      "$ref": "#/$defs/applet_install_request_body"
     },
     {
-      "$ref": "#/$defs/install_response"
+      "$ref": "#/$defs/applet_install_outcome"
     },
     {
-      "$ref": "#/$defs/revoke_request"
+      "$ref": "#/$defs/applet_revoke_request_body"
     },
     {
-      "$ref": "#/$defs/revoke_response"
+      "$ref": "#/$defs/applet_revoke_outcome"
     }
   ],
   "$defs": {
@@ -149,7 +149,7 @@
       },
       "additionalProperties": false
     },
-    "preview_request": {
+    "applet_install_preview_request_body": {
       "type": "object",
       "required": [
         "applet_package",
@@ -169,7 +169,7 @@
       },
       "additionalProperties": false
     },
-    "install_request": {
+    "applet_install_request_body": {
       "type": "object",
       "required": [
         "plan_digest",
@@ -205,7 +205,7 @@
       },
       "additionalProperties": false
     },
-    "install_response": {
+    "applet_install_outcome": {
       "type": "object",
       "required": [
         "ok",
@@ -302,7 +302,7 @@
       },
       "additionalProperties": false
     },
-    "revoke_request": {
+    "applet_revoke_request_body": {
       "type": "object",
       "required": [
         "effective_scope",
@@ -328,7 +328,7 @@
       },
       "additionalProperties": false
     },
-    "revoke_response": {
+    "applet_revoke_outcome": {
       "type": "object",
       "required": [
         "ok"

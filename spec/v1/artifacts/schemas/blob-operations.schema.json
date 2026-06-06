@@ -5,10 +5,10 @@
   "description": "Closed request/response DTOs for blob service operations whose wire shape is not the full blob metadata resource.",
   "anyOf": [
     {
-      "$ref": "#/$defs/upload_request"
+      "$ref": "#/$defs/blob_upload_request_body"
     },
     {
-      "$ref": "#/$defs/upload_response"
+      "$ref": "#/$defs/blob_upload_outcome"
     }
   ],
   "$defs": {
@@ -93,7 +93,7 @@
       },
       "additionalProperties": false
     },
-    "upload_request": {
+    "blob_upload_request_body": {
       "type": "object",
       "required": [
         "content",
@@ -132,7 +132,7 @@
       },
       "additionalProperties": false
     },
-    "upload_response": {
+    "blob_upload_outcome": {
       "type": "object",
       "required": [
         "blob_ref",

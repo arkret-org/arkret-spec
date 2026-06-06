@@ -81,7 +81,7 @@ Content-Type: application/json
 
 请求示例（非完整 schema）：
 
-```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest
+```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody
 {
   "request_id": "polreq_01",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
@@ -140,7 +140,7 @@ Content-Type: application/json
 
 响应示例（非完整 schema）：
 
-```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse
+```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome
 {
   "request_id": "polreq_01",
   "bound_to": {

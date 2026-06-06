@@ -5,7 +5,7 @@
   "description": "Closed response DTOs for authorization query operations that need operation-specific list envelopes.",
   "anyOf": [
     {
-      "$ref": "#/$defs/get_invites_response"
+      "$ref": "#/$defs/authz_invite_list"
     }
   ],
   "$defs": {
@@ -13,7 +13,7 @@
       "type": "string",
       "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
     },
-    "get_invites_response": {
+    "authz_invite_list": {
       "type": "object",
       "required": [
         "invites",

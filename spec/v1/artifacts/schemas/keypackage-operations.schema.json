@@ -5,28 +5,28 @@
   "description": "Closed request and response DTOs for ck.keys.keypackages.{upload,claim,consume,revoke}. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [
     {
-      "$ref": "#/$defs/upload_request"
+      "$ref": "#/$defs/key_packages_upload_request_body"
     },
     {
-      "$ref": "#/$defs/upload_response"
+      "$ref": "#/$defs/key_packages_upload_outcome"
     },
     {
-      "$ref": "#/$defs/claim_request"
+      "$ref": "#/$defs/key_packages_claim_request_body"
     },
     {
-      "$ref": "#/$defs/claim_response"
+      "$ref": "#/$defs/key_packages_claim_outcome"
     },
     {
-      "$ref": "#/$defs/consume_request"
+      "$ref": "#/$defs/key_packages_consume_request_body"
     },
     {
-      "$ref": "#/$defs/consume_response"
+      "$ref": "#/$defs/key_packages_consume_outcome"
     },
     {
-      "$ref": "#/$defs/revoke_request"
+      "$ref": "#/$defs/key_packages_revoke_request_body"
     },
     {
-      "$ref": "#/$defs/revoke_response"
+      "$ref": "#/$defs/key_packages_revoke_outcome"
     }
   ],
   "$defs": {
@@ -233,7 +233,7 @@
       },
       "additionalProperties": false
     },
-    "upload_request": {
+    "key_packages_upload_request_body": {
       "type": "object",
       "required": [
         "principal_id",
@@ -270,7 +270,7 @@
       },
       "additionalProperties": false
     },
-    "upload_response": {
+    "key_packages_upload_outcome": {
       "type": "object",
       "required": [
         "accepted"
@@ -296,7 +296,7 @@
       },
       "additionalProperties": false
     },
-    "claim_request": {
+    "key_packages_claim_request_body": {
       "type": "object",
       "required": [
         "target_principal_id",
@@ -356,7 +356,7 @@
       },
       "additionalProperties": false
     },
-    "claim_response": {
+    "key_packages_claim_outcome": {
       "type": "object",
       "required": [
         "claims"
@@ -381,7 +381,7 @@
       },
       "additionalProperties": false
     },
-    "consume_request": {
+    "key_packages_consume_request_body": {
       "type": "object",
       "required": [
         "key_package_refs",
@@ -425,7 +425,7 @@
       },
       "additionalProperties": false
     },
-    "consume_response": {
+    "key_packages_consume_outcome": {
       "type": "object",
       "required": [
         "consumed"
@@ -443,7 +443,7 @@
       },
       "additionalProperties": false
     },
-    "revoke_request": {
+    "key_packages_revoke_request_body": {
       "type": "object",
       "required": [
         "key_package_refs",
@@ -466,7 +466,7 @@
       },
       "additionalProperties": false
     },
-    "revoke_response": {
+    "key_packages_revoke_outcome": {
       "type": "object",
       "required": [
         "revoked"

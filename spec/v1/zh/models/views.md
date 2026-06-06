@@ -214,11 +214,11 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 | Core kind | 常用 renderer | 必填配置 | 标准投影响应 |
 | --- | --- | --- | --- |
-| `collection` | `board`, `list`, `table`, `calendar`, `gantt`, `custom` | `collection` | `CollectionProjectionResponse` |
-| `timeline` | `timeline`, `chat`, `thread`, `forum`, `custom` | `timeline` | `TimelineProjectionResponse` |
-| `graph` | `graph`, `tree`, `custom` | `graph` | `GraphProjectionResponse` |
-| `document` | `document`, `custom` | `document` | `DocumentProjectionResponse` |
-| `composite` | `dashboard`, `custom` | `dashboard` | `CompositeProjectionResponse` |
+| `collection` | `board`, `list`, `table`, `calendar`, `gantt`, `custom` | `collection` | `CollectionProjectionView` |
+| `timeline` | `timeline`, `chat`, `thread`, `forum`, `custom` | `timeline` | `TimelineProjectionView` |
+| `graph` | `graph`, `tree`, `custom` | `graph` | `GraphProjectionView` |
+| `document` | `document`, `custom` | `document` | `DocumentProjectionView` |
+| `composite` | `dashboard`, `custom` | `dashboard` | `CompositeProjectionView` |
 
 > `renderer` 的全局枚举(§3.1)允许 `custom` 用于**所有** kind:`custom` 是 profile-defined 展示面 escape hatch,本表每行的常用 renderer 之外都 MAY 取 `custom`(由 profile 声明语义),不参与真相归约。
 
@@ -326,7 +326,7 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Flow。实现 MUST 按
 
 ### 6.3 Board Projection Response
 
-客户端、SDK 或可选受托 projection 扩展 MAY 为 `View{kind="collection", renderer="board"}` 生成已经物化的 `CollectionProjectionResponse`。响应是派生结果，不是真相源。
+客户端、SDK 或可选受托 projection 扩展 MAY 为 `View{kind="collection", renderer="board"}` 生成已经物化的 `CollectionProjectionView`。响应是派生结果，不是真相源。
 
 ```json
 {

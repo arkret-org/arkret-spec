@@ -772,11 +772,11 @@
       "tier": "core",
       "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_request",
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/complete_response",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome",
       "openapi_component_refs": {
-        "request": "../schemas/recovery-session.schema.json#/$defs/complete_request",
-        "response": "../schemas/recovery-session.schema.json#/$defs/complete_response"
+        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -786,11 +786,11 @@
       "tier": "core",
       "http": "POST /_cokret/root/identity/recovery-sessions",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/create_request",
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/session",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
       "openapi_component_refs": {
-        "request": "../schemas/recovery-session.schema.json#/$defs/create_request",
-        "response": "../schemas/recovery-session.schema.json#/$defs/session"
+        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_state"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -801,9 +801,9 @@
       "http": "GET /_cokret/root/identity/recovery-sessions/{recovery_session_id}",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/session",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
       "openapi_component_refs": {
-        "response": "../schemas/recovery-session.schema.json#/$defs/session"
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_state"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -813,11 +813,11 @@
       "tier": "core",
       "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/proof_submit_request",
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/proof_submit_response",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
       "openapi_component_refs": {
-        "request": "../schemas/recovery-session.schema.json#/$defs/proof_submit_request",
-        "response": "../schemas/recovery-session.schema.json#/$defs/proof_submit_response"
+        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

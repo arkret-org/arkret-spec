@@ -224,7 +224,7 @@
       ],
       "additionalProperties": false
     },
-    "query_request": {
+    "query_request_body": {
       "type": "object",
       "properties": {
         "realm_ids": {
@@ -365,7 +365,7 @@
         }
       ]
     },
-    "search_request": {
+    "search_request_body": {
       "type": "object",
       "required": [
         "query"

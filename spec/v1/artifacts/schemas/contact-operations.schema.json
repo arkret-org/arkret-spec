@@ -5,31 +5,31 @@
   "description": "Closed request/response DTOs for contact lifecycle operations and direct conversation resolver.",
   "anyOf": [
     {
-      "$ref": "#/$defs/contact_request_request"
+      "$ref": "#/$defs/contact_request_request_body"
     },
     {
-      "$ref": "#/$defs/contact_request_response"
+      "$ref": "#/$defs/contact_request_outcome"
     },
     {
-      "$ref": "#/$defs/contact_respond_request"
+      "$ref": "#/$defs/contact_respond_request_body"
     },
     {
-      "$ref": "#/$defs/contact_respond_response"
+      "$ref": "#/$defs/contact_respond_outcome"
     },
     {
-      "$ref": "#/$defs/contact_list_response"
+      "$ref": "#/$defs/contact_list"
     },
     {
-      "$ref": "#/$defs/contact_tombstone_request"
+      "$ref": "#/$defs/contact_tombstone_request_body"
     },
     {
-      "$ref": "#/$defs/contact_tombstone_response"
+      "$ref": "#/$defs/contact_tombstone"
     },
     {
-      "$ref": "#/$defs/direct_conversation_resolve_request"
+      "$ref": "#/$defs/direct_conversation_resolve_request_body"
     },
     {
-      "$ref": "#/$defs/direct_conversation_resolve_response"
+      "$ref": "#/$defs/direct_conversation_resolve_outcome"
     }
   ],
   "$defs": {
@@ -175,7 +175,7 @@
       },
       "additionalProperties": false
     },
-    "contact_request_request": {
+    "contact_request_request_body": {
       "type": "object",
       "required": [
         "target",
@@ -194,7 +194,7 @@
       },
       "additionalProperties": false
     },
-    "contact_request_response": {
+    "contact_request_outcome": {
       "type": "object",
       "required": [
         "request_event_ref",
@@ -214,7 +214,7 @@
       },
       "additionalProperties": false
     },
-    "contact_respond_request": {
+    "contact_respond_request_body": {
       "type": "object",
       "required": [
         "request_id",
@@ -260,7 +260,7 @@
       ],
       "additionalProperties": false
     },
-    "contact_respond_response": {
+    "contact_respond_outcome": {
       "type": "object",
       "required": [
         "response_event_ref",
@@ -283,7 +283,7 @@
       },
       "additionalProperties": false
     },
-    "contact_list_response": {
+    "contact_list": {
       "type": "object",
       "required": [
         "contacts",
@@ -305,7 +305,7 @@
       },
       "additionalProperties": false
     },
-    "contact_tombstone_request": {
+    "contact_tombstone_request_body": {
       "type": "object",
       "required": [
         "contact"
@@ -325,7 +325,7 @@
       },
       "additionalProperties": false
     },
-    "contact_tombstone_response": {
+    "contact_tombstone": {
       "type": "object",
       "required": [
         "tombstone_event_ref",
@@ -347,7 +347,7 @@
       },
       "additionalProperties": false
     },
-    "direct_conversation_resolve_request": {
+    "direct_conversation_resolve_request_body": {
       "type": "object",
       "required": [
         "peer"
@@ -366,7 +366,7 @@
       },
       "additionalProperties": false
     },
-    "direct_conversation_resolve_response": {
+    "direct_conversation_resolve_outcome": {
       "type": "object",
       "required": [
         "state"
