@@ -30,6 +30,48 @@
       "file": "schemas/message.schema.json"
     },
     {
+      "schema_id": "ck.schema.personal_productivity.v1",
+      "file": "schemas/personal-productivity.schema.json",
+      "status": "active",
+      "description": "Encrypted account-data value shapes for reminders, scheduled send, snooze, and saved items."
+    },
+    {
+      "schema_id": "ck.schema.draft_sync.v1",
+      "file": "schemas/draft-sync.schema.json",
+      "status": "active",
+      "description": "Encrypted account-data plaintext shape for cross-device draft sync."
+    },
+    {
+      "schema_id": "ck.schema.calendar_event.v1",
+      "file": "schemas/calendar-event.schema.json",
+      "status": "active",
+      "description": "Profile fields for calendar-event Flows."
+    },
+    {
+      "schema_id": "ck.schema.rsvp.v1",
+      "file": "schemas/rsvp.schema.json",
+      "status": "active",
+      "description": "Payload schema for ck.rsvp.set."
+    },
+    {
+      "schema_id": "ck.schema.disappearing_messages.v1",
+      "file": "schemas/disappearing-messages.schema.json",
+      "status": "active",
+      "description": "Message expiry and Realm disappearing-message policy shape."
+    },
+    {
+      "schema_id": "ck.schema.pin.v1",
+      "file": "schemas/pin.schema.json",
+      "status": "active",
+      "description": "Payload schemas for shared pin events."
+    },
+    {
+      "schema_id": "ck.schema.search_service.v1",
+      "file": "schemas/search-service.schema.json",
+      "status": "active",
+      "description": "Privacy-preserving search index manifest, blind index query, and policy shapes."
+    },
+    {
       "schema_id": "ck.schema.morph.v1",
       "file": "schemas/morph.schema.json"
     },

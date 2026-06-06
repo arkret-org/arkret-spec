@@ -125,6 +125,84 @@
       ]
     },
     {
+      "key_pattern": "ck.reminders.v1:<id>",
+      "status": "active",
+      "scope": "principal_private_productivity_state",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Principal-private reminders keyed by opaque id; target_ref and note remain inside encrypted value.",
+      "source_refs": [
+        "spec/v1/zh/models/personal-productivity.md"
+      ]
+    },
+    {
+      "key_pattern": "ck.scheduled_send.v1:<planned_message_id>",
+      "status": "active",
+      "scope": "principal_private_productivity_state",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Principal-private scheduled-send plan. planned_message_id is later reused as ck.message.create.payload.message_id.",
+      "source_refs": [
+        "spec/v1/zh/models/personal-productivity.md"
+      ]
+    },
+    {
+      "key_pattern": "ck.snooze.v1:<target_key>",
+      "status": "active",
+      "scope": "principal_private_productivity_state",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Principal-private snooze state keyed by HMAC-derived target_key.",
+      "source_refs": [
+        "spec/v1/zh/models/personal-productivity.md"
+      ]
+    },
+    {
+      "key_pattern": "ck.saved.v1:<collection_key>:<target_key>",
+      "status": "active",
+      "scope": "principal_private_productivity_state",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Principal-private saved item in an HMAC-derived collection; each item is an independent account-data value.",
+      "source_refs": [
+        "spec/v1/zh/models/personal-productivity.md"
+      ]
+    },
+    {
+      "key_pattern": "ck.draft.v1:<kind>:<target_key>:<slot_key>",
+      "status": "active",
+      "scope": "principal_private_draft_state",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Principal-private cross-device draft sync key. Raw target_ref MUST NOT appear in the account-data key.",
+      "source_refs": [
+        "spec/v1/zh/models/personal-productivity.md"
+      ]
+    },
+    {
+      "key_pattern": "ck.search.index_manifest.v1:<realm_key>",
+      "status": "active",
+      "scope": "principal_private_search_state",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Encrypted client search-index manifest keyed by an HMAC-derived realm_key.",
+      "source_refs": [
+        "spec/v1/zh/sync/privacy-preserving-search.md"
+      ]
+    },
+    {
       "key_pattern": "ck.agent.draft.v1:<agent_principal_id>:<draft_id>",
       "status": "active",
       "scope": "controller_private_state",

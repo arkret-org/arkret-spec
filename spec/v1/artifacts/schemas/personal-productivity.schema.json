@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/personal-productivity.schema.json",
+  "title": "Cokret Personal Productivity Account Data",
+  "description": "Plaintext shapes that MUST be encrypted before writing ck.profile.personal_productivity.v1 account-data values.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/reminder"
+    },
+    {
+      "$ref": "#/$defs/scheduled_send"
+    },
+    {
+      "$ref": "#/$defs/snooze"
+    },
+    {
+      "$ref": "#/$defs/saved_item"
+    }
+  ],
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hlc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_ref": {
+      "$ref": "./event-payload.schema.json#/$defs/object_ref"
+    },
+    "reminder": {
+      "type": "object",
+      "required": [
+        "kind",
+        "target_ref",
+        "due_at",
+        "updated_hlc"
+      ],
+      "properties": {
+        "kind": {
+          "const": "reminder"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/target_ref"
+        },
+        "due_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "note": {
+          "type": "string"
+        },
+        "updated_hlc": {
+          "$ref": "#/$defs/hlc"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scheduled_send": {
+      "type": "object",
+      "required": [
+        "kind",
+        "planned_message_id",
+        "send_at",
+        "message_payload",
+        "message_payload_digest",
+        "updated_hlc"
+      ],
+      "properties": {
+        "kind": {
+          "const": "scheduled_send"
+        },
+        "planned_message_id": {
+          "type": "string",
+          "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "send_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "message_payload": {
+          "allOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/message_create_payload"
+            },
+            {
+              "required": [
+                "message_id"
+              ]
+            }
+          ]
+        },
+        "message_payload_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "updated_hlc": {
+          "$ref": "#/$defs/hlc"
+        }
+      },
+      "additionalProperties": false
+    },
+    "snooze": {
+      "type": "object",
+      "required": [
+        "kind",
+        "target_ref",
+        "snooze_expires_at",
+        "updated_hlc"
+      ],
+      "properties": {
+        "kind": {
+          "const": "snooze"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/target_ref"
+        },
+        "snooze_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_hlc": {
+          "$ref": "#/$defs/hlc"
+        }
+      },
+      "additionalProperties": false
+    },
+    "saved_item": {
+      "type": "object",
+      "required": [
+        "kind",
+        "collection_title",
+        "target_ref",
+        "updated_hlc"
+      ],
+      "properties": {
+        "kind": {
+          "const": "saved_item"
+        },
+        "collection_title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_ref": {
+          "$ref": "#/$defs/target_ref"
+        },
+        "note": {
+          "type": "string"
+        },
+        "updated_hlc": {
+          "$ref": "#/$defs/hlc"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

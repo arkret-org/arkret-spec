@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/draft-sync.schema.json",
+  "title": "Cokret Draft Sync Account Data",
+  "type": "object",
+  "description": "Encrypted account-data plaintext shape for ck.profile.draft_sync.v1.",
+  "required": [
+    "target_ref",
+    "kind",
+    "draft_slot",
+    "content",
+    "updated_hlc",
+    "origin_device_id",
+    "retention_expires_at"
+  ],
+  "properties": {
+    "target_ref": {
+      "$ref": "./event-payload.schema.json#/$defs/object_ref"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "message",
+        "flow_field"
+      ]
+    },
+    "draft_slot": {
+      "type": "string",
+      "minLength": 1
+    },
+    "content": {
+      "type": "object"
+    },
+    "updated_hlc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "origin_device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "retention_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
+  "additionalProperties": false
+}

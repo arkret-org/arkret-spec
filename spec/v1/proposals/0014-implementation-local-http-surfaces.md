@@ -1,3 +1,16 @@
+---
+ckp: CKP-0014
+title: Implementation-local HTTP surfaces found in coauth / yougen audit
+normative: false
+stability: v1
+updated: 2026-06-06
+status: draft
+created: 2026-06-06
+authors:
+  - chris@acroidea.com
+depends_on: []
+---
+
 # CKP-0014: Implementation-local HTTP surfaces found in coauth / yougen audit
 
 > **Status: draft.** This proposal is an audit record, not an accepted protocol

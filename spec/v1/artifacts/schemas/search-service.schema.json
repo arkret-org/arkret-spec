@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/search-service.schema.json",
+  "title": "Cokret Privacy-Preserving Search",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/encrypted_index_manifest"
+    },
+    {
+      "$ref": "#/$defs/blind_index_query"
+    },
+    {
+      "$ref": "#/$defs/search_policy"
+    }
+  ],
+  "$defs": {
+    "encrypted_index_manifest": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "index_generation",
+        "shards",
+        "updated_hlc"
+      ],
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "index_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "shards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/encrypted_shard_ref"
+          },
+          "minItems": 1
+        },
+        "updated_hlc": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "encrypted_shard_ref": {
+      "type": "object",
+      "required": [
+        "shard_key",
+        "blob_ref",
+        "ciphertext_digest"
+      ],
+      "properties": {
+        "shard_key": {
+          "type": "string",
+          "minLength": 16
+        },
+        "blob_ref": {
+          "type": "string",
+          "pattern": "^ck:blob:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "ciphertext_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "blind_index_query": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "effective_scope",
+        "epoch_id",
+        "index_generation",
+        "blind_tokens"
+      ],
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "epoch_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "index_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blind_tokens": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 16
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "search_policy": {
+      "type": "object",
+      "required": [
+        "enabled_profile_refs",
+        "allowed_service_dids",
+        "data_classes"
+      ],
+      "properties": {
+        "enabled_profile_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "ck.profile.search.client_index.v1",
+              "ck.profile.search.blind_index.v1"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "allowed_service_dids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          },
+          "uniqueItems": true
+        },
+        "data_classes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "encrypted_index",
+              "blind_tokens",
+              "plaintext",
+              "reversible_summary"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "index_retention_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revocation_behavior": {
+          "type": "string",
+          "enum": [
+            "fail_closed",
+            "drop_stale"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

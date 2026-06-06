@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/disappearing-messages.schema.json",
+  "title": "Cokret Disappearing Message Expiry",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/message_expiry"
+    },
+    {
+      "$ref": "#/$defs/disappearing_policy"
+    }
+  ],
+  "$defs": {
+    "message_expiry": {
+      "type": "object",
+      "required": [
+        "ttl_ms",
+        "trigger"
+      ],
+      "properties": {
+        "ttl_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "on_send",
+            "on_first_read",
+            "on_last_read"
+          ]
+        },
+        "anchor_hlc": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grace_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "disappearing_policy": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "max_ttl_ms",
+        "allowed_triggers"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "max_ttl_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "allowed_triggers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "on_send",
+              "on_first_read",
+              "on_last_read"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "default_grace_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "allow_plaintext_realms": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

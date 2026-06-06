@@ -416,6 +416,9 @@
               "ck.policy.action",
               "ck.policy.rule",
               "ck.policy.set",
+              "ck.pin.add",
+              "ck.pin.remove",
+              "ck.pin.reorder",
               "ck.profile.create",
               "ck.profile.realm_override",
               "ck.profile.update",
@@ -425,6 +428,7 @@
               "ck.relation.create",
               "ck.relation.tombstone",
               "ck.relation.update",
+              "ck.rsvp.set",
               "ck.schema.define",
               "ck.schema.update",
               "ck.session.grant",
@@ -434,6 +438,7 @@
               "ck.realm.link",
               "ck.realm.create",
               "ck.realm.delivery_binding_policy",
+              "ck.realm.disappearing_policy",
               "ck.realm.destroy",
               "ck.realm.discovery",
               "ck.realm.freeze",
@@ -451,6 +456,7 @@
               "ck.realm.policy_server",
               "ck.realm.read_receipt_policy",
               "ck.realm.schema",
+              "ck.realm.search_policy",
               "ck.realm.tombstone",
               "ck.realm.update",
               "ck.realm.upgrade",
@@ -780,6 +786,44 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.realm.disappearing_policy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_disappearing_policy_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.realm.search_policy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload"
           }
         }
       }
@@ -1444,6 +1488,82 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/reaction_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.rsvp.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/rsvp_set_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.pin.add"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/pin_add_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.pin.remove"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/pin_remove_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.pin.reorder"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/pin_reorder_payload"
           }
         }
       }

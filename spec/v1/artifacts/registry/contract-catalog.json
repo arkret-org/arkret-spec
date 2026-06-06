@@ -199,6 +199,32 @@
         "bottom": "reject"
       },
       {
+        "event_kind": "ck.realm.disappearing_policy",
+        "category": "realm",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm disappearing-message expiry policy",
+        "payload_schema": "ck.schema.disappearing_messages.v1",
+        "cell_family": "ck.component.realm.disappearing_policy.v1",
+        "cell_subject": null,
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "ck.realm.search_policy",
+        "category": "realm",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm privacy-preserving search policy",
+        "payload_schema": "ck.schema.search_service.v1",
+        "cell_family": "ck.component.realm.search_policy.v1",
+        "cell_subject": null,
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
         "event_kind": "ck.realm.policy_server",
         "category": "realm",
         "status": "active",
@@ -888,6 +914,42 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Reaction remove"
+      },
+      {
+        "event_kind": "ck.rsvp.set",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Calendar event RSVP set",
+        "payload_schema": "ck.schema.rsvp.v1"
+      },
+      {
+        "event_kind": "ck.pin.add",
+        "category": "discussion",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Shared pin add or update",
+        "payload_schema": "ck.schema.pin.v1"
+      },
+      {
+        "event_kind": "ck.pin.remove",
+        "category": "discussion",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Shared pin remove",
+        "payload_schema": "ck.schema.pin.v1"
+      },
+      {
+        "event_kind": "ck.pin.reorder",
+        "category": "discussion",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Shared pin rank update",
+        "payload_schema": "ck.schema.pin.v1"
       },
       {
         "event_kind": "ck.redaction",
@@ -2090,6 +2152,48 @@
       {
         "schema_id": "ck.schema.message.v1",
         "file": "schemas/message.schema.json"
+      },
+      {
+        "schema_id": "ck.schema.personal_productivity.v1",
+        "file": "schemas/personal-productivity.schema.json",
+        "status": "active",
+        "description": "Encrypted account-data value shapes for reminders, scheduled send, snooze, and saved items."
+      },
+      {
+        "schema_id": "ck.schema.draft_sync.v1",
+        "file": "schemas/draft-sync.schema.json",
+        "status": "active",
+        "description": "Encrypted account-data plaintext shape for cross-device draft sync."
+      },
+      {
+        "schema_id": "ck.schema.calendar_event.v1",
+        "file": "schemas/calendar-event.schema.json",
+        "status": "active",
+        "description": "Profile fields for calendar-event Flows."
+      },
+      {
+        "schema_id": "ck.schema.rsvp.v1",
+        "file": "schemas/rsvp.schema.json",
+        "status": "active",
+        "description": "Payload schema for ck.rsvp.set."
+      },
+      {
+        "schema_id": "ck.schema.disappearing_messages.v1",
+        "file": "schemas/disappearing-messages.schema.json",
+        "status": "active",
+        "description": "Message expiry and Realm disappearing-message policy shape."
+      },
+      {
+        "schema_id": "ck.schema.pin.v1",
+        "file": "schemas/pin.schema.json",
+        "status": "active",
+        "description": "Payload schemas for shared pin events."
+      },
+      {
+        "schema_id": "ck.schema.search_service.v1",
+        "file": "schemas/search-service.schema.json",
+        "status": "active",
+        "description": "Privacy-preserving search index manifest, blind index query, and policy shapes."
       },
       {
         "schema_id": "ck.schema.morph.v1",
@@ -4927,6 +5031,50 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ck.rsvp.set",
+        "category": "discussion",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.rsvp.set"
+        ],
+        "profile": "ck.profile.calendar_event.v1",
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ck.pin.add",
+        "category": "discussion",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.pin.add"
+        ],
+        "profile": "ck.profile.pinned_items.v1",
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ck.pin.remove",
+        "category": "discussion",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.pin.remove"
+        ],
+        "profile": "ck.profile.pinned_items.v1",
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ck.pin.reorder",
+        "category": "discussion",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.pin.reorder"
+        ],
+        "profile": "ck.profile.pinned_items.v1",
+        "event_mapping_kind": "same_name"
+      },
+      {
         "action": "ck.realm.admin",
         "category": "management",
         "risk_tier": "high",
@@ -4948,7 +5096,9 @@
           "ck.realm.moderation_policy",
           "ck.realm.media_service",
           "ck.realm.schema",
-          "ck.realm.inheritance_policy"
+          "ck.realm.inheritance_policy",
+          "ck.realm.disappearing_policy",
+          "ck.realm.search_policy"
         ],
         "profile": null,
         "event_mapping_kind": "aggregate_admin"
@@ -5006,6 +5156,28 @@
           "ck.realm.preview_policy"
         ],
         "profile": null,
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ck.realm.disappearing_policy",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.realm.disappearing_policy"
+        ],
+        "profile": "ck.profile.disappearing.v1",
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ck.realm.search_policy",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.realm.search_policy"
+        ],
+        "profile": "ck.profile.search.blind_index.v1",
         "event_mapping_kind": "same_name"
       },
       {
@@ -5370,7 +5542,9 @@
           "ck.realm.read_receipt_policy",
           "ck.realm.history_sharing_policy",
           "ck.realm.preview_policy",
-          "ck.realm.moderation_policy"
+          "ck.realm.moderation_policy",
+          "ck.realm.disappearing_policy",
+          "ck.realm.search_policy"
         ],
         "profile": null,
         "event_mapping_kind": "aggregate_admin"

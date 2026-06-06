@@ -170,14 +170,17 @@ see_also:
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas_register / cascade。 |
 | `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Flow effective scope）、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/calendar-event.md` | Calendar event Flow profile、schedule fields、RRULE v1 子集、attendees 与 `ck.rsvp.set` 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle encryption profile 与父 Realm floor、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、RelationProfile、冲突处理。 |
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
 | `models/private-objects.md` | Read Cursor、Notification、actor-private account data 引导。 |
+| `models/personal-productivity.md` | principal-private reminders、scheduled send、snooze、saved items 与 draft sync account-data key 规则。 |
 | `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ck.patch.v1`)、Event Batch Receipt、reducer 总则。 |
 | `models/extension-objects.md` | Applet、Agent、Blob 等通过 extension profile 接入的对象（指向 `extensions/` 与 `crypto-media/`）。 |
+| `models/pins.md` | Shared pin events、`pin_scope` 解析、Space effective scope 安全边界与 pin projection stub。 |
 | `models/views.md` | View kind / renderer、Query、Board / Timeline / Graph / Document projection。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
 | `models/realm-links.md` | Realm link graph、显式继承、治理 / 发现 / mirror / confidential-extension 关系。 |
@@ -206,6 +209,7 @@ see_also:
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：principal server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
+| `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ck.realm.search_policy` 与 search result fail-closed 语义。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/service-api-schema.mdx` | canonical operation 分组与治理说明视图（含 `<OperationTable />` 组件）；request / response shape 以 OpenAPI、JSON Schema 和 `artifacts/reports/operation-schema-index.json` 为准。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
@@ -230,6 +234,7 @@ see_also:
 | --- | --- |
 | `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、cross-signing、secret storage、key backup。 |
 | `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Governance Binding（`governance_binding` payload + `covered_frontier_cell`）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
+| `crypto-media/disappearing-messages.md` | Message expiry、`ck.realm.disappearing_policy`、expiry stub、crypto-shredding 与 redaction 区分。 |
 | `crypto-media/audited-e2ee.md` | 可选 hardening profile：Audit Applet Binding、阶段性 release session、sealed historical release、RYW receipt、`ck.profile.attested_audit.e2ee.v1` / `ck.profile.disclosed_audit.e2ee.v1` 保证类别与 forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |

@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/calendar-event.schema.json",
+  "title": "Cokret Calendar Event Profile Fields",
+  "type": "object",
+  "required": [
+    "start",
+    "end",
+    "timezone",
+    "all_day"
+  ],
+  "properties": {
+    "start": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        {
+          "type": "string",
+          "format": "date"
+        }
+      ]
+    },
+    "end": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        {
+          "type": "string",
+          "format": "date"
+        }
+      ]
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1,
+      "description": "IANA time zone name."
+    },
+    "all_day": {
+      "type": "boolean"
+    },
+    "recurrence": {
+      "$ref": "#/$defs/recurrence"
+    },
+    "location": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/calendar_location"
+        },
+        {
+          "$ref": "./encrypted-envelope.schema.json"
+        }
+      ]
+    },
+    "call_id": {
+      "type": "string",
+      "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "attendees": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/attendee"
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "recurrence": {
+      "type": "object",
+      "required": [
+        "frequency"
+      ],
+      "properties": {
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "DAILY",
+            "WEEKLY",
+            "MONTHLY",
+            "YEARLY"
+          ]
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "by_day": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "MO",
+              "TU",
+              "WE",
+              "TH",
+              "FR",
+              "SA",
+              "SU"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "calendar_location": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "address": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geo_uri": {
+          "type": "string",
+          "pattern": "^geo:"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "attendee": {
+      "type": "object",
+      "required": [
+        "actor_id"
+      ],
+      "properties": {
+        "actor_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "required",
+            "optional",
+            "organizer"
+          ]
+        },
+        "display_name_snapshot": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

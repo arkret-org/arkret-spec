@@ -724,6 +724,50 @@
       "event_mapping_kind": "same_name"
     },
     {
+      "action": "ck.rsvp.set",
+      "category": "discussion",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.rsvp.set"
+      ],
+      "profile": "ck.profile.calendar_event.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.pin.add",
+      "category": "discussion",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.pin.add"
+      ],
+      "profile": "ck.profile.pinned_items.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.pin.remove",
+      "category": "discussion",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.pin.remove"
+      ],
+      "profile": "ck.profile.pinned_items.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.pin.reorder",
+      "category": "discussion",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.pin.reorder"
+      ],
+      "profile": "ck.profile.pinned_items.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
       "action": "ck.realm.admin",
       "category": "management",
       "risk_tier": "high",
@@ -745,7 +789,9 @@
         "ck.realm.moderation_policy",
         "ck.realm.media_service",
         "ck.realm.schema",
-        "ck.realm.inheritance_policy"
+        "ck.realm.inheritance_policy",
+        "ck.realm.disappearing_policy",
+        "ck.realm.search_policy"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
@@ -803,6 +849,28 @@
         "ck.realm.preview_policy"
       ],
       "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.realm.disappearing_policy",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.realm.disappearing_policy"
+      ],
+      "profile": "ck.profile.disappearing.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.realm.search_policy",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.realm.search_policy"
+      ],
+      "profile": "ck.profile.search.blind_index.v1",
       "event_mapping_kind": "same_name"
     },
     {
@@ -1167,7 +1235,9 @@
         "ck.realm.read_receipt_policy",
         "ck.realm.history_sharing_policy",
         "ck.realm.preview_policy",
-        "ck.realm.moderation_policy"
+        "ck.realm.moderation_policy",
+        "ck.realm.disappearing_policy",
+        "ck.realm.search_policy"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"

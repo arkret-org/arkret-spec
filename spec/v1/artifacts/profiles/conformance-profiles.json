@@ -81,7 +81,14 @@
     "ck.profile.morph.schema_migration_transformations.v1",
     "ck.profile.webrtc_media.v1",
     "ck.profile.stateless_cursor.v1",
-    "ck.profile.circle_conformance.v1"
+    "ck.profile.circle_conformance.v1",
+    "ck.profile.personal_productivity.v1",
+    "ck.profile.draft_sync.v1",
+    "ck.profile.disappearing.v1",
+    "ck.profile.calendar_event.v1",
+    "ck.profile.pinned_items.v1",
+    "ck.profile.search.client_index.v1",
+    "ck.profile.search.blind_index.v1"
   ],
   "profile_tiers": {
     "v1_profile_catalog": [
@@ -121,12 +128,19 @@
       "ck.profile.applet_e2ee_join.v1",
       "ck.profile.applet_widget.v1",
       "ck.profile.agent_runtime.v1",
-      "ck.profile.mimi_interop.v1"
+      "ck.profile.mimi_interop.v1",
+      "ck.profile.personal_productivity.v1",
+      "ck.profile.draft_sync.v1",
+      "ck.profile.disappearing.v1",
+      "ck.profile.calendar_event.v1",
+      "ck.profile.pinned_items.v1",
+      "ck.profile.search.client_index.v1",
+      "ck.profile.search.blind_index.v1"
     ],
     "tier_rules": {
       "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
       "v1_minimal_interop_floor": "Minimum profile for claiming v1 Event Store interop. Higher-level client, service, federation, blob, push, identity, and sovereign profiles remain independently claimable.",
-      "extension_profile_implementation": "Optional. Tracks evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA). Implementations claiming v1 core MAY omit these entirely. When the underlying external standards mature, replacement profiles with stable version pinning will supersede these entries."
+      "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA) and opt-in product/privacy features such as productivity, disappearing messages, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
     }
   },
   "identity_extension_profiles": [
@@ -265,7 +279,14 @@
     "ck.profile.redaction_vectors.v1": "interop",
     "ck.profile.sync_vectors.v1": "interop",
     "ck.profile.mimi_interop_vectors.v1": "interop",
-    "ck.profile.move_anchor_lattice_vectors.v1": "interop"
+    "ck.profile.move_anchor_lattice_vectors.v1": "interop",
+    "ck.profile.personal_productivity.v1": "client",
+    "ck.profile.draft_sync.v1": "client",
+    "ck.profile.disappearing.v1": "client",
+    "ck.profile.calendar_event.v1": "client",
+    "ck.profile.pinned_items.v1": "client",
+    "ck.profile.search.client_index.v1": "client",
+    "ck.profile.search.blind_index.v1": "server"
   },
   "federation_hardening": [
     "service_did_authentication",
@@ -3376,6 +3397,207 @@
         "circle_encryption_profile_floor_must": "Circle.encryption_profile may be none or mls_rfc9420. Reducer MUST reject plaintext Circle creation or update when the parent Realm encryption_profile is mls_rfc9420 or the effective content_encryption_floor is e2ee_required (reason=circle_encryption_below_realm_floor).",
         "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ck.circle.member.state -> join when the target actor is not a `join` member of the parent Realm (reason=circle_member_must_be_realm_member).",
         "scope_invariant_must": "Sync Service MUST NOT deliver events with effective_scope.kind=circle to actors not in that Circle's member frontier at the event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
+      }
+    },
+    "ck.profile.personal_productivity.v1": {
+      "description": "Client profile for principal-private reminders, scheduled send, snooze, and saved items backed by encrypted account data.",
+      "required_endpoints": [
+        "ck.self.account.subscribe",
+        "ck.self.events.query",
+        "ck.self.events.submit"
+      ],
+      "required_event_kinds": [
+        "ck.account_data.set",
+        "ck.message.create"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.personal_productivity.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.message.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [
+        "ck.profile.draft_sync.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "personal_productivity_account_data",
+          "scheduled_send_message_id_idempotency"
+        ],
+        "unsupported_optional": "return unsupported_feature for productivity account-data keys without writing shared Realm history"
+      }
+    },
+    "ck.profile.draft_sync.v1": {
+      "description": "Client profile for encrypted cross-device draft account data with LWW resolution per draft slot.",
+      "required_endpoints": [
+        "ck.self.account.subscribe"
+      ],
+      "required_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.draft_sync.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "draft_sync_account_data",
+          "draft_slot_lww"
+        ],
+        "unsupported_optional": "omit remote draft sync rather than writing drafts into shared Realm history"
+      }
+    },
+    "ck.profile.disappearing.v1": {
+      "description": "Message expiry profile with Realm policy, projection stubs, and fail-closed handling for derived plaintext.",
+      "required_endpoints": [
+        "ck.self.events.submit",
+        "ck.self.events.query"
+      ],
+      "required_event_kinds": [
+        "ck.message.create",
+        "ck.realm.disappearing_policy"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.disappearing_messages.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.message.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "ck.profile.e2ee_client.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "message_expiry_payload",
+          "expiry_stub_projection",
+          "disappearing_policy"
+        ],
+        "unsupported_optional": "receivers that cannot enforce expiry MUST NOT treat expiring messages as permanent messages"
+      }
+    },
+    "ck.profile.calendar_event.v1": {
+      "description": "Flow profile for calendar events and RSVP convergence.",
+      "required_endpoints": [
+        "ck.self.events.submit",
+        "ck.self.events.query"
+      ],
+      "required_event_kinds": [
+        "ck.flow.create",
+        "ck.flow.update",
+        "ck.rsvp.set"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.flow.v1",
+        "ck.schema.calendar_event.v1",
+        "ck.schema.rsvp.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "calendar_event_flow_profile",
+          "rsvp_set_event",
+          "rrule_v1_subset"
+        ],
+        "unsupported_optional": "return unsupported_feature for calendar profile writes instead of inventing unregistered Relation kinds"
+      }
+    },
+    "ck.profile.pinned_items.v1": {
+      "description": "Shared pin profile for Flow/Realm/Circle/Space projection homes using ck.pin.* events.",
+      "required_endpoints": [
+        "ck.self.events.submit",
+        "ck.self.events.query"
+      ],
+      "required_event_kinds": [
+        "ck.pin.add",
+        "ck.pin.remove",
+        "ck.pin.reorder"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.pin.v1",
+        "ck.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "move-anchor-lattice-fixture.json"
+      ],
+      "optional_extensions": [
+        "ck.profile.disappearing.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "shared_pin_events",
+          "pin_scope_resolution",
+          "pin_projection_stubs"
+        ],
+        "unsupported_optional": "omit shared pin UI or return unsupported_feature; private saved items remain account data"
+      }
+    },
+    "ck.profile.search.client_index.v1": {
+      "description": "Client-side encrypted search index hosting profile; service stores encrypted manifest and shards but returns no hits.",
+      "required_endpoints": [
+        "ck.self.account.subscribe",
+        "ck.self.blob.upload",
+        "ck.self.blob.get"
+      ],
+      "required_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.search_service.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "encrypted_search_index_manifest",
+          "opaque_shard_hosting"
+        ],
+        "unsupported_optional": "fall back to local-only search without exposing plaintext or reversible search terms"
+      }
+    },
+    "ck.profile.search.blind_index.v1": {
+      "description": "Server-assisted blind-index search profile with HMAC tokens, scope/epoch binding, and fail-closed stale posting behavior.",
+      "required_endpoints": [
+        "ck.server.describe",
+        "ck.self.events.query"
+      ],
+      "required_event_kinds": [
+        "ck.realm.search_policy"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.search_service.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "ck.profile.search.client_index.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "blind_index_tokens",
+          "search_policy",
+          "stale_posting_fail_closed"
+        ],
+        "unsupported_optional": "return unsupported_feature rather than accepting blind-index tokens outside an explicit Realm search policy"
       }
     }
   },

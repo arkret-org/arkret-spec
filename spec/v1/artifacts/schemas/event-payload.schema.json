@@ -2837,6 +2837,10 @@
         },
         "reply_to": {
           "$ref": "#/$defs/message_id"
+        },
+        "expiry": {
+          "$ref": "#/$defs/message_expiry",
+          "description": "Optional disappearing-message expiry contract for ck.profile.disappearing.v1. Expiry is projection / retention semantics and MUST NOT be treated as redaction."
         }
       },
       "additionalProperties": false
@@ -2976,6 +2980,297 @@
           "items": {
             "type": "string"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "message_expiry": {
+      "type": "object",
+      "required": [
+        "ttl_ms",
+        "trigger"
+      ],
+      "properties": {
+        "ttl_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "on_send",
+            "on_first_read",
+            "on_last_read"
+          ]
+        },
+        "anchor_hlc": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grace_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_disappearing_policy_payload": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "max_ttl_ms",
+        "allowed_triggers"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "max_ttl_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "allowed_triggers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "on_send",
+              "on_first_read",
+              "on_last_read"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "default_grace_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "allow_plaintext_realms": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_search_policy_payload": {
+      "type": "object",
+      "required": [
+        "enabled_profile_refs",
+        "allowed_service_dids",
+        "data_classes"
+      ],
+      "properties": {
+        "enabled_profile_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "ck.profile.search.client_index.v1",
+              "ck.profile.search.blind_index.v1"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "allowed_service_dids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "data_classes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "encrypted_index",
+              "blind_tokens",
+              "plaintext",
+              "reversible_summary"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "index_retention_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revocation_behavior": {
+          "type": "string",
+          "enum": [
+            "fail_closed",
+            "drop_stale"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "rsvp_set_payload": {
+      "type": "object",
+      "required": [
+        "event_ref",
+        "status",
+        "occurrence"
+      ],
+      "properties": {
+        "event_ref": {
+          "$ref": "#/$defs/flow_id",
+          "description": "Calendar event Flow id; encoded as a ck:flow: typed id."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "declined",
+            "tentative"
+          ]
+        },
+        "occurrence": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        },
+        "comment": {
+          "$ref": "#/$defs/encrypted_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pin_scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "flow"
+            },
+            "id": {
+              "$ref": "#/$defs/flow_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm"
+            },
+            "id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "id": {
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "space"
+            },
+            "id": {
+              "$ref": "#/$defs/space_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "pin_add_payload": {
+      "type": "object",
+      "required": [
+        "pin_scope",
+        "target_ref",
+        "rank"
+      ],
+      "properties": {
+        "pin_scope": {
+          "$ref": "#/$defs/pin_scope"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
+        "note": {
+          "$ref": "#/$defs/encrypted_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pin_remove_payload": {
+      "type": "object",
+      "required": [
+        "pin_scope",
+        "target_ref"
+      ],
+      "properties": {
+        "pin_scope": {
+          "$ref": "#/$defs/pin_scope"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "expected_rank": {
+          "$ref": "#/$defs/rank"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pin_reorder_payload": {
+      "type": "object",
+      "required": [
+        "pin_scope",
+        "target_ref",
+        "rank"
+      ],
+      "properties": {
+        "pin_scope": {
+          "$ref": "#/$defs/pin_scope"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
+        "expected_rank": {
+          "$ref": "#/$defs/rank"
         }
       },
       "additionalProperties": false

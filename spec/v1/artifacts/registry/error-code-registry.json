@@ -966,6 +966,14 @@
       "description": "Two distinct canonical-byte events share the same event_id; reducer MUST quarantine and require operator action (see event-auth-state-resolution.md §11)."
     },
     {
+      "code": "message_id_conflict",
+      "applies_to": [
+        "event_envelope",
+        "scheduled_send"
+      ],
+      "description": "A scheduled-send plan or retry reused the same planned_message_id / message_id with a different canonical message payload digest. Reducers MUST return duplicate_conflict with this reason_code and MUST NOT emit a replacement message."
+    },
+    {
       "code": "state_mismatch",
       "applies_to": [
         "client_sync",

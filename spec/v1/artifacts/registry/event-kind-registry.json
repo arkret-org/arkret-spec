@@ -167,6 +167,32 @@
       "bottom": "reject"
     },
     {
+      "event_kind": "ck.realm.disappearing_policy",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm disappearing-message expiry policy",
+      "payload_schema": "ck.schema.disappearing_messages.v1",
+      "cell_family": "ck.component.realm.disappearing_policy.v1",
+      "cell_subject": null,
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "ck.realm.search_policy",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm privacy-preserving search policy",
+      "payload_schema": "ck.schema.search_service.v1",
+      "cell_family": "ck.component.realm.search_policy.v1",
+      "cell_subject": null,
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
       "event_kind": "ck.realm.policy_server",
       "category": "realm",
       "status": "active",
@@ -856,6 +882,42 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reaction remove"
+    },
+    {
+      "event_kind": "ck.rsvp.set",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Calendar event RSVP set",
+      "payload_schema": "ck.schema.rsvp.v1"
+    },
+    {
+      "event_kind": "ck.pin.add",
+      "category": "discussion",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Shared pin add or update",
+      "payload_schema": "ck.schema.pin.v1"
+    },
+    {
+      "event_kind": "ck.pin.remove",
+      "category": "discussion",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Shared pin remove",
+      "payload_schema": "ck.schema.pin.v1"
+    },
+    {
+      "event_kind": "ck.pin.reorder",
+      "category": "discussion",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Shared pin rank update",
+      "payload_schema": "ck.schema.pin.v1"
     },
     {
       "event_kind": "ck.redaction",
