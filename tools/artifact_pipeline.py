@@ -86,27 +86,6 @@ def public_catalog_paths() -> list[Path]:
     return [current_public_catalog_path()]
 
 
-def sha256_bytes(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def catalog_count_summary(catalog: dict[str, Any]) -> dict[str, int]:
-    paths = {
-        "event_kinds": ("event_kind_registry", "event_kinds"),
-        "schemas": ("schema_registry", "schemas"),
-        "id_kinds": ("id_kind_registry", "id_kinds"),
-        "operations": ("operation_registry", "operations"),
-        "capability_actions": ("capability_action_registry", "actions"),
-    }
-    summary: dict[str, int] = {}
-    for label, (section_name, list_name) in paths.items():
-        section = catalog.get(section_name)
-        rows = section.get(list_name) if isinstance(section, dict) else None
-        if isinstance(rows, list):
-            summary[label] = len(rows)
-    return summary
-
-
 def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str, Any]]:
     version = catalog.get("version")
     generated = catalog.get("generated_registries")
@@ -317,51 +296,6 @@ def check_operation_schema_index() -> list[str]:
     return errors
 
 
-def check_public_catalog_snapshot() -> list[str]:
-    errors: list[str] = []
-    canonical_bytes = CONTRACT_CATALOG_PATH.read_bytes()
-    canonical_counts = catalog_count_summary(load_contract_catalog())
-    for target in public_catalog_paths():
-        if not target.exists():
-            errors.append(
-                f"missing public catalog snapshot {target.relative_to(ROOT).as_posix()} "
-                "(run python tools/artifact_pipeline.py generate)"
-            )
-            continue
-
-        snapshot_bytes = target.read_bytes()
-        if snapshot_bytes != canonical_bytes:
-            errors.append(
-                f"public catalog snapshot drift: {target.relative_to(ROOT).as_posix()} "
-                f"sha256={sha256_bytes(snapshot_bytes)} but canonical sha256={sha256_bytes(canonical_bytes)} "
-                "(run python tools/artifact_pipeline.py generate)"
-            )
-
-        try:
-            snapshot_catalog = json.loads(snapshot_bytes.decode("utf-8"))
-        except Exception as exc:
-            errors.append(f"public catalog snapshot is not valid UTF-8 JSON: {target.relative_to(ROOT).as_posix()}: {exc}")
-            continue
-
-        snapshot_counts = catalog_count_summary(snapshot_catalog) if isinstance(snapshot_catalog, dict) else {}
-        if snapshot_counts != canonical_counts:
-            errors.append(
-                f"public catalog snapshot count drift: {target.relative_to(ROOT).as_posix()} "
-                f"counts={snapshot_counts} but canonical counts={canonical_counts}"
-            )
-        if isinstance(snapshot_catalog, dict):
-            event_rows = snapshot_catalog.get("event_kind_registry", {}).get("event_kinds", [])
-            has_circle_create = any(
-                isinstance(row, dict) and row.get("event_kind") == "ck.circle.create"
-                for row in event_rows
-            )
-            if not has_circle_create:
-                errors.append(
-                    f"public catalog snapshot missing ck.circle.create: {target.relative_to(ROOT).as_posix()}"
-                )
-    return errors
-
-
 def run_lint() -> int:
     result = subprocess.run([sys.executable, str(LINT_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -380,7 +314,6 @@ def run_fixture_digest_check() -> int:
 def cmd_generate(_: argparse.Namespace) -> int:
     write_generated_registries()
     write_operation_schema_index()
-    write_public_catalog_snapshot()
     print_contract_status()
     return 0
 
@@ -388,7 +321,6 @@ def cmd_generate(_: argparse.Namespace) -> int:
 def cmd_check(_: argparse.Namespace) -> int:
     errors = check_generated_registries()
     errors.extend(check_operation_schema_index())
-    errors.extend(check_public_catalog_snapshot())
     if errors:
         for error in errors:
             print(error, file=sys.stderr)
@@ -401,6 +333,11 @@ def cmd_check(_: argparse.Namespace) -> int:
     lint_status = run_lint()
     prose_lint_status = run_prose_lint()
     return fixture_status or lint_status or prose_lint_status
+
+
+def cmd_snapshot(_: argparse.Namespace) -> int:
+    write_public_catalog_snapshot()
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -418,6 +355,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="check generated registries and run artifact lint",
     )
     check_parser.set_defaults(func=cmd_check)
+
+    snapshot_parser = subparsers.add_parser(
+        "snapshot",
+        help="write the version-pinned public catalog snapshot under site/public/v1 (build/deploy step; not committed)",
+    )
+    snapshot_parser.set_defaults(func=cmd_snapshot)
 
     return parser
 

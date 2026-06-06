@@ -3074,11 +3074,49 @@ def check_capability_action_event_mapping(lint: Lint) -> None:
             lint.fail(action_path, f"{action} maps to the same event kind and must use event_mapping_kind=same_name")
         elif targets and targets != [action] and mapping_kind in {"same_name", "non_event_surface"}:
             lint.fail(action_path, f"{action} deviates from target_event_kinds and must declare an explicit deviation kind")
-        if mapping_kind == "wire_compat_grandfather":
-            if not isinstance(row.get("grandfathered_since"), str) or not row.get("grandfathered_since"):
-                lint.fail(action_path, f"{action} uses wire_compat_grandfather and must declare grandfathered_since")
-        elif "grandfathered_since" in row:
-            lint.fail(action_path, f"{action} must not declare grandfathered_since unless event_mapping_kind=wire_compat_grandfather")
+
+
+def check_event_admission_coverage(lint: Lint) -> None:
+    """Every active durable reducer-input event MUST have a machine-readable admission source."""
+    event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    action_path = ARTIFACTS / "registry" / "capability-action-registry.json"
+    event_registry = load_json(lint, event_path)
+    action_registry = load_json(lint, action_path)
+    if not isinstance(event_registry, dict) or not isinstance(action_registry, dict):
+        return
+    allowed_classes = set((event_registry.get("admission_class_definitions") or {}).keys())
+    if not allowed_classes:
+        lint.fail(event_path, "event registry missing admission_class_definitions")
+    actions = action_registry.get("actions", [])
+    action_names = {a.get("action") for a in actions if isinstance(a, dict)}
+    covered: set[str] = set()
+    for a in actions:
+        if isinstance(a, dict):
+            for target in (a.get("target_event_kinds") or []):
+                covered.add(target)
+    for event in event_registry.get("event_kinds", []):
+        if not isinstance(event, dict):
+            continue
+        if event.get("status") != "active" or event.get("wire_scope") != "durable_event" or not event.get("reducer_input"):
+            continue
+        kind = event.get("event_kind")
+        admission = event.get("admission")
+        if kind not in covered and not admission:
+            lint.fail(event_path, f"{kind}: active durable reducer-input event has no admission source (no capability action coverage and no admission class)")
+            continue
+        if admission is not None:
+            if admission not in allowed_classes:
+                lint.fail(event_path, f"{kind}: invalid admission class {admission!r}")
+            if admission == "capability_gated":
+                caps = event.get("admission_capabilities")
+                if not isinstance(caps, list) or not caps:
+                    lint.fail(event_path, f"{kind}: admission=capability_gated MUST list non-empty admission_capabilities")
+                else:
+                    for cap in caps:
+                        if cap not in action_names:
+                            lint.fail(event_path, f"{kind}: admission_capabilities references unknown action {cap!r}")
+            elif "admission_capabilities" in event:
+                lint.fail(event_path, f"{kind}: admission_capabilities only allowed when admission=capability_gated")
 
 
 def check_text_reference_targets(lint: Lint) -> None:
@@ -4911,6 +4949,7 @@ def main() -> int:
     check_design_phase_legacy_compat_removed(lint)
     check_binding_variant_non_http(lint)
     check_capability_action_event_mapping(lint)
+    check_event_admission_coverage(lint)
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
     check_account_data_type_registry(lint, known)

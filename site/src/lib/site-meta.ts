@@ -27,8 +27,9 @@ export function specFileUrl(relPath: string): string {
 /**
  * The current v1 release shown by the site.
  *
- * Bump this together with the git tag, the CHANGELOG entry, and the
- * matching `site/public/v1/contract-catalog-<version>.json` snapshot.
+ * Bump this together with the git tag and the CHANGELOG entry. The published
+ * `site/public/v1/contract-catalog-<version>.json` snapshot is generated from
+ * this tag at build time (scripts/gen-public-catalog.mjs) and is not committed.
  */
 export const specReleaseTag = "v1.0.0";
 export const specReleaseLabel = "v1";

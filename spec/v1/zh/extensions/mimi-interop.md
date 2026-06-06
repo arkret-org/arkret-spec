@@ -278,6 +278,8 @@ Cokret 的 unknown handling 来自 Lattice bottom：
 
 MIMI role 只能作为 interop projection。Cokret 授权仍以 capability Move / grant cell 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为具体 capability event（如 `ck.capability.grant` / `ck.capability.delegate` / `ck.capability.revoke`）或具体 `ck.realm.<facet>` Move effect，并经过 Cokret Move refs 授权验证后才能生效。
 
+**未知字段安全惰性（normative）**：interop schema 为前向兼容演进中的 IETF MIMI Internet-Draft，有意在 top-level 与 `mimi` / `binding_scope` / `payload` 子树保留开放 `additionalProperties`。接收方 MUST 把该 surface 上任何未识别字段视为**安全惰性**：MUST 忽略其参与任何安全判定，且 MUST NOT 让它影响 authorization、identity binding、`policy_root`、MLS epoch / group state、routing / hub-follower 关系或任何 signature / digest transcript。已知字段仍以 schema pin 的定义为准；未识别字段只能作为不可信的 draft passthrough 保留（如需保留 raw bytes / canonical hash 见 §9.2 表）。实现 MUST NOT 依据未识别字段提升 provider role、改写 `policy_root` 或放宽 governance binding 校验。
+
 ## 10. Identifiers And Consent
 
 MIMI identifier MUST NOT 被直接作为 Cokret actor。映射规则：

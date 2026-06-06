@@ -8,6 +8,7 @@ site/.astro
 site/.cache
 site/.vite
 site/.output
+site/public/v1/contract-catalog-*.json
 .DS_Store
 _*.md
 .gstack/

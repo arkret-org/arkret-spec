@@ -5,8 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@10.28.2",
   "scripts": {
+    "predev": "node scripts/gen-public-catalog.mjs",
     "dev": "astro dev",
     "start": "astro dev",
+    "prebuild": "node scripts/gen-public-catalog.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",

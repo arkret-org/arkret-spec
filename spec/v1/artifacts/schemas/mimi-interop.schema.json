@@ -3,7 +3,7 @@
   "$id": "https://cokret.io/artifacts/schemas/mimi-interop.schema.json",
   "title": "Cokret MIMI Interoperability",
   "description": "Provider directory, room binding, and content mapping receipt objects for ck.profile.mimi_interop.v1.",
-  "$comment": "Intentionally relaxed interop-extension surface: this profile tracks evolving IETF MIMI Internet-Drafts (see zh/extensions/mimi-interop.md §1), so additionalProperties is left open at the top level and on the mimi/binding_scope/payload subtrees to forward-carry draft fields without a breaking schema bump. Known fields are pinned; unknown draft fields are tolerated rather than rejected. The proof object below gives a minimal required core so the openness is limited to known extension subtrees and does not mask a missing signature.",
+  "$comment": "Intentionally relaxed interop-extension surface: this profile tracks evolving IETF MIMI Internet-Drafts (see zh/extensions/mimi-interop.md §1), so additionalProperties is left open at the top level and on the mimi/binding_scope/payload subtrees to forward-carry draft fields without a breaking schema bump. Known fields are pinned; unknown draft fields are tolerated rather than rejected. The proof object below gives a minimal required core so the openness is limited to known extension subtrees and does not mask a missing signature. Unknown fields anywhere on this surface are security-inert (see zh/extensions/mimi-interop.md §9.2): receivers MUST ignore them for all security decisions and MUST NOT let them affect authorization, identity binding, policy_root, MLS epoch/group state, routing, or any signature/digest transcript.",
   "anyOf": [
     {
       "$ref": "#/$defs/provider_directory"
