@@ -818,7 +818,7 @@
           "state_digest",
           "evaluated_at"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -907,7 +907,7 @@
           "expires_at",
           "purpose"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1586,7 +1586,7 @@
           "visibility",
           "receipts"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1606,7 +1606,7 @@
           "has_more",
           "snapshot_bootstrap"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1641,7 +1641,7 @@
           "has_more",
           "snapshot_bootstrap"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1670,7 +1670,7 @@
           "missing",
           "unauthorized"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1700,7 +1700,7 @@
           "realm_frontier",
           "cursor"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1748,7 +1748,7 @@
           "has_more",
           "snapshot_bootstrap"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1783,7 +1783,7 @@
           "has_more",
           "snapshot_bootstrap"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1812,7 +1812,7 @@
           "missing",
           "unauthorized"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1848,7 +1848,7 @@
           "realm_frontier",
           "cursor"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -1990,7 +1990,7 @@
           "method_evidence",
           "cached_at"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -2006,7 +2006,7 @@
           "did",
           "requested_evidence_kinds"
         ],
-        "closed": false
+        "closed": true
       },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveResponse",
@@ -2018,7 +2018,7 @@
           "seq",
           "receipts"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {
@@ -3352,7 +3352,7 @@
           "revoked",
           "expires_at"
         ],
-        "closed": false
+        "closed": true
       }
     },
     {

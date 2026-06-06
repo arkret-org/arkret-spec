@@ -33,17 +33,17 @@ see_also:
 `artifacts/registry/` 下提供一组 drift detection artifacts。它们是 canonical source of truth，由
 `registry-manifest.json` 索引，cotest scanner 直接消费这些文件来识别旧 id / 旧字段 / 旧术语的残留：
 
-- `artifacts/registry/removed-event-kinds.json`：已移除的 Event.kind 列表（例如 `ck.field.position.*`、
+- `artifacts/migration/removed-event-kinds.json`：已移除的 Event.kind 列表（例如 `ck.field.position.*`、
   `ck.flow.track.*`、`ck.realm.lifecycle.set`、`ck.realm.policy.set`）。
-- `artifacts/registry/removed-operation-ids.json`：已移除的 operation id（与上述 event kind 对齐的 binding 端点）。
-- `artifacts/registry/deprecated-profile-ids.json`：已弃用或从未 canonical 化的 profile id
+- `artifacts/migration/removed-operation-ids.json`：已移除的 operation id（与上述 event kind 对齐的 binding 端点）。
+- `artifacts/migration/deprecated-profile-ids.json`：已弃用或从未 canonical 化的 profile id
   （例如 `chat_only_client`、`kanban_only_client`；现行替代命名为 `chat_mvp` / `kanban_mvp`，
   见 [`release-readiness.md` §2.1](./overview/release-readiness.md)，与 `renames.json` 的 `replacement` 字段对齐）。
 - `artifacts/registry/forbidden-wire-fields.json`：在 current-wire 中禁止出现的字段（带上下文，例如
   timeline event 顶层不得出现 `branch`、payload 中不得出现 `room_kind` 或 `kind=room`）。
 - `artifacts/registry/forbidden-model-terms.json`：在 current-model prose / code identifier / UI 文案中
   禁止使用的术语（例如 `Room`、`Realm(kind=list)`、`flow_branch`、`track members`、`Room visibility`）及其替代物。
-- `artifacts/registry/renames.json`：从旧 id / 旧字段名到 v1 替代物的重命名映射（`replacement=null` 表示概念被删除、
+- `artifacts/migration/renames.json`：从旧 id / 旧字段名到 v1 替代物的重命名映射（`replacement=null` 表示概念被删除、
   无机械替代）。
 
 每条 entry 公共字段：`id`、`since_revision`（生效起始的 spec revision）、`rejection_level`
@@ -57,7 +57,7 @@ see_also:
 
 #### 1.2.1 Parser 分层（导航摘要）
 
-> 本小节是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。Parser 分层的 normative 定义（含各层 MUST / MUST NOT 约束）由权威源 [`artifacts/registry/renames.json`](../artifacts/registry/renames.json) 的 `parser_tier_definitions` 承载；如本摘要与该权威源有出入，以 `renames.json.parser_tier_definitions` 为准。
+> 本小节是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。Parser 分层的 normative 定义（含各层 MUST / MUST NOT 约束）由权威源 [`artifacts/migration/renames.json`](../artifacts/migration/renames.json) 的 `parser_tier_definitions` 承载；如本摘要与该权威源有出入，以 `renames.json.parser_tier_definitions` 为准。
 
 `renames.json` 的条目按消费方分两层（规范定义见 `renames.json.parser_tier_definitions`）：
 

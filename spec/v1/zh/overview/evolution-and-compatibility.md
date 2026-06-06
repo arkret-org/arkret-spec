@@ -71,7 +71,7 @@ pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.s
 
 ## 7. 破坏性改名走 `renames.json` + 离线 migration tool
 
-并非所有演进都是纯加性。标识符改名、命名空间重组等破坏性改动 MUST 经由唯一真相源 [artifacts/registry/renames.json](../../artifacts/registry/renames.json) 登记，并遵守其双层 parser 语义：
+并非所有演进都是纯加性。标识符改名、命名空间重组等破坏性改动 MUST 经由唯一真相源 [artifacts/migration/renames.json](../../artifacts/migration/renames.json) 登记，并遵守其双层 parser 语义：
 
 - **current_parser**（sync / federation / snapshot consumer / reducer / 一致性 runner 等处理实时或持久 v1 wire bytes 的一切）：对登记的旧标识符 **hard_reject**，且 **MUST NOT 做 payload-shape 消歧**；按 schema 标准错误（`unknown_kind` / `unknown_field` / `schema_violation`）拒绝。
 - **migration_tool**（离线批处理）：才允许读非当前 v1 字节并重写为 canonical v1 形态；MUST NOT 内嵌进实时 parser 面（不得内联转换、不得"自动接受旧形态并悄悄改写"）。

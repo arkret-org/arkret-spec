@@ -168,7 +168,8 @@
           "type": "string",
           "format": "date-time"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "AccountOidcCallbackRequest": {
       "type": "object",
@@ -397,7 +398,8 @@
           "type": "string",
           "description": "Echo of the issued `purpose`."
         }
-      }
+      },
+      "additionalProperties": false
     },
     "CallMediaTokenExchangeRequest": {
       "type": "object",
@@ -974,7 +976,8 @@
             "type": "object"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "EventsFrontierResponse": {
       "$ref": "#/$defs/EventsFrontierAccountClientResponse"
@@ -1068,7 +1071,8 @@
         "snapshot_bootstrap": {
           "$ref": "#/$defs/SnapshotBootstrap"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "EventsResolveRequest": {
       "type": "object",
@@ -1121,7 +1125,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "EventsSubmitRequest": {
       "oneOf": [
@@ -1206,7 +1211,8 @@
           "type": "string",
           "description": "Optional barrier cursor (purpose=barrier) bound to the most recently accepted event."
         }
-      }
+      },
+      "additionalProperties": false
     },
     "GrantListResponse": {
       "type": "object",
@@ -1223,7 +1229,8 @@
         "evaluated_at": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "IdentityGetDocumentResponse": {
       "type": "object",
@@ -1248,7 +1255,8 @@
           "type": "string",
           "format": "date-time"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "IdentityResolveRequest": {
       "type": "object",
@@ -1265,7 +1273,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "IdentityResolveResponse": {
       "type": "object",
@@ -1285,7 +1294,8 @@
             "$ref": "./identity-receipt.schema.json"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ModerationReportResponse": {
       "type": "object",

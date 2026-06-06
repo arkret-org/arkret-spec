@@ -15,7 +15,7 @@ normative_source: spec/v1/zh/models/circle.md
 
 > **Status: accepted, merged into v1 normative spec on 2026-05-25.**
 >
-> Normative entry point: [`spec/v1/zh/models/circle.md`](../zh/models/circle.md). Schema artifact: [`spec/v1/artifacts/schemas/circle.schema.json`](../artifacts/schemas/circle.schema.json). The `Flow.discussion_realm_ref` field is removed; see [`forbidden-wire-fields.json`](../artifacts/registry/forbidden-wire-fields.json) entry `discussion_realm_ref` and [`renames.json`](../artifacts/registry/renames.json) `ckp_0007_circle_introduction` migration group. CHANGELOG entry under 2026-05-25.
+> Normative entry point: [`spec/v1/zh/models/circle.md`](../zh/models/circle.md). Schema artifact: [`spec/v1/artifacts/schemas/circle.schema.json`](../artifacts/schemas/circle.schema.json). The `Flow.discussion_realm_ref` field is removed; see [`forbidden-wire-fields.json`](../artifacts/registry/forbidden-wire-fields.json) entry `discussion_realm_ref` and [`renames.json`](../artifacts/migration/renames.json) `ckp_0007_circle_introduction` migration group. CHANGELOG entry under 2026-05-25.
 >
 > This proposal file is retained as historical design rationale. Future updates to the Circle primitive MUST land directly on normative files, not here.
 

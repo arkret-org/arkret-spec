@@ -2494,7 +2494,7 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
         lint.fail(id_registry, "rtc_participant must not permit non-UUIDv7 16-byte tokens")
 
     allowed_legacy_paths = {
-        (ARTIFACTS / "registry" / "renames.json").resolve(),
+        (ARTIFACTS / "migration" / "renames.json").resolve(),
         (ARTIFACTS / "registry" / "forbidden-wire-fields.json").resolve(),
     }
     for path in [*markdown_files(), *all_json_files()]:
