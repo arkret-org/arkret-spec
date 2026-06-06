@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/pin.schema.json",
   "title": "Cokret Pin Event Payloads",
-  "oneOf": [
+  "anyOf": [
     {
       "$ref": "./event-payload.schema.json#/$defs/pin_add_payload"
     },
