@@ -367,6 +367,30 @@ Checklist / subtask 不在 v1 core 中新增独立顶层对象。需要独立负
 
 `assigned_to` 与 `contains` 的基数和跨 Realm 规则见 [relation.md](./relation.md) §3-§4。
 
+### 7.1 Assignment / Assignee 投影
+
+Flow 的 assignment 真相源是标准 Relation，而不是 Flow 对象字段：
+
+```text
+flow --assigned_to--> actor
+```
+
+Wire 上 MUST 表达为 active `ck.schema.relation.v1` 对象，且满足：
+
+- `relation_kind = "assigned_to"`
+- `from_ref = <flow_id>`
+- `to_ref = <actor DID>`
+
+UI MAY 把该关系显示为 "Assignee" / "Assignees"。`unassigned` 只表示当前 Flow 没有任何 visible active `assigned_to` edge；它是本地显示文案，MUST NOT 作为字符串写入 Flow、Relation 或 projection canonical state。
+
+默认基数按 [relation.md §3.2](./relation.md#32-默认基数表)：一个 Flow MAY 同时分配给多个 Actor。需要 Jira / Kanban 式单负责人时，Realm schema/profile MUST 声明 `relation_kind="assigned_to"` 的 RelationProfile 并收紧 `max_to_per_from=1`（或声明独立 owner relation）。客户端不得仅凭 UI 标签 "Assignee" 推断协议是单值。
+
+写入 assignment MUST 使用 `ck.relation.create` 创建 `assigned_to` edge；解除 assignment MUST tombstone 对应 Relation。单负责人 profile 下的更换负责人 MUST 按该 profile 的 `on_conflict` 规则关闭旧 edge 或拒绝并发冲突。`ck.flow.update` 不得修改 assignment。
+
+Flow `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ck.flow.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。这些名字会与 `assigned_to` Relation 和 projection 字段形成双源；字段式 assignment 不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中，或声明独立 RelationProfile。
+
+Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: did[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Flow metadata 读出，也不得扩大访问权。对 Circle-scoped Flow，assignment Relation 的可见性不得宽于 Flow effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
+
 ## 8. Watch 与通知订阅
 
 ### 8.1 概念与边界

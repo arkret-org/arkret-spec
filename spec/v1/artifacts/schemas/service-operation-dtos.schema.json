@@ -2115,6 +2115,25 @@
       },
       "additionalProperties": false
     },
+    "ProjectionAssignedToRelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relation_id",
+        "actor_id"
+      ],
+      "properties": {
+        "relation_id": {
+          "type": "string",
+          "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "actor_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        }
+      },
+      "description": "Read-model edge backing a Flow assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref."
+    },
     "ProjectionFlowRow": {
       "type": "object",
       "additionalProperties": false,
@@ -2131,20 +2150,6 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "title": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile."
-        },
-        "summary": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile."
-        },
         "state": {
           "type": "string",
           "enum": [
@@ -2159,6 +2164,20 @@
             "null"
           ],
           "format": "date-time"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile."
+        },
+        "summary": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile."
         },
         "board_space_id": {
           "type": [
@@ -2182,6 +2201,21 @@
             "null"
           ],
           "description": "Derived rank within list_space_id from ck.component.flow.position.v1."
+        },
+        "assigned_actor_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          },
+          "description": "Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=flow_id). Empty or absent means the Flow is unassigned for this projection caller. This is read-model state, not canonical Flow object metadata."
+        },
+        "assigned_to_relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProjectionAssignedToRelation"
+          },
+          "description": "Read-only active assigned_to Relation edges backing assigned_actor_ids. Clients use relation_id to tombstone assignments."
         },
         "created_by": {
           "type": [

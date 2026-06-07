@@ -432,6 +432,42 @@
       "notes": "Reserved-name guard: 'progress_state' is a sister name for the stage concept and MUST NOT appear under metadata.fields.*. Implementations expressing business progression MUST use the canonical top-level 'stage' field."
     },
     {
+      "id": "metadata.fields.assignee",
+      "context": "flow_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "Relation(relation_kind=assigned_to, from_ref=<flow_id>, to_ref=<actor DID>)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Flow assignment is single-sourced by the standard assigned_to Relation. metadata.fields.assignee would create a second truth source and MUST be rejected; UI labels may say Assignee but wire writes create/tombstone assigned_to Relation edges."
+    },
+    {
+      "id": "metadata.fields.assignees",
+      "context": "flow_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "Relation(relation_kind=assigned_to, from_ref=<flow_id>, to_ref=<actor DID>)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Plural spelling of the Flow assignment field alias is forbidden for the same reason as metadata.fields.assignee. Multiple assignees are represented by multiple active assigned_to Relation edges."
+    },
+    {
+      "id": "metadata.fields.assigned_to",
+      "context": "flow_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "Relation(relation_kind=assigned_to, from_ref=<flow_id>, to_ref=<actor DID>)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "assigned_to is already the standard Relation kind and MUST NOT be reused as a Flow metadata field."
+    },
+    {
+      "id": "metadata.fields.assigned_actor_ids",
+      "context": "flow_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "assigned_actor_ids is a derived projection field, not Flow object state. Writers MUST NOT persist it under metadata.fields."
+    },
+    {
       "id": "fields.stage",
       "context": "morph_payload",
       "since_revision": "2026-05-23",
@@ -521,6 +557,78 @@
         "negative_test"
       ],
       "notes": "ck.flow.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.flow.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ck.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/flow-and-message.md §3.2 reducer hard constraint 5."
+    },
+    {
+      "id": "patch:metadata.fields.assignee",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "ck.flow.update MUST NOT patch assignment through Flow metadata. Assignment writes create or tombstone assigned_to Relation edges."
+    },
+    {
+      "id": "patch:metadata.fields.assignees",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Plural assignment metadata patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
+    },
+    {
+      "id": "patch:metadata.fields.assigned_to",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "assigned_to is a Relation kind, not a Flow metadata patch path."
+    },
+    {
+      "id": "patch:metadata.fields.assigned_actor_ids",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through ck.flow.update."
+    },
+    {
+      "id": "patch:fields.assignee",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Legacy Flow fields.* patch paths are not the canonical metadata path; assignment is Relation-sourced regardless of spelling."
+    },
+    {
+      "id": "patch:fields.assignees",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Legacy plural assignment patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
+    },
+    {
+      "id": "patch:fields.assigned_to",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "assigned_to is a Relation kind, not a Flow metadata patch path."
+    },
+    {
+      "id": "patch:fields.assigned_actor_ids",
+      "context": "flow_patch_payload",
+      "since_revision": "2026-06-07",
+      "rejection_level": "hard_reject",
+      "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through legacy fields.* patch paths."
     },
     {
       "id": "patch:stage",

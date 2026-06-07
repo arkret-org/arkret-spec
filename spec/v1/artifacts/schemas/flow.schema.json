@@ -401,6 +401,26 @@
           },
           {
             "required": [
+              "assignee"
+            ]
+          },
+          {
+            "required": [
+              "assignees"
+            ]
+          },
+          {
+            "required": [
+              "assigned_to"
+            ]
+          },
+          {
+            "required": [
+              "assigned_actor_ids"
+            ]
+          },
+          {
+            "required": [
               "state"
             ]
           },
