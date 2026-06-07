@@ -84,6 +84,7 @@
     "ck.profile.circle_conformance.v1",
     "ck.profile.personal_productivity.v1",
     "ck.profile.draft_sync.v1",
+    "ck.profile.file_transfer.v1",
     "ck.profile.disappearing.v1",
     "ck.profile.calendar_event.v1",
     "ck.profile.pinned_items.v1",
@@ -131,6 +132,7 @@
       "ck.profile.mimi_interop.v1",
       "ck.profile.personal_productivity.v1",
       "ck.profile.draft_sync.v1",
+      "ck.profile.file_transfer.v1",
       "ck.profile.disappearing.v1",
       "ck.profile.calendar_event.v1",
       "ck.profile.pinned_items.v1",
@@ -282,6 +284,7 @@
     "ck.profile.move_anchor_lattice_vectors.v1": "interop",
     "ck.profile.personal_productivity.v1": "client",
     "ck.profile.draft_sync.v1": "client",
+    "ck.profile.file_transfer.v1": "client",
     "ck.profile.disappearing.v1": "client",
     "ck.profile.calendar_event.v1": "client",
     "ck.profile.pinned_items.v1": "client",
@@ -3452,6 +3455,39 @@
           "draft_slot_lww"
         ],
         "unsupported_optional": "omit remote draft sync rather than writing drafts into shared Realm history"
+      }
+    },
+    "ck.profile.file_transfer.v1": {
+      "description": "Client profile for principal-private cross-device file transfer backed by encrypted account data, authenticated Blob storage, and to-device key delivery for device-bound transfers.",
+      "required_endpoints": [
+        "ck.self.account.subscribe",
+        "ck.self.events.submit",
+        "ck.self.blob.upload",
+        "ck.self.blob.head",
+        "ck.self.blob.get",
+        "ck.self.device_messages.put",
+        "ck.self.device_messages.get"
+      ],
+      "required_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.file_transfer.v1",
+        "ck.schema.blob.v1",
+        "ck.schema.device_message.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "file_transfer_account_data",
+          "file_transfer_ciphertext_blob",
+          "file_transfer_to_device_key_delivery"
+        ],
+        "unsupported_optional": "omit file-transfer UI rather than writing private file-transfer records into shared Realm history or exposing plaintext Blob metadata"
       }
     },
     "ck.profile.disappearing.v1": {

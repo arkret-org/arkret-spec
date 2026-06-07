@@ -190,6 +190,19 @@
       ]
     },
     {
+      "key_pattern": "ck.file_transfer.v1:<transfer_key>",
+      "status": "active",
+      "scope": "principal_private_file_transfer_state",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Principal-private cross-device file transfer record keyed by an HMAC-derived transfer_key. Blob bytes are stored through ck.self.blob.*; raw blob_ref, filename, target device ids, and plaintext hashes MUST NOT appear in the account-data key.",
+      "source_refs": [
+        "spec/v1/zh/models/file-transfer.md"
+      ]
+    },
+    {
       "key_pattern": "ck.search.index_manifest.v1:<realm_key>",
       "status": "active",
       "scope": "principal_private_search_state",

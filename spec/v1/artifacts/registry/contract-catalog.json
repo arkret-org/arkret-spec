@@ -2166,6 +2166,12 @@
         "description": "Encrypted account-data plaintext shape for cross-device draft sync."
       },
       {
+        "schema_id": "ck.schema.file_transfer.v1",
+        "file": "schemas/file-transfer.schema.json",
+        "status": "active",
+        "description": "Encrypted account-data plaintext shape and to-device key message content for principal-private cross-device file transfer."
+      },
+      {
         "schema_id": "ck.schema.calendar_event.v1",
         "file": "schemas/calendar-event.schema.json",
         "status": "active",

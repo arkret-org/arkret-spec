@@ -31,17 +31,17 @@ updated: 2026-06-07
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
 | Event kind（active） | 184 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 92 | `artifacts/registry/schema-registry.json` |
+| Schema | 93 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 47 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 122 | `artifacts/registry/operation-registry.json` |
-| Claimable conformance profile | 79 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | 103 | `artifacts/profiles/conformance-profiles.json` |
+| Claimable conformance profile | 80 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 104 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数（92）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 92，与 registered schema id 数一一对应（无文件复用、无孤儿文件），以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ck.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数（93）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 93，与 registered schema id 数一一对应（无文件复用、无孤儿文件），以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ck.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含三个 wire-breaking cleanup：`ck.schema.handle_claim.v1.claim_kind` 不再允许 draft-era `service_handle`（服务 / 资源可读名必须迁移到独立服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`），`ck.member.identity.update` payload 中旧草案字段 `identity_state_digest` 已更名为 `identity_payload_digest`，以避免与 roster `member_display_state_digest` 混淆，并且直接 DID 邀请（`ck.schema.invite.v1` 中出现 `invitee` 且不属于 `third_party_id` 分支）必须携带 `invite_delivery_target` 与 `introduction_evidence_digest`，使 base invite 不再依赖 handle resolve 作为投递授权。实现者 MUST NOT 同时接受旧名和新名作为等价字段，除非在本地迁移层先把旧草案数据正规化后再进入 v1 validator。
 
-`conformance-profiles.json` 另含一组 `profile_requirements` block（89）与 `profile_tiers` 分组（4）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ck.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+`conformance-profiles.json` 另含一组 `profile_requirements` block（90）与 `profile_tiers` 分组（4）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ck.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
 > `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `ck.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 

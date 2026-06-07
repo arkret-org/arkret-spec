@@ -1,0 +1,392 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/file-transfer.schema.json",
+  "title": "Cokret File Transfer Account Data",
+  "type": "object",
+  "description": "Plaintext shape that MUST be encrypted before writing ck.profile.file_transfer.v1 account-data values.",
+  "required": [
+    "kind",
+    "transfer_id",
+    "blob_ref",
+    "content_digest",
+    "blob_size_bytes",
+    "media_type",
+    "plaintext_size_bytes",
+    "access",
+    "encryption",
+    "origin_device_id",
+    "created_at",
+    "updated_hlc",
+    "retention_expires_at",
+    "state"
+  ],
+  "properties": {
+    "kind": {
+      "const": "file_transfer"
+    },
+    "transfer_id": {
+      "$ref": "#/$defs/transfer_id"
+    },
+    "blob_ref": {
+      "$ref": "#/$defs/blob_ref"
+    },
+    "content_digest": {
+      "$ref": "#/$defs/hash",
+      "description": "Digest of the stored blob bytes. For encrypted file transfer this is the ciphertext digest and MUST NOT be a plaintext file hash."
+    },
+    "blob_size_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Size of the stored blob bytes, usually ciphertext plus AEAD overhead."
+    },
+    "media_type": {
+      "$ref": "#/$defs/media_type",
+      "description": "Original file media type. This field lives inside encrypted account data; encrypted blob metadata SHOULD use application/octet-stream."
+    },
+    "filename": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "plaintext_size_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Original file byte length before client-side encryption."
+    },
+    "access": {
+      "$ref": "#/$defs/access"
+    },
+    "encryption": {
+      "$ref": "#/$defs/encryption"
+    },
+    "origin_device_id": {
+      "$ref": "#/$defs/device_id"
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "updated_hlc": {
+      "$ref": "#/$defs/hlc"
+    },
+    "retention_expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "available",
+        "downloaded",
+        "dismissed",
+        "deleted"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "access": {
+            "properties": {
+              "visibility": {
+                "const": "device_bound"
+              }
+            },
+            "required": [
+              "visibility"
+            ]
+          }
+        },
+        "required": [
+          "access"
+        ]
+      },
+      "then": {
+        "properties": {
+          "access": {
+            "required": [
+              "recipient_device_ids"
+            ]
+          },
+          "encryption": {
+            "properties": {
+              "key_delivery": {
+                "properties": {
+                  "method": {
+                    "const": "to_device_wrapped_key"
+                  }
+                },
+                "required": [
+                  "method"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "access": {
+            "properties": {
+              "visibility": {
+                "const": "actor_private"
+              }
+            },
+            "required": [
+              "visibility"
+            ]
+          }
+        },
+        "required": [
+          "access"
+        ]
+      },
+      "then": {
+        "properties": {
+          "encryption": {
+            "properties": {
+              "key_delivery": {
+                "properties": {
+                  "method": {
+                    "const": "account_data_wrapped_key"
+                  }
+                },
+                "required": [
+                  "method"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hlc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "transfer_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._~=-]{22,128}$"
+    },
+    "blob_ref": {
+      "type": "string",
+      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "media_type": {
+      "type": "string",
+      "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "base64url": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "access": {
+      "type": "object",
+      "required": [
+        "visibility"
+      ],
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "actor_private",
+            "device_bound"
+          ]
+        },
+        "recipient_device_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/device_id"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "encryption": {
+      "type": "object",
+      "required": [
+        "scheme",
+        "aead_profile",
+        "nonce",
+        "aad",
+        "key_delivery"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "ck.file_transfer.encrypted_blob.v1"
+        },
+        "aead_profile": {
+          "type": "string",
+          "enum": [
+            "ck.aead.xchacha20_poly1305.v1"
+          ]
+        },
+        "nonce": {
+          "$ref": "#/$defs/base64url"
+        },
+        "aad": {
+          "$ref": "#/$defs/encryption_aad"
+        },
+        "key_delivery": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/account_data_wrapped_key"
+            },
+            {
+              "$ref": "#/$defs/to_device_wrapped_key"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "encryption_aad": {
+      "type": "object",
+      "required": [
+        "schema",
+        "purpose",
+        "transfer_id",
+        "blob_ref",
+        "origin_device_id",
+        "created_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ck.schema.file_transfer.v1"
+        },
+        "purpose": {
+          "const": "file_transfer"
+        },
+        "transfer_id": {
+          "$ref": "#/$defs/transfer_id"
+        },
+        "blob_ref": {
+          "$ref": "#/$defs/blob_ref"
+        },
+        "origin_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_data_wrapped_key": {
+      "type": "object",
+      "required": [
+        "method",
+        "content_key"
+      ],
+      "properties": {
+        "method": {
+          "const": "account_data_wrapped_key"
+        },
+        "content_key": {
+          "$ref": "#/$defs/base64url",
+          "description": "Fresh per-transfer content key carried only inside encrypted account-data plaintext."
+        }
+      },
+      "additionalProperties": false
+    },
+    "to_device_wrapped_key": {
+      "type": "object",
+      "required": [
+        "method",
+        "key_message_kind"
+      ],
+      "properties": {
+        "method": {
+          "const": "to_device_wrapped_key"
+        },
+        "key_message_kind": {
+          "const": "ck.file_transfer.key.v1"
+        }
+      },
+      "additionalProperties": false
+    },
+    "file_transfer_key_message": {
+      "type": "object",
+      "required": [
+        "transfer_id",
+        "blob_ref",
+        "aead_profile",
+        "nonce",
+        "content_digest",
+        "key_envelope",
+        "expires_at"
+      ],
+      "properties": {
+        "transfer_id": {
+          "$ref": "#/$defs/transfer_id"
+        },
+        "blob_ref": {
+          "$ref": "#/$defs/blob_ref"
+        },
+        "aead_profile": {
+          "type": "string",
+          "enum": [
+            "ck.aead.xchacha20_poly1305.v1"
+          ]
+        },
+        "nonce": {
+          "$ref": "#/$defs/base64url"
+        },
+        "content_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "key_envelope": {
+          "$ref": "#/$defs/key_envelope"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "key_envelope": {
+      "type": "object",
+      "required": [
+        "scheme",
+        "enc",
+        "ciphertext",
+        "aad_digest"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "ck.hpke_x25519_aead_xchacha20poly1305.v1"
+        },
+        "enc": {
+          "$ref": "#/$defs/base64url",
+          "description": "HPKE KEM encapsulated key for the recipient device."
+        },
+        "ciphertext": {
+          "$ref": "#/$defs/base64url"
+        },
+        "aad_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -68,7 +68,8 @@ def main() -> int:
     current = manifest()
     if args.write_reference:
         args.reference.parent.mkdir(parents=True, exist_ok=True)
-        args.reference.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        with args.reference.open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(json.dumps(current, indent=2, sort_keys=True) + "\n")
         print(f"wrote fixture digest reference: {args.reference}")
         return 0
 

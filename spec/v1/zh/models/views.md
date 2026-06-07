@@ -409,7 +409,7 @@ Cokret v1 固定：
 
 ## 11. 规范性引用
 
-- Query JSON schema 见 `../conformance/query-schema.md`。
+- Query JSON schema 见 [`../conformance/query-schema.md`](../conformance/query-schema.md)。
 - Flow / Message 规则见 [flow-and-message.md](./flow-and-message.md)。
 - Realm / Space 语义见 [realm-and-space.md](./realm-and-space.md)。
 - Morph / facets 见 [morph.md](./morph.md)。
