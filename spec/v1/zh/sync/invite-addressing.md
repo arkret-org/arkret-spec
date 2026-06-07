@@ -29,14 +29,14 @@ base v1 invite **MUST NOT** 依赖 `ck.find.directory.resolve_handle(intent="inv
 
 ```json
 {
-  "subject_id": "did:web:bob.example",
+  "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "recipient_service_did": "did:web:ps.bob.example"
 }
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `subject_id` | DID | MUST | 被邀请的 principal / holder DID。 |
+| `subject_id` | DID | MUST | 被邀请的 principal / holder DID。v1 core 默认使用 `did:webvh`；`did:web` 仅在 `personal_node` deployment profile 或其它显式 method policy 允许时可作为 principal DID。 |
 | `recipient_service_did` | DID | MUST | 接收 invite delivery 的 Principal Server service DID。 |
 | `recipient_service_type` | const | MAY | 若出现，MUST 等于 `principal_server`；默认省略。 |
 
@@ -83,7 +83,9 @@ body：
 
 token 要求：
 
-- `locator_token` MUST 至少 128 bit 熵；高安全部署 SHOULD 使用 192 bit 或更高。
+- `locator_token` SHOULD 是不透明 server-side handle；服务端私有状态保存 `subject_id`、`recipient_service_did`、TTL、撤销状态与接收策略。
+- `locator_token` MUST 至少 128 bit 熵；base64url 无 padding 编码时 128 bit 约为 22 字符，192 bit 为 32 字符。高安全部署 SHOULD 使用 192 bit 或更高，但 128 bit 已满足 v1 floor。
+- `locator_token` MUST NOT 是明文可解码的 `base64url(JSON)`，也不得在 token 明文中携带 `subject_id`、`recipient_service_did`、`expires_at`、策略状态或其它可识别 invitee 的材料。若部署需要 stateless token，payload MUST 先做 authenticated encryption；调用方仍只把它当 opaque bearer secret。
 - token MUST 不可枚举、可撤销、可设置短 TTL，并 MAY 设置一次性使用。
 - endpoint 对不存在、过期、撤销、策略拒绝的响应 MUST 尽量不可区分。
 - endpoint 返回体 MUST 是签名 `principal_locator`；调用方不能只信任 HTTPS URL。
@@ -97,7 +99,7 @@ token 要求：
 ```json
 {
   "schema": "ck.schema.principal_locator.v1",
-  "subject_id": "did:web:bob.example",
+  "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "recipient_service_did": "did:web:ps.bob.example",
   "issued_at": "2026-06-07T10:00:00Z",
   "expires_at": "2026-06-07T10:15:00Z",
@@ -136,7 +138,7 @@ token 要求：
 ```json
 {
   "schema": "ck.schema.invite_receive_policy.v1",
-  "subject_id": "did:web:bob.example",
+  "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "allowed_introduction_kinds": [
     "locator_ref",
     "shared_realm",
@@ -164,7 +166,7 @@ token 要求：
 ```json
 {
   "invite_id": "ck:invite:0196419b-0000-7000-8000-000000000010",
-  "invitee": "did:web:bob.example",
+  "invitee": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "invite_delivery_target": {
     "recipient_service_did": "did:web:ps.bob.example"
   },

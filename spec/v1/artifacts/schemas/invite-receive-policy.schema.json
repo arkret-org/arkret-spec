@@ -16,7 +16,8 @@
       "const": "ck.schema.invite_receive_policy.v1"
     },
     "subject_id": {
-      "$ref": "#/$defs/did"
+      "$ref": "#/$defs/did",
+      "description": "Principal DID whose private invite receive policy this object configures. v1 core defaults principal DIDs to did:webvh; did:web is only valid for principal identity when an explicit deployment profile or resolver policy allows it."
     },
     "allowed_introduction_kinds": {
       "type": "array",

@@ -58,10 +58,12 @@
       ],
       "properties": {
         "subject_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did",
+          "description": "Principal DID of the invite recipient. v1 core defaults principal DIDs to did:webvh; did:web is only valid for principal identity when an explicit deployment profile or resolver policy allows it."
         },
         "recipient_service_did": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did",
+          "description": "Principal Server service DID that accepts invite delivery for subject_id."
         },
         "recipient_service_type": {
           "const": "principal_server",

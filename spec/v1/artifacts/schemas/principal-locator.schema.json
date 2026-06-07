@@ -19,7 +19,7 @@
     },
     "subject_id": {
       "$ref": "#/$defs/did",
-      "description": "Principal DID of the invite recipient."
+      "description": "Principal DID of the invite recipient. v1 core defaults principal DIDs to did:webvh; did:web is only valid for principal identity when an explicit deployment profile or resolver policy allows it."
     },
     "recipient_service_did": {
       "$ref": "#/$defs/did",
@@ -140,7 +140,7 @@
         "locator_token": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{22,512}$",
-          "description": "Base64url locator token with at least 128 bits of entropy. It MUST be sent in the JSON body, never in URL path or query string."
+          "description": "Opaque base64url locator token with at least 128 bits of entropy. It SHOULD be a server-side handle and MUST NOT plaintext-encode subject_id, recipient_service_did, expiry, policy state, or other invitee-identifying material. It MUST be sent in the JSON body, never in URL path or query string."
         }
       },
       "additionalProperties": false
