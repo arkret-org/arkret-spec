@@ -4938,7 +4938,8 @@
           "required": [
             "invitee",
             "invite_delivery_target",
-            "introduction_evidence_digest"
+            "introduction_evidence_digest",
+            "expires_at"
           ]
         },
         {
@@ -4974,6 +4975,10 @@
         "introduction_evidence_digest": {
           "$ref": "#/$defs/hash",
           "description": "Digest of private invite delivery introduction_evidence. Raw locator tokens and receive-policy state MUST NOT appear in durable Realm events."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Invite expiry timestamp. Directed v1 invite creates MUST carry it; reducers MUST NOT infer indefinite validity."
         },
         "third_party_id": {
           "$ref": "./invite.schema.json#/$defs/third_party_invite"
@@ -5035,9 +5040,6 @@
         },
         "reason": {
           "type": "string"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "patternProperties": {
