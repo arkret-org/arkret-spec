@@ -2643,11 +2643,37 @@
                   "challenge_response",
                   "manual_review",
                   "parent_membership",
+                  "principal_admission",
                   "cooldown"
                 ]
               },
               "auto_resolve": {
                 "type": "boolean"
+              },
+              "allowed_did_methods": {
+                "type": "array",
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^did:[a-z0-9]+$"
+                }
+              },
+              "allowed_principal_dids": {
+                "type": "array",
+                "maxItems": 256,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/did"
+                }
+              },
+              "denied_principal_dids": {
+                "type": "array",
+                "maxItems": 256,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/did"
+                }
               }
             },
             "additionalProperties": true

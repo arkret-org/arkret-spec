@@ -98,7 +98,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 字段语义：
 
 - `gate_id`：稳定 id，用于审计与 application 中的 proof 关联。**`gate_id` MUST 在 `gates[]` 中唯一**——重复值 MUST 触发 `schema_violation`（`reason_code=join_policy_duplicate_gate_id`，见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）。enforcement 由三层组成：(a) [`event-payload.schema.json#/$defs/join_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 在 `gates` 数组上声明 `uniqueItems: true`，捕获**整对象重复**的 gate；(b) JSON Schema 2020-12 无法以纯 schema 表达"按字段属性去重"，因此 [`tools/lint_artifacts.py` `check_join_policy_gate_id_uniqueness`](../../../../tools/lint_artifacts.py) 在 fixture 与 Markdown JSON 示例中机械拒绝**按 `gate_id` 去重**的违例；(c) reducer 在 wire 上再做一次 `gate_id` 唯一性校验并以上述 reason_code 拒绝。三层共同构成机器可执行的闭环。
-- `kind`：取 `claim_required` / `application_form` / `challenge_response` / `manual_review` / `parent_membership` / `cooldown` 之一
+- `kind`：取 `claim_required` / `application_form` / `challenge_response` / `manual_review` / `parent_membership` / `principal_admission` / `cooldown` 之一
 - `auto_resolve`：该 gate 能否仅靠 applicant 提交的材料解析；`manual_review` / `application_form` 必为 `false`
 - 其余字段按 `kind` 决定（见下表）
 
@@ -106,12 +106,48 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- | --- |
 | `claim_required` | `requires_claims[]`（见 [`../authz/constraint-schema.md` §10](../authz/constraint-schema.md)） | applicant MUST 提交满足声明集合的 VC / claim presentation。 | `true` |
 | `parent_membership` | `membership_source_realm_ids: id:realm[]`、`require_min_membership: enum(invite, join)` | applicant MUST 已是任一 source Realm 的指定成员；该字段只是 membership gate 的验证来源，不表达 Realm 树形父子关系。reducer 在 join Move 校验时必须能够独立验证（snapshot 或 backfill）。等价于 Matrix MSC3083 `m.room_membership` 条件。 | `true` |
+| `principal_admission` | 至少一个 selector 字段：`allowed_did_methods[]`、`allowed_principal_dids[]`、`denied_principal_dids[]` | applicant 的 principal DID 自身 MUST 满足 Realm 声明的硬准入条件。典型用途是只允许特定 DID method 或显式 allowlist 中的 principal 加入。 | `true` |
 | `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §12。 | `true` |
 | `application_form` | `questions[]`（见 §3.3） | applicant MUST 在 `member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
 | `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
 | `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `ck.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估；亦不计入 §5 "applicant 拟使用的 gate 子集"的 `auto_resolve` 全称校验，见 §5）。此 gate 的语义是 **leave-cooldown**（按上次主动 leave 计时），prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
 
 未注册 `kind` MUST schema_violation；未注册的 `(kind, subfield)` 组合按 lattice `bottom=reject` 处理。
+
+#### `principal_admission`
+
+`principal_admission` 是自动解析 gate，用于约束提交 `ck.member.state{membership="join"}` 的 `actor_id` / `payload.actor_id` 所指 principal DID。它只判断 principal DID 本身，不替代 capability、invite、review、claim presentation、DID Document 解析、service delegation 或 [`member-delivery-binding.md`](./member-delivery-binding.md) 的投递绑定校验。
+
+字段：
+
+- `allowed_did_methods[]`：允许的 DID method 列表，元素使用完整 `did:<method>` 标签（例如 `did:webvh`、`did:web`、`did:key`）。空或缺省表示不按 method 限制。
+- `allowed_principal_dids[]`：可选精确 allowlist。非空时 applicant DID MUST 等于其中一个值。
+- `denied_principal_dids[]`：可选精确 denylist。denylist 优先级最高；命中时 MUST 拒绝，即使也命中 allowlist。
+
+`principal_admission` 至少 MUST 声明一个 selector 字段（上述三个数组之一非空，或实现 profile 明确声明的等价 selector），否则 reducer MUST 以 `schema_violation` 拒绝 policy 写入。多个 selector 字段按 AND 组合，denylist 先于 allowlist 评估。
+
+`principal_admission` 是 hard pre-admission gate：只要 Join Policy 中出现该 gate，reducer MUST 在普通 `combinator` 解析、application form 或 manual review 之前先评估它；任一 `principal_admission` gate 失败时，当前 join / knock / application MUST fail closed，applicant 不得通过其它 gate 或人工审核路径绕过 principal 准入约束。
+
+加入失败对外 MUST 使用通用 `gate_check_failed`，不得向 external applicant 区分"method 不允许"、"DID 不在 allowlist"、"DID 在 denylist"等细节；细节 MAY 写入 reviewer / admin 可见审计日志。
+
+示例：
+
+```json
+{
+  "gates": [
+    {
+      "gate_id": "principal-users-acme",
+      "kind": "principal_admission",
+      "auto_resolve": true,
+      "allowed_did_methods": ["did:webvh"],
+      "allowed_principal_dids": [
+        "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.acme.example:bob"
+      ]
+    }
+  ],
+  "combinator": "all"
+}
+```
 
 ### 3.2 `directory_hint`
 
