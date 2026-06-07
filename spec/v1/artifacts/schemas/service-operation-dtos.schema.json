@@ -2131,20 +2131,6 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "title": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile."
-        },
-        "summary": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile."
-        },
         "state": {
           "type": "string",
           "enum": [
@@ -2159,6 +2145,20 @@
             "null"
           ],
           "format": "date-time"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile."
+        },
+        "summary": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile."
         },
         "board_space_id": {
           "type": [
@@ -2182,6 +2182,14 @@
             "null"
           ],
           "description": "Derived rank within list_space_id from ck.component.flow.position.v1."
+        },
+        "assigned_actor_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          },
+          "description": "Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=flow_id). Empty or absent means the Flow is unassigned for this projection caller. This is read-model state, not canonical Flow object metadata."
         },
         "created_by": {
           "type": [
