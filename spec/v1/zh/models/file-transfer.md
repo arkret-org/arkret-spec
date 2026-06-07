@@ -79,11 +79,10 @@ AEAD AAD MUST 至少绑定：
 - `schema="ck.schema.file_transfer.v1"`
 - `purpose="file_transfer"`
 - `transfer_id`
-- `blob_ref`
 - `origin_device_id`
 - `created_at`
 
-Receiver MUST 在解密前校验 `blob_ref` 与 `content_digest` 均和实际下载字节一致；不一致 MUST 拒绝、丢弃已下载字节、不得渲染或写入持久缓存。`content_digest` 是 Blob 密文字节摘要的唯一字段，record 不得再嵌套第二个 ciphertext digest 副本。
+AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = digest(ciphertext)` 与 `ciphertext = AEAD(plaintext, aad(blob_ref))` 形成循环定义。Receiver MUST 在解密前校验 `blob_ref` 与 `content_digest` 均和实际下载字节一致；不一致 MUST 拒绝、丢弃已下载字节、不得渲染或写入持久缓存。`content_digest` 是 Blob 密文字节摘要的唯一字段，record 不得再嵌套第二个 ciphertext digest 副本。
 
 ### 4.1 `account_data_wrapped_key`
 

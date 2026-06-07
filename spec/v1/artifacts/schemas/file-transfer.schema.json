@@ -265,7 +265,6 @@
         "schema",
         "purpose",
         "transfer_id",
-        "blob_ref",
         "origin_device_id",
         "created_at"
       ],
@@ -278,9 +277,6 @@
         },
         "transfer_id": {
           "$ref": "#/$defs/transfer_id"
-        },
-        "blob_ref": {
-          "$ref": "#/$defs/blob_ref"
         },
         "origin_device_id": {
           "$ref": "#/$defs/device_id"
