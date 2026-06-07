@@ -122,6 +122,8 @@ grpc:
       Query: ck.peer.events.query
       Resolve: ck.peer.events.resolve
       Submit: ck.peer.events.submit
+    PeerInvites:
+      Submit: ck.peer.invites.submit
     PeerSnapshot:
       Head: ck.peer.snapshot.head
     SelfEphemeral:
@@ -165,6 +167,8 @@ grpc:
       RoomUpdate: ck.open.mimi.room_update
       SubmitMessage: ck.open.mimi.submit_message
       UpdateConsent: ck.open.mimi.update_consent
+    OpenInviteLocator:
+      Resolve: ck.open.invite_locator.resolve
     SelfModeration:
       Report: ck.self.moderation.report
     SelfPolicy:
@@ -218,6 +222,7 @@ mq:
     peer.events.resolve: ck.peer.events.resolve
     peer.events.query: ck.peer.events.query
     peer.events.frontier: ck.peer.events.frontier
+    peer.invites.submit: ck.peer.invites.submit
     peer.snapshot.head: ck.peer.snapshot.head
     self.ephemeral.send: ck.self.ephemeral.send
     self.call.media.token_exchange: ck.self.call.media.token_exchange
@@ -271,6 +276,7 @@ mq:
     open.mimi.identifier_query: ck.open.mimi.identifier_query
     open.mimi.report_abuse: ck.open.mimi.report_abuse
     open.mimi.proxy_download: ck.open.mimi.proxy_download
+    open.invite_locator.resolve: ck.open.invite_locator.resolve
     edge.push.notify: ck.edge.push.notify
     self.authz.check: ck.self.authz.check
 libp2p:

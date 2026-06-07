@@ -89,7 +89,7 @@ info:
 
     DID trust root; not root/admin privilege), `find` (directory discovery), `peer` (federation server-to-server
 
-    wire; reserved namespace branch), `open` (external protocol interop, e.g. MIMI; not public/no-auth access),
+    wire; reserved namespace branch), `open` (external protocol interop or out-of-band handoff, e.g. MIMI / invite locators; not public/no-auth access),
 
     `edge` (push / bridge gateways).
 
@@ -923,6 +923,14 @@ components:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body
     DirectoryPushRegisterOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome
+    PrincipalLocator:
+      $ref: ../schemas/principal-locator.schema.json
+    PrincipalLocatorResolveRequestBody:
+      $ref: ../schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body
+    InviteDeliveryRequest:
+      $ref: ../schemas/invite-delivery-request.schema.json
+    InviteDeliveryOutcome:
+      $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome
     MimiKeyMaterialRequestBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body
     MimiKeyMaterialOutcome:
@@ -2342,9 +2350,17 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody
     PolicyCheckOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
+    PolicyCheckRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody
+    PolicyCheckResponse:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
     SessionGrantRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
     SessionGrantOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome
+    SessionGrantRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
+    SessionGrantResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome
     AccountDevicePairRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body
@@ -2388,9 +2404,17 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
     AccountOidcCallbackOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
+    AccountOidcCallbackRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
+    AccountOidcCallbackResponse:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
     DidOperationSubmitRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
     DidOperationSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
+    DidOperationSubmitRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
+    DidOperationSubmitResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
     ProjectionSpaceRow:
       type: object
@@ -2447,6 +2471,8 @@ components:
           - 'null'
           format: date-time
     ProjectionSpaceList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
+    ProjectionSpacesResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
     ProjectionFlowRow:
       type: object
@@ -2516,6 +2542,8 @@ components:
           format: date-time
     ProjectionFlowList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList
+    ProjectionFlowsResponse:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList
     ProjectionMorphRow:
       type: object
       additionalProperties: false
@@ -2564,15 +2592,25 @@ components:
           format: date-time
     ProjectionMorphList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
+    ProjectionMorphsResponse:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
     EphemeralSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome
     DirectoryAnnounceRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
     DirectoryAnnounceOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
+    DirectoryAnnounceRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
+    DirectoryAnnounceResponse:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
     DirectoryWithdrawRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
     DirectoryWithdrawOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
+    DirectoryWithdrawRequest:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
+    DirectoryWithdrawResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
   responses:
     NotFound:
@@ -2720,13 +2758,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DidOperationSubmitOutcome'
+                $ref: '#/components/schemas/DidOperationSubmitResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DidOperationSubmitRequestBody'
+              $ref: '#/components/schemas/DidOperationSubmitRequest'
   /_cokret/root/identity/receipts:
     get:
       operationId: ck.root.identity.get_receipts
@@ -3367,6 +3405,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierFederationPeerState'
+  /_cokret/peer/invites:
+    post:
+      operationId: ck.peer.invites.submit
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      summary: Private Principal Server invite delivery.
+      description: |
+        Delivers a ck.invite.create event from the inviter-side Principal
+        Server to the invitee-side Principal Server. The recipient validates
+        the signed invite event, explicit invite_address, introduction_evidence,
+        destination service DID, and subject-private invite_receive_policy
+        before notifying, quarantining, or dropping internally.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteDeliveryRequest'
+      responses:
+        '200':
+          description: Generic invite delivery receive outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteDeliveryOutcome'
   /_cokret/self/ephemeral:
     post:
       operationId: ck.self.ephemeral.send
@@ -3850,7 +3919,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionSpaceList'
+                $ref: '#/components/schemas/ProjectionSpacesResponse'
   /_cokret/self/projection/flows:
     get:
       operationId: ck.self.projection.flows
@@ -3898,7 +3967,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionFlowList'
+                $ref: '#/components/schemas/ProjectionFlowsResponse'
   /_cokret/self/projection/morphs:
     get:
       operationId: ck.self.projection.morphs
@@ -3946,7 +4015,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionMorphList'
+                $ref: '#/components/schemas/ProjectionMorphsResponse'
   /_cokret/find/directory/resolve-handle:
     post:
       operationId: ck.find.directory.resolve_handle
@@ -4527,6 +4596,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModerationReportOutcome'
+  /_cokret/open/invite-locators/resolve:
+    post:
+      operationId: ck.open.invite_locator.resolve
+      security: []
+      x-cokret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Resolve an online invite locator token.
+      description: |
+        Resolves an out-of-band locator token into a signed principal_locator.
+        The token is sent in the JSON body; QR/link handoff SHOULD carry it in
+        the URL fragment so HTTP servers, proxies, and Referer logs do not
+        receive the token in path or query string.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrincipalLocatorResolveRequestBody'
+      responses:
+        '200':
+          description: Signed principal locator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrincipalLocator'
   /_cokret/open/mimi/provider-directory:
     get:
       operationId: ck.open.mimi.provider_directory
@@ -4824,13 +4919,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryAnnounceOutcome'
+                $ref: '#/components/schemas/DirectoryAnnounceResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryAnnounceRequestBody'
+              $ref: '#/components/schemas/DirectoryAnnounceRequest'
   /_cokret/find/directory/withdraw:
     post:
       operationId: ck.find.directory.withdraw
@@ -4846,13 +4941,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryWithdrawOutcome'
+                $ref: '#/components/schemas/DirectoryWithdrawResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
+              $ref: '#/components/schemas/DirectoryWithdrawRequest'
   /_cokret/find/directory/search-realms:
     post:
       operationId: ck.find.directory.search_realms
@@ -5333,13 +5428,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyCheckOutcome'
+                $ref: '#/components/schemas/PolicyCheckResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyCheckRequestBody'
+              $ref: '#/components/schemas/PolicyCheckRequest'
   /_cokret/self/rtc/ice-config:
     servers:
     - url: https://{host}
@@ -5420,13 +5515,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionGrantOutcome'
+                $ref: '#/components/schemas/SessionGrantResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SessionGrantRequestBody'
+              $ref: '#/components/schemas/SessionGrantRequest'
   /_cokret/gate/account/session-grants/revoke:
     servers:
     - url: https://{host}
@@ -5757,10 +5852,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountOidcCallbackOutcome'
+                $ref: '#/components/schemas/AccountOidcCallbackResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountOidcCallbackRequestBody'
+              $ref: '#/components/schemas/AccountOidcCallbackRequest'

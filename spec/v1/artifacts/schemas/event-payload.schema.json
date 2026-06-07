@@ -4776,7 +4776,9 @@
         },
         {
           "required": [
-            "invitee"
+            "invitee",
+            "invite_delivery_target",
+            "introduction_evidence_digest"
           ]
         },
         {
@@ -4804,6 +4806,14 @@
         },
         "invitee": {
           "$ref": "#/$defs/did"
+        },
+        "invite_delivery_target": {
+          "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_target",
+          "description": "Public durable target for private invite delivery. payload.invitee is the subject; this object carries only the recipient Principal Server service DID."
+        },
+        "introduction_evidence_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of private invite delivery introduction_evidence. Raw locator tokens and receive-policy state MUST NOT appear in durable Realm events."
         },
         "third_party_id": {
           "$ref": "./invite.schema.json#/$defs/third_party_invite"

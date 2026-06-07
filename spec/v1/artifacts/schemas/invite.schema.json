@@ -30,6 +30,14 @@
     "invitee": {
       "$ref": "#/$defs/did"
     },
+    "invite_delivery_target": {
+      "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_target",
+      "description": "Public durable target for private invite delivery. invitee is the subject; this object carries only the recipient Principal Server service DID."
+    },
+    "introduction_evidence_digest": {
+      "$ref": "#/$defs/hash",
+      "description": "Digest of private invite delivery introduction_evidence. Raw locator tokens and receive-policy state MUST NOT appear in durable Realm events."
+    },
     "third_party_id": {
       "$ref": "#/$defs/third_party_invite"
     },
@@ -72,6 +80,26 @@
       "$ref": "#/$defs/timestamp"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "invitee"
+        ],
+        "not": {
+          "required": [
+            "third_party_id"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "invite_delivery_target",
+          "introduction_evidence_digest"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "did": {
       "type": "string",
@@ -81,6 +109,10 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "third_party_invite": {
       "type": "object",

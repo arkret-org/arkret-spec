@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-26
+updated: 2026-06-07
 see_also:
   - sync/service-http-binding.md
   - sync/operations-sync.md
@@ -92,10 +92,10 @@ DID Document SHOULD 只负责：
 
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
-| Principal Server | 普通用户或组织自建的核心入口 | `/_cokret/describe`, `/_cokret/self/events/*`, `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, `/_cokret/peer/events/*`, `/_cokret/peer/snapshot/*`, 可代理 `/_cokret/self/blob/*`, `/_cokret/self/authz/*`, `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*` | 用户/组织的受控入口、Event 提交/读取、account viewer / profile 自服务、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
+| Principal Server | 普通用户或组织自建的核心入口 | `/_cokret/describe`, `/_cokret/self/events/*`, `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, `/_cokret/peer/events/*`, `/_cokret/peer/invites`, `/_cokret/peer/snapshot/*`, `/_cokret/open/invite-locators/resolve`, 可代理 `/_cokret/self/blob/*`, `/_cokret/self/authz/*`, `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*` | 用户/组织的受控入口、Event 提交/读取、account viewer / profile 自服务、client sync、联邦 transaction、invite locator / 私有 invite delivery、服务发现聚合、明文可见边界执行。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/_cokret/root/identity/*`, `/_cokret/describe` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
 | Auth Server | 个人部署可内置；组织通常独立或接入 SSO | `/_cokret/gate/account/*` 与 `/_cokret/describe.auth_metadata`；具体登录 UI 路径 MAY 由部署定义 | 注册 / account binding、登录、passkey/OIDC/SSO、session grant 签发与撤销、device pairing、账户恢复；不得直接替代 DID 控制权。 |
-| Sync / Federation Server | 普通用户通常内置在 Principal Server | `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, `/_cokret/peer/events/*`, `/_cokret/peer/snapshot/*`, `/_cokret/describe` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
+| Sync / Federation Server | 普通用户通常内置在 Principal Server | `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, `/_cokret/peer/events/*`, `/_cokret/peer/invites`, `/_cokret/peer/snapshot/*`, `/_cokret/describe` | client sync、subscription、backfill、snapshot head、跨域 transaction、invite delivery、重放和 destination 绑定校验。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/_cokret/find/directory/*`, `/_cokret/describe` | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/_cokret/self/blob/*`, `/_cokret/self/rtc/*`, `/_cokret/describe` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
 | Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*`, `/_cokret/self/keys/keypackages/*`, `/_cokret/self/keys/backups/*`, `/_cokret/describe` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
@@ -150,7 +150,9 @@ GET /_cokret/describe
     "ck.peer.events.query",
     "ck.peer.events.resolve",
     "ck.peer.events.frontier",
+    "ck.peer.invites.submit",
     "ck.peer.snapshot.head",
+    "ck.open.invite_locator.resolve",
     "ck.self.account.viewer",
     "ck.self.account.update_profile",
     "ck.self.account.subscribe"
@@ -164,8 +166,19 @@ GET /_cokret/describe
   "supported_features": [
     "sync_stream",
     "snapshot",
+    "invite_addressing",
     "notifications"
   ],
+  "x_invite_addressing": {
+    "supported_introduction_kinds": [
+      "locator_ref",
+      "shared_realm",
+      "same_principal_server",
+      "explicit_address"
+    ],
+    "recommended_introduction_kind": "locator_ref",
+    "explicit_address_default_behavior": "quarantine"
+  },
   "auth_metadata": {
     "oauth_issuer": "https://auth.example.com",
     "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",

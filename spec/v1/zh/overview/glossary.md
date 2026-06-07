@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-05
+updated: 2026-06-07
 see_also:
   - index.md
   - overview/architecture.md
@@ -41,8 +41,8 @@ see_also:
 | pairwise pseudonym / pairwise DID | 成对假名 / 成对 DID | 为降低跨 Realm 或跨服务关联性而按 scope 派生或选择的 DID 形态。它在给定 Realm、Flow track、service audience 或 profile 声明的 privacy scope 内作为 `actor_id` / routing identity 使用，但不自动披露 holder 的 principal DID；映射必须通过加密的 identity_link、claim disclosure、policy evidence 或 holder presentation 验证。Pairwise DID 仍是 DID，不能是非 DID 字符串；跨 scope 复用、与 principal DID 的可逆映射披露、以及授权归因规则由 minimal-metadata / identity profile 明确约束。 |
 | Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
-| Handle | 可路由人类地址 | 面向用户的可读入口，统一 canonical handle `user:domain`，显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`。可由 holder 自托管签发或 Organization / Principal Server / Directory 签发；解析结果含 `subject` DID，并 MAY 携带 `member_delivery_binding.recipient_service_did`，但只有物化为 Realm `delivery_binding` 后才成为投递路径。不可作为协议主体或授权主键。 |
-| Delivery Binding | 投递绑定 | Realm-scoped、actor-scoped 的投递路径权威来源：`delivery_binding.recipient_service_did` 决定该成员的明文 / 事件实际发往哪个服务，是安全相关的一等机制。由 reducer 依 Join Policy 复核 `MemberDeliveryBindingCandidate` 后物化；`did_document_default`（DID Document 默认 Principal Server）只可在 join / rebind 时作为 Realm policy 允许的物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。字段、物化窗口与 fallback 约束的权威定义见 [`identity-handles.md` §3.7](../identity/identity-handles.md)。 |
+| Handle | 可路由人类地址 | 面向用户的可读入口，统一 canonical handle `user:domain`，显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`。可由 holder 自托管签发或 Organization / Principal Server / Directory 签发；解析结果含 `subject` DID，并 MAY 携带 `member_delivery_binding.recipient_service_did`，但只有物化为 Realm `delivery_binding` 后才成为投递路径。Handle 不再是 base invite delivery 的安全关键路径；invite 使用 `invite_address + introduction_evidence`。不可作为协议主体或授权主键。 |
+| Delivery Binding | 投递绑定 | Realm-scoped、actor-scoped 的投递路径权威来源：`delivery_binding.recipient_service_did` 决定该成员的明文 / 事件实际发往哪个服务，是安全相关的一等机制。由 reducer 依 Join Policy 复核 invite address / principal locator / 可选 `MemberDeliveryBindingCandidate` 等 evidence 后物化；`did_document_default`（DID Document 默认 Principal Server）只可在 join / rebind 时作为 Realm policy 允许的物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。字段、物化窗口与 fallback 约束的权威定义见 [`member-delivery-binding.md`](../governance/member-delivery-binding.md)。 |
 | Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Realm history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |

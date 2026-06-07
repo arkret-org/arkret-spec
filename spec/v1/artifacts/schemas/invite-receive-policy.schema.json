@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/invite-receive-policy.schema.json",
+  "title": "Cokret Invite Receive Policy",
+  "description": "Subject-private policy used by a Principal Server to decide which invite delivery introduction evidence may notify the holder. This policy is not written into the target Realm durable event log.",
+  "type": "object",
+  "required": [
+    "schema",
+    "subject_id",
+    "allowed_introduction_kinds",
+    "explicit_address_behavior",
+    "unknown_invites"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ck.schema.invite_receive_policy.v1"
+    },
+    "subject_id": {
+      "$ref": "#/$defs/did"
+    },
+    "allowed_introduction_kinds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/introduction_kind"
+      },
+      "uniqueItems": true,
+      "description": "Allowlist of introduction evidence kinds that may reach holder notification or review."
+    },
+    "explicit_address_behavior": {
+      "type": "string",
+      "enum": [
+        "drop",
+        "quarantine",
+        "notify"
+      ],
+      "description": "Default behavior for explicit_address evidence. Deployments SHOULD default to quarantine or drop, not notify."
+    },
+    "unknown_invites": {
+      "type": "string",
+      "enum": [
+        "drop",
+        "quarantine"
+      ],
+      "description": "Behavior for delivery requests without compliant introduction_evidence."
+    },
+    "trusted_realm_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/realm_id"
+      },
+      "uniqueItems": true
+    },
+    "trusted_principal_services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/did"
+      },
+      "uniqueItems": true
+    },
+    "blocked_principal_services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/did"
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "introduction_kind": {
+      "type": "string",
+      "enum": [
+        "locator_ref",
+        "shared_realm",
+        "same_principal_server",
+        "explicit_address"
+      ]
+    }
+  }
+}

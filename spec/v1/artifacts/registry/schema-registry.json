@@ -97,6 +97,24 @@
       "file": "schemas/invite.schema.json"
     },
     {
+      "schema_id": "ck.schema.principal_locator.v1",
+      "file": "schemas/principal-locator.schema.json",
+      "status": "active",
+      "description": "Signed online invite locator asserting subject_id and recipient_service_did for private invite delivery."
+    },
+    {
+      "schema_id": "ck.schema.invite_delivery_request.v1",
+      "file": "schemas/invite-delivery-request.schema.json",
+      "status": "active",
+      "description": "Private service-to-service invite delivery request carrying invite_address and introduction_evidence."
+    },
+    {
+      "schema_id": "ck.schema.invite_receive_policy.v1",
+      "file": "schemas/invite-receive-policy.schema.json",
+      "status": "active",
+      "description": "Subject-private invite receive policy controlling which introduction evidence kinds may notify the holder."
+    },
+    {
       "schema_id": "ck.schema.authz_operations.v1",
       "file": "schemas/authz-operations.schema.json",
       "status": "active",

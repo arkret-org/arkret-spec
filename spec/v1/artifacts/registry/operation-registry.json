@@ -91,6 +91,7 @@
         "ck.peer.events.query",
         "ck.peer.events.query_post",
         "ck.peer.events.frontier",
+        "ck.peer.invites.submit",
         "ck.peer.snapshot.head"
       ]
     },
@@ -234,6 +235,13 @@
         "ck.open.mimi.notify",
         "ck.open.mimi.report_abuse",
         "ck.open.mimi.proxy_download"
+      ]
+    },
+    {
+      "surface": "invite_locator_handoff",
+      "tier": "extension",
+      "operations": [
+        "ck.open.invite_locator.resolve"
       ]
     },
     {
@@ -871,6 +879,16 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
     },
     {
+      "operation_id": "ck.peer.invites.submit",
+      "http": "POST /_cokret/peer/invites",
+      "grpc": "PeerInvites/Submit",
+      "mq": "peer.invites.submit",
+      "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-DID equal to invite_address.recipient_service_did, a ck.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/invite-delivery-request.schema.json",
+      "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome"
+    },
+    {
       "operation_id": "ck.peer.snapshot.head",
       "http": "GET /_cokret/peer/snapshot/head",
       "grpc": "PeerSnapshot/Head",
@@ -1086,6 +1104,16 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
       "response_schema_ref": "schemas/ice-config-response.schema.json"
+    },
+    {
+      "operation_id": "ck.open.invite_locator.resolve",
+      "http": "POST /_cokret/open/invite-locators/resolve",
+      "grpc": "OpenInviteLocator/Resolve",
+      "mq": "open.invite_locator.resolve",
+      "notes": "Resolves an online invite locator token carried out-of-band, usually as a URL fragment in a QR/link. The locator token MUST be sent in the JSON body, never in URL path or query string; the response is a signed principal_locator.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
+      "response_schema_ref": "schemas/principal-locator.schema.json"
     },
     {
       "operation_id": "ck.open.mimi.group_info",

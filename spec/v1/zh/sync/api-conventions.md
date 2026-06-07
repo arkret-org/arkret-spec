@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-07
 ---
 
 ## 0. 规范语言
@@ -108,6 +108,7 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
 - `ck.self.blob.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
+- online principal locator 的 `#token=` fragment 同样只是客户端 handoff。`locator_token` MUST 通过 `POST /_cokret/open/invite-locators/resolve` JSON body 提交；不得出现在 URL path 或 query string。详见 [`invite-addressing.md`](./invite-addressing.md)。
 
 ### 3.1 认证服务发现
 

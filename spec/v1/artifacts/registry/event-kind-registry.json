@@ -1961,7 +1961,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite create"
+      "payload": "Invite create. Directed v1 invite payloads carry invitee plus invite_delivery_target and introduction_evidence_digest; raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event."
     },
     {
       "event_kind": "ck.invite.cancel",

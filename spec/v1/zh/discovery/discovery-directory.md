@@ -3,7 +3,7 @@ title: Discovery and Directory
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-07
 see_also:
   - ../governance/history-visibility.md
 ---
@@ -583,6 +583,8 @@ Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 | `takedown_contact` | `did \| url?` | operator takedown 时的通知 / 申诉入口。 |
 | `rate_limits` | `object?` | per-DID / per-org / per-IP 配额上限的可读描述。 |
 
+Directory 若支持 handle lookup 的高敏 intent，SHOULD 在 `ServiceDescribe` 扩展字段中声明粗粒度能力，例如 `x_handle_resolution.invite_enabled` 与 `x_handle_resolution.member_add_enabled`。这两个开关为 `false` 或缺失时，客户端 MUST 使用 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 invite address + introduction evidence 流程；不得把 `resolve_handle(intent="invite" | "member_add")` 当作 base invite 前置条件。
+
 ### 8.10 Anti-abuse
 
 ingest 通道 MUST 防御：
@@ -627,8 +629,8 @@ POST /_cokret/find/directory/push/register
 | `ck.find.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回公开或授权可发现组织。 |
 | `ck.find.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
 | `ck.find.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
-| `ck.find.directory.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)`; `body.cursor: cursor` | `results: object[]`（每条 result：`handle: string?`、`did: did?`(conditional)、`display_name: string?`、`avatar_blob_ref: id:blob?`、`membership: string?`、`member_delivery_binding: object?`(conditional)）; `next_cursor: cursor?`; `has_more: boolean?` | mention autocomplete；受共同 Realm / directory policy 限制。分页字段（`has_more` / `next_cursor`）与本表其它 `search_*` op 一致，是 `search-users` 响应的唯一规范分页约定（[`profiles-presence.md` §4.1](./profiles-presence.md) 引用本行，不另定义 `limited`）。result 主体 DID 字段名统一为 `did`。`results[].did` 是 **conditional**：仅当请求方已通过 `resolve_handle` 所需的 claim / presentation / audience / Realm intent 验证，或结果来自调用方本地持有的联系人索引时才可返回；共同 Realm membership 不得单独授权披露 `did`。未授权时结果 MAY 只含 handle / display preview，不返回 `did` 或 `member_delivery_binding`。`query` 不得进入 URL、Referer 或未脱敏 access log。 |
-| `ck.find.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；响应 `handle` 是 canonical `user:domain`；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回。 |
+| `ck.find.directory.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)`; `body.cursor: cursor` | `results: object[]`（每条 result：`handle: string?`、`did: did?`(conditional)、`display_name: string?`、`avatar_blob_ref: id:blob?`、`membership: string?`、`member_delivery_binding: object?`(conditional)）; `next_cursor: cursor?`; `has_more: boolean?` | Directory-side user search / candidate discovery；受共同 Realm / directory policy 限制。Realm message mention MUST 先走 roster-local 解析，不得自动外呼本接口。分页字段（`has_more` / `next_cursor`）与本表其它 `search_*` op 一致，是 `search-users` 响应的唯一规范分页约定（[`profiles-presence.md` §4.1](./profiles-presence.md) 引用本行，不另定义 `limited`）。result 主体 DID 字段名统一为 `did`。`results[].did` 是 **conditional**：仅当请求方已通过 `resolve_handle` 所需的 claim / presentation / audience / Realm intent 验证，或结果来自调用方本地持有的联系人索引时才可返回；共同 Realm membership 不得单独授权披露 `did`。未授权时结果 MAY 只含 handle / display preview，不返回 `did` 或 `member_delivery_binding`。`query` 不得进入 URL、Referer 或未脱敏 access log。 |
+| `ck.find.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 可选 Directory/profile 能力；base invite/member-add 不依赖该接口。受限 / 组织 handle 需要 presentation；响应 `handle` 是 canonical `user:domain`；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回，且只能作为 builder evidence，不能替代 invite address + introduction evidence。 |
 | `ck.find.directory.list_handles_for_subject` | `subject: did` | `realm_id: id`; `intent: enum(lookup,mention,invite,member_add)`; `requester: did`; `proof_challenge: string`; `proofs: proof[]`; `as_of: datetime`; `cursor: cursor`; `limit: int` | `subject: did`; `claims: object[]`; `primary_handle: string?`; `as_of: datetime`; `next_cursor: cursor?`; `has_more: boolean` | 已知 holder / principal DID 时列出当前 context 可见 signed handle claims；响应符合 `ck.schema.list_handles_for_subject_response.v1`，且 `claims[].subject` MUST 等于响应 `subject`。`subject` 不是 Realm `actor_id`。必须按 disclosure policy、issuer trust、audience 和 Realm intent 过滤。 |
 | `ck.find.directory.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `ck.find.directory.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
@@ -637,7 +639,7 @@ POST /_cokret/find/directory/push/register
 
 ### 9.0 Handle 解析（normative）
 
-Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 这类 handle 输入。解析结果是**寻址证据**，不是成员资格、grant 或投递授权本身。已知 `subject` DID 但不知道当前 handle 时，调用方使用 `list-handles-for-subject`；该接口返回的是当前 context 可见 handle claim set，不是 profile 或 MemberIdentity event。
+Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 这类 handle 输入。解析结果是**寻址证据**，不是成员资格、grant、invite delivery 授权或投递授权本身。base v1 invite/member-add 使用 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的显式 `invite_address + introduction_evidence`；`resolve_handle(intent="invite" | "member_add")` 仅是可选 Directory/profile 输出。已知 `subject` DID 但不知道当前 handle 时，调用方使用 `list-handles-for-subject`；该接口返回的是当前 context 可见 handle claim set，不是 profile 或 MemberIdentity event。
 
 当 `intent ∈ {invite, member_add}` 且 Directory 返回 `member_delivery_binding` 时，响应 MUST 满足：
 
@@ -651,6 +653,7 @@ Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.
 Directory MUST NOT：
 
 - 因为某个 Principal Server 本地存在账号就直接披露 `member_delivery_binding.recipient_service_did`。
+- 因为调用方猜中某个 handle 字符串就合成 `invite_address` 或替调用方发起 invite delivery。
 - 向无权请求方泄露组织内部 handle 与 DID / service DID 的映射。
 - 把 handle 解析结果缓存为全局 actor routing；缓存必须绑定 `handle`、claim digest、audience / scope、requester policy 与 expiry。
 - 执行 join、签发 invite token 或授予 Realm capability；Directory 只返回可验证寻址证据。

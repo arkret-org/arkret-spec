@@ -2361,6 +2361,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ck.gate.account.register",
         "ck.gate.account.issue_session_grant",
         "ck.gate.account.oidc_callback",
+        "ck.open.invite_locator.resolve",
     }
 
     for operation_id, operation in operations.items():

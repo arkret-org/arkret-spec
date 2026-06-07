@@ -3,7 +3,7 @@ title: Handle 与 Claim 证明
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-28
+updated: 2026-06-07
 ---
 
 ## 0. 规范语言
@@ -302,7 +302,9 @@ Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理
 2. issuer / coauth / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
 3. 这些外部流程一旦要把结果暴露给 Cokret 客户端或其它服务，MUST 输出 `ck.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
 
-已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `ck.find.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，继续使用 `ck.find.directory.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
+已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `ck.find.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，显示 / lookup 场景继续使用 `ck.find.directory.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
+
+invite / member-add 不再把 `resolve_handle(intent="invite" | "member_add")` 作为 base 安全路径；正式 invite 寻址见 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 `invite_address + introduction_evidence` 模型。Directory 可选返回的 handle candidate 只能作为 builder evidence，不能替代显式 invite address、principal locator 或 Join Policy 复核。
 
 管理员或 issuer 后期修改 handle 的可见效果由 claim set 变化驱动：issuer 签发新 claim、撤销旧 claim、或改变 binding_state / expiry 后，`ck.find.directory.list_handles_for_subject` 和 roster hint MUST 反映新的 effective claim set。客户端 MAY 发布新的 `ck.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
 
@@ -354,9 +356,9 @@ Handle 按 holder 披露意图分两类：
 
 ### 3.7 MemberDeliveryBindingCandidate
 
-`MemberDeliveryBindingCandidate` 是 Handle resolution（`ck.find.directory.resolve_handle(intent="member_add")`）或受信 issuer 直接签发的 **规范级候选对象**：它把 "用 handle 加成员" 这个端到端链路上需要传递的最小字段集合凝固为一个 schema-defined shape，让 Principal Server、SDK builder、Realm reducer、Auth Server 与 directory 之间停止各自拼字符串。Wire schema 见 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json)。
+`MemberDeliveryBindingCandidate` 是可选 Directory / issuer 输出：它可以来自 `ck.find.directory.resolve_handle(intent="member_add" | "invite")` 或受信 issuer 直接签发的 evidence，用于把旧式“用 handle 加成员”的最小证明集合凝固为一个 schema-defined shape，让 Principal Server、SDK builder、Realm reducer、Auth Server 与 directory 之间停止各自拼字符串。Wire schema 见 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json)。
 
-该对象既不是 grant，也不是已物化的 `member_delivery_binding`——它只是**通向**后者的 builder 输入。reducer 在落 `ck.member.state{membership="join"}.delivery_binding` 时仍 MUST 按 [`governance/join-policy.md`](../governance/join-policy.md) 独立验证。
+该对象既不是 grant，也不是已物化的 `member_delivery_binding`，也不是 base invite delivery 所需的 `invite_address`。它只是**通向**后者的 builder 输入。reducer 在落 `ck.member.state{membership="join"}.delivery_binding` 时仍 MUST 按 [`governance/join-policy.md`](../governance/join-policy.md) 独立验证。
 
 ### 3.7.1 字段（normative）
 
@@ -381,9 +383,9 @@ Handle 按 holder 披露意图分两类：
 
 ### 3.7.2 来源（normative）
 
-candidate 只能来自以下两类签发路径：
+candidate 只能来自以下两类签发路径，且二者都不构成 base invite/member-add 的必经路径：
 
-1. **Directory 解析**：`ck.find.directory.resolve_handle(intent="member_add" \| "invite")` 响应 MUST 把 [`discovery-directory.md` §9.0/§9.1](../discovery/discovery-directory.md) 的 handle 解析与通用结果字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
+1. **Directory 解析（可选）**：`ck.find.directory.resolve_handle(intent="member_add" \| "invite")` 响应若声明支持 candidate，MUST 把 [`discovery-directory.md` §9.0/§9.1](../discovery/discovery-directory.md) 的 handle 解析与通用结果字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
 2. **受信 issuer 直接签发**：Organization / Principal Server / 受信 service DID 可以离开 Directory 直接对某 `(handle, subject_id, member_delivery_binding.recipient_service_did, audience)` 组合发签名 candidate，例如随 invite token 内嵌、随 organization-issued member roster 下发。
 
 candidate **不得**直接构造自客户端字符串拼接、UI text、未签名 directory 响应或 cache 残留。任何缺少 `proofs[]` 的对象 MUST NOT 被命名为 candidate。
@@ -420,13 +422,13 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 ### 3.7.5 与 display resolve / mention resolve 的差异
 
-`ck.find.directory.resolve_handle` 三种 intent 返回的字段不同，candidate 只在 `member_add` / `invite` intent 下产生：
+`ck.find.directory.resolve_handle` 三种 intent 返回的字段不同。candidate 只允许在可选 `member_add` / `invite` intent 下产生，且不得替代 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 base invite address / introduction evidence：
 
 | Intent | 返回字段（必含） | 是否产 candidate | 说明 |
 | --- | --- | --- | --- |
 | `lookup` / display resolve | `subject`、`handle`、`verified` | 否 | 仅用于显示双向验证状态；不暴露 `audience` 或 `member_delivery_binding`。 |
 | `mention` resolve | `subject`、`handle`、`display_name?` | 否 | mention autocomplete 需要的最小字段；MUST NOT 在未授权时披露 `member_delivery_binding`。结果存为 message 内 mention snapshot，不进入 membership builder。 |
-| `member_add` / `invite` resolve | §3.7.1 全部 MUST 字段 | 是 | 仅当 caller 已经过授权（共同 Space、Directory policy、organization grant 等）才返回。Directory 拒绝时使用与 "未发现资源" 不可区分的统一拒绝。 |
+| `member_add` / `invite` resolve | §3.7.1 全部 MUST 字段 | 可选 | 仅当 caller 已经过授权（共同 Space、Directory policy、organization grant 等）且 Directory 显式支持该 profile 时才返回。Directory 拒绝时使用与 "未发现资源" 不可区分的统一拒绝。 |
 
 实现 MUST NOT 跨 intent 复用结果：以 `mention` 解析拿到的 payload 不得提升为 candidate；以 `member_add` 解析拿到的 candidate 不得被广播到 mention autocomplete 缓存。
 
@@ -561,7 +563,7 @@ holder DID Document: subject_id → handle   (列入 alsoKnownAs，holder 单方
 | 机制 | 权威字段 / 路径 |
 | --- | --- |
 | Realm 内投递路由 | `ck.member.state{join}.delivery_binding.recipient_service_did` |
-| Realm 加成员 / Join Policy | `MemberDeliveryBindingCandidate`（§3.7）+ issuer claim + audience |
+| Realm 加成员 / Join Policy | `invite_address` / `principal_locator` / Join Policy evidence；可选 `MemberDeliveryBindingCandidate`（§3.7）+ issuer claim + audience |
 | Actor / 签名归因、审计 | Event envelope `actor_id` = DID 本身 |
 | Principal Server 搬迁、域名变更 | DID Document `service` entry + service delegation |
 | 受限 handle（组织内部账号） | issuer claim + audience + scope（§3.5 默认不进公开 DID Document） |
@@ -575,7 +577,7 @@ holder DID Document: subject_id → handle   (列入 alsoKnownAs，holder 单方
 
 Handle 解析分为两个方向：
 
-- **handle → subject**：输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态），使用 `ck.find.directory.resolve_handle` 或下列 issuer discovery 路径。
+- **handle → subject**：输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态），使用 `ck.find.directory.resolve_handle` 或下列 issuer discovery 路径；invite/member-add 的 base 投递不得依赖该方向。
 - **subject/context → current handles**：输入是 `subject` DID、当前 Realm / audience / requester context，使用 `ck.find.directory.list_handles_for_subject` 或 roster 内联 `handle_claims[]`。该方向用于 member roster、mention renderer 和 issuer 重签 / 撤销 claim 后的显示刷新。
 
 已知 handle 时，客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：

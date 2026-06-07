@@ -155,6 +155,8 @@ Schema id: `ck.schema.invite.v1`
 | `realm_id` | yes | `id:realm` |  | 目标 Realm。 |
 | `inviter` | yes | `did` | 必须持有 invite capability。 | 邀请者。 |
 | `invitee` | no | `did` | 3PID 邀请可为空。 | 被邀请 DID。 |
+| `invite_delivery_target` | conditional | object | 直接 DID 邀请中若出现 `invitee` 且不是 `third_party_id` 分支，则 MUST 出现；见 [`../sync/invite-addressing.md`](../sync/invite-addressing.md)。 | 私有 invite delivery 的公开目标服务。 |
+| `introduction_evidence_digest` | conditional | hash | 直接 DID 邀请中若出现 `invitee` 且不是 `third_party_id` 分支，则 MUST 出现；不得包含 raw locator token。 | 私有 `introduction_evidence` 的审计摘要。 |
 | `third_party_id` | no | `object` | 见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 | 邮箱/手机号等外部标识证明。 |
 | `join_rule_snapshot` | yes | `object` | 防止邀请后规则混淆。 | 邀请时 join rule。 |
 | `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 关联授权。 |

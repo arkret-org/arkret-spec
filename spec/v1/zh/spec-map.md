@@ -3,7 +3,7 @@ title: Spec Map
 status: candidate
 normative: false
 stability: v1
-updated: 2026-06-01
+updated: 2026-06-07
 see_also:
   - index.md
   - conformance/normative-language.md
@@ -212,6 +212,7 @@ see_also:
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Principal Server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ck.realm.search_policy` 与 search result fail-closed 语义。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
+| `sync/invite-addressing.md` | Realm invite 的显式 invite address、online principal locator、introduction evidence、private invite delivery 与 handle/mention 边界。 |
 | `sync/service-api-schema.mdx` | canonical operation 分组与治理说明视图（含 `<OperationTable />` 组件）；request / response shape 以 OpenAPI、JSON Schema 和 `artifacts/reports/operation-schema-index.json` 为准。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
 | `sync/transport-bindings.md` | HTTP/REST、gRPC、WebSocket、SSE、MQ、libp2p 等 binding。 |

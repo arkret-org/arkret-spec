@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-07
 ---
 
 ## 0. 规范语言
@@ -48,7 +48,8 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
    - 用户主动进入"高级 / 投递设置"面板查看 / 修改。
 2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_service_did` 不属于该 actor DID Document 默认 `CokretPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
 3. **邀请 flow 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
-   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，先走 `ck.find.directory.resolve_handle(intent="member_add")` 得到 `subject` DID 与 `member_delivery_binding`，UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
+   - 默认使用 [`invite-addressing.md`](./invite-addressing.md) 的 online principal locator 或显式 `subject_id + recipient_service_did` 输入；locator/ref 成功后 UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
+   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，只有在 Directory / Organization 明确支持可选 handle invite/member_add profile 且调用方具备披露授权时，才 MAY 调用 `ck.find.directory.resolve_handle(intent="member_add" | "invite")` 获取可验证 candidate；失败时 MUST 回到 locator/address 模式，不得本地合成 remote service DID；
    - 邀请方在 Org-A 内部 Realm 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
    - 邀请方在个人 Realm 中邀请 → 默认 invitee DID Document `did_document_default`（若 Realm policy 允许）；
    - 多上下文 invitee + 无明确默认 → 提示用户在已知上下文中选择，**不要静默选择**。

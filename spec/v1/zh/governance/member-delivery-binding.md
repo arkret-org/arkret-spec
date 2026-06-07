@@ -3,7 +3,7 @@ title: Member Delivery Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-05
+updated: 2026-06-07
 see_also:
   - join-policy.md
   - ../sync/federation.md
@@ -50,25 +50,28 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 
 所有六类来源都要求 `resolved_at`；任何 `binding_source` 进入 canonical Event 时，**结果 MUST 已在客户端 / 提交服务侧解析完成**，不得留"运行时再 resolve"的隐含状态。
 
-### 3.1 Handle 作为成员添加输入
+### 3.1 邀请 / 成员添加输入
 
-客户端 MAY 允许邀请方输入 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 来添加成员。该字符串只是 builder 输入，不是 membership 主键。
+客户端 MAY 提供两类成员添加输入：
+
+1. **基础路径**：显式 `invite_address`、online `principal_locator` 或其它 [`invite-addressing.md`](../sync/invite-addressing.md) 定义的 `introduction_evidence`。该路径不依赖 handle resolve。
+2. **可选辅助路径**：邀请方输入 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example`。该字符串只是 builder 输入，不是 membership 主键，也不是 invite delivery 授权。
 
 构造 `ck.member.state{membership="join"}` 前，客户端 / 提交服务 MUST：
 
-1. 按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`（主形态为 `<localpart>:<domain>`）。
-2. 调用 `ck.find.directory.resolve_handle` 或等价 Principal Server / Organization Directory 解析，带上 `intent="member_add"`、目标 `realm_id`、`requester` 和 challenge。
-3. 验证响应中的 handle claim / presentation 绑定 `handle`、`subject` DID、`member_delivery_binding.recipient_service_did`、issuer、`expires_at`、撤销状态，以及 `audience`：claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
-4. 生成 member Move 时使用 `payload.actor_id = subject`；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
-5. 若解析结果携带 `member_delivery_binding`，将其物化为 `payload.delivery_binding`，并按 Realm `ck.realm.delivery_binding_policy` 选择 `binding_source`：
-   - 若 invite token / signed candidate 内嵌 binding，优先使用 `invite`，并携带 `service_acceptance_ref`；
-   - 其次使用 Realm join policy 推导的 `join_policy`，并携带 `policy_event_ref`；
+1. 以 `subject_id` / `payload.actor_id` 作为成员主语；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
+2. 对基础路径，验证 `invite_address.subject_id`、`invite_address.recipient_service_did`、`principal_locator` proof、`introduction_evidence_digest` 和 Realm Join Policy；`invite_address.recipient_service_did` 只能作为 join-time `delivery_binding` 的候选输入，仍需按本文件 §2 和 §4 物化。
+3. 对可选 handle 辅助路径，先按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`，再仅在 Directory / Organization 明确支持时调用 `ck.find.directory.resolve_handle(intent="member_add" | "invite")`。不支持、无权或解析失败时，客户端 MUST 回到基础路径，要求提供 locator 或显式 address；不得本地合成 remote `recipient_service_did`。
+4. 若可选解析结果携带 `MemberDeliveryBindingCandidate` 或 `member_delivery_binding`，验证其 handle claim / presentation 绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_did`、issuer、`issued_at`、`expires_at`、撤销状态与 `audience`。claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
+5. 将有效 delivery evidence 物化为 `payload.delivery_binding` 时，按 Realm `ck.realm.delivery_binding_policy` 选择 `binding_source`：
+   - invite locator / invite delivery 已携带并通过接收服务背书的 binding 使用 `invite`，并携带 `service_acceptance_ref`；
+   - Realm join policy 推导的 binding 使用 `join_policy`，并携带 `policy_event_ref`；
    - 组织目录 / 员工名录背书的地址使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_event_ref`；
    - Realm / linked Realm policy 继承使用 `realm_policy`，并携带 `policy_event_ref`；
    - 用户 / 管理员显式选择服务时使用 `explicit`，并携带 `service_acceptance_ref`；
    - 最后才考虑 `did_document_default`，且仅当 Realm `delivery_binding_policy.allow_did_document_default=true` 并已在 join 时物化 DID document hash。
-   - `member_delivery_binding.binding_source` 不得是 `did_document_default`；handle resolution 与 DID Document fallback 是两条独立的物化路径。
-6. 若解析结果没有 `member_delivery_binding.recipient_service_did`，该 handle 只能证明 actor DID；除非 Realm policy 允许 `did_document_default` fallback 并在 join 时完成物化，否则 reducer MUST 拒绝 handle-based join。
+   - 可选 handle candidate 的 `member_delivery_binding.binding_source` 不得是 `did_document_default`；handle resolution 与 DID Document fallback 是两条独立的物化路径。
+6. 若输入只证明 actor DID、没有可接受的 `recipient_service_did` 或服务背书，除非 Realm policy 允许 `did_document_default` fallback 并在 join 时完成物化，否则 reducer MUST 拒绝 routable join。
 
 Reducer MUST 在 gate proof 通过前先校验 applicant 是否具备提交 `ck.member.state{join}` 的 capability 或等价 invite / join-authorized grant；gate 只能增加限制，不能创造权限。最终 `binding_source` 不在 `allow_binding_sources` 中、或优先级决策得到的 binding 与 policy allowlist 冲突时，reducer MUST 返回 `delivery_binding_policy_mismatch`，不得降级到下一个来源。
 
