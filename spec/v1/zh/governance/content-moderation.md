@@ -150,7 +150,7 @@ POST /_cokret/self/moderation/report
 
 ### 3.3 举报的处理
 
-- 举报会生成一个 `ck.self.moderation.report` 事件，写入 Realm Event history；Circle 举报的 cleartext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
+- 举报会生成一个 `ck.self.moderation.report` 事件，写入 Realm Event history；Circle 举报的 plaintext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
 - 该事件仅对目标 scope 的管理员 / moderator 可见；Realm-default 内容是 Realm moderator，Circle 内容是 Circle moderator 或显式覆盖该 Circle 的 Realm grant 持有者。
 - 被举报人不会收到通知。
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）。

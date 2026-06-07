@@ -54,7 +54,7 @@
         "event_id": "ck:event:01964147-0000-7000-8000-000000000000",
         "message_id": "ck:message:01964147-0000-7000-8000-000000000000",
         "flow_id": "ck:flow:01964180-0000-7000-8000-000000000000",
-        "decryption_state": "cleartext"
+        "decryption_state": "plaintext"
       }
     ],
     "next_cursor": "ck:cursor:eyJoIjoiYjNCaGNYVmxMWE4wY21WaGJTMW9ZVzVrYkdVIiwicHVycG9zZSI6InN0cmVhbSIsInQiOiIyMDI2LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6MTc5ODc2MTU5OTAwMH0",

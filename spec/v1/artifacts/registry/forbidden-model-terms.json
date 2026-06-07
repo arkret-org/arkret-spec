@@ -170,6 +170,19 @@
         "negative_test"
       ],
       "notes": "Legacy Contrix typed-ID prefix. Current Cokret v1 typed IDs use ck:; cx: may appear only in migration notes or negative tests."
+    },
+    {
+      "id": "cleartext",
+      "context": "prose_or_ui_copy",
+      "since_revision": "2026-06-08",
+      "rejection_level": "hard_reject",
+      "replacement": "plaintext",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Use plaintext for unencrypted user-readable material. cleartext is a legacy synonym and MUST NOT appear in current normative prose, code comments, identifiers, or UI copy except when naming historical forbidden fields in migration or negative-test contexts."
     }
   ]
 }

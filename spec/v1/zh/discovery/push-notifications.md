@@ -180,8 +180,8 @@ POST /_cokret/edge/push/unregister-device
 | Condition Kind | 评估位置 | 说明 |
 |---------------|---------|------|
 | `field_match` | server-side | Event 明文元数据或授权可见 payload 字段匹配给定 pattern（支持 glob） |
-| `contains_keyword` | client-side（E2EE）/ server-side（cleartext Realm）| 消息 `body` 中包含指定关键词。E2EE Realm 中 server 不能解密正文 → 必须降级，见 §4.5 |
-| `mentions_actor` | client-side（E2EE）/ server-side（cleartext Realm）| 消息 direct mention 当前 Actor，或授权 audience mention 展开后包含当前 Actor。E2EE Realm 中 mention relation / audience node 通常嵌入密文 → 见 §4.5 |
+| `contains_keyword` | client-side（E2EE）/ server-side（plaintext Realm）| 消息 `body` 中包含指定关键词。E2EE Realm 中 server 不能解密正文 → 必须降级，见 §4.5 |
+| `mentions_actor` | client-side（E2EE）/ server-side（plaintext Realm）| 消息 direct mention 当前 Actor，或授权 audience mention 展开后包含当前 Actor。E2EE Realm 中 mention relation / audience node 通常嵌入密文 → 见 §4.5 |
 | `is_direct_message` | server-side | 来自 1 对 1 私聊 Realm（可由 Realm metadata 或成员数判断，不需要解密）|
 | `member_count` | server-side | Realm 成员数满足条件（如 `<= 5`），可由 metadata 判断 |
 | `flow_track` | server-side | Event 关联的 Flow track 名匹配给定 pattern（如 `synthesis`、`discussion`，支持 glob）。Track 名是 Flow 的公开配置 metadata，不属于 E2EE 正文 → server 端可在不解密内容的前提下评估 |
@@ -234,7 +234,7 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 ]
 ```
 
-第二条规则把 `mentions_actor` 与 `flow_track` 复合：在 cleartext Realm 中 server 直接评估；在 E2EE Realm 中 server 看到 `flow_track=discussion` 但无法解密 mention，按 §4.5 走 client-side 降级——即按 Realm 级 `wakeup_default` 与设备 `client_rule_digest` 选择是否 blind wakeup，client 解密后再决定是否进入用户感知通知 surface。规则书写者无需手动区分两种 Realm，`evaluation_locus: client` 已经声明了降级路径。
+第二条规则把 `mentions_actor` 与 `flow_track` 复合：在 plaintext Realm 中 server 直接评估；在 E2EE Realm 中 server 看到 `flow_track=discussion` 但无法解密 mention，按 §4.5 走 client-side 降级——即按 Realm 级 `wakeup_default` 与设备 `client_rule_digest` 选择是否 blind wakeup，client 解密后再决定是否进入用户感知通知 surface。规则书写者无需手动区分两种 Realm，`evaluation_locus: client` 已经声明了降级路径。
 
 #### 4.3.2 `watch_state` 与订阅偏好
 

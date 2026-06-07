@@ -1238,7 +1238,7 @@
     },
     "account_data_set_payload": {
       "type": "object",
-      "description": "Payload for ck.account_data.set. Writes one holder-private account-data key; the value may be cleartext inside an already private envelope, encrypted account-data material, or a tombstone.",
+      "description": "Payload for ck.account_data.set. Writes one holder-private account-data key; the value may be plaintext inside an already private envelope, encrypted account-data material, or a tombstone.",
       "required": [
         "key"
       ],

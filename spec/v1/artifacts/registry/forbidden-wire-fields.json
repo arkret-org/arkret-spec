@@ -351,7 +351,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare cleartext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form rather than this bare hash."
+      "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare plaintext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form rather than this bare hash."
     },
     {
       "id": "metadata.fields.stage",

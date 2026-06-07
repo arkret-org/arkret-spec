@@ -49,7 +49,7 @@
         "realm_admins",
         "realm_members"
       ],
-      "description": "Who may decrypt / read the appeal evidence narrative. Default per Realm policy; SHOULD be reviewers_only for sensitive disputes. The visibility tag MUST enter projection / redaction decisions; it does NOT change wire encryption of the envelope, only the cleartext audience for evidence fields."
+      "description": "Who may decrypt / read the appeal evidence narrative. Default per Realm policy; SHOULD be reviewers_only for sensitive disputes. The visibility tag MUST enter projection / redaction decisions; it does NOT change wire encryption of the envelope, only the plaintext audience for evidence fields."
     },
     "submit_payload": {
       "type": "object",
