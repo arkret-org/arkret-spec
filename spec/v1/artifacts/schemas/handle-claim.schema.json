@@ -172,7 +172,7 @@
       "minItems": 1
     }
   },
-  "unevaluatedProperties": false,
+  "unevaluatedProperties": true,
   "not": {
     "anyOf": [
       {

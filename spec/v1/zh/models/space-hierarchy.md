@@ -74,6 +74,8 @@ effective_default_realm(space):
     return space.default_realm_id
   if space.parent_space_id exists and parent is readable:
     return effective_default_realm(parent)
+  if space.parent_space_id exists and parent is not readable:
+    fail closed (space_parent_unreadable)
   return space.realm_id
 ```
 

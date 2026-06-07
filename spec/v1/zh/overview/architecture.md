@@ -205,7 +205,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 
 ## 3. 架构平面（Architectural Planes）
 
-七个平面按职责分层：Presentation / Local Query / Projection / Distribution / Write / Identity 形成自上而下（从用户视角到信任根）的核心栈，Confidentiality 与 Portability 是横切关注点。
+七个平面按职责分层：核心栈包含 5 个平面——Presentation、Local Query / Projection（单一平面）、Distribution、Write、Identity；Confidentiality 与 Portability 是 2 个横切关注点，合计 7 个平面。
 
 *Figure 3-1. 架构平面分层（informative）。*
 

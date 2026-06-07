@@ -228,11 +228,11 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组
 推荐 policy：
 
 - `discoverability=unlisted` 或 `invite_only`
-- `join_rule=restricted` 或 `knock_restricted`
+- `default_join_rule=restricted` 或 `knock_restricted`
 - `history_visibility=joined`
-- `encryption_required=true`
-- `external_federation=allowlist`
-- `directory_visibility.public_directory=false`
+- `encryption_profile=mls_rfc9420`，并按 Realm policy 设置 `content_encryption_floor`
+- `federation_policy=restricted`；允许的外部 peer 由 [`federation.md`](./federation.md) §3.4 的部署本地 peer policy / allowlist 控制
+- `ck.realm.discovery.directory_visibility.public_directory=false`
 - 默认禁用 reshare / export
 - 默认禁用 applet / agent，需显式授权方可使用
 
@@ -372,6 +372,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ck.profile.federation.high_assurance.v1`，并满足 [`federation.md` §4.5.3](./federation.md) 中定义的硬性要求：
 
 - 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ 1 小时；
+- frontier probe 与 `frontier_root` 主动交换使用固定刷新 bucket、jitter 与 per-peer 限速，刷新节奏不得随 Realm 活动量变化；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
 - 连续 3 次 probe 失败 MUST 触发 `stale_peer` 标记；该状态下 MUST 拒绝以该 peer 的 push payload 推进本地 frontier，MUST 通过 alarm 通道暴露，MAY 拒绝向该 peer fanout 新 Event；
 - fork resolution 成功后 MUST 解除 `stale_peer` 标记。

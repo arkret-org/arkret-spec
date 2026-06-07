@@ -124,9 +124,19 @@ ck.vector.encoding.canonical_json.nested.v1
 
 判定规则：
 
-- object key MUST 在每一层独立按 Unicode code point 升序排序。
+- object key MUST 在每一层独立按 UTF-16 code unit 升序排序；补充平面字符按 surrogate pair 参与比较。
 - array item order MUST 保持输入顺序。
 - string value MUST 不因为 key 排序被改写。
+
+### 1.4.1 Vector: Canonical JSON UTF-16 Supplementary Keys
+
+向量名称：
+
+```text
+ck.vector.encoding.canonical_json.utf16_supplementary_order.v1
+```
+
+该向量使用至少两个 key：一个位于补充平面、一个位于 BMP 高位区。实现 MUST 按 UTF-16 code unit 排序，而不是按 Unicode scalar value / code point 排序。期望 canonical bytes 以 `encoding-fixture.json` 中同名 vector 的 `expected_canonical_bytes_utf8` 为准。
 
 ### 1.5 Vector: Reject Non-Canonical Numbers
 
@@ -564,29 +574,30 @@ stateless profile 服务端 MUST 验证 `issuer_kid`、`s` frontier、`x` 和 `_
 ck.vector.encoding.encrypted_envelope_digest.v1
 ```
 
-cleartext metadata canonical bytes 的 UTF-8 文本表示：
+`payload_metadata` canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"content_type":"application/json","encryption":"mls-rfc9420","epoch":7}
+{"aad":{"event_kind":"ck.message.create","event_ref_digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","realm_id":"ck:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ck:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls-rfc9420","version":"1.0"}
 ```
 
-ciphertext bytes 的 UTF-8 测试表示：
+`ciphertext` 的 base64url wire 值与解码后 UTF-8 测试表示：
 
 ```text
+Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ
 ciphertext-example-001
 ```
 
 期望 digest：
 
 ```text
-sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
+sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
 ```
 
 判定规则：
 
-- digest 输入 MUST 为 `canonical_json(cleartext_metadata) || ciphertext_bytes`。
+- digest 输入 MUST 为 `canonical_json(payload_metadata) || base64url_decode(ciphertext)`。
 - 实现 MUST NOT hash 明文 payload。
-- 实现 MUST NOT 省略路由和解密所需的 cleartext metadata，否则 Sync Service 无法安全去重和审计密文 envelope。
+- 实现 MUST NOT 省略路由和解密所需的 `payload_metadata` 字段，否则 Sync Service 无法安全去重和审计密文 envelope。
 
 ### 1.13 覆盖矩阵
 
@@ -594,6 +605,7 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 | --- | --- | --- | --- | --- | --- |
 | `ck.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST |
 | `ck.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.canonical_json.utf16_supplementary_order.v1` | MUST | MUST | MUST | MUST | MUST |
 | `ck.vector.encoding.reject_noncanonical_numbers.v1` | MUST | MUST | MUST | MUST | SHOULD |
 | `ck.vector.encoding.reject_malformed_json.v1` | MUST | MUST | MUST | MUST | MUST |
 | `ck.vector.encoding.reject_duplicate_key.v1` | MUST | MUST | MUST | MUST | MUST |
@@ -624,6 +636,19 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 - redaction 前后 event digest 验证
 
 测试私钥只能用于公开测试向量，不得被任何生产实现信任。生产 profile MUST 拒绝测试 DID、测试 key id 或测试 trust domain。
+
+### 1.15 Cross-Domain Vector Anchors
+
+以下 vector id 的具体断言由对应领域正文定义；本节提供 conformance registry 的统一锚点：
+
+- `ck.vector.media.aead_nonce_sender_domain_collision.v1`
+- `ck.vector.media.aead_nonce_counter_replay.v1`
+- `ck.vector.media.aead_nonce_random_rejected.v1`
+- `ck.vector.lattice.mv_register_join.v1`
+- `ck.vector.lattice.counter_join.v1`
+- `ck.vector.lattice.ordered_log_join.v1`
+- `ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1`
+- `ck.vector.calendar.rsvp_occurrence_key.v1`
 
 ## 2. Move · Anchor · Lattice Vectors
 
@@ -895,7 +920,7 @@ ck.vector.flow_tracks_update.atomic.v1
 
 ### 3.1 目标
 
-本节定义 redaction 的执行顺序、保留字段与可见性收敛规则，并涵盖与之相邻的 snapshot pruning / inclusion-challenge 向量（§3.5–§3.6，`domain=snapshot`）。  
+本节定义 redaction 的执行顺序、保留字段与可见性收敛规则，并涵盖与之相邻的 snapshot pruning / inclusion-challenge 向量（§3.5–§3.6，`domain=snapshot`）。
 所有实现必须将 redaction 视为“可验证的内容裁剪”，而非删除事件。
 
 向量命名：
@@ -1175,7 +1200,7 @@ ck.vector.snapshot.inclusion_challenge.v1
 
 ### 4.1 目标
 
-本文件将 capability 的链式授权、撤销回滚与审批约束固定为跨实现向量。  
+本文件将 capability 的链式授权、撤销回滚与审批约束固定为跨实现向量。
 适配对象（下列为 profile 短名，统一用下划线；canonical id 形如 `ck.profile.<短名>.v1`，见 [`conformance-profiles.md`](./conformance-profiles.md)）：`identity_registry`, `principal_server_events_api`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
 
 向量命名：

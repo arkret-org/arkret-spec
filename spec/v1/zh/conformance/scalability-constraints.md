@@ -103,6 +103,9 @@ Move / Anchor fallback 不得选择本地接收顺序或数据库 ID。Snapshot 
 | 单个对象 active Relation 数 | 10,000 | Projection executor MUST paginate，不能要求客户端一次性拉全。 |
 | 单个 View projection page | 1,000 items | View cursor MUST 绑定 authorization context 和 frontier。 |
 | rank 长度 | 128 chars | 超过时 MUST reject，见 `encoding.md`。 |
+| 单个 Calendar Event attendees 数 | 1,000 | 超过时 MUST reject 或要求拆分会议 / 日程实例；attendees 必须按 actor / handle / resource key 去重。 |
+| 单次 recurrence expansion 返回 occurrence 数 | 10,000 | 超过时 MUST paginate、截断为带 cursor 的 page，或返回 `limit_exceeded`；不得无界展开 RRULE。 |
+| 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
 
 Board position edge 的 canonical key 是 `(board_space_id, flow_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；View projection MAY 暴露 loser conflict records，但不得把同一 Flow 渲染成多个主位置。
 

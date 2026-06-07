@@ -1,6 +1,6 @@
 ---
 title: Member Delivery Binding
-status: candidate
+status: stable
 normative: true
 stability: v1
 updated: 2026-06-07

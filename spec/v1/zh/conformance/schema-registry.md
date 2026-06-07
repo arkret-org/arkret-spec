@@ -55,7 +55,7 @@ sidebar:
 
 | 名称 | 当前语义 | 允许理由 | 防护参考 |
 | --- | --- | --- | --- |
-| operation id `ck.open.mimi.room_update` / `ck.open.mimi.notify` / `ck.open.mimi.submit_message` / `ck.open.mimi.group_info` | MIMI interop 命名空间内的标准操作；`room` 出现是为了与上游 MIMI 规范对齐 | MIMI interop 模块对外语义就是 "MIMI room"；仅在 interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
+| operation id `ck.open.mimi.room_update` | MIMI interop 命名空间内的标准操作；`room_update` 中的 `room` 术语与上游 MIMI 规范对齐 | 仅在 MIMI interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
 
 新增 interop 命名空间例外必须在此表登记并在对应 schema / registry 内联说明允许理由；不得仅靠口头约定。下游漂移扫描器 SHOULD 把此表作为 interop-only allowlist。
 

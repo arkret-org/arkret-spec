@@ -83,7 +83,7 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
-请求 schema 见 [`media-operations.schema.json#/$defs/ice_config_request`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
+请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_config_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
@@ -364,16 +364,17 @@ Candidate payload:
 
 ```json
 {
-  "push_target_id": "ck:pseudonym:push:01js0pu0000000000000000000",
-  "wakeup_kind": "call_invite",
-  "urgency": "urgent",
-  "expires_at": "2026-04-26T00:01:00Z"
+  "notification": {
+    "push_target_id": "ck:pseudonym:push:01js0pu0000000000000000000",
+    "wakeup_kind": "call_invite",
+    "push_hint": "incoming_call"
+  }
 }
 ```
 
 设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ck.call.signal{signal_type=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
-Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；只允许 §9 上面 4 个脱敏字段，其它一切信息必须通过本地解密获得。
+Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；provider-facing body 的唯一权威形态是 [`discovery/push-notifications.md` §5.1](../discovery/push-notifications.md) 的 blind notification。WebRTC call invite 只允许使用 `notification.push_target_id`、`notification.wakeup_kind`、可选 `notification.push_hint="incoming_call"` 以及该节允许的本地化 / 计数字段；不得携带 `urgency`、`expires_at` 或任何未登记字段。其它一切信息必须通过本地解密获得。
 
 **Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新的 `ck.call.signal{signal_type=invite}` 邀请流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
 
@@ -409,8 +410,10 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 | `sfu_not_allowed` | Realm policy 不允许该 SFU。 |
 | `e2ee_required` | Realm 要求 E2EE，但当前媒体路径不满足。 |
 | `recording_denied` | 录制未授权或 policy 禁止。 |
+| `session_focus_already_committed` | 已提交的 call `session_focus` 不可在同一生命周期内改写。 |
+| `call_state_terminal` | `ck.call.state` 不能从 `ended` / `missed` / `failed` / `cancelled` 终态转出。 |
 
-媒体服务绑定相关错误码（`unknown_focus_type`、`focus_mismatch`、`token_issuer_unauthorised`、`participant_identity_unrecognised`、`e2ee_key_source_unauthorised`、`media_plaintext_service_not_authorised`、`mls_governance_binding_stale` 等）见 [`media-service-binding.md`](./media-service-binding.md) 与 `error-code-registry.json`。
+媒体服务绑定相关错误码（`unknown_focus_type`、`focus_mismatch`、`token_issuer_unauthorised`、`participant_binding_invalid`、`participant_identity_unrecognised`、`e2ee_key_source_unauthorised`、`recording_artifact_pipeline_bypassed`、`media_service_foci_required`、`media_service_binding_uncovered`、`focus_unavailable_for_client`、`media_plaintext_service_not_authorised`、`mls_governance_binding_stale` 等）见 [`media-service-binding.md`](./media-service-binding.md) 与 `error-code-registry.json`。
 
 ## 12. 与 Matrix Call 的关系
 

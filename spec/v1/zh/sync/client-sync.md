@@ -263,7 +263,7 @@ Account subscribe `delta` frame 包含以下 stream：
 - 该字段是 **派生 projection-only 字段**，不参与 state hash / frontier 计算，不进入因果图。
 - 字段范围仅限三类 anchor：`actor_profiles`（window 内出现的 actor）、`realm_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前 anchor view"。
-- 服务端可以从 anchor view 的历史 cell value（按 HLC 反向查询）派生该状态；不可用时退路径 (b)。
+- 服务端可以沿 anchor view / predecessor 关系回溯到 window 起点对应的 effective anchor view，再按各 Lattice 的 deterministic join 取 cell value 派生该状态；不可用时退路径 (b)。HLC 只能作为定位候选历史 view 的非权威索引 hint，MUST NOT 作为 cell value 选择键或状态判断依据。
 
 **(b) 标记 `preview_only=true`** (回退路径)：
 
@@ -535,6 +535,7 @@ Handle claim 获取与刷新规则：
 - `ck.contacts.actor.<did>`
 - `ck.contacts.realm.<realm_id>`
 - `ck.read_receipt.preferences`
+- `ck.account.invite_quarantine`
 
 Account data MUST 按 principal/device 授权隔离。联邦节点不得向其他 principal 泄露 account data。
 
@@ -542,9 +543,9 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 `to_device.messages` MUST 只包含当前 access token 对应 device 的消息。
 
-**To-device 投递推断 (normative)**：服务器在收到客户端回传的 `after=<cursor>` 后，**MUST 先按 §12 完整性校验** (MAC/签名 验证 或 stateful handle lookup) 通过，才可将该 cursor 内 `d` (device positions) 之前的 to-device 消息视为已投递并从服务端队列清理。完整性校验失败时 MUST 返回 `cursor_integrity_invalid` 且 **MUST NOT** 推进 to-device 投递状态。客户端如果未处理成功，必须通过本地事务日志恢复。
+**To-device 投递推断 (normative)**：服务器在收到客户端回传的 `after=<cursor>` 后，**MUST 先按 §12.2 完整性校验**通过，才可读取 stateful handle 解析出的 device-message position，并将该 position 之前的 to-device 消息视为已投递并从服务端队列清理。v1 core cursor body 不携带内联 `d` 字段；positions 只存在于服务端 handle 表。完整性校验失败时 MUST 返回 `cursor_integrity_invalid` 且 **MUST NOT** 推进 to-device 投递状态。客户端如果未处理成功，必须通过本地事务日志恢复。
 
-> Rationale: 若服务端仅按语法 / TTL / purpose 校验就接受客户端 `d` 位置，byzantine 客户端 (或被 XSS / 复制日志泄露后被重放的 cursor) 可篡改 `d` 推进 to-device ack，导致 key verification、cross-signing reset、secret sharing 等 to-device 消息被永久丢弃 — 即使诚实客户端重连也拿不回。
+> Rationale: 若服务端仅按语法 / TTL / purpose 校验就接受客户端提供的同步位置，byzantine 客户端（或被 XSS / 复制日志泄露后被重放的 cursor）可推进 to-device ack，导致 key verification、cross-signing reset、secret sharing 等 to-device 消息被永久丢弃。v1 core 通过不可猜测 handle 查表绑定 authenticated principal、device、service、filter 与 positions；stateless profile 若启用，必须由该 profile 的 MAC / 签名覆盖 positions。
 
 To-device 队列过长时，服务器 MAY 返回 `limited=true` 并要求客户端调用：
 

@@ -111,14 +111,14 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 ### 3.2 解析结果必含字段
 
-Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含 `handle`、`subject`、`issuer`、`proofs`、`created_at` 与 `expires_at`；`handle_aliases[]` 为 **可选**（optional，与 §3.2.1 表及 §3.7.1 的 MAY 一致），不是必含字段：
+Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含 `handle`、`subject`、`issuer`、`binding_state`、`proofs` 与 `created_at`；`expires_at` 按 `binding_state` 与 delivery binding 条件必填；`handle_aliases[]` 为 **可选**（optional，与 §3.2.1 表及 §3.7.1 的 MAY 一致），不是必含字段：
 
 - `handle`：canonical `user:domain` handle（主形态）。
 - `handle_aliases[]`（可选 / optional）：互通别名，例如 `acct:`；不得参与 Cokret 内部权威比对。缺省时整字段 MAY 省略。
 - `subject`：被寻址 handle holder 的 principal DID。
 - `issuer`：签发 handle claim 的 DID。详见 §3.4。
 - `proofs`：至少一条可验证签名，绑定 `handle`、`subject`、`issuer`、`created_at`。
-- `created_at` / `expires_at`：claim 时间边界；`expires_at` 缺失等价于 `binding_state=unverified`。
+- `created_at` / `expires_at`：claim 时间边界；`expires_at` 在 `binding_state=verified` 或 claim 携带 `member_delivery_binding` 时 MUST 出现。缺失 `expires_at` 的 claim MUST 视作 `binding_state=unverified`，不得进入 verified 候选集。
 
 `subject` 使用 claim / credential 领域的命名，但在 v1 user handle 语义中它是**持有该 handle 的 holder / principal DID**，不是 Realm `actor_id`、Principal Server 内部 `account_id`、组织人事系统 identifier、service DID 或通用资源 id。Cokret v1 core 不把本节的 `handle` 泛化为任意资源 handle；如果后续要定义 organization / service / repository / room 等非用户 handle，必须使用独立 schema 或显式 `resource_kind` profile，不能复用 `ck.schema.handle_claim.v1` 的 `subject` 字段来隐式扩展语义。
 
@@ -251,7 +251,7 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
   其它字段排除的整体动因把 `claim_digest` 锚定在 §3.4 / §5 定义的 handle_claim 规范 shape 上，与具体 Directory / Principal Server / cache 层附加的 hint 解耦。
 
 - 输出形态遵循 [`models/common-fields.md` §2](../models/common-fields.md) 的 `<noun>_digest = <alg>:<hex>` 通用 hash 字段命名规则；
-- 与 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json) 的 `claim_digest` 字段(`"sha256 digest of the upstream handle claim canonical JSON"`)一致——本节是其 normative 计算定义,candidate schema 是其 wire 表示。
+- 与 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json) 的 `claim_digest` 字段一致：该字段是 `sha256(JCS(semantic_projection(upstream handle claim)))` 的 wire 表示；本节是其 normative 计算定义。
 
   **wire `claim_digest` 缺失时的退化(normative)**:candidate schema 的 `claim_digest` 字段是 **OPTIONAL**(SHOULD,见 §3.7.1 表)。当 candidate 不携带 wire `claim_digest` 时,Step 2 tie-breaker 与 roster `handle_claim_digests[]` 比对 / 缓存键 **MUST** 改用 verifier 本地按本节公式自算的 `claim_digest(c) = "sha256:" || hex(sha256(JCS(semantic_projection(c))))`——即 tie-breaker 与 audit chain 永不因 wire 字段缺失而出现缺口或非确定收敛(自算值与 issuer 提供值在 candidate 合法时必然相等)。当 wire `claim_digest` **存在**时,verifier SHOULD 校验它等于自算值，不一致 MUST 视为 candidate 不可信并 fail closed(防 issuer 提供与规范语义不符的 digest 污染缓存键 / audit chain)。
 

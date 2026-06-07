@@ -2210,6 +2210,9 @@
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did"
         },
@@ -2225,6 +2228,13 @@
         },
         "delivery_binding": {
           "$ref": "#/$defs/member_delivery_binding"
+        },
+        "gate_proofs": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join."
         },
         "via_service_dids": {
           "type": "array",
@@ -2261,6 +2271,7 @@
           },
           "then": {
             "required": [
+              "realm_id",
               "actor_id",
               "delivery_status"
             ]
@@ -2615,7 +2626,8 @@
       "$comment": "Value-shape schema for the realm.join_policy.v1 cell (written as a sub-component of ck.realm.policy_components). Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/lint_artifacts.py check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
       "type": "object",
       "required": [
-        "gates"
+        "gates",
+        "combinator"
       ],
       "properties": {
         "gates": {
@@ -2749,7 +2761,33 @@
           "type": "object"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "gates": {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "application_form"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "review_capability"
+            ]
+          }
+        }
+      ]
     },
     "read_receipt_policy_payload": {
       "$comment": "Payload for ck.realm.read_receipt_policy. Closed object (additionalProperties=false) so that typos in the privacy-floor escape switch `allow_child_privacy_tightening_against_required` cause schema_violation rather than silent acceptance. The enclosing Event envelope already carries `realm_id`; the payload does NOT duplicate it. `minProperties: 1` aligns with the generic state_payload branch in event-envelope.schema.json (ck.realm.* policy events): an empty `{}` payload is semantically identical to never writing the event (cell stays null with the same effective defaults), so it MUST be schema_violation rather than a silent no-op. See zh/discovery/read-receipts.md §2.5.",
@@ -3602,6 +3640,14 @@
         "capability_grant": {
           "$ref": "#/$defs/grant_id"
         },
+        "allowed_artifact_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
         "max_duration_seconds": {
           "type": "integer",
           "minimum": 1
@@ -3641,6 +3687,13 @@
             "cancelled",
             "expired"
           ]
+        },
+        "external_task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "last_update_at": {
+          "$ref": "#/$defs/timestamp"
         },
         "progress_basis_points": {
           "type": "integer",
@@ -3696,20 +3749,101 @@
             "expired"
           ]
         },
+        "result_objects": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Protocol objects materialized by the completed interop session."
+        },
         "artifacts": {
           "type": "array",
           "items": {
             "type": "object"
           }
         },
+        "artifact_retention": {
+          "type": "string",
+          "enum": [
+            "none",
+            "session",
+            "realm_policy",
+            "external_stub_only"
+          ]
+        },
+        "external_artifact_stub": {
+          "type": "object",
+          "additionalProperties": true
+        },
         "external_transcript_digest": {
           "$ref": "#/$defs/hash"
         },
         "completed_at": {
           "$ref": "#/$defs/timestamp"
+        },
+        "cancelled_by": {
+          "type": "string",
+          "enum": [
+            "local",
+            "remote",
+            "system"
+          ]
+        },
+        "cancelled_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "reason_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "external_cancel_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cleanup_required": {
+          "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "result_objects"
+          ]
+        },
+        {
+          "required": [
+            "artifacts"
+          ]
+        },
+        {
+          "required": [
+            "reason_code"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "cancelled"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "cancelled_by",
+              "cancelled_at",
+              "reason_code",
+              "artifact_retention"
+            ]
+          }
+        }
+      ]
     },
     "agent_key_scope": {
       "type": "object",

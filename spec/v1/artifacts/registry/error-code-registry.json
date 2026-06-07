@@ -836,6 +836,81 @@
         "service_call"
       ],
       "description": "`ck.gate.account.session_revoke` supplied more than one mutually exclusive selector (`target_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly."
+    },
+    {
+      "code": "reviewer_capability_revoked",
+      "http_status": 403,
+      "scope": "delivery",
+      "description": "Recipient device no longer holds the review capability required for member application review delivery.",
+      "applies_to": [
+        "ck.member.application.review"
+      ]
+    },
+    {
+      "code": "not_member",
+      "http_status": 403,
+      "scope": "both",
+      "description": "Actor is not a member of the target Realm or scoped membership set for this operation."
+    },
+    {
+      "code": "call_not_found",
+      "http_status": 404,
+      "scope": "service_call",
+      "description": "Call does not exist or is not visible to the caller."
+    },
+    {
+      "code": "call_expired",
+      "http_status": 410,
+      "scope": "service_call",
+      "description": "Call exists but its signaling window has expired."
+    },
+    {
+      "code": "call_already_answered",
+      "http_status": 409,
+      "scope": "service_call",
+      "description": "Call answer was already accepted and the operation is not idempotent for this participant."
+    },
+    {
+      "code": "media_permission_denied",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "Caller lacks permission to create, join, answer, or modify the media session."
+    },
+    {
+      "code": "ice_config_denied",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "Service refused to issue ICE configuration for this call or participant."
+    },
+    {
+      "code": "sfu_not_allowed",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "Requested SFU or media focus is not allowed by Realm policy or media service binding."
+    },
+    {
+      "code": "e2ee_required",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "Realm or call policy requires E2EE and the requested media path did not satisfy it."
+    },
+    {
+      "code": "recording_denied",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "Recording or transcription is denied by Realm policy or participant consent state."
+    },
+    {
+      "code": "morph_profile_widens_schema_ref",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Morph profile attempted to widen or replace schema_ref in a way that violates create-locked morph type rules."
+    },
+    {
+      "code": "morph_type_immutable",
+      "http_status": 422,
+      "scope": "both",
+      "description": "A Morph update attempted to change an immutable morph_type after creation."
     }
   ],
   "reason_codes": [
@@ -2441,6 +2516,20 @@
         "audit_decision"
       ],
       "description": "A key backup / archive node / peer share refused to deliver late key material because, on re-running the T₀ membership + policy check before sending, the current share policy no longer permits delivery to the requesting device (distinct from late_recovery_rejected_membership, which is the receiver-side T₀ non-membership case). See zh/crypto-media/encryption-and-audit.md §2.3.5."
+    },
+    {
+      "code": "late_recovery_rejected_expired",
+      "applies_to": [
+        "audit_decision"
+      ],
+      "description": "A late-arriving key tried to recover plaintext for an event whose disappearing expiry plus grace has elapsed, or whose retention policy requires content-key destruction. Client MUST keep the expiry stub / metadata-only state. See zh/crypto-media/encryption-and-audit.md §2.3.5 and zh/crypto-media/disappearing-messages.md §4."
+    },
+    {
+      "code": "send_failed",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Invite delivery to the private target failed after the delivery service exhausted the retry budget. Used as a stable invite transition reason for ck.invite state projections; see zh/models/governance-objects.md and zh/sync/third-party-invites.md §6.1."
     },
     {
       "code": "prev_refs_too_large",

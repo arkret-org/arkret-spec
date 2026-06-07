@@ -36,7 +36,7 @@ see_also:
 
 Blind index 使用 keyed HMAC token。Posting 必须绑定 `realm_id`、`effective_scope`、`epoch_id`、`index_generation` 和 `blind_tokens[]`；服务端返回的只是候选 ref 集合。客户端 MUST 把所有结果视为 untrusted candidate，并重新验证可见性和内容匹配。
 
-服务端在返回候选前 MUST 执行 current-auth 与 history filter。撤权、history visibility 收紧、redaction、message expiry 或 MLS epoch rotate 后的 stale posting MUST fail closed：可以漏召回，不得越权召回。
+服务端在返回候选前 MUST 执行 current-auth 与 history filter。撤权、history visibility 收紧、redaction、message expiry 或 MLS epoch rotate 后的 stale posting MUST fail closed：可以漏召回，不得越权召回。该不变量由 `ck.vector.search.blind_index_stale_posting_fail_closed.v1` 覆盖。
 
 Token 不得跨 Realm、Circle、MLS epoch 或 index generation 复用。实现 SHOULD 定期轮换 index key，并把轮换与 policy frontier digest 绑定。
 
@@ -50,4 +50,4 @@ Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数
 
 ## 5. Result Semantics
 
-Search hit 永远不是权限证明。展示 hit 前，客户端或受托 projection MUST 重新解析目标对象状态，并检查 redaction、expiry、moderation、history visibility、Circle membership 和 capability。检查失败时，结果必须被省略或替换为不可泄露存在性的固定 stub。
+Search hit 永远不是权限证明。展示 hit 前，客户端或受托 projection MUST 重新解析目标对象状态，并检查 redaction、expiry、moderation、history visibility、Circle membership 和 capability。检查失败时，结果必须被省略或替换为不可泄露存在性的固定 stub。该不变量由 `ck.vector.search.result_not_authz_proof.v1` 覆盖。

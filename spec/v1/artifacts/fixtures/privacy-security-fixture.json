@@ -28,7 +28,9 @@
     "ck.vector.psi.oprf_two_round_shape.v1",
     "ck.vector.psi.padding_and_cardinality.v1",
     "ck.vector.psi.no_reachability_metadata.v1",
-    "ck.vector.psi.quota_blinded_denial.v1"
+    "ck.vector.psi.quota_blinded_denial.v1",
+    "ck.vector.search.blind_index_stale_posting_fail_closed.v1",
+    "ck.vector.search.result_not_authz_proof.v1"
   ],
   "cases": [
     {
@@ -243,6 +245,68 @@
           "notification.flow_title"
         ],
         "device_payload_max_bytes": 512
+      }
+    },
+    {
+      "vector_id": "ck.vector.search.blind_index_stale_posting_fail_closed.v1",
+      "name": "blind_index_stale_posting_fail_closed",
+      "profile": "ck.profile.search.blind_index.v1",
+      "inputs": [
+        {
+          "label": "revoked_capability",
+          "state_change": "capability_revoked",
+          "posting_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "label": "history_visibility_tightened",
+          "state_change": "history_visibility_private",
+          "posting_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "label": "redacted_or_expired",
+          "state_change": "redaction_or_expiry",
+          "posting_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+          "label": "mls_epoch_rotated",
+          "state_change": "mls_epoch_rotate",
+          "posting_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      ],
+      "expected": {
+        "must_not_return_unauthorized_hit": true,
+        "may_omit_authorized_hit": true,
+        "stale_posting_rejected_or_filtered": true,
+        "audit_reason": "search_stale_posting_filtered"
+      }
+    },
+    {
+      "vector_id": "ck.vector.search.result_not_authz_proof.v1",
+      "name": "search_result_not_authorization_proof",
+      "profile": "ck.profile.search.blind_index.v1",
+      "input": {
+        "requester": "did:web:alice.example",
+        "candidate_hit": {
+          "object_ref_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "score_basis_points": 9100
+        },
+        "post_query_visibility": "not_authorized"
+      },
+      "expected": {
+        "client_or_projection_revalidates_visibility": true,
+        "unauthorized_hit_omitted_or_stubbed": true,
+        "stub_shape": {
+          "visibility": "locked",
+          "opaque_ref": "fixed_length"
+        },
+        "must_not_include": [
+          "message_id",
+          "flow_id",
+          "realm_id",
+          "snippet",
+          "sender_actor_id",
+          "exact_timestamp"
+        ]
       }
     }
   ]

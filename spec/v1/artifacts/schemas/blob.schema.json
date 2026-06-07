@@ -6,6 +6,61 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "encrypted_attachment": {
+      "type": "object",
+      "required": [
+        "blob_ref",
+        "encrypted",
+        "alg",
+        "key_ref",
+        "epoch",
+        "nonce",
+        "ciphertext_digest",
+        "size_bytes",
+        "media_type"
+      ],
+      "properties": {
+        "blob_ref": {
+          "type": "string",
+          "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+        },
+        "encrypted": {
+          "const": true
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "mls_exporter_aead_xchacha20poly1305",
+            "mls_exporter_aead_aes_256_gcm"
+          ]
+        },
+        "key_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,64}$"
+        },
+        "ciphertext_digest": {
+          "type": "string",
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "media_type": {
+          "type": "string",
+          "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "title": "Cokret Blob Metadata",
@@ -65,7 +120,14 @@
       "type": "string"
     },
     "encryption": {
-      "$ref": "./encrypted-envelope.schema.json"
+      "oneOf": [
+        {
+          "$ref": "#/$defs/encrypted_attachment"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "thumbnail_blob_ref": {
       "type": "string",

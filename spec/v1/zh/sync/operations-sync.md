@@ -68,7 +68,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 
 Actor-private state 是独立层，不是“弱 durable Event”。标准规则：
 
-- `actor_private_event` 可以写入 principal control stream、account data 或 device/private cell，cell subject MUST 可由 payload / actor / authenticated account 唯一派生，并在 registry 中声明。
+- `actor_private_event` 可以写入 principal control stream、account data 或 device/private cell，cell subject MUST 可由 payload / actor / authenticated account 唯一派生，并在 registry 中声明。它使用独立 actor-private stream sequence；若 Event envelope 携带 `actor_seq`，该值只在 actor-private stream 内连续，不与 shared Realm `actor_seq` 空间合并。`prev_refs[]` 对 actor-private stream 的连续性按该私有 stream 校验；first event 或服务端从已验证 checkpoint 之后开始同步的片段 MAY 使用 `prev_refs=[]`，但不得据此豁免 shared durable event 的 §2.6 因果连续性规则。
 - actor-private cell 不参与 shared Realm `state_root`、Anchor frontier、membership visibility 或 federation delivery binding；需要跨设备同步时，只在同一 principal / account 授权边界内复制。
 - 任何实现想让 actor-private state 影响其它成员的共享视图，必须 emit 一条独立 durable reducer-input Event（例如 moderation decision、watch manage audit pair），不得让投影层直接读取他人的 actor-private cell。
 - `ck.device.list_update`、`ck.device.push_route`、`ck.account.blocklist`、contacts remarks / preferences 是该模型的标准例子；typing / presence / call.signal 仍是 ephemeral，不得写 actor-private cell。
@@ -200,6 +200,7 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
 
 ```json
 {
+  "schema": "ck.schema.event_batch_receipt.v1",
   "receipt_id": "ck:receipt:01964186-5800-7000-8000-000000000000",
   "issuer": "did:web:alice.example.net",
   "receipt_scope": {
@@ -215,7 +216,16 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
     "ck:event:019640ee-0000-7000-8000-000000000000"
   ],
   "created_at": "2026-04-22T08:30:00Z",
-  "proofs": []
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example.net#receipt-1",
+      "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "created_at": "2026-04-22T08:30:00Z",
+      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+    }
+  ]
 }
 ```
 
@@ -407,7 +417,7 @@ Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs`
     "read_scope": {
       "kind": "flow",
       "ref": "ck:flow:019640c6-8000-7000-8000-000000000000",
-      "track": "discussion"
+      "track_name": "discussion"
     },
     "position": {
       "event_id": "ck:event:01964147-0000-7000-8000-000000000000",

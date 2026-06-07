@@ -140,7 +140,7 @@ Content-Type: application/json
 
 - **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` 的硬上限 MUST ≤ 600s（10 分钟）；推荐上限 SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
 - **Token issuer DID 锚定**：`service_signature.kid` 与 `participant_binding.issuer_kid` MUST 解析到一个出现在当前 epoch `ck.realm.media_service.service_id` 的 service DID；客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
-- **`participant_identity` 形态**：作为 SFU-local 短期 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) pairwise pseudonym 规则对齐），且 MUST 至少绑定 `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` 派生。
+- **`participant_identity` 形态**：作为 SFU-local 短期随机 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) pairwise pseudonym 规则对齐），也不得由可公开重算的主体元组确定性派生。六元组绑定职责由下方 `participant_binding` 的签名承诺承担。
 - **`participant_identity` 传播边界**：因为它本身不携带 actor 链接信息，客户端 **MUST** 把它写入 `ck.call.state.participants[].participant_identity`（用于 §7 cross-check）——这条嵌入是 Realm-encrypted control state，不构成 actor-身份外泄。但 `participant_identity` MUST NOT 进入下列三类 surface：(a) 任何 plaintext audit log / 服务方 access log（包括 backend SFU 自身的日志）；(b) 任何 unencrypted ephemeral / push / telemetry 通道；(c) backend 一侧对外的 metrics、tracing 标签或 cross-tenant 数据导出。Backend 内部允许保留它作为 SFU-local routing handle，但不应跨 call leg / 跨 tenant 复用。
 - **`participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺**。客户端 MUST 先验证该 binding，再把它写入 / 对照 `ck.call.state` membership（见 [`call-state.md` §4](./call-state.md)）。backend 只看到 `participant_identity` 与 `backend_token`，不应获得长期 actor 身份。
 
@@ -247,7 +247,7 @@ Conformance vectors for the full media binding framework：
 
 `media_service_decrypts=true` **不**是一个可单独由 SFU 服务自报或客户端配置的开关。它 MUST 同时满足下列约束，否则客户端 MUST 拒绝加入会议、SFU MUST 拒绝媒体协商：
 
-1. **进入 `ck.realm.policy_components`**：`media_service_decrypts=true` MUST 由一条 `ck.realm.policy_components`（或对应 Realm policy facet event）显式写入，受 capability `ck.realm.policy.manage` 控制，并随 Realm policy `policy_root` 一同被 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md) 的 MLS governance binding 覆盖。policy_root 未包含该开关时 MUST 视为未开启。
+1. **进入 `ck.realm.policy_components`**：`media_service_decrypts=true` MUST 由一条 `ck.realm.policy_components`（或对应 Realm policy facet event）显式写入，受 capability `ck.policy.manage` 控制，并随 Realm policy `policy_root` 一同被 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md) 的 MLS governance binding 覆盖。policy_root 未包含该开关时 MUST 视为未开启。
 2. **进入 `plaintext_visible_services`**：解密媒体的 SFU / MCU service DID MUST 在 Realm policy 的 `plaintext_visible_services[]`（或等价 media plaintext service policy）中显式列出，并标 `purpose=media_plaintext`。仅出现在 `media_services[]` 而未列入 `plaintext_visible_services[]` 的服务 MUST 被视为禁止解密媒体的 SFU；其试图协商解密角色时 MUST 返回 `media_plaintext_service_not_authorised`。
 3. **MLS Governance Binding 覆盖**：成员在 join 前 MUST 校验当前 epoch 的 governance binding `policy_root` 涵盖前两条规则的 cell value；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
 4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ck.realm.policy_components` 正常路径并伴随客户端 UI 显著二次确认；不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。在 governance binding 尚未 commit 新 policy_root 的窗口内，客户端 MUST 沿用旧 policy 视图判定，禁止根据 OOB 字段提前授权。

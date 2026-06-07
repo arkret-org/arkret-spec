@@ -168,7 +168,7 @@ wildcard_selector    ::= "*"
 
 realm_selector       ::= "realm" ":" (realm_id | "*")
 
-space_selector       ::= "space" ":" (space_id | "*")
+space_selector       ::= "space" ":" realm_part ":" (space_id | "*")
 
 circle_selector      ::= "circle" ":" realm_part ":" (circle_id | "*")
 
@@ -187,7 +187,7 @@ event_selector       ::= "event" ":" realm_part ":" (event_id | "*")
 actor_selector       ::= "actor" ":" did
                       (* actor wildcard 非法：`actor:*` MUST schema_violation，见 §4.8 / §8.1 *)
 
-schema_selector      ::= "schema" ":" (schema_id | "*")
+schema_selector      ::= "schema" ":" (schema_ref | "*")
 
 policy_selector      ::= "policy" ":" realm_part ":" (policy_id | "*")
 
@@ -220,7 +220,7 @@ flow_part            ::= flow_id | "*"
 - `event_id`：`ck:event:` 后接 UUIDv7。
 - `policy_id`：`ck:policy:` 后接 UUIDv7。
 - `invite_id`：`ck:invite:` 后接 UUIDv7。
-- `schema_id`：schema registry id，例如 `ck.schema.flow.v1` 或反向域名 schema id。
+- `schema_ref`：schema registry id，例如 `ck.schema.flow.v1` 或反向域名 schema id。历史 shorthand token 名 `schema_id` MAY 被 parser 接受，但 canonical JSON 字段名 MUST 是 `schema_ref`。
 - `did`：DID URI。
 - `blob_ref`：Blob typed ID，wire form 为 `ck:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ck:blob:<algo>:<hex>` content-addressed ref（algo ∈ `sha256` / `sha3_256` / `blake3` / `sha512`）。
 - `morph_type`：Realm schema 中注册的开放对象类型。
@@ -268,16 +268,16 @@ flow_part            ::= flow_id | "*"
 
 ### 4.2 Space 选择器
 
-`space:ck:space:019640b6-8000-7000-8000-000000000000`
+`space:ck:realm:0196419b-0000-7000-8000-000000000000:ck:space:019640b6-8000-7000-8000-000000000000`
 
 - 匹配：特定结构 Space。
 - 适用：Space metadata、Space lifecycle、Space parent、board/list 类 workflow container 操作。
 - 不含义：不自动授予该 Space `default_realm_id` 指向 Realm 的 membership、history 或 E2EE key；也不自动授予 Space 下资源的读取权，除非资源 selector / action / constraint 同时命中。
 
-`space:*`
+`space:ck:realm:0196419b-0000-7000-8000-000000000000:*`
 
-- 匹配：所有可评估 Space。
-- 要求：SHOULD 配合 `realm_id`、`allowed_space_kinds`、短有效期和审计理由。
+- 匹配：指定 Realm 内所有可评估 Space。
+- 要求：MUST 携带 `realm_id`；SHOULD 配合 `allowed_space_kinds`、短有效期和审计理由。
 
 ### 4.3 Flow 选择器
 
@@ -341,7 +341,7 @@ flow_part            ::= flow_id | "*"
 
 - `event:<realm>:<event_id>` 匹配特定 Event；`event:<realm>:*` 匹配 Realm 内 Event metadata。读取 Event payload 仍受对象、track、history、redaction 和 E2EE 约束。
 - `actor:<did>` 匹配 principal / service / agent DID；不得匹配 handle、邮箱或 OAuth subject。`actor:*` 不是 v1 合法 selector：`resource-selector.schema.json` 要求 `actor_id` 是具体 DID，parser / reducer 若遇到 actor wildcard MUST 以 `schema_violation` + `selector_actor_wildcard_forbidden` 拒绝。
-- `policy:<realm>:<policy_id>` 与 `schema:<schema_id>` 用于 policy / schema 管理授权。
+- `policy:<realm>:<policy_id>` 与 `schema:<schema_ref>` 用于 policy / schema 管理授权。canonical JSON 字段名为 `schema_ref`。
 - `invite:<realm>:<invite_id>` 用于邀请创建、查看、撤销或接受。
 
 ## 5. 选择器组合
@@ -371,6 +371,12 @@ function matches(target, selector):
         return true
 
     if selector.realm_id and selector.realm_id != "*" and target.realm_id != selector.realm_id:
+        return false
+
+    if selector.match_scope is absent:
+        selector.match_scope = "exact"
+
+    if selector.match_scope == "realm_wide" and not selector.realm_id:
         return false
 
     if selector.kind == "realm":
@@ -450,14 +456,23 @@ function matches(target, selector):
         )
 
     if selector.kind == "space":
-        return target.type == "space" and (
-            not selector.space_id or selector.space_id == target.id
-        )
+        if target.type != "space":
+            return false
+        if selector.space_id:
+            if selector.match_scope == "exact":
+                return selector.space_id == target.id
+            if selector.match_scope == "children":
+                return target.parent_space_id == selector.space_id
+            if selector.match_scope == "subtree":
+                return selector.space_id == target.id or selector.space_id in target.ancestor_space_ids
+        return selector.match_scope == "realm_wide"
 
     if selector.kind == "circle":
-        return target.type == "circle" and (
-            not selector.circle_id or selector.circle_id == target.id
-        )
+        if target.type != "circle":
+            return false
+        if selector.circle_id:
+            return selector.circle_id == target.id
+        return selector.match_scope == "realm_wide"
 
     if selector.kind == "blob":
         return target.type == "blob" and (
@@ -476,7 +491,16 @@ function matches(target, selector):
     return false
 ```
 
-> `space` / `circle` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
+> `space` / `circle` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`space` / `circle` 的 wildcard 形态 MUST 携带 `realm_id`，不得跨 Realm 命中；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
+
+`match_scope` 的语义固定如下：
+
+| 值 | 语义 |
+| --- | --- |
+| `exact` | 仅匹配 selector 指定的对象；缺省值。 |
+| `children` | 仅对 `space` 有效，匹配直接子 Space；其它 kind 使用该值 MUST `schema_violation`。 |
+| `subtree` | 仅对 `space` 有效，匹配该 Space 自身及所有后代 Space；后代关系必须来自已验证的 Space parent chain。 |
+| `realm_wide` | 仅在 `realm_id` 存在时有效，匹配该 Realm 内该 kind 的全部资源；缺少 `realm_id` MUST `schema_violation`。 |
 
 Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 检查。
 

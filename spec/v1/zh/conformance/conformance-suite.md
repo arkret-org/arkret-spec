@@ -38,7 +38,9 @@ sidebar:
 - `ck.profile.e2ee_client.v1`
 - `ck.profile.principal_server_events_api.v1`
 - `ck.profile.principal_server.v1`
+- `ck.profile.auth_server.v1`
 - `ck.profile.federation_minimal.v1`
+- `ck.profile.federation.high_assurance.v1`
 - `ck.profile.identity_registry.v1`
 - `ck.profile.applet_service.v1`
 - `ck.profile.enterprise_client.v1`

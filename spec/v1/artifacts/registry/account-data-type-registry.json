@@ -245,6 +245,21 @@
         "spec/v1/proposals/0009-agent-sidecar-thread.md",
         "spec/v1/zh/models/private-objects.md"
       ]
+    },
+    {
+      "type": "ck.account.invite_quarantine",
+      "status": "active",
+      "scope": "actor_private",
+      "key_pattern": "ck.account.invite_quarantine",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "encrypted_at_rest": true,
+      "description": "Actor-private quarantine inbox for invites held by consent gate default profile; MUST NOT expose contactability signals to the inviter.",
+      "source_refs": [
+        "spec/v1/zh/sync/client-sync.md"
+      ]
     }
   ]
 }

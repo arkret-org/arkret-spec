@@ -104,7 +104,8 @@
         "subtree",
         "children",
         "realm_wide"
-      ]
+      ],
+      "description": "Selector match breadth. exact matches only the named resource; children matches immediate children; subtree matches descendants including nested children; realm_wide is valid only when realm_id is present and limits matching to the named Realm. The normative algorithm is zh/authz/resource-selector-grammar.md ?6."
     }
   },
   "allOf": [
@@ -116,6 +117,27 @@
             "enum": [
               "notification",
               "read_cursor"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "realm_id"
+        ]
+      }
+    },
+    {
+      "$comment": "resource-selector-grammar.md ?3.1/?4.2/?6: space and circle selectors are Realm-scoped in v1; wildcard space/circle selectors MUST carry realm_id to avoid cross-Realm authorization expansion.",
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "space",
+              "circle"
             ]
           }
         },

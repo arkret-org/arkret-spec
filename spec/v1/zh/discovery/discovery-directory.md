@@ -452,6 +452,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | `discovery_state` | `object` | required | 完整签名 `ck.{kind}.discovery` payload（含 `proof`）。MUST 与真相源 byte-for-byte 一致。 |
 | `source_refs` | `id[]` | required | 真相源 event id 列表，至少包含产生当前 effective discovery state 的 anchor / state event id。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
+| `policy_revision` | `string` | required | `discovery_state` 对应的 effective policy revision；Realm 资源必须等于 `ck.realm.policy_components.policy_revision` 或由该 revision 派生。 |
 | `principal_server_did` | `did` | required | 当前资源真相源所在的 Principal Server service DID（用于 Directory 在需要时 pull 验证）。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
 | `supersedes_announce_id` | `ck:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
@@ -476,6 +477,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
   "resource_id": "did:web:acme.example",
   "principal_server_did": "did:web:principal.acme.example",
   "as_of": "2026-05-10T08:00:00Z",
+  "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
   "ttl_seconds": 86400,
   "source_refs": [
     "ck:event:0196419b-0000-7000-8000-000000000000"
@@ -536,7 +538,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 - TTL + grace 过期后未续约的 entry MUST 在查询结果中标记 `stale=true`；Directory MAY 在再延迟 24h 后从索引中移除。
 - 资源 governance key 在 ingest 期间发生 rotation：MUST 在下一次 announce 中携带新 key 的签名；Directory MUST 在验证 DID document key history 后接受。
 - Discovery state 内容未变但需要续约时，资源 MAY 重新提交相同 `discovery_state` + 新 `as_of`，Directory MUST 视为有效续约（按 `(resource_id, as_of)` 幂等）。
-- Directory MUST 拒绝 `as_of` 早于已存 entry `as_of` 的 announce（`policy_revision_rollback`）。
+- Directory MUST 拒绝 `as_of` 早于已存 entry `as_of`，或 `policy_revision` 小于已存 entry `policy_revision` 的 announce（`policy_revision_rollback`）。
 
 ### 8.7 撤销
 

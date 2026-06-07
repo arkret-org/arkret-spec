@@ -423,7 +423,7 @@
     {
       "name": "reject_actor_private_kind_in_shared_history",
       "input": {
-        "wire_scope": "durable_history",
+        "wire_scope": "durable_event",
         "event": {
           "event_id": "ck:event:019a6b30-0000-7000-8000-000000000000",
           "kind": "ck.read_cursor.advance",
@@ -457,7 +457,7 @@
     {
       "name": "reject_ephemeral_kind_in_shared_history",
       "input": {
-        "wire_scope": "durable_history",
+        "wire_scope": "durable_event",
         "event": {
           "event_id": "ck:event:019a6b40-0000-7000-8000-000000000000",
           "kind": "ck.typing",

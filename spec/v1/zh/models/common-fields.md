@@ -128,8 +128,8 @@ expected_<role>_<kind>_id
 | `updated_at` | no | `timestamp` | MUST 不早于 `created_at`。 | 最近更新时间。 |
 | `deleted_at` | no | `timestamp` | durable tombstone 可用。对没有独立 `deleted` / `tombstoned` 终态的对象（Flow / Morph，其不可逆终态是 `redacted`），`deleted_at` 仅表示该对象因 `ck.redaction` 进入 `redacted` 的逻辑删除时间，不暗示存在单独的 deleted 终态；对有 `tombstoned` / `deleted` 终态的对象（Space / Realm / Message 的相应终态），表示该终态发生时间。 | 逻辑删除时间。 |
 | `state_changed_at` | conditional | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Flow / Space / Message / Morph / Relation）当 `state != active` 时 MUST 写入;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 anchor 的 `anchored_at`,以两者中较晚者为准)覆盖写入。MUST 不早于 `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
-| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时必填（v1 适用对象 = Flow / Morph，详见 §5.3）；取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Flow 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
-| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ck.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST 不早于 `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
+| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Flow / Morph，详见 §5.3）；Flow MAY 省略，Morph 必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Flow 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
+| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Flow 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ck.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST 不早于 `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
@@ -170,7 +170,7 @@ expected_<role>_<kind>_id
 | `deleted_at` | Lifecycle | O | — | O | O | O | O | O | — | O | O | — | — | — | — | — |
 | `state` | Lifecycle | O | Y | O | O | Y | O | O | — | O | — | — | — | — | — | — (see `status`，mirrors account status) |
 | `state_changed_at` | Lifecycle | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
-| `stage` | Progress | — | — | — | Y | — | Y | — | — | — | — | — | — | — | — | — |
+| `stage` | Progress | — | — | — | O | — | Y | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | — | R per `ck.flow.stage.set` | — | R per `ck.morph.stage.set` | — | — | — | — | — | — | — | — | — |
 | `labels` | Universal | O | — | O | O | O | O | O | O | — | O | — | — | — | — | O |
 | `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | O | O | O | — | O | — | — | — (see `profile_fields`) |
@@ -181,7 +181,7 @@ expected_<role>_<kind>_id
 - Capability Grant / Invite / Read Cursor / Notification / Actor Profile 用领域特有的 authorship 字段（`issuer` / `inviter` / `actor_id` / `principal_id`），各对象 schema 内部独立约束；本表对应格写"—"是因为它们不使用通用 `created_by`，并不表示没有创建主体记录。
 - Read Cursor / Notification 是 actor-private 状态，`realm_id` 通常存在但允许 actor-scoped 视图省略（按 schema 决定）；`updated_by` 不适用——这些对象由系统派生或 actor 本人推进。
 - 任何 `state != active` 的对象 MUST 写入 `state_changed_at`；该字段被 reducer 强制覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。
-- `stage_changed_at` 仅 Flow / Morph 适用，且仅当真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
+- `stage_changed_at` 仅 Flow / Morph 适用，且仅当 `stage` 存在并真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
 - `labels` 对 Policy / Capability Grant / Invite / Read Cursor / Notification 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
 - `fields` 是协作对象的扩展容器；Flow / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；Capability Grant / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 无 durable 终态**：v1 的 View 只有 `ck.view.create` / `ck.view.update` / `ck.view.reconcile`，`view.schema.json` 不含 `state` / `deleted_at`，registry 也无 `ck.view.tombstone`；故本表 View 的 `state` / `deleted_at` 为 "—"。共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。这是有意取舍，待未来若出现"可治理删除"的需求再单独引入 lifecycle event。
@@ -358,11 +358,11 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 | 对象 | 是否声明 `stage` | 必填语义 | 触发 event |
 | --- | --- | --- | --- |
-| `Flow` | yes | `ck.flow.create` 时 actor 必填 | `ck.flow.stage.set` |
+| `Flow` | yes | 可选；`ck.flow.create` MAY 省略，普通业务 Flow SHOULD 填写，DM 主 Flow MAY 省略或选填合法值 | `ck.flow.stage.set` |
 | `Morph` | yes | `ck.morph.create` 时 actor 必填 | `ck.morph.stage.set` |
 | Realm / Space / Message / Relation / View / Policy / ... | no | — | — |
 
-适用对象自己的 schema(`flow.schema.json` / `morph.schema.json`)MUST 把 `stage` 列入 `required[]` 并显式枚举允许值；不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
+适用对象自己的 schema MUST 显式枚举允许值；`flow.schema.json` MUST 把 `stage` 声明为可选字段，且 `stage_changed_at` MUST NOT 在缺少 `stage` 时单独出现；`morph.schema.json` MUST 把 `stage` 列入 `required[]`。不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
 
 #### 5.3.2 协议级枚举（8 值，固定）
 
@@ -402,7 +402,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 - workflow 推进 event 在变更 `workflow_state_ref` 时,reducer SHOULD 派生写入对应 `stage`;
 - 客户端直接发 `ck.<kind>.stage.set` 仍合法，但 profile MAY 收紧为只允许 workflow event 路径(profile-defined,非 core)。
 
-如此 stage 成为 workflow 的协议级粗投影，跨 Realm dashboard 可聚合(同一个 `stage=in_progress` bucket 涵盖各 Realm 自定义的"In Dev / Reviewing / QA"等 fine-grained state)。
+携带 `stage` 的对象使用该字段作为 workflow 的协议级粗投影，跨 Realm dashboard 可聚合(同一个 `stage=in_progress` bucket 涵盖各 Realm 自定义的"In Dev / Reviewing / QA"等 fine-grained state)。
 
 ## 6. 通用对象 ID 约定
 

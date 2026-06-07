@@ -239,6 +239,8 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 当 presence policy 未显式允许精确披露时，`last_active_at` 默认省略；若 policy 要求携带粗粒度活跃度，MUST 以 bucket 化形态发送，bucket 边界（分钟 / 小时级）按 policy 声明，确定性编码，不得发送秒级精确 timestamp。bucket 化广播示例：
 
+`last_active_at` 解析必须是确定性的：若值中包含 `/`，接收方 MUST 按 ISO 8601 interval `<start>/<duration>` 解析，且值中必须恰好一个 `/`，`start` 必须是 RFC 3339 UTC timestamp，`duration` 必须是正 ISO 8601 duration；若值中不包含 `/`，接收方 MUST 按 RFC 3339 UTC timestamp 解析。解析失败、本地时区表示、缺少 `Z`、duration 为零或负数、额外 `/`、或试图修补 / 猜测畸形值时，接收方 MUST 丢弃该 presence update 或按 `schema_violation` fail closed，不得降级为更精确或更宽松的活跃度显示。
+
 ```json
 {
   "kind": "ck.presence",

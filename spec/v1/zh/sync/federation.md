@@ -99,8 +99,8 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 - body 中的 `origin` / `destination` MUST 与签名 transcript 中的来源 / 目标 service DID 一致。
 - `Source-Trust-Domain` / `Destination-Trust-Domain` MUST 进入签名 transcript；若 body 或 `service_binding_ref` 中携带来源 / 目标 trust domain，必须与 header 完全一致。
 - `destination` MUST 是接收方 service DID；反向代理、多租户 host 或 shared ingress 不能只凭 `Host` 判断目的地。
-- `Destination-Trust-Domain` MUST 等于接收方当前 deployment 的 `ServiceDescribe.trust_domain`，并与被接收 Realm 的 `trust_domain` 一致；不一致 MUST 返回 `cross_domain_replay_rejected`。
-- 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 返回 `capability_denied`，`reason_code="federation_authority_mismatch"`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
+- `Destination-Trust-Domain` MUST 等于接收方当前 deployment 的 `ServiceDescribe.trust_domain`，并与被接收 Realm 的 `trust_domain` 一致；不一致 MUST 归入本节统一最小披露失败族，对外使用同一鉴权失败 envelope，内部 audit-only reason 记为 `federation_trust_domain_mismatch`。
+- 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 归入本节统一最小披露失败族，对外使用同一鉴权失败 envelope，内部 audit-only reason 可记为 `federation_authority_mismatch`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
 - shared ingress / 多租户反向代理场景下，TLS Server Name (SNI) 与 `Destination-Service-DID` DID Document 中声明的 service endpoint origin MUST 直接匹配，或该 exact origin MUST 出现在 Realm policy / service delegation 明确登记的 shared ingress allowlist 中。Wildcard host 不能隐式覆盖 service DID 列表；若 deployment 用同一 host 承载多个 service DID，发送方 MUST 携带 `Destination-Service-Endpoint-Digest` header（endpoint canonical URL 的 `sha256:` digest），该 header MUST 进入 HTTP Message Signature transcript，接收方 MUST 与 DID Document / allowlist 中的 endpoint digest 比对。
 - 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。
 - 请求携带 `Request-Canonical-Digest` 时，该值 MUST 等于 canonical request body 的 SHA-256 digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 body 一致。无 body 的 `GET` pull MAY 省略该 header，因为 `@method` / `@target-uri` 已绑定查询语义。
@@ -230,8 +230,9 @@ Signature: sig1=:base64...:
         "device_id": "ck:device:0196419b-3000-7000-8000-000000000002",
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "read_scope": {
-          "kind": "thread",
-          "ref": "ck:message:0196419b-3000-7000-8000-000000000001"
+          "kind": "flow",
+          "ref": "ck:flow:0196419b-3000-7000-8000-000000000003",
+          "track_name": "discussion"
         },
         "position": {
           "event_id": "ck:event:0196419b-1000-7000-8000-000000000001",
@@ -259,7 +260,6 @@ Signature: sig1=:base64...:
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `accepted` | `id[]` | required | 已接受 Event ID。 |
-| `duplicate` | `id[]` | optional | 与既有 accepted Event 完全相同的幂等重复项；不得当作 rejected。 |
 | `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。 |
 | `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Event ID。 |
 
@@ -271,7 +271,7 @@ Cokret v1 的联邦批量传播采用依赖感知的 partial accept：最小原�
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的**授权 pre-state**。换言之，`refs[role=authorized_by]`、capability grant freshness 校验、policy auth state 引用 MUST 命中后续 Event 自身 `anchor_ref` 指向的 Anchor pre-state；同批前序 Event 创建、delegate、恢复或扩权出的 grant **不**在同一 Anchor batch 内对后续高风险 Event 生效，依赖方必须等待下一 Anchor 覆盖，否则当前批 MUST 以 `dependency_missing` / `stale_frontier` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §`POST /_cokret/peer/events` 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 `apply_anchor(A)` pre-state 模型完全一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
-**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未 accepted 且仍需投递的 Event；不得原样重放包含已 accepted Event 的旧 `events[]` 来“补齐失败项”。新 batch MUST 重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[]`。
+**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未 accepted 且仍需投递的 Event；不得原样重放包含已 accepted Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 放入 `accepted[]`，不另设 `duplicate[]` 字段，也不得当作 `rejected[]`。新 batch MUST 重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[]`。
 
 接收方服务绑定规则（normative）：
 
@@ -467,6 +467,7 @@ Probe **MUST** 是 capability-gated：
 - 被 Realm service binding 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
 - 未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）；服务端必须使用与不存在 Realm 不可区分的失败语义。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
+- 已授权 peer 的 probe 仍然 MUST 按 `(realm_id, peer_service_did)` 限速，并使用固定响应 timing bucket；服务端不得让授权 peer 通过高频轮询 `frontier_root` 推断 Realm 活跃度时间序列。
 
 Probe 响应 payload：
 
@@ -513,6 +514,7 @@ Probe 响应 payload：
 启用 `ck.profile.federation.high_assurance.v1`（high-assurance / sovereign / regulated / multi-writer federation 部署，详见 [`sovereign-deployment.md`](./sovereign-deployment.md)）的服务 **MUST**：
 
 - 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ **1 小时**；
+- `frontier_root` 主动交换 MUST 使用固定刷新 bucket 与 jitter，bucket 选择不得随 Realm 实时活动量变化；除 operator-triggered diagnostic 外，不得因为新 Event / push / backfill 活动立即触发额外 probe。
 - 对每个 accepted push / backfill range，要求 `ck.attestation.range_completeness` 使用 `federation_witness_attested` quorum；只有单源证明时 MAY 暂存为 pending，但不得推进 high-assurance completeness frontier；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
 - 连续 3 次 probe 失败（peer 不可达、签名失败、`frontier_root` 不一致超过 fork-resolution 阈值）**MUST** 把该 peer 在该 Realm 的状态标记为 `stale_peer`；

@@ -174,7 +174,7 @@ DM 主 Flow MUST：
 - 位于 DM Realm 内。
 - `scope_circle_id=null`，继承 DM Realm 的 Realm-default MLS group。DM 主 Flow MUST NOT 再套 Circle；双人 Realm 的 Circle 子集切不出更窄隐私边界。
 - 声明 `tracks.discussion.is_primary=true`，且 discussion track active。
-- 在当前 v1 Flow schema 下携带合法 `stage`。推荐使用 `stage="in_progress"` 作为 wire 兼容值；direct conversation UI MUST NOT 把该 stage 当成待办进度展示，也 SHOULD 禁用普通 `ck.flow.stage.set` 控件。
+- `stage` MAY 省略；若携带，MUST 是当前 v1 Flow schema 的合法枚举值。推荐使用 `stage="in_progress"` 作为 wire 兼容值；direct conversation UI MUST NOT 把 DM 主 Flow 的 `stage` 当成待办进度展示，也 SHOULD 禁用普通 `ck.flow.stage.set` 控件。
 - 通过 direct conversation binding 标识为该 Realm 的 main Flow。`discussion.is_primary=true` 只是 Flow 内默认入口，不能单独证明"这是 DM 主 Flow"。
 
 同一 DM Realm 至多一个 active canonical main Flow。DM Realm 内 MAY 有其它普通 Flow，用于把某个话题升级成独立议题；默认聊天消息必须写入 binding 指向的 main Flow。

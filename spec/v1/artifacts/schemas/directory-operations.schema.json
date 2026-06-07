@@ -179,7 +179,8 @@
         "realm_id",
         "as_of",
         "source_refs",
-        "policy_revision"
+        "policy_revision",
+        "member_count_bucket"
       ],
       "properties": {
         "realm_id": {
@@ -199,6 +200,49 @@
         },
         "join_rule": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "member_count_bucket": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "0",
+                "1-10",
+                "11-100",
+                "101-1000",
+                "1000+"
+              ]
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            }
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "owning_organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "preview_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "discoverability": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "history_visibility": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "join_candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "./realm-join-candidate.schema.json"
+          }
         },
         "as_of": {
           "$ref": "#/$defs/timestamp"
@@ -504,7 +548,8 @@
       "required": [
         "target_kind",
         "as_of",
-        "source_refs"
+        "source_refs",
+        "policy_revision"
       ],
       "properties": {
         "target_kind": {
@@ -529,6 +574,9 @@
         },
         "source_refs": {
           "$ref": "#/$defs/source_refs"
+        },
+        "policy_revision": {
+          "$ref": "#/$defs/non_empty_string"
         },
         "join_candidates": {
           "type": "array",
@@ -693,6 +741,9 @@
         },
         "intent": {
           "$ref": "#/$defs/intent"
+        },
+        "cursor": {
+          "$ref": "#/$defs/cursor"
         }
       },
       "additionalProperties": false
@@ -700,21 +751,33 @@
     "user_search_outcome": {
       "type": "object",
       "required": [
-        "handle",
-        "verified"
+        "did"
       ],
       "properties": {
         "handle": {
           "$ref": "#/$defs/handle"
         },
+        "did": {
+          "$ref": "#/$defs/did"
+        },
         "display_name": {
           "$ref": "#/$defs/non_empty_string"
         },
+        "avatar_blob_ref": {
+          "$ref": "./blob.schema.json#/properties/blob_ref"
+        },
+        "membership": {
+          "type": "string",
+          "enum": [
+            "joined",
+            "invited",
+            "knocked",
+            "left",
+            "unknown"
+          ]
+        },
         "verified": {
           "type": "boolean"
-        },
-        "subject": {
-          "$ref": "#/$defs/did"
         },
         "member_delivery_binding": {
           "$ref": "./handle-claim.schema.json#/properties/member_delivery_binding"
@@ -734,6 +797,9 @@
           "items": {
             "$ref": "#/$defs/user_search_outcome"
           }
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor"
         },
         "has_more": {
           "type": "boolean"

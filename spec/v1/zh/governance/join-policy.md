@@ -72,8 +72,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `gates` | yes | `array<Gate>` | 1..16 项；空数组 MUST schema_violation。 | 必须穿越的 gate 列表。 |
-| `combinator` | yes | `enum(all, any)` | 默认 `all`。 | gate 之间的组合语义。 |
-| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `ck.realm.join.review`。 | 审核所需 capability，取 **capability action token** 形态（如 `ck.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
+| `combinator` | yes | `enum(all, any)` | 无默认值；producer MUST 显式写入。 | gate 之间的组合语义。 |
+| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `ck.realm.join.review` 仅适用于旧本地配置，wire payload MUST 显式写入。 | 审核所需 capability，取 **capability action token** 形态（如 `ck.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
 
 [^review-capability-alias]: 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。v1 wire 字段名为 `review_capability`，不会改变。（未来版本对该字段的 prose alias 规划属 roadmap 范畴，不在 v1 normative 范围内。）
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
@@ -320,7 +320,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 ### 7.4 `member.application.cancel`
 
-applicant 可主动撤回；写入 `decision=canceled`，不计 cooldown。
+applicant 可主动撤回；写入独立 `member.application.cancel` record，携带 `application_ref`、`cancelled_by`、`cancelled_at` 和可选 `reason_text`，不写入 §7.3 的 `decision` 字段，也不计 cooldown。
 
 ### 7.5 接受后的 invite
 
@@ -383,10 +383,13 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
         knock ──submit member.application──▶ knock (with application_ref projection)
             │
             ├─ review.accept ──▶ invite (via ck.invite.create) ──▶ join (via ck.invite.accept)
+            ├─ review.request_changes ──▶ knock (awaiting applicant revision; ttl continues)
             ├─ review.reject ──▶ leave  (with rejected_at + cooldown_until projection)
             ├─ application.cancel ──▶ leave
             └─ application_ttl 到期 ──▶ leave (reducer 自动转换，reason_code="ttl_expired")
 ```
+
+`request_changes` 不关闭 application，也不创建 invite；它把 projection 保持在 `awaiting_review` / `changes_requested` 子状态，允许 applicant 在同一 `application_ref` 下提交修订 answer 或补充 `gate_proofs`。`application_ttl` 从原申请提交时间继续计时，除非 Realm policy 显式允许 reviewer 延长并写入新的 signed receipt；`request_changes` 不触发 `cooldown_after_reject`，也不消费 `max_open_applications_per_actor` 之外的新名额。
 
 派生 view `ck.view.realm.applications.v1`（[`../models/views.md`](../models/views.md)）SHOULD 提供：
 

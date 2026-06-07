@@ -2415,8 +2415,8 @@ def check_read_scope_schema_closure(lint: Lint) -> None:
             lint.fail(cursor_path, "read_cursor.read_scope schema missing")
         else:
             properties = read_scope.get("properties") or {}
-            if "track_scope" not in properties:
-                lint.fail(cursor_path, "read_cursor.read_scope must define track_scope for whole-flow cursors")
+            if "track_name" not in properties:
+                lint.fail(cursor_path, "read_cursor.read_scope must define track_name for flow-track cursors")
             if not isinstance(read_scope.get("allOf"), list) or not read_scope.get("allOf"):
                 lint.fail(cursor_path, "read_cursor.read_scope must define conditional scope constraints")
 

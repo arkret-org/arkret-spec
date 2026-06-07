@@ -180,6 +180,8 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 | `cancelled` | 无 | yes |
 | `expired` | 无 | yes |
 
+`ck.agent.interop_session.start` 被 accepted 后，同一 `session_id` 的 canonical 初始状态固定为 `negotiating`。第一条 `ck.agent.interop_session.status` 或 `ck.agent.interop_session.result` 必须是上表中 `negotiating` 的合法后继；若第一条 result 写入终态，其 `status` 也必须是 `negotiating` 的合法终态后继。
+
 Reducer MUST 对同一 `session_id` 的 accepted `ck.agent.interop_session.status` / `.result` 事件按 Anchor application order 回放；同一 Anchor 内无法由因果关系区分的候选按 `(created_at, event_id)` 稳定排序。每个候选状态 MUST 符合上表；从终态转出、跳过合法后继或对同一终态写入冲突 result 的事件 MUST fail closed，reason=`agent_protocol_malformed_response`。`ck.agent.interop_session.result` 是终态写入；当同一排序位置同时存在 status 与 result 时，result 的 `status` 作为 canonical terminal status。
 
 Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.interop_session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `ck.agent.interop_session.status{status="cancelled"}` 或终态 `ck.agent.interop_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。

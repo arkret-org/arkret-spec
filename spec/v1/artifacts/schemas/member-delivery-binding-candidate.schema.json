@@ -129,7 +129,7 @@
     "claim_digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "sha256 digest of the upstream handle claim canonical JSON; used as cache key and audit-chain anchor."
+      "description": "sha256 digest over JCS(semantic_projection(upstream handle claim)) per zh/identity/identity-handles.md ?3.2.1; it is not a digest over the whole upstream handle claim object."
     },
     "intent": {
       "type": "string",

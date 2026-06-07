@@ -33,10 +33,10 @@ Cokret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 
 - `tracks` 的 key：定义 Flow 当前启用的能力轨道（key 是 track 稳定名）
 - `tracks.<name>.is_primary=true`：可显式定义默认主入口；若未显式设置且存在 key `synthesis`，默认主入口派生为 `synthesis`
-- `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，必填）= 业务进度。两者正交，分别由 `ck.flow.archive` 家族与 `ck.flow.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
+- `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，可选）= 业务进度。两者正交，分别由 `ck.flow.archive` 家族与 `ck.flow.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
 - 业务语义通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达
 
-Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review、Ready for release）不是新的协议字段。跨实现互操作只依赖 `stage` 的 8 个粗粒度值；细粒度状态应由 Realm workflow profile、`metadata.fields` 或 Morph schema 声明，并映射回 `stage` 以便跨 Realm dashboard 聚合。
+Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review、Ready for release）不是新的协议字段。跨实现互操作在 Flow 携带 `stage` 时只依赖 8 个粗粒度值；细粒度状态应由 Realm workflow profile、`metadata.fields` 或 Morph schema 声明，并在需要跨 Realm dashboard 聚合时映射回 `stage`。
 
 ## 3. Flow 的标准 Track
 

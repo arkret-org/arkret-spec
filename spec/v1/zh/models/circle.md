@@ -315,6 +315,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 
 特例:
 - `ck.circle.create` 的 authorization shell 是 Realm-level event,但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ck.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；sidecar profile 还需额外满足 `ck.vector.sidecar.existence_privacy.v1`。
+- `directory_visibility=realm_members` 时，属于父 Realm 但不属于该 Circle 的 caller 只能看到固定预览白名单：`circle_id`、`realm_id`、`visibility="realm_members"`、`display.color_token`、`display.symbol`、`member_count_bucket`、`join_rule` 与 `opaque_commitment`。不得向非 Circle 成员暴露 title、summary、raw member_count、成员 DID、created_by、join history 或 Circle 私有事件引用。非 Realm 成员与未授权 caller 必须收到与 `directory_visibility=members` 相同的 locked stub / not_found envelope 和 timing bucket。该要求由 `ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
 - `ck.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ck.circle.audit` / `ck.audit.accessed` 配对的 audit reader。
 - `ck.circle.anchor_commit` 是 Realm-level event,但只携带 opaque digest(见 §10),且触发节奏不得泄露 Circle 活动频率。
 

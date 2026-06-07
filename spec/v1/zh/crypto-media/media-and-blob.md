@@ -121,7 +121,7 @@ AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的�
 
 6. **接收方 replay 防护**:接收方 MUST 维护 per-(key_ref, epoch, device_id) 已见 counter 集合或等价无误判结构；重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
 
-`cleartext_sha256` 字段 v1 不再作为附件 metadata 标准字段：在 E2EE Realm 中泄露明文 hash 会破坏内容机密性（短/可预测明文可被离线枚举）。如果 deployment 出于审计需要保留 cleartext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC/pepper commitment（见 `event-auth-state-resolution.md` §10.1）。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
+`cleartext_sha256` 字段 v1 不再作为附件 metadata 标准字段：在 E2EE Realm 中泄露明文 hash 会破坏内容机密性（短/可预测明文可被离线枚举）。Blob / attachment 加密 wire 形态是 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json)；producer 必须提供 `ciphertext_digest`，不得提供明文 hash。若 deployment 出于审计需要保留 cleartext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
 ## 4. Thumbnail
 

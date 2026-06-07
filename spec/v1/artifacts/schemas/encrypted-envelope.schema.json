@@ -101,9 +101,19 @@
         }
       },
       "not": {
-        "required": [
-          "event_id",
-          "event_ref_digest"
+        "anyOf": [
+          {
+            "required": [
+              "event_id",
+              "event_ref_digest"
+            ]
+          },
+          {
+            "required": [
+              "causal_refs",
+              "causal_ref_digests"
+            ]
+          }
         ]
       },
       "additionalProperties": false

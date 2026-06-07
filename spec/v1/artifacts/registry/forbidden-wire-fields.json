@@ -23,7 +23,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": "track_name",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Legacy Matrix-style 'branch' top-level field on timeline / Flow events is replaced by the v1 'track' concept (a display-only timeline segment identifier). See current-model 'Track 是纯展示 / 时间线分段标识'. The string 'branch' MUST NOT appear as a top-level Event Envelope or payload field name."
     },
     {
@@ -32,7 +36,11 @@
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "track_name",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Wire fields that carry one concrete Flow.tracks map key use `track_name`. The plural `tracks` map and `allowed_tracks` capability constraint remain valid collection names."
     },
     {
@@ -41,7 +49,11 @@
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "encrypted_content",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "When the plaintext counterpart is `content`, the encrypted counterpart is `encrypted_content` (Flow, Message, Morph). Generic `encrypted_payload` remains valid for non-content carriers such as identity and reaction payloads."
     },
     {
@@ -50,7 +62,11 @@
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "metadata.title or encrypted_metadata",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Flow and Morph user-readable title is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
     },
     {
@@ -59,7 +75,11 @@
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "metadata.summary or encrypted_metadata",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Flow and Morph user-readable summary is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
     },
     {
@@ -68,7 +88,11 @@
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "metadata.fields or encrypted_metadata",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Extensible user metadata fields live under metadata.fields, or inside encrypted_metadata when the effective metadata profile requires encryption."
     },
     {
@@ -77,7 +101,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": "realm.kind",
-      "allowed_contexts": ["changelog", "interop_module", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "interop_module",
+        "negative_test"
+      ],
       "notes": "Room core model was removed; Realm is the v1 boundary. 'room_kind' MUST NOT appear on the wire outside an explicit MIMI / Matrix interop module."
     },
     {
@@ -86,7 +114,11 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": "realm",
-      "allowed_contexts": ["changelog", "interop_module", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "interop_module",
+        "negative_test"
+      ],
       "notes": "Flow payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'realm' / 'flow' / canonical Realm.kind values. Interop translation lives in an opt-in interop module only."
     },
     {
@@ -95,7 +127,10 @@
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "scope_circle_id",
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Flow payload MUST NOT carry 'discussion_space_ref'. Discussion privacy is represented by Circle-scoped Flow objects and confidential_discussion_of Relation facts; the field-level Circle identifier is 'scope_circle_id' (see schemas/flow.schema.json, zh/models/circle.md)."
     },
     {
@@ -104,7 +139,11 @@
       "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
       "replacement": "parent_space_id / default_realm_id / scope_circle_id / default_scope_circle_id / retention_policy_id / disclosure_policy_id / rate_limit_policy_id / policy_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. The old fields parent_ref, default_realm_ref, scope_ref, default_scope_ref, retention_policy_ref, disclosure_policy_ref, rate_limit_policy_ref, and Policy-object policy_ref MUST NOT appear on current v1 wire."
     },
     {
@@ -113,7 +152,11 @@
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
       "replacement": "allowed_view_ids / allowed_flow_ids / allowed_circle_ids / denied_flow_ids / allowed_space_ids / denied_space_ids / realm_ids / approval_actor_ids",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_flow_refs, allowed_circle_refs, denied_flow_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Flow, or Morph containers."
     },
     {
@@ -122,7 +165,11 @@
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
       "replacement": "ck:rtc_participant:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "The abbreviated media participant typed ID prefix was expanded to the full snake_case kind. Current v1 wire MUST use ck:rtc_participant:<uuid>; ck:rtcpart:<uuid> is rejected."
     },
     {
@@ -131,7 +178,11 @@
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
       "replacement": "digest_algorithm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Key backup KDF params use digest_algorithm for PBKDF2/derived digest selection. The old params.hash selector is ambiguous with digest bytes and MUST NOT appear on current v1 wire."
     },
     {
@@ -140,7 +191,11 @@
       "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
       "replacement": "policy_event_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "member_delivery_binding references the policy revision Event that authorized a delivery binding, not a Policy object. The field therefore carries explicit event-reference semantics as policy_event_ref."
     },
     {
@@ -149,7 +204,11 @@
       "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
       "replacement": "require_scope_circle_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "The child_scope_policy discriminator now names the concrete field it requires: scope_circle_id."
     },
     {
@@ -158,7 +217,10 @@
       "since_revision": "T20",
       "rejection_level": "hard_reject",
       "replacement": "realm_frontier",
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Range-completeness event_range, audit RYW receipt, and POST /events response MUST use 'realm_frontier'. The replication and security boundary covered by this frontier is the Realm, not an in-Realm Space container. 'space_frontier' MUST NOT appear on the current wire as a frontier object property."
     },
     {
@@ -167,7 +229,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "rank (top-level Relation field)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Relation MUST carry rank at the top level, not nested under fields. The dual-source (top-level rank vs fields.rank) ambiguity is closed: writers MUST emit top-level rank only, and readers MUST reject fields.rank with schema_violation. See zh/models/relation.md §2."
     },
     {
@@ -176,7 +242,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "rank (top-level Space field)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Space MUST carry rank at the top level. Mirrors the relation_payload constraint; closes the dual-source ambiguity uniformly. See zh/models/realm-and-space.md §3.2."
     },
     {
@@ -184,26 +254,38 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.realm.create / cx.realm.update payload",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Space is a container, not a security boundary. A cx.space.create / cx.space.update payload carrying Realm-level security_class is the pre-inversion Space-as-boundary shape and MUST be rejected; migrate it to Realm payload fields."
+      "replacement": "ck.realm.create / ck.realm.update payload",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Space is a container, not a security boundary. A legacy space-create / space-update payload carrying Realm-level security_class is the pre-inversion Space-as-boundary shape and MUST be rejected; migrate it to Realm payload fields."
     },
     {
       "id": "join_rule",
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.realm.join_rule or cx.realm.policy_components join policy facet",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Join policy is Realm-scoped. Space payloads MUST NOT carry join_rule; this closes the active cx.space.* versus removed pre-inversion payload-shape ambiguity."
+      "replacement": "ck.realm.join_rule or ck.realm.policy_components join policy facet",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Join policy is Realm-scoped. Space payloads MUST NOT carry join_rule; this closes the current Space container model versus removed pre-inversion payload-shape ambiguity."
     },
     {
       "id": "history_visibility",
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.realm.history_visibility",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.realm.history_visibility",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "History visibility is Realm-scoped. Space payloads MUST NOT carry history_visibility."
     },
     {
@@ -211,8 +293,12 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.realm.policy_server",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.realm.policy_server",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Policy server attachment is Realm-scoped. Space payloads MUST NOT carry policy_server."
     },
     {
@@ -220,8 +306,12 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.realm.delivery_binding_policy",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.realm.delivery_binding_policy",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Delivery binding policy is Realm-scoped. Space payloads MUST NOT carry delivery_binding_policy."
     },
     {
@@ -230,8 +320,12 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "cx.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only cx.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/flow-and-message.md §9."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ck.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ck.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/flow-and-message.md §9."
     },
     {
       "id": "blocks",
@@ -239,8 +333,12 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "parts",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "cx.content.composite Content Block MUST use the field name `parts` (matching schemas/message.schema.json, schemas/event-payload.schema.json, schemas/flow.schema.json, and schemas/morph.schema.json). The temporary `blocks` spelling was rejected because it over-constrained the concept to document layout blocks; the canonical wire name is `parts`, and `blocks` MUST NOT appear in current content_block_composite wire. See zh/models/content-types.md §4.10."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Composite Content Block MUST use the field name `parts` (matching schemas/message.schema.json, schemas/event-payload.schema.json, schemas/flow.schema.json, and schemas/morph.schema.json). The temporary `blocks` spelling was rejected because it over-constrained the concept to document layout blocks; the canonical wire name is `parts`, and `blocks` MUST NOT appear in current content_block_composite wire. See zh/models/content-types.md §4.10."
     },
     {
       "id": "cleartext_commitment",
@@ -248,7 +346,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare cleartext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form rather than this bare hash."
     },
     {
@@ -257,7 +359,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Flow field)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Flow MUST carry stage at the top level (required field). The dual-source (top-level stage vs metadata.fields.stage) ambiguity is closed: writers MUST emit top-level stage only, and readers MUST reject metadata.fields.stage with schema_violation. Same constraint as fields.rank in relation_payload / space_payload. See zh/models/flow-and-message.md §3.2 and zh/models/common-fields.md §5.3."
     },
     {
@@ -266,26 +372,38 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage_changed_at (top-level Flow field, reducer-derived)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering cx.flow.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Flow stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering ck.flow.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
     },
     {
       "id": "metadata.fields.stage_reason",
       "context": "flow_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on the Flow's discussion track that references the cx.flow.stage.set event",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Reserved-name guard. Flow stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the cx.flow.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Flow's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
+      "replacement": "Message on the Flow's discussion track that references the ck.flow.stage.set event",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Reserved-name guard. Flow stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the ck.flow.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Flow's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
     },
     {
       "id": "metadata.fields.stage_note",
       "context": "flow_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on the Flow's discussion track that references the cx.flow.stage.set event",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the cx.flow.stage.set event."
+      "replacement": "Message on the Flow's discussion track that references the ck.flow.stage.set event",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the ck.flow.stage.set event."
     },
     {
       "id": "metadata.fields.lifecycle",
@@ -293,8 +411,12 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Flow field) or state (physical lifecycle)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (cx.<kind>.archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a metadata.fields.* key on Flow. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a metadata.fields.* key on Flow. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5."
     },
     {
       "id": "metadata.fields.progress_state",
@@ -302,7 +424,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Flow field)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Reserved-name guard: 'progress_state' is a sister name for the stage concept and MUST NOT appear under metadata.fields.*. Implementations expressing business progression MUST use the canonical top-level 'stage' field."
     },
     {
@@ -311,7 +437,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Morph field)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Morph MUST carry stage at the top level (required field). Mirror of the flow_payload fields.stage constraint."
     },
     {
@@ -320,7 +450,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage_changed_at (top-level Morph field, reducer-derived)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Morph stage_changed_at is reducer-derived and lives at the top level."
     },
     {
@@ -328,17 +462,25 @@
       "context": "morph_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on an associated discussion track that references the cx.morph.stage.set event",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Reserved-name guard mirror for Morph. Stage transitions carry no reason field; rationale belongs in a discussion-track Message that references the cx.morph.stage.set event."
+      "replacement": "Message on an associated discussion track that references the ck.morph.stage.set event",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Reserved-name guard mirror for Morph. Stage transitions carry no reason field; rationale belongs in a discussion-track Message that references the ck.morph.stage.set event."
     },
     {
       "id": "fields.stage_note",
       "context": "morph_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on an associated discussion track that references the cx.morph.stage.set event",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "Message on an associated discussion track that references the ck.morph.stage.set event",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Reserved-name sister-guard for Morph fields.stage_reason. Same forbidden surface as Flow."
     },
     {
@@ -347,7 +489,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Morph field) or state",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Reserved-name guard mirror for Morph: 'lifecycle' is reserved for the state axis."
     },
     {
@@ -356,7 +502,11 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "stage (top-level Morph field)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Reserved-name guard mirror for Morph."
     },
     {
@@ -364,18 +514,26 @@
       "context": "flow_patch_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "cx.flow.stage.set event",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "cx.flow.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only cx.flow.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding cx.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/flow-and-message.md §3.2 reducer hard constraint 5."
+      "replacement": "ck.flow.stage.set event",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ck.flow.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.flow.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ck.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/flow-and-message.md §3.2 reducer hard constraint 5."
     },
     {
       "id": "patch:stage",
       "context": "morph_patch_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "cx.morph.stage.set event",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "cx.morph.update / cx.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only cx.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
+      "replacement": "ck.morph.stage.set event",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ck.morph.update / ck.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
     },
     {
       "id": "valid_from",
@@ -383,7 +541,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "not_before",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Validity lower bounds use not_before. Current writers MUST NOT emit valid_from."
     },
     {
@@ -392,7 +554,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Validity upper bounds use expires_at. Current writers MUST NOT emit valid_until."
     },
     {
@@ -401,7 +567,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Validity upper bounds use expires_at. Current writers MUST NOT emit not_after."
     },
     {
@@ -410,7 +580,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cache_expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Cache expiry fields use cache_expires_at."
     },
     {
@@ -419,7 +593,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "cache_expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Anonymous health frontier cache bound uses cache_expires_at."
     },
     {
@@ -428,7 +606,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "verification_method",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Proof signer key material is expressed as verification_method."
     },
     {
@@ -437,7 +619,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "sender_actor_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Sender identity fields must carry the role and id suffix explicitly."
     },
     {
@@ -446,7 +632,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "sender_actor_display_name",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Sender display names in projections carry the sender_actor role prefix."
     },
     {
@@ -455,7 +645,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "event_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Event proofs MUST bind canonical Event bytes with event_digest. Generic non-Event detached proofs now use payload_digest. payload_hash is forbidden in all wire contexts."
     },
     {
@@ -464,7 +658,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "payload_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Generic detached-JWS proofs over non-Event canonical payloads (Anchor signature, identity-link, did-continuity, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix."
     },
     {
@@ -473,7 +671,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ck:notification:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
@@ -482,7 +684,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ck:device_message:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
@@ -491,7 +697,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ck:key_event:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
@@ -500,7 +710,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ck:moderation_queue_item:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
@@ -509,7 +723,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ck:request:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
@@ -518,7 +736,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ck:transaction:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
@@ -527,7 +749,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ck:franking_proof:",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
@@ -535,8 +761,12 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.agent.key.authorize",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.agent.key.authorize",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Past-participle agent key event kind is removed."
     },
     {
@@ -544,8 +774,12 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.agent.key.revoke",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.agent.key.revoke",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Past-participle agent key event kind is removed."
     },
     {
@@ -553,8 +787,12 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.agent.key.rotate",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.agent.key.rotate",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Past-participle agent key event kind is removed."
     },
     {
@@ -562,8 +800,12 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.device.authorize",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.device.authorize",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Past-participle device event kind is removed."
     },
     {
@@ -571,8 +813,12 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.device.revoke",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.device.revoke",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Past-participle device event kind is removed."
     },
     {
@@ -580,26 +826,38 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.relation.tombstone",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Relation termination uses cx.relation.tombstone."
+      "replacement": "ck.relation.tombstone",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Relation termination uses ck.relation.tombstone."
     },
     {
       "id": "cx.read.marker",
       "context": "event_kind_or_capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.read_cursor.advance",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Read position state is read cursor; the canonical event_kind and capability action share the name cx.read_cursor.advance."
+      "replacement": "ck.read_cursor.advance",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Read position state is read cursor; the canonical event_kind and capability action share the name ck.read_cursor.advance."
     },
     {
       "id": "cx.schema.read_marker.v1",
       "context": "schema_id",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.schema.read_cursor.v1",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "replacement": "ck.schema.read_cursor.v1",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Read position schema is read cursor."
     },
     {
@@ -608,7 +866,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "membership_source_realm_refs",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Membership source evidence is Realm-scoped and not a Space parent relation."
     },
     {
@@ -617,7 +879,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "parent_grant_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Capability delegation names the parent grant explicitly."
     },
     {
@@ -626,7 +892,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "source_realm_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory search context uses source_realm_id."
     },
     {
@@ -635,7 +905,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "realm_sync_entry",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Account subscribe frames describe Realm sync entries."
     },
     {
@@ -644,7 +918,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "member_delivery_binding",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Candidate payload carries the concrete member_delivery_binding builder object."
     },
     {
@@ -653,7 +931,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "franking_proof",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Moderation report proof object uses franking_proof."
     },
     {
@@ -662,7 +944,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "franking_proof_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Moderation franking proof id uses the full noun."
     },
     {
@@ -671,7 +957,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "franking_proof_unavailable",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Error code uses the full franking_proof noun."
     },
     {
@@ -680,7 +970,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "member_delivery_binding.recipient_service_did",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Handle claim delivery routing is single-sourced inside member_delivery_binding."
     },
     {
@@ -689,7 +983,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "actor_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID."
     },
     {
@@ -698,7 +996,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "principal_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID."
     },
     {
@@ -707,7 +1009,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "subject_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID."
     },
     {
@@ -716,7 +1022,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "title",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory / projection rows use canonical title, not a name alias."
     },
     {
@@ -725,7 +1035,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "avatar_blob_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory / projection rows use canonical avatar_blob_ref, not an avatar alias."
     },
     {
@@ -734,7 +1048,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "owning_organizations",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Directory / projection rows use canonical owning_organizations, not an official_organizations alias."
     },
     {
@@ -743,7 +1061,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "or_set",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "CRDT lattice enum values use snake_case."
     },
     {
@@ -752,7 +1074,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "mv_register",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "CRDT lattice enum values use snake_case."
     },
     {
@@ -761,7 +1087,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cas_register",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "CRDT lattice enum values use snake_case."
     },
     {
@@ -770,7 +1100,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "ordered_log",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "CRDT lattice enum values use snake_case."
     },
     {
@@ -779,7 +1113,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "lww_register",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "CRDT lattice enum values use snake_case."
     },
     {
@@ -788,8 +1126,12 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "notification.realm_title / notification.flow_title",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Flow metadata.title (flow_title); both remain forbidden in the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Flow metadata.title (flow_title); both remain forbidden in the ck.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit ck.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
     },
     {
       "id": "frank_only",
@@ -797,7 +1139,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "franking_proof_only",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Moderation visibility enum values use the full franking_proof noun."
     },
     {
@@ -806,7 +1152,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "requires_franking_proof_verification",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Moderation evidence policy fields use the full franking_proof noun."
     },
     {
@@ -815,7 +1165,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "retention_expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Retention time upper bounds use the canonical expires_at suffix."
     },
     {
@@ -824,7 +1178,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Moderation queue item's own typed identifier uses the common id field."
     },
     {
@@ -833,7 +1191,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "messages",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Account subscribe to_device container carries DeviceMessageEnvelope objects, not Event envelopes."
     },
     {
@@ -842,7 +1204,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "freeze_expires_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Realm freeze time upper bounds use the canonical expires_at suffix with a domain prefix."
     },
     {
@@ -851,7 +1217,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "actor_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Agent audit binding subject is a protocol actor DID-as-id."
     },
     {
@@ -860,7 +1230,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Snapshot chunk descriptors use digest with an algorithm prefix."
     },
     {
@@ -869,7 +1243,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "member_delivery_binding.service_acceptance_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Handle claim delivery binding evidence is single-sourced inside member_delivery_binding."
     },
     {
@@ -878,7 +1256,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "member_delivery_binding.policy_event_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Handle claim delivery binding policy references are single-sourced inside member_delivery_binding."
     },
     {
@@ -887,7 +1269,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "target_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Generic object_patch_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' and even target-less patches; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms."
     },
     {
@@ -896,7 +1282,11 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "target_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Generic object_lifecycle_payload single-sources the target object via 'target_ref'. The pre-2026-05-24 draft also accepted 'object_ref' or even a target-less {target_state} form; both shapes are removed. This forbids only the payload property name; event-payload.schema.json $defs.object_ref and selector grammar object_ref remain valid generic reference terms."
     },
     {
@@ -905,7 +1295,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "signed_payload_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Federation verification payloads use the v1 hash vocabulary: digest fields end in _digest and values use <algo>:<lowercase_hex>."
     },
     {
@@ -914,7 +1308,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "avatar_blob_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "MemberIdentity display_profile reuses the canonical avatar_blob_ref name for Blob references."
     },
     {
@@ -923,7 +1321,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "icon_blob_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Applet protocol metadata exposes a Blob reference, so the field carries the _blob_ref suffix."
     },
     {
@@ -932,7 +1334,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "realm_bound",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Media visibility is aligned with Realm / Circle scope; Space is not a security boundary."
     },
     {
@@ -941,7 +1347,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "content_digest",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Blob metadata uses content_digest with an algorithm prefix. Content-addressed blob_ref values may still use ck:blob:sha256:<hex>."
     },
     {
@@ -950,7 +1360,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "size_bytes",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Blob upload request and response byte counts use size_bytes; bare size is not a byte-count field name in v1."
     },
     {
@@ -959,7 +1373,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "signature_algorithm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Custom signature algorithm selector fields use the full _algorithm suffix."
     },
     {
@@ -968,7 +1386,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "device_key_algorithm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Custom device key algorithm selector fields use the full _algorithm suffix."
     },
     {
@@ -977,7 +1399,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "agent_principal_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Agent key payloads name the agent as a protocol responsibility principal, not raw DID ecosystem material."
     },
     {
@@ -986,7 +1412,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "audit_service_actor_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Audit release evidence names the attested release actor with _id; service_did remains the hosting service DID."
     },
     {
@@ -995,7 +1425,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "accountable_principal_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Accountability in agent key payloads points at a DID-as-principal and therefore uses _id."
     },
     {
@@ -1004,7 +1438,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "thumbnail_blob_ref",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Blob metadata thumbnail references use _blob_ref."
     },
     {
@@ -1013,7 +1451,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "status_changed_at",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Agent lifecycle payloads mutate the status axis; the transition timestamp must name that axis."
     },
     {
@@ -1022,7 +1464,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "claim_kind",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Handle Claim's closed protocol discriminator uses claim_kind. claim_type remains valid in external credential selector contexts."
     },
     {
@@ -1031,7 +1477,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "anchorer_signature",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Anchor signatures use the full signature noun."
     },
     {
@@ -1040,7 +1490,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "inception_public_key_fingerprint",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "DID continuity evidence uses public_key rather than pubkey."
     },
     {
@@ -1049,7 +1503,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "commitment_b64u",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Recovery share commitments use base64url characters and therefore carry _b64u."
     },
     {
@@ -1058,7 +1516,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "actor_kind=integration or actor_kind=agent plus Applet provenance",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Ghost Actor is not a wire actor_kind enum value. External account mirrors should use integration; Applet-managed AI / automation actors may use agent."
     },
     {
@@ -1067,7 +1529,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "actor_kind=agent plus native agent provisioning state",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Native personal agent is represented by actor_kind=agent and CKP-0008 provisioning/accountability state, not by an expanded actor_kind enum."
     },
     {
@@ -1076,7 +1542,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "actor_kind=integration or actor_kind=agent plus Applet provenance",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Ghost/native distinction is carried by Applet provenance and accountability, not by an expanded actor_kind enum."
     },
     {
@@ -1085,7 +1555,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "accountable_principal_ids",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Actor Profile accountability targets are a list of responsibility-subject principal DIDs; the field uses the _ids suffix (plural of the scalar accountable_principal_id). The _to preposition suffix is outside the _id/_ref/_did taxonomy and is removed."
     },
     {
@@ -1094,7 +1568,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "reviewers",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "The {threshold, of} reviewer quorum object names the DID list reviewers (mirrors approvers / recovery_members). The two-letter of is not a valid wire field name."
     },
     {
@@ -1103,7 +1581,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "via_service_dids",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "The membership delivery routing list carries service DIDs; the field names the value category explicitly as via_service_dids. Bare via is removed."
     },
     {
@@ -1112,7 +1594,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "principal_id",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Each signature-chain link names the signing principal as principal_id (DID-as-id responsibility subject); the signing key remains verification_method. The two-letter by is removed."
     },
     {
@@ -1121,7 +1607,11 @@
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "ISO 8601 duration (^P...)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Human-readable policy duration wire values use ISO 8601 (PT24H, P30D, P1Y). The self-invented compact form ^[0-9]+(ms|s|m|h|d)$ (e.g. 24h, 7d, 15m) MUST NOT appear on the wire; see common-fields.md §3.0.2 and constraint-schema.md §3. Machine timing fields continue to use integer _ms / _seconds."
     }
   ]

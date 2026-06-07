@@ -146,6 +146,8 @@ Reader 决策规则：
 
 Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版本，reducer **MUST** 返回 `schema_violation` reason=`morph_schema_version_binding_missing`。
 
+任何 `ck.morph.update` 或 Realm `morph_type_profiles` 更新若试图通过 profile 放宽、替换或扩张已创建 Morph 的 `schema_refs[]` 解释范围，reducer MUST 拒绝并返回 `schema_violation` reason=`morph_profile_widens_schema_ref`。任何写入路径试图修改已创建 Morph 的 `morph_type`，reducer MUST 拒绝并返回 `failed_precondition` 或 `schema_violation` reason=`morph_type_immutable`；`morph_type` 只允许在 `ck.morph.create` 时确定。
+
 **S3. Schema Migration 一等 event**：`ck.morph.schema_migrate` 是 schema_refs[] 演进的一等事件，payload 形态由 `ck.schema.event_payload.v1#/$defs/morph_schema_migrate_payload` 定义。该 event 显式声明 `from_schema_refs[]` / `to_schema_refs[]` / `compatibility_class` ∈ {`additive`, `breaking`, `transformation`}，并通过高 tier capability action `ck.morph.schema_migrate` 鉴权（capability 缺失 reducer MUST `capability_denied`）。规则：
 
 - `additive`：to_schema_refs[] 仅添加 optional 字段或向后兼容 profile；任何历史 reducer-input event 无需重新解释。Core reducer MUST 接受。

@@ -16,7 +16,7 @@ import OperationTable from "~/components/OperationTable.astro";
 
 本页是 OpenAPI binding 的说明视图（informative）；其中复述的 MUST 规则其权威来源为 `sync/service-http-binding.md` 与 `sync/api-conventions.md`。
 
-`service-api-schema.mdx` 是 Cokret **canonical operation** 的说明性服务清单。  
+`service-api-schema.mdx` 是 Cokret **canonical operation** 的说明性服务清单。
 HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其它 transport（gRPC、WebSocket、SSE、MQ、libp2p、IPC）。
 
 本文件同时承担：
@@ -136,6 +136,9 @@ paths:
       operationId: ck.self.events.submit
     get:
       operationId: ck.self.events.query
+  /_cokret/self/events/query:
+    post:
+      operationId: ck.self.events.query_post
   /_cokret/self/events/subscribe:
     get:
       operationId: ck.self.events.subscribe
@@ -363,6 +366,7 @@ paths:
 | `ck.root.identity.get_document` / `ck.root.identity.get_log` / `ck.root.identity.get_receipts` | `GET /_cokret/root/identity/document`, `GET /_cokret/root/identity/log`, `GET /_cokret/root/identity/receipts` | gRPC Identity Registry / witness query |
 | `ck.self.events.submit` | `POST /_cokret/self/events` | gRPC `SelfEvents/Submit` / 队列 `self.events.submit` |
 | `ck.self.events.get` / `ck.self.events.resolve` / `ck.self.events.query` / `ck.self.events.frontier` | `GET /_cokret/self/events/{event_id}`, `POST /_cokret/self/events/resolve`, `GET /_cokret/self/events`, `GET /_cokret/self/events/frontier` | gRPC `SelfEvents/Get` / `SelfEvents/Resolve` / `SelfEvents/Query` / `SelfEvents/Frontier` |
+| `ck.self.events.query_post` | `POST /_cokret/self/events/query` | HTTP-only body binding variant of `ck.self.events.query` |
 | `ck.self.events.subscribe` | `GET /_cokret/self/events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
 | `ck.peer.events.submit` | `POST /_cokret/peer/events` | gRPC `PeerEvents/Submit` / 队列 `peer.events.submit` |
 | `ck.peer.events.resolve` / `ck.peer.events.query` / `ck.peer.events.frontier` | `POST /_cokret/peer/events/resolve`, `GET /_cokret/peer/events`, `GET /_cokret/peer/events/frontier` | gRPC `PeerEvents/Resolve` / `PeerEvents/Query` / `PeerEvents/Frontier` |

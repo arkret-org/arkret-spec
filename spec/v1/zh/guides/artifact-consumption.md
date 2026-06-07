@@ -18,7 +18,7 @@ updated: 2026-05-25
 
 - `registry/event-kind-registry.json`: event kind 是否 active、wire scope、cell family、lattice、bottom、payload schema。
 - `registry/operation-registry.json`: service operation ID、surface group、profile tier。
-- `registry/schema-registry.json`: registered schema ID 到 schema artifact 的映射；consumer MUST 递归解析同目录 `$ref` 指向的 raw schema artifact（例如 `event-envelope.schema.json` 引用的 `event-schema.json`），不得假设 registry 直接列出的文件就是全部需要发布或缓存的 schema 文件。
+- `registry/schema-registry.json`: registered schema ID 到 schema artifact 的映射；consumer MUST 递归解析同目录 `$ref` 指向的 raw schema artifact（例如 `event-envelope.schema.json` 引用 `event-payload.schema.json`、`common-ids.schema.json` 与 `read-cursor.schema.json`），不得假设 registry 直接列出的文件就是全部需要发布或缓存的 schema 文件。
 - `registry/id-kind-registry.json`: typed ID kind 与 wire form。
 - `profiles/conformance-profiles.json`: profile inheritance、required operations、event kinds、schemas、fixtures、features、capability actions、cell namespaces、rejected event kinds。
 

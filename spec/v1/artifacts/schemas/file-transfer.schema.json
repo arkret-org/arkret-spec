@@ -216,7 +216,8 @@
           "items": {
             "$ref": "#/$defs/device_id"
           },
-          "uniqueItems": true
+          "uniqueItems": true,
+          "maxItems": 1000
         }
       },
       "additionalProperties": false

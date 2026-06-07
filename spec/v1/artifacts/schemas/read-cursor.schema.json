@@ -50,30 +50,21 @@
           "type": "string",
           "enum": [
             "realm",
-            "flow",
-            "thread",
-            "view",
-            "message",
-            "morph"
+            "circle",
+            "space",
+            "flow"
           ],
-          "description": "Read-scope object kind. Track-scoped read cursors (e.g. discussion vs synthesis) use kind='flow' plus an explicit 'track' field, not a kind variant — the standard track set is profile-extensible and MUST NOT be hardcoded into this enum."
+          "description": "Read-scope object kind per zh/models/private-objects.md ?2.2. Track-scoped read cursors use kind='flow' plus track_name."
         },
         "ref": {
           "type": "string",
-          "pattern": "^ck:(realm|flow|message|morph|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Required when kind is anything other than 'realm'. Identifies the target object whose timeline this read cursor tracks."
+          "pattern": "^ck:(circle|space|flow):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Required when kind is circle, space, or flow; omitted for kind='realm'."
         },
         "track_name": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
           "description": "Required when kind='flow' AND the cursor scopes a single track (e.g. 'discussion', 'synthesis', or any profile-registered track name). Track names MUST match the Flow's registered tracks; unknown tracks MUST be rejected with schema_violation."
-        },
-        "track_scope": {
-          "type": "string",
-          "enum": [
-            "all"
-          ],
-          "description": "Only valid when kind='flow'. Use track_scope='all' instead of omitting track when the cursor covers the entire Flow regardless of track."
         }
       },
       "allOf": [
@@ -100,11 +91,6 @@
                   "required": [
                     "track_name"
                   ]
-                },
-                {
-                  "required": [
-                    "track_scope"
-                  ]
                 }
               ]
             }
@@ -113,6 +99,54 @@
             "required": [
               "ref"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "circle"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "not": {
+              "required": [
+                "track_name"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "space"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "not": {
+              "required": [
+                "track_name"
+              ]
+            }
           }
         },
         {
@@ -130,126 +164,6 @@
             "properties": {
               "ref": {
                 "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-              }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "track_name"
-                ],
-                "not": {
-                  "required": [
-                    "track_scope"
-                  ]
-                }
-              },
-              {
-                "required": [
-                  "track_scope"
-                ],
-                "properties": {
-                  "track_scope": {
-                    "const": "all"
-                  }
-                },
-                "not": {
-                  "required": [
-                    "track_name"
-                  ]
-                }
-              }
-            ]
-          },
-          "else": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "track_name"
-                  ]
-                },
-                {
-                  "required": [
-                    "track_scope"
-                  ]
-                }
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "thread"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "ref": {
-                "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-                "description": "Thread read scopes reference the root message of the thread."
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "message"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "ref": {
-                "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "morph"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "ref": {
-                "pattern": "^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "view"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "ref": {
-                "pattern": "^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             }
           }

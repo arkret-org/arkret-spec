@@ -43,6 +43,8 @@ E2EE Realm 中，disappearing message SHOULD 使用 per-message temporary conten
 
 Saved items、pins、replies、search index、push snippet 和 blob preview MUST NOT 复活已过期 plaintext。任何派生内容若包含明文或可逆摘要，必须跟随最早的 message expiry 失效。
 
+Late key recovery 也不得复活已过期 plaintext。若目标消息已超过 `expired_at + grace`，或 retention policy 已要求销毁内容 key，客户端和 key recovery source MUST 按 [`encryption-and-audit.md` §2.3.5](./encryption-and-audit.md) 拒绝 late recovery，保留 expiry stub / metadata-only 状态，并记录 `late_recovery_rejected_expired`。
+
 ## 5. Realm Policy
 
 `ck.realm.disappearing_policy` 写入 Realm policy cell。策略至少定义 enablement、最大 TTL、允许 trigger、默认 grace window 和是否允许 plaintext realms 使用该 profile。

@@ -60,7 +60,7 @@ transfer_key = base64url(HMAC-SHA256(account-data namespace key, transfer_id))
 | `media_type` | yes | 原始文件 MIME；只在 encrypted account-data 明文中出现。 |
 | `filename` | no | 清理后的原始文件名；只在 encrypted account-data 明文中出现。 |
 | `plaintext_size_bytes` | yes | 加密前文件字节数。 |
-| `access` | yes | `actor_private` 或 `device_bound`。 |
+| `access` | yes | 封闭对象；`access.visibility` 取 `actor_private` 或 `device_bound`，`device_bound` 时必须携带 `recipient_device_ids[]`。 |
 | `encryption` | yes | 文件密文 AEAD、AAD 与 key-delivery descriptor。 |
 | `origin_device_id` | yes | 发起上传的 `ck:device:<uuid>`。 |
 | `created_at` | yes | 传输创建时间，RFC3339 UTC。 |
@@ -94,7 +94,7 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 当 `access.visibility="device_bound"` 时，`access.recipient_device_ids` 是目标设备集合的唯一真相源，且 `encryption.key_delivery.method` MUST 是 `to_device_wrapped_key`。Producer MUST 为 `access.recipient_device_ids` 中的每个目标设备发送一条 `kind="ck.file_transfer.key.v1"` 的 to-device message；message `content` MUST validate as `ck.schema.file_transfer.v1#/$defs/file_transfer_key_message`。
 
-`ck.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。Receiver MUST 校验 to-device message 中的 `transfer_id`、`blob_ref`、`aead_profile`、`nonce` 和 `content_digest` 与 account-data transfer record 完全一致；不一致 MUST 拒绝该 key envelope。
+`ck.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。Receiver MUST 校验 to-device message 中的字段与 account-data transfer record 的对应字段完全一致：`key_message.transfer_id == record.transfer_id`、`key_message.blob_ref == record.blob_ref`、`key_message.aead_profile == record.encryption.aead_profile`、`key_message.nonce == record.encryption.nonce`、`key_message.content_digest == record.content_digest`。不一致 MUST 拒绝该 key envelope。
 
 未列入 `recipient_device_ids` 的设备即使收到了 account-data record，也 MUST 把该 transfer 视为不可解密，不得尝试从其它本地缓存或历史消息中恢复 key。
 

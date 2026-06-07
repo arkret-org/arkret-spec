@@ -32,7 +32,7 @@ Cell special form 使用 `ck:cell:ck.component.pin.v1:<pin_scope.id>`。v1 不�
 
 ## 3. Scope Safety
 
-目标对象必须落在 resolved effective scope 内，或在该 scope 内可见。Public Space 不得 pin Circle-private object；Realm-wide pin 不得泄露 Circle-scoped Message 的存在性。若目标不可见或跨 scope 不合法，reducer MUST fail closed，且错误形态不得向无权 actor 泄露目标是否存在。
+目标对象必须落在 resolved effective scope 内，或在该 scope 内可见。Public Space 不得 pin Circle-private object；Realm-wide pin 不得泄露 Circle-scoped Message 的存在性。若目标不可见或跨 scope 不合法，reducer MUST fail closed，并对调用方返回与不可见对象一致的 `not_found`；错误形态不得向无权 actor 泄露目标是否存在。内部审计 MAY 记录更具体的 scope mismatch 诊断。
 
 Pin note 若存在 MUST 加密，除非 Realm policy 明确允许该 note plaintext-visible。
 

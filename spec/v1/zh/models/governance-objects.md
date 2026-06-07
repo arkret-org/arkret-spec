@@ -170,7 +170,7 @@ Schema id: `ck.schema.invite.v1`
 
 - Invite MUST 携带 `expires_at`。默认有效期 SHOULD 不超过 7 天，高安全 Realm SHOULD 不超过 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
 - 接受 invite 后，相关 capability grant 才进入有效集合。
-- 3PID 邀请（邮箱、手机号等）的认领流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。
+- Invite state 转换的真源分两层：直接 DID 邀请由本节定义；3PID 邀请（邮箱、手机号等）的认领、失败和异常清理流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md) §6.1。直接 DID 邀请的合法转换为 `pending -> accepted`（invitee 提交 `ck.invite.accept` 且 capability / delivery target 校验通过）、`pending -> rejected`（invitee 显式拒绝）、`pending -> expired`（`expires_at` 到达）、`pending -> revoked`（inviter 或持有撤销 capability 的 actor 撤销）、`pending -> revoked_by_capability_loss`（inviter 失去 invite capability）、`pending -> revoked_by_inviter_left`（inviter 不再是可邀请成员）、`pending -> invalidated_by_rate_limit`（反滥用策略命中）。`send_failed` 仅由投递服务在无法送达私有 invite delivery target 时写入；`claimed` 仅用于 3PID 流程。每个非 `pending` 状态的写入事件 MUST 携带稳定 `reason_code`，并引用触发该转换的 event、policy frontier 或投递诊断。
 
 ## 6. 规范性引用
 

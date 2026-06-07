@@ -1570,7 +1570,7 @@
       "tier": "extension",
       "http": "POST /_cokret/self/rtc/ice-config",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/media-operations.schema.json#/$defs/ice_config_request",
+      "request_schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
       "response_schema_ref": "schemas/ice-config-response.schema.json",
       "openapi_component_refs": {
         "request": "#/components/schemas/MediaIceConfigRequest",

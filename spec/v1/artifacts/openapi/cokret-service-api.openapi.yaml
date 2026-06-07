@@ -404,6 +404,9 @@ components:
               - unsupported_profile_patch_path
               - session_grant_not_found
               - session_revoke_selector_conflict
+              - not_member
+              - morph_profile_widens_schema_ref
+              - morph_type_immutable
             message:
               type: string
             retry_after_ms:

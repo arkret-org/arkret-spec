@@ -136,7 +136,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 `event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
 
-本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `realm`、`flow`、`space`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`transaction` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / anchor、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
+本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `realm`、`flow`、`space`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`transaction` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / anchor、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym、trust domain）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 
@@ -145,6 +145,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 - `ck:anchor:sha256:<digest>` 是内容寻址 Anchor hash（active special form；见 `id-kind-registry.json`）。
 - `ck:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；component 来自 cell-component registry，subject 是 cell 的 subject key）。
 - `ck:mls:<profile>:<profile_id>`、`ck:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
+- `ck:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUIDv7 object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
 
 自定义 profile 若新增 `ck:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `ck:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
@@ -609,12 +610,16 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 加密 payload 的 digest MUST 覆盖密文和明文路由元数据：
 
 ```text
-payload_digest = sha256(canonical_json(cleartext_metadata) || ciphertext_bytes)
+aad_bytes = canonical_json(aad)
+aad_digest = sha256(aad_bytes)
+payload_metadata_bytes = canonical_json(payload_metadata)
+encrypted_payload_bytes = base64url_decode(ciphertext)
+payload_digest = sha256(payload_metadata_bytes || encrypted_payload_bytes)
 ```
 
-上式产出 32 字节 raw digest;其 wire 形态 MUST 为 `sha256:<lowercase_hex>`，与 §3.1 一致（见 `conformance-vectors.md` §1.12 的期望值 `sha256:3bef5270...`）。
+上式产出 32 字节 raw digest；其 wire 形态 MUST 为 `sha256:<lowercase_hex>`，与 §3.1 一致。`payload_metadata` 的字段集合、缺失字段处理、`mls-rfc9420` 下不得携带 `authentication_tag` 的规则，以 [`crypto-media/encryption-and-audit.md` §2.3.3](../crypto-media/encryption-and-audit.md) 为唯一真源。
 
-`cleartext_metadata` 至少包含 `encryption`、`epoch` 与 `content_type`；当 envelope 带 `aad` 时，`aad` MUST 进入 `cleartext_metadata` 后一起参与 digest。实现 MUST NOT 使用明文 payload 作为 `payload_digest` 输入。
+`payload_metadata` 至少覆盖 `scheme`、`version`、`group_id`、`epoch`、`content_type`、`aad_visibility_event_id`、`aad` 与 `key_ref` 中实际出现在 envelope 的字段；字段缺失时必须省略，不得写入 `null`。实现 MUST NOT 使用明文 payload 作为 `payload_digest` 输入，也不得把 base64url ciphertext 字符串本身作为密文字节输入。
 
 ### 10.1 AEAD nonce uniqueness（normative）
 

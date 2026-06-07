@@ -1081,6 +1081,118 @@
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.canonical_json.utf16_supplementary_order.v1",
+      "status": "active",
+      "profile": "ck.profile.encoding_vectors.v1",
+      "domain": "encoding",
+      "description": "Canonical JSON object key ordering follows UTF-16 code units for supplementary-plane keys.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.search.blind_index_stale_posting_fail_closed.v1",
+      "status": "active",
+      "profile": "ck.profile.search.blind_index.v1",
+      "domain": "search",
+      "description": "Blind-index stale postings after revocation, visibility tightening, redaction, expiry, or epoch rotation MUST not produce unauthorized recall.",
+      "source_refs": [
+        "spec/v1/zh/sync/privacy-preserving-search.md",
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.search.result_not_authz_proof.v1",
+      "status": "active",
+      "profile": "ck.profile.search.blind_index.v1",
+      "domain": "search",
+      "description": "Search hit is not an authorization proof; unauthorized or unverifiable hits return non-enumerating stubs.",
+      "source_refs": [
+        "spec/v1/zh/sync/privacy-preserving-search.md",
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.media.aead_nonce_sender_domain_collision.v1",
+      "status": "active",
+      "profile": "ck.profile.e2ee_client.v1",
+      "domain": "media",
+      "description": "Receiver rejects sender_nonce_prefix collision or nonce prefix mismatch.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.media.aead_nonce_counter_replay.v1",
+      "status": "active",
+      "profile": "ck.profile.e2ee_client.v1",
+      "domain": "media",
+      "description": "Receiver rejects repeated per-device AEAD nonce counter.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.media.aead_nonce_random_rejected.v1",
+      "status": "active",
+      "profile": "ck.profile.e2ee_client.v1",
+      "domain": "media",
+      "description": "Receiver rejects pure random 96-bit nonce profile for v1 encrypted attachments.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.lattice.mv_register_join.v1",
+      "status": "active",
+      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "domain": "lattice",
+      "description": "mv_register join/validate_op convergence for same Move set.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.lattice.counter_join.v1",
+      "status": "active",
+      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "domain": "lattice",
+      "description": "counter join/validate_op convergence for same Move set.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.lattice.ordered_log_join.v1",
+      "status": "active",
+      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "domain": "lattice",
+      "description": "ordered_log join/validate_op convergence for same Move set.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
+      "status": "active",
+      "profile": "ck.profile.circle_conformance.v1",
+      "domain": "circle",
+      "description": "directory_visibility=realm_members exposes only the Realm-member preview field set and gives non-Realm callers the same locked stub/timing bucket as members-only circles.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.calendar.rsvp_occurrence_key.v1",
+      "status": "active",
+      "profile": "ck.profile.calendar_event.v1",
+      "domain": "calendar",
+      "description": "RSVP occurrence key canonicalizes recurrence instance local wall-clock start in the event timezone.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
     }
   ]
 }

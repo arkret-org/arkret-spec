@@ -51,12 +51,12 @@
     "flow_id": {
       "type": "string",
       "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional Flow scope marker. Present when the pairwise mapping is materialised within a Flow-scoped MLS subgroup (per flow-and-message.md §4 + crypto-media/encryption-and-audit.md §2.4). When present, the receiver MUST verify the Flow lives in realm_id."
+      "description": "Optional application-message context marker for the Flow carrying the identity link. It does not create independent membership or key scope; key scope is determined by effective_scope."
     },
     "track_name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Optional Flow track context marker. Required (via allOf conditional) when flow_id is present so the identity link can be narrowed to a concrete Flow track context. Track does not carry independent membership; if the discussion side needs its own membership / history visibility / E2EE boundary, the whole Flow MUST use Flow.scope_circle_id to bind a Circle, or the design MUST split into two Flows linked by confidential_discussion_of. Aligned with Flow.tracks propertyNames (schemas/flow.schema.json #/$defs/track_name)."
+      "description": "Optional display-track context marker for application routing. Track names do not create independent membership, policy, or MLS key scope."
     },
     "mls_group_id": {
       "type": "string",

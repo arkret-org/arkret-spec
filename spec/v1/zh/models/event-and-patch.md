@@ -308,10 +308,9 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "payload": {
     "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
-      "metadata.fields.review_status": "approved",
+      "metadata.fields.review_status": { "$op": "set", "value": "approved" },
       "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },
-      "metadata.fields.dropped_field": { "$op": "unset" },
-      "labels.security": { "$op": "add", "value": "confidential" }
+      "labels.security": { "$op": "set", "value": "confidential" }
     }
   },
   "proofs": [

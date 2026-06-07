@@ -56,8 +56,8 @@ Schema id: `ck.schema.flow.v1`
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ck.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`ck.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`ck.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。**Flow 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Flow 的 `ck.redaction` 表达，见 [common-fields.md §5.1](./common-fields.md)。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | **yes** | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.flow.create` 时 actor 必填（无默认值）。语义与转换规则见 [common-fields.md §5.3](./common-fields.md)。变更只能通过 `ck.flow.stage.set`（详见 §3.2）；`ck.flow.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `ck.flow.stage.set` event。 | 业务进度阶段（与 `state` 正交）。 |
-| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
+| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.flow.create` 时 MAY 省略；若携带，必须是 [common-fields.md §5.3](./common-fields.md) 的 8 值之一。普通业务 Flow SHOULD 填写；DM 主 Flow MAY 省略或选填合法值。变更只能通过 `ck.flow.stage.set`（详见 §3.2）；`ck.flow.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `ck.flow.stage.set` event。 | 可选业务进度阶段（与 `state` 正交）。 |
+| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：仅当 `stage` 存在且实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；MUST NOT 在缺少 `stage` 时单独出现；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
@@ -99,7 +99,7 @@ Schema id: `ck.schema.flow.v1`
 
 ### 3.2 Stage（业务进度）
 
-`stage` 是 Flow 必填字段，表达"这件事走到哪了"。它与 `state`（物理生命周期）正交：archive 一个 `stage=in_progress` 的 Flow 不会自动改 stage；`stage=done` 也不会自动 archive。
+`stage` 是 Flow 的可选业务进度字段，表达"这件事走到哪了"。普通业务 Flow SHOULD 填写；DM 主 Flow MAY 省略或选填合法值。它与 `state`（物理生命周期）正交：archive 一个 `stage=in_progress` 的 Flow 不会自动改 stage；`stage=done` 也不会自动 archive。
 
 **枚举值**（与 [common-fields.md §5.3.2](./common-fields.md) 共用，固定 8 值）：
 
@@ -148,7 +148,7 @@ Schema id: `ck.schema.flow.v1`
 5. `ck.flow.update` patch path 出现 `stage` / `stage_changed_at` → `schema_violation`
 6. `flow.metadata.fields.stage` / `flow.metadata.fields.stage_reason` / `flow.metadata.fields.lifecycle` / `flow.metadata.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
 
-**与 workflow profile 的关系**：未启用自定义 workflow 时，actor 直接调用 `ck.flow.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— stage 始终是 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
+**与 workflow profile 的关系**：未启用自定义 workflow 时，actor 可直接调用 `ck.flow.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— 携带 `stage` 的 Flow 使用该字段作为 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
 
 **与 `metadata.fields.status` 的关系**：`metadata.fields.status` 是自由扩展字段（profile 自管），可与 `stage` 共存表达 fine-grained 业务子状态；但 stage 本身**不允许**藏在 `metadata.fields` 下。
 
@@ -628,7 +628,7 @@ DM 主 Flow MUST：
 - 位于 direct conversation Realm 内。
 - `scope_circle_id=null`，继承 DM Realm 的 Realm-default MLS group。双人 DM Realm 内不得再用 Circle 包一层主聊天，因为 Circle 子集无法提供比两人 Realm 更窄的隐私边界。
 - 启用 `tracks.discussion` 且 `tracks.discussion.is_primary=true`。
-- 在当前 v1 Flow schema 下携带合法 `stage`。推荐 wire 值为 `stage="in_progress"`；UI MUST NOT 把该 stage 当成待办进度展示，也 SHOULD 禁用普通 `ck.flow.stage.set` 控件。
+- `stage` MAY 省略；若携带，MUST 是当前 v1 Flow schema 的合法枚举值。推荐 wire 值为 `stage="in_progress"`；UI MUST NOT 把 DM 主 Flow 的 `stage` 当成待办进度展示，也 SHOULD 禁用普通 `ck.flow.stage.set` 控件。
 - 由 `ck.direct_conversation.bound` fact 的 `main_flow_id` 标识为该 pair 的 canonical main Flow。`discussion.is_primary=true` 只是 Flow 内默认入口，不能单独证明"这是 DM 主 Flow"。
 
 同一 DM Realm 至多一个 active canonical main Flow。DM Realm 内 MAY 有其它普通 Flow 用于把某个话题升级成独立议题；默认聊天消息必须写入 binding 指向的 main Flow。

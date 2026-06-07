@@ -30,7 +30,7 @@
       },
       "expected_canonical_bytes_utf8": "{\"arr\":[true,false,null],\"name\":\"Alice\",\"z\":{\"a\":\"alpha\",\"b\":\"beta\"}}",
       "rules": [
-        "object key MUST be sorted by Unicode code point at every level",
+        "object key MUST be sorted by UTF-16 code unit at every level",
         "array order MUST be preserved as input",
         "string values MUST NOT be rewritten by key sort"
       ]
@@ -260,18 +260,100 @@
     {
       "vector_id": "ck.vector.encoding.encrypted_envelope_digest.v1",
       "kind": "canonical_json_with_ciphertext_digest",
-      "cleartext_metadata": {
+      "payload_metadata": {
+        "scheme": "mls-rfc9420",
+        "version": "1.0",
+        "group_id": "Z3JvdXAtMDAx",
+        "epoch": 12,
         "content_type": "application/json",
-        "encryption": "mls-rfc9420",
-        "epoch": 7
+        "aad_visibility_event_id": "routing_digest",
+        "aad": {
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "event_kind": "ck.message.create",
+          "event_ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
+        }
       },
-      "expected_metadata_canonical_bytes_utf8": "{\"content_type\":\"application/json\",\"encryption\":\"mls-rfc9420\",\"epoch\":7}",
+      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ck.message.create\",\"event_ref_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"realm_id\":\"ck:realm:0196419b-0000-7000-8000-000000000000\"},\"aad_visibility_event_id\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ck:event:01964148-0000-7000-8000-000000000000\"},\"scheme\":\"mls-rfc9420\",\"version\":\"1.0\"}",
+      "ciphertext_base64url": "Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ",
       "ciphertext_bytes_utf8": "ciphertext-example-001",
-      "digest_input_rule": "sha256(canonical_json(cleartext_metadata) || ciphertext_bytes)",
-      "expected_digest": "sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa",
+      "digest_input_rule": "sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))",
+      "aad_digest": "sha256:4cefc2e155017beb49d0877b58eef90318d26fa542db8b6bc0323fa23df65630",
+      "expected_digest": "sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8",
       "rules": [
         "implementations MUST NOT hash plaintext payload",
-        "implementations MUST NOT omit cleartext metadata required for routing/decryption; otherwise sync service cannot safely dedupe or audit envelopes"
+        "implementations MUST NOT omit payload metadata required for routing/decryption; otherwise sync service cannot safely dedupe or audit envelopes"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.canonical_json.utf16_supplementary_order.v1",
+      "kind": "canonical_json",
+      "input": {
+        "??": 1,
+        "?": 2
+      },
+      "expected_canonical_bytes_utf8": "{\"??\":1,\"?\":2}",
+      "rules": [
+        "UTF-16 code-unit ordering places the supplementary-plane key before U+FFFF because its high surrogate 0xD83D sorts before 0xFFFF."
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_duplicate_key.v1",
+      "kind": "canonical_json_reject_raw",
+      "input_hex": "7b2261223a312c2261223a327d",
+      "expected": "reject",
+      "rules": [
+        "duplicate JSON object keys at the same level MUST reject before canonicalisation"
+      ],
+      "rejection_reason_codes": [
+        "invalid_encoding",
+        "invalid_canonical_json",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_non_nfc_string.v1",
+      "kind": "canonical_json_reject_raw",
+      "input_hex": "7b2273223a2265cc81227d",
+      "expected": "reject",
+      "rules": [
+        "non-NFC string input MUST reject before signature verification"
+      ],
+      "rejection_reason_codes": [
+        "invalid_encoding",
+        "invalid_canonical_json",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_feff_injection.v1",
+      "kind": "canonical_json_reject_raw",
+      "input_hex": "efbbbf7b2261223a317d",
+      "expected": "reject",
+      "rules": [
+        "U+FEFF / UTF-8 BOM injection MUST reject"
+      ],
+      "rejection_reason_codes": [
+        "invalid_encoding",
+        "invalid_canonical_json",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_malformed_hlc.v1",
+      "kind": "canonical_json_reject_raw",
+      "input_hex": "7b22686c63223a223030303030303030303030302d30303030227d",
+      "expected": "reject",
+      "rules": [
+        "malformed HLC strings MUST reject"
+      ],
+      "rejection_reason_codes": [
+        "invalid_encoding",
+        "invalid_canonical_json",
+        "schema_violation"
       ]
     }
   ],
