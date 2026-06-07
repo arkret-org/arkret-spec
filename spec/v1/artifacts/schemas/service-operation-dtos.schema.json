@@ -2115,6 +2115,25 @@
       },
       "additionalProperties": false
     },
+    "ProjectionAssignedToRelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relation_id",
+        "actor_id"
+      ],
+      "properties": {
+        "relation_id": {
+          "type": "string",
+          "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "actor_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        }
+      },
+      "description": "Read-model edge backing a Flow assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref."
+    },
     "ProjectionFlowRow": {
       "type": "object",
       "additionalProperties": false,
@@ -2190,6 +2209,13 @@
             "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
           },
           "description": "Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=flow_id). Empty or absent means the Flow is unassigned for this projection caller. This is read-model state, not canonical Flow object metadata."
+        },
+        "assigned_to_relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProjectionAssignedToRelation"
+          },
+          "description": "Read-only active assigned_to Relation edges backing assigned_actor_ids. Clients use relation_id to tombstone assignments."
         },
         "created_by": {
           "type": [
