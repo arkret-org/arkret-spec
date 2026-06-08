@@ -69,6 +69,14 @@
       ],
       "description": "Circle's own history visibility. Effective visibility MUST NOT be wider than the parent Realm's policy floor. See zh/authz/event-auth-state-resolution.md §6."
     },
+    "content_encryption_floor": {
+      "type": "string",
+      "enum": [
+        "allow_plaintext",
+        "e2ee_required"
+      ],
+      "description": "Optional Circle-local content encryption floor. When omitted, the Circle inherits the parent Realm's content_encryption_floor. Effective floor = max(parent Realm content_encryption_floor, this field). May only tighten, never widen, the parent Realm floor, and the effective floor is a one-way ratchet: once e2ee_required has been accepted it MUST NOT be lowered back to allow_plaintext (reducer rejects with content_encryption_floor_downgrade). e2ee_required is only meaningful when encryption_profile='mls_rfc9420'; a Circle with encryption_profile='none' MUST keep allow_plaintext. See zh/models/circle.md §7."
+    },
     "metadata_encryption_floor": {
       "type": "string",
       "enum": [
@@ -76,7 +84,7 @@
         "minimal_encrypted",
         "full_encrypted"
       ],
-      "description": "Optional Circle-local metadata encryption floor. When omitted, the Circle inherits parent Realm's metadata_encryption_profile. May only tighten, never widen, parent Realm floor."
+      "description": "Optional Circle-local metadata encryption floor. When omitted, the Circle inherits parent Realm's metadata_encryption_profile. May only tighten, never widen, parent Realm floor; the effective floor is a one-way ratchet (reducer rejects a lowering write with metadata_encryption_floor_downgrade)."
     },
     "encryption_profile": {
       "type": "string",
@@ -152,6 +160,11 @@
           "required": [
             "mls_group_ref"
           ]
+        },
+        "properties": {
+          "content_encryption_floor": {
+            "const": "allow_plaintext"
+          }
         }
       }
     }

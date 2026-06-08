@@ -2646,7 +2646,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when ck.circle.create or an effective Circle policy update would set Circle.encryption_profile below the parent Realm encryption_profile or content_encryption_floor. E2EE Realm / e2ee_required floor requires MLS-backed Circle. See zh/models/circle.md §7."
+      "description": "Sub-reason for failed_precondition when ck.circle.create / ck.circle.update would set a Circle encryption setting below the parent Realm floor: either Circle.encryption_profile below the parent Realm encryption_profile / effective content_encryption_floor (E2EE Realm / e2ee_required floor requires an MLS-backed Circle), or Circle.content_encryption_floor below the effective floor max(parent Realm content_encryption_floor, Circle), or a Circle with encryption_profile=none declaring content_encryption_floor=e2ee_required (no MLS-backed effective_scope to carry ciphertext). See zh/models/circle.md §7."
     },
     {
       "code": "content_encryption_floor_violation",
@@ -2654,6 +2654,20 @@
         "state_resolution"
       ],
       "description": "Sub-reason for failed_precondition when a Realm declares content_encryption_floor=e2ee_required but a Flow / Message / Morph / Blob content write would land in a non-MLS-backed effective_scope (plaintext). The content effective_scope MUST be Realm-default MLS or Circle MLS. See zh/models/circle.md §7 (Realm.content_encryption_floor)."
+    },
+    {
+      "code": "content_encryption_floor_downgrade",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a ck.realm.policy_components or ck.circle.update would lower a scope's effective content_encryption_floor from e2ee_required back to allow_plaintext. The effective content encryption floor is a one-way ratchet (monotonically non-decreasing); tightening is allowed, lowering is rejected. See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
+    },
+    {
+      "code": "metadata_encryption_floor_downgrade",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a ck.realm.policy_components or ck.circle.update would lower a scope's effective metadata encryption floor to a lower level (comparison order content_only < minimal_encrypted < full_encrypted). The effective metadata encryption floor is a one-way ratchet (monotonically non-decreasing). See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
     },
     {
       "code": "scope_rebind_forbidden",

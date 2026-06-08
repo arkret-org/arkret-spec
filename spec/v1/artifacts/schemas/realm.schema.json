@@ -207,7 +207,7 @@
         "allow_plaintext",
         "e2ee_required"
       ],
-      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). When e2ee_required, the effective_scope of Flow / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM, not which Cokret fields enter ciphertext. Defaults to allow_plaintext when absent."
+      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). This is the Realm's actual content-encryption on/off switch. When e2ee_required, the effective_scope of Flow / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM (whether an MLS group exists), not which Cokret fields enter ciphertext. One-way ratchet: once the effective value has reached e2ee_required, a later policy write lowering it back to allow_plaintext MUST be rejected with content_encryption_floor_downgrade. Defaults to allow_plaintext when absent."
     },
     "metadata_encryption_profile": {
       "type": "string",
@@ -216,7 +216,7 @@
         "minimal_encrypted",
         "full_encrypted"
       ],
-      "description": "Realm-wide metadata encryption floor (models/circle.md §7). Comparison order content_only < minimal_encrypted < full_encrypted. Effective profile = max(parent Realm value, Circle metadata floor, Space child_scope_policy floor, object profile requirement); any write below the effective profile MUST failed_precondition (reason=metadata_encryption_floor_violation). MUST NOT be relaxed by Circle, Space, or object profile. When absent, reducers default to minimal_encrypted for mls_rfc9420 or content_encryption_floor=e2ee_required Realms, otherwise content_only."
+      "description": "Realm-wide metadata encryption floor (models/circle.md §7). Comparison order content_only < minimal_encrypted < full_encrypted. Effective profile = max(parent Realm value, Circle metadata floor, Space child_scope_policy floor, object profile requirement); any write below the effective profile MUST failed_precondition (reason=metadata_encryption_floor_violation). MUST NOT be relaxed by Circle, Space, or object profile. One-way ratchet: once the effective value has reached a level, a later policy write lowering it MUST be rejected with metadata_encryption_floor_downgrade. When absent, reducers default to minimal_encrypted for mls_rfc9420 or content_encryption_floor=e2ee_required Realms, otherwise content_only."
     },
     "federation_policy": {
       "type": "string",

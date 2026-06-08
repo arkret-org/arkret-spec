@@ -343,11 +343,38 @@
       ]
     },
     {
+      "vector_id": "ck.vector.e2ee.content_floor_downgrade_rejected.v1",
+      "status": "active",
+      "domain": "e2ee",
+      "source_refs": [
+        "spec/v1/zh/models/circle.md",
+        "spec/v1/artifacts/profiles/conformance-profiles.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.e2ee.in_place_enable.v1",
+      "status": "active",
+      "domain": "e2ee",
+      "source_refs": [
+        "spec/v1/zh/models/circle.md",
+        "spec/v1/artifacts/profiles/conformance-profiles.json"
+      ]
+    },
+    {
       "vector_id": "ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
       "status": "active",
       "domain": "e2ee",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.e2ee.metadata_floor_downgrade_rejected.v1",
+      "status": "active",
+      "domain": "e2ee",
+      "source_refs": [
+        "spec/v1/zh/models/circle.md",
+        "spec/v1/artifacts/profiles/conformance-profiles.json"
       ]
     },
     {
@@ -996,6 +1023,15 @@
       "domain": "redaction",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.circle.content_floor_below_realm_rejected.v1",
+      "status": "active",
+      "domain": "circle",
+      "source_refs": [
+        "spec/v1/zh/models/circle.md",
+        "spec/v1/artifacts/profiles/conformance-profiles.json"
       ]
     },
     {
