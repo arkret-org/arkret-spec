@@ -348,6 +348,10 @@
           "type": "boolean",
           "default": false,
           "description": "When true, additionally add the peer DID to the holder invite_receive_policy.blocked_subjects, so future invite delivery from this peer is dropped and disclosed opaquely. Models a hard block (\"拉黑\") on top of contact tombstone."
+        },
+        "peer_service_did": {
+          "$ref": "#/$defs/did",
+          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When contact (the peer) is hosted on a different Principal Server, the holder supplies the peer home service DID so the issuer-side server federates the signed ck.contact.tombstoned fact via ck.peer.contacts.submit. Omit for same-server tombstones; when absent the issuer falls back to the peer recorded peer_service_did on the stored contact row."
         }
       },
       "additionalProperties": false
