@@ -94,6 +94,9 @@
           "$ref": "#/$defs/locator_ref_evidence"
         },
         {
+          "$ref": "#/$defs/consent_grant_evidence"
+        },
+        {
           "$ref": "#/$defs/shared_realm_evidence"
         },
         {
@@ -116,6 +119,29 @@
         },
         "principal_locator": {
           "$ref": "./principal-locator.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_grant_evidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "consent_grant_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "consent_grant"
+        },
+        "consent_grant_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Event ref of the invitee-issued ck.consent.grant (scope invite or any) that authorizes the inviter to send Realm/Flow invites. High-trust evidence: it is material the invitee actively issued to the inviter, equivalent in trust to a locator_ref."
+        },
+        "consent_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Optional consent cell id locating the holder consent cell, to speed up receiver verification of the active grant dot."
         }
       },
       "additionalProperties": false
@@ -181,7 +207,16 @@
             "duplicate",
             "deferred"
           ],
-          "description": "Generic receive status. It MUST NOT reveal whether subject_id exists or whether policy quarantined/dropped the invite unless receiver policy explicitly allows disclosure."
+          "description": "Generic receive status. It MUST NOT reveal whether subject_id exists or whether policy quarantined/dropped the invite unless receiver policy explicitly allows disclosure via disclosed_outcome."
+        },
+        "disclosed_outcome": {
+          "type": "string",
+          "enum": [
+            "delivered",
+            "blocked",
+            "quarantined"
+          ],
+          "description": "Optional graded-disclosure result. Present ONLY when the subject invite_receive_policy disclosure level for this introduction trust tier is 'outcome'. Omitted (opaque) for low-trust tiers and always omitted for blocked_subjects hits. delivered: invite reached the holder surface awaiting acceptance; blocked: rejected by block list or policy; quarantined: held for review."
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"

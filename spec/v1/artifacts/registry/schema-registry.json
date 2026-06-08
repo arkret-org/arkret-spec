@@ -121,6 +121,12 @@
       "description": "Subject-private invite receive policy controlling which introduction evidence kinds may notify the holder."
     },
     {
+      "schema_id": "ck.schema.peer_contact_delivery_request.v1",
+      "file": "schemas/peer-contact-delivery-request.schema.json",
+      "status": "active",
+      "description": "Private service-to-service contact fact delivery request carrying a signed ck.contact.* envelope and contact_address for cross-Principal-Server projection."
+    },
+    {
       "schema_id": "ck.schema.authz_operations.v1",
       "file": "schemas/authz-operations.schema.json",
       "status": "active",

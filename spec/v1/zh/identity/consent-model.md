@@ -201,6 +201,8 @@ Payload `observed_dots[]` MUST 与 Move effect 中的 `observed_dots` 完全一�
 
 `consent_scope=any` 是便利值，等价于显式 grant 所有具体 consent_scope。撤销 `any` consent 同时撤销所有具体 consent_scope；撤销具体 consent_scope 不影响其他 scope。
 
+`consent_scope=invite`(或 `any`)的 active grant dot 可作为 Realm 邀请的高信任引入证据:邀请者出示该 grant 的 `consent_grant_ref`,接收方按 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) §2 的 `consent_grant` evidence 校验。撤销该 dot 后,§4.1.2 的 invite gate cache 失效，后续以该 dot 为证据的 invite delivery MUST 在接收方降级为低信任 `explicit_address`。这条不改变 consent lattice 语义，只说明 grant dot 的对外引用用途。
+
 ### 4.1 Scope 撤销级联 与 缓存失效（normative）
 
 `ck.consent.revoke` 的 scope 语义与缓存失效规则：

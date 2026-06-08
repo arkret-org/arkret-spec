@@ -91,6 +91,9 @@ grpc:
       Respond: ck.self.contact.respond
       List: ck.self.contact.list
       Tombstone: ck.self.contact.tombstone
+    SelfInviteReceivePolicy:
+      Get: ck.self.invite_receive_policy.get
+      Set: ck.self.invite_receive_policy.set
     SelfDirectConversation:
       Resolve: ck.self.direct_conversation.resolve
     FindDirectory:
@@ -124,6 +127,8 @@ grpc:
       Submit: ck.peer.events.submit
     PeerInvites:
       Submit: ck.peer.invites.submit
+    PeerContacts:
+      Submit: ck.peer.contacts.submit
     PeerSnapshot:
       Head: ck.peer.snapshot.head
     SelfEphemeral:
@@ -223,6 +228,7 @@ mq:
     peer.events.query: ck.peer.events.query
     peer.events.frontier: ck.peer.events.frontier
     peer.invites.submit: ck.peer.invites.submit
+    peer.contacts.submit: ck.peer.contacts.submit
     peer.snapshot.head: ck.peer.snapshot.head
     self.ephemeral.send: ck.self.ephemeral.send
     self.call.media.token_exchange: ck.self.call.media.token_exchange
@@ -247,6 +253,8 @@ mq:
     self.contact.respond: ck.self.contact.respond
     self.contact.list: ck.self.contact.list
     self.contact.tombstone: ck.self.contact.tombstone
+    self.invite_receive_policy.get: ck.self.invite_receive_policy.get
+    self.invite_receive_policy.set: ck.self.invite_receive_policy.set
     self.direct_conversation.resolve: ck.self.direct_conversation.resolve
     find.directory.private_contact_discovery: ck.find.directory.private_contact_discovery
     find.directory.list_handles_for_subject: ck.find.directory.list_handles_for_subject

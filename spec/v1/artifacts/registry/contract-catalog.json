@@ -2245,6 +2245,12 @@
         "description": "Subject-private invite receive policy controlling which introduction evidence kinds may notify the holder."
       },
       {
+        "schema_id": "ck.schema.peer_contact_delivery_request.v1",
+        "file": "schemas/peer-contact-delivery-request.schema.json",
+        "status": "active",
+        "description": "Private service-to-service contact fact delivery request carrying a signed ck.contact.* envelope and contact_address for cross-Principal-Server projection."
+      },
+      {
         "schema_id": "ck.schema.authz_operations.v1",
         "file": "schemas/authz-operations.schema.json",
         "status": "active",
@@ -3094,6 +3100,7 @@
           "ck.peer.events.query_post",
           "ck.peer.events.frontier",
           "ck.peer.invites.submit",
+          "ck.peer.contacts.submit",
           "ck.peer.snapshot.head"
         ]
       },
@@ -3125,6 +3132,8 @@
           "ck.self.contact.respond",
           "ck.self.contact.list",
           "ck.self.contact.tombstone",
+          "ck.self.invite_receive_policy.get",
+          "ck.self.invite_receive_policy.set",
           "ck.self.direct_conversation.resolve"
         ]
       },
@@ -3623,6 +3632,25 @@
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone"
       },
       {
+        "operation_id": "ck.self.invite_receive_policy.get",
+        "http": "GET /_cokret/self/invite-receive-policy",
+        "grpc": "SelfInviteReceivePolicy/Get",
+        "mq": "self.invite_receive_policy.get",
+        "notes": "Read the authenticated subject's private invite-receive policy. Returns the recommended default when no explicit override is stored; the response is never written into the target Realm durable event log.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/invite-receive-policy.schema.json"
+      },
+      {
+        "operation_id": "ck.self.invite_receive_policy.set",
+        "http": "POST /_cokret/self/invite-receive-policy",
+        "grpc": "SelfInviteReceivePolicy/Set",
+        "mq": "self.invite_receive_policy.set",
+        "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ck.self.contact.tombstone(block_peer) blocked_subjects writes.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/invite-receive-policy.schema.json",
+        "response_schema_ref": "schemas/invite-receive-policy.schema.json"
+      },
+      {
         "operation_id": "ck.self.direct_conversation.resolve",
         "http": "POST /_cokret/self/direct-conversations/resolve",
         "grpc": "SelfDirectConversation/Resolve",
@@ -3889,6 +3917,16 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/invite-delivery-request.schema.json",
         "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome"
+      },
+      {
+        "operation_id": "ck.peer.contacts.submit",
+        "http": "POST /_cokret/peer/contacts",
+        "grpc": "PeerContacts/Submit",
+        "mq": "peer.contacts.submit",
+        "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-DID equal to contact_address.recipient_service_did, and a signed ck.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
+        "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome"
       },
       {
         "operation_id": "ck.peer.snapshot.head",
