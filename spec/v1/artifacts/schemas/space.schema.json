@@ -151,12 +151,11 @@
       "format": "date-time",
       "pattern": "Z$"
     },
-    "metadata_encryption_profile": {
+    "metadata_encryption_floor": {
       "type": "string",
       "enum": [
-        "content_only",
-        "minimal_encrypted",
-        "full_encrypted"
+        "allow_plaintext",
+        "e2ee_required"
       ]
     },
     "child_scope_policy": {
@@ -178,7 +177,7 @@
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "metadata_encryption_floor": {
-          "$ref": "#/$defs/metadata_encryption_profile"
+          "$ref": "#/$defs/metadata_encryption_floor"
         }
       },
       "allOf": [

@@ -338,7 +338,7 @@ Accepted profile SHOULD 编排以下 durable material:
     "directory_visibility": "members",
     "join_rule": "invite",
     "history_visibility": "joined",
-    "metadata_encryption_floor": "full_encrypted",
+    "metadata_encryption_floor": "e2ee_required",
     "encryption_profile": "mls_rfc9420"
   }
 }

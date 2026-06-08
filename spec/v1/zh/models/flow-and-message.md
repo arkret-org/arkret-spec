@@ -49,7 +49,7 @@ Schema id: `ck.schema.flow.v1`
 | `schema` | yes | `ck.schema.flow.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的 effective scope（含所有 track）。未设置时 Flow 落在 Realm-default scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
-| `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Flow metadata；MLS / E2EE 下按 `metadata_encryption_profile` 决定是否必须放入 `encrypted_metadata`。 |
+| `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Flow metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Flow metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
@@ -561,7 +561,7 @@ Schema id: `ck.schema.message.v1`
 | `track_name` | yes | `const("discussion")` | v1 Message 只属于目标 Flow 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track_name 扩展出第二类消息时间线。 | 所属 Flow track key。 |
 | `content` | conditional | `object` | 富文本/parts 见 `content-types.md`；`state=active` 且未加密时必填。effective `content_encryption_floor=e2ee_required` scope 下 MUST 改用 `encrypted_content`,plaintext `content` 由 reducer 拒绝(`content_encryption_floor_violation`)——单对象 schema 不感知 Realm floor,通过校验不代表合法。 | 消息正文。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
-| `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_profile` 决定是否必须放入 `encrypted_metadata`。 |
+| `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Message metadata object。 | E2EE 场景下包裹 Message metadata。 |
 | `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required,不靠默认补齐)。`redacted` 由 `ck.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段，不再用 `metadata.fields.visible_state` 表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |

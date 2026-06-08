@@ -2667,7 +2667,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a ck.realm.policy_components or ck.circle.update would lower a scope's effective metadata encryption floor to a lower level (comparison order content_only < minimal_encrypted < full_encrypted). The effective metadata encryption floor is a one-way ratchet (monotonically non-decreasing). See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
+      "description": "Sub-reason for failed_precondition when a ck.realm.policy_components or ck.circle.update would lower a scope's effective metadata encryption floor to a lower level (comparison order allow_plaintext < e2ee_required). The effective metadata encryption floor is a one-way ratchet (monotonically non-decreasing). See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
     },
     {
       "code": "scope_rebind_forbidden",
@@ -2697,7 +2697,7 @@
         "schema_validation",
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a write would expose metadata below the effective metadata_encryption_profile floor (max of parent Realm floor, Circle metadata_encryption_floor, Space child_scope_policy.metadata_encryption_floor, object profile requirement). See zh/models/circle.md §7."
+      "description": "Sub-reason for failed_precondition when a write would expose metadata below the effective metadata_encryption_floor floor (max of parent Realm floor, Circle metadata_encryption_floor, Space child_scope_policy.metadata_encryption_floor, object profile requirement). See zh/models/circle.md §7."
     },
     {
       "code": "series_chain_broken",

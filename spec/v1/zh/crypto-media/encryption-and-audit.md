@@ -78,25 +78,26 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
 
 #### 2.3.0 E2EE Profile：plaintext metadata 边界
 
-v1 支持 **content-only E2EE**，但它不再是 MLS / E2EE Realm 的默认隐私形态。启用 `encryption_profile="mls_rfc9420"` 或 `content_encryption_floor="e2ee_required"` 且未显式声明 `metadata_encryption_profile` 时，effective metadata profile MUST 默认为 `minimal_encrypted`。此时 Flow / Message 的用户可读 metadata（例如 Flow `metadata.title`、`metadata.summary`、`metadata.fields`，以及 Message `metadata.fields`）MUST 进入 `encrypted_metadata`，wire 上只保留 reducer / routing 必需字段。`content_only` 仅作为显式低隐私 / 高服务端 projection 能力的 opt-in profile；选择该 profile 的 Realm 不得在 UI、营销材料或 service describe 中简称为“完整 E2EE”。
+v1 的 metadata 加密下限是二元字段 `metadata_encryption_floor ∈ {allow_plaintext, e2ee_required}`，与 `content_encryption_floor` 完全对称:`allow_plaintext` 允许用户可读 metadata 留在 wire 明文，`e2ee_required` 要求其进入 `encrypted_metadata`。启用 `encryption_profile="mls_rfc9420"` 或 `content_encryption_floor="e2ee_required"` 且未显式声明 `metadata_encryption_floor` 时，effective metadata floor MUST 默认为 `e2ee_required`。此时 Flow / Message 的用户可读 metadata（例如 Flow `metadata.title`、`metadata.summary`、`metadata.fields`，以及 Message `metadata.fields`）MUST 进入 `encrypted_metadata`，wire 上只保留 reducer / routing 必需字段。`allow_plaintext` 仅作为显式低隐私 / 高服务端 projection 能力的 opt-in；选择该值的 Realm 不得在 UI、营销材料或 service describe 中简称为“完整 E2EE”。
 
 理由与影响：
 
 - routing、reducer、ordering、notification gating 所需字段（例如 `realm_id`、event kind、object id、Flow `tracks` map、`stage` / `state`、必要 causal refs）可保持明文，因为它们是同步和收敛边界。
-- 用户可读 metadata（标题、摘要、字段描述、reply/mention 摘要、可逆搜索 tokens）默认不得因为 MLS 开启而留在 wire 明文；若 Realm 显式选择 `content_only`，实现 MUST 向用户和 service describe 披露 metadata 不受 E2EE 覆盖。
+- 用户可读 metadata（标题、摘要、字段描述、reply/mention 摘要、可逆搜索 tokens）默认不得因为 MLS 开启而留在 wire 明文；若 Realm 显式选择 `allow_plaintext`，实现 MUST 向用户和 service describe 披露 metadata 不受 E2EE 覆盖。
 - 受托 search / projection 服务只有在 metadata 为明文 profile 时才可直接接收这些字段；若 metadata 进入 `encrypted_metadata`，服务端 projection 能力必须降级，或通过 `plaintext_visible_services` / 本地客户端索引等受控机制取得明文。
 
-**minimal-metadata E2EE profile** 是 v1 的 MLS / E2EE 默认 profile；启用时 Flow / Message metadata 按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。`content_only` Realm 不得对 `metadata.title` / `metadata.summary` / `metadata.fields` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
+**`e2ee_required` metadata floor** 是 v1 的 MLS / E2EE 默认形态；启用时 Flow / Message 的用户可读 metadata 按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。`allow_plaintext` Realm 不得对 `metadata.title` / `metadata.summary` / `metadata.fields` / `rank` / `state` / `tracks` 等字段强制 wire-level 加密替换。
 
-Realm policy MUST 通过 `ck.realm.policy_components.metadata_encryption_profile` 显式声明 metadata 加密级别，取值为：
+Realm policy MUST 通过 `ck.realm.policy_components.metadata_encryption_floor` 显式声明 metadata 加密下限，取值为：
 
-| profile | wire 明文 | encrypted_metadata | 说明 |
+| floor | wire 明文 | encrypted_metadata | 说明 |
 | --- | --- | --- | --- |
-| `content_only` | routing / reducer / projection 所需 metadata；Flow / Message metadata 可明文 | 无或仅 profile 特定字段 | 显式 opt-in。不得宣传为完整 metadata E2EE。 |
-| `minimal_encrypted` | `realm_id`、kind、epoch、routing hash、必要 cell subject、必要 causal refs、Flow `tracks`、`stage` / `state` | Flow / Message `metadata.title` / `metadata.summary` / `metadata.fields`、mention/reply 摘要、client search tokens | MLS / E2EE 默认；服务端 projection 能力受限。 |
-| `full_encrypted` | 仅 envelope routing、policy-required subject、hash、opaque refs | 绝大多数用户可读 metadata 与可逆索引材料 | extension profile；需要客户端本地 projection 或受信 plaintext-visible service。 |
+| `allow_plaintext` | routing / reducer / projection 所需 metadata；Flow / Message 用户可读 metadata 可明文 | 无或仅 profile 特定字段 | 显式 opt-in。不得宣传为 metadata E2EE。 |
+| `e2ee_required` | `realm_id`、kind、epoch、routing digest、必要 cell subject、必要 causal refs、Flow `tracks`、`stage` / `state` | Flow / Message `metadata.title` / `metadata.summary` / `metadata.fields`、mention/reply 摘要、client search tokens | MLS / E2EE 默认；用户可读 metadata 进密文。 |
 
-`metadata_encryption_profile` 必须纳入 MLS governance binding `policy_root`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省规则是：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `minimal_encrypted`，其他 Realm 为 `content_only`。
+`metadata_encryption_floor` 只决定“用户可读 metadata 是否必须 E2EE”这一个是非问题；**哪些字段为换取服务端搜索 / projection 能力而对受托服务暴露明文，由独立的 `plaintext_visible_services` 声明控制**（见下条与 §2.8），不再用额外的 metadata 加密档位表达。`realm_id`、kind、epoch、routing digest 等同步收敛边界字段在两档下都保持 wire 明文，不可加密。
+
+`metadata_encryption_floor` 必须纳入 MLS governance binding `policy_root`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省规则是：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。
 
 #### 2.3.1 Envelope Wire 结构
 
@@ -648,12 +649,12 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 - `ck.identity_link` 被更新或撤销时，MUST 替换旧条目。
 - **Eager invalidation on policy tightening（normative MUST）**：处理下列 Realm policy / disclosure policy event 时，客户端 MUST **立即**失效缓存中所有 `(realm_id == current_realm_id, *)` 条目——因为这些事件只可能**收紧**真实 principal 的可见性，旧缓存条目仍按更宽松的 policy 暴露 principal DID 会导致 UI / projection 把已收紧的真实身份继续展示给非授权成员：
   - 已注册的 `ck.identity.disclosure_policy` 让 `disclosure_policy.strictness` 升级（例：`open` → `minimal` / `pairwise_only` / `audit_only`）。
-  - 已注册的 `ck.realm.policy_components` 更新中任何 `metadata_encryption_profile`、`minimal_metadata_mode` 或 routing disclosure 相关字段变化，把 Realm 切到更严格的 minimal-metadata mode；同步影响 sync / federation 路由 disclosure。
+  - 已注册的 `ck.realm.policy_components` 更新中任何 `metadata_encryption_floor`、`minimal_metadata_mode` 或 routing disclosure 相关字段变化，把 Realm 切到更严格的 minimal-metadata mode；同步影响 sync / federation 路由 disclosure。
   - `ck.realm.history_visibility` 收紧（例：`shared` → `invited` / `joined` / `restricted`）。
   - `ck.realm.policy_components` 更新中任何 `identity_disclosure_profile` 字段变化。
   - 任何 linked Realm（`Realm.linked_realms[]` 或 `ck.realm.link` 引用的 federation peer Realm）的 membership / history visibility 收紧——cross-Realm 解析依赖该 linked Realm policy；linked 一端收紧后 source 一端的缓存也 MUST 失效。Realm 内 [Circle](../models/circle.md) 的 membership / history visibility 收紧由 Circle 自身 `ck.circle.member.state` 与 `policy_root` 触发同 Realm 内的缓存失效。
   - 对应的失效粒度规则：失效全部 `(realm_id == current_realm_id, *)`，而不仅是当时已 disclosed 的 principal——因为收紧后的 policy 可能撤销之前被 disclose 的部分映射。
-- 缓存比较时，客户端 MUST 把当前 Realm policy 的 `policy_frontier_digest` 与缓存条目内的值做 constant-time 比较；**任一**不一致即视为缓存失效，回退到完整 identity_link 重新验证。`policy_frontier_digest` 在签发缓存条目时由客户端从最近 anchored 的 Realm policy 状态计算（推荐 `sha256(canonical_json({policy_revision, disclosure_policy, history_visibility, identity_disclosure_profile, metadata_encryption_profile, minimal_metadata_mode}))`），并随后续 policy event 推进而变化；不允许仅靠 TTL 或 MLS epoch 等内部计数替代该 hash 比较。
+- 缓存比较时，客户端 MUST 把当前 Realm policy 的 `policy_frontier_digest` 与缓存条目内的值做 constant-time 比较；**任一**不一致即视为缓存失效，回退到完整 identity_link 重新验证。`policy_frontier_digest` 在签发缓存条目时由客户端从最近 anchored 的 Realm policy 状态计算（推荐 `sha256(canonical_json({policy_revision, disclosure_policy, history_visibility, identity_disclosure_profile, metadata_encryption_floor, minimal_metadata_mode}))`），并随后续 policy event 推进而变化；不允许仅靠 TTL 或 MLS epoch 等内部计数替代该 hash 比较。
 - 缓存 TTL SHOULD 不超过 7 天；过期后 MUST 重新验证。该 TTL 仅是**最坏兜底**，不能替代 eager invalidation。
 - 设备丢失或恢复后，MUST 清除所有 identity_link 缓存。
 - conformance vector `ck.vector.identity_link.eager_invalidation.v1`（参见 `conformance-vectors.md`）覆盖 ban / leave / remove 三种触发条件下的 eager invalidation 行为；`ck.vector.identity_link.policy_tightening_invalidation.v1` 覆盖 disclosure policy、history visibility、minimal metadata mode、linked Realm visibility 与 Circle effective-scope visibility 收紧后的 eager invalidation 行为。

@@ -91,7 +91,7 @@
     },
     "encrypted_metadata": {
       "$ref": "./encrypted-envelope.schema.json",
-      "description": "Encrypted envelope whose plaintext is a morph_metadata object. Required instead of plaintext metadata when the effective metadata_encryption_profile is minimal_encrypted or stronger."
+      "description": "Encrypted envelope whose plaintext is a morph_metadata object. Required instead of plaintext metadata when the effective metadata_encryption_floor is e2ee_required."
     },
     "content": {
       "$ref": "#/$defs/content_block"

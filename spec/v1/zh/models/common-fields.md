@@ -441,7 +441,7 @@ UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；conte
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"single_did"` / `"sha256"` / ...）。schema 内联约束，无需引用独立对象。变更需要新 event kind（如 hash-transition Anchor）或新 Realm。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 cell state 有交互。同样内联，不通过引用对象。
 - **`<axis>_policy_id`**：指向独立 Policy 对象（`ck:policy:<uuid>`）的 ID，pattern `^ck:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
-- **`<axis>_floor`**：某条加密 / 隐私轴上的**下限**字段，值与对应 `<axis>_profile` 取同一封闭 enum，但语义是"只能向上收紧、MUST NOT 放宽继承到的上游基线"。它用于子作用域声明比父作用域更严格的下限：父作用域（Realm）声明基线时用 `<axis>_profile`（例如 Realm 的 `metadata_encryption_profile`），子作用域（Circle、Space `child_scope_policy`）声明下限时用 `<axis>_floor`（例如 Circle 的 `metadata_encryption_floor`）。effective 值取上游 `_profile` 与各层 `_floor` 的更严格者（见 [`circle.md` §7](./circle.md)）。父字段保留 `_profile` 名、子字段使用 `_floor` 名是有意区分，不视为同义别名混用。
+- **`<axis>_floor`**：某条加密 / 隐私轴上的**下限**字段，值与对应 `<axis>_profile` 取同一封闭 enum，但语义是"只能向上收紧、MUST NOT 放宽继承到的上游基线"。它用于子作用域声明比父作用域更严格的下限：父作用域（Realm）声明基线时用 `<axis>_profile`（例如 Realm 的 `metadata_encryption_floor`），子作用域（Circle、Space `child_scope_policy`）声明下限时用 `<axis>_floor`（例如 Circle 的 `metadata_encryption_floor`）。effective 值取上游 `_profile` 与各层 `_floor` 的更严格者（见 [`circle.md` §7](./circle.md)）。父字段保留 `_profile` 名、子字段使用 `_floor` 名是有意区分，不视为同义别名混用。
 
 判定流程：写新字段时若是**封闭 enum**（值集已知、协议级固定）用 `_profile` 或 `_policy`；若是**指向 Policy 对象**用 `_policy_id`；不得在同一对象上同时定义 `xxx_policy` 与 `xxx_policy_id` 表示同一个轴。若字段引用的是"授权该决策的 policy revision Event"，使用带 event 语义的 `_ref` 名称，例如 `policy_event_ref`，不得与 `policy_id` 混用。
 

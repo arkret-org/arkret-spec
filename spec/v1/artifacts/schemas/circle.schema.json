@@ -80,11 +80,10 @@
     "metadata_encryption_floor": {
       "type": "string",
       "enum": [
-        "content_only",
-        "minimal_encrypted",
-        "full_encrypted"
+        "allow_plaintext",
+        "e2ee_required"
       ],
-      "description": "Optional Circle-local metadata encryption floor. When omitted, the Circle inherits parent Realm's metadata_encryption_profile. May only tighten, never widen, parent Realm floor; the effective floor is a one-way ratchet (reducer rejects a lowering write with metadata_encryption_floor_downgrade)."
+      "description": "Optional Circle-local metadata encryption floor (binary, symmetric with content_encryption_floor: allow_plaintext | e2ee_required). When omitted, the Circle inherits parent Realm's metadata_encryption_floor. May only tighten, never widen, parent Realm floor; the effective floor is a one-way ratchet (reducer rejects a lowering write with metadata_encryption_floor_downgrade)."
     },
     "encryption_profile": {
       "type": "string",

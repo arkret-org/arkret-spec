@@ -36,8 +36,8 @@ Schema id: `ck.schema.morph.v1`
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_type` / `facets` 不能替代。 |
 | `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ck.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。 | Morph 暴露哪些已声明能力 hint。 |
-| `metadata` | conditional | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。effective `metadata_encryption_profile` 要求加密对应 metadata 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。MLS / E2EE 下按 `metadata_encryption_profile` 决定是否必须放入 `encrypted_metadata`。 |
-| `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 至多一个且不得并存（mutually exclusive, optional）；plaintext 是同一个 Morph metadata object。effective `metadata_encryption_profile` 要求加密 Morph metadata（E2EE profile）时 MUST 提供本字段；不要求时二者皆可省（Morph 无用户可读 metadata 时允许都不写）。 | E2EE 场景下包裹 Morph metadata。 |
+| `metadata` | conditional | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。effective `metadata_encryption_floor` 要求加密对应 metadata 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
+| `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 至多一个且不得并存（mutually exclusive, optional）；plaintext 是同一个 Morph metadata object。effective `metadata_encryption_floor` 要求加密 Morph metadata（E2EE profile）时 MUST 提供本字段；不要求时二者皆可省（Morph 无用户可读 metadata 时允许都不写）。 | E2EE 场景下包裹 Morph metadata。 |
 | `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_content` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
