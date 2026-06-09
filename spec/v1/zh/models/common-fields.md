@@ -264,8 +264,22 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 主体字段新增策略：
 
-- 既定 crypto / governance 角色名词（如 `issuer`、`inviter`、`holder`、`anchorer`）可保留并应在本表或对象专属章节登记。新增的普通作者 / 操作者归属字段默认使用 `<verb>_by`（例如 `approved_by`、`revoked_by`），时间点使用 `<verb>_at`。
+- 既定 crypto / governance 角色名词（如 `issuer`、`inviter`、`holder`、`anchorer`）可保留并应在 §4.3 角色名词登记索引登记（其权威定义仍在对应对象 schema / glossary / 专属章节）。新增的普通作者 / 操作者归属字段默认使用 `<verb>_by`（例如 `approved_by`、`revoked_by`），时间点使用 `<verb>_at`。
 - 过程结果词汇按对象族固定：receipt 使用 `outcome` / `outcome_reason_code`，执行或 session 使用 `result`，moderation / appeal 裁决使用 `verdict`。新增相邻对象不得随机换用近义词。
+
+### 4.3 角色名词登记索引
+
+下表收敛 v1 已确立的 crypto / governance 角色名词，供读 spec / 评审命名时一次定位。本表是 **informative 索引**：每个角色的字段形态、约束与 normative 语义以「权威定义」列指向的 schema / glossary / 专属章节为单一真相源，本表不重复承载约束，也不得与权威定义冲突。新增 normative 文本引入主体 / 操作者归属字段时，先查本表确认是否已有既定角色名词，再按上文「主体字段新增策略」决定复用或使用 `<verb>_by`。
+
+| 角色名词 | 类别 | 权威定义 | 角色语义 |
+| --- | --- | --- | --- |
+| `issuer` | id 字段（§4.2） | §4.1 / §4.2；[glossary `Capability Grant` / `Move`](../overview/glossary.md) | 签发 Capability Grant / Identity Receipt 或签署 Move 的主体 DID；必须持有对应签发权限。 |
+| `subject` / `subject_id` | id 字段（§4.2） | §4.1 / §4.2；[glossary `Subject`](../overview/glossary.md) | Capability grant 的授予对象：`subject` 为 DID 或 condition selector，`subject_id` 用于必须是具体 principal DID 且进入可验证 transcript 的场景。 |
+| `inviter` / `invitee` | id 字段（§4.2） | §4.1 / §4.2；[`governance-objects.md` §5 Invite](./governance-objects.md)；[`invite.schema.json`](../../artifacts/schemas/invite.schema.json) | 邀请方 DID / 被邀请方 DID；3PID 邀请可暂无 `invitee`，认领后必须绑定可验证主体。member 引用形态另用 `inviter_member_ref` / `invitee_member_ref`（见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)）。 |
+| `holder` | 叙述性角色名词 | [`consent-model.md` §2.1](../identity/consent-model.md)；[`client-preferences.md`](../discovery/client-preferences.md)；[glossary `Consent`](../overview/glossary.md) | consent / blocklist / recovery share / pairwise 假名等 holder-private 状态的归属主体；只有 holder 本人或其显式授权的 controller / agent 可写。 |
+| `anchorer` | 叙述性角色名词 | [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)；[glossary `Anchor` / `Anchorer Cell`](../overview/glossary.md)；[`capabilities.md`](../authz/capabilities.md) | Anchor ordering authority：对 Move frontier 签名承诺的主体；由 `anchorer_cell`（`cas_register + bottom=reject`）授权，冲突时触发 Realm-wide Anchor pause。 |
+| `witness` | 叙述性角色名词 | [glossary `Witness`](../overview/glossary.md)；[`federation.md`](../sync/federation.md)；[`operations-sync.md`](../sync/operations-sync.md)；[`identity-did.md`](../identity/identity-did.md) | 对 frontier、range completeness、DID key-log 头部或 handover frontier 签发 attestation / receipt 的受信背书主体；不替代 Event 自身签名、Anchor finality 或 reducer 验证。 |
+| `controller` | 叙述性角色名词 | [`identity-did.md`](../identity/identity-did.md)（DID controller proof）；[`actor.md` §3.3](./actor.md)（Native Personal Agent controller） | DID 控制主体（method history 中以 controller proof 证明控制权），或受 holder / principal 显式授权代为写入 / provision 的控制方。 |
 
 ## 5. State 枚举对齐
 

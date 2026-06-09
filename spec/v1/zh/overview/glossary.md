@@ -26,6 +26,7 @@ see_also:
 - 非规范别名可以保留为单独条目，但必须明确写出 canonical 术语，并说明新增 normative 文本应使用哪个术语。
 - 禁用词、历史词和互操作上下文词应标注适用范围；不能把迁移期词汇重新引入 v1 core model。
 - 局部上下文词（例如 SFU `participant_id`、Mermaid sequence `participant`）只在对应章节内有效，不升级为全局主体术语。
+- crypto / governance 角色名词（`issuer` / `inviter` / `invitee` / `holder` / `anchorer` / `witness` / `controller` / `subject` 等）的总索引在 [`../models/common-fields.md` §4.3](../models/common-fields.md#43-角色名词登记索引)；本表条目仍是各角色的权威定义源，新增同类角色名词时应同步登记进该索引。
 
 ## 2. 核心术语
 

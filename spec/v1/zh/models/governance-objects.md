@@ -166,6 +166,8 @@ Schema id: `ck.schema.invite.v1`
 | `updated_by` | no | `did` | 最近一次 invite state update 的 actor。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
+> `inviter` / `invitee` 是既定 governance 角色名词；角色名词总索引见 [`common-fields.md` §4.3](./common-fields.md#43-角色名词登记索引)。member 引用形态另用 `inviter_member_ref` / `invitee_member_ref`（见 [`invite-delivery-request.schema.json`](../../artifacts/schemas/invite-delivery-request.schema.json)）。
+
 ### 5.3 行为规则
 
 - Invite MUST 携带 `expires_at`。默认有效期 SHOULD 不超过 7 天，高安全 Realm SHOULD 不超过 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
