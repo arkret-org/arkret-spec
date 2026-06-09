@@ -72,6 +72,22 @@
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
       "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Flow's effective scope. When set, ALL Flow tracks (synthesis, discussion, etc.) share that Circle's membership, history visibility, delivery/query/projection boundary, and encryption_profile. When unset, the Flow lives in Realm-default scope. The referenced Circle MUST have realm_id == this Flow's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_circle_id is forbidden by default (failed_precondition reason=scope_rebind_forbidden). For 'wide synthesis + narrow discussion' scenarios use two Flows linked by a confidential_discussion_of Relation (circle.md §7.2)."
     },
+    "agent_participation": {
+      "type": "object",
+      "description": "Optional CKP-0010 agent participation ceiling for this Flow: the maximum native personal agent behavior permitted in this Flow. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). See models/flow-and-message.md / CKP-0010.",
+      "properties": {
+        "reply": {
+          "type": "boolean"
+        },
+        "accept_third_party_mention": {
+          "type": "boolean"
+        },
+        "act_on_behalf": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "metadata": {
       "$ref": "#/$defs/flow_metadata"
     },

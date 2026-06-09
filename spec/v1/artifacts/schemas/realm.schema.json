@@ -217,6 +217,28 @@
       ],
       "description": "Realm-wide metadata encryption floor (models/circle.md §7), binary and symmetric with content_encryption_floor. allow_plaintext lets user-readable metadata stay wire-plaintext; e2ee_required forces it into encrypted_metadata. Comparison order allow_plaintext < e2ee_required. Effective floor = max(parent Realm value, Circle metadata floor, Space child_scope_policy floor, object profile requirement); any write below the effective floor MUST failed_precondition (reason=metadata_encryption_floor_violation). MUST NOT be relaxed by Circle, Space, or object profile. One-way ratchet: once the effective value has reached e2ee_required, a later policy write lowering it back to allow_plaintext MUST be rejected with metadata_encryption_floor_downgrade. When absent, reducers default to e2ee_required for mls_rfc9420 or content_encryption_floor=e2ee_required Realms, otherwise allow_plaintext."
     },
+    "agent_participation": {
+      "type": "object",
+      "description": "CKP-0010 Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ck.realm.admin via ck.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Flow tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See models/realm-and-space.md / CKP-0010.",
+      "properties": {
+        "native_agent": {
+          "type": "object",
+          "properties": {
+            "reply": {
+              "type": "boolean"
+            },
+            "accept_third_party_mention": {
+              "type": "boolean"
+            },
+            "act_on_behalf": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "federation_policy": {
       "type": "string",
       "enum": [

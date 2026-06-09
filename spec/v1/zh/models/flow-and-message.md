@@ -738,6 +738,16 @@ Audience expansion 的结果只用于 receiver-side notification / inbox / local
 
 Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接受消息但把 audience mention 降级为普通文本 / 不通知，或按 Realm policy 拒绝整条 message event；无论选择哪种模式，都 MUST 在 Realm policy 中声明并对同一 scope 内所有成员一致执行。若选择拒绝整条 event，错误语义 SHOULD 使用 `failed_precondition`、`rate_limited` 或 `quota_exceeded` 中的既有 code，不得发明只对发送者可见、对接收者造成状态分叉的本地结果。
 
+#### 9.4.5 Native agent 第三方 mention 投递 gate
+
+当一条 `ck.message.create` / `ck.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **native personal agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Flow → Circle / Realm）针对该 agent 的 effective participation（effective ceiling ∩ controller selection），并据 `accept_third_party_mention` 位决定投递：
+
+- mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
+- mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ck.self.events.subscribe` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
+- effective `accept_third_party_mention=true`：照常投递，并继续受 `level=muted`、个人 blocklist、DND、rate-limit 等本节既有更高优先级规则约束（§9.4.1–§9.4.4）。
+
+该 gate 是 reducer / dispatcher 强制规则，不依赖 agent runtime 自觉；runtime 另从 session `scope_details.participation` 与 `ck.self.agent.participation.get` 获得同一 effective 契约用于主动遵守。effective ceiling 未知或 stale 时 MUST fail closed 为不投递。
+
 ### 9.5 冲突与收敛规则
 
 Message timeline 的同步与 reducer 行为：

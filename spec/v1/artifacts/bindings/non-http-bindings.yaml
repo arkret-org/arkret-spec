@@ -61,6 +61,8 @@ grpc:
       GrantAttach: ck.self.agent.grant.attach
       GrantDetach: ck.self.agent.grant.detach
       SidecarThreadEnsure: ck.self.agent.sidecar_thread.ensure
+      ParticipationSet: ck.self.agent.participation.set
+      ParticipationGet: ck.self.agent.participation.get
     EdgeApplet:
       Describe: ck.edge.applet.describe
       Ping: ck.edge.applet.ping
@@ -249,6 +251,8 @@ mq:
     self.agent.grant.attach: ck.self.agent.grant.attach
     self.agent.grant.detach: ck.self.agent.grant.detach
     self.agent.sidecar_thread.ensure: ck.self.agent.sidecar_thread.ensure
+    self.agent.participation.set: ck.self.agent.participation.set
+    self.agent.participation.get: ck.self.agent.participation.get
     self.contact.request: ck.self.contact.request
     self.contact.respond: ck.self.contact.respond
     self.contact.list: ck.self.contact.list

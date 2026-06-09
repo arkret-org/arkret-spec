@@ -2405,6 +2405,10 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body
     AgentSidecarThreadEnsureOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome
+    AgentParticipationSetRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_set_request_body
+    AgentParticipationOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_outcome
     AccountOidcCallbackRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
     AccountOidcCallbackOutcome:
@@ -5937,6 +5941,49 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentSidecarThreadEnsureRequestBody'
+  /_cokret/self/agents/{agent_principal_id}/participation:
+    put:
+      operationId: ck.self.agent.participation.set
+      description: Set an agent's participation selection for a scope (controller-self only).
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Participation selection stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentParticipationOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentParticipationSetRequestBody'
+    get:
+      operationId: ck.self.agent.participation.get
+      description: Get an agent's resolved participation policy (controller-self only).
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_principal_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Resolved participation policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentParticipationOutcome'
   /_cokret/gate/account/oidc/callback:
     servers:
     - url: https://{host}

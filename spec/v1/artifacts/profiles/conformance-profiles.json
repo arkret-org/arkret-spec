@@ -75,6 +75,7 @@
     "ck.profile.media_service_binding.livekit.v1",
     "ck.profile.media_service_binding.cokret_native.v1",
     "ck.profile.agent_sidecar_thread.v1",
+    "ck.profile.agent_participation_policy.v1",
     "ck.profile.mimi_interop.v1",
     "ck.profile.sovereign_client.v1",
     "ck.profile.franking.v1",
@@ -1745,6 +1746,35 @@
           "single_executed_by_on_publish"
         ],
         "unsupported_optional": "fail closed; do not split into multiple sidecar Circles"
+      }
+    },
+    "ck.profile.agent_participation_policy.v1": {
+      "inherits": [
+        "ck.profile.personal_agent_provisioning.v1"
+      ],
+      "required_endpoints": [
+        "ck.self.agent.participation.set",
+        "ck.self.agent.participation.get"
+      ],
+      "required_event_kinds": [
+        "ck.capability.grant",
+        "ck.capability.revoke"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "agent_participation_ceiling_tightens",
+          "effective_is_ceiling_meet_selection",
+          "third_party_mention_gate",
+          "selection_within_ceiling_gate",
+          "session_scope_details_participation"
+        ],
+        "unsupported_optional": "fail closed; deny agent participation when the ceiling is unknown or stale"
       }
     },
     "ck.profile.mimi_interop.v1": {

@@ -1133,6 +1133,19 @@
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
+      "action": "ck.self.agent.participation.set",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.capability.grant",
+        "ck.capability.revoke"
+      ],
+      "profile": "ck.profile.agent_participation_policy.v1",
+      "migration_group": "ckp_0016_agent_participation",
+      "event_mapping_kind": "aggregate_admin"
+    },
+    {
       "action": "ck.agent.sidecar_thread.publish",
       "category": "management",
       "risk_tier": "high",

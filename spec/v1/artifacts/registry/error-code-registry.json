@@ -2677,6 +2677,20 @@
       "description": "Sub-reason for failed_precondition when scope_circle_id rebind is attempted without an explicitly profile-permitted audited-high-risk path. Default reducer rejects rebinds to prevent silent historical-discussion migration. See zh/models/circle.md §6.1."
     },
     {
+      "code": "agent_participation_ceiling_widen",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a Realm/Circle/Flow agent_participation ceiling write would widen (enable a bit disabled by) its parent ceiling. The deployment ⊇ Realm ⊇ Circle ⊇ Flow ceiling chain is tighten-only (monotone). See zh/models/realm-and-space.md, zh/models/circle.md, zh/authz/capabilities.md §5.4."
+    },
+    {
+      "code": "agent_participation_exceeds_ceiling",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a controller's ck.self.agent.participation.set selection enables a bit the effective ceiling disables. Effective participation = effective_ceiling ∩ selection. See zh/authz/capabilities.md §5.4."
+    },
+    {
       "code": "effective_scope_reducer_managed",
       "applies_to": [
         "schema_validation"

@@ -628,6 +628,112 @@
         }
       },
       "additionalProperties": false
+    },
+    "agent_participation": {
+      "type": "object",
+      "properties": {
+        "reply": {
+          "type": "boolean"
+        },
+        "accept_third_party_mention": {
+          "type": "boolean"
+        },
+        "act_on_behalf": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_participation_scope": {
+      "type": "object",
+      "required": [
+        "kind",
+        "realm_id"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "realm",
+            "circle",
+            "flow"
+          ]
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_participation_set_request_body": {
+      "type": "object",
+      "required": [
+        "participation_scope",
+        "selection"
+      ],
+      "properties": {
+        "participation_scope": {
+          "$ref": "#/$defs/agent_participation_scope"
+        },
+        "selection": {
+          "$ref": "#/$defs/agent_participation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_participation_entry": {
+      "type": "object",
+      "required": [
+        "participation_scope",
+        "selection",
+        "ceiling",
+        "effective"
+      ],
+      "properties": {
+        "participation_scope": {
+          "$ref": "#/$defs/agent_participation_scope"
+        },
+        "selection": {
+          "$ref": "#/$defs/agent_participation"
+        },
+        "ceiling": {
+          "$ref": "#/$defs/agent_participation"
+        },
+        "effective": {
+          "$ref": "#/$defs/agent_participation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_participation_outcome": {
+      "type": "object",
+      "required": [
+        "ok",
+        "agent_principal_id",
+        "entries"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "agent_principal_id": {
+          "type": "string"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/agent_participation_entry"
+          }
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

@@ -272,7 +272,9 @@
         "ck.self.agent.rotate_key",
         "ck.self.agent.grant.attach",
         "ck.self.agent.grant.detach",
-        "ck.self.agent.sidecar_thread.ensure"
+        "ck.self.agent.sidecar_thread.ensure",
+        "ck.self.agent.participation.set",
+        "ck.self.agent.participation.get"
       ]
     }
   ],
@@ -408,6 +410,23 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome"
+    },
+    {
+      "operation_id": "ck.self.agent.participation.set",
+      "http": "PUT /_cokret/self/agents/{agent_principal_id}/participation",
+      "grpc": "SelfAgent/ParticipationSet",
+      "mq": "self.agent.participation.set",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_set_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
+    },
+    {
+      "operation_id": "ck.self.agent.participation.get",
+      "http": "GET /_cokret/self/agents/{agent_principal_id}/participation",
+      "grpc": "SelfAgent/ParticipationGet",
+      "mq": "self.agent.participation.get",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
     },
     {
       "operation_id": "ck.gate.account.oidc_callback",

@@ -85,6 +85,22 @@
       ],
       "description": "Optional Circle-local metadata encryption floor (binary, symmetric with content_encryption_floor: allow_plaintext | e2ee_required). When omitted, the Circle inherits parent Realm's metadata_encryption_floor. May only tighten, never widen, parent Realm floor; the effective floor is a one-way ratchet (reducer rejects a lowering write with metadata_encryption_floor_downgrade)."
     },
+    "agent_participation": {
+      "type": "object",
+      "description": "Optional CKP-0010 agent participation ceiling for this Circle: the maximum native personal agent behavior permitted in this scope. When omitted, inherits the parent Realm ceiling. Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen); it is further tightened by any inner Flow ceiling. See zh/models/circle.md field table / CKP-0010.",
+      "properties": {
+        "reply": {
+          "type": "boolean"
+        },
+        "accept_third_party_mention": {
+          "type": "boolean"
+        },
+        "act_on_behalf": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "encryption_profile": {
       "type": "string",
       "enum": [
