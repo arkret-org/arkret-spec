@@ -2691,6 +2691,13 @@
       "description": "Sub-reason for failed_precondition when a controller's ck.self.agent.participation.set selection enables a bit the effective ceiling disables. Effective participation = effective_ceiling ∩ selection. See zh/authz/capabilities.md §5.4."
     },
     {
+      "code": "agent_reply_not_permitted",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "A native personal agent attempted to author ck.message.create / ck.reaction.add in a scope where its effective participation reply bit is false (no reply-enabled selection ∩ ceiling covering the scope). See zh/authz/capabilities.md §5.4 / CKP-0016 §5.2."
+    },
+    {
       "code": "effective_scope_reducer_managed",
       "applies_to": [
         "schema_validation"

@@ -443,6 +443,57 @@
       }
     },
     {
+      "operation_id": "ck.self.agent.participation.set",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_set_request_body",
+        "schema_kind": "object",
+        "required": [
+          "participation_scope",
+          "selection"
+        ],
+        "properties": [
+          "participation_scope",
+          "selection"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "agent_principal_id",
+          "entries"
+        ],
+        "properties": [
+          "ok",
+          "agent_principal_id",
+          "entries"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.agent.participation.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "agent_principal_id",
+          "entries"
+        ],
+        "properties": [
+          "ok",
+          "agent_principal_id",
+          "entries"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.gate.account.oidc_callback",
       "success_shape_kind": "typed_response",
       "request": {
@@ -1058,7 +1109,8 @@
           "contact",
           "revoke_scopes",
           "full_peer_revoke",
-          "block_peer"
+          "block_peer",
+          "peer_service_did"
         ],
         "closed": true
       },

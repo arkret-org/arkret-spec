@@ -3418,6 +3418,23 @@
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome"
       },
       {
+        "operation_id": "ck.self.agent.participation.set",
+        "http": "PUT /_cokret/self/agents/{agent_principal_id}/participation",
+        "grpc": "SelfAgent/ParticipationSet",
+        "mq": "self.agent.participation.set",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_set_request_body",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
+      },
+      {
+        "operation_id": "ck.self.agent.participation.get",
+        "http": "GET /_cokret/self/agents/{agent_principal_id}/participation",
+        "grpc": "SelfAgent/ParticipationGet",
+        "mq": "self.agent.participation.get",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
+      },
+      {
         "operation_id": "ck.gate.account.oidc_callback",
         "http": "POST /_cokret/gate/account/oidc/callback",
         "grpc": "GateAccount/OidcCallback",
@@ -5542,6 +5559,19 @@
         ],
         "profile": "ck.profile.agent_sidecar_thread.v1",
         "event_mapping_kind": "scope_suffix_variant"
+      },
+      {
+        "action": "ck.self.agent.participation.set",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.capability.grant",
+          "ck.capability.revoke"
+        ],
+        "profile": "ck.profile.agent_participation_policy.v1",
+        "migration_group": "ckp_0016_agent_participation",
+        "event_mapping_kind": "aggregate_admin"
       },
       {
         "action": "ck.agent.protocol.discover",

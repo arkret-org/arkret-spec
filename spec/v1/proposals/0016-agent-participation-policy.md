@@ -23,14 +23,14 @@ merged_into:
 
 > Normative entry points:
 >
-> - [`spec/v1/zh/models/realm-and-space.md`](../zh/models/realm-and-space.md) §2.3 — Realm `agent_participation` policy component（ceiling）。
+> - [`spec/v1/zh/models/realm-and-space.md`](../zh/models/realm-and-space.md) §2.2 — Realm `agent_participation` policy component（ceiling）。
 > - [`spec/v1/zh/models/circle.md`](../zh/models/circle.md) §7 — Circle `agent_participation` ceiling 的 tighten-only 校验。
 > - [`spec/v1/zh/models/flow-and-message.md`](../zh/models/flow-and-message.md) §9.4 — Flow ceiling 与第三方 mention 投递路由规则。
 > - [`spec/v1/zh/authz/capabilities.md`](../zh/authz/capabilities.md) §5.4 — participation actions 与 selection→grant 物化。
 > - [`spec/v1/zh/sync/service-surface.md`](../zh/sync/service-surface.md) §10.1 — `ck.self.agent.participation.{set,get}` 与 session `scope_details.participation`。
 > - [`spec/v1/zh/models/private-objects.md`](../zh/models/private-objects.md) §4.1 — controller-owned `ck.agent.participation.v1` account-data。
 >
-> Schema / registry artifacts: `operation-registry.json`、`capability-action-registry.json`、`account-data-type-registry.json`、`event-payload.schema.json`、`profiles/conformance-profiles.json`。
+> Schema / registry artifacts: `contract-catalog.json`（source of truth；`operation-registry.json` / `capability-action-registry.json` 由它生成）、`account-data-type-registry.json`、`agent-operations.schema.json`、`realm.schema.json` / `circle.schema.json` / `flow.schema.json`、`profiles/conformance-profiles.json`。
 
 ## 1. 概要
 
@@ -71,7 +71,7 @@ merged_into:
 
 ### 4.1 Realm ceiling
 
-`ck.realm.policy_components` 增加 `agent_participation` 组件，由持有 `ck.realm.admin`（或新 `ck.realm.agent_participation` action）的 principal 写入：
+`ck.realm.policy_components` 增加 `agent_participation` 组件，由持有 `ck.realm.admin` 的 principal 写入（复用既有 realm-admin action，不新增独立 action）：
 
 ```json
 {
@@ -89,11 +89,11 @@ merged_into:
 
 ### 4.2 Circle ceiling
 
-Circle policy 增加 **可选** `agent_participation` 字段，结构同上。reducer 在写入时 MUST 校验其每一位 ⊆ 父 Realm ceiling 对应位（tighten-only），违反 fail closed。未声明时继承 Realm ceiling。该校验复用 [`circle.md` §7](../zh/models/circle.md) 既有的 floor-tighten 校验框架（与 `validate_metadata_floor_tightens` 同形）。
+Circle policy 增加 **可选** `agent_participation` 字段。注意它是**扁平三位** `{reply, accept_third_party_mention, act_on_behalf}`，不带 §4.1 Realm 的 `native_agent` 外层包裹——参与策略只约束 native personal agent，Circle / Flow 层无需区分 `applet_agent`（Applet 由 Realm policy 的 applet 分支单独控制）。reducer 在写入时 MUST 校验其每一位 ⊆ 父 Realm ceiling 的 `native_agent` 对应位（tighten-only），违反 fail closed。未声明时继承 Realm `native_agent` ceiling。该校验复用 [`circle.md` §7](../zh/models/circle.md) 既有的 floor-tighten 校验框架（与 `validate_metadata_floor_tightens` 同形）。
 
 ### 4.3 Flow ceiling
 
-Flow object 增加 **可选** `agent_participation` 字段。其有效父级 ceiling 为：`Flow.scope_circle_id` 指向 Circle 时取该 Circle ceiling；否则取 Realm-default ceiling。reducer 校验 tighten-only，未声明时继承父级。
+Flow object 增加 **可选** `agent_participation` 字段，形态与 Circle 相同（扁平三位、native-agent-only）。其有效父级 ceiling 为：`Flow.scope_circle_id` 指向 Circle 时取该 Circle ceiling；否则取 Realm-default `native_agent` ceiling。reducer 校验 tighten-only，未声明时继承父级。
 
 ### 4.4 Effective ceiling 解析
 
@@ -215,28 +215,29 @@ GET  /_cokret/self/agents/{agent_principal_id}/participation   ck.self.agent.par
 
 ### 8.2 Capability actions（capabilities.md §5.4）
 
-- `ck.self.agent.participation.set`（controller-only aggregate admin；profile=`ck.profile.agent_participation_policy.v1`；`target_event_kinds=[ck.capability.grant, ck.capability.revoke]` + controller-private `ck.agent.participation.v1` account-data 写入。account-data 写入不纳入 grantable set，由 controller 对自身 account-data 的固有写权批准——与 CKP-0009 sidecar projection 同构）。
-- `ck.realm.agent_participation`（realm-admin；管理 Realm `agent_participation` ceiling component；target=`ck.realm.policy_components`）。
+- `ck.self.agent.participation.set`（controller-only aggregate admin；profile=`ck.profile.agent_participation_policy.v1`；`target_event_kinds=[ck.capability.grant, ck.capability.revoke]` + controller-private `ck.agent.participation.v1` account-data 写入。account-data 写入不纳入 grantable set，由 controller 对自身 account-data 的固有写权批准——与 CKP-0009 sidecar projection 同构）。**这是本提案唯一新增的 capability action。**
 
-Circle / Flow ceiling 通过既有 `ck.circle.manage` / `ck.flow.admin` 写入对应 object 的 `agent_participation` 字段，不新增独立 action。
+各级 ceiling 均复用既有 action，不新增独立 action：Realm ceiling 由持有 `ck.realm.admin` 的 principal 写入 `ck.realm.policy_components` 的 `agent_participation` 组件；Circle / Flow ceiling 通过既有 `ck.circle.manage` / `ck.flow.admin` 写入对应 object 的 `agent_participation` 字段。
 
 ## 9. 与 normative spec 的交互
 
-- `zh/models/realm-and-space.md` §2.3：增加 `agent_participation` policy component 与 deployment 继承规则。
-- `zh/models/circle.md` §7：增加 Circle `agent_participation` 字段与 tighten-only 校验（与 floor 同框架）。
-- `zh/models/flow-and-message.md` §9.4：增加 Flow `agent_participation` 字段与第三方 mention 投递 gate。
-- `zh/authz/capabilities.md` §5.4：增加 `ck.self.agent.participation.set`、`ck.realm.agent_participation` 与 selection→grant 物化说明。
-- `zh/sync/service-surface.md` §10.1：增加两个 operation 与 session `scope_details.participation` overlay。
-- `zh/models/private-objects.md` §4.1：注册 `ck.agent.participation.v1` controller-owned account-data。
-- `zh/conformance/conformance-profiles.md`：注册 `ck.profile.agent_participation_policy.v1`。
+- ✅ `zh/models/realm-and-space.md` §2.2：增加 `agent_participation` policy component 与 deployment 继承规则。
+- ✅ `zh/models/circle.md` §7（字段表 §2）：增加 Circle `agent_participation` 字段与 tighten-only 校验（与 floor 同框架）。
+- ✅ `zh/models/flow-and-message.md` §3（Flow 字段表）增加 `agent_participation` 字段、§9.4.5 增加第三方 mention 投递 gate。
+- ✅ `zh/authz/capabilities.md` §5.4：增加 `ck.self.agent.participation.set` 与 selection→grant 物化说明（Realm ceiling 复用 `ck.realm.admin`，无新增 action）。
+- ✅ `zh/models/private-objects.md` §4.1：注册 `ck.agent.participation.v1` controller-owned account-data。
+- ⏳ `zh/sync/service-surface.md` §10.1、`zh/conformance/conformance-profiles.md`、`zh/conformance/conformance-vectors.md` 的散文合并尚待完成（见 §11.2）；operation / profile 已进 registry、openapi、bindings 与 `conformance-profiles.json`。
 
 ### 9.1 Artifact 改动
 
-- `operation-registry.json`：`ck.self.agent.participation.set` / `ck.self.agent.participation.get`。
-- `capability-action-registry.json`：`ck.self.agent.participation.set`、`ck.realm.agent_participation`。
+- `contract-catalog.json`（source of truth）增加两个 operation 与一个 capability action；`operation-registry.json` / `capability-action-registry.json` 由 `tools/artifact_pipeline.py generate` 生成，**MUST NOT 手改生成产物**（否则 `artifact_pipeline.py check` 报 drift）。
+  - `operation_registry`：`ck.self.agent.participation.set` / `ck.self.agent.participation.get`。
+  - `capability_action_registry`：仅 `ck.self.agent.participation.set`（Realm / Circle / Flow ceiling 复用 `ck.realm.admin` / `ck.circle.manage` / `ck.flow.admin`，不新增 action）。
 - `account-data-type-registry.json`：`ck.agent.participation.v1`，key pattern `ck.agent.participation.v1:<agent_principal_id>:<scope_key>`，`encrypted_at_rest=true`。
-- `event-payload.schema.json`：`realm_policy_components` 增加 `agent_participation`；Circle / Flow object 增加可选 `agent_participation`；session `scope_details` 增加 `participation[]`。
+- `realm.schema.json` / `circle.schema.json` / `flow.schema.json`：分别增加 `agent_participation`（Realm policy component 为 `{ native_agent: { … } }`；Circle / Flow object 为扁平三位）。
+- `agent-operations.schema.json`：`ck.self.agent.participation.{set,get}` 的 request / response `$defs`（`agent_participation`、`agent_participation_scope`、`agent_participation_set_request_body`、`agent_participation_entry`、`agent_participation_outcome`）。
 - `profiles/conformance-profiles.json`：注册新 profile。
+- ⏳ session `scope_details.participation[]` overlay（§7.1）尚未落入 schema（待补，见 §11.2）。
 
 ## 10. 设计理由
 
@@ -268,7 +269,12 @@ mention 接受是 **inbound 路由** 决策（"要不要把别人的 @ 推给我
 
 ### 11.2 仍需讨论
 
-本节当前为空。
+尚待完成的散文 / schema 合并（registry / openapi / bindings / schema artifacts 已落地，以下为人读 normative 散文与 schema overlay 的缺口）：
+
+- [ ] `zh/sync/service-surface.md` §10.1：补 `ck.self.agent.participation.{set,get}` 两个 operation 的散文条目与 session `scope_details.participation` overlay 说明。
+- [ ] `zh/conformance/conformance-profiles.md`：补 `ck.profile.agent_participation_policy.v1` 的散文注册（artifact `conformance-profiles.json` 已注册）。
+- [ ] `zh/conformance/conformance-vectors.md`：补 ceiling tighten-only、effective=ceiling∩selection、第三方 mention gate、selection-within-ceiling、session overlay 五个 feature 的 conformance vector。
+- [ ] session `scope_details.participation[]` overlay（§7.1）的 schema 落点：其形态 SHOULD 与 `agent-operations.schema.json#/$defs/agent_participation_entry`（`{scope, selection, ceiling, effective}`）对齐，而非 §7.1 当前示例的扁平形态——两处需统一后再落 schema。
 
 ## 12. 引用
 

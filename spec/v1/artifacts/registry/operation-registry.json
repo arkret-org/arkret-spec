@@ -272,9 +272,7 @@
         "ck.self.agent.rotate_key",
         "ck.self.agent.grant.attach",
         "ck.self.agent.grant.detach",
-        "ck.self.agent.sidecar_thread.ensure",
-        "ck.self.agent.participation.set",
-        "ck.self.agent.participation.get"
+        "ck.self.agent.sidecar_thread.ensure"
       ]
     }
   ],

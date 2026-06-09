@@ -219,7 +219,7 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "CKP-0010 Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ck.realm.admin via ck.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Flow tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See models/realm-and-space.md / CKP-0010.",
+      "description": "CKP-0016 Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ck.realm.admin via ck.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Flow tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See models/realm-and-space.md / CKP-0016.",
       "properties": {
         "native_agent": {
           "type": "object",
