@@ -33,10 +33,9 @@
         "team",
         "agent",
         "service",
-        "device",
         "integration"
       ],
-      "description": "Directory / UX classification only. MUST NOT participate in authorization, reducer acceptance, capability resolution, or any wire-protocol decision: those MUST consult DID + Grant + Constraint exclusively. Implementations are free to use actor_kind for icon selection, directory filtering and presentation, but a wrong value MUST NOT widen or narrow what a principal can do. See zh/models/actor.md."
+      "description": "Directory / UX classification only. MUST NOT participate in authorization, reducer acceptance, capability resolution, or any wire-protocol decision: those MUST consult DID + Grant + Constraint exclusively. Implementations are free to use actor_kind for icon selection, directory filtering and presentation, but a wrong value MUST NOT widen or narrow what a principal can do. Does NOT include 'device': a device is not an actor principal and has no DID of its own; its identity is device_id (ck:device:<uuid>) plus a verification method under the owning principal DID. See zh/models/actor.md."
     },
     "display_name": {
       "type": "string",

@@ -226,13 +226,13 @@ expected_<role>_<kind>_id
 
 ### 4.1 DID 适用边界
 
-DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Flow / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ck:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / device / controller / accountable party 时，才使用 DID 或 DID URL。
+DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Flow / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ck:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / controller / accountable party 时，才使用 DID 或 DID URL。设备不在此列：设备不是 actor 主体、没有自己的 DID，其标识是 `device_id`（`ck:device:<uuid>` typed ID），见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
 
 因此，"需要有 DID"的对象与结构按下表理解：
 
 | 对象 / 结构 | 必须包含的 DID 字段 | 说明 |
 | --- | --- | --- |
-| Actor identity（user / org / team / agent / service / device / integration） | DID 本身 | Actor 的身份根就是 DID；若需要在协作图中展示，则用 Actor Profile 承载展示字段。 |
+| Actor identity（user / org / team / agent / service / integration） | DID 本身 | Actor 的身份根就是 DID；若需要在协作图中展示，则用 Actor Profile 承载展示字段。**不含 device**：设备不是 actor 主体、无独立 DID，仅有 `device_id`（`ck:device:<uuid>`），见 device-lifecycle §4。 |
 | Actor Profile (`ck:actor_profile:`) | `principal_id` | Profile 只是展示镜像；`principal_id` 才是授权、签名和审计归属的主体 DID。 |
 | Event Envelope (`ck:event:`) | `actor_id`; Proof 中的 `verification_method` 为 DID URL | `actor_id` 是签署并提交事件的 actor DID，MUST 匹配 proof 控制链。 |
 | Realm (`ck:realm:`) | `created_by` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |

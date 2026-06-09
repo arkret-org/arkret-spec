@@ -1658,6 +1658,19 @@
       "notes": "Ghost/native distinction is carried by Applet provenance and accountability, not by an expanded actor_kind enum."
     },
     {
+      "id": "actor_kind=device",
+      "context": "actor_profile.actor_kind",
+      "since_revision": "2026-06-09",
+      "rejection_level": "hard_reject",
+      "replacement": "owning user/org principal DID as actor_id; device identity via device_id (ck:device:<uuid>) + ck.device.authorize",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "A device is not an actor principal and has no DID of its own. Device actions are attributed to the owning principal DID; the device is identified by device_id and registered as a verification method under that principal DID. See zh/models/actor.md and zh/crypto-media/device-lifecycle.md."
+    },
+    {
       "id": "accountable_to",
       "context": "actor_profile",
       "since_revision": "2026-05-29",

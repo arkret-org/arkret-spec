@@ -51,7 +51,7 @@ Cokret v1 不定义、注册或推荐任何自有 DID method。实现和用户 M
 
 普通密钥轮换 SHOULD NOT 改变 DID。
 
-长期 principal DID SHOULD 选择支持 key rotation、recovery、deactivation 或可验证历史的 DID method。`did:key` 和 `did:pkh` 属于生成式 DID method，通常不支持 DID document 更新、停用或内建恢复；它们 MAY 用于临时主体、设备、邀请、bootstrap、钱包绑定或测试，但除非 Realm / organization policy 明确允许，MUST NOT 作为默认长期用户 DID。
+长期 principal DID SHOULD 选择支持 key rotation、recovery、deactivation 或可验证历史的 DID method。`did:key` 和 `did:pkh` 属于生成式 DID method，通常不支持 DID document 更新、停用或内建恢复；它们 MAY 用于临时主体、邀请、bootstrap、钱包绑定或测试，但除非 Realm / organization policy 明确允许，MUST NOT 作为默认长期用户 DID。（注:设备不在此列——设备不是独立 DID 主体，其密钥是所属 principal DID 下的 verification method，见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。）
 
 ### 2.3 DID Document 不是身份画像
 
@@ -93,7 +93,7 @@ did:webvh:<scid>:<host-and-path>
 | `personal_node` profile principal DID（单人节点、低 stakes） | `did:webvh` SHOULD，`did:web` MAY | 单人自托管可降级为 `did:web`，但 deployment profile MUST 显式声明 `principal_method=did:web`。 |
 | 组织 DID | `did:webvh` | v1 core MUST-support；治理 / 合规部署强制可验证 history chain。 |
 | Service DID | `did:web` | 服务发现天然依赖域名和 HTTPS endpoint；可选升级到 `did:webvh`。 |
-| 临时主体、设备、测试、一次性邀请、bootstrap | `did:key` | 本地可解析、无网络依赖；不支持轮换 / 恢复，MUST NOT 作为默认长期身份。 |
+| 临时主体、测试、一次性邀请、bootstrap | `did:key` | 本地可解析、无网络依赖；不支持轮换 / 恢复，MUST NOT 作为默认长期身份。设备不选 DID method（设备非独立主体）。 |
 | 钱包 / 链上账号绑定（interop extension） | `did:pkh` | 只在钱包控制权就是业务身份根时使用；由 chain-binding interop extension profile 承载，不属于 v1 core 互操作必需。 |
 | AT Protocol 互通（interop extension） | `did:plc` adapter | 仅作为 AT Protocol bridge / interop adapter；由独立 interop extension profile 承载，不属于 v1 core 互操作必需。 |
 | 高安全或隔离部署 | `did:webvh`（默认） + policy 指定的额外 method | sovereign / enclave / 内网 PKI / KERI 等可作为辅助；MUST 明确 resolver trust roots 与 witness 集合。 |
@@ -110,7 +110,7 @@ flowchart TB
 
     Q1 -- "principal<br/>(用户 / 组织)" --> Q2{"deployment profile？"}
 
-    Q1 -- "临时 / 设备 / 邀请<br/>bootstrap / 测试" --> KEY["did:key<br/>本地可解析 / 无网络依赖<br/>不支持轮换 / 恢复<br/>MUST NOT 作为长期主体"]
+    Q1 -- "临时 / 邀请<br/>bootstrap / 测试" --> KEY["did:key<br/>本地可解析 / 无网络依赖<br/>不支持轮换 / 恢复<br/>MUST NOT 作为长期主体<br/>(设备不选 method，非独立主体)"]
 
     Q1 -- "钱包 / 链上账号绑定<br/>(interop extension)" --> PKH["did:pkh<br/>仅当钱包控制权就是业务身份根"]
 
@@ -156,7 +156,7 @@ Cokret v1 core conformance 要求如下：
 - Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`。
   - `did:webvh` 是 v1 core 默认 principal method（`personal_node` profile 例外，见 §3.1）。
   - `did:web` 是 v1 core 默认 service method；同时是 `personal_node` profile 的可选 principal method。它不是 `did:webvh` outage fallback；outage 行为见 §3.4 cache-only degraded mode。
-  - `did:key` 用于测试、bootstrap、设备、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料。
+  - `did:key` 用于测试、bootstrap、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料。设备本身不是独立 DID 主体（其密钥是所属 principal DID 下的 verification method）；bootstrap 首台设备时的 inception key 属于 principal，不是设备的 DID。
 - AT Protocol interop（`did:plc` adapter）、wallet binding（`did:pkh`）、KERI 等 method 是 **interop extension profile**；core 实现 MAY 不支持，profile 化承载的好处是把仍在演进的子规范隔离在 core 互操作之外。
 - 实现 MAY 支持其他现有 DID method，但 MUST 保留 raw method evidence，并声明 trust profile。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Cokret 私有 DID method。

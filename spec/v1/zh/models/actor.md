@@ -27,8 +27,9 @@ Actor 类型（`actor_kind`）：
 - `team`
 - `agent`
 - `service`
-- `device`
 - `integration`
+
+`actor_kind` 不包含 `device`：设备不是 actor 主体，没有自己的 DID。设备永远从属于某个 user/org principal，通过 `ck.device.authorize` 由该 principal 授权登记；设备的稳定标识是 `device_id`（`ck:device:<uuid>` typed ID），设备密钥是该 principal DID 下的 verification method。详见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
 
 Actor MAY 有对应的 `actor_profile` 对象，便于在协作图中被 mention、assign 或展示。
 
@@ -57,7 +58,7 @@ Schema id: `ck.schema.actor_profile.v1`
 | `schema` | yes | `ck.schema.actor_profile.v1` | const。 | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 profile 可省略。 | 所属 Realm。 |
 | `principal_id` | yes | `did` | 权限仍以 DID/capability 为准。 | Principal DID。 |
-| `actor_kind` | yes | `enum(user, org, team, agent, service, device, integration)` |  | Actor 类型。 |
+| `actor_kind` | yes | `enum(user, org, team, agent, service, integration)` | 不含 `device`：设备非 actor 主体，见 §2 与 device-lifecycle §4。 | Actor 类型。 |
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
 | `avatar_blob_ref` | no | `id:blob` |  | 头像。 |
@@ -72,7 +73,7 @@ Schema id: `ck.schema.actor_profile.v1`
 
 `principal_id` 是授权、签名和审计归属的根；`actor_kind` 只是该 DID 在协作图中的展示和策略分类。
 
-- `actor_kind="device"`：表示该 DID 被作为设备级或 pairwise device principal 直接行动；若设备只是某个用户/组织 principal 的授权设备，则 Event 仍以用户/组织 DID 作为 `actor_id`，设备身份通过 proof `verification_method`、`device_id`、`ck.device.authorize` 或 session grant 表达。
+- **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切协作-图行动 MUST 以所属 user/org principal DID 作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ck:device:<uuid>`）、`ck.device.authorize` 或 session grant 表达。需要 pairwise 匿名行动时，MUST 创建临时 pairwise **principal**（`did:key`，`actor_kind` 取 `user`/`agent` 等真实主体类型），而不是把设备当作独立主体；该临时 principal 仍需经正常 actor 登记，其设备同样通过 `ck.device.authorize` 从属于它。
 - `team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_principal_ids` 指向控制/责任 principal；它们不会因为 `accountable_principal_ids` 自动继承权限。
 - `actor_kind` 的 wire enum 不包含 `agent_native`、`agent_ghost` 或 `ghost`。Native personal agent 使用 `actor_kind="agent"`，并由 `ck.profile.personal_agent_provisioning.v1` provisioning state 区分；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值（外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`）。Realm policy 必须能通过 Applet provenance、`accountable_principal_ids`、profile 与 capability 分别控制 native personal agent 与 Applet / Ghost Actor，不得合并为单一 "automation allowed" 开关：
   - **Native personal agent**:由 controller 通过 `ck.self.agent.provision` 直接创建的一等 Cokret actor principal,拥有独立 DID document、`ck.identity.accountability_grant` 指向 controller、`ck.agent.key.authorize` 绑定的运行时 key。可被 mention / grant / revoke / pause / deactivate。
