@@ -3045,3 +3045,63 @@ Expected:
 - 若 effective `ck.realm.history_sharing_policy` 缺失，或 `pre_join_history="deny"` / `rule_only` 且无匹配 rule，S MUST withhold，reason SHOULD 为 `history_not_visible` 或 `policy_denied`。
 - 若 policy 明确允许 `pre_join_history="allow_if_visibility_allows"`、`allowed_key_sources` 包含 S 的来源类型、receiver state 合法且 audit 要求满足，S MAY 发送 key share；payload `key_scope.policy_digest` MUST 覆盖该 policy root，`membership_frontier_digest` SHOULD 覆盖 Bob join frontier。
 - Bob 客户端 MUST NOT 因 `history_visibility=shared` 自行推断 epoch 7 key；没有合法 key share 时，`E_before` 保持 `decryption_pending` / `decryption_failed`。
+
+## 14. Encryption Floor Ratchet Vectors
+
+加密能力轴(`encryption_profile`)与加密下限(`content_encryption_floor` / `metadata_encryption_floor`)分离;两个 floor 均二元(比较序 `allow_plaintext < e2ee_required`)、Realm 与 Circle 对称,且 effective floor 是单向 ratchet。本节固化 reducer 权威层的四个向量(完整语义见 [`../models/circle.md` §7](../models/circle.md)、[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md))。
+
+### 14.1 Content Floor Downgrade Rejected
+
+`vector_id`: `ck.vector.e2ee.content_floor_downgrade_rejected.v1`
+
+Setup:
+
+1. Realm R 的 effective `content_encryption_floor` 已达 `e2ee_required`(经 `ck.realm.policy_components` 写入)。
+2. 后续 `ck.realm.policy_components` 把 `content_encryption_floor` 改回 `allow_plaintext`。
+
+Expected:
+
+- reducer MUST `failed_precondition`,reason=`content_encryption_floor_downgrade`。
+- 抬高(`allow_plaintext` → `e2ee_required`)或维持同级 MUST 接受;只有降级被拒。
+
+### 14.2 Metadata Floor Downgrade Rejected
+
+`vector_id`: `ck.vector.e2ee.metadata_floor_downgrade_rejected.v1`
+
+Setup:
+
+1. Realm R 的 effective `metadata_encryption_floor` 已达 `e2ee_required`。
+2. 后续 `ck.realm.policy_components` 把 `metadata_encryption_floor` 改回 `allow_plaintext`。
+
+Expected:
+
+- reducer MUST `failed_precondition`,reason=`metadata_encryption_floor_downgrade`。
+- 与 content floor 同为单向 ratchet;抬高或同级接受,降级被拒。
+
+### 14.3 In-Place E2EE Enable
+
+`vector_id`: `ck.vector.e2ee.in_place_enable.v1`
+
+Setup:
+
+1. Realm R 以 `encryption_profile="mls_rfc9420"` + `content_encryption_floor="allow_plaintext"` 创建(钥匙在手、初期明文发送)。
+2. 后续 `ck.realm.policy_components` 把 `content_encryption_floor` 抬到 `e2ee_required`。
+
+Expected:
+
+- reducer MUST 接受该原地升级(正向向量),无需重建 Realm 或 MLS group。
+- 升级生效后,plaintext content 写入 MUST `failed_precondition`(reason=`content_encryption_floor_violation`),且 MLS governance send-pause 恢复完整约束。
+
+### 14.4 Circle Content Floor Below Realm Rejected
+
+`vector_id`: `ck.vector.circle.content_floor_below_realm_rejected.v1`
+
+Setup:
+
+1. 父 Realm 的 effective `content_encryption_floor` 为 `e2ee_required`(或 `encryption_profile="mls_rfc9420"`)。
+2. `ck.circle.create` / `ck.circle.update` 声明 `encryption_profile="none"`,或 Circle `content_encryption_floor` 低于父 Realm effective floor。
+
+Expected:
+
+- reducer MUST `failed_precondition`,reason=`circle_encryption_below_realm_floor`。
+- Circle floor 只能在父 Realm floor 之上收紧;`none` scope 无 MLS-backed effective_scope 可承载密文,故不得声明 `e2ee_required`。
