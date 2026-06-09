@@ -970,7 +970,9 @@
         "properties": [
           "target",
           "requested_scopes",
-          "idempotency_key"
+          "message",
+          "idempotency_key",
+          "recipient_service_did"
         ],
         "closed": true
       },
@@ -1005,7 +1007,8 @@
           "request_id",
           "requester",
           "action",
-          "granted_scopes"
+          "granted_scopes",
+          "requester_service_did"
         ],
         "closed": true
       },
@@ -1054,7 +1057,8 @@
         "properties": [
           "contact",
           "revoke_scopes",
-          "full_peer_revoke"
+          "full_peer_revoke",
+          "block_peer"
         ],
         "closed": true
       },
@@ -1070,6 +1074,86 @@
           "consent_revoke_refs",
           "state",
           "partial_revoke"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.invite_receive_policy.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/invite-receive-policy.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "subject_id",
+          "allowed_introduction_kinds",
+          "explicit_address_behavior",
+          "unknown_invites"
+        ],
+        "properties": [
+          "schema",
+          "subject_id",
+          "allowed_introduction_kinds",
+          "explicit_address_behavior",
+          "unknown_invites",
+          "trusted_realm_ids",
+          "trusted_principal_services",
+          "blocked_principal_services",
+          "blocked_subjects",
+          "disclosure"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.invite_receive_policy.set",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite-receive-policy.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "subject_id",
+          "allowed_introduction_kinds",
+          "explicit_address_behavior",
+          "unknown_invites"
+        ],
+        "properties": [
+          "schema",
+          "subject_id",
+          "allowed_introduction_kinds",
+          "explicit_address_behavior",
+          "unknown_invites",
+          "trusted_realm_ids",
+          "trusted_principal_services",
+          "blocked_principal_services",
+          "blocked_subjects",
+          "disclosure"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite-receive-policy.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "subject_id",
+          "allowed_introduction_kinds",
+          "explicit_address_behavior",
+          "unknown_invites"
+        ],
+        "properties": [
+          "schema",
+          "subject_id",
+          "allowed_introduction_kinds",
+          "explicit_address_behavior",
+          "unknown_invites",
+          "trusted_realm_ids",
+          "trusted_principal_services",
+          "blocked_principal_services",
+          "blocked_subjects",
+          "disclosure"
         ],
         "closed": true
       }
@@ -1351,7 +1435,8 @@
         "required": [
           "target_kind",
           "as_of",
-          "source_refs"
+          "source_refs",
+          "policy_revision"
         ],
         "properties": [
           "target_kind",
@@ -1360,6 +1445,7 @@
           "join_rule",
           "as_of",
           "source_refs",
+          "policy_revision",
           "join_candidates"
         ],
         "closed": true
@@ -1472,7 +1558,8 @@
           "query",
           "realm_id",
           "limit",
-          "intent"
+          "intent",
+          "cursor"
         ],
         "closed": true
       },
@@ -1485,6 +1572,7 @@
         ],
         "properties": [
           "results",
+          "next_cursor",
           "has_more"
         ],
         "closed": true
@@ -1881,6 +1969,44 @@
         ],
         "properties": [
           "status",
+          "disclosed_outcome",
+          "received_at",
+          "retry_after_ms"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.peer.contacts.submit",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/peer-contact-delivery-request.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "contact_event",
+          "contact_address",
+          "fact_kind",
+          "idempotency_key"
+        ],
+        "properties": [
+          "schema",
+          "contact_event",
+          "contact_address",
+          "fact_kind",
+          "idempotency_key"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status"
+        ],
+        "properties": [
+          "status",
+          "disclosed_outcome",
           "received_at",
           "retry_after_ms"
         ],

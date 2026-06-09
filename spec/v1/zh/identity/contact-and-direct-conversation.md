@@ -86,10 +86,10 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.contact.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target |
+| `ck.self.contact.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target；request body MAY 含可选 `message`(1..2000,NFC),透传到 `ck.contact.requested` 的 `message` 字段作为加好友附言；target 在对端 PS 时 MUST 携带可选 `recipient_service_did`(见 §4.1)以驱动跨端投递 |
 | `ck.self.contact.respond` | `POST /_cokret/self/contacts/respond` | `ContactRespondRequestBody` / `ContactRespondOutcome` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
 | `ck.self.contact.list` | `GET /_cokret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes |
-| `ck.self.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent |
+| `ck.self.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent；request body 含可选 `block_peer`(默认 false),为 true 时额外把 peer DID 写入 holder `invite_receive_policy.blocked_subjects`(硬拉黑) |
 
 `ContactListRow` MUST 至少区分：
 
@@ -104,6 +104,24 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 看到 peer 的合法 `ck.contact.tombstoned` 后，本 holder 的 projection SHOULD 立即把该 row 从 `accepted` 降级为 `tombstoned` 或等价 non-active state，避免列表长期显示 accepted 但 direct-message gate 已关闭。peer tombstone 尚未同步到本 holder 前，列表与 gate 可能短暂不一致；resolver 仍以最新可验证 contact projection + consent gate fail closed。
 
 列表 MAY 包含 `direct_conversation` 摘要，但该字段只能来自 direct conversation binding，不得反向决定 contact state。
+
+### 4.1 跨 Principal Server 投递
+
+§2 要求「对端签发的 request / accept / reject / tombstone facts 以原签名 envelope 参与本 holder 的 contact projection」。当 issuer 与 target holder 不在同一 Principal Server 时，该交换必须经由专门的 peer 投递面完成；本地 `ck.self.contact.*` operation 本身只写 issuer 侧 fact，不跨端。
+
+| operation | HTTP | Body / Response | 说明 |
+| --- | --- | --- | --- |
+| `ck.peer.contacts.submit` | `POST /_cokret/peer/contacts` | `PeerContactDeliveryRequest` / `PeerContactDeliveryOutcome` | issuer 侧 PS 把签名的 `ck.contact.requested` / `accepted` / `rejected` / `tombstoned` envelope 投递到 target holder 的 PS |
+
+该 peer 端点与 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) §5 的 `ck.peer.invites.submit` 同级、风格一致：要求 service-to-service 认证、`Destination-Service-DID` 等于 `contact_address.recipient_service_did`、RFC 9530 `Content-Digest` 与 RFC 9421 message signature。约束如下：
+
+- `contact_event` MUST 是 issuer 原签名的 `ck.contact.*` EventEnvelope；recipient MUST 以原签名 envelope 参与 projection，MUST NOT 重新签发成自己的本地 fact（§2 硬边界）。
+- `fact_kind` MUST 等于 `contact_event.kind`。
+- `contact_address.subject_id` 是该 fact 在 recipient 侧的归属 holder：`ck.contact.requested` 投递到 request target；`ck.contact.accepted` / `rejected` 反向投递回原 requester；`ck.contact.tombstoned` 投递到被 tombstone 的 peer。
+- recipient 把 fact 投影进 `subject_id` 的 contact projection（target 侧形成 `pending_incoming`；requester 侧 accept 形成 `accepted` 并带 `consent_grant_refs[]` / `invite_consent_grant_ref`；reject 形成 `rejected`；tombstone 把对应 row 降级）。
+- recipient 的 `invite_receive_policy.blocked_subjects` 命中 issuer 时，MUST fail-closed（drop + opaque），与 invite 投递的隐私侧信道防护一致。
+
+因 v1 principal DID（如 `did:web` / `did:webvh`）不强制内嵌 home Principal Server，requester 发起跨端 `ck.self.contact.request` 时 MUST 携带 target 的 `recipient_service_did`（与 invite 寻址同构），issuer 侧 PS 据此投递；同 PS 的 request 不需要该字段，本地直接投影。
 
 ## 5. Private Contact Discovery 边界
 

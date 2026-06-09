@@ -64,6 +64,18 @@
         "$ref": "#/$defs/did"
       },
       "uniqueItems": true
+    },
+    "blocked_subjects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/did"
+      },
+      "uniqueItems": true,
+      "description": "Per-subject block list (peer principal DIDs). Invite delivery whose inviter is in this list MUST be dropped, and disclosure MUST be forced to opaque regardless of the disclosure policy, to avoid leaking the block via a side channel."
+    },
+    "disclosure": {
+      "$ref": "#/$defs/disclosure_policy",
+      "description": "Graded disclosure policy. Controls whether the invite delivery outcome reveals a real result (delivered/blocked/quarantined) to the inviter, by introduction trust tier. Omitted means the default: high_trust=outcome, low_trust=opaque."
     }
   },
   "additionalProperties": false,
@@ -76,10 +88,33 @@
       "type": "string",
       "enum": [
         "locator_ref",
+        "consent_grant",
         "shared_realm",
         "same_principal_server",
         "explicit_address"
       ]
+    },
+    "disclosure_level": {
+      "type": "string",
+      "enum": [
+        "opaque",
+        "outcome"
+      ],
+      "description": "opaque: only a generic accepted-for-processing status is returned, indistinguishable across exists/not-exists/policy outcomes. outcome: the real delivered/blocked/quarantined result is disclosed to the inviter."
+    },
+    "disclosure_policy": {
+      "type": "object",
+      "properties": {
+        "high_trust": {
+          "$ref": "#/$defs/disclosure_level",
+          "description": "Disclosure level for the high-trust introduction tier: consent_grant, locator_ref, shared_realm. Default outcome."
+        },
+        "low_trust": {
+          "$ref": "#/$defs/disclosure_level",
+          "description": "Disclosure level for the low-trust introduction tier: same_principal_server, explicit_address, and missing/non-compliant evidence. Default opaque."
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

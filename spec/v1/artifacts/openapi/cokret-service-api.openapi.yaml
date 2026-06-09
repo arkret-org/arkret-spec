@@ -788,6 +788,8 @@ components:
       $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body
     DirectConversationResolveOutcome:
       $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome
+    InviteReceivePolicy:
+      $ref: ../schemas/invite-receive-policy.schema.json
     AccountUpdateProfileRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_request_body
     AccountUpdateProfileOutcome:
@@ -3464,6 +3466,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteDeliveryOutcome'
+  /_cokret/peer/contacts:
+    post:
+      operationId: ck.peer.contacts.submit
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      summary: Private Principal Server contact fact delivery.
+      description: |
+        Delivers a signed ck.contact.* fact (requested / accepted / rejected /
+        tombstoned) from the issuer-side Principal Server to the target holder's
+        Principal Server. The recipient validates the signed contact event, the
+        explicit contact_address, the destination service DID, and the holder's
+        receive policy, then projects the original signed envelope into the
+        target holder's contact projection (pending_incoming / accepted /
+        rejected / tombstoned) without re-signing it. This is the federation
+        delivery path for the principal-scoped contact fact log
+        (contact-and-direct-conversation.md §2), distinct from the Realm invite
+        delivery on /_cokret/peer/invites.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/peer-contact-delivery-request.schema.json
+      responses:
+        '200':
+          description: Generic contact fact delivery receive outcome.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome
   /_cokret/self/ephemeral:
     post:
       operationId: ck.self.ephemeral.send
@@ -3827,6 +3865,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactTombstone'
+  /_cokret/self/invite-receive-policy:
+    get:
+      operationId: ck.self.invite_receive_policy.get
+      security:
+      - bearerAuth: []
+      summary: Get the authenticated subject's invite-receive policy.
+      description: |
+        Returns the subject's private invite-receive policy override, falling
+        back to the recommended default when none is stored. This policy is not
+        written into the target Realm durable event log.
+      responses:
+        '200':
+          description: The subject's invite-receive policy (stored override or default).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteReceivePolicy'
+    post:
+      operationId: ck.self.invite_receive_policy.set
+      security:
+      - bearerAuth: []
+      summary: Replace the authenticated subject's invite-receive policy.
+      description: |
+        The request body MUST set subject_id equal to the session actor. The
+        override shares the same store as the blocked_subjects written by
+        ck.self.contact.tombstone(block_peer).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteReceivePolicy'
+      responses:
+        '200':
+          description: The stored invite-receive policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteReceivePolicy'
   /_cokret/self/direct-conversations/resolve:
     post:
       operationId: ck.self.direct_conversation.resolve
