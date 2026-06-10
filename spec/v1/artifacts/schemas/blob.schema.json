@@ -44,8 +44,33 @@
           ]
         },
         "key_ref": {
-          "type": "string",
-          "minLength": 1
+          "$comment": "MUST stay identical to encrypted-envelope.schema.json#/properties/key_ref and encryption-and-audit.md §2.3.1. Closed MLS group-binding object; not an opaque string.",
+          "type": "object",
+          "required": [
+            "algorithm",
+            "group_state_ref"
+          ],
+          "properties": {
+            "algorithm": {
+              "const": "MLS"
+            },
+            "group_state_ref": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                  "description": "Reference to accepted ck.mls.genesis / winning ck.mls.commit event."
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+                  "description": "Equivalent group state proof hash."
+                }
+              ],
+              "description": "v1 MLS group state lookup hint. MUST point to accepted ck.mls.genesis / winning ck.mls.commit / equivalent group state proof. Does NOT replace MLS transcript verification."
+            }
+          },
+          "additionalProperties": false
         },
         "epoch": {
           "type": "integer",
