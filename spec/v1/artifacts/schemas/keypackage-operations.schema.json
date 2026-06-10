@@ -166,6 +166,10 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature"
+        },
+        "last_resort": {
+          "type": "boolean",
+          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It is not consumed single-use; it cycles between published and claimed until rotated, expired, or revoked. Optional capability gated by ck.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
         }
       },
       "additionalProperties": false
@@ -229,6 +233,10 @@
             "principal_deactivated",
             "device_revoked"
           ]
+        },
+        "last_resort": {
+          "type": "boolean",
+          "description": "When true, this claim record returns a reusable last-resort KeyPackage (RFC 9420 Section 10) because the single-use pool was empty. The package may be reused within the same intended_realm_id and is not transitioned to consumed; the holder MUST rotate it and trigger group updates on next online. Optional capability gated by ck.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
         }
       },
       "additionalProperties": false

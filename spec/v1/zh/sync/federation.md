@@ -78,6 +78,8 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 节点间的 HTTP 请求 MUST 使用 [HTTP Message Signatures (RFC 9421)](https://datatracker.ietf.org/doc/html/rfc9421) 进行签名。接收方通过发送方 DID Document 中的公钥验证请求的真实性。
 
+> **PQ-hybrid TLS 基线（informative，路线图注记）**：service-to-service 联邦链路承载的 transaction 元数据多数只靠 TLS 保护，是 Harvest-Now-Decrypt-Later 的暴露面。联邦传输 SHOULD 使用 TLS 1.3 并启用混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem）；这与请求级 RFC 9421 签名正交，不改任何 wire 字段，老旧栈自动回退经典 group。完整论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。本注记为 informative / SHOULD 级，不引入新 normative 规则。
+
 签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header 字段：
 - `@method`
 - `@target-uri`

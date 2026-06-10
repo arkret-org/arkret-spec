@@ -83,12 +83,12 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 
 ## 3. 认证
 
-受保护 endpoint 的请求 MUST 携带可验证的认证材料；认证方式 MAY 为以下之一:
+受保护 endpoint 的请求 MUST 携带可验证的认证材料。会话出示方式按下列**推荐序**选择（越靠前越优先），实现 SHOULD 默认走 sender-constrained（proof-of-possession，PoP）路径，纯 bearer 仅作为兼容路径与低敏读：
 
-- `Authorization: Bearer <session_token>`
-- detached JWS request signature
-- HTTP message signature
-- mTLS，用于受控企业或服务间通信
+1. **`session_public_key` PoP（RFC 9421 HTTP Message Signature）—— 推荐默认**：请求用 `ck.session.grant` 委托的短期 `session_public_key`（私钥仅持有方掌握）对请求做 HTTP Message Signature。token 与签名密钥绑定，仅截获 `session_token` 不足以重放。详见 §3.2 与 [`service-http-binding.md` §2.5](./service-http-binding.md)。
+2. **detached JWS request signature** 或等价 signed proof body：栈不便用 RFC 9421 时的等价 sender-constrained 出示。
+3. **mTLS**：用于受控企业或服务间通信。
+4. **`Authorization: Bearer <session_token>`（纯 bearer，兼容路径）**：只证明持有 token、不证明持有密钥；token 一旦泄露即可重放，**风险高于上述 PoP 路径**。仅在低敏读和兼容旧客户端时可接受（见 §3.2）。
 
 无论采用哪种传输认证方式，协议层权限判断最终 MUST 回到：
 
@@ -135,6 +135,30 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 - Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 session grant 状态。
 - `supported_auth_methods` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
 - 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
+
+### 3.2 Sender-constrained（proof-of-possession）会话出示
+
+`ck.session.grant` 已把短期 `session_public_key` 绑定到 principal / device / audience / origin（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。但若日常请求只用 `Authorization: Bearer <session_token>` 出示，token 被窃即可在 audience 内重放，与 key 绑定设计脱节。按 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Cokret 把会话出示默认升级为 PoP。
+
+**SHOULD 默认（normative）**：
+
+- 对常规写操作（任何推进 actor_seq / Realm frontier 或产生持久副作用的请求）与敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等），实现 **SHOULD** 用 RFC 9421 HTTP Message Signature 做 PoP 出示，签名密钥即该会话的 `session_public_key`。
+- 纯 `Authorization: Bearer <session_token>` 出示 **SHOULD** 仅用于低敏读（公开 / 已授权的非敏感 metadata、`public_metadata` describe、自身低敏 viewer 字段）与兼容旧客户端的降级路径。
+- 服务 **SHOULD** 通过 `auth_metadata.did_binding_methods` 公布是否支持 `session_http_signature`（RFC 9421 PoP），供客户端协商；不支持 PoP 的兼容服务仍 MUST 校验 bearer token 的 audience / issuer / expiry / session grant 状态与 capability。
+- 在 §11.2 之外，PoP 出示不改变 §3 其余规则：协议层权限判断仍 MUST 回到 actor DID / capability / Realm policy；PoP 只把"持有 token"升级为"持有绑定密钥"。
+
+**PoP 出示形态（RFC 9421，与联邦面同栈）**：客户端用 `session_public_key` 对应私钥对请求签名，`Signature-Input` covered components 与联邦 service-to-service 出示对齐（见 [`federation.md` §3.2](./federation.md) 与 [`service-http-binding.md` §2.5](./service-http-binding.md)），至少覆盖：
+
+- `@method`、`@target-uri`、`@authority`（绑定动词、目标 URI 与 host，防止跨 endpoint / 跨 host 复用）；
+- `content-digest`（带 body 的请求必填，编码遵循 RFC 9530，覆盖 canonical request body）；
+- 关键 header：`Idempotency-Key`（若参与幂等 / replay key）、`X-Cokret-Wait-For`（若出现）；
+- 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` 替代）。
+
+与 session key 的绑定：签名 `kid` MUST 指向当前 `ck.session.grant` 委托的 `session_public_key`，且该 grant 的 principal / device / audience / origin 约束 MUST 与请求一致；grant 已撤销、过期或 audience / origin 不匹配时，服务端 MUST 拒绝（`unauthenticated`）。
+
+Replay window：PoP 出示**复用既有 replay window 机制**——签名时效窗口与联邦面同口径（`expires - created` 上限、`created` 与本地时钟偏差上限，量级见 [`encoding.md` §6](../conformance/encoding.md) 与 [`federation.md` §3.2](./federation.md) 签名时效窗口），过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；幂等 / replay key 复用 §6 与 `Idempotency-Key` 机制。
+
+纯 bearer 何时仍可接受：低敏读、`public_metadata` describe，以及尚未协商出 PoP 支持的兼容旧客户端的非敏感请求。对这些请求，纯 bearer 是允许的降级；但服务在 `high_security_organization` / `sovereign_deployment` 等高安全 profile 下对常规写与敏感读 **MUST** 要求 PoP 出示（见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md) 与 `conformance-profiles.json` 对应 profile 的 `additional_requirements`），此时纯 bearer 对这些操作 MUST 被拒绝。
 
 ## 4. 标准响应 envelope
 

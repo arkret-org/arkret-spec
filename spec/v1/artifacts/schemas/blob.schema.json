@@ -15,7 +15,6 @@
         "alg",
         "key_ref",
         "epoch",
-        "nonce",
         "ciphertext_digest",
         "size_bytes",
         "media_type"
@@ -28,11 +27,20 @@
         "encrypted": {
           "const": true
         },
+        "scheme": {
+          "type": "string",
+          "enum": [
+            "ck.blob.whole_file_aead.v1",
+            "ck.blob.stream_aead.v1"
+          ]
+        },
         "alg": {
           "type": "string",
           "enum": [
             "mls_exporter_aead_xchacha20poly1305",
-            "mls_exporter_aead_aes_256_gcm"
+            "mls_exporter_aead_aes_256_gcm",
+            "mls_exporter_aead_xchacha20poly1305_stream",
+            "mls_exporter_aead_aes_256_gcm_stream"
           ]
         },
         "key_ref": {
@@ -42,10 +50,6 @@
         "epoch": {
           "type": "integer",
           "minimum": 0
-        },
-        "nonce": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{16,64}$"
         },
         "ciphertext_digest": {
           "type": "string",
@@ -60,7 +64,88 @@
           "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
         }
       },
-      "additionalProperties": false
+      "oneOf": [
+        {
+          "$comment": "whole-file AEAD form: single nonce, single ciphertext_digest",
+          "properties": {
+            "scheme": {
+              "const": "ck.blob.whole_file_aead.v1"
+            },
+            "alg": {
+              "enum": [
+                "mls_exporter_aead_xchacha20poly1305",
+                "mls_exporter_aead_aes_256_gcm"
+              ]
+            },
+            "nonce": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,64}$"
+            }
+          },
+          "required": [
+            "nonce"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "nonce_prefix"
+                ]
+              },
+              {
+                "required": [
+                  "segment_size"
+                ]
+              },
+              {
+                "required": [
+                  "segment_count"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "$comment": "streaming chunked AEAD form (STREAM / OAE2): per-segment AEAD, per-object random nonce_prefix",
+          "properties": {
+            "scheme": {
+              "const": "ck.blob.stream_aead.v1"
+            },
+            "alg": {
+              "enum": [
+                "mls_exporter_aead_xchacha20poly1305_stream",
+                "mls_exporter_aead_aes_256_gcm_stream"
+              ]
+            },
+            "nonce_prefix": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "segment_size": {
+              "type": "integer",
+              "minimum": 1024,
+              "maximum": 8388608
+            },
+            "segment_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1048576
+            }
+          },
+          "required": [
+            "scheme",
+            "nonce_prefix",
+            "segment_size",
+            "segment_count"
+          ],
+          "not": {
+            "required": [
+              "nonce"
+            ]
+          }
+        }
+      ],
+      "unevaluatedProperties": false
     }
   },
   "title": "Cokret Blob Metadata",

@@ -3319,3 +3319,174 @@ Expected：
 
 - 任两类失败返回不同 status / `reason_code` / 字段集合，或错误 body 泄露目标是否存在。
 - p95（或高安全 profile 下 p99）超出同桶判定，形成可观测的存在性 timing 侧信道。
+
+## 16. Streaming Chunked AEAD Attachment Vectors
+
+本节收拢分块流式 AEAD 加密附件 scheme `ck.blob.stream_aead.v1` 的 conformance 向量，固化 [`media-and-blob.md`](../crypto-media/media-and-blob.md) §3.2 形态选择与 §3.3 的分块构造 / nonce / AAD / 整体 digest / 解密验证 MUST。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；error envelope `reason_code` 取 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 已登记的稳定码。
+
+### 16.1 Vector: Streaming AEAD Roundtrip
+
+`vector_id`: `ck.vector.blob.stream_aead_roundtrip.v1`
+
+本向量固化 §3.3.1 切分、§3.3.2 nonce 构造、§3.3.3 AAD 绑定、§3.3.5 整体 `ciphertext_digest` 语义与 §3.3.6 解密验证的正路径：明文按 `segment_size` 切成有序 segment（末段长度在 `1 .. segment_size`，可短于 `segment_size`），逐段独立 AEAD 加密、可分段下载并逐段增量校验，最终整体 `ciphertext_digest` 重算比对通过。
+
+Steps：
+
+1. 取一份明文，长度使 `segment_count == ceil(plaintext_size / segment_size)` 且末段严格短于 `segment_size`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ck.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_size`、`segment_count`、`ciphertext_digest`。
+2. 对每个 segment 用同一 content key、nonce = `nonce_prefix || u32_be(segment_index) || last_segment_flag` 加密，并把 `segment_index` / `last_segment_flag`（及 §3.3.3 要求字段）纳入 AAD；末段 `last_segment_flag = 0x01` 且 `segment_index == segment_count - 1`。
+3. 接收方按 `segment_index` 从 `0` 起严格升序分段下载（SHOULD 按 `segment_size` 整数倍偏移做 Range），逐段做 per-segment AEAD tag 校验并安全释放对应明文。
+4. 全部 segment 接收完毕后，按 §3.3.5 对全部 segment 密文（每段含其 AEAD tag）按 `segment_index` 升序拼接重算 `ciphertext_digest`，与 envelope 声明值比对。
+
+Expected：
+
+- 逐段 AEAD tag 校验全部通过，整体 `ciphertext_digest` 重算等于 envelope 声明值；接收方还原出 byte-for-byte 等于原明文的内容，并仅在见到合法末段（`last_segment_flag=0x01` 且 `segment_index==segment_count-1`）后才标记附件完整。
+- per-segment 增量校验提供边下边验，顶层 `ciphertext_digest` 提供整体完整性；二者都 MUST 校验通过才允许最终持久化 / 标记完整。
+- 反例（顺带覆盖）：将任一 segment 密文整体替换为另一份相同 segment_index 的合法密文，使 per-segment tag 仍可能通过但拼接后整体 digest 不符时，§3.3.6 步骤 7 MUST 以 `digest_mismatch`（与 §5 一致）拒绝、丢弃全部明文、不渲染不持久化。
+
+### 16.2 Vector: Streaming AEAD Truncation Rejected
+
+`vector_id`: `ck.vector.blob.stream_aead_truncation_rejected.v1`
+
+本向量固化 §3.3.6 步骤 4「缺末段拒绝」MUST：流在未出现合法末段时即终止（连接中断、`segment_count` 段已耗尽但末段 flag 仍为 `0x00`，或声明 `segment_count` 与实际不符）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放 / 缓冲明文，不得把已得明文当作完整文件。
+
+Steps：
+
+- **Case A — 丢弃末段 / 末段 flag 仍为 0x00**：发送 `segment_count - 1` 段后流终止，从未出现 `last_segment_flag = 0x01` 的合法末段（或最后到达段的 flag 仍为 `0x00`）。
+- **Case B — `segment_count` 段耗尽但无末段**：恰好接收声明 `segment_count` 段，但其中无任何段的 `last_segment_flag = 0x01`（声明数与实际末段缺失不符）。
+
+Expected：
+
+- **Case A / Case B**：接收方 MUST 以 `segment_stream_truncated` 拒绝，丢弃已释放 / 缓冲明文，MUST NOT 把已通过 per-segment 校验的部分明文当作完整文件持久化或标记完整。
+- 在见到合法末段前接收方 MUST NOT 把附件视为已完整接收（§3.3.6 步骤 3）；Range / 流式播放下允许消费已通过 per-segment 校验的明文段，但最终持久化或标记完整前 MUST 完成整体 digest 校验（此处因末段缺失永不达成）。
+
+### 16.3 Vector: Streaming AEAD Reorder / Replay Rejected
+
+`vector_id`: `ck.vector.blob.stream_aead_reorder_rejected.v1`
+
+本向量固化 §3.3.6 步骤 1「按序处理」与步骤 5「重复拒绝」MUST：`segment_index` 跳变 / 乱序 / 出现空洞 MUST 拒绝（`segment_sequence_invalid`）并丢弃已缓冲明文；同一 `segment_index` 出现多次 MUST 拒绝（`segment_replay`）。
+
+Steps：
+
+- **Case A — 乱序 / 跳变**：接收方在按 `segment_index` 升序消费过程中收到 `segment_index` 非连续递增的 segment（如在 index `k` 后到达 `k+2`，或先到 `k+1` 再到 `k`），形成空洞 / 跳变 / 乱序。
+- **Case B — 重复段**：同一 `segment_index` 的 segment 出现两次（重放同一已消费段）。
+
+Expected：
+
+- **Case A**：MUST 以 `segment_sequence_invalid` 拒绝，并丢弃已缓冲明文，不得按到达顺序拼接 / 释放越序段。
+- **Case B**：MUST 以 `segment_replay` 拒绝重复段。
+- 两个 case 中，因 `segment_index` / `last_segment_flag` 同时进入 nonce 与 AAD（§3.3.2 / §3.3.3），重排、截断与末段伪造在 AEAD 层即应被拒绝（tag 校验失败）；conformance 判定以稳定 `reason_code` 为准。
+
+### 16.4 Vector: Streaming AEAD Scheme Closure
+
+`vector_id`: `ck.vector.blob.stream_aead_scheme_closure.v1`
+
+本向量固化 §3.2 的 scheme 分派 fail-closed MUST 与 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的整文件 / 分块形态互斥 `oneOf`：接收方 MUST 按 envelope `scheme` 分派解密路径，遇到未知 `scheme` MUST fail closed（`unsupported_attachment_scheme`），不得回退到任何其它形态尝试解密；整文件形态（`nonce`）与分块形态（`nonce_prefix` / `segment_*`）字段互斥。
+
+Steps：
+
+- **Case A — 未知 scheme**：envelope 声明 `scheme` 为既非 `ck.blob.whole_file_aead.v1` 亦非 `ck.blob.stream_aead.v1` 的未知值（如 `ck.blob.stream_aead.v2`）。
+- **Case B — 形态字段混用**：单个 envelope 同时携带整文件形态字段 `nonce` 与分块形态字段 `nonce_prefix`（及 `segment_size` / `segment_count`），违反 `encrypted_attachment` 的 `oneOf`。
+
+Expected：
+
+- **Case A**：接收方 MUST fail closed，返回 `unsupported_attachment_scheme`，MUST NOT 回退到 `ck.blob.whole_file_aead.v1` 或任何其它形态尝试解密。
+- **Case B**：schema 校验 MUST 失败（`oneOf` 两个分支互斥，同时含 `nonce` 与 `nonce_prefix` / `segment_*` 不命中任一分支）；接收方 MUST 拒绝该 envelope，不得择一形态解释。
+- 对照：缺省 `scheme` 时 MUST 按 `ck.blob.whole_file_aead.v1`（整文件形态、单 `nonce`）解释（§3.2 向后兼容条款），不属于本反例。
+
+## 17. Last-Resort KeyPackage Vectors
+
+本节收拢可选 last-resort KeyPackage 语义的 conformance 向量，固化 [`encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.6.2 的复用 / 幂等 consume / 强制轮换 / Realm affinity / 可选协商 MUST。该能力由 feature `ck.feature.mls_last_resort_keypackage.v1` 门控（server describe `supported_features`）。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
+
+### 17.1 Vector: Last-Resort Claim And Reuse
+
+`vector_id`: `ck.vector.keypackage.last_resort_claim_and_reuse.v1`
+
+本向量固化 §2.6.2 的优先序、复用与幂等 consume MUST：池中存在普通包时 claim MUST 优先返回普通包，仅普通包池空时 MAY 返回 `last_resort=true` 包；last-resort 包 MUST NOT 进入单次 `consumed` 终态，在 `published` 与多次 `claimed` 之间循环；`ck.keys.keypackages.consume` 对 last-resort `keypackage_ref` MUST 被识别为幂等（返回成功但不改 `published`，不得返回 `keypackage_already_consumed`）；每次消费 MUST emit append-only 审计记录。
+
+Steps（前置：服务端在 `ck.server.describe.supported_features` 声明 `ck.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
+
+1. 该 Realm 的普通（单次）KeyPackage 池耗尽；requester 发起 claim。
+2. 同一 `intended_realm_id` 内对该 last-resort 包发起多次 Welcome（多次 claim / consume）。
+3. 检查每次消费后的审计链。
+
+Expected：
+
+- 普通包池空后，claim 响应 MAY 返回 last-resort 包，且对应 `keypackage_claim_record` MUST 置 `last_resort=true`，使 requester 与 holder 都能识别本次走 last-resort 路径。
+- 同一 `intended_realm_id` 内该包可被多次 Welcome 复用；`ck.keys.keypackages.consume` 对其调用 MUST 幂等（返回成功、状态保持 `published`、不移出池、MUST NOT 返回 `keypackage_already_consumed`）。
+- §2.6 / §2.6.1 其余校验（`keypackage_digest` / `capabilities_digest` / `ssk_generation` 匹配、`claim_envelope` 签名、Realm 反向 resolve）对 last-resort 包仍全部适用，放宽的只有单次性。
+- 每次消费 MUST emit 一条 `ck.mls.keypackage`（或等价）审计记录，至少含 `keypackage_ref`、`keypackage_digest`、`claim_id`、`last_resort=true`、消费的 `intended_realm_id` 与时间戳；审计链 MUST append-only，保留每次消费的独立记录（不得覆盖前次）。
+
+### 17.2 Vector: Last-Resort Forced Rotation
+
+`vector_id`: `ck.vector.keypackage.last_resort_forced_rotation.v1`
+
+本向量固化 §2.6.2「强制轮换闭合弱化窗口」MUST：last-resort 包持有 device 下次上线时 MUST 轮换该包（发布新 init/encryption key 的新 last-resort 包并把旧包标记 `rotated`，使旧包不再分发给新 claim）；持有者上线后 MUST 对所有经该 last-resort 包加入的 group 触发一次 MLS self-update Commit 推进 epoch，把前向保密恢复到正常 ratchet 水平，闭合 Welcome 阶段前向保密弱化窗口。
+
+Steps：
+
+1. holder 离线期间，其某个 last-resort 包在 Realm 内被用于多个 Welcome，使多个 group 经该包加入。
+2. holder 重新上线。
+
+Expected：
+
+- holder 上线后 MUST 发布新的 last-resort KeyPackage（新 init/encryption key）并把旧包标记 / 撤销为 `rotated`；轮换后旧包 MUST NOT 再被分发给新 claim。
+- holder MUST 对所有经该旧 last-resort 包加入的 group 触发一次 MLS self-update Commit（引入新 leaf key 材料）推进 epoch；无法精确定位经哪个包加入了哪些 group 时，MUST 对该 device 当前所有 last-resort-joined group 保守触发 update。
+- 该轮换 + update 序列 MUST 把上文弱化窗口闭合在有界范围内；组建立后常规消息 ratchet 前向保密不受影响（仅初始 Welcome 注入受弱化窗口约束）。
+
+### 17.3 Vector: Last-Resort Affinity And Optionality
+
+`vector_id`: `ck.vector.keypackage.last_resort_affinity_and_optionality.v1`
+
+本向量固化 §2.6.2 的 Realm affinity 与可选协商 fail-closed MUST：实现 MUST NOT 用单个全局 last-resort 包跨任意 Realm 复用，多次复用 MUST 限定在同一 `intended_realm_id` 内，跨 Realm 复用 MUST 拒绝（`last_resort_realm_affinity_violation`）；未声明 `ck.feature.mls_last_resort_keypackage.v1` 的服务端在池空时 MUST 继续 fail-closed，claim 响应 MUST NOT 返回 `last_resort=true` 的包（请求 last-resort 回退 MUST 拒绝，`last_resort_not_supported`）。
+
+Steps：
+
+- **Case A — 跨 Realm 复用拒绝**：声明该 feature 的服务端，尝试把绑定 `intended_realm_id = R1` 的 last-resort 包用于另一 Realm `R2` 的 Welcome / claim（`intended_realm_id` 不一致）。
+- **Case B — 未声明 feature 池空 fail-closed**：未在 `ck.server.describe.supported_features` 声明 `ck.feature.mls_last_resort_keypackage.v1` 的服务端，其某 Realm 普通包池耗尽；requester claim，并显式请求 last-resort 回退。
+- **Case C — holder 无该 Realm 条目（对照）**：声明该 feature 但 holder 离线期间某 Realm 尚无 last-resort 条目，该 Realm 普通包池空。
+
+Expected：
+
+- **Case A**：MUST 以 `last_resort_realm_affinity_violation` 拒绝；last-resort 包的多次使用语义是 Realm 内多次，跨 Realm 回退 MUST 由各 Realm 各自的 last-resort 池条目分别满足，不得退化为跨 Realm 复用。
+- **Case B**：服务端 MUST 继续 fail-closed（池空 claim 失败），claim 响应 MUST NOT 返回 `last_resort=true` 的包；对显式 last-resort 回退请求 MUST 返回 `last_resort_not_supported`。
+- **Case C**：该 Realm 的 claim 在不支持普通包回退时 MUST fail closed（与默认池空行为一致），不得退化为跨 Realm 复用其它 Realm 的 last-resort 包。
+- 三个 case 都保留 §2.6 的审计与隔离性质：每次消费 `intended_realm_id` 确定、claim-Realm 一致性可校验、`claim_envelope` Realm 反向 resolve 不被绕过。
+
+## 18. Sender-Constrained Session Token Vectors
+
+本节收拢 sender-constrained（proof-of-possession，PoP）会话出示的 conformance 向量，固化 [`api-conventions.md`](../sync/api-conventions.md) §3 / §3.2 的推荐序、SHOULD 默认与高安全 profile MUST 升级，以及 [`service-http-binding.md`](../sync/service-http-binding.md) §2.5 的 RFC 9421 HTTP Message Signature header 形状与 transcript 绑定。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
+
+### 18.1 Vector: PoP Presentation
+
+`vector_id`: `ck.vector.session.pop_presentation.v1`
+
+本向量固化 §3.2 / §2.5 的 PoP 出示与 transcript 绑定 MUST：客户端用 `ck.session.grant` 委托的 `session_public_key` 对应私钥做 RFC 9421 HTTP Message Signature，covered components MUST 至少覆盖 `@method`、`@target-uri`、`@authority`，带 body 请求 MUST 含 `content-digest`（RFC 9530，覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致）；签名 `kid` MUST 指向当前 grant 的 `session_public_key`；出示是否被接受由签名 transcript 而非裸 token 决定。
+
+Steps：
+
+- **Case A — 合法 PoP 写请求**：对常规写 endpoint（如 `POST /_cokret/self/events`）提交，`Signature-Input` covered components 含 `@method` / `@target-uri` / `@authority` / `content-digest`（及参与幂等的 `idempotency-key`），`keyid` 指向当前 grant 委托的 `session_public_key` kid，`created` / `expires` 在 replay window 内，body 实际 hash 与 `Content-Digest` header 一致。
+- **Case B — transcript / digest 不一致**：(a) 用对 method `M1` / path `P1` / body `B1` 生成的签名出示到 method / path 不同或 body 改为 `B2` 的请求（covered component 实际值与签名 transcript 不符）；(b) `Content-Digest` header 与 body 实际 hash 不一致。
+
+Expected：
+
+- **Case A**：验签通过，grant 的 principal / device / audience / origin 约束与请求一致，请求被接受；PoP 只把「持有 token」升级为「持有绑定密钥」，协议层权限判断仍回到 actor DID / capability / Realm policy。
+- **Case B(a)**：`@method` / `@target-uri` / `@authority` / `content-digest` 任一与重算结果不符时验签失败，MUST 拒绝（grant 已撤销 / 过期 / audience / origin 不匹配同样 MUST 以 `unauthenticated` 拒绝）。
+- **Case B(b)**：接收方 MUST 在验签前先校验 body 实际 hash 与 `Content-Digest` header 一致，不一致 MUST 拒绝，不得仅凭 header 自报 digest 通过。
+
+### 18.2 Vector: Bearer Replay Rejected Under High Security
+
+`vector_id`: `ck.vector.session.bearer_replay_rejected_high_security.v1`
+
+本向量固化 §3.2 / §2.5 的高安全 profile MUST 升级与 replay window MUST：在 `ck.profile.high_security_organization.v1` / `sovereign_deployment` 下，对常规写与敏感读用纯 `Authorization: Bearer`（无 `Signature`）MUST 被拒绝；默认 profile 下纯 bearer 对低敏 / 兼容路径是允许的降级；PoP 的 `created` / `expires` 超出 replay window 即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝（口径同 `federation.md` §3.2 / `encoding.md` §6 签名时效窗口）。
+
+Steps：
+
+- **Case A — 高安全 profile 纯 bearer 写 / 敏感读**：在 `ck.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等）只用 `Authorization: Bearer <session_token>` 出示，无 `Signature`。
+- **Case B — 默认 profile 同请求（对照）**：默认 profile 下对同一类（按 §3.2 属低敏 / 兼容路径或尚未协商 PoP 的兼容旧客户端）请求只用纯 bearer 出示。
+- **Case C — PoP 过窗**：携带合法签名的 PoP 出示，但 `created` / `expires` 超出 replay window（`expires - created` 超上限或 `created` 与本地时钟偏差超上限）。
+
+Expected：
+
+- **Case A**：MUST 以 `unauthenticated` 拒绝；高安全 profile 对常规写与敏感读要求 PoP 出示（见 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 对应 profile 的 `additional_requirements`），纯 bearer 对这些操作 MUST 被拒绝。
+- **Case B**：默认 profile 下作为允许的降级被接受（对照正样本）；服务端仍 MUST 校验 bearer token 的 audience / issuer / expiry / session grant 状态与 capability。
+- **Case C**：过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；时效窗口外的逐字节重放同样 MUST 拒绝。

@@ -97,6 +97,115 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
 
 E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供 `ciphertext_digest`，不得提供明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
+### 3.2 形态选择：整文件 AEAD 与分块流式 AEAD
+
+加密附件 envelope 通过 `scheme` 字段声明密文构造形态，v1 定义两种**并存**的合法形态：
+
+| `scheme` | 形态 | 适用 |
+| --- | --- | --- |
+| `ck.blob.whole_file_aead.v1` | 整文件单次 AEAD：单 `nonce` + 单 `ciphertext_digest`，整体密文校验通过后才释放明文。 | 默认形态；小文件、缩略图。 |
+| `ck.blob.stream_aead.v1` | 分块流式 AEAD（STREAM / OAE2）：明文切成固定大小 segment，每段独立 AEAD 加密，可边下边验、内存有界。 | 大文件、流式播放、跨设备传输。见 §3.3。 |
+
+- envelope **MUST** 携带 `scheme` 字段。为向后兼容，缺省 `scheme` 时接收方 MUST 按 `ck.blob.whole_file_aead.v1`（整文件形态）解释。
+- 发送方 **MAY** 对任意附件选用 `ck.blob.stream_aead.v1`；大文件 **SHOULD** 选用分块形态（见 [`models/file-transfer.md`](../models/file-transfer.md)）。
+- 接收方 **MUST** 按 envelope 的 `scheme` 字段分派解密路径；遇到未知 `scheme` MUST fail closed（`unsupported_attachment_scheme`），不得回退到任何其它形态尝试解密。
+- 两种形态的 envelope 都 MUST 满足 §3.1 的 AEAD nonce 纪律；分块形态的 nonce 兼容关系见 §3.3.2。
+
+### 3.3 Streaming Chunked AEAD（`ck.blob.stream_aead.v1`，normative）
+
+本节定义分块流式 AEAD scheme。其构造采用业界已生产化的 STREAM（OAE2，online authenticated encryption）形态，使接收方能在收到每个 segment 时增量验证并安全释放对应明文段，同时保留顶层单值整体完整性语义。
+
+#### 3.3.1 Segment 切分
+
+- 明文按 `segment_size` 字节切成有序 segment 序列；除最后一段外每段长度 MUST 恰为 `segment_size`，最后一段长度 MUST 在 `1 .. segment_size` 区间（空明文按单个长度为 0 的末段处理，且该段仍携带末段 flag）。
+- `segment_size` MUST 在 envelope 中显式声明，单位为字节。v1 默认值为 `262144`（256 KiB）。取值范围与 `segment_count` 上限见 [`conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §6。
+- `segment_count` MUST 等于实际 segment 数，并满足 `segment_count == ceil(plaintext_size / segment_size)`（空明文时 `segment_count == 1`）。
+- segment_index 从 `0` 开始连续单调递增，无空洞；第 `segment_count - 1` 段是末段。
+
+#### 3.3.2 Segment nonce 构造与 §3.1 兼容关系（normative）
+
+每个 segment 独立用同一 content key 做 AEAD 加密，但使用各自的 nonce。segment nonce 构造为：
+
+```text
+nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
+
+其中：
+  nonce_prefix       长度 = N_AEAD - 5 字节（per-object 随机，单调性由后缀保证）
+  u32_be(segment_index)  4 字节 unsigned big-endian segment 序号
+  last_segment_flag  1 字节：0x00 普通段 / 0x01 末段
+```
+
+`N_AEAD` 取值见 [`../conformance/encoding.md` §10.1](../conformance/encoding.md)（XChaCha20-Poly1305 → 24，因此 `nonce_prefix` 为 19 字节；AES-GCM → 12，`nonce_prefix` 为 7 字节）。
+
+- `nonce_prefix` MUST per-object 随机生成（至少 `N_AEAD - 5` 字节 CSPRNG 输出），并在 envelope 中以 base64url 编码携带（字段 `nonce_prefix`）。同一 content key 下不同 object MUST 使用不同 `nonce_prefix`。
+- 与 §3.1 整文件形态的兼容关系：§3.1 的 nonce 构造为 `sender_nonce_prefix(N_AEAD-8) || device_nonce_counter_be64(8)`，其中高位 prefix 承担**跨设备/跨 key 域分离**、低位 counter 承担**同 key 下唯一递增**。本 scheme 的 `nonce_prefix` 占位等价于整文件形态的 prefix（域分离：per-object 随机 + content key per-transfer fresh，见 §3.3.4），`u32_be(segment_index) || last_segment_flag` 占位等价于 counter 段（唯一递增：segment_index 在 object 内单调且 nonce 后缀对每段唯一）。因为每个 transfer 使用 fresh content key（content key MUST NOT 跨 transfer 复用，见 §3.3.4），(content key, nonce) 对在全局唯一，与 §3.1 "同一 key_ref 下 nonce 不复用" 的 contract 不冲突，也不与整文件形态的 counter 域产生交叉。
+- 因 `segment_index` 为 `u32`，单 object 的 segment 数硬上界为 `2^32`；v1 实际 `segment_count` 上限远低于此（见 scalability-constraints §6），二者 MUST 同时满足。
+
+#### 3.3.3 AAD binding（normative）
+
+每个 segment 的 AEAD AAD MUST 绑定以下 canonical 形态，使任一 segment 密文不能被挪用到其它 object、其它位置或另一末段判定：
+
+- `scheme = "ck.blob.stream_aead.v1"`
+- `key_ref`（canonical 形态，见 §3）
+- `nonce_prefix`（本 object 的随机前缀）
+- `segment_index`
+- `last_segment_flag`
+- `segment_count`
+- §3.1 第 2 条要求的 envelope 绑定项：`media_type`、`size_bytes` 与任何 profile 声明的 content policy digest
+
+`segment_index`、`last_segment_flag` 已进入 nonce，本节要求其同时进入 AAD，使重排、截断与末段伪造在 AEAD 层即被拒绝（tag 校验失败）。
+
+#### 3.3.4 Content key 与 thumbnail
+
+- 每个附件 object MUST 使用 fresh content key；content key MUST NOT 跨 object / 跨 transfer 复用。key 派生与 key_ref 形态沿用 §3 与 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。
+- thumbnail 在分块形态下仍走 §4 / §5.3 的**整文件形态**：缩略图通常远小于 `segment_size`，无需分块；其独立 AEAD key / nonce context（`purpose="thumbnail"`、独立 key derivation / AAD，不复用正文 key+nonce）规则不变（见 §5.3）。即正文密文使用 `ck.blob.stream_aead.v1` 时，其缩略图附件 envelope 仍 SHOULD 使用 `ck.blob.whole_file_aead.v1`。
+
+#### 3.3.5 ciphertext_digest（分块形态语义，normative）
+
+为保持与整文件形态一致的**单值整体完整性**语义：
+
+- `ciphertext_digest` = 对全部 segment 密文（每段含其各自 AEAD tag）按 segment_index 升序拼接后的完整字节流，用仓库既有 digest suite（见 [`../conformance/encoding.md` §3.2](../conformance/encoding.md)）求得，wire 形态为 `<algo>:<lowercase_hex>`，与 §3 / encoding.md §10 一致。
+- 拼接顺序 MUST 严格按 segment_index 升序，且覆盖恰好 `segment_count` 段、不含其它字节。
+- 语义分层：per-segment AEAD tag 提供**增量**校验（边下边验），顶层 `ciphertext_digest` 提供**整体**完整性（防止整体替换 / 段集合层面的攻击）。两者都 MUST 校验通过。
+
+#### 3.3.6 解密 MUST（normative）
+
+接收方解密 `ck.blob.stream_aead.v1` 附件时：
+
+1. **按序处理**：MUST 按 segment_index 从 `0` 起严格升序处理 segment；segment_index 跳变、乱序、出现空洞 MUST 拒绝（`segment_sequence_invalid`），并丢弃已缓冲明文。
+2. **逐段 AEAD 校验**：每段 MUST 用 §3.3.2 的 nonce 与 §3.3.3 的 AAD 做 AEAD 解密；tag 校验失败 MUST 拒绝（`segment_aead_failed`）。在第 N 段 AEAD 校验通过前，MUST NOT 释放第 N 段明文。
+3. **末段判定**：MUST 仅在见到 `last_segment_flag = 0x01` 的合法末段（且其 `segment_index == segment_count - 1`）并通过 AEAD 校验后，才认为附件完整。在见到合法末段前，接收方 MUST NOT 把附件视为已完整接收。
+4. **缺末段拒绝**：流在未出现合法末段时即终止（连接中断、`segment_count` 段已耗尽但末段 flag 仍为 `0x00`，或声明 `segment_count` 与实际不符）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放/缓冲明文，不得把已得明文当作完整文件。
+5. **重复拒绝**：同一 segment_index 出现多次 MUST 拒绝（`segment_replay`）。
+6. **越界拒绝**：`segment_index >= segment_count`、或非末段长度不等于 `segment_size`、或末段长度超出 `1 .. segment_size`（空明文 0 例外）MUST 拒绝（`segment_bounds_invalid`）。
+7. **整体 digest 校验**：全部 segment 接收完毕后，MUST 按 §3.3.5 重算拼接密文的 `ciphertext_digest` 并与 envelope 声明值比对；不匹配 MUST 拒绝、丢弃全部明文、不得渲染或写入持久缓存（与 §5 digest mismatch 规则一致）。Range / 分段流式播放场景下允许在整体 digest 完成前消费已通过 per-segment 校验的明文段，但**最终持久化或标记完整**前 MUST 完成整体 digest 校验。
+
+任一上述校验失败 MUST fail closed，按 §5 规则丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。
+
+#### 3.3.7 JSON 示例
+
+```json
+{
+  "blob_ref": "ck:blob:sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "encrypted": true,
+  "scheme": "ck.blob.stream_aead.v1",
+  "alg": "mls_exporter_aead_xchacha20poly1305_stream",
+  "key_ref": {
+    "algorithm": "MLS",
+    "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
+  },
+  "epoch": 42,
+  "nonce_prefix": "base64url-N_AEAD-minus-5-bytes",
+  "segment_size": 262144,
+  "segment_count": 13,
+  "ciphertext_digest": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+  "size_bytes": 3211264,
+  "media_type": "video/mp4"
+}
+```
+
+整文件形态（`ck.blob.whole_file_aead.v1`）的 envelope 仍按 §3 示例（携带单 `nonce` 而非 `nonce_prefix` / `segment_*`）。
+
 ## 4. Thumbnail
 
 Thumbnail descriptor:
@@ -175,6 +284,7 @@ Range: bytes=<start>-<end>
 - 客户端跟随 redirect 后仍 MUST 重新计算内容 digest，并与 `blob_ref` / `content_digest` 比对。
 - 如果内容 hash、`Digest` header、`blob_ref` 或 encrypted attachment `ciphertext_digest` 不匹配，客户端 MUST 拒绝该响应、丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。服务端在上传、镜像或代理时发现 digest mismatch MUST 返回 `digest_mismatch`，并不得生成可用 blob metadata。
 - Range / HEAD download MUST 绑定同一授权上下文；服务端不得让 Range probe 或 HEAD response 泄露不可见 blob 的大小、MIME、文件名或存在性。
+- 对采用 `ck.blob.stream_aead.v1`（§3.3）的加密附件，Range 下载的语义从"密文任意字节分片"升级为"可独立验证的明文分段"：客户端 SHOULD 按 segment 边界（`segment_size` 的整数倍偏移）请求 Range，使每个取回的 segment 能立即用 per-segment AEAD tag 增量校验并安全释放对应明文，无需先下完整文件。客户端仍 MUST 按 §3.3.6 完成按序、末段与整体 `ciphertext_digest` 校验后才认为附件完整；服务端对密文字节本身的 Range 语义不变（仍以 `Content-Range` 描述密文字节区间）。
 - 对不可见 blob，服务端 SHOULD 返回与不存在资源一致的 `not_found`，并避免返回 `Content-Length`、`Content-Type`、`Content-Disposition`、`Accept-Ranges` 等可枚举 header。
 
 ### 5.1 Content-Type 与 Content-Disposition

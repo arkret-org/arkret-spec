@@ -116,6 +116,8 @@ sidebar:
 
 - **身份与来源前置验签**：服务来源先做服务 DID 绑定、签名验证、trust policy 检查，再执行业务授权。
 - **分层限速与退避**：按来源、source service、realm、IP hash、tenant、endpoint 限速，超过阈值退避或拒绝。
+
+  > **不可链接限速配套方向（informative，路线图注记，2026-06 评审采纳；不落地 v1）**：现状反滥用主要依赖按来源 / IP hash 限速，而协议在多处推动 OHTTP / relay 路由的不可链接化（见 §2.1 #23、`conformance/conformance-profiles.md` §11.1 的 `ck.profile.traffic_metadata_hardened.v1`，以及 push / preview / blob 下载等 relay 化入口）。流量越走 relay，IP 维度限速越失效，运营方被迫在「放松限速」与「破坏不可链接性」之间二选一。作为该张力的配套方向，本注记登记 **Privacy Pass**（RFC 9576 架构 / RFC 9577 HTTP 认证 scheme `PrivateToken` / RFC 9578 token 签发协议；rate-limited issuance 见 draft-ietf-privacypass-rate-limit-tokens）作为 relay 化 pre-auth 面（OHTTP blob 下载、匿名 preview / peek、3PID claim 等）的**不可链接限速**配套路线。客户端可在不暴露稳定 IP / 身份的前提下向 origin 出示匿名 token，使 origin 在保持来源不可链接的同时仍能限速。本注记**不预注册 token type 或 profile id**；落地需先设计 issuer / attester 信任模型（谁签发、谁背书、何种 attestation），故 v1 仅作占位登记、不落地，不引入新 normative 规则。
 - **幂等与重放防护**：`request_id`、`Idempotency-Key`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
 - **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
@@ -124,6 +126,11 @@ sidebar:
 - **可追溯审计**：拒绝、退避、隔离、降级必须可审计（含 hash / hash chain / 决策签名）。
 - **故障收敛策略**：`rate_limited`、`soft_failed`、`temporarily_unavailable` 与 `closed` 的优先级分层，不以单点服务脆弱性扩散给全域。
 - **出站网络目标策略**：任何由外部输入导向的 URL、endpoint 或 service discovery 结果都必须在连接前执行 CIDR / 地址类别 / redirect / DNS rebind 检查。
+
+### 2.4 传输层后量子基线（informative，路线图注记）
+
+> **PQ-hybrid TLS 部署基线（informative，路线图注记，2026-06 评审采纳）**：federation / service-to-service / client-service 链路 **SHOULD** 使用 TLS 1.3，并启用混合后量子 key exchange group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem；IANA TLS Supported Groups codepoint 已注册，主流浏览器与 OpenSSL 3.5+ 已默认部署）。这是把 `crypto-media/encryption-and-audit.md` 既有 PQ 路线图（informative，HNDL / Harvest-Now-Decrypt-Later 优先）对 Harvest-Now-Decrypt-Later 的缓解，扩展到**仅靠 TLS 保护、不进 MLS / E2EE**的传输面——联邦 transaction 元数据、public plaintext Realm 内容、directory / sync 流量。该基线零协议成本、不触碰任何 wire 字段或 envelope `scheme` / `version`：握手在 TLS 层协商，老旧 TLS 栈在 group 不被支持时自动回退到经典 group。本注记仍为 informative / SHOULD 级，**不升 MUST**、不引入新 normative 规则；后续是否对特定 profile 收紧由独立路线图裁决。
+> 部署交叉引用：HTTP/TLS 传输绑定见 [`../sync/transport-bindings.md` §5](../sync/transport-bindings.md)；联邦链路见 [`../sync/federation.md` §3](../sync/federation.md)；sovereign / 高安全部署的强化建议见 [`../sync/sovereign-deployment.md` §3](../sync/sovereign-deployment.md)。
 
 ## 3. 对照：协议内映射与处理
 

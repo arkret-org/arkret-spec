@@ -1903,6 +1903,9 @@
           "audit_policy"
         ],
         "unsupported_optional": "deny bridge until explicit policy exists"
+      },
+      "additional_requirements": {
+        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, for regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads, the implementation MUST require proof-of-possession session presentation: an RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ck.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Plain Authorization: Bearer presentation (no Signature) MUST be rejected for these operations; plain bearer remains acceptable only for low-sensitivity / public_metadata reads. See api-conventions.md §3.2 and service-http-binding.md §2.5."
       }
     },
     "ck.profile.sovereign_enclave.v1": {
@@ -2392,6 +2395,9 @@
           "revocation_freshness"
         ],
         "unsupported_optional": "fail closed for high-risk action"
+      },
+      "additional_requirements": {
+        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, for regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads, the implementation MUST require proof-of-possession session presentation: an RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ck.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Plain Authorization: Bearer presentation (no Signature) MUST be rejected for these operations; plain bearer remains acceptable only for low-sensitivity / public_metadata reads. See api-conventions.md §3.2 and service-http-binding.md §2.5."
       },
       "identity": {
         "principal_method_default": "did:webvh",

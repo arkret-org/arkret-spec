@@ -147,6 +147,8 @@ Sovereign client(在 `ck.profile.sovereign_deployment.v1` 语境下)逐条强制
 - Realm 默认 `join_rule=invite` 或 `restricted`(SHOULD)。
 - Policy Server 默认 `closed` 或 `quarantine` fail mode(SHOULD)。
 
+> **PQ-hybrid TLS 基线（informative，路线图注记）**：sovereign / 高安全部署的 federation / service-to-service / client-service 链路尤其建议使用 TLS 1.3 并启用混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem），以缓解仅靠 TLS 保护的传输面的 Harvest-Now-Decrypt-Later 风险。完整论据与适用面见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。本注记为 informative / SHOULD 级，不升 MUST、不引入新 normative 规则；是否对本 profile 收紧由独立路线图裁决。
+
 ## 3.1 DID Policy
 
 Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 SHOULD 使用私有或 allowlist 范围内的 `did:webvh` / `did:web`；仅当 policy 明确允许时，MAY 为外部协作方接受 `did:plc`。

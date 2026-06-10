@@ -2996,6 +2996,78 @@
         "identity_resolution"
       ],
       "description": "did:webvh resolution is in cache-only degraded mode and either the requested operation is outside the closed low-risk read-only set, or no anchored, controller-proof-verified cache evidence is available. Resolver MUST fail closed rather than treat unresolvable as valid."
+    },
+    {
+      "code": "unsupported_attachment_scheme",
+      "applies_to": [
+        "schema_validation",
+        "service_call"
+      ],
+      "description": "An encrypted-attachment envelope carries a `scheme` value the receiver does not recognise. Receivers MUST fail closed rather than guess a decryption form. See zh/crypto-media/media-and-blob.md §3.2/§3.3."
+    },
+    {
+      "code": "segment_sequence_invalid",
+      "applies_to": [
+        "crypto",
+        "service_call"
+      ],
+      "description": "Streaming-chunked AEAD attachment (`ck.blob.stream_aead.v1`): segment indices arrive out of order, skip a value, or leave a gap. Receivers MUST reject. See zh/crypto-media/media-and-blob.md §3.3.6."
+    },
+    {
+      "code": "segment_aead_failed",
+      "applies_to": [
+        "crypto",
+        "service_call"
+      ],
+      "description": "Streaming-chunked AEAD attachment: a per-segment AEAD tag fails to verify. Receivers MUST reject the segment and abort the stream. See zh/crypto-media/media-and-blob.md §3.3.6."
+    },
+    {
+      "code": "segment_stream_truncated",
+      "applies_to": [
+        "crypto",
+        "service_call"
+      ],
+      "description": "Streaming-chunked AEAD attachment: the stream ended without a valid final segment (last_segment_flag never observed, or fewer segments than `segment_count`). Receivers MUST reject to resist truncation. See zh/crypto-media/media-and-blob.md §3.3.6."
+    },
+    {
+      "code": "segment_replay",
+      "applies_to": [
+        "crypto",
+        "service_call"
+      ],
+      "description": "Streaming-chunked AEAD attachment: a segment index appears more than once in the stream. Receivers MUST reject. See zh/crypto-media/media-and-blob.md §3.3.6."
+    },
+    {
+      "code": "segment_bounds_invalid",
+      "applies_to": [
+        "schema_validation",
+        "service_call"
+      ],
+      "description": "Streaming-chunked AEAD attachment: a segment index is out of range, a segment length violates `segment_size`, or `segment_count` disagrees with the observed stream. Receivers MUST reject. See zh/crypto-media/media-and-blob.md §3.3."
+    },
+    {
+      "code": "last_resort_not_supported",
+      "applies_to": [
+        "service_call",
+        "feature_discovery"
+      ],
+      "description": "A KeyPackage claim requested a last-resort fallback from a server that does not advertise `ck.feature.mls_last_resort_keypackage.v1`. The server MUST continue to fail closed on an empty single-use pool and MUST NOT return a `last_resort=true` package. See zh/crypto-media/encryption-and-audit.md §2.6.2."
+    },
+    {
+      "code": "last_resort_realm_affinity_violation",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "An attempt to reuse a last-resort KeyPackage outside its `intended_realm_id` Realm-scoped last-resort pool. Servers MUST reject. See zh/crypto-media/encryption-and-audit.md §2.6.2."
+    },
+    {
+      "code": "last_resort_rotation_required",
+      "applies_to": [
+        "service_call",
+        "crypto"
+      ],
+      "description": "A holder that joined groups via a last-resort KeyPackage came online but has not rotated the package and closed the forward-secrecy weakening window as required. See zh/crypto-media/encryption-and-audit.md §2.6.2."
     }
   ]
 }

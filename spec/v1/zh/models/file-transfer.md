@@ -74,6 +74,8 @@ Producer MUST NOT 写入任何明文文件 digest / hash 字段（例如 `plaint
 
 文件传输默认是服务端不可读内容。Producer MUST 对每个 transfer 生成 fresh content key，并使用 `ck.aead.xchacha20_poly1305.v1` 加密文件明文。除非 profile 后续显式定义可证明安全的 key-reuse 形态，content key MUST NOT 在多个 transfer 间复用。
 
+大文件 SHOULD 使用分块流式 AEAD 形态（`ck.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段并通过整体 `ciphertext_digest` 校验前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 与 `ck.file_transfer.key.v1` 的 key envelope MUST 按该 scheme 携带 `nonce_prefix` / `segment_size` / `segment_count`（而非整文件形态的单 `nonce`）；§4.2 的字段一致性校验相应比对 `key_message.nonce_prefix == record.encryption.nonce_prefix`、segment 参数一致。小文件与缩略图 MAY 继续使用整文件形态（`ck.blob.whole_file_aead.v1`）。无论形态如何，`content_digest` 仍是 Blob 密文字节摘要的唯一字段。
+
 AEAD AAD MUST 至少绑定：
 
 - `schema="ck.schema.file_transfer.v1"`

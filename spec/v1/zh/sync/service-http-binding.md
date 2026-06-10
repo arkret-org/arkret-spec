@@ -20,7 +20,7 @@ Operation 语义本身可映射到不同 transport；但 **v1 core wire conforma
 
 - 请求和响应默认使用 `Content-Type: application/json`。
 - 写请求 MUST 支持幂等键或内容 ID 幂等。
-- 认证 MAY 使用 bearer token、HTTP Message Signature、DID proof 或 transport-specific binding。
+- 认证 MAY 使用 bearer token、HTTP Message Signature、DID proof 或 transport-specific binding。会话出示按 [`api-conventions.md` §3](./api-conventions.md) 推荐序选择：常规写与敏感读 SHOULD 默认走 `session_public_key` 的 RFC 9421 HTTP Message Signature（sender-constrained / PoP），纯 bearer 降级为兼容路径与低敏读；高安全 profile 下该 PoP 出示升为 MUST（§2.5）。
 - 服务 MUST 通过 describe / feature discovery 暴露实际支持路径、profile 和限制。
 - 错误响应 MUST 使用统一 error schema。
 - 认证材料 MUST 放在 header、HTTP Message Signature、mTLS 或 signed proof body 中；受保护 endpoint MUST NOT 接受 query string 认证。
@@ -525,6 +525,29 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.self.agent.participation.get` | `path.agent_principal_id: did` | `query.scope?: AgentParticipationScope` | `ok: boolean`; `entries: AgentParticipationEntry[]` | response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_participation_outcome。controller 或该 agent runtime 可读取 selection、ceiling 与 effective participation；未知或 stale ceiling 必须 fail closed。 |
 | `ck.gate.account.oidc_callback` | `state: string`; `code: string` | `nonce: string`; `redirect_uri: url` | `principal_id: did?`; `session: SessionGrantOutcome?`; `redirect_url: url?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome。MUST 校验 state、nonce、服务端配置的 issuer binding 和 DID/account linkage。 |
 | `ck.self.media.ice_config` | `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `mode: enum(p2p,sfu,turn)` | 无 | `ttl_seconds: int`; `refresh_lead_seconds: int`; `issued_at: datetime`; `issued_at_bucket: datetime`; `bucket_seconds: int`; `ice_servers: object[]`; `constraints: object?`; `signature: signature` | request_schema_ref=schemas/media-operations.schema.json#/$defs/media_ice_config_request_body; response_schema_ref=schemas/ice-config-response.schema.json。actor 必须有 call/media capability；Realtime Media Server 必须被委托；TURN pseudonym bucket 固定 300s。 |
+
+### 2.5 Sender-constrained 会话出示（RFC 9421 PoP）
+
+会话出示的推荐序、SHOULD 默认规则与高安全 profile MUST 升级见 [`api-conventions.md` §3 / §3.2](./api-conventions.md)。本节固定其在 HTTP/JSON binding 上的 header 形状。
+
+客户端做 PoP 出示时，用 `ck.session.grant` 委托的 `session_public_key` 对应私钥对请求做 RFC 9421 HTTP Message Signature，header 形状与联邦 service-to-service 出示（§3 与 `federation.md` §3.2）同栈：
+
+```http
+POST /_cokret/self/events
+Authorization: Bearer <session_token>
+Content-Digest: sha256=:<base64>:
+Idempotency-Key: <opaque-key>
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "idempotency-key");created=...;expires=...;keyid="<session_public_key kid>"
+Signature: sig1=:base64...:
+```
+
+header 规则：
+
+- `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`；带 body 的请求 MUST 包含 `content-digest`（编码遵循 RFC 9530，覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致）。
+- 参与幂等 / replay key 的 `Idempotency-Key` MUST 进入签名 transcript；出现 `X-Cokret-Wait-For` 时 SHOULD 一并覆盖，避免被替换。
+- 签名 parameters MUST 包含 `created` 与 `expires`；`keyid` MUST 指向当前会话 `ck.session.grant` 委托的 `session_public_key` kid。
+- 接收方 MUST 校验签名密钥与 grant 绑定的 principal / device / audience / origin 一致，并按既有 replay window（签名时效窗口，量级见 `federation.md` §3.2 / `encoding.md` §6）拒绝过窗或重放出示；时效窗口外的逐字节重放即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
+- `Authorization: Bearer` header MAY 与 PoP 签名并存（携带 session_token 供服务端定位会话与 grant），但出示是否被接受由签名 transcript 而非裸 token 决定；纯 bearer（无 `Signature`）在高安全 profile 的常规写与敏感读上 MUST 被拒绝。
 
 ## 3. Events API
 

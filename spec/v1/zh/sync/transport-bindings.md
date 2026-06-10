@@ -115,6 +115,8 @@ HTTP/JSON 是默认 profile：
 - JSON request / response 使用 UTF-8。
 - 生产环境使用 HTTPS。
 - 写操作使用 `Idempotency-Key` header 或 body 内 `idempotency_key`。
+
+> **PQ-hybrid TLS 基线（informative，路线图注记）**：HTTP/TLS 传输绑定 SHOULD 使用 TLS 1.3 并启用混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem），把抗 Harvest-Now-Decrypt-Later 缓解扩到仅靠 TLS 保护的传输面（联邦元数据、public plaintext 内容、directory / sync 流量）；零 wire 成本，老旧栈自动回退经典 group。完整论据与适用面见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。本注记为 informative / SHOULD 级，不引入新 normative 规则。
 - 流式结果 MAY 使用 SSE、WebSocket 或 newline-delimited JSON。
 - 错误使用统一 JSON error object，并映射到 HTTP status。
 

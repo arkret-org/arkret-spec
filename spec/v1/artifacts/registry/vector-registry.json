@@ -60,6 +60,42 @@
       ]
     },
     {
+      "vector_id": "ck.vector.blob.stream_aead_roundtrip.v1",
+      "status": "active",
+      "domain": "blob",
+      "description": "Streaming chunked AEAD (ck.blob.stream_aead.v1) happy path: multi-segment plaintext with a short final segment is split, per-segment AEAD encrypted, segment-wise downloaded and incrementally verified, and the top-level ciphertext_digest is recomputed and matches per media-and-blob.md section 3.3.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.blob.stream_aead_truncation_rejected.v1",
+      "status": "active",
+      "domain": "blob",
+      "description": "Streaming AEAD truncation: a dropped final segment, a last segment whose flag stays 0x00, or segment_count exhausted without last_segment_flag=0x01 MUST be rejected with segment_stream_truncated and buffered plaintext discarded.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.blob.stream_aead_reorder_rejected.v1",
+      "status": "active",
+      "domain": "blob",
+      "description": "Streaming AEAD ordering: out-of-order / skipped / gapped segment_index MUST be rejected with segment_sequence_invalid; a repeated segment_index MUST be rejected with segment_replay.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.blob.stream_aead_scheme_closure.v1",
+      "status": "active",
+      "domain": "blob",
+      "description": "Streaming AEAD scheme closure: an unknown attachment scheme MUST fail closed with unsupported_attachment_scheme (no fallback decrypt); an envelope carrying both whole-file nonce and chunked nonce_prefix/segment_* fields MUST fail blob.schema.json encrypted_attachment oneOf validation.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.capability.approval_constraint.v1",
       "status": "active",
       "domain": "capability",
@@ -669,6 +705,33 @@
       ]
     },
     {
+      "vector_id": "ck.vector.keypackage.last_resort_claim_and_reuse.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "description": "Last-resort KeyPackage (ck.feature.mls_last_resort_keypackage.v1): when the normal pool is empty, claim MAY return last_resort=true; the package is reused across multiple Welcomes within the same intended_realm_id, consume is idempotent (stays published, never keypackage_already_consumed), and each consumption emits an append-only audit record per encryption-and-audit.md section 2.6.2.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.keypackage.last_resort_forced_rotation.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "description": "Last-resort KeyPackage forced rotation: on next online the holder MUST rotate the last-resort package (new init key, old marked rotated) and trigger an MLS self-update Commit on every group joined via it to advance the epoch and close the forward-secrecy weakening window.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.keypackage.last_resort_affinity_and_optionality.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "description": "Last-resort KeyPackage Realm affinity and optionality: cross-intended_realm_id reuse MUST be rejected with last_resort_realm_affinity_violation; a server not declaring the feature MUST fail closed on an empty pool and MUST NOT return a last_resort package, with explicit last-resort fallback returning last_resort_not_supported.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.late_key_recovery.removed_actor.v1",
       "status": "active",
       "domain": "late_key_recovery",
@@ -1152,6 +1215,24 @@
       "vector_id": "ck.vector.sidecar.multi_agent_publish.v1",
       "status": "active",
       "domain": "sidecar",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.session.pop_presentation.v1",
+      "status": "active",
+      "domain": "session",
+      "description": "Sender-constrained session PoP: a write request with a valid RFC 9421 HTTP Message Signature (kid = current grant session_public_key, covering @method/@target-uri/@authority/content-digest) is accepted; a signature whose transcript mismatches the method/path/body digest fails verification and is rejected per api-conventions.md section 3.2 and service-http-binding.md section 2.5.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.session.bearer_replay_rejected_high_security.v1",
+      "status": "active",
+      "domain": "session",
+      "description": "Under ck.profile.high_security_organization.v1 / sovereign_deployment, plain Authorization: Bearer (no Signature) on regular writes / sensitive reads MUST be rejected with unauthenticated, while the default profile accepts it as a compatibility downgrade; a PoP signature whose created/expires falls outside the replay window MUST be rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
