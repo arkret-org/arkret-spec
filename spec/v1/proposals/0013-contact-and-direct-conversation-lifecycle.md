@@ -126,7 +126,7 @@ Contact-managed consent dots 指通过该 contact request / accepted fact 的 `r
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
 | `ck.self.contact.request` | `POST /_cokret/self/contacts/request` | `{ target: did, requested_scopes?: consent_scope[], idempotency_key?: string }` | 写 requester 侧 request fact,并投递签名请求给 target |
-| `ck.self.contact.respond` | `POST /_cokret/self/contacts/respond` | `{ request_id, requester: did, action: "accept"|"reject", granted_scopes?: consent_scope[] }` | 由 target 接受/拒绝 request;accept 同步写 target consent grants |
+| `ck.self.contact.respond` | `POST /_cokret/self/contacts/respond` | `{ request_id, requester: did, action: "accept"\|"reject", granted_scopes?: consent_scope[] }` | 由 target 接受/拒绝 request;accept 同步写 target consent grants |
 | `ck.self.contact.list` | `GET /_cokret/self/contacts` | `ContactList` | 从 contact facts 投影,并附带 consent-derived `effective_scopes` |
 | `ck.self.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `{ contact: did, revoke_scopes?: consent_scope[] }` | 写 holder 侧 tombstone;默认 revoke holder 给 peer 的全部 contact-managed consent |
 
