@@ -213,7 +213,7 @@ Realm 有两个终态 event，语义不同：
 
 ### 2.7 Realm Membership FSM（normative）
 
-`ck.member.state` 写入 `ck.component.member.state.v1:<actor_did>`，lattice 为 `fsm`、`bottom=reject`。Realm membership FSM 的 `initial_state` 为 `leave`；wire 枚举仅使用 `invite / join / knock / leave / ban`，不存在单独的 `none` wire 值。`ck.realm.create` bootstrap 例外见 §2.5：它直接把 `created_by` 的 member cell 初始化为 `join`。
+`ck.member.state` 写入 `ck.component.member.state.v1:<actor_id>`，lattice 为 `fsm`、`bottom=reject`。Realm membership FSM 的 `initial_state` 为 `leave`；wire 枚举仅使用 `invite / join / knock / leave / ban`，不存在单独的 `none` wire 值。`ck.realm.create` bootstrap 例外见 §2.5：它直接把 `created_by` 的 member cell 初始化为 `join`。
 
 | from | to | writer / capability | 语义 |
 | --- | --- | --- | --- |
