@@ -276,7 +276,7 @@
       }
     },
     {
-      "$comment": "Wire-scope boundary (normative, T02). Kinds with wire_scope=ephemeral_event in event-kind-registry.json MUST NOT appear in the durable Event Envelope. They use ephemeral-envelope.schema.json (broadcast: presence/typing/receipt/call.signal) or device-message.schema.json (point-to-point to-device: ck.key.verification.*). ck.self.events.submit MUST schema_violation on any wire bytes matching this enum; reducer/state path MUST NOT advance Anchor frontier or actor_seq for these kinds.",
+      "$comment": "Wire-scope boundary (normative, T02). Kinds with wire_scope=ephemeral_event in event-kind-registry.json MUST NOT appear in the durable Event Envelope. They use ephemeral-envelope.schema.json (broadcast: presence/typing/receipt/call.signal) or device-message.schema.json (point-to-point to-device: ck.key.verification.*, ck.secret.*). ck.self.events.submit MUST schema_violation on any wire bytes matching this enum; reducer/state path MUST NOT advance Anchor frontier or actor_seq for these kinds.",
       "not": {
         "properties": {
           "kind": {
@@ -292,7 +292,9 @@
               "ck.key.verification.key",
               "ck.key.verification.mac",
               "ck.key.verification.done",
-              "ck.key.verification.cancel"
+              "ck.key.verification.cancel",
+              "ck.secret.request",
+              "ck.secret.send"
             ]
           }
         },
