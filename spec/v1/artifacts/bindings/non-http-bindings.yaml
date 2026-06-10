@@ -151,7 +151,7 @@ grpc:
     SelfKeys:
       Claim: ck.self.keys.claim
       BackupsDelete: ck.self.keys.backups.delete
-      BackupsGet: ck.self.keys.backups.get
+      BackupsUnlock: ck.self.keys.backups.unlock
       BackupsList: ck.self.keys.backups.list
       BackupsPut: ck.self.keys.backups.put
       KeyPackagesClaim: ck.self.keys.keypackages.claim
@@ -271,7 +271,7 @@ mq:
     self.keys.keypackages.revoke: ck.self.keys.keypackages.revoke
     self.keys.backups.put: ck.self.keys.backups.put
     self.keys.backups.list: ck.self.keys.backups.list
-    self.keys.backups.get: ck.self.keys.backups.get
+    self.keys.backups.unlock: ck.self.keys.backups.unlock
     self.keys.backups.delete: ck.self.keys.backups.delete
     self.moderation.report: ck.self.moderation.report
     self.projection.spaces: ck.self.projection.spaces

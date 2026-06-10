@@ -343,6 +343,26 @@ GET /_cokret/root/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 
 默认情况下，返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_digest`；`seq>0` 必须携带 `prev_event_digest`，并且该值必须等于前一条 accepted entry 的 `head_event_digest`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
 
+generic 形态的 digest 与 proof 字节语义（normative；与 [`../conformance/encoding.md`](../conformance/encoding.md) §6 event proof binding 同构，digest 字段使用非 Event 形态的 `payload_digest`）：
+
+- `head_event_digest` 是 entry 的自身 digest：从 entry 中移除 `proofs` 与 `head_event_digest` 两个字段，按 [`../conformance/encoding.md`](../conformance/encoding.md) §2 canonical JSON 编码，按 §3.1 wire 形态取 hash。hash chain 由此闭合：`seq>0` entry 的 `prev_event_digest` MUST 等于前一条 accepted entry 按本规则重算的 `head_event_digest`；identity receipt（`ck.schema.identity_receipt.v1`）见证的 `head_event_digest` 同样指本规则的值。
+- `proofs[]` 使用 generic detached proof（[`event-envelope.schema.json#/$defs/proof`](../../artifacts/schemas/event-envelope.schema.json)），其 `payload_digest = canonical_digest(entry_without_proofs)`——仅移除 `proofs`，保留已按上一条计算并写入的 `head_event_digest`。
+- `detached_jws` 的 payload segment MUST 为空（compact serialization），被签名字节 MUST 是 canonical proof binding object（实际字节顺序由 §2 JCS key 排序决定，下方列举顺序仅为可读性）：
+
+```json
+{
+  "payload_digest": "sha256:<canonical entry hash>",
+  "did": "<entry.did>",
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
+  "domain": "<proof.domain if present>",
+  "audience": "<proof.audience if present>"
+}
+```
+
+- Verifier 顺序固定：先重算并 constant-time 比对 `head_event_digest` 与 `proof.payload_digest`，再构造 binding object 并验证 detached JWS；任一步失败 MUST 拒绝该 entry 及其后续链段。实现 MUST NOT 用字段拼接字符串、裸 hex 或任何非 canonical JSON 形态替代上述 transcript。
+- 签名者授权：`proofs[]` 的 `verification_method` MUST 是按该 DID method 控制规则、对该 `operation` 在前一条 accepted entry 状态下有效的 controller key（`seq=0` inception 由 inception key 自签；`recover` 按 method 的 recovery 规则）。registry host MUST NOT 以自身 key 代替 controller 签名；registry / witness 对 head 状态的背书走 identity receipt，不进入 entry `proofs[]`。
+
 did method 原生日志有更强互操作格式时 MAY 直接返回该 method 的原生 accepted log entry，例如 `did:webvh` 的 Data Integrity proof 日志；这种服务 MUST 在 `describe.experimental_features[]` 中声明对应 feature id（例如 `ck.feature.identity.webvh_native_log.v1`），并且 `operation_body` / proof 语义 MUST 可按该 DID method 的规范重建同一 DID Document head。未声明该 experimental feature 的 `ck.root.identity.get_log` 响应仍 MUST 使用 `did-key-log-entry.schema.json`。
 
 #### 3.1.4 提交 DID 更新
@@ -499,7 +519,7 @@ POST /_cokret/self/account/cursor/revoke
 GET /_cokret/self/snapshot/head?realm_id=<id>
 ```
 
-用于拿到当前推荐 snapshot manifest。v1 的 `snapshot` namespace 仅 `ck.self.snapshot.head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。
+用于拿到当前推荐 snapshot manifest：响应即完整 `ck.schema.snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ck.self.snapshot.head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
 
 ### 5.3 Move / Anchor 状态与 Bottom 暴露
 

@@ -463,6 +463,19 @@
       },
       "additionalProperties": false
     },
+    "keys_backups_unlock_request_body": {
+      "type": "object",
+      "description": "Request body for ck.self.keys.backups.unlock. The unlock proof MUST validate as ck.schema.key_backup_unlock_proof.v1 and MUST be verified against the recovery session, caller, requesting device key, active-series record, and target envelope before the full ciphertext is returned (key-management.md §7.7.1 / §7.8). The path backup_id and proof.backup_id MUST match.",
+      "required": [
+        "proof"
+      ],
+      "properties": {
+        "proof": {
+          "$ref": "./key-backup-unlock-proof.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
     "keys_backups_delete_request_body": {
       "type": "object",
       "required": [

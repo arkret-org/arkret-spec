@@ -123,9 +123,6 @@
     },
     {
       "$ref": "#/$defs/SessionGrantOutcome"
-    },
-    {
-      "$ref": "#/$defs/SnapshotHeadState"
     }
   ],
   "$defs": {
@@ -1837,57 +1834,6 @@
           }
         }
       }
-    },
-    "SnapshotHeadState": {
-      "type": "object",
-      "description": "Result of ck.self.snapshot.head — a signed snapshot pointer for fast bootstrap. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. created_by, created_at, and authority_binding are part of the signed manifest transcript (see schemas/snapshot.schema.json#/properties/signature x-canonical-bytes-include) and MUST be returned to verifiers.",
-      "required": [
-        "snapshot_ref",
-        "state_digest",
-        "frontier",
-        "event_set_commitment",
-        "created_by",
-        "created_at",
-        "authority_binding",
-        "signature"
-      ],
-      "properties": {
-        "snapshot_ref": {
-          "type": "string",
-          "description": "External pointer to the Snapshot manifest; MUST equal schemas/snapshot.schema.json#/properties/id."
-        },
-        "state_digest": {
-          "type": "string"
-        },
-        "frontier": {
-          "type": "object"
-        },
-        "event_set_commitment": {
-          "type": "object"
-        },
-        "verification_hints": {
-          "type": "object"
-        },
-        "created_by": {
-          "type": "string",
-          "description": "DID of the snapshot issuer; bound by the manifest signature transcript."
-        },
-        "created_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "RFC 3339 UTC timestamp ending in 'Z' when the manifest was sealed; bound by the manifest signature transcript."
-        },
-        "authority_binding": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Snapshot issuer authority evidence bound by the manifest signature transcript; mirrors schemas/snapshot.schema.json#/properties/authority_binding."
-        },
-        "signature": {
-          "type": "object",
-          "description": "Detached proof of the snapshot manifest; verifier MUST validate against signer's verification method."
-        }
-      },
-      "additionalProperties": false
     },
     "ActorDid": {
       "type": "string",

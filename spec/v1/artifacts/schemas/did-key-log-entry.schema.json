@@ -47,7 +47,8 @@
     },
     "head_event_digest": {
       "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+      "description": "Self digest of this entry: canonical_digest of the entry with `proofs` and `head_event_digest` removed (canonical JSON per encoding.md §2, wire hash form per §3.1). The next accepted entry's prev_event_digest and identity receipts both reference this value. Normative byte-level definition: zh/sync/service-surface.md §3.1.3."
     },
     "operation_body": {
       "type": "object",
@@ -60,7 +61,8 @@
       "items": {
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
-      "minItems": 1
+      "minItems": 1,
+      "description": "Controller proofs over this entry. payload_digest = canonical_digest(entry without `proofs`); the detached JWS signs the canonical binding object {payload_digest, did, verification_method, created_at, domain?, audience?} defined in zh/sync/service-surface.md §3.1.3. verification_method MUST be a controller key authorized for this operation at the previous accepted entry's state; the registry host MUST NOT substitute its own key."
     }
   },
   "allOf": [

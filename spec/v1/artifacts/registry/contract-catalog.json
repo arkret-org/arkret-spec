@@ -3256,7 +3256,7 @@
           "ck.self.keys.keypackages.revoke",
           "ck.self.keys.backups.put",
           "ck.self.keys.backups.list",
-          "ck.self.keys.backups.get",
+          "ck.self.keys.backups.unlock",
           "ck.self.keys.backups.delete"
         ]
       },
@@ -4023,8 +4023,8 @@
         "grpc": "PeerSnapshot/Head",
         "mq": "peer.snapshot.head",
         "notes": "Federation peer snapshot manifest head for snapshot-assisted bootstrap. Requires service-to-service authentication and Realm federation_peer authorization.",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadState"
+        "success_shape_kind": "schema_resource",
+        "response_schema_ref": "schemas/snapshot.schema.json"
       },
       {
         "operation_id": "ck.self.ephemeral.send",
@@ -4147,14 +4147,6 @@
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome"
       },
       {
-        "operation_id": "ck.self.keys.backups.get",
-        "http": "GET /_cokret/self/keys/backups/{backup_id}",
-        "grpc": "SelfKeys/BackupsGet",
-        "mq": "self.keys.backups.get",
-        "success_shape_kind": "schema_resource",
-        "response_schema_ref": "schemas/key-backup.schema.json"
-      },
-      {
         "operation_id": "ck.self.keys.backups.list",
         "http": "GET /_cokret/self/keys/backups",
         "grpc": "SelfKeys/BackupsList",
@@ -4170,6 +4162,15 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/key-backup.schema.json",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_put_outcome"
+      },
+      {
+        "operation_id": "ck.self.keys.backups.unlock",
+        "http": "POST /_cokret/self/keys/backups/{backup_id}/unlock",
+        "grpc": "SelfKeys/BackupsUnlock",
+        "mq": "self.keys.backups.unlock",
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
+        "response_schema_ref": "schemas/key-backup.schema.json"
       },
       {
         "operation_id": "ck.self.keys.keypackages.claim",
@@ -4472,8 +4473,8 @@
         "http": "GET /_cokret/self/snapshot/head",
         "grpc": "SelfSnapshot/Head",
         "mq": "self.snapshot.head",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadState"
+        "success_shape_kind": "schema_resource",
+        "response_schema_ref": "schemas/snapshot.schema.json"
       }
     ],
     "success_shape_kind_definitions": {

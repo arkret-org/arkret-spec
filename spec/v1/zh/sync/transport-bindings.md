@@ -100,7 +100,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.edge.applet.describe` | 查询 Applet profile、namespace 与限制。 |
 | `ck.self.device_messages.put` | 发送 to-device message。 |
 | `ck.self.keys.upload` / `ck.self.keys.query` / `ck.self.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
-| `ck.self.keys.backups.put` / `ck.self.keys.backups.list` / `ck.self.keys.backups.get` / `ck.self.keys.backups.delete` | 加密密钥备份对象存储、枚举、读取与删除。 |
+| `ck.self.keys.backups.put` / `ck.self.keys.backups.list` / `ck.self.keys.backups.unlock` / `ck.self.keys.backups.delete` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 
 > **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_cokret/peer/*` HTTP trust surface 和 `ck.peer.*` operation_id。`/_cokret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。详见 [`federation.md`](./federation.md) §4。
 

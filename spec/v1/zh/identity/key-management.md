@@ -553,11 +553,11 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 
 FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
 
-`key_commitment` 的推荐构造：
+`key_commitment` 的推荐构造（`commitment` 是 §7.1 `cokret-key-backup/<backup_class>/<subdomain>/v1` 体系下的一个 subdomain，因此 commitment 天然按 `backup_class` 域隔离，不会跨域复用）：
 
 ```
 derived_key = KDF(passphrase, salt, kdf_params)
-commitment_key = HKDF(derived_key, info="cokret-key-backup-commitment-v1")
+commitment_key = HKDF(derived_key, info="cokret-key-backup/<backup_class>/commitment/v1")
 key_commitment = SHA256(commitment_key)
 ```
 
@@ -580,6 +580,8 @@ nonce = HMAC-SHA256(
   })
 )[0:N_AEAD]
 ```
+
+**澄清（防误读）**：`nonce_key` 的 info 为固定值不构成 §7.1 的跨域密钥复用——§7.1 禁止跨域的是 derived key、commitment key 和 wrap key；`nonce_key` 只用于 nonce 推导，且推导 transcript 已绑定 `backup_class`，nonce 输出本身按域隔离。该 info 在 interop 关键路径上（接收方 MUST 重算 nonce），不得变更。
 
 `aead_profile` 是可选但推荐的协商标识，绑定 AEAD 算法版本、nonce 长度、tag 长度、key 长度和 AAD 构造。接收方看到不支持的 `aead_profile` MUST fail closed；不得只凭 `aead.name` 推断可接受的参数组合。未携带 `aead_profile` 的 envelope 按 `aead.name` 的 v1 默认 profile 解释，但新写入 envelope SHOULD 显式携带 profile id。
 
@@ -759,7 +761,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 每次读取并尝试解密 key backup 都 MUST 产出一条 unlock proof，明文 keybag 也 MUST 有固定 schema，避免“能下载密文”被误当作“有权使用解密结果”：
 
 - backup decrypt proof payload MUST validate as `ck.schema.key_backup_unlock_proof.v1`，并绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_class`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest` 与 `issued_at`。`proof_digest` 是已接受 recovery proof transcript 的 digest；receiver MUST 用当前 session state 重建 transcript 后比对，不得采信客户端自报的 policy/session metadata。
-- 服务端在 `GET /_cokret/self/keys/backups/{backup_id}` 返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed（`recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `invalid_signature`）。
+- 取回完整 ciphertext 的协议操作是 `ck.self.keys.backups.unlock`（`POST /_cokret/self/keys/backups/{backup_id}/unlock`）：unlock proof MUST 作为 request body 的 `proof` 字段提交（`keys-operations.schema.json#/$defs/keys_backups_unlock_request_body`），path `backup_id` 与 `proof.backup_id` MUST 一致；实现 MUST NOT 用 header、query string 或私有载体承载该 proof。服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed（`recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `invalid_signature`）。
 - AEAD/HPKE open 后得到的明文 MUST validate as `ck.schema.key_backup_plaintext.v1`，且其中 `backup_id`、`backup_class`、`series_id`、`series_seq` MUST byte-for-byte 等于外层 envelope。`items[].secret_id` / `item_type` 是 keybag 内部路由字段，不得替代外层 envelope 的授权判断。
 - 实现 MUST 把 plaintext keybag 限定为本地瞬时处理材料；除非它被重新加密进本地 secret storage，否则不得持久化明文。日志、crash dump、telemetry MUST NOT 记录 `secret_b64u`。
 
@@ -768,8 +770,8 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 加密备份的密文虽然不暴露明文，但下载即"投喂 KDF 爆破弹药"。Device / Key Server MUST 对 `ck.keys.backups.*` 接口实施：
 
 - **每 principal 每 24h 下载上限**：默认 `daily_principal_download_limit = 64`（覆盖单一 series 下大量历史 epoch 备份的合理使用，又能拦截批量 dump）。`ck.profile.key_backup.memory_hard.v1` 实现 MUST 公布所采用的实际上限，并接受 deployment 配置在 `[16, 256]` 范围内调整。
-- **每 IP / 每 session 限速**：默认 `per_ip_get_burst = 8`，`per_ip_get_sustained_per_minute = 4`；逾限响应 MUST 是 `429 Too Many Requests`，并 SHOULD 在 `Retry-After` 中给出建议。
-- **认证降级阻断**：`GET /_cokret/self/keys/backups/{backup_id}` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_did / principal_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
+- **每 IP / 每 session 限速**：默认 `per_ip_unlock_burst = 8`，`per_ip_unlock_sustained_per_minute = 4`；逾限响应 MUST 是 `429 Too Many Requests`，并 SHOULD 在 `Retry-After` 中给出建议。
+- **认证降级阻断**：`POST /_cokret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_did / principal_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
 - **审计记录**：超出阈值或在异常时间窗内的下载 MUST 写入 `ck.audit.accessed`，`access_kind="key_backup_read"`，并按 `ck.profile.attested_audit.e2ee.v1`（若声明）配对 audit pair。
 - **跨 actor 拒绝**：服务端 MUST 在 envelope `actor_id` 与请求 caller 不一致时返回 `forbidden`，并不得通过 metadata 暴露 envelope 是否存在。
 - **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 额外要求 `crypto-media/device-lifecycle.md` §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入 `access_kind="key_backup_delete"` 审计。仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。

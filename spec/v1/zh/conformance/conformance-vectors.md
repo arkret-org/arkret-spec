@@ -3268,7 +3268,7 @@ Expected：
 
 `vector_id`: `ck.vector.key_backup.unlock_proof.v1`
 
-本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：“服务端在 `GET /_cokret/self/keys/backups/{backup_id}` 返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`GET /_cokret/self/keys/backups/{backup_id}` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
+本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：取回完整 ciphertext 的协议操作是 `ck.self.keys.backups.unlock`（`POST /_cokret/self/keys/backups/{backup_id}/unlock`），unlock proof MUST 作为 request body 的 `proof` 字段提交；“服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`POST /_cokret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
 
 Steps：
 

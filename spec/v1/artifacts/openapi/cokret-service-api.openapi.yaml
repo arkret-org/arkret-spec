@@ -42,7 +42,7 @@ info:
 
     `EventsResolveRequestBody` / `EventsResolveOutcome`, `EventsQueryOutcome`,
 
-    `EventsFrontierState`, `EphemeralSubmitOutcome`, `SnapshotHeadState`,
+    `EventsFrontierState`, `EphemeralSubmitOutcome`,
 
     `IdentityResolveOutcome` / `IdentityDocumentView`,
     `DidOperationSubmitRequestBody` / `DidOperationSubmitOutcome`,
@@ -821,6 +821,8 @@ components:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_put_outcome
     KeysBackupsList:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_list
+    KeysBackupsUnlockRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body
     KeysBackupsDeleteRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body
     KeysBackupsDeleteOutcome:
@@ -1206,8 +1208,6 @@ components:
         verification_hints:
           type: object
 
-    SnapshotHeadState:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadState
     IdentityDocumentView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView
     CellQueryEnvelope:
@@ -3954,13 +3954,17 @@ paths:
       responses:
         '200':
           description: |
-            Signed snapshot manifest head (pointer + signature; does NOT carry
-            chunk bytes). For chunk retrieval clients SHOULD subsequently call
-            the blob surface with the manifest's chunk references.
+            The current recommended Snapshot manifest (does NOT carry chunk
+            bytes). The manifest carries the full signed transcript, so the
+            client can verify the detached signature, then fetch chunk bytes
+            from the blob surface via chunks[].chunk_ref. Servers that cannot
+            produce a fully signed manifest MUST NOT advertise this operation
+            and MUST respond not_implemented; fabricated signature or
+            authority_binding material MUST NOT be served.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SnapshotHeadState'
+                $ref: ../schemas/snapshot.schema.json
   /_cokret/peer/snapshot/head:
     get:
       operationId: ck.peer.snapshot.head
@@ -3980,12 +3984,14 @@ paths:
       responses:
         '200':
           description: |
-            Signed snapshot manifest head visible to an authorized federation
-            peer for snapshot-assisted bootstrap.
+            The current recommended Snapshot manifest visible to an authorized
+            federation peer for snapshot-assisted bootstrap. Same manifest
+            shape, verification, and not_implemented rules as
+            ck.self.snapshot.head.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SnapshotHeadState'
+                $ref: ../schemas/snapshot.schema.json
   /_cokret/self/projection/spaces:
     get:
       operationId: ck.self.projection.spaces
@@ -4621,24 +4627,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsPutOutcome'
-    get:
-      operationId: ck.self.keys.backups.get
-      security:
-      - bearerAuth: []
-      parameters:
-      - in: path
-        name: backup_id
-        required: true
-        schema:
-          type: string
-          pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-      responses:
-        '200':
-          description: Encrypted key backup object
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/key-backup.schema.json
     delete:
       operationId: ck.self.keys.backups.delete
       security:
@@ -4663,6 +4651,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsDeleteOutcome'
+  /_cokret/self/keys/backups/{backup_id}/unlock:
+    post:
+      operationId: ck.self.keys.backups.unlock
+      security:
+      - bearerAuth: []
+      x-cokret-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: proof
+        notes: A bearer token alone MUST be rejected. The body MUST carry a ck.schema.key_backup_unlock_proof.v1 object; the server MUST verify it against the recovery session, caller, requesting device key, active-series record, and target envelope before returning the full ciphertext (key-management.md §7.7.1 / §7.8).
+      parameters:
+      - in: path
+        name: backup_id
+        required: true
+        schema:
+          type: string
+          pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeysBackupsUnlockRequestBody'
+      responses:
+        '200':
+          description: Encrypted key backup object released after unlock-proof verification
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/key-backup.schema.json
   /_cokret/self/keys/backups:
     get:
       operationId: ck.self.keys.backups.list

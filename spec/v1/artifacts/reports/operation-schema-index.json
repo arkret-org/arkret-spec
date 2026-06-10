@@ -2069,26 +2069,36 @@
     },
     {
       "operation_id": "ck.peer.snapshot.head",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadState",
+        "schema_ref": "schemas/snapshot.schema.json",
         "schema_kind": "object",
         "required": [
-          "snapshot_ref",
+          "id",
+          "realm_id",
+          "reducer_profile",
+          "schema_profile_refs",
           "state_digest",
           "frontier",
           "event_set_commitment",
+          "chunks",
+          "security_class",
           "created_by",
           "created_at",
           "authority_binding",
           "signature"
         ],
         "properties": [
-          "snapshot_ref",
+          "id",
+          "realm_id",
+          "reducer_profile",
+          "security_class",
+          "schema_profile_refs",
           "state_digest",
           "frontier",
           "event_set_commitment",
           "verification_hints",
+          "chunks",
           "created_by",
           "created_at",
           "authority_binding",
@@ -2504,53 +2514,6 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.backups.get",
-      "success_shape_kind": "schema_resource",
-      "response": {
-        "schema_ref": "schemas/key-backup.schema.json",
-        "schema_kind": "object",
-        "required": [
-          "backup_id",
-          "actor_id",
-          "backup_class",
-          "backup_version",
-          "series_id",
-          "series_seq",
-          "created_at",
-          "encryption",
-          "contents",
-          "ciphertext",
-          "ciphertext_digest",
-          "auth_data"
-        ],
-        "properties": [
-          "backup_id",
-          "actor_id",
-          "device_id",
-          "backup_class",
-          "mixed_secret_storage",
-          "backup_version",
-          "series_id",
-          "series_seq",
-          "supersedes",
-          "supersedes_digest",
-          "frontier_ref",
-          "recovery_policy_ref",
-          "expires_at",
-          "created_at",
-          "updated_at",
-          "encryption",
-          "contents",
-          "ciphertext",
-          "ciphertext_digest",
-          "plaintext_commitment",
-          "auth_data",
-          "retention"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ck.self.keys.backups.list",
       "success_shape_kind": "typed_response",
       "response": {
@@ -2626,6 +2589,64 @@
           "status",
           "backup_id",
           "ciphertext_digest"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.keys.backups.unlock",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
+        "schema_kind": "object",
+        "required": [
+          "proof"
+        ],
+        "properties": [
+          "proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/key-backup.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "backup_id",
+          "actor_id",
+          "backup_class",
+          "backup_version",
+          "series_id",
+          "series_seq",
+          "created_at",
+          "encryption",
+          "contents",
+          "ciphertext",
+          "ciphertext_digest",
+          "auth_data"
+        ],
+        "properties": [
+          "backup_id",
+          "actor_id",
+          "device_id",
+          "backup_class",
+          "mixed_secret_storage",
+          "backup_version",
+          "series_id",
+          "series_seq",
+          "supersedes",
+          "supersedes_digest",
+          "frontier_ref",
+          "recovery_policy_ref",
+          "expires_at",
+          "created_at",
+          "updated_at",
+          "encryption",
+          "contents",
+          "ciphertext",
+          "ciphertext_digest",
+          "plaintext_commitment",
+          "auth_data",
+          "retention"
         ],
         "closed": true
       }
@@ -3614,26 +3635,36 @@
     },
     {
       "operation_id": "ck.self.snapshot.head",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadState",
+        "schema_ref": "schemas/snapshot.schema.json",
         "schema_kind": "object",
         "required": [
-          "snapshot_ref",
+          "id",
+          "realm_id",
+          "reducer_profile",
+          "schema_profile_refs",
           "state_digest",
           "frontier",
           "event_set_commitment",
+          "chunks",
+          "security_class",
           "created_by",
           "created_at",
           "authority_binding",
           "signature"
         ],
         "properties": [
-          "snapshot_ref",
+          "id",
+          "realm_id",
+          "reducer_profile",
+          "security_class",
+          "schema_profile_refs",
           "state_digest",
           "frontier",
           "event_set_commitment",
           "verification_hints",
+          "chunks",
           "created_by",
           "created_at",
           "authority_binding",

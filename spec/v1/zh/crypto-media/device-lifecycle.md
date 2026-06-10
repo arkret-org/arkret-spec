@@ -877,7 +877,7 @@ Device / Key Server 对 encrypted backup object 提供标准操作：
 ```http
 PUT /_cokret/self/keys/backups/{backup_id}
 GET /_cokret/self/keys/backups
-GET /_cokret/self/keys/backups/{backup_id}
+POST /_cokret/self/keys/backups/{backup_id}/unlock
 DELETE /_cokret/self/keys/backups/{backup_id}
 ```
 
@@ -887,7 +887,7 @@ DELETE /_cokret/self/keys/backups/{backup_id}
 
 `GET /_cokret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ck.key_backup.active_series` / `ck.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
 
-`get` 返回完整 encrypted backup object，并受 `identity/key-management.md` §7.8 的 fresh device proof、`ck.schema.key_backup_unlock_proof.v1` 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；active series 内的非尾部 envelope MUST NOT 被单独删除，删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入高风险审计。
+`unlock` 返回完整 encrypted backup object：request body MUST 携带 `ck.schema.key_backup_unlock_proof.v1`（见 `identity/key-management.md` §7.7.1），并受 §7.8 的 fresh device proof 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；active series 内的非尾部 envelope MUST NOT 被单独删除，删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入高风险审计。
 
 ### 12.2 Retention and Erasure
 

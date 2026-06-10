@@ -752,11 +752,11 @@
       "operation_id": "ck.peer.snapshot.head",
       "tier": "extension",
       "http": "GET /_cokret/peer/snapshot/head",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadState",
+      "response_schema_ref": "schemas/snapshot.schema.json",
       "openapi_component_refs": {
-        "response": "#/components/schemas/SnapshotHeadState"
+        "response": "../schemas/snapshot.schema.json"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1524,19 +1524,6 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.backups.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/keys/backups/{backup_id}",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/key-backup.schema.json",
-      "openapi_component_refs": {
-        "response": "../schemas/key-backup.schema.json"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
       "operation_id": "ck.self.keys.backups.list",
       "tier": "extension",
       "http": "GET /_cokret/self/keys/backups",
@@ -1559,6 +1546,20 @@
       "openapi_component_refs": {
         "request": "../schemas/key-backup.schema.json",
         "response": "#/components/schemas/KeysBackupsPutOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.keys.backups.unlock",
+      "tier": "extension",
+      "http": "POST /_cokret/self/keys/backups/{backup_id}/unlock",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
+      "response_schema_ref": "schemas/key-backup.schema.json",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/KeysBackupsUnlockRequestBody",
+        "response": "../schemas/key-backup.schema.json"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1746,11 +1747,11 @@
       "operation_id": "ck.self.snapshot.head",
       "tier": "core",
       "http": "GET /_cokret/self/snapshot/head",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SnapshotHeadState",
+      "response_schema_ref": "schemas/snapshot.schema.json",
       "openapi_component_refs": {
-        "response": "#/components/schemas/SnapshotHeadState"
+        "response": "../schemas/snapshot.schema.json"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

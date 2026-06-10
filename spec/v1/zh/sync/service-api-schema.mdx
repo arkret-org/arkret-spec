@@ -283,10 +283,11 @@ paths:
   /_cokret/self/keys/backups/{backup_id}:
     put:
       operationId: ck.self.keys.backups.put
-    get:
-      operationId: ck.self.keys.backups.get
     delete:
       operationId: ck.self.keys.backups.delete
+  /_cokret/self/keys/backups/{backup_id}/unlock:
+    post:
+      operationId: ck.self.keys.backups.unlock
   /_cokret/self/keys/backups:
     get:
       operationId: ck.self.keys.backups.list
@@ -378,8 +379,8 @@ paths:
 | `ck.gate.account.register` | `POST /_cokret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.register`；request 字段为 `principal_id`，`handle` 经 signed claim 链路。 |
 | `ck.gate.account.session_revoke` | `POST /_cokret/gate/account/session-grants/revoke` | gRPC `GateAccount/SessionRevoke` / MQ `gate.account.session_revoke` |
 | `ck.self.ephemeral.send` | `POST /_cokret/self/ephemeral` | gRPC `SelfEphemeral/Send` / MQ `self.ephemeral.send`；承载 `ck.schema.ephemeral_envelope.v1`，不写 durable Event |
-| `ck.self.snapshot.head` | `GET /_cokret/self/snapshot/head` | snapshot pointer |
-| `ck.peer.snapshot.head` | `GET /_cokret/peer/snapshot/head` | peer snapshot pointer |
+| `ck.self.snapshot.head` | `GET /_cokret/self/snapshot/head` | snapshot manifest |
+| `ck.peer.snapshot.head` | `GET /_cokret/peer/snapshot/head` | peer snapshot manifest |
 | `ck.self.projection.spaces` / `ck.self.projection.flows` / `ck.self.projection.morphs` | `GET /_cokret/self/projection/spaces`, `GET /_cokret/self/projection/flows`, `GET /_cokret/self/projection/morphs` | gRPC `SelfProjection/Spaces` / `SelfProjection/Flows` / `SelfProjection/Morphs`; MQ `projection.*` |
 | `ck.directory.search_*` / `ck.directory.resolve_*` / `ck.find.directory.list_handles_for_subject` | `POST /_cokret/find/directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
 | `ck.find.directory.announce` / `ck.find.directory.withdraw` / `ck.find.directory.push.register` | `POST /_cokret/find/directory/announce`, `POST /_cokret/find/directory/withdraw`, `POST /_cokret/find/directory/push/register` | gRPC Discovery Ingest Service |
@@ -387,7 +388,7 @@ paths:
 | `ck.edge.push.register_device` / `ck.edge.push.notify` | `POST /_cokret/edge/push/register-device`, `POST /_cokret/edge/push/notify` | APNs/FCM adapter / MQ wakeup topic |
 | `ck.self.device_messages.put` / `ck.self.device_messages.get` | `POST /_cokret/self/device_messages`, `GET /_cokret/self/device_messages` | MQ device topic / 本地 IPC |
 | `ck.self.keys.upload` / `ck.self.keys.query` / `ck.self.keys.claim` | `POST /_cokret/self/keys/upload`, `POST /_cokret/self/keys/query`, `POST /_cokret/self/keys/claim` | E2EE key service binding |
-| `ck.self.keys.backups.put` / `ck.self.keys.backups.list` / `ck.self.keys.backups.get` / `ck.self.keys.backups.delete` | `PUT /_cokret/self/keys/backups/{backup_id}`, `GET /_cokret/self/keys/backups`, `GET /_cokret/self/keys/backups/{backup_id}`, `DELETE /_cokret/self/keys/backups/{backup_id}` | Encrypted key backup storage binding |
+| `ck.self.keys.backups.put` / `ck.self.keys.backups.list` / `ck.self.keys.backups.unlock` / `ck.self.keys.backups.delete` | `PUT /_cokret/self/keys/backups/{backup_id}`, `GET /_cokret/self/keys/backups`, `POST /_cokret/self/keys/backups/{backup_id}/unlock`, `DELETE /_cokret/self/keys/backups/{backup_id}` | Encrypted key backup storage binding |
 | `ck.self.authz.check` / `ck.self.authz.get_effective_grants` / `ck.self.authz.get_invites` | `POST /_cokret/self/authz/check`, `GET /_cokret/self/authz/effective-grants`, `GET /_cokret/self/authz/invites` | gRPC / policy 插件回调 |
 | `ck.self.policy.check` | `POST /_cokret/self/policy/check` | policy 本地调用 |
 | `ck.self.media.ice_config` | `POST /_cokret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |

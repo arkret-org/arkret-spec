@@ -751,7 +751,7 @@
         "ck.self.keys.keypackages.revoke",
         "ck.self.keys.backups.put",
         "ck.self.keys.backups.list",
-        "ck.self.keys.backups.get",
+        "ck.self.keys.backups.unlock",
         "ck.self.keys.backups.delete"
       ],
       "required_event_kinds": [
@@ -3310,7 +3310,7 @@
       "required_endpoints": [
         "ck.self.keys.backups.put",
         "ck.self.keys.backups.list",
-        "ck.self.keys.backups.get",
+        "ck.self.keys.backups.unlock",
         "ck.self.keys.backups.delete"
       ],
       "required_event_kinds": [],

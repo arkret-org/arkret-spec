@@ -755,10 +755,14 @@
       ]
     },
     {
-      "operation_id": "ck.self.keys.backups.get",
-      "http_alias": "GET /_cokret/self/keys/backups/{backup_id}",
+      "operation_id": "ck.self.keys.backups.unlock",
+      "http_alias": "POST /_cokret/self/keys/backups/{backup_id}/unlock",
       "operation_specific": [
-        "not_found"
+        "not_found",
+        "recovery_evidence_unbound",
+        "backup_frontier_stale",
+        "series_chain_broken",
+        "invalid_signature"
       ]
     },
     {
